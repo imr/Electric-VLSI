@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -685,7 +686,7 @@ public final class ExportChanges
      */
     public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts, boolean onlyPowerGround,
                                     HashMap<PortInst,Export> originalExports) {
-        Job.checkChanging();
+        EDatabase.serverDatabase().checkChanging();
 
         List<PortInst> portInstsFiltered = new ArrayList<PortInst>();
         int total = 0;

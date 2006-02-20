@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -646,7 +645,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         public boolean doIt() throws JobException
         {
             lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
-            Undo.noUndoAllowed();
+//            Undo.noUndoAllowed();
             if (lib == null) return false;
 			fieldVariableChanged("lib");
             return true;

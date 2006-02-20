@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;

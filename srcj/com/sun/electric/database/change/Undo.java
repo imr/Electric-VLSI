@@ -24,14 +24,10 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.ServerJobManager;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
@@ -49,7 +45,7 @@ public class Undo
 	 */
 	public static class ChangeBatch
 	{
-        private Snapshot oldSnapshot, newSnapshot;
+        private int oldSnapshotId, newSnapshotId;
         
 		private int batchNumber;
 		private Tool tool;
@@ -57,12 +53,12 @@ public class Undo
 		private int startingHighlights = -1;				// highlights before changes made
 		private int preUndoHighlights = -1;				// highlights before undo of changes done
 
-		private ChangeBatch(Snapshot oldSnapshot, Tool tool, String activity, int startingHighlights) {
-            this.oldSnapshot = oldSnapshot;
+		private ChangeBatch(Snapshot oldSnapshot, Tool tool, String activity, int startingHighlights, Snapshot newSnapshot) {
+            oldSnapshotId = oldSnapshot.snapshotId;
             this.tool = tool;
             this.activity = activity;
             this.startingHighlights = startingHighlights;
-    		batchNumber = ++overallBatchNumber;
+            newSnapshotId = newSnapshot.snapshotId;
         }
 		
 		/**
@@ -81,31 +77,6 @@ public class Undo
 		 */
 		public Tool getTool() { return tool; }
 
-        public void reverse(boolean backwards) {
-            EDatabase edb = EDatabase.serverDatabase();
-            edb.checkFresh(newSnapshot);
-            if (newSnapshot != oldSnapshot) {
-//                edb.getNetworkManager().startBatch(null, true);
-//                // broadcast a start-batch on the first change
-//                for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
-//                    Listener listener = it.next();
-//                    listener.startBatch(listener, true);
-//                }
-//                
-                Snapshot tmpSnapshot = newSnapshot;
-                newSnapshot = oldSnapshot;
-                oldSnapshot = tmpSnapshot;
-              
-                edb.undo(newSnapshot);
-            }
-            
-    		// broadcast the end-batch
-            refreshCellBounds();
-            Job.getExtendedUserInterface().showSnapshot(newSnapshot, batchNumber, true);
-//            edb.getNetworkManager().endBatch(oldSnapshot, newSnapshot, true);
-            edb.checkFresh(newSnapshot);
-        }
-        
 		private void describe(String title)
 		{
 			String message = "*** Batch '" + title + "', " + batchNumber + " (" + activity + " from " + tool.getName() + " tool)";
@@ -113,123 +84,81 @@ public class Undo
 		}
 	}
 
-	private static boolean doChangesQuietly = false;
-	private static ChangeBatch currentBatch = null;
+//	private static ChangeBatch currentBatch = null;
 	private static int maximumBatches = User.getMaxUndoHistory();
-	private static int overallBatchNumber = 0;
-	private static List<ChangeBatch> doneList = new ArrayList<ChangeBatch>();
-	private static List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
+	private static final List<ChangeBatch> doneList = new ArrayList<ChangeBatch>();
+	private static final List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
 
-	/**
-	 * Method to start a new batch of changes.
-	 * @param tool the tool that is producing the activity.
-	 * @param activity a String describing the activity.
-	 * @param cell root of up-tree or null for whole database lock
+//    private static void clearChanges() {
+////        endChanges();
+//        if (currentBatch == null) return;
+//        System.out.println("Ignored a batch " + currentBatch.activity);
+//        currentBatch = null;
+//    }
+//    
+    /**
+	 * Method to terminate the current batch of changes.
 	 */
-	public static void startChanges(Snapshot oldSnapshot, Tool tool, String activity, int startingHighlights)
+	public static void endChanges(Snapshot oldSnapshot, Tool tool, String activity, int startingHighlights, Snapshot newSnapshot)
 	{
-		// close any open batch of changes
-		clearChanges();
+//        // close any open batch of changes
+//		clearChanges();
 
 		// kill off any undone batches
 		noRedoAllowed();
 
-		// allocate a new change batch
-		currentBatch = new ChangeBatch(oldSnapshot, tool, activity, startingHighlights);
+        ChangeBatch batch = new ChangeBatch(oldSnapshot, tool, activity, startingHighlights, newSnapshot);
 
 		// put at head of list
-		doneList.add(currentBatch);
+        if (newSnapshot != oldSnapshot)
+            doneList.add(batch);
 
 		// kill last batch if list is full
-		if (doneList.size() > maximumBatches)
-		{
+		while (doneList.size() > maximumBatches)
 			doneList.remove(0);
-		}
         updateUndoRedo();
-
-		// start the batch of changes
-		Constraints.getCurrent().startBatch(oldSnapshot);
-//        EDatabase.serverDatabase().getNetworkManager().startBatch(tool, false);
-
-//		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
-//		{
-//			Listener listener = (Listener)it.next();
-//			listener.startBatch(tool, false);
-//		}
-	}
-
-    private static void clearChanges() {
-        endChanges();
-        if (currentBatch == null) return;
-        System.out.println("Ignored a batch " + currentBatch.activity);
-        currentBatch = null;
-    }
-    
-    /**
-	 * Method to terminate the current batch of changes.
-	 */
-	public static void endChanges()
-	{
-		// if no changes were recorded, stop
-		if (currentBatch == null) return;
-        
-		// if no changes were recorded, stop
-		if (EDatabase.serverDatabase().backup() == currentBatch.oldSnapshot)
-		{
-			// remove from doneList
-			doneList.remove(currentBatch);
-            updateUndoRedo();
-		}
-
-		// changes made: apply final constraints to this batch of changes
-        String userName = System.getProperty("user.name"); 
-        currentBatch.newSnapshot = Constraints.getCurrent().endBatch(userName);
-        Job.getExtendedUserInterface().showSnapshot(currentBatch.newSnapshot, currentBatch.batchNumber, false);
-//        EDatabase.serverDatabase().getNetworkManager().endBatch(currentBatch.oldSnapshot, currentBatch.newSnapshot, false);
-        EDatabase.serverDatabase().checkFresh(currentBatch.newSnapshot);
-		currentBatch = null;
 	}
 
     private static synchronized void updateUndoRedo() {
         ServerJobManager.setUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
 
-    /**
-	 * Method to return the current change batch.
-	 * @return the current change batch (null if no changes are being done).
-	 */
-	public static ChangeBatch getCurrentBatch() { return currentBatch; }
-
-	/**
-	 * Method to tell whether changes are being made quietly.
-	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
-	 * @return true if changes are being made quietly.
-	 */
-	public static boolean isChangeQuiet() { return doChangesQuietly; }
-
-	/**
-	 * Method to set the subsequent changes to be "quiet".
-	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
-	 * @return the previous value of the "quiet" state.
-	 */
-	public static boolean changesQuiet(boolean quiet) {
-		EDatabase.serverDatabase().checkInvariants();
-        Layout.changesQuiet(quiet);
-//		NetworkTool.changesQuiet(quiet);
-		boolean formerQuiet = doChangesQuietly;
-        doChangesQuietly = quiet;
-		return formerQuiet;
-    }
+//    /**
+//	 * Method to return the current change batch.
+//	 * @return the current change batch (null if no changes are being done).
+//	 */
+//	public static ChangeBatch getCurrentBatch() { return currentBatch; }
+//
+//	/**
+//	 * Method to tell whether changes are being made quietly.
+//	 * Quiet changes are not passed to constraint satisfaction.
+//	 * @return true if changes are being made quietly.
+//	 */
+//	public static boolean isChangeQuiet() { return doChangesQuietly; }
+//
+//	/**
+//	 * Method to set the subsequent changes to be "quiet".
+//	 * Quiet changes are not passed to constraint satisfaction.
+//	 * @return the previous value of the "quiet" state.
+//	 */
+//	public static boolean changesQuiet(boolean quiet) {
+//		EDatabase.serverDatabase().checkInvariants();
+//        Layout.changesQuiet(quiet);
+////		NetworkTool.changesQuiet(quiet);
+//		boolean formerQuiet = doChangesQuietly;
+//        doChangesQuietly = quiet;
+//		return formerQuiet;
+//    }
 
 	/**
 	 * Method to undo the last batch of changes.
 	 * @return the batch number that was undone.
 	 * Returns null if nothing was undone.
 	 */
-	public static ChangeBatch undoABatch(int savedHighlights)
+	public static ChangeBatch undoABatch(int savedHighlights) throws JobException
 	{
 		// close out the current batch
-		clearChanges();
+//		clearChanges();
 
 		// get the most recent batch of changes
 		int listSize = doneList.size();
@@ -243,7 +172,7 @@ public class Undo
 		batch.preUndoHighlights = savedHighlights;
 
 		// look through the changes in this batch
-        batch.reverse(true);
+        Job.undo(batch.oldSnapshotId);
 
 		// Put message in Message Window
 		System.out.println("Undoing: " + batch.activity);
@@ -255,13 +184,13 @@ public class Undo
 	 * Method to redo the last batch of changes.
 	 * @return true if a batch was redone.
 	 */
-	public static ChangeBatch redoABatch()
+	public static ChangeBatch redoABatch() throws JobException
 	{
 		// close out the current batch
-		clearChanges();
+//		clearChanges();
 
 		// get the most recent batch of changes
-		if (undoneList == null) return null;
+//		if (undoneList == null) return null;
 		int listSize = undoneList.size();
 		if (listSize == 0) return null;
 		ChangeBatch batch = undoneList.get(listSize-1);
@@ -269,7 +198,7 @@ public class Undo
 		doneList.add(batch);
         updateUndoRedo();
 
-        batch.reverse(false);
+        Job.undo(batch.newSnapshotId);
         
         // Put message in Message Window
 		System.out.println("Redoing: " + batch.activity);
@@ -291,12 +220,12 @@ public class Undo
         }
     }
     
-    /**
-	 * Returns root of up-tree of undo or redo batch.
-	 * @param redo true if redo batch, false if undo batch
-	 * @return root of up-tree of a batch.
-	 */
-	public static Cell upCell(boolean redo) { return null; }
+//    /**
+//	 * Returns root of up-tree of undo or redo batch.
+//	 * @param redo true if redo batch, false if undo batch
+//	 * @return root of up-tree of a batch.
+//	 */
+//	public static Cell upCell(boolean redo) { return null; }
 
 	/**
 	 * Method to prevent undo by deleting all change batches.
@@ -304,7 +233,7 @@ public class Undo
 	public static void noUndoAllowed()
 	{
  		// properly terminate the current batch
-		clearChanges();
+//		clearChanges();
 
  		// kill them all
  		doneList.clear();
@@ -318,7 +247,7 @@ public class Undo
 	public static void noRedoAllowed()
 	{
 		// properly terminate the current batch
-		clearChanges();
+//		clearChanges();
 
 		undoneList.clear();
         updateUndoRedo();

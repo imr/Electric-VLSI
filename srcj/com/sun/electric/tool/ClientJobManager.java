@@ -199,6 +199,8 @@ class ClientJobManager extends JobManager {
         }
     }
     
+    EJob selectEJob(EJob finishedEJob) { return null; }
+    
     void setProgress(EJob ejob, String progress) {
         ejob.progress = progress;
     }

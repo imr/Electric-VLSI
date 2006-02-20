@@ -24,7 +24,6 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.Job;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -178,7 +177,7 @@ public class View implements Comparable<View>
 	public static View newInstance(String fullName, String abbreviation)
 	{
 		// make sure this can be done now
-		Job.checkChanging();
+		EDatabase.theDatabase.checkChanging();
 
 		View view = makeInstance(fullName, abbreviation, 0, getNextOrder());
 
@@ -198,7 +197,7 @@ public class View implements Comparable<View>
 	public static View newTextInstance(String fullName, String abbreviation)
 	{
 		// make sure this can be done now
-		Job.checkChanging();
+		EDatabase.theDatabase.checkChanging();
 
 		View view = makeInstance(fullName, abbreviation, TEXTVIEW, getNextOrder());
 

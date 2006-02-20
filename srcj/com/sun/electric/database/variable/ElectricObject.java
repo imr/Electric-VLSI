@@ -1156,14 +1156,9 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * By default checks whole database change. Overriden in subclasses.
 	 */
 	public void checkChanging() {
-//        if (!isDatabaseObject()) return;
-		Job.checkChanging();
-// 		if (!isLinked())
-// 		{
-// 			String msg = "Changing ElectricObject is not in Database";
-//             System.out.println(msg);
-// 			ActivityLogger.logException(new IllegalStateException(msg));
-// 		}
+        EDatabase database = getDatabase();
+        if (database != null)
+            database.checkChanging();
 	}
 
 	/**
@@ -1171,14 +1166,7 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * By default checks whole database undo. Overriden in subclasses.
 	 */
 	public void checkUndoing() {
-//        if (!isDatabaseObject()) return;
-		Job.checkUndoing();
-// 		if (!isLinked())
-// 		{
-// 			String msg = "Changing ElectricObject is not in Database";
-//             System.out.println(msg);
-// 			ActivityLogger.logException(new IllegalStateException(msg));
-// 		}
+        getDatabase().checkUndoing();
 	}
 
 	/**
@@ -1186,8 +1174,9 @@ public abstract class ElectricObject // extends Observable implements Observer
 	 * Ensures that an examine job is running.
 	 */
 	public void checkExamine() {
-		if (getDatabase() == null) return;
-		Job.checkExamine();
+        EDatabase database = getDatabase();
+        if (database != null)
+            database.checkExamine();
 	}
 
 	/**

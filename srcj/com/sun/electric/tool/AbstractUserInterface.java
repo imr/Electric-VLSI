@@ -24,16 +24,27 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.Client.ServerEvent;
 import com.sun.electric.tool.user.ErrorLogger;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 /**
  *
  */
-public abstract class AbstractUserInterface implements UserInterface {
+public abstract class AbstractUserInterface extends Client implements UserInterface {
+    
+    protected AbstractUserInterface() {
+        super(-1);
+    }
+    
+    public void addEvent(Client.ServerEvent serverEvent) {}
     
     public void finishInitialization() {}
     
@@ -72,6 +83,8 @@ public abstract class AbstractUserInterface implements UserInterface {
      * Show new database snapshot.
      * @param newSnapshot new snapshot.
      */
-    public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo) {}
+    public void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {}
     
+    
+    public void beep() {}
 }

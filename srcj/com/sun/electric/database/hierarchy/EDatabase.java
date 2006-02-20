@@ -32,7 +32,9 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -45,11 +47,16 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Electric run-time database is a graph of ElectricObjects.
  */
 public class EDatabase {
+    private static final Logger logger = Logger.getLogger("com.sun.electric.database");
+    private static final String CLASS_NAME = EDatabase.class.getName();
+    
     public static EDatabase theDatabase = new EDatabase();
     public static EDatabase serverDatabase() { return theDatabase; }
     public static EDatabase clientDatabase() { return theDatabase; }
@@ -63,7 +70,9 @@ public class EDatabase {
     
     /** Network manager for this database. */                   private final NetworkManager networkManager = new NetworkManager(this);
     /** Lock for access to the Database. */                     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    /** True if database is locked for writing. */              private boolean exclusiveLock;
+    /** Thread which locked database for writing. */            private Thread writingThread;
+    /** True if writing thread can changing. */                 private boolean canChanging;
+    /** True if writing thread can undoing. */                  private boolean canUndoing;
     
     /** Creates a new instance of EDatabase */
     private EDatabase() {}
@@ -117,15 +126,68 @@ public class EDatabase {
     public void lock(boolean exclusive) {
         Lock lock = exclusive ? readWriteLock.writeLock() : readWriteLock.readLock();
         lock.lock();
-        exclusiveLock = exclusive;
+        if (exclusive)
+            writingThread = Thread.currentThread();
+        canChanging = canUndoing = false;
     }
     
     /**
      * Unlocks the database which was locked for writing.
      */
     public void unlock() {
-        Lock lock = exclusiveLock ? readWriteLock.writeLock() : readWriteLock.readLock();
+        Lock lock = writingThread != null ? readWriteLock.writeLock() : readWriteLock.readLock();
+        writingThread = null;
         lock.unlock();
+    }
+    
+	/**
+	 * Method to check whether changing of database is allowed by current thread.
+	 * @throws IllegalStateException if changes are not allowed.
+	 */
+	public void checkChanging() {
+        if (Thread.currentThread() == writingThread && canChanging) return;
+        IllegalStateException e = new IllegalStateException("Database changes are forbidden");
+        logger.logp(Level.WARNING, CLASS_NAME, "checkChanging", e.getMessage(), e);
+        throw e;
+	}
+
+	/**
+	 * Method to check whether changing of whole database is allowed.
+	 * @throws IllegalStateException if changes are not allowed.
+	 */
+	public void checkUndoing() {
+        if (Thread.currentThread() == writingThread && canUndoing) return;
+        IllegalStateException e = new IllegalStateException("Database undos are forbidden");
+        logger.logp(Level.WARNING, CLASS_NAME, "checkUndoing", e.getMessage(), e);
+        throw e;
+	}
+
+	/**
+	 * Method to check whether examining of database is allowed.
+	 */
+    public void checkExamine() {
+        if (writingThread == null || Thread.currentThread() == writingThread) return;
+        IllegalStateException e = new IllegalStateException("Database undos are forbidden");
+        logger.logp(Level.WARNING, CLASS_NAME, "checkExamine", e.getMessage(), e);
+        throw e;
+    }
+    
+    /**
+     * Low-level method to permit changes in database.
+     */
+    public void lowLevelSetCanChanging(boolean b) {
+        if (Thread.currentThread() != writingThread)
+            checkChanging();
+        canChanging = b;
+    }
+    
+    /**
+     * Low-level method to permit undos in database.
+     */
+    public void lowLevelSetCanUndoing(boolean b) {
+        if (Thread.currentThread() != writingThread)
+            checkUndoing();
+        canUndoing = b;
     }
     
 	/**
@@ -209,6 +271,7 @@ public class EDatabase {
 	}
 
     void unfreshSnapshot() {
+        checkChanging();
         snapshotFresh = false;
     }
     

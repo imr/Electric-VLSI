@@ -113,7 +113,7 @@ public class Layout extends Constraints
 	/**
 	 * Method to do hierarchical update on any cells that changed
 	 */
-	public Snapshot endBatch(String userName)
+	public void endBatch(String userName)
 	{
         Layout.userName = userName;
         if (DEBUG) {
@@ -144,7 +144,6 @@ public class Layout extends Constraints
         librariesWritten.clear();
         Snapshot newSnapshot = EDatabase.serverDatabase().backup();
         oldSnapshot = null;
-        return newSnapshot;
 	}
 
 	/**
@@ -221,7 +220,7 @@ public class Layout extends Constraints
 	public static void setTempRigid(ArcInst ai, boolean tempRigid)
 	{
         if (DEBUG) System.out.println("setTempRigid " + ai + " " + tempRigid);
-        Job.checkChanging();
+        ai.checkChanging();
         Layout.tempRigid.put(ai, Boolean.valueOf(tempRigid));
 //		if (tempRigid)
 //		{
@@ -240,7 +239,7 @@ public class Layout extends Constraints
 	 */
 	public static void removeTempRigid(ArcInst ai)
 	{
-        Job.checkChanging();
+        ai.checkChanging();
         tempRigid.remove(ai);
 //		if (ai.getChangeClock() != changeClock + 3 && ai.getChangeClock() != changeClock + 2) return;
 //		ai.setChangeClock(changeClock - 3);

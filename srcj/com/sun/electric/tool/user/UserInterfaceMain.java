@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.tool.AbstractUserInterface;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
@@ -104,6 +105,10 @@ public class UserInterfaceMain extends AbstractUserInterface
         new EventProcessor();
         SwingUtilities.invokeLater(new InitializationRun(argsList, mode, showSplash));
     }
+    
+    protected void dispatchServerEvent(ServerEvent serverEvent) throws Exception { }
+    
+    public void addEvent(Client.ServerEvent serverEvent) { SwingUtilities.invokeLater(serverEvent); }
     
     private class InitializationRun implements Runnable {
         List<String> argsList;
@@ -521,10 +526,14 @@ public class UserInterfaceMain extends AbstractUserInterface
      * Show new database snapshot.
      * @param newSnapshot new snapshot.
      */
-    public void showSnapshot(Snapshot newSnapshot, int batchNumber, boolean undoRedo) {
-            SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot, batchNumber, undoRedo));
+    public void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {
+            SwingUtilities.invokeLater(new DatabaseChangeRun(newSnapshot, undoRedo));
     }
 
+    public void beep() {
+        Toolkit.getDefaultToolkit().beep();
+    }
+    
     /**
 	 * Method to tell whether undo can be done.
 	 * This is used by the tool bar to determine whether the undo button should be available.
@@ -604,18 +613,16 @@ public class UserInterfaceMain extends AbstractUserInterface
 	private static class DatabaseChangeRun implements Runnable
 	{
 		private Snapshot newSnapshot;
-        private int batchNumber;
         private boolean undoRedo;
-		private DatabaseChangeRun(Snapshot newSnapshot, int batchNumber, boolean undRedo) {
+		private DatabaseChangeRun(Snapshot newSnapshot, boolean undRedo) {
             this.newSnapshot = newSnapshot;
-            this.batchNumber = batchNumber;
             this.undoRedo = undoRedo;
         }
         public void run() {
             DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
             for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
                 Listener listener = it.next();
-                listener.endBatch(currentSnapshot, newSnapshot, batchNumber, false);
+                listener.endBatch(currentSnapshot, newSnapshot, false);
             }
             currentSnapshot = newSnapshot;
             fireDatabaseChangeEvent(event);

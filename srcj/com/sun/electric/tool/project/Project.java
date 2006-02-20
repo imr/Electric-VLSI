@@ -34,7 +34,6 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -43,6 +42,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
@@ -172,12 +172,11 @@ public class Project extends Listener
    /**
      * Handles database changes of a Job.
      * @param oldSnapshot database snapshot before Job.
-     * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @param batchNumber batch nuber of a Job.
      * @undoRedo true if Job was Undo/Redo job.
      */
-    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, int batchNumber, boolean undoRedo)
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
+        int batchNumber = newSnapshot.snapshotId;
         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
             CellBackup oldBackup = oldSnapshot.getCell(cellId);
             CellBackup newBackup = newSnapshot.getCell(cellId);
@@ -511,7 +510,7 @@ public class Project extends Listener
 	static void setChangeStatus(boolean quiet)
 	{
 		if (quiet) ignoreChanges = quiet;
-		Undo.changesQuiet(quiet);
+		Input.changesQuiet(quiet);
 	}
 
 	static void markLocked(Cell cell, boolean locked)

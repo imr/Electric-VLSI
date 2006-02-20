@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.generator.cmosPLA;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -168,7 +167,7 @@ public class PLA
 			URL fileURL = LibFile.getLibFile(libName + ".jelib");
     		Library lib = LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
             new Technology.ResetDefaultWidthJob(lib);
-            Undo.noUndoAllowed();
+//            Undo.noUndoAllowed();
 			return true;
 		}
 	}

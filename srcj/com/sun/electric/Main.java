@@ -382,8 +382,8 @@ public final class Main
 
 		public boolean doIt() throws JobException
 		{
-			try {
-				Undo.changesQuiet(true);
+//			try {
+//				Undo.changesQuiet(true);
 
 				// initialize all of the technologies
 				Technology.initAllTechnologies();
@@ -394,9 +394,9 @@ public final class Main
 				// initialize the constraint system
 //				Layout con = Layout.getConstraint();
 //				Constraints.setCurrent(con);
-			} finally {
-				Undo.changesQuiet(false);
-			}
+//			} finally {
+//				Undo.changesQuiet(false);
+//			}
 
             // open no name library first
             Library mainLib = Library.newInstance("noname", null);

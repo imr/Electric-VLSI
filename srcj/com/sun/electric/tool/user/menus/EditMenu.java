@@ -513,7 +513,7 @@ public class EditMenu {
         private int restoreHighlights = -1;
 		private UndoCommand()
 		{
-			super("Undo", User.getUserTool(), Job.Type.UNDO, Undo.upCell(false), null, Job.Priority.USER);
+			super("Undo", User.getUserTool(), Job.Type.UNDO, null, null, Job.Priority.USER);
 			startJob();
 		}
 
@@ -558,7 +558,7 @@ public class EditMenu {
         
 		private RedoCommand()
 		{
-			super("Redo", User.getUserTool(), Job.Type.UNDO, Undo.upCell(true), null, Job.Priority.USER);
+			super("Redo", User.getUserTool(), Job.Type.UNDO, null, null, Job.Priority.USER);
 			startJob();
 		}
 

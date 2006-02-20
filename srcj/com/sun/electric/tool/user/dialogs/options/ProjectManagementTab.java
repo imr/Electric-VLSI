@@ -23,13 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.project.Users;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -49,8 +44,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Iterator;

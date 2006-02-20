@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.TextUtils;
@@ -33,10 +34,10 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.Toolkit;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -65,11 +66,14 @@ public abstract class Job implements Serializable {
     private static boolean GLOBALDEBUG = false;
     /*private*/ static Mode threadMode;
     private static int socketPort = 35742; // socket port for client/server
-    static final int PROTOCOL_VERSION = 2; // Feb 13
+    static final int PROTOCOL_VERSION = 3; // Feb 19
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
     private static final String CLASS_NAME = Job.class.getName();
     static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
+    private static final ArrayList<Snapshot> snapshotCache = new ArrayList<Snapshot>();
+	private static int maximumSnapshots = User.getMaxUndoHistory();
+    
     
     /**
 	 * Method to tell whether Electric is running in "debug" mode.
@@ -112,7 +116,7 @@ public abstract class Job implements Serializable {
 	}
 
   
-	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
+	/** default execution time in milis */      static final int MIN_NUM_SECONDS = 60000;
     /** job manager */                          /*private*/ static JobManager jobManager;
 	static AbstractUserInterface currentUI;
 
@@ -127,7 +131,7 @@ public abstract class Job implements Serializable {
     /** thread aborted? */                      /*private*/ boolean aborted;
     /** schedule thread to abort */             /*private*/ boolean scheduledToAbort;
 	/** report execution time regardless MIN_NUM_SECONDS */
-												private boolean reportExecution = false;
+												/*private*/ boolean reportExecution = false;
     /** tool running the job */                 /*private*/ Tool tool;
 //    /** priority of job */                      private Priority priority;
 //    /** bottom of "up-tree" of cells affected */private Cell upCell;
@@ -236,6 +240,18 @@ public abstract class Job implements Serializable {
         this.deleteWhenDone = deleteWhenDone;
         if (!ejob.isExamine())
             ejob.savedHighlights = Job.getExtendedUserInterface().saveHighlights();
+       
+        Thread currentThread = Thread.currentThread();
+        if (ejob.jobType != Job.Type.EXAMINE)
+            ejob.serialize();
+        if (currentThread instanceof EThread) {
+            ejob.startedByServer = true;
+            ejob.client = ((EThread)currentThread).ejob.client;
+            ejob.clientJob = null;
+        } else {
+            ejob.client = Job.getExtendedUserInterface();
+            ejob.serverJob = null;
+         }
         jobManager.addJob(ejob, onMySnapshot);
     }
 
@@ -570,77 +586,6 @@ public abstract class Job implements Serializable {
 //        }
 //    }
 
-	/**
-	 * Method to check whether examining of database is allowed.
-	 */
-    public static void checkExamine() {
-//        if (!getDebug()) return;
-//        if (NOTHREADING) return;
-	    /*
-	    // disabled by Gilda on Oct 18
-        if (!hasExamineLock()) {
-            String msg = "Database is being examined without an Examine Job or Examine Lock";
-            System.out.println(msg);
-            Error e = new Error(msg);
-            throw e;
-        }
-        */
-    }
-
-	/**
-	 * Method to check whether changing of whole database is allowed.
-	 * @throws IllegalStateException if changes are not allowed.
-	 */
-	public static void checkChanging() {
-        Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof EThread) {
-            ((EThread)currentThread).checkChanging();
-        } else {
-            IllegalStateException e = new IllegalStateException("Database changes are forbidden");
-            Job.logger.logp(Level.WARNING, CLASS_NAME, "checkChanging", e.getMessage(), e);
-            throw e;
-        }
-	}
-
-	/**
-	 * Method to check whether changing of whole database is allowed.
-	 * @throws IllegalStateException if changes are not allowed.
-	 */
-	public static void checkUndoing() {
-        Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof EThread) {
-            ((EThread)currentThread).checkUndoing();
-        } else {
-            IllegalStateException e = new IllegalStateException("Database undos are forbidden");
-            Job.logger.logp(Level.WARNING, CLASS_NAME, "checkUndoing", e.getMessage(), e);
-            throw e;
-        }
-	}
-
-    /**
-     * Checks if cell bounds can be computed in this thread.
-     * @return true if cell bounds can be computed.
-     */
-    public static boolean canComputeBounds() {
-        Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof EThread)
-            return ((EThread)currentThread).canComputeBounds();
-        else
-            return /*Job.NOTHREADING ||*/ threadMode == Mode.CLIENT;
-    }
-    
-    /**
-     * Checks if netlist can be computed in this thread.
-     * @return true if netlist can be computed.
-     */
-    public static boolean canComputeNetlist() {
-        Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof EThread)
-            return ((EThread)currentThread).canComputeNetlist();
-        else
-            return /*Job.NOTHREADING ||*/ threadMode == Mode.CLIENT;
-    }
-    
     public static UserInterface getUserInterface() {
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof EThread)
@@ -671,6 +616,44 @@ public abstract class Job implements Serializable {
     public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         currentUI.updateIncrementalDRCErrors(cell, errors);
     }
+
+    public static void undo(int snapshotId) throws JobException {
+        for (int i = snapshotCache.size() - 1; i >= 0; i--) {
+            Snapshot snapshot = snapshotCache.get(i);
+            if (snapshot.snapshotId == snapshotId) {
+                EDatabase.serverDatabase().undo(snapshot);
+                return;
+            }
+        }
+        throw new JobException();
+    }
+    
+    
+    static void putInCache(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        if (!snapshotCache.contains(newSnapshot)) {
+            while (!snapshotCache.isEmpty() && snapshotCache.get(snapshotCache.size() - 1) != oldSnapshot)
+                snapshotCache.remove(snapshotCache.size() - 1);
+            snapshotCache.add(newSnapshot);
+        }
+        while (snapshotCache.size() > maximumSnapshots)
+            snapshotCache.remove(0);
+    }
+    
+	/**
+	 * Method to set the size of the history list and return the former size.
+	 * @param newSize the new size of the history list (number of batches of changes).
+	 * If not positive, the list size is not changed.
+	 * @return the former size of the history list.
+	 */
+	public static int setHistoryListSize(int newSize) {
+		if (newSize <= 0) return maximumSnapshots;
+
+		int oldSize = maximumSnapshots;
+		maximumSnapshots = newSize;
+		while (snapshotCache.size() > maximumSnapshots)
+			snapshotCache.remove(0);
+		return oldSize;
+	}
 
 	//-------------------------------JOB UI--------------------------------
     

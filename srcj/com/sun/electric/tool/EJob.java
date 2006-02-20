@@ -25,6 +25,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.EObjectOutputStream;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.tool.Job.Type;
 
@@ -46,28 +47,35 @@ class EJob {
         /** waiting on server */                WAITING,
         /** running on server */                RUNNING,
         /** done on server */                   SERVER_DONE,
+        /** done on server */                   SERVER_FAIL,
         /** done on client */                   CLIENT_DONE;
     };
     
     /*private*/ final static String WAITING_NOW = "waiting now";
     /*private*/ final static String ABORTING = "aborting";
     
-    ServerConnection connection;
+    /** Client which is owner of the Job. */    Client client;
+    /** True if this Job was started by server */boolean startedByServer;
     int jobId;
     /** type of job (change or examine) */      final Type jobType;
     /** name of job */                          final String jobName;
-    State state;
+    
+    int batchNumber;
+    Snapshot oldSnapshot;
+    Snapshot newSnapshot;
+    
     /** progress */                             /*private*/ String progress = null;
     byte[] serializedJob;
     byte[] serializedResult;
     Job serverJob;
     Job clientJob;
+    State state;
     /** list of saved Highlights */             int savedHighlights = -1;
     /** Fields changed on server side. */       ArrayList<Field> changedFields;
     
     /** Creates a new instance of EJob */
-    EJob(ServerConnection connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
-        this.connection = connection;
+    EJob(StreamClient connection, int jobId, Job.Type jobType, String jobName, byte[] bytes) {
+        this.client = connection;
         this.jobId = jobId;
         this.jobType = jobType;
         this.jobName = jobName;
@@ -101,13 +109,26 @@ class EJob {
         }
     }
     
-    Throwable deserialize() {
+    Throwable deserializeToServer() {
         try {
             ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedJob), EDatabase.serverDatabase());
             Job job = (Job)in.readObject();
             in.close();
             job.ejob = this;
             serverJob = job;
+            return null;
+        } catch (Throwable e) {
+            return e;
+        }
+    }
+    
+    Throwable deserializeToClient() {
+        try {
+            ObjectInputStream in = new EObjectInputStream(new ByteArrayInputStream(serializedJob), EDatabase.clientDatabase());
+            Job job = (Job)in.readObject();
+            in.close();
+            job.ejob = this;
+            clientJob = job;
             return null;
         } catch (Throwable e) {
             return e;
@@ -191,13 +212,5 @@ class EJob {
             }
         }
         return null;
-    }
-
-    Event newEvent() { return new Event(state); }
-    
-    class Event {
-        State newState;
-        Event(State newState) { this.newState = newState; }
-        EJob getEJob() { return EJob.this; }
     }
 }

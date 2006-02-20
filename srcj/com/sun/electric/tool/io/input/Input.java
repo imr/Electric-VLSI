@@ -23,7 +23,8 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Layout;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
@@ -50,6 +51,7 @@ public class Input
 	protected static final int READ_BUFFER_SIZE = 65536;
 
     /** Log errors. Static because shared between many readers */   public static ErrorLogger errorLogger;
+	private static boolean doChangesQuietly = false;
 
 	/** Name of the file being input. */					protected String filePath;
 	/** The raw input stream. */							protected InputStream inputStream;
@@ -101,7 +103,7 @@ public class Input
             LibDirs.readLibDirs(f.getParent());
         }
 
-		boolean formerQuiet = Undo.changesQuiet(true);
+		boolean formerQuiet = changesQuiet(true);
 		try {
 
 			// initialize progress
@@ -156,7 +158,7 @@ public class Input
 			stopProgressDialog();
 			errorLogger.termLogging(true);
 		}
-		Undo.changesQuiet(formerQuiet);
+		changesQuiet(formerQuiet);
 
 		if (lib == null)
 		{
@@ -373,4 +375,26 @@ public class Input
 	{
 		return line;
 	}
+    
+	/**
+	 * Method to tell whether changes are being made quietly.
+	 * Quiet changes are not passed to constraint satisfaction.
+	 * @return true if changes are being made quietly.
+	 */
+	public static boolean isChangeQuiet() { return doChangesQuietly; }
+
+	/**
+	 * Method to set the subsequent changes to be "quiet".
+	 * Quiet changes are not passed to constraint satisfaction.
+	 * @return the previous value of the "quiet" state.
+	 */
+	public static boolean changesQuiet(boolean quiet) {
+		EDatabase.serverDatabase().checkInvariants();
+        Layout.changesQuiet(quiet);
+//		NetworkTool.changesQuiet(quiet);
+		boolean formerQuiet = doChangesQuietly;
+        doChangesQuietly = quiet;
+		return formerQuiet;
+    }
+
 }

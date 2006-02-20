@@ -188,8 +188,8 @@ public abstract class LibraryFiles extends Input
 		LibraryFiles.initializeLibraryInput();
 
 		Library lib = null;
-		boolean formerQuiet = Undo.isChangeQuiet();
-		if (!formerQuiet) Undo.changesQuiet(true);
+		boolean formerQuiet = isChangeQuiet();
+		if (!formerQuiet) changesQuiet(true);
         LibraryFiles.meaningVariables = meaningVariables; 
 		try {
 			// show progress
@@ -229,7 +229,7 @@ public abstract class LibraryFiles extends Input
 			if (!quick) stopProgressDialog();
 			Cell.setAllowCircularLibraryDependences(false);
 		}
-		if (!formerQuiet) Undo.changesQuiet(formerQuiet);
+		if (!formerQuiet) changesQuiet(formerQuiet);
         LibraryFiles.meaningVariables = null;
 		if (lib != null && !quick)
 		{

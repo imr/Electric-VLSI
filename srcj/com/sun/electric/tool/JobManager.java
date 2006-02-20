@@ -44,6 +44,7 @@ abstract class JobManager {
     abstract void addJob(EJob ejob, boolean onMySnapshot);
     /** Remove job from list of jobs */
     abstract void removeJob(Job j);
+    abstract EJob selectEJob(EJob finishedEJob);
     abstract void setProgress(EJob ejob, String progress);
     abstract Iterator<Job> getAllJobs();
     abstract void wantUpdateGui();

@@ -28,7 +28,6 @@ import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -61,7 +60,6 @@ import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
@@ -2969,7 +2967,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     {
         if (!isPrimitiveTransistor() && !isFET() && !getFunction().isResistor()) return;
 		PrimitiveNode np = (PrimitiveNode)protoType;
-        Job.checkChanging();
+        checkChanging();
         np.getTechnology().setPrimitiveNodeSize(this, width, length);
     }
 
@@ -2984,7 +2982,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     {
         Technology tech = protoType.getTechnology();
         if (tech != Schematics.tech) return;
-        Job.checkChanging();
+        checkChanging();
         Schematics.tech.setPrimitiveNodeSize(this, width, length);
     }
 

@@ -25,6 +25,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -41,9 +42,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -114,7 +113,7 @@ public abstract class Router {
     public static PortInst createRouteNoJob(Route route, Cell cell, boolean verbose,
                                            boolean highlightRouteEnd)
     {
-        Job.checkChanging();
+        EDatabase.serverDatabase().checkChanging();
 
         // check if we can edit this cell
         if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return null;

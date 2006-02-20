@@ -24,9 +24,8 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.CellName;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,14 +33,16 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
  */
 public class Snapshot {
+    private static final AtomicInteger snapshotCount = new AtomicInteger();
     
+    public final int snapshotId;
     public final CellBackup[] cellBackups;
     public final int[] cellGroups;
     public final ERectangle[] cellBounds;
@@ -49,10 +50,15 @@ public class Snapshot {
 
     /** Creates a new instance of Snapshot */
     public Snapshot() {
-        this(CellBackup.NULL_ARRAY, new int[0], ERectangle.NULL_ARRAY, LibraryBackup.NULL_ARRAY);
+        this(0, CellBackup.NULL_ARRAY, new int[0], ERectangle.NULL_ARRAY, LibraryBackup.NULL_ARRAY);
     }
     
     public Snapshot(CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
+        this(snapshotCount.incrementAndGet(), cellBackups, cellGroups, cellBounds, libBackups);
+    }
+    
+    public Snapshot(int snapshotId, CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
+        this.snapshotId = snapshotId;
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
         this.cellBounds = cellBounds;
@@ -127,6 +133,7 @@ public class Snapshot {
     }
     
     public void writeDiffs(SnapshotWriter writer, Snapshot oldSnapshot) throws IOException {
+        writer.out.writeInt(snapshotId);
         boolean libsChanged = oldSnapshot.libBackups != libBackups;
         writer.out.writeBoolean(libsChanged);
         if (libsChanged) {
@@ -195,6 +202,7 @@ public class Snapshot {
     }
     
     public static Snapshot readSnapshot(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
+        int snapshotId = reader.in.readInt();
         LibraryBackup[] libBackups = oldSnapshot.libBackups;
         boolean libsChanged = reader.in.readBoolean();
         if (libsChanged) {
@@ -265,7 +273,7 @@ public class Snapshot {
             assert (cellBackups[i] != null) == (cellBounds[i] != null);
             assert (cellBackups[i] != null) == (cellGroups[i] >= 0);
         }
-        return new Snapshot(cellBackups, cellGroups, cellBounds, libBackups);
+        return new Snapshot(snapshotId, cellBackups, cellGroups, cellBounds, libBackups);
     }
     
     /**

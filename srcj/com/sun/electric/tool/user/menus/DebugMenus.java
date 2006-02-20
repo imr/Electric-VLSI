@@ -30,6 +30,7 @@ import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.DumpHeap;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -1572,7 +1573,7 @@ public class DebugMenus
         private final int getCount() { return count; }
         private synchronized int getCountSync() { return count; }
         private int getCountExamineCheck() {
-            Job.checkExamine();
+            EDatabase.theDatabase.checkExamine();
             return count;
         }
         private int getCountExamineLock() {

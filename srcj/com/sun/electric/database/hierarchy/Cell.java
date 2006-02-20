@@ -158,7 +158,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		private void add(Cell cell)
 		{
-            Job.checkChanging();
+            database.checkChanging();
 			synchronized(cells)
 			{
                 if (!cells.contains(cell))
@@ -176,7 +176,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		private void remove(Cell f)
 		{
-            Job.checkChanging();
+            database.checkChanging();
 			synchronized (cells)
 			{
 				cells.remove(f);
@@ -245,7 +245,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		public void setMainSchematics(Cell cell)
 		{
-            Job.checkChanging();
+            database.checkChanging();
             if (mainSchematic == cell) return;
 //			if (getMainSchematics() == cell) return;
 			if (!(cell.isSchematic() && cell.getNewestVersion() == cell))
@@ -474,7 +474,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public static Cell newInstance(Library lib, String name)
 	{
-		Job.checkChanging();
+		lib.checkChanging();
 		Cell cell = lowLevelAllocate(lib);
 		if (cell.lowLevelPopulate(name)) return null;
 		if (cell.lowLevelLink()) return null;
@@ -796,7 +796,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public static Cell lowLevelAllocate(Library lib)
 	{
-		Job.checkChanging();
+		lib.checkChanging();
         Date creationDate = new Date();
 		Cell c = new Cell(lib.getDatabase(), ImmutableCell.newInstance(new CellId(), lib.getId(), null, creationDate.getTime()));
 		return c;
@@ -1351,10 +1351,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public ERectangle getBounds()
 	{
-        // Don't recalculate in GUI thread.
-        if (boundsDirty == BOUNDS_CORRECT || !Job.canComputeBounds())
+        if (boundsDirty == BOUNDS_CORRECT)
             return cellBounds;
         
+        checkChanging();
         boolean wasCorrectSub = boundsDirty == BOUNDS_CORRECT_SUB;
         boundsDirty = BOUNDS_CORRECT;
 		// Recalculate bounds of subcells.
@@ -2958,7 +2958,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void setTextViewContents(String [] strings)
 	{
-		Job.checkChanging();
+		checkChanging();
 		newVar(Cell.CELL_TEXT_KEY, strings);
 	}
 

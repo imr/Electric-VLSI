@@ -30,7 +30,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -38,7 +38,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.Highlighter;
 
@@ -247,7 +246,7 @@ public class RouteElementArc extends RouteElement {
      */
     public ElectricObject doAction() {
 
-        Job.checkChanging();
+        EDatabase.serverDatabase().checkChanging();
 
         if (isDone()) return null;
 

@@ -23,72 +23,110 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.constraint.Constraints;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.user.User;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 import java.util.logging.Level;
 
 /**
  * Thread for execution Jobs in Electric.
  */
-abstract class EThread extends Thread {
+class EThread extends Thread {
+    private static final String CLASS_NAME = EThread.class.getName();
+
+    /** EJob which Thread is executing now. */
     EJob ejob;
+    /* Database in which thread is executing. */
+    EDatabase database;
     
-    private volatile boolean canChanging;
-    private volatile boolean canUndoing;
-    private volatile boolean canComputeBounds;
-    private volatile boolean canComputeNetlist;
-    private volatile UserInterface userInterface;
+    private final UserInterface userInterface = new ServerJobManager.UserInterfaceRedirect();
     
     /** Creates a new instance of EThread */
-    EThread(String threadName) {
-        super(threadName);
+    EThread(int id) {
+        super("EThread-" + id);
+ //       setUserInterface(Job.currentUI);
+        Job.logger.logp(Level.FINER, CLASS_NAME, "constructor", getName());
+        start();
     }
-    
-	/**
-	 * Method to check whether changing of whole database is allowed.
-	 * @throws IllegalStateException if changes are not allowed.
-	 */
-	void checkChanging() {
-        if (canChanging) return;
-        IllegalStateException e = new IllegalStateException("Database changes are forbidden");
-        Job.logger.logp(Level.WARNING, getClass().getName(), "checkChanging", e.getMessage(), e);
-        throw e;
-    }
-    
-	/**
-	 * Method to check whether changing of whole database is allowed.
-	 * @throws IllegalStateException if changes are not allowed.
-	 */
-	void checkUndoing() {
-        if (canUndoing) return;
-        IllegalStateException e = new IllegalStateException("Database undos are forbidden");
-        Job.logger.logp(Level.WARNING, getClass().getName(), "checkUndoing", e.getMessage(), e);
-        throw e;
-    }
-    
-    /**
-     * Checks if bounds can be computed in this thread.
-     * @return true if bounds or netlist can be computed.
-     */
-    boolean canComputeBounds() { return canComputeBounds; }
 
-    /**
-     * Checks if bounds or netlist can be computed in this thread.
-     * @return true if bounds or netlist can be computed.
-     */
-    boolean canComputeNetlist() { return canComputeNetlist; }
-
+    public void run() {
+        Job.logger.logp(Level.FINE, CLASS_NAME, "run", getName());
+        EJob finishedEJob = null;
+        for (;;) {
+            ejob = Job.jobManager.selectEJob(finishedEJob);
+            Job.logger.logp(Level.FINER, CLASS_NAME, "run", "selectedJob {0}", ejob.jobName);
+            database = ejob.jobType != Job.Type.EXAMINE ? EDatabase.serverDatabase() : EDatabase.clientDatabase();
+            ejob.changedFields = new ArrayList<Field>();
+            Throwable jobException = null;
+            database.lock(!ejob.isExamine());
+            ejob.oldSnapshot = database.backup();
+            try {
+                if (ejob.jobType != Job.Type.EXAMINE && !ejob.startedByServer) {
+                    Throwable e = ejob.deserializeToServer();
+                    if (e != null)
+                        throw e;
+                }
+                switch (ejob.jobType) {
+                    case CHANGE:
+                        database.lowLevelSetCanChanging(true);
+                        Constraints.getCurrent().startBatch(ejob.oldSnapshot);
+                        if (!ejob.serverJob.doIt())
+                            throw new JobException();
+                        Constraints.getCurrent().endBatch(ejob.client.userName);
+                        database.lowLevelSetCanChanging(false);
+                        ejob.serializeResult();
+                        break;
+                    case UNDO:
+                        database.lowLevelSetCanUndoing(true);
+                        if (!ejob.serverJob.doIt())
+                            throw new JobException();
+                        database.lowLevelSetCanUndoing(false);
+                        ejob.serializeResult();
+                        break;
+                    case REMOTE_EXAMINE:
+                        if (!ejob.serverJob.doIt())
+                            throw new JobException();
+                        ejob.serializeResult();
+                        break;
+                    case EXAMINE:
+                        if (!ejob.clientJob.doIt())
+                            throw new JobException();
+                        break;
+                }
+                ejob.newSnapshot = database.backup();
+                database.checkFresh(ejob.newSnapshot);
+//                ejob.state = EJob.State.SERVER_DONE;
+            } catch (Throwable e) {
+                if (!ejob.isExamine()) {
+                    database.lowLevelSetCanUndoing(true);
+                    database.undo(ejob.oldSnapshot);
+                }
+                ejob.serializeExceptionResult(e);
+                ejob.newSnapshot = ejob.oldSnapshot;
+//                ejob.state = EJob.State.SERVER_FAIL;
+//                Client.fireEJobEvent(ejob, EJob.State.SERVER_DONE); // ???
+            } finally {
+                database.unlock();
+            }
+            Job.putInCache(ejob.oldSnapshot, ejob.newSnapshot);
+            
+            finishedEJob = ejob;
+            ejob = null;
+            database = null;
+            
+            Job.logger.logp(Level.FINER, CLASS_NAME, "run", "finishedJob {0}", finishedEJob.jobName);
+        }
+    }
+    
     UserInterface getUserInterface() { return userInterface; }
 
     void print(String str) {
-        if (ejob != null && ejob.connection != null)
-            ejob.connection.addMessage(str);
+        Client client = ejob != null ? ejob.client : null;
+        Client.print(client, str);
     }
-    
-    void setCanChanging(boolean value) { canChanging = value; }
-    void setCanUndoing(boolean value) { canUndoing = value; }
-    void setCanComputeBounds(boolean value) { canComputeBounds = value; }
-    void setCanComputeNetlist(boolean value) { canComputeNetlist = value; }
-    void setUserInterface(UserInterface userInterface) { this.userInterface = userInterface; }
-    void setJob(EJob ejob) { this.ejob = ejob; }
 }

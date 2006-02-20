@@ -43,7 +43,6 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import com.sun.electric.database.CellUsage;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1487,7 +1486,7 @@ public class ToolMenu {
 			URL fileURL = LibFile.getLibFile(SilComp.SCLIBNAME + ".jelib");
 			Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true);
             new Technology.ResetDefaultWidthJob(lib);
-	        Undo.noUndoAllowed();
+//	        Undo.noUndoAllowed();
 			return true;
 		}
 	}

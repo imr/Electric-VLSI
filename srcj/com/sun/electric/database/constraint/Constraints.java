@@ -86,7 +86,7 @@ public abstract class Constraints
 	/**
 	 * Method to handle the end of a batch of changes.
 	 */
-	public abstract Snapshot endBatch(String userName);
+	public abstract void endBatch(String userName);
 
 	/**
 	 * Method to announce a change to a NodeInst.

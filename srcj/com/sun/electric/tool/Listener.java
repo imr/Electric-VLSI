@@ -73,10 +73,9 @@ public abstract class Listener extends Tool implements Changes
      * Handles database changes of a Job.
      * @param oldSnapshot database snapshot before Job.
      * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @param batchNumber batch nuber of a Job.
      * @undoRedo true if Job was Undo/Redo job.
      */
-    public abstract void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, int batchNumber, boolean undoRedo);
+    public abstract void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo);
 
 	/**
 	 * Method to handle a change to a NodeInst.

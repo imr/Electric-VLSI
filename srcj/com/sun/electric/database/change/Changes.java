@@ -76,10 +76,9 @@ public interface Changes
      * Method to annonunce database changes of a Job.
      * @param oldSnapshot database snapshot before Job.
      * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @param batchNumber batch nuber of a Job.
      * @undoRedo true if Job was Undo/Redo job.
      */
-    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, int batchNumber, boolean undoRedo);
+    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo);
 
 	/**
 	 * Method to announce a change to a NodeInst.
