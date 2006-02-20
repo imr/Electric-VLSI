@@ -24,6 +24,7 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
 import java.io.IOException;
@@ -86,6 +87,10 @@ public abstract class Client {
                     jobException = ejob.deserializeResult();
                 
                 Job job = ejob.clientJob;
+                if (job == null) {
+                    ActivityLogger.logException(jobException);
+                    return;
+                }
                 try {
                     job.terminateIt(jobException);
                 } catch (Throwable e) {

@@ -244,7 +244,7 @@ public abstract class Job implements Serializable {
         Thread currentThread = Thread.currentThread();
         if (ejob.jobType != Job.Type.EXAMINE)
             ejob.serialize();
-        if (currentThread instanceof EThread) {
+        if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.EXAMINE) {
             ejob.startedByServer = true;
             ejob.client = ((EThread)currentThread).ejob.client;
             ejob.clientJob = null;
