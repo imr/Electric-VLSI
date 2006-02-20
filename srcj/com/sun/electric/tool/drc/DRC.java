@@ -28,6 +28,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
@@ -37,7 +38,6 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.Foundry.Type;
@@ -64,9 +64,9 @@ public class DRC extends Listener
 	/** map of cells and their objects to DRC */		private static HashMap<Cell,HashSet<Geometric>> cellsToCheck = new HashMap<Cell,HashSet<Geometric>>();
 	private static boolean incrementalRunning = false;
     /** key of Variable for last valid DRC date on a Cell. */
-    private static final Variable.Key DRC_LAST_GOOD_DATE = Variable.newKey("DRC_last_good_drc_date");
+    public static final Variable.Key DRC_LAST_GOOD_DATE = Variable.newKey("DRC_last_good_drc_date");
     /** key of Variable for last valid DRC bit on a Cell. */
-    private static final Variable.Key DRC_LAST_GOOD_BIT = Variable.newKey("DRC_last_good_drc_bit");
+    public static final Variable.Key DRC_LAST_GOOD_BIT = Variable.newKey("DRC_last_good_drc_bit");
     private static final int DRC_BIT_AREA = 01; /* Min area condition */
     private static final int DRC_BIT_COVERAGE = 02;   /* Coverage DRC condition */
     private static final int DRC_BIT_ST_FOUNDRY = 04; /* For ST foundry selection */
@@ -789,30 +789,41 @@ public class DRC extends Listener
                 (thisByte & DRC_BIT_MOSIS_FOUNDRY) == (activeBits & DRC_BIT_MOSIS_FOUNDRY);
         if (activeBits != 0 && (!area || !coverage || !sameManufacturer))
             return null;
-        Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
-        long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
-        long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
-        long lastDRCDateInSeconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
-        Date lastDRCDate = new Date(lastDRCDateInSeconds);
+        Object lastDRCDateObject = varDate.getObject();
+        long lastDRCDateInMilliseconds = 0;
+        if (lastDRCDateObject instanceof Integer[]) {
+            Integer[] lastDRCDateAsInts = (Integer [])lastDRCDateObject;
+            long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
+            long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
+            lastDRCDateInMilliseconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
+        } else {
+            lastDRCDateInMilliseconds = ((Long)lastDRCDateObject).longValue();
+        }
+        Date lastDRCDate = new Date(lastDRCDateInMilliseconds);
+//        Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
+//        long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
+//        long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
+//        long lastDRCDateInSeconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
+//        Date lastDRCDate = new Date(lastDRCDateInSeconds);
         return lastDRCDate;
     }
 
-    /**
-     * Method to set the date of the last successful DRC of a given Cell.
-     * @param cell the cell to modify.
-     * @param date the date of the last successful DRC of that Cell.
-     * @param bits extra bits to set
-     */
-    public static void setLastDRCDateAndBits(Cell cell, Date date, int bits)
-    {
-        long iVal = date.getTime();
-        Integer [] dateArray = new Integer[2];
-        dateArray[0] = new Integer((int)(iVal >> 32));
-        dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
-        cell.newVar(DRC_LAST_GOOD_DATE, dateArray);
-        Integer b = new Integer(bits);
-        cell.newVar(DRC_LAST_GOOD_BIT, b);
-    }
+//    /**
+//     * Method to set the date of the last successful DRC of a given Cell.
+//     * @param cell the cell to modify.
+//     * @param date the date of the last successful DRC of that Cell.
+//     * @param bits extra bits to set
+//     */
+//    public static void setLastDRCDateAndBits(Cell cell, Date date, int bits)
+//    {
+//        long iVal = date.getTime();
+//        Integer [] dateArray = new Integer[2];
+//        dateArray[0] = new Integer((int)(iVal >> 32));
+//        dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
+//        cell.newVar(DRC_LAST_GOOD_DATE, dateArray);
+//        Integer b = new Integer(bits);
+//        cell.newVar(DRC_LAST_GOOD_BIT, b);
+//    }
 
     /**
      * Method to clean any DRC date stored previously
@@ -980,6 +991,7 @@ public class DRC extends Listener
 
 		public boolean doIt() throws JobException
 		{
+            HashSet<Cell> goodDRCCells = new HashSet<Cell>();
             if (goodDRCDate != null)
             {
                 for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
@@ -989,9 +1001,12 @@ public class DRC extends Listener
                     if (!cell.isLinked())
                         System.out.println("Cell '" + cell + "' is invalid to update DRC date");
                     else
-                        setLastDRCDateAndBits(cell, now, activeBits);
+                        goodDRCCells.add(cell);
+ //                       setLastDRCDateAndBits(cell, now, activeBits);
                 }
             }
+            if (!goodDRCCells.isEmpty())
+                Layout.setGoodDRCCells(goodDRCCells, activeBits);
 
             if (cleanDRCDate != null)
             {

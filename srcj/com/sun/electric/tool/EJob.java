@@ -159,7 +159,7 @@ class EJob {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             ObjectOutputStream out = new EObjectOutputStream(byteStream);
             jobException.getStackTrace();
-            out.writeObject(jobException);
+                out.writeObject(jobException);
             out.writeInt(0);
             out.close();
             serializedResult = byteStream.toByteArray();

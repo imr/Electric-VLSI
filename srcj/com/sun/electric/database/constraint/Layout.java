@@ -42,10 +42,12 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
 
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
@@ -53,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Class to implement the layout-constraint system.
@@ -69,6 +72,8 @@ public class Layout extends Constraints
     static Snapshot oldSnapshot;
     static long revisionDate;
     static String userName;
+    static Set<Cell> goodDRCCells;
+    static Variable goodDRCDate, goodDRCBit;
 
     /** Shadow Cell info */
     private static final ArrayList<LayoutCell> cellInfos = new ArrayList<LayoutCell>();
@@ -107,6 +112,7 @@ public class Layout extends Constraints
         oldSnapshot = initialSnapshot;
         tempRigid.clear();
         librariesWritten.clear();
+        goodDRCCells = null;
         makeLayoutCells();
 	}
 
@@ -115,12 +121,17 @@ public class Layout extends Constraints
 	 */
 	public void endBatch(String userName)
 	{
-        Layout.userName = userName;
         if (DEBUG) {
             System.out.println("Temporary rigid:");
             for (Map.Entry<ArcInst,Boolean> e : tempRigid.entrySet()) {
                 System.out.println("\t" + e.getKey() + " --> " + e.getValue());
             }
+        }
+        Layout.userName = userName;
+        revisionDate = System.currentTimeMillis();
+        if (goodDRCCells != null) {
+            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
+            goodDRCDate = Variable.newInstance(DRC.DRC_LAST_GOOD_DATE, new Long(revisionDate + 1), td); // If cell is changed during this 1 millisecond ???
         }
         if (!doChangesQuietly) {
             for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
@@ -143,6 +154,7 @@ public class Layout extends Constraints
         tempRigid.clear();
         librariesWritten.clear();
         Snapshot newSnapshot = EDatabase.serverDatabase().backup();
+        goodDRCCells = null;
         oldSnapshot = null;
 	}
 
@@ -245,6 +257,15 @@ public class Layout extends Constraints
 //		ai.setChangeClock(changeClock - 3);
 	}
 
+    /*
+     * Method to request to set 
+     */
+    public static void setGoodDRCCells(Set<Cell> goodDRCCells, int activeBits) {
+        Layout.goodDRCCells = goodDRCCells;
+        TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
+        goodDRCBit = Variable.newInstance(DRC.DRC_LAST_GOOD_BIT, new Integer(activeBits), td);
+    }
+    
     /**
      ** Returns rigidity of an ArcInst considering temporary rigidity.
      * @param ai ArcInst to test rigidity.

@@ -43,10 +43,14 @@ public class ErrorLoggerTree {
 
     // public methods called from any thread
     
-    public static void addLogger(ErrorLogger logger) {
+    public static boolean hasLogger(ErrorLogger logger) {
+        return indexOf(logger) >= 0;
+    };
+    
+    public static void addLogger(ErrorLogger logger, boolean explain) {
         logger.termLogging_();
         if (logger.getNumLogs() == 0) return;
-        SwingUtilities.invokeLater(new AddLogger(logger));
+        SwingUtilities.invokeLater(new AddLogger(logger, explain));
     };
     
     public static void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
@@ -79,8 +83,37 @@ public class ErrorLoggerTree {
 
     private static class AddLogger implements Runnable {
         private ErrorLogger logger;
-        AddLogger(ErrorLogger logger) { this.logger = logger; }
-        public void run() { addLogger(errorTree.getChildCount(), logger); }
+        private boolean explain;
+        AddLogger(ErrorLogger logger, boolean explain) {
+            this.logger = logger;
+            this.explain = explain;
+        }
+        public void run() {
+            int i = indexOf(logger);
+            if (i >= 0) {
+                updateTree((DefaultMutableTreeNode)errorTree.getChildAt(i));
+            } else {
+                addLogger(errorTree.getChildCount(), logger);
+                if (explain)
+                    explain(logger);
+            }
+        }
+    }
+    
+    private static void explain(ErrorLogger logger) {
+        // To print consistent message in message window
+        String extraMsg = "errors/warnings";
+        if (logger.getNumErrors() == 0) extraMsg = "warnings";
+        else  if (logger.getNumWarnings() == 0) extraMsg = "errors";
+        String msg = logger.getInfo();
+        System.out.println(msg);
+        if (logger.getNumLogs() > 0) {
+            System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
+        }
+        if (logger.getNumErrors() > 0) {
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
+                    logger.getSystem() + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
     
     private static class UpdateNetwork implements Runnable {
@@ -263,6 +296,15 @@ public class ErrorLoggerTree {
         return -1;
     }
         
+    private static int indexOf(ErrorLogger logger) {
+        for (int i = 0, numLoggers = errorTree.getChildCount(); i < numLoggers; i++) {
+            DefaultMutableTreeNode defaultMutableTreeNode = (DefaultMutableTreeNode)errorTree.getChildAt(i);
+            ErrorLoggerTreeNode errorLoggerTreeNode = (ErrorLoggerTreeNode)defaultMutableTreeNode.getUserObject();
+            if (errorLoggerTreeNode.logger == logger) return i;
+        }
+        return -1;
+    }
+        
     /**
      * A static object is used so that its open/closed tree state can be maintained.
      */
@@ -283,7 +325,7 @@ public class ErrorLoggerTree {
             ErrorLogger.XMLParser parser = new ErrorLogger.XMLParser();
             ErrorLogger logger = parser.process(TextUtils.makeURLToFile(fileName), true);
             if (logger != null)
-                addLogger(logger);
+                addLogger(logger, false);
         } catch (Exception e)
 		{
 			System.out.println("Error loading " + fileName);

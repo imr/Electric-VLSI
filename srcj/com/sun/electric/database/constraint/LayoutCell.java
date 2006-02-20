@@ -126,6 +126,10 @@ class LayoutCell {
         boolean justWritten = Layout.librariesWritten.contains(cell.getLibrary().getId());
         if (justWritten)
             cell.clearModified();
+        if (Layout.goodDRCCells != null && Layout.goodDRCCells.contains(cell)) {
+            cell.addVar(Layout.goodDRCDate);
+            cell.addVar(Layout.goodDRCBit);
+        }
         CellBackup newBackup = cell.backup();
         if (newBackup != oldBackup && !justWritten) {
             cell.madeRevision(Layout.revisionDate, Layout.userName);

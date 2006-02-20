@@ -242,34 +242,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     {
         if (logger.getNumLogs() == 0) return;
 
-        if (explain)
-        {
-//            if (!alreadyExplained)
-            {
-//				alreadyExplained = true;
-                SwingUtilities.invokeLater(new Runnable() {
-                    public void run() {
-                        // To print consistent message in message window
-                        String extraMsg = "errors/warnings";
-                        if (logger.getNumErrors() == 0) extraMsg = "warnings";
-                        else  if (logger.getNumWarnings() == 0) extraMsg = "errors";
-                        String msg = logger.getInfo();
-                        System.out.println(msg);
-                        if (logger.getNumLogs() > 0)
-                        {
-                            System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
-                        }
-                        if (logger.getNumErrors() > 0)
-                        {
-                            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
-                                logger.getSystem() + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
-                        }
-                    }
-                });
-            }
-        }
-
-        ErrorLoggerTree.addLogger(logger);
+        ErrorLoggerTree.addLogger(logger, explain);
     }
 
     public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {

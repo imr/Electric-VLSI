@@ -211,7 +211,7 @@ public class ErrorLogger implements Serializable
     private boolean limitExceeded;
     private String errorSystem;
     private boolean terminated;
-//    private boolean persistent; // cannot be deleted
+    private boolean persistent; // cannot be deleted
     private HashMap<Integer,String> sortKeysToGroupNames; // association of sortKeys to GroupNames
 
     public HashMap<Integer,String> getSortKeyToGroupNames() { return sortKeysToGroupNames; }
@@ -224,7 +224,15 @@ public class ErrorLogger implements Serializable
      * Create a new ErrorLogger instance.
      * @return a new ErrorLogger for logging errors
      */
-    public static ErrorLogger newInstance(String system)
+    public static ErrorLogger newInstance(String system) {
+        return newInstance(system, false);
+    }
+    
+    /**
+     * Create a new ErrorLogger instance.
+     * @return a new ErrorLogger for logging errors
+     */
+    public static ErrorLogger newInstance(String system, boolean persistent)
     {
         ErrorLogger logger = new ErrorLogger();
         logger.allErrors = new ArrayList<MessageLog>();
@@ -233,7 +241,7 @@ public class ErrorLogger implements Serializable
         logger.errorSystem = system;
         logger.errorLimit = User.getErrorLimit();
         logger.terminated = false;
-//        logger.persistent = persistent;
+        logger.persistent = persistent;
 //        logger.alreadyExplained = false;
         logger.sortKeysToGroupNames = null;
         return logger;
@@ -256,7 +264,7 @@ public class ErrorLogger implements Serializable
      */
     private synchronized MessageLog logAnError(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights)
     {
-        if (terminated) {
+        if (terminated && !persistent) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new error");
         }
 
@@ -453,7 +461,7 @@ public class ErrorLogger implements Serializable
      */
     private synchronized MessageLog logAWarning(String message, Cell cell, int sortKey, List<ErrorHighlight> highlights)
     {
-        if (terminated) {
+        if (terminated && !persistent) {
             System.out.println("WARNING: "+errorSystem+" already terminated, should not log new warning");
         }
 
