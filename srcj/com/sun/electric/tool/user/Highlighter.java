@@ -145,9 +145,6 @@ public class Highlighter implements DatabaseChangeListener {
 	public Highlight2 addElectricObject(ElectricObject eobj, Cell cell, boolean highlightConnected)
 	{
         Highlight2 h1 = new HighlightEOBJ(eobj, cell, highlightConnected, -1);
-//		Highlight h = new Highlight(Highlight.Type.EOBJ, eobj, cell);
-//        h.setHighlightConnected(highlightConnected);
-
 		addHighlight(h1);
 		return h1;
 	}
@@ -162,7 +159,6 @@ public class Highlighter implements DatabaseChangeListener {
 	public Highlight2 addText(ElectricObject eobj, Cell cell, Variable.Key varKey)
 	{
         HighlightText h1 = new HighlightText(eobj, cell, varKey);
-
         addHighlight(h1);
 		return h1;
 	}
@@ -177,10 +173,6 @@ public class Highlighter implements DatabaseChangeListener {
 	public Highlight2 addMessage(Cell cell, String message, Point2D loc)
 	{
         Highlight2 h1 = new HighlightMessage(cell, message, loc);
-//		Highlight h = new Highlight(Highlight.Type.MESSAGE, null, cell);
-//        h.setMessage(message);
-//		h.setLocation(loc);
-
         addHighlight(h1);
 		return h1;
 	}
@@ -194,11 +186,6 @@ public class Highlighter implements DatabaseChangeListener {
 	public Highlight2 addArea(Rectangle2D area, Cell cell)
 	{
         Highlight2 h1 = new HighlightArea(cell, area);
-//		Highlight h = new Highlight(Highlight.Type.BBOX, null, cell);
-//		Rectangle2D bounds = new Rectangle2D.Double();
-//		bounds.setRect(area);
-//        h.setBounds(bounds);
-
         addHighlight(h1);
 		return h1;
 	}
@@ -254,10 +241,6 @@ public class Highlighter implements DatabaseChangeListener {
     public Highlight2 addPoly(Poly poly, Cell cell, Color color)
     {
         Highlight2 h1 = new HighlightPoly(cell, poly, color);
-//        Highlight h = new Highlight(Highlight.Type.POLY, null, cell);
-//        h.setPoly(poly);
-//        h.setColor(color);
-
         addHighlight(h1);
         return h1;
     }
