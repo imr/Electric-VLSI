@@ -84,6 +84,7 @@ public class MoCMOS extends Technology
 	public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
 
 	// layers to share with subclasses
+    protected Layer[] viaLayers = new Layer[5];
 	protected Layer poly1Layer, transistorPolyLayer;
     protected Layer silicideBlockLayer;
     protected Layer[] selectLayers;
@@ -94,6 +95,9 @@ public class MoCMOS extends Technology
     protected Layer[] wellLayers = new Layer[2];
     protected Layer activeCutLayer;
     protected Layer thickActiveLayer;
+    protected Layer passivationLayer;
+    protected Layer polyCapLayer;
+    protected Layer padFrameLayer;
 
 	// arcs
     /** metal 1->6 arc */						protected ArcProto[] metalArcs = new ArcProto[6];
@@ -113,8 +117,6 @@ public class MoCMOS extends Technology
     /** metal-1-P/N-Well-contacts */            protected PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
 	/** Metal-1 -> Metal-6 Nodes */			    private PrimitiveNode[] metalNodes = new PrimitiveNode[6];
 	/** Polysilicon-1/2-Node */					private PrimitiveNode[] polyNodes = new PrimitiveNode[2];
-//	/** PolyCut-Node */							private PrimitiveNode polyCutNode_node;
-//	/** ActiveCut-Node */						private PrimitiveNode activeCutNode_node;
 	/** Via-1 -. Via-5 Nodes */					private PrimitiveNode[] viaNodes = new PrimitiveNode[5];
 
 	// for dynamically modifying the transistor geometry
@@ -974,7 +976,6 @@ public class MoCMOS extends Technology
 			new EGraphics(false, false, null, 0, 100,100,100, 1,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
-        Layer[] viaLayers = new Layer[5];
 		/** via1->via5 layer */
         for (int i = 0; i < viaLayers.length; i++)
 		    viaLayers[i] = Layer.newInstance(this, "Via"+(i+1),
@@ -982,7 +983,7 @@ public class MoCMOS extends Technology
                             new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** passivation layer */
-		Layer passivation_lay = Layer.newInstance(this, "Passivation",
+		passivationLayer = Layer.newInstance(this, "Passivation",
 			new EGraphics(true, true, null, 0, 100,100,100, 1,true,
 			new int[] { 0x1C1C,   //    XXX     XXX
 						0x3E3E,   //   XXXXX   XXXXX
@@ -1022,7 +1023,7 @@ public class MoCMOS extends Technology
 						0x5555}));//  X X X X X X X X
 
 		/** poly cap layer */
-		Layer polyCap_lay = Layer.newInstance(this, "Poly-Cap",
+		polyCapLayer = Layer.newInstance(this, "Poly-Cap",
 			new EGraphics(false, false, null, 0, 0,0,0, 1,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
@@ -1369,7 +1370,7 @@ public class MoCMOS extends Technology
 						0x0000}));//
 
 		/** pad frame */
-		Layer padFrame_lay = Layer.newInstance(this, "Pad-Frame",
+		padFrameLayer = Layer.newInstance(this, "Pad-Frame",
 			new EGraphics(false, true, null, 0, 255,0,0, 1,false,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
@@ -1395,9 +1396,9 @@ public class MoCMOS extends Technology
 		viaLayers[2].setFunction(Layer.Function.CONTACT4, Layer.Function.CONMETAL);			// Via-3
 		viaLayers[3].setFunction(Layer.Function.CONTACT5, Layer.Function.CONMETAL);			// Via-4
 		viaLayers[4].setFunction(Layer.Function.CONTACT6, Layer.Function.CONMETAL);			// Via-5
-		passivation_lay.setFunction(Layer.Function.OVERGLASS);							// Passivation
+		passivationLayer.setFunction(Layer.Function.OVERGLASS);							// Passivation
 		transistorPolyLayer.setFunction(Layer.Function.GATE);							// Transistor-Poly
-		polyCap_lay.setFunction(Layer.Function.CAP);									// Poly-Cap
+		polyCapLayer.setFunction(Layer.Function.CAP);									// Poly-Cap
 		pActiveWellLayer.setFunction(Layer.Function.DIFFP);								// P-Active-Well
 		silicideBlockLayer.setFunction(Layer.Function.ART);								// Silicide-Block
 
@@ -1416,7 +1417,7 @@ public class MoCMOS extends Technology
 		pseudoNSelect_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);	// Pseudo-N-Select
 		pseudoPWell_lay.setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
 		pseudoNWell_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo-N-Well
-		padFrame_lay.setFunction(Layer.Function.ART);									// Pad-Frame
+		padFrameLayer.setFunction(Layer.Function.ART);									// Pad-Frame
 
 		// The CIF names
 		metalLayers[0].setFactoryCIFLayer("CMF");				// Metal-1
@@ -1440,9 +1441,9 @@ public class MoCMOS extends Technology
 		viaLayers[2].setFactoryCIFLayer("CVT");					// Via-3
 		viaLayers[3].setFactoryCIFLayer("CVQ");					// Via-4
 		viaLayers[4].setFactoryCIFLayer("CV5");					// Via-5
-		passivation_lay.setFactoryCIFLayer("COG");			// Passivation
+		passivationLayer.setFactoryCIFLayer("COG");			// Passivation
 		transistorPolyLayer.setFactoryCIFLayer("CPG");		// Transistor-Poly
-		polyCap_lay.setFactoryCIFLayer("CPC");				// Poly-Cap
+		polyCapLayer.setFactoryCIFLayer("CPC");				// Poly-Cap
 		pActiveWellLayer.setFactoryCIFLayer("CAA");			// P-Active-Well
 		silicideBlockLayer.setFactoryCIFLayer("CSB");		// Silicide-Block
 		thickActiveLayer.setFactoryCIFLayer("CTA");			// Thick-Active
@@ -1460,62 +1461,36 @@ public class MoCMOS extends Technology
 		pseudoNSelect_lay.setFactoryCIFLayer("CSN");		// Pseudo-N-Select
 		pseudoPWell_lay.setFactoryCIFLayer("CWP");			// Pseudo-P-Well
 		pseudoNWell_lay.setFactoryCIFLayer("CWN");			// Pseudo-N-Well
-		padFrame_lay.setFactoryCIFLayer("XP");				// Pad-Frame
+		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
 
 		// The GDS names
 		metalLayers[0].setFactoryGDSLayer("49, 80p, 80t", Foundry.Type.MOSIS.name());				// Metal-1 Mosis
-        metalLayers[0].setFactoryGDSLayer("16, 40p, 40t", Foundry.Type.TSMC.name());				// Metal-1 TSMC
 		metalLayers[1].setFactoryGDSLayer("51, 82p, 82t", Foundry.Type.MOSIS.name());				// Metal-2
-        metalLayers[1].setFactoryGDSLayer("18, 41p, 41t", Foundry.Type.TSMC.name());				// Metal-2
 		metalLayers[2].setFactoryGDSLayer("62, 93p, 93t", Foundry.Type.MOSIS.name());				// Metal-3
-        metalLayers[2].setFactoryGDSLayer("28, 42p, 42t", Foundry.Type.TSMC.name());				// Metal-3
 		metalLayers[3].setFactoryGDSLayer("31, 63p, 63t", Foundry.Type.MOSIS.name());				// Metal-4
-        metalLayers[3].setFactoryGDSLayer("31, 43p, 43t", Foundry.Type.TSMC.name());
 		metalLayers[4].setFactoryGDSLayer("33, 64p, 64t", Foundry.Type.MOSIS.name());				// Metal-5
-        metalLayers[4].setFactoryGDSLayer("33, 44p, 44t", Foundry.Type.TSMC.name());				// Metal-5
 		metalLayers[5].setFactoryGDSLayer("37, 68p, 68t", Foundry.Type.MOSIS.name());				// Metal-6
-        metalLayers[5].setFactoryGDSLayer("38, 45p, 45t", Foundry.Type.TSMC.name());				// Metal-6
 		poly1Layer.setFactoryGDSLayer("46, 77p, 77t", Foundry.Type.MOSIS.name());					// Polysilicon-1
-        poly1Layer.setFactoryGDSLayer("13, 47p, 47t", Foundry.Type.TSMC.name());					// Polysilicon-1
 		transistorPolyLayer.setFactoryGDSLayer("46", Foundry.Type.MOSIS.name());		// Transistor-Poly
-        transistorPolyLayer.setFactoryGDSLayer("13", Foundry.Type.TSMC.name());		// Transistor-Poly
 		poly2_lay.setFactoryGDSLayer("56", Foundry.Type.MOSIS.name());					// Polysilicon-2
 		activeLayers[P_TYPE].setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());				// P-Active
-        activeLayers[P_TYPE].setFactoryGDSLayer("3", Foundry.Type.TSMC.name());				// P-Active
 		activeLayers[N_TYPE].setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());				// N-Active
-        activeLayers[N_TYPE].setFactoryGDSLayer("3", Foundry.Type.TSMC.name());				// N-Active
 		pActiveWellLayer.setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());			// P-Active-Well
-        pActiveWellLayer.setFactoryGDSLayer("3", Foundry.Type.TSMC.name());			// P-Active-Well
 		selectLayers[P_TYPE].setFactoryGDSLayer("44", Foundry.Type.MOSIS.name());				// P-Select
-        selectLayers[P_TYPE].setFactoryGDSLayer("7", Foundry.Type.TSMC.name());				// P-Select
 		selectLayers[N_TYPE].setFactoryGDSLayer("45", Foundry.Type.MOSIS.name());				// N-Select
-        selectLayers[N_TYPE].setFactoryGDSLayer("8", Foundry.Type.TSMC.name());				// N-Select
 		wellLayers[P_TYPE].setFactoryGDSLayer("41", Foundry.Type.MOSIS.name());					// P-Well
-        wellLayers[P_TYPE].setFactoryGDSLayer("41", Foundry.Type.TSMC.name());					// P-Well
 		wellLayers[N_TYPE].setFactoryGDSLayer("42", Foundry.Type.MOSIS.name());					// N-Well
-        wellLayers[N_TYPE].setFactoryGDSLayer("2", Foundry.Type.TSMC.name());					// N-Well
 		polyCutLayer.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Poly-Cut
-        polyCutLayer.setFactoryGDSLayer("15", Foundry.Type.TSMC.name());				// Poly-Cut
 		activeCutLayer.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Active-Cut
-		activeCutLayer.setFactoryGDSLayer("15", Foundry.Type.TSMC.name());				// Active-Cut
 		viaLayers[0].setFactoryGDSLayer("50", Foundry.Type.MOSIS.name());					// Via-1
-        viaLayers[0].setFactoryGDSLayer("17", Foundry.Type.TSMC.name());					// Via-1
 		viaLayers[1].setFactoryGDSLayer("61", Foundry.Type.MOSIS.name());					// Via-2
-        viaLayers[1].setFactoryGDSLayer("27", Foundry.Type.TSMC.name());					// Via-2
 		viaLayers[2].setFactoryGDSLayer("30", Foundry.Type.MOSIS.name());					// Via-3
-        viaLayers[2].setFactoryGDSLayer("29", Foundry.Type.TSMC.name());					// Via-3
 		viaLayers[3].setFactoryGDSLayer("32", Foundry.Type.MOSIS.name());					// Via-4
-        viaLayers[3].setFactoryGDSLayer("32", Foundry.Type.TSMC.name());					// Via-4
 		viaLayers[4].setFactoryGDSLayer("36", Foundry.Type.MOSIS.name());					// Via-5
-        viaLayers[4].setFactoryGDSLayer("39", Foundry.Type.TSMC.name());					// Via-5
-		passivation_lay.setFactoryGDSLayer("52", Foundry.Type.MOSIS.name());			// Passivation
-        passivation_lay.setFactoryGDSLayer("19", Foundry.Type.TSMC.name());			// Passivation
-		polyCap_lay.setFactoryGDSLayer("28", Foundry.Type.MOSIS.name());				// Poly-Cap
-        polyCap_lay.setFactoryGDSLayer("28", Foundry.Type.TSMC.name());				// Poly-Cap
+		passivationLayer.setFactoryGDSLayer("52", Foundry.Type.MOSIS.name());			// Passivation
+		polyCapLayer.setFactoryGDSLayer("28", Foundry.Type.MOSIS.name());				// Poly-Cap
 		silicideBlockLayer.setFactoryGDSLayer("29", Foundry.Type.MOSIS.name());			// Silicide-Block
-        silicideBlockLayer.setFactoryGDSLayer("34", Foundry.Type.TSMC.name());			// Silicide-Block
         thickActiveLayer.setFactoryGDSLayer("60", Foundry.Type.MOSIS.name());			// Thick-Active
-        thickActiveLayer.setFactoryGDSLayer("4", Foundry.Type.TSMC.name());			// Thick-Active
 		pseudoMetal1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-1
 		pseudoMetal2_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-2
 		pseudoMetal3_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-3
@@ -1530,8 +1505,8 @@ public class MoCMOS extends Technology
 		pseudoNSelect_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-N-Select
 		pseudoPWell_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-P-Well
 		pseudoNWell_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-N-Well
-		padFrame_lay.setFactoryGDSLayer("26", Foundry.Type.MOSIS.name());				// Pad-Frame
-        padFrame_lay.setFactoryGDSLayer("26", Foundry.Type.TSMC.name());				// Pad-Frame
+		padFrameLayer.setFactoryGDSLayer("26", Foundry.Type.MOSIS.name());				// Pad-Frame
+
 		// The Skill names
 		metalLayers[0].setFactorySkillLayer("metal1");			// Metal-1
 		metalLayers[1].setFactorySkillLayer("metal2");			// Metal-2
@@ -1554,9 +1529,9 @@ public class MoCMOS extends Technology
 		viaLayers[2].setFactorySkillLayer("via3");				// Via-3
 		viaLayers[3].setFactorySkillLayer("via4");				// Via-4
 		viaLayers[4].setFactorySkillLayer("via5");				// Via-5
-		passivation_lay.setFactorySkillLayer("glasscut");	// Passivation
+		passivationLayer.setFactorySkillLayer("glasscut");	// Passivation
 		transistorPolyLayer.setFactorySkillLayer("poly");	// Transistor-Poly
-		polyCap_lay.setFactorySkillLayer("");				// Poly-Cap
+		polyCapLayer.setFactorySkillLayer("");				// Poly-Cap
 		pActiveWellLayer.setFactorySkillLayer("aa");			// P-Active-Well
 		silicideBlockLayer.setFactorySkillLayer("");	    // Silicide-Block
         thickActiveLayer.setFactorySkillLayer("");			// Thick-Active
@@ -1574,7 +1549,7 @@ public class MoCMOS extends Technology
 		pseudoNSelect_lay.setFactorySkillLayer("nplus");	// Pseudo-N-Select
 		pseudoPWell_lay.setFactorySkillLayer("pwell");		// Pseudo-P-Well
 		pseudoNWell_lay.setFactorySkillLayer("nwell");		// Pseudo-N-Well
-		padFrame_lay.setFactorySkillLayer("");				// Pad-Frame
+		padFrameLayer.setFactorySkillLayer("");				// Pad-Frame
 
 		// The layer distance
 		// Data base on 18nm technology with 200nm as grid unit.
@@ -1625,15 +1600,15 @@ public class MoCMOS extends Technology
 		poly1Layer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());					// Polysilicon-1
 		transistorPolyLayer.setFactory3DInfo(PO_LAYER, TOX_LAYER + activeLayers[P_TYPE].getDepth());			// Transistor-Poly
         poly2_lay.setFactory3DInfo(PO_LAYER, transistorPolyLayer.getDepth());					// Polysilicon-2 // on top of transistor layer?
-		polyCap_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());				// Poly-Cap @TODO GVG Ask polyCap
+		polyCapLayer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());				// Poly-Cap @TODO GVG Ask polyCap
 
 		polyCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-poly1Layer.getDepth(), poly1Layer.getDepth());				// Poly-Cut between poly and metal1
 		activeCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-activeLayers[N_TYPE].getDepth(), activeLayers[N_TYPE].getDepth());				// Active-Cut betweent active and metal1
 
 		// Other layers
-		passivation_lay.setFactory3DInfo(PASS_LAYER, metalLayers[5].getDepth());			// Passivation
+		passivationLayer.setFactory3DInfo(PASS_LAYER, metalLayers[5].getDepth());			// Passivation
 		silicideBlockLayer.setFactory3DInfo(0, BULK_LAYER);			// Silicide-Block
-        padFrame_lay.setFactory3DInfo(0, passivation_lay.getDepth());				// Pad-Frame
+        padFrameLayer.setFactory3DInfo(0, passivationLayer.getDepth());				// Pad-Frame
 
 		pseudoPoly1_lay.setFactory3DInfo(0, poly1Layer.getDistance());			// Pseudo-Polysilicon-1
 		pseudoPoly2_lay.setFactory3DInfo(0, poly2_lay.getDistance());			// Pseudo-Polysilicon-2
@@ -1666,9 +1641,9 @@ public class MoCMOS extends Technology
 		viaLayers[2].setFactoryParasitics(0.8, 0, 0);				// Via-3
 		viaLayers[3].setFactoryParasitics(0.8, 0, 0);				// Via-4
 		viaLayers[4].setFactoryParasitics(0.8, 0, 0);				// Via-5
-		passivation_lay.setFactoryParasitics(0, 0, 0);			// Passivation
+		passivationLayer.setFactoryParasitics(0, 0, 0);			// Passivation
 		transistorPolyLayer.setFactoryParasitics(2.5, 0.09, 0);	// Transistor-Poly
-		polyCap_lay.setFactoryParasitics(0, 0, 0);				// Poly-Cap
+		polyCapLayer.setFactoryParasitics(0, 0, 0);				// Poly-Cap
 		pActiveWellLayer.setFactoryParasitics(0, 0, 0);			// P-Active-Well
 		silicideBlockLayer.setFactoryParasitics(0, 0, 0);		// Silicide-Block
         thickActiveLayer.setFactoryParasitics(0, 0, 0);			// Thick-Active
@@ -1686,7 +1661,7 @@ public class MoCMOS extends Technology
 		pseudoNSelect_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
 		pseudoPWell_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-P-Well
 		pseudoNWell_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-N-Well
-		padFrame_lay.setFactoryParasitics(0, 0, 0);				// Pad-Frame
+		padFrameLayer.setFactoryParasitics(0, 0, 0);				// Pad-Frame
 
 		setFactoryParasitics(4, 0.1);
 
@@ -2749,7 +2724,7 @@ public class MoCMOS extends Technology
 		PrimitiveNode passivationNode = PrimitiveNode.newInstance("Passivation-Node", this, 8.0, 8.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(passivation_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(passivationLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		passivationNode.addPrimitivePorts(new PrimitivePort []
 			{
@@ -2764,7 +2739,7 @@ public class MoCMOS extends Technology
 		PrimitiveNode padFrameNode = PrimitiveNode.newInstance("Pad-Frame-Node", this, 8.0, 8.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(padFrame_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(padFrameLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		padFrameNode.addPrimitivePorts(new PrimitivePort []
 			{
@@ -2779,7 +2754,7 @@ public class MoCMOS extends Technology
 		PrimitiveNode polyCapNode = PrimitiveNode.newInstance("Poly-Cap-Node", this, 8.0, 8.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(polyCap_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(polyCapLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		polyCapNode.addPrimitivePorts(new PrimitivePort []
 			{
@@ -2868,13 +2843,13 @@ public class MoCMOS extends Technology
 		viaLayers[2].setPureLayerNode(viaNodes[2]);						// Via-3
 		viaLayers[3].setPureLayerNode(viaNodes[3]);						// Via-4
 		viaLayers[4].setPureLayerNode(viaNodes[4]);						// Via-5
-		passivation_lay.setPureLayerNode(passivationNode);			// Passivation
+		passivationLayer.setPureLayerNode(passivationNode);			// Passivation
 		transistorPolyLayer.setPureLayerNode(polyTransistorNode);	// Transistor-Poly
-		polyCap_lay.setPureLayerNode(polyCapNode);					// Poly-Cap
+		polyCapLayer.setPureLayerNode(polyCapNode);					// Poly-Cap
 		pActiveWellLayer.setPureLayerNode(pActiveWellNode);			// P-Active-Well
 		silicideBlockLayer.setPureLayerNode(silicideBlockNode);		// Silicide-Block
 		thickActiveLayer.setPureLayerNode(thickActiveNode);			// Thick-Active
-		padFrame_lay.setPureLayerNode(padFrameNode);				// Pad-Frame
+		padFrameLayer.setPureLayerNode(padFrameNode);				// Pad-Frame
 
         // Information for palette
         int maxY = metalArcs.length + activeArcs.length + 1 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
@@ -3401,17 +3376,17 @@ public class MoCMOS extends Technology
                 if (when != DRCTemplate.DRCMode.ALL.mode())
                 {
                     // One of the 2 is present. Absence means rule is valid for both
-
-                    if ((when&Foundry.Type.MOSIS.mode()) != 0 && foundry.getType() == Foundry.Type.TSMC)
-                    {
-                        System.out.println("SHould I see this case?");
-                        continue;
-                    }
-                    else if ((when&Foundry.Type.TSMC.mode()) != 0 && foundry.getType() == Foundry.Type.MOSIS)
-                    {
-                        System.out.println("SHould I see this case?");
-                        continue; // skipping this rule
-                    }
+//
+//                    if ((when&Foundry.Type.MOSIS.mode()) != 0 && foundry.getType() == Foundry.Type.TSMC)
+//                    {
+//                        System.out.println("SHould I see this case?");
+//                        continue;
+//                    }
+//                    else if ((when&Foundry.Type.TSMC.mode()) != 0 && foundry.getType() == Foundry.Type.MOSIS)
+//                    {
+//                        System.out.println("SHould I see this case?");
+//                        continue; // skipping this rule
+//                    }
                 }
 
                 boolean goodrule = true;
