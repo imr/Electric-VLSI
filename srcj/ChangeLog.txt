@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+BUG: (2/20/06, DN) Cell bounds restored incorrectly by Undo.
+FIX: In EDatabase.undo restore bound for cells whose contents was not modified.
+
 BUG: (2/20/06, DN) Incremental DRC show dialog on every cell.
 FIX: In ErrorLoggerTree check if the logger is already shown.
 

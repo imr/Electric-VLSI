@@ -413,7 +413,7 @@ public class EDatabase {
                     !oldBackup.d.cellName.equals(newBackup.d.cellName) || oldBackup.isMainSchematics != newBackup.isMainSchematics)
                 cellTreeChanged = true;
         }
-        updateAll(snapshot, undoSnapshot);
+        updateCells(snapshot, undoSnapshot);
         if (changedLibs != null || cellTreeChanged) {
             for (Library lib: libraries.values())
                 lib.cells.clear();
@@ -424,12 +424,13 @@ public class EDatabase {
                 lib.cells.put(cell.getCellName(), cell);
             }
         }
+        updateCellBounds(undoSnapshot);
         snapshot = undoSnapshot;
         checkFresh(undoSnapshot);
         snapshotFresh = true;
     }
     
-    void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
+    void updateCells(Snapshot oldSnapshot, Snapshot newSnapshot) {
         BitSet updated = new BitSet();
         BitSet exportsModified = new BitSet();
         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
@@ -440,6 +441,7 @@ public class EDatabase {
             else
                 removeCell(cellId);
         }
+        updateCellBounds(newSnapshot);
         boolean mainSchematicsChanged = false;
         for (int i = 0; i < newSnapshot.cellBackups.length; i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
@@ -477,12 +479,13 @@ public class EDatabase {
     	if (updated.get(cellIndex)) return;
         CellBackup newBackup = newSnapshot.getCell(cellId);
         assert cellId != null;
-        boolean subCellsModified = false;
+        boolean subCellsExportsModified = false;
         for (int i = 0; i < newBackup.cellUsages.length; i++) {
         	if (newBackup.cellUsages[i] <= 0) continue;
         	CellUsage u = cellId.getUsageIn(i);
-        	if (exportsModified.get(u.protoId.cellIndex))
-        		subCellsModified = true;
+            int subCellIndex = u.protoId.cellIndex;
+        	if (exportsModified.get(subCellIndex))
+        		subCellsExportsModified = true;
         	updateTree(oldSnapshot, newSnapshot, u.protoId, updated, exportsModified);
         }
         CellBackup oldBackup = oldSnapshot.getCell(cellId);
@@ -497,14 +500,48 @@ public class EDatabase {
             if (newBackup != oldBackup) {
             	if (!newBackup.sameExports(oldBackup))
             		exportsModified.set(cellIndex);
-            	cell.update(newBackup, subCellsModified ? exportsModified : null);
-            } else if (subCellsModified)
-                cell.updatePortInsts(exportsModified);
+            	cell.update(newBackup, subCellsExportsModified ? exportsModified : null);
+            } else {
+                if (subCellsExportsModified)
+                    cell.updatePortInsts(exportsModified);
+            }
         }
         cell.undoCellBounds(newSnapshot.getCellBounds(cellId));
     	updated.set(cellIndex);
     }
 
+    void updateCellBounds(Snapshot newSnapshot) {
+        BitSet boundsModified = new BitSet();
+        for (int i = 0; i < newSnapshot.cellBounds.length; i++) {
+            ERectangle newBounds = newSnapshot.cellBounds[i];
+            if (newBounds == null) continue;
+            if (snapshot.getCellBounds(i) != newBounds)
+                boundsModified.set(i);
+            Cell cell = getCell(i);
+            cell.undoCellBounds(newBounds);
+        }
+        for (int i = 0; i < newSnapshot.cellBounds.length; i++) {
+            CellBackup newBackup = newSnapshot.cellBackups[i];
+            if (newBackup == null || newBackup != snapshot.getCell(i)) continue;
+            CellId cellId = newBackup.d.cellId;
+            boolean subCellsBoundsModified = false;
+            for (int j = 0; j < newBackup.cellUsages.length; j++) {
+                if (newBackup.cellUsages[j] <= 0) continue;
+                CellUsage u = cellId.getUsageIn(j);
+                int subCellIndex = u.protoId.cellIndex;
+                if (boundsModified.get(subCellIndex))
+                    subCellsBoundsModified = true;
+            }
+            ERectangle newBounds = newSnapshot.cellBounds[i];
+            if (newBounds == null) continue;
+            if (snapshot.getCellBounds(i) != newBounds)
+                boundsModified.set(i);
+            Cell cell = getCell(i);
+            cell.updateSubCellBounds(boundsModified);
+        }
+        
+    }
+    
     /**
      * Checks that Electric database has the expected state.
      * @expectedSnapshot expected state.

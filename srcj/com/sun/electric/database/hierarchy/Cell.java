@@ -1079,8 +1079,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             NodeInst ni = chronNodes.get(d.nodeId);
             if (ni != null) {
                 ni.setDInUndo(d);
-                if (exportsModified != null && ni.isCellInstance()) {
-                    if (exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
+                if (ni.isCellInstance()) {
+                    int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
+                    if (exportsModified != null && exportsModified.get(subCellIndex))
                         ni.updatePortInsts();
                 }
                 ni.lowLevelClearConnections();
@@ -1246,15 +1247,27 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         checkUndoing();
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
-            if (ni.isCellInstance()) {
-                if (exportsModified.get(((Cell)ni.getProto()).getCellIndex())) {
-                    ni.updatePortInsts();
-                    ni.sortConnections();
-                }
+            if (!ni.isCellInstance()) continue;
+            int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
+            if (exportsModified.get(subCellIndex)) {
+                ni.updatePortInsts();
+                ni.sortConnections();
             }
         }
     }
-   
+
+    void updateSubCellBounds(BitSet boundsModified) {
+        checkUndoing();
+        for (int i = 0; i < nodes.size(); i++) {
+            NodeInst ni = nodes.get(i);
+            if (!ni.isCellInstance()) continue;
+            int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
+            if (boundsModified.get(subCellIndex))
+                ni.redoGeometric();
+        }
+        
+    }
+    
 	/****************************** GRAPHICS ******************************/
 
 	/**
@@ -1354,7 +1367,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (boundsDirty == BOUNDS_CORRECT)
             return cellBounds;
         
-        checkChanging();
+		checkChanging();
         boolean wasCorrectSub = boundsDirty == BOUNDS_CORRECT_SUB;
         boundsDirty = BOUNDS_CORRECT;
 		// Recalculate bounds of subcells.
