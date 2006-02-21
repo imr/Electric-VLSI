@@ -69,7 +69,7 @@ public class Schematic
 		errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
-        new DRC.DRCUpdate(0, null, null, newVariables);
+        DRC.addDRCUpdate(0, null, null, newVariables);
 		return(errorLogger);
 	}
 

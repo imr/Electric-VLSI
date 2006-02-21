@@ -453,9 +453,9 @@ public class Quick
 		// some cells were sucessfully checked: save that information in the database
 	    // some cells don't have valid DRC date anymore and therefore they should be clean
         // This is only going to happen if job was not aborted.
-	    if ((job == null || !job.checkAbort()) && (goodDRCDate.size() > 0 || cleanDRCDate.size() > 0))
+	    if ((job == null || !job.checkAbort()))
 	    {
-		    new DRC.DRCUpdate(activeBits, goodDRCDate, cleanDRCDate, null);
+            DRC.addDRCUpdate(activeBits, goodDRCDate, cleanDRCDate, null);
 	    }
 
         return errorLogger;

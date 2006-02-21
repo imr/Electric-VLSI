@@ -40,7 +40,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
-import com.sun.electric.technology.Foundry.Type;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -747,7 +746,7 @@ public class DRC extends Listener
                     cleanDRCDate.put(cell, cell);
             }
         }
-        new DRCUpdate(0, null, cleanDRCDate, null);
+        addDRCUpdate(0, null, cleanDRCDate, null);
     }
 
     /**
@@ -969,10 +968,20 @@ public class DRC extends Listener
 	 */
 	public static void setIgnoreExtensionRuleChecking(boolean on) { cacheIgnoreExtensionRuleChecking.setBoolean(on); }
 
+    public static void addDRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate,
+                                    HashMap<NodeInst, List<Variable>> newVariables)
+    {
+        boolean good = (goodDRCDate != null && goodDRCDate.size() > 0);
+        boolean clean = (cleanDRCDate != null && cleanDRCDate.size() > 0);
+        boolean vars = (newVariables != null && newVariables.size() > 0);
+        if (!good && !clean && !vars) return; // nothing to do
+        new DRCUpdate(bits, goodDRCDate, cleanDRCDate, newVariables);
+    }
+
     /**
 	 * Class to save good Layout DRC dates in a new thread or add new variables in Schematic DRC
 	 */
-	public static class DRCUpdate extends Job
+	private static class DRCUpdate extends Job
 	{
 		HashMap<Cell,Date> goodDRCDate;
 		HashMap<Cell,Cell> cleanDRCDate;
