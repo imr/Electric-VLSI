@@ -407,9 +407,6 @@ public class FileMenu {
                     noname.kill("delete");
                 }
             }
-            
-            // Repair libraries in case default width changes due to foundry changes
-            new Technology.ResetDefaultWidthJob(lib);
 //            Undo.noUndoAllowed();
             lib.setCurrent();
             showThisCell = Job.getUserInterface().getCurrentCell(lib);

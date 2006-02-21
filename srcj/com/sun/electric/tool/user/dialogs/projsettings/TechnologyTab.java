@@ -228,9 +228,6 @@ public class TechnologyTab extends ProjSettingsPanel
             if (val != 2)
             {
                 curTech.setPrefFoundry(foundry.name());
-                // primitive arcs have to be modified.
-                if (val == 0)
-                    new Technology.ResetDefaultWidthJob(null);
                 // Primitives cached must be redrawn
                 // recache display information for all cells that use this
                 for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/20/06, GVG) ResetDefaultWidthJob out.
+IMP: (2/20/06, GVG) More complex algorithm to extract single polygons with rings.
+
 BUG: (2/20/06, DN) Cell bounds restored incorrectly by Undo.
 FIX: In EDatabase.undo restore bound for cells whose contents was not modified.
 

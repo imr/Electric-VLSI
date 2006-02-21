@@ -1542,12 +1542,16 @@ public class PolyBase implements Shape, PolyNodeMerge
 	public static List<PolyBase> getPointsInArea(Area area, Layer layer, boolean simple, boolean includeLastPoint, List<PolyBase> polyList)
 	{
 		if (area == null) return null;
+		boolean isSingular = area.isSingular();
+
+        // Complex algorithm to detect loops
+        if (!isSingular)
+            return (getPointsFromComplex(area, layer, polyList));
 
         if (polyList == null) polyList = new ArrayList<PolyBase>();
 		double [] coords = new double[6];
 		List<Point2D> pointList = new ArrayList<Point2D>();
 		Point2D lastMoveTo = null;
-		boolean isSingular = area.isSingular();
 		List<PolyBase> toDelete = new ArrayList<PolyBase>();
 
 		// Gilda: best practice note: System.arraycopy
@@ -1598,6 +1602,151 @@ public class PolyBase implements Shape, PolyNodeMerge
 			pIt.next();
 		}
 		return polyList;
+	}
+
+    // Creating a tree for finding the loops
+    private static class PolyBaseTree
+    {
+        List<PolyBaseTree> list;
+        PolyBase poly;
+
+        PolyBaseTree(PolyBase p)
+        {
+            poly = p;
+            list = new ArrayList<PolyBaseTree>();
+        }
+
+        void getLoops(int level, Stack<PolyBase> stack)
+        {
+            // Starting of a new polygon
+            if (level%2== 0)
+            {
+                stack.push(poly);
+            }
+            else
+            {
+                Stack s = new Stack();
+                PolyBase top = stack.pop();
+                Point2D [] points = new Point2D[top.getPoints().length+poly.getPoints().length + 2];
+                System.arraycopy(top.getPoints(), 0, points, 0, top.getPoints().length);
+                // Adding the first point at the end to close the first loop
+                points[top.getPoints().length] = (Point2D)top.getPoints()[0].clone();
+                System.arraycopy(poly.getPoints(), 0, points, top.getPoints().length+1, poly.getPoints().length);
+                points[points.length-1] = (Point2D)poly.getPoints()[0].clone();
+                PolyBase p = new PolyBase(points);
+                stack.push(p);
+            }
+            level++;
+            for (PolyBaseTree t : list)
+                t.getLoops(level, stack);
+        }
+
+        boolean add(PolyBaseTree t)
+        {
+            if (!poly.contains(t.poly.getPoints()[0]))
+            {
+                // Belong to another root
+                return false;
+            }
+
+            if (list.size() == 0)
+            {
+                double a = poly.getArea();
+                double b = t.poly.getArea();
+                list.add(t);
+                if (a < b)
+                {
+                    System.out.println("Should this happen");
+                    PolyBase c = t.poly;
+                    t.poly = poly;
+                    poly = c;
+                }
+            }
+            else
+            {
+                for (PolyBaseTree b : list)
+                {
+                    PolyBase pn = b.poly;
+                    if (pn.contains(t.poly.getPoints()[0]))
+                    {
+                        return (b.add(t));
+                    }
+                    else if (t.poly.contains(pn.getPoints()[0]))
+                        System.out.println(" Bad happen");
+                }
+                list.add(t);
+            }
+            return true;
+        }
+    }
+
+    // This assumes the algorithm starts with external loop
+    public static List<PolyBase> getPointsFromComplex(Area area, Layer layer, List<PolyBase> polyList)
+	{
+		if (area == null) return null;
+
+        if (polyList == null) polyList = new ArrayList<PolyBase>();
+		double [] coords = new double[6];
+		List<Point2D> pointList = new ArrayList<Point2D>();
+		List<PolyBase> toDelete = new ArrayList<PolyBase>();
+        List<PolyBaseTree> roots = new ArrayList<PolyBaseTree>();
+        List<PolyBase> list = new ArrayList<PolyBase>();
+		// Gilda: best practice note: System.arraycopy
+		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
+		{
+			int type = pIt.currentSegment(coords);
+			if (type == PathIterator.SEG_CLOSE)
+			{
+				Point2D [] points = new Point2D[pointList.size()];
+				int i = 0;
+				for(Point2D p : pointList)
+					points[i++] = p;
+				PolyBase poly = new PolyBase(points);
+				poly.setLayer(layer);
+				poly.setStyle(Poly.Type.FILLED);
+				toDelete.clear();
+
+                list.add(poly);
+
+				pointList.clear();
+			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+			{
+				Point2D pt = new Point2D.Double(coords[0], coords[1]);
+				pointList.add(pt);
+			}
+			pIt.next();
+		}
+
+        Collections.sort(list, AREA_COMPARATOR);
+
+        // areas are sorted from min to max
+        // Build the hierarchy with loops
+        for (int i = list.size()-1; i > -1; i--)
+        {
+            PolyBaseTree t = new PolyBaseTree(list.get(i));
+
+            // Check all possible roots
+            boolean added = false;
+            for (PolyBaseTree r : roots)
+            {
+                if (r.add(t))
+                {
+                    added = true;
+                    break;
+                }
+            }
+            if (!added)
+                roots.add(t);
+        }
+        // get loops from all tree roots. Even loops start a new poly
+        for (PolyBaseTree r : roots)
+        {
+            int count = 0;
+            Stack<PolyBase> s = new Stack<PolyBase>();
+            r.getLoops(count, s);
+            polyList.addAll(s);
+        }
+        return polyList;
 	}
 
     private class PolyPathIterator implements PathIterator

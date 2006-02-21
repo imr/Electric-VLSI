@@ -1075,9 +1075,6 @@ public class Pref
 
         // Repair libraries in case number of layers was changed or arcs must be resized.
         CircuitChanges.checkAndRepairCommand(true);
-
-        // Repair libraries in case default width changes due to foundry changes
-        new Technology.ResetDefaultWidthJob(null);
     }
 
     public static void allPreferencesCreated() {

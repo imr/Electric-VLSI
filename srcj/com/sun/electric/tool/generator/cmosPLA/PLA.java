@@ -166,7 +166,6 @@ public class PLA
 		{
 			URL fileURL = LibFile.getLibFile(libName + ".jelib");
     		Library lib = LibraryFiles.readLibrary(fileURL, libName, FileType.JELIB, true);
-            new Technology.ResetDefaultWidthJob(lib);
 //            Undo.noUndoAllowed();
 			return true;
 		}

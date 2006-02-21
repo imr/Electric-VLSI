@@ -1485,7 +1485,6 @@ public class ToolMenu {
 			System.out.println("Reading Standard Cell Library '" + SilComp.SCLIBNAME + "'");
 			URL fileURL = LibFile.getLibFile(SilComp.SCLIBNAME + ".jelib");
 			Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true);
-            new Technology.ResetDefaultWidthJob(lib);
 //	        Undo.noUndoAllowed();
 			return true;
 		}

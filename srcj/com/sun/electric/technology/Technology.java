@@ -4001,12 +4001,6 @@ public class Technology implements Comparable<Technology>
     public void setCachedRules(DRCRules rules) {cachedRules = rules;}
 
     /**
-     * Reset default width values. Dummy function except to 180nm
-     * @param cell
-     */
-    public void resetDefaultValues(Cell cell) {;}
-
-    /**
      * This method determines if one of the polysilicon polygons is covered by a vth layer. Only implemented in 90nm
      * doesn't apply
      * @param polys
@@ -4080,50 +4074,4 @@ public class Technology implements Comparable<Technology>
 			return pref;
 		}
 	}
-
-    /**
-     * Job to resize arcs according to foundry information (switch between Mosis and TSMC)
-     */
-    public static class ResetDefaultWidthJob extends Job
-    {
-        private Library library; // just to correct this one
-
-        public ResetDefaultWidthJob(Library lib)
-        {
-            super("Reset Default Arc Widths", User.getUserTool(), Type.CHANGE, null, null, Priority.USER);
-			this.library = lib;
-            startJob();
-        }
-
-        private void checkLibrary(Library lib)
-        {
-//            System.out.println("Resetting sizes in " + lib);
-//            for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
-//            {
-//                Cell cell = itCell.next();
-//                if (cell.getView() != View.LAYOUT) continue;
-//
-//                cell.getTechnology().resetDefaultValues(cell);
-//            }
-        }
-
-        public boolean doIt() throws JobException
-        {
-//            Undo.changesQuiet(true);
-            if (library != null)
-            {
-                checkLibrary(library);
-            }
-            else
-            {
-                for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-                {
-                    Library lib = it.next();
-                    checkLibrary(lib);
-                }
-            }
-//            Undo.changesQuiet(false);
-            return true;
-        }
-    }
 }
