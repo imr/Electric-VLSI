@@ -52,7 +52,7 @@ import java.util.Set;
  */
 public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 
-	private static final boolean TRIMMEDDISPLAY = true;
+	private static final boolean TRIMMEDDISPLAY = false;
     private Cell cell;
     private Netlist netlist;
     private Set<Network> nets;
