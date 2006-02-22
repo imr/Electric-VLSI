@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/21/06, GVG) More code for auto fill generator. First version working with hierarchy.
+
 BUG: (2/21/06, DN) Protection database by ReadWriteLock leads to deadlocks and slowness.
 FIX: Remove this lock. GUI can access modifying database again. Netlists are fully computed in database thread.
 

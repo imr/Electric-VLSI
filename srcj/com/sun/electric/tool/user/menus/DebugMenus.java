@@ -797,20 +797,6 @@ public class DebugMenus
     {
         Cell cell = WindowFrame.getCurrentCell();
         if (cell == null) return;
-        List<PortInst> list = new ArrayList<PortInst>();
-
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-        {
-            NodeInst ni = it.next();
-
-            for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
-            {
-                PortInst p = itP.next();
-
-                if (!p.getPortProto().isGround() && !p.getPortProto().isPower()) continue;
-                list.add(p);
-            }
-        }
 
         // Creating fill template
         FillGenerator fg = new FillGenerator(cell.getTechnology());
@@ -820,12 +806,14 @@ public class DebugMenus
         double drcSpacingRule = 6;
         double vddReserve = drcSpacingRule*2;
         double gndReserve = drcSpacingRule*3;
+        double minSize = vddReserve + gndReserve + 2*drcSpacingRule + 2*gndReserve + 2*vddReserve;
+        fg.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize);
         fg.setFillCellWidth(bnd.getWidth());
         fg.setFillCellHeight(bnd.getHeight());
         fg.makeEvenLayersHorizontal(true);
         fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
         fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
-        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null);
+        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, drcSpacingRule);
     }
 
     private static void cleanSetOfLibraries()

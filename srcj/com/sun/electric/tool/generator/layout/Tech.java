@@ -253,7 +253,9 @@ public class Tech {
 		LayoutLib.error(pred, msg);
 	}
 	//----------------------------- public methods  ------------------------------
-	
+
+    public static Type getTechnology() { return techType; }
+
 	public static void setTechnology(Type techNm) {
         techType = techNm;
 

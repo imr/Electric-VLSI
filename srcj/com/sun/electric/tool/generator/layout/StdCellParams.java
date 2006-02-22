@@ -653,7 +653,7 @@ public class StdCellParams {
 
 	public StdCellParams(Library lib, Tech.Type tech) {
         if      (tech == Tech.Type.TSMC90) initTSMC90();
-        else if (tech == Tech.Type.MOCMOS) initMoCMOS();
+        else if (tech == Tech.Type.MOCMOS || tech == Tech.Type.TSMC180) initMoCMOS();
         else {
             error(true, "Standard Cell Params does not understand technology "+tech);
         }

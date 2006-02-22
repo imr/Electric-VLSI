@@ -32,6 +32,7 @@ import java.io.Serializable;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -78,6 +79,7 @@ abstract class MetalFloorplanBase extends Floorplan
 {
 	/** width Vdd wires */				public double vddWidth;
 	/** width Gnd wires */  			public double gndWidth;
+
     MetalFloorplanBase(double cellWidth, double cellHeight, boolean horiz)
     {
         super(cellWidth, cellHeight, horiz);
@@ -96,24 +98,24 @@ class MetalFloorplanFlex extends MetalFloorplanBase {
 			        double space, boolean horiz)
     {
         super(cellWidth, cellHeight, horiz);
-        vddWidth = 27;
-        gndWidth = 20;
+        this.vddWidth = 27;
+        this.gndWidth = 20;
         this.space = space;
         this.vddReserve = vddReserve;
         this.gndReserve = gndReserve;
         minWidth = vddReserve + gndReserve + 2*space + 2*gndWidth + 2*vddWidth;
-        int divider = 1;
+//        int divider = 1;
 
-        if (horizontal)
-        {
-            divider = (int)Math.floor(cellHeight/minWidth);
-            if (divider > 1) cellHeight /= divider;
-        }
-        else
-        {
-            divider = (int)Math.floor(cellWidth/minWidth);
-            if (divider > 1) cellWidth /= divider;
-        }
+//        if (horizontal)
+//        {
+//            divider = (int)Math.floor(cellHeight/minWidth);
+//            if (divider > 1) cellHeight /= divider;
+//        }
+//        else
+//        {
+//            divider = (int)Math.floor(cellWidth/minWidth);
+//            if (divider > 1) cellWidth /= divider;
+//        }
     }
 }
 
@@ -984,8 +986,8 @@ class FillCell {
    	}
 	
 	private Cell makeFillCell1(Library lib, Floorplan[] plans, int botLayer,
-					 		   int topLayer, CapCell capCell, boolean wireLowest, 
-					 		   StdCellParams stdCell, boolean metalFlex) {
+                               int topLayer, CapCell capCell, boolean wireLowest,
+                               StdCellParams stdCell, boolean metalFlex, boolean hierFlex) {
 		String name = fillName(botLayer, topLayer, wireLowest, stdCell);
 		Cell cell = Cell.newInstance(lib, name);
 		VddGndStraps[] layers = new VddGndStraps[7];
@@ -994,7 +996,7 @@ class FillCell {
 				layers[i] = new CapLayer((CapFloorplan) plans[i], capCell,
 				                         cell, stdCell); 
 			} else {
-                if (metalFlex)
+                if (metalFlex && !hierFlex)
 				    layers[i] = new MetalLayerFlex(i, plans[i], cell);
                 else
                     layers[i] = new MetalLayer(i, plans[i], cell);
@@ -1022,13 +1024,13 @@ class FillCell {
 		gndNm = stdCell.getGndExportName();
 		vddNm = stdCell.getVddExportName();
 	}
-	public static Cell makeFillCell(Library lib, Floorplan[] plans, 
-								   int botLayer, int topLayer, CapCell capCell, 
-								   boolean wireLowest, StdCellParams stdCell, boolean metalFlex) {
+	public static Cell makeFillCell(Library lib, Floorplan[] plans,
+                                    int botLayer, int topLayer, CapCell capCell,
+                                    boolean wireLowest, StdCellParams stdCell, boolean metalFlex, boolean hierFlex) {
 		FillCell fc = new FillCell(stdCell);
 
 		return fc.makeFillCell1(lib, plans, botLayer, topLayer, capCell, 
-		                        wireLowest, stdCell, metalFlex);
+		                        wireLowest, stdCell, metalFlex, hierFlex);
 	}
 }
 
@@ -1089,6 +1091,7 @@ class TiledCell {
 
 	private int vddNum, gndNum;
 	private final String vddNm, gndNm;
+    private Cell tileCell;
 
 	private String vddName() {
 		int n = vddNum++;
@@ -1221,7 +1224,7 @@ class TiledCell {
 	}
 	private NodeInst[][] newRows(int numX, int numY) {
 		NodeInst[][] rows = new NodeInst[numY][];
-		for (int row=0; row<numX; row++) {
+		for (int row=0; row<numY; row++) {
 			rows[row] = new NodeInst[numX];
 		}
 		return rows;
@@ -1238,13 +1241,23 @@ class TiledCell {
 		LayoutLib.newNodeInst(Tech.essentialBounds, tlX, tlY,
 							  G.DEF_SIZE, G.DEF_SIZE, 0, tiled);
 	}
-	private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans, 
-	                  Library lib, StdCellParams stdCell) {
+    /**
+     * Method to create the master tiledCell. Note that targetHeight and targetHeight do not necessarily match
+     * with cellW and cellH if algorithm is used to create a flexible number of tiled cells
+     @param numX
+     * @param numY
+     * @param cell
+     * @param plans
+     * @param lib
+     * @param stdCell
+     */
+	private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans,
+                      Library lib, StdCellParams stdCell) {
 	    vddNm = stdCell.getVddExportName();
 	    gndNm = stdCell.getGndExportName();
-	    
+
 		String tiledName = "t"+cell.getName()+"_"+numX+"x"+numY+"{lay}";
-		Cell tiled = Cell.newInstance(lib, tiledName);
+		tileCell = Cell.newInstance(lib, tiledName);
 
 		Rectangle2D bounds = cell.findEssentialBounds();
 		LayoutLib.error(bounds==null, "missing Essential Bounds");
@@ -1253,26 +1266,27 @@ class TiledCell {
 
 		// put bottom left cell at (0, 0)
 		double y = 0;
-		
-		NodeInst[][] rows = newRows(numX, numY); 
+
+		NodeInst[][] rows = newRows(numX, numY);
 		for (int row=0; row<numY; row++) {
 			double x = 0;
 			for (int col=0; col<numX; col++) {
-				rows[row][col] = LayoutLib.newNodeInst(cell, x, y, G.DEF_SIZE, 
-													   G.DEF_SIZE, 0, tiled);
+				rows[row][col] = LayoutLib.newNodeInst(cell, x, y, G.DEF_SIZE,
+													   G.DEF_SIZE, 0, tileCell);
 				x += cellW;
 			}
 			y += cellH;
 		}
-		ArrayList<PortInst> portInsts = getAllPortInsts(tiled);
+		ArrayList<PortInst> portInsts = getAllPortInsts(tileCell);
 		FillRouter.connectCoincident(portInsts);
-		exportUnconnectedPortInsts(rows, plans, tiled, stdCell);
-		addEssentialBounds(cellW, cellH, numX, numY, tiled);
+		exportUnconnectedPortInsts(rows, plans, tileCell, stdCell);
+		addEssentialBounds(cellW, cellH, numX, numY, tileCell);
 	}
-	public static void makeTiledCell(int numX, int numY, Cell cell, 
-	                                 Floorplan[] plans, Library lib,
-	                                 StdCellParams stdCell) {
-		new TiledCell(numX, numY, cell, plans, lib, stdCell);
+	public static Cell makeTiledCell(int numX, int numY, Cell cell,
+                                     Floorplan[] plans, Library lib,
+                                     StdCellParams stdCell) {
+		TiledCell tile = new TiledCell(numX, numY, cell, plans, lib, stdCell);
+        return tile.tileCell;
 	}
 }
 
@@ -1292,6 +1306,7 @@ public class FillGenerator implements Serializable {
 	private static final double m6SP = 8;
 
 	private double width=Double.NaN, height=Double.NaN;
+    private double targetWidth=Double.NaN, targetHeight=Double.NaN, minTileSize=Double.NaN;
 	private String libName;
 	private Library lib;
 	private boolean libInitialized;
@@ -1309,7 +1324,7 @@ public class FillGenerator implements Serializable {
 		if (layer!=6) return 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
 		return 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
 	}
-	private Floorplan[] makeFloorplans(boolean metalFlex) {
+	private Floorplan[] makeFloorplans(boolean metalFlex, boolean hierFlex) {
 		LayoutLib.error(width==Double.NaN, 
 						"width hasn't been specified. use setWidth()");
 		LayoutLib.error(height==Double.NaN, 
@@ -1321,15 +1336,20 @@ public class FillGenerator implements Serializable {
 		boolean evenHor = evenLayersHorizontal;
         if (metalFlex)
         {
-            return new Floorplan[] {
-			null,
-			new CapFloorplan(w, h, 			 	                 !evenHor),
-			new MetalFloorplanFlex(w, h, vddRes[2], gndRes[2], m1SP,  evenHor),
-			new MetalFloorplanFlex(w, h, vddRes[3], gndRes[3], m1SP, !evenHor),
-			new MetalFloorplanFlex(w, h, vddRes[4], gndRes[4], m1SP,  evenHor),
-			new MetalFloorplanFlex(w, h, vddRes[5], gndRes[5], m1SP, !evenHor),
-			new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], m6SP,  evenHor)
-		};
+            if (!hierFlex)
+            {
+                return new Floorplan[] {
+                null,
+                new CapFloorplan(w, h, 			 	                 !evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[2], gndRes[2], m1SP,  evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[3], gndRes[3], m1SP, !evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[4], gndRes[4], m1SP,  evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[5], gndRes[5], m1SP, !evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], m6SP,  evenHor)
+                };
+            }
+            w = width = minTileSize;
+            h = height = minTileSize;
         }
 		return new Floorplan[] {
 			null,
@@ -1348,17 +1368,17 @@ public class FillGenerator implements Serializable {
 		}
 	}
 
-	private void initFillParameters(boolean metalFlex) {
+	private void initFillParameters(boolean metalFlex, boolean hierFlex) {
 		if (libInitialized) return;
 		
 		LayoutLib.error(libName==null, "no library specified. Use setFillLibrary()");
 
-		plans = makeFloorplans(metalFlex);
+		plans = makeFloorplans(metalFlex, hierFlex);
 		if (!metalFlex) printCoverage(plans);
 		
 		lib = LayoutLib.openLibForWrite(libName, libName+".elib");
-		stdCell = new StdCellParams(null, Tech.Type.MOCMOS);
-		stdCellP = new StdCellParams(null, Tech.Type.MOCMOS);
+		stdCell = new StdCellParams(null, Tech.getTechnology());
+		stdCellP = new StdCellParams(null, Tech.getTechnology());
 		stdCellP.setVddExportName("power");
 		stdCellP.setVddExportRole(PortCharacteristic.IN);
 		capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell);
@@ -1383,11 +1403,18 @@ public class FillGenerator implements Serializable {
 		}
 	}
 	private Cell makeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
-								 int hiLay, CapCell capCell, boolean wireLowest, 
-								 int[] tiledSizes, StdCellParams stdCell, boolean metalFlex) {
+                                 int hiLay, CapCell capCell, boolean wireLowest,
+                                 int[] tiledSizes, StdCellParams stdCell, boolean metalFlex, boolean hierFlex) {
 		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell, 
-									   wireLowest, stdCell, metalFlex);
-		makeTiledCells(c, plans, lib, tiledSizes, stdCell);
+									   wireLowest, stdCell, metalFlex, hierFlex);
+        if (!hierFlex)
+		    makeTiledCells(c, plans, lib, tiledSizes, stdCell);
+        else
+        {
+            int tileOnX = (int)Math.ceil(targetWidth/minTileSize);
+            int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
+            c = TiledCell.makeTiledCell(tileOnX, tileOnY, c, plans, lib, stdCell);
+        }
         return c;
 	}
 
@@ -1442,7 +1469,18 @@ public class FillGenerator implements Serializable {
 		changeWarning();
 		height=h;
 	}
-	/** Make even layers horizontal or vertical. Odd layers are orthogonal to 
+    /** Set target values: the minimum size of title based on user input and DRC rules
+     * @param targetW
+     * @param targetH
+     * @param s size in lambda
+     */
+    public void setTargetValues(double targetW, double targetH, double s) {
+		changeWarning();
+        targetWidth = targetW;
+        targetHeight = targetH;
+        minTileSize = s;
+    }
+	/** Make even layers horizontal or vertical. Odd layers are orthogonal to
 	 * even layers.
 	 * @param b true if even layers should be horizontal.
 	 */
@@ -1478,8 +1516,8 @@ public class FillGenerator implements Serializable {
 	 * to create fill cells with export type "POWER". Please use the version
 	 * of makeFillCell that has no PowerType argument. */
 	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-							 PowerType powerType, int[] tiledSizes, boolean metalFlex) {
-		initFillParameters(metalFlex);
+                             PowerType powerType, int[] tiledSizes, boolean metalFlex, boolean hierFlex) {
+		initFillParameters(metalFlex, hierFlex);
 		
 		LayoutLib.error(loLayer<1, "loLayer must be >=1");
 		LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
@@ -1488,10 +1526,10 @@ public class FillGenerator implements Serializable {
         Cell cell = null;
 		if (powerType==VDD) {
 			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
-			                tiledSizes, stdCell, metalFlex);
+			                tiledSizes, stdCell, metalFlex, hierFlex);
 		} else {
 			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
-			                tiledSizes, stdCellP, metalFlex);
+			                tiledSizes, stdCellP, metalFlex, hierFlex);
 		}
         return cell;
 	}
@@ -1501,18 +1539,18 @@ public class FillGenerator implements Serializable {
 	 * current tiled cell sizes.
 	 * @param loLayer the lower layer. This may be 1 through 6. Layer 1 means
 	 * build a capacitor using MOS transistors between Vdd and ground.
-	 * @param hiLayer the upper layer. This may be 2 through 6. Note that hiLayer
+     * @param hiLayer the upper layer. This may be 2 through 6. Note that hiLayer
 	 * must be >= loLayer.
-	 * @param exportConfig may be PERIMETER in which case exports are 
+     * @param exportConfig may be PERIMETER in which case exports are
 	 * placed along the perimeter of the cell for the top two layers. Otherwise
 	 * exportConfig must be PERIMETER_AND_INTERNAL in which case exports are
-	 * placed inside the perimeter of the cell for the bottom layer. 
-	 * @param tiledSizes Array specifying composite Cells we should build by
-	 * concatonating fill cells. For example int[] {2, 4, 7} means we should 
-	 * tile fill cell to build composites 2x2, 4x4, and 7x7. */
+	 * placed inside the perimeter of the cell for the bottom layer.
+     * @param tiledSizes Array specifying composite Cells we should build by
+	 * concatonating fill cells. For example int[] {2, 4, 7} means we should
+     * @param hierFlex*/
 	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-			 				 int[] tiledSizes, boolean metalFlex) {
-		return makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, metalFlex);
+                             int[] tiledSizes, boolean metalFlex, boolean hierFlex) {
+		return makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, metalFlex, hierFlex);
 	}
 	public void makeGallery() {
 		Gallery.makeGallery(lib);
@@ -1529,8 +1567,10 @@ public class FillGenerator implements Serializable {
         private int[] cellsList;
         private Cell topCell;
         private ErrorLogger log;
+        private double drcSpacing; // to store min distance between wires
 
-		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells)
+		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells,
+                          double drcSpacing)
 		{
 			super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
             this.perimeter = perim;
@@ -1539,6 +1579,7 @@ public class FillGenerator implements Serializable {
             this.lastMetal = last;
             this.cellsList = cells;
             this.topCell = cell; // Only if 1 cell is generated.
+            this.drcSpacing = drcSpacing;
 
 			startJob();
 		}
@@ -1549,7 +1590,8 @@ public class FillGenerator implements Serializable {
             log = ErrorLogger.newInstance("Fill");
 
             // Searching common power/gnd connections and skip the ones are in the same network
-            Set<PortInst> portList = new HashSet<PortInst>();
+            // Don't change List by Set otherwise the sequence given by Set is not deterministic and hard to debug
+            List<PortInst> portList = new ArrayList<PortInst>();
 
             for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
             {
@@ -1596,46 +1638,49 @@ public class FillGenerator implements Serializable {
                 }
             }
 
-            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true);
-            fillGen.makeGallery();
+            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true, false);
+//            fillGen.makeGallery();
 
             if (topCell == null || portList == null || portList.size() == 0) return true;
-
 
             Cell connectionCell = Cell.newInstance(topCell.getLibrary(), topCell.getName()+"fill{lay}");
             Rectangle2D bnd = topCell.getBounds();
 
+            Rectangle2D fillBnd = fillCell.getBounds();
+            double essentialX = fillBnd.getWidth()/2;
+            double essentialY = fillBnd.getHeight()/2;
             LayoutLib.newNodeInst(Tech.essentialBounds,
-                      -bnd.getWidth()/2, -bnd.getHeight()/2,
+                      -essentialX, -essentialY,
                       G.DEF_SIZE, G.DEF_SIZE, 180, connectionCell);
 		    LayoutLib.newNodeInst(Tech.essentialBounds,
-                      bnd.getWidth()/2, bnd.getHeight()/2,
+                      essentialX, essentialY,
                       G.DEF_SIZE, G.DEF_SIZE, 0, connectionCell);
-
-//            double globalWidth = Double.POSITIVE_INFINITY;
 
             // Adding the connection cell into topCell
             NodeInst conNi = LayoutLib.newNodeInst(connectionCell, bnd.getCenterX(), bnd.getCenterY(),
-                    G.DEF_SIZE, G.DEF_SIZE, 0, topCell);
+                    fillBnd.getWidth(), fillBnd.getHeight(), 0, topCell);
 
             // Adding the fill cell into connectionCell
             Rectangle2D conBnd = connectionCell.getBounds();
-            NodeInst fillNi = LayoutLib.newNodeInst(fillCell, conBnd.getCenterX(), conBnd.getCenterY(),
-                    G.DEF_SIZE, G.DEF_SIZE, 0, connectionCell);
+            NodeInst fillNi = LayoutLib.newNodeInst(fillCell, conBnd.getCenterX() - fillBnd.getWidth()/2 - fillBnd.getX(),
+                    conBnd.getCenterY() - fillBnd.getHeight()/2 - fillBnd.getY(),
+                    fillBnd.getWidth(), fillBnd.getHeight(), 0, connectionCell);
 
-            AffineTransform fillTransIn = conNi.transformIn();
-            AffineTransform fillTransOut = conNi.transformOut();
-
-            // Checking if any arc in FillCell collides with rest of the cells
-            removeOverlappingBars(fillCell, fillNi, conNi, fillTransOut);
+            AffineTransform conTransOut = conNi.transformOut();
+            AffineTransform fillTransOut = fillNi.transformOut(conTransOut);
+            AffineTransform fillTransOutToCon = fillNi.transformOut(); // Don't want to calculate transformation to top
+            AffineTransform fillTransIn = fillNi.transformIn(conNi.transformIn());
 
             InteractiveRouter router  = new SimpleWirer();
             List<PortInst> fillPortInstList = new ArrayList<PortInst>();
             List<NodeInst> fillContactList = new ArrayList<NodeInst>();
-            List<PortInst> portNotReadList = new ArrayList<PortInst>();
-            List<Rectangle2D> bndNotReadList = new ArrayList<Rectangle2D>();
+//            List<PortInst> portNotReadList = new ArrayList<PortInst>();
+//            List<Rectangle2D> bndNotReadList = new ArrayList<Rectangle2D>();
             FillGenJobContainer container = new FillGenJobContainer(router, fillCell, fillNi, fillPortInstList,
                     fillContactList, connectionCell, conNi);
+
+            // Checking if any arc in FillCell collides with rest of the cells
+            removeOverlappingBars(container, fillTransOut);
 
             // Export all fillCell exports in connectCell before extra exports are added into fillCell
             for (Iterator<Export> it = container.fillCell.getExports(); it.hasNext();)
@@ -1655,11 +1700,6 @@ public class FillGenerator implements Serializable {
                 assert(p.getPortProto() instanceof Export);
 
                 Export ex = (Export)p.getPortProto();
-                NodeInst ni = ex.getOriginalPort().getNodeInst();
-
-                // Getting all gnd/power metal associated to this node inside the cell.
-                // Only one connection per this type of ports?
-//                assert(ni.getNumConnections() == 1);
                 Cell exportCell = (Cell)p.getNodeInst().getProto();
                 Rectangle2D rect = LayerCoverageTool.getGeometryOnNetwork(exportCell, ex.getOriginalPort(),
                         Tech.m2pin.getLayers()[0].getLayer().getNonPseudoLayer());
@@ -1669,9 +1709,9 @@ public class FillGenerator implements Serializable {
 
                 // Transforming rectangle with gnd/power metal into the connection cell
                 DBMath.transformRect(rect, trans);
-                DBMath.transformRect(rect, fillTransIn);
+
                 // Looking to detect any possible contact based on overlap between this geometry and fill
-                NodeInst added = addAllPossibleContacts(container, p, rect, fillTransOut);
+                NodeInst added = addAllPossibleContacts(container, p, rect, fillTransIn, fillTransOutToCon, conTransOut);
                 if (added != null)
                 {
                 	List<PolyBase> polyList = new ArrayList<PolyBase>();
@@ -1795,58 +1835,109 @@ public class FillGenerator implements Serializable {
             log.termLogging(false);
         }
 
-        private void removeOverlappingBars(Cell fillCell, NodeInst fillNi, NodeInst conNi, AffineTransform fillTransOut)
+        /**
+         * Method to detect which fill nodes are overlapping in the top cell.
+         * @param cell
+         * @param fillTransUp matrix
+         */
+        private boolean detectOverlappingBars(Cell cell, AffineTransform fillTransUp, HashSet<Geometric> nodesToRemove,
+                                              FillGenJobContainer container)
         {
             List<Layer.Function> tmp = new ArrayList<Layer.Function>();
+
             // Check if any metalXY must be removed
-            HashSet<NodeInst> nodesToRemove = new HashSet<NodeInst>();
-//            for (Iterator<NodeInst> itNode = fillCell.getNodes(); itNode.hasNext(); )
-//            {
-//                NodeInst ni = itNode.next();
-//                tmp.clear();
-//                NodeProto np = ni.getProto();
-//                if (ni.isCellInstance()) continue;
-//                PrimitiveNode pn = (PrimitiveNode)np;
-//                if (pn.getFunction() == PrimitiveNode.Function.PIN) continue; // pins have pseudo layers
-//
-//                for (Technology.NodeLayer tlayer : pn.getLayers())
-//                {
-//                    tmp.add(tlayer.getLayer().getFunction());
-//                }
+            for (Iterator<NodeInst> itNode = cell.getNodes(); itNode.hasNext(); )
+            {
+                NodeInst ni = itNode.next();
+
+                if (NodeInst.isSpecialNode(ni)) continue;
+
+                tmp.clear();
+                NodeProto np = ni.getProto();
+                if (ni.isCellInstance())
+                {
+                    Cell subCell = (Cell)ni.getProto();
+                    AffineTransform subTransUp = ni.transformOut(fillTransUp);
+                    // No need of checking the rest of the elements if first one is detected.
+                    if (detectOverlappingBars(subCell, subTransUp, nodesToRemove, container))
+                    {
+                        if (cell == container.fillCell)
+                            nodesToRemove.add(ni);
+                        else
+                            return true;
+                    }
+                    continue;
+                }
+                PrimitiveNode pn = (PrimitiveNode)np;
+                if (pn.getFunction() == PrimitiveNode.Function.PIN) continue; // pins have pseudo layers
+
+                for (Technology.NodeLayer tlayer : pn.getLayers())
+                {
+                    tmp.add(tlayer.getLayer().getFunction());
+                }
 //                Rectangle2D rect = (Rectangle2D)ni.getBounds().clone();
-//                DBMath.transformRect(rect, fillTransOut);
-//                if (searchCollision(topCell, rect, tmp, null, fillNi, conNi, null))
-//                {
-//                    nodesToRemove.add(ni);
-//                }
-//            }
+                Rectangle2D rect = new Rectangle2D.Double(ni.getBounds().getX() - drcSpacing,
+                        ni.getBounds().getY() - drcSpacing,
+                        ni.getBounds().getWidth() + 2* drcSpacing,
+                        ni.getBounds().getHeight() + 2* drcSpacing);
+                DBMath.transformRect(rect, fillTransUp);
+                if (searchCollision(topCell, rect, tmp, null, container.fillNi, container.connectionNi, null))
+                {
+                    // Direct on last top fill cell
+                    if (cell == container.fillCell)
+                        nodesToRemove.add(ni);
+                    else
+                        return true; // time to delete parent NodeInst
+                }
+            }
 
             // Checking if any arc in FillCell collides with rest of the cells
-            HashSet<ArcInst> arcsToRemove = new HashSet<ArcInst>();
-            for (Iterator<ArcInst> itArc = fillCell.getArcs(); itArc.hasNext(); )
+            for (Iterator<ArcInst> itArc = cell.getArcs(); itArc.hasNext(); )
             {
                 ArcInst ai = itArc.next();
                 tmp.clear();
                 tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
-                Rectangle2D rect = (Rectangle2D)ai.getBounds().clone();
-                DBMath.transformRect(rect, fillTransOut);
-                if (searchCollision(topCell, rect, tmp, null, fillNi, conNi, null))
+//                Rectangle2D rect = (Rectangle2D)ai.getBounds().clone();
+                // Searching box must reflect DRC constrains
+                Rectangle2D rect = new Rectangle2D.Double(ai.getBounds().getX() - drcSpacing,
+                        ai.getBounds().getY() - drcSpacing,
+                        ai.getBounds().getWidth() + 2* drcSpacing,
+                        ai.getBounds().getHeight() + 2* drcSpacing);
+                DBMath.transformRect(rect, fillTransUp);
+                if (searchCollision(topCell, rect, tmp, null, container.fillNi, container.connectionNi, null))
                 {
-                    arcsToRemove.add(ai);
-                    // Remove exports and pins as well
-                    nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
-                    nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
+                    if (cell == container.fillCell)
+                    {
+                        nodesToRemove.add(ai);
+                        // Remove exports and pins as well
+                        nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
+                        nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
+                    }
+                    else
+                        return true; // time to delete parent NodeInst.
                 }
             }
-            for (ArcInst ai : arcsToRemove)
+            return false;
+        }
+
+        private void removeOverlappingBars(FillGenJobContainer container, AffineTransform fillTransOut)
+        {
+            List<Layer.Function> tmp = new ArrayList<Layer.Function>();
+            // Check if any metalXY must be removed
+            HashSet<Geometric> nodesToRemove = new HashSet<Geometric>();
+
+            // This function should replace NodeInsts for temporary cells that don't have elements overlapping
+            // the standard fill cells.
+            // DRC conditions to detect overlap otherwise too many elements/cells might be discarded.
+            detectOverlappingBars(container.fillCell, fillTransOut, nodesToRemove, container);
+
+            for (Geometric geo : nodesToRemove)
             {
-                System.out.println("Removing arc " + ai);
-                ai.kill();
-            }   
-            for (NodeInst ni : nodesToRemove)
-            {
-                System.out.println("Removing node " + ni);
-                ni.kill();
+                System.out.println("Removing " + geo);
+                if (geo instanceof NodeInst)
+                    ((NodeInst)geo).kill();
+                else
+                    ((ArcInst)geo).kill();
             }
         }
 
@@ -1988,30 +2079,33 @@ public class FillGenerator implements Serializable {
             return false;
         }
 
-        /**
-         * Method to add all possible contacts in connection cell based on the overlap of a given metal2 area
-         * and fill cell.
-         * THIS ONLY WORK if first fill bar is vertical
-         * @param container
-         * @param p
-         * @param contactArea
-         * @param fillTransOut
-         * @return
-         */
-        private NodeInst addAllPossibleContacts(FillGenJobContainer container, PortInst p, Rectangle2D contactArea,
-                                               AffineTransform fillTransOut)
+        private void searchOverlapHierarchically(Cell searchCell, GeometryHandler handler, PortInst p,
+                                                 Rectangle2D contactAreaOrig, AffineTransform downTrans, AffineTransform upTrans)
         {
-            // Contact area will contain the remaining are to check
+            Rectangle2D contactArea = (Rectangle2D)contactAreaOrig.clone();
             double height = contactArea.getHeight();
-            NodeInst added = null;
-            GeometryHandler handler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
-            Netlist fillNetlist = container.fillCell.acquireUserNetlist();
+            DBMath.transformRect(contactArea, downTrans);
 
-            for (Iterator<Geometric> it = container.fillCell.searchIterator(contactArea); it.hasNext(); )
+            Netlist fillNetlist = searchCell.acquireUserNetlist();
+
+            for (Iterator<Geometric> it = searchCell.searchIterator(contactArea); it.hasNext(); )
             {
                 // Check if there is a contact on that place already!
                 Geometric geom = it.next();
-                if (!(geom instanceof ArcInst)) continue;
+
+                if (geom instanceof NodeInst)
+                {
+                    NodeInst ni = (NodeInst)geom;
+                    if (!ni.isCellInstance()) continue;
+
+                    AffineTransform fillIn = ni.transformIn();
+                    AffineTransform fillUp = ni.transformOut(upTrans);
+                    // In case of being a cell
+                    searchOverlapHierarchically((Cell)ni.getProto(), handler, p, contactArea, fillIn, fillUp);
+                    continue;
+                }
+
+//                if (!(geom instanceof ArcInst)) continue;
                 ArcInst ai = (ArcInst)geom;
                 if (ai.getProto() != Tech.m3) continue; // Only metal 3 arcs
                 Network arcNet = fillNetlist.getNetwork(ai, 0);
@@ -2043,8 +2137,34 @@ public class FillGenerator implements Serializable {
                     System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p);
                     continue;
                 }
+                // Transforming geometry up to fillCell coordinates
+                DBMath.transformRect(newElem, upTrans);
+                // Adding element
                 handler.add(ai.getProto().getLayers()[0].getLayer(), newElem);
             }
+        }
+
+        /**
+         * Method to add all possible contacts in connection cell based on the overlap of a given metal2 area
+         * and fill cell.
+         * THIS ONLY WORK if first fill bar is vertical
+         * @param container
+         * @param p
+         * @param contactArea
+         * @param fillTransOutToCon
+         * @return
+         */
+        private NodeInst addAllPossibleContacts(FillGenJobContainer container, PortInst p, Rectangle2D contactArea,
+                                                AffineTransform fillTransIn, AffineTransform fillTransOutToCon,
+                                                AffineTransform conTransOut)
+        {
+            // Until this point, contactArea is at the fillCell level
+            // Contact area will contain the remaining are to check
+            double height = contactArea.getHeight();
+            NodeInst added = null;
+            GeometryHandler handler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
+
+            searchOverlapHierarchically(container.fillCell, handler, p, contactArea, fillTransIn, new AffineTransform());
             handler.postProcess(false);
 
             Set<Layer> results = handler.getKeySet();
@@ -2060,66 +2180,70 @@ public class FillGenerator implements Serializable {
             {
                 // ALGO_SWEEP retrieves only PolyBase
                 PolyBase poly = (PolyBase)it.next();
-                Rectangle2D newElem = poly.getBounds2D();
-                double width = newElem.getWidth();
+                Rectangle2D newElemFill = poly.getBounds2D();
+                double width = newElemFill.getWidth();
+
+                // Location of new element in fillCell
+                Rectangle2D newElemConnect = (Rectangle2D)newElemFill.clone();
+                DBMath.transformRect(newElemConnect, fillTransOutToCon);
 
                 // Location of new contact from top cell
-                Rectangle2D newElemTop = (Rectangle2D)newElem.clone();
-                DBMath.transformRect(newElemTop, fillTransOut);
+                Rectangle2D newElemTop = (Rectangle2D)newElemConnect.clone();
+                DBMath.transformRect(newElemTop, conTransOut);
 
                 // Search if there is a collision with existing nodes/arcs
                 if (searchCollision(topCell, newElemTop, fillLayers, p, container.fillNi, container.connectionNi, null))
                     continue;
 
                 // adding contact
-                added = LayoutLib.newNodeInst(Tech.m2m3, newElem.getCenterX(), newElem.getCenterY(),
+                added = LayoutLib.newNodeInst(Tech.m2m3, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
                         width, height, 0, container.connectionCell);
                 container.fillContactList.add(added);
                  // Creating the export above the contact in the connection cell
                 Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),
                         p.getPortProto().getName());
                 conM2Export.setCharacteristic(p.getPortProto().getCharacteristic());
-                // Code below is only needed if export is not added directly on the contact
-//                Route conExportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), conM2Export.getOriginalPort(),
-//                        new Point2D.Double(newElem.getCenterX(), newElem.getCenterY()), null, false);
-//                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false);
+
                 // Connecting the contact export in the top cell
                 PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
                 container.fillPortInstList.add(conNiPort);
                 Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
                         new Point2D.Double(newElemTop.getCenterX(), newElemTop.getCenterY()), null, false);
-                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);;
 
-                // Looking for arc in fillCell that is below this area. This could be improved.
-                // First arc overlapping is OK.
-                ArcInst aiC = null;
+                // Adding the connection to the fill via the exports.
+                // Looking for closest export in fillCell.
+                PortInst fillNiPort = null;
+                double minDistance = Double.POSITIVE_INFINITY;
 
-                for (Iterator<Geometric> itArc = container.fillCell.searchIterator(newElem); itArc.hasNext(); )
+                for (Iterator<Export> e = container.fillNi.getExports(); e.hasNext();)
                 {
-                    // Check if there is a contact on that place already!
-                    Geometric geom = itArc.next();
-                    if (!(geom instanceof ArcInst)) continue;
-                    ArcInst ai = (ArcInst)geom;
-                    if (ai.getProto() != Tech.m3) continue; // Only metal 3 arcs
-                    aiC = ai;
-                    break;
+                    Export exp = e.next();
+                    PortInst port = exp.getOriginalPort();
+
+                    // The port characteristics must be identical
+                    if (port.getPortProto().getCharacteristic() != p.getPortProto().getCharacteristic())
+                        continue;
+
+                    Rectangle2D geo = port.getPoly().getBounds2D();
+                    assert(fillGen.evenLayersHorizontal);
+                    if (!DBMath.areEquals(geo.getCenterX(), newElemConnect.getCenterX()))
+                        continue; // only align with this so it could guarantee correct arc (M3)
+                    double deltaX = geo.getCenterX() - newElemConnect.getCenterX();
+                    double deltaY = geo.getCenterY() - newElemConnect.getCenterY();
+                    double dist = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
+                    if (DBMath.isGreaterThan(minDistance, dist))
+                    {
+                        minDistance = dist;
+                        fillNiPort = port;
+                    }
                 }
-                // Creating the export above the pin in the fill cell
-                // Replace by pin and then later export to avoid zero width arcs
-                PortInst pi = LayoutLib.newNodeInst(Tech.m3pin, newElem.getCenterX(), newElem.getCenterY(),
-                        G.DEF_SIZE, G.DEF_SIZE, 0, container.fillCell).getOnlyPortInst();
-                Export pinExport = Export.newInstance(container.fillCell, pi, p.getPortProto().getName());
-                pinExport.setCharacteristic(p.getPortProto().getCharacteristic());
-//                Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), Tech.m3,
-//                        height, newElem.getCenterX(), newElem.getCenterY());
-                Route pinExportRoute = container.router.planRoute(container.fillCell, aiC, pinExport.getOriginalPort(),
-                        new Point2D.Double(newElem.getCenterX(), newElem.getCenterY()), null, false);
-                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false);
-                // Connecting the fill export in the connection cell
-                PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
-                Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
+                if (fillNiPort != null)
+                {
+                    Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
                         new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
-                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
+                    Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
+                }
             }
             return added;
         }
@@ -2133,66 +2257,66 @@ public class FillGenerator implements Serializable {
          * @param fillTransOut
          * @return
          */
-        private Geometric routeToClosestArc(FillGenJobContainer container, PortInst p, Rectangle2D nodeBounds,
-                                            double height, AffineTransform fillTransOut)
-        {
-            Netlist fillNetlist = container.fillCell.acquireUserNetlist();
-            for(Iterator<Geometric> it = container.fillCell.searchIterator(nodeBounds); it.hasNext(); )
-            {
-                // Check if there is a contact on that place already!
-                Geometric geom = it.next();
-                if (!(geom instanceof ArcInst)) continue;
-                ArcInst ai = (ArcInst)geom;
-                if (ai.getProto() != Tech.m3) continue; // Only metal 3 arcs
-                Network arcNet = fillNetlist.getNetwork(ai, 0);
-
-                // No export with the same characteristic found in this netlist
-                if (arcNet.findExportWithSameCharacteristic(p) == null)
-                    continue; // no match in network type
-
-                Rectangle2D geomBnd = geom.getBounds();
-                double width = geomBnd.getWidth();
-
-                // Transform location of the new contact and make sure nothing else overlap
-                Rectangle2D newElem = new Rectangle2D.Double(geomBnd.getX(), nodeBounds.getY()-height/2, width, height);
-                DBMath.transformRect(newElem, fillTransOut);
-
-                // Search if there is a collision with existing nodes/arcs
-                if (searchCollision(topCell, newElem, fillLayers, p, container.fillNi, container.connectionNi, null))
-                    continue;
-
-                NodeInst added = LayoutLib.newNodeInst(Tech.m2m3, geomBnd.getCenterX(), nodeBounds.getCenterY(),
-                        width, height, 0, container.connectionCell);
-                container.fillContactList.add(added);
-                 // Creating the export above the contact in the connection cell
-                Export conM2Export = LayoutLib.newExport(container.connectionCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), Tech.m2,
-                        height, nodeBounds.getCenterX(), nodeBounds.getCenterY());
-                Route conExportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), conM2Export.getOriginalPort(),
-                        new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY()), null, false);
-                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false);
-                // Connecting the contact export in the top cell
-                PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
-                container.fillPortInstList.add(conNiPort);
-                Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
-                        new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
-                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
-
-                // Creating the export above the pin in the fill cell
-                Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), ai.getProto(),
-                        height, geomBnd.getCenterX(), nodeBounds.getCenterY());
-                Route pinExportRoute = container.router.planRoute(container.fillCell, ai, pinExport.getOriginalPort(),
-                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
-                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false);
-                // Connecting the export in the top cell
-                PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
-                Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
-                        new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
-                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
-
-                return geom;
-            }
-            return null;
-        }
+//        private Geometric routeToClosestArc(FillGenJobContainer container, PortInst p, Rectangle2D nodeBounds,
+//                                            double height, AffineTransform fillTransOut)
+//        {
+//            Netlist fillNetlist = container.fillCell.acquireUserNetlist();
+//            for(Iterator<Geometric> it = container.fillCell.searchIterator(nodeBounds); it.hasNext(); )
+//            {
+//                // Check if there is a contact on that place already!
+//                Geometric geom = it.next();
+//                if (!(geom instanceof ArcInst)) continue;
+//                ArcInst ai = (ArcInst)geom;
+//                if (ai.getProto() != Tech.m3) continue; // Only metal 3 arcs
+//                Network arcNet = fillNetlist.getNetwork(ai, 0);
+//
+//                // No export with the same characteristic found in this netlist
+//                if (arcNet.findExportWithSameCharacteristic(p) == null)
+//                    continue; // no match in network type
+//
+//                Rectangle2D geomBnd = geom.getBounds();
+//                double width = geomBnd.getWidth();
+//
+//                // Transform location of the new contact and make sure nothing else overlap
+//                Rectangle2D newElem = new Rectangle2D.Double(geomBnd.getX(), nodeBounds.getY()-height/2, width, height);
+//                DBMath.transformRect(newElem, fillTransOut);
+//
+//                // Search if there is a collision with existing nodes/arcs
+//                if (searchCollision(topCell, newElem, fillLayers, p, container.fillNi, container.connectionNi, null))
+//                    continue;
+//
+//                NodeInst added = LayoutLib.newNodeInst(Tech.m2m3, geomBnd.getCenterX(), nodeBounds.getCenterY(),
+//                        width, height, 0, container.connectionCell);
+//                container.fillContactList.add(added);
+//                 // Creating the export above the contact in the connection cell
+//                Export conM2Export = LayoutLib.newExport(container.connectionCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), Tech.m2,
+//                        height, nodeBounds.getCenterX(), nodeBounds.getCenterY());
+//                Route conExportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), conM2Export.getOriginalPort(),
+//                        new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY()), null, false);
+//                Router.createRouteNoJob(conExportRoute, container.connectionCell, true, false);
+//                // Connecting the contact export in the top cell
+//                PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
+//                container.fillPortInstList.add(conNiPort);
+//                Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
+//                        new Point2D.Double(p.getBounds().getCenterX(), p.getBounds().getCenterY()), null, false);
+//                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+//
+//                // Creating the export above the pin in the fill cell
+//                Export pinExport = LayoutLib.newExport(container.fillCell, p.getPortProto().getName(), p.getPortProto().getCharacteristic(), ai.getProto(),
+//                        height, geomBnd.getCenterX(), nodeBounds.getCenterY());
+//                Route pinExportRoute = container.router.planRoute(container.fillCell, ai, pinExport.getOriginalPort(),
+//                        new Point2D.Double(geomBnd.getCenterX(), nodeBounds.getCenterY()), null, false);
+//                Router.createRouteNoJob(pinExportRoute, container.fillCell, true, false);
+//                // Connecting the export in the top cell
+//                PortInst fillNiPort = container.fillNi.findPortInstFromProto(pinExport);
+//                Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
+//                        new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
+//                Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
+//
+//                return geom;
+//            }
+//            return null;
+//        }
     }
 
     private static final List<Layer.Function> fillLayers = new ArrayList<Layer.Function>(3);
