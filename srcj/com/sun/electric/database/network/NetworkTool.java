@@ -330,13 +330,8 @@ public class NetworkTool extends Tool
 //	 */
 //	public static void setUnifyLikeNamedNets(boolean u) { cacheUnifyLikeNamedNets.setBoolean(u); }
 
-    private void initPrefs() {
-        if (cacheIgnoreResistors == null)
-            cacheIgnoreResistors = Pref.makeBooleanSetting("IgnoreResistors", NetworkTool.tool.prefs, NetworkTool.tool,
+    private static Pref cacheIgnoreResistors = Pref.makeBooleanSetting("IgnoreResistors", NetworkTool.tool.prefs, NetworkTool.tool,
 		"Tools/Network tab", "Networks ignore Resistors", false);
-    }
-    
-	private static Pref cacheIgnoreResistors;
     /**
 	 * Method to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.
