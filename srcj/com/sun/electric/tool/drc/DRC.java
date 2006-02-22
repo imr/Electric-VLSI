@@ -777,7 +777,9 @@ public class DRC extends Listener
      */
     public static Date getLastDRCDateBasedOnBits(Cell cell, int activeBits)
     {
-        Variable varDate = cell.getVar(DRC_LAST_GOOD_DATE, Integer[].class);
+        Variable varDate = cell.getVar(DRC_LAST_GOOD_DATE, Long.class); // new strategy
+        if (varDate == null)
+            varDate = cell.getVar(DRC_LAST_GOOD_DATE, Integer[].class);
         if (varDate == null) return null;
         int thisByte = getCellGoodDRCBits(cell);
         boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);

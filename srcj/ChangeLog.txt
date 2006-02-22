@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+BUG: (2/22/06, GVG) Bug in DRC.getLastDRCDateBasedOnBits(Cell cell, int activeBits) due to changes from Integer[] to
+Long in cell date.
+FIX: Handle Integer[] and Long as object type.
+
+BUG: (2/22/06, GVG) Cells should not be added into goodDRCDates list if they have a valid date from previous run
+(same Electric version) (Bug #507).
+FIX: Check if (!validVersion || lastGoodDate == null).
+
 BUG: (2/21/06, DN) JELIB reader silently reads longs as ints.
 FIX: Use Long.valueOf(s) which throws exception on error.
 
