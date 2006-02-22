@@ -498,7 +498,6 @@ public class Quick
         if (drcVar != null && drcVar.getObject().toString().startsWith("black"))
         {
             // Skipping this one
-//            System.out.println("Annotation found");
             return totalMsgFound;
         }
 
@@ -545,9 +544,9 @@ public class Quick
 		cp.cellChecked = true;
 
 		// if the cell hasn't changed since the last good check, stop now
+        Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits);
 		if (validVersion && allSubCellsStillOK)
 		{
-			Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits);
 			if (lastGoodDate != null)
 			{
 				Date lastChangeDate = cell.getRevisionDate();
@@ -611,7 +610,11 @@ public class Quick
 		}
 		else
 		{
-			goodDRCDate.put(cell, new Date());
+            // Only mark the cell when it passes with a new version of DRC or didn't have
+            // the DRC bit on
+            // If lastGoodDate == null, wrong bits stored or no date available.
+            if (!validVersion || lastGoodDate == null)
+			    goodDRCDate.put(cell, new Date());
 		}
 
 		// if there were no errors, remember that
