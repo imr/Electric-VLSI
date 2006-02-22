@@ -1780,7 +1780,7 @@ public class JELIB extends LibraryFiles
 			case 'F':		// Float
 				return new Float((float)TextUtils.atof(piece));
 			case 'G':		// Long
-				return new Long(TextUtils.atoi(piece));
+				return Long.valueOf(piece);
 			case 'H':		// Short
 				return new Short((short)TextUtils.atoi(piece));
 			case 'I':		// Integer

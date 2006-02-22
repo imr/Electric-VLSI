@@ -99,7 +99,7 @@ public class CellBackup {
         writer.out.writeByte(modified);
         writer.out.writeBoolean(isMainSchematics);
         writer.out.writeInt(cellUsages.length);
-        assert exportUsages.length == cellUsages.length;
+        writer.out.writeInt(exportUsages.length);
         writer.out.writeInt(nodes.length);
         int maxNodeId = -1;
         for (int i = 0; i < nodes.length; i++)
@@ -126,7 +126,8 @@ public class CellBackup {
         boolean isMainSchematics = reader.in.readBoolean();
         int cellUsagesLen = reader.in.readInt();
         int[] cellUsages = new int[cellUsagesLen];
-        BitSet[] exportUsages = new BitSet[cellUsagesLen];
+        int exportUsagesLen = reader.in.readInt();
+        BitSet[] exportUsages = new BitSet[exportUsagesLen];
         int nodesLength = reader.in.readInt();
         ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
         int maxNodeId = reader.in.readInt();
@@ -194,17 +195,8 @@ public class CellBackup {
         assert d.cellName.getVersion() > 0;
         assert d.tech != null;
         assert -1 <= modified && modified <= 1;
-        assert cellUsages.length == exportUsages.length;
         CellId cellId = d.cellId;
-        int[] checkCellUsages = cellUsages;
-        if (cellUsages.length > 0) {
-            assert cellUsages[cellUsages.length - 1] > 0;
-            checkCellUsages = (int[])cellUsages.clone();
-            for (int i = 0; i < checkCellUsages.length; i++) {
-                if (exportUsages[i] != null)
-                    assert cellUsages[i] > 0;
-            }
-        }
+        int[] checkCellUsages = checkCellUsages = (int[])cellUsages.clone();
         ArrayList<ImmutableNodeInst> nodesById = new ArrayList<ImmutableNodeInst>();
         ImmutableNodeInst prevN = null;
         for (int i = 0; i < nodes.length; i++) {

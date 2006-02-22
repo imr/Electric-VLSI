@@ -1980,7 +1980,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert ni.getD().protoId == portProtoId.getParentId();
         NodeProto np = ni.getProto();
         PortProto pp = np.getPort(portProtoId);
-        return ni.getPortInst(pp.getPortIndex());
+        PortInst pi = ni.getPortInst(pp.getPortIndex());
+        assert pi.getNodeInst().getD().nodeId == nodeId;
+        assert pi.getPortProto().getId() == portProtoId;
+        return pi;
     }
     
     /**
