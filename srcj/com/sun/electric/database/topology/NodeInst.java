@@ -2011,6 +2011,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             if (newPortInsts[i] != null) continue;
             newPortInsts[i] = PortInst.newInstance(protoType.getPort(i), this);
         }
+        portInsts = newPortInsts;
     }
     
 	/**

@@ -1072,6 +1072,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
+        cellUsages = newBackup.cellUsages;
         int tempNodeCount = 0;
         for (int i = 0; i < newBackup.nodes.length; i++) {
             ImmutableNodeInst d = newBackup.nodes[i];
@@ -1098,9 +1099,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             NodeProto np = ni.getProto();
             if (np == Generic.tech.essentialBoundsNode)
                 essenBounds.add(ni);
+//            ni.check();
         }
         assert nodes.size() == newBackup.nodes.length;
-        cellUsages = newBackup.cellUsages;
 
         int nodeCount = 0;
         for (int i = 0; i < chronNodes.size(); i++) {

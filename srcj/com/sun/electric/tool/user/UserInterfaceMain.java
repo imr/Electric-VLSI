@@ -701,35 +701,35 @@ public class UserInterfaceMain extends AbstractUserInterface
             kit.getSystemEventQueue().push(this);
         }
 
-        public void postEvent(AWTEvent theEvent) {
-            logger.entering(CLASS_NAME, "postEvent", theEvent);
-            super.postEvent(theEvent);
-            logger.exiting(CLASS_NAME, "postEvent");
-        }
-        
-        public AWTEvent getNextEvent() throws InterruptedException {
-            logger.entering(CLASS_NAME, "getNextEvent");
-            AWTEvent event = super.getNextEvent();
-            logger.exiting(CLASS_NAME, "getNextEvent", event);
-            return event;
-        }
-        
-        public synchronized AWTEvent peekEvent() {
-            logger.entering(CLASS_NAME, "peekEvent");
-            AWTEvent event = super.peekEvent();
-            logger.exiting(CLASS_NAME, "peekEvent", event);
-            return event;
-        }
-
-        public synchronized AWTEvent peekEvent(int id) {
-            logger.entering(CLASS_NAME, "peekEvent", id);
-            AWTEvent event = super.peekEvent(id);
-            logger.exiting(CLASS_NAME, "peekEvent", event);
-            return event;
-        }
+//        public void postEvent(AWTEvent theEvent) {
+//            logger.entering(CLASS_NAME, "postEvent", theEvent);
+//            super.postEvent(theEvent);
+//            logger.exiting(CLASS_NAME, "postEvent");
+//        }
+//        
+//        public AWTEvent getNextEvent() throws InterruptedException {
+//            logger.entering(CLASS_NAME, "getNextEvent");
+//            AWTEvent event = super.getNextEvent();
+//            logger.exiting(CLASS_NAME, "getNextEvent", event);
+//            return event;
+//        }
+//        
+//        public synchronized AWTEvent peekEvent() {
+//            logger.entering(CLASS_NAME, "peekEvent");
+//            AWTEvent event = super.peekEvent();
+//            logger.exiting(CLASS_NAME, "peekEvent", event);
+//            return event;
+//        }
+//
+//        public synchronized AWTEvent peekEvent(int id) {
+//            logger.entering(CLASS_NAME, "peekEvent", id);
+//            AWTEvent event = super.peekEvent(id);
+//            logger.exiting(CLASS_NAME, "peekEvent", event);
+//            return event;
+//        }
         
         protected void dispatchEvent(AWTEvent e) {
-            logger.entering(CLASS_NAME, "dispatchEvent", e);
+//            logger.entering(CLASS_NAME, "dispatchEvent", e);
 //            if (dispatchDepth == 0)
 //                database.lock(false);
             dispatchDepth++;
@@ -743,12 +743,12 @@ public class UserInterfaceMain extends AbstractUserInterface
                     logger.throwing(CLASS_NAME, "dispatchEvent", ex);
                     throw (Error)ex;
                 }
-            } finally {
+//            } finally {
 //                dispatchDepth--;
 //                if (dispatchDepth == 0)
 //                    database.unlock();
             }
-            logger.exiting(CLASS_NAME, "dispatchEvent");
+//            logger.exiting(CLASS_NAME, "dispatchEvent");
         }
     }
 

@@ -434,13 +434,14 @@ public class EDatabase {
     void updateCells(Snapshot oldSnapshot, Snapshot newSnapshot) {
         BitSet updated = new BitSet();
         BitSet exportsModified = new BitSet();
-        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
-            CellBackup oldBackup = oldSnapshot.getCell(cellId);
-            CellBackup newBackup = newSnapshot.getCell(cellId);
+        while (linkedCells.size() > newSnapshot.cellBackups.length)
+            linkedCells.remove(linkedCells.size() - 1);
+        for (int cellIndex = 0; cellIndex < newSnapshot.cellBackups.length; cellIndex++) {
+            CellBackup newBackup = newSnapshot.getCell(cellIndex);
             if (newBackup != null)
-                updateTree(oldSnapshot, newSnapshot, cellId, updated, exportsModified);
+                updateTree(oldSnapshot, newSnapshot,newBackup.d.cellId, updated, exportsModified);
             else
-                removeCell(cellId);
+                removeCell(CellId.getByIndex(cellIndex));
         }
         boolean mainSchematicsChanged = false;
         for (int i = 0; i < newSnapshot.cellBackups.length; i++) {
@@ -484,10 +485,10 @@ public class EDatabase {
         	if (newBackup.cellUsages[i] <= 0) continue;
         	CellUsage u = cellId.getUsageIn(i);
             int subCellIndex = u.protoId.cellIndex;
-        	if (exportsModified.get(subCellIndex))
-        		subCellsExportsModified = true;
         	updateTree(oldSnapshot, newSnapshot, u.protoId, updated, exportsModified);
-        }
+         	if (exportsModified.get(subCellIndex))
+        		subCellsExportsModified = true;
+       }
         CellBackup oldBackup = oldSnapshot.getCell(cellId);
         Cell cell;
         if (oldBackup == null) {
