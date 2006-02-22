@@ -36,7 +36,7 @@ public class DBMath extends GenMath {
 	/**
 	 * Number of grid points per unit
 	 */
-	private static final double GRID = 100;
+	private static final double GRID = 400;
 
     /**
      * epsilon is the largest amount of absolute difference
@@ -111,7 +111,7 @@ public class DBMath extends GenMath {
 		double actual = round(a - b);
 		return (actual > 0);
 	}
-	
+
 	/**
 	 * Method to round a database value to database precision.
 	 * @param x the value to round.
@@ -120,6 +120,15 @@ public class DBMath extends GenMath {
 	 */
 	public static double round(double x)
 	{
+//		if (x >= 0)
+//		{
+//			long i = (long)(x * GRID + 0.5);
+//			return (double)i / GRID;
+//		} else
+//		{
+//			long i = (long)(x * GRID - 0.5);
+//			return (double)i / GRID;
+//		}
 		return Math.rint(x * GRID) / GRID;
 	}
 

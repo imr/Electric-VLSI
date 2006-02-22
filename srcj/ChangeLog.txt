@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+IMP: (2/22/06, SMR) Changed the basic GRID unit (in DBMath.java) from 100 to 400
+     to allow smaller fractions, and especially half, quarter, etc. (can now handle 1/16).
+
 BUG: (2/22/06, GVG) Bug in DRC.getLastDRCDateBasedOnBits(Cell cell, int activeBits) due to changes from Integer[] to
 Long in cell date.
 FIX: Handle Integer[] and Long as object type.

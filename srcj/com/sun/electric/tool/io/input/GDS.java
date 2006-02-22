@@ -27,7 +27,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -45,16 +44,15 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
+import com.sun.electric.tool.io.IOTool;
 
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
@@ -487,23 +485,6 @@ public class GDS extends Input
 		beginStructure();
 		getToken();
 		mergeThisCell = IOTool.isGDSInMergesBoxes();
-//		if (theCell.getName().equals("Fi.tfill_12x12_pv1356_n_corner_n") ||
-//			theCell.getName().equals("jtagCentralFilled") ||
-//			theCell.getName().equals("PAD_dvdd_BS") ||
-//			theCell.getName().equals("padFrame") ||
-//			theCell.getName().equals("rxArray") ||
-//			theCell.getName().equals("tfill_12x12_pv1356") ||
-//			theCell.getName().equals("tfill_12x12_pv1356_n") ||
-//			theCell.getName().equals("tfill_12x12_pv1356_n_corner_n") ||
-//			theCell.getName().equals("tfill_12x12_pv1356_u") ||
-//			theCell.getName().equals("tfill_12x12_pv1356no34") ||
-//			theCell.getName().equals("tfill_12x12_v156no34_notch") ||
-//			theCell.getName().equals("TIClogo_revised") ||
-//			theCell.getName().equals("TxRxTest") ||
-//			theCell.getName().equals("vTermWesternBloc") ||
-//			theCell.getName().equals("vTermEasternBloc") ||
-//			theCell.getName().equals("whereTest") ||
-//			theCell.getName().equals("wheretxArray")) mergeThisCell = false;
 		if (mergeThisCell)
 		{
 			// initialize merge if merging this cell
@@ -522,7 +503,6 @@ public class GDS extends Input
     		for(Layer layer : merge.getKeySet())
     		{
     			Layer primLayer = layer;
-//    			if (primLayer == Generic.tech.drc_lay) primLayer = MoCMOS.tech.findLayer("P-Well");
 				PrimitiveNode pnp = primLayer.getPureLayerNode();
     			List<PolyBase> polys = merge.getMergedPoints(layer, false);
     			for(PolyBase poly : polys)
@@ -823,6 +803,16 @@ public class GDS extends Input
 				{
 					NodeInst ni = NodeInst.makeInstance(layerNodeProto, ctr, sX, sY, theCell);
 					if (ni == null) handleError("Failed to create RECTANGLE");
+//if (theCell.getName().equals("CLKINVX20"))
+//{
+//	double x1 = DBMath.round(3.625);
+//	double x2 = DBMath.round(7.625);
+//	System.out.println("Made node in cell CLKINVX20 at "+ctr.getX()+" wid="+sX);
+//	if (ctr.getX() == 7.62 || ctr.getX() == 10.01)
+//	{
+//		System.out.println("Made node centered at "+ctr.getX());
+//	}
+//}
 				}
 			}
 			return;
