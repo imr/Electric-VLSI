@@ -471,6 +471,19 @@ public class GenMath
     }
 
     /**
+     * Method to calcute Euclidean distance between 2 points.
+     * @param p1
+     * @param p2
+     * @return
+     */
+    public static double distBetweenPoints(Point2D p1, Point2D p2)
+    {
+        double deltaX = p1.getX() - p2.getX();
+        double deltaY = p1.getY() - p2.getY();
+        return (Math.sqrt(deltaX*deltaX + deltaY*deltaY));
+    }
+
+    /**
      * Method to compute the distance between point (x,y) and the line that runs
      * from (x1,y1) to (x2,y2).
      */
