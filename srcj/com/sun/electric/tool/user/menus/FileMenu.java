@@ -340,7 +340,7 @@ public class FileMenu {
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
 			FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
-			ReadLibrary job = new ReadLibrary(fileURL, type, deleteLib);
+			new ReadLibrary(fileURL, type, deleteLib);
         }
     }
 
@@ -621,7 +621,7 @@ public class FileMenu {
 				if (FileMenu.preventLoss(deleteLib, 2)) return;
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
-			ReadLibrary job = new ReadLibrary(fileURL, type, deleteLib);
+			new ImportLibrary(fileURL, type, deleteLib);
 		}
 	}
 
