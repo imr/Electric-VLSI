@@ -12,6 +12,8 @@ BUG: (2/22/06, GVG) Cells should not be added into goodDRCDates list if they hav
 (same Electric version) (Bug #507).
 FIX: Check if (!validVersion || lastGoodDate == null).
 
+IMP: (2/21/06, GVG) More code for fill generator.
+
 BUG: (2/21/06, DN) JELIB reader silently reads longs as ints.
 FIX: Use Long.valueOf(s) which throws exception on error.
 
