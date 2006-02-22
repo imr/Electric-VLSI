@@ -76,9 +76,11 @@ public abstract class Client {
         public void run() {
             if (newState == EJob.State.SERVER_DONE && ejob.client == Job.getExtendedUserInterface()) {
                 boolean undoRedo = ejob.jobType == Job.Type.UNDO;
-                Job.getExtendedUserInterface().showSnapshot(ejob.newSnapshot, undoRedo);
-                if (ejob.jobType == Job.Type.CHANGE)
-                    Undo.endChanges(ejob.oldSnapshot, ejob.getJob().tool, ejob.jobName, ejob.savedHighlights, ejob.newSnapshot);
+                if (!ejob.isExamine()) {
+                    int restoredHighlights = Undo.endChanges(ejob.oldSnapshot, ejob.getJob().tool, ejob.jobName, ejob.newSnapshot);
+                    Job.getExtendedUserInterface().showSnapshot(ejob.newSnapshot, undoRedo);
+                    Job.getExtendedUserInterface().restoreHighlights(restoredHighlights);
+                }
                 
                 Throwable jobException = null;
                 if (ejob.startedByServer)

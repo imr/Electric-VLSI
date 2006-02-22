@@ -66,13 +66,11 @@ public abstract class Job implements Serializable {
     private static boolean GLOBALDEBUG = false;
     /*private*/ static Mode threadMode;
     private static int socketPort = 35742; // socket port for client/server
-    static final int PROTOCOL_VERSION = 3; // Feb 19
+    static final int PROTOCOL_VERSION = 4; // Feb 21
     public static boolean BATCHMODE = false; // to run it in batch mode
     public static boolean LOCALDEBUGFLAG; // Gilda's case
     private static final String CLASS_NAME = Job.class.getName();
     static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
-    private static final ArrayList<Snapshot> snapshotCache = new ArrayList<Snapshot>();
-	private static int maximumSnapshots = User.getMaxUndoHistory();
     
     
     /**
@@ -116,7 +114,7 @@ public abstract class Job implements Serializable {
 	}
 
   
-	/** default execution time in milis */      static final int MIN_NUM_SECONDS = 60000;
+	/** default execution time in milis */      /*private*/ static final int MIN_NUM_SECONDS = 60000;
     /** job manager */                          /*private*/ static JobManager jobManager;
 	static AbstractUserInterface currentUI;
 
@@ -238,25 +236,24 @@ public abstract class Job implements Serializable {
     {
         this.display = display;
         this.deleteWhenDone = deleteWhenDone;
-        if (!ejob.isExamine())
-            ejob.savedHighlights = Job.getExtendedUserInterface().saveHighlights();
        
         Thread currentThread = Thread.currentThread();
-        if (ejob.jobType != Job.Type.EXAMINE)
-            ejob.serialize();
         if (currentThread instanceof EThread && ((EThread)currentThread).ejob.jobType != Job.Type.EXAMINE) {
             ejob.startedByServer = true;
             ejob.client = ((EThread)currentThread).ejob.client;
+            ejob.serverJob.startTime = System.currentTimeMillis();
+            ejob.serialize();
             ejob.clientJob = null;
         } else {
             ejob.client = Job.getExtendedUserInterface();
+            ejob.clientJob.startTime = System.currentTimeMillis();
             ejob.serverJob = null;
+            if (ejob.jobType != Job.Type.EXAMINE)
+                ejob.serialize();
          }
         jobManager.addJob(ejob, onMySnapshot);
     }
 
-    protected int getSavedHighlights() { return ejob.savedHighlights; }
-    
     /**
      * Method to remember that a field variable of the Job has been changed by the doIt() method.
      * @param variableName the name of the variable that changed.
@@ -616,44 +613,6 @@ public abstract class Job implements Serializable {
     public static void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         currentUI.updateIncrementalDRCErrors(cell, errors);
     }
-
-    public static void undo(int snapshotId) throws JobException {
-        for (int i = snapshotCache.size() - 1; i >= 0; i--) {
-            Snapshot snapshot = snapshotCache.get(i);
-            if (snapshot.snapshotId == snapshotId) {
-                EDatabase.serverDatabase().undo(snapshot);
-                return;
-            }
-        }
-        throw new JobException();
-    }
-    
-    
-    static void putInCache(Snapshot oldSnapshot, Snapshot newSnapshot) {
-        if (!snapshotCache.contains(newSnapshot)) {
-            while (!snapshotCache.isEmpty() && snapshotCache.get(snapshotCache.size() - 1) != oldSnapshot)
-                snapshotCache.remove(snapshotCache.size() - 1);
-            snapshotCache.add(newSnapshot);
-        }
-        while (snapshotCache.size() > maximumSnapshots)
-            snapshotCache.remove(0);
-    }
-    
-	/**
-	 * Method to set the size of the history list and return the former size.
-	 * @param newSize the new size of the history list (number of batches of changes).
-	 * If not positive, the list size is not changed.
-	 * @return the former size of the history list.
-	 */
-	public static int setHistoryListSize(int newSize) {
-		if (newSize <= 0) return maximumSnapshots;
-
-		int oldSize = maximumSnapshots;
-		maximumSnapshots = newSize;
-		while (snapshotCache.size() > maximumSnapshots)
-			snapshotCache.remove(0);
-		return oldSize;
-	}
 
 	//-------------------------------JOB UI--------------------------------
     

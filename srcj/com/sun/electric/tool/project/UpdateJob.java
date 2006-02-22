@@ -210,9 +210,9 @@ public class UpdateJob extends Job
 		String libName = pl.getProjectDirectory() + File.separator + pc.getCellName() + File.separator + pc.getVersion() + "-" +
 			pc.getView().getFullName() + "." + pc.getLibExtension();
 		String tempLibName = Project.getTempLibraryName();
-//		NetworkTool.setInformationOutput(false);
+		NetworkTool.setInformationOutput(false);
 		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true);
-//		NetworkTool.setInformationOutput(true);
+		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
 			String cellNameInRepository = pc.describe();

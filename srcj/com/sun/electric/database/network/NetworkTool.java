@@ -83,11 +83,36 @@ public class NetworkTool extends Tool
 		}
 	}
 
+	/**
+	 * Method to renumber the netlists.
+	 */
+	public static void renumberNetlists()
+	{
+		new RenumberJob();
+	}
+
+	private static class RenumberJob extends Job
+    {
+		private RenumberJob()
+        {
+            super("Renumber All Networks", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+			EDatabase.serverDatabase().getNetworkManager().redoNetworkNumbering(true);
+            return true;
+        }
+    }
+
 	// ---------------------- private and protected methods -----------------
 
 	/** the Network tool. */						private static final NetworkTool tool = new NetworkTool();
+	/** All cells have networks up-to-date */ 		static boolean networksValid = false;
+	/** Mutex object */								static Object mutex = new Object();
 	/** flag for debug print. */					static boolean debug = false;
-//	/** flag for information print. */				static boolean showInfo = true;
+	/** flag for information print. */				static boolean showInfo = true;
 
     /** total number of errors for statistics */    public static int totalNumErrors = 0;
     /** sort keys for sorting network errors */     static final int errorSortNetworks = 0;
@@ -115,16 +140,16 @@ public class NetworkTool extends Tool
 //			redoNetworkNumbering(true);
 //		}
 //    }
-//
-//	/**
-//	 * Method to set the level of information that is displayed.
-//	 * When libraries are being read "quietly", no information should be output.
-//	 * @param infoOutput true for normal information output, false for quiet.
-//	 */
-//	public static void setInformationOutput(boolean infoOutput)
-//	{
-//		showInfo = infoOutput;
-//	}
+
+	/**
+	 * Method to set the level of information that is displayed.
+	 * When libraries are being read "quietly", no information should be output.
+	 * @param infoOutput true for normal information output, false for quiet.
+	 */
+	public static void setInformationOutput(boolean infoOutput)
+	{
+		showInfo = infoOutput;
+	}
 
 	/****************************** PUBLIC METHODS ******************************/
 
@@ -133,14 +158,48 @@ public class NetworkTool extends Tool
 	 * @param cell cell to get Netlist.
 	 * @return Netlist of this cell.
 	 */
-	public static Netlist acquireUserNetlist(Cell cell) { return getUserNetlist(cell); }
+	public static Netlist acquireUserNetlist(Cell cell) {
+		Netlist netlist = null;
+		try {
+			netlist = getNetlist(cell, isIgnoreResistors_());
+		} catch (NetlistNotReady e) {
+		}
+		return netlist;
+	}
 
 	/**
 	 * Returns Netlist for a given cell obtain with user-default set of options.
 	 * @param cell cell to get Netlist.
 	 * @return Netlist of this cell.
 	 */
-	public static Netlist getUserNetlist(Cell cell) { return getNetlist(cell, isIgnoreResistors_()); }
+	public static Netlist getUserNetlist(Cell cell) {
+        NetworkManager mgr = cell.getDatabase().getNetworkManager();
+		if (EDatabase.theDatabase.canComputeNetlist()) {
+            mgr.advanceSnapshot();
+			NetCell netCell = mgr.getNetCell(cell);
+			return netCell.getNetlist(isIgnoreResistors_());
+		}
+        if (Job.getDebug() && SwingUtilities.isEventDispatchThread())
+		{
+			System.out.println("getUserNetlist() used in GUI thread");
+		}
+		boolean shortResistors = isIgnoreResistors_();
+		synchronized(NetworkTool.mutex) {
+			while (!NetworkTool.networksValid) {
+				try {
+					System.out.println("Waiting for User Netlist...");
+					NetworkTool.mutex.wait(1000);
+					if (!NetworkTool.networksValid)
+						throw new NetlistNotReady();
+				} catch (InterruptedException e) {
+				} catch (NetlistNotReady e) {
+					e.printStackTrace(System.err);
+				}
+			}
+			NetCell netCell = mgr.getNetCell(cell);
+			return netCell.getNetlist(shortResistors);
+		}
+	}
 
 	/** Recompute the Netlist structure for given Cell.
 	 * @param cell cell to recompute Netlist structure.
@@ -148,14 +207,22 @@ public class NetworkTool extends Tool
      * implemented in the method if @param shortResistors is set to true.
 	 * @return the Netlist structure for Cell.
      */
-    public static Netlist getNetlist(Cell cell, boolean shortResistors) {
+	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
         NetworkManager mgr = cell.getDatabase().getNetworkManager();
-        if (!cell.isLinked())
-            return null;
-        mgr.advanceSnapshot();
-        NetCell netCell = mgr.getNetCell(cell);
-        return netCell.getNetlist(shortResistors);
-    }
+		if (EDatabase.theDatabase.canComputeNetlist()) {
+            if (!cell.isLinked())
+                return null;
+            mgr.advanceSnapshot();
+			NetCell netCell = mgr.getNetCell(cell);
+			return netCell.getNetlist(shortResistors);
+		}
+		synchronized(NetworkTool.mutex) {
+			if (!NetworkTool.networksValid)
+				throw new NetlistNotReady();
+			NetCell netCell = mgr.getNetCell(cell);
+			return netCell.getNetlist(shortResistors);
+		}
+	}
 
     /**
      * Method to retrieve all networks for a portInst.

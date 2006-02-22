@@ -69,8 +69,7 @@ public class EDatabase {
 	/** Flag set when database invariants failed. */            private boolean invariantsFailed;
     
     /** Network manager for this database. */                   private final NetworkManager networkManager = new NetworkManager(this);
-    /** Lock for access to the Database. */                     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    /** Thread which locked database for writing. */            private Thread writingThread;
+    /** Thread which locked database for writing. */            private volatile Thread writingThread;
     /** True if writing thread can changing. */                 private boolean canChanging;
     /** True if writing thread can undoing. */                  private boolean canUndoing;
     
@@ -119,25 +118,22 @@ public class EDatabase {
     Cell getCell(int cellIndex) { return cellIndex < linkedCells.size() ? linkedCells.get(cellIndex) : null; } 
     
     /**
-     * Locks the database for writing.
-     * Lock may be either excluseive (for writing) or shared (for reading).
-     * @param exclusive if lock is for writing.
+     * Locks the database.
+     * Lock may be either exclusive (for writing) or shared (for reading).
+     * @param exclusive true if lock is for writing.
      */
     public void lock(boolean exclusive) {
-        Lock lock = exclusive ? readWriteLock.writeLock() : readWriteLock.readLock();
-        lock.lock();
+        assert writingThread == null;
         if (exclusive)
             writingThread = Thread.currentThread();
         canChanging = canUndoing = false;
     }
     
     /**
-     * Unlocks the database which was locked for writing.
+     * Unlocks the database.
      */
     public void unlock() {
-        Lock lock = writingThread != null ? readWriteLock.writeLock() : readWriteLock.readLock();
         writingThread = null;
-        lock.unlock();
     }
     
 	/**
@@ -157,19 +153,24 @@ public class EDatabase {
 	 */
 	public void checkUndoing() {
         if (Thread.currentThread() == writingThread && canUndoing) return;
-        IllegalStateException e = new IllegalStateException("Database undos are forbidden");
+        IllegalStateException e = new IllegalStateException("Database undo is forbidden");
         logger.logp(Level.WARNING, CLASS_NAME, "checkUndoing", e.getMessage(), e);
         throw e;
 	}
+    
+    public boolean canComputeBounds() { return Thread.currentThread() == writingThread && (canChanging || canUndoing); }
 
+    public boolean canComputeNetlist() { return Thread.currentThread() == writingThread && (canChanging || canUndoing); }
+    
 	/**
 	 * Method to check whether examining of database is allowed.
 	 */
     public void checkExamine() {
         if (writingThread == null || Thread.currentThread() == writingThread) return;
-        IllegalStateException e = new IllegalStateException("Database undos are forbidden");
-        logger.logp(Level.WARNING, CLASS_NAME, "checkExamine", e.getMessage(), e);
-        throw e;
+        IllegalStateException e = new IllegalStateException("Cuncurrent database examine");
+//        e.printStackTrace();
+        logger.logp(Level.FINE, CLASS_NAME, "checkExamine", e.getMessage(), e);
+//        throw e;
     }
     
     /**
@@ -424,7 +425,7 @@ public class EDatabase {
                 lib.cells.put(cell.getCellName(), cell);
             }
         }
-        updateCellBounds(undoSnapshot);
+        updateSubCellBounds(undoSnapshot);
         snapshot = undoSnapshot;
         checkFresh(undoSnapshot);
         snapshotFresh = true;
@@ -441,7 +442,6 @@ public class EDatabase {
             else
                 removeCell(cellId);
         }
-        updateCellBounds(newSnapshot);
         boolean mainSchematicsChanged = false;
         for (int i = 0; i < newSnapshot.cellBackups.length; i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
@@ -510,15 +510,13 @@ public class EDatabase {
     	updated.set(cellIndex);
     }
 
-    void updateCellBounds(Snapshot newSnapshot) {
+    void updateSubCellBounds(Snapshot newSnapshot) {
         BitSet boundsModified = new BitSet();
         for (int i = 0; i < newSnapshot.cellBounds.length; i++) {
             ERectangle newBounds = newSnapshot.cellBounds[i];
             if (newBounds == null) continue;
             if (snapshot.getCellBounds(i) != newBounds)
                 boundsModified.set(i);
-            Cell cell = getCell(i);
-            cell.undoCellBounds(newBounds);
         }
         for (int i = 0; i < newSnapshot.cellBounds.length; i++) {
             CellBackup newBackup = newSnapshot.cellBackups[i];
@@ -532,14 +530,10 @@ public class EDatabase {
                 if (boundsModified.get(subCellIndex))
                     subCellsBoundsModified = true;
             }
-            ERectangle newBounds = newSnapshot.cellBounds[i];
-            if (newBounds == null) continue;
-            if (snapshot.getCellBounds(i) != newBounds)
-                boundsModified.set(i);
+            if (!subCellsBoundsModified) continue;
             Cell cell = getCell(i);
             cell.updateSubCellBounds(boundsModified);
         }
-        
     }
     
     /**

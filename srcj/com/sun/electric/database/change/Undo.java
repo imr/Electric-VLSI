@@ -46,8 +46,6 @@ public class Undo
 	public static class ChangeBatch
 	{
         private int oldSnapshotId, newSnapshotId;
-        
-		private int batchNumber;
 		private Tool tool;
 		private String activity;
 		private int startingHighlights = -1;				// highlights before changes made
@@ -61,13 +59,6 @@ public class Undo
             newSnapshotId = newSnapshot.snapshotId;
         }
 		
-		/**
-		 * Method to return the number of this ChangeBatch.
-		 * Each batch has a unique number, and their order increases with time.
-		 * @return the unique number of this ChangeBatch.
-		 */
-		public int getBatchNumber() { return batchNumber; }
-
         public int getStartingHighlights() { return startingHighlights; }
         public int getPreUndoHighlights() { return preUndoHighlights; }
         
@@ -79,176 +70,205 @@ public class Undo
 
 		private void describe(String title)
 		{
-			String message = "*** Batch '" + title + "', " + batchNumber + " (" + activity + " from " + tool.getName() + " tool)";
+			String message = "*** Batch '" + title + "', " + oldSnapshotId + "->" + newSnapshotId + " (" + activity + " from " + tool.getName() + " tool)";
 			System.out.println(message);
 		}
 	}
 
-//	private static ChangeBatch currentBatch = null;
 	private static int maximumBatches = User.getMaxUndoHistory();
 	private static final List<ChangeBatch> doneList = new ArrayList<ChangeBatch>();
 	private static final List<ChangeBatch> undoneList = new ArrayList<ChangeBatch>();
 
-//    private static void clearChanges() {
-////        endChanges();
-//        if (currentBatch == null) return;
-//        System.out.println("Ignored a batch " + currentBatch.activity);
-//        currentBatch = null;
-//    }
-//    
     /**
 	 * Method to terminate the current batch of changes.
 	 */
-	public static void endChanges(Snapshot oldSnapshot, Tool tool, String activity, int startingHighlights, Snapshot newSnapshot)
+	public static int endChanges(Snapshot oldSnapshot, Tool tool, String activity, Snapshot newSnapshot)
 	{
-//        // close any open batch of changes
-//		clearChanges();
-
-		// kill off any undone batches
-		noRedoAllowed();
-
-        ChangeBatch batch = new ChangeBatch(oldSnapshot, tool, activity, startingHighlights, newSnapshot);
-
-		// put at head of list
-        if (newSnapshot != oldSnapshot)
-            doneList.add(batch);
-
-		// kill last batch if list is full
-		while (doneList.size() > maximumBatches)
-			doneList.remove(0);
+        int highlights = Job.getExtendedUserInterface().saveHighlights();
+        int oldId = oldSnapshot.snapshotId;
+        int newId = newSnapshot.snapshotId;
+        assert doneList.isEmpty() || doneList.get(doneList.size() - 1).newSnapshotId == oldId;
+        assert undoneList.isEmpty() || undoneList.get(0).oldSnapshotId == oldId;
+        int doneIndex = indexOf(doneList, newId);
+        int undoneIndex = indexOf(undoneList, newId);
+        if (doneIndex >= 0) {
+            // undo
+            while (doneList.size() > doneIndex) {
+                ChangeBatch batch = doneList.remove(doneList.size() - 1);
+                System.out.println("Undoing: " + batch.activity);
+                batch.preUndoHighlights = highlights;
+                highlights = batch.startingHighlights;
+                undoneList.add(0, batch);
+            }
+            Job.getExtendedUserInterface().restoreHighlights(highlights);
+        } else if (undoneIndex >= 0) {
+            // redo
+            for (int i = 0; i < undoneIndex; i++) {
+                ChangeBatch batch = undoneList.remove(0);
+                System.out.println("Redoing: " + batch.activity);
+                batch.startingHighlights = highlights;
+                highlights = batch.preUndoHighlights;
+                doneList.add(batch);
+            }
+            Job.getExtendedUserInterface().restoreHighlights(highlights);
+        } else {
+            // change task
+            undoneList.clear();
+            doneList.add(new ChangeBatch(oldSnapshot, tool, activity, highlights, newSnapshot));
+            highlights = -1;
+        }
         updateUndoRedo();
+        return highlights;
 	}
-
-    private static synchronized void updateUndoRedo() {
+    
+    private static void invalidate(int snapshotId) {
+        int doneIndex = indexOf(doneList, snapshotId);
+        int undoneIndex = indexOf(undoneList, snapshotId);
+        if (doneIndex >= 0) {
+            // undo
+            if (doneIndex == 0) {
+                doneList.clear();
+            } else {
+                while (doneList.size() >= doneIndex)
+                    doneList.remove(doneList.size() - 1);
+            }
+        }
+        if (undoneIndex >= 0) {
+            // redo
+            if (undoneIndex == undoneList.size()) {
+                undoneList.clear();
+            } else {
+                for (int i = 0; i < undoneIndex; i++) {
+                    if (!undoneList.isEmpty())
+                        undoneList.remove(0);
+                }
+            }
+        }
+        updateUndoRedo();
+    }
+    
+    private static int indexOf(List<ChangeBatch> list, int snapshotId) {
+        for (int i = 0; i < list.size(); i++) {
+            ChangeBatch batch = list.get(i);
+            if (batch.oldSnapshotId == snapshotId) return i;
+            if (batch.newSnapshotId == snapshotId) return i + 1;
+        }
+        return -1;
+    }
+ 
+    private static void updateUndoRedo() {
         ServerJobManager.setUndoRedoStatus(!doneList.isEmpty(), !undoneList.isEmpty());
     }
 
-//    /**
-//	 * Method to return the current change batch.
-//	 * @return the current change batch (null if no changes are being done).
-//	 */
-//	public static ChangeBatch getCurrentBatch() { return currentBatch; }
-//
-//	/**
-//	 * Method to tell whether changes are being made quietly.
-//	 * Quiet changes are not passed to constraint satisfaction.
-//	 * @return true if changes are being made quietly.
-//	 */
-//	public static boolean isChangeQuiet() { return doChangesQuietly; }
-//
-//	/**
-//	 * Method to set the subsequent changes to be "quiet".
-//	 * Quiet changes are not passed to constraint satisfaction.
-//	 * @return the previous value of the "quiet" state.
-//	 */
-//	public static boolean changesQuiet(boolean quiet) {
-//		EDatabase.serverDatabase().checkInvariants();
-//        Layout.changesQuiet(quiet);
-////		NetworkTool.changesQuiet(quiet);
-//		boolean formerQuiet = doChangesQuietly;
-//        doChangesQuietly = quiet;
-//		return formerQuiet;
-//    }
-
-	/**
-	 * Method to undo the last batch of changes.
-	 * @return the batch number that was undone.
-	 * Returns null if nothing was undone.
-	 */
-	public static ChangeBatch undoABatch(int savedHighlights) throws JobException
-	{
-		// close out the current batch
-//		clearChanges();
-
-		// get the most recent batch of changes
-		int listSize = doneList.size();
-		if (listSize == 0) return null;
-		ChangeBatch batch = (ChangeBatch)doneList.get(listSize-1);
-		doneList.remove(listSize-1);
-		undoneList.add(batch);
-        updateUndoRedo();
-
-		// save pre undo highlights
-		batch.preUndoHighlights = savedHighlights;
-
-		// look through the changes in this batch
-        Job.undo(batch.oldSnapshotId);
-
-		// Put message in Message Window
-		System.out.println("Undoing: " + batch.activity);
-//        batch.describe("Undo");
-		return batch;
-	}
-
-	/**
-	 * Method to redo the last batch of changes.
-	 * @return true if a batch was redone.
-	 */
-	public static ChangeBatch redoABatch() throws JobException
-	{
-		// close out the current batch
-//		clearChanges();
-
-		// get the most recent batch of changes
-//		if (undoneList == null) return null;
-		int listSize = undoneList.size();
-		if (listSize == 0) return null;
-		ChangeBatch batch = undoneList.get(listSize-1);
-		undoneList.remove(listSize-1);
-		doneList.add(batch);
-        updateUndoRedo();
-
-        Job.undo(batch.newSnapshotId);
-        
-        // Put message in Message Window
-		System.out.println("Redoing: " + batch.activity);
-//        batch.describe("Redo");
-		return batch;
-	}
-
-    /** 
-     * Refresh Cell bounds. This method is necessary for Undo/Redu batches,
-     * because constraint system is disabled.
+    /**
+     * Method to return snapshotId for undo.
+     * @return snapshotId or -1.
      */
-    private static void refreshCellBounds() {
-        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-            Library lib = it.next();
-            for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
-                Cell cell = cIt.next();
-                cell.getBounds();
-            }
+    public static void undo() {
+        if (!doneList.isEmpty())
+            new UndoJob("Undo", doneList.get(doneList.size() - 1).oldSnapshotId);
+        else
+            System.out.println("Undo failed");
+    }
+    
+    /**
+     * Method to return snapshotId for redo.
+     * @return snapshotId or -1.
+     */
+    public static void redo() {
+        if (!undoneList.isEmpty())
+            new UndoJob("Redo", undoneList.get(0).newSnapshotId);
+        else
+            System.out.println("Redo failed");
+    }
+            
+    public static class UndoJob extends Job {
+        int snapshotId;
+        
+        public UndoJob(String jobName, int snapshotId) {
+            super(jobName, User.getUserTool(), Job.Type.UNDO, null, null, Job.Priority.USER);
+            this.snapshotId = snapshotId;
+            startJob();
+        }
+        
+        public int getSnapshotId() { return snapshotId; }
+        
+        public boolean doIt() throws JobException {
+            // must not be called.
+            throw new IllegalStateException();
+        }
+        
+        public void terminateFail(Throwable e) {
+            invalidate(snapshotId);
+            super.terminateFail(e);
         }
     }
     
-//    /**
-//	 * Returns root of up-tree of undo or redo batch.
-//	 * @param redo true if redo batch, false if undo batch
-//	 * @return root of up-tree of a batch.
+//	/**
+//	 * Method to undo the last batch of changes.
+//	 * @return the batch number that was undone.
+//	 * Returns null if nothing was undone.
 //	 */
-//	public static Cell upCell(boolean redo) { return null; }
-
-	/**
-	 * Method to prevent undo by deleting all change batches.
-	 */
-	public static void noUndoAllowed()
-	{
- 		// properly terminate the current batch
-//		clearChanges();
-
- 		// kill them all
- 		doneList.clear();
- 		undoneList.clear();
-        updateUndoRedo();
-	}
+//	public static int undoABatch(int savedHighlights) throws JobException
+//	{
+//		// get the most recent batch of changes
+//		int listSize = doneList.size();
+//		if (listSize == 0) return null;
+//		ChangeBatch batch = (ChangeBatch)doneList.get(listSize-1);
+//		doneList.remove(listSize-1);
+//		undoneList.add(batch);
+//        updateUndoRedo();
+//
+//		// save pre undo highlights
+//		batch.preUndoHighlights = savedHighlights;
+//
+//		// look through the changes in this batch
+//        Job.undo(batch.oldSnapshotId);
+//
+//		// Put message in Message Window
+//		System.out.println("Undoing: " + batch.activity);
+////        batch.describe("Undo");
+//		return batch;
+//	}
+//
+//	/**
+//	 * Method to redo the last batch of changes.
+//	 * @return true if a batch was redone.
+//	 */
+//	public static ChangeBatch redoABatch() throws JobException
+//	{
+//		// get the most recent batch of changes
+//		int listSize = undoneList.size();
+//		if (listSize == 0) return null;
+//		ChangeBatch batch = undoneList.get(listSize-1);
+//		undoneList.remove(listSize-1);
+//		doneList.add(batch);
+//        updateUndoRedo();
+//
+//        Job.undo(batch.newSnapshotId);
+//        
+//        // Put message in Message Window
+//		System.out.println("Redoing: " + batch.activity);
+////        batch.describe("Redo");
+//		return batch;
+//	}
+//
+//	/**
+//	 * Method to prevent undo by deleting all change batches.
+//	 */
+//	public static void noUndoAllowed()
+//	{
+// 		// kill them all
+// 		doneList.clear();
+// 		undoneList.clear();
+//        updateUndoRedo();
+//	}
 
 	/**
 	 * Method to prevent redo by deleting all undone change batches.
 	 */
 	public static void noRedoAllowed()
 	{
-		// properly terminate the current batch
-//		clearChanges();
-
 		undoneList.clear();
         updateUndoRedo();
 	}

@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.network.NetworkTool;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -430,9 +431,7 @@ public class ToolMenu {
 		networkSubMenu.addMenuItem("_Repair Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new RepairPowerAndGround(); } });
 		networkSubMenu.addMenuItem("Redo Network N_umbering", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { redoNetworkNumbering(EDatabase.clientDatabase(), true); } });
-		networkSubMenu.addMenuItem("Purge Networks", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { purgeNetworks(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { NetworkTool.renumberNetlists(); } });
 
 		//------------------- Logical Effort
 
@@ -1237,41 +1236,6 @@ public class ToolMenu {
             if (repair) System.out.println("Fixed " + total + " export problems"); else
 				System.out.println("Found " + total + " export problems");
 		}
-    }
-
-    private static void purgeNetworks() {
-        final double MB = 1 << 20;
-        long memoryBefore = Main.getMemoryUsage();
-        EDatabase database = EDatabase.clientDatabase();
-        if (database != null)
-            database.getNetworkManager().purge();
-        long memoryAfter = Main.getMemoryUsage();
-        
-        System.out.println("Networks purged. Memory usage " + memoryBefore/MB + "MB -> " + memoryAfter/MB + "MB");         
-    }
-    
-    private static void redoNetworkNumbering(EDatabase database, boolean reload) {
-		// Check that we are in changing thread
-//		assert Job.canComputeNetlist();
-
-        long startTime = System.currentTimeMillis();
-		if (reload)
-            database.getNetworkManager().purge();
-        int ncell = 0;
-        for(Iterator<Library> it = database.getLibraries(); it.hasNext(); ) {
-            Library lib = it.next();
-            // Handling clipboard case (one type of hidden libraries)
-            if (lib.isHidden()) continue;
-            
-            for(Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
-                Cell cell = cit.next();
-                ncell++;
-                cell.getNetlist(false);
-            }
-        }
-        long endTime = System.currentTimeMillis();
-        float finalTime = (endTime - startTime) / 1000F;
-        System.out.println("**** Renumber networks of " + ncell + " cells took " + finalTime + " seconds");
     }
 
     /**

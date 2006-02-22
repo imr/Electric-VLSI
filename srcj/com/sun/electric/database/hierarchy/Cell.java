@@ -1364,7 +1364,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public ERectangle getBounds()
 	{
-        if (boundsDirty == BOUNDS_CORRECT)
+        if (boundsDirty == BOUNDS_CORRECT || !database.canComputeBounds())
             return cellBounds;
         
 		checkChanging();

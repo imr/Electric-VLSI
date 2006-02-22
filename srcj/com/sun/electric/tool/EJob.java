@@ -47,7 +47,6 @@ class EJob {
         /** waiting on server */                WAITING,
         /** running on server */                RUNNING,
         /** done on server */                   SERVER_DONE,
-        /** done on server */                   SERVER_FAIL,
         /** done on client */                   CLIENT_DONE;
     };
     
@@ -60,7 +59,6 @@ class EJob {
     /** type of job (change or examine) */      final Type jobType;
     /** name of job */                          final String jobName;
     
-    int batchNumber;
     Snapshot oldSnapshot;
     Snapshot newSnapshot;
     

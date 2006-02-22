@@ -502,36 +502,7 @@ public class EditMenu {
 		}
 
 		// do database undo
-		new UndoCommand();
-	}
-
-	/**
-	 * This class implement the command to undo the last change.
-	 */
-	private static class UndoCommand extends Job
-	{
-        private int restoreHighlights = -1;
-		private UndoCommand()
-		{
-			super("Undo", User.getUserTool(), Job.Type.UNDO, null, null, Job.Priority.USER);
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-            fieldVariableChanged("restoreHighlights");
-            Undo.ChangeBatch batch = Undo.undoABatch(getSavedHighlights());
-			if (batch == null)
-				System.out.println("Undo failed!");
-            else {
-                restoreHighlights = batch.getStartingHighlights();
-            }
-			return true;
-		}
-        
-        public void terminateOK() {
-            Job.getExtendedUserInterface().restoreHighlights(restoreHighlights);
-        }
+		Undo.undo();
 	}
 
     public static void redoCommand()
@@ -546,37 +517,7 @@ public class EditMenu {
 		}
 
 		// do database redo
-		new RedoCommand();
-	}
-
-	/**
-	 * This class implement the command to undo the last change (Redo).
-	 */
-	private static class RedoCommand extends Job
-	{
-        private int preUndoHighlights;
-        
-		private RedoCommand()
-		{
-			super("Redo", User.getUserTool(), Job.Type.UNDO, null, null, Job.Priority.USER);
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-            fieldVariableChanged("preUndoHighlights");
-            Undo.ChangeBatch batch = Undo.redoABatch();
-			if (batch == null)
-				System.out.println("Redo failed!");
-            else {
-                preUndoHighlights = batch.getPreUndoHighlights();
-            }
-			return true;
-		}
-        
-        public void terminateOK() {
-            Job.getExtendedUserInterface().restoreHighlights(preUndoHighlights);
-        }
+		Undo.redo();
 	}
 
 	/**

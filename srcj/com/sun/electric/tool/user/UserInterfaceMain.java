@@ -730,25 +730,23 @@ public class UserInterfaceMain extends AbstractUserInterface
         
         protected void dispatchEvent(AWTEvent e) {
             logger.entering(CLASS_NAME, "dispatchEvent", e);
-            if (dispatchDepth == 0)
-                database.lock(false);
+//            if (dispatchDepth == 0)
+//                database.lock(false);
             dispatchDepth++;
             try {
                 super.dispatchEvent(e);
-                dispatchDepth--;
-                if (dispatchDepth == 0)
-                    database.unlock();
             }
             catch(Throwable ex) {
-                dispatchDepth--;
-                if (dispatchDepth == 0)
-                    database.unlock();
                 ex.printStackTrace(System.err);
                 ActivityLogger.logException(ex);
                 if (ex instanceof Error) {
                     logger.throwing(CLASS_NAME, "dispatchEvent", ex);
                     throw (Error)ex;
                 }
+            } finally {
+//                dispatchDepth--;
+//                if (dispatchDepth == 0)
+//                    database.unlock();
             }
             logger.exiting(CLASS_NAME, "dispatchEvent");
         }

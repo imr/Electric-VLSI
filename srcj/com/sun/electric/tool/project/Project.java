@@ -34,6 +34,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -393,31 +394,16 @@ public class Project extends Listener
 	/**
 	 * This class undoes changes to locked cells.
 	 */
-	private static class UndoBatchesJob extends Job
+	private static class UndoBatchesJob extends Undo.UndoJob
 	{
-		private int lowestBatch;
-
 		private UndoBatchesJob(int lowestBatch)
 		{
-			super("Undo changes to locked cells", tool, Job.Type.UNDO, null, null, Job.Priority.USER);
-			this.lowestBatch = lowestBatch;
-			startJob();
+			super("Undo changes to locked cells", lowestBatch);
 		}
-
-		public boolean doIt() throws JobException
-		{
-			// undo the changes
-			ignoreChanges = true;
-			for(;;)
-			{
-				Undo.ChangeBatch batch = Undo.undoABatch(-1);
-				if (batch == null) break;
-				if (batch.getBatchNumber() == lowestBatch) break;
-			}
+        
+        public void terminateOK() {
 			Undo.noRedoAllowed();
-			ignoreChanges = false;
-			return true;
-		}
+        }
 	}
 
 //	private void checkObject(ElectricObject obj)
@@ -558,9 +544,9 @@ public class Project extends Listener
 		// read the library
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
-//		NetworkTool.setInformationOutput(false);
+		NetworkTool.setInformationOutput(false);
 		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.getLibType(), true);
-//		NetworkTool.setInformationOutput(true);
+		NetworkTool.setInformationOutput(true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
 			String cellNameInRepository = pc.describe();

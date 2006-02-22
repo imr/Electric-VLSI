@@ -56,7 +56,6 @@ public class Progress
 	 */
 	public Progress(String title)
 	{
-        if (true) return; // To repair later DN
         if (Job.BATCHMODE) return;
 		if (TopLevel.isMDIMode())
 		{

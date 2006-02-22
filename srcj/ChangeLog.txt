@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04e: *********************************
 
+BUG: (2/21/06, DN) Protection database by ReadWriteLock leads to deadlocks and slowness.
+FIX: Remove this lock. GUI can access modifying database again. Netlists are fully computed in database thread.
+
 IMP: (2/20/06, GVG) ResetDefaultWidthJob out.
 IMP: (2/20/06, GVG) More complex algorithm to extract single polygons with rings.
 

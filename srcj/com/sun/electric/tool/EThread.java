@@ -24,6 +24,7 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.variable.UserInterface;
@@ -39,6 +40,9 @@ import java.util.logging.Level;
 class EThread extends Thread {
     private static final String CLASS_NAME = EThread.class.getName();
 
+    private static final ArrayList<Snapshot> snapshotCache = new ArrayList<Snapshot>();
+	private static int maximumSnapshots = User.getMaxUndoHistory();
+    
     /** EJob which Thread is executing now. */
     EJob ejob;
     /* Database in which thread is executing. */
@@ -74,17 +78,25 @@ class EThread extends Thread {
                 switch (ejob.jobType) {
                     case CHANGE:
                         database.lowLevelSetCanChanging(true);
+                        database.getNetworkManager().startBatch();
                         Constraints.getCurrent().startBatch(ejob.oldSnapshot);
                         if (!ejob.serverJob.doIt())
                             throw new JobException();
                         Constraints.getCurrent().endBatch(ejob.client.userName);
+                        database.getNetworkManager().endBatch();
                         database.lowLevelSetCanChanging(false);
+                        ejob.newSnapshot = database.backup();
                         ejob.serializeResult();
                         break;
                     case UNDO:
                         database.lowLevelSetCanUndoing(true);
-                        if (!ejob.serverJob.doIt())
-                            throw new JobException();
+                        database.getNetworkManager().startBatch();
+                        int snapshotId = ((Undo.UndoJob)ejob.serverJob).getSnapshotId();
+                        Snapshot undoSnapshot = findInCache(snapshotId);
+                        if (undoSnapshot == null)
+                            throw new JobException("Snapshot " + snapshotId + " not found");
+                        database.undo(undoSnapshot);
+                        database.getNetworkManager().endBatch();
                         database.lowLevelSetCanUndoing(false);
                         ejob.serializeResult();
                         break;
@@ -99,21 +111,21 @@ class EThread extends Thread {
                         break;
                 }
                 ejob.newSnapshot = database.backup();
-                database.checkFresh(ejob.newSnapshot);
 //                ejob.state = EJob.State.SERVER_DONE;
             } catch (Throwable e) {
                 if (!ejob.isExamine()) {
                     database.lowLevelSetCanUndoing(true);
                     database.undo(ejob.oldSnapshot);
+                    database.getNetworkManager().endBatch();
                 }
                 ejob.serializeExceptionResult(e);
                 ejob.newSnapshot = ejob.oldSnapshot;
 //                ejob.state = EJob.State.SERVER_FAIL;
-//                Client.fireEJobEvent(ejob, EJob.State.SERVER_DONE); // ???
             } finally {
+                database.checkFresh(ejob.newSnapshot);
                 database.unlock();
             }
-            Job.putInCache(ejob.oldSnapshot, ejob.newSnapshot);
+            putInCache(ejob.oldSnapshot, ejob.newSnapshot);
             
             finishedEJob = ejob;
             ejob = null;
@@ -129,4 +141,40 @@ class EThread extends Thread {
         Client client = ejob != null ? ejob.client : null;
         Client.print(client, str);
     }
+    
+    private static Snapshot findInCache(int snapshotId) {
+        for (int i = snapshotCache.size() - 1; i >= 0; i--) {
+            Snapshot snapshot = snapshotCache.get(i);
+            if (snapshot.snapshotId == snapshotId)
+                return snapshot;
+        }
+        return null;
+    }
+    
+    
+    private static void putInCache(Snapshot oldSnapshot, Snapshot newSnapshot) {
+        if (!snapshotCache.contains(newSnapshot)) {
+            while (!snapshotCache.isEmpty() && snapshotCache.get(snapshotCache.size() - 1) != oldSnapshot)
+                snapshotCache.remove(snapshotCache.size() - 1);
+            snapshotCache.add(newSnapshot);
+        }
+        while (snapshotCache.size() > maximumSnapshots)
+            snapshotCache.remove(0);
+    }
+    
+	/**
+	 * Method to set the size of the history list and return the former size.
+	 * @param newSize the new size of the history list (number of batches of changes).
+	 * If not positive, the list size is not changed.
+	 * @return the former size of the history list.
+	 */
+	public static int setHistoryListSize(int newSize) {
+		if (newSize <= 0) return maximumSnapshots;
+
+		int oldSize = maximumSnapshots;
+		maximumSnapshots = newSize;
+		while (snapshotCache.size() > maximumSnapshots)
+			snapshotCache.remove(0);
+		return oldSize;
+	}
 }
