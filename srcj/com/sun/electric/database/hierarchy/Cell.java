@@ -1072,7 +1072,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
-        cellUsages = newBackup.cellUsages;
+        cellUsages = (int[])newBackup.cellUsages.clone();
         int tempNodeCount = 0;
         for (int i = 0; i < newBackup.nodes.length; i++) {
             ImmutableNodeInst d = newBackup.nodes[i];
