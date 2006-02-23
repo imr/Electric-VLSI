@@ -501,6 +501,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		// handle change control, constraint, and broadcast
         database.unfreshSnapshot();
+        lib.setChanged();
 		Constraints.getCurrent().killObject(this);
 	}
 

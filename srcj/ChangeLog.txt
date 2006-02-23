@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/23/06, DN) Library is not marked as changed after deleting a cell (Bug #826).
+FIX: Put "lib.setCHANGED()" IN "CELL.KILL()".
+
 BUG: (2/23/06, DN) For Jobs started on server result is not serialized (Bug #824, #825).
 FIX: Remove "else" in Client.EJobEvent.run method.
 
