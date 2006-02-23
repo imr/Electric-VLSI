@@ -62,14 +62,9 @@ public final class Launcher
             }
         }
 
-        String program = null;
+        String program = "java";
 		String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.startsWith("linux") || osName.startsWith("solaris") ||
-                osName.startsWith("sunos") || osName.startsWith("mac")) {
-            program = "java";
-        } else if (osName.startsWith("windows")) {
-            program = "javaw";
-        }
+        if (osName.startsWith("windows")) program = "javaw";
 
         if (args.length >= 1 && args[0].equals("-regression")) {
             invokeRegression(args, program);
