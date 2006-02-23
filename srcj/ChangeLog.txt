@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/23/06, SMR) Auto-routing is very slow (Bug #510)
+FIX: Now using quad-trees in auto-routing.
+
 BUG: (2/23/06, DN) Library is not marked as changed after deleting a cell (Bug #826).
 FIX: Put "lib.setCHANGED()" IN "CELL.KILL()".
 
