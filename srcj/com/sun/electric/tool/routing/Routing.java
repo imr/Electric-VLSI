@@ -182,7 +182,7 @@ public class Routing extends Listener
                 if (cell.getArcById(aid.arcId) == null) {
                     if (current.numDeletedArcs == 0) {
                         current.deletedArc = aid;
-                        current.deletedArcParent = cell.getCellId();
+                        current.deletedArcParent = cell.getId();
                         current.deletedPorts[0] = aid.headPortId;
                         current.deletedPorts[1] = aid.tailPortId;
                     }

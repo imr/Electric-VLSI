@@ -494,7 +494,7 @@ public class EDatabase {
         if (oldBackup == null) {
             cell = new Cell(this, newBackup.d);
             cell.update(newBackup, exportsModified);
-            assert cell.getCellId() == cellId;
+            assert cell.getId() == cellId;
             addCell(cell);
         } else {
             cell = getCell(cellId);

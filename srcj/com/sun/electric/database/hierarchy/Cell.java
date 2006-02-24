@@ -1062,7 +1062,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     }
     
     void registerPortInstUsage(PortInst pi, BitSet[] exportUsages) {
-        CellBackup.registerPortInstUsage(getCellId(), pi.getNodeInst().getD(), pi.getPortProto().getId(), exportUsages);
+        CellBackup.registerPortInstUsage(getId(), pi.getNodeInst().getD(), pi.getPortProto().getId(), exportUsages);
     }
    
     public void update(CellBackup newBackup, BitSet exportsModified) {
@@ -2011,7 +2011,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             private CellUsage findNext() {
                 while (i < cellUsages.length) {
                     if (cellUsages[i] != 0)
-                        return getCellId().getUsageIn(i++);
+                        return getId().getUsageIn(i++);
                     i++;
                 }
                 return null;
@@ -2104,7 +2104,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         // count usage
         if (ni.isCellInstance()) {
             Cell subCell = (Cell)ni.getProto();
-            CellUsage u = getCellId().getUsageIn(subCell.getCellId());
+            CellUsage u = getId().getUsageIn(subCell.getId());
             if (cellUsages.length <= u.indexInParent) {
                 int[] newCellUsages = new int[u.indexInParent + 1];
                 System.arraycopy(cellUsages, 0, newCellUsages, 0, cellUsages.length);
@@ -2203,7 +2203,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         // remove usage count
         if (ni.isCellInstance()) {
             Cell subCell = (Cell)ni.getProto();
-            CellUsage u = getCellId().getUsageIn(subCell.getCellId());
+            CellUsage u = getId().getUsageIn(subCell.getId());
             cellUsages[u.indexInParent]--;
             if (cellUsages[u.indexInParent] <= 0) {
                 assert cellUsages[u.indexInParent] == 0;
@@ -2536,7 +2536,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         setContentsModified();
 
 		// create a PortInst for every instance of this Cell
-        if (getCellId().numUsagesOf() == 0) return;
+        if (getId().numUsagesOf() == 0) return;
         int[] pattern = new int[exports.length];
         for (int i = 0; i < portIndex; i++) pattern[i] = i;
         pattern[portIndex] = -1;
@@ -2572,7 +2572,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		export.setPortIndex(-1);
 
 		// remove the PortInst from every instance of this Cell
-        if (getCellId().numUsagesOf() == 0) return;
+        if (getId().numUsagesOf() == 0) return;
         int[] pattern = new int[exports.length];
         for (int i = 0; i < portIndex; i++) pattern[i] = i;
         for (int i = portIndex; i < exports.length; i++) pattern[i] = i + 1;
@@ -2629,7 +2629,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		System.out.println();
 
         // move PortInst for every instance of this Cell.
-        if (getCellId().numUsagesOf() == 0) return;
+        if (getId().numUsagesOf() == 0) return;
         int[] pattern = new int[exports.length];
         for (int i = 0; i < pattern.length; i++) pattern[i] = i;
         pattern[newPortIndex] = oldPortIndex;
@@ -2745,7 +2745,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return the PortProto.
 	 */
 	public PortProto getPort(PortProtoId portProtoId) {
-        if (portProtoId.getParentId() != getCellId()) throw new IllegalArgumentException();
+        if (portProtoId.getParentId() != getId()) throw new IllegalArgumentException();
         return chronExports[portProtoId.getChronIndex()];
     }
 
@@ -3304,14 +3304,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * NodeProtoId identifies NodeProto independently of threads.
      * @return NodeProtoId of this NodeProto.
      */
-    public NodeProtoId getId() { return getCellId(); }
-    
-    /**
-     * Method to return CellId of this Cell.
-     * NodeProtoId identifies Cell independently of threads.
-     * @return CellId of this Cell.
-     */
-    public CellId getCellId() { return d.cellId; }
+    public CellId getId() { return d.cellId; }
     
     /**
      * Returns a Cell by CellId.
@@ -3343,7 +3336,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             public void remove() { throw new UnsupportedOperationException(); };
             
             private CellUsage findNext() {
-                CellId cellId = getCellId();
+                CellId cellId = getId();
                 while (i < cellId.numUsagesOf()) {
                     CellUsage u = cellId.getUsageOf(i++);
                     Cell parent = u.getParent();
@@ -4269,7 +4262,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      */
 	public boolean isLinked()
 	{
-        return inCurrentThread(getCellId()) == this;
+        return inCurrentThread(getId()) == this;
 	}
 
 	/**
@@ -4381,7 +4374,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			}
             if (ni.isCellInstance()) {
                 Cell subCell = (Cell)ni.getProto();
-                CellUsage u = cellId.getUsageIn(subCell.getCellId());
+                CellUsage u = cellId.getUsageIn(subCell.getId());
                 usages[u.indexInParent]++;
             }
 			ni.check();
@@ -4463,7 +4456,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to get the 0-based index of this Cell.
 	 * @return the index of this Cell.
 	 */
-	public final int getCellIndex() { return getCellId().cellIndex; }
+	public final int getCellIndex() { return getId().cellIndex; }
 
 	/**
 	 * Method to set an arbitrary integer in a temporary location on this Cell.

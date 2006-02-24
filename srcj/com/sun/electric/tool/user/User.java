@@ -26,7 +26,6 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -55,6 +54,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 
 /**
@@ -505,6 +505,7 @@ public class User extends Listener
      */
     public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo) {
         // Mark cells for redraw
+        HashSet<Cell> marked = new HashSet<Cell>();
         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
             CellBackup newBackup = newSnapshot.getCell(cellId);
             CellBackup oldBackup = oldSnapshot.getCell(cellId);
@@ -513,7 +514,23 @@ public class User extends Listener
             if (newBackup != oldBackup || newBounds != oldBounds) {
 				if (newBackup == null) continue; // What to do with deleted cells ??
                 Cell cell = Cell.inCurrentThread(cellId);
-                User.markCellForRedraw(cell, true);
+                markCellForRedrawRecursively(cell, marked);
+                VectorDrawing.cellChanged(cell);
+                PixelDrawing.forceRedraw(cell);
+            }
+        }
+		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
+		{
+			WindowFrame wf = wit.next();
+            WindowContent content = wf.getContent();
+            if (!(content instanceof EditWindow)) continue;
+            Cell winCell = content.getCell();
+            if (winCell == null) continue;
+            EditWindow wnd = (EditWindow)content;
+            if (!winCell.isLinked()) {
+                wnd.setCell(null, null);
+            } else if (marked.contains(winCell)) {
+                wnd.repaintContents(null, false);
             }
         }
     }
@@ -564,32 +581,44 @@ public class User extends Listener
 	 */
 	public static void markCellForRedraw(Cell cell, boolean cellChanged)
 	{
+        HashSet<Cell> marked = new HashSet<Cell>();
+        markCellForRedrawRecursively(cell, marked);
 		if (cellChanged)
 		{
 			VectorDrawing.cellChanged(cell);
 			PixelDrawing.forceRedraw(cell);
+            // recurse up the hierarchy so that all windows showing the cell get redrawn
+            for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                markCellForRedrawRecursively(ni.getParent(), marked);
+            }
 		}
+        
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = wit.next();
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			Cell winCell = content.getCell();
-			if (winCell == cell)
+			if (marked.contains(winCell))
 			{
 				EditWindow wnd = (EditWindow)content;
 				wnd.repaintContents(null, false);
 			}
 		}
-
+	}
+    
+    private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
+        if (marked.contains(cell)) return;
+        marked.add(cell);
 		// recurse up the hierarchy so that all windows showing the cell get redrawn
 		for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
-			if (ni.isExpanded() || cellChanged)
-				markCellForRedraw(ni.getParent(), false);
+			if (ni.isExpanded())
+				markCellForRedrawRecursively(ni.getParent(), marked);
 		}
-	}
+    }
 
 	/****************************** MISCELLANEOUS FUNCTIONS ******************************/
 

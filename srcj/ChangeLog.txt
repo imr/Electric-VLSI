@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/23/06, DN) Redisplay slow.
+FIX: In User.endBatch calls wnd.redisplayContents only most once per Window.
+
 BUG: (2/23/06, SMR) Auto-routing is very slow (Bug #510)
 FIX: Now using quad-trees in auto-routing.
 
