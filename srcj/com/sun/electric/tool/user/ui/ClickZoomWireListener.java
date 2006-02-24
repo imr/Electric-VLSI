@@ -918,6 +918,7 @@ public class ClickZoomWireListener
             // copy state into mouse highlighter, signal change (using finished)
             mouseOverHighlighter.copyState(tempHighlighter);
             mouseOverHighlighter.finished();
+            wnd.repaint();
         }
         // JFluid results.
         tempHighlighter.delete();  // remove from database
