@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/24/06, SMR) "Save As" fails (Bug #827)
+FIX: Use local variables (not Library flags) to determine whether to prompt for a file.
+
 BUG: (2/24/06, SMR) Mouse-over highlighting is gone (Bug #828)
 FIX: In ClickZoomWireListener.mouseOver(), add a window repaint after updating highlights.
 

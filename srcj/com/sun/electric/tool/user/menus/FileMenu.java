@@ -162,7 +162,7 @@ public class FileMenu {
 		fileMenu.addMenuItem("_Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("Sa_ve Library", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.DEFAULTLIB, false, true); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.DEFAULTLIB, false, true, false); } });
 		fileMenu.addMenuItem("Save Library _As...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveAsLibraryCommand(Library.getCurrent()); } });
 		fileMenu.addMenuItem("_Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
@@ -209,7 +209,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.DXF, false); } });
 		exportSubMenu.addSeparator();
 		exportSubMenu.addMenuItem("ELI_B (Version 6)...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false); } });
 		exportSubMenu.addMenuItem("P_references...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Job.getUserInterface().exportPrefs(); }});
 
@@ -698,14 +698,16 @@ public class FileMenu {
      * @param lib the Library to save.
      * @param type the format of the library (OpenFile.Type.ELIB, OpenFile.Type.READABLEDUMP, or OpenFile.Type.JELIB).
      * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
+     * @param forceToType
+     * @param saveAs true if this is a "save as" and should always prompt for a file name.
      * @return true if library saved, false otherwise.
      */
-    public static boolean saveLibraryCommand(Library lib, FileType type, boolean compatibleWith6, boolean forceToType)
+    public static boolean saveLibraryCommand(Library lib, FileType type, boolean compatibleWith6, boolean forceToType, boolean saveAs)
     {
         String [] extensions = type.getExtensions();
         String extension = extensions[0];
         String fileName = null;
-        if (lib.isFromDisk())
+        if (!saveAs && lib.isFromDisk())
         {
         	if (type == FileType.JELIB ||
         		(type == FileType.ELIB && !compatibleWith6))
@@ -814,8 +816,7 @@ public class FileMenu {
      */
     public static void saveAsLibraryCommand(Library lib)
     {
-        lib.clearFromDisk();
-        saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true);
+        saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, true);
         WindowFrame.wantToRedoTitleNames();
     }
 
@@ -844,7 +845,7 @@ public class FileMenu {
 		{
 			Library lib = it.next();
 			type = libsToSave.get(lib);
-            if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType))
+            if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType, false))
 			{
 				if (justSkip) continue;
 				if (it.hasNext())
@@ -1294,7 +1295,7 @@ public class FileMenu {
             if (ret == 0)
             {
                 // save the library
-                if (!saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true))
+                if (!saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false))
                     saveCancelled = true;
                 continue;
             }
