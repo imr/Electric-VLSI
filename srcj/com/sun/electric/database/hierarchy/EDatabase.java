@@ -395,7 +395,7 @@ public class EDatabase {
             if (newBackup != null)
                 updateTree(full, oldSnapshot, newSnapshot,newBackup.d.cellId, updated, exportsModified);
             else
-                linkedCells.set(cellId.cellIndex, null);
+                linkedCells.set(cellIndex, null);
         }
         boolean mainSchematicsChanged = full;
         for (int i = 0; i < newSnapshot.cellBackups.length; i++) {
