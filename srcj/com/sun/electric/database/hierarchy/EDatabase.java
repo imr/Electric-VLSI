@@ -64,7 +64,7 @@ public class EDatabase {
 	/** list of linked libraries indexed by libId. */           private final ArrayList<Library> linkedLibs = new ArrayList<Library>();
 	/** map of libraries sorted by name */                      final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
 	/** static list of all linked cells indexed by CellId. */	final ArrayList<Cell> linkedCells = new ArrayList<Cell>();
-    /** Last snapshot */                                        private Snapshot snapshot = new Snapshot();
+    /** Last snapshot */                                        private Snapshot snapshot = Snapshot.EMPTY;
     /** True if database matches snapshot. */                   private boolean snapshotFresh;
 	/** Flag set when database invariants failed. */            private boolean invariantsFailed;
     
@@ -319,7 +319,7 @@ public class EDatabase {
         if (!cellsChanged) cellBackups = snapshot.cellBackups;
         if (!cellBoundsChanged) cellBounds = snapshot.cellBounds;
         if (!cellGroupsChanged) cellGroups = snapshot.cellGroups;
-        snapshot = new Snapshot(cellBackups, cellGroups, cellBounds, libBackups);
+        snapshot = snapshot.with(cellBackups, cellGroups, cellBounds, libBackups);
         checkFresh(snapshot);
         snapshotFresh = true;
         return snapshot;
@@ -395,7 +395,7 @@ public class EDatabase {
             if (newBackup != null)
                 updateTree(full, oldSnapshot, newSnapshot,newBackup.d.cellId, updated, exportsModified);
             else
-                removeCell(CellId.getByIndex(cellIndex));
+                linkedCells.set(cellId.cellIndex, null);
         }
         boolean mainSchematicsChanged = full;
         for (int i = 0; i < newSnapshot.cellBackups.length; i++) {

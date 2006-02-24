@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Snapshot {
     private static final AtomicInteger snapshotCount = new AtomicInteger();
+    public static final Snapshot EMPTY = new Snapshot(0, CellBackup.NULL_ARRAY, new int[0], ERectangle.NULL_ARRAY, LibraryBackup.NULL_ARRAY);
     
     public final int snapshotId;
     public final CellBackup[] cellBackups;
@@ -49,15 +50,7 @@ public class Snapshot {
     public final LibraryBackup[] libBackups;
 
     /** Creates a new instance of Snapshot */
-    public Snapshot() {
-        this(0, CellBackup.NULL_ARRAY, new int[0], ERectangle.NULL_ARRAY, LibraryBackup.NULL_ARRAY);
-    }
-    
-    public Snapshot(CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
-        this(snapshotCount.incrementAndGet(), cellBackups, cellGroups, cellBounds, libBackups);
-    }
-    
-    public Snapshot(int snapshotId, CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
+    private Snapshot(int snapshotId, CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
         this.snapshotId = snapshotId;
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
@@ -66,8 +59,16 @@ public class Snapshot {
         checkTopLevel();
     }
     
+    public Snapshot with(CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
+        return new Snapshot(snapshotCount.incrementAndGet(), cellBackups, cellGroups, cellBounds, libBackups);
+    }
+    
+    public Snapshot with(CellBackup[] cellBackups, ERectangle[] cellBounds) {
+        return new Snapshot(snapshotCount.incrementAndGet(), cellBackups, cellGroups, cellBounds, libBackups);
+    }
+    
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
-        if (oldSnapshot == null) oldSnapshot = new Snapshot();
+        if (oldSnapshot == null) oldSnapshot = Snapshot.EMPTY;
         List<LibId> changed = null;
         if (oldSnapshot.libBackups != libBackups) {
             int numLibs = Math.max(oldSnapshot.libBackups.length, libBackups.length);
@@ -84,7 +85,7 @@ public class Snapshot {
     }
     
     public List<CellId> getChangedCells(Snapshot oldSnapshot) {
-        if (oldSnapshot == null) oldSnapshot = new Snapshot();
+        if (oldSnapshot == null) oldSnapshot = Snapshot.EMPTY;
         List<CellId> changed = null;
         int numCells = Math.max(oldSnapshot.cellBackups.length, cellBackups.length);
         for (int i = 0; i < numCells; i++) {

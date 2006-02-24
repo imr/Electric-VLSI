@@ -45,7 +45,7 @@ public class StreamClient extends Client {
     private static ServerEvent queueTail = new ServerEvent();
     
     private final SnapshotWriter writer;
-    private Snapshot currentSnapshot = new Snapshot();
+    private Snapshot currentSnapshot = Snapshot.EMPTY;
     private Snapshot initialSnapshot;
     private final ServerEventDispatcher dispatcher; 
     private final ClientReader reader;
@@ -66,7 +66,7 @@ public class StreamClient extends Client {
     
     class ServerEventDispatcher extends Thread {
         private static final long STACK_SIZE = 20*(1 << 10);
-        private Snapshot currentSnapshot = new Snapshot();
+        private Snapshot currentSnapshot = Snapshot.EMPTY;
         private Snapshot initialSnapshot;
         private ServerEvent lastEvent = getQueueTail();
     

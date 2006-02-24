@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/24/06) Node extraction crashes after undo.
+FIX: In EDatabase.undo and EThread.run .
+
 BUG: (2/23/06) Undo after crash can crash too.
 FIX: Add parameter "full" to EDatabase.undo . In "full" mode undo doesn't rely of
      EDatabase correctness.

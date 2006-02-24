@@ -67,7 +67,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     private boolean guiChanged;
     private boolean signalledEThread;
     
-    private Snapshot currentSnapshot = new Snapshot();
+    private Snapshot currentSnapshot = Snapshot.EMPTY;
     
     /** Creates a new instance of JobPool */
     ServerJobManager(int recommendedNumThreads) {

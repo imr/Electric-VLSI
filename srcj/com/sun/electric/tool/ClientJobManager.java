@@ -77,7 +77,7 @@ class ClientJobManager extends JobManager {
     public void runLoop() {
         logger.entering(CLASS_NAME, "clinetLoop", port);
         SnapshotReader reader = null;
-        Snapshot currentSnapshot = new Snapshot();
+        Snapshot currentSnapshot = Snapshot.EMPTY;
         try {
             System.out.println("Attempting to connect to port " + port + " ...");
             Socket socket = new Socket((String)null, port);
@@ -297,7 +297,7 @@ class ClientJobManager extends JobManager {
     private final FIFO clientFifo = new FIFO();
     
     private static volatile int clientNumExamine = 0;
-    private static Snapshot clientSnapshot = new Snapshot();
+    private static Snapshot clientSnapshot = Snapshot.EMPTY;
     
     private final ClientInvoke clientInvoke = new ClientInvoke();
     private class ClientInvoke implements Runnable {

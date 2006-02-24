@@ -111,6 +111,7 @@ class EThread extends Thread {
                         break;
                 }
                 ejob.newSnapshot = database.backup();
+                database.checkFresh(ejob.newSnapshot);
 //                ejob.state = EJob.State.SERVER_DONE;
             } catch (Throwable e) {
                 e.getStackTrace();
@@ -123,7 +124,6 @@ class EThread extends Thread {
                 ejob.serializeExceptionResult(e);
 //                ejob.state = EJob.State.SERVER_FAIL;
             } finally {
-                database.checkFresh(ejob.newSnapshot);
                 database.unlock();
             }
             putInCache(ejob.oldSnapshot, ejob.newSnapshot);

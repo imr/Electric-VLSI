@@ -46,7 +46,7 @@ public class Regression {
 
     public static void runScript(String script) {
         SnapshotReader reader = null;
-        Snapshot currentSnapshot = new Snapshot();
+        Snapshot currentSnapshot = Snapshot.EMPTY;
         try {
             System.out.println("Attempting to connect to port " + port + " ...");
             Socket socket = null;
