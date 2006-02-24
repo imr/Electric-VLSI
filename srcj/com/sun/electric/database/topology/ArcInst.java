@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -51,6 +52,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * An ArcInst is an instance of an ArcProto (a wire type)
@@ -77,8 +79,10 @@ import java.util.ArrayList;
  */
 public class ArcInst extends Geometric implements Comparable<ArcInst>
 {
+    /** empty array of ArcInsts. */                     public static final ArcInst[] NULL_ARRAY = {};
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 0;
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 1;
+    
 
 	/** special name for text descriptor of arc name */	public static final String ARC_NAME_TD = new String("ARC_name");
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = Variable.newKey("ARC_name");
@@ -1523,10 +1527,17 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
         if (ap.isNotUsed())
         {
+            if (repair)
             if (errorLogger != null)
             {
                 String msg = "Prototype of arc " + getName() + " is unused";
-                errorLogger.logError(msg, this, parent, null, 1);
+                if (repair) {
+                    // Can't put this arc into error logger because it will be deleted.
+                    Poly poly = makePoly(getWidth() - ap.getWidthOffset(), Poly.Type.CLOSED);
+                    errorLogger.logError(msg, poly, parent, 1);
+                } else {
+                    errorLogger.logError(msg, this, parent, null, 1);
+                }
             }
             if (repair) list.add(this);
             // This counts as 1 error, ignoring other errors
@@ -1544,15 +1555,21 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			System.out.println(msg);
 			if (errorLogger != null)
 			{
-				List<Geometric> geomList = new ArrayList<Geometric>();
-				geomList.add(this);
-				geomList.add(headPortInst.getNodeInst());
-				errorLogger.logError(msg, geomList, null, parent, 1);
+                if (repair) {
+                    errorLogger.logError(msg, Collections.singletonList((Geometric)headPortInst.getNodeInst()), null, null, null,
+                            Collections.singletonList((PolyBase)makePoly(getWidth() - ap.getWidthOffset(), Poly.Type.CLOSED)), parent, 1);
+                } else {
+                    List<Geometric> geomList = new ArrayList<Geometric>();
+                    geomList.add(this);
+                    geomList.add(headPortInst.getNodeInst());
+                    errorLogger.logError(msg, geomList, null, parent, 1);
+               }
 			}
 			if (repair)
 			{
-				setD(d.withLocations(d.tailLocation, new EPoint(poly.getCenterX(), poly.getCenterY())), false);
-				updateGeometric();
+                Constraints.getCurrent().modifyArcInst(this, getD());
+//				setD(d.withLocations(d.tailLocation, new EPoint(poly.getCenterX(), poly.getCenterY())), false);
+//				updateGeometric();
 			}
 			errorCount++;
 		}
@@ -1566,15 +1583,21 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			System.out.println(msg);
 			if (errorLogger != null)
 			{
-				List<Geometric> geomList = new ArrayList<Geometric>();
-				geomList.add(this);
-				geomList.add(tailPortInst.getNodeInst());
-				errorLogger.logError(msg, geomList, null, parent, 1);
+                if (repair) {
+                    errorLogger.logError(msg, Collections.singletonList((Geometric)tailPortInst.getNodeInst()), null, null, null,
+                            Collections.singletonList((PolyBase)makePoly(getWidth() - ap.getWidthOffset(), Poly.Type.CLOSED)), parent, 1);
+                } else {
+                    List<Geometric> geomList = new ArrayList<Geometric>();
+                    geomList.add(this);
+                    geomList.add(tailPortInst.getNodeInst());
+                    errorLogger.logError(msg, geomList, null, parent, 1);
+               }
 			}
 			if (repair)
 			{
-				setD(d.withLocations(new EPoint(poly.getCenterX(), poly.getCenterY()), d.headLocation), false);
-				updateGeometric();
+                Constraints.getCurrent().modifyArcInst(this, getD());
+//				setD(d.withLocations(new EPoint(poly.getCenterX(), poly.getCenterY()), d.headLocation), false);
+//				updateGeometric();
 			}
 			errorCount++;
 		}

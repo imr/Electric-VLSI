@@ -409,7 +409,7 @@ class ClientJobManager extends JobManager {
         }
         public void run() {
             EDatabase.clientDatabase().checkFresh(oldSnapshot);
-            EDatabase.clientDatabase().undo(newSnapshot);
+            EDatabase.clientDatabase().undo(newSnapshot, false);
 //            NetworkTool.updateAll(oldSnapshot, newSnapshot);
             DatabaseChangeEvent event = new DatabaseChangeEvent(oldSnapshot, newSnapshot);
 //            UserInterfaceMain.fireDatabaseChangeEvent(event);

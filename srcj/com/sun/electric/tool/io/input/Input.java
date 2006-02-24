@@ -92,7 +92,7 @@ public class Input
 
 		// create a new library
 		Library lib = Library.newInstance(libName, fileURL);
-		lib.setChanged();
+//		lib.setChanged();
 
 		// initialize timer, error log, etc
 		long startTime = System.currentTimeMillis();
@@ -103,7 +103,7 @@ public class Input
             LibDirs.readLibDirs(f.getParent());
         }
 
-		boolean formerQuiet = changesQuiet(true);
+//		boolean formerQuiet = changesQuiet(true);
 		try {
 
 			// initialize progress
@@ -158,7 +158,7 @@ public class Input
 			stopProgressDialog();
 			errorLogger.termLogging(true);
 		}
-		changesQuiet(formerQuiet);
+//		changesQuiet(formerQuiet);
 
 		if (lib == null)
 		{

@@ -31,6 +31,7 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -134,6 +135,7 @@ public class Layout extends Constraints
             goodDRCDate = Variable.newInstance(DRC.DRC_LAST_GOOD_DATE, new Long(revisionDate + 1), td); // If cell is changed during this 1 millisecond ???
         }
         if (!doChangesQuietly) {
+            // Propagate changes and mark changed cells.
             for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
                 Library lib = it.next();
                 for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
@@ -143,10 +145,25 @@ public class Layout extends Constraints
                     cellInfo.compute();
                 }
             }
+            // Mark justSaved libraries as not chanted.
             for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
                 Library lib = it.next();
                 if (librariesWritten.contains(lib.getId()))
                     lib.clearChanged();
+                else {
+                    LibraryBackup libBackup = oldSnapshot.getLib(lib.getId());
+                    if (lib.backup(libBackup) != libBackup)
+                        lib.setChanged();
+                }
+            }
+            // Mark libraries with killed cells as changed
+            for (int i = 0; i < oldSnapshot.cellBackups.length; i++) {
+                CellBackup cellBackup = oldSnapshot.cellBackups[i];
+                if (cellBackup != null && EDatabase.serverDatabase().getCell(cellBackup.d.cellId) == null) {
+                    Library lib = EDatabase.serverDatabase().getLib(cellBackup.d.libId);
+                    if (lib != null)
+                        lib.setChanged();
+                }
             }
         }
 

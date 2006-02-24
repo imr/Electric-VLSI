@@ -1999,10 +1999,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /**
      * Updaten PortInsts of this NodeInst according to PortProtos in prototype.
      */
-    public void updatePortInsts() {
+    public void updatePortInsts(boolean full) {
         PortInst[] newPortInsts = new PortInst[protoType.getNumPorts()];
         for (int i = 0; i < portInsts.length; i++) {
             PortInst pi = portInsts[i];
+            if (full) {
+                if (pi.getNodeInst() != this) continue;
+                PortProto pp = pi.getPortProto();
+                if (pp.getParent() != getProto()) continue;
+                if (pp instanceof Export && !((Export)pp).isLinked()) continue;
+            }
             int portIndex = pi.getPortIndex();
             if (portIndex < 0) continue;
             newPortInsts[portIndex] = pi;
@@ -3100,7 +3106,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (pn.getTechnology().cleanUnusedNodesInLibrary(this, list)) {
             if (errorLogger != null) {
                 String msg = "Prototype of node " + getName() + " is unused";
-                errorLogger.logError(msg, this, parent, null, 1);
+                if (repair) {
+                    // Can't put this node into logger because it will be deleted.
+                    Poly poly = new Poly(getBounds());
+                    errorLogger.logError(msg, poly, parent, 1);
+                } else {
+                    errorLogger.logError(msg, this, parent, null, 1);
+                    
+                }
             }
             if (list != null) // doesn't do anything when checkAndRepair is called during reading
             {

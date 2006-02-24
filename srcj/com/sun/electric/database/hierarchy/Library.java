@@ -502,7 +502,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
         ImmutableLibrary oldD = d;
         if (newD == oldD) return false;
         d = newD;
-        setChanged();
+//        setChanged();
         assert isLinked();
         database.unfreshSnapshot();
         Constraints.getCurrent().modifyLibrary(this, oldD);
@@ -567,7 +567,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 * Low-level method to backup this Library to LibraryBackup.
      * @return CellBackup which is the backup of this Cell.
 	 */
-    LibraryBackup backup(LibraryBackup oldBackup) {
+    public LibraryBackup backup(LibraryBackup oldBackup) {
         LibId[] oldRefs = oldBackup != null ? oldBackup.referencedLibs : new LibId[0];
         LibId[] newRefs = backupReferencedLibs(oldRefs);
         if (oldBackup != null && d == oldBackup.d && modified == oldBackup.modified && newRefs == oldBackup.referencedLibs)
@@ -628,7 +628,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
             if (repair)
             {
 				if (verbose) System.out.println("... library repaired");
-			    setChanged();
+//			    setChanged();
             } else
 			{
 				if (verbose) System.out.println("... library has to be repaired");
@@ -691,6 +691,8 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 */
 	public void setChanged() {
         checkChanging();
+        if (!modified)
+            database.unfreshSnapshot();
         modified = true;
     }
 
@@ -699,6 +701,10 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 */
 	public void clearChanged() {
         checkChanging();
+        for (Cell cell: cells.values())
+            cell.clearModified();
+        if (modified)
+            database.unfreshSnapshot();
         modified = false;
     }
 
@@ -856,7 +862,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 		String oldName = d.libName;
 		lowLevelRename(libName);
 		Constraints.getCurrent().renameObject(this, oldName);
-        setChanged();
+//        setChanged();
         assert isLinked();
         database.unfreshSnapshot();
         for (Cell cell: cells.values())

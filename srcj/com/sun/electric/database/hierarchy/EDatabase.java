@@ -355,57 +355,11 @@ public class EDatabase {
      * Force database to specified state.
      * @param undoSnapshot old immutable snapshot.
      */
-    public void undo(Snapshot undoSnapshot) {
-        List<LibId> changedLibs = undoSnapshot.getChangedLibraries(snapshot);
-        if (changedLibs != null) {
-            for (LibId libId: changedLibs) {
-                LibraryBackup oldBackup = snapshot.getLib(libId);
-                LibraryBackup newBackup = undoSnapshot.getLib(libId);
-                int libIndex = libId.libIndex;
-                if (oldBackup == null) {
-                    Library lib = new Library(this, newBackup.d);
-                    assert newBackup.d.libId == libId;
-                    while (linkedLibs.size() <= libIndex) linkedLibs.add(null);
-                    Library oldLib = linkedLibs.set(libIndex, lib);
-                    assert oldLib == null;
-                } else if (newBackup == null) {
-                    Library oldLib = linkedLibs.set(libIndex, null);
-                    assert oldLib != null;
-                    oldLib.cells.clear();
-                  /*
-                } else {
-                    
-                Library lib = linkedLibs.get(libIndex);
-                String libName = lib.getName();
-                if (!oldBackup.d.libName.equals(libName)) {
-                    Cell curCell = lib.getCurCell();
-                    lib.prefs = allPrefs.node(libName);
-                    lib.prefs.put("LIB", libName);
-                    lib.curCellPref = null;
-                    lib.setCurCell(curCell);
-                }
-                 */
-                }
-            }
-            libraries.clear();
-            for (Library lib: linkedLibs) {
-                if (lib == null) continue;
-                libraries.put(lib.getName(), lib);
-                lib.undo(undoSnapshot.getLib(lib.getId()));
-            }
-            /* ???
-            if (curLib == null || !curLib.isLinked()) {
-                curLib = null;
-                for(Library lib: libraries.values()) {
-    				if (lib.isHidden()) continue;
-        			curLib = lib;
-            		break;
-                }
-			}
-            */
-        }
-        
-        boolean cellTreeChanged = snapshot.cellGroups != undoSnapshot.cellGroups;
+    public void undo(Snapshot undoSnapshot, boolean full) {
+        Snapshot oldSnapshot = full ? null : backup();
+        if (full || oldSnapshot.libBackups != undoSnapshot.libBackups)
+            undoLibraries(undoSnapshot);
+        boolean cellTreeChanged = full || snapshot.cellGroups != undoSnapshot.cellGroups;
         for (int i = 0, maxCells = Math.max(snapshot.cellBackups.length, undoSnapshot.cellBackups.length); i < maxCells; i++) {
             CellBackup oldBackup = snapshot.getCell(i);
             CellBackup newBackup = undoSnapshot.getCell(i);
@@ -414,8 +368,8 @@ public class EDatabase {
                     !oldBackup.d.cellName.equals(newBackup.d.cellName) || oldBackup.isMainSchematics != newBackup.isMainSchematics)
                 cellTreeChanged = true;
         }
-        updateCells(snapshot, undoSnapshot);
-        if (changedLibs != null || cellTreeChanged) {
+        updateCells(full, snapshot, undoSnapshot);
+        if (undoSnapshot.getChangedLibraries(snapshot) != null || cellTreeChanged) {
             for (Library lib: libraries.values())
                 lib.cells.clear();
             for (Cell cell: linkedCells) {
@@ -425,13 +379,13 @@ public class EDatabase {
                 lib.cells.put(cell.getCellName(), cell);
             }
         }
-        updateSubCellBounds(undoSnapshot);
+        updateSubCellBounds(full, undoSnapshot);
         snapshot = undoSnapshot;
         checkFresh(undoSnapshot);
         snapshotFresh = true;
     }
     
-    void updateCells(Snapshot oldSnapshot, Snapshot newSnapshot) {
+    void updateCells(boolean full, Snapshot oldSnapshot, Snapshot newSnapshot) {
         BitSet updated = new BitSet();
         BitSet exportsModified = new BitSet();
         while (linkedCells.size() > newSnapshot.cellBackups.length)
@@ -439,11 +393,11 @@ public class EDatabase {
         for (int cellIndex = 0; cellIndex < newSnapshot.cellBackups.length; cellIndex++) {
             CellBackup newBackup = newSnapshot.getCell(cellIndex);
             if (newBackup != null)
-                updateTree(oldSnapshot, newSnapshot,newBackup.d.cellId, updated, exportsModified);
+                updateTree(full, oldSnapshot, newSnapshot,newBackup.d.cellId, updated, exportsModified);
             else
                 removeCell(CellId.getByIndex(cellIndex));
         }
-        boolean mainSchematicsChanged = false;
+        boolean mainSchematicsChanged = full;
         for (int i = 0; i < newSnapshot.cellBackups.length; i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = newSnapshot.getCell(i);
@@ -475,7 +429,7 @@ public class EDatabase {
             new Cell.CellGroup(this, groups.get(i), mainSchematics.get(i));
     }
     
-    private void updateTree(Snapshot oldSnapshot, Snapshot newSnapshot, CellId cellId, BitSet updated, BitSet exportsModified) {
+    private void updateTree(boolean full, Snapshot oldSnapshot, Snapshot newSnapshot, CellId cellId, BitSet updated, BitSet exportsModified) {
         int cellIndex = cellId.cellIndex;
     	if (updated.get(cellIndex)) return;
         CellBackup newBackup = newSnapshot.getCell(cellId);
@@ -485,23 +439,23 @@ public class EDatabase {
         	if (newBackup.cellUsages[i] <= 0) continue;
         	CellUsage u = cellId.getUsageIn(i);
             int subCellIndex = u.protoId.cellIndex;
-        	updateTree(oldSnapshot, newSnapshot, u.protoId, updated, exportsModified);
+        	updateTree(full, oldSnapshot, newSnapshot, u.protoId, updated, exportsModified);
          	if (exportsModified.get(subCellIndex))
         		subCellsExportsModified = true;
        }
         CellBackup oldBackup = oldSnapshot.getCell(cellId);
         Cell cell;
-        if (oldBackup == null) {
+        if (oldBackup == null || getCell(cellId).getLibrary().getId() != newBackup.d.libId) {
             cell = new Cell(this, newBackup.d);
-            cell.update(newBackup, exportsModified);
+            cell.update(full, newBackup, exportsModified);
             assert cell.getId() == cellId;
             addCell(cell);
         } else {
             cell = getCell(cellId);
-            if (newBackup != oldBackup) {
+            if (full || newBackup != oldBackup) {
             	if (!newBackup.sameExports(oldBackup))
             		exportsModified.set(cellIndex);
-            	cell.update(newBackup, subCellsExportsModified ? exportsModified : null);
+            	cell.update(full, newBackup, subCellsExportsModified ? exportsModified : null);
             } else {
                 if (subCellsExportsModified)
                     cell.updatePortInsts(exportsModified);
@@ -511,7 +465,7 @@ public class EDatabase {
     	updated.set(cellIndex);
     }
 
-    void updateSubCellBounds(Snapshot newSnapshot) {
+    void updateSubCellBounds(boolean full, Snapshot newSnapshot) {
         BitSet boundsModified = new BitSet();
         for (int i = 0; i < newSnapshot.cellBounds.length; i++) {
             ERectangle newBounds = newSnapshot.cellBounds[i];
@@ -533,9 +487,58 @@ public class EDatabase {
             }
             if (!subCellsBoundsModified) continue;
             Cell cell = getCell(i);
-            cell.updateSubCellBounds(boundsModified);
+            cell.updateSubCellBounds(full, boundsModified);
         }
     }
+    
+    private void undoLibraries(Snapshot undoSnapshot) {
+        while (linkedLibs.size() > undoSnapshot.libBackups.length) {
+            Library lib  = linkedLibs.remove(linkedLibs.size() - 1);
+            if (lib != null) lib.cells.clear();
+        }
+        while (linkedLibs.size() < undoSnapshot.libBackups.length) linkedLibs.add(null);
+        for (int libIndex = 0; libIndex < undoSnapshot.libBackups.length; libIndex++) {
+            LibraryBackup libBackup = undoSnapshot.libBackups[libIndex];
+            Library lib = linkedLibs.get(libIndex);
+            if (libBackup == null && lib != null) {
+                lib.cells.clear();
+                linkedLibs.set(libIndex, null);
+            } else if (libBackup != null && lib == null) {
+                linkedLibs.set(libIndex, new Library(this, libBackup.d));
+            }
+                  /*
+                } else {
+                   
+                Library lib = linkedLibs.get(libIndex);
+                String libName = lib.getName();
+                if (!oldBackup.d.libName.equals(libName)) {
+                    Cell curCell = lib.getCurCell();
+                    lib.prefs = allPrefs.node(libName);
+                    lib.prefs.put("LIB", libName);
+                    lib.curCellPref = null;
+                    lib.setCurCell(curCell);
+                }
+                   */
+        }
+        libraries.clear();
+        for (int libIndex = 0; libIndex < undoSnapshot.libBackups.length; libIndex++) {
+            LibraryBackup libBackup = undoSnapshot.libBackups[libIndex];
+            if (libBackup == null) continue;
+            Library lib = linkedLibs.get(libIndex);
+            libraries.put(lib.getName(), lib);
+            lib.undo(libBackup);
+        }
+            /* ???
+            if (curLib == null || !curLib.isLinked()) {
+                curLib = null;
+                for(Library lib: libraries.values()) {
+    				if (lib.isHidden()) continue;
+        			curLib = lib;
+            		break;
+                }
+			}
+            */
+      }
     
     /**
      * Checks that Electric database has the expected state.

@@ -95,7 +95,7 @@ class EThread extends Thread {
                         Snapshot undoSnapshot = findInCache(snapshotId);
                         if (undoSnapshot == null)
                             throw new JobException("Snapshot " + snapshotId + " not found");
-                        database.undo(undoSnapshot);
+                        database.undo(undoSnapshot, false);
                         database.getNetworkManager().endBatch();
                         database.lowLevelSetCanUndoing(false);
                         ejob.serializeResult();
@@ -113,13 +113,14 @@ class EThread extends Thread {
                 ejob.newSnapshot = database.backup();
 //                ejob.state = EJob.State.SERVER_DONE;
             } catch (Throwable e) {
+                e.getStackTrace();
                 if (!ejob.isExamine()) {
                     database.lowLevelSetCanUndoing(true);
-                    database.undo(ejob.oldSnapshot);
+                    database.undo(ejob.oldSnapshot, true);
+                    ejob.newSnapshot = ejob.oldSnapshot;
                     database.getNetworkManager().endBatch();
                 }
                 ejob.serializeExceptionResult(e);
-                ejob.newSnapshot = ejob.oldSnapshot;
 //                ejob.state = EJob.State.SERVER_FAIL;
             } finally {
                 database.checkFresh(ejob.newSnapshot);

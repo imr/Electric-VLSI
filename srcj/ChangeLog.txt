@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/23/06) Undo after crash can crash too.
+FIX: Add parameter "full" to EDatabase.undo . In "full" mode undo doesn't rely of
+     EDatabase correctness.
+
+IMP: (2/23/06) LibraryReaders doen't try to repair arcs ends. They start RapairJob instead.
+     RepairJob detects bad arc end and reports them to constraint system. Repair step is undoable.
+     IO regressions scripts were modifed to changed number of repair errors.
+
 BUG: (2/23/06, DN) Redisplay slow.
 FIX: In User.endBatch calls wnd.redisplayContents only most once per Window.
 

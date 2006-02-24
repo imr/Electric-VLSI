@@ -1155,20 +1155,20 @@ public class JELIB extends LibraryFiles
 		// primitives use the name match
 //		if (!ni.isCellInstance()) return pi;
 
-		// make sure the port can handle the position
-		if (pi != null && pos != null)
-		{
-			Poly poly = pi.getPoly();
-			if (!(poly.isInside(pos) || poly.polyDistance(pos.getX(), pos.getY()) < TINYDISTANCE))
-			{
-				NodeProto np = ni.getProto();
-				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					" (" + cell + ") point (" + pos.getX() + "," + pos.getY() + ") does not fit in " +
-					pi + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")", new EPoint(pos.getX(), pos.getY()), cell, -1);
-				if (np instanceof Cell)
-					pi = null;
-			}
-		}
+//		// make sure the port can handle the position
+//		if (pi != null && pos != null)
+//		{
+//			Poly poly = pi.getPoly();
+//			if (!(poly.isInside(pos) || poly.polyDistance(pos.getX(), pos.getY()) < TINYDISTANCE))
+//			{
+//				NodeProto np = ni.getProto();
+//				Input.errorLogger.logError(fileName + ", line " + lineNumber +
+//					" (" + cell + ") point (" + pos.getX() + "," + pos.getY() + ") does not fit in " +
+//					pi + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")", new EPoint(pos.getX(), pos.getY()), cell, -1);
+//				if (np instanceof Cell)
+//					pi = null;
+//			}
+//		}
 		if (pi != null || !ni.isCellInstance()) return pi;
 
 		// see if this is a dummy cell

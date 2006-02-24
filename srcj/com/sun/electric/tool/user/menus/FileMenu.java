@@ -421,6 +421,9 @@ public class FileMenu {
             Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
             meaningVariables = null;
         	doneOpeningLibrary(showThisCell);
+
+            // Repair libraries.
+            CircuitChanges.checkAndRepairCommand(true);
         }
 	}
 

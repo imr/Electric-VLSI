@@ -501,7 +501,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		// handle change control, constraint, and broadcast
         database.unfreshSnapshot();
-        lib.setChanged();
+//        lib.setChanged();
 		Constraints.getCurrent().killObject(this);
 	}
 
@@ -1065,7 +1065,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         CellBackup.registerPortInstUsage(getId(), pi.getNodeInst().getD(), pi.getPortProto().getId(), exportUsages);
     }
    
-    public void update(CellBackup newBackup, BitSet exportsModified) {
+    public void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
         checkUndoing();
      	this.d = newBackup.d;
         this.revisionDate = newBackup.revisionDate;
@@ -1075,6 +1075,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         essenBounds.clear();
         cellUsages = (int[])newBackup.cellUsages.clone();
         int tempNodeCount = 0;
+        if (full) {
+            rTree = null;
+            tempNodeNames.clear();
+        }
         for (int i = 0; i < newBackup.nodes.length; i++) {
             ImmutableNodeInst d = newBackup.nodes[i];
             while (d.nodeId >= chronNodes.size()) chronNodes.add(null);
@@ -1083,8 +1087,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 ni.setDInUndo(d);
                 if (ni.isCellInstance()) {
                     int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
-                    if (exportsModified != null && exportsModified.get(subCellIndex))
-                        ni.updatePortInsts();
+                    if (full || exportsModified != null && exportsModified.get(subCellIndex))
+                        ni.updatePortInsts(full);
                 }
                 ni.lowLevelClearConnections();
             } else {
@@ -1127,20 +1131,23 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert tempNodeNames.size() == tempNodeCount;
 
         arcs.clear();
+        maxArcSuffix = -1;
         for (int i = 0; i < newBackup.arcs.length; i++) {
             ImmutableArcInst d = newBackup.arcs[i];
             while (d.arcId >= chronArcs.size()) chronArcs.add(null);
             ArcInst ai = chronArcs.get(d.arcId);
-            if (ai != null) {
+            PortInst headPi = getPortInst(d.headNodeId, d.headPortId);
+            PortInst tailPi = getPortInst(d.tailNodeId, d.tailPortId);
+            if (ai != null && (!full || ai.getHeadPortInst() == headPi && ai.getTailPortInst() == tailPi)) {
                 ai.setDInUndo(d);
             } else {
-                ai = new ArcInst(this, d, getPortInst(d.headNodeId, d.headPortId), getPortInst(d.tailNodeId, d.tailPortId));
+                ai = new ArcInst(this, d, headPi, tailPi);
                 chronArcs.set(d.arcId, ai);
             }
             ai.setArcIndex(i);
             arcs.add(ai);
-            ai.getTailPortInst().getNodeInst().lowLevelAddConnection(ai.getTail());
-            ai.getHeadPortInst().getNodeInst().lowLevelAddConnection(ai.getHead());
+            tailPi.getNodeInst().lowLevelAddConnection(ai.getTail());
+            headPi.getNodeInst().lowLevelAddConnection(ai.getHead());
             if (!ai.isUsernamed()) {
                 Name name = ai.getNameKey();
                 assert name.getBasename() == ImmutableArcInst.BASENAME;
@@ -1220,7 +1227,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
-            if (exportsModified != null && ni.isCellInstance()) {
+            if (full || exportsModified != null && ni.isCellInstance()) {
                 if (exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
                     ni.sortConnections();
             }
@@ -1252,19 +1259,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (!ni.isCellInstance()) continue;
             int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
             if (exportsModified.get(subCellIndex)) {
-                ni.updatePortInsts();
+                ni.updatePortInsts(false);
                 ni.sortConnections();
             }
         }
     }
 
-    void updateSubCellBounds(BitSet boundsModified) {
+    void updateSubCellBounds(boolean full, BitSet boundsModified) {
         checkUndoing();
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             if (!ni.isCellInstance()) continue;
             int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
-            if (boundsModified.get(subCellIndex))
+            if (full || boundsModified.get(subCellIndex))
                 ni.redoGeometric();
         }
         
@@ -4095,21 +4102,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to set if cell has been modified since last save to disk. No need to call checkChanging().
      * -1 means no changes, 0 minor changes and 1 major changes
 	 */
-	public void setModified(boolean majorChange)
+	private void setModified(boolean majorChange)
     {
         checkChanging();
         byte newModified = (byte)Math.max(modified, majorChange ? 1 : 0);
         if (newModified != modified)
             unfreshBackup();
         modified = newModified;
-        lib.setChanged();
+//        lib.setChanged();
     }
 
 	/**
 	 * Method to clear this Cell modified bit since last save to disk. No need to call checkChanging().
      * This is done when the library contained this cell is saved to disk.
 	 */
-	public void clearModified() {
+	void clearModified() {
         checkChanging();
         if (modified != -1)
             unfreshBackup();

@@ -124,16 +124,14 @@ class LayoutCell {
         }
         cell.getTechnology();
         boolean justWritten = Layout.librariesWritten.contains(cell.getLibrary().getId());
-        if (justWritten)
-            cell.clearModified();
         if (Layout.goodDRCCells != null && Layout.goodDRCCells.contains(cell)) {
             cell.addVar(Layout.goodDRCDate);
             cell.addVar(Layout.goodDRCBit);
         }
-        CellBackup newBackup = cell.backup();
-        if (newBackup != oldBackup && !justWritten) {
+        if (!justWritten && cell.backup() != oldBackup) {
             cell.madeRevision(Layout.revisionDate, Layout.userName);
             assert cell.isModified(true);
+            cell.getLibrary().setChanged();
         }
         cell.getBounds();
         
@@ -183,6 +181,13 @@ class LayoutCell {
             ImmutableNodeInst d = getOldD(ni);
             Orientation dOrient = d != null ? ni.getOrient().concatenate(d.orient.inverse()) : Orientation.IDENT;
             modNodeArcs(ni, dOrient);
+        }
+        if (oldArcs != null) {
+            ArcInst[] oldArcsCopy = oldArcs.keySet().toArray(ArcInst.NULL_ARRAY);
+            for (ArcInst ai: oldArcsCopy) {
+                if (!ai.isLinked()) continue;
+                ensureArcInst(ai, Layout.isRigid(ai) ? AI_RIGID : AI_FLEX);
+            }
         }
     }
   

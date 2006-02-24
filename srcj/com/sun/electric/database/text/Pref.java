@@ -1072,9 +1072,6 @@ public class Pref
 
         // resume flushing, and save everything just set
         resumePrefFlushing();
-
-        // Repair libraries in case number of layers was changed or arcs must be resized.
-        CircuitChanges.checkAndRepairCommand(true);
     }
 
     public static void allPreferencesCreated() {

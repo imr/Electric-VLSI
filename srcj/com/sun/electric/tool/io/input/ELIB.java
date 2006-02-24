@@ -1446,27 +1446,27 @@ public class ELIB extends LibraryFiles
             pi = node.findPortInst(portname);
             nodeName = node.getName();
 
-            if (pi != null) {
+            if (pi != null) return pi;
                 // check to make sure location is correct
-                Poly portLocation = pi.getPoly();
-                String extra = "";
-
-	            // Forcing rounding here instead of PolyBase.calcBounds()
-//	            portLocation.roundPoints();
-                if (portLocation.contains(x, y) || portLocation.polyDistance(x, y) < TINYDISTANCE) {
-                    return pi;
-                }
-                // give extra info to user if didn't contain port
-                Rectangle2D box = portLocation.getBox();
-                if (box != null) {
-                    extra = "...arc end at ("+x+","+y+"), but port runs "+box.getMinX()+"<=X<="+box.getMaxX()+" and "+box.getMinY()+"<=Y<="+box.getMaxY();
-                } else
-				{
-                    extra = "...expected ("+x+","+y+"), polyDistance=" + portLocation.polyDistance(x, y);
-				}
-                whatHappenedToPort = "has moved"+extra;
-                pi = null;
-            } else {
+//                Poly portLocation = pi.getPoly();
+//                String extra = "";
+//
+//	            // Forcing rounding here instead of PolyBase.calcBounds()
+////	            portLocation.roundPoints();
+//                if (portLocation.contains(x, y) || portLocation.polyDistance(x, y) < TINYDISTANCE) {
+//                    return pi;
+//                }
+//                // give extra info to user if didn't contain port
+//                Rectangle2D box = portLocation.getBox();
+//                if (box != null) {
+//                    extra = "...arc end at ("+x+","+y+"), but port runs "+box.getMinX()+"<=X<="+box.getMaxX()+" and "+box.getMinY()+"<=Y<="+box.getMaxY();
+//                } else
+//				{
+//                    extra = "...expected ("+x+","+y+"), polyDistance=" + portLocation.polyDistance(x, y);
+//				}
+//                whatHappenedToPort = "has moved"+extra;
+//                pi = null;
+//            } else {
                 // name not found, see if any ports exist at location that we can connect to
                 for (Iterator<PortInst> it = node.getPortInsts(); it.hasNext(); ) {
                     pi = it.next();
@@ -1484,7 +1484,7 @@ public class ELIB extends LibraryFiles
                     pi = null;
                 }
                 whatHappenedToPort = "is missing";
-            }
+//            }
 
             // if this was a dummy cell, create the export in cell
             Cell c = null;
