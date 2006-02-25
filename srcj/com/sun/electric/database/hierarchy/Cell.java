@@ -1227,8 +1227,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
-            if (full || exportsModified != null && ni.isCellInstance()) {
-                if (exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
+            if (ni.isCellInstance()) {
+                 if (full || exportsModified != null && exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
                     ni.sortConnections();
             }
             ni.computeWipeState();
