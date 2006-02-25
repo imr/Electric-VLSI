@@ -45,11 +45,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.ArcProto;
 
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -3583,10 +3580,12 @@ public class EDIF extends Input
 		protected void pop()
 		{
 			// for all layers assign their GDS number
+            Foundry foundry = curTechnology.getSelectedFoundry();
 			for (Iterator<Layer> it = curTechnology.getLayers(); it.hasNext(); )
 			{
 				Layer layer = it.next();
-				String gdsLayer = layer.getGDSLayer();
+//				String gdsLayer = layer.getGDSLayer();
+                String gdsLayer = foundry.getGDSLayer(layer);
 				if (gdsLayer == null || gdsLayer.length() == 0) continue;
 
 				// search for this layer

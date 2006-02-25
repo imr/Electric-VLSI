@@ -26,7 +26,6 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
@@ -37,7 +36,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 
-import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.List;
 
@@ -97,6 +95,10 @@ public class Artwork extends Technology
 		setNoNegatedArcs();
 		setStaticTechnology();
 
+        // Foundry
+        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        foundries.add(noFoundry);
+
 		//**************************************** LAYERS ****************************************
 
 		/** Graphics layer */
@@ -112,7 +114,8 @@ public class Artwork extends Technology
 		defaultLayer.setFactoryDXFLayer("OBJECT");		// Graphics
 
 		// The GDS names
-		defaultLayer.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// Graphics
+        noFoundry.setFactoryGDSLayer(defaultLayer, "1");
+//		defaultLayer.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// Graphics
 
 		//******************** ARCS ********************
 

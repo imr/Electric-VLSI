@@ -28,14 +28,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.*;
 
 import java.awt.Color;
 
@@ -57,6 +50,11 @@ public class RCMOS extends Technology
 		setNoNegatedArcs();
 		setNonStandard();
 		setStaticTechnology();
+
+        //Foundry
+        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        foundries.add(noFoundry);
+        
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color( 96,209,255), // Metal-1

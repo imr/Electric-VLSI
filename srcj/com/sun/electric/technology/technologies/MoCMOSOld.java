@@ -52,6 +52,11 @@ public class MoCMOSOld extends Technology
 		setFactoryScale(1000, true);   // in nanometers: really 1 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
+
+        // Foundry
+        Foundry mosis = new Foundry(Foundry.Type.MOSIS);
+        foundries.add(mosis);
+        
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color( 96,209,255), // Metal-1
@@ -578,32 +583,32 @@ public class MoCMOSOld extends Technology
 		PF_lay.setFactoryDXFLayer("");		// Pad-Frame
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("10", Foundry.Type.MOSIS.name());		// Metal-1
-		M0_lay.setFactoryGDSLayer("19", Foundry.Type.MOSIS.name());		// Metal-2
-		P_lay.setFactoryGDSLayer("12", Foundry.Type.MOSIS.name());		// Polysilicon
-		SA_lay.setFactoryGDSLayer("2", Foundry.Type.MOSIS.name());		// S-Active
-		DA_lay.setFactoryGDSLayer("2", Foundry.Type.MOSIS.name());		// D-Active
-		PS_lay.setFactoryGDSLayer("8", Foundry.Type.MOSIS.name());		// P-Select
-		NS_lay.setFactoryGDSLayer("7", Foundry.Type.MOSIS.name());		// N-Select
-		PW_lay.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// P-Well
-		NW_lay.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// N-Well
-		CC_lay.setFactoryGDSLayer("9", Foundry.Type.MOSIS.name());		// Contact-Cut
-		V_lay.setFactoryGDSLayer("18", Foundry.Type.MOSIS.name());		// Via
-		P0_lay.setFactoryGDSLayer("11", Foundry.Type.MOSIS.name());		// Passivation
-		T_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Transistor
-		PC_lay.setFactoryGDSLayer("9", Foundry.Type.MOSIS.name());		// Poly-Cut
-		AC_lay.setFactoryGDSLayer("9", Foundry.Type.MOSIS.name());		// Active-Cut
-		SAW_lay.setFactoryGDSLayer("2", Foundry.Type.MOSIS.name());		// S-Active-Well
-		PM_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Metal-1
-		PM0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Metal-2
-		PP_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Polysilicon
-		PSA_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-S-Active
-		PDA_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-D-Active
-		PPS_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-P-Select
-		PNS_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-N-Select
-		PPW_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-P-Well
-		PNW_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-N-Well
-		PF_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pad-Frame
+		mosis.setFactoryGDSLayer(M_lay, "10");		// Metal-1
+		mosis.setFactoryGDSLayer(M0_lay, "19");		// Metal-2
+		mosis.setFactoryGDSLayer(P_lay, "12");		// Polysilicon
+		mosis.setFactoryGDSLayer(SA_lay, "2");		// S-Active
+		mosis.setFactoryGDSLayer(DA_lay, "2");		// D-Active
+		mosis.setFactoryGDSLayer(PS_lay, "8");		// P-Select
+		mosis.setFactoryGDSLayer(NS_lay, "7");		// N-Select
+		mosis.setFactoryGDSLayer(PW_lay, "1");		// P-Well
+		mosis.setFactoryGDSLayer(NW_lay, "1");		// N-Well
+		mosis.setFactoryGDSLayer(CC_lay, "9");		// Contact-Cut
+		mosis.setFactoryGDSLayer(V_lay, "18");		// Via
+		mosis.setFactoryGDSLayer(P0_lay, "11");		// Passivation
+		mosis.setFactoryGDSLayer(T_lay, "");		// Transistor
+		mosis.setFactoryGDSLayer(PC_lay, "9");		// Poly-Cut
+		mosis.setFactoryGDSLayer(AC_lay, "9");		// Active-Cut
+		mosis.setFactoryGDSLayer(SAW_lay, "2");		// S-Active-Well
+		mosis.setFactoryGDSLayer(PM_lay, "");		// Pseudo-Metal-1
+		mosis.setFactoryGDSLayer(PM0_lay, "");		// Pseudo-Metal-2
+		mosis.setFactoryGDSLayer(PP_lay, "");		// Pseudo-Polysilicon
+		mosis.setFactoryGDSLayer(PSA_lay, "");		// Pseudo-S-Active
+		mosis.setFactoryGDSLayer(PDA_lay, "");		// Pseudo-D-Active
+		mosis.setFactoryGDSLayer(PPS_lay, "");		// Pseudo-P-Select
+		mosis.setFactoryGDSLayer(PNS_lay, "");		// Pseudo-N-Select
+		mosis.setFactoryGDSLayer(PPW_lay, "");		// Pseudo-P-Well
+		mosis.setFactoryGDSLayer(PNW_lay, "");		// Pseudo-N-Well
+		mosis.setFactoryGDSLayer(PF_lay, "");		// Pad-Frame
 
 		// The SPICE information
 		M_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal-1

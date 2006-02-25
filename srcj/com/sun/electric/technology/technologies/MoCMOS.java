@@ -1463,49 +1463,101 @@ public class MoCMOS extends Technology
 		pseudoNWell_lay.setFactoryCIFLayer("CWN");			// Pseudo-N-Well
 		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
 
-		// The GDS names
-		metalLayers[0].setFactoryGDSLayer("49, 80p, 80t", Foundry.Type.MOSIS.name());				// Metal-1 Mosis
-		metalLayers[1].setFactoryGDSLayer("51, 82p, 82t", Foundry.Type.MOSIS.name());				// Metal-2
-		metalLayers[2].setFactoryGDSLayer("62, 93p, 93t", Foundry.Type.MOSIS.name());				// Metal-3
-		metalLayers[3].setFactoryGDSLayer("31, 63p, 63t", Foundry.Type.MOSIS.name());				// Metal-4
-		metalLayers[4].setFactoryGDSLayer("33, 64p, 64t", Foundry.Type.MOSIS.name());				// Metal-5
-		metalLayers[5].setFactoryGDSLayer("37, 68p, 68t", Foundry.Type.MOSIS.name());				// Metal-6
-		poly1Layer.setFactoryGDSLayer("46, 77p, 77t", Foundry.Type.MOSIS.name());					// Polysilicon-1
-		transistorPolyLayer.setFactoryGDSLayer("46", Foundry.Type.MOSIS.name());		// Transistor-Poly
-		poly2_lay.setFactoryGDSLayer("56", Foundry.Type.MOSIS.name());					// Polysilicon-2
-		activeLayers[P_TYPE].setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());				// P-Active
-		activeLayers[N_TYPE].setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());				// N-Active
-		pActiveWellLayer.setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());			// P-Active-Well
-		selectLayers[P_TYPE].setFactoryGDSLayer("44", Foundry.Type.MOSIS.name());				// P-Select
-		selectLayers[N_TYPE].setFactoryGDSLayer("45", Foundry.Type.MOSIS.name());				// N-Select
-		wellLayers[P_TYPE].setFactoryGDSLayer("41", Foundry.Type.MOSIS.name());					// P-Well
-		wellLayers[N_TYPE].setFactoryGDSLayer("42", Foundry.Type.MOSIS.name());					// N-Well
-		polyCutLayer.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Poly-Cut
-		activeCutLayer.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Active-Cut
-		viaLayers[0].setFactoryGDSLayer("50", Foundry.Type.MOSIS.name());					// Via-1
-		viaLayers[1].setFactoryGDSLayer("61", Foundry.Type.MOSIS.name());					// Via-2
-		viaLayers[2].setFactoryGDSLayer("30", Foundry.Type.MOSIS.name());					// Via-3
-		viaLayers[3].setFactoryGDSLayer("32", Foundry.Type.MOSIS.name());					// Via-4
-		viaLayers[4].setFactoryGDSLayer("36", Foundry.Type.MOSIS.name());					// Via-5
-		passivationLayer.setFactoryGDSLayer("52", Foundry.Type.MOSIS.name());			// Passivation
-		polyCapLayer.setFactoryGDSLayer("28", Foundry.Type.MOSIS.name());				// Poly-Cap
-		silicideBlockLayer.setFactoryGDSLayer("29", Foundry.Type.MOSIS.name());			// Silicide-Block
-        thickActiveLayer.setFactoryGDSLayer("60", Foundry.Type.MOSIS.name());			// Thick-Active
-		pseudoMetal1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-1
-		pseudoMetal2_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-2
-		pseudoMetal3_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-3
-		pseudoMetal4_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-4
-		pseudoMetal5_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-5
-		pseudoMetal6_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-6
-		pseudoPoly1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-P-Active
-		pseudoNActive_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-N-Active
-		pseudoPSelect_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-P-Select
-		pseudoNSelect_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-N-Select
-		pseudoPWell_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-P-Well
-		pseudoNWell_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-N-Well
-		padFrameLayer.setFactoryGDSLayer("26", Foundry.Type.MOSIS.name());				// Pad-Frame
+		// The GDS names for MOSIS
+        mosis.setFactoryGDSLayer(metalLayers[0], "49, 80p, 80t");
+//		metalLayers[0].setFactoryGDSLayer("49, 80p, 80t", Foundry.Type.MOSIS.name());				// Metal-1
+
+        mosis.setFactoryGDSLayer(metalLayers[1], "51, 82p, 82t");
+//		metalLayers[1].setFactoryGDSLayer("51, 82p, 82t", Foundry.Type.MOSIS.name());				// Metal-2
+
+        mosis.setFactoryGDSLayer(metalLayers[2], "62, 93p, 93t");
+//		metalLayers[2].setFactoryGDSLayer("62, 93p, 93t", Foundry.Type.MOSIS.name());				// Metal-3
+
+        mosis.setFactoryGDSLayer(metalLayers[3], "31, 63p, 63t");
+//		metalLayers[3].setFactoryGDSLayer("31, 63p, 63t", Foundry.Type.MOSIS.name());				// Metal-4
+
+        mosis.setFactoryGDSLayer(metalLayers[4], "33, 64p, 64t");
+//		metalLayers[4].setFactoryGDSLayer("33, 64p, 64t", Foundry.Type.MOSIS.name());				// Metal-5
+
+        mosis.setFactoryGDSLayer(metalLayers[5], "37, 68p, 68t");
+//		metalLayers[5].setFactoryGDSLayer("37, 68p, 68t", Foundry.Type.MOSIS.name());				// Metal-6
+
+        mosis.setFactoryGDSLayer(poly1Layer, "46, 77p, 77t");
+//		poly1Layer.setFactoryGDSLayer("46, 77p, 77t", Foundry.Type.MOSIS.name());					// Polysilicon-1
+
+        mosis.setFactoryGDSLayer(transistorPolyLayer, "46");
+//		transistorPolyLayer.setFactoryGDSLayer("46", Foundry.Type.MOSIS.name());		// Transistor-Poly
+
+        mosis.setFactoryGDSLayer(poly2_lay, "56");
+//		poly2_lay.setFactoryGDSLayer("56", Foundry.Type.MOSIS.name());					// Polysilicon-2
+
+        mosis.setFactoryGDSLayer(activeLayers[P_TYPE], "43");
+//		activeLayers[P_TYPE].setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());				// P-Active
+
+        mosis.setFactoryGDSLayer(activeLayers[N_TYPE], "43");
+//		activeLayers[N_TYPE].setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());				// N-Active
+
+        mosis.setFactoryGDSLayer(pActiveWellLayer, "43");
+//		pActiveWellLayer.setFactoryGDSLayer("43", Foundry.Type.MOSIS.name());			// P-Active-Well
+
+        mosis.setFactoryGDSLayer(selectLayers[P_TYPE], "44");
+//		selectLayers[P_TYPE].setFactoryGDSLayer("44", Foundry.Type.MOSIS.name());				// P-Select
+
+        mosis.setFactoryGDSLayer(selectLayers[N_TYPE], "45");
+//		selectLayers[N_TYPE].setFactoryGDSLayer("45", Foundry.Type.MOSIS.name());				// N-Select
+
+        mosis.setFactoryGDSLayer(wellLayers[P_TYPE], "41");
+//		wellLayers[P_TYPE].setFactoryGDSLayer("41", Foundry.Type.MOSIS.name());					// P-Well
+
+        mosis.setFactoryGDSLayer(wellLayers[N_TYPE], "42");
+//		wellLayers[N_TYPE].setFactoryGDSLayer("42", Foundry.Type.MOSIS.name());					// N-Well
+
+        mosis.setFactoryGDSLayer(polyCutLayer, "25");
+//		polyCutLayer.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Poly-Cut
+
+        mosis.setFactoryGDSLayer(activeCutLayer, "25");
+//		activeCutLayer.setFactoryGDSLayer("25", Foundry.Type.MOSIS.name());				// Active-Cut
+
+        mosis.setFactoryGDSLayer(viaLayers[0], "50");
+//		viaLayers[0].setFactoryGDSLayer("50", Foundry.Type.MOSIS.name());					// Via-1
+        mosis.setFactoryGDSLayer(viaLayers[1], "61");
+//		viaLayers[1].setFactoryGDSLayer("61", Foundry.Type.MOSIS.name());					// Via-2
+        mosis.setFactoryGDSLayer(viaLayers[2], "30");
+//		viaLayers[2].setFactoryGDSLayer("30", Foundry.Type.MOSIS.name());					// Via-3
+        mosis.setFactoryGDSLayer(viaLayers[3], "32");
+//		viaLayers[3].setFactoryGDSLayer("32", Foundry.Type.MOSIS.name());					// Via-4
+        mosis.setFactoryGDSLayer(viaLayers[4], "36");
+//		viaLayers[4].setFactoryGDSLayer("36", Foundry.Type.MOSIS.name());					// Via-5
+
+        mosis.setFactoryGDSLayer(passivationLayer, "52");
+//		passivationLayer.setFactoryGDSLayer("52", Foundry.Type.MOSIS.name());			// Passivation
+
+        mosis.setFactoryGDSLayer(polyCapLayer, "28");
+//		polyCapLayer.setFactoryGDSLayer("28", Foundry.Type.MOSIS.name());				// Poly-Cap
+
+        mosis.setFactoryGDSLayer(silicideBlockLayer, "29");
+//		silicideBlockLayer.setFactoryGDSLayer("29", Foundry.Type.MOSIS.name());			// Silicide-Block
+
+        mosis.setFactoryGDSLayer(thickActiveLayer, "60");
+//        thickActiveLayer.setFactoryGDSLayer("60", Foundry.Type.MOSIS.name());			// Thick-Active
+
+//		pseudoMetal1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-1
+//		pseudoMetal2_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-2
+//		pseudoMetal3_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-3
+//		pseudoMetal4_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-4
+//		pseudoMetal5_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-5
+//		pseudoMetal6_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-Metal-6
+//		pseudoPoly1_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-Polysilicon-1
+//		pseudoPoly2_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-Polysilicon-2
+//		pseudoPActive_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-P-Active
+//		pseudoNActive_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-N-Active
+//		pseudoPSelect_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-P-Select
+//		pseudoNSelect_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());			// Pseudo-N-Select
+//		pseudoPWell_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-P-Well
+//		pseudoNWell_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());				// Pseudo-N-Well
+
+        mosis.setFactoryGDSLayer(padFrameLayer, "26");
+//		padFrameLayer.setFactoryGDSLayer("26", Foundry.Type.MOSIS.name());				// Pad-Frame
 
 		// The Skill names
 		metalLayers[0].setFactorySkillLayer("metal1");			// Metal-1

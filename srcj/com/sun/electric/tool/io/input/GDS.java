@@ -44,10 +44,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -340,10 +337,12 @@ public class GDS extends Input
 		pinLayers = new HashSet<Integer>();
 		boolean valid = false;
 		curTech = Technology.getCurrent();
+        Foundry foundry = curTech.getSelectedFoundry();
 		for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
-			String gdsName = layer.getGDSLayer();
+            String gdsName = foundry.getGDSLayer(layer);
+//			String gdsName = layer.getGDSLayer();
 			if (gdsName != null && gdsName.length() > 0)
 			{
 				GDSLayers gdsl = GDSLayers.parseLayerString(gdsName);

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+IMP: (2/25/06, GVG) GDS numbers associated to foundry instead of the technology.
+
 BUG: (2/24/06, DN) "Class exception in Undo" (Bug #831)
 FIX: Correct condition for "full" case in "Cell.undo" .
 

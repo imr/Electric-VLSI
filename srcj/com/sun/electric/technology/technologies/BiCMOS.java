@@ -50,6 +50,11 @@ public class BiCMOS extends Technology
 		setFactoryScale(1000, true);   // in nanometers: really 1 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
+
+        // Foundry
+        Foundry mosis = new Foundry(Foundry.Type.MOSIS);
+        foundries.add(mosis);
+
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color( 96,209,255), // layer 1
@@ -554,33 +559,33 @@ public class BiCMOS extends Technology
 		OW_lay.setFactoryDXFLayer("");		// Ohmic_Well
 
 		// The GDS names
-		PS_lay.setFactoryGDSLayer("8", Foundry.Type.MOSIS.name());		// P_Select
-		NS_lay.setFactoryGDSLayer("7", Foundry.Type.MOSIS.name());		// N_Select
-		NW_lay.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// N_Well
-		V_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Via
-		P_lay.setFactoryGDSLayer("13", Foundry.Type.MOSIS.name());		// Passivation
-		PF_lay.setFactoryGDSLayer("9", Foundry.Type.MOSIS.name());		// Pad_Frame
-		T_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Transistor
-		AC_lay.setFactoryGDSLayer("35", Foundry.Type.MOSIS.name());		// Active_Cut
-		PM_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo_Metal_1
-		PM0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo_Metal_2
-		PP_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo_Polysilicon
-		PPS_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo_P_Select
-		PNS_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo_N_Select
-		PNW_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo_N_Well
-		PP0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo_Polysilicon_2
-		M_lay.setFactoryGDSLayer("10", Foundry.Type.MOSIS.name());		// M1
-		M0_lay.setFactoryGDSLayer("12", Foundry.Type.MOSIS.name());		// M2
-		P0_lay.setFactoryGDSLayer("4", Foundry.Type.MOSIS.name());		// Poly1
-		P1_lay.setFactoryGDSLayer("19", Foundry.Type.MOSIS.name());		// Poly2
-		A_lay.setFactoryGDSLayer("31", Foundry.Type.MOSIS.name());		// Active
-		PC_lay.setFactoryGDSLayer("45", Foundry.Type.MOSIS.name());		// Poly1_Cut
-		PC0_lay.setFactoryGDSLayer("55", Foundry.Type.MOSIS.name());		// Poly2_Cut
-		PA_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo_Active
-		PBA_lay.setFactoryGDSLayer("33", Foundry.Type.MOSIS.name());		// P_Base_Active
-		B_lay.setFactoryGDSLayer("17", Foundry.Type.MOSIS.name());		// BCCD
-		OS_lay.setFactoryGDSLayer("3", Foundry.Type.MOSIS.name());		// Ohmic_Substrate
-		OW_lay.setFactoryGDSLayer("3", Foundry.Type.MOSIS.name());		// Ohmic_Well
+		mosis.setFactoryGDSLayer(PS_lay, "8");		// P_Select
+		mosis.setFactoryGDSLayer(NS_lay, "7");		// N_Select
+		mosis.setFactoryGDSLayer(NW_lay, "1");		// N_Well
+		mosis.setFactoryGDSLayer(V_lay, "");		// Via
+		mosis.setFactoryGDSLayer(P_lay, "13");		// Passivation
+		mosis.setFactoryGDSLayer(PF_lay, "9");		// Pad_Frame
+		mosis.setFactoryGDSLayer(T_lay, "");		// Transistor
+		mosis.setFactoryGDSLayer(AC_lay, "35");		// Active_Cut
+		mosis.setFactoryGDSLayer(PM_lay, "");		// Pseudo_Metal_1
+		mosis.setFactoryGDSLayer(PM0_lay, "");		// Pseudo_Metal_2
+		mosis.setFactoryGDSLayer(PP_lay, "");		// Pseudo_Polysilicon
+		mosis.setFactoryGDSLayer(PPS_lay, "");		// Pseudo_P_Select
+		mosis.setFactoryGDSLayer(PNS_lay, "");		// Pseudo_N_Select
+		mosis.setFactoryGDSLayer(PNW_lay, "");		// Pseudo_N_Well
+		mosis.setFactoryGDSLayer(PP0_lay, "");		// Pseudo_Polysilicon_2
+		mosis.setFactoryGDSLayer(M_lay, "10");		// M1
+		mosis.setFactoryGDSLayer(M0_lay, "12");		// M2
+		mosis.setFactoryGDSLayer(P0_lay, "4");		// Poly1
+		mosis.setFactoryGDSLayer(P1_lay, "19");		// Poly2
+		mosis.setFactoryGDSLayer(A_lay, "31");		// Active
+		mosis.setFactoryGDSLayer(PC_lay, "45");		// Poly1_Cut
+		mosis.setFactoryGDSLayer(PC0_lay, "55");		// Poly2_Cut
+		mosis.setFactoryGDSLayer(PA_lay, "");		// Pseudo_Active
+		mosis.setFactoryGDSLayer(PBA_lay, "33");		// P_Base_Active
+		mosis.setFactoryGDSLayer(B_lay, "17");		// BCCD
+		mosis.setFactoryGDSLayer(OS_lay, "3");		// Ohmic_Substrate
+		mosis.setFactoryGDSLayer(OW_lay, "3");		// Ohmic_Well
 
 		//******************** DESIGN RULES ********************
 

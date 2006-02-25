@@ -32,13 +32,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 
 
 
@@ -66,6 +60,11 @@ public class GEM extends Technology
 		setTechDesc("Temporal Specification Facility (from Lansky)");
 		setFactoryScale(1000, false);   // in nanometers: really 1 microns
 		setNoNegatedArcs();
+
+        //Foundry
+        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        foundries.add(noFoundry);
+        
 		setStaticTechnology();
 		setNonStandard();
 

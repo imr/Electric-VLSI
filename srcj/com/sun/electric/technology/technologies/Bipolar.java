@@ -50,6 +50,11 @@ public class Bipolar extends Technology
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
+
+        //Foundry
+        Foundry mosis = new Foundry(Foundry.Type.MOSIS);
+        foundries.add(mosis);
+
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color(255,  0,  0), // layer 1
@@ -436,22 +441,22 @@ public class Bipolar extends Technology
 		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal2
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("8", Foundry.Type.MOSIS.name());		// Metal1
-		M0_lay.setFactoryGDSLayer("9", Foundry.Type.MOSIS.name());		// Metal2
-		N_lay.setFactoryGDSLayer("52", Foundry.Type.MOSIS.name());		// NPImplant
-		P_lay.setFactoryGDSLayer("53", Foundry.Type.MOSIS.name());		// PPImplant
-		PD_lay.setFactoryGDSLayer("4", Foundry.Type.MOSIS.name());		// Poly_Definition
-		FI_lay.setFactoryGDSLayer("2", Foundry.Type.MOSIS.name());		// Field_Implant
-		I_lay.setFactoryGDSLayer("3", Foundry.Type.MOSIS.name());		// Isolation
-		SI_lay.setFactoryGDSLayer("6", Foundry.Type.MOSIS.name());		// Sink_Implant
-		NI_lay.setFactoryGDSLayer("51", Foundry.Type.MOSIS.name());	// N_Implant
-		SE_lay.setFactoryGDSLayer("45", Foundry.Type.MOSIS.name());	// Silicide_Exclusion
-		C_lay.setFactoryGDSLayer("7", Foundry.Type.MOSIS.name());		// Contact
-		V_lay.setFactoryGDSLayer("81", Foundry.Type.MOSIS.name());		// Via
-		SP_lay.setFactoryGDSLayer("10", Foundry.Type.MOSIS.name());	// Scratch_Protection
-		B_lay.setFactoryGDSLayer("1", Foundry.Type.MOSIS.name());		// Buried
-		PM_lay.setFactoryGDSLayer("18", Foundry.Type.MOSIS.name());	// Pseudo_Metal1
-		PM0_lay.setFactoryGDSLayer("19", Foundry.Type.MOSIS.name());	// Pseudo_Metal2
+        mosis.setFactoryGDSLayer(M_lay, "8");		// Metal1
+		mosis.setFactoryGDSLayer(M0_lay, "9");		// Metal2
+		mosis.setFactoryGDSLayer(N_lay, "52");		// NPImplant
+		mosis.setFactoryGDSLayer(P_lay, "53");		// PPImplant
+		mosis.setFactoryGDSLayer(PD_lay, "4");		// Poly_Definition
+		mosis.setFactoryGDSLayer(FI_lay, "2");		// Field_Implant
+		mosis.setFactoryGDSLayer(I_lay, "3");		// Isolation
+		mosis.setFactoryGDSLayer(SI_lay, "6");		// Sink_Implant
+		mosis.setFactoryGDSLayer(NI_lay, "51");	// N_Implant
+		mosis.setFactoryGDSLayer(SE_lay, "45");	// Silicide_Exclusion
+		mosis.setFactoryGDSLayer(C_lay, "7");		// Contact
+		mosis.setFactoryGDSLayer(V_lay, "81");		// Via
+		mosis.setFactoryGDSLayer(SP_lay, "10");	// Scratch_Protection
+		mosis.setFactoryGDSLayer(B_lay, "1");		// Buried
+		mosis.setFactoryGDSLayer(PM_lay, "18");	// Pseudo_Metal1
+		mosis.setFactoryGDSLayer(PM0_lay, "19");	// Pseudo_Metal2
 
 		//******************** DESIGN RULES ********************
 

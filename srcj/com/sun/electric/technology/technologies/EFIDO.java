@@ -28,13 +28,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 
 import java.awt.Color;
 
@@ -53,6 +47,11 @@ public class EFIDO extends Technology
 		setFactoryScale(10000, false);   // in nanometers: really 10 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
+
+        //Foundry
+        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        foundries.add(noFoundry);
+
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color(255,  0,  0), // layer 1

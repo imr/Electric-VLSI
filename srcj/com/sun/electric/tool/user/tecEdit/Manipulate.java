@@ -37,14 +37,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.DRCTemplate;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -2359,6 +2352,8 @@ public class Manipulate
 		layerFuncs[0] = "Function";
 		layerCoverage[0] = "Coverage";
 
+        Foundry foundry = tech.getSelectedFoundry();
+
 		// compute each layer
 		for(int i=0; i<layerCount; i++)
 		{
@@ -2383,7 +2378,9 @@ public class Manipulate
 			}
 
 			layerCifs[i+1] = layer.getCIFLayer();
-			layerGdss[i+1] = layer.getGDSLayer();
+//			layerGdss[i+1] = layer.getGDSLayer();
+            if (foundry != null)
+                layerGdss[i+1] = foundry.getGDSLayer(layer);
 			layerFuncs[i+1] = layer.getFunction().toString();
 			layerCoverage[i+1] = TextUtils.formatDouble(layer.getAreaCoverage());
 		}

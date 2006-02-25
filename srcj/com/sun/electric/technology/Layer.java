@@ -854,39 +854,42 @@ public class Layer
      * Generate key name for GDS value depending on the foundry
      * @return
      */
-    private String getGDSPrefName(String foundry)
-    {
-        return ("GDS("+foundry+")");
-    }
+//    private String getGDSPrefName(String foundry)
+//    {
+//        return ("GDS("+foundry+")");
+//    }
 
 	/**
 	 * Method to set the factory-default GDS name of this Layer.
 	 * @param factoryDefault the factory-default GDS name of this Layer.
      * @param foundry
      */
-	public void setFactoryGDSLayer(String factoryDefault, String foundry)
-    {
-        // Getting rid of spaces
-        String value = factoryDefault.replaceAll(", ", ",");
-        getLayerSetting(getGDSPrefName(foundry), gdsLayerPrefs, value);
-    }
+//	public void setFactoryGDSLayer(String factoryDefault, String foundry)
+//    {
+//        // Getting rid of spaces
+//        String value = factoryDefault.replaceAll(", ", ",");
+//        getLayerSetting(getGDSPrefName(foundry), gdsLayerPrefs, value);
+//    }
 
 	/**
 	 * Method to set the GDS name of this Layer.
 	 * @param gdsLayer the GDS name of this Layer.
 	 */
-	public void setGDSLayer(String gdsLayer)
-    {
-		getLayerSetting(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, this.gdsLayer).setString(gdsLayer); }
+//	public void setGDSLayer(String gdsLayer)
+//    {
+//        assert(this.gdsLayer == null);// probing gdsLayer is never used.
+//		getLayerSetting(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, this.gdsLayer).setString(gdsLayer);
+//    }
 
 	/**
 	 * Method to return the GDS name of this layer.
 	 * @return the GDS name of this layer.
 	 */
-	public String getGDSLayer()
-    {
-        return getLayerSetting(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, gdsLayer).getString();
-    }
+//	public String getGDSLayer()
+//    {
+//        assert(gdsLayer == null);// probing gdsLayer is never used.
+//        return getLayerSetting(getGDSPrefName(tech.getPrefFoundry()), gdsLayerPrefs, gdsLayer).getString();
+//    }
 
 	/**
 	 * Method to set the factory-default DXF name of this Layer.
@@ -898,7 +901,11 @@ public class Layer
 	 * Method to set the DXF name of this Layer.
 	 * @param dxfLayer the DXF name of this Layer.
 	 */
-	public void setDXFLayer(String dxfLayer) { getLayerSetting("DXF", dxfLayerPrefs, this.dxfLayer).setString(dxfLayer); }
+	public void setDXFLayer(String dxfLayer)
+    {
+        assert(dxfLayer == null);// probing dxfLayer is never used.
+        getLayerSetting("DXF", dxfLayerPrefs, this.dxfLayer).setString(dxfLayer);
+    }
 
 	/**
 	 * Method to return the DXF name of this layer.

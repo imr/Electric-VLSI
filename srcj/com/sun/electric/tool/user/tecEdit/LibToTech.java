@@ -37,18 +37,10 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -79,7 +71,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -95,35 +86,35 @@ import javax.swing.event.DocumentListener;
 public class LibToTech
 {
 	/* the meaning of "us_tecflags" */
-	private static final int HASDRCMINWID  =          01;				/* has DRC minimum width information */
-	private static final int HASDRCMINWIDR =          02;				/* has DRC minimum width information */
-	private static final int HASCOLORMAP   =          04;				/* has color map */
-	private static final int HASARCWID     =         010;				/* has arc width offset factors */
-	private static final int HASCIF        =         020;				/* has CIF layers */
-	private static final int HASDXF        =         040;				/* has DXF layers */
-	private static final int HASGDS        =        0100;				/* has Calma GDS-II layers */
-	private static final int HASGRAB       =        0200;				/* has grab point information */
-	private static final int HASSPIRES     =        0400;				/* has SPICE resistance information */
-	private static final int HASSPICAP     =       01000;				/* has SPICE capacitance information */
-	private static final int HASSPIECAP    =       02000;				/* has SPICE edge capacitance information */
-	private static final int HAS3DINFO     =       04000;				/* has 3D height/thickness information */
-	private static final int HASCONDRC     =      010000;				/* has connected design rules */
-	private static final int HASCONDRCR    =      020000;				/* has connected design rules reasons */
-	private static final int HASUNCONDRC   =      040000;				/* has unconnected design rules */
-	private static final int HASUNCONDRCR  =     0100000;				/* has unconnected design rules reasons */
-	private static final int HASCONDRCW    =     0200000;				/* has connected wide design rules */
-	private static final int HASCONDRCWR   =     0400000;				/* has connected wide design rules reasons */
-	private static final int HASUNCONDRCW  =    01000000;				/* has unconnected wide design rules */
-	private static final int HASUNCONDRCWR =    02000000;				/* has unconnected wide design rules reasons */
-	private static final int HASCONDRCM    =    04000000;				/* has connected multicut design rules */
-	private static final int HASCONDRCMR   =   010000000;				/* has connected multicut design rules reasons */
-	private static final int HASUNCONDRCM  =   020000000;				/* has unconnected multicut design rules */
-	private static final int HASUNCONDRCMR =   040000000;				/* has unconnected multicut design rules reasons */
-	private static final int HASEDGEDRC    =  0100000000;				/* has edge design rules */
-	private static final int HASEDGEDRCR   =  0200000000;				/* has edge design rules reasons */
-	private static final int HASMINNODE    =  0400000000;				/* has minimum node size */
-	private static final int HASMINNODER   = 01000000000;				/* has minimum node size reasons */
-	private static final int HASPRINTCOL   = 02000000000;				/* has print colors */
+//	private static final int HASDRCMINWID  =          01;				/* has DRC minimum width information */
+//	private static final int HASDRCMINWIDR =          02;				/* has DRC minimum width information */
+//	private static final int HASCOLORMAP   =          04;				/* has color map */
+//	private static final int HASARCWID     =         010;				/* has arc width offset factors */
+//	private static final int HASCIF        =         020;				/* has CIF layers */
+//	private static final int HASDXF        =         040;				/* has DXF layers */
+//	private static final int HASGDS        =        0100;				/* has Calma GDS-II layers */
+//	private static final int HASGRAB       =        0200;				/* has grab point information */
+//	private static final int HASSPIRES     =        0400;				/* has SPICE resistance information */
+//	private static final int HASSPICAP     =       01000;				/* has SPICE capacitance information */
+//	private static final int HASSPIECAP    =       02000;				/* has SPICE edge capacitance information */
+//	private static final int HAS3DINFO     =       04000;				/* has 3D height/thickness information */
+//	private static final int HASCONDRC     =      010000;				/* has connected design rules */
+//	private static final int HASCONDRCR    =      020000;				/* has connected design rules reasons */
+//	private static final int HASUNCONDRC   =      040000;				/* has unconnected design rules */
+//	private static final int HASUNCONDRCR  =     0100000;				/* has unconnected design rules reasons */
+//	private static final int HASCONDRCW    =     0200000;				/* has connected wide design rules */
+//	private static final int HASCONDRCWR   =     0400000;				/* has connected wide design rules reasons */
+//	private static final int HASUNCONDRCW  =    01000000;				/* has unconnected wide design rules */
+//	private static final int HASUNCONDRCWR =    02000000;				/* has unconnected wide design rules reasons */
+//	private static final int HASCONDRCM    =    04000000;				/* has connected multicut design rules */
+//	private static final int HASCONDRCMR   =   010000000;				/* has connected multicut design rules reasons */
+//	private static final int HASUNCONDRCM  =   020000000;				/* has unconnected multicut design rules */
+//	private static final int HASUNCONDRCMR =   040000000;				/* has unconnected multicut design rules reasons */
+//	private static final int HASEDGEDRC    =  0100000000;				/* has edge design rules */
+//	private static final int HASEDGEDRCR   =  0200000000;				/* has edge design rules reasons */
+//	private static final int HASMINNODE    =  0400000000;				/* has minimum node size */
+//	private static final int HASMINNODER   = 01000000000;				/* has minimum node size reasons */
+//	private static final int HASPRINTCOL   = 02000000000;				/* has print colors */
 
 	/* the globals that define a technology */
 //	static int           us_tecflags;
@@ -164,7 +155,7 @@ public class LibToTech
 		}
 	}
 
-	private static void makeTech(String newName, String renameName, boolean alsoJava)
+	private static void makeTech(String newName, boolean alsoJava)
 	{
 		Library lib = Library.getCurrent();
 
@@ -224,13 +215,17 @@ public class LibToTech
 		tech.setGroundNetIncluded(gi.includeGround);
 		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
 
+        Foundry mosis = new Foundry(Foundry.Type.MOSIS);
+        tech.getFoundries().add(mosis); // not very elegant because foundries list modified outside of the package.
+
 		// create the layers
 		for(int i=0; i<lList.length; i++)
 		{
 			Layer lay = Layer.newInstance(tech, lList[i].name, lList[i].desc);
 			lay.setFunction(lList[i].fun, lList[i].funExtra);
 			lay.setCIFLayer(lList[i].cif);
-			lay.setGDSLayer(lList[i].gds);
+            mosis.setGDSLayer(lay, lList[i].gds);
+//			lay.setGDSLayer(lList[i].gds);
 			lay.setResistance(lList[i].spiRes);
 			lay.setCapacitance(lList[i].spiCap);
 			lay.setEdgeCapacitance(lList[i].spiECap);
@@ -363,7 +358,7 @@ public class LibToTech
 				newTechName + ".java");
 			if (fileName != null)
 			{
-				FileOutputStream fileOutputStream = null;
+//				FileOutputStream fileOutputStream = null;
 				try {
 					PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
 
@@ -411,7 +406,7 @@ public class LibToTech
 			super(null, true);
 		}
 
-		private void ok() { exit(true); }
+//		private void ok() { exit(true); }
 
 		protected void escapePressed() { exit(false); }
 
@@ -420,7 +415,7 @@ public class LibToTech
 		{
 			if (goodButton)
 			{
-				makeTech(newName.getText(), renameName.getText(), alsoJava.isSelected());
+				makeTech(newName.getText(), alsoJava.isSelected());
 			}
 			dispose();
 		}
@@ -1735,7 +1730,7 @@ public class LibToTech
 			Point2D [] pointList = null;
 			int [] pointFactor = null;
 			Point2D [] points = null;
-			Variable var = null;
+//			Variable var = null;
 			if (ns.node.getProto() == Artwork.tech.filledPolygonNode ||
 				ns.node.getProto() == Artwork.tech.closedPolygonNode ||
 				ns.node.getProto() == Artwork.tech.openedPolygonNode ||

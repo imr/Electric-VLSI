@@ -37,12 +37,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -169,6 +164,8 @@ public class TechToLib
 		// create the layer nodes
 		System.out.println("Creating the layers...");
 		String [] layerSequence = new String[layerTotal];
+        Foundry foundry = tech.getSelectedFoundry();
+
 		for(int i=0; i<layerTotal; i++)
 		{
 			Layer layer = tech.getLayer(i);
@@ -195,7 +192,9 @@ public class TechToLib
 
 			// compute foreign file formats
 			li.cif = layer.getCIFLayer();
-			li.gds = layer.getGDSLayer();
+//			li.gds = layer.getGDSLayer();
+            if (foundry != null)
+                li.gds = foundry.getGDSLayer(layer);
 
 			// compute the SPICE information
 			li.spiRes = layer.getResistance();

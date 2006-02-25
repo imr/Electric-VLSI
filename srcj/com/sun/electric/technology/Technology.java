@@ -3287,7 +3287,7 @@ public class Technology implements Comparable<Technology>
                 return f;
         }
         if (foundries.size() > 0) return foundries.get(0);
-        System.out.println("No default foundry selected in " + this);
+//        System.out.println("No default foundry selected in " + this);
         return null;
     }
 

@@ -51,6 +51,11 @@ public class CMOS extends Technology
 		setFactoryScale(2000, true);   // in nanometers: really 2 microns
 		setNoNegatedArcs();
 		setStaticTechnology();
+
+        //Foundry
+        Foundry noFoundry = new Foundry(Foundry.Type.NONE);
+        foundries.add(noFoundry);
+
 		setFactoryTransparentLayers(new Color []
 		{
 			new Color(  0,  0,255), // Metal
@@ -346,20 +351,20 @@ public class CMOS extends Technology
 		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Metal
-		P_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Polysilicon
-		D_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Diffusion
-		P0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// P+
-		CC_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Contact-Cut
-		OC_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Ohmic-Cut
-		PW_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// P-Well
-		O_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Overglass
-		T_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Transistor
-		PM_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Metal
-		PP_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Polysilicon
-		PD_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-Diffusion
-		PP0_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-P+
-		PPW_lay.setFactoryGDSLayer("", Foundry.Type.MOSIS.name());		// Pseudo-P-Well
+//		noFoundry.setFactoryGDSLayer(M_lay, "");		// Metal
+//		noFoundry.setFactoryGDSLayer(P_lay, "");		// Polysilicon
+//		noFoundry.setFactoryGDSLayer(D_lay, "");		// Diffusion
+//		noFoundry.setFactoryGDSLayer(P0_lay, "");		// P+
+//		noFoundry.setFactoryGDSLayer(CC_lay, "");		// Contact-Cut
+//		noFoundry.setFactoryGDSLayer(OC_lay, "");		// Ohmic-Cut
+//		noFoundry.setFactoryGDSLayer(PW_lay, "");		// P-Well
+//		noFoundry.setFactoryGDSLayer(O_lay, "");		// Overglass
+//		noFoundry.setFactoryGDSLayer(T_lay, "");		// Transistor
+//		noFoundry.setFactoryGDSLayer(PM_lay, "");		// Pseudo-Metal
+//		noFoundry.setFactoryGDSLayer(PP_lay, "");		// Pseudo-Polysilicon
+//		noFoundry.setFactoryGDSLayer(PD_lay, "");		// Pseudo-Diffusion
+//		noFoundry.setFactoryGDSLayer(PP0_lay, "");		// Pseudo-P+
+//		noFoundry.setFactoryGDSLayer(PPW_lay, "");		// Pseudo-P-Well
 
 		//******************** DESIGN RULES ********************
 

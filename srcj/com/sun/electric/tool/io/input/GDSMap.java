@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Foundry;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -239,11 +240,20 @@ public class GDSMap extends EDialog
 		}
 
 		// wipe out all GDS layer associations
-		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
-		{
-			Layer layer = it.next();
-			layer.setGDSLayer("");
-		}
+        Foundry foundry = tech.getSelectedFoundry();
+
+        if (foundry == null)
+        {
+            System.out.println("No foundry associated for the mapping");
+            return;
+        }
+
+        for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
+        {
+            Layer layer = it.next();
+//                layer.setGDSLayer("");
+            foundry.setGDSLayer(layer, "");
+        }
 
 		// set the associations
 		for(MapLine ml : drawingEntries)
@@ -267,7 +277,7 @@ public class GDSMap extends EDialog
 					break;
 				}
 			}
-			layer.setGDSLayer(layerInfo);
+            foundry.setGDSLayer(layer, layerInfo);
 		}
 	}
 

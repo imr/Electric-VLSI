@@ -66,7 +66,20 @@ public class GDSTab extends ProjSettingsPanel
 	private JList gdsLayersList;
 	private DefaultListModel gdsLayersModel;
 	private boolean changingGDS = false;
-	private HashMap<Layer,String> layerMap;
+	private HashMap<Foundry,HashMap<Layer,String>> layerMap;
+
+    // To have ability to store directly the technology and not
+    // to depende on names to search the technology instance
+    private static class TechGDSTab
+    {
+        public Technology tech;
+
+        TechGDSTab(Technology t) { tech = t; }
+
+        // This avoids to call Technology.toString() and get
+        // extra text.
+        public String toString() { return tech.getTechName(); }
+    }
 
 	/**
 	 * Method called at the start of the dialog.
@@ -91,25 +104,37 @@ public class GDSTab extends ProjSettingsPanel
 		{
 			public void mouseClicked(MouseEvent evt) { gdsClickLayer(); }
 		});
-		layerMap = new HashMap<Layer,String>();
+		layerMap = new HashMap<Foundry,HashMap<Layer,String>>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-			technologySelection.addItem(tech.getTechName());
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				String str = layer.getName();
-				String gdsLayer = layer.getGDSLayer();
-				if (gdsLayer != null) str += " (" + gdsLayer + ")";
-				layerMap.put(layer, str);
-			}
+
+			technologySelection.addItem(new TechGDSTab(tech));
+
+            for (Foundry foundry : tech.getFoundries())
+            {
+                for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+                {
+                    Layer layer = lIt.next();
+                    String gdsLayer = foundry.getGDSLayer(layer);
+                    put(foundry, layer, gdsLayer);
+			    }
+            }
 		}
 		technologySelection.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { techChanged(); }
 		});
-		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
+		technologySelection.setSelectedItem(Technology.getCurrent());
+
+        foundrySelection.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { foundryChanged(); }
+		});
+
+
+        // to set foundry the first time
+        techChanged();
 
 		GDSDocumentListener myDocumentListener = new GDSDocumentListener(this);
 		gdsLayerNumber.getDocument().addDocumentListener(myDocumentListener);
@@ -120,27 +145,62 @@ public class GDSTab extends ProjSettingsPanel
 		gdsTextType.getDocument().addDocumentListener(myDocumentListener);
 	}
 
+    private void put(Foundry f, Layer l, String s)
+    {
+        HashMap<Layer,String> table = layerMap.get(f);
+        if (table == null)
+        {
+            table = new HashMap<Layer,String>();
+            layerMap.put(f, table);
+        }
+        table.put(l, s);
+    }
+
+    private String get(Foundry f, Layer l)
+    {
+        HashMap<Layer,String> table = layerMap.get(f);
+        if (table == null) return "";
+        return table.get(l);
+    }
+
+    private void foundryChanged()
+    {
+        Foundry foundry = (Foundry)foundrySelection.getSelectedItem();
+        Technology tech = ((TechGDSTab)technologySelection.getSelectedItem()).tech;
+		// show the list of layers in the technology
+		gdsLayersModel.clear();
+
+        for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+        {
+            Layer layer = lIt.next();
+            String str = layer.getName();
+            String gdsLayer = get(foundry, layer);
+            if (gdsLayer != null) str += " (" + gdsLayer + ")";
+			gdsLayersModel.addElement(str);
+        }
+		gdsLayersList.setSelectedIndex(0);
+		gdsClickLayer();
+    }
+
+    private void setFoundries(Technology tech)
+    {
+        foundrySelection.removeAllItems();
+        // Foundry
+        for (Foundry f : tech.getFoundries())
+        {
+            foundrySelection.addItem(f);
+        }
+        foundrySelection.setSelectedItem(tech.getSelectedFoundry());
+        foundryChanged();
+    }
+
 	private void techChanged()
 	{
-		String techName = (String)technologySelection.getSelectedItem();
-		Technology tech = Technology.findTechnology(techName);
+		Technology tech = ((TechGDSTab)technologySelection.getSelectedItem()).tech;
 		if (tech == null) return;
 
 		// set the foundries for the technology
-		Foundry f = tech.getSelectedFoundry();
-		if (f == null) gdsFoundryName.setText(""); else
-			gdsFoundryName.setText("Foundry: " + f.getType().name());
-
-		// show the list of layers in the technology
-		gdsLayersModel.clear();
-		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
-		{
-			Layer layer = it.next();
-			String str = layerMap.get(layer);
-			gdsLayersModel.addElement(str);
-		}
-		gdsLayersList.setSelectedIndex(0);
-		gdsClickLayer();
+        setFoundries(tech);
 	}
 
 	/**
@@ -208,8 +268,7 @@ public class GDSTab extends ProjSettingsPanel
 		int openParen = str.indexOf('(');
 		if (openParen < 0) return null;
 
-		String techName = (String)technologySelection.getSelectedItem();
-		Technology tech = Technology.findTechnology(techName);
+        Technology tech = ((TechGDSTab)technologySelection.getSelectedItem()).tech;
 		if (tech == null) return null;
 
 		String layerName = str.substring(0, openParen-1);
@@ -254,7 +313,8 @@ public class GDSTab extends ProjSettingsPanel
 		String wholeLine = layer.getName() + " (" + newLine + ")";
 		int index = gdsLayersList.getSelectedIndex();
 		gdsLayersModel.set(index, wholeLine);
-		layerMap.put(layer, wholeLine);
+        Foundry foundry = (Foundry)foundrySelection.getSelectedItem();
+		put(foundry, layer, newLine);
 	}
 
 	/**
@@ -280,42 +340,47 @@ public class GDSTab extends ProjSettingsPanel
 		for(Iterator<Technology> tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
 			Technology tech = tIt.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				String str = layerMap.get(layer);
-				GDSLayers numbers = gdsGetNumbers(str);
-				if (numbers == null) continue;
 
-				GDSLayers oldNumbers = GDSLayers.parseLayerString(layer.getGDSLayer());
-				if (!oldNumbers.equals(numbers))
-				{
-					String currentGDSNumbers = "";
-					for(Iterator<Integer> it = numbers.getLayers(); it.hasNext(); )
-					{
-						Integer layVal = it.next();
-						int layNum = layVal.intValue() & 0xFFFF;
-						int layType = (layVal.intValue() >> 16) & 0xFFFF;
-						currentGDSNumbers += Integer.toString(layNum);
-						if (layType != 0) currentGDSNumbers += "/" + layType;
-					}
-					if (numbers.getPinLayer() != -1)
-					{
-						currentGDSNumbers += "," + (numbers.getPinLayer() & 0xFFFF);
-						int pinType = (numbers.getPinLayer() >> 16) & 0xFFFF;
-						if (pinType != 0) currentGDSNumbers += "/" + pinType;
-						currentGDSNumbers += "p";
-					}
-					if (numbers.getTextLayer() != -1)
-					{
-						currentGDSNumbers += "," + (numbers.getTextLayer() & 0xFFFF);
-						int textType = (numbers.getTextLayer() >> 16) & 0xFFFF;
-						if (textType != 0) currentGDSNumbers += "/" + textType;
-						currentGDSNumbers += "t";
-					}
-					layer.setGDSLayer(currentGDSNumbers);
-				}
-			}
+            for (Foundry foundry : tech.getFoundries())
+            {
+                for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+                {
+                    Layer layer = lIt.next();
+                    String str = get(foundry, layer);
+                    GDSLayers numbers = GDSLayers.parseLayerString(str);
+                    if (numbers == null) continue;
+
+                    GDSLayers oldNumbers = GDSLayers.parseLayerString(foundry.getGDSLayer(layer));
+                    if (!oldNumbers.equals(numbers))
+                    {
+                        String currentGDSNumbers = "";
+                        for(Iterator<Integer> it = numbers.getLayers(); it.hasNext(); )
+                        {
+                            Integer layVal = it.next();
+                            int layNum = layVal.intValue() & 0xFFFF;
+                            int layType = (layVal.intValue() >> 16) & 0xFFFF;
+                            currentGDSNumbers += Integer.toString(layNum);
+                            if (layType != 0) currentGDSNumbers += "/" + layType;
+                        }
+                        if (numbers.getPinLayer() != -1)
+                        {
+                            currentGDSNumbers += "," + (numbers.getPinLayer() & 0xFFFF);
+                            int pinType = (numbers.getPinLayer() >> 16) & 0xFFFF;
+                            if (pinType != 0) currentGDSNumbers += "/" + pinType;
+                            currentGDSNumbers += "p";
+                        }
+                        if (numbers.getTextLayer() != -1)
+                        {
+                            currentGDSNumbers += "," + (numbers.getTextLayer() & 0xFFFF);
+                            int textType = (numbers.getTextLayer() >> 16) & 0xFFFF;
+                            if (textType != 0) currentGDSNumbers += "/" + textType;
+                            currentGDSNumbers += "t";
+                        }
+    //					layer.setGDSLayer(currentGDSNumbers);
+                        foundry.setGDSLayer(layer, currentGDSNumbers);
+                    }
+                }
+            }
 		}
 		boolean currentValue = gdsOutputMergesBoxes.isSelected();
 		if (currentValue != IOTool.isGDSOutMergesBoxes())
@@ -343,9 +408,7 @@ public class GDSTab extends ProjSettingsPanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
         gds = new javax.swing.JPanel();
@@ -373,15 +436,14 @@ public class GDSTab extends ProjSettingsPanel
         technologySelection = new javax.swing.JComboBox();
         jLabel4 = new javax.swing.JLabel();
         gdsFoundryName = new javax.swing.JLabel();
+        foundrySelection = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("IO Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
@@ -507,10 +569,8 @@ public class GDSTab extends ProjSettingsPanel
         gds.add(jLabel29, gridBagConstraints);
 
         gdsOutputConvertsBracketsInExports.setText("Output converts brackets in exports");
-        gdsOutputConvertsBracketsInExports.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        gdsOutputConvertsBracketsInExports.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 gdsOutputConvertsBracketsInExportsActionPerformed(evt);
             }
         });
@@ -597,10 +657,27 @@ public class GDSTab extends ProjSettingsPanel
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         gds.add(gdsFoundryName, gridBagConstraints);
 
+        foundrySelection.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                foundrySelectionActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        gds.add(foundrySelection, gridBagConstraints);
+
         getContentPane().add(gds, new java.awt.GridBagConstraints());
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }//GEN-END:initComponents
+
+    private void foundrySelectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_foundrySelectionActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_foundrySelectionActionPerformed
 
     private void gdsOutputConvertsBracketsInExportsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gdsOutputConvertsBracketsInExportsActionPerformed
         // Add your handling code here:
@@ -614,6 +691,7 @@ public class GDSTab extends ProjSettingsPanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox foundrySelection;
     private javax.swing.JPanel gds;
     private javax.swing.JTextField gdsCellNameLenMax;
     private javax.swing.JTextField gdsDefaultTextLayer;
