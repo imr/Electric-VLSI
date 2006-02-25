@@ -833,7 +833,7 @@ class FillCell {
 						StdCellParams stdCell, boolean withExtraArc)
     {
         Export e = null;
-        if (withExtraArc)
+        if (false) // withExtraArc)
         {
             PortInst pi = LayoutLib.newNodeInst(pin, x, y, G.DEF_SIZE, G.DEF_SIZE,
                                                 0, cell).getOnlyPortInst();
@@ -1260,7 +1260,9 @@ class TiledCell {
 		tileCell = Cell.newInstance(lib, tiledName);
 
 		Rectangle2D bounds = cell.findEssentialBounds();
-		LayoutLib.error(bounds==null, "missing Essential Bounds");
+        if (bounds == null)
+            bounds = cell.getBounds();
+//		LayoutLib.error(bounds==null, "missing Essential Bounds");
 		double cellW = bounds.getWidth();
 		double cellH = bounds.getHeight();
 
@@ -1280,7 +1282,7 @@ class TiledCell {
 		ArrayList<PortInst> portInsts = getAllPortInsts(tileCell);
 		FillRouter.connectCoincident(portInsts);
 		exportUnconnectedPortInsts(rows, plans, tileCell, stdCell);
-		addEssentialBounds(cellW, cellH, numX, numY, tileCell);
+//		addEssentialBounds(cellW, cellH, numX, numY, tileCell);
 	}
 	public static Cell makeTiledCell(int numX, int numY, Cell cell,
                                      Floorplan[] plans, Library lib,
@@ -1413,6 +1415,10 @@ public class FillGenerator implements Serializable {
         {
             int tileOnX = (int)Math.ceil(targetWidth/minTileSize);
             int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
+            int min = Math.min(tileOnX, tileOnY);
+            c = TiledCell.makeTiledCell(min, min, c, plans, lib, stdCell);
+            tileOnX = tileOnX/min;
+            tileOnY = tileOnY/min;
             c = TiledCell.makeTiledCell(tileOnX, tileOnY, c, plans, lib, stdCell);
         }
         return c;
@@ -1638,7 +1644,7 @@ public class FillGenerator implements Serializable {
                 }
             }
 
-            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true, false);
+            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true, true);
 //            fillGen.makeGallery();
 
             if (topCell == null || portList == null || portList.size() == 0) return true;
@@ -1922,7 +1928,6 @@ public class FillGenerator implements Serializable {
 
         private void removeOverlappingBars(FillGenJobContainer container, AffineTransform fillTransOut)
         {
-            List<Layer.Function> tmp = new ArrayList<Layer.Function>();
             // Check if any metalXY must be removed
             HashSet<Geometric> nodesToRemove = new HashSet<Geometric>();
 
