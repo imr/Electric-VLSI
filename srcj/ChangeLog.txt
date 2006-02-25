@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/25/06, SMR) R-tree can become corrupt (Bug #833).
+FIX: In Cell.update(), reset R-tree to RTNode.makeTopLevel().
+
 IMP: (2/25/06, GVG) GDS numbers associated to foundry instead of the technology.
 
 BUG: (2/24/06, DN) "Class exception in Undo" (Bug #831)

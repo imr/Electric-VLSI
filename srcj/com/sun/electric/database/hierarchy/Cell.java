@@ -1076,7 +1076,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         cellUsages = (int[])newBackup.cellUsages.clone();
         int tempNodeCount = 0;
         if (full) {
-            rTree = null;
+            // the next line used to be: rTree = null;
+            rTree = RTNode.makeTopLevel();
             tempNodeNames.clear();
         }
         for (int i = 0; i < newBackup.nodes.length; i++) {
@@ -1470,7 +1471,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
 	 * @return R-Tree of this Cell.
 	 */
-	RTNode getRTree() { return rTree; }
+	RTNode getRTree()
+	{
+//		if (rTree == null)
+//		{
+//			System.out.println("Rebuilding R-Tree in "+this);
+//			rTree = RTNode.makeTopLevel();
+//		}
+		return rTree;
+	}
 
 	/**
 	 * Method to set the R-Tree of this Cell.
