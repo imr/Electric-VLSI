@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/28/06, SMR) When preferences have side-effects, they crash (Bug #815).
+FIX: In Technology.TechPref.setSideEffect(), invoke UI changes in the AWT thread.
+
 BUG: (2/25/06, SMR) R-tree can become corrupt (Bug #833).
 FIX: In Cell.update(), reset R-tree to RTNode.makeTopLevel().
 

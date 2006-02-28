@@ -80,6 +80,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.swing.SwingUtilities;
+
 /**
  * Technology is the base class for all of the specific technologies in Electric.
  *
@@ -4046,6 +4048,12 @@ public class Technology implements Comparable<Technology>
 		public void setSideEffect()
 		{
 			tech.setState();
+			SwingUtilities.invokeLater(new Runnable() {
+	            public void run() { technologyChanged(tech); }});
+		}
+
+		public void technologyChanged(Technology tech)
+		{
 			VectorDrawing.technologyChanged(tech);
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();
