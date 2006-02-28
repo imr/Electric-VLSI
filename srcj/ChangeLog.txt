@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (2/28/06, GVG) NodeInst objects created for the TechPalette have problems with parent field (null)
+and being linked. Thus ENodeInst constructor will produce assertion (Bug #835).
+FIX: PlaceNewNode doesn't require NodeInst object (data required is copied). Side effect: Orientation is serializable.
+
 BUG: (2/28/06, SMR) When preferences have side-effects, they crash (Bug #815).
 FIX: In Technology.TechPref.setSideEffect(), invoke UI changes in the AWT thread.
 

@@ -28,6 +28,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
+import java.io.Serializable;
 
 /**
  * Class <code>Orientation</code> represents 2D affine transform which is composition of rotation and possible flip.
@@ -36,7 +37,7 @@ import java.util.HashMap;
  * The Java code uses the same angle (in tenth-degrees) but has two mirror
  * options: Mirror X and Mirror Y.
  */
-public class Orientation {
+public class Orientation implements Serializable {
 
 	// The internal representation of orientation is the 2D transformation matrix:
 	// [   sX*cos(angle)   -sX*sin(angle)   ] = [ sX  0 ] * [ cos(angle) -sin(angle) ]
