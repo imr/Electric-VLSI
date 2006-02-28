@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -475,7 +476,19 @@ public class GDS extends Input
 		double dbUnit = tokenValueDouble;
 		getToken();
 		double meterUnit = tokenValueDouble;
-		theScale = meterUnit * 1000000.0 * TextUtils.convertFromDistance(1, curTech, TextUtils.UnitScale.MICRO);
+		double microScale = TextUtils.convertFromDistance(1, curTech, TextUtils.UnitScale.MICRO);
+		theScale = meterUnit * 1000000.0 * microScale;
+
+		// round the scale
+		double shift = 1;
+		double roundedScale = theScale;
+		while (roundedScale < 1)
+		{
+			roundedScale *= 10;
+			shift *= 10;
+		}
+		roundedScale = DBMath.round(roundedScale) / shift;
+		theScale = roundedScale;
 	}
 
 	private void readStructure()
@@ -802,15 +815,10 @@ public class GDS extends Input
 				{
 					NodeInst ni = NodeInst.makeInstance(layerNodeProto, ctr, sX, sY, theCell);
 					if (ni == null) handleError("Failed to create RECTANGLE");
-//if (theCell.getName().equals("CLKINVX20"))
+//if (ctr.getX() < 59 && ctr.getY() > 4112 && layerNodeProto.getName().equals("Metal-3-Node"))
 //{
-//	double x1 = DBMath.round(3.625);
-//	double x2 = DBMath.round(7.625);
-//	System.out.println("Made node in cell CLKINVX20 at "+ctr.getX()+" wid="+sX);
-//	if (ctr.getX() == 7.62 || ctr.getX() == 10.01)
-//	{
-//		System.out.println("Made node centered at "+ctr.getX());
-//	}
+//	System.out.println("Made M3 node at ("+ctr.getX()+","+ctr.getY()+")");
+//	System.out.println("  Y runs from "+theVertices[1].getY()+" to "+theVertices[0].getY());
 //}
 				}
 			}
@@ -1524,10 +1532,11 @@ public class GDS extends Input
 
 	private static double makePower(int val, int power)
 	{
-		double result = 1.0;
-		for(int count=0; count<power; count++)
-			result *= val;
-		return result;
+		return Math.pow(val, power);
+//		double result = 1.0;
+//		for(int count=0; count<power; count++)
+//			result *= val;
+//		return result;
 	}
 
 	private double getDouble()
@@ -1576,11 +1585,15 @@ public class GDS extends Input
 		realValue *= (register1 * twoTo32 + register2) * twoToNeg56;
 		if (exponent > 0)
 		{
-			realValue = realValue * makePower(16, exponent);
+			double pow =  makePower(16, exponent);
+			realValue *= pow;
 		} else
 		{
 			if (exponent < 0)
-				realValue = realValue / makePower(16, -exponent);
+			{
+				double pow =  makePower(16, -exponent);
+				realValue /= pow;
+			}
 		}
 		return realValue;
 	}
