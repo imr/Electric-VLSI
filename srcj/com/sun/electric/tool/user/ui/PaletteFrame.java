@@ -38,9 +38,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.NewExport;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -316,8 +314,8 @@ public class PaletteFrame implements MouseListener
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private int oldx, oldy;
-		private Point2D drawnLoc;
-		private boolean doingMotionDrag;
+//		private Point2D drawnLoc;
+//		private boolean doingMotionDrag;
 		private Object toDraw;
 		private EventListener oldListener;
 		private Cursor oldCursor;
@@ -461,8 +459,9 @@ public class PaletteFrame implements MouseListener
 	public static class PlaceNewNode extends Job
 	{
 		private NodeProto np;
-		private NodeInst ni;
-		private int defAngle;
+		private int techBits = 0;
+        private Orientation defOrient = Orientation.IDENT;
+        private double [] angles = null;
 		private EPoint where;
 		private Cell cell;
 		private String varName;
@@ -474,8 +473,16 @@ public class PaletteFrame implements MouseListener
 		{
 			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.np = np;
-			this.ni = ni;
-			this.defAngle = defAngle;
+			// get default creation angle
+            if (ni != null)
+            {
+                defOrient = ni.getOrient();
+				techBits = ni.getTechSpecific();
+                angles = ni.getArcDegrees();
+            } else if (np instanceof PrimitiveNode)
+			{
+                defOrient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
+			}
 			this.where = EPoint.snap(where);
 			this.cell = cell;
 			this.varName = varName;
@@ -488,18 +495,6 @@ public class PaletteFrame implements MouseListener
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
 			if (varName != null) width = height = 0;
-
-			// get default creation angle
-            Orientation defOrient = Orientation.IDENT;
-			int techBits = 0;
-			if (ni != null)
-			{
-                defOrient = ni.getOrient();
-				techBits = ni.getTechSpecific();
-			} else if (np instanceof PrimitiveNode)
-			{
-                defOrient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
-			}
 
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defOrient, null, techBits);
 			if (newNi == null) return false;
@@ -568,9 +563,8 @@ public class PaletteFrame implements MouseListener
 					}
 				} else if (np == Artwork.tech.circleNode)
 				{
-					if (ni != null)
+					if (angles != null)
 					{
-						double [] angles = ni.getArcDegrees();
 						newNi.setArcDegrees(angles[0], angles[1]);
 					}
 				}
@@ -596,7 +590,7 @@ public class PaletteFrame implements MouseListener
 			// for technology edit cells, mark the new geometry specially
 			if (cell.isInTechnologyLibrary())
 			{
-				Manipulate.completeNodeCreation((NodeInst)objToHighlight, ni);
+				Manipulate.completeNodeCreation((NodeInst)objToHighlight, null); // ni);
 			}
 			if (export)
 			{
