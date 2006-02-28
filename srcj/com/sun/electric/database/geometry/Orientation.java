@@ -47,7 +47,7 @@ public class Orientation implements Serializable {
 	// sY = jMirrorY ? -1 : 1
 	// 0 <= jAngle < 3600 is in tenth-degrees
 	private final short jAngle;
-	private final short jOctant;
+//	private final short jOctant;
 	private final boolean jMirrorX;
 	private final boolean jMirrorY;
 	private final String jString;
@@ -117,7 +117,7 @@ public class Orientation implements Serializable {
 
 		// store Java information
 		this.jAngle = (short)jAngle;
-		this.jOctant = (short)(jAngle % 450 == 0 ? jAngle/450 : -1);
+//		this.jOctant = (short)(jAngle % 450 == 0 ? jAngle/450 : -1);
 		this.jMirrorX = jMirrorX;
 		this.jMirrorY = jMirrorY;
 
@@ -395,7 +395,7 @@ public class Orientation implements Serializable {
      * @param xh higher x coordinate.
      * @param yh higher y coordinate.
      * @param cx additional x shift
-     * @param xy additional y shift.
+     * @param cy additional y shift.
      * @param dst destination rectangle.
      */
     public void rectangleBounds(double xl, double yl, double xh, double yh, double cx, double cy, Rectangle2D dst) {
