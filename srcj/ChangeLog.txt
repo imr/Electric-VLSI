@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (3/1/06, SMR) Waveform window doesn't draw signals with only 1 data point (Bug #836).
+FIX: In Panel.processSignals() draw extrapolation of last data point.
+
 BUG: (3/1/06, SMR) Spice model files cannot be changed (Bug #840).
 FIX: Made them preferences instead of storing them in cells.
 

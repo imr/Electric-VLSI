@@ -1348,18 +1348,20 @@ public class Panel extends JPanel
 	        						if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, -1)) break;
 	                            }
                         	}
-                        	if (linePointMode >= 1)
-							{
-                        		// drawing has points
-								if (i < numEvents-1)
-								{
-									if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
-                                    if (lowY != highY)
-                                    {
-										if (processABox(g, x-2, highY-2, x+2, highY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
-                                    }
-                                }
-							}
+						}
+                    	if (i == numEvents-1 && linePointMode <= 1)
+                    	{
+                    		// process extrapolated line from the last data point
+                            if (processALine(g, x, lowY, sz.width, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
+                            if (lastLY != lastHY || lowY != highY)
+                            {
+        						if (processALine(g, x, highY, sz.width, highY, bounds, forPs, selectedObjects, ws, -1)) break;
+                            }
+                    	}
+                    	if (linePointMode >= 1)
+						{
+                    		// drawing has points
+							if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
 						}
 						lastX = x;   lastLY = lowY; lastHY = highY; 
 					}
