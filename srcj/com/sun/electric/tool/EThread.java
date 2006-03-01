@@ -73,7 +73,10 @@ class EThread extends Thread {
                 if (ejob.jobType != Job.Type.EXAMINE && !ejob.startedByServer) {
                     Throwable e = ejob.deserializeToServer();
                     if (e != null)
+                    {
+                        e.printStackTrace();
                         throw e;
+                    }
                 }
                 switch (ejob.jobType) {
                     case CHANGE:
@@ -115,6 +118,7 @@ class EThread extends Thread {
 //                ejob.state = EJob.State.SERVER_DONE;
             } catch (Throwable e) {
                 e.getStackTrace();
+                e.printStackTrace();
                 if (!ejob.isExamine()) {
                     database.lowLevelSetCanUndoing(true);
                     database.undo(ejob.oldSnapshot, true);
