@@ -26,6 +26,7 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.ObjectQTree;
@@ -404,7 +405,7 @@ public class AutoStitch
         if (pinsToPassThrough.size() > 0)
         {
         	CircuitChangeJobs.CleanupChanges job = new CircuitChangeJobs.CleanupChanges(cell, true, new ArrayList<NodeInst>(),
-                pinsToPassThrough, new HashMap<NodeInst,Point2D.Double>(), new ArrayList<NodeInst>(), new HashSet<ArcInst>(), 0, 0, 0);
+                pinsToPassThrough, new HashMap<NodeInst,EPoint>(), new ArrayList<NodeInst>(), new HashSet<ArcInst>(), 0, 0, 0);
         	try
         	{
         		job.doIt();
