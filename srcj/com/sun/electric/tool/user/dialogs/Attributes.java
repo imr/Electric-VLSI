@@ -233,6 +233,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         loadAttributesInfo(false);
 
+        name.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
         value.getDocument().addDocumentListener(new TextInfoDocumentListener(this));
 
         finishInitialization();
@@ -454,7 +455,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // try to find variable
         Variable.Key varKey = Variable.newKey(varName);
-        if (varKey != null) {
+        if (selectedObject.getVar(varKey) != null) {
             // make sure var is selected
             showSelectedAttribute(varKey);
         } else {
