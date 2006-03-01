@@ -29,7 +29,6 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
@@ -63,8 +62,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.VectorDrawing;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Job.Priority;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -4013,23 +4010,6 @@ public class Technology implements Comparable<Technology>
      */
     public boolean polyCoverByAnyVTLayer(Cell cell, DRCTemplate theRule, Technology tech, Poly[] polys, Layer[] layers, 
                                          Geometric[] geoms, boolean ignoreCenterCuts) { return false; }
-
-    /********************* Foundry **********************/
-//    public static class Foundry
-//    {
-//        public static String MOSIS_FOUNDRY = "Mosis";
-//        public static String TSMC_FOUNDRY = "TSMC";
-//        public static String ST_FOUNDRY = "ST";
-//        public static String ANY_FOUNDRY = "Combined";
-//        public String name;
-//        public int techMode; // this value goes according to DRCTemplate.mode
-//
-//        public Foundry(String name, int mode)
-//        {
-//            this.name = name;
-//            this.techMode = mode;
-//        }
-//    }
 
     /**
 	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.
