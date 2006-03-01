@@ -31,6 +31,7 @@ import com.sun.electric.tool.Job.Type;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
@@ -103,6 +104,11 @@ class EJob {
             serializedJob = byteStream.toByteArray();
             return null;
         } catch (Throwable e) {
+        	if (e instanceof NotSerializableException)
+        	{
+        		NotSerializableException nse = (NotSerializableException)e;
+        		System.out.println("ERROR: Job '" + jobName + "' cannot serialize parameter: " + nse.getMessage());
+        	}
             return e;
         }
     }
@@ -147,6 +153,11 @@ class EJob {
             out.close();
             serializedResult = byteStream.toByteArray();
         } catch (Throwable e) {
+        	if (e instanceof NotSerializableException)
+        	{
+        		NotSerializableException nse = (NotSerializableException)e;
+        		System.out.println("ERROR: Job '" + jobName + "' cannot serialize returned object: " + nse.getMessage());
+        	}
             Job.logger.logp(Level.WARNING, getClass().getName(), "serializeResult", "failure", e);
             serializeExceptionResult(e);
         }

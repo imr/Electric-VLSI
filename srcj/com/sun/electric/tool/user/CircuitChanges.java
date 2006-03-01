@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -698,7 +699,7 @@ public class CircuitChanges
 		}
 
 		// look for oversized pins that can be reduced in size
-		HashMap<NodeInst,Point2D.Double> pinsToScale = new HashMap<NodeInst,Point2D.Double>();
+		HashMap<NodeInst,EPoint> pinsToScale = new HashMap<NodeInst,EPoint>();
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -747,7 +748,7 @@ public class CircuitChanges
 			double dSX = 0, dSY = 0;
 			if (overSizeArc < overSizeX) dSX = overSizeX - overSizeArc;
 			if (overSizeArc < overSizeY) dSY = overSizeY - overSizeArc;
-			pinsToScale.put(ni, new Point2D.Double(-dSX, -dSY));
+			pinsToScale.put(ni, new EPoint(-dSX, -dSY));
 		}
 
 		// look for pins that are invisible and have text in different location

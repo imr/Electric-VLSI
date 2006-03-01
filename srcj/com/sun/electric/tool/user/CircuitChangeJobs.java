@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -62,6 +63,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1559,13 +1561,13 @@ public class CircuitChangeJobs
 		private boolean justThis;
 		private List<NodeInst> pinsToRemove;
 		private List<Reconnect> pinsToPassThrough;
-		private HashMap<NodeInst,Point2D.Double> pinsToScale;
+		private HashMap<NodeInst,EPoint> pinsToScale;
 		private List<NodeInst> textToMove;
 		private HashSet<ArcInst> arcsToKill;
 		private int zeroSize, negSize, overSizePins;
 
 		public CleanupChanges(Cell cell, boolean justThis, List<NodeInst> pinsToRemove, List<Reconnect> pinsToPassThrough,
-            HashMap<NodeInst,Point2D.Double> pinsToScale, List<NodeInst> textToMove, HashSet<ArcInst> arcsToKill,
+            HashMap<NodeInst,EPoint> pinsToScale, List<NodeInst> textToMove, HashSet<ArcInst> arcsToKill,
 			int zeroSize, int negSize, int overSizePins)
 		{
 			super("Cleanup " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1612,9 +1614,8 @@ public class CircuitChangeJobs
             }
 			for(NodeInst ni : pinsToScale.keySet())
 			{
-				Point2D scale = pinsToScale.get(ni);
+				EPoint scale = pinsToScale.get(ni);
 				ni.resize(scale.getX(), scale.getY());
-//				ni.modifyInstance(0, 0, scale.getX(), scale.getY(), 0);
 			}
 			for(NodeInst ni : textToMove)
 			{
@@ -2171,10 +2172,10 @@ public class CircuitChangeJobs
      * Store information of new arc to be created that reconnects
      * two arcs that will be deleted
      */
-    private static class ReconnectedArc
+    private static class ReconnectedArc implements Serializable
     {
         /** port at other end of arc */						private PortInst [] reconPi;
-        /** coordinate at other end of arc */				private Point2D [] recon;
+        /** coordinate at other end of arc */				private EPoint [] recon;
         /** old arc insts that will be deleted */           private ArcInst [] reconAr;
         /** prototype of new arc */							private ArcProto ap;
         /** width of new arc */								private double wid;
@@ -2216,7 +2217,7 @@ public class CircuitChangeJobs
 	 * This class handles deleting pins that are between two arcs,
 	 * and reconnecting the arcs without the pin.
 	 */
-	public static class Reconnect
+	public static class Reconnect implements Serializable
 	{
 		/** node in the center of the reconnect */			private NodeInst ni;
         /** list of reconnected arcs */                     private ArrayList<ReconnectedArc> reconnectedArcs;
@@ -2279,7 +2280,7 @@ public class CircuitChangeJobs
             ReconnectedArc ra = new ReconnectedArc();
             ra.ap = ai1.getProto();
             ra.reconPi = new PortInst[2];
-            ra.recon = new Point2D[2];
+            ra.recon = new EPoint[2];
             ra.reconAr = new ArcInst[2];
             ra.reconAr[0] = ai1;
             ra.reconAr[1] = ai2;
@@ -2340,11 +2341,6 @@ public class CircuitChangeJobs
             ra.extendTail = ai2.isTailExtended();
             ra.negateHead = ai1.isHeadNegated();
             ra.negateTail = ai2.isTailNegated();
-//            ra.extendHead = ai1.isHeadExtended() || ai2.isHeadExtended();
-//            ra.extendTail = ai1.isTailExtended() || ai2.isTailExtended();
-//            ra.negateHead = ai1.isHeadNegated() || ai2.isHeadNegated();
-//            ra.negateTail = ai1.isTailNegated() || ai2.isTailNegated();
-//            ra.arcName = null;
             if (ai1.getName() != null && !ai1.getNameKey().isTempname())
             {
                 ra.arcName = ai1.getName();
