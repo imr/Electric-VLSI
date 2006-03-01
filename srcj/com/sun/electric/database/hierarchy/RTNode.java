@@ -529,7 +529,7 @@ class RTNode
 		}
 
 		// now check the RTree
-			checkRTree(0, cell);
+//		checkRTree(0, cell);
 	}
 
 	/**
