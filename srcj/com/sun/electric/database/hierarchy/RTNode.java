@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -215,7 +216,6 @@ class RTNode
 				line = new StringBuffer();
 				for(int i=0; i<indent+3; i++) line.append(" ");
 				Geometric child = (Geometric)getChild(j);
-//					child.setTempInt(branchCount);
 				Rectangle2D childBounds = child.getBounds();
 				line.append("Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
 					childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe(true));
@@ -246,10 +246,10 @@ class RTNode
 		}
 		if (!localBounds.equals(bounds))
 		{
-			if (Math.abs(localBounds.getMinX() - bounds.getMinX()) >= 0.0001 ||
-				Math.abs(localBounds.getMinY() - bounds.getMinY()) >= 0.0001 ||
-				Math.abs(localBounds.getWidth() - bounds.getWidth()) >= 0.0001 ||
-				Math.abs(localBounds.getHeight() - bounds.getHeight()) >= 0.0001)
+			if (Math.abs(localBounds.getMinX() - bounds.getMinX()) >= DBMath.getEpsilon() ||
+				Math.abs(localBounds.getMinY() - bounds.getMinY()) >= DBMath.getEpsilon() ||
+				Math.abs(localBounds.getWidth() - bounds.getWidth()) >= DBMath.getEpsilon() ||
+				Math.abs(localBounds.getHeight() - bounds.getHeight()) >= DBMath.getEpsilon())
 			{
 				System.out.println("Tree of "+cell.describe(true)+" at level "+level+" has bounds "+localBounds+" but stored bounds are "+bounds);
 				for(int i=0; i<total; i++)
@@ -529,7 +529,7 @@ class RTNode
 		}
 
 		// now check the RTree
-//			checkRTree(0, cell);
+			checkRTree(0, cell);
 	}
 
 	/**
@@ -644,10 +644,10 @@ class RTNode
 			// get bounds and area of sub-node
 			Rectangle2D bounds = getBBox(i);
 
-			if (bounds.getMaxX() < geomBounds.getMinX()) continue;
-			if (bounds.getMinX() > geomBounds.getMaxX()) continue;
-			if (bounds.getMaxY() < geomBounds.getMinY()) continue;
-			if (bounds.getMinY() > geomBounds.getMaxY()) continue;
+			if (bounds.getMaxX() < geomBounds.getMinX()-DBMath.getEpsilon()) continue;
+			if (bounds.getMinX() > geomBounds.getMaxX()+DBMath.getEpsilon()) continue;
+			if (bounds.getMaxY() < geomBounds.getMinY()-DBMath.getEpsilon()) continue;
+			if (bounds.getMinY() > geomBounds.getMaxY()+DBMath.getEpsilon()) continue;
 			Object [] subRet = ((RTNode)getChild(i)).findGeom(geom);
 			if (subRet != null) return subRet;
 		}
