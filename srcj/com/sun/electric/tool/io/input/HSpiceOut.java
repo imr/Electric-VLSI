@@ -46,14 +46,15 @@ import java.util.List;
  */
 public class HSpiceOut extends Simulate
 {
-	/** true if tr/ac/sw file is binary */					private boolean isTRACDCBinary;
-	/** true if binary tr/ac/sw file has bytes swapped */	private boolean isTRACDCBinarySwapped;
-	/** the raw file base */								private String fileBase;
-	/** the "tr" file extension (tr0, tr1, ...) */			private String trExtension;
-	/** the "sw" file extension (sw0, sw1, ...) */			private String swExtension;
-	/** the "ac" file extension (ac0, ac1, ...) */			private String acExtension;
-	/** the "mt" file extension (mt0, mt1, ...) */			private String mtExtension;
-	/** the "pa" file extension (pa0, pa1, ...) */			private String paExtension;
+	/** true if tr/ac/sw file is binary */						private boolean isTRACDCBinary;
+	/** true if binary tr/ac/sw file has bytes swapped */		private boolean isTRACDCBinarySwapped;
+	/** the raw file base */									private String fileBase;
+	/** the "tr" file extension (tr0, tr1, ...): transient */	private String trExtension;
+	/** the "sw" file extension (sw0, sw1, ...): DC */			private String swExtension;
+	/** the "ic" file extension (ic0, ic1, ...): old DC */		private String icExtension;
+	/** the "ac" file extension (ac0, ac1, ...): AC */			private String acExtension;
+	/** the "mt" file extension (mt0, mt1, ...): measurement */	private String mtExtension;
+	/** the "pa" file extension (pa0, pa1, ...): long names */	private String paExtension;
 	private int binaryTRACDCSize, binaryTRACDCPosition;
 	private boolean eofReached;
 	private byte [] binaryTRACDCBuffer;
@@ -128,6 +129,7 @@ public class HSpiceOut extends Simulate
 		fileBase = fileURL.getFile();
 		trExtension = "tr0";
 		swExtension = "sw0";
+		icExtension = "ic0";
 		acExtension = "ac0";
 		mtExtension = "mt0";
 		paExtension = "pa0";
@@ -136,10 +138,12 @@ public class HSpiceOut extends Simulate
 		{
 			String extension = fileBase.substring(dotPos+1);
 			fileBase = fileBase.substring(0, dotPos);
-			if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ac"))
+			if (extension.startsWith("tr") || extension.startsWith("sw") || extension.startsWith("ic") ||
+				extension.startsWith("ac") || extension.startsWith("mt") || extension.startsWith("pa"))
 			{
 				trExtension = "tr" + extension.substring(2);
 				swExtension = "sw" + extension.substring(2);
+				icExtension = "ic" + extension.substring(2);
 				acExtension = "ac" + extension.substring(2);
 				mtExtension = "mt" + extension.substring(2);
 				paExtension = "pa" + extension.substring(2);
@@ -322,11 +326,28 @@ public class HSpiceOut extends Simulate
 		} catch (java.net.MalformedURLException e)
 		{
 		}
-		if (swURL == null) return;
-        if (!TextUtils.URLExists(swURL)) return;
+		if (swURL != null && TextUtils.URLExists(swURL))
+		{
+			// process the DC data
+			readTRDCACFile(sd, swURL, paList, Analysis.ANALYSIS_DC);
+			return;
+		}
 
-		// process the DC data
-		readTRDCACFile(sd, swURL, paList, Analysis.ANALYSIS_DC);
+		// no associated ".sw" file, look for an ".ic" name file
+		URL icURL = null;
+		try
+		{
+			icURL = new URL(fileURL.getProtocol(), fileURL.getHost(), fileURL.getPort(), fileBase + "." + icExtension);
+		} catch (java.net.MalformedURLException e)
+		{
+		}
+		if (icURL != null && TextUtils.URLExists(icURL))
+		{
+			// can't process the DC data
+			System.out.println("ERROR: Cannot read old DC format file: " + fileBase + "." + icExtension +
+				".  Use '.options post' to generate '." + swExtension + "' file.");
+			return;
+		}
 	}
 
 	/**

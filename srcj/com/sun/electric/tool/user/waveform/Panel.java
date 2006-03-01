@@ -696,6 +696,7 @@ public class Panel extends JPanel
 		if (analysisType == null) return;
 		Stimuli sd = waveWindow.getSimData();
 		Analysis an = sd.findAnalysis(analysisType);
+		if (an == null) return;
 		Rectangle2D anBounds = an.getBounds();
 		smallestXValue = anBounds.getWidth() / 1000;
 		smallestYValue = anBounds.getHeight() / 1000;

@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (3/1/06, SMR) R-Tree fails to find objects.
+FIX: Use Epsilon when searching the tree.
+
+BUG: (3/1/06, SMR) HSpice output parser doesn't handle ".ic0" files (Bug #834).
+FIX: Recognize the extension and give an error (.ic0 is the same as .sw0).
+
 BUG: (2/28/06, GVG) NodeInst objects created for the TechPalette have problems with parent field (null)
 and being linked. Thus ENodeInst constructor will produce assertion (Bug #835).
 FIX: PlaceNewNode doesn't require NodeInst object (data required is copied). Side effect: Orientation is serializable.

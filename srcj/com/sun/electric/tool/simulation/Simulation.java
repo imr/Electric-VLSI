@@ -634,6 +634,13 @@ public class Simulation extends Tool
 			ww.setSimData(sd);
 			return;
 		}
+		Iterator<Analysis> anIt = sd.getAnalyses();
+		if (!anIt.hasNext())
+		{
+			System.out.println("ERROR: No simulation data found: waveform window not shown");
+			return;
+		}
+		Analysis an = anIt.next();
 
 		// create a waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
@@ -650,7 +657,6 @@ public class Simulation extends Tool
 			for(int i=0; i<signalNames.length; i++)
 			{
 				String signalName = signalNames[i];
-				Analysis an = sd.getAnalyses().next();
 				Signal xAxisSignal = null;
 				if (signalName.startsWith("\t"))
 				{
@@ -724,7 +730,6 @@ public class Simulation extends Tool
 		}
 
 		// nothing saved, so show a default set of signals (if it even exists)
-		Analysis an = sd.getAnalyses().next();
 		if (sd.isAnalog())
 		{
 			Panel wp = new Panel(ww, an.getAnalysisType());
