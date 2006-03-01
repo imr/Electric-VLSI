@@ -186,9 +186,7 @@ public class SpiceTab extends PreferencePanel
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = cIt.next();
-				String behaveFile = "";
-				Variable var = cell.getVar(Spice.SPICE_MODEL_FILE_KEY);
-				if (var != null) behaveFile = var.getObject().toString();
+				String behaveFile = cell.getSpiceModelFile();
 				initialSpiceModelFiles.put(cell, TempPref.makeStringPref(behaveFile));
 			}
 		}
@@ -202,9 +200,7 @@ public class SpiceTab extends PreferencePanel
 			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 			{
 				Cell cell = cIt.next();
-				String modelFile = "";
-				Variable var = cell.getVar(Spice.SPICE_MODEL_FILE_KEY, String.class);
-				if (var != null) modelFile = (String)var.getObject();
+				String modelFile = cell.getSpiceModelFile();
 				spiceCellModelOptions.put(cell, TempPref.makeStringPref(modelFile));
 			}
 		}
@@ -472,8 +468,7 @@ public class SpiceTab extends PreferencePanel
 				if (!pref.getStringFactoryValue().equals(pref.getString()))
 				{
 					String fileName = pref.getString().trim();
-					if (fileName.length() == 0) cell.delVar(Spice.SPICE_MODEL_FILE_KEY); else
-						cell.newVar(Spice.SPICE_MODEL_FILE_KEY, fileName);
+					cell.setSpiceModelFile(fileName);
 				}
 			}
 		}

@@ -694,6 +694,22 @@ public abstract class LibraryFiles extends Input
 			}
 		}
 
+		// convert Spice model file data (was on cells, now in preferences)
+		Variable.Key SPICE_MODEL_FILE_KEY = Variable.newKey("SIM_spice_behave_file");
+		for(LibraryFiles reader : libsBeingRead)
+		{
+			for(int cellIndex=0; cellIndex<reader.nodeProtoCount; cellIndex++)
+			{
+				Cell cell = reader.nodeProtoList[cellIndex];
+				if (cell == null) continue;
+				Variable var = cell.getVar(SPICE_MODEL_FILE_KEY, String.class);
+				if (var != null)
+				{
+					cell.setSpiceModelFile((String)var.getObject());
+				}
+			}
+		}
+
 		// adjust for old library conversion
 //		convertOldLibraries();
 

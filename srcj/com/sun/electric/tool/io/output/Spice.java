@@ -84,9 +84,7 @@ public class Spice extends Topology
 	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_SM_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_smartspice");
 	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = Variable.newKey("SIM_spice_card");
 	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = Variable.newKey("SIM_spice_declaration");
-//	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = Variable.newKey("SPICE_Code");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
-	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = Variable.newKey("SIM_spice_behave_file");
     /** key of wire capacitance. */                             public static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
     /** key of wire resistance. */                              public static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
@@ -2260,10 +2258,9 @@ public class Spice extends Topology
         if (varTemplate != null) return true;
 
 		// look for a model file on the current cell
-		Variable var = cell.getVar(SPICE_MODEL_FILE_KEY);
-		if (var != null)
-		{
-			String fileName = var.getObject().toString();
+        String fileName = cell.getSpiceModelFile();
+        if (fileName.length() > 0)
+        {
 			if (!fileName.startsWith("-----"))
 			{
 				if (!modelOverrides.contains(cell))
@@ -2274,7 +2271,7 @@ public class Spice extends Topology
 				}
 				return true;
 			}
-		}
+        }
 
 		return false;
     }

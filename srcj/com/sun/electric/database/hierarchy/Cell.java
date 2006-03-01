@@ -47,6 +47,7 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -4255,8 +4256,42 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     public void expandStatusChanged() {
         expandStatusModified = true;
     }
-    
-	/**
+
+    private static HashMap<String,Pref> spiceModelFilePrefs = new HashMap<String,Pref>();
+
+    /**
+     * Method to set the Spice model file associated with this cell.
+     * @param fileName the Spice model file to set. 
+     */
+    public void setSpiceModelFile(String fileName)
+    {
+    	String prefName = "SpiceModelFileFor_" + getName() + "_" + getView().getAbbreviation();
+    	Pref modelPref = spiceModelFilePrefs.get(prefName);
+    	if (modelPref == null)
+    	{
+    		modelPref = Pref.makeStringPref(prefName, getLibrary().getPrefs(), "");
+    		spiceModelFilePrefs.put(prefName, modelPref);
+    	}
+    	modelPref.setString(fileName);
+    }
+
+    /**
+     * Method to get the Spice model file associated with this cell.
+     * @return the Spice model file associated with this cell.
+     */
+    public String getSpiceModelFile()
+    {
+    	String prefName = "SpiceModelFileFor_" + getName() + "_" + getView().getAbbreviation();
+    	Pref modelPref = spiceModelFilePrefs.get(prefName);
+    	if (modelPref == null)
+    	{
+    		modelPref = Pref.makeStringPref(prefName, getLibrary().getPrefs(), "");
+    		spiceModelFilePrefs.put(prefName, modelPref);
+    	}
+    	return modelPref.getString();
+    }
+
+    /**
 	 * Method to set the multi-page capability of this Cell.
 	 * Multipage cells (usually schematics) must have cell frames to isolate the different
 	 * areas of the cell that are different pages.

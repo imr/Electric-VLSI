@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04f: *********************************
 
+BUG: (3/1/06, SMR) Spice model files cannot be changed (Bug #840).
+FIX: Made them preferences instead of storing them in cells.
+
 BUG: (3/1/06, SMR) Cannot create attributes (Bug #838).
 FIX: In Attributes.checkName(), detect existing attributes properly.
 
