@@ -90,6 +90,7 @@ public abstract class NccNameProxy implements Serializable {
 			super(commonPathPrefix);
 			this.nameProxy = nameProxy;
 		}
+		public NodableNameProxy getNodableNameProxy() {return nameProxy;}
 	}
 	public static class WireNameProxy extends NccNameProxy {
     	static final long serialVersionUID = 0;

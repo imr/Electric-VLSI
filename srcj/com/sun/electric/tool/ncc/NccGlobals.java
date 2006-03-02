@@ -36,11 +36,13 @@ import java.util.Random;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -237,6 +239,30 @@ public class NccGlobals {
 			}
 		}
 		return equivNets;
+	}
+    
+	/** @return an NodableNameProxy[][]. NodableNameProxy[d][n] gives the nth net of
+	 * the dth design.  NetNameProxy[a][n] is NCC equivalent to NetNameProxy[b][n]
+	 * for all a and b.*/
+	public NodableNameProxy[][] getEquivalentNodes() {
+		int numDes = getNumNetlistsBeingCompared();
+		NodableNameProxy[][] equivParts = new NodableNameProxy[numDes][];
+		int numMatched = partLeafRecs.numMatched();
+		for (int i=0; i<numDes; i++) {
+			equivParts[i] = new NodableNameProxy[numMatched];
+		}
+		int partNdx = 0;
+		for (Iterator<EquivRecord> it=partLeafRecs.getMatched(); it.hasNext(); partNdx++) {
+			EquivRecord er = it.next();
+			int cktNdx = 0;
+			for (Iterator<Circuit> cit=er.getCircuits(); cit.hasNext(); cktNdx++) {
+				Circuit ckt = cit.next();
+				LayoutLib.error(ckt.numNetObjs()!=1, "not matched?");
+				Part p = (Part) ckt.getNetObjs().next();
+				equivParts[cktNdx][partNdx] = p.getNameProxy().getNodableNameProxy();
+			}
+		}
+		return equivParts;
 	}
     
     /** Get mismatches to be displayed in the GUI

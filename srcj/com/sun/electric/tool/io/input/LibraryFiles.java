@@ -928,6 +928,11 @@ public abstract class LibraryFiles extends Input
             Input.errorLogger.logError("Instance of dummy cell "+proto.getName(), ni, parent, null, 1);
         }
     }
+    private void markCellAndLibraryChanged(Cell c) {
+    	c.setContentsModified();
+    	Library l = c.getLibrary();
+    	l.setChanged();
+    }
 
     void realizeVariables(ElectricObject eObj, Variable[] vars) {
         if (vars == null) return;
@@ -949,10 +954,12 @@ public abstract class LibraryFiles extends Input
 							td = td.withInherit(false).withParam(false).withInterior(true);
 							var = Variable.newInstance(var.getKey(), var.getObject(), td);
 							System.out.println("Cleaned up NCC annotations in cell " + ((Cell)eObj).describe(false));
+							markCellAndLibraryChanged((Cell)eObj);
 						}
 					} else if (eObj instanceof NodeInst)
 					{
 						System.out.println("Removed extraneous NCC annotations from cell instance " + ((NodeInst)eObj).describe(false));
+						markCellAndLibraryChanged(((NodeInst)eObj).getParent());
 						continue;
 					}
 				}

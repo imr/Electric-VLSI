@@ -102,12 +102,12 @@ import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.NetEquivalence;
 import com.sun.electric.tool.ncc.SchemNamesToLay;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
+import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
@@ -126,6 +126,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -372,8 +373,10 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new NccJob(2); } });
 		nccSubMenu.addSeparator();
 		nccSubMenu.addMenuItem("Copy Schematic _Names to Layout", null,
-		    new ActionListener() { public void actionPerformed(ActionEvent e) { new SchemNamesToLay(); } });
-
+		    new ActionListener() { public void actionPerformed(ActionEvent e) { new SchemNamesToLay.RenameJob(); } });
+		nccSubMenu.addMenuItem("Highlight _Equivalent", null,
+			    new ActionListener() { public void actionPerformed(ActionEvent e) { HighlightEquivalent.highlight(); } });
+		
 		MenuBar.Menu nccAnnotationMenu = MenuBar.makeMenu("Add NCC _Annotation to Cell");
 		nccSubMenu.add(nccAnnotationMenu);
 		nccAnnotationMenu.addMenuItem("Exports Connected by Parent _vdd", null,
@@ -685,8 +688,8 @@ public class ToolMenu {
             // update wire models
             for (Network schNet : networks) {
                 // find equivalent network in layouy
-                NetEquivalence equiv = result.getNetEquivalence();
-                HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalent(VarContext.globalContext, schNet);
+                Equivalence equiv = result.getEquivalence();
+                HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalentNet(VarContext.globalContext, schNet);
                 if (proxy == null) {
                     System.out.println("No matching network in layout for "+proxy.toString()+", ignoring");
                     continue;

@@ -27,10 +27,11 @@ import java.io.Serializable;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.NetEquivalence;
+import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.user.ncc.NccGuiInfo;
 
 /** The result of running a netlist comparison on a single pair of Cells. 
@@ -57,23 +58,28 @@ public class NccResult implements Serializable {
 	private Cell[] rootCells;
 	private String[] rootCellNames;
 	private VarContext[] rootContexts; 
-	private NetEquivalence netEquivalence;
+	private Equivalence equivalence;
 	private NccGuiInfo nccGuiInfo;
 	private NccOptions options;
 	private CellSummary summary;
 	
-	private NetEquivalence buildNetEquivalence(NccGlobals globalData) {
+	private Equivalence buildNetEquivalence(NccGlobals globalData) {
 		NetNameProxy[][] equivNets;
+		NodableNameProxy[][] equivNodes;
 		if (globalData==null) {
 			// For severe netlist errors, NCC doesn't even construct globalData.
 			// Create a NetEquivalence that has no matching nets.
 			equivNets = new NetNameProxy[2][];
 			equivNets[0] = new NetNameProxy[0];
 			equivNets[1] = new NetNameProxy[0];
+			equivNodes = new NodableNameProxy[2][];
+			equivNodes[0] = new NodableNameProxy[0];
+			equivNodes[1] = new NodableNameProxy[0];
 		} else {
 			equivNets = globalData.getEquivalentNets();
+			equivNodes = globalData.getEquivalentNodes();
 		}
-		return new NetEquivalence(equivNets);
+		return new Equivalence(equivNets, equivNodes);
 	}
 	
 	private NccResult(boolean exportNameMatch, boolean topologyMatch, 
@@ -87,7 +93,7 @@ public class NccResult implements Serializable {
 		rootCells = globalData.getRootCells();
 		rootCellNames = globalData.getRootCellNames();
 		rootContexts = globalData.getRootContexts();
-		netEquivalence = buildNetEquivalence(globalData);
+		equivalence = buildNetEquivalence(globalData);
 		nccGuiInfo = globalData.getNccGuiInfo();
 		options = globalData.getOptions();
         summary = new CellSummary(globalData.getPartCounts(),
@@ -134,8 +140,8 @@ public class NccResult implements Serializable {
 	/** No problem was found */
 	public boolean match() {return exportMatch && topologyMatch && sizeMatch;}
 	
-	/** return object that maps between Networks in the two designs */
-	public NetEquivalence getNetEquivalence() {return netEquivalence;}
+	/** return object that maps between Nodes and Networks in the two designs */
+	public Equivalence getEquivalence() {return equivalence;}
 
 	public String summary(boolean checkSizes) {
 		String s;

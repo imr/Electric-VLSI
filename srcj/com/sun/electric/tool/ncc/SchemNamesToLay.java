@@ -7,29 +7,53 @@ import java.util.List;
 import java.util.Map;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
+import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.user.User;
 
 /** Copy schematic names to layout */
-public class SchemNamesToLay extends Job {
-    static final long serialVersionUID = 0;
-    
-    private String header;
-    
-    // these fields are passed to server 
-    private final NccResults results;
+public class SchemNamesToLay {
+    public static class RenameJob extends Job {
+        static final long serialVersionUID = 0;
 
-    /** For class is an experiment. It allows me to use the compact for 
+        // these fields are passed to server 
+        private final NccResults results;
+
+        public boolean doIt() throws JobException {
+        	SchemNamesToLay.copyNames(results);
+        	return true;
+        }
+
+        public void terminateOK() {
+        	// We've changed the netlist so the old NetEquivalence table is invalid
+        	NccJob.invalidateLastNccResult();
+        }
+
+        public RenameJob() {
+        	super("SchemNamesToLayJob", User.getUserTool(), Job.Type.CHANGE, 
+        		  null, null, Job.Priority.USER);
+        	results = NccJob.getLastNccResults();
+        	startJob();
+        }
+    }
+    
+    static final long serialVersionUID = 0;
+    private String header;
+
+    /** "For" class is an experiment. It allows me to use the compact "for" 
 	 * syntax when I have an iterators rather than an Iterable. */
 	private static class For<T> implements Iterable<T> {
     	Iterator<T> it;
@@ -52,7 +76,7 @@ public class SchemNamesToLay extends Job {
 
 
     private void copySchematicNamesToLayout(NccResult result) {
-        NetEquivalence equivs = result.getNetEquivalence();
+        Equivalence equivs = result.getEquivalence();
         Cell [] rootCells = result.getRootCells();
 
         // get layout cell
@@ -88,8 +112,8 @@ public class SchemNamesToLay extends Job {
 
     /** @return true if schematic net's preferred name conflicts with some
      * non-equivalent layout net */
-    private boolean reportNameConflicts(Network schNet, Network layNet,
-    		                            Map<String,Network> layNmsToNets) {
+    private boolean reportNetNameConflicts(Network schNet, Network layNet,
+    		                               Map<String,Network> layNmsToNets) {
     	String prefSchNm = schNet.getName();
     	LayoutLib.error(isAutoGenName(prefSchNm), "missing preferred name");
     	boolean prefNameConflict = false;
@@ -100,7 +124,7 @@ public class SchemNamesToLay extends Job {
     		if (layNetWithSameName!=layNet) {
     			prefNameConflict |= schNm.equals(prefSchNm);
     			printHeader();
-    			prln("  Schematic and layout each have a Network named: "+schNm+
+    			prln("    Schematic and layout each have a Network named: "+schNm+
 				     " but those networks don't match topologically.");
     		}
     	}
@@ -124,14 +148,14 @@ public class SchemNamesToLay extends Job {
     
     private List<ArcAndName> buildArcNameList(Cell schCell, Cell layCell,
             						          VarContext schCtxt,
-                                              NetEquivalence equivs) {
+                                              Equivalence equivs) {
     	Map<String, Network> layNmsToNets = namesToNetworks(layCell);
 
     	List<ArcAndName> arcAndNms = new ArrayList<ArcAndName>();
 
     	Netlist nets = schCell.getNetlist(true);
     	for (Network schNet : new For<Network>(nets.getNetworks())) {
-    		NetNameProxy layProx = equivs.findEquivalent(schCtxt, schNet);
+    		NetNameProxy layProx = equivs.findEquivalentNet(schCtxt, schNet);
 
     		// skip if layout has no equivalent net (e.g.: net in center of 
     		// NMOS_2STACK)
@@ -155,7 +179,7 @@ public class SchemNamesToLay extends Job {
     		// because some nets connected by exportsConnectedByParent
     		// will have conflicts
     		boolean prefNameConflict = 
-    			reportNameConflicts(schNet, layNet, layNmsToNets);
+    			reportNetNameConflicts(schNet, layNet, layNmsToNets);
     		
     		// If schematic's preferred name is already on some other
     		// layout net then designer needs to fix.
@@ -169,7 +193,7 @@ public class SchemNamesToLay extends Job {
 
     		if (!isAutoGenName(layName)) {
     			printHeader();
-    			prln("  The layout Network named: "+layName+
+    			prln("    The layout Network named: "+layName+
     				 " should, instead, be named: "+schName);
     			continue;
     		}
@@ -180,51 +204,156 @@ public class SchemNamesToLay extends Job {
     		if (ai==null) continue;
 
     		printHeader();
-    		prln("  Renaming arc from: "+ai.getName()+" to: "+schName);
+    		prln("    Renaming arc from: "+ai.getName()+" to: "+schName);
     		arcAndNms.add(new ArcAndName(ai, schName));
     	}
 		return arcAndNms;
     }
-
+    
     private void renameArcs(List<ArcAndName> arcAndNms) {
     	for (ArcAndName an : arcAndNms)  an.arc.setName(an.name);
     }
-    // Tricky: renaming ArcInsts invalidates the Networks. Therefore first
-    // find all Arcs before renaming any of them.
-    private void copySchematicNamesToLayout(Cell schCell, Cell layCell,
-                                            VarContext schCtxt,
-                                            NetEquivalence equivs) {
-    	header = "Copy from: "+schCell.describe(false)+" to "+
-    	layCell.describe(false);
-    	List<ArcAndName> arcAndNms = 
-    		buildArcNameList(schCell, layCell, schCtxt, equivs);
-    	renameArcs(arcAndNms);
+
+    /** @return true if schematic Nodable's name conflicts with some
+     * non-equivalent layout Nodable */
+    private boolean reportNodeNameConflicts(Nodable schNode, NodeInst layNode,
+    		                                Map<String,NodeInst> layNmsToNodes) {
+    	String schNm = schNode.getName();
+    	NodeInst ni = layNmsToNodes.get(schNm);
+    	if (ni==null) return false;
+
+    	if (ni!=layNode) {
+    		printHeader();
+    		prln("    Schematic and layout each have a Nodable named: "+schNm+
+				 " but those Nodables don't match topologically.");
+    		return true;
+    	}
+    	return false;
     }
 
-    public boolean doIt() throws JobException {
+    private Map<String, NodeInst> namesToNodes(Cell c) {
+    	Map<String, NodeInst> nmsToNodes = new HashMap<String, NodeInst>();
+    	for (Nodable no : new For<Nodable>(c.getNodables())) {
+    		if (no instanceof NodeInst) {
+    			nmsToNodes.put(no.getName(), (NodeInst)no);
+    		}
+    	}
+    	return nmsToNodes;
+    }
+
+    private static class NodeAndName {
+    	public final NodeInst node;
+    	public final String name;
+    	NodeAndName(NodeInst no, String na) {node=no; name=na;}
+    }
+    
+    private List<NodeAndName> buildNodeNameList(Cell schCell, Cell layCell,
+	          								    VarContext schCtxt,
+	          								    Equivalence equivs) {
+    	Map<String, NodeInst> layNmsToNodes = namesToNodes(layCell);
+    	
+    	List<NodeAndName> nodeAndNms = new ArrayList<NodeAndName>();
+    	
+    	for (Nodable schNode : new For<Nodable>(schCell.getNodables())) {
+    		NodableNameProxy layProx = equivs.findEquivalentNode(schCtxt, schNode);
+    		
+    		// skip if layout has no equivalent nodable (e.g.: MOS deleted 
+    		// because it is in parallel to another MOS 
+    		if (layProx==null)  continue;
+    		
+    		Nodable layNode = layProx.getNodable();
+    		
+    		// skip if layout Nodable isn't in top level Cell 
+    		if (layNode.getParent()!=layCell) continue;
+    		
+    		// skip if layout Nodable isn't a NodeInst. (This can happen
+    		// because Electric allows mixing of schematics and layout elements
+    		// in the same Cell.
+    		if (!(layNode instanceof NodeInst)) continue;
+    		
+    		NodeInst layNodeInst = (NodeInst) layNode;
+    		
+    		String schName = schNode.getName();
+    		
+    		// skip if schematic name is automatically generated
+    		if (isAutoGenName(schName)) continue;
+    		
+    		//If schematic Nodable's name is already on some other
+    		// layout NodeInst then designer needs to fix.
+    		boolean nameConflict = 
+    			reportNodeNameConflicts(schNode, layNodeInst, layNmsToNodes);
+    		if (nameConflict) continue;
+    		
+    		String layName = layNodeInst.getName();
+    		
+    		// If the schematic and layout nodes already have the
+    		// same name then we're all set
+    		if (layName.equals(schName)) continue;
+    		
+    		if (!isAutoGenName(layName)) {
+    			printHeader();
+    			prln("    The layout NodeInst named: "+layName+
+    					" should, instead, be named: "+schName);
+    			continue;
+    		}
+    		
+    		printHeader();
+    		prln("    Renaming NodeInst from: "+layNodeInst.getName()+" to: "+
+    			 schName);
+    		nodeAndNms.add(new NodeAndName(layNodeInst, schName));
+    	}
+    	return nodeAndNms;
+    }
+    
+    private void renameNodes(List<NodeAndName> nodeAndNms) {
+    	for (NodeAndName an : nodeAndNms)  an.node.setName(an.name);
+    }
+
+    // Tricky: renaming ArcInsts invalidates the Networks. Therefore first
+    // find all Arcs before renaming any of them. I don't think NodeInsts
+    // have this problem but I do it the same way as Arcs anyway.
+    private void copySchematicNamesToLayout(Cell schCell, Cell layCell,
+                                            VarContext schCtxt,
+                                            Equivalence equivs) {
+    	header = "  Copy from: "+schCell.describe(false)+" to "+
+		         layCell.describe(false);
+
+    	if (!schCell.isSchematic()) {
+    		printHeader();
+    		prln("    First Cell isn't schematic: "+schCell.describe(false));
+    		return;
+    	}
+    	if (layCell.getView()!=View.LAYOUT) {
+    		printHeader();
+    		prln("    Second Cell isn't layout: "+layCell.describe(false));
+    		return;
+    	}
+    		
+    	List<ArcAndName> arcAndNms = 
+    		buildArcNameList(schCell, layCell, schCtxt, equivs);
+    	List<NodeAndName> nodeAndNms =
+    		buildNodeNameList(schCell, layCell, schCtxt, equivs);
+    	renameArcs(arcAndNms);
+    	renameNodes(nodeAndNms);
+    }
+    
+    // Constructor does all the work
+    private SchemNamesToLay(NccResults results) {
     	prln("Begin copying Network and Instance names from Schematic to Layout");
     	if (results==null) {
-    		prln("  No valid net equivalence table. Please re-run NCC.");
-    		return true;
+    		prln("  No saved NCC results. Please run NCC first.");
+    		return;
     	}
     	
     	for (NccResult r : results) {
     		if (r.match())  copySchematicNamesToLayout(r);
     	}
     	prln("Done");
-    	return true;
     }
     
-    public void terminateOK() {
-    	// We've changed the netlist so the old NetEquivalence table is invalids
-    	NccJob.invalidateLastNccResult();
-    }
     
     // --------------------------- public method -----------------------------
-    public SchemNamesToLay() {
-    	super("SchemNamesToLayJob", User.getUserTool(), Job.Type.CHANGE, null, 
-    			null, Job.Priority.USER);
-    	results = NccJob.getLastNccResults();
-    	startJob();
+    public static void copyNames(NccResults r) {
+    	new SchemNamesToLay(r);
     }
 }

@@ -141,7 +141,10 @@ public class HighlightTools {
     }
     
     public static void highlightWire(Highlighter highlighter, Cell cell, WireReport wire) {
-        String name = wire.getNameProxy().leafName();
+        highlightNetNamed(highlighter, cell, wire.getNameProxy().leafName());
+    }
+    
+    public static void highlightNetNamed(Highlighter highlighter, Cell cell, String name) {
         Netlist netlist = cell.acquireUserNetlist();
         if (netlist == null) {
             System.out.println("Sorry, a deadlock aborted mimic-routing (network information unavailable).  Please try again");
