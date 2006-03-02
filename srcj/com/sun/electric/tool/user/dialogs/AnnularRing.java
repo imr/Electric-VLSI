@@ -31,6 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
@@ -57,6 +58,20 @@ public class AnnularRing extends EDialog
 	private JList layerJList;
 	private DefaultListModel layerModel;
 	private Cell cell;
+
+    // To have ability to store directly the PrimitiveNode and not
+    // to depende on names to search the PrimitiveNode instance
+    // and have ability to handle DRC Exclusion node
+    private static class AnnularRingNode
+    {
+        public PrimitiveNode node;
+
+        AnnularRingNode(PrimitiveNode t) { node = t; }
+
+        // This avoids to call PrimitiveNode.toString() and get
+        // extra text.
+        public String toString() { return node.getName(); }
+    }
 
 	/**
 	 * Method to display the dialog for building annular rings.
@@ -96,8 +111,9 @@ public class AnnularRing extends EDialog
 		{
 			PrimitiveNode np = it.next();
 			if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
-			layerModel.addElement(np.getName());
+			layerModel.addElement(new AnnularRingNode(np));
 		}
+        layerModel.addElement(new AnnularRingNode(Generic.tech.drcNode));
 		layerJList.setSelectedIndex(0);
 
 		innerRadius.setText(TextUtils.formatDouble(lastInner));
@@ -126,8 +142,7 @@ public class AnnularRing extends EDialog
 		int degrees = lastDegrees * 10;
 
 		// figure out what node to use
-		String nodeName = (String)layerJList.getSelectedValue();
-		PrimitiveNode np = Technology.getCurrent().findNodeProto(nodeName);
+        PrimitiveNode np = ((AnnularRingNode)layerJList.getSelectedValue()).node;
 		if (np == null) return;
 		new MakeAnnulus(cell, np, lastSegments, degrees, lastInner, lastOuter);
 	}
