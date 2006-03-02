@@ -23,14 +23,10 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.Frame;
-import java.util.HashMap;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 
 /**
@@ -50,11 +46,6 @@ public class GDSTab extends PreferencePanel
 
 	/** return the name of this preferences tab. */
 	public String getName() { return "GDS"; }
-
-	private JList gdsLayersList;
-	private DefaultListModel gdsLayersModel;
-	private boolean changingGDS = false;
-	private HashMap<Layer,String> layerMap;
 
 	/**
 	 * Method called at the start of the dialog.
