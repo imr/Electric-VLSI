@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04g: *********************************
+
 ************************* Version 8.04f: *********************************
 
 BUG: (3/2/06, GVG) Wrong initialization on Mac. Class MacOSXInterface was moved to tool.user package (#bug 837)
