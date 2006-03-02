@@ -98,10 +98,6 @@ public class PolyMerge
 		}
 
 		// add "poly" to "area"
-		/*
-		Rectangle2D bounds = poly.getBox();
-		assert(bounds != null);
-		**/
 		// It can't add only rectangles otherwise it doesn't cover
 		// serpentine transistors.
 		Area additionalArea = new Area(poly);
