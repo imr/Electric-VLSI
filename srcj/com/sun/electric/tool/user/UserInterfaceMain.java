@@ -124,7 +124,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             // see if there is a Mac OS/X interface
             if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
                 try {
-                    osXClass = Class.forName("com.sun.electric.MacOSXInterface");
+                    osXClass = Class.forName("com.sun.electric.tool.user.MacOSXInterface");
                     
                     // find the necessary methods on the Mac OS/X class
                     try {
@@ -142,7 +142,6 @@ public class UserInterfaceMain extends AbstractUserInterface
                     }
                 } catch (ClassNotFoundException e) {}
             }
-            //		MacOSXInterface.registerMacOSXApplication(argsList);
             
             //runThreadStatusTimer();
             
