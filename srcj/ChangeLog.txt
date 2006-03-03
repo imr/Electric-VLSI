@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/3/06, GVG) Exception in MenuBar.finished() and ToolBar.finished() when setUI(null) (Bug #843).
+FIX: line commented out.
+
 IMP: (3/3/06, GVG) New Spice engine in SpiceTab. This is for those running HSpice for Assura.
 
 IMP: (3/3/06, RK) Add NCC Annotation to Cell throws serialization exception. Due to new client/server model. (Bugzilla# 844)

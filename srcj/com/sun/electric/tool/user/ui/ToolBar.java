@@ -772,7 +772,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
                 b.finished();
             }
         }
-        setUI(null);
+//        setUI(null);
         UserInterfaceMain.removeUndoRedoListener(this);
     }
 

@@ -673,7 +673,7 @@ public class MenuBar extends JMenuBar
             if (menu == null) continue;
             disposeofMenu(menu);
         }
-		setUI(null);
+//		setUI(null);
         UserInterfaceMain.removeUndoRedoListener(undoLis);
 		TextWindow.removeTextUndoListener(undoLis);
         UserInterfaceMain.removeUndoRedoListener(redoLis);
