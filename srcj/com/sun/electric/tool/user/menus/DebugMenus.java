@@ -519,107 +519,6 @@ public class DebugMenus
 		}
 	}
 
-    public static void makeFakeCircuitryForCoverageCommand(String tech, boolean asJob)
-	{
-		// test code to make and show something
-        if (asJob)
-        {
-            FakeCoverageCircuitry job = new FakeCoverageCircuitry(tech);
-        }
-        else
-        {
-            Cell myCell = FakeCoverageCircuitry.doItInternal(tech);
-            if (!Job.BATCHMODE)
-			    WindowFrame.createEditWindow(myCell);
-        }
-	}
-
-    private static class FakeCoverageCircuitry extends Job
-    {
-        private String theTechnology;
-        private Cell myCell;
-
-        protected FakeCoverageCircuitry(String tech)
-        {
-            super("Make fake circuitry for coverage tests", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            theTechnology = tech;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-            myCell = doItInternal(theTechnology);
-			fieldVariableChanged("myCell");
-            return true;
-        }
-
-        public void terminateOK()
-        {
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
-			// display a cell
-            if (!BATCHMODE)
-			    WindowFrame.createEditWindow(myCell);
-        }
-
-        private static Cell doItInternal(String technology)
-		{
-			// get information about the nodes
-			Technology tech = Technology.findTechnology(technology);
-			if (tech == null)
-			{
-				System.out.println("Technology not found in createCoverageTestCells");
-				return null;
-			}
-			tech.setCurrent();
-
-			NodeProto m1NodeProto = Cell.findNodeProto(technology+":Metal-1-Node");
-            NodeProto m2NodeProto = Cell.findNodeProto(technology+":Metal-2-Node");
-            NodeProto m3NodeProto = Cell.findNodeProto(technology+":Metal-3-Node");
-            NodeProto m4NodeProto = Cell.findNodeProto(technology+":Metal-4-Node");
-
-            NodeProto invisiblePinProto = Cell.findNodeProto("generic:Invisible-Pin");
-
-			// get information about the arcs
-			ArcProto m1ArcProto = ArcProto.findArcProto(technology+":Metal-1");
-
-			// get the current library
-			Library mainLib = Library.getCurrent();
-
-			// create a layout cell in the library
-			Cell m1Cell = Cell.makeInstance(mainLib, technology+"Metal1Test{lay}");
-            NodeInst metal1Node = NodeInst.newInstance(m1NodeProto, new Point2D.Double(0, 0), m1NodeProto.getDefWidth(), m1NodeProto.getDefHeight(), m1Cell);
-
-            // Two metals
-            Cell myCell = Cell.makeInstance(mainLib, technology+"M1M2Test{lay}");
-            NodeInst node = NodeInst.newInstance(m1NodeProto, new Point2D.Double(-m1NodeProto.getDefWidth()/2, -m1NodeProto.getDefHeight()/2),
-                    m1NodeProto.getDefWidth(), m1NodeProto.getDefHeight(), myCell);
-            node = NodeInst.newInstance(m2NodeProto, new Point2D.Double(-m2NodeProto.getDefWidth()/2, m2NodeProto.getDefHeight()/2),
-                    m2NodeProto.getDefWidth(), m2NodeProto.getDefHeight(), myCell);
-            node = NodeInst.newInstance(m3NodeProto, new Point2D.Double(m3NodeProto.getDefWidth()/2, -m3NodeProto.getDefHeight()/2),
-                    m3NodeProto.getDefWidth(), m3NodeProto.getDefHeight(), myCell);
-            node = NodeInst.newInstance(m4NodeProto, new Point2D.Double(m4NodeProto.getDefWidth()/2, m4NodeProto.getDefHeight()/2),
-                    m4NodeProto.getDefWidth(), m4NodeProto.getDefHeight(), myCell);
-
-			// now up the hierarchy
-			Cell higherCell = Cell.makeInstance(mainLib, "higher{lay}");
-			Rectangle2D bounds = myCell.getBounds();
-			double myWidth = myCell.getDefWidth();
-			double myHeight = myCell.getDefHeight();
-            for (int iX = 0; iX < 2; iX++) {
-                boolean flipX = iX != 0;
-                for (int i = 0; i < 4; i++) {
-                    Orientation orient = Orientation.fromJava(i*900, flipX, false);
-                    NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(i*myWidth, iX*myHeight), myWidth, myHeight, higherCell, orient, null, 0);
-                    instanceNode.setExpanded();
-                }
-            }
-			System.out.println("Created " + higherCell);
-
-            return myCell;
-		}
-    }
-
 	/**
 	 * Test method to build an analog waveform with fake data.
 	 */
@@ -1121,7 +1020,7 @@ public class DebugMenus
 
     public static void genFakeNodes()
     {
-        makeFakeCircuitryForCoverageCommand("tsmc90", true);
+        LayerCoverageTool.makeFakeCircuitryForCoverageCommand("tsmc90", true);
     }
 
 	/**

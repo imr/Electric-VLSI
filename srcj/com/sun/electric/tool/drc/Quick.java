@@ -57,15 +57,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This is the "quick" DRC which does full hierarchical examination of the circuit.
@@ -186,10 +178,11 @@ public class Quick
 	private static class DRCExclusion
 	{
 		Cell cell;
-		Poly poly;
+		PolyBase poly;
 		NodeInst ni;
 	};
-	private List<DRCExclusion> exclusionList = new ArrayList<DRCExclusion>();
+//	private List<DRCExclusion> exclusionList = new ArrayList<DRCExclusion>();
+    private Map<Cell,Area> exclusionMap = new HashMap<Cell,Area>();
 
 
 	/** number of processes for doing DRC */					private int numberOfThreads;
@@ -407,7 +400,8 @@ public class Quick
 			System.out.println("Found " + checkNetNumber + " networks");
 
 		// now search for DRC exclusion areas
-		exclusionList.clear();
+//		exclusionList.clear();
+        exclusionMap.clear();
 		accumulateExclusion(cell);
 
 		// now do the DRC
@@ -503,14 +497,20 @@ public class Quick
 
 		// first check all subcells
 		boolean allSubCellsStillOK = true;
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+        Area area = exclusionMap.get(cell);
+
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (!ni.isCellInstance()) continue;
 
 			// ignore documentation icons
 			if (ni.isIconOfParent()) continue;
+
+            // Check DRC exclusion regions
+            if (area != null && area.contains(ni.getBounds()))
+                continue; // excluded
 
 			// ignore if not in the area
 			Rectangle2D subBounds = bounds; // sept30
@@ -565,14 +565,21 @@ public class Quick
 		// Only for the most top cell
 		if (cell == topCell && !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL)
 			totalMsgFound = checkMinArea(cell);
-        //instanceInteractionList.clear();   test 1
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = (NodeInst)it.next();
+			NodeInst ni = it.next();
 			if (bounds != null)
 			{
 				if (!ni.getBounds().intersects(bounds)) continue;
 			}
+            if (area != null)
+            {
+                if (area.contains(ni.getBounds()))
+                {
+                    continue;
+                }
+            }
 			boolean ret = (ni.isCellInstance()) ?
 			        checkCellInst(ni, globalIndex) :
 			        checkNodeInst(ni, globalIndex);
@@ -701,6 +708,15 @@ public class Quick
 
         if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
 
+        Area area = exclusionMap.get(ni.getParent());
+        if (area != null)
+        {
+            if (area.contains(ni.getBounds()))
+            {
+                System.out.println("DRC Exclusion found");
+                return false;
+            }
+        }
         // Already done
 		if (nodesMap.get(ni) != null)
 			return (false);
@@ -4132,37 +4148,49 @@ public class Quick
 	 */
 	private void accumulateExclusion(Cell cell)
 	{
+        Area area = null;
+
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
 			NodeProto np = ni.getProto();
 			if (np == Generic.tech.drcNode)
 			{
-				DRCExclusion dex = new DRCExclusion();
-				dex.cell = cell;
-				// extract the information about this DRC exclusion node
-				dex.poly = new Poly(ni.getBounds());
+//				DRCExclusion dex = new DRCExclusion();
+//				dex.cell = cell;
+//				// extract the information about this DRC exclusion node
+//				dex.poly = new PolyBase(ni.getBounds());
+
+                //@ToDo: it must get the original polygon
 				/*
 				AffineTransform subUpTrans = ni.rotateOut();
 				subUpTrans.preConcatenate(upTrans);
 				dex.poly.transform(subUpTrans);
 				*/
-				dex.poly.setStyle(Poly.Type.FILLED);
-				dex.ni = ni;
+//				dex.poly.setStyle(Poly.Type.FILLED);
+//				dex.ni = ni;
+                // Must get polygon from getNodeShape otherwise it will miss
+                // rings
+                Poly [] list = cell.getTechnology().getShapeOfNode(ni, null, null, true, true, null);
+                Area thisArea = new Area(list[0]); // ni.getBounds());
+                if (area == null)
+                    area = thisArea;
+                else
+                    area.add(thisArea);
 
-				// see if it is already in the list
-				boolean found = false;
-				for(Iterator<DRCExclusion> dIt = exclusionList.iterator(); dIt.hasNext(); )
-				{
-					DRCExclusion oDex = dIt.next();
-					if (oDex.cell != cell) continue;
-					if (oDex.poly.polySame(dex.poly))
-					{
-						found = true;
-						break;
-					}
-				}
-				if (!found) exclusionList.add(dex);
+//				// see if it is already in the list
+//				boolean found = false;
+//				for(Iterator<DRCExclusion> dIt = exclusionList.iterator(); dIt.hasNext(); )
+//				{
+//					DRCExclusion oDex = dIt.next();
+//					if (oDex.cell != cell) continue;
+//					if (oDex.poly.polySame(dex.poly))
+//					{
+//						found = true;
+//						break;
+//					}
+//				}
+//				if (!found) exclusionList.add(dex);
 				continue;
 			}
 
@@ -4172,10 +4200,61 @@ public class Quick
 //				AffineTransform tTrans = ni.translateOut(ni.rotateOut());
 				accumulateExclusion((Cell)np);
 			}
-		}
+		};
+        exclusionMap.put(cell, area);
 	}
 
 	/*********************************** QUICK DRC ERROR REPORTING ***********************************/
+    private boolean checkExclusionMap(Cell cell, List<PolyBase> polyList, List<Geometric> geomList, StringBuffer DRCexclusionMsg)
+    {
+        Area area = exclusionMap.get(cell);
+        if (area == null) return false;
+
+        int count = 0;
+
+        for (int i = 0; i < polyList.size(); i++)
+        {
+            PolyBase thisPoly = polyList.get(i);
+            if (thisPoly == null)
+                continue; // MinNode case
+            boolean found = area.contains(thisPoly.getBounds2D());
+
+            if (found) count++;
+            else DRCexclusionMsg.append("\n\t(DRC Exclusion in '" + cell.getName() + "' does not completely contain " +
+                        ((Geometric)geomList.get(i)) + ")");
+        }
+        // At least one DRC exclusion that contains both
+        if (count == polyList.size())
+            return true;
+        return false;
+    }
+
+//    private boolean checkExclusionList(Cell cell, List<PolyBase> polyList, List<Geometric> geomList, StringBuffer DRCexclusionMsg)
+//    {
+//        for(Iterator<DRCExclusion> it = exclusionList.iterator(); it.hasNext(); )
+//        {
+//            DRCExclusion dex = it.next();
+//            if (cell != dex.cell) continue;
+//            PolyBase poly = dex.poly;
+//            int count = 0;
+//
+//            for (int i = 0; i < polyList.size(); i++)
+//            {
+//                PolyBase thisPoly = polyList.get(i);
+//                if (thisPoly == null)
+//                    continue; // MinNode case
+//                boolean found = poly.contains(thisPoly.getBounds2D());
+//
+//                if (found) count++;
+//                else DRCexclusionMsg.append("\n\t(DRC Exclusion '" + dex.ni.getName() + "' does not completely contain " +
+//                            ((Geometric)geomList.get(i)) + ")");
+//            }
+//            // At least one DRC exclusion that contains both
+//            if (count == polyList.size())
+//                return true;
+//        }
+//        return false;
+//    }
 
 	/* Adds details about an error to the error list */
 	private void reportError(DRCErrorType errorType, String msg,
@@ -4187,7 +4266,8 @@ public class Quick
 
 		// if this error is in an ignored area, don't record it
 		StringBuffer DRCexclusionMsg = new StringBuffer();
-		if (exclusionList.size() > 0)
+//		if (exclusionList.size() > 0)
+        if (exclusionMap.get(cell) != null)
 		{
 			// determine the bounding box of the error
 			List<PolyBase> polyList = new ArrayList<PolyBase>(2);
@@ -4198,28 +4278,12 @@ public class Quick
 				polyList.add(poly2);
 				geomList.add(geom2);
 			}
-			for(Iterator it = exclusionList.iterator(); it.hasNext(); )
-			{
-				DRCExclusion dex = (DRCExclusion)it.next();
-				if (cell != dex.cell) continue;
-				Poly poly = dex.poly;
-				int count = 0;
+//            boolean found = checkExclusionList(cell, polyList, geomList, DRCexclusionMsg);
+            boolean found = checkExclusionMap(cell, polyList, geomList, DRCexclusionMsg);
 
-				for (int i = 0; i < polyList.size(); i++)
-				{
-					Poly thisPoly = (Poly)polyList.get(i);
-					if (thisPoly == null)
-						continue; // MinNode case
-					boolean found = poly.contains(thisPoly.getBounds2D());
-
-					if (found) count++;
-					else DRCexclusionMsg.append("\n\t(DRC Exclusion '" + dex.ni.getName() + "' does not completely contain " +
-						        ((Geometric)geomList.get(i)) + ")");
-				}
-				// At least one DRC exclusion that contains both
-				if (count == polyList.size())
-					return;
-			}
+//            assert(found == foundNew);
+            // At least one DRC exclusion that contains both
+            if (found) return;
 		}
 
 		// describe the error

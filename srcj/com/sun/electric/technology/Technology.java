@@ -1655,7 +1655,8 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, List onlyTheseLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical,
+                                  boolean reasonable, List<Layer.Function> onlyTheseLayers)
 	{
 		if (ni.isCellInstance()) return null;
 
@@ -3259,7 +3260,7 @@ public class Technology implements Comparable<Technology>
      */
     protected void setFactoryPrefFoundry(String factoryName)
     {
-        prefFoundry = TechPref.makeStringSetting(this, "SelectedFoundryFor"+techName, this,
+        prefFoundry = TechPref.makeStringSetting(this, "SelectedFoundryFor"+techName,
         	"Technology/Design Rules (" + techName + ") tab", techName + " foundry", factoryName.toUpperCase());
     }
 
@@ -4018,7 +4019,7 @@ public class Technology implements Comparable<Technology>
 	{
         private Technology tech;
 
-		private TechPref(Technology tech, Object ownerObj, String location, String description, String name)
+		private TechPref(Technology tech, String location, String description, String name)
         {
             super(Technology.prefs, name);
             this.tech = tech;
@@ -4041,23 +4042,23 @@ public class Technology implements Comparable<Technology>
 			ui.repaintAllEditWindows();
 		}
 
-		public static Pref makeBooleanSetting(Technology tech, String name, Object ownerObj, String location, String description, boolean factory)
+		public static Pref makeBooleanSetting(Technology tech, String name, String location, String description, boolean factory)
 		{
-			TechPref pref = new TechPref(tech, ownerObj, location, description, name);
+			TechPref pref = new TechPref(tech, location, description, name);
 			pref.initBoolean(factory);
 			return pref;
 		}
 
-		public static Pref makeIntSetting(Technology tech, String name, Object ownerObj, String location, String description, int factory)
+		public static Pref makeIntSetting(Technology tech, String name, String location, String description, int factory)
 		{
-			TechPref pref = new TechPref(tech, ownerObj, location, description, name);
+			TechPref pref = new TechPref(tech, location, description, name);
 			pref.initInt(factory);
 			return pref;
 		}
 
-        public static Pref makeStringSetting(Technology tech, String name, Object ownerObj, String location, String description, String factory)
+        public static Pref makeStringSetting(Technology tech, String name, String location, String description, String factory)
 		{
-			TechPref pref = new TechPref(tech, ownerObj, location, description, name);
+			TechPref pref = new TechPref(tech, location, description, name);
 			pref.initString(factory);
 			return pref;
 		}

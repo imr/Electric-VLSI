@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
@@ -40,6 +38,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.extract.Extract;
 import com.sun.electric.tool.extract.ParasiticTool;
+import com.sun.electric.tool.extract.LayerCoverageTool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -119,6 +118,7 @@ public class Tool implements Comparable
         Routing.getRoutingTool().init();
         SilComp.getSilCompTool().init();
         Simulation.getSimulationTool().init();
+        LayerCoverageTool.getLayerCoverageTool().init();
 	}
 
 	/**
@@ -340,4 +340,12 @@ public class Tool implements Comparable
 	 * Gets overridden by tools that want to do initialization.
 	 */
 	public void init() {}
+
+    /***********************************
+     * Test interface
+     ***********************************/
+    public static boolean testAll()
+    {
+        return true; // nothing to test
+    }
 }

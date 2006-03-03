@@ -28,11 +28,14 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -40,6 +43,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
@@ -48,6 +52,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.Tool;
 
+import javax.swing.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.awt.geom.AffineTransform;
@@ -69,6 +74,12 @@ public class LayerCoverageTool extends Tool
 	{
 		super("coverage");
 	}
+
+    /**
+     * Method to retrieve the singleton associated with the LayerCoverageTool tool.
+     * @return the LayerCoverageTool tool.
+     */
+    public static LayerCoverageTool getLayerCoverageTool() { return tool; }
 
     /****************************** OPTIONS ******************************/
 
@@ -158,7 +169,7 @@ public class LayerCoverageTool extends Tool
      * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
      * except "List Geometry on Network" commands.
      */
-    public static void layerCoverageCommand(Job.Type jobType, LayerCoverageTool.LCMode func, GeometryHandler.GHMode mode,
+    public static void layerCoverageCommand(Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
                                             Cell curCell, Highlighter highlighter)
     {
         LayerCoverageData data = new LayerCoverageData(null, curCell, func, mode, highlighter, null, null);
@@ -173,21 +184,21 @@ public class LayerCoverageTool extends Tool
      * @param startJob to determine if job has to run in a separate thread
      * @return true if job runs without errors. Only valid if startJob is false (regression purpose)
      */
-    public static boolean layerCoverageCommand(Cell cell, GeometryHandler.GHMode mode, boolean startJob)
+    public static Map<Layer,Double> layerCoverageCommand(Cell cell, GeometryHandler.GHMode mode, boolean startJob)
     {
-        Cell curCell = cell;
-        if (curCell == null) return false;
+        if (cell == null) return null;
 
-        double width = getWidth(curCell.getTechnology());
-        double height = getHeight(curCell.getTechnology());
-        double deltaX = getDeltaX(curCell.getTechnology());
-        double deltaY = getDeltaY(curCell.getTechnology());
+        double width = getWidth(cell.getTechnology());
+        double height = getHeight(cell.getTechnology());
+        double deltaX = getDeltaX(cell.getTechnology());
+        double deltaY = getDeltaY(cell.getTechnology());
 
         // Reset values to cell bounding box if area is bigger than the actual cell
-        Rectangle2D bbox = curCell.getBounds();
+        Rectangle2D bbox = cell.getBounds();
         if (width > bbox.getWidth()) width = bbox.getWidth();
         if (height > bbox.getHeight()) height = bbox.getHeight();
-        AreaCoverageJob job = new AreaCoverageJob(curCell, null, mode, width, height,
+        Map<Layer,Double> map = null;
+        AreaCoverageJob job = new AreaCoverageJob(cell, null, mode, width, height,
                 deltaX, deltaY);
 
         // No regression
@@ -198,11 +209,12 @@ public class LayerCoverageTool extends Tool
         	try
         	{
         		job.doIt();
+                map = job.getDataInfo();
         	} catch (JobException e)
         	{
         	}
         }
-        return (job.isOK());
+        return (map);
     }
 
     /**
@@ -273,15 +285,15 @@ public class LayerCoverageTool extends Tool
         private Cell curCell;
         private Job parentJob; // to stop if parent job is killed
         private GeometryHandler tree;
-        private LayerCoverageTool.LCMode function;
+        private LCMode function;
         private List<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
         private HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
         private Highlighter highlighter; // To highlight new implants
-        private LayerCoverageTool.GeometryOnNetwork geoms;  // Valid only for network job
+        private GeometryOnNetwork geoms;  // Valid only for network job
         private Rectangle2D bBox; // To crop geometry under analysis by given bounding box
 
-        LayerCoverageData(Job parentJob, Cell cell, LayerCoverageTool.LCMode func, GeometryHandler.GHMode mode, Highlighter highlighter,
-                                LayerCoverageTool.GeometryOnNetwork geoms, Rectangle2D bBox)
+        LayerCoverageData(Job parentJob, Cell cell, LCMode func, GeometryHandler.GHMode mode, Highlighter highlighter,
+                          LayerCoverageTool.GeometryOnNetwork geoms, Rectangle2D bBox)
         {
             this.parentJob = parentJob;
             this.curCell = cell;
@@ -292,8 +304,8 @@ public class LayerCoverageTool extends Tool
             this.geoms = geoms; // Valid only for network
             this.bBox = bBox;
 
-            if (func == LayerCoverageTool.LCMode.AREA && this.geoms == null)
-                this.geoms = new LayerCoverageTool.GeometryOnNetwork(curCell, null, 1, true);
+            if (func == LCMode.AREA && this.geoms == null)
+                this.geoms = new GeometryOnNetwork(curCell, null, 1, true);
         }
 
         boolean doIt()
@@ -448,13 +460,15 @@ public class LayerCoverageTool extends Tool
     private static class AreaCoverageJob extends Job
     {
         private Cell curCell;
-        double deltaX, deltaY;
-        double width, height;
-        Highlighter highlighter;
-        GeometryHandler.GHMode mode;
-        boolean foundError = false;
+        private double deltaX, deltaY;
+        private double width, height;
+        private Highlighter highlighter;
+        private GeometryHandler.GHMode mode;
+        private boolean foundError = false;
+        private Map<Layer,Double> internalMap;
 
-        public AreaCoverageJob(Cell cell, Highlighter highlighter, GeometryHandler.GHMode mode, double width, double height, double deltaX, double deltaY)
+        public AreaCoverageJob(Cell cell, Highlighter highlighter, GeometryHandler.GHMode mode,
+                               double width, double height, double deltaX, double deltaY)
         {
             super("Layer Coverage", User.getUserTool(), Type.EXAMINE, null, null, Priority.USER);
             this.curCell = cell;
@@ -466,8 +480,6 @@ public class LayerCoverageTool extends Tool
             this.deltaY = deltaY;
             setReportExecutionFlag(true); // Want to report statistics
         }
-
-        public boolean isOK() { return !foundError; }
 
         public boolean doIt() throws JobException
         {
@@ -482,6 +494,9 @@ public class LayerCoverageTool extends Tool
             if (width <= 0) width = bBoxOrig.getWidth();
             if (height <= 0) height = bBoxOrig.getHeight();
 
+            internalMap = new HashMap<Layer,Double>();
+//            fieldVariableChanged("internalMap");
+
             for (double posY = bBoxOrig.getMinY(); posY < maxY; posY += deltaY)
             {
                 for (double posX = bBoxOrig.getMinX(); posX < maxX; posX += deltaX)
@@ -494,18 +509,31 @@ public class LayerCoverageTool extends Tool
                     LayerCoverageData data = new LayerCoverageData(this, curCell, LCMode.AREA, mode, highlighter,
                             geoms, box);
                     if (!data.doIt())  // aborted by user
-//                    if (checkAbort() || job.checkAbort()) // aborted by user
                     {
                         foundError = true;
                         return false; // didn't finish
                     }
                     if (geoms.analyzeCoverage(box, errorLogger))
                         foundError = true;
+
+                    for (int i = 0; i < geoms.layers.size(); i++)
+                    {
+                        Layer layer = geoms.layers.get(i);
+                        Double area = geoms.areas.get(i);
+
+                        Double oldV = internalMap.get(layer);
+                        double newV = area;
+                        if (oldV != null)
+                            newV += oldV;
+                        internalMap.put(layer, new Double(newV));
+                    }
                 }
             }
             errorLogger.termLogging(true);
             return true;
         }
+
+        public Map<Layer,Double> getDataInfo() { return internalMap; }
     }
 
     public enum LCMode // LC = LayerCoverageTool mode
@@ -895,4 +923,171 @@ public class LayerCoverageTool extends Tool
                 System.out.println("Total cell area = " + TextUtils.formatDouble(totalArea, 2));
 	    }
 	}
+
+    /***********************************
+     * JUnit interface
+     ***********************************/
+    public static boolean testAll()
+    {
+        return (basicAreaCoverageTest("area.log"));
+    }
+
+    private static class FakeCoverageCircuitry extends Job
+    {
+        private String theTechnology;
+        private Cell myCell;
+
+        protected FakeCoverageCircuitry(String tech)
+        {
+            super("Make fake circuitry for coverage tests", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            theTechnology = tech;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+            myCell = doItInternal(theTechnology);
+			fieldVariableChanged("myCell");
+            return true;
+        }
+
+        public void terminateOK()
+        {
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
+			// display a cell
+            if (!BATCHMODE)
+			    WindowFrame.createEditWindow(myCell);
+        }
+
+        private static Cell doItInternal(String technology)
+		{
+			// get information about the nodes
+			Technology tech = Technology.findTechnology(technology);
+			if (tech == null)
+			{
+				System.out.println("Technology not found in createCoverageTestCells");
+				return null;
+			}
+			tech.setCurrent();
+
+			NodeProto m1NodeProto = Cell.findNodeProto(technology+":Metal-1-Node");
+            NodeProto m2NodeProto = Cell.findNodeProto(technology+":Metal-2-Node");
+            NodeProto m3NodeProto = Cell.findNodeProto(technology+":Metal-3-Node");
+            NodeProto m4NodeProto = Cell.findNodeProto(technology+":Metal-4-Node");
+
+            NodeProto invisiblePinProto = Cell.findNodeProto("generic:Invisible-Pin");
+
+			// get information about the arcs
+			ArcProto m1ArcProto = ArcProto.findArcProto(technology+":Metal-1");
+
+			// get the current library
+			Library mainLib = Library.getCurrent();
+
+			// create a layout cell in the library
+			Cell m1Cell = Cell.makeInstance(mainLib, technology+"Metal1Test{lay}");
+            NodeInst metal1Node = NodeInst.newInstance(m1NodeProto, new Point2D.Double(0, 0), m1NodeProto.getDefWidth(), m1NodeProto.getDefHeight(), m1Cell);
+
+            // Two metals
+            Cell myCell = Cell.makeInstance(mainLib, technology+"M1M2Test{lay}");
+            NodeInst node = NodeInst.newInstance(m1NodeProto, new Point2D.Double(-m1NodeProto.getDefWidth()/2, -m1NodeProto.getDefHeight()/2),
+                    m1NodeProto.getDefWidth(), m1NodeProto.getDefHeight(), myCell);
+            node = NodeInst.newInstance(m2NodeProto, new Point2D.Double(-m2NodeProto.getDefWidth()/2, m2NodeProto.getDefHeight()/2),
+                    m2NodeProto.getDefWidth(), m2NodeProto.getDefHeight(), myCell);
+            node = NodeInst.newInstance(m3NodeProto, new Point2D.Double(m3NodeProto.getDefWidth()/2, -m3NodeProto.getDefHeight()/2),
+                    m3NodeProto.getDefWidth(), m3NodeProto.getDefHeight(), myCell);
+            node = NodeInst.newInstance(m4NodeProto, new Point2D.Double(m4NodeProto.getDefWidth()/2, m4NodeProto.getDefHeight()/2),
+                    m4NodeProto.getDefWidth(), m4NodeProto.getDefHeight(), myCell);
+
+			// now up the hierarchy
+			Cell higherCell = Cell.makeInstance(mainLib, "higher{lay}");
+			Rectangle2D bounds = myCell.getBounds();
+			double myWidth = myCell.getDefWidth();
+			double myHeight = myCell.getDefHeight();
+            for (int iX = 0; iX < 2; iX++) {
+                boolean flipX = iX != 0;
+                for (int i = 0; i < 4; i++) {
+                    Orientation orient = Orientation.fromJava(i*900, flipX, false);
+                    NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(i*myWidth, iX*myHeight), myWidth, myHeight, higherCell, orient, null, 0);
+                    instanceNode.setExpanded();
+                }
+            }
+			System.out.println("Created " + higherCell);
+
+            return myCell;
+		}
+    }
+
+    /**
+     *
+     * @param tech
+     * @param asJob
+     */
+    public static void makeFakeCircuitryForCoverageCommand(String tech, boolean asJob)
+	{
+		// test code to make and show something
+        if (asJob)
+        {
+            new FakeCoverageCircuitry(tech);
+        }
+        else
+        {
+            final Cell myCell = FakeCoverageCircuitry.doItInternal(tech);
+            if (!Job.BATCHMODE)
+            {
+                SwingUtilities.invokeLater(new Runnable() {
+	            public void run() { WindowFrame.createEditWindow(myCell); }});
+            }
+        }
+	}
+
+    /**
+     * Basic test of area coverage. Function must be public due to regressions.
+     * @param logname
+     * @return
+     */
+    public static boolean basicAreaCoverageTest(String logname)
+    {
+        boolean[] errorCounts = new boolean[2];
+        double delta = DBMath.getEpsilon()* DBMath.getEpsilon();
+        double wireLength = GenMath.toNearest(163.30159818105273, delta);
+
+        try {
+          MessagesStream.getMessagesStream().save(logname);
+          String techName = "tsmc90";
+          makeFakeCircuitryForCoverageCommand(techName, false);
+          Library rootLib = Library.findLibrary("noname");
+          Cell cell = rootLib.findNodeProto("higher{lay}");
+          Technology curTech = cell.getTechnology();
+
+          // Setting 10% as default value
+          for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
+          {
+            Layer layer = it.next();
+            layer.setFactoryAreaCoverageInfo(10);
+          }
+
+          System.out.println("------RUNNING MERGE MODE -------------");
+          Map<Layer,Double> map = layerCoverageCommand(cell, GeometryHandler.GHMode.ALGO_MERGE, false);
+            double area = 0;
+            for(Layer layer : map.keySet())
+            {
+                Double val = map.get(layer);
+                if (val != null)
+                    area += val;
+            }
+          errorCounts[0] = map == null;
+
+          System.out.println("------RUNNING SWEEP MODE -------------");
+          map = layerCoverageCommand(cell, GeometryHandler.GHMode.ALGO_SWEEP, false);
+          errorCounts[1] = map == null;
+        } catch (Exception e) {
+          System.out.println("exception: "+e);
+          e.printStackTrace();
+          return false;
+        }
+
+        System.out.println("Error results : MERGE=" + errorCounts[0] + " SWEEP=" + errorCounts[1]);
+        return(!errorCounts[0] && !errorCounts[1]);
+    }
 }

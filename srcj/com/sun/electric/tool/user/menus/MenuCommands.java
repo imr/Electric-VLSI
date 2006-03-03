@@ -95,12 +95,16 @@ public final class MenuCommands
         WindowMenu.addWindowMenu(menuBar);
         ToolMenu.addToolMenu(menuBar);
 
-        if (true) {            // under test
-            // add the SunAsyncMenu if there
+        if (true) {
+            // add the SunAsyncMenu and/or TestsMenu if there
+            String[] plugins = {"menus.SunAsyncMenu", "tests.TestsMenu"};
             try {
-                Class SunAsyncMenuClass = Class.forName("com.sun.electric.plugins.menus.SunAsyncMenu");
-                java.lang.reflect.Method addMenu = SunAsyncMenuClass.getMethod("addMenu", new Class[] { MenuBar.class });
-                addMenu.invoke(null, new Object [] {menuBar});
+                for (String menuName : plugins)
+                {
+                    Class SunAsyncMenuClass = Class.forName("com.sun.electric.plugins."+menuName);
+                    java.lang.reflect.Method addMenu = SunAsyncMenuClass.getMethod("addMenu", new Class[] { MenuBar.class });
+                    addMenu.invoke(null, new Object [] {menuBar});
+                }
             } catch (Exception e) {}
         }
 

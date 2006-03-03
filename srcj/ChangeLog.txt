@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+IMP: (3/2/06, GVG) Adding DRC and AreaCoverage regression tests in main code.
+
+IMP: (3/2/06, GVG) DRC Exclusion working hierarchically (Bug #841)
+
 IMP: (3/2/06, GVG) DRC Exclusion nodes available as annular rings (Bug #842)
 
 IMP: (3/2/06, RK) Support for highlighting equivalent Networks and NodeInsts
