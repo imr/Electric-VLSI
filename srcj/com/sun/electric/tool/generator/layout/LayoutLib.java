@@ -363,38 +363,6 @@ public class LayoutLib {
     public static NodeInst newNodeInst(NodeProto np, Rectangle2D rect,
 			                           double angle, Cell parent)
     {
-//		if (np instanceof Cell) {
-//			width = (width<0 ? -1 : 1) * np.getDefWidth();
-//			height = (height<0 ? -1 : 1) * np.getDefHeight();
-//		} else {
-//			SizeOffset so = np.getProtoSizeOffset();
-//			// Take the default width or height if that's what the user wants.
-//			// Otherwise adjust the user-specified width or height by the
-//			// SizeOffset.
-//			double signW = width<0 ? -1 : 1;
-//			if (width==DEF_SIZE || width==-DEF_SIZE) {
-//				width = signW * np.getDefWidth();
-//			} else {
-//				double hi = so.getHighXOffset();
-//				double lo = so.getLowXOffset();
-//				error(lo!=hi, "asymmetric X offset");
-//				width = signW * (Math.abs(width) + hi+lo);
-//			}
-//			double signH = height<0 ? -1 : 1;
-//			if (height==DEF_SIZE || height==-DEF_SIZE) {
-//				height = signH * np.getDefHeight();
-//			} else {
-//				double hi = so.getHighYOffset();
-//				double lo = so.getLowYOffset();
-//				error(lo!=hi, "asymmetric Y offset");
-//				height = signH * (Math.abs(height) + hi+lo);
-//			}
-//		}
-//		// round all dimensions to a 10e-4 lambda grid
-//		x = DBMath.round(x);
-//		y = DBMath.round(y);
-//		width = DBMath.round(width);
-//		height = DBMath.round(height);
         double x = rect.getX();
         double y = rect.getY();
         double width = rect.getWidth();
@@ -403,8 +371,6 @@ public class LayoutLib {
         Orientation orient = Orientation.fromJava((int)Math.round(angle*10), width < 0, height < 0);
 		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), Math.abs(width), Math.abs(height),
                 parent, orient, null, 0);
-//		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), width, height, parent,
-//		        (int)Math.round(angle*10), null, 0);
 		error(ni==null, "newNodeInst failed");								
 
 		// adjust position so that translation is Cell-Center relative
