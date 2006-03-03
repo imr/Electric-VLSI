@@ -33,7 +33,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.user.ncc.NccMsgsFrame;
 
@@ -150,7 +149,7 @@ public class NccJob extends Job {
 		results = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
 				              cellCtxts[1].cell, cellCtxts[1].context, 
 					  	      options, this);
-		
+
 		fieldVariableChanged("results");
 
 		return true;
