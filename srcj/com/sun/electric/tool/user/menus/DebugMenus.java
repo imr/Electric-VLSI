@@ -96,8 +96,6 @@ public class DebugMenus
 {
 	protected static void addDebugMenus(MenuBar menuBar, MenuBar.Menu helpMenu)
 	{
-        MenuBar.MenuItem m;
-
 		/****************************** ADDITIONS TO THE HELP MENU ******************************/
 
 		helpMenu.addSeparator();
@@ -181,8 +179,10 @@ public class DebugMenus
         menuBar.add(gildaMenu);
         gildaMenu.addMenuItem("QTREE", null,
                                 new ActionListener() { public void actionPerformed(ActionEvent e) {testQTree();}});
-        gildaMenu.addMenuItem("New fill", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill();}});
+        gildaMenu.addMenuItem("Hierarchy fill", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(true);}});
+        gildaMenu.addMenuItem("Flat fill", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(false);}});
         gildaMenu.addMenuItem("Dialog fill", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {FillGen.openFillGeneratorDialog(MoCMOS.tech);}});
         gildaMenu.addMenuItem("Gate Generator TSMC180", null,
@@ -692,7 +692,7 @@ public class DebugMenus
         }
     }
 
-    private static void newFill()
+    private static void newFill(boolean hierarchy)
     {
         Cell cell = WindowFrame.getCurrentCell();
         if (cell == null) return;
@@ -712,7 +712,7 @@ public class DebugMenus
         fg.makeEvenLayersHorizontal(true);
         fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
         fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
-        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, drcSpacingRule);
+        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, drcSpacingRule, hierarchy);
     }
 
     private static void cleanSetOfLibraries()

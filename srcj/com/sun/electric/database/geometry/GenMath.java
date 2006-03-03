@@ -27,7 +27,6 @@ import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -36,6 +35,60 @@ import java.util.Map;
  */
 public class GenMath
 {
+    /**
+     * General method to obtain quadrant for a given box in a qTree based on the qTree center
+     * @param centerX
+     * @param centerY
+     * @param box
+     * @return
+     */
+    public static int getQuadrants(double centerX, double centerY, Rectangle2D box)
+    {
+           int loc = 0;
+
+        if (box.getMinY() < centerY)
+        {
+            // either 0 or 1 quadtrees
+            if (box.getMinX() < centerX)
+                loc |= 1 << 0;
+            if (box.getMaxX() > centerX)
+                loc |= 1 << 1;
+        }
+        if (box.getMaxY() > centerY)
+        {
+            // the other quadtrees
+            if (box.getMinX() < centerX)
+                loc |= 1 << 2;
+            if (box.getMaxX() > centerX)
+                loc |= 1 << 3;
+        }
+        return loc;
+    }
+
+    /**
+     * Calculates the bounding box of a child depending on the location. Parameters are passed to avoid
+     * extra calculation
+     * @param x Parent x value
+     * @param y Parent y value
+     * @param w Child width (1/4 of parent if qtree)
+     * @param h Child height (1/2 of parent if qtree)
+     * @param centerX Parent center x value
+     * @param centerY Parent center y value
+     * @param loc Location in qtree
+     */
+    public static Rectangle2D getQTreeBox(double x, double y, double w, double h, double centerX, double centerY, int loc)
+    {
+        if ((loc >> 0 & 1) == 1)
+        {
+            x = centerX;
+        }
+        if ((loc >> 1 & 1) == 1)
+        {
+            y = centerY;
+        }
+        return (new Rectangle2D.Double(x, y, w, h));
+    }
+
     /**
      * Class to define an Integer-like object that can be modified.
      */
