@@ -104,7 +104,8 @@ public class Spice extends Topology
 	/** True to write CDL format */					private boolean useCDL;
 	/** Legal characters */							private String legalSpiceChars;
 	/** Template Key for current spice engine */	private Variable.Key preferedEngineTemplateKey;
-	/** Spice type: 2, 3, H, P, etc */				private int spiceEngine;
+    /** Special case for HSpice for Assura */       private boolean assuraHSpice = false;
+	/** Spice type: 2, 3, H, P, etc */				private Simulation.SpiceEngine spiceEngine;
 	/** those cells that have overridden models */	private HashSet<Cell> modelOverrides = new HashSet<Cell>();
     /** List of segmented nets and parasitics */    private List<SegmentedNets> segmentedParasiticInfo = new ArrayList<SegmentedNets>();
     /** Networks exempted during parasitic ext */   private ExemptedNets exemptedNets;
@@ -280,14 +281,16 @@ public class Spice extends Topology
 		// make sure key is cached
 		spiceEngine = Simulation.getSpiceEngine();
 		preferedEngineTemplateKey = SPICE_TEMPLATE_KEY;
+        assuraHSpice = false;
 		switch (spiceEngine)
 		{
-			case Simulation.SPICE_ENGINE_2: preferedEngineTemplateKey = SPICE_2_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_3: preferedEngineTemplateKey = SPICE_3_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_H: preferedEngineTemplateKey = SPICE_H_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_P: preferedEngineTemplateKey = SPICE_P_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_G: preferedEngineTemplateKey = SPICE_GC_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_S: preferedEngineTemplateKey = SPICE_SM_TEMPLATE_KEY;   break;
+			case SPICE_ENGINE_2: preferedEngineTemplateKey = SPICE_2_TEMPLATE_KEY;   break;
+			case SPICE_ENGINE_3: preferedEngineTemplateKey = SPICE_3_TEMPLATE_KEY;   break;
+			case SPICE_ENGINE_H: preferedEngineTemplateKey = SPICE_H_TEMPLATE_KEY;   break;
+			case SPICE_ENGINE_P: preferedEngineTemplateKey = SPICE_P_TEMPLATE_KEY;   break;
+			case SPICE_ENGINE_G: preferedEngineTemplateKey = SPICE_GC_TEMPLATE_KEY;   break;
+			case SPICE_ENGINE_S: preferedEngineTemplateKey = SPICE_SM_TEMPLATE_KEY;   break;
+            case SPICE_ENGINE_H_ASSURA: preferedEngineTemplateKey = SPICE_H_TEMPLATE_KEY;  assuraHSpice = true; break;
 		}
 
 		// get the mask scale
@@ -303,7 +306,7 @@ public class Spice extends Topology
 
 		// setup the legal characters
 		legalSpiceChars = SPICELEGALCHARS;
-		if (spiceEngine == Simulation.SPICE_ENGINE_P) legalSpiceChars = PSPICELEGALCHARS;
+		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P) legalSpiceChars = PSPICELEGALCHARS;
 
 		// start writing the spice deck
 		if (useCDL)
@@ -406,6 +409,19 @@ public class Spice extends Topology
             exemptedNets.setExemptedNets(info);
     }
 
+    private Variable getEngineTemplate(Cell cell)
+    {
+        Variable varTemplate = null;
+
+        if (!assuraHSpice) // null in case of NO_TEMPLATE_KEY
+        {
+            varTemplate = cell.getVar(preferedEngineTemplateKey);
+            if (varTemplate == null)
+                varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
+        }
+        return varTemplate;
+    }
+
 	/**
 	 * Method to write cellGeom
 	 */
@@ -415,7 +431,7 @@ public class Spice extends Topology
             Netlist netList = cni.getNetList();
             Global.Set globals = netList.getGlobals();
             int globalSize = globals.size();
-            if (!Simulation.isSpiceUseNodeNames() || spiceEngine != Simulation.SPICE_ENGINE_3)
+            if (!Simulation.isSpiceUseNodeNames() || spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_3)
             {
                 if (globalSize > 0)
                 {
@@ -779,7 +795,7 @@ public class Spice extends Topology
 			int globalSize = globals.size();
 			if (USE_GLOBALS)
 			{
-				if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SPICE_ENGINE_3)
+				if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
 				{
 					for(int i=0; i<globalSize; i++)
 					{
@@ -874,9 +890,10 @@ public class Spice extends Topology
 					varTemplate = subCell.getVar(CDL_TEMPLATE_KEY);
 				} else
 				{
-					varTemplate = subCell.getVar(preferedEngineTemplateKey);
-					if (varTemplate == null)
-						varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
+                    varTemplate = getEngineTemplate(subCell);
+//					varTemplate = subCell.getVar(preferedEngineTemplateKey);
+//					if (varTemplate == null)
+//						varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
 				}
 
 				// handle templates
@@ -972,7 +989,7 @@ public class Spice extends Topology
 
 				if (USE_GLOBALS)
 				{
-					if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SPICE_ENGINE_3)
+					if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3)
 					{
 						Global.Set globals = subCni.getNetList().getGlobals();
 						int globalSize = globals.size();
@@ -1287,7 +1304,7 @@ public class Spice extends Topology
 					fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
 					((fun == PrimitiveNode.Function.TRANJFET || fun == PrimitiveNode.Function.TRAPJFET ||
 					  fun == PrimitiveNode.Function.TRADMES || fun == PrimitiveNode.Function.TRAEMES) &&
-					  spiceEngine == Simulation.SPICE_ENGINE_H))
+					  (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA)))
 				{
                     // schematic transistors may be text
                     if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
@@ -2204,7 +2221,7 @@ public class Spice extends Topology
 	/** Method to return the proper name of Ground */
 	protected String getGroundName(Network net)
 	{
-		if (spiceEngine == Simulation.SPICE_ENGINE_P) return "0";
+		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P) return "0";
 
 		if (net != null)
 		{
@@ -2252,9 +2269,13 @@ public class Spice extends Topology
         }
 
 		// skip if there is a template
-        Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
-        if (varTemplate != null) return true;
-        varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
+        Variable varTemplate = null;
+        if (!assuraHSpice)
+        {
+            varTemplate = cell.getVar(preferedEngineTemplateKey);
+            if (varTemplate != null) return true;
+            varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
+        }
         if (varTemplate != null) return true;
 
 		// look for a model file on the current cell
@@ -2621,14 +2642,14 @@ public class Spice extends Topology
             return;
         }
 
-		if (spiceEngine == Simulation.SPICE_ENGINE_2 || spiceEngine == Simulation.SPICE_ENGINE_3 ||
-			spiceEngine == Simulation.SPICE_ENGINE_G || spiceEngine == Simulation.SPICE_ENGINE_S)
+		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_2 || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_3 ||
+			spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_G || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_S)
 		{
 			multiLinePrint(false, ".include " + fileName + "\n");
-		} else if (spiceEngine == Simulation.SPICE_ENGINE_H)
+		} else if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA)
 		{
 			multiLinePrint(false, ".include '" + fileName + "'\n");
-		} else if (spiceEngine == Simulation.SPICE_ENGINE_P)
+		} else if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P)
 		{
 			multiLinePrint(false, ".INC " + fileName + "\n");
 		}

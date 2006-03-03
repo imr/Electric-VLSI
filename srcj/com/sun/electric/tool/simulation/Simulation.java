@@ -1287,14 +1287,27 @@ public class Simulation extends Tool
 
 	/****************************** SPICE OPTIONS ******************************/
 
-	/** Spice 2 engine. */		public static final int SPICE_ENGINE_2 = 0;
-	/** Spice 3 engine. */		public static final int SPICE_ENGINE_3 = 1;
-	/** HSpice engine. */		public static final int SPICE_ENGINE_H = 2;
-	/** PSpice engine. */		public static final int SPICE_ENGINE_P = 3;
-	/** GNUCap engine. */		public static final int SPICE_ENGINE_G = 4;
-	/** SmartSpice engine. */	public static final int SPICE_ENGINE_S = 5;
+    public enum SpiceEngine {
+        /** Spice 2 engine. */		SPICE_ENGINE_2(0, "Spice 2"),
+        /** Spice 3 engine. */		SPICE_ENGINE_3(1, "Spice 3"),
+        /** HSpice engine. */		SPICE_ENGINE_H(2, "HSpice"),
+        /** PSpice engine. */		SPICE_ENGINE_P(3, "PSice"),
+        /** GNUCap engine. */		SPICE_ENGINE_G(4, "Gnucap"),
+        /** SmartSpice engine. */	SPICE_ENGINE_S(5, "SmartSpice"),
+        /** HSpice engine for Assura. */	    SPICE_ENGINE_H_ASSURA(6, "HSpice for Assura");
 
-	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", tool.prefs, 1);
+        private int code;
+        private String name;
+        private SpiceEngine(int val, String name)
+        {
+            this.code = val;
+            this.name = name;
+        }
+        public int code() { return code; }
+        public String toString() { return name;}
+    }
+
+	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", tool.prefs, SpiceEngine.SPICE_ENGINE_3.code());
 //	static
 //	{
 //		Pref.Meaning m = cacheSpiceEngine.attachToObject(tool, "Tools/Spice tab", "Spice engine");
@@ -1311,9 +1324,19 @@ public class Simulation extends Tool
 	 * Simulation.SPICE_ENGINE_H for HSpice.<BR>
 	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
 	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
-	 * Simulation.SPICE_ENGINE_S for Smart Spice.
+	 * Simulation.SPICE_ENGINE_S for Smart Spice.<BR>
+     * Simulation.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
+     * Where Simulation.SPICE_ENGINE_3 is the default.
 	 */
-	public static int getSpiceEngine() { return cacheSpiceEngine.getInt(); }
+	public static SpiceEngine getSpiceEngine()
+    {
+        int cache = cacheSpiceEngine.getInt();
+        for (SpiceEngine p : SpiceEngine.values())
+        {
+            if (p.code() == cache) return p;
+        }
+        throw new Error("No Spice engine found");
+    }
 	/**
 	 * Method to set which SPICE engine is being used.
 	 * Since different versions of SPICE have slightly different syntax,
@@ -1325,9 +1348,11 @@ public class Simulation extends Tool
 	 * Simulation.SPICE_ENGINE_H for HSpice.<BR>
 	 * Simulation.SPICE_ENGINE_P for PSpice.<BR>
 	 * Simulation.SPICE_ENGINE_G for GNUCap.<BR>
-	 * Simulation.SPICE_ENGINE_S for Smart Spice.
+	 * Simulation.SPICE_ENGINE_S for Smart Spice.<BR>
+     * Simulation.SPICE_ENGINE_H_ASSURA for HSpice for Assura.<BR>
+     * Where Simulation.SPICE_ENGINE_3 is the default.
 	 */
-	public static void setSpiceEngine(int engine) { cacheSpiceEngine.setInt(engine); }
+	public static void setSpiceEngine(SpiceEngine engine) { cacheSpiceEngine.setInt(engine.code()); }
 
 	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", tool.prefs, "1");
 //    static { cacheSpiceLevel.attachToObject(tool, "Tools/Spice tab", "Spice level"); }

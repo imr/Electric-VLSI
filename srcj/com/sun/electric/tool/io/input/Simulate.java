@@ -233,12 +233,12 @@ public class Simulate extends Input
 	public static FileType getCurrentSpiceOutputType()
 	{
 		String format = Simulation.getSpiceOutputFormat();
-		int engine = Simulation.getSpiceEngine();
+		Simulation.SpiceEngine engine = Simulation.getSpiceEngine();
 		if (format.equalsIgnoreCase("Standard"))
 		{
-			if (engine == Simulation.SPICE_ENGINE_H)
+			if (engine == Simulation.SpiceEngine.SPICE_ENGINE_H)
 				return FileType.HSPICEOUT;
-			if (engine == Simulation.SPICE_ENGINE_3 || engine == Simulation.SPICE_ENGINE_P)
+			if (engine == Simulation.SpiceEngine.SPICE_ENGINE_3 || engine == Simulation.SpiceEngine.SPICE_ENGINE_P)
 				return FileType.PSPICEOUT;
 			return FileType.SPICEOUT;
 		}

@@ -27,7 +27,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TempPref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
@@ -85,13 +84,14 @@ public class SpiceTab extends PreferencePanel
 	public void init()
 	{
 		// the top section: general controls
-		spiceEnginePopup.addItem("Spice 2");
-		spiceEnginePopup.addItem("Spice 3");
-		spiceEnginePopup.addItem("HSpice");
-		spiceEnginePopup.addItem("PSpice");
-		spiceEnginePopup.addItem("Gnucap");
-		spiceEnginePopup.addItem("SmartSpice");
-		spiceEnginePopup.setSelectedIndex(Simulation.getSpiceEngine());
+		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_2);
+		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_3);
+		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_H);
+		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_P);
+		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_G);
+		spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_S);
+        spiceEnginePopup.addItem(Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA);
+		spiceEnginePopup.setSelectedItem(Simulation.getSpiceEngine());
 
 		spiceLevelPopup.addItem("1");
 		spiceLevelPopup.addItem("2");
@@ -377,8 +377,8 @@ public class SpiceTab extends PreferencePanel
 	public void term()
 	{
 		// the top section: general controls
-		int intNow = spiceEnginePopup.getSelectedIndex();
-		if (Simulation.getSpiceEngine() != intNow) Simulation.setSpiceEngine(intNow);
+		Simulation.SpiceEngine engine = (Simulation.SpiceEngine)spiceEnginePopup.getSelectedItem();
+		if (Simulation.getSpiceEngine() != engine) Simulation.setSpiceEngine(engine);
 
 		String stringNow = (String)spiceLevelPopup.getSelectedItem();
 		if (!Simulation.getSpiceLevel().equals(stringNow)) Simulation.setSpiceLevel(stringNow);
