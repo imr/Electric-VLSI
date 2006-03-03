@@ -362,13 +362,11 @@ public class DRCTemplate
             out.println("<DRCRules>");
             for (Foundry foundry : tech.getFoundries())
             {
-    //        Foundry foundry = tech.getSelectedFoundry();
-            List<DRCTemplate> rules = foundry.getRules();
+                List<DRCTemplate> rules = foundry.getRules();
                 out.println("    <Foundry name=\"" + foundry.getType().name() + "\">");
 
                 for (DRCTemplate rule : rules)
                 {
-    //                if ((rules[i].when & foundry.mode()) == 0) continue;
                     if (!isRuleValidInFoundry(tech, foundry, rule)) continue;
 
                     String whenName = null;
