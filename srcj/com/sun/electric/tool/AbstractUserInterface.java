@@ -43,7 +43,11 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     protected AbstractUserInterface() {
         super(-1);
     }
-    
+
+    // For Mac OS X version
+    public void initializeInitJob(Job job) {}
+
+
     public void addEvent(Client.ServerEvent serverEvent) {}
     
     public void finishInitialization() {}

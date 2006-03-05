@@ -33,10 +33,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.tool.AbstractUserInterface;
-import com.sun.electric.tool.Client;
-import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.*;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -96,9 +93,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     private static EventListenerList listenerList = new EventListenerList();
     private static Snapshot currentSnapshot = Snapshot.EMPTY;
     private static EDatabase database = EDatabase.clientDatabase();
-    
-    private Class osXClass = null;
-    private Method osXRegisterMethod = null/*, osXSetJobMethod = null*/;
+
     private SplashWindow sw = null;
  
     public UserInterfaceMain(List<String> argsList, Mode mode, boolean showSplash) {
@@ -109,7 +104,49 @@ public class UserInterfaceMain extends AbstractUserInterface
     protected void dispatchServerEvent(ServerEvent serverEvent) throws Exception { }
     
     public void addEvent(Client.ServerEvent serverEvent) { SwingUtilities.invokeLater(serverEvent); }
-    
+
+    public void initializeInitJob(Job job)
+    {
+        new EventProcessor();
+        SwingUtilities.invokeLater(new InitializationSetJob(job));
+    }
+
+    private static String getMacClassName()
+    {
+        return "com.sun.electric.tool.user.MacOSXInterface";
+    }
+
+    private class InitializationSetJob implements Runnable {
+        Job initJob;
+        public InitializationSetJob(Job job)
+        {
+            this.initJob = job;
+        }
+        public void run()
+        {
+            if (!System.getProperty("os.name").toLowerCase().startsWith("mac")) return;
+
+            try {
+                Class osXClass = Class.forName(getMacClassName());
+                Method osXSetJobMethod = null;
+
+                // find the necessary methods on the Mac OS/X class
+                try {
+                    osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
+                } catch (NoSuchMethodException e) {
+                    osXSetJobMethod = null;
+                }
+                if (osXSetJobMethod != null) {
+                    try {
+                        osXSetJobMethod.invoke(osXClass, new Object[] {initJob});
+                    } catch (Exception e) {
+                        System.out.println("Error initializing Mac OS/X interface");
+                    }
+                }
+            } catch (ClassNotFoundException e) {}
+        }
+
+    }
     private class InitializationRun implements Runnable {
         List<String> argsList;
         Mode mode;
@@ -124,14 +161,14 @@ public class UserInterfaceMain extends AbstractUserInterface
             // see if there is a Mac OS/X interface
             if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
                 try {
-                    osXClass = Class.forName("com.sun.electric.tool.user.MacOSXInterface");
-                    
+                    Class osXClass = Class.forName(getMacClassName());
+                    Method osXRegisterMethod = null;
+
                     // find the necessary methods on the Mac OS/X class
                     try {
                         osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
-//                    osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
                     } catch (NoSuchMethodException e) {
-                        osXRegisterMethod = /*osXSetJobMethod =*/ null;
+                        osXRegisterMethod = null;
                     }
                     if (osXRegisterMethod != null) {
                         try {

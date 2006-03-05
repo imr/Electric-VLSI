@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/5/06, GVG) On Mac OX S, double click on library didn't open in Electric.
+FIX: Another job in UserInterface to call "setInitJob".
+
 BUG: (3/3/06, GVG) Exception in MenuBar.finished() and ToolBar.finished() when setUI(null) (Bug #843).
 FIX: line commented out.
 

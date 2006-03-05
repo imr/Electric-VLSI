@@ -151,6 +151,9 @@ public abstract class Job implements Serializable {
                     jobManager = new ServerJobManager(numThreads, socketPort);
                 else
                     jobManager = new ServerJobManager(numThreads);
+
+                // Calling external dependencies
+                currentUI.initializeInitJob(initDatabaseJob);
                 initDatabaseJob.startJob();
                 break;
             case BATCH:
