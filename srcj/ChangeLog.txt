@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/6/06, DN) Check invariants at creating snapshot is too slow.
+FIX: Check them more incrementally.
+
 BUG: (3/5/06, GVG) On Mac OX S, double click on library didn't open in Electric.
 FIX: Another job in UserInterface to call "setInitJob".
 

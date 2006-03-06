@@ -152,7 +152,7 @@ public class Layout extends Constraints
                     lib.clearChanged();
                 else {
                     LibraryBackup libBackup = oldSnapshot.getLib(lib.getId());
-                    if (lib.backup(libBackup) != libBackup)
+                    if (lib.backup() != libBackup)
                         lib.setChanged();
                 }
             }

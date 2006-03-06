@@ -84,7 +84,7 @@ class EThread extends Thread {
                         database.getNetworkManager().startBatch();
                         Constraints.getCurrent().startBatch(ejob.oldSnapshot);
                         if (!ejob.serverJob.doIt())
-                            throw new JobException();
+                            throw new JobException("job " + ejob.jobName + " returned false");
                         Constraints.getCurrent().endBatch(ejob.client.userName);
                         database.getNetworkManager().endBatch();
                         database.lowLevelSetCanChanging(false);
@@ -98,30 +98,30 @@ class EThread extends Thread {
                         Snapshot undoSnapshot = findInCache(snapshotId);
                         if (undoSnapshot == null)
                             throw new JobException("Snapshot " + snapshotId + " not found");
-                        database.undo(undoSnapshot, false);
+                        database.undo(undoSnapshot);
                         database.getNetworkManager().endBatch();
                         database.lowLevelSetCanUndoing(false);
                         ejob.serializeResult();
                         break;
                     case REMOTE_EXAMINE:
                         if (!ejob.serverJob.doIt())
-                            throw new JobException();
+                            throw new JobException("job " + ejob.jobName + " returned false");
                         ejob.serializeResult();
                         break;
                     case EXAMINE:
                         if (!ejob.clientJob.doIt())
-                            throw new JobException();
+                            throw new JobException("job " + ejob.jobName + " returned false");
                         break;
                 }
                 ejob.newSnapshot = database.backup();
-                database.checkFresh(ejob.newSnapshot);
+//                database.checkFresh(ejob.newSnapshot);
 //                ejob.state = EJob.State.SERVER_DONE;
             } catch (Throwable e) {
                 e.getStackTrace();
                 e.printStackTrace();
                 if (!ejob.isExamine()) {
                     database.lowLevelSetCanUndoing(true);
-                    database.undo(ejob.oldSnapshot, true);
+                    database.recover(ejob.oldSnapshot);
                     ejob.newSnapshot = ejob.oldSnapshot;
                     database.getNetworkManager().endBatch();
                 }

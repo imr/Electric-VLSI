@@ -87,8 +87,10 @@ public class Undo
         int highlights = Job.getExtendedUserInterface().saveHighlights();
         int oldId = oldSnapshot.snapshotId;
         int newId = newSnapshot.snapshotId;
-        assert doneList.isEmpty() || doneList.get(doneList.size() - 1).newSnapshotId == oldId;
-        assert undoneList.isEmpty() || undoneList.get(0).oldSnapshotId == oldId;
+        while (!doneList.isEmpty() && doneList.get(doneList.size() - 1).newSnapshotId != oldId)
+            doneList.remove(doneList.size() - 1);
+        while (!undoneList.isEmpty() && undoneList.get(0).oldSnapshotId != oldId)
+            undoneList.remove(0);
         int doneIndex = indexOf(doneList, newId);
         int undoneIndex = indexOf(undoneList, newId);
         if (doneIndex >= 0) {

@@ -81,9 +81,11 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
     /** Database to which this Library belongs. */          private final EDatabase database;
     /** persistent data of this Library. */                 private ImmutableLibrary d;
     /** true of library needs saving. */                    private boolean modified;
+    /** list of referenced libs */                          private final List<Library> referencedLibs = new ArrayList<Library>();
+    /** Last backup of this Library */                      private LibraryBackup backup;
+    /** True if library matches lib backup. */              private boolean libBackupFresh;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
-    /** list of referenced libs */                          private final List<Library> referencedLibs = new ArrayList<Library>();
     /** preferences for this library */                     Preferences prefs;
 
 	/** preferences for all libraries */					private static Preferences allPrefs = null;
@@ -383,6 +385,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
         // would not create circular dependency, add and return
         synchronized(referencedLibs) {
             referencedLibs.add(lib);
+            unfreshBackup();
         }
         return null;
     }
@@ -417,6 +420,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
             // no instance that would create reference found, ok to remove reference
             synchronized(referencedLibs) {
                 referencedLibs.remove(lib);
+                unfreshBackup();
             }
         }
     }
@@ -504,7 +508,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
         d = newD;
 //        setChanged();
         assert isLinked();
-        database.unfreshSnapshot();
+        unfreshBackup();
         Constraints.getCurrent().modifyLibrary(this, oldD);
         return true;
     }
@@ -565,23 +569,27 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 
      /*
 	 * Low-level method to backup this Library to LibraryBackup.
-     * @return CellBackup which is the backup of this Cell.
+     * @return LibraryBackup which is the backup of this Library.
 	 */
-    public LibraryBackup backup(LibraryBackup oldBackup) {
-        LibId[] oldRefs = oldBackup != null ? oldBackup.referencedLibs : new LibId[0];
+    public LibraryBackup backup() {
+        if (libBackupFresh) return backup;
+        LibId[] oldRefs = backup != null ? backup.referencedLibs : new LibId[0];
         LibId[] newRefs = backupReferencedLibs(oldRefs);
-        if (oldBackup != null && d == oldBackup.d && modified == oldBackup.modified && newRefs == oldBackup.referencedLibs)
-            return oldBackup;
-        return new LibraryBackup(d, modified, newRefs);
+        if (backup == null || d != backup.d || modified != backup.modified || newRefs != backup.referencedLibs)
+            backup = new LibraryBackup(d, modified, newRefs);
+        libBackupFresh = true;
+        return backup;
     }
     
-    void undo(LibraryBackup undoBackup) {
+    void recover(LibraryBackup recoverBackup) {
         checkUndoing();
-        this.d = undoBackup.d;
-        this.modified = undoBackup.modified;
+        backup = recoverBackup;
+        this.d = recoverBackup.d;
+        this.modified = recoverBackup.modified;
         referencedLibs.clear();
-        for (LibId libId: undoBackup.referencedLibs)
+        for (LibId libId: recoverBackup.referencedLibs)
             referencedLibs.add(database.getLib(libId));
+        libBackupFresh = true;
     }
     
     void checkFresh(LibraryBackup libBackup) {
@@ -677,9 +685,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	}
 
     private void setFlag(int mask, boolean value) {
-        d = d.withFlags(value ? d.flags | mask : d.flags & ~mask);
-        assert isLinked();
-        database.unfreshSnapshot();
+        setD(d.withFlags(value ? d.flags | mask : d.flags & ~mask));
     }
     
     private boolean isFlag(int mask) {
@@ -692,7 +698,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	public void setChanged() {
         checkChanging();
         if (!modified)
-            database.unfreshSnapshot();
+            unfreshBackup();
         modified = true;
     }
 
@@ -704,10 +710,15 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
         for (Cell cell: cells.values())
             cell.clearModified();
         if (modified)
-            database.unfreshSnapshot();
+            unfreshBackup();
         modified = false;
     }
 
+    private void unfreshBackup() {
+        libBackupFresh = false;
+        database.unfreshSnapshot();
+    }
+    
 	/**
 	 * Method to return true if this Library has changed.
 	 * @return true if this Library has changed.
@@ -795,7 +806,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserBits(int userBits) { d = d.withFlags(userBits); }
+	public void lowLevelSetUserBits(int userBits) { setD(d.withFlags(userBits)); }
 
 	/**
 	 * Get list of cells contained in other libraries
@@ -883,7 +894,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 		URL libFile = TextUtils.makeURLToFile(newLibFile);
 
         database.libraries.remove(d.libName);
-        d = d.withName(libName, libFile);
+        setD(d.withName(libName, libFile));
 		database.libraries.put(libName, this);
         assert isLinked();
         database.unfreshSnapshot();
@@ -935,7 +946,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 */
 	public void setLibFile(URL libFile)
 	{
-		d = d.withName(d.libName, libFile);
+		setD(d.withName(d.libName, libFile));
 	}
 
     /**
@@ -1105,6 +1116,6 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 */
 	public void setVersion(Version version)
 	{
-		d = d.withVersion(version);
+		setD(d.withVersion(version));
 	}
 }

@@ -90,16 +90,12 @@ public class EDatabase {
     
     void removeLib(LibId libId) {
         Library oldLib = linkedLibs.set(libId.libIndex, null);
+        while (!linkedLibs.isEmpty() && linkedLibs.get(linkedLibs.size() - 1) == null)
+            linkedLibs.remove(linkedLibs.size() - 1);
         libraries.remove(oldLib.getName());
     }
     
     public Cell getCell(CellId cellId) { return getCell(cellId.cellIndex); }
-    
-    int maxCellIndex() {
-        int maxCellIndex = linkedCells.size() - 1;
-        while (maxCellIndex >= 0 && linkedCells.get(maxCellIndex) == null) maxCellIndex--;
-        return maxCellIndex;
-    }
     
     void addCell(Cell cell) {
         int cellIndex = cell.getCellIndex();
@@ -111,6 +107,8 @@ public class EDatabase {
     void removeCell(CellId cellId) {
         Cell oldCell = linkedCells.set(cellId.cellIndex, null);
         assert oldCell != null;
+        while (!linkedCells.isEmpty() && linkedCells.get(linkedCells.size() - 1) == null)
+            linkedCells.remove(linkedCells.size() - 1);
     }
     
     Library getLib(int libIndex) { return libIndex < linkedLibs.size() ? linkedLibs.get(libIndex) : null; }
@@ -282,8 +280,19 @@ public class EDatabase {
      */
     public Snapshot backup() {
         if (snapshotFresh) return snapshot;
-        LibraryBackup[] libBackups = backupLibs(snapshot.libBackups);
-        CellBackup[] cellBackups = new CellBackup[maxCellIndex() + 1];
+        
+        long startTime = System.currentTimeMillis();
+        LibraryBackup[] libBackups = new LibraryBackup[linkedLibs.size()];
+        boolean libsChanged = libBackups.length != snapshot.libBackups.length;
+        for (int libIndex = 0; libIndex < libBackups.length; libIndex++) {
+            Library lib = linkedLibs.get(libIndex);
+            LibraryBackup libBackup = lib != null ? lib.backup() : null;
+            libBackups[libIndex] = libBackup;
+            libsChanged = libsChanged || snapshot.libBackups[libIndex] != libBackup; 
+        }
+        if (!libsChanged) libBackups = null;
+        
+        CellBackup[] cellBackups = new CellBackup[linkedCells.size()];
         for (int i = 0; i < cellBackups.length; i++) {
             Cell cell = linkedCells.get(i);
             if (cell != null) cellBackups[i] = cell.backup();
@@ -314,191 +323,175 @@ public class EDatabase {
             cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellId);
             cellGroupsChanged = cellGroupsChanged || cellGroups[cellIndex] != snapshot.cellGroups[cellIndex];
         }
-        if (libBackups == snapshot.libBackups && !cellsChanged && !cellBoundsChanged && !cellGroupsChanged)
-            return snapshot;
-        if (!cellsChanged) cellBackups = snapshot.cellBackups;
-        if (!cellBoundsChanged) cellBounds = snapshot.cellBounds;
-        if (!cellGroupsChanged) cellGroups = snapshot.cellGroups;
+        if (!cellsChanged) cellBackups = null;
+        if (!cellBoundsChanged) cellBounds = null;
+        if (!cellGroupsChanged) cellGroups = null;
         snapshot = snapshot.with(cellBackups, cellGroups, cellBounds, libBackups);
-        checkFresh(snapshot);
+//        checkFresh(snapshot);
         snapshotFresh = true;
+        long endTime = System.currentTimeMillis();
+        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;
     }
 
-    /*
-	 * Low-level method to backup all Libraries to array of LibraryBackups.
-     * @param oldLibs LibararyBackups in old snapshot.
-     * @return CellBackup which is the backup of this Cell.
-	 */
-    private LibraryBackup[] backupLibs(LibraryBackup[] oldLibs) {
-        ArrayList<LibraryBackup> libBackups = new ArrayList<LibraryBackup>();
-        for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
-            Library lib = lit.next();
-            int libIndex = lib.getId().libIndex;
-            LibraryBackup oldBackup = libIndex < oldLibs.length ? oldLibs[libIndex] : null;
-            while (libBackups.size() <= libIndex) libBackups.add(null);
-            assert libBackups.get(libIndex) == null;
-            libBackups.set(libIndex, lib.backup(oldBackup));
-        }
-        if (libBackups.size() == oldLibs.length) {
-            int i;
-            for (i = 0; i < oldLibs.length; i++) {
-                if (libBackups.get(i) != oldLibs[i])
-                    break;
-            }
-            if (i == oldLibs.length) return oldLibs;
-        }
-        return libBackups.toArray(LibraryBackup.NULL_ARRAY);
-    }
-    
     /**
      * Force database to specified state.
-     * @param undoSnapshot old immutable snapshot.
+     * This method can recover currupted database.
+     * @param snapshot snapshot to recover.
      */
-    public void undo(Snapshot undoSnapshot, boolean full) {
-        Snapshot oldSnapshot = full ? null : backup();
-        if (full || oldSnapshot.libBackups != undoSnapshot.libBackups)
-            undoLibraries(undoSnapshot);
-        boolean cellTreeChanged = full || snapshot.cellGroups != undoSnapshot.cellGroups;
-        for (int i = 0, maxCells = Math.max(snapshot.cellBackups.length, undoSnapshot.cellBackups.length); i < maxCells; i++) {
-            CellBackup oldBackup = snapshot.getCell(i);
-            CellBackup newBackup = undoSnapshot.getCell(i);
-            if (oldBackup == newBackup) continue;
-            if (oldBackup == null || newBackup == null ||
-                    !oldBackup.d.cellName.equals(newBackup.d.cellName) || oldBackup.isMainSchematics != newBackup.isMainSchematics)
-                cellTreeChanged = true;
+    public void recover(Snapshot snapshot) {
+        long startTime = System.currentTimeMillis();
+        this.snapshot = snapshot;
+        recoverLibraries();
+        recycleCells();
+        BitSet recovered = new BitSet();
+        for (int cellIndex = 0; cellIndex < snapshot.cellBackups.length; cellIndex++) {
+            CellBackup newBackup = snapshot.getCell(cellIndex);
+            if (newBackup != null)
+                recoverRecursively(newBackup.d.cellId, recovered);
         }
-        updateCells(full, snapshot, undoSnapshot);
-        if (undoSnapshot.getChangedLibraries(snapshot) != null || cellTreeChanged) {
-            for (Library lib: libraries.values())
-                lib.cells.clear();
+        recoverCellGroups();
+        snapshotFresh = true;
+        long endTime = System.currentTimeMillis();
+        if (Job.getDebug()) {
+            System.out.println("recover took: " + (endTime - startTime) + " msec");
+            checkInvariants();
+        }
+    }
+    
+    private void recoverRecursively(CellId cellId, BitSet recovered) {
+        int cellIndex = cellId.cellIndex;
+        if (recovered.get(cellIndex)) return;
+        CellBackup newBackup = snapshot.getCell(cellId);
+        for (int i = 0; i < newBackup.cellUsages.length; i++) {
+            if (newBackup.cellUsages[i] <= 0) continue;
+            CellUsage u = cellId.getUsageIn(i);
+            recoverRecursively(u.protoId, recovered);
+        }
+        Cell cell = getCell(cellId);
+        cell.recover(newBackup, snapshot.getCellBounds(cellId));
+    	recovered.set(cellIndex);
+
+        Library lib = getLib(newBackup.d.libId);
+        lib.cells.put(cell.getCellName(), cell);
+    }
+
+    /**
+     * Force database to specified state.
+     * This method assumes that database is in valid state.
+     * @param snapshot snapshot to undo.
+     */
+    public void undo(Snapshot snapshot) {
+        long startTime = System.currentTimeMillis();
+        Snapshot oldSnapshot = backup();
+        if (oldSnapshot == snapshot) return;
+        this.snapshot = snapshot;
+        boolean cellGroupsChanged = oldSnapshot.cellGroups != snapshot.cellGroups;
+        if (oldSnapshot.libBackups != snapshot.libBackups) {
+            recoverLibraries();
+            cellGroupsChanged = true;
+        }
+        recycleCells();
+
+        BitSet cellNamesChangedInLibrary = new BitSet();
+        CellBackup[] cellBackups = snapshot.cellBackups;
+        if (oldSnapshot.cellBackups.length == cellBackups.length) {
+            for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
+                CellBackup oldBackup = oldSnapshot.getCell(cellIndex);
+                CellBackup newBackup = snapshot.getCell(cellIndex);
+                if (oldBackup == newBackup) continue;
+                if (oldBackup == null) {
+                    cellNamesChangedInLibrary.set(newBackup.d.libId.libIndex);
+                    assert cellGroupsChanged;
+                } else if (newBackup == null) {
+                    cellNamesChangedInLibrary.set(oldBackup.d.libId.libIndex);
+                    assert cellGroupsChanged;
+                } else {
+                    boolean moved = oldBackup.d.libId != newBackup.d.libId;
+                    if (moved || oldBackup.d.cellName != newBackup.d.cellName) {
+                        cellNamesChangedInLibrary.set(newBackup.d.libId.libIndex);
+                        cellNamesChangedInLibrary.set(oldBackup.d.libId.libIndex);
+                    }
+                    if (moved || oldBackup.isMainSchematics != newBackup.isMainSchematics)
+                        cellGroupsChanged = true;
+                }
+            }
+        } else {
+            cellGroupsChanged = true;
+            cellNamesChangedInLibrary.set(0, snapshot.libBackups.length);
+        }
+        
+        BitSet updated = new BitSet();
+        BitSet exportsModified = new BitSet();
+        BitSet boundsModified = new BitSet();
+        for (int cellIndex = 0; cellIndex < snapshot.cellBackups.length; cellIndex++) {
+            CellBackup newBackup = snapshot.getCell(cellIndex);
+            if (newBackup != null)
+                undoRecursively(oldSnapshot, newBackup.d.cellId, updated, exportsModified, boundsModified);
+        }
+        if (!cellNamesChangedInLibrary.isEmpty()) {
+            for (Library lib: libraries.values()) {
+                if (cellNamesChangedInLibrary.get(lib.getId().libIndex))
+                    lib.cells.clear();
+            }
             for (Cell cell: linkedCells) {
                 if (cell == null) continue;
-                Library lib = cell.getLibrary();
-                assert lib.isLinked();
+                LibId libId = cell.getD().libId;
+                if (!cellNamesChangedInLibrary.get(libId.libIndex)) continue;
+                Library lib = getLib(libId);
+                assert lib == cell.getLibrary();
                 lib.cells.put(cell.getCellName(), cell);
             }
         }
-        updateSubCellBounds(full, undoSnapshot);
-        snapshot = undoSnapshot;
-        checkFresh(undoSnapshot);
+        if (cellGroupsChanged)
+            recoverCellGroups();
         snapshotFresh = true;
+        long endTime = System.currentTimeMillis();
+        if (Job.getDebug()) {
+            System.out.println("undo took: " + (endTime - startTime) + " msec");
+            checkFresh(snapshot);
+        }
     }
     
-    void updateCells(boolean full, Snapshot oldSnapshot, Snapshot newSnapshot) {
-        BitSet updated = new BitSet();
-        BitSet exportsModified = new BitSet();
-        while (linkedCells.size() > newSnapshot.cellBackups.length)
-            linkedCells.remove(linkedCells.size() - 1);
-        for (int cellIndex = 0; cellIndex < newSnapshot.cellBackups.length; cellIndex++) {
-            CellBackup newBackup = newSnapshot.getCell(cellIndex);
-            if (newBackup != null)
-                updateTree(full, oldSnapshot, newSnapshot,newBackup.d.cellId, updated, exportsModified);
-            else
-                linkedCells.set(cellIndex, null);
-        }
-        boolean mainSchematicsChanged = full;
-        for (int i = 0; i < newSnapshot.cellBackups.length; i++) {
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            CellBackup newBackup = newSnapshot.getCell(i);
-            if (oldBackup != null && newBackup != null && oldBackup.isMainSchematics != newBackup.isMainSchematics)
-            	mainSchematicsChanged = true;
-        }
-        if (oldSnapshot.cellGroups != newSnapshot.cellGroups || mainSchematicsChanged)
-            updateCellGroups(newSnapshot);
-    }
-    
-    private void updateCellGroups(Snapshot newSnapshot) {
-        ArrayList<TreeSet<Cell>> groups = new ArrayList<TreeSet<Cell>>();
-        ArrayList<Cell> mainSchematics = new ArrayList<Cell>();
-        for (int i = 0; i < newSnapshot.cellBackups.length; i++) {
-            CellBackup cellBackup = newSnapshot.cellBackups[i];
-            int cellGroupIndex = newSnapshot.cellGroups[i];
-            if (cellBackup == null) continue;
-            if (cellGroupIndex == groups.size()) {
-                groups.add(new TreeSet<Cell>());
-                mainSchematics.add(null);
-            }
-            Cell cell = getCell(i);
-            assert cell != null;
-            groups.get(cellGroupIndex).add(cell);
-            if (cellBackup.isMainSchematics)
-                mainSchematics.set(cellGroupIndex, cell);
-        }
-        for (int i = 0; i < groups.size(); i++)
-            new Cell.CellGroup(this, groups.get(i), mainSchematics.get(i));
-    }
-    
-    private void updateTree(boolean full, Snapshot oldSnapshot, Snapshot newSnapshot, CellId cellId, BitSet updated, BitSet exportsModified) {
+    private void undoRecursively(Snapshot oldSnapshot, CellId cellId, BitSet updated, BitSet exportsModified, BitSet boundsModified) {
         int cellIndex = cellId.cellIndex;
     	if (updated.get(cellIndex)) return;
-        CellBackup newBackup = newSnapshot.getCell(cellId);
+        CellBackup newBackup = snapshot.getCell(cellId);
         assert cellId != null;
         boolean subCellsExportsModified = false;
+        boolean subCellsBoundsModified = false;
         for (int i = 0; i < newBackup.cellUsages.length; i++) {
-        	if (newBackup.cellUsages[i] <= 0) continue;
-        	CellUsage u = cellId.getUsageIn(i);
+            if (newBackup.cellUsages[i] <= 0) continue;
+            CellUsage u = cellId.getUsageIn(i);
+            undoRecursively(oldSnapshot, u.protoId, updated, exportsModified, boundsModified);
             int subCellIndex = u.protoId.cellIndex;
-        	updateTree(full, oldSnapshot, newSnapshot, u.protoId, updated, exportsModified);
-         	if (exportsModified.get(subCellIndex))
-        		subCellsExportsModified = true;
-       }
-        CellBackup oldBackup = oldSnapshot.getCell(cellId);
-        Cell cell;
-        if (oldBackup == null || getCell(cellId).getLibrary().getId() != newBackup.d.libId) {
-            cell = new Cell(this, newBackup.d);
-            cell.update(full, newBackup, exportsModified);
-            assert cell.getId() == cellId;
-            addCell(cell);
-        } else {
-            cell = getCell(cellId);
-            if (full || newBackup != oldBackup) {
-            	if (!newBackup.sameExports(oldBackup))
-            		exportsModified.set(cellIndex);
-            	cell.update(full, newBackup, subCellsExportsModified ? exportsModified : null);
-            } else {
-                if (subCellsExportsModified)
-                    cell.updatePortInsts(exportsModified);
-            }
+            if (exportsModified.get(subCellIndex))
+                subCellsExportsModified = true;
+            if (boundsModified.get(subCellIndex))
+                subCellsBoundsModified = true;
         }
-        cell.undoCellBounds(newSnapshot.getCellBounds(cellId));
+        Cell cell = getCell(cellId);
+        CellBackup oldBackup = oldSnapshot.getCell(cellId);
+        ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
+        assert cell.getLibrary() == getLib(newBackup.d.libId);
+        cell.undo(newBackup, snapshot.getCellBounds(cellId),
+                subCellsExportsModified ? exportsModified : null,
+                subCellsBoundsModified ? boundsModified : null);
     	updated.set(cellIndex);
+        if (oldBackup == null || !newBackup.sameExports(oldBackup))
+            exportsModified.set(cellIndex);
+        if (oldBackup == null || snapshot.getCellBounds(cellId) != oldBounds)
+            boundsModified.set(cellIndex);
     }
 
-    void updateSubCellBounds(boolean full, Snapshot newSnapshot) {
-        BitSet boundsModified = new BitSet();
-        for (int i = 0; i < newSnapshot.cellBounds.length; i++) {
-            ERectangle newBounds = newSnapshot.cellBounds[i];
-            if (newBounds == null) continue;
-            if (snapshot.getCellBounds(i) != newBounds)
-                boundsModified.set(i);
-        }
-        for (int i = 0; i < newSnapshot.cellBounds.length; i++) {
-            CellBackup newBackup = newSnapshot.cellBackups[i];
-            if (newBackup == null || newBackup != snapshot.getCell(i)) continue;
-            CellId cellId = newBackup.d.cellId;
-            boolean subCellsBoundsModified = false;
-            for (int j = 0; j < newBackup.cellUsages.length; j++) {
-                if (newBackup.cellUsages[j] <= 0) continue;
-                CellUsage u = cellId.getUsageIn(j);
-                int subCellIndex = u.protoId.cellIndex;
-                if (boundsModified.get(subCellIndex))
-                    subCellsBoundsModified = true;
-            }
-            if (!subCellsBoundsModified) continue;
-            Cell cell = getCell(i);
-            cell.updateSubCellBounds(full, boundsModified);
-        }
-    }
-    
-    private void undoLibraries(Snapshot undoSnapshot) {
-        while (linkedLibs.size() > undoSnapshot.libBackups.length) {
+    private void recoverLibraries() {
+        while (linkedLibs.size() > snapshot.libBackups.length) {
             Library lib  = linkedLibs.remove(linkedLibs.size() - 1);
             if (lib != null) lib.cells.clear();
         }
-        while (linkedLibs.size() < undoSnapshot.libBackups.length) linkedLibs.add(null);
-        for (int libIndex = 0; libIndex < undoSnapshot.libBackups.length; libIndex++) {
-            LibraryBackup libBackup = undoSnapshot.libBackups[libIndex];
+        while (linkedLibs.size() < snapshot.libBackups.length) linkedLibs.add(null);
+        for (int libIndex = 0; libIndex < snapshot.libBackups.length; libIndex++) {
+            LibraryBackup libBackup = snapshot.libBackups[libIndex];
             Library lib = linkedLibs.get(libIndex);
             if (libBackup == null && lib != null) {
                 lib.cells.clear();
@@ -521,30 +514,67 @@ public class EDatabase {
                    */
         }
         libraries.clear();
-        for (int libIndex = 0; libIndex < undoSnapshot.libBackups.length; libIndex++) {
-            LibraryBackup libBackup = undoSnapshot.libBackups[libIndex];
+        for (int libIndex = 0; libIndex < snapshot.libBackups.length; libIndex++) {
+            LibraryBackup libBackup = snapshot.libBackups[libIndex];
             if (libBackup == null) continue;
             Library lib = linkedLibs.get(libIndex);
             libraries.put(lib.getName(), lib);
-            lib.undo(libBackup);
+            lib.recover(libBackup);
         }
             /* ???
             if (curLib == null || !curLib.isLinked()) {
                 curLib = null;
                 for(Library lib: libraries.values()) {
-    				if (lib.isHidden()) continue;
-        			curLib = lib;
-            		break;
+                    if (lib.isHidden()) continue;
+                    curLib = lib;
+                    break;
                 }
-			}
-            */
-      }
+            }
+             */
+    }
+    
+    private void recycleCells() {
+        CellBackup[] cellBackups = snapshot.cellBackups;
+        while (linkedCells.size() > cellBackups.length) linkedCells.remove(linkedCells.size() - 1);
+        while (linkedCells.size() < cellBackups.length) linkedCells.add(null);
+        for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
+            CellBackup newBackup = cellBackups[cellIndex];
+            Cell cell = linkedCells.get(cellIndex);
+            if (newBackup == null) {
+                if (cell != null) linkedCells.set(cellIndex, null);
+            } else if (cell == null || cell.getLibrary().getId() != newBackup.d.libId) {
+                linkedCells.set(cellIndex, new Cell(this, newBackup.d));
+            }
+        }
+    }
+    
+    private void recoverCellGroups() {
+        ArrayList<TreeSet<Cell>> groups = new ArrayList<TreeSet<Cell>>();
+        ArrayList<Cell> mainSchematics = new ArrayList<Cell>();
+        for (int cellIndex = 0; cellIndex < snapshot.cellBackups.length; cellIndex++) {
+            CellBackup cellBackup = snapshot.cellBackups[cellIndex];
+            int cellGroupIndex = snapshot.cellGroups[cellIndex];
+            if (cellBackup == null) continue;
+            if (cellGroupIndex == groups.size()) {
+                groups.add(new TreeSet<Cell>());
+                mainSchematics.add(null);
+            }
+            Cell cell = getCell(cellIndex);
+            assert cell != null;
+            groups.get(cellGroupIndex).add(cell);
+            if (cellBackup.isMainSchematics)
+                mainSchematics.set(cellGroupIndex, cell);
+        }
+        for (int i = 0; i < groups.size(); i++)
+            new Cell.CellGroup(groups.get(i), mainSchematics.get(i));
+    }
     
     /**
      * Checks that Electric database has the expected state.
      * @expectedSnapshot expected state.
      */
     public void checkFresh(Snapshot expectedSnapshot) {
+        long startTime = System.currentTimeMillis();
         for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
             Library lib = lit.next();
             LibraryBackup libBackup = snapshot.getLib(lib.getId());
@@ -587,6 +617,8 @@ public class EDatabase {
             assert snapshot.cellGroups[i] == gn.intValue();
         }
         assert snapshot == expectedSnapshot;
+        long endTime = System.currentTimeMillis();
+        System.out.println("checkFresh took: " + (endTime - startTime) + " msec");
     }
 
 	/**
@@ -597,8 +629,11 @@ public class EDatabase {
 	{
 		try
 		{
-			//long startTime = System.currentTimeMillis();
+			long startTime = System.currentTimeMillis();
             CellId.checkInvariants();
+            backup();
+            snapshot.check();
+            checkFresh(snapshot);
             
 			TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 			for (Map.Entry<String,Library> e : libraries.entrySet())
@@ -610,9 +645,9 @@ public class EDatabase {
 				libNames.add(libName);
 				lib.check();
 			}
-			//long endTime = System.currentTimeMillis();
-			//float finalTime = (endTime - startTime) / 1000F;
-			//System.out.println("**** Check Invariants took " + finalTime + " seconds");
+			long endTime = System.currentTimeMillis();
+			float finalTime = (endTime - startTime) / 1000F;
+			System.out.println("**** Check Invariants took " + finalTime + " seconds");
 			return true;
 		} catch (Throwable e)
 		{

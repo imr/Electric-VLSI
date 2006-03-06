@@ -40,12 +40,13 @@ public class CellBackup {
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableExport[] exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableNodeInst[] nodes;
     /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
+    /** Bitmap of defined exports. */                               public final BitSet definedExports; 
     /** Bitmap of used exports for each CellUsage. */               public final BitSet[] exportUsages;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArcInst[] arcs;
 
     /** Creates a new instance of CellBackup */
     public CellBackup(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics,
-            ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports, int[] cellUsages, BitSet[] exportUsages) {
+            ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports, int[] cellUsages, BitSet definedExports, BitSet[] exportUsages) {
         this.d = d;
         this.revisionDate = revisionDate;
         this.modified = modified;
@@ -54,25 +55,9 @@ public class CellBackup {
         this.arcs = arcs;
         this.exports = exports;
         this.cellUsages = cellUsages;
+        this.definedExports = definedExports;
         this.exportUsages = exportUsages;
         check();
-    }
-    
-    /**
-     * Creates a new instance of CellBackup which differs from given by persistent data.
-     * @param cellBackup given CellBackup.
-     * @param d new persistent data.
-     */
-    public CellBackup(CellBackup cellBackup, ImmutableCell d, long revisionDate) {
-        this.d = d;
-        this.revisionDate = revisionDate;
-        this.modified = 1;
-        isMainSchematics = cellBackup.isMainSchematics;
-        nodes = cellBackup.nodes;
-        arcs = cellBackup.arcs;
-        exports = cellBackup.exports;
-        cellUsages = cellBackup.cellUsages;
-        exportUsages = cellBackup.exportUsages;
     }
     
     /**
@@ -160,12 +145,14 @@ public class CellBackup {
         }
         int exportsLength = reader.in.readInt();
         ImmutableExport[] exports = new ImmutableExport[exportsLength];
+        BitSet definedExports = new BitSet();
         for (int i = 0; i < exportsLength; i++) {
             ImmutableExport eid = ImmutableExport.read(reader);
+            definedExports.set(eid.exportId.chronIndex);
             registerPortInstUsage(d.cellId, nodesById[eid.originalNodeId], eid.originalPortId, exportUsages);
             exports[i] = eid;
         }
-        return new CellBackup(d, revisionDate, modified, isMainSchematics, nodes, arcs, exports, cellUsages, exportUsages);
+        return new CellBackup(d, revisionDate, modified, isMainSchematics, nodes, arcs, exports, cellUsages, definedExports, exportUsages);
     }
     
     /**
@@ -254,6 +241,7 @@ public class CellBackup {
                 assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].name.toString(), e.name.toString()) < 0) : i;
             checkPortInst(nodesById.get(e.originalNodeId), e.originalPortId);
         }
+        assert exportChronIndicies.equals(definedExports);
     }
     
     private void checkPortInst(ImmutableNodeInst node, PortProtoId portId) {
@@ -267,6 +255,7 @@ public class CellBackup {
     }
     
     public boolean sameExports(CellBackup thatBackup) {
+        if (thatBackup == this) return true;
         if (exports.length != thatBackup.exports.length)
             return false;
         for (int i = 0; i < exports.length; i++) {

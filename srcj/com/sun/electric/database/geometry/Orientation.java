@@ -24,9 +24,11 @@
 
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.tool.io.FileType;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.ObjectStreamException;
 import java.util.HashMap;
 import java.io.Serializable;
 
@@ -213,6 +215,10 @@ public class Orientation implements Serializable {
 
 	}
 
+    private Object readResolve() throws ObjectStreamException {
+        return fromJava(jAngle, jMirrorX, jMirrorY);
+    }
+    
 	/**
 	 * Get Orientation by the new Java style parameters.
 	 * @param jAngle the angle of rotation (in tenth-degrees)

@@ -123,7 +123,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public static class CellGroup
 	{
 		// private data
-        private final EDatabase database;
+        private final Library lib;
 		private TreeSet<Cell> cells;
 		private Cell mainSchematic;
 		private String groupName = null;
@@ -133,22 +133,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		/**
 		 * Constructs a CellGroup.
 		 */
-		private CellGroup(EDatabase database)
+		private CellGroup(Library lib)
 		{
-            this.database = database;
+            this.lib = lib;
             cells = new TreeSet<Cell>();
 		}
         
         /**
          * Constructor for Undo.
          */
-        CellGroup(EDatabase edb, TreeSet<Cell> cells, Cell mainSchematic) {
-            this.database = edb;
+        CellGroup(TreeSet<Cell> cells, Cell mainSchematic) {
+            lib = cells.first().getLibrary();
             this.cells = cells;
             this.mainSchematic = mainSchematic;
-            if (mainSchematic != null) assert mainSchematic.getDatabase() == edb;
+            if (mainSchematic != null) assert mainSchematic.getLibrary() == lib;
             for (Cell cell: cells) {
-                assert cell.getDatabase() == edb;
+                assert cell.getLibrary() == lib;
                 cell.cellGroup = this;
             }
         }
@@ -159,7 +159,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		private void add(Cell cell)
 		{
-            database.checkChanging();
+            lib.checkChanging();
 			synchronized(cells)
 			{
                 if (!cells.contains(cell))
@@ -177,7 +177,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		private void remove(Cell f)
 		{
-            database.checkChanging();
+            lib.checkChanging();
 			synchronized (cells)
 			{
 				cells.remove(f);
@@ -246,7 +246,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		public void setMainSchematics(Cell cell)
 		{
-            database.checkChanging();
+            lib.checkChanging();
             if (mainSchematic == cell) return;
 //			if (getMainSchematics() == cell) return;
 			if (!(cell.isSchematic() && cell.getNewestVersion() == cell))
@@ -338,7 +338,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			return groupName;
 		}
 
-        public EDatabase getDatabase() { return database; }
+        public EDatabase getDatabase() { return lib.getDatabase(); }
         
 		/**
 		 * Method to check invariants in this CellGroup.
@@ -346,14 +346,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		void check()
 		{
-			Library lib = null;
 			for (Cell cell : cells)
 			{
-				if (lib == null) lib = cell.lib;
 				assert lib.contains(cell);
 				assert cell.cellGroup == this;
 			}
-			assert lib.getDatabase() == database;
 			if (mainSchematic != null)
 			{
 				assert containsCell(mainSchematic);
@@ -498,7 +495,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		// remove ourselves from the cellGroup.
 		lib.removeCell(this);
 		cellGroup.remove(this);
-        database.linkedCells.set(getCellIndex(), null);
+        database.removeCell(getId());
 
 		// handle change control, constraint, and broadcast
         database.unfreshSnapshot();
@@ -901,7 +898,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				cellGroup = c.cellGroup;
 		}
 		// still none: make a new one
-		if (cellGroup == null) cellGroup = new CellGroup(database);
+		if (cellGroup == null) cellGroup = new CellGroup(lib);
 
 		// add ourselves to the library and to cell group
 		lib.addCell(this);
@@ -942,12 +939,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             getTechnology();
             backup = new CellBackup(getD(), revisionDate, modified, isMainSchematics,
                     ImmutableNodeInst.NULL_ARRAY, ImmutableArcInst.NULL_ARRAY, ImmutableExport.NULL_ARRAY,
-                    NULL_INT_ARRAY, NULL_BIT_SET_ARRAY);
+                    NULL_INT_ARRAY, new BitSet(), NULL_BIT_SET_ARRAY);
             assert !cellBackupFresh && !cellContentsFresh;
         }
         ImmutableNodeInst[] nodes = backup.nodes;
         ImmutableArcInst[] arcs = backup.arcs;
         ImmutableExport[] exports = backup.exports;
+        BitSet definedExports = backup.definedExports;
         BitSet[] exportUsages = backup.exportUsages;
         if (!cellContentsFresh) {
 //            System.out.println("Refersh contents of " + this);
@@ -958,13 +956,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             arcs = backupArcs(exportUsages);
             exports = backupExports(exportUsages);
             exportUsages = backupExportUsages(exportUsages);
+            BitSet newDefinedExports = new BitSet();
+            for (ImmutableExport eid: exports)
+                newDefinedExports.set(eid.exportId.chronIndex);
+            if (!newDefinedExports.equals(definedExports))
+                definedExports = newDefinedExports;
         }
         if (getD() != backup.d || revisionDate != backup.revisionDate || modified != backup.modified ||
                 isMainSchematics != backup.isMainSchematics ||
                 nodes != backup.nodes || arcs != backup.arcs || exports != backup.exports) {
             backup = new CellBackup(getD(), revisionDate, modified, isMainSchematics,
-                    nodes, arcs, exports, (int[])cellUsages.clone(), exportUsages);
+                    nodes, arcs, exports, (int[])cellUsages.clone(), definedExports, exportUsages);
         }
+        assert definedExports == backup.definedExports;
         assert exportUsages == backup.exportUsages;
         cellBackupFresh = true;
         cellContentsFresh = true;
@@ -1066,7 +1070,29 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         CellBackup.registerPortInstUsage(getId(), pi.getNodeInst().getD(), pi.getPortProto().getId(), exportUsages);
     }
    
-    public void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
+    void recover(CellBackup newBackup, ERectangle cellBounds) {
+        update(true, newBackup, null);
+        assert cellBounds != null;
+        this.cellBounds = cellBounds;
+        boundsDirty = BOUNDS_CORRECT;
+    }
+    
+    void undo(CellBackup newBackup, ERectangle cellBounds, BitSet exportsModified, BitSet boundsModified) {
+        if (backup == null) {
+            recover(newBackup, cellBounds);
+            return;
+        }
+        assert cellBackupFresh;
+        assert boundsDirty == BOUNDS_CORRECT;
+        if (backup != newBackup) {
+            update(false, newBackup, exportsModified);
+        } else if (exportsModified != null || boundsModified != null) {
+            updateSubCells(exportsModified, boundsModified);
+        }
+        this.cellBounds = cellBounds;
+    }
+    
+    private void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
         checkUndoing();
      	this.d = newBackup.d;
         this.revisionDate = newBackup.revisionDate;
@@ -1250,35 +1276,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         cellContentsFresh = true;
     }
 
-    /**
-     * Update PortInsts of subcells with modified exports.
-     * @param exportsModified set of cellIndices with modified exports.
-     */
-    void updatePortInsts(BitSet exportsModified) {
+    private void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
         checkUndoing();
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             if (!ni.isCellInstance()) continue;
             int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
-            if (exportsModified.get(subCellIndex)) {
+            if (exportsModified != null && exportsModified.get(subCellIndex)) {
                 ni.updatePortInsts(false);
                 ni.sortConnections();
+            }
+            if (boundsModified != null && boundsModified.get(subCellIndex)) {
+                ni.redoGeometric();
             }
         }
     }
 
-    void updateSubCellBounds(boolean full, BitSet boundsModified) {
-        checkUndoing();
-        for (int i = 0; i < nodes.size(); i++) {
-            NodeInst ni = nodes.get(i);
-            if (!ni.isCellInstance()) continue;
-            int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
-            if (full || boundsModified.get(subCellIndex))
-                ni.redoGeometric();
-        }
-        
-    }
-    
 	/****************************** GRAPHICS ******************************/
 
 	/**
@@ -3707,7 +3720,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		if (!isLinked()) return;
 		CellGroup oldCellGroup = this.cellGroup;
-		if (cellGroup == null) cellGroup = new CellGroup(database);
+		if (cellGroup == null) cellGroup = new CellGroup(lib);
         checkChanging();
 		if (cellGroup == this.cellGroup) return;
 		String protoName = getName();
