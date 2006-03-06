@@ -49,7 +49,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 
 // ---------------------------- Fill Cell Globals -----------------------------
 class G {
-	public static final double DEF_SIZE = LayoutLib.DEF_SIZE;
+	public static double DEF_SIZE = LayoutLib.DEF_SIZE;
 	public static ArcInst noExtendArc(ArcProto pa, double w, 
 									   PortInst p1, PortInst p2) {
 		ArcInst ai = LayoutLib.newArcInst(pa, w, p1, p2);
@@ -1173,14 +1173,16 @@ class TiledCell {
 		double maxX = bounds.getMaxX();
 		double minY = bounds.getMinY();
 		double maxY = bounds.getMaxY();
-		if (portX==minX || portX==maxX) return VERT_EXTERIOR;
-		if (portY==minY || portY==maxY) return HORI_EXTERIOR;
+		if (DBMath.areEquals(portX,minX) || DBMath.areEquals(portX,maxX)) return VERT_EXTERIOR;
+		if (DBMath.areEquals(portY,minY) || DBMath.areEquals(portY,maxY)) return HORI_EXTERIOR;
 		return INTERIOR;
 	}
 	/** return a list of all PortInsts of ni that aren't connected to 
 	 * something. */
 	private static ArrayList<PortInst> getUnconnectedPortInsts(int orientation, NodeInst ni) {
 		Rectangle2D bounds = ni.findEssentialBounds();
+        if (bounds == null)
+            bounds = ni.getBounds();
 		ArrayList<PortInst> ports = new ArrayList<PortInst>();
 		for (Iterator<PortInst> it=ni.getPortInsts(); it.hasNext();) {
 			PortInst pi = it.next();
@@ -1358,9 +1360,6 @@ class TiledCell {
         List<Rectangle2D> boxes = new ArrayList<Rectangle2D>();
         CutType cut = CutType.NONE;
 
-        if (box.getX() > -285.0 && box.getX() < -270 && box.getY() > 0)
-            System.out.println('H');
-
         if (cutX > 1 && cutY > 1) // refine on XY
         {
             cut = CutType.XY;
@@ -1420,16 +1419,53 @@ class TiledCell {
                     topCell, new NodeInst[] {}, 6))
             {
                 // Replace by dummy cell for now
-                String dummyName = "Dummy"+master.getName()+"{lay}";
+                String dummyName = "dummy";
+                for (Geometric no : nodesToRemove)
+                {
+                    if (no instanceof ArcInst)
+                        dummyName += "-" + ((ArcInst)no).getName();
+                    else
+                    {
+                        // Not deleting the pins otherwise cells can be connected.
+                        NodeInst ni = (NodeInst)no;
+                        // List should not contain pins
+                        assert(ni.getProto().getFunction() != PrimitiveNode.Function.PIN);
+                        dummyName += "-" + ((NodeInst)no).getName();
+                    }
+                }
+                dummyName +="{lay}";
+//                String dummyName = "Dummy"+master.getName()+"{lay}";
                 Cell dummyCell = master.getLibrary().findNodeProto(dummyName);
                 if (dummyCell == null)
                 {
-                    dummyCell = Cell.newInstance(master.getLibrary(), dummyName);
-                    LayoutLib.newNodeInst(Tech.essentialBounds, -masterW/2, -masterH/2,
-                                          G.DEF_SIZE, G.DEF_SIZE, 180, dummyCell);
-                    LayoutLib.newNodeInst(Tech.essentialBounds, masterW/2, masterW/2,
-                                          G.DEF_SIZE, G.DEF_SIZE, 0, dummyCell);
+                    dummyCell = FillGenerator.generateReplacementCell(master, dummyName);
+//                    dummyCell = Cell.newInstance(master.getLibrary(), dummyName);
+//                    LayoutLib.newNodeInst(Tech.essentialBounds, -masterW/2, -masterH/2,
+//                                          G.DEF_SIZE, G.DEF_SIZE, 180, dummyCell);
+//                    LayoutLib.newNodeInst(Tech.essentialBounds, masterW/2, masterW/2,
+//                                          G.DEF_SIZE, G.DEF_SIZE, 0, dummyCell);
+                    // Time to delete the elements overlapping with the rest of the top cell
+                    for (Geometric no : nodesToRemove)
+                    {
+                        if (no instanceof ArcInst)
+                        {
+                            ArcInst d = dummyCell.findArc(((ArcInst)no).getName());
+                            // d is null if a NodeInst connected was killed.
+                            if (d != null)
+                                d.kill();
+
+                        }
+                        else
+                        {
+                            NodeInst d = dummyCell.findNode(((NodeInst)no).getName());
+                            // List should not contain pins
+                            assert(d.getProto().getFunction() != PrimitiveNode.Function.PIN);
+                            d.kill();
+                        }
+                    }
                 }
+                else
+                    System.out.println("Reusing previus dummy cell?");
                 newElems.add(dummyCell);
                 stdCell = false;
             }
@@ -1447,13 +1483,13 @@ class TiledCell {
                 tiledCell = Cell.newInstance(master.getLibrary(), tiledName);
             else
             {
-                String dummyName = "Dummy"+master.getName()+"_"+w+"x"+h+"{lay}";
+                String dummyName = "dummy"+master.getName()+"_"+w+"x"+h+"("+x+","+y+"){lay}";
                 tiledCell = Cell.newInstance(master.getLibrary(), dummyName);
             }
-            LayoutLib.newNodeInst(Tech.essentialBounds, -w/2, -h/2,
-                                  G.DEF_SIZE, G.DEF_SIZE, 180, tiledCell);
-            LayoutLib.newNodeInst(Tech.essentialBounds, w/2, h/2,
-                                  G.DEF_SIZE, G.DEF_SIZE, 0, tiledCell);
+//            LayoutLib.newNodeInst(Tech.essentialBounds, -w/2, -h/2,
+//                                  G.DEF_SIZE, G.DEF_SIZE, 180, tiledCell);
+//            LayoutLib.newNodeInst(Tech.essentialBounds, w/2, h/2,
+//                                  G.DEF_SIZE, G.DEF_SIZE, 0, tiledCell);
 
             NodeInst[][] rows = null;
             // if it could use previous std fill cells
@@ -1573,8 +1609,8 @@ public class FillGenerator implements Serializable {
             {
                 nodesToRemove.add(ai);
                 // Remove exports and pins as well
-                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
-                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
+//                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
+//                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
             }
         }
         return nodesToRemove.size() > 0;
@@ -1678,6 +1714,14 @@ public class FillGenerator implements Serializable {
         if (fillTransUp != null)
             DBMath.transformRect(rect, fillTransUp);
         return rect;
+    }
+
+    protected static Cell generateReplacementCell(Cell cell, String nodeName)
+    {
+//            String newName = ElectricObject.uniqueObjectName(cell.getName(), cell, Cell.class);
+        String newName = cell.getName() + nodeName;
+
+        return Cell.copyNodeProto(cell, cell.getLibrary(), newName, true);
     }
 
     public enum Units {LAMBDA, TRACKS}
@@ -1794,7 +1838,7 @@ public class FillGenerator implements Serializable {
                                  int hiLay, CapCell capCell, boolean wireLowest,
                                  int[] tiledSizes, StdCellParams stdCell,
                                  boolean metalFlex, boolean hierFlex, Cell topCell) {
-		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell, 
+		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell,
 									   wireLowest, stdCell, metalFlex, hierFlex);
         if (!hierFlex)
 		    makeTiledCells(c, plans, lib, tiledSizes, stdCell);
@@ -1974,7 +2018,7 @@ public class FillGenerator implements Serializable {
         private boolean hierarchy;
 
 		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells,
-                          double drcSpacing, boolean hierarchy)
+                          boolean hierarchy)
 		{
 			super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
             this.perimeter = perim;
@@ -2041,6 +2085,7 @@ public class FillGenerator implements Serializable {
                 }
             }
 
+            G.DEF_SIZE = 0;
             Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true, hierarchy, topCell);
 //            fillGen.makeGallery();
 
@@ -2316,104 +2361,6 @@ public class FillGenerator implements Serializable {
                 }
             }
             return false;
-        }
-
-        private Cell generateReplacementCell(Cell cell, String nodeName)
-        {
-//            String newName = ElectricObject.uniqueObjectName(cell.getName(), cell, Cell.class);
-            String newName = cell.getName() + nodeName;
-
-            return Cell.copyNodeProto(cell, cell.getLibrary(), newName, true);
-        }
-
-        private Cell detectOverlappingBarsI(Cell cell, AffineTransform fillTransUp, HashSet<Geometric> nodesToRemove,
-                                            FillGenJobContainer container)
-        {
-            List<Layer.Function> tmp = new ArrayList<Layer.Function>();
-            Map<NodeInst,NodeInst> toReplace = new HashMap<NodeInst,NodeInst>();
-            Cell newCell = null;
-
-            // Check if any metalXY must be removed
-            for (Iterator<NodeInst> itNode = cell.getNodes(); itNode.hasNext(); )
-            {
-                NodeInst ni = itNode.next();
-
-                if (NodeInst.isSpecialNode(ni)) continue;
-
-                tmp.clear();
-                NodeProto np = ni.getProto();
-                if (ni.isCellInstance())
-                {
-                    Cell subCell = (Cell)ni.getProto();
-                    AffineTransform subTransUp = ni.transformOut(fillTransUp);
-                    // No need of checking the rest of the elements if first one is detected.
-                    Cell newToReplace = detectOverlappingBarsI(subCell, subTransUp, nodesToRemove, container);
-                    // Something to replace
-                    if (newToReplace != null)
-                    {
-                        if (newCell == null)
-                            newCell = generateReplacementCell(cell, ni.getName());
-                        NodeInst newNi = NodeInst.newInstance(newToReplace, new Point2D.Double(ni.getAnchorCenterX(),
-                                ni.getAnchorCenterY()), ni.getXSize(), ni.getYSize(), newCell, ni.getOrient(), ni.getName(), 0);
-
-                        toReplace.put(ni, newNi);
-                    }
-                    continue;
-                }
-                PrimitiveNode pn = (PrimitiveNode)np;
-                if (pn.getFunction() == PrimitiveNode.Function.PIN) continue; // pins have pseudo layers
-
-                for (Technology.NodeLayer tlayer : pn.getLayers())
-                {
-                    tmp.add(tlayer.getLayer().getFunction());
-                }
-                Rectangle2D rect = getSearchRectangle(ni.getBounds(), fillTransUp, fillGen.drcSpacing);
-                if (searchCollision(topCell, rect, tmp, null,
-                        new NodeInst[] {container.fillNi, container.connectionNi}))
-                {
-                    if (newCell == null)
-                       newCell = generateReplacementCell(cell, ni.getName());
-                    NodeInst d = newCell.findNode(ni.getName());
-                    d.kill();
-                }
-            }
-
-            // Current cell must be replaced due to subCells
-            if (toReplace.keySet().size() > 0)
-            {
-                // Replacing all NodeInsts with collisions
-                for (NodeInst node : toReplace.keySet())
-                {
-                    if (newCell == null)
-                        newCell = generateReplacementCell(cell, node.getName());
-                    NodeInst d = newCell.findNode(node.getName());
-                    d.kill();
-                    newCell.addNode(toReplace.get(node));
-                }
-            }
-
-            // Checking if any arc in FillCell collides with rest of the cells
-            for (Iterator<ArcInst> itArc = cell.getArcs(); itArc.hasNext(); )
-            {
-                ArcInst ai = itArc.next();
-                tmp.clear();
-                tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
-                // Searching box must reflect DRC constrains
-                Rectangle2D rect = getSearchRectangle(ai.getBounds(), fillTransUp, fillGen.drcSpacing);
-                if (searchCollision(topCell, rect, tmp, null,
-                        new NodeInst[] {container.fillNi, container.connectionNi}))
-                {
-                    if (newCell == null)
-                       newCell = generateReplacementCell(cell, ai.getName());
-                    ArcInst d = newCell.findArc(ai.getName());
-                    // d is null if a NodeInst connected was killed.
-                    if (d != null)
-                        d.kill();
-                }
-            }
-            if (cell == container.fillCell && newCell != null)
-                container.fillCell = newCell;
-            return newCell;
         }
 
         private void removeOverlappingBars(FillGenJobContainer container, AffineTransform fillTransOut)

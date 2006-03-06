@@ -713,7 +713,7 @@ public class DebugMenus
         fg.makeEvenLayersHorizontal(true);
         fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
         fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
-        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, drcSpacingRule, hierarchy);
+        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, hierarchy);
     }
 
     private static void cleanSetOfLibraries()
