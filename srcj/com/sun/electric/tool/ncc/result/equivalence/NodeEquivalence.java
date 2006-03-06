@@ -22,15 +22,11 @@ class NodeEquivalence implements Serializable {
 	private int lastDesignHit;
 	
 	private void pr(String s) {System.out.print(s);}
-	
-	/** @param equivNodes is a NodableNameProxy[][]. NodableNameProxy[d][n] 
-	 * gives the nth Nodable of the dth design. NodableNameProxy[a][n] is "NCC
-	 * equivalent" to NodableNameProxy[b][n] for all a and b. */
-	public NodeEquivalence(NodableNameProxy[][] equivNodes) {
-		this.equivNodes = equivNodes;
-		numDesigns = equivNodes.length;
-		numNodes = equivNodes[0].length;
-		
+
+	/** Tricky: Because instToNccCtxt takes so much space, build it 
+	 * only on demand */
+	private void buildNameTree() {
+		if (instToNccCtxt!=null) return; 
 		instToNccCtxt = new InstancePathToNccContext[numDesigns];
 		for (int i=0; i<numDesigns; i++) {
 			LayoutLib.error(equivNodes[i].length!=numNodes,
@@ -39,10 +35,20 @@ class NodeEquivalence implements Serializable {
 		}
 	}
 
+	/** @param equivNodes is a NodableNameProxy[][]. NodableNameProxy[d][n] 
+	 * gives the nth Nodable of the dth design. NodableNameProxy[a][n] is "NCC
+	 * equivalent" to NodableNameProxy[b][n] for all a and b. */
+	public NodeEquivalence(NodableNameProxy[][] equivNodes) {
+		this.equivNodes = equivNodes;
+		numDesigns = equivNodes.length;
+		numNodes = equivNodes[0].length;
+	}
+
 	private NodableNameProxy findEquivalent(VarContext vc, Nodable node, 
 			                                int designIndex) {
 		LayoutLib.error(designIndex!=0 && designIndex!=1, 
 				        "designIndex must be 0 or 1");
+		buildNameTree();
 		InstancePathToNccContext nameIndex = instToNccCtxt[designIndex];
 		NccContext nc = nameIndex.findNccContext(vc);
 		
@@ -106,6 +112,10 @@ class NodeEquivalence implements Serializable {
 		if (numErrors!=0) System.out.print(numErrors+" errors.");
 		pr("\n");
 
+		// Tricky: because instToNccCtxt takes so much space, delete it 
+		// after the regression.
+		instToNccCtxt = null;
+		
 		return numErrors;
 	}
 }

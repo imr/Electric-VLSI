@@ -167,14 +167,14 @@ public class NccUtils {
 	}
     /** Wait forever. This allows me to explore memory usage */
     public static void hang(String msg) {
-//        final long YEAR = 1000*60*60*24*365;
-//        try {
-//            System.out.println(msg+" now going to sleep for 1 year");
-//            System.out.flush();
-//            Thread.sleep(1*YEAR);
-//        } catch (Exception e) {
-//            System.out.println("Huh? I woke up.");
-//        }
+        final long YEAR = 1000*60*60*24*365;
+        try {
+            System.out.println(msg+" now going to sleep for 1 year");
+            System.out.flush();
+            Thread.sleep(1*YEAR);
+        } catch (Exception e) {
+            System.out.println("Huh? I woke up.");
+        }
     }
 	public static double round(double x, int places) {
 		long m = pow(10, places);

@@ -51,14 +51,11 @@ class NetEquivalence implements Serializable {
 		return false;
 	}
 	private void pr(String s) {System.out.print(s);}
-	/** @param equivNets is a NetNameProxy[][]. NetNameProxy[d][n] gives the 
-	 * nth net of the dth design.  NetNameProxy[a][n] is "NCC equivalent" to 
-	 * NetNameProxy[b][n] for all a and b.*/
-	public NetEquivalence(NetNameProxy[][] equivNets) {
-		this.equivNets = equivNets;
-		numDesigns = equivNets.length;
-		numNets = equivNets[0].length;
-		
+	
+	/** Tricky: Because instToNetNcCtxt takes so much space, build it 
+	 * only on demand */
+	private void buildNameTree() {
+		if (instToNetNccCtxt!=null) return; 
 		instToNetNccCtxt = new InstancePathToNccContext[numDesigns];
 		for (int i=0; i<numDesigns; i++) {
 			LayoutLib.error(equivNets[i].length!=numNets,
@@ -66,11 +63,21 @@ class NetEquivalence implements Serializable {
 			instToNetNccCtxt[i] = new InstancePathToNccContext(equivNets[i]); 
 		}
 	}
+	
+	/** @param equivNets is a NetNameProxy[][]. NetNameProxy[d][n] gives the 
+	 * nth net of the dth design.  NetNameProxy[a][n] is "NCC equivalent" to 
+	 * NetNameProxy[b][n] for all a and b.*/
+	public NetEquivalence(NetNameProxy[][] equivNets) {
+		this.equivNets = equivNets;
+		numDesigns = equivNets.length;
+		numNets = equivNets[0].length;
+	}
 
 	private NetNameProxy findEquivNet(VarContext vc, Network net, 
 			                            int designIndex) {
 		LayoutLib.error(designIndex!=0 && designIndex!=1, 
 				        "designIndex must be 0 or 1");
+		buildNameTree();
 		InstancePathToNccContext nameIndex = instToNetNccCtxt[designIndex];
 		NccContext nc = nameIndex.findNccContext(vc);
 		
@@ -135,6 +142,10 @@ class NetEquivalence implements Serializable {
 		if (numErrors!=0) System.out.print(numErrors+" errors.");
 		pr("\n");
 
+		// Tricky: because instToNetNccCtxt takes so much space, delete it 
+		// after the regression.
+		instToNetNccCtxt = null;
+		
 		return numErrors;
 	}
 }

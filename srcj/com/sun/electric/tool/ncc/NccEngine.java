@@ -200,6 +200,7 @@ public class NccEngine {
 
 			boolean exportsOK = expNamesOK && expTopoOK;
 			boolean topologyOK = localRes.matches() && topoOK;
+            
 			return NccResult.newResult(exportsOK, topologyOK, sizesOK, globals);
 		}
 	}

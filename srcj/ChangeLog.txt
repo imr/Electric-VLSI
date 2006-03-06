@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+IMP: (3/6/06, RK) More support to copy Node names from schematic to layout
+
 BUG: (3/6/06, DN) Check invariants at creating snapshot is too slow.
 FIX: Check them more incrementally.
 
