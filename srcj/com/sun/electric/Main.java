@@ -167,7 +167,7 @@ public final class Main
 		// initialize database
         EDatabase.serverDatabase();
 		InitDatabase job = new InitDatabase(argsList);
-        Job.initJobManager(numThreads, job);
+        Job.initJobManager(numThreads, job, mode);
 	}
 
     private static class UserInterfaceDummy extends AbstractUserInterface

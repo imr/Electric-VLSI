@@ -144,7 +144,7 @@ public abstract class Job implements Serializable {
         currentUI = userInterface;
     }
    
-    public static void initJobManager(int numThreads, Job initDatabaseJob) {
+    public static void initJobManager(int numThreads, Job initDatabaseJob, Object mode) {
         switch (threadMode) {
             case FULL_SCREEN:
                 if (User.isUseClientServer())
@@ -153,7 +153,7 @@ public abstract class Job implements Serializable {
                     jobManager = new ServerJobManager(numThreads);
 
                 // Calling external dependencies
-                currentUI.initializeInitJob(initDatabaseJob);
+                currentUI.initializeInitJob(initDatabaseJob, mode);
                 initDatabaseJob.startJob();
                 break;
             case BATCH:

@@ -105,8 +105,15 @@ public class UserInterfaceMain extends AbstractUserInterface
     
     public void addEvent(Client.ServerEvent serverEvent) { SwingUtilities.invokeLater(serverEvent); }
 
-    public void initializeInitJob(Job job)
+    public void initializeInitJob(Job job, Object mode)
     {
+        // Only valid for Mac OS X
+        if (!System.getProperty("os.name").toLowerCase().startsWith("mac")) return;
+
+        System.out.println("Mode " + mode);
+        if (mode != Mode.MDI)
+            new EventProcessor();
+
         SwingUtilities.invokeLater(new InitializationSetJob(job));
     }
 

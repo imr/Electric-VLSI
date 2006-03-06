@@ -24,15 +24,10 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.SnapshotWriter;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.tool.Client.ServerEvent;
 import com.sun.electric.tool.user.ErrorLogger;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -45,7 +40,7 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     }
 
     // For Mac OS X version
-    public void initializeInitJob(Job job) {}
+    public void initializeInitJob(Job job, Object mode) {}
 
 
     public void addEvent(Client.ServerEvent serverEvent) {}
