@@ -107,7 +107,6 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     public void initializeInitJob(Job job)
     {
-        new EventProcessor();
         SwingUtilities.invokeLater(new InitializationSetJob(job));
     }
 
