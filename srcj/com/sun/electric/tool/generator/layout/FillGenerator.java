@@ -1108,18 +1108,22 @@ class TiledCell {
      * @param tileOnX
      * @param tileOnY
      * @param minTileSize
+     * @param topCell
      * @return
      */
     public Cell makeQTreeCell(Cell master, int tileOnX, int tileOnY, double minTileSize,
-                              Floorplan[] plans, StdCellParams stdCellParam)
+                              Floorplan[] plans, StdCellParams stdCellParam, Cell topCell)
     {
         int powerX = getFillDimension(tileOnX);
         int powerY = getFillDimension(tileOnY);
+        double fillWidth = powerX*minTileSize;
+        double fillHeight = powerY*minTileSize;
         // topBox its width/height must be multiply of master.getWidth()/Height()
-        Rectangle2D topBox = new Rectangle2D.Double(0, 0, powerX*minTileSize, powerY*minTileSize);
+        Rectangle2D topBox = new Rectangle2D.Double(topCell.getBounds().getCenterX()-fillWidth/2,
+                topCell.getBounds().getCenterY()-fillHeight/2, fillWidth, fillHeight);
         // refine recursively
-        Set<Cell> newElems = new HashSet<Cell>();
-        refine(master, topBox, plans, stdCellParam, newElems);
+        List<Cell> newElems = new ArrayList<Cell>();
+        refine(master, topBox, plans, stdCellParam, newElems, topCell);
         assert(newElems.size()==1);
         return newElems.iterator().next();
     }
@@ -1333,10 +1337,11 @@ class TiledCell {
      * ----------------------------
      * @param master
      * @param box  bounding box representing region to refine. (0,0) is the top left corner
+     * @param topCell
      * @return true if refined elements form std cell
      */
     private boolean refine(Cell master, Rectangle2D box, Floorplan[] plans, StdCellParams stdCellParam,
-                           Set<Cell> newElems)
+                           List<Cell> newElems, Cell topCell)
     {
         double masterW = master.getBounds().getWidth();
         double masterH = master.getBounds().getHeight();
@@ -1346,12 +1351,15 @@ class TiledCell {
         double y = box.getY();
         int cutX = (int)Math.ceil(w/masterW);
         int cutY = (int)Math.ceil(h/masterH);
-        // Using set to keep only one copy of the master cells, the one that can be re-used.
-        Set<Cell> list = new HashSet<Cell>();
+        // Each cut will have a copy of the cell to use
+        List<Cell> list = new ArrayList<Cell>();
         boolean stdCell = true;
         Point2D[] centers = null;
         List<Rectangle2D> boxes = new ArrayList<Rectangle2D>();
         CutType cut = CutType.NONE;
+
+        if (box.getX() > -285.0 && box.getX() < -270 && box.getY() > 0)
+            System.out.println('H');
 
         if (cutX > 1 && cutY > 1) // refine on XY
         {
@@ -1365,7 +1373,7 @@ class TiledCell {
             {
                 Rectangle2D bb = GenMath.getQTreeBox(x, y, w/2, h/2, box.getCenterX(), box.getCenterY(), i);
                 boxes.add(bb);
-                if (!refine(master, bb, plans, stdCellParam, list))
+                if (!refine(master, bb, plans, stdCellParam, list, topCell))
                     stdCell = false;
             }
         }
@@ -1376,7 +1384,7 @@ class TiledCell {
             {
                 Rectangle2D bb = GenMath.getQTreeBox(x, y, w/2, h, box.getCenterX(), box.getCenterY(), i);
                 boxes.add(bb);
-                if (!refine(master, bb, plans, stdCellParam, list))
+                if (!refine(master, bb, plans, stdCellParam, list, topCell))
                     stdCell = false;
             }
             centers = new Point2D[2];
@@ -1390,7 +1398,7 @@ class TiledCell {
             {
                 Rectangle2D bb = GenMath.getQTreeBox(x, y, w, h/2, box.getCenterX(), box.getCenterY(), i*2);
                 boxes.add(bb);
-                if (!refine(master, bb, plans, stdCellParam, list))
+                if (!refine(master, bb, plans, stdCellParam, list, topCell))
                     stdCell = false;
             }
             centers = new Point2D[2];
@@ -1398,16 +1406,50 @@ class TiledCell {
             centers[1] = new Point2D.Double(0, 0.5);
         } else {
             // nothing refined, qTree leave
-            newElems.add(master);
-            return true;
+            HashSet<Geometric> nodesToRemove = new HashSet<Geometric>();
+            // Translation from master cell center to actual location in the qTree
+            /*		[   1    0    tx  ]
+             *		[   0    1    ty  ]
+             *		[   0    0    1   ]
+             */
+            AffineTransform fillTransUp = new AffineTransform(1.0, 0.0, 0.0, 1.0,
+                    box.getCenterX() - master.getBounds().getCenterX(),
+                    box.getCenterY() - master.getBounds().getCenterY());
+            stdCell = true;
+            if (FillGenerator.detectOverlappingBars(master, fillTransUp, nodesToRemove,
+                    topCell, new NodeInst[] {}, 6))
+            {
+                // Replace by dummy cell for now
+                String dummyName = "Dummy"+master.getName()+"{lay}";
+                Cell dummyCell = master.getLibrary().findNodeProto(dummyName);
+                if (dummyCell == null)
+                {
+                    dummyCell = Cell.newInstance(master.getLibrary(), dummyName);
+                    LayoutLib.newNodeInst(Tech.essentialBounds, -masterW/2, -masterH/2,
+                                          G.DEF_SIZE, G.DEF_SIZE, 180, dummyCell);
+                    LayoutLib.newNodeInst(Tech.essentialBounds, masterW/2, masterW/2,
+                                          G.DEF_SIZE, G.DEF_SIZE, 0, dummyCell);
+                }
+                newElems.add(dummyCell);
+                stdCell = false;
+            }
+            else
+                newElems.add(master);
+            return stdCell;
         }
 
-        String tiledName = "t"+master.getName()+"_"+w+"x"+h+"{lay}";
+        String tiledName = "std"+master.getName()+"_"+w+"x"+h+"{lay}";
         Cell tiledCell = master.getLibrary().findNodeProto(tiledName);
 
-        if (tiledCell == null)
+        if (tiledCell == null || !stdCell)
         {
-            tiledCell = Cell.newInstance(master.getLibrary(), tiledName);
+            if (stdCell)
+                tiledCell = Cell.newInstance(master.getLibrary(), tiledName);
+            else
+            {
+                String dummyName = "Dummy"+master.getName()+"_"+w+"x"+h+"{lay}";
+                tiledCell = Cell.newInstance(master.getLibrary(), dummyName);
+            }
             LayoutLib.newNodeInst(Tech.essentialBounds, -w/2, -h/2,
                                   G.DEF_SIZE, G.DEF_SIZE, 180, tiledCell);
             LayoutLib.newNodeInst(Tech.essentialBounds, w/2, h/2,
@@ -1415,43 +1457,39 @@ class TiledCell {
 
             NodeInst[][] rows = null;
             // if it could use previous std fill cells
-            if (stdCell)
+            switch (cut)
             {
-                assert (list.size() == 1);
+                case X:
+                    rows = new NodeInst[1][2];
+                    break;
+                case Y:
+                    rows = new NodeInst[2][1];
+                    break;
+                case XY:
+                    rows = new NodeInst[2][2];
+                    break;
+            }
+            assert(boxes.size() == list.size());
+
+//            Cell newM = list.iterator().next();
+            for (int i = 0; i < boxes.size(); i++)
+            {
+                Rectangle2D b = boxes.get(i);
+                NodeInst node = LayoutLib.newNodeInst(list.get(i),
+                        b.getWidth()*centers[i].getX(),
+                        b.getHeight()*centers[i].getY(),
+                        b.getWidth(), b.getHeight(), 0, tiledCell);
                 switch (cut)
                 {
                     case X:
-                        rows = new NodeInst[1][2];
+                        rows[0][i] = node;
                         break;
                     case Y:
-                        rows = new NodeInst[2][1];
+                        rows[i][0] = node;
                         break;
                     case XY:
-                        rows = new NodeInst[2][2];
-                        break;
-                    }
-                Cell newM = list.iterator().next();
-                for (int i = 0; i < boxes.size(); i++)
-                {
-                    Rectangle2D b = boxes.get(i);
-                    NodeInst node = LayoutLib.newNodeInst(newM,
-                            b.getWidth()*centers[i].getX(),
-                            b.getHeight()*centers[i].getY(),
-                            b.getWidth(), b.getHeight(), 0, tiledCell);
-                    switch (cut)
-                    {
-                        case X:
-                            rows[0][i] = node;
-                            break;
-                        case Y:
-                            rows[i][0] = node;
-                            break;
-                        case XY:
-                            rows[(int)i/2][i%2] = node;
-                    }
+                        rows[(int)i/2][i%2] = node;
                 }
-            } else {
-                throw new Error("Not implemented");
             }
 
             ArrayList<PortInst> portInsts = TiledCell.getAllPortInsts(tiledCell);
@@ -1489,7 +1527,160 @@ class TiledCell {
  * Object for building fill libraries
  */
 public class FillGenerator implements Serializable {
-	public enum Units {LAMBDA, TRACKS}
+    
+    public static boolean detectOverlappingBars(Cell cell, AffineTransform fillTransUp, HashSet<Geometric> nodesToRemove,
+                                          Cell topCell, NodeInst[] ignore, double drcSpacing)
+    {
+        List<Layer.Function> tmp = new ArrayList<Layer.Function>();
+
+        // Check if any metalXY must be removed
+        for (Iterator<NodeInst> itNode = cell.getNodes(); itNode.hasNext(); )
+        {
+            NodeInst ni = itNode.next();
+
+            if (NodeInst.isSpecialNode(ni)) continue;
+
+            tmp.clear();
+            NodeProto np = ni.getProto();
+            if (ni.isCellInstance())
+            {
+                throw new Error("This should not happen");
+            }
+            PrimitiveNode pn = (PrimitiveNode)np;
+            if (pn.getFunction() == PrimitiveNode.Function.PIN) continue; // pins have pseudo layers
+
+            for (Technology.NodeLayer tlayer : pn.getLayers())
+            {
+                tmp.add(tlayer.getLayer().getFunction());
+            }
+            Rectangle2D rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
+            if (searchCollision(topCell, rect, tmp, null, ignore))
+            {
+                // Direct on last top fill cell
+                nodesToRemove.add(ni);
+            }
+        }
+
+        // Checking if any arc in FillCell collides with rest of the cells
+        for (Iterator<ArcInst> itArc = cell.getArcs(); itArc.hasNext(); )
+        {
+            ArcInst ai = itArc.next();
+            tmp.clear();
+            tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
+            // Searching box must reflect DRC constrains
+            Rectangle2D rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
+            if (searchCollision(topCell, rect, tmp, null, ignore))
+            {
+                nodesToRemove.add(ai);
+                // Remove exports and pins as well
+                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
+                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
+            }
+        }
+        return nodesToRemove.size() > 0;
+    }
+    
+    /**
+     * Method to determine if new contact will overlap with other metals in the configuration
+     * @param parent
+     * @param nodeBounds
+     * @param p
+     * @param ignores NodeInst instances to ignore
+     * @return
+     */
+    protected static boolean searchCollision(Cell parent, Rectangle2D nodeBounds, List<Layer.Function> theseLayers,
+                                             PortInst p, NodeInst[] ignores)
+    {
+        // Not checking if they belong to the same net!. If yes, ignore the collision
+        Rectangle2D subBound = new Rectangle2D.Double();
+        Netlist netlist = parent.acquireUserNetlist();
+
+        for(Iterator<Geometric> it = parent.searchIterator(nodeBounds); it.hasNext(); )
+        {
+            Geometric geom = it.next();
+
+            if (p != null && geom == p.getNodeInst())
+                continue; // port belongs to this node
+
+            for (int i = 0; i < ignores.length; i++)
+            {
+                if (geom == ignores[i]) continue;// ignore the cell. E.g. fillNi, connectionNi
+            }
+
+            if (geom instanceof NodeInst)
+            {
+                NodeInst ni = (NodeInst)geom;
+
+                if (NodeInst.isSpecialNode(ni)) continue;
+
+                // ignore nodes that are not primitive
+                if (ni.isCellInstance())
+                {
+                    // instance found: look inside it for offending geometry
+                    AffineTransform rTransI = ni.rotateIn();
+                    AffineTransform tTransI = ni.translateIn();
+                    rTransI.preConcatenate(tTransI);
+                    subBound.setRect(nodeBounds);
+                    DBMath.transformRect(subBound, rTransI);
+
+                    if (searchCollision((Cell)ni.getProto(), subBound, theseLayers, p, ignores))
+                        return true;
+                } else
+                {
+                    boolean found = false;
+                    for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
+                    {
+                        PortInst port = itP.next();
+                        Network net = netlist.getNetwork(port);
+                        // They export the same, power or gnd so no worries about overlapping
+                        if (p != null && net.findExportWithSameCharacteristic(p) != null)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (found)
+                        continue; // no match in network type
+
+                    Poly [] subPolyList = parent.getTechnology().getShapeOfNode(ni, null, null, true, true,
+                            theseLayers);
+                    // Overlap found
+                    if (subPolyList.length > 0)
+                        return true;
+                }
+            }
+            else
+            {
+                ArcInst ai = (ArcInst)geom;
+
+                Network net = netlist.getNetwork(ai, 0);
+
+                // They export the same, power or gnd so no worries about overlapping
+                if (p != null && net.findExportWithSameCharacteristic(p) != null)
+                    continue; // no match in network type
+
+                Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, theseLayers);
+
+                // Something overlaps
+                if (subPolyList.length > 0)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static Rectangle2D getSearchRectangle(Rectangle2D bnd, AffineTransform fillTransUp, double drcSpacing)
+    {
+        Rectangle2D rect = new Rectangle2D.Double(bnd.getX() - drcSpacing,
+                    bnd.getY() - drcSpacing,
+                    bnd.getWidth() + 2* drcSpacing,
+                    bnd.getHeight() + 2* drcSpacing);
+        if (fillTransUp != null)
+            DBMath.transformRect(rect, fillTransUp);
+        return rect;
+    }
+
+    public enum Units {LAMBDA, TRACKS}
 	public enum PowerType {POWER, VDD}
 	public enum ExportConfig {PERIMETER, PERIMETER_AND_INTERNAL}
 
@@ -1511,6 +1702,7 @@ public class FillGenerator implements Serializable {
 	private StdCellParams stdCell, stdCellP;
 	private CapCell capCell, capCellP;
 	private Floorplan[] plans;
+    protected double drcSpacing; // to store min distance between wires
 	
 	private double reservedToLambda(int layer, double reserved, Units units) {
 		if (units==LAMBDA) return reserved;
@@ -1601,7 +1793,7 @@ public class FillGenerator implements Serializable {
 	private Cell makeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
                                  int hiLay, CapCell capCell, boolean wireLowest,
                                  int[] tiledSizes, StdCellParams stdCell,
-                                 boolean metalFlex, boolean hierFlex) {
+                                 boolean metalFlex, boolean hierFlex, Cell topCell) {
 		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell, 
 									   wireLowest, stdCell, metalFlex, hierFlex);
         if (!hierFlex)
@@ -1612,7 +1804,7 @@ public class FillGenerator implements Serializable {
             int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
 
             TiledCell t = new TiledCell(stdCell);
-            c = t.makeQTreeCell(c, tileOnX, tileOnY, minTileSize, plans, stdCell);
+            c = t.makeQTreeCell(c, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell);
 //                int min = Math.min(tileOnX, tileOnY);
 //                c = TiledCell.makeTiledCell(min, min, c, plans, lib, stdCell);
 //                tileOnX = tileOnX/min;
@@ -1673,6 +1865,13 @@ public class FillGenerator implements Serializable {
 		changeWarning();
 		height=h;
 	}
+    /**
+     * Set the min distance between wires to avoid DRC violation
+     * @param spacing
+     */
+    public void setDRCSpacing(double spacing) {
+        this.drcSpacing = spacing;
+    }
     /** Set target values: the minimum size of title based on user input and DRC rules
      * @param targetW
      * @param targetH
@@ -1720,7 +1919,7 @@ public class FillGenerator implements Serializable {
 	 * to create fill cells with export type "POWER". Please use the version
 	 * of makeFillCell that has no PowerType argument. */
 	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-                             PowerType powerType, int[] tiledSizes, boolean metalFlex, boolean hierFlex) {
+                             PowerType powerType, int[] tiledSizes, boolean metalFlex, boolean hierFlex, Cell topCell) {
 		initFillParameters(metalFlex, hierFlex);
 		
 		LayoutLib.error(loLayer<1, "loLayer must be >=1");
@@ -1730,10 +1929,10 @@ public class FillGenerator implements Serializable {
         Cell cell = null;
 		if (powerType==VDD) {
 			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
-			                tiledSizes, stdCell, metalFlex, hierFlex);
+			                tiledSizes, stdCell, metalFlex, hierFlex, topCell);
 		} else {
 			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
-			                tiledSizes, stdCellP, metalFlex, hierFlex);
+			                tiledSizes, stdCellP, metalFlex, hierFlex, topCell);
 		}
         return cell;
 	}
@@ -1751,10 +1950,11 @@ public class FillGenerator implements Serializable {
 	 * placed inside the perimeter of the cell for the bottom layer.
      * @param tiledSizes Array specifying composite Cells we should build by
 	 * concatonating fill cells. For example int[] {2, 4, 7} means we should
-     * @param hierFlex*/
+     * @param hierFlex
+     * @param topCell*/
 	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-                             int[] tiledSizes, boolean metalFlex, boolean hierFlex) {
-		return makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, metalFlex, hierFlex);
+                             int[] tiledSizes, boolean metalFlex, boolean hierFlex, Cell topCell) {
+		return makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, metalFlex, hierFlex, topCell);
 	}
 	public void makeGallery() {
 		Gallery.makeGallery(lib);
@@ -1771,7 +1971,6 @@ public class FillGenerator implements Serializable {
         private int[] cellsList;
         private Cell topCell;
         private ErrorLogger log;
-        private double drcSpacing; // to store min distance between wires
         private boolean hierarchy;
 
 		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells,
@@ -1784,7 +1983,6 @@ public class FillGenerator implements Serializable {
             this.lastMetal = last;
             this.cellsList = cells;
             this.topCell = cell; // Only if 1 cell is generated.
-            this.drcSpacing = drcSpacing;
             this.hierarchy = hierarchy;
 			startJob();
 		}
@@ -1843,7 +2041,7 @@ public class FillGenerator implements Serializable {
                 }
             }
 
-            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true, hierarchy);
+            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true, hierarchy, topCell);
 //            fillGen.makeGallery();
 
             if (topCell == null || portList == null || portList.size() == 0) return true;
@@ -2083,13 +2281,9 @@ public class FillGenerator implements Serializable {
                 {
                     tmp.add(tlayer.getLayer().getFunction());
                 }
-//                Rectangle2D rect = (Rectangle2D)ni.getBounds().clone();
-                Rectangle2D rect = new Rectangle2D.Double(ni.getBounds().getX() - drcSpacing,
-                        ni.getBounds().getY() - drcSpacing,
-                        ni.getBounds().getWidth() + 2* drcSpacing,
-                        ni.getBounds().getHeight() + 2* drcSpacing);
-                DBMath.transformRect(rect, fillTransUp);
-                if (searchCollision(topCell, rect, tmp, null, container.fillNi, container.connectionNi, null))
+                Rectangle2D rect = getSearchRectangle(ni.getBounds(), fillTransUp, fillGen.drcSpacing);
+                if (searchCollision(topCell, rect, tmp, null,
+                        new NodeInst[] {container.fillNi, container.connectionNi}))
                 {
                     // Direct on last top fill cell
                     if (cell == container.fillCell)
@@ -2106,12 +2300,9 @@ public class FillGenerator implements Serializable {
                 tmp.clear();
                 tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
                 // Searching box must reflect DRC constrains
-                Rectangle2D rect = new Rectangle2D.Double(ai.getBounds().getX() - drcSpacing,
-                        ai.getBounds().getY() - drcSpacing,
-                        ai.getBounds().getWidth() + 2* drcSpacing,
-                        ai.getBounds().getHeight() + 2* drcSpacing);
-                DBMath.transformRect(rect, fillTransUp);
-                if (searchCollision(topCell, rect, tmp, null, container.fillNi, container.connectionNi, null))
+                Rectangle2D rect = getSearchRectangle(ai.getBounds(), fillTransUp, fillGen.drcSpacing);
+                if (searchCollision(topCell, rect, tmp, null,
+                        new NodeInst[] {container.fillNi, container.connectionNi}))
                 {
                     if (cell == container.fillCell)
                     {
@@ -2136,7 +2327,7 @@ public class FillGenerator implements Serializable {
         }
 
         private Cell detectOverlappingBarsI(Cell cell, AffineTransform fillTransUp, HashSet<Geometric> nodesToRemove,
-                                              FillGenJobContainer container)
+                                            FillGenJobContainer container)
         {
             List<Layer.Function> tmp = new ArrayList<Layer.Function>();
             Map<NodeInst,NodeInst> toReplace = new HashMap<NodeInst,NodeInst>();
@@ -2176,13 +2367,9 @@ public class FillGenerator implements Serializable {
                 {
                     tmp.add(tlayer.getLayer().getFunction());
                 }
-//                Rectangle2D rect = (Rectangle2D)ni.getBounds().clone();
-                Rectangle2D rect = new Rectangle2D.Double(ni.getBounds().getX() - drcSpacing,
-                        ni.getBounds().getY() - drcSpacing,
-                        ni.getBounds().getWidth() + 2* drcSpacing,
-                        ni.getBounds().getHeight() + 2* drcSpacing);
-                DBMath.transformRect(rect, fillTransUp);
-                if (searchCollision(topCell, rect, tmp, null, container.fillNi, container.connectionNi, null))
+                Rectangle2D rect = getSearchRectangle(ni.getBounds(), fillTransUp, fillGen.drcSpacing);
+                if (searchCollision(topCell, rect, tmp, null,
+                        new NodeInst[] {container.fillNi, container.connectionNi}))
                 {
                     if (newCell == null)
                        newCell = generateReplacementCell(cell, ni.getName());
@@ -2212,12 +2399,9 @@ public class FillGenerator implements Serializable {
                 tmp.clear();
                 tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
                 // Searching box must reflect DRC constrains
-                Rectangle2D rect = new Rectangle2D.Double(ai.getBounds().getX() - drcSpacing,
-                        ai.getBounds().getY() - drcSpacing,
-                        ai.getBounds().getWidth() + 2* drcSpacing,
-                        ai.getBounds().getHeight() + 2* drcSpacing);
-                DBMath.transformRect(rect, fillTransUp);
-                if (searchCollision(topCell, rect, tmp, null, container.fillNi, container.connectionNi, null))
+                Rectangle2D rect = getSearchRectangle(ai.getBounds(), fillTransUp, fillGen.drcSpacing);
+                if (searchCollision(topCell, rect, tmp, null,
+                        new NodeInst[] {container.fillNi, container.connectionNi}))
                 {
                     if (newCell == null)
                        newCell = generateReplacementCell(cell, ai.getName());
@@ -2282,7 +2466,7 @@ public class FillGenerator implements Serializable {
 //            return minNi;
 //        }
 
-        private static class FillGenJobContainer
+        private class FillGenJobContainer
         {
             InteractiveRouter router;
             Cell fillCell, connectionCell;
@@ -2301,94 +2485,6 @@ public class FillGenerator implements Serializable {
                 this.fillPortInstList = pList;
                 this.fillContactList = cList;
             }
-        }
-
-        /**
-         * Method to determine if new contact will overlap with other metals in the configuration
-         * @param parent
-         * @param nodeBounds
-         * @param p
-         * @param fillNi
-         * @param connectionNi
-         * @param upTrans
-         * @return
-         */
-        private boolean searchCollision(Cell parent, Rectangle2D nodeBounds, List<Layer.Function> theseLayers, PortInst p,
-                                        NodeInst fillNi, NodeInst connectionNi, AffineTransform upTrans)
-        {
-            // Not checking if they belong to the same net!. If yes, ignore the collision
-            Rectangle2D subBound = new Rectangle2D.Double();
-            Netlist netlist = parent.acquireUserNetlist();
-
-            for(Iterator<Geometric> it = parent.searchIterator(nodeBounds); it.hasNext(); )
-            {
-                Geometric geom = it.next();
-
-                if (p != null && geom == p.getNodeInst())
-                    continue; // port belongs to this node
-
-                if (geom == fillNi || geom == connectionNi) continue; // ignore these extra cells
-
-                if (geom instanceof NodeInst)
-                {
-                    NodeInst ni = (NodeInst)geom;
-
-                    if (NodeInst.isSpecialNode(ni)) continue;
-
-                    // ignore nodes that are not primitive
-                    if (ni.isCellInstance())
-                    {
-                        // instance found: look inside it for offending geometry
-                        AffineTransform rTransI = ni.rotateIn();
-                        AffineTransform tTransI = ni.translateIn();
-                        rTransI.preConcatenate(tTransI);
-                        subBound.setRect(nodeBounds);
-                        DBMath.transformRect(subBound, rTransI);
-
-                        if (searchCollision((Cell)ni.getProto(), subBound, theseLayers, p, fillNi, connectionNi, upTrans))
-                            return true;
-                    } else
-                    {
-                        boolean found = false;
-                        for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
-                        {
-                            PortInst port = itP.next();
-                            Network net = netlist.getNetwork(port);
-                            // They export the same, power or gnd so no worries about overlapping
-                            if (p != null && net.findExportWithSameCharacteristic(p) != null)
-                            {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (found)
-                            continue; // no match in network type
-
-                        Poly [] subPolyList = parent.getTechnology().getShapeOfNode(ni, null, null, true, true,
-                                theseLayers);
-                        // Overlap found
-                        if (subPolyList.length > 0)
-                            return true;
-                    }
-                }
-                else
-                {
-                    ArcInst ai = (ArcInst)geom;
-
-                    Network net = netlist.getNetwork(ai, 0);
-
-                    // They export the same, power or gnd so no worries about overlapping
-                    if (p != null && net.findExportWithSameCharacteristic(p) != null)
-                        continue; // no match in network type
-
-                    Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, theseLayers);
-
-                    // Something overlaps
-                    if (subPolyList.length > 0)
-                        return true;
-                }
-            }
-            return false;
         }
 
         private void searchOverlapHierarchically(Cell searchCell, GeometryHandler handler, PortInst p,
@@ -2504,7 +2600,8 @@ public class FillGenerator implements Serializable {
                 DBMath.transformRect(newElemTop, conTransOut);
 
                 // Search if there is a collision with existing nodes/arcs
-                if (searchCollision(topCell, newElemTop, fillLayers, p, container.fillNi, container.connectionNi, null))
+                if (searchCollision(topCell, newElemTop, fillLayers, p,
+                        new NodeInst[] {container.fillNi, container.connectionNi}))
                     continue;
 
                 // adding contact
@@ -2631,7 +2728,7 @@ public class FillGenerator implements Serializable {
 //        }
     }
 
-    private static final List<Layer.Function> fillLayers = new ArrayList<Layer.Function>(3);
+    protected static final List<Layer.Function> fillLayers = new ArrayList<Layer.Function>(3);
 
     static {
 	    fillLayers.add(Layer.Function.METAL2);

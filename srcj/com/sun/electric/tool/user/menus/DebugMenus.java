@@ -709,6 +709,7 @@ public class DebugMenus
         fg.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize);
         fg.setFillCellWidth(bnd.getWidth());
         fg.setFillCellHeight(bnd.getHeight());
+        fg.setDRCSpacing(drcSpacingRule);
         fg.makeEvenLayersHorizontal(true);
         fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
         fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
