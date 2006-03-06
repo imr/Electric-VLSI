@@ -33,7 +33,6 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.UserInterfaceMain;
 
 import java.awt.AWTEvent;
@@ -195,7 +194,7 @@ public class TopLevel extends JFrame
         // a more advanced way of determining the size of a screen
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice [] gs = ge.getScreenDevices();
-        Rectangle [] areas = new Rectangle[gs.length];
+//        Rectangle [] areas = new Rectangle[gs.length];
         if (gs.length > 0) {
             GraphicsDevice gd = gs[0];
             GraphicsConfiguration gc = gd.getDefaultConfiguration();
