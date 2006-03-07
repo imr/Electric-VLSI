@@ -197,7 +197,7 @@ public class HistoryDialog extends EDialog
 			data[index][1] = pc.getCheckInDate();
 			data[index][2] = pc.getLastOwner();
 			if (pc.getOwner().length() > 0) data[index][2] = pc.getOwner();
-			data[index][3] = pc.getComment();
+			data[index][3] = (pc.getComment() != null) ? pc.getComment() : "";
 			index++;
 		}
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/7/06, GVG) HistoryDialog crashing because ProjectCell.getComment() was null (Bug #856)
+FIX: Assigning "" if comment is null.
+
 BUG: (3/7/06, GVG) LayersTab not catching NullException if j3DUtilsClass is null (not sure why) (Bug#857)
 FIX: Check if j3DUtilsClass before searching for get3DColorsInTab method.
 
