@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/7/06, GVG) LayersTab not catching NullException if j3DUtilsClass is null (not sure why) (Bug#857)
+FIX: Check if j3DUtilsClass before searching for get3DColorsInTab method.
+
 IMP: (3/6/06, RK) More support to copy Node names from schematic to layout
 
 BUG: (3/7/06, GVG) Error in ERCWell code that prevents regressions from running.
