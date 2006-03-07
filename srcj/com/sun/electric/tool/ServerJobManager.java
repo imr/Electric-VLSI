@@ -521,7 +521,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          * @param defaultChoice the default choice.
          * @return the index into the choices array that was selected.
          */
-        public int askForChoice(Object message, String title, String [] choices, String defaultChoice) {
+        public int askForChoice(String message, String title, String [] choices, String defaultChoice) {
             throw new IllegalStateException();
         }
 

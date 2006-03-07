@@ -146,7 +146,7 @@ public interface UserInterface
      * @param defaultChoice the default choice.
      * @return the index into the choices array that was selected.
      */
-    public int askForChoice(Object message, String title, String [] choices, String defaultChoice);
+    public int askForChoice(String message, String title, String [] choices, String defaultChoice);
 
     /**
      * Method to ask for a line of text.

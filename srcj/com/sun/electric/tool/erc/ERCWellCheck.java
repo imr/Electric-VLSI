@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -111,6 +110,18 @@ public class ERCWellCheck
         new WellCheckJob(curCell, newAlgorithm);
 	}
 
+    /**
+     * Method used by the regressions
+     * @param cell
+     * @param newAlgorithm
+     * @return
+     */
+    public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm)
+    {
+        ERCWellCheck check = new ERCWellCheck(cell, null, newAlgorithm);
+        return check.doIt();
+    }
+
 	private static class WellCheckJob extends Job
 	{
 		private Cell cell;
@@ -129,7 +140,7 @@ public class ERCWellCheck
 
 		public boolean doIt() throws JobException
 		{
-			ERCWellCheck check = new ERCWellCheck(cell, this, newAlgorithm);
+			ERCWellCheck check =   new ERCWellCheck(cell, this, newAlgorithm);
 			int result = check.doIt();
 
 			worstPWellDist = check.worstPWellDist;

@@ -273,7 +273,7 @@ public final class Main
          * @param defaultChoice the default choice.
          * @return the index into the choices array that was selected.
          */
-        public int askForChoice(Object message, String title, String [] choices, String defaultChoice)
+        public int askForChoice(String message, String title, String [] choices, String defaultChoice)
         {
         	System.out.println(message + " CHOOSING " + defaultChoice);
         	for(int i=0; i<choices.length; i++) if (choices[i].equals(defaultChoice)) return i;

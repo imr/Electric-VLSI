@@ -170,7 +170,8 @@ public class Output
         if (dummyCells.size() > 1) {
             dummyCells.add("Do you really want to write this library?");
             String [] options = {"Continue Writing", "Cancel" };
-            int val = Job.getUserInterface().askForChoice(dummyCells.toArray(),
+            String message = dummyCells.toString();
+            int val = Job.getUserInterface().askForChoice(message,
                     "Dummy Cells Found in "+lib, options, options[1]);
             if (val == 1) return true;
         }

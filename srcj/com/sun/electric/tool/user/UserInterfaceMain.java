@@ -433,8 +433,33 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param defaultChoice the default choice.
      * @return the index into the choices array that was selected.
      */
-    public int askForChoice(Object message, String title, String [] choices, String defaultChoice)
+    public int askForChoice(String message, String title, String [] choices, String defaultChoice)
     {
+        // make sure the message is not too long and add \n if necessary
+        String msg = (String)message;
+        int size = msg.length();
+        int pos = 0;
+        int lineNumber = 0;
+        String newMsg = "";
+        while (pos < size && lineNumber < 10)
+        {
+            int endIndex = pos+256;
+            if (endIndex > size) endIndex = size;
+            newMsg += msg.substring(pos, endIndex);
+            newMsg += "\n";
+            pos +=256;
+            lineNumber++;
+        }
+        if (pos < size) // too many lines
+        {
+            newMsg += "........\n";
+            // adding the end of the message. If end of message is close then add the remainder otherwise
+            // print the last 256 characters.
+            int index = (size - pos > 256) ? (size - 256) : (pos);
+            newMsg += msg.substring(index, size);
+        }
+        msg= newMsg;
+        message = msg;
 	    int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), message, title,
 	    	JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, choices, defaultChoice);
 	    return val;

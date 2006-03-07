@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/7/06, GVG) Error in ERCWell code that prevents regressions from running.
+
+BUG: (3/7/06, GVG) Too long messages in UserInterfaceMain.askForChoice (Bug #854).
+FIX: Ability to shrink message and display only 10 256-character lines.
+
 BUG: (3/6/06, DN) Error whne initializing imn MDI mode.
 FIX: Remove "new EventProcessor" from "UserInterfaceMain.initializeInitJob".
 
