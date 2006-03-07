@@ -41,12 +41,16 @@ public class SchemNamesToLay {
         	// We've changed the netlist so the old NetEquivalence table is invalid
         	NccJob.invalidateLastNccResult();
         }
+        
+        public RenameJob(NccResults r) {
+        	super("SchemNamesToLayJob", User.getUserTool(), Job.Type.CHANGE, 
+          		  null, null, Job.Priority.USER);
+          	results = r;
+          	startJob();
+        }
 
         public RenameJob() {
-        	super("SchemNamesToLayJob", User.getUserTool(), Job.Type.CHANGE, 
-        		  null, null, Job.Priority.USER);
-        	results = NccJob.getLastNccResults();
-        	startJob();
+        	this(NccJob.getLastNccResults());
         }
     }
     

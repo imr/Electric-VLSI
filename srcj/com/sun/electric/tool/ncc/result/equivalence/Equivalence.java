@@ -19,22 +19,8 @@ public class Equivalence implements Serializable {
 	
 	private void prln(String s) {System.out.println(s);}
     
-    private void count(NetNameProxy[][] equivNets, NodableNameProxy[][] equivNodes) {
-        prln("  number of EquivNets: "+ equivNets[0].length);
-        prln("  number of EquivNodes: "+ equivNodes[0].length);
-        Set<Network> networks = new HashSet<Network>();
-        Set<Nodable> nodes = new HashSet<Nodable>();
-        for (int i=0; i<2; i++) {
-            for (int j=0; j<equivNets[i].length; j++)  networks.add(equivNets[i][j].getNet());
-            for (int j=0; j<equivNodes[i].length; j++)  nodes.add(equivNodes[i][j].getNodable());
-        }
-        prln("  number of Networks: "+networks.size());
-        prln("  number of Nodables: "+nodes.size());
-    }
-	
 	public Equivalence(NetNameProxy[][] equivNets,
 			           NodableNameProxy[][] equivNodes) {
-        //count(equivNets, equivNodes);
 		netEquiv = new NetEquivalence(equivNets);
 		nodeEquiv = new NodeEquivalence(equivNodes);
 	}

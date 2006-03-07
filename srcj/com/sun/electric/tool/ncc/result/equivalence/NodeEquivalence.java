@@ -1,10 +1,13 @@
 package com.sun.electric.tool.ncc.result.equivalence;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
@@ -22,6 +25,8 @@ class NodeEquivalence implements Serializable {
 	private int lastDesignHit;
 	
 	private void pr(String s) {System.out.print(s);}
+	private void prln(String s) {System.out.println(s);}
+	
 
 	/** Tricky: Because instToNccCtxt takes so much space, build it 
 	 * only on demand */
@@ -65,6 +70,14 @@ class NodeEquivalence implements Serializable {
 		}
 		return null;
 	}
+    private int countUnique() {
+        Set<Nodable> nodes = new HashSet<Nodable>();
+        for (int i=0; i<2; i++) {
+            for (int j=0; j<numNodes; j++)  nodes.add(equivNodes[i][j].getNodable());
+        }
+        return nodes.size();
+    }
+
 	/** Given a Nodable located at point in the design hierarchy specified by a
 	 * VarContext, find the "NCC equivalent" Nodable in the other design.
 	 * <p>
@@ -103,12 +116,19 @@ class NodeEquivalence implements Serializable {
 				Nodable fromNode = from.getNodable();
 				NodableNameProxy to = findEquivalent(fromVc, fromNode);
 				
-				if (to!=equivNodes[otherDesign][nodeNdx])  numErrors++;
+				if (to!=equivNodes[otherDesign][nodeNdx]) {
+					numErrors++;
+					// Print Diagnostics
+					prln("      From: "+from.toString());
+					prln("      To: "+(to==null?"null":to.toString()));
+					prln("      Equiv: "+equivNodes[otherDesign][nodeNdx]);
+				}
 			}
 		}
 		pr("    Node equivalence regression "+
 				         (numErrors==0 ? "passed. " : "failed. "));
-		pr(numNodes+" matched Nodables. ");
+		pr(" Equiv table size="+numNodes+". ");
+		pr(" Num unique Nodables="+countUnique()+". ");
 		if (numErrors!=0) System.out.print(numErrors+" errors.");
 		pr("\n");
 

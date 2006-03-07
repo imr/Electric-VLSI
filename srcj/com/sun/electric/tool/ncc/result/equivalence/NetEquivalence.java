@@ -23,9 +23,13 @@
  */
 package com.sun.electric.tool.ncc.result.equivalence;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -51,6 +55,7 @@ class NetEquivalence implements Serializable {
 		return false;
 	}
 	private void pr(String s) {System.out.print(s);}
+	private void prln(String s) {System.out.println(s);}
 	
 	/** Tricky: Because instToNetNcCtxt takes so much space, build it 
 	 * only on demand */
@@ -94,6 +99,15 @@ class NetEquivalence implements Serializable {
 		}
 		return null;
 	}
+	
+    private int countUnique() {
+        Set<Network> networks = new HashSet<Network>();
+        for (int i=0; i<2; i++) {
+            for (int j=0; j<numNets; j++)  networks.add(equivNets[i][j].getNet());
+        }
+        return networks.size();
+    }
+
 	/** Given a Network located at point in the design hierarchy specified by a
 	 * VarContext, find the "NCC equivalent" net in the other design.
 	 * <p>
@@ -133,12 +147,19 @@ class NetEquivalence implements Serializable {
 				Network fromNet = from.getNet();
 				NetNameProxy to = findEquivalentNet(fromVc, fromNet);
 				
-				if (to!=equivNets[otherDesign][netNdx])  numErrors++;
+				if (to!=equivNets[otherDesign][netNdx]) {
+					numErrors++;
+					// Print Diagnostics
+					prln("      From: "+from.toString());
+					prln("      To: "+(to==null?"null":to.toString()));
+					prln("      Equiv: "+equivNets[otherDesign][netNdx]);
+				}
 			}
 		}
 		pr("    Net equivalence regression "+
 				         (numErrors==0 ? "passed. " : "failed. "));
-		pr(numNets+" matched Networks. ");
+		pr(" Equiv table size="+numNets+". ");
+		pr(" Num unique Networks="+countUnique()+". ");
 		if (numErrors!=0) System.out.print(numErrors+" errors.");
 		pr("\n");
 

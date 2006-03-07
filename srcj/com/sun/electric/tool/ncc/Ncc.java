@@ -37,8 +37,8 @@ import com.sun.electric.tool.ncc.result.NccResults;
  * <p>This is the class that should be used by programs wishing to perform
  * netlist comparison. */
 public class Ncc {
-	private void prln(String s) {System.out.println(s);}
-	private void pr(String s) {System.out.print(s);}
+	private static void prln(String s) {System.out.println(s);}
+	private static void pr(String s) {System.out.print(s);}
 
 	private Ncc() {}
 	
@@ -69,9 +69,6 @@ public class Ncc {
 			Date after = new Date();
 			prln("NCC command completed in: "+
 			                   NccUtils.hourMinSec(before, after)+".");
-
-//            if (NccGuiOptions.getBackAnnotateLayoutNetNames() && result.match())
-//                NccBackAnnotate.backAnnotateNetNames(result);
 			return results;
 		}
     }
@@ -90,7 +87,17 @@ public class Ncc {
     	if (ctxt1==null) ctxt1 = VarContext.globalContext; 
     	if (ctxt2==null) ctxt2 = VarContext.globalContext; 
     	Ncc ncc = new Ncc();
-    	return ncc.compare1(new CellContext(cell1, ctxt1), 
-    			            new CellContext(cell2, ctxt2), options, new Aborter(job));
+    	NccResults results = ncc.compare1(new CellContext(cell1, ctxt1), 
+    			                          new CellContext(cell2, ctxt2), 
+    			                          options, new Aborter(job));
+    	if (options.checkNetEquivalenceMap) {
+    		// Tricky: copyNames only works from change jobs. Thus
+    		// copyNames call is possible from regressions (bean shell)
+    		// because Bean shell runs all jobs as change jobs. 
+    		// I tried to create a SchemNamesToLay.RenameJob() but
+    		// the bean shell exited before RenameJob() finished.
+    		SchemNamesToLay.copyNames(results);
+    	}
+    	return results;
     }
 }
