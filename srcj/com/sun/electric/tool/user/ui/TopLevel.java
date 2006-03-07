@@ -386,7 +386,7 @@ public class TopLevel extends JFrame
     {
         if (mode == UserInterfaceMain.Mode.MDI) {
             JFrame jf = TopLevel.getCurrentJFrame();
-            jf.setCursor(cursor);
+            if (jf != null) jf.setCursor(cursor);
         }
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
