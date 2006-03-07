@@ -28,6 +28,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.util.Map;
+import java.io.Serializable;
 
 /**
  * General Math Functions. If you are working in Database Units, you
@@ -92,7 +93,7 @@ public class GenMath
     /**
      * Class to define an Integer-like object that can be modified.
      */
-    public static class MutableInteger
+    public static class MutableInteger implements Serializable
     {
         private int value;
         
