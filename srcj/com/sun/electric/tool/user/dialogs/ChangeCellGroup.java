@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -94,8 +95,8 @@ public class ChangeCellGroup extends EDialog {
         }
     }
 
-    private static class CellGroupComparator implements Comparator<Cell.CellGroup> {
-
+    private static class CellGroupComparator implements Comparator<Cell.CellGroup>
+    {
         public int compare(Cell.CellGroup cg1, Cell.CellGroup cg2) {
             String s1 = cg1.getName();
             String s2 = cg2.getName();
@@ -103,21 +104,29 @@ public class ChangeCellGroup extends EDialog {
         }
     }
 
-    private static class ChangeCellGroupJob extends Job {
-
+    private static class ChangeCellGroupJob extends Job
+    {
         private Cell cell;
-        private Cell.CellGroup newGroup;
+        private Cell newGroupCell;
 
-        ChangeCellGroupJob(Cell cell, Cell.CellGroup newGroup) {
+        ChangeCellGroupJob(Cell cell, Cell newGroupCell) {
             super("Change Cell Group", User.getUserTool(), Job.Type.CHANGE, cell, cell, Job.Priority.USER);
             this.cell = cell;
-            this.newGroup = newGroup;
+            this.newGroupCell = newGroupCell;
             startJob();
         }
 
         public boolean doIt() throws JobException {
+        	Cell.CellGroup newGroup = null;
+        	if (newGroupCell != null) newGroup = newGroupCell.getCellGroup();
             cell.setCellGroup(newGroup);
             return true;
+        }
+
+        public void terminateOK()
+        {
+        	// update explorer tree
+    		WindowFrame.wantToRedoLibraryTree();
         }
     }
 
@@ -240,7 +249,7 @@ public class ChangeCellGroup extends EDialog {
     }//GEN-LAST:event_moveToCellGroupItemStateChanged
 
     private void applyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_applyActionPerformed
-        Cell.CellGroup newGroup = null/*new Cell.CellGroup()*/;
+        Cell newGroupCell = null;
         boolean doIt = true;
 
         if (moveOwnCellGroup.isSelected()) {
@@ -249,13 +258,14 @@ public class ChangeCellGroup extends EDialog {
         } else if (moveToCellGroup.isSelected()) {
             // get group to move to
             int selected = cellGroupsComboBox.getSelectedIndex();
-            newGroup = (Cell.CellGroup)(cellGroups.toArray()[selected]);
+            Cell.CellGroup newGroup = (Cell.CellGroup)(cellGroups.toArray()[selected]);
+            newGroupCell = newGroup.getCells().next();
             // if already in group, do nothing
             if (cell.getCellGroup() == newGroup) doIt = false;
         }
 
         if (doIt) {
-            ChangeCellGroupJob job = new ChangeCellGroupJob(cell, newGroup);
+            ChangeCellGroupJob job = new ChangeCellGroupJob(cell, newGroupCell);
         }
 
         closeDialog(null);
