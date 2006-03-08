@@ -241,7 +241,8 @@ public class LayerCoverageTool extends Tool
         }
         Collection<PolyBase> list = data.tree.getObjects(layer, false, true);
         // Don't know what to do if there is more than one
-        assert(list.size() == 1);
+//        if (list.size() != 1)
+//        assert(list.size() == 1);
         PolyBase poly = (PolyBase)list.toArray()[0];
         return poly.getBounds2D();
     }
