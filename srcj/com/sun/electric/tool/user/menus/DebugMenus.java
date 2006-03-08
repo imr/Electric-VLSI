@@ -699,7 +699,7 @@ public class DebugMenus
 
         // Creating fill template
         FillGenerator fg = new FillGenerator(cell.getTechnology());
-        fg.setFillLibrary("fillLibGIlda2");
+        fg.setFillLibrary("autoFillLib");
         Rectangle2D bnd = cell.getBounds();
 
         double drcSpacingRule = 6;
