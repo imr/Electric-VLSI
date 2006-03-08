@@ -302,8 +302,10 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         // if too many chars to display in space provided, truncate.
         if (hierCoords != null) {
             int width = fieldHierCoords.getFontMetrics(fieldHierCoords.getFont()).stringWidth(hierCoords);
-            if (width > fieldHierCoords.getParent().getWidth()) {
-                int chars = (int)(hierCoords.length() * fieldHierCoords.getParent().getWidth() / width);
+            int widgetW = fieldHierCoords.getWidth(); //fieldHierCoords.getParent().getWidth()
+            if (width > widgetW)
+            {
+                int chars = (int)(hierCoords.length() * widgetW / width);
                 hierCoords = hierCoords.substring(hierCoords.length() - chars, hierCoords.length());
             }
             fieldHierCoords.setText(hierCoords);

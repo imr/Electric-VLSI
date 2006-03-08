@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/8/06, GVG) Algorithm to truncate coordinates in StatusBar in case of long VarContext was not working (Bug#846)
+FIX: Calculate string length based on fieldHierCoords.getWidth() instead of fieldHierCoords.getParent().getWidth()
+
 BUG: (3/8/06, DN) Highlighting works bad after undo because undo
      leaves deleted geoms in RTree. (Bug #852, Bug #853 and maybe Bug #851).
 FIX: In Cell.update() clear RTree in both undo and recover cases.
