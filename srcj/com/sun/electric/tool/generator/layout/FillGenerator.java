@@ -1092,6 +1092,7 @@ class TiledCell {
 	private int vddNum, gndNum;
 	private final String vddNm, gndNm;
     private Cell tileCell;
+    private double drcSpacing; // required by qTree method
 
 	private String vddName() {
 		int n = vddNum++;
@@ -1100,6 +1101,62 @@ class TiledCell {
 	private String gndName() {
 		int n = gndNum++;
 		return n==0 ? gndNm : gndNm+"_"+n;
+	}
+
+    /**
+     * Constructor used by working with qTree fill.
+     * @param stdCell
+     */
+    public TiledCell(StdCellParams stdCell, double spacing)
+    {
+	    vddNm = stdCell.getVddExportName();
+	    gndNm = stdCell.getGndExportName();
+        drcSpacing = spacing;
+    }
+
+    /**
+     * Method to create the master tiledCell. Note that targetHeight and targetHeight do not necessarily match
+     * with cellW and cellH if algorithm is used to create a flexible number of tiled cells
+     @param numX
+     * @param numY
+     * @param cell
+     * @param plans
+     * @param lib
+     * @param stdCell
+     */
+	private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans,
+                      Library lib, StdCellParams stdCell)
+    {
+	    vddNm = stdCell.getVddExportName();
+	    gndNm = stdCell.getGndExportName();
+
+		String tiledName = "t"+cell.getName()+"_"+numX+"x"+numY+"{lay}";
+		tileCell = Cell.newInstance(lib, tiledName);
+
+		Rectangle2D bounds = cell.findEssentialBounds();
+        ERectangle r = cell.getBounds();
+		LayoutLib.error(bounds==null, "missing Essential Bounds");
+		double cellW = bounds.getWidth();
+		double cellH = bounds.getHeight();
+
+		// put bottom left cell at (0, 0)
+		double y = 0;
+
+		NodeInst[][] rows = newRows(numX, numY);
+		for (int row=0; row<numY; row++) {
+			double x = 0;
+			for (int col=0; col<numX; col++) {
+				rows[row][col] = LayoutLib.newNodeInst(cell, x, y, G.DEF_SIZE,
+													   G.DEF_SIZE, 0, tileCell);
+				x += cellW;
+			}
+			y += cellH;
+		}
+		ArrayList<PortInst> portInsts = getAllPortInsts(tileCell);
+		FillRouter.connectCoincident(portInsts);
+		exportUnconnectedPortInsts(rows, plans, tileCell, stdCell);
+//		addEssentialBounds(cellW, cellH, numX, numY, tileCell);
+        addEssentialBounds1(r.getX(), r.getY(), cellW, cellH, numX, numY, tileCell);
 	}
 
     /**
@@ -1279,56 +1336,6 @@ class TiledCell {
 							  G.DEF_SIZE, G.DEF_SIZE, 0, tiled);
     }
 
-    public TiledCell(StdCellParams stdCell)
-    {
-	    vddNm = stdCell.getVddExportName();
-	    gndNm = stdCell.getGndExportName();
-    }
-
-    /**
-     * Method to create the master tiledCell. Note that targetHeight and targetHeight do not necessarily match
-     * with cellW and cellH if algorithm is used to create a flexible number of tiled cells
-     @param numX
-     * @param numY
-     * @param cell
-     * @param plans
-     * @param lib
-     * @param stdCell
-     */
-	private TiledCell(int numX, int numY, Cell cell, Floorplan[] plans,
-                      Library lib, StdCellParams stdCell) {
-	    vddNm = stdCell.getVddExportName();
-	    gndNm = stdCell.getGndExportName();
-
-		String tiledName = "t"+cell.getName()+"_"+numX+"x"+numY+"{lay}";
-		tileCell = Cell.newInstance(lib, tiledName);
-
-		Rectangle2D bounds = cell.findEssentialBounds();
-        ERectangle r = cell.getBounds();
-		LayoutLib.error(bounds==null, "missing Essential Bounds");
-		double cellW = bounds.getWidth();
-		double cellH = bounds.getHeight();
-
-		// put bottom left cell at (0, 0)
-		double y = 0;
-
-		NodeInst[][] rows = newRows(numX, numY);
-		for (int row=0; row<numY; row++) {
-			double x = 0;
-			for (int col=0; col<numX; col++) {
-				rows[row][col] = LayoutLib.newNodeInst(cell, x, y, G.DEF_SIZE,
-													   G.DEF_SIZE, 0, tileCell);
-				x += cellW;
-			}
-			y += cellH;
-		}
-		ArrayList<PortInst> portInsts = getAllPortInsts(tileCell);
-		FillRouter.connectCoincident(portInsts);
-		exportUnconnectedPortInsts(rows, plans, tileCell, stdCell);
-//		addEssentialBounds(cellW, cellH, numX, numY, tileCell);
-        addEssentialBounds1(r.getX(), r.getY(), cellW, cellH, numX, numY, tileCell);
-	}
-
     enum CutType {NONE,X,Y,XY};
 
     /**
@@ -1416,10 +1423,10 @@ class TiledCell {
                     box.getCenterY() - master.getBounds().getCenterY());
             stdCell = true;
             if (FillGenerator.detectOverlappingBars(master, fillTransUp, nodesToRemove,
-                    topCell, new NodeInst[] {}, 6))
+                    topCell, new NodeInst[] {}, drcSpacing))
             {
                 // Replace by dummy cell for now
-                String dummyName = "dummy";
+                String dummyName = master.getName()+"dummy";
                 for (Geometric no : nodesToRemove)
                 {
                     if (no instanceof ArcInst)
@@ -1438,7 +1445,7 @@ class TiledCell {
 
                 if (dummyCell == null)
                 {
-                    dummyCell = FillGenerator.generateReplacementCell(master, dummyName);
+                    dummyCell = Cell.copyNodeProto(master, master.getLibrary(), dummyName, true);
 //                    dummyCell = Cell.newInstance(master.getLibrary(), dummyName);
 //                    LayoutLib.newNodeInst(Tech.essentialBounds, -masterW/2, -masterH/2,
 //                                          G.DEF_SIZE, G.DEF_SIZE, 180, dummyCell);
@@ -1636,10 +1643,16 @@ public class FillGenerator implements Serializable {
             if (p != null && geom == p.getNodeInst())
                 continue; // port belongs to this node
 
+            boolean ignoreThis = false;
             for (int i = 0; i < ignores.length; i++)
             {
-                if (geom == ignores[i]) continue;// ignore the cell. E.g. fillNi, connectionNi
+                if (geom == ignores[i])
+                {
+                    ignoreThis = true;
+                    break;
+                }
             }
+            if (ignoreThis) continue; // ignore the cell. E.g. fillNi, connectionNi
 
             if (geom instanceof NodeInst)
             {
@@ -1714,14 +1727,6 @@ public class FillGenerator implements Serializable {
         return rect;
     }
 
-    protected static Cell generateReplacementCell(Cell cell, String nodeName)
-    {
-//            String newName = ElectricObject.uniqueObjectName(cell.getName(), cell, Cell.class);
-        String newName = cell.getName() + nodeName;
-
-        return Cell.copyNodeProto(cell, cell.getLibrary(), newName, true);
-    }
-
     public enum Units {LAMBDA, TRACKS}
 	public enum PowerType {POWER, VDD}
 	public enum ExportConfig {PERIMETER, PERIMETER_AND_INTERNAL}
@@ -1753,11 +1758,12 @@ public class FillGenerator implements Serializable {
 		if (layer!=6) return 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
 		return 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
 	}
-	private Floorplan[] makeFloorplans(boolean metalFlex, boolean hierFlex) {
-		LayoutLib.error(width==Double.NaN, 
+
+    private Floorplan[] makeFloorplans(boolean metalFlex, boolean hierFlex) {
+		LayoutLib.error(width==Double.NaN,
 						"width hasn't been specified. use setWidth()");
-		LayoutLib.error(height==Double.NaN, 
-						"height hasn't been specified. use setHeight()"); 
+		LayoutLib.error(height==Double.NaN,
+						"height hasn't been specified. use setHeight()");
 		double w = width;
 		double h = height;
 		double[] vddRes = vddReserved;
@@ -1790,6 +1796,7 @@ public class FillGenerator implements Serializable {
 			new MetalFloorplan(w, h, vddRes[6], gndRes[6], m6SP,  evenHor)
 		};
 	}
+
 	private void printCoverage(Floorplan[] plans) {
 		for (int i=2; i<plans.length; i++) {
 			System.out.println("metal-"+i+" coverage: "+
@@ -1797,12 +1804,31 @@ public class FillGenerator implements Serializable {
 		}
 	}
 
-	private void initFillParameters(boolean metalFlex, boolean hierFlex) {
+    private void initFlatFillParameters(boolean metalFlex) {
+		if (libInitialized) return;
+
+		LayoutLib.error(libName==null, "no library specified. Use setFillLibrary()");
+
+		plans = makeFloorplans(metalFlex, false);
+		if (!metalFlex) printCoverage(plans);
+
+		lib = LayoutLib.openLibForWrite(libName, libName+".elib");
+		stdCell = new StdCellParams(null, Tech.getTechnology());
+		stdCellP = new StdCellParams(null, Tech.getTechnology());
+		stdCellP.setVddExportName("power");
+		stdCellP.setVddExportRole(PortCharacteristic.IN);
+		capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell);
+		capCellP = new CapCell(lib, (CapFloorplan) plans[1], stdCellP);
+
+		libInitialized = true;
+	}
+
+	private void initHierFillParameters(boolean metalFlex) {
 		if (libInitialized) return;
 		
 		LayoutLib.error(libName==null, "no library specified. Use setFillLibrary()");
 
-		plans = makeFloorplans(metalFlex, hierFlex);
+		plans = makeFloorplans(metalFlex, true);
 		if (!metalFlex) printCoverage(plans);
 		
 		lib = LayoutLib.openLibForWrite(libName, libName+".elib");
@@ -1832,27 +1858,37 @@ public class FillGenerator implements Serializable {
 		}
 	}
 
-	private Cell makeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
+    /**
+     * Method to create standard set of tiled cells.
+     */
+    private Cell standardMakeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
                                  int hiLay, CapCell capCell, boolean wireLowest,
                                  int[] tiledSizes, StdCellParams stdCell,
-                                 boolean metalFlex, boolean hierFlex, Cell topCell) {
+                                 boolean metalFlex)
+    {
 		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell,
-									   wireLowest, stdCell, metalFlex, hierFlex);
-        if (!hierFlex)
-		    makeTiledCells(c, plans, lib, tiledSizes, stdCell);
-        else
-        {
-            int tileOnX = (int)Math.ceil(targetWidth/minTileSize);
-            int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
+									   wireLowest, stdCell, metalFlex, false);
+        makeTiledCells(c, plans, lib, tiledSizes, stdCell);
+        return c;
+    }
 
-            TiledCell t = new TiledCell(stdCell);
-            c = t.makeQTreeCell(c, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell);
+	private Cell treeMakeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
+                                 int hiLay, CapCell capCell, boolean wireLowest,
+                                 int[] tiledSizes, StdCellParams stdCell,
+                                 boolean metalFlex, Cell topCell) {
+		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell,
+									   wireLowest, stdCell, metalFlex, true);
+
+        int tileOnX = (int)Math.ceil(targetWidth/minTileSize);
+        int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
+
+        TiledCell t = new TiledCell(stdCell, 6);
+        c = t.makeQTreeCell(c, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell);
 //                int min = Math.min(tileOnX, tileOnY);
 //                c = TiledCell.makeTiledCell(min, min, c, plans, lib, stdCell);
 //                tileOnX = tileOnX/min;
 //                tileOnY = tileOnY/min;
 //                c = TiledCell.makeTiledCell(tileOnX, tileOnY, c, plans, lib, stdCell);
-        }
         return c;
 	}
 
@@ -1861,8 +1897,7 @@ public class FillGenerator implements Serializable {
 	public static final PowerType POWER = PowerType.POWER;
 	public static final PowerType VDD = PowerType.VDD;
 	public static final ExportConfig PERIMETER = ExportConfig.PERIMETER;
-	public static final ExportConfig PERIMETER_AND_INTERNAL = 
-		ExportConfig.PERIMETER_AND_INTERNAL;
+	public static final ExportConfig PERIMETER_AND_INTERNAL = ExportConfig.PERIMETER_AND_INTERNAL;
 	
 	// Deprecated: Keep this for backwards compatibility
 	public FillGenerator() {
@@ -1960,9 +1995,9 @@ public class FillGenerator implements Serializable {
 	/** This version of makeFillCell is deprecated. We should no longer need
 	 * to create fill cells with export type "POWER". Please use the version
 	 * of makeFillCell that has no PowerType argument. */
-	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-                             PowerType powerType, int[] tiledSizes, boolean metalFlex, boolean hierFlex, Cell topCell) {
-		initFillParameters(metalFlex, hierFlex);
+	private Cell standardMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig, PowerType powerType,
+                                      int[] tiledSizes, boolean metalFlex) {
+		initFlatFillParameters(metalFlex);
 		
 		LayoutLib.error(loLayer<1, "loLayer must be >=1");
 		LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
@@ -1970,15 +2005,37 @@ public class FillGenerator implements Serializable {
 		boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
         Cell cell = null;
 		if (powerType==VDD) {
-			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
-			                tiledSizes, stdCell, metalFlex, hierFlex, topCell);
+			cell = standardMakeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
+			                tiledSizes, stdCell, metalFlex);
 		} else {
-			cell = makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
-			                tiledSizes, stdCellP, metalFlex, hierFlex, topCell);
+			cell = standardMakeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
+			                tiledSizes, stdCellP, metalFlex);
 		}
         return cell;
 	}
-	/** Create a fill cell using the current library, fill cell width, fill cell 
+    /** Similar to standardMakeFillCell but it generates hierarchical fills with a qTree
+     * @return
+     */
+    private Cell treeMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig, PowerType powerType,
+                                  int[] tiledSizes, Cell topCell) {
+		boolean metalFlex = true;
+        initHierFillParameters(metalFlex);
+
+		LayoutLib.error(loLayer<1, "loLayer must be >=1");
+		LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
+		LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
+		boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
+        Cell cell = null;
+		if (powerType==VDD) {
+			cell = treeMakeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
+			                tiledSizes, stdCell, metalFlex, topCell);
+		} else {
+			cell = treeMakeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
+			                tiledSizes, stdCellP, metalFlex, topCell);
+		}
+        return cell;
+	}
+	/** Create a fill cell using the current library, fill cell width, fill cell
 	 * height, layer orientation, and reserved spaces for each layer. Then 
 	 * generate larger fill cells by tiling that fill cell according to the 
 	 * current tiled cell sizes.
@@ -1992,11 +2049,16 @@ public class FillGenerator implements Serializable {
 	 * placed inside the perimeter of the cell for the bottom layer.
      * @param tiledSizes Array specifying composite Cells we should build by
 	 * concatonating fill cells. For example int[] {2, 4, 7} means we should
-     * @param hierFlex
-     * @param topCell*/
-	public Cell makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-                             int[] tiledSizes, boolean metalFlex, boolean hierFlex, Cell topCell) {
-		return makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, metalFlex, hierFlex, topCell);
+     * */
+	public Cell standardMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
+                                     int[] tiledSizes, boolean metalFlex) {
+		return standardMakeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, metalFlex);
+	}
+    /** Similar to standardMakeFillCell but it would use the qTree
+     */
+    public Cell treeMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
+                                 int[] tiledSizes, Cell topCell) {
+        return treeMakeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, topCell);
 	}
 	public void makeGallery() {
 		Gallery.makeGallery(lib);
@@ -2086,7 +2148,9 @@ public class FillGenerator implements Serializable {
             // otherwise pins at edges increase cell sizes and FillRouter.connectCoincident(portInsts)
             // does work
             G.DEF_SIZE = 0;
-            Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true, hierarchy, topCell);
+            Cell fillCell = (hierarchy) ?
+                    fillGen.treeMakeFillCell(firstMetal, lastMetal, perimeter, cellsList, topCell) :
+                    fillGen.standardMakeFillCell(firstMetal, lastMetal, perimeter, cellsList, true);
 //            fillGen.makeGallery();
 
             if (topCell == null || portList == null || portList.size() == 0) return true;
@@ -2370,7 +2434,6 @@ public class FillGenerator implements Serializable {
             // the standard fill cells.
             // DRC conditions to detect overlap otherwise too many elements/cells might be discarded.
             detectOverlappingBars(container.fillCell, fillTransOut, nodesToRemove, container);
-//            detectOverlappingBarsI(container.fillCell, fillTransOut, nodesToRemove, container);
 
             for (Geometric geo : nodesToRemove)
             {
