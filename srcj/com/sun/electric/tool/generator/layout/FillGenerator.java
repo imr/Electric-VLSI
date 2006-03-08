@@ -1333,9 +1333,9 @@ class TiledCell {
 
     /**
      * ----------------------------
-     * |     0      |      1      |
-     * ----------------------------
      * |     2      |      3      |
+     * ----------------------------
+     * |     0      |      1      |
      * ----------------------------
      * @param master
      * @param box  bounding box representing region to refine. (0,0) is the top left corner
@@ -1429,13 +1429,13 @@ class TiledCell {
                         // Not deleting the pins otherwise cells can be connected.
                         NodeInst ni = (NodeInst)no;
                         // List should not contain pins
-                        assert(ni.getProto().getFunction() != PrimitiveNode.Function.PIN);
+                        if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN)
                         dummyName += "-" + ((NodeInst)no).getName();
                     }
                 }
                 dummyName +="{lay}";
-//                String dummyName = "Dummy"+master.getName()+"{lay}";
                 Cell dummyCell = master.getLibrary().findNodeProto(dummyName);
+
                 if (dummyCell == null)
                 {
                     dummyCell = FillGenerator.generateReplacementCell(master, dummyName);
@@ -1458,8 +1458,6 @@ class TiledCell {
                         else
                         {
                             NodeInst d = dummyCell.findNode(((NodeInst)no).getName());
-                            // List should not contain pins
-                            assert(d.getProto().getFunction() != PrimitiveNode.Function.PIN);
                             d.kill();
                         }
                     }
@@ -1609,8 +1607,8 @@ public class FillGenerator implements Serializable {
             {
                 nodesToRemove.add(ai);
                 // Remove exports and pins as well
-//                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
-//                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
+                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
+                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
             }
         }
         return nodesToRemove.size() > 0;
@@ -2085,6 +2083,8 @@ public class FillGenerator implements Serializable {
                 }
             }
 
+            // otherwise pins at edges increase cell sizes and FillRouter.connectCoincident(portInsts)
+            // does work
             G.DEF_SIZE = 0;
             Cell fillCell = fillGen.makeFillCell(firstMetal, lastMetal, perimeter, cellsList, true, hierarchy, topCell);
 //            fillGen.makeGallery();
@@ -2145,8 +2145,8 @@ public class FillGenerator implements Serializable {
             // First attempt if ports are below a power/ground bars
             for (PortInst p : portList)
             {
-                Rectangle2D nodeBounds = new Rectangle2D.Double(); // need a copy of the original
-                nodeBounds.setRect(p.getNodeInst().getBounds());
+//                Rectangle2D nodeBounds = new Rectangle2D.Double(); // need a copy of the original
+//                nodeBounds.setRect(p.getNodeInst().getBounds());
 
                 assert(p.getPortProto() instanceof Export);
 
@@ -2158,11 +2158,11 @@ public class FillGenerator implements Serializable {
                 // Transformation of the cell instance containing this port
                 AffineTransform trans = p.getNodeInst().transformOut();
 
-                // Transforming rectangle with gnd/power metal into the connection cell
-                DBMath.transformRect(rect, trans);
+//                // Transforming rectangle with gnd/power metal into the connection cell
+//                DBMath.transformRect(rect, trans);
 
                 // Looking to detect any possible contact based on overlap between this geometry and fill
-                NodeInst added = addAllPossibleContacts(container, p, rect, fillTransIn, fillTransOutToCon, conTransOut);
+                NodeInst added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon, conTransOut);
                 if (added != null)
                 {
                 	List<PolyBase> polyList = new ArrayList<PolyBase>();
@@ -2171,8 +2171,6 @@ public class FillGenerator implements Serializable {
                     if (p.getPortProto() instanceof Export)
                         eList.add((Export)p.getPortProto());
                     log.logWarning(p.describe(false) + " connected", null, eList, null, null, polyList, topCell, 0);
-//                    l.addGeom(added, true, fillCell, null);
-//                    globalWidth = added.getBounds().getWidth(); // assuming all contacts have the same width;
                     continue;
                 }
                 else
@@ -2506,17 +2504,20 @@ public class FillGenerator implements Serializable {
          * @param container
          * @param p
          * @param contactArea
+         * @param nodeTransOut
          * @param fillTransOutToCon
          * @return
          */
         private NodeInst addAllPossibleContacts(FillGenJobContainer container, PortInst p, Rectangle2D contactArea,
-                                                AffineTransform fillTransIn, AffineTransform fillTransOutToCon,
+                                                AffineTransform nodeTransOut, AffineTransform fillTransIn, AffineTransform fillTransOutToCon,
                                                 AffineTransform conTransOut)
         {
             // Until this point, contactArea is at the fillCell level
             // Contact area will contain the remaining are to check
             double height = contactArea.getHeight();
             NodeInst added = null;
+            // Transforming rectangle with gnd/power metal into the connection cell
+            DBMath.transformRect(contactArea, nodeTransOut);
             GeometryHandler handler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
 
             searchOverlapHierarchically(container.fillCell, handler, p, contactArea, fillTransIn, new AffineTransform());
@@ -2528,6 +2529,27 @@ public class FillGenerator implements Serializable {
             assert(size <= 1); // Must contain only m3
 
             if (size == 0) return null;
+
+            Rectangle2D portInConFill = new Rectangle2D.Double();
+            portInConFill.setRect(p.getPoly().getBounds2D());
+//            ((Export)((Export)p.getPortProto()).getOriginalPort().getPortProto()).getOriginalPort();
+//            DBMath.transformRect(portInConFill, nodeTransOut);
+            DBMath.transformRect(portInConFill, fillTransIn);
+
+            // Routing the new contact to topCell in connectNi instead of top cell
+            // Creating the corresponding export in connectionNi (projection pin)
+            // This should be done only once!
+            NodeInst pinNode = LayoutLib.newNodeInst(Tech.m2pin, portInConFill.getCenterX(), portInConFill.getCenterY(),
+                    Tech.m2pin.getDefWidth(), height, 0, container.connectionCell);
+            PortInst pin = pinNode.getOnlyPortInst();
+            // Export connect projected pin in ConnectionCell
+            Export pinExport = Export.newInstance(container.connectionCell, pin, "proj-"+p.getPortProto().getName());
+            pinExport.setCharacteristic(p.getPortProto().getCharacteristic());
+            // Connect projected pin in ConnectionCell with real port
+            PortInst pinPort = container.connectionNi.findPortInstFromProto(pinExport);
+            Route conTopExportRoute = container.router.planRoute(topCell, p, pinPort,
+                    new Point2D.Double(p.getPoly().getBounds2D().getCenterX(), p.getPoly().getBounds2D().getCenterY()), null, false);
+            Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
 
             Collection set = handler.getObjects(results.toArray()[0], false, true);
 
@@ -2555,17 +2577,22 @@ public class FillGenerator implements Serializable {
                 added = LayoutLib.newNodeInst(Tech.m2m3, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
                         width, height, 0, container.connectionCell);
                 container.fillContactList.add(added);
-                 // Creating the export above the contact in the connection cell
-                Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),
-                        p.getPortProto().getName());
-                conM2Export.setCharacteristic(p.getPortProto().getCharacteristic());
+//                 // Creating the export above the contact in the connection cell
+//                Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),
+//                        p.getPortProto().getName());
+//                conM2Export.setCharacteristic(p.getPortProto().getCharacteristic());
 
                 // Connecting the contact export in the top cell
-                PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
-                container.fillPortInstList.add(conNiPort);
-                Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
-                        new Point2D.Double(newElemTop.getCenterX(), newElemTop.getCenterY()), null, false);
-                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);;
+//                PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
+//                container.fillPortInstList.add(conNiPort);
+//                Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
+//                        new Point2D.Double(newElemTop.getCenterX(), newElemTop.getCenterY()), null, false);
+//                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+
+                // route new pin instance in connectioNi with new contact
+                Route pinExportRoute = container.router.planRoute(container.connectionCell, pin, added.getOnlyPortInst(),
+                        new Point2D.Double(portInConFill.getCenterX(), portInConFill.getCenterY()), null, false);
+                Router.createRouteNoJob(pinExportRoute, container.connectionCell, true, false);
 
                 // Adding the connection to the fill via the exports.
                 // Looking for closest export in fillCell.
