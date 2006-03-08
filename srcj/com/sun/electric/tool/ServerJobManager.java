@@ -397,6 +397,10 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     
     /*private*/ static class UserInterfaceRedirect implements UserInterface
 	{
+    	private static void printStackTrace() {
+    		Exception e = new Exception();
+			e.printStackTrace(System.out);
+    	}
 		public EditWindow_ getCurrentEditWindow_() {
 //            System.out.println("UserInterface.getCurrentEditWindow was called from DatabaseChangesThread");
             return Job.currentUI.getCurrentEditWindow_();
@@ -404,12 +408,14 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		public EditWindow_ needCurrentEditWindow_()
 		{
             System.out.println("UserInterface.needCurrentEditWindow was called from DatabaseChangesThread");
+            printStackTrace();
 			return null; 
 		}
         /** Get current cell from current library */
 		public Cell getCurrentCell()
         {
             System.out.println("UserInterface.getCurrentCell was called from DatabaseChangesThread");
+            printStackTrace();
 			Library lib = Library.getCurrent();
 			if (lib == null) return null;
 			return lib.getCurCell();
@@ -418,12 +424,14 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		public Cell getCurrentCell(Library lib)
         {
 			System.out.println("UserInterface.getCurrentCell(lib) was called from DatabaseChangesThread");
+            printStackTrace();
 			return Job.currentUI.getCurrentCell(lib);
         }
 
 		public Cell needCurrentCell()
 		{
             System.out.println("UserInterface.needCurrentCell was called from DatabaseChangesThread");
+            printStackTrace();
             /** Current cell based on current library */
             Cell curCell = getCurrentCell();
             if (curCell == null)
@@ -441,12 +449,14 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		public void setCurrentCell(Library lib, Cell curCell)
 		{
             System.out.println("UserInferface.setCurrentCell(lib,curCell) was called from DatabaseChangesThread");
+            printStackTrace();
             Job.currentUI.setCurrentCell(lib, curCell);
 		}
 
 		public void repaintAllEditWindows() {
             System.out.println("UserInterface.repaintAllEditWindows was called from DatabaseChangesThread");
-	    Job.currentUI.repaintAllEditWindows();
+            printStackTrace();
+            Job.currentUI.repaintAllEditWindows();
             /*throw new IllegalStateException();*/
         }
         
@@ -455,6 +465,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         };
 		public void alignToGrid(Point2D pt) {
             System.out.println("UserInterface.alignToGrid was called from DatabaseChangesThread");
+            printStackTrace();
         }
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
@@ -477,6 +488,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair)
         {
             System.out.println("UserInterface.reportLog was called from DatabaseChangesThread");
+            printStackTrace();
             // return the error message
             return log.getMessageString();
         }
@@ -510,6 +522,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public boolean confirmMessage(Object message) {
             System.out.println("UserInterface.confirmMessage was called from DatabaseChangesThread");
+            printStackTrace();
             return true;
         }
 
@@ -537,10 +550,12 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         /** For Pref */
         public void restoreSavedBindings(boolean initialCall) {
             System.out.println("UserInterface.restoreSavedBindings was called from DatabaseChangesThread");
+            printStackTrace();
         }
         public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
         {
             System.out.println("UserInterface.finishPrefReconcilation was called from DatabaseChangesThread");
+            printStackTrace();
             Pref.finishPrefReconcilation(meaningsToReconcile);
         }
 
@@ -550,6 +565,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void importPrefs() {
             System.out.println("UserInterface.importPrefs was called from DatabaseChangesThread");
+            printStackTrace();
         }
 
         /**
@@ -558,6 +574,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public void exportPrefs() {
             System.out.println("UserInterface.exportPrefs was called from DatabaseChangesThread");
+            printStackTrace();
         }
 
         /**

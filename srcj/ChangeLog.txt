@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+IMP: (3/8/06, RK) Make all the "was called from DatabaseChangesThread" warnings in ServerJobManager.java print the stack trace so we can find and fix those calls
+
 BUG: (3/7/06, GVG) HistoryDialog crashing because ProjectCell.getComment() was null (Bug #856)
 FIX: Assigning "" if comment is null.
 
