@@ -110,7 +110,6 @@ public class UserInterfaceMain extends AbstractUserInterface
         // Only valid for Mac OS X
         if (!System.getProperty("os.name").toLowerCase().startsWith("mac")) return;
 
-        System.out.println("Mode " + mode);
         if (mode != Mode.MDI)
             new EventProcessor();
 
