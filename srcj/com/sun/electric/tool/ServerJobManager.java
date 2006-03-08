@@ -397,25 +397,25 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     
     /*private*/ static class UserInterfaceRedirect implements UserInterface
 	{
-    	private static void printStackTrace() {
+    	private static void printStackTrace(String methodName) {
+            if (!Job.getDebug()) return;
+            System.out.println("UserInterface." + methodName + " was called from DatabaseChangesThread");
     		Exception e = new Exception();
 			e.printStackTrace(System.out);
     	}
 		public EditWindow_ getCurrentEditWindow_() {
-//            System.out.println("UserInterface.getCurrentEditWindow was called from DatabaseChangesThread");
+            printStackTrace("getCurrentEditWindow");
             return Job.currentUI.getCurrentEditWindow_();
         }
 		public EditWindow_ needCurrentEditWindow_()
 		{
-            System.out.println("UserInterface.needCurrentEditWindow was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("needCurrentEditWindow");
 			return null; 
 		}
         /** Get current cell from current library */
 		public Cell getCurrentCell()
         {
-            System.out.println("UserInterface.getCurrentCell was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("getCurrentCell");
 			Library lib = Library.getCurrent();
 			if (lib == null) return null;
 			return lib.getCurCell();
@@ -423,15 +423,13 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         /** Get current cell from current library */
 		public Cell getCurrentCell(Library lib)
         {
-			System.out.println("UserInterface.getCurrentCell(lib) was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("getCurrentCell(lib)");
 			return Job.currentUI.getCurrentCell(lib);
         }
 
 		public Cell needCurrentCell()
 		{
-            System.out.println("UserInterface.needCurrentCell was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("needCurrentCell");
             /** Current cell based on current library */
             Cell curCell = getCurrentCell();
             if (curCell == null)
@@ -448,24 +446,20 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 		 */
 		public void setCurrentCell(Library lib, Cell curCell)
 		{
-            System.out.println("UserInferface.setCurrentCell(lib,curCell) was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("setCurrentCell");
             Job.currentUI.setCurrentCell(lib, curCell);
 		}
 
 		public void repaintAllEditWindows() {
-            System.out.println("UserInterface.repaintAllEditWindows was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("repaintAllEditWindows");
             Job.currentUI.repaintAllEditWindows();
-            /*throw new IllegalStateException();*/
         }
         
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
 //            System.out.println("UserInterface.adjustReferencePoint was called from DatabaseChangesThread");
         };
 		public void alignToGrid(Point2D pt) {
-            System.out.println("UserInterface.alignToGrid was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("alignToGrid");
         }
 		public int getDefaultTextSize() { return 14; }
 //		public Highlighter getHighlighter();
@@ -487,8 +481,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          */
         public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair)
         {
-            System.out.println("UserInterface.reportLog was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("reportLog");
             // return the error message
             return log.getMessageString();
         }
@@ -521,8 +514,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          * @return true if "yes" was selected, false if "no" was selected.
          */
         public boolean confirmMessage(Object message) {
-            System.out.println("UserInterface.confirmMessage was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("confirmMessage");
             return true;
         }
 
@@ -549,13 +541,11 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 
         /** For Pref */
         public void restoreSavedBindings(boolean initialCall) {
-            System.out.println("UserInterface.restoreSavedBindings was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("restoreSavedBindings");
         }
         public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
         {
-            System.out.println("UserInterface.finishPrefReconcilation was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("finishPrefReconcilation");
             Pref.finishPrefReconcilation(meaningsToReconcile);
         }
 
@@ -564,8 +554,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          * Prompts the user and reads the file.
          */
         public void importPrefs() {
-            System.out.println("UserInterface.importPrefs was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("importPrefs");
         }
 
         /**
@@ -573,8 +562,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
          * Prompts the user and writes the file.
          */
         public void exportPrefs() {
-            System.out.println("UserInterface.exportPrefs was called from DatabaseChangesThread");
-            printStackTrace();
+            printStackTrace("exportPrefs");
         }
 
         /**
