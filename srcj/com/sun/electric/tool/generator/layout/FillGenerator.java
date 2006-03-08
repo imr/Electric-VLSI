@@ -1469,8 +1469,6 @@ class TiledCell {
                         }
                     }
                 }
-                else
-                    System.out.println("Reusing previus dummy cell?");
                 newElems.add(dummyCell);
                 stdCell = false;
             }
