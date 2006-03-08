@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/8/06, DN) Highlighting works bad after undo because undo
+     leaves deleted geoms in RTree. (Bug #852, Bug #853 and maybe Bug #851).
+FIX: In Cell.update() clear RTree in both undo and recover cases.
+
+BUG: (3/8/06, DN) Exception in Snapshot while deleting cells and then closing library (Bug #845).
+FIX: In Library.kill() removed this library from referencedLibs lists of other libraries.
+
+BUG: (3/8/06, DN) Library is not marked changed after its cell changed cell group.
+FIX: In Cell.setCellGroup call "lib.setChanged()".
+
 IMP: (3/8/06, RK) Make all the "was called from DatabaseChangesThread" warnings in ServerJobManager.java print the stack trace so we can find and fix those calls
 
 BUG: (3/7/06, GVG) HistoryDialog crashing because ProjectCell.getComment() was null (Bug #856)

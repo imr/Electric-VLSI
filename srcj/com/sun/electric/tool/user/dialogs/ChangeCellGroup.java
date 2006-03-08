@@ -123,11 +123,11 @@ public class ChangeCellGroup extends EDialog {
             return true;
         }
 
-        public void terminateOK()
-        {
-        	// update explorer tree
-    		WindowFrame.wantToRedoLibraryTree();
-        }
+//        public void terminateOK()
+//        {
+//        	// update explorer tree
+//    		WindowFrame.wantToRedoLibraryTree();
+//        }
     }
 
 

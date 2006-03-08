@@ -267,6 +267,10 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 
 		// remove all cells in the library
 		erase();
+        for (Library lib: database.libraries.values()) {
+            if (lib == this) continue;
+            lib.removeReferencedLib(this);
+        }
 
 		// remove it from the list of libraries
         database.removeLib(getId());

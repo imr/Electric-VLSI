@@ -3163,8 +3163,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 			if (repair)
 			{
-                setD(d.withSize(width, height), false);
-				redoGeometric();
+                lowLevelModify(d.withSize(width, height));
 			}
 //			warningCount++;
 		}

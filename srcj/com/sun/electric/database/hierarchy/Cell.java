@@ -1102,9 +1102,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         essenBounds.clear();
         cellUsages = (int[])newBackup.cellUsages.clone();
         int tempNodeCount = 0;
+        rTree = RTNode.makeTopLevel();
         if (full) {
             // the next line used to be: rTree = null;
-            rTree = RTNode.makeTopLevel();
             tempNodeNames.clear();
         }
         for (int i = 0; i < newBackup.nodes.length; i++) {
@@ -1287,7 +1287,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 ni.sortConnections();
             }
             if (boundsModified != null && boundsModified.get(subCellIndex)) {
+                RTNode.unLinkGeom(this, ni);
                 ni.redoGeometric();
+                RTNode.linkGeom(this, ni);
             }
         }
     }
@@ -3723,6 +3725,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		if (cellGroup == null) cellGroup = new CellGroup(lib);
         checkChanging();
 		if (cellGroup == this.cellGroup) return;
+        lib.setChanged();
 		String protoName = getName();
 		for (Iterator<Cell> it = getViewsTail(); it.hasNext(); )
 		{
@@ -4455,6 +4458,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (chronNodes.get(i) != null) countNodes++;
         assert countNodes == nodes.size();
 
+//        rTree.checkRTree(0, this);
+        
 		// check node usages
         for (int i = 0; i < cellUsages.length; i++)
             assert cellUsages[i] == usages[i];
