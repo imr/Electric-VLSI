@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+IMP: (3/9/06, RK) New NCC related command. Suppose designer highlights Network or Node in schematic. Command higlights equivalent Network or Node in layout. (Bugzilla #863)
+
+IMP: (3/9/06, RK) New NCC related command. Copy Network and Node names from schematic to layout (Bugzilla #754)
+
 BUG: (3/8/06, GVG) Algorithm to truncate coordinates in StatusBar in case of long VarContext was not working (Bug#846)
 FIX: Calculate string length based on fieldHierCoords.getWidth() instead of fieldHierCoords.getParent().getWidth()
 
