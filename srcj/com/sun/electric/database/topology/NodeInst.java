@@ -311,12 +311,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         
 		if (protoType instanceof Cell)
 		{
-            if (Cell.isInstantiationRecursive((Cell)protoType, parent))
+            Cell subCell = (Cell)protoType;
+            if (Cell.isInstantiationRecursive(subCell, parent))
 			{
 				System.out.println("Cannot create instance of " + protoType + " in " + parent +
 					" because it is recursive");
 				return null;
 			}
+            subCell.getTechnology();
             width = height = 0;
 		}
 
