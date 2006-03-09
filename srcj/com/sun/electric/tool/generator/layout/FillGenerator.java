@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -1009,7 +1010,7 @@ class FillCell {
 		if (layers[topLayer]!=null) exportPerimeter(layers[topLayer], cell, stdCell);
 		if (layers[topLayer-1]!=null) exportPerimeter(layers[topLayer-1], cell, stdCell);
 		if (wireLowest)  exportWiring(layers[botLayer], cell, stdCell);
-		
+
 		double cellWidth = plans[topLayer].cellWidth;
 		double cellHeight = plans[topLayer].cellHeight;
 		LayoutLib.newNodeInst(Tech.essentialBounds,
@@ -1162,13 +1163,14 @@ class TiledCell {
     /**
      *
      * @param master
+     * @param empty
      * @param tileOnX
      * @param tileOnY
      * @param minTileSize
      * @param topCell
      * @return
      */
-    public Cell makeQTreeCell(Cell master, int tileOnX, int tileOnY, double minTileSize,
+    public Cell makeQTreeCell(Cell master, Cell empty, int tileOnX, int tileOnY, double minTileSize,
                               Floorplan[] plans, StdCellParams stdCellParam, Cell topCell)
     {
         int powerX = getFillDimension(tileOnX);
@@ -1180,7 +1182,7 @@ class TiledCell {
                 topCell.getBounds().getCenterY()-fillHeight/2, fillWidth, fillHeight);
         // refine recursively
         List<Cell> newElems = new ArrayList<Cell>();
-        refine(master, topBox, plans, stdCellParam, newElems, topCell);
+        refine(master, empty, topBox, plans, stdCellParam, newElems, topCell);
         assert(newElems.size()==1);
         return newElems.iterator().next();
     }
@@ -1345,11 +1347,12 @@ class TiledCell {
      * |     0      |      1      |
      * ----------------------------
      * @param master
+     * @param empty
      * @param box  bounding box representing region to refine. (0,0) is the top left corner
      * @param topCell
      * @return true if refined elements form std cell
      */
-    private boolean refine(Cell master, Rectangle2D box, Floorplan[] plans, StdCellParams stdCellParam,
+    private boolean refine(Cell master, Cell empty, Rectangle2D box, Floorplan[] plans, StdCellParams stdCellParam,
                            List<Cell> newElems, Cell topCell)
     {
         double masterW = master.getBounds().getWidth();
@@ -1361,7 +1364,7 @@ class TiledCell {
         int cutX = (int)Math.ceil(w/masterW);
         int cutY = (int)Math.ceil(h/masterH);
         // Each cut will have a copy of the cell to use
-        List<Cell> list = new ArrayList<Cell>();
+        List<Cell> childrenList = new ArrayList<Cell>();
         boolean stdCell = true;
         Point2D[] centers = null;
         List<Rectangle2D> boxes = new ArrayList<Rectangle2D>();
@@ -1379,7 +1382,7 @@ class TiledCell {
             {
                 Rectangle2D bb = GenMath.getQTreeBox(x, y, w/2, h/2, box.getCenterX(), box.getCenterY(), i);
                 boxes.add(bb);
-                if (!refine(master, bb, plans, stdCellParam, list, topCell))
+                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell))
                     stdCell = false;
             }
         }
@@ -1390,7 +1393,7 @@ class TiledCell {
             {
                 Rectangle2D bb = GenMath.getQTreeBox(x, y, w/2, h, box.getCenterX(), box.getCenterY(), i);
                 boxes.add(bb);
-                if (!refine(master, bb, plans, stdCellParam, list, topCell))
+                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell))
                     stdCell = false;
             }
             centers = new Point2D[2];
@@ -1404,7 +1407,7 @@ class TiledCell {
             {
                 Rectangle2D bb = GenMath.getQTreeBox(x, y, w, h/2, box.getCenterX(), box.getCenterY(), i*2);
                 boxes.add(bb);
-                if (!refine(master, bb, plans, stdCellParam, list, topCell))
+                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell))
                     stdCell = false;
             }
             centers = new Point2D[2];
@@ -1412,7 +1415,8 @@ class TiledCell {
             centers[1] = new Point2D.Double(0, 0.5);
         } else {
             // nothing refined, qTree leave
-            HashSet<Geometric> nodesToRemove = new HashSet<Geometric>();
+            HashSet<NodeInst> nodesToRemove = new HashSet<NodeInst>();
+            HashSet<ArcInst> arcsToRemove = new HashSet<ArcInst>();
             // Translation from master cell center to actual location in the qTree
             /*		[   1    0    tx  ]
              *		[   0    1    ty  ]
@@ -1422,73 +1426,90 @@ class TiledCell {
                     box.getCenterX() - master.getBounds().getCenterX(),
                     box.getCenterY() - master.getBounds().getCenterY());
             stdCell = true;
-            if (FillGenerator.detectOverlappingBars(master, fillTransUp, nodesToRemove,
+            if (FillGenerator.detectOverlappingBars(master, fillTransUp, nodesToRemove, arcsToRemove,
                     topCell, new NodeInst[] {}, drcSpacing))
             {
-                // Replace by dummy cell for now
-                String dummyName = master.getName()+"dummy";
-                for (Geometric no : nodesToRemove)
+                boolean emptyCell = arcsToRemove.size() == master.getNumArcs();
+                Cell dummyCell = null;
+
+                if (emptyCell)
+                    dummyCell = empty;
+                else
                 {
-                    if (no instanceof ArcInst)
-                        dummyName += "-" + ((ArcInst)no).getName();
-                    else
+                    // Replace by dummy cell for now
+                    String dummyName = "dummy";
+                    // Collect names from nodes and arcs to remove if the cell is not empty
+                    List<String> namesList = new ArrayList<String>();
+                    for (NodeInst ni : nodesToRemove)
                     {
                         // Not deleting the pins otherwise cells can be connected.
-                        NodeInst ni = (NodeInst)no;
                         // List should not contain pins
                         if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN)
-                        dummyName += "-" + ((NodeInst)no).getName();
+                            namesList.add(ni.getName());
                     }
-                }
-                dummyName +="{lay}";
-                Cell dummyCell = master.getLibrary().findNodeProto(dummyName);
-
-                if (dummyCell == null)
-                {
-                    dummyCell = Cell.copyNodeProto(master, master.getLibrary(), dummyName, true);
-//                    dummyCell = Cell.newInstance(master.getLibrary(), dummyName);
-//                    LayoutLib.newNodeInst(Tech.essentialBounds, -masterW/2, -masterH/2,
-//                                          G.DEF_SIZE, G.DEF_SIZE, 180, dummyCell);
-//                    LayoutLib.newNodeInst(Tech.essentialBounds, masterW/2, masterW/2,
-//                                          G.DEF_SIZE, G.DEF_SIZE, 0, dummyCell);
-                    // Time to delete the elements overlapping with the rest of the top cell
-                    for (Geometric no : nodesToRemove)
+                    for (ArcInst ai : arcsToRemove)
                     {
-                        if (no instanceof ArcInst)
+                        namesList.add(ai.getName());
+                    }
+                    Collections.sort(namesList);
+//                    for (String s : namesList)
+//                        dummyName += "-"+s;
+                    int code = namesList.toString().hashCode();
+                    if (code == -1742742753 || code == -1320757879)
+                        System.out.println("HHH");
+                    dummyName +=code+"{lay}";
+                    dummyCell = master.getLibrary().findNodeProto(dummyName);
+
+                    if (dummyCell == null)
+                    {
+                        // Creating empty/dummy Master cell or look for an existing one
+                        dummyCell = Cell.copyNodeProto(master, master.getLibrary(), dummyName, true);
+    //                    LayoutLib.newNodeInst(Tech.essentialBounds, -masterW/2, -masterH/2,
+    //                                          G.DEF_SIZE, G.DEF_SIZE, 180, dummyCell);
+    //                    LayoutLib.newNodeInst(Tech.essentialBounds, masterW/2, masterW/2,
+    //                                          G.DEF_SIZE, G.DEF_SIZE, 0, dummyCell);
+                        // Time to delete the elements overlapping with the rest of the top cell
+                        for (NodeInst ni : nodesToRemove)
                         {
-                            ArcInst d = dummyCell.findArc(((ArcInst)no).getName());
+                            NodeInst d = dummyCell.findNode(ni.getName());
+                            d.kill();
+                        }
+
+                        for (ArcInst ai : arcsToRemove)
+                        {
+                            ArcInst d = dummyCell.findArc(ai.getName());
                             // d is null if a NodeInst connected was killed.
                             if (d != null)
                                 d.kill();
-
-                        }
-                        else
-                        {
-                            NodeInst d = dummyCell.findNode(((NodeInst)no).getName());
-                            d.kill();
                         }
                     }
                 }
                 newElems.add(dummyCell);
-                stdCell = false;
+                stdCell = emptyCell;
             }
             else
                 newElems.add(master);
             return stdCell;
         }
 
-        String tiledName = "std"+master.getName()+"_"+w+"x"+h+"{lay}";
-        Cell tiledCell = master.getLibrary().findNodeProto(tiledName);
+        Cell tiledCell = null;
+        String tileName = null;
+        if (stdCell)
+        {
+            String rootName = childrenList.get(0).getName();
+            if (childrenList.get(0) == master)
+                rootName = master.getName();
+            else if (childrenList.get(0) == empty)
+                rootName = empty.getName();
+            tileName = rootName+"_"+w+"x"+h+"{lay}";
+            tiledCell = master.getLibrary().findNodeProto(tileName);
+        }
+        else
+            tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+x+","+y+"){lay}";
 
         if (tiledCell == null || !stdCell)
         {
-            if (stdCell)
-                tiledCell = Cell.newInstance(master.getLibrary(), tiledName);
-            else
-            {
-                String dummyName = "dummy"+master.getName()+"_"+w+"x"+h+"("+x+","+y+"){lay}";
-                tiledCell = Cell.newInstance(master.getLibrary(), dummyName);
-            }
+            tiledCell = Cell.newInstance(master.getLibrary(), tileName);
 //            LayoutLib.newNodeInst(Tech.essentialBounds, -w/2, -h/2,
 //                                  G.DEF_SIZE, G.DEF_SIZE, 180, tiledCell);
 //            LayoutLib.newNodeInst(Tech.essentialBounds, w/2, h/2,
@@ -1508,13 +1529,13 @@ class TiledCell {
                     rows = new NodeInst[2][2];
                     break;
             }
-            assert(boxes.size() == list.size());
+            assert(boxes.size() == childrenList.size());
 
-//            Cell newM = list.iterator().next();
+//            Cell newM = childrenList.iterator().next();
             for (int i = 0; i < boxes.size(); i++)
             {
                 Rectangle2D b = boxes.get(i);
-                NodeInst node = LayoutLib.newNodeInst(list.get(i),
+                NodeInst node = LayoutLib.newNodeInst(childrenList.get(i),
                         b.getWidth()*centers[i].getX(),
                         b.getHeight()*centers[i].getY(),
                         b.getWidth(), b.getHeight(), 0, tiledCell);
@@ -1567,8 +1588,9 @@ class TiledCell {
  */
 public class FillGenerator implements Serializable {
     
-    public static boolean detectOverlappingBars(Cell cell, AffineTransform fillTransUp, HashSet<Geometric> nodesToRemove,
-                                          Cell topCell, NodeInst[] ignore, double drcSpacing)
+    public static boolean detectOverlappingBars(Cell cell, AffineTransform fillTransUp,
+                                                HashSet<NodeInst> nodesToRemove, HashSet<ArcInst> arcsToRemove,
+                                                Cell topCell, NodeInst[] ignore, double drcSpacing)
     {
         List<Layer.Function> tmp = new ArrayList<Layer.Function>();
 
@@ -1597,6 +1619,11 @@ public class FillGenerator implements Serializable {
             {
                 // Direct on last top fill cell
                 nodesToRemove.add(ni);
+                for (Iterator<Connection> itC = ni.getConnections(); itC.hasNext();)
+                {
+                    Connection c = itC.next();
+                    arcsToRemove.add(c.getArc());
+                }
             }
         }
 
@@ -1610,7 +1637,7 @@ public class FillGenerator implements Serializable {
             Rectangle2D rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
             if (searchCollision(topCell, rect, tmp, null, ignore))
             {
-                nodesToRemove.add(ai);
+                arcsToRemove.add(ai);
                 // Remove exports and pins as well
                 nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
                 nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
@@ -1871,23 +1898,34 @@ public class FillGenerator implements Serializable {
     }
 
 	private Cell treeMakeAndTileCell(Library lib, Floorplan[] plans, int lowLay,
-                                 int hiLay, CapCell capCell, boolean wireLowest,
-                                 int[] tiledSizes, StdCellParams stdCell,
-                                 boolean metalFlex, Cell topCell) {
-		Cell c = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell,
+                                     int hiLay, CapCell capCell, boolean wireLowest,
+                                     StdCellParams stdCell,
+                                     boolean metalFlex, Cell topCell) {
+		Cell master = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell,
 									   wireLowest, stdCell, metalFlex, true);
+
+        // Create an empty cell for cases where all nodes/arcs are moved due to collision
+        Cell empty = Cell.newInstance(lib, "emtpy"+master.getName());
+        double cellWidth = plans[hiLay].cellWidth;
+		double cellHeight = plans[hiLay].cellHeight;
+		LayoutLib.newNodeInst(Tech.essentialBounds,
+							  -cellWidth/2, -cellHeight/2,
+							  G.DEF_SIZE, G.DEF_SIZE, 180, empty);
+		LayoutLib.newNodeInst(Tech.essentialBounds,
+							  cellWidth/2, cellHeight/2,
+							  G.DEF_SIZE, G.DEF_SIZE, 0, empty);
 
         int tileOnX = (int)Math.ceil(targetWidth/minTileSize);
         int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
 
         TiledCell t = new TiledCell(stdCell, 6);
-        c = t.makeQTreeCell(c, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell);
+        master = t.makeQTreeCell(master, empty, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell);
 //                int min = Math.min(tileOnX, tileOnY);
-//                c = TiledCell.makeTiledCell(min, min, c, plans, lib, stdCell);
+//                master = TiledCell.makeTiledCell(min, min, master, plans, lib, stdCell);
 //                tileOnX = tileOnX/min;
 //                tileOnY = tileOnY/min;
-//                c = TiledCell.makeTiledCell(tileOnX, tileOnY, c, plans, lib, stdCell);
-        return c;
+//                master = TiledCell.makeTiledCell(tileOnX, tileOnY, master, plans, lib, stdCell);
+        return master;
 	}
 
 	public static final Units LAMBDA = Units.LAMBDA;
@@ -2015,7 +2053,7 @@ public class FillGenerator implements Serializable {
      * @return
      */
     private Cell treeMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig, PowerType powerType,
-                                  int[] tiledSizes, Cell topCell) {
+                                  Cell topCell) {
 		boolean metalFlex = true;
         initHierFillParameters(metalFlex);
 
@@ -2026,10 +2064,10 @@ public class FillGenerator implements Serializable {
         Cell cell = null;
 		if (powerType==VDD) {
 			cell = treeMakeAndTileCell(lib, plans, loLayer, hiLayer, capCell, wireLowest,
-			                tiledSizes, stdCell, metalFlex, topCell);
+                    stdCell, metalFlex, topCell);
 		} else {
 			cell = treeMakeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest,
-			                tiledSizes, stdCellP, metalFlex, topCell);
+                    stdCellP, metalFlex, topCell);
 		}
         return cell;
 	}
@@ -2054,9 +2092,8 @@ public class FillGenerator implements Serializable {
 	}
     /** Similar to standardMakeFillCell but it would use the qTree
      */
-    public Cell treeMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
-                                 int[] tiledSizes, Cell topCell) {
-        return treeMakeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes, topCell);
+    public Cell treeMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig, Cell topCell) {
+        return treeMakeFillCell(loLayer, hiLayer, exportConfig, VDD, topCell);
 	}
 	public void makeGallery() {
 		Gallery.makeGallery(lib);
@@ -2093,6 +2130,7 @@ public class FillGenerator implements Serializable {
 		{
             // logger must be created in server otherwise it won't return the elements.
             log = ErrorLogger.newInstance("Fill");
+            fieldVariableChanged("log");
 
             // Searching common power/gnd connections and skip the ones are in the same network
             // Don't change List by Set otherwise the sequence given by Set is not deterministic and hard to debug
@@ -2147,7 +2185,7 @@ public class FillGenerator implements Serializable {
             // does work
             G.DEF_SIZE = 0;
             Cell fillCell = (hierarchy) ?
-                    fillGen.treeMakeFillCell(firstMetal, lastMetal, perimeter, cellsList, topCell) :
+                    fillGen.treeMakeFillCell(firstMetal, lastMetal, perimeter, topCell) :
                     fillGen.standardMakeFillCell(firstMetal, lastMetal, perimeter, cellsList, true);
 //            fillGen.makeGallery();
 
@@ -2337,7 +2375,6 @@ public class FillGenerator implements Serializable {
 //                }
 //            }
 
-            fieldVariableChanged("log");
             return true;
         }
 
