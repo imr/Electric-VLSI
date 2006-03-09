@@ -342,8 +342,8 @@ public class ReadableDump extends LibraryFiles
 //		}
 
 		if (allCellsArray == null) return true; // error
-		if (mainCell >= 0)
-			Job.getUserInterface().setCurrentCell(lib, allCellsArray[mainCell]);
+//		if (mainCell >= 0)
+//			Job.getUserInterface().setCurrentCell(lib, allCellsArray[mainCell]);
 
 		lib.clearChanged();
 		return false;

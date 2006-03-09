@@ -916,11 +916,11 @@ public class ELIB extends LibraryFiles
 		firstNodeIndex[nodeProtoCount] = nodeIndex;
 		firstArcIndex[nodeProtoCount] = arcIndex;
 
-		if (curCell >= 0 && curCell < nodeProtoCount)
-		{
-			NodeProto currentCell = convertNodeProto(curCell);
-			Job.getUserInterface().setCurrentCell(lib, (Cell)currentCell);
-		}
+//		if (curCell >= 0 && curCell < nodeProtoCount)
+//		{
+//			NodeProto currentCell = convertNodeProto(curCell);
+//			Job.getUserInterface().setCurrentCell(lib, (Cell)currentCell);
+//		}
 
         // warn if any dummy cells were read in
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {

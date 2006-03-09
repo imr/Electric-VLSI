@@ -348,7 +348,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		{
 			for (Cell cell : cells)
 			{
-				assert lib.contains(cell);
+				assert lib.cells.get(cell.getCellName()) == cell;
 				assert cell.cellGroup == this;
 			}
 			if (mainSchematic != null)
@@ -392,6 +392,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** Persistent data of this Cell. */                            private ImmutableCell d;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The library this Cell belongs to. */						private final Library lib;
+    /** The newest version of this Cell. */                         Cell newestVersion;
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
 	/** The Cell's essential-bounds. */								private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
@@ -2176,21 +2177,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		tempNodeNames.put(name.canonicString(), ni);
 
 		Name basename = name.getBasename();
-		if (basename != null && basename != name)
-		{
-			String basenameString = basename.canonicString(); 
-			MaxSuffix ms = maxSuffix.get(basenameString);
-			if (ms == null)
-			{
-				ms = new MaxSuffix();
-				maxSuffix.put(basenameString, ms);
-			}
-			int numSuffix = name.getNumSuffix();
-			if (numSuffix > ms.v)
-			{
-				ms.v = numSuffix;
-			}
-		}
+        String basenameString = basename.canonicString();
+        MaxSuffix ms = maxSuffix.get(basenameString);
+        if (ms == null) {
+            ms = new MaxSuffix();
+            maxSuffix.put(basenameString, ms);
+        }
+        int numSuffix = name.getNumSuffix();
+        if (numSuffix > ms.v) {
+            ms.v = numSuffix;
+        }
     }
     
 	/**
@@ -2656,9 +2652,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 		export.setPortIndex(newPortIndex);
 		exports[newPortIndex] = export;
-		for (int i = 0; i < exports.length; i++)
-			System.out.print(" " + exports[i].getPortIndex() + ":" + exports[i].getName());
-		System.out.println();
+//		for (int i = 0; i < exports.length; i++)
+//			System.out.print(" " + exports[i].getPortIndex() + ":" + exports[i].getName());
+//		System.out.println();
 
         // move PortInst for every instance of this Cell.
         if (getId().numUsagesOf() == 0) return;
@@ -3652,29 +3648,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to return the most recent version of this Cell.
 	 * @return he most recent version of this Cell.
 	 */
-	public Cell getNewestVersion()
-	{
-		synchronized (lib.cells) {
-			Iterator<Cell> it = getVersionsTail();
-			if (it.hasNext())
-			{
-				Cell c = it.next();
-				if (c.getName().equals(getName()) && c.getView() == getView()) return c;
-			}
-		}
-		return null;
-	}
+    public Cell getNewestVersion() {
+        synchronized (lib.cells) {
+            return newestVersion;
+        }
+    }
 
 	/*
 	 * Return tail submap of library cells which starts from
 	 * cells with same protoName and view as this Cell.
 	 * @return tail submap with versions of this Cell.
 	 */
-	private Iterator<Cell> getVersionsTail()
-	{
-		CellName cn = CellName.parseName(getName() + "{" + getView().getAbbreviation() + "}");
-		return lib.getCellsTail(cn);
-	}
+    private Iterator<Cell> getVersionsTail() {
+        return lib.getCellsTail(newestVersion.getCellName());
+    }
 
 	/*
 	 * Return tail submap of library cells which starts from
@@ -4360,8 +4347,98 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         {
         	CircuitChangeJobs.eraseObjectsInList(this, list, false);
         }
+        
+        HashSet<Name> nodeNames = new HashSet<Name>();
+		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+            if (nodeNames.contains(ni.getNameKey())) {
+                String msg = this + " has duplicate node name " + ni.getName();
+                if (repair) {
+                    String newName = ElectricObject.uniqueObjectName(ni.getName(), this, NodeInst.class);
+                    if (newName != null && !ni.setName(newName))
+                        msg += " renamed to " + newName;
+                }
+                System.out.println(msg);
+                if (errorLogger != null)
+                    errorLogger.logError(msg, ni, this, null, 1);
+                errorCount++;
+             }
+            nodeNames.add(ni.getNameKey());
+		}
+        for(Iterator<Export> it = getExports(); it.hasNext(); ) {
+            Export e = it.next();
+            if (ImmutableExport.validExportName(e.getName()) != null) continue;
+            String msg = this + " has bad export name " + e.getName() + " ";
+            if (repair) {
+                String newName = repairExportName(e.getName());
+                if (newName != null) {
+                    newName = ElectricObject.uniqueObjectName(newName, this, PortProto.class);
+                    if (newName != null && Name.findName(newName).isValid()) {
+                        e.rename(newName);
+                        msg += " renamed to " + e.getName();
+                    }
+                }
+            }
+            System.out.println(msg);
+            if (errorLogger != null)
+                errorLogger.logError(msg, e, 1);
+            errorCount++;
+        }
+        
 		return errorCount;
 	}
+    
+    private String repairExportName(String name) {
+        String newName = null;
+        int oldBusWidth = Name.findName(name).busWidth();
+        int openIndex = name.indexOf('[');
+        if (openIndex >= 0) {
+            int afterOpenIndex = openIndex + 1;
+            while (afterOpenIndex < name.length() && name.charAt(afterOpenIndex) == '[')
+                afterOpenIndex++;
+            int closeIndex = name.lastIndexOf(']');
+            if (closeIndex < 0) {
+                int lastOpenIndex = name.lastIndexOf('[');
+                if (lastOpenIndex > afterOpenIndex)
+                    closeIndex = lastOpenIndex;
+            }
+            if (afterOpenIndex < closeIndex)
+                newName = name.substring(0, openIndex) + name.substring(closeIndex + 1) +
+                        "[" + name.substring(afterOpenIndex, closeIndex) + "]";
+        }
+        if (validExportName(newName, oldBusWidth)) {
+            newName = ElectricObject.uniqueObjectName(newName, this, PortProto.class);
+            if (validExportName(newName, oldBusWidth))
+                return newName;
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            if (ch == '[' || ch == ']' || ch == ':' || ch == ',' || ch == '@')
+                ch = 'X';
+            sb.append(ch);
+        }
+        newName = sb.toString();
+        if (validExportName(newName, oldBusWidth)) {
+            newName = ElectricObject.uniqueObjectName(newName, this, PortProto.class);
+            if (validExportName(newName, oldBusWidth))
+                return newName;
+        }
+        return null;
+    }
+    
+    /**
+     * Returns true if string is a valid Export name with cirtain width.
+     * @param name string to test.
+     * @param busWidth cirtain width.
+     * @return true if string is a valid Export name with cirtain width.
+     */
+    public static boolean validExportName(String name, int busWidth) {
+        Name nameKey = ImmutableExport.validExportName(name);
+        return nameKey != null && nameKey.busWidth() == busWidth;
+    }
 
 	/**
 	 * Method to check invariants in this Cell.

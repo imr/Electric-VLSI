@@ -350,6 +350,8 @@ public class EDatabase {
             if (newBackup != null)
                 recoverRecursively(newBackup.d.cellId, recovered);
         }
+        for (Library lib: libraries.values())
+            lib.collectCells();
         recoverCellGroups();
         snapshotFresh = true;
         long endTime = System.currentTimeMillis();
@@ -371,9 +373,6 @@ public class EDatabase {
         Cell cell = getCell(cellId);
         cell.recover(newBackup, snapshot.getCellBounds(cellId));
     	recovered.set(cellIndex);
-
-        Library lib = getLib(newBackup.d.libId);
-        lib.cells.put(cell.getCellName(), cell);
     }
 
     /**
@@ -432,15 +431,7 @@ public class EDatabase {
         if (!cellNamesChangedInLibrary.isEmpty()) {
             for (Library lib: libraries.values()) {
                 if (cellNamesChangedInLibrary.get(lib.getId().libIndex))
-                    lib.cells.clear();
-            }
-            for (Cell cell: linkedCells) {
-                if (cell == null) continue;
-                LibId libId = cell.getD().libId;
-                if (!cellNamesChangedInLibrary.get(libId.libIndex)) continue;
-                Library lib = getLib(libId);
-                assert lib == cell.getLibrary();
-                lib.cells.put(cell.getCellName(), cell);
+                    lib.collectCells();
             }
         }
         if (cellGroupsChanged)
@@ -494,7 +485,6 @@ public class EDatabase {
             LibraryBackup libBackup = snapshot.libBackups[libIndex];
             Library lib = linkedLibs.get(libIndex);
             if (libBackup == null && lib != null) {
-                lib.cells.clear();
                 linkedLibs.set(libIndex, null);
             } else if (libBackup != null && lib == null) {
                 linkedLibs.set(libIndex, new Library(this, libBackup.d));

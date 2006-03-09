@@ -314,6 +314,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
                 return;
             }
 			cells.put(cn, c);
+            updateNewestVersions();
 		}
 	}
 
@@ -333,8 +334,37 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
                 return;
             }
 			cells.remove(cn);
+            c.newestVersion = null;
+            updateNewestVersions();
 		}
 	}
+    
+    /**
+     * Collect cells from database snapshot into cells list of this Library.
+     */
+    void collectCells() {
+        synchronized(cells) {
+            cells.clear();
+            for (int cellIndex = 0; cellIndex < database.linkedCells.size(); cellIndex++) {
+                Cell cell = database.getCell(cellIndex);
+                if (cell == null || cell.getLibrary() != this) continue;
+                cells.put(cell.getCellName(), cell);
+            }
+            updateNewestVersions();
+        }
+    }
+    
+    /**
+     * Update newestVersion fields of cells in this Library.
+     */
+    private void updateNewestVersions() {
+        Cell newestVersion = null;
+        for (Cell cell: cells.values()) {
+            if (newestVersion == null || !newestVersion.getName().equals(cell.getName()) || newestVersion.getView() != cell.getView())
+                newestVersion = cell;
+            cell.newestVersion = newestVersion;
+        }
+    }
 
     /**
      * Adds lib as a referenced library. This also checks the dependency
@@ -665,6 +695,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 		HashSet<Cell.CellGroup> cellGroups = new HashSet<Cell.CellGroup>();
 		String protoName = null;
 		Cell.CellGroup cellGroup = null;
+        Cell newestVersion = null;
 		for(Map.Entry<CellName,Cell> e : cells.entrySet())
 		{
 			CellName cn = (CellName)e.getKey();
@@ -677,8 +708,12 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 				cellGroup = cell.getCellGroup();
 				assert cellGroup != null : cell;
 				cellGroups.add(cellGroup);
+                newestVersion = cell;
 			}
+            if (cell.getView() != newestVersion.getView())
+                newestVersion = cell;
 			assert cell.getCellGroup() == cellGroup : cell;
+            assert cell.newestVersion == newestVersion;
 			cell.check();
 		}
 		for (Iterator<Cell.CellGroup> it = cellGroups.iterator(); it.hasNext(); )
@@ -1060,27 +1095,23 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 		if (name == null) return null;
 		CellName n = CellName.parseName(name);
 		if (n == null) return null;
-		Cell cell = cells.get(n);
-		if (cell != null) return cell;
-
-		Cell onlyWithName = null;
-		for (Cell c : cells.values())
-		{
-			if (!n.getName().equalsIgnoreCase(c.getName())) continue;
-			onlyWithName = c;
-			if (n.getView() != c.getView()) continue;
-			if (n.getVersion() > 0 && n.getVersion() != c.getVersion()) continue;
-			if (n.getVersion() == 0 && c.getNewestVersion() != c) continue;
-			return c;
-		}
-		if (n.getView() == View.UNKNOWN && onlyWithName != null) return onlyWithName;
+        synchronized (cells) {
+            Cell cell = cells.get(n);
+            if (cell != null) return cell;
+            
+            Cell onlyWithName = null;
+            for (Cell c : cells.values()) {
+                if (!n.getName().equalsIgnoreCase(c.getName())) continue;
+                onlyWithName = c;
+                if (n.getView() != c.getView()) continue;
+                if (n.getVersion() > 0 && n.getVersion() != c.getVersion()) continue;
+                if (n.getVersion() == 0 && c.getNewestVersion() != c) continue;
+                return c;
+            }
+            if (n.getView() == View.UNKNOWN && onlyWithName != null) return onlyWithName;
+        }
 		return null;
 	}
-
-	/**
-	 * Returns true, if cell is contained in this Library.
-	 */
-	boolean contains(Cell cell) { return cells.get(cell.getCellName()) == cell; }
 
 	/**
 	 * Method to return an Iterator over all Cells in this Library.
@@ -1101,7 +1132,9 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 */
 	Iterator<Cell> getCellsTail(CellName cn)
 	{
-		return cells.tailMap(cn).values().iterator();
+        synchronized(cells) {
+            return cells.tailMap(cn).values().iterator();
+        }
 	}
 
 	/**

@@ -72,7 +72,7 @@ public class Snapshot {
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
     public Snapshot with(CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
-        long startTime = System.currentTimeMillis();
+//        long startTime = System.currentTimeMillis();
         cellBackups = copyArray(cellBackups, this.cellBackups);
         cellGroups = copyArray(cellGroups, this.cellGroups);
         cellBounds = copyArray(cellBounds, this.cellBounds);
@@ -130,8 +130,8 @@ public class Snapshot {
             checkNames(cellBackups, cellGroups, libBackups);
         
         Snapshot snapshot = new Snapshot(snapshotCount.incrementAndGet(), cellBackups, cellGroups, cellBounds, libBackups);
-        long endTime = System.currentTimeMillis();
-        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
+//        long endTime = System.currentTimeMillis();
+//        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
     }
     

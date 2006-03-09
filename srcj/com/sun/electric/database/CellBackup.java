@@ -195,8 +195,10 @@ public class CellBackup {
 			if (prevN != null) {
 				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevN.name.toString(), n.name.toString());
 				assert cmp <= 0;
-				if (cmp == 0)
+				if (cmp == 0) {
+                    assert !n.name.isTempname();
 					assert prevN.nodeId < n.nodeId;
+                }
 			}
             prevN = n;
             if (n.protoId instanceof CellId) {
@@ -221,8 +223,10 @@ public class CellBackup {
 			if (prevA != null) {
 				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevA.name.toString(), a.name.toString());
 				assert cmp <= 0;
-				if (cmp == 0)
+				if (cmp == 0) {
+                    assert !a.name.isTempname();
 					assert prevA.arcId < a.arcId;
+                }
 			}
             prevA = a;
             

@@ -4,6 +4,21 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/9/06, DN) Syntax of export names is not checked.
+FIX: Check it in Export.newInstance, Export.rename, and Cell.checkAndRepair .
+
+BUG: (3/9/06, DN) Nodable names must be unique (Bug #850).
+FIX: Temporary names are fixed in Bug #860. User names are repaired in CheckAndRepair job.
+     New nodes and renamed nodes are checked on uniquie names.
+     It is not database invariant yet. It is still GUI constraint.
+
+BUG: (3/9/06, DN) ConcurrentModificationException in Cell.getNewestVersion.
+FIX: Add newestVersion field to Cell and maintain it.
+
+BUG: (3/9/06, DN) Duplicate temporary node names were not caugt by snapshot check (Bug #860).
+FIX: Check this invariant int CellBackup.check().
+     In Cell.addTempName(NodeInst) alway update maxSuffix.
+
 IMP: (3/9/06, RK) New NCC related command. Suppose designer highlights Network or Node in schematic. Command higlights equivalent Network or Node in layout. (Bugzilla #863)
 
 IMP: (3/9/06, RK) New NCC related command. Copy Network and Node names from schematic to layout (Bugzilla #754)

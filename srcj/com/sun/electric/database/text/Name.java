@@ -74,7 +74,8 @@ public class Name implements Comparable<Name>
 	{
 		try
 		{
-			checkNameThrow(ns);
+			int flags = checkNameThrow(ns);
+            if ((flags & HAS_EMPTIES) != 0) return "has empty subnames";
 			return null;
 		} catch (NumberFormatException e)
 		{
@@ -565,9 +566,13 @@ public class Name implements Comparable<Name>
 					throw new NumberFormatException("has equal start and end indices");
 				colon = -1;
 			}
-			if (c == ']') bracket = -1;
+			if (c == ']') {
+                if (i == bracket + 1) flags |= HAS_EMPTIES;
+                bracket = -1;
+            }
 			if (c == ',')
 			{
+                if (i == bracket + 1) flags += HAS_EMPTIES;
 				bracket = i;
 				flags |= BUS;
 			}

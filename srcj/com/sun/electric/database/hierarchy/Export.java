@@ -139,6 +139,11 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                     ", making new export named "+protoName);
             assert(parent.findExport(protoName) == null);
 		}
+        Name protoNameKey = ImmutableExport.validExportName(protoName);
+        if (protoNameKey == null) {
+            System.out.println("Bad export name " + protoName + " : " + Name.checkName(protoName));
+            return null;
+        }
         PortProto originalProto = portInst.getPortProto();
         boolean alwaysDrawn = false;
         boolean bodyOnly = false;
@@ -293,11 +298,16 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            newName = dupName;
 	        }
 		}
+        Name newNameKey = ImmutableExport.validExportName(newName);
+        if (newNameKey == null) {
+            System.out.println("Bad export name " + newName + " : " + Name.checkName(newName));
+            return;
+        }
 
 		// do the rename
 		Name oldName = getNameKey();
         parent.moveExport(portIndex, newName);
-		setD(d.withName(Name.findName(newName)), true);
+		setD(d.withName(newNameKey), true);
         parent.notifyRename();
 
         // rename associated export in icon, if any

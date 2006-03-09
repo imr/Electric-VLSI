@@ -70,7 +70,9 @@ public class Undo
 
 		private void describe(String title)
 		{
-			String message = "*** Batch '" + title + "', " + oldSnapshotId + "->" + newSnapshotId + " (" + activity + " from " + tool.getName() + " tool)";
+            String activityFromTool = activity;
+            if (tool != null) activityFromTool += " from " + tool.getName() + " tool";
+			String message = "*** Batch '" + title + "', " + oldSnapshotId + "->" + newSnapshotId + " (" + activityFromTool + ")";
 			System.out.println(message);
 		}
 	}

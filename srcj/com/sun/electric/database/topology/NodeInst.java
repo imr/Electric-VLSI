@@ -273,6 +273,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
                                        Cell parent, Orientation orient, String name, int techBits)
 	{
+        if (name != null && parent.findNode(name) != null) {
+            System.out.println(parent + " already has NodeInst with name \""+name+"\"");
+            return null;
+        }
         return newInstance(parent, protoType, name, null, center, width, height, orient, 0, techBits, null);
 	}
 
@@ -346,6 +350,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             }
             nameKey = parent.getNodeAutoname(baseName);
 		}
+        assert !parent.hasTempNodeName(nameKey);
         CellId parentId = (CellId)parent.getId();
         
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getNodeTextDescriptor();
@@ -2557,6 +2562,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		if (name != null && name.length() > 0)
 		{
 			if (name.equals(getName())) return false;
+            if (parent.findNode(name) != null) {
+                System.out.println(parent + " already has NodeInst with name \""+name+"\"");
+            	return true;
+            }
 			key = Name.findName(name);
 		} else
 		{
