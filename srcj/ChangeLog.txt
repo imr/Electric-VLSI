@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/9/06, GVG) Bug in DRC after fixing Bug #507 (no detecting well good drc date in goodDRC.put())
+FIX: Compare DRC date with revision date (must be newer).
+
 BUG: (3/9/06, DN) GUI thread sometimes calls Cell.getTechnology before "tech" field is initialized (Bug #859).
 FIX: In NodeInst.newInstance call subCell.getTechnology() to initialize "tech" field.
 

@@ -545,13 +545,15 @@ public class Quick
 
 		// if the cell hasn't changed since the last good check, stop now
         Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits);
-		if (validVersion && allSubCellsStillOK)
+		if (validVersion && allSubCellsStillOK && lastGoodDate != null)
 		{
-			if (lastGoodDate != null)
-			{
-				Date lastChangeDate = cell.getRevisionDate();
-				if (lastGoodDate.after(lastChangeDate)) return 0;
-			}
+            return 0;
+//			if (lastGoodDate != null)
+//			{
+//				Date lastChangeDate = cell.getRevisionDate();
+//                afterRevisionDate = lastGoodDate.after(lastChangeDate);
+//				if (afterRevisionDate) return 0;
+//			}
 		}
 
 		// announce progress
@@ -620,7 +622,9 @@ public class Quick
             // Only mark the cell when it passes with a new version of DRC or didn't have
             // the DRC bit on
             // If lastGoodDate == null, wrong bits stored or no date available.
-            if (!validVersion || lastGoodDate == null)
+            // if lastGoodDate != null && !afterRevisionDate: there is a DRC date but older
+            // than the cell revision
+            if (!validVersion || (lastGoodDate == null))
 			    goodDRCDate.put(cell, new Date());
 		}
 

@@ -763,7 +763,10 @@ public class DRC extends Listener
 //        long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
 //        long lastDRCDateInSeconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
 //        Date lastDRCDate = new Date(lastDRCDateInSeconds);
-        return lastDRCDate;
+        Date lastChangeDate = cell.getRevisionDate();
+        lastDRCDate.after(lastChangeDate);
+
+        return (lastDRCDate.after(lastChangeDate))?lastDRCDate:null;
     }
 
 //    /**
