@@ -178,7 +178,7 @@ public class Output
 
 		// make sure that all "meaning" options are attached to the database
 //		Pref.installMeaningVariables();
-		
+
 		// make sure that this library save is announced
         Constraints.getCurrent().writeLibrary(lib);
 		for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); )
@@ -214,6 +214,7 @@ public class Output
 		String properOutputName = properOutputNameWithoutExtension;
 		if (type == FileType.ELIB) properOutputName += ".elib";
 		if (type == FileType.JELIB) properOutputName += ".jelib";
+		if (type == FileType.DELIB) properOutputName += ".delib";
 		if (type == FileType.READABLEDUMP) properOutputName += ".txt";
 		if (type == FileType.ELIB || type == FileType.JELIB)
 		{
@@ -294,6 +295,14 @@ public class Output
 			if (out.openTextOutputStream(properOutputName)) return true;
 			if (out.writeLib(lib)) return true;
 			if (out.closeTextOutputStream()) return true;
+        } else if (type == FileType.DELIB)
+        {
+            DELIB delib = new DELIB();
+            delib.quiet = quiet;
+            out = (Output)delib;
+            if (out.openTextOutputStream(properOutputName)) return true;
+            if (out.writeLib(lib)) return true;
+            if (out.closeTextOutputStream()) return true;
 		} else
 		{
 			System.out.println("Unknown export type: " + type);

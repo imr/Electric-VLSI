@@ -231,153 +231,7 @@ public class JELIB extends Output
 		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = cIt.next();
-
-			// write the Cell name
-			printWriter.println();
-			printWriter.println("# Cell " + cell.noLibDescribe());
-			printWriter.print("C" + convertString(cell.getCellName().toString()));
-			printWriter.print("|" + convertString(cell.getTechnology().getTechName()));
-			printWriter.print("|" + cell.getCreationDate().getTime());
-			printWriter.print("|" + cell.getRevisionDate().getTime());
-			StringBuffer cellBits = new StringBuffer();
-			if (cell.isInCellLibrary()) cellBits.append("C");
-			if (cell.isWantExpanded()) cellBits.append("E");
-			if (cell.isInstancesLocked()) cellBits.append("I");
-			if (cell.isAllLocked()) cellBits.append("L");
-			if (cell.isInTechnologyLibrary()) cellBits.append("T");
-			printWriter.print("|" + cellBits.toString());
-			printlnVars(cell, cell);
-
-            String[] nodeNames = new String[cell.getNumNodes()];
-			// write the nodes in this cell (sorted by node name)
-			// write the nodes in this cell
-            Name prevNodeName = null;
-            int duplicate = 0;
-			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
-				NodeProto np = ni.getProto();
-				if (ni.isCellInstance())
-				{
-					printWriter.print("I" + cellNames.get(np));
-				} else {
-					PrimitiveNode prim = (PrimitiveNode)np;
-					if (cell.getTechnology() == prim.getTechnology())
-						printWriter.print("N" + convertString(prim.getName()));
-					else
-						printWriter.print("N" + convertString(prim.getFullName()));
-				}
-                Name nodeName = ni.getNameKey();
-                String diskNodeName;
-                if (nodeName != prevNodeName) {
-                    prevNodeName = nodeName;
-                    duplicate = 0;
-                    diskNodeName = convertString(ni.getName());
-                } else {
-                    duplicate++;
-                    diskNodeName = "\"" + convertQuotedString(ni.getName()) + "\"" + duplicate;
-                }
-                nodeNames[ni.getNodeIndex()] = diskNodeName;
-				printWriter.print("|" + diskNodeName + "|");
-				if (!ni.getNameKey().isTempname())
-					printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME)));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
-				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY(), 0));
-				if (!ni.isCellInstance())
-				{
-					printWriter.print("|" + TextUtils.formatDouble(ni.getXSize(), 0));
-					printWriter.print("|" + TextUtils.formatDouble(ni.getYSize(), 0));
-				}
-				printWriter.print('|');
-				if (ni.isXMirrored()) printWriter.print('X');
-				if (ni.isYMirrored()) printWriter.print('Y');
-				int angle = ni.getAngle() % 3600;
-				if (angle == 900 || angle == -2700) printWriter.print("R");
-				else if (angle == 1800 || angle == -1800) printWriter.print("RR");
-				else if (angle == 2700 || angle == -900) printWriter.print("RRR");
-				else if (angle != 0) printWriter.print(angle);
-				StringBuffer nodeBits = new StringBuffer();
-				if (ni.isHardSelect()) nodeBits.append("A");
-//				if (ni.isExpanded()) nodeBits.append("E");
-				if (ni.isLocked()) nodeBits.append("L");
-//				if (ni.isShortened()) nodeBits.append("S");
-				if (ni.isVisInside()) nodeBits.append("V");
-//				if (ni.isWiped()) nodeBits.append("W");
-				int ts = ni.getTechSpecific();
-				if (ts != 0) nodeBits.append(ts);
-				printWriter.print("|" + nodeBits.toString());
-				if (np instanceof Cell)
-				{
-					String tdString = describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_PROTO));
-					printWriter.print("|" + tdString);
-				}
-				printlnVars(ni, cell);
-			}
-
-			// write the arcs in this cell
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = it.next();
-				ArcProto ap = ai.getProto();
-				if (cell.getTechnology() == ap.getTechnology())
-					printWriter.print("A" + convertString(ap.getName()));
-				else
-					printWriter.print("A" + convertString(ap.getFullName()));
-				//printWriter.print("|" + getGeomName(ai) + "|");
-				printWriter.print("|" + convertString(ai.getName()) + "|");
-				if (!ai.getNameKey().isTempname())
-					printWriter.print(describeDescriptor(null, ai.getTextDescriptor(ArcInst.ARC_NAME)));
-				printWriter.print("|" + TextUtils.formatDouble(ai.getWidth(), 0));
-				StringBuffer arcBits = new StringBuffer();
-
-				if (ai.isHardSelect()) arcBits.append("A");
-				if (ai.isBodyArrowed()) arcBits.append("B");
-				if (!ai.isFixedAngle()) arcBits.append("F");
-				if (ai.isHeadNegated()) arcBits.append("G");
-				if (!ai.isHeadExtended()) arcBits.append("I");
-				if (!ai.isTailExtended()) arcBits.append("J");
-				if (ai.isTailNegated()) arcBits.append("N");
-				if (ai.isRigid()) arcBits.append("R");
-				if (ai.isSlidable()) arcBits.append("S");
-				if (ai.isHeadArrowed()) arcBits.append("X");
-				if (ai.isTailArrowed()) arcBits.append("Y");
-				printWriter.print("|" + arcBits.toString() + ai.getAngle());
-				for(int e=1; e >= 0; e--)
-//				for(int e=0; e<2; e++)
-				{
-					NodeInst ni = ai.getPortInst(e).getNodeInst();
-					printWriter.print("|" + nodeNames[ni.getNodeIndex()] + "|");
-					PortProto pp = ai.getPortInst(e).getPortProto();
-					if (ni.getProto().getNumPorts() > 1)
-						printWriter.print(convertString(pp.getName()));
-					printWriter.print("|" + TextUtils.formatDouble(ai.getLocation(e).getX(), 0));
-					printWriter.print("|" + TextUtils.formatDouble(ai.getLocation(e).getY(), 0));
-				}
-				printlnVars(ai, cell);
-			}
-
-			// write the exports in this cell
-			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
-			{
-				Export pp = it.next();
-				printWriter.print("E" + convertString(pp.getName()));
-				printWriter.print("|" + describeDescriptor(null, pp.getTextDescriptor(Export.EXPORT_NAME)));
-
-				PortInst subPI = pp.getOriginalPort();
-				NodeInst subNI = subPI.getNodeInst();
-				PortProto subPP = subPI.getPortProto();
-				printWriter.print("|" + nodeNames[subNI.getNodeIndex()] + "|");
-				if (subNI.getProto().getNumPorts() > 1)
-					printWriter.print(convertString(subPP.getName()));
-				printWriter.print("|" + pp.getCharacteristic().getShortName());
-				if (pp.isAlwaysDrawn()) printWriter.print("/A");
-				if (pp.isBodyOnly()) printWriter.print("/B");
-
-				printlnVars(pp, cell);
-			}
-
-			// write the end-of-cell marker
-			printWriter.println("X");
+            writeCell(cell);
 		}
 
 		// write groups in alphabetical order
@@ -410,6 +264,160 @@ public class JELIB extends Output
 		if (!quiet) System.out.println(filePath + " written");
 		return false;
 	}
+
+    /**
+     * Method to write a cell to the output file
+     * @param cell the cell to write
+     */
+    protected void writeCell(Cell cell) {
+        // write the Cell name
+        printWriter.println();
+        printWriter.println("# Cell " + cell.noLibDescribe());
+        printWriter.print("C" + convertString(cell.getCellName().toString()));
+        printWriter.print("|" + convertString(cell.getTechnology().getTechName()));
+        printWriter.print("|" + cell.getCreationDate().getTime());
+        printWriter.print("|" + cell.getRevisionDate().getTime());
+        StringBuffer cellBits = new StringBuffer();
+        if (cell.isInCellLibrary()) cellBits.append("C");
+        if (cell.isWantExpanded()) cellBits.append("E");
+        if (cell.isInstancesLocked()) cellBits.append("I");
+        if (cell.isAllLocked()) cellBits.append("L");
+        if (cell.isInTechnologyLibrary()) cellBits.append("T");
+        printWriter.print("|" + cellBits.toString());
+        printlnVars(cell, cell);
+
+        String[] nodeNames = new String[cell.getNumNodes()];
+        // write the nodes in this cell (sorted by node name)
+        // write the nodes in this cell
+        Name prevNodeName = null;
+        int duplicate = 0;
+        for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+        {
+            NodeInst ni = it.next();
+            NodeProto np = ni.getProto();
+            if (ni.isCellInstance())
+            {
+                printWriter.print("I" + cellNames.get(np));
+            } else {
+                PrimitiveNode prim = (PrimitiveNode)np;
+                if (cell.getTechnology() == prim.getTechnology())
+                    printWriter.print("N" + convertString(prim.getName()));
+                else
+                    printWriter.print("N" + convertString(prim.getFullName()));
+            }
+            Name nodeName = ni.getNameKey();
+            String diskNodeName;
+            if (nodeName != prevNodeName) {
+                prevNodeName = nodeName;
+                duplicate = 0;
+                diskNodeName = convertString(ni.getName());
+            } else {
+                duplicate++;
+                diskNodeName = "\"" + convertQuotedString(ni.getName()) + "\"" + duplicate;
+            }
+            nodeNames[ni.getNodeIndex()] = diskNodeName;
+            printWriter.print("|" + diskNodeName + "|");
+            if (!ni.getNameKey().isTempname())
+                printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME)));
+            printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
+            printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY(), 0));
+            if (!ni.isCellInstance())
+            {
+                printWriter.print("|" + TextUtils.formatDouble(ni.getXSize(), 0));
+                printWriter.print("|" + TextUtils.formatDouble(ni.getYSize(), 0));
+            }
+            printWriter.print('|');
+            if (ni.isXMirrored()) printWriter.print('X');
+            if (ni.isYMirrored()) printWriter.print('Y');
+            int angle = ni.getAngle() % 3600;
+            if (angle == 900 || angle == -2700) printWriter.print("R");
+            else if (angle == 1800 || angle == -1800) printWriter.print("RR");
+            else if (angle == 2700 || angle == -900) printWriter.print("RRR");
+            else if (angle != 0) printWriter.print(angle);
+            StringBuffer nodeBits = new StringBuffer();
+            if (ni.isHardSelect()) nodeBits.append("A");
+//				if (ni.isExpanded()) nodeBits.append("E");
+            if (ni.isLocked()) nodeBits.append("L");
+//				if (ni.isShortened()) nodeBits.append("S");
+            if (ni.isVisInside()) nodeBits.append("V");
+//				if (ni.isWiped()) nodeBits.append("W");
+            int ts = ni.getTechSpecific();
+            if (ts != 0) nodeBits.append(ts);
+            printWriter.print("|" + nodeBits.toString());
+            if (np instanceof Cell)
+            {
+                String tdString = describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_PROTO));
+                printWriter.print("|" + tdString);
+            }
+            printlnVars(ni, cell);
+        }
+
+        // write the arcs in this cell
+        for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+        {
+            ArcInst ai = it.next();
+            ArcProto ap = ai.getProto();
+            if (cell.getTechnology() == ap.getTechnology())
+                printWriter.print("A" + convertString(ap.getName()));
+            else
+                printWriter.print("A" + convertString(ap.getFullName()));
+            //printWriter.print("|" + getGeomName(ai) + "|");
+            printWriter.print("|" + convertString(ai.getName()) + "|");
+            if (!ai.getNameKey().isTempname())
+                printWriter.print(describeDescriptor(null, ai.getTextDescriptor(ArcInst.ARC_NAME)));
+            printWriter.print("|" + TextUtils.formatDouble(ai.getWidth(), 0));
+            StringBuffer arcBits = new StringBuffer();
+
+            if (ai.isHardSelect()) arcBits.append("A");
+            if (ai.isBodyArrowed()) arcBits.append("B");
+            if (!ai.isFixedAngle()) arcBits.append("F");
+            if (ai.isHeadNegated()) arcBits.append("G");
+            if (!ai.isHeadExtended()) arcBits.append("I");
+            if (!ai.isTailExtended()) arcBits.append("J");
+            if (ai.isTailNegated()) arcBits.append("N");
+            if (ai.isRigid()) arcBits.append("R");
+            if (ai.isSlidable()) arcBits.append("S");
+            if (ai.isHeadArrowed()) arcBits.append("X");
+            if (ai.isTailArrowed()) arcBits.append("Y");
+            printWriter.print("|" + arcBits.toString() + ai.getAngle());
+            for(int e=1; e >= 0; e--)
+//				for(int e=0; e<2; e++)
+            {
+                NodeInst ni = ai.getPortInst(e).getNodeInst();
+                printWriter.print("|" + nodeNames[ni.getNodeIndex()] + "|");
+                PortProto pp = ai.getPortInst(e).getPortProto();
+                if (ni.getProto().getNumPorts() > 1)
+                    printWriter.print(convertString(pp.getName()));
+                printWriter.print("|" + TextUtils.formatDouble(ai.getLocation(e).getX(), 0));
+                printWriter.print("|" + TextUtils.formatDouble(ai.getLocation(e).getY(), 0));
+            }
+            printlnVars(ai, cell);
+        }
+
+        // write the exports in this cell
+        for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
+        {
+            Export pp = it.next();
+            printWriter.print("E" + convertString(pp.getName()));
+            printWriter.print("|" + describeDescriptor(null, pp.getTextDescriptor(Export.EXPORT_NAME)));
+
+            PortInst subPI = pp.getOriginalPort();
+            NodeInst subNI = subPI.getNodeInst();
+            PortProto subPP = subPI.getPortProto();
+            printWriter.print("|" + nodeNames[subNI.getNodeIndex()] + "|");
+            if (subNI.getProto().getNumPorts() > 1)
+                printWriter.print(convertString(subPP.getName()));
+            printWriter.print("|" + pp.getCharacteristic().getShortName());
+            if (pp.isAlwaysDrawn()) printWriter.print("/A");
+            if (pp.isBodyOnly()) printWriter.print("/B");
+
+            printlnVars(pp, cell);
+        }
+
+        // write the end-of-cell marker
+        printWriter.println("X");
+    }
+
 
 	/**
 	 * Method to convert a variable to a string that describes its TextDescriptor

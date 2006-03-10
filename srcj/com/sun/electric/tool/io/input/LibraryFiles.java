@@ -269,6 +269,10 @@ public abstract class LibraryFiles extends Input
 		{
 			in = new ReadableDump();
 			if (in.openTextInput(fileURL)) return null;
+        } else if (type == FileType.DELIB)
+        {
+            in = new DELIB();
+            if (in.openTextInput(fileURL)) return null;
 		} else
 		{
 			System.out.println("Unknown import type: " + type);
@@ -280,6 +284,9 @@ public abstract class LibraryFiles extends Input
 		if (lib == null)
 		{
 			mainLibDirectory = TextUtils.getFilePath(fileURL);
+            if (type == FileType.DELIB) {
+                mainLibDirectory = mainLibDirectory.replaceAll(libName+"."+type.getExtensions()[0], "");
+            }
 			in.topLevelLibrary = true;
 		}
 
@@ -428,6 +435,9 @@ public abstract class LibraryFiles extends Input
 		} else if (libName.endsWith(".jelib"))
 		{
 			libName = libName.substring(0, libName.length()-6);
+        } else if (libName.endsWith(".delib"))
+        {
+            libName = libName.substring(0, libName.length()-6);
 		} else if (libName.endsWith(".txt"))
 		{
 			libName = libName.substring(0, libName.length()-4);
@@ -454,6 +464,10 @@ public abstract class LibraryFiles extends Input
         // try ELIB
         if (externalURL == null && preferredType != FileType.ELIB) {
             externalURL = getLibrary(libName + "." + FileType.ELIB.getExtensions()[0], libFile.getParent(), errmsg, true);
+        }
+        // try DELIB
+        if (externalURL == null && preferredType != FileType.DELIB) {
+            externalURL = getLibrary(libName + "." + FileType.DELIB.getExtensions()[0], libFile.getParent(), errmsg, true);
         }
         // try txt
         if (externalURL == null && preferredType != FileType.READABLEDUMP) {

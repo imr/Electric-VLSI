@@ -196,71 +196,8 @@ public class JELIB extends LibraryFiles
 
 			if (first == 'C')
 			{
-				// grab a cell description
-				List<String> pieces = parseLine(line);
-				int numPieces = revision >= 1 ? 5 : 7;
-				if (pieces.size() < numPieces)
-				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Cell declaration needs " + numPieces + " fields: " + line, -1);
-					continue;
-				}
-				String name = revision >= 1 ? unQuote(pieces.get(0)) : unQuote(pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
-				Cell newCell = Cell.newInstance(lib, name);
-				if (newCell == null)
-				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", Unable to create cell " + name, -1);
-					continue;
-				}
-				Technology tech = Technology.findTechnology(unQuote(pieces.get(numPieces-4)));
-				newCell.setTechnology(tech);
-				long cDate = Long.parseLong(pieces.get(numPieces-3));
-				long rDate = Long.parseLong(pieces.get(numPieces-2));
-				newCell.lowLevelSetCreationDate(new Date(cDate));
-				newCell.lowLevelSetRevisionDate(new Date(rDate));
-
-				// parse state information in field 6
-				String stateInfo = pieces.get(numPieces-1);
-				boolean expanded = false, allLocked = false, instLocked = false,
-					cellLib = false, techLib = false;
-				for(int i=0; i<stateInfo.length(); i++)
-				{
-					char chr = stateInfo.charAt(i);
-					if (chr == 'E') expanded = true; else
-					if (chr == 'L') allLocked = true; else
-					if (chr == 'I') instLocked = true; else
-					if (chr == 'C') cellLib = true; else
-					if (chr == 'T') techLib = true;
-				}
-				if (expanded) newCell.setWantExpanded(); else newCell.clearWantExpanded();
-				if (allLocked) newCell.setAllLocked(); else newCell.clearAllLocked();
-				if (instLocked) newCell.setInstancesLocked(); else newCell.clearInstancesLocked();
-				if (cellLib) newCell.setInCellLibrary(); else newCell.clearInCellLibrary();
-				if (techLib) newCell.setInTechnologyLibrary(); else newCell.clearInTechnologyLibrary();
-
-				// add variables in fields 7 and up
-				Variable[] vars = readVariables(pieces, numPieces, filePath, lineReader.getLineNumber());
-                realizeVariables(newCell, vars);
-
-				// gather the contents of the cell into a list of Strings
-				CellContents cc = new CellContents();
-				cc.fileName = filePath;
-				cc.lineNumber = lineReader.getLineNumber() + 1;
-				for(;;)
-				{
-					String nextLine = lineReader.readLine();
-					if (nextLine == null) break;
-					if (nextLine.length() == 0) continue;
-					char nextFirst = nextLine.charAt(0);
-					if (nextFirst == '#') continue;
-					if (nextFirst == 'X') break;
-					cc.cellStrings.add(nextLine);
-				}
-
-				// remember the contents of the cell for later
-				allCells.put(newCell, cc);
-				continue;
+                readCell(line);
+                continue;
 			}
 
 			if (first == 'L')
@@ -619,6 +556,74 @@ public class JELIB extends LibraryFiles
 		lib.setFromDisk();
 		return false;
 	}
+
+    protected void readCell(String line) throws IOException {
+        // grab a cell description
+        List<String> pieces = parseLine(line);
+        int numPieces = revision >= 1 ? 5 : 7;
+        if (pieces.size() < numPieces)
+        {
+            Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+                ", Cell declaration needs " + numPieces + " fields: " + line, -1);
+            return;
+        }
+        String name = revision >= 1 ? unQuote(pieces.get(0)) : unQuote(pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
+        Cell newCell = Cell.newInstance(lib, name);
+        if (newCell == null)
+        {
+            Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+                ", Unable to create cell " + name, -1);
+            return;
+        }
+        Technology tech = Technology.findTechnology(unQuote(pieces.get(numPieces-4)));
+        newCell.setTechnology(tech);
+        long cDate = Long.parseLong(pieces.get(numPieces-3));
+        long rDate = Long.parseLong(pieces.get(numPieces-2));
+        newCell.lowLevelSetCreationDate(new Date(cDate));
+        newCell.lowLevelSetRevisionDate(new Date(rDate));
+
+        // parse state information in field 6
+        String stateInfo = pieces.get(numPieces-1);
+        boolean expanded = false, allLocked = false, instLocked = false,
+            cellLib = false, techLib = false;
+        for(int i=0; i<stateInfo.length(); i++)
+        {
+            char chr = stateInfo.charAt(i);
+            if (chr == 'E') expanded = true; else
+            if (chr == 'L') allLocked = true; else
+            if (chr == 'I') instLocked = true; else
+            if (chr == 'C') cellLib = true; else
+            if (chr == 'T') techLib = true;
+        }
+        if (expanded) newCell.setWantExpanded(); else newCell.clearWantExpanded();
+        if (allLocked) newCell.setAllLocked(); else newCell.clearAllLocked();
+        if (instLocked) newCell.setInstancesLocked(); else newCell.clearInstancesLocked();
+        if (cellLib) newCell.setInCellLibrary(); else newCell.clearInCellLibrary();
+        if (techLib) newCell.setInTechnologyLibrary(); else newCell.clearInTechnologyLibrary();
+
+        // add variables in fields 7 and up
+        Variable[] vars = readVariables(pieces, numPieces, filePath, lineReader.getLineNumber());
+        realizeVariables(newCell, vars);
+
+        // gather the contents of the cell into a list of Strings
+        CellContents cc = new CellContents();
+        cc.fileName = filePath;
+        cc.lineNumber = lineReader.getLineNumber() + 1;
+        for(;;)
+        {
+            String nextLine = lineReader.readLine();
+            if (nextLine == null) break;
+            if (nextLine.length() == 0) continue;
+            char nextFirst = nextLine.charAt(0);
+            if (nextFirst == '#') continue;
+            if (nextFirst == 'X') break;
+            cc.cellStrings.add(nextLine);
+        }
+
+        // remember the contents of the cell for later
+        allCells.put(newCell, cc);
+        return;
+    }
 
 	/**
 	 * Method called after all libraries have been read.

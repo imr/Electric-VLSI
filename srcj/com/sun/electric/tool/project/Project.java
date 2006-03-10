@@ -374,8 +374,9 @@ public class Project extends Listener
 					errorMsg += cell.describe(true);
 				}
 				String [] options = {"Yes", "No", "Always"};
-				int ret = Job.getUserInterface().askForChoice("Cannot change unchecked-out cells: " + errorMsg +
-					".  Do you want to check them out?", "Change Blocked by Checked-in Cells", options, "No");
+                int ret = 1;
+				//int ret = Job.getUserInterface().askForChoice("Cannot change unchecked-out cells: " + errorMsg +
+				//	".  Do you want to check them out?", "Change Blocked by Checked-in Cells", options, "No");
 				if (ret == 0) undoChange = false;
 				if (ret == 2) { alwaysCheckOut = true;   undoChange = false; }
 			}

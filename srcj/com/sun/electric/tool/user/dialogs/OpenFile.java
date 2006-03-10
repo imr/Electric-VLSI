@@ -35,6 +35,7 @@ import java.util.Iterator;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
+import javax.swing.filechooser.FileFilter;
 
 /**
  * Class to handle file selection dialogs.
@@ -93,6 +94,18 @@ public class OpenFile
 			User.setWorkingDirectory(getCurrentDirectory().getPath());
 			super.approveSelection();
 		}
+
+        /**
+         * Directories ending in .delib are treated as files.  Specifically, library files.
+         * @param f the file
+         * @return true if the file is traversable, false otherwise
+         */
+        public boolean isTraversable(File f) {
+            if (f.getName().toLowerCase().endsWith(FileType.DELIB.getExtensions()[0])) {
+                return false;
+            }
+            return super.isTraversable(f);
+        }
 	}
 
 //	/** the location of the open file dialog */		private static Point location = null;
@@ -283,10 +296,17 @@ public class OpenFile
 	 */
 	public static FileType getOpenFileType(String libName, FileType def)
 	{
+        // remove trailing file separator if file is a directory (as it is with .delib)
+        if (libName.endsWith(File.separator)) {
+            libName = libName.substring(0, libName.length()-1);
+        }
+        
 		if (libName.endsWith(".elib"))
 			return com.sun.electric.tool.io.FileType.ELIB;
 		else if (libName.endsWith(".jelib"))
 			return com.sun.electric.tool.io.FileType.JELIB;
+        else if (libName.endsWith(".delib"))
+            return com.sun.electric.tool.io.FileType.DELIB;
 		else if (libName.endsWith(".txt"))
 			return com.sun.electric.tool.io.FileType.READABLEDUMP;
 		return (def);

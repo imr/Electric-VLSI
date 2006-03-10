@@ -47,6 +47,7 @@ public class FileType implements Serializable {
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = makeFileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)");
     /** Describes Calibre DRC Error files. */public static final FileType DB          = makeFileType("DB", new String[] {"db"}, "Calibre DRC Error File (db)");
 	/** Describes DEF output. */			public static final FileType DEF          = makeFileType("DEF", new String[] {"def"}, "DEF File (def)");
+    /** Describes DELIB files.*/			public static final FileType DELIB        = makeFileType("DELIB", new String[] {"delib"}, "Directory Library File (delib)");
 	/** Describes Dais input. */			public static final FileType DAIS         = makeFileType("Dais", new String[] {""}, "Dais Workspace");
 	/** Describes DXF output. */			public static final FileType DXF          = makeFileType("DXF", new String[] {"dxf"}, "DXF File (dxf)");
 	/** Describes Eagle files.*/			public static final FileType EAGLE        = makeFileType("Eagle", new String[] {"txt"}, "Eagle File (txt)");
@@ -102,7 +103,7 @@ public class FileType implements Serializable {
 
 	/** Describes default file format.*/	public static final FileType DEFAULTLIB   = JELIB;
 
-	/** Valid Library formats */            public static final FileType libraryTypes[] = {JELIB, ELIB};
+	/** Valid Library formats */            public static final FileType libraryTypes[] = {JELIB, ELIB, DELIB};
 	private static String [] libraryTypesExt;
 	private static String libraryTypesExtReadable;
 	static {

@@ -862,28 +862,41 @@ public class FileMenu {
     }
 
     public static void saveAllLibrariesInFormatCommand() {
-        Object[] formats = {FileType.JELIB, FileType.ELIB, FileType.READABLEDUMP};
+        Object[] formats = {FileType.JELIB, FileType.ELIB, FileType.READABLEDUMP, FileType.DELIB};
         Object format = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
                 "Output file format for all libraries:", "Save All Libraries In Format...",
                 JOptionPane.PLAIN_MESSAGE,
                 null, formats, FileType.DEFAULTLIB);
         if (format == null) return; // cancel operation
         FileType outType = (FileType)format;
-        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-            Library lib = it.next();
-            if (lib.isHidden()) continue;
-            if (!lib.isFromDisk()) continue;
-            if (lib.getLibFile() != null) {
-                // set library file to new format
-                String fullName = lib.getLibFile().getFile();
-                //if (fullName.endsWith("spiceparts.txt")) continue; // ignore spiceparts library
-                // match ".<word><endline>"
-                fullName = fullName.replaceAll("\\.\\w*?$", "."+outType.getExtensions()[0]);
-                lib.setLibFile(TextUtils.makeURLToFile(fullName));
-            }
-            lib.setChanged();
+        SaveAllLibrariesInFormatJob job = new SaveAllLibrariesInFormatJob(outType);
+    }
+
+    public static class SaveAllLibrariesInFormatJob extends Job {
+        private FileType outType;
+        public SaveAllLibrariesInFormatJob(FileType outType) {
+            super("Save All Libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.outType = outType;
+            startJob();
         }
-        saveAllLibrariesCommand(outType, false, false);
+        public boolean doIt() {
+            for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+                Library lib = it.next();
+                if (lib.isHidden()) continue;
+                if (!lib.isFromDisk()) continue;
+                if (lib.getLibFile() != null) {
+                    // set library file to new format
+                    String fullName = lib.getLibFile().getFile();
+                    //if (fullName.endsWith("spiceparts.txt")) continue; // ignore spiceparts library
+                    // match ".<word><endline>"
+                    fullName = fullName.replaceAll("\\.\\w*?$", "."+outType.getExtensions()[0]);
+                    lib.setLibFile(TextUtils.makeURLToFile(fullName));
+                }
+                lib.setChanged();
+            }
+            saveAllLibrariesCommand(outType, false, false);
+            return true;
+        }
     }
 
     /**
