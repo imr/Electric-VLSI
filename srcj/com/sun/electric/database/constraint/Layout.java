@@ -277,7 +277,9 @@ public class Layout extends Constraints
     /*
      * Method to request to set 
      */
-    public static void setGoodDRCCells(Set<Cell> goodDRCCells, int activeBits) {
+    public static void setGoodDRCCells(Set<Cell> goodDRCCells, int activeBits, boolean inMemory)
+    {
+        assert(!inMemory); // call only if you are storing in disk
         Layout.goodDRCCells = goodDRCCells;
         TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
         goodDRCBit = Variable.newInstance(DRC.DRC_LAST_GOOD_BIT, new Integer(activeBits), td);

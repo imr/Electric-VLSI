@@ -147,7 +147,8 @@ public class Quick
     private DRC.CheckDRCJob job; // Reference to running job
 	private HashMap<Cell,Cell> cellsMap = new HashMap<Cell,Cell>(); // for cell caching
     private HashMap<Geometric,Geometric> nodesMap = new HashMap<Geometric,Geometric>(); // for node caching
-    private int activeBits = 0; // to caching current extra bits
+    private int activeBits = 0; // to cache current extra bits
+    private boolean inMemory = DRC.isDatesStoredInMemory();
     private GeometryHandler.GHMode mergeMode = GeometryHandler.GHMode.ALGO_SWEEP; // .ALGO_QTREE;
     private Map<Layer,NodeInst> od2Layers = new HashMap<Layer,NodeInst>(3);  /** to control OD2 combination in the same die according to foundries */
 
@@ -175,12 +176,12 @@ public class Quick
 	/**
 	 * The DRCExclusion object lists areas where Generic:DRC-Nodes exist to ignore errors.
 	 */
-	private static class DRCExclusion
-	{
-		Cell cell;
-		PolyBase poly;
-		NodeInst ni;
-	};
+//	private static class DRCExclusion
+//	{
+//		Cell cell;
+//		PolyBase poly;
+//		NodeInst ni;
+//	};
 //	private List<DRCExclusion> exclusionList = new ArrayList<DRCExclusion>();
     private Map<Cell,Area> exclusionMap = new HashMap<Cell,Area>();
 
@@ -211,7 +212,7 @@ public class Quick
 	private HashMap<ArcProto, boolean[]> layersInterArcs = null;
 
     public static ErrorLogger checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                       Rectangle2D bounds, DRC.CheckDRCJob drcJob)
+                                               Rectangle2D bounds, DRC.CheckDRCJob drcJob)
     {
         return checkDesignRules(cell, geomsToCheck, validity, bounds, drcJob, GeometryHandler.GHMode.ALGO_SWEEP);
     }
@@ -245,8 +246,8 @@ public class Quick
         // caching bits
         activeBits = DRC.getActiveBits(tech);
 
-        // caching technology mode
-//        techMode = tech.getSelectedFoundry().getType();
+        // caching memory setting
+        inMemory = DRC.isDatesStoredInMemory();
 
         // minimim resolution different from zero if flag is on otherwise stays at zero (default)
         minAllowedResolution = tech.getResolution();
@@ -544,16 +545,10 @@ public class Quick
 		cp.cellChecked = true;
 
 		// if the cell hasn't changed since the last good check, stop now
-        Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits);
-		if (validVersion && allSubCellsStillOK && lastGoodDate != null)
+        Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits, !inMemory);
+		if (validVersion && allSubCellsStillOK && DRC.isCellDRCDateGood(cell, lastGoodDate))
 		{
             return 0;
-//			if (lastGoodDate != null)
-//			{
-//				Date lastChangeDate = cell.getRevisionDate();
-//                afterRevisionDate = lastGoodDate.after(lastChangeDate);
-//				if (afterRevisionDate) return 0;
-//			}
 		}
 
 		// announce progress
@@ -622,9 +617,7 @@ public class Quick
             // Only mark the cell when it passes with a new version of DRC or didn't have
             // the DRC bit on
             // If lastGoodDate == null, wrong bits stored or no date available.
-            // if lastGoodDate != null && !afterRevisionDate: there is a DRC date but older
-            // than the cell revision
-            if (!validVersion || (lastGoodDate == null))
+            if (!validVersion || lastGoodDate == null)
 			    goodDRCDate.put(cell, new Date());
 		}
 
@@ -3455,7 +3448,7 @@ public class Quick
 		return (!found);
 	}
 
-    private boolean checkThisCellExtensionRule(Geometric geom, Layer layer, Poly poly, List drcLayers, Cell cell, Area polyArea,
+    private boolean checkThisCellExtensionRule(Geometric geom, Layer layer, Poly poly, List<Layer.Function> drcLayers, Cell cell, Area polyArea,
                                                Rectangle2D polyBnd, DRCTemplate minOverlapRule, boolean found,
                                                List<Point2D> checkExtraPoints)
     {
@@ -3555,7 +3548,7 @@ public class Quick
     /**
      * Method to check if certain poly rectangle is fully covered by any select regoin
      */
-    private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, List drcLayers, Point2D[] points, boolean[] founds)
+    private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, List<Layer.Function> drcLayers, Point2D[] points, boolean[] founds)
     {
         for(Iterator<Geometric> sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
         {
