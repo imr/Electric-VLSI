@@ -88,8 +88,9 @@ public final class Launcher
 		// see if the required amount of memory is already present
 		Runtime runtime = Runtime.getRuntime();
 		long maxMem = runtime.maxMemory() / 1000000;
+        long maxPermWanted = User.getPermSpace();
 		int maxMemWanted = User.getMemorySize();
-		if (maxMemWanted <= maxMem)
+		if (maxMemWanted <= maxMem && maxPermWanted == 0)
 		{
 			// already have the desired amount of memory: just start Electric
 			if (enableAssertions)
@@ -114,8 +115,13 @@ public final class Launcher
         command += " -ss2m";
 		if (enableAssertions)
 			command += " -ea"; // enable assertions
-		command += " -mx" + maxMemWanted + "m com.sun.electric.Main";
-        System.out.println("Current Java memory limit of "+maxMem+"MEG is too small, rerunning Electric with a memory limit of "+maxMemWanted+"MEG");
+		command += " -mx" + maxMemWanted + "m ";
+        command += " -XX:MaxPermSize=" + maxPermWanted + "m ";
+        command += "com.sun.electric.Main";
+        if (maxMemWanted > maxMem)
+            System.out.println("Current Java memory limit of "+maxMem+"MEG is too small, rerunning Electric with a memory limit of "+maxMemWanted+"MEG");
+        if (maxPermWanted > 0)
+            System.out.println("Setting maximum permanent space (2nd GC) to " + maxPermWanted + "MEG");
         for (int i=0; i<args.length; i++) command += " " + args[i];
         //System.out.println("exec: "+command);
 		try

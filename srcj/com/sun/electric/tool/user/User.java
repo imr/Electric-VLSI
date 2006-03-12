@@ -2178,7 +2178,20 @@ public class User extends Listener
 	 */
 	public static void setMemorySize(int limit) { cacheMemorySize.setInt(limit); }
 
-	private static Pref cacheUseTwoJVMs = Pref.makeBooleanPref("UseTwoJVMs", tool.prefs, false);
+	private static Pref cachePermSize = Pref.makeIntPref("PermSize", tool.prefs, 0);
+	/**
+	 * Method to tell the maximum permanent space of 2dn GC to use for Electric, in megatybes.
+	 * The default is 0. If zero, value is not considered.
+	 * @return the maximum memory to use for Electric (in megabytes).
+	 */
+	public static int getPermSpace() { return cachePermSize.getInt(); }
+	/**
+	 * Method to set the maximum permanent space of 2dn GC to use for Electric.
+	 * @param limit maximum permanent space of 2dn GC to use for Electric (in megabytes).
+	 */
+	public static void setPermSpace(int limit) { cachePermSize.setInt(limit); }
+
+    private static Pref cacheUseTwoJVMs = Pref.makeBooleanPref("UseTwoJVMs", tool.prefs, false);
 	/**
 	 * Method to tell whether to use two JVMs when running Electric.
 	 * When using two JVMs, there is a client and a server, in separate memory spaces.
