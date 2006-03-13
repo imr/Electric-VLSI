@@ -159,7 +159,7 @@ public class CrossLibCopy extends EDialog
 		{
 			public void mouseClicked(MouseEvent evt) { centerListClick(evt); }
 		});
-		showCells(false, false);
+		showCells(false);
 
 		// show the check boxes
 		if (lastCopySubcells)
@@ -204,7 +204,7 @@ public class CrossLibCopy extends EDialog
 		listRight.setSelectedIndex(index);
 	}
 
-	private void showCells(boolean report, boolean examineContents)
+	private void showCells(boolean report)
 	{
 		if (modelLeft == null || modelRight == null || modelCenter == null) return;
 		cellListLeft = new ArrayList<Cell>();
@@ -214,6 +214,7 @@ public class CrossLibCopy extends EDialog
 		modelLeft.clear();
 		modelRight.clear();
 		modelCenter.clear();
+        boolean examineContents = compareContent.isSelected();
 
 		// put out the parallel list of cells in the two libraries
 		int leftPos = 0, rightPos = 0;
@@ -257,28 +258,29 @@ public class CrossLibCopy extends EDialog
 			{
 				int compare = leftCell.getRevisionDate().compareTo(rightCell.getRevisionDate());
 				StringBuffer buffer = null;
-				boolean result = true;
+				boolean result = true; String message = "";
 
 				if (examineContents)
 				{
 					if (report) buffer = new StringBuffer("\n");
 					result = leftCell.compare(rightCell, buffer);
+                    // This message is only valid if the content is compared.
+                    message = (result) ? "(but contents are the same)" : "(and contents are different)";
 				}
-
-				String message = (result) ? "(but contents are the same)" : "(and contents are different)";
+ 
 				if (compare > 0)
 				{
-					pt = (result) ? "<-OLD" : "<-OLD/DIFF";
+					pt = (result) ? "<-Old" : "<-Old/Diff";
 					if (report) System.out.println(curLibLeft.getName() + ":" + leftName + " OLDER THAN " +
 						curLibRight.getName() + ":" + rightName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
 				} else if (compare < 0)
 				{
-					pt = (result) ? "  OLD->" : " DIFF/OLD->";
+					pt = (result) ? "  Old->" : " Diff/Old->";
 					if (report) System.out.println(curLibRight.getName() + ":" + rightName + " OLDER THAN " +
 						curLibLeft.getName() + ":" + leftName + message + ":" + ((buffer != null) ? buffer.toString() : "\n"));
 				} else
 				{
-					pt = (result) ? "-SAME-" : "-DIFF -";
+					pt = (result) ? "-Same-" : "-Diff -";
 					if (!result && report) System.out.println(curLibLeft.getName() + ":" + leftName + " DIFFERS FROM " +
 						curLibRight.getName() + ":" + rightName + ":" + ((buffer != null) ? buffer.toString() : "\n"));
 				}
@@ -367,7 +369,7 @@ public class CrossLibCopy extends EDialog
         	}
 
 			// reload the dialog
-			dialog.showCells(false, false);
+			dialog.showCells(false);
 
 			// reselect the last selected line
 			dialog.listLeft.setSelectedIndex(index);
@@ -494,8 +496,9 @@ public class CrossLibCopy extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         Top.add(cellsLeft, gridBagConstraints);
 
-        center.setMinimumSize(new java.awt.Dimension(22, 200));
-        center.setPreferredSize(new java.awt.Dimension(22, 200));
+        center.setMinimumSize(new java.awt.Dimension(50, 200));
+        center.setOpaque(false);
+        center.setPreferredSize(new java.awt.Dimension(50, 200));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -612,8 +615,7 @@ public class CrossLibCopy extends EDialog
         getContentPane().add(Bottom, java.awt.BorderLayout.SOUTH);
 
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	private void copySubcellsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copySubcellsActionPerformed
 	{//GEN-HEADEREND:event_copySubcellsActionPerformed
@@ -638,6 +640,8 @@ public class CrossLibCopy extends EDialog
 		}
         // Clean any information
         modelCenter.clear();
+        // re-create data column again
+        showCells(false);
     }//GEN-LAST:event_compareContentItemStateChanged
 
 	private void deleteAfterCopyItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_deleteAfterCopyItemStateChanged
@@ -659,7 +663,7 @@ public class CrossLibCopy extends EDialog
 		JComboBox cb = (JComboBox)evt.getSource();
 		int index = cb.getSelectedIndex();
 		curLibRight = libList.get(index);
-		showCells(false, false);
+		showCells(false);
 	}//GEN-LAST:event_librariesRightActionPerformed
 
 	private void librariesLeftActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_librariesLeftActionPerformed
@@ -668,12 +672,12 @@ public class CrossLibCopy extends EDialog
 		JComboBox cb = (JComboBox)evt.getSource();
 		int index = cb.getSelectedIndex();
 		curLibLeft = libList.get(index);
-		showCells(false, false);
+		showCells(false);
 	}//GEN-LAST:event_librariesLeftActionPerformed
 
 	private void examineContentsActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_examineContentsActionPerformed
 	{//GEN-HEADEREND:event_examineContentsActionPerformed
-		showCells(!compareQuite.isSelected(), compareContent.isSelected());
+		showCells(!compareQuite.isSelected());
 	}//GEN-LAST:event_examineContentsActionPerformed
 
 	private void copyRightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyRightActionPerformed

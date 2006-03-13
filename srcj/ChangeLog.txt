@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/13/06, GVG) Date/Content in CrossLibCopy dialog was not filled if "Date/Content" toggle
+is selected (Bug #869).
+FIX: Call showCells function. Side effect: message between "()" only if content is compared otherwise
+doesn't have sense.
+
 IMP/MAN: (3/12/06, GVG) Ability to set MaxPermSize option as preference (Bug #866)
 If value is zero, then doesn't set anything. New item in General Tab.
 
