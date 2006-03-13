@@ -30,6 +30,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
+import com.sun.electric.tool.user.dialogs.ModalCommandDialog;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 import javax.swing.*;
 import java.io.File;
@@ -134,58 +136,23 @@ public class CVS {
     public static void runModalCVSCommand(String cmd, OutputStream out) {
         String run = getCVSProgram() + " -d"+getRepository()+" "+cmd;
 
-        Object [] options = { "Cancel" };
-        JOptionPane pane = new JOptionPane(run,
-                JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION,
-                null, options);
-        JDialog dialog = pane.createDialog(null, "Running CVS command, please wait...");
-
+        //run = "sleep 4";
         Exec e = new Exec(run, null, new File(User.getWorkingDirectory()), out, out);
         // add a listener to get rid of the modal dialog when the command finishes
-        ModalCVSCommand listener = new ModalCVSCommand(dialog, pane);
-        e.addFinishedListener(listener);
-
-        // pop up dialog, and run command
-        e.run();
+        String message = "Running: "+run;
+        JFrame frame = TopLevel.getCurrentJFrame();
+        ModalCommandDialog dialog = new ModalCommandDialog(frame, true, e, message);
         dialog.setVisible(true);
-
-        // if user cancels, pane.getValue() returns. If jobs finishes, pane.getValue() returns
-        // this command either destroys the process or does nothing
-        e.destroyProcess();
-    }
-
-    public static class ModalCVSCommand extends JOptionPane implements Exec.FinishedListener {
-        private JDialog d;
-        private JOptionPane pane;
-        public ModalCVSCommand(JDialog d, JOptionPane pane) {
-            this.d = d;
-            this.pane = pane;
-        }
-        public void processFinished(Exec.FinishedEvent e) {
-            pane.setValue(null);
-            d.setVisible(false);
-        }
     }
 
     public static void testModal() {
-        runModalCVSCommand("-n checkout -c", System.out);
+        runModalCVSCommand("-n history -c -a", System.out);
     }
 
 
     /**
-     * This runs cvspm with the specified command. The command
-     * is usually 'add', 'commit', etc., with command options.
-     * This method takes care
-     * @param cmd the command to run.
-     * @param listener the listener to be notified when the command is done
+     * Use this to capture the output of a CVS command
      */
-    public static void issueCommand(String cmd, CVSExecListener listener) {
-        String run = getCVSProgram() + " -d"+getRepository()+" "+cmd;
-        Exec e = new Exec(run, null, new File(User.getWorkingDirectory()), listener.getOut(), listener.getErr());
-        e.addFinishedListener(listener);
-        e.run();
-    }
-
     public abstract class CVSExecListener implements Exec.FinishedListener {
         ByteArrayOutputStream out;
         ByteArrayOutputStream err;
