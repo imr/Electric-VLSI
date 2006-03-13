@@ -4,13 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
-IMP: (3/12/06, GVG) Ability to set MaxPermSize option as preference (Bug #866)
+IMP/MAN: (3/12/06, GVG) Ability to set MaxPermSize option as preference (Bug #866)
 If value is zero, then doesn't set anything. New item in General Tab.
 
-IMP: (3/12/06, GVG) Make saving last DRC date with libraries an option (Bug #847).
+IMP/MAN: (3/12/06, GVG) Make saving last DRC date with libraries an option (Bug #847).
 New flag in DRC tab.
 
-IMP: (3/10/06, JKG) Added DELIB file format. This is a just a distributed
+IMP/MAN: (3/10/06, JKG) Added DELIB file format. This is a just a distributed
     JELIB format, where each cell has it's own file. This will be used for
     CVS version control of cells.
 
