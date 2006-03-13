@@ -133,7 +133,7 @@ public class CrossLibCopy extends EDialog
 		// make the left list
 		modelLeft = new DefaultListModel();
 		listLeft = new JList(modelLeft);
-		listLeft.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		listLeft.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION); // SINGLE_SELECTION);
 		cellsLeft.setViewportView(listLeft);
 		listLeft.addMouseListener(new MouseAdapter()
 		{
@@ -143,7 +143,7 @@ public class CrossLibCopy extends EDialog
 		// make the right list
 		modelRight = new DefaultListModel();
 		listRight = new JList(modelRight);
-		listRight.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		listRight.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		cellsRight.setViewportView(listRight);
 		listRight.addMouseListener(new MouseAdapter()
 		{
@@ -153,7 +153,7 @@ public class CrossLibCopy extends EDialog
 		// make the center list
 		modelCenter = new DefaultListModel();
 		listCenter = new JList(modelCenter);
-		listCenter.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		listCenter.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		center.setViewportView(listCenter);
 		listCenter.addMouseListener(new MouseAdapter()
 		{
@@ -185,23 +185,23 @@ public class CrossLibCopy extends EDialog
 
 	private void leftListClick(MouseEvent evt)
 	{
-		int index = listLeft.getSelectedIndex();
-		listRight.setSelectedIndex(index);
-		listCenter.setSelectedIndex(index);
+        int[] indices = listLeft.getSelectedIndices();
+        listCenter.setSelectedIndices(indices);
+        listRight.setSelectedIndices(indices);
 	}
 
 	private void rightListClick(MouseEvent evt)
 	{
-		int index = listRight.getSelectedIndex();
-		listLeft.setSelectedIndex(index);
-		listCenter.setSelectedIndex(index);
+        int[] indices = listRight.getSelectedIndices();
+        listLeft.setSelectedIndices(indices);
+        listCenter.setSelectedIndices(indices);
 	}
 
 	private void centerListClick(MouseEvent evt)
 	{
-		int index = listCenter.getSelectedIndex();
-		listLeft.setSelectedIndex(index);
-		listRight.setSelectedIndex(index);
+        int[] indices = listCenter.getSelectedIndices();
+        listLeft.setSelectedIndices(indices);
+        listRight.setSelectedIndices(indices);
 	}
 
 	private void showCells(boolean report)
@@ -267,7 +267,7 @@ public class CrossLibCopy extends EDialog
                     // This message is only valid if the content is compared.
                     message = (result) ? "(but contents are the same)" : "(and contents are different)";
 				}
- 
+
 				if (compare > 0)
 				{
 					pt = (result) ? "<-Old" : "<-Old/Diff";
@@ -682,11 +682,14 @@ public class CrossLibCopy extends EDialog
 
 	private void copyRightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyRightActionPerformed
 	{//GEN-HEADEREND:event_copyRightActionPerformed
-		String cellName = (String)listLeft.getSelectedValue();
-		Cell fromCell = curLibLeft.findNodeProto(cellName);
-		if (fromCell == null) return;
-		new CrossLibraryCopyJob(fromCell, curLibRight, this, deleteAfterCopy.isSelected(),
-			copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
+        for (Object cellObj : listLeft.getSelectedValues())
+        {
+            String cellName = (String)cellObj;
+            Cell fromCell = curLibLeft.findNodeProto(cellName);
+            if (fromCell == null) return;
+            new CrossLibraryCopyJob(fromCell, curLibRight, this, deleteAfterCopy.isSelected(),
+                copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
+        }
 	}//GEN-LAST:event_copyRightActionPerformed
 
 	private void doneActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_doneActionPerformed
@@ -696,11 +699,14 @@ public class CrossLibCopy extends EDialog
 
 	private void copyLeftActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyLeftActionPerformed
 	{//GEN-HEADEREND:event_copyLeftActionPerformed
-		String cellName = (String)listRight.getSelectedValue();
-		Cell fromCell = curLibRight.findNodeProto(cellName);
-		if (fromCell == null) return;
-		new CrossLibraryCopyJob(fromCell, curLibLeft, this, deleteAfterCopy.isSelected(),
-			copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
+        for (Object cellObj : listRight.getSelectedValues())
+        {
+            String cellName = (String)cellObj;
+            Cell fromCell = curLibRight.findNodeProto(cellName);
+            if (fromCell == null) return;
+            new CrossLibraryCopyJob(fromCell, curLibLeft, this, deleteAfterCopy.isSelected(),
+                copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
+        }
 	}//GEN-LAST:event_copyLeftActionPerformed
 
 	/** Closes the dialog */

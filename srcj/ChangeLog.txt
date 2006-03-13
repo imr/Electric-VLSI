@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+IMP/MAN: (3/13/06, GVG) Multiple selection in cross library copy (Bug #867)
+
 BUG: (3/13/06, GVG) Date/Content in CrossLibCopy dialog was not filled if "Date/Content" toggle
 is selected (Bug #869).
 FIX: Call showCells function. Side effect: message between "()" only if content is compared otherwise
