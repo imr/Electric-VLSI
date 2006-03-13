@@ -1125,6 +1125,9 @@ public class TextUtils
 	{
 		if (url == null) return "";
 		String filePath = url.getFile();
+        // special case of .delib files, which are directories, but we want them to appear as files
+        if (filePath.toLowerCase().endsWith(".delib"+File.separator))
+            filePath = filePath.substring(0, filePath.length()-1);  // remove trailing '/'
 		int backSlashPos = filePath.lastIndexOf('\\');
 		int colonPos = filePath.lastIndexOf(':');
 		int slashPos = filePath.lastIndexOf('/');

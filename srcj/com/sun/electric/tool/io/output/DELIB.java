@@ -47,7 +47,7 @@ public class DELIB extends JELIB {
      * @param cell
      */
     protected void writeCell(Cell cell) {
-        String cellDir = cell.getName();
+        String cellDir = getCellSubDir(cell);
         File cellFD = new File(filePath + File.separator + cellDir);
         if (cellFD.exists()) {
             if (!cellFD.isDirectory()) {
@@ -66,7 +66,7 @@ public class DELIB extends JELIB {
         }
 
         // create cell file in directory
-        String cellFile = cellDir + File.separator + cell.getName() + "." + cell.getView().getAbbreviation();
+        String cellFile = getCellFile(cell);
         String cellFileAbs = filePath + File.separator + cellFile;
         // save old printWriter
         PrintWriter headerWriter = printWriter;
@@ -121,4 +121,25 @@ public class DELIB extends JELIB {
         return false;
     }
 
+    /**
+     * Cell subdirectory name. This is the directory inside the
+     * .delib directory containing the Cell files for the specified cell.
+     * @param cell
+     * @return
+     */
+    public static String getCellSubDir(Cell cell) {
+        return cell.getName();
+    }
+
+    /**
+     * Cell file name.  This is the path, relative to the .delib directory
+     * path, of the file for the specified cell.  Note it is a relative path,
+     * not an absolute path. Ex: LEsettings/LEsettings.sch
+     * @param cell
+     * @return
+     */
+    public static String getCellFile(Cell cell) {
+        String dir = getCellSubDir(cell);
+        return dir + File.separator + cell.getName() + "." + cell.getView().getAbbreviation();
+    }
 }
