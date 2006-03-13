@@ -3538,8 +3538,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             // No correspoding PortInst found
             if (!found)
             {
-                if (buffer != null)
-                    buffer.append("No corresponding port '" + port.getPortProto().getName() + "' found in '" + no.getName() + "'\n");
+                // Error messages added in port.compare()
+//                if (buffer != null)
+//                    buffer.append("No corresponding port '" + port.getPortProto().getName() + "' found in '" + no.getName() + "'\n");
                 return (false);
             }
         }

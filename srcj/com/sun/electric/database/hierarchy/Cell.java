@@ -4696,25 +4696,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		Cell toCompare = (Cell)obj;
 
-        // Checking if they have same amount of children
-        // Better not return here otherwise no valid information is reported
-        /*
-        if (getNumNodes() != toCompare.getNumNodes() ||
-                getNumArcs() != toCompare.getNumArcs() ||
-                getNumPorts() != toCompare.getNumPorts() ||
-                getNumVariables() != toCompare.getNumVariables())
-        {
-	        String msg = "";
-	        if (getNumNodes() != toCompare.getNumNodes()) msg += "nodes/";
-	        if (getNumArcs() != toCompare.getNumArcs()) msg += "arcs/";
-	        if (getNumPorts() != toCompare.getNumPorts()) msg += "ports/";
-	        if (getNumVariables() != toCompare.getNumVariables()) msg += "variables/";
-	        if (buffer != null)
-	            buffer.append("Different numbers of " + msg + "\n");
-            return (false);
-        }
-        */
-
         // Traversing nodes
         // @TODO GVG This should be removed if equals is implemented
         Set<Object> noCheckAgain = new HashSet<Object>();
@@ -4814,8 +4795,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             // No correspoding PortProto found
             if (!found)
             {
-                if (buffer != null)
-                    buffer.append("No corresponding port '" + port.getName() + "' found in other cell" + "\n");
+                // Message is already added in port.compare()
+//                if (buffer != null)
+//                    buffer.append("No corresponding port '" + port.getName() + "' found in other cell" + "\n");
                 return (false);
             }
         }

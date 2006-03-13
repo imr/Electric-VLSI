@@ -277,7 +277,7 @@ public class PortInst extends ElectricObject
             if (!found)
             {
 	            if (buffer != null)
-	                buffer.append("No corresponding port " + this + " found in " + no + "\n");
+	                buffer.append("No corresponding port " + this + " found in " + no + " at the location " + c.getLocation() + " \n");
 	            return (false);
             }
 		}
