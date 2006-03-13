@@ -7,7 +7,6 @@ import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 

@@ -8,8 +8,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
-import java.util.HashSet;
-import java.util.Set;
 
 public class Equivalence implements Serializable {
     static final long serialVersionUID = 0;

@@ -25,25 +25,19 @@ package com.sun.electric.tool.ncc.strategy;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
-import com.sun.electric.tool.ncc.netlist.PinType;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /* StratPartType partitions Part equivalence classes
  * based upon the Part's type. */
 public class StratPartType extends Strategy {
 	private Map<Integer,String> typeCodeToTypeName = new HashMap<Integer,String>();
-	private Set<PinType> pinTypes;
 	
-    private StratPartType(Set<PinType> pinTypes, NccGlobals globals) {
-    	super(globals);
-    	this.pinTypes = pinTypes;
-    }
+    private StratPartType(NccGlobals globals) {super(globals);}
 
 	private LeafList doYourJob2() {
         EquivRecord parts = globals.getParts();
@@ -86,15 +80,13 @@ public class StratPartType extends Strategy {
 						  "type code maps to multiple type names");
 		} else {
 			typeCodeToTypeName.put(typeCode, typeName);
-			Set<PinType> partPinTypes = p.getPinTypes();
-			pinTypes.addAll(partPinTypes);
 		}
 		return typeCode;
     }
 
 	// ------------------------- intended inteface ----------------------------
-	public static LeafList doYourJob(Set<PinType> pinTypes, NccGlobals globals){
-		StratPartType pow = new StratPartType(pinTypes, globals);
+	public static LeafList doYourJob(NccGlobals globals){
+		StratPartType pow = new StratPartType(globals);
 		return pow.doYourJob2();
 	}
 }

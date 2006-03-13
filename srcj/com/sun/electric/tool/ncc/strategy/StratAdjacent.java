@@ -37,7 +37,6 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
  * input list or record */
 public class StratAdjacent extends Strategy {
 	private int numEquivProcessed;
-	private int numAdjacentUnique;
 	private Set<EquivRecord> adjacent = new HashSet<EquivRecord>();
 
 	private StratAdjacent(NccGlobals globals) {super(globals);}

@@ -42,8 +42,6 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 public class HashCodePartitioning {
 	NccGlobals globals;
 
-	private void error(boolean pred, String msg) {globals.error(msg);}
-
 	private LeafList hashFrontierParts(){
 		if (globals.getParts()==null)  return new LeafList();
 		globals.status2("----- hash all Parts on frontier");

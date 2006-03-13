@@ -88,7 +88,6 @@ public class NccGlobals {
 	/** leaf nodes of wires tree */           private LeafEquivRecords wireLeafRecs;
 	/** leaf nodes of ports tree */			  private LeafEquivRecords portLeafRecs;
     /** can't build netlist? */               private boolean[] cantBuildNetlist;
-    /** print hash code errors? */            private boolean hashFailuresPrinted = false;
     /** mismatches displayed by GUI */        private NccGuiInfo nccGuiInfo;
 
     

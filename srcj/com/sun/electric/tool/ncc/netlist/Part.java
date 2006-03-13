@@ -111,9 +111,6 @@ public abstract class Part extends NetObject {
         return numConnected;
     }
 
-	/** Return a set of all the different pin types for this part */
-	public abstract Set<PinType> getPinTypes();
-	
 	public Integer computeHashCode(){
         int sum= 0;
         int codes[]= getPinCoeffs();

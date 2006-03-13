@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class RecordList {

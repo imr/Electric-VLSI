@@ -24,9 +24,7 @@
 
 package com.sun.electric.tool.ncc.netlist;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -61,12 +59,6 @@ public class Bipolar extends Part {
 		private final int pinIndex;
 		private static final String[] PIN_NAMES = {"emitter","base","collector"}; 
 
-		public int numConnectionsToPinOfThisType(Part p, Wire w) {
-			if (!(p instanceof Bipolar)) return 0;
-			Bipolar b = (Bipolar) p;
-			if (b.getType()!=np) return 0;
-			return b.pins[pinIndex]==w ? 1 : 0;
-		}
 		public String description() {
 			return np.getName()+" "+PIN_NAMES[pinIndex];
 		}
@@ -77,16 +69,7 @@ public class Bipolar extends Part {
 		}
 	}
 
-	private static final Set<PinType> PIN_TYPE_SET = new HashSet<PinType>();
 	private static final Map<Type,PinType[]> TYPE_TO_PINTYPE_ARRAY = new HashMap<Type,PinType[]>();
-	static {
-		for (int t=0; t<2; t++) {
-			Type type = t==0 ? Type.NPN : Type.PNP;
-			for (int p=0; p<3; p++) {
-				PIN_TYPE_SET.add(new BipolarPinType(type, p));
-			}
-		}
-	}
 	static {
 		for (int t=0; t<2; t++) {
 			Type type = t==0 ? Type.NPN : Type.PNP;
@@ -98,8 +81,6 @@ public class Bipolar extends Part {
 		}
 	}
 
-
-	public Set<PinType> getPinTypes() {return PIN_TYPE_SET;}
 	public PinType getPinTypeOfNthPin(int n) {
 		PinType[] pinTypeArray = TYPE_TO_PINTYPE_ARRAY.get(type);
 		return pinTypeArray[n];

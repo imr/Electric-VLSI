@@ -292,6 +292,8 @@ public class NccCellAnnotations {
 	 * Class to create a Cell NCC annotation object in a new Job.
 	 */
     private static class MakeCellAnnotation extends Job {
+    	static final long serialVersionUID = 0;
+    	
 		private transient EditWindow_ wnd;
         private Cell cell;
         private String newAnnotation;

@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
 public class CompareLists {

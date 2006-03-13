@@ -23,19 +23,10 @@
 */
 
 package com.sun.electric.tool.ncc.processing;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
-import com.sun.electric.tool.ncc.netlist.PinType;
-import com.sun.electric.tool.ncc.strategy.StratCountPartPinsOnWires;
 import com.sun.electric.tool.ncc.strategy.StratPartPopularity;
 import com.sun.electric.tool.ncc.strategy.StratPartType;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** LocalPartitioning partitions the Part and Wire equivalence classes based
  * on purely local characteristics. In principle, these partitions are
@@ -47,11 +38,10 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 public class LocalPartitioning {
     NccGlobals globals;
     /** return a Set of all the types of Pins we might encounter */
-	private Set<PinType> partitionPartsUsingLocalInformation() {
+	private void partitionPartsUsingLocalInformation() {
 		globals.status2("Partition Parts using local information");
-		Set<PinType> pinTypes = new HashSet<PinType>();
-		if (globals.getParts()==null) return pinTypes;
-		LeafList offspring = StratPartType.doYourJob(pinTypes, globals);
+		if (globals.getParts()==null) return;
+		LeafList offspring = StratPartType.doYourJob(globals);
 		if (offspring.size()!=0) {
 			//StratCheck.doYourJob(globals.getRoot(), globals);
 			//StratCount.doYourJob(globals.getRoot(), globals);
@@ -62,33 +52,15 @@ public class LocalPartitioning {
 			//StratCheck.doYourJob(globals.getRoot(), globals);
 			//StratCount.doYourJob(globals.getRoot(), globals);
 		}
-		return pinTypes;
 	}
 
-	private void partitionWiresUsingLocalInformation(Set<PinType> pinTypes) {
-		globals.status2("Partition Wires using local information");
-		EquivRecord root = globals.getRoot();
-		for (PinType pinType : pinTypes) {
-			LeafList offspring = 
-				StratCountPartPinsOnWires.doYourJob(globals, pinType);
-//			if (offspring.size()!=0) {
-//				StratCheck.doYourJob(root, globals);
-//				StratCount.doYourJob(root, globals);
-//			}
-			if (globals.userWantsToAbort()) break; 
-		}
-	}
-	
     private LocalPartitioning(NccGlobals globals) {this.globals = globals;}
     
     private void doYourJob2() {
         globals.status2("Begin partitioning based on local characteristics \n");
 
-		Set<PinType> pinTypes = partitionPartsUsingLocalInformation();
-		if (NewLocalPartitionWires.useNewAlgorithm)
-			NewLocalPartitionWires.doYourJob(globals);
-		else
-			partitionWiresUsingLocalInformation(pinTypes);
+		partitionPartsUsingLocalInformation();
+		NewLocalPartitionWires.doYourJob(globals);
 
 		/* Count EquivRecords after Local Partitioning */
 		/*

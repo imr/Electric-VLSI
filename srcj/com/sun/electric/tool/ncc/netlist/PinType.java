@@ -24,11 +24,7 @@
 package com.sun.electric.tool.ncc.netlist;
 
 
-/** A PinType counts the number of connections a Wire
- * has to particular kind of pin of a particular type of Part. 
- * For example, it may count the
- * connections to an NMOS transistor's source or drain. */
+/** PinTypes are used by local wire partitioning */
 public interface PinType {
-	int numConnectionsToPinOfThisType(Part p, Wire w);
 	String description();
 }

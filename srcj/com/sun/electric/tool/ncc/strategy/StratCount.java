@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.ncc.strategy;
 
-import java.util.Iterator;
 import java.util.TreeMap;
 
 import com.sun.electric.tool.ncc.NccGlobals;

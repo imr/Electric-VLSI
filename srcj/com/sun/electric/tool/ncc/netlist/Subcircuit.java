@@ -22,11 +22,6 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.netlist;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 
@@ -42,13 +37,6 @@ public class Subcircuit extends Part {
 			this.typeCode = typeCode;
 			this.portIndex = portIndex;
 			this.description = description;
-		}
-		public int numConnectionsToPinOfThisType(Part p, Wire w) {
-			if (!(p instanceof Subcircuit)) return 0;
-			Subcircuit s = (Subcircuit) p;
-			if (s.typeCode()!=typeCode) return 0;
-			if (s.pins[portIndex]!=w) return 0;
-			return 1;
 		}
 		public String description() {return description;}
 	}
@@ -81,16 +69,6 @@ public class Subcircuit extends Part {
 	public int typeCode() {
 		return Part.SUBCIRCUIT + 
 		       (subcircuitInfo.getID() << Part.TYPE_FIELD_WIDTH);
-	}
-	public Set<PinType> getPinTypes() {
-		Set<PinType> types = new HashSet<PinType>();
-		// Assume that each pin on a subcircuit is unique. That is no
-		// pins are interchangable.
-		for (int i=0; i<pins.length; i++) {
-			String pinDesc = typeString()+" "+getPortName(i);
-			types.add(new SubcircuitPinType(typeCode(), i, pinDesc));
-		}
-		return types;
 	}
 	public PinType getPinTypeOfNthPin(int n) {
 		PinType[] pinTypes = subcircuitInfo.getPinTypes();

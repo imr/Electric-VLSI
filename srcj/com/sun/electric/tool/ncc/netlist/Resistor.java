@@ -23,10 +23,8 @@
 */
 package com.sun.electric.tool.ncc.netlist;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import com.sun.electric.tool.ncc.basic.Primes;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
@@ -41,25 +39,9 @@ public class Resistor extends Part {
 	private static class ResistorPinType implements PinType {
 		private PartType type;
 		public ResistorPinType(PartType t) {type=t;}
-		public int numConnectionsToPinOfThisType(Part p, Wire w) {
-			if (!(p instanceof Resistor)) return 0;
-			Resistor r = (Resistor) p;
-			if (r.type!=type) return 0;
-			
-			int numConns = 0;
-			for (int i=0; i<p.pins.length; i++)   if (p.pins[i]==w) numConns++;
-			return numConns;
-		}
 		public String description() {return type.getName();}
 	}
-	private static final Set<PinType> PIN_TYPES = new HashSet<PinType>();
 	private static final Map<PartType,ResistorPinType> TYPE_TO_PINTYPE = new HashMap<PartType,ResistorPinType>();
-	static {
-		for (Iterator<PartType> it=TYPES.iterator(); it.hasNext();) {
-			PartType t = it.next();
-			PIN_TYPES.add(new ResistorPinType(t));
-		}
-	}
 	static {
 		for (Iterator<PartType> it=TYPES.iterator(); it.hasNext();) {
 			PartType t = it.next();
@@ -72,13 +54,6 @@ public class Resistor extends Part {
     	{Primes.get(1), Primes.get(1)}; //resistors are symmetric
     private final PartType type;
     private final double width, length;
-
-    // ---------- private methods ----------
-    private void flip(){
-        Wire w = pins[0];
-        pins[0] = pins[1];
-        pins[1] = w;
-    }
 
     // ---------- public methods ----------
 	public Resistor(PartType type, PartNameProxy name, 
@@ -143,8 +118,6 @@ public class Resistor extends Part {
 		final int tw = Part.TYPE_FIELD_WIDTH;
 		return Part.RESISTOR + (type.getOrdinal() << tw);
 	}
-	
-	public Set<PinType> getPinTypes() {return PIN_TYPES;}
 	
 	// Both pins of resistor have same PinType
 	public PinType getPinTypeOfNthPin(int n) {

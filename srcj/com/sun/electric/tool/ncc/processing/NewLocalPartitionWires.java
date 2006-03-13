@@ -52,9 +52,6 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
  * Local Partition of Wires. Use hashing.
  */
 public class NewLocalPartitionWires {
-	// temporary hack to optionally turn on new Local Wire Partitioning
-	public static boolean useNewAlgorithm = true;
-	
 	// ------------------------ data ---------------------------------
 	private final NccGlobals globals;
 

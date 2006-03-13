@@ -22,9 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.ncc.strategy;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
@@ -35,8 +33,6 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 /* StratPartPopularity partitions Part equivalence classes
  * based upon how many unique Wires are connected. */
 public class StratPartPopularity extends Strategy {
-	private Map typeCodeToTypeName = new HashMap();
-	
     private StratPartPopularity(NccGlobals globals) {super(globals);}
 
 	private LeafList doYourJob2() {

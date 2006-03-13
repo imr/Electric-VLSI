@@ -124,8 +124,12 @@ public class NccNetlist {
 	public VarContext getRootContext() {return rootContext;}
 }
 
-class ExportGlobalConflict extends RuntimeException {}
-class UserAbort extends RuntimeException {}
+class ExportGlobalConflict extends RuntimeException {
+	static final long serialVersionUID = 0;
+}
+class UserAbort extends RuntimeException {
+	static final long serialVersionUID = 0;
+}
 
 /** map from netID to NCC Wire */
 class Wires {
@@ -372,7 +376,6 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	 * @return the attached Wire. */
 	private Wire getWireForPortInst(PortInst pi, CellInfo info) {
 		NodeInst ni = pi.getNodeInst();
-		NodeProto np = ni.getProto();
 		error(ni.isCellInstance(), "not PrimitiveNode");
 		PortProto pp = pi.getPortProto();
 		int[] netIDs = info.getPortNetIDs(ni, pp);
@@ -553,7 +556,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 	}
 	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
-		PrimitiveNode.Function func = ni.getFunction();
+		//PrimitiveNode.Function func = ni.getFunction();
 		if (ni.isPrimitiveTransistor()) {
 			buildTransistor(ni, info);
 		} else if (isPrimitivePolyResistor(ni)) {
@@ -656,7 +659,6 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	
 	private void doSubcircuit(SubcircuitInfo subcktInfo, NccCellInfo info) {
-		Cell cell = info.getCell();
 		Wire[] pins = new Wire[subcktInfo.numPorts()];
 
 		for (Iterator<ExportGlobal> it=info.getExportsAndGlobals(); it.hasNext();) {

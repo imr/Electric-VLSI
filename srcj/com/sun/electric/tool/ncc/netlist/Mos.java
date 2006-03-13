@@ -67,22 +67,6 @@ public class Mos extends Part {
 		private final int gateHeight;
 		private final boolean cap;
 
-		public int numConnectionsToPinOfThisType(Part p, Wire w) {
-			if (!(p instanceof Mos)) return 0;
-			Mos t = (Mos) p;
-			if (t.getType()!=np) return 0;
-			if (t.numSeries()!=numSeries) return 0;
-			if (cap!=t.isCapacitor()) return 0;
-			
-			int loGate = gateHeight;
-			int hiGate = numSeries+1 - gateHeight;
-
-			int numPins = numSeries+2;
-			int count = 0;
-			if (t.pins[loGate]==w) count++;
-			if (loGate!=hiGate && t.pins[hiGate]==w) count++;
-			return count;
-		}
 		public String description() {
 			String t = np.getName();
 			String c = cap ? "_CAP" : "";
@@ -110,18 +94,6 @@ public class Mos extends Part {
 		private final PartType np;
 		private final boolean cap;
 
-		public int numConnectionsToPinOfThisType(Part p, Wire w) {
-			if (!(p instanceof Mos)) return 0;
-			Mos t = (Mos) p;
-			if (t.getType()!=np) return 0;
-			if (t.numSeries()!=numSeries) return 0;
-			if (cap!=t.isCapacitor()) return 0;
-			
-			int count = 0;
-			if (t.pins[0]==w) count++;
-			if (t.pins[numSeries+1]==w) count++;
-			return count;
-		}
 		public String description() {
 			String t = np.getName();
 			String c = cap ? "_CAP" : "";
@@ -131,7 +103,6 @@ public class Mos extends Part {
 		public DiffType(PartType np, int numSeries, boolean cap) {
 			LayoutLib.error(np==null, "null type?");
 			LayoutLib.error(numSeries<1, "bad numSeries");
-			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
 			this.np = np;
 			this.numSeries = numSeries;
 			this.cap = cap;
@@ -156,25 +127,8 @@ public class Mos extends Part {
 			return type.hashCode() + (isCapacitor?1:0) + (numSeries<<1);
 		}
 	}
-	private static final Map<PinTypeSetKey,Set<PinType>> PIN_TYPE_SETS = new HashMap<PinTypeSetKey,Set<PinType>>();
 	private static final Map<PinTypeSetKey,PinType[]> TYPE_TO_PINTYPE_ARRAY = new HashMap<PinTypeSetKey,PinType[]>();
 	
-	public synchronized Set<PinType> getPinTypes() {
-		PinTypeSetKey key = new PinTypeSetKey(type, isCapacitor(), numSeries());
-		Set<PinType> pinTypes = PIN_TYPE_SETS.get(key);
-		if (pinTypes==null) {
-			pinTypes = new HashSet<PinType>();
-			pinTypes.add(new DiffType(type, numSeries(), isCapacitor()));
-
-			int maxHeight = (numSeries()+1) / 2;
-			for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
-				pinTypes.add(new GateType(type, numSeries(), gateHeight, isCapacitor()));
-			}
-
-			PIN_TYPE_SETS.put(key, pinTypes);
-		}
-		return pinTypes;
-	}
 	public synchronized PinType[] getPinTypeArray() {
 		PinTypeSetKey key = new PinTypeSetKey(type, isCapacitor(), numSeries());
 		PinType[] pinTypeArray = TYPE_TO_PINTYPE_ARRAY.get(key);
