@@ -6,7 +6,7 @@
 
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.tool.cvs.CVS;
+import com.sun.electric.tool.cvspm.CVS;
 
 import javax.swing.*;
 
@@ -105,7 +105,7 @@ public class CVSTab extends PreferencePanel {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-        
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel cvsPanel;
     private javax.swing.JTextField cvsProgram;
