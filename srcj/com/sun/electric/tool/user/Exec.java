@@ -23,18 +23,20 @@
  */
 package com.sun.electric.tool.user;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
  * Runtime.exec() has many pitfalls to it's proper use.  This class
  * wraps external executes to make it easier to use.
+ * <P>
+ * Usage:
+ * <pre>
+ * Exec exec = new Exec("ls", null, User.getWorkingDirectory(), System.out, System.out);
+ * exec.start(); // run in a new Thread
+ * </pre>
+ * You can also use exec.run() to run in the current thread.
  */
 public class Exec extends Thread {
 
@@ -193,10 +195,15 @@ public class Exec extends Thread {
             
             // run program
             synchronized(this) {
-                if (command != null)
-                    p = rt.exec(command, envVars, dir);
-                else
-                    p = rt.exec(exec, envVars, dir);
+                try {
+                    if (command != null)
+                        p = rt.exec(command, envVars, dir);
+                    else
+                        p = rt.exec(exec, envVars, dir);
+                } catch (IOException e) {
+                    System.out.println("Error running "+command+": "+e.getMessage());
+                    return;
+                }
 
                 // eat output (stdout) and stderr from program so it doesn't block
                 outReader = new ExecProcessReader(p.getInputStream(), outStreamRedir);
