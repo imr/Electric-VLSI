@@ -98,7 +98,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	private static final PortInst[] NULL_PORT_INST_ARRAY = new PortInst[0];
 	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
 
-	/**
+    /**
+	 * Method to detect if this Generic proto is not relevant for some tool calculation and therefore
+	 * could be skip. E.g. cellCenter, drcNodes, essential bounds.
+	 * Similar for layer generation and automatic fill.
+	 * @param ni the NodeInst in question.
+	 * @return true if it is a special node (cell center, etc.)
+	 */
+	public static boolean isSpecialGenericNode(NodeInst ni)
+	{
+		NodeProto np = ni.getProto();
+		return (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode ||
+		        np == Generic.tech.essentialBoundsNode);
+	}
+
+    /**
 	 * Method to detect if np is not relevant for some tool calculation and therefore
 	 * could be skip. E.g. cellCenter, drcNodes, essential bounds and pins in DRC.
 	 * Similar for layer generation
@@ -108,8 +122,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public static boolean isSpecialNode(NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
-		return (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode ||
-		        np == Generic.tech.essentialBoundsNode || np.getFunction() == PrimitiveNode.Function.PIN ||
+		return (isSpecialGenericNode(ni) || np.getFunction() == PrimitiveNode.Function.PIN ||
 		        np.getFunction() == PrimitiveNode.Function.CONNECT);
 	}
 
@@ -913,7 +926,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     /**
      * Package-private method to add a Variable on PortInst of this NodeInst.
      * It may add repaired copy of this Variable in some cases.
-     * @param portPtotoId PortProtoId of the PortInst.
+     * @param portProtoId PortProtoId of the PortInst.
      * @param var Variable to add.
      */
     void addVar(PortProtoId portProtoId, Variable var) {
@@ -933,7 +946,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     
 	/**
 	 * Package-private method to delete a Variable from PortInst of this NodeInst.
-     * @param portPtotoId PortProtoId of the PortInst.
+     * @param portProtoId PortProtoId of the PortInst.
 	 * @param key the key of the Variable to delete.
 	 */
 	void delVar(PortProtoId portProtoId, Variable.Key key)
@@ -943,7 +956,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     
 	/**
 	 * Package-private method to delete all Variables from PortInst of this NodeInst.
-     * @param portPtotoId PortProtoId of the PortInst.
+     * @param portProtoId PortProtoId of the PortInst.
 	 */
 	void delVars(PortProtoId portProtoId)
 	{
