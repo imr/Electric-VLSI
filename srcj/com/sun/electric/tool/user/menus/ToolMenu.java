@@ -767,7 +767,6 @@ public class ToolMenu {
 		Highlighter highlighter = wnd.getHighlighter();
 
 		Set<Network> nets = highlighter.getHighlightedNetworks();
-		//highlighter.clear();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
