@@ -709,7 +709,7 @@ public class FileMenu {
         String fileName = null;
         if (!saveAs && lib.isFromDisk())
         {
-        	if (type == FileType.JELIB ||
+        	if (type == FileType.JELIB || type == FileType.DELIB || 
         		(type == FileType.ELIB && !compatibleWith6))
 	        {
 	            fileName = lib.getLibFile().getPath();
