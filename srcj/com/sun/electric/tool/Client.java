@@ -85,8 +85,7 @@ public abstract class Client {
                 Throwable jobException = null;
                 if (ejob.startedByServer)
                     jobException = ejob.deserializeToClient();
-                if (ejob.jobType != Job.Type.EXAMINE)
-                    jobException = ejob.deserializeResult();
+                jobException = ejob.deserializeResult();
                 
                 Job job = ejob.clientJob;
                 if (job == null) {

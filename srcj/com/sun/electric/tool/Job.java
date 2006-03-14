@@ -297,7 +297,10 @@ public abstract class Job implements Serializable {
         if (jobException instanceof CantEditException) {
             ((CantEditException)jobException).presentProblem();
         } else if (jobException instanceof JobException) {
-            System.out.println(jobException.getMessage());
+            String message = jobException.getMessage();
+            if (message == null)
+                message = "Job " + ejob.jobName + " failed";
+            System.out.println(message);
         }
     }
     
