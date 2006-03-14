@@ -31,7 +31,6 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -41,7 +40,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
@@ -2524,7 +2522,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Add a PortProto to this NodeProto.
 	 * Adds Exports for Cells, PrimitivePorts for PrimitiveNodes.
 	 * @param export the PortProto to add to this NodeProto.
-	 * @param oldPortInsts a collection of PortInsts to Undo or null.
 	 */
 	 void addExport(Export export)
 	{
@@ -3286,8 +3283,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /**
      * Modifies persistend data of this Cell.
      * @param newD new persistent data.
-     * @param notify true to notify Undo system.
-     * @return true if persistent data was modified.
      */
     private void setD(ImmutableCell newD) {
         if (isLinked()) {
@@ -3708,7 +3703,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public void setCellGroup(CellGroup cellGroup)
 	{
 		if (!isLinked()) return;
-		CellGroup oldCellGroup = this.cellGroup;
+//		CellGroup oldCellGroup = this.cellGroup;
 		if (cellGroup == null) cellGroup = new CellGroup(lib);
         checkChanging();
 		if (cellGroup == this.cellGroup) return;
