@@ -106,8 +106,8 @@ class EJob {
         } catch (Throwable e) {
 //        	if (e instanceof NotSerializableException)
         	{
-        		NotSerializableException nse = (NotSerializableException)e;
-        		System.out.println("ERROR: Job '" + jobName + "' cannot serialize parameter: " + nse.getMessage());
+//        		NotSerializableException nse = (NotSerializableException)e;
+        		System.out.println("ERROR: Job '" + jobName + "' cannot serialize parameter: " + e.getMessage());
         	}
             return e;
         }
