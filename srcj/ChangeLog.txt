@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
-BUG: (3/14/06, DN) TreminateOK is executed after failure of EXAMINE Job (Bug #825)
+BUG: (3/14/06, GVG) "Mark All Libraries for saving" command was not wrapped in a job (Bug #872)
+FIX: New Job class added.
+
+BUG: (3/14/06, DN) TerminateOK is executed after failure of EXAMINE Job (Bug #825)
 FIX: Serialize and deserialize result for examine Jobs too. 
 
 BUG: (3/14/06, GVG) Problem highlighting networks (Bug #871). getHighlightedNetworks returns null if varKey != null.

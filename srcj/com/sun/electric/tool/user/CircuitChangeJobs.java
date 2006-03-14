@@ -3046,35 +3046,49 @@ public class CircuitChangeJobs
 	 */
 	public static void markAllLibrariesForSavingCommand()
 	{
-		// mark all libraries as "changed"
-		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = it.next();
-			if (lib.isHidden()) continue;
-
-			// make sure all old format library extensions are converted
-			String ext = TextUtils.getExtension(lib.getLibFile());
-            // I don't think this should change the file format: only "save as" should
-            // JKG 29 Oct 2004
-            /*
-			if (OpenFile.Type.DEFAULTLIB == OpenFile.Type.JELIB)
-			{
-				if (ext.equals("elib"))
-				{
-					String fullName = lib.getLibFile().getFile();
-					int len = fullName.length();
-					fullName = fullName.substring(0, len-4) + "jelib";
-					lib.setLibFile(TextUtils.makeURLToFile(fullName));
-				}
-			}*/
-
-			// do not mark readable dump files for saving
-			if (ext.equals("txt")) continue;
-
-			lib.setChanged();
-		}
-		System.out.println("All libraries now need to be saved");
+        new MarkAllLibraries();
 	}
+
+    private static class MarkAllLibraries extends Job
+    {
+        MarkAllLibraries()
+        {
+            super("Making all libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+        }
+        public boolean doIt() throws JobException
+        {
+            // mark all libraries as "changed"
+            for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+            {
+                Library lib = it.next();
+                if (lib.isHidden()) continue;
+
+                // make sure all old format library extensions are converted
+                String ext = TextUtils.getExtension(lib.getLibFile());
+                // I don't think this should change the file format: only "save as" should
+                // JKG 29 Oct 2004
+                /*
+                if (OpenFile.Type.DEFAULTLIB == OpenFile.Type.JELIB)
+                {
+                    if (ext.equals("elib"))
+                    {
+                        String fullName = lib.getLibFile().getFile();
+                        int len = fullName.length();
+                        fullName = fullName.substring(0, len-4) + "jelib";
+                        lib.setLibFile(TextUtils.makeURLToFile(fullName));
+                    }
+                }*/
+
+                // do not mark readable dump files for saving
+                if (ext.equals("txt")) continue;
+
+                lib.setChanged();
+            }
+            System.out.println("All libraries now need to be saved");
+            return true;
+        }
+    }
 
 	/**
 	 * This class implement the command to repair libraries.
