@@ -1168,21 +1168,28 @@ class TiledCell {
      * @param tileOnY
      * @param minTileSize
      * @param topCell
+     * @param binary
      * @return
      */
     public Cell makeQTreeCell(Cell master, Cell empty, int tileOnX, int tileOnY, double minTileSize,
-                              Floorplan[] plans, StdCellParams stdCellParam, Cell topCell)
+                              Floorplan[] plans, StdCellParams stdCellParam, Cell topCell, boolean binary)
     {
-        int powerX = getFillDimension(tileOnX);
-        int powerY = getFillDimension(tileOnY);
-        double fillWidth = powerX*minTileSize;
-        double fillHeight = powerY*minTileSize;
+        double fillWidth = tileOnX * minTileSize;
+        double fillHeight = tileOnY * minTileSize;
+        // in case of binary division, make sure the division is 2^N
+        if (binary)
+        {
+            int powerX = getFillDimension(tileOnX, true);
+            int powerY = getFillDimension(tileOnY, true);
+            fillWidth = powerX*minTileSize;
+            fillHeight = powerY*minTileSize;
+        }
         // topBox its width/height must be multiply of master.getWidth()/Height()
         Rectangle2D topBox = new Rectangle2D.Double(topCell.getBounds().getCenterX()-fillWidth/2,
                 topCell.getBounds().getCenterY()-fillHeight/2, fillWidth, fillHeight);
         // refine recursively
         List<Cell> newElems = new ArrayList<Cell>();
-        refine(master, empty, topBox, plans, stdCellParam, newElems, topCell);
+        refine(master, empty, topBox, plans, stdCellParam, newElems, topCell, binary);
         assert(newElems.size()==1);
         return newElems.iterator().next();
     }
@@ -1350,67 +1357,131 @@ class TiledCell {
      * @param empty
      * @param box  bounding box representing region to refine. (0,0) is the top left corner
      * @param topCell
+     * @param binary
      * @return true if refined elements form std cell
      */
     private boolean refine(Cell master, Cell empty, Rectangle2D box, Floorplan[] plans, StdCellParams stdCellParam,
-                           List<Cell> newElems, Cell topCell)
+                           List<Cell> newElems, Cell topCell, boolean binary)
     {
         double masterW = master.getBounds().getWidth();
         double masterH = master.getBounds().getHeight();
-        double w = box.getWidth();
-        double h = box.getHeight();
+        double w = box.getWidth(), wHalf = w/2;
+        double h = box.getHeight(), hHalf = h/2;
         double x = box.getX();
         double y = box.getY();
-        int cutX = (int)Math.ceil(w/masterW);
-        int cutY = (int)Math.ceil(h/masterH);
+        double refineOnX = w/masterW;
+        double refineOnY = h/masterH;
+        int cutX = (int)Math.ceil(refineOnX);
+        int cutY = (int)Math.ceil(refineOnY);
+        int cutXOnLeft = getFillDimension((int)(refineOnX/2), false);
+        int cutXOnRight = cutX - cutXOnLeft; // get exact number of cuts
+        int cutYOnBottom = getFillDimension((int)(refineOnY/2), false);
+        int cutYOnTop = cutY - cutYOnBottom; // get exact number of cuts
+
         // Each cut will have a copy of the cell to use
         List<Cell> childrenList = new ArrayList<Cell>();
         boolean stdCell = true;
-        Point2D[] centers = null;
+        Point2D[] centers = new Point2D[4];
+        Point2D[] newCenters = new Point2D[4];
         List<Rectangle2D> boxes = new ArrayList<Rectangle2D>();
         CutType cut = CutType.NONE;
+        Rectangle2D bb = null;
 
         if (cutX > 1 && cutY > 1) // refine on XY
         {
             cut = CutType.XY;
-            centers = new Point2D[4];
+            double[] factorsX = new double[]{-1, 1, -1, 1}; // default is binary division
+            double[] factorsY = new double[]{-1, -1, 1, 1}; // default is binary division
+            double[] widths = null, heights = null;
+            double[] centerX = null, centerY = null;
+
+            if (binary)
+            {
+                widths = new double[]{wHalf, wHalf, wHalf, wHalf};
+                heights = new double[]{hHalf, hHalf, hHalf, hHalf};
+                centerX = new double[]{box.getCenterX(), box.getCenterX(), box.getCenterX(), box.getCenterX()};
+                centerY = new double[]{box.getCenterY(), box.getCenterY(), box.getCenterY(), box.getCenterY()};
+            }
+            else
+            {
+                double tmpXLeft = cutXOnLeft*masterW, tmpYOnBottom = cutYOnBottom*masterH;
+                widths = new double[]{tmpXLeft, cutXOnRight*masterW};
+                heights = new double[]{tmpYOnBottom, cutYOnTop*masterH};
+                centerX = new double[]{x, x+tmpXLeft};
+                centerY = new double[]{y, y+tmpYOnBottom};
+            }
             centers[0] = new Point2D.Double(-0.5, -0.5);
             centers[1] = new Point2D.Double(0.5, -0.5);
             centers[2] = new Point2D.Double(-0.5, 0.5);
             centers[3] = new Point2D.Double(0.5, 0.5);
+
             for (int i = 0; i < 4; i++)
             {
-                Rectangle2D bb = GenMath.getQTreeBox(x, y, w/2, h/2, box.getCenterX(), box.getCenterY(), i);
+                int xPos = i%2;
+                int yPos = i/2;
+                bb = GenMath.getQTreeBox(x, y, widths[xPos], heights[yPos], centerX[xPos], centerY[yPos], i);
+
+                newCenters[i] = new Point2D.Double(factorsX[i]*(widths[xPos] - bb.getWidth()/2),
+                        factorsY[i]*(heights[yPos] - bb.getHeight()/2));
                 boxes.add(bb);
-                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell))
+                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell, binary))
                     stdCell = false;
             }
         }
         else if (cutX > 1) // only on X
         {
             cut = CutType.X;
+            double[] factorsX = new double[]{-1, 1}; // default is binary division
+            double[] widths = null, centerX = null;
+
+            if (binary)
+            {
+                widths = new double[]{wHalf, wHalf};
+                centerX = new double[]{box.getCenterX(), box.getCenterX()};
+            }
+            else
+            {
+                double tmpXLeft = cutXOnLeft*masterW;
+                widths = new double[]{tmpXLeft, cutXOnRight*masterW};
+                centerX = new double[]{x, x+tmpXLeft};
+            }
+
             for (int i = 0; i < 2; i++)
             {
-                Rectangle2D bb = GenMath.getQTreeBox(x, y, w/2, h, box.getCenterX(), box.getCenterY(), i);
+                bb = GenMath.getQTreeBox(x, y, widths[i], h, centerX[i], box.getCenterY(), i);
+                newCenters[i] = new Point2D.Double(factorsX[i]*(widths[i] - bb.getWidth()/2), 0);
                 boxes.add(bb);
-                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell))
+                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell, binary))
                     stdCell = false;
             }
-            centers = new Point2D[2];
             centers[0] = new Point2D.Double(-0.5, 0);
             centers[1] = new Point2D.Double(0.5, 0);
         }
         else if (cutY > 1) // only on Y
         {
             cut = CutType.Y;
+            double[] factorsY = new double[]{-1, 1}; // default is binary division
+            double[] heights = null, centerY = null;
+
+            if (binary)
+            {
+                heights = new double[]{hHalf, hHalf};
+                centerY = new double[]{box.getCenterY(), box.getCenterY()};
+            }
+            else
+            {
+                double tmpYOnBottom = cutYOnBottom*masterH;
+                heights = new double[]{tmpYOnBottom, cutYOnTop*masterH};
+                centerY = new double[]{y, y+tmpYOnBottom};
+            }
             for (int i = 0; i < 2; i++)
             {
-                Rectangle2D bb = GenMath.getQTreeBox(x, y, w, h/2, box.getCenterX(), box.getCenterY(), i*2);
+                bb = GenMath.getQTreeBox(x, y, w, heights[i], box.getCenterX(), centerY[i], i*2);
+                newCenters[i] = new Point2D.Double(0, factorsY[i]*(heights[i] - bb.getHeight()/2));
                 boxes.add(bb);
-                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell))
+                if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell, binary))
                     stdCell = false;
             }
-            centers = new Point2D[2];
             centers[0] = new Point2D.Double(0, -0.5);
             centers[1] = new Point2D.Double(0, 0.5);
         } else {
@@ -1455,8 +1526,7 @@ class TiledCell {
 //                    for (String s : namesList)
 //                        dummyName += "-"+s;
                     int code = namesList.toString().hashCode();
-                    if (code == -1742742753 || code == -1320757879)
-                        System.out.println("HHH");
+
                     dummyName +=code+"{lay}";
                     dummyCell = master.getLibrary().findNodeProto(dummyName);
 
@@ -1494,6 +1564,24 @@ class TiledCell {
 
         Cell tiledCell = null;
         String tileName = null;
+        boolean stdC = true;
+        assert(childrenList.size() > 1);
+        Cell template = childrenList.get(0);
+        for (int i = 1; i < childrenList.size(); i++)
+        {
+            if (template != childrenList.get(i))
+            {
+                stdC = false;
+                break;
+            }
+        }
+
+        // Search by names
+        if (!stdCell)
+        {
+            stdCell = stdC;
+        }
+
         if (stdCell)
         {
             String rootName = childrenList.get(0).getName();
@@ -1536,8 +1624,10 @@ class TiledCell {
             {
                 Rectangle2D b = boxes.get(i);
                 NodeInst node = LayoutLib.newNodeInst(childrenList.get(i),
-                        b.getWidth()*centers[i].getX(),
-                        b.getHeight()*centers[i].getY(),
+                        newCenters[i].getX(),
+                        newCenters[i].getY(),
+//                        b.getWidth()*centers[i].getX(),
+//                        b.getHeight()*centers[i].getY(),
                         b.getWidth(), b.getHeight(), 0, tiledCell);
                 switch (cut)
                 {
@@ -1562,17 +1652,28 @@ class TiledCell {
     }
 
     /**
-     * Method to calculate ex
+     * Method to calculate number of master sizes to cover using binary division or the intersection approach
      * @param size
+     * @param binary
      * @return
      */
-    private static int getFillDimension(int size)
+    private static int getFillDimension(int size, boolean binary)
     {
         if (size <=2) return size;
-        double val = Math.sqrt(size);
-        val = Math.ceil(val);
-        int power = (int)Math.pow(2,val);
-        return power;
+        if (binary)
+        {
+            // calculate the closest upper 2^n so the qTree will be perfectely balanced.
+            double val = Math.sqrt(size);
+            val = Math.ceil(val);
+            return (int)Math.pow(2,val);
+        }
+        // otherwise just the closest even number
+        if (size%2 != 0) //odd number
+        {
+            size -= 1;
+
+        }
+        return size;
     }
 
 	public static Cell makeTiledCell(int numX, int numY, Cell cell,
@@ -1639,11 +1740,45 @@ public class FillGenerator implements Serializable {
             {
                 arcsToRemove.add(ai);
                 // Remove exports and pins as well
-                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
-                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
+//                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
+//                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
             }
         }
-        return nodesToRemove.size() > 0;
+
+        Set<ArcProto> names = new HashSet<ArcProto>();
+        // Check if there are not contacts or ping that don't have at least one or zero arc per metal
+        // If they don't have, then they are floating
+        for (Iterator<NodeInst> itNode = cell.getNodes(); itNode.hasNext(); )
+        {
+            NodeInst ni = itNode.next();
+
+            if (NodeInst.isSpecialGenericNode(ni)) continue; // Can't skip pins
+
+            // For removal
+            if (nodesToRemove.contains(ni))
+                continue;
+
+            int minNum = (ni.getProto().getFunction() == PrimitiveNode.Function.PIN)?0:1;
+            // At least should have connections to both layers
+            names.clear();
+            boolean found = false;
+            for (Iterator<Connection> itC = ni.getConnections(); itC.hasNext();)
+            {
+                Connection c = itC.next();
+                ArcInst ai = c.getArc();
+                if (arcsToRemove.contains(ai)) continue; // marked for deletion
+                names.add(ai.getProto());
+                if (names.size() > minNum) // found at least two different arcs
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) // element could be deleted
+                nodesToRemove.add(ni);
+        }
+
+        return nodesToRemove.size() > 0 || arcsToRemove.size() > 0;
     }
     
     /**
@@ -1905,7 +2040,7 @@ public class FillGenerator implements Serializable {
 									   wireLowest, stdCell, metalFlex, true);
 
         // Create an empty cell for cases where all nodes/arcs are moved due to collision
-        Cell empty = Cell.newInstance(lib, "emtpy"+master.getName());
+        Cell empty = Cell.newInstance(lib, "emtpy"+master.getName()+"{lay}");
         double cellWidth = plans[hiLay].cellWidth;
 		double cellHeight = plans[hiLay].cellHeight;
 		LayoutLib.newNodeInst(Tech.essentialBounds,
@@ -1919,12 +2054,7 @@ public class FillGenerator implements Serializable {
         int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
 
         TiledCell t = new TiledCell(stdCell, 6);
-        master = t.makeQTreeCell(master, empty, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell);
-//                int min = Math.min(tileOnX, tileOnY);
-//                master = TiledCell.makeTiledCell(min, min, master, plans, lib, stdCell);
-//                tileOnX = tileOnX/min;
-//                tileOnY = tileOnY/min;
-//                master = TiledCell.makeTiledCell(tileOnX, tileOnY, master, plans, lib, stdCell);
+        master = t.makeQTreeCell(master, empty, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell, true);
         return master;
 	}
 
@@ -2263,24 +2393,18 @@ public class FillGenerator implements Serializable {
 
                 // Looking to detect any possible contact based on overlap between this geometry and fill
                 NodeInst added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon, conTransOut);
+                List<PolyBase> polyList = new ArrayList<PolyBase>();
+                List<Geometric> gList = new ArrayList<Geometric>();
+                polyList.add(p.getPoly());
+                gList.add(p.getNodeInst());
                 if (added != null)
                 {
-                	List<PolyBase> polyList = new ArrayList<PolyBase>();
-                	List<Export> eList = new ArrayList<Export>();
-                    polyList.add(p.getPoly());
-                    if (p.getPortProto() instanceof Export)
-                        eList.add((Export)p.getPortProto());
-                    log.logWarning(p.describe(false) + " connected", null, eList, null, null, polyList, topCell, 0);
+                    log.logWarning(p.describe(false) + " connected", gList, null, null, null, polyList, topCell, 0);
                     continue;
                 }
                 else
                 {
-                	List<PolyBase> polyList = new ArrayList<PolyBase>();
-                	List<Export> eList = new ArrayList<Export>();
-                    polyList.add(p.getPoly());
-                    if (p.getPortProto() instanceof Export)
-                        eList.add((Export)p.getPortProto());
-                    log.logError(p.describe(false) + " not connected", null, eList, null, null, polyList, topCell, 0);
+                    log.logError(p.describe(false) + " not connected", gList, null, null, null, polyList, topCell, 0);
                 }
 
 //                // Transformation of the cell instance containing this port
