@@ -63,7 +63,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
+import com.sun.electric.database.text.TextUtils.WhatToSearch;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.BasicStroke;
@@ -117,6 +117,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.io.Serializable;
 
 import javax.print.attribute.standard.ColorSupported;
 import javax.swing.JMenuItem;
@@ -1859,7 +1860,7 @@ public class EditWindow extends JPanel
 	/**
 	 * Class to define a string found in a cell.
 	 */
-	private static class StringsInCell
+	private static class StringsInCell implements Serializable
 	{
 		/** the object that the string resides on */	final Object object;
 		/** the Variable that the string resides on */	final Variable.Key key;
@@ -1869,12 +1870,12 @@ public class EditWindow extends JPanel
 		/** the starting character position */			int startPosition;
 		/** the ending character position */			int endPosition;
 		/** the Regular Expression searched for */		final String regExpSearch;
-		/** descriptor for String's object */			final WhatToSearch what; 
+		/** descriptor for String's object */			final TextUtils.WhatToSearch what; 
 		/** true if the replacement has been done */	boolean replaced;
 
 		StringsInCell(Object object, Variable.Key key, Name name, 
 		              int lineInVariable, String theLine, int startPosition, 
-		              int endPosition, String regExpSearch, WhatToSearch what)
+		              int endPosition, String regExpSearch, TextUtils.WhatToSearch what)
 		{
 			this.object = object;
 			this.key = key;
@@ -1892,16 +1893,16 @@ public class EditWindow extends JPanel
 			" name="+name+" line="+lineInVariable+" start="+startPosition+" end="+endPosition+" msg="+theLine; }
 	}
 
-	private WhatToSearch get(Set whatToSearch, WhatToSearch what) {
+	private TextUtils.WhatToSearch get(Set whatToSearch, TextUtils.WhatToSearch what) {
 		if (whatToSearch.contains(what)) return what;
 		return null;
 	}
 
 	private void searchTextNodes(String search, boolean caseSensitive,
 		                         boolean regExp, Set whatToSearch) {
-		boolean doTemp = whatToSearch.contains(WhatToSearch.TEMP_NAMES);
-		WhatToSearch what = get(whatToSearch, WhatToSearch.NODE_NAME);
-		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.NODE_VAR);
+		boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
+		TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.NODE_NAME);
+		TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.NODE_VAR);
 		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = it.next();
@@ -1925,9 +1926,9 @@ public class EditWindow extends JPanel
 
 	private void searchTextArcs(String search, boolean caseSensitive,
 							    boolean regExp, Set whatToSearch) {
-		boolean doTemp = whatToSearch.contains(WhatToSearch.TEMP_NAMES);
-		WhatToSearch what = get(whatToSearch, WhatToSearch.ARC_NAME);
-		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.ARC_VAR);
+		boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
+		TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.ARC_NAME);
+		TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.ARC_VAR);
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = it.next();
@@ -1950,8 +1951,8 @@ public class EditWindow extends JPanel
 
 	private void searchTextExports(String search, boolean caseSensitive,
 								   boolean regExp, Set whatToSearch) {
-		WhatToSearch what = get(whatToSearch, WhatToSearch.EXPORT_NAME);
-		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.EXPORT_VAR);
+		WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_NAME);
+		TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_VAR);
 		for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
 		{
 			Export pp = it.next();
@@ -1968,7 +1969,7 @@ public class EditWindow extends JPanel
 	}
 	private void searchTextCellVars(String search, boolean caseSensitive,
 									boolean regExp, Set whatToSearch) {
-		WhatToSearch whatVar = get(whatToSearch, WhatToSearch.CELL_VAR);
+		WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.CELL_VAR);
 		if (whatVar!=null) {
 			for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
 			{
@@ -1986,7 +1987,7 @@ public class EditWindow extends JPanel
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
 	public void initTextSearch(String search, boolean caseSensitive,
-	                           boolean regExp, Set<FindText.WhatToSearch> whatToSearch)
+	                           boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch)
 	{
 		foundInCell = new ArrayList<StringsInCell>();
 		if (cell==null) 
@@ -2003,7 +2004,7 @@ public class EditWindow extends JPanel
 		currentStringInCell = null;
 	}
 
-	private String repeatChar(char c, int num) {
+	private static String repeatChar(char c, int num) {
 		StringBuffer sb = new StringBuffer();
 		for (int i=0; i<num; i++) sb.append(c);
 		return sb.toString(); 
@@ -2159,20 +2160,24 @@ public class EditWindow extends JPanel
 	 */
 	private static class ReplaceTextJob extends Job
 	{
-		private EditWindow wnd;
 		private String replace;
+        private Cell cell;
+        private List<StringsInCell> foundInCell;
+        private StringsInCell currentStringInCell;
 
 		private ReplaceTextJob(EditWindow wnd, String replace)
 		{
 			super("Replace Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.wnd = wnd;
+            this.foundInCell = wnd.foundInCell;
+            this.currentStringInCell = wnd.currentStringInCell;
+            this.cell = wnd.cell;
 			this.replace = replace;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			wnd.changeOneText(wnd.currentStringInCell, replace, wnd.cell);
+			changeOneText(foundInCell, currentStringInCell, replace, cell);
 			return true;
 		}
 	}
@@ -2199,7 +2204,7 @@ public class EditWindow extends JPanel
 			for(wnd.currentFindPosition = 0; wnd.currentFindPosition < wnd.foundInCell.size(); wnd.currentFindPosition++)
 			{
 				wnd.currentStringInCell = wnd.foundInCell.get(wnd.currentFindPosition);
-				wnd.changeOneText(wnd.currentStringInCell, replace, wnd.cell);
+				changeOneText(wnd.foundInCell, wnd.currentStringInCell, replace, wnd.cell);
 				total++;
 			}
 			if (total == 0)
@@ -2213,7 +2218,7 @@ public class EditWindow extends JPanel
 		}
 	}
 
-	private void printChange(StringsInCell sic, String newString) 
+	private static void printChange(StringsInCell sic, String newString)
 	{
 		String foundHdr = "Change "+sic.what+": ";
 		String foundStr = sic.theLine;
@@ -2227,11 +2232,12 @@ public class EditWindow extends JPanel
 
 	/**
 	 * Method to change a string to another.
+     * @param foundInCell list of string to search
 	 * @param sic the string being replaced.
 	 * @param rep the new string.
 	 * @param cell the Cell in which these strings reside.
 	 */
-	private void changeOneText(StringsInCell sic, String rep, Cell cell)
+	private static void changeOneText(List<StringsInCell> foundInCell, StringsInCell sic, String rep, Cell cell)
 	{
 		if (sic.replaced) return;
 		sic.replaced = true;

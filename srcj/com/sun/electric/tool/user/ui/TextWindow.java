@@ -636,7 +636,7 @@ public class TextWindow
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
 	public void initTextSearch(String search, boolean caseSensitive, 
-	                           boolean regExp, Set<FindText.WhatToSearch> whatToSearch)
+	                           boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch)
 	{
 		if (regExp) {
 			System.out.println("Text windows don't yet implement Regular Expression matching");

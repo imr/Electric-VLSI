@@ -543,7 +543,7 @@ public class View3DWindow extends JPanel
 	public boolean findNextText(boolean reverse) { return false; }
 	public void replaceText(String replace) {}
 	public JPanel getPanel() { return this; }
-	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set<FindText.WhatToSearch> whatToSearch) {}
+	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch) {}
 
 	/**
 	 * Method to pan along X according to fixed amount of ticks

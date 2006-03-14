@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/14/06, GVG) Content of ReplaceTextJob not serializable (Bug #874).
+FIX: Job reorganized. Same task for ReplaceAllTextJob on the way. Side effect: class WhatToSearch converted
+into enum and moved to TextUtils.
+
 BUG: (3/14/06, GVG) "Mark All Libraries for saving" command was not wrapped in a job (Bug #872)
 FIX: New Job class added.
 

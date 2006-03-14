@@ -34,7 +34,6 @@ import java.awt.Frame;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.regex.Pattern;
-import java.util.prefs.Preferences;
 
 
 /**
@@ -42,28 +41,7 @@ import java.util.prefs.Preferences;
  */
 public class FindText extends EDialog
 {
-	/**
-	 * Class to define the kind of text string to search
-	 */
-	public static class WhatToSearch {
-		public static final WhatToSearch 
-		ARC_NAME = new WhatToSearch("Arc Name"),
-		ARC_VAR = new WhatToSearch("Arc Variable"),
-		NODE_NAME = new WhatToSearch("Node Name"),
-		NODE_VAR = new WhatToSearch("Node Variable"),
-		EXPORT_NAME = new WhatToSearch("Export Name"),
-		EXPORT_VAR = new WhatToSearch("Export Variable"),
-		CELL_VAR = new WhatToSearch("Cell Name"),
-		TEMP_NAMES = new WhatToSearch(null);
-    
-		private String descriptionOfObjectFound;
-
-		private WhatToSearch(String descriptionOfObjectFound) {
-			this.descriptionOfObjectFound = descriptionOfObjectFound;
-		}
-		public String toString() {return descriptionOfObjectFound;}
-	}
-	private static Pref.Group prefs = Pref.groupForPackage(FindText.class);
+    private static Pref.Group prefs = Pref.groupForPackage(FindText.class);
 	private static Pref
 		prefCaseSensitive = Pref.makeBooleanPref("FindText_caseSensitive", prefs, false),
 		prefFindTextMessage = Pref.makeStringPref("FindText_findTextMessage", prefs, ""),
@@ -119,16 +97,16 @@ public class FindText extends EDialog
             return true;
         }
     }
-    private Set<WhatToSearch> getWhatToSearch() {
-    	Set<WhatToSearch> whatToSearch = new HashSet<WhatToSearch>();
-		if (searchNodeNames.isSelected()) whatToSearch.add(WhatToSearch.NODE_NAME);
-		if (searchNodeVars.isSelected()) whatToSearch.add(WhatToSearch.NODE_VAR);
-		if (searchArcNames.isSelected()) whatToSearch.add(WhatToSearch.ARC_NAME);
-		if (searchArcVars.isSelected()) whatToSearch.add(WhatToSearch.ARC_VAR);
-		if (searchExportNames.isSelected()) whatToSearch.add(WhatToSearch.EXPORT_NAME);
-		if (searchExportVars.isSelected()) whatToSearch.add(WhatToSearch.EXPORT_VAR);
-		if (searchCellVars.isSelected()) whatToSearch.add(WhatToSearch.CELL_VAR);
-		if (searchTempNames.isSelected()) whatToSearch.add(WhatToSearch.TEMP_NAMES);
+    private Set<TextUtils.WhatToSearch> getWhatToSearch() {
+    	Set<TextUtils.WhatToSearch> whatToSearch = new HashSet<TextUtils.WhatToSearch>();
+		if (searchNodeNames.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.NODE_NAME);
+		if (searchNodeVars.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.NODE_VAR);
+		if (searchArcNames.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.ARC_NAME);
+		if (searchArcVars.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.ARC_VAR);
+		if (searchExportNames.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.EXPORT_NAME);
+		if (searchExportVars.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.EXPORT_VAR);
+		if (searchCellVars.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.CELL_VAR);
+		if (searchTempNames.isSelected()) whatToSearch.add(TextUtils.WhatToSearch.TEMP_NAMES);
 		return whatToSearch;
     }
 

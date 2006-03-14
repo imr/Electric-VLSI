@@ -104,7 +104,7 @@ class EJob {
             serializedJob = byteStream.toByteArray();
             return null;
         } catch (Throwable e) {
-        	if (e instanceof NotSerializableException)
+//        	if (e instanceof NotSerializableException)
         	{
         		NotSerializableException nse = (NotSerializableException)e;
         		System.out.println("ERROR: Job '" + jobName + "' cannot serialize parameter: " + nse.getMessage());

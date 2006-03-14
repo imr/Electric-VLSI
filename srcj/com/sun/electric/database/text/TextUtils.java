@@ -1531,4 +1531,25 @@ public class TextUtils
 			return c1.getEndIndex() - c2.getEndIndex();
 		}
     };
+
+    /**
+	 * Class to define the kind of text string to search
+	 */
+	public enum WhatToSearch {
+		ARC_NAME("Arc Name"),
+		ARC_VAR("Arc Variable"),
+		NODE_NAME("Node Name"),
+		NODE_VAR("Node Variable"),
+		EXPORT_NAME("Export Name"),
+		EXPORT_VAR("Export Variable"),
+		CELL_VAR("Cell Name"),
+		TEMP_NAMES(null);
+
+		private String descriptionOfObjectFound;
+
+		private WhatToSearch(String descriptionOfObjectFound) {
+			this.descriptionOfObjectFound = descriptionOfObjectFound;
+		}
+		public String toString() {return descriptionOfObjectFound;}
+	}
 }
