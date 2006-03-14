@@ -148,7 +148,7 @@ public class WindowFrame extends Observable
             {
                 public void run()
                 {
-                    frame.explorerTab.openLibraryInExplorerTree(true);
+                    frame.explorerTab.openLibraryInExplorerTree(cell.getLibrary(), cell, true);
                 }
             });
         }
@@ -540,7 +540,7 @@ public class WindowFrame extends Observable
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = it.next();
-			wf.explorerTab.openLibraryInExplorerTree(openLib);
+			wf.explorerTab.openLibraryInExplorerTree(Library.getCurrent(), null, openLib);
 		}
 	}
 

@@ -91,12 +91,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
+import javax.swing.tree.*;
 
 /**
  * Class to display a cell explorer tree-view of the database.
@@ -136,7 +131,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	/**
 	 * Constructor to create a new ExplorerTree.
-	 * @param rootNode the tree to display.
+	 * @param contentNodes the tree to display.
 	 */
 	ExplorerTree(List<MutableTreeNode> contentNodes)
 	{
@@ -223,19 +218,23 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	/**
 	 * Method to force the explorer tree to show the current library or signals list.
-	 * @param openLib true to open the current library, false to open the signals list.
-	 */
-	void openLibraryInExplorerTree(boolean openLib) {
-			openLibraryInExplorerTree(Library.getCurrent(), new TreePath(rootNode), openLib);
+     * @param lib library to expand
+     * @param cell
+     * @param openLib true to open the current library, false to open the signals list.
+     */
+	void openLibraryInExplorerTree(Library lib, Cell cell, boolean openLib) {
+        int count = -1; // starts from EXPLORER node
+        openLibraryInExplorerTree(lib, cell, new TreePath(rootNode), openLib, count);
     }
     
 	/**
 	 * Method to recursively scan the explorer tree and open the current library or signals list.
      * @param library the library to open
+     * @param cell
      * @param path the current position in the explorer tree.
      * @param openLib true for libraries, false for waveforms
      */
-	private void openLibraryInExplorerTree(Library library, TreePath path, boolean openLib)
+	private boolean openLibraryInExplorerTree(Library library, Cell cell, TreePath path, boolean openLib, int count)
 	{
         TreeModel treeModel = model();
         Object node = path.getLastPathComponent();
@@ -243,14 +242,28 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
         if (obj instanceof DefaultMutableTreeNode)
             obj = ((DefaultMutableTreeNode)obj).getUserObject();
 		int numChildren = treeModel.getChildCount(node);
-		if (numChildren == 0) return;
+		if (numChildren == 0) return false;
 
 		if (openLib && (obj instanceof Library))
 		{
 			Library lib = (Library)obj;
-			if (lib == library) expandPath(path);
-//            if (lib == Library.getCurrent())
-//                explorerTab.expandPath(path);
+			if (lib == library)
+            {
+                expandPath(path);
+                // Counting position from library to cell selected
+                if (cell != null)
+                {
+                    for (int i = 0; i < numChildren; i++)
+                    {
+                        DefaultMutableTreeNode child = (DefaultMutableTreeNode)treeModel.getChild(node, i);
+                        count++;
+                        if (child.getUserObject() == cell)
+                            break; // found location in library
+                    }
+                }
+                setSelectionRow(count);
+                return true; // found location in explorer
+            }
 		} else if (obj instanceof String)
 		{
 			String msg = (String)obj;
@@ -266,8 +279,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             if (!(child instanceof DefaultMutableTreeNode)) continue;
 			TreePath descentPath = path.pathByAddingChild(child);
 			if (descentPath == null) continue;
-			openLibraryInExplorerTree(library, descentPath, openLib);
+            count++;
+			if (openLibraryInExplorerTree(library, cell, descentPath, openLib, count))
+                return true;
 		}
+        return false;
 	}
 
 	void redoContentTrees(List<MutableTreeNode> contentNodes)

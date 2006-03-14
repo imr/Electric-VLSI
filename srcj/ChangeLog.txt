@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+IMP: (3/13/06, GVG) Ability to mark selected cell if you do "Edit in New Window" (Bug #)
+
 IMP: (3/13/06, RK) NCC: delete initial version of local wire paritioning code.
 
 IMP/MAN: (3/13/06, GVG) Multiple selection in cross library copy (Bug #867)
