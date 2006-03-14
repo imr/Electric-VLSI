@@ -559,7 +559,7 @@ public class CircuitChanges
 
 	public static void renameCellGroupInJob(Cell.CellGroup cellGroup, String newName)
 	{
-		new CellChangeJobs.RenameCellGroup(cellGroup, newName);
+		new CellChangeJobs.RenameCellGroup(cellGroup.getCells().next(), newName);
 	}
 
 	/****************************** SHOW CELLS GRAPHICALLY ******************************/

@@ -128,13 +128,13 @@ public class CellChangeJobs
 	 */
 	public static class RenameCellGroup extends Job
 	{
-		Cell.CellGroup cellGroup;
+		Cell cellInGroup;
 		String newName;
 
-		public RenameCellGroup(Cell.CellGroup cellGroup, String newName)
+		public RenameCellGroup(Cell cellInGroup, String newName)
 		{
 			super("Rename Cell Group", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.cellGroup = cellGroup;
+			this.cellInGroup = cellInGroup;
 			this.newName = newName;
 			startJob();
 		}
@@ -142,7 +142,7 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			ArrayList<Cell> cells = new ArrayList<Cell>();
-			for(Iterator<Cell> it = cellGroup.getCells(); it.hasNext(); )
+			for(Iterator<Cell> it = cellInGroup.getCellGroup().getCells(); it.hasNext(); )
 				cells.add(it.next());
 			for(Cell cell : cells)
 			{
