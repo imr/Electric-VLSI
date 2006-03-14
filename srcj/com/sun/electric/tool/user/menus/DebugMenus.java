@@ -179,10 +179,24 @@ public class DebugMenus
         menuBar.add(gildaMenu);
         gildaMenu.addMenuItem("QTREE", null,
                                 new ActionListener() { public void actionPerformed(ActionEvent e) {testQTree();}});
-        gildaMenu.addMenuItem("Hierarchy fill", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(true);}});
+        gildaMenu.addMenuItem("Count Lib", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e)
+                        {
+                            for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
+                            {
+                                Library lib = it.next();
+                                int count = 0;
+                                for (Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); count++)
+                                    itCell.next();
+                                System.out.println("Library " + lib.getName() + " number = " + count);
+                            }
+                        }});
+        gildaMenu.addMenuItem("Hierarchy fill Binary", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(true, true);}});
+        gildaMenu.addMenuItem("Hierarchy fill Intersection", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(true, false);}});
         gildaMenu.addMenuItem("Flat fill", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(false);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(false, false);}});
         gildaMenu.addMenuItem("Dialog fill", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {FillGen.openFillGeneratorDialog(MoCMOS.tech);}});
         gildaMenu.addMenuItem("Gate Generator TSMC180", null,
@@ -692,7 +706,7 @@ public class DebugMenus
         }
     }
 
-    private static void newFill(boolean hierarchy)
+    private static void newFill(boolean hierarchy, boolean binary)
     {
         Cell cell = WindowFrame.getCurrentCell();
         if (cell == null) return;
@@ -710,6 +724,7 @@ public class DebugMenus
         fg.setFillCellWidth(bnd.getWidth());
         fg.setFillCellHeight(bnd.getHeight());
         fg.setDRCSpacing(drcSpacingRule);
+        fg.setBinaryMode(binary);
         fg.makeEvenLayersHorizontal(true);
         fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
         fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);

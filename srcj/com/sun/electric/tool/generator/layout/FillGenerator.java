@@ -1381,8 +1381,6 @@ class TiledCell {
         // Each cut will have a copy of the cell to use
         List<Cell> childrenList = new ArrayList<Cell>();
         boolean stdCell = true;
-        Point2D[] centers = new Point2D[4];
-        Point2D[] newCenters = new Point2D[4];
         List<Rectangle2D> boxes = new ArrayList<Rectangle2D>();
         CutType cut = CutType.NONE;
         Rectangle2D bb = null;
@@ -1390,8 +1388,6 @@ class TiledCell {
         if (cutX > 1 && cutY > 1) // refine on XY
         {
             cut = CutType.XY;
-            double[] factorsX = new double[]{-1, 1, -1, 1}; // default is binary division
-            double[] factorsY = new double[]{-1, -1, 1, 1}; // default is binary division
             double[] widths = null, heights = null;
             double[] centerX = null, centerY = null;
 
@@ -1410,19 +1406,12 @@ class TiledCell {
                 centerX = new double[]{x, x+tmpXLeft};
                 centerY = new double[]{y, y+tmpYOnBottom};
             }
-            centers[0] = new Point2D.Double(-0.5, -0.5);
-            centers[1] = new Point2D.Double(0.5, -0.5);
-            centers[2] = new Point2D.Double(-0.5, 0.5);
-            centers[3] = new Point2D.Double(0.5, 0.5);
 
             for (int i = 0; i < 4; i++)
             {
                 int xPos = i%2;
                 int yPos = i/2;
                 bb = GenMath.getQTreeBox(x, y, widths[xPos], heights[yPos], centerX[xPos], centerY[yPos], i);
-
-                newCenters[i] = new Point2D.Double(factorsX[i]*(widths[xPos] - bb.getWidth()/2),
-                        factorsY[i]*(heights[yPos] - bb.getHeight()/2));
                 boxes.add(bb);
                 if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell, binary))
                     stdCell = false;
@@ -1431,7 +1420,6 @@ class TiledCell {
         else if (cutX > 1) // only on X
         {
             cut = CutType.X;
-            double[] factorsX = new double[]{-1, 1}; // default is binary division
             double[] widths = null, centerX = null;
 
             if (binary)
@@ -1449,18 +1437,14 @@ class TiledCell {
             for (int i = 0; i < 2; i++)
             {
                 bb = GenMath.getQTreeBox(x, y, widths[i], h, centerX[i], box.getCenterY(), i);
-                newCenters[i] = new Point2D.Double(factorsX[i]*(widths[i] - bb.getWidth()/2), 0);
                 boxes.add(bb);
                 if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell, binary))
                     stdCell = false;
             }
-            centers[0] = new Point2D.Double(-0.5, 0);
-            centers[1] = new Point2D.Double(0.5, 0);
         }
         else if (cutY > 1) // only on Y
         {
             cut = CutType.Y;
-            double[] factorsY = new double[]{-1, 1}; // default is binary division
             double[] heights = null, centerY = null;
 
             if (binary)
@@ -1477,13 +1461,10 @@ class TiledCell {
             for (int i = 0; i < 2; i++)
             {
                 bb = GenMath.getQTreeBox(x, y, w, heights[i], box.getCenterX(), centerY[i], i*2);
-                newCenters[i] = new Point2D.Double(0, factorsY[i]*(heights[i] - bb.getHeight()/2));
                 boxes.add(bb);
                 if (!refine(master, empty, bb, plans, stdCellParam, childrenList, topCell, binary))
                     stdCell = false;
             }
-            centers[0] = new Point2D.Double(0, -0.5);
-            centers[1] = new Point2D.Double(0, 0.5);
         } else {
             // nothing refined, qTree leave
             HashSet<NodeInst> nodesToRemove = new HashSet<NodeInst>();
@@ -1619,13 +1600,12 @@ class TiledCell {
             }
             assert(boxes.size() == childrenList.size());
 
-//            Cell newM = childrenList.iterator().next();
             for (int i = 0; i < boxes.size(); i++)
             {
                 Rectangle2D b = boxes.get(i);
-                NodeInst node = LayoutLib.newNodeInst(childrenList.get(i),
-                        newCenters[i].getX(),
-                        newCenters[i].getY(),
+                double cenX = b.getCenterX() - box.getCenterX();
+                double cenY = b.getCenterY() - box.getCenterY();
+                NodeInst node = LayoutLib.newNodeInst(childrenList.get(i), cenX, cenY,
 //                        b.getWidth()*centers[i].getX(),
 //                        b.getHeight()*centers[i].getY(),
                         b.getWidth(), b.getHeight(), 0, tiledCell);
@@ -1904,7 +1884,8 @@ public class FillGenerator implements Serializable {
 	private Library lib;
 	private boolean libInitialized;
 	private boolean evenLayersHorizontal;
-	private double[] vddReserved = {0, 0, 0, 0, 0, 0, 0}; 
+    private boolean binary; // for qTree approach
+	private double[] vddReserved = {0, 0, 0, 0, 0, 0, 0};
 	private double[] gndReserved = {0, 0, 0, 0, 0, 0, 0}; 
 	private StdCellParams stdCell, stdCellP;
 	private CapCell capCell, capCellP;
@@ -2054,7 +2035,7 @@ public class FillGenerator implements Serializable {
         int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
 
         TiledCell t = new TiledCell(stdCell, 6);
-        master = t.makeQTreeCell(master, empty, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell, true);
+        master = t.makeQTreeCell(master, empty, tileOnX, tileOnY, minTileSize, plans, stdCell, topCell, binary);
         return master;
 	}
 
@@ -2115,6 +2096,14 @@ public class FillGenerator implements Serializable {
     public void setDRCSpacing(double spacing) {
         this.drcSpacing = spacing;
     }
+    /**
+     * Set the min distance between wires to avoid DRC violation
+     * @param b
+     */
+    public void setBinaryMode(boolean b) {
+        this.binary = b;
+    }
+
     /** Set target values: the minimum size of title based on user input and DRC rules
      * @param targetW
      * @param targetH
