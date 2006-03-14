@@ -1422,7 +1422,7 @@ class HighlightText extends Highlight2
 
     void getHighlightedNetworks(Set<Network> nets, Netlist netlist)
     {
-        if (varKey == null && eobj instanceof Export)
+        if (/*varKey == null &&*/ eobj instanceof Export)
         {
             Export pp = (Export)eobj;
             int width = netlist.getBusWidth(pp);

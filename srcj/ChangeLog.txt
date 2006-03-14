@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/14/06, GVG) Problem highlighting networks (Bug #871). getHighlightedNetworks returns null if varKey != null.
+FIX: condition removed since that condition doesn't hold after HighlightText and Export changes.
+
 IMP: (3/13/06, GVG) Ability to mark selected cell if you do "Edit in New Window" (Bug #864)
 
 IMP: (3/13/06, RK) NCC: delete initial version of local wire paritioning code.
