@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1280,7 +1281,8 @@ public class EditMenu {
 
         public void mouseReleased(MouseEvent evt)
         {
-            Point2D insert = getInsertPoint(evt);
+            Point2D insert2D = getInsertPoint(evt);
+            EPoint insert = new EPoint(insert2D.getX(), insert2D.getY());
             InsertJogPoint job = new InsertJogPoint(ai, insert, wnd.getHighlighter());
             WindowFrame.setListener(currentListener);
         }
@@ -1321,11 +1323,11 @@ public class EditMenu {
         private static class InsertJogPoint extends Job
         {
             private ArcInst ai;
-            private Point2D insert;
-            private Highlighter highlighter;
+            private EPoint insert;
+            private transient Highlighter highlighter;
             private NodeInst jogPoint;
 
-            protected InsertJogPoint(ArcInst ai, Point2D insert, Highlighter highlighter)
+            protected InsertJogPoint(ArcInst ai, EPoint insert, Highlighter highlighter)
             {
                 super("Insert Jog in Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
                 this.ai = ai;

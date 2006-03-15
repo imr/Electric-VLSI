@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/15/06, SMR) "Insert Jog In Arc" fails (Bug #881).
+FIX: Made Highlight parameter transient, converted Point2D to EPoint.
+
 BUG: (3/15/06, DN) User can't change case of a letter in export/node/arc names (Bug #873).
 FIX: In ImmutableExport/NodeInst/ArcInst comper name.toString() instead of name.
 
