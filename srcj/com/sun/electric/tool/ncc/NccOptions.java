@@ -66,4 +66,7 @@ public class NccOptions implements Serializable {
 	
 	/** Perform a regression test of the net equivalence map. */
 	public boolean checkNetEquivalenceMap = false;
+	
+	/** This is false only for old regressions */
+	public boolean oneNamePerPort = true;
 }
