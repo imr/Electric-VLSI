@@ -119,8 +119,10 @@ public class SubcircuitInfo {
 	public String getPortName(int i) {return shared.portNames[i];}
 	public int getPortIndex(String exportName) {
 		Integer I = (Integer) exportNameToPortIndex.get(exportName);
-		LayoutLib.error(I==null, "Export name not found: "+exportName);
-		return I.intValue();
+		//LayoutLib.error(I==null, "Export name not found: "+exportName);
+		// If oneNamePerPort then SubcircuitInfo saves only one Export
+		// name with Port. If you ask for others then you get -1
+		return I==null ? -1 : I.intValue();
 	}
 	public int[] getPortCoeffs() {return shared.portCoeffs;}
 	/** @return array of PinTypes, one per Port */

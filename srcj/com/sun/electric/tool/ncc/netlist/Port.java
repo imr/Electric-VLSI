@@ -30,8 +30,9 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** An NCC Port holds all the Export names associated with a single NCC
  * Wire. */ 
@@ -59,8 +60,14 @@ public class Port extends NetObject {
 	public Type getNetObjType() {return Type.PORT;}
 	public Iterator<NetObject> getConnected() {return (new ArrayList<NetObject>()).iterator();}
 	
-	public void addExport(String nm, PortCharacteristic type) {
-		names.add(nm);
+	public void addExport(String nm, PortCharacteristic type, boolean oneNamePerPort) {
+		if (oneNamePerPort) {
+			LayoutLib.error(names.size()!=1, "expect exactly one Port name");
+			if (TextUtils.STRING_NUMBER_ORDER.compare(names.get(0), nm)>0)   names.set(0, nm);
+		} else {
+			// compatibility mode only for old regressions
+			names.add(nm);
+		}
 		types.add(type);
 	}
 	/** @return the type of Export. If a Wire has multiple Exports of

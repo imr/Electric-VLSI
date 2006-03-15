@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
-IMP: (3/15/06, RK) NCC: Choose alphabetically first name for a Port (Bugzilla #540)
+IMP: (3/15/06, RK) NCC: Choose alphabetically first name for a Port (Bugzilla #540). Add regressions to test this.
 
 BUG: (3/14/06, GVG) Content of ReplaceTextJob not serializable (Bug #874).
 FIX: Job reorganized. Same task for ReplaceAllTextJob on the way. Side effect: class WhatToSearch converted

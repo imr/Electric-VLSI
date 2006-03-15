@@ -360,11 +360,12 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	
 	private void createPortsFromExports(NccCellInfo rootInfo) {
+		boolean oneNamePerPort = globals.getOptions().oneNamePerPort;
 		HashSet<Port> portSet = new HashSet<Port>();
 		for (Iterator<ExportGlobal> it=rootInfo.getExportsAndGlobals(); it.hasNext();) {
 			ExportGlobal eg = it.next();
 			Wire wire = wires.get(eg.netID, rootInfo);
-			portSet.add(wire.addExport(eg.name, eg.type));
+			portSet.add(wire.addExport(eg.name, eg.type, oneNamePerPort));
 		}
 		
 		for (Port p : portSet) 
@@ -665,7 +666,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			ExportGlobal eg = it.next();
 			Wire wire = wires.get(eg.netID, info);
 			int pinNdx = subcktInfo.getPortIndex(eg.name);
-			addToPins(pins, pinNdx, wire);
+			if (pinNdx!=-1)  addToPins(pins, pinNdx, wire);
 		}
 		for (int i=0; i<pins.length; i++) 
 			globals.error(pins[i]==null, "disconnected subcircuit pins!");

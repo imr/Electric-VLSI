@@ -58,9 +58,9 @@ public class Wire extends NetObject{
 	/** add a Port to this Wire
 	 * @param portName the Port to add
 	 */
-    public Port addExport(String portName, PortCharacteristic type) {
+    public Port addExport(String portName, PortCharacteristic type, boolean oneNamePerPort) {
 		if (port==null)  port = new Port(portName, type, this);
-		else port.addExport(portName, type); 
+		else port.addExport(portName, type, oneNamePerPort); 
 		return port;
     }
     
