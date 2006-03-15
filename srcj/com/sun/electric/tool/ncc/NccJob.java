@@ -143,8 +143,12 @@ public class NccJob extends Job {
 	}
 	
 	// Some day we may run this on server
-    public boolean doIt() throws JobException {
-		if (cellCtxts==null) throw new JobException();
+    public boolean doIt() {
+		if (cellCtxts==null) {
+			// null results means couldn't run NCC
+			results = null;
+			return true;
+		}
 
 		results = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
 				              cellCtxts[1].cell, cellCtxts[1].context, 
@@ -157,6 +161,8 @@ public class NccJob extends Job {
     
     public void terminateOK() {
     	lastResults = results;
+    	if (results==null) return; // NCC couldn't even run
+    	
         nccgui.setMismatches(results.getAllComparisonMismatches(), options);
         NccJob.nccgui.display();
     }
@@ -174,7 +180,7 @@ public class NccJob extends Job {
 	 * views of the current window. 2 means compare the 2 Cells open in 2 
 	 * Windows. */
 	public NccJob(int numWind) {
-		super("Run NCC", NetworkTool.getNetworkTool(), Job.Type.EXAMINE, null, 
+		super("Run NCC", NetworkTool.getNetworkTool(), Job.Type.REMOTE_EXAMINE, null, 
 			  null, Job.Priority.ANALYSIS);
 		
 		// Set up arguments for doIt() method that is run on server

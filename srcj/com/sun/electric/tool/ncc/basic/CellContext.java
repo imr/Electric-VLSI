@@ -23,12 +23,16 @@
  */
 package com.sun.electric.tool.ncc.basic;
 
+import java.io.Serializable;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 
 /** I might not need a CellContext because all the information might be 
  * derivable from the VarContext but I forget. */ 
-public class CellContext {
+public class CellContext implements Serializable {
+	static final long serialVersionUID = 0;
+	
 	public final Cell cell;
 	public final VarContext context;
 	public CellContext(Cell cell, VarContext context) {

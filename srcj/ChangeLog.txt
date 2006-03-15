@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/15/06, RK) NCC: Change NccJob to avoid Bug # 825 and the bugs introduced in an attempt to fix it.
+
 IMP: (3/15/06, RK) NCC: Choose alphabetically first name for a Port (Bugzilla #540). Add regressions to test this.
 
 BUG: (3/14/06, GVG) Content of ReplaceTextJob not serializable (Bug #874).
