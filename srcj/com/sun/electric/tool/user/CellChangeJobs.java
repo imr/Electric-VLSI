@@ -101,22 +101,23 @@ public class CellChangeJobs
 	{
 		private Cell cell;
 		private String newName;
-		private Cell.CellGroup newGroup;
+		private String newGroupCell;
 
-		public RenameCell(Cell cell, String newName, Cell.CellGroup newGroup)
+		public RenameCell(Cell cell, String newName, String newGroupCell)
 		{
 			super("Rename " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
-			this.newGroup = newGroup;
+			this.newGroupCell = newGroupCell;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			cell.rename(newName);
-			if (newGroup != null)
+			if (newGroupCell != null)
 			{
+                Cell.CellGroup newGroup = cell.getLibrary().findNodeProto(newGroupCell).getCellGroup();
 				cell.setCellGroup(newGroup);
 			}
 			return true;
