@@ -226,7 +226,38 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
         int count = -1; // starts from EXPLORER node
         openLibraryInExplorerTree(lib, cell, new TreePath(rootNode), openLib, count);
     }
-    
+
+    /**
+     * Method to count rows to given cell considering possible cell groups and versions.
+     * @param cell
+     * @param treeModel
+     * @param path
+     * @param node
+     * @param count
+     * @return
+     */ 
+    private int countChildrenAndExpandInPath(Cell cell, TreeModel treeModel, TreePath path, Object node, int count)
+    {
+        int numChildren = treeModel.getChildCount(node);
+        for (int i = 0; i < numChildren; i++)
+        {
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode)treeModel.getChild(node, i);
+            count++;
+            Object obj = child.getUserObject();
+
+            if (obj == cell.getCellGroup())
+            {
+                TreePath descentPath = path.pathByAddingChild(child);
+                expandPath(descentPath);
+                return countChildrenAndExpandInPath(cell, treeModel, descentPath, child, count);
+            }
+
+            if (obj == cell)
+                return count; // found location in library
+        }
+        return count;
+    }
+
 	/**
 	 * Method to recursively scan the explorer tree and open the current library or signals list.
      * @param library the library to open
@@ -247,19 +278,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		if (openLib && (obj instanceof Library))
 		{
 			Library lib = (Library)obj;
+            // Only expands library and its node. Doesn't contineu with rest of nodes in Explorer
 			if (lib == library)
             {
                 expandPath(path);
                 // Counting position from library to cell selected
                 if (cell != null)
                 {
-                    for (int i = 0; i < numChildren; i++)
-                    {
-                        DefaultMutableTreeNode child = (DefaultMutableTreeNode)treeModel.getChild(node, i);
-                        count++;
-                        if (child.getUserObject() == cell)
-                            break; // found location in library
-                    }
+                    count = countChildrenAndExpandInPath(cell, treeModel, path, node, count);
                 }
                 setSelectionRow(count);
                 return true; // found location in explorer
