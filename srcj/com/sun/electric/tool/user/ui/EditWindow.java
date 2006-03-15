@@ -39,6 +39,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.TextUtils.WhatToSearch;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -61,9 +62,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
-import com.sun.electric.database.text.TextUtils.WhatToSearch;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.BasicStroke;
@@ -1853,9 +1852,355 @@ public class EditWindow extends JPanel
 
 	// *************************** SEARCHING FOR TEXT ***************************
 
+    /** Information about String search */              private StringSearch textSearch = new StringSearch();
+    private static class StringSearch implements Serializable
+    {
 	/** list of all found strings in the cell */		private List<StringsInCell> foundInCell;
 	/** the currently reported string */				private StringsInCell currentStringInCell;
 	/** the currently reported string index */			private int currentFindPosition;
+
+        private void searchTextNodes(Cell cell, String search, boolean caseSensitive,
+                                     boolean regExp, Set whatToSearch)
+        {
+            boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
+            TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.NODE_NAME);
+            TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.NODE_VAR);
+            for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+            {
+                NodeInst ni = it.next();
+                if (what!=null)
+                {
+                    Name name = ni.getNameKey();
+                    if (doTemp || !name.isTempname())
+                    {
+                        findAllMatches(ni, null, 0, name, name.toString(),
+                                search, caseSensitive, regExp, what);
+                    }
+                }
+                if (whatVar!=null)
+                {
+                    addVariableTextToList(ni, search, caseSensitive,regExp, whatVar);
+                }
+            }
+        }
+
+        private void searchTextArcs(Cell cell, String search, boolean caseSensitive,
+                                    boolean regExp, Set whatToSearch)
+        {
+            boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
+            TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.ARC_NAME);
+            TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.ARC_VAR);
+            for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+            {
+                ArcInst ai = it.next();
+                if (what!=null)
+                {
+                    Name name = ai.getNameKey();
+                    if (doTemp || !name.isTempname())
+                    {
+                        findAllMatches(ai, null, 0, name, name.toString(),
+                                search, caseSensitive, regExp, what);
+                    }
+                }
+                if (whatVar!=null) {
+                    addVariableTextToList(ai, search, caseSensitive, regExp, whatVar);
+                }
+            }
+        }
+
+        private void searchTextExports(Cell cell, String search, boolean caseSensitive,
+                                       boolean regExp, Set whatToSearch)
+        {
+            WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_NAME);
+            TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_VAR);
+            for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
+            {
+                Export pp = it.next();
+                if (what!=null) {
+                    Name name = pp.getNameKey();
+                    findAllMatches(pp, null, 0, null, name.toString(), search, caseSensitive, regExp, what);
+                }
+                if (whatVar!=null) {
+                    addVariableTextToList(pp, search, caseSensitive, regExp, whatVar);
+                }
+            }
+        }
+        private void searchTextCellVars(Cell cell, String search, boolean caseSensitive,
+                                        boolean regExp, Set whatToSearch)
+        {
+            WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.CELL_VAR);
+            if (whatVar!=null) {
+                for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
+                {
+                    Variable var = it.next();
+                    if (!var.isDisplay()) continue;
+                    findAllMatches(null, var, -1, null, var.getPureValue(-1),
+                            search, caseSensitive, regExp, whatVar);
+                }
+            }
+        }
+
+
+        /**
+         * Method to change a string to another.
+         * @param foundInCell list of string to search
+         * @param sic the string being replaced.
+         * @param rep the new string.
+         * @param cell the Cell in which these strings reside.
+         */
+        private static void changeOneText(List<StringsInCell> foundInCell, StringsInCell sic, String rep, Cell cell)
+        {
+            if (sic.replaced) return;
+            sic.replaced = true;
+            String oldString = sic.theLine;
+            String newString;
+            if (sic.regExpSearch!=null) {
+                Pattern p = Pattern.compile(sic.regExpSearch);
+                Matcher m = p.matcher(oldString);
+                boolean found = m.find(sic.startPosition);
+                LayoutLib.error(!found, "regExp find before replace failed");
+                try {
+                    StringBuffer ns = new StringBuffer();
+                    m.appendReplacement(ns, rep);
+                    m.appendTail(ns);
+                    newString = ns.toString();
+                } catch (Exception e) {
+                    System.out.println("Regular expression replace failed");
+                    newString = oldString;
+                }
+            } else {
+                newString = oldString.substring(0, sic.startPosition) + rep + oldString.substring(sic.endPosition);
+            }
+            printChange(sic, newString);
+            if (sic.object == null)
+            {
+                // cell variable name name
+                cell.updateVar(sic.key, newString);
+            } else
+            {
+                if (sic.key == null)
+                {
+//                    if (sic.name == null)
+                    if (sic.object instanceof Export)
+                    {
+                        // export name
+                        Export pp = (Export)sic.object;
+                        pp.rename(newString);
+    //					Undo.redrawObject(pp.getOriginalPort().getNodeInst());
+                    } else if (sic.object instanceof NodeInst)
+                    {
+                        // node name
+                        NodeInst ni = (NodeInst)sic.object;
+                        ni.setName(newString);
+    //					Undo.redrawObject(ni);
+                    } else {
+                        // arc name
+                        ArcInst ai = (ArcInst)sic.object;
+                        ai.setName(newString);
+    //					Undo.redrawObject(ai);
+                    }
+                } else
+                {
+                    // text on a variable
+                    ElectricObject base = (ElectricObject)sic.object;
+                    Variable var = base.getVar(sic.key);
+                    Object obj = var.getObject();
+    //				Variable newVar = null;
+                    if (obj instanceof String)
+                    {
+                        base.updateVar(sic.key, newString);
+                    } else if (obj instanceof String[])
+                    {
+                        String [] oldLines = (String [])obj;
+                        String [] newLines = new String[oldLines.length];
+                        for(int i=0; i<oldLines.length; i++)
+                        {
+                            if (i == sic.lineInVariable) newLines[i] = newString; else
+                                newLines[i] = oldLines[i];
+                        }
+                        base.updateVar(sic.key, newLines);
+                    }
+                }
+            }
+
+            int delta = newString.length() - oldString.length();
+            if (delta != 0)
+            {
+                // because the replacement changes the line length, must update other search strings
+                for(StringsInCell oSIC : foundInCell )
+                {
+                    if (oSIC == sic) continue;
+                    if (oSIC.object != sic.object) continue;
+                    if (oSIC.key != sic.key) continue;
+//                    if (oSIC.name != sic.name) continue;
+                    if (oSIC.lineInVariable != sic.lineInVariable) continue;
+
+                    // part of the same string: update it
+                    oSIC.theLine = newString;
+                    if (oSIC.startPosition > sic.startPosition)
+                    {
+                        oSIC.startPosition += delta;
+                        oSIC.endPosition += delta;
+                    }
+                }
+            }
+        }
+
+        private void replaceAllText(String replace, Cell cell)
+        {
+            int total = 0;
+			for(currentFindPosition = 0; currentFindPosition < foundInCell.size(); currentFindPosition++)
+			{
+				currentStringInCell = foundInCell.get(currentFindPosition);
+				changeOneText(foundInCell, currentStringInCell, replace, cell);
+				total++;
+			}
+			if (total == 0)
+			{
+				Toolkit.getDefaultToolkit().beep();
+			} else
+			{
+				System.out.println("Replaced " + total + " times");
+			}
+        }
+
+        /**
+         * Method to initialize for a new text
+         * @param search the string to locate.
+         * @param caseSensitive true to match only where the case is the same.
+         */
+        public void initTextSearch(Cell cell, String search, boolean caseSensitive,
+                                   boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch)
+        {
+            foundInCell = new ArrayList<StringsInCell>();
+            if (cell==null)
+            {
+                System.out.println("No current Cell");
+                return;
+            }
+            searchTextNodes(cell, search, caseSensitive, regExp, whatToSearch);
+            searchTextArcs(cell, search, caseSensitive, regExp, whatToSearch);
+            searchTextExports(cell, search, caseSensitive, regExp, whatToSearch);
+            searchTextCellVars(cell, search, caseSensitive, regExp, whatToSearch);
+            if (foundInCell.size()==0) System.out.println("Nothing found");
+            currentFindPosition = -1;
+            currentStringInCell = null;
+        }
+
+        /**
+         * Method to find the next occurrence of a string.
+         * @param reverse true to find in the reverse direction.
+         * @return true if something was found.
+         */
+        private boolean findNextText(Cell cell, Highlighter highlighter, boolean reverse)
+        {
+            if (foundInCell == null || foundInCell.size() == 0)
+            {
+                currentStringInCell = null;
+                return false;
+            }
+            if (reverse)
+            {
+                currentFindPosition--;
+                if (currentFindPosition < 0) currentFindPosition = foundInCell.size()-1;
+            } else
+            {
+                currentFindPosition++;
+                if (currentFindPosition >= foundInCell.size()) currentFindPosition = 0;
+            }
+            currentStringInCell = foundInCell.get(currentFindPosition);
+
+            highlighter.clear();
+
+            printFind(currentStringInCell);
+            if (currentStringInCell.object == null)
+            {
+                highlighter.addText(cell, cell, currentStringInCell.key);
+            } else
+            {
+                ElectricObject eObj = (ElectricObject)currentStringInCell.object;
+                Variable.Key key = currentStringInCell.key;
+                if (eObj instanceof Export) key = Export.EXPORT_NAME;
+                highlighter.addText(eObj, cell, key);
+            }
+            highlighter.finished();
+            return true;
+        }
+
+        /**
+         * Method to find all strings on a given database string, and add matches to the list.
+         * @param object the Object on which the string resides.
+         * @param variable the Variable on which the string resides.
+         * @param lineInVariable the line number in arrayed variables.
+         * @param name the name on which the string resides.
+         * @param theLine the actual string from the database.
+         * @param search the string to find.
+         * @param caseSensitive true to do a case-sensitive
+         */
+        protected void findAllMatches(Object object, Variable variable,
+                                   int lineInVariable, Name name,
+                                   String theLine,
+                                   String search, boolean caseSensitive,
+                                   boolean regExp, WhatToSearch what)
+        {
+            int flags =
+                caseSensitive ? 0 : Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
+            Pattern p = regExp ? Pattern.compile(search, flags) : null;
+            Matcher m = regExp ? p.matcher(theLine) : null;
+            for(int startPos = 0; ; )
+            {
+                int endPos;
+                if (regExp) {
+                    boolean found = m.find();
+                    if (!found) break;
+                    startPos = m.start();
+                    endPos = m.end();
+                } else {
+                    startPos = TextUtils.findStringInString(theLine, search, startPos, caseSensitive, false);
+                    if (startPos < 0) break;
+                    endPos = startPos + search.length();
+                }
+                String regExpSearch = regExp ? search : null;
+                Variable.Key key = null;
+                if (variable != null) key = variable.getKey();
+                foundInCell.add(
+                  new StringsInCell(object, key, name, lineInVariable, theLine,
+                                    startPos, endPos, regExpSearch, what));
+                startPos = endPos;
+            }
+        }
+
+        /**
+         * Method to all all displayable variable strings to the list of strings in the Cell.
+         * @param eObj the ElectricObject on which variables should be examined.
+         * @param search the string to find on the text.
+         * @param caseSensitive true to do a case-sensitive
+         */
+        private void addVariableTextToList(ElectricObject eObj,
+                                           String search, boolean caseSensitive,
+                                           boolean regExp, WhatToSearch what)
+        {
+            for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
+            {
+                Variable var = it.next();
+                if (!var.isDisplay()) continue;
+                Object obj = var.getObject();
+                if (obj instanceof String)
+                {
+                    findAllMatches(eObj, var, -1, null, (String)obj,
+                                   search, caseSensitive, regExp, what);
+                } else if (obj instanceof String[])
+                {
+                    String [] strings = (String [])obj;
+                    for(int i=0; i<strings.length; i++)
+                    {
+                        findAllMatches(eObj, var, i, null, strings[i],
+                                       search, caseSensitive, regExp, what);
+                    }
+                }
+            }
+        }
+    }
 
 	/**
 	 * Class to define a string found in a cell.
@@ -1864,7 +2209,7 @@ public class EditWindow extends JPanel
 	{
 		/** the object that the string resides on */	final Object object;
 		/** the Variable that the string resides on */	final Variable.Key key;
-		/** the Name that the string resides on */		final Name name;
+//		/** the Name that the string resides on */		final Name name;
 		/** the original string. */						String theLine;
 		/** the line number in arrayed variables */		final int lineInVariable;
 		/** the starting character position */			int startPosition;
@@ -1879,7 +2224,7 @@ public class EditWindow extends JPanel
 		{
 			this.object = object;
 			this.key = key;
-			this.name = name;
+//			this.name = name;
 			this.lineInVariable = lineInVariable;
 			this.theLine = theLine;
 			this.startPosition = startPosition;
@@ -1890,118 +2235,23 @@ public class EditWindow extends JPanel
 		}
 
 		public String toString() { return "StringsInCell obj="+object+" var="+key+
-			" name="+name+" line="+lineInVariable+" start="+startPosition+" end="+endPosition+" msg="+theLine; }
+			/*" name="+name+*/" line="+lineInVariable+" start="+startPosition+" end="+endPosition+" msg="+theLine; }
 	}
 
-	private TextUtils.WhatToSearch get(Set whatToSearch, TextUtils.WhatToSearch what) {
+	private static TextUtils.WhatToSearch get(Set whatToSearch, TextUtils.WhatToSearch what) {
 		if (whatToSearch.contains(what)) return what;
 		return null;
 	}
 
-	private void searchTextNodes(String search, boolean caseSensitive,
-		                         boolean regExp, Set whatToSearch) {
-		boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
-		TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.NODE_NAME);
-		TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.NODE_VAR);
-		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			if (what!=null) 
-			{
-				Name name = ni.getNameKey();
-				if (doTemp || !name.isTempname()) 
-				{
-					findAllMatches(ni, null, 0, name, name.toString(), 
-								   foundInCell, search, caseSensitive, 
-								   regExp, what);
-				}
-			}
-			if (whatVar!=null) 
-			{
-				addVariableTextToList(ni, foundInCell, search, caseSensitive, 
-									  regExp, whatVar);
-			}
-		}
-    }
-
-	private void searchTextArcs(String search, boolean caseSensitive,
-							    boolean regExp, Set whatToSearch) {
-		boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
-		TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.ARC_NAME);
-		TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.ARC_VAR);
-		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = it.next();
-			if (what!=null) 
-			{
-				Name name = ai.getNameKey();
-				if (doTemp || !name.isTempname())
-				{
-					findAllMatches(ai, null, 0, name, name.toString(), 
-								   foundInCell, search, caseSensitive, 
-								   regExp, what);
-				}
-			}
-			if (whatVar!=null) {
-				addVariableTextToList(ai, foundInCell, search, caseSensitive, 
-									  regExp, whatVar);
-			}
-		}
-	}
-
-	private void searchTextExports(String search, boolean caseSensitive,
-								   boolean regExp, Set whatToSearch) {
-		WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_NAME);
-		TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_VAR);
-		for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
-		{
-			Export pp = it.next();
-			if (what!=null) {
-				Name name = pp.getNameKey();
-				findAllMatches(pp, null, 0, null, name.toString(), foundInCell, 
-							   search, caseSensitive, regExp, what);
-			}
-			if (whatVar!=null) {
-				addVariableTextToList(pp, foundInCell, search, caseSensitive, 
-									  regExp, whatVar);
-			}
-		}
-	}
-	private void searchTextCellVars(String search, boolean caseSensitive,
-									boolean regExp, Set whatToSearch) {
-		WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.CELL_VAR);
-		if (whatVar!=null) {
-			for(Iterator<Variable> it = cell.getVariables(); it.hasNext(); )
-			{
-				Variable var = it.next();
-				if (!var.isDisplay()) continue;
-				findAllMatches(null, var, -1, null, var.getPureValue(-1), 
-							   foundInCell, search, caseSensitive, regExp, 
-							   whatVar);
-			}
-		}
-	}
 	/**
-	 * Method to initialize for a new text search.
+	 * Method to initialize for a new text
 	 * @param search the string to locate.
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
 	public void initTextSearch(String search, boolean caseSensitive,
 	                           boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch)
 	{
-		foundInCell = new ArrayList<StringsInCell>();
-		if (cell==null) 
-		{
-			System.out.println("No current Cell");
-			return;
-		}
-		searchTextNodes(search, caseSensitive, regExp, whatToSearch); 
-		searchTextArcs(search, caseSensitive, regExp, whatToSearch); 
-		searchTextExports(search, caseSensitive, regExp, whatToSearch);
-		searchTextCellVars(search, caseSensitive, regExp, whatToSearch);
-		if (foundInCell.size()==0) System.out.println("Nothing found");
-		currentFindPosition = -1;
-		currentStringInCell = null;
+        textSearch.initTextSearch(cell, search, caseSensitive, regExp, whatToSearch);
 	}
 
 	private static String repeatChar(char c, int num) {
@@ -2010,7 +2260,7 @@ public class EditWindow extends JPanel
 		return sb.toString(); 
 	}
 
-	private void printFind(StringsInCell sic) {
+	private static void printFind(StringsInCell sic) {
 		String foundHdr = "Found  "+sic.what+": ";
 		String foundStr = sic.theLine;
 		String highlightHdr = repeatChar(' ', foundHdr.length()+sic.startPosition);
@@ -2027,37 +2277,7 @@ public class EditWindow extends JPanel
 	 */
 	public boolean findNextText(boolean reverse)
 	{
-		if (foundInCell == null || foundInCell.size() == 0)
-		{
-			currentStringInCell = null;
-			return false;
-		}
-		if (reverse)
-		{
-			currentFindPosition--;
-			if (currentFindPosition < 0) currentFindPosition = foundInCell.size()-1;
-		} else
-		{
-			currentFindPosition++;
-			if (currentFindPosition >= foundInCell.size()) currentFindPosition = 0;
-		}
-		currentStringInCell = foundInCell.get(currentFindPosition);
-
-		highlighter.clear();
-
-		printFind(currentStringInCell);
-		if (currentStringInCell.object == null)
-		{
-			highlighter.addText(cell, cell, currentStringInCell.key);
-		} else
-		{
-			ElectricObject eObj = (ElectricObject)currentStringInCell.object;
-			Variable.Key key = currentStringInCell.key;
-			if (eObj instanceof Export) key = Export.EXPORT_NAME;
-			highlighter.addText(eObj, cell, key);
-		}
-		highlighter.finished();
-		return true;	
+        return textSearch.findNextText(cell, highlighter, reverse);
 	}
 
 	/**
@@ -2066,7 +2286,7 @@ public class EditWindow extends JPanel
 	 */
 	public void replaceText(String replace)
 	{
-		if (currentStringInCell == null) return;
+		if (textSearch.currentStringInCell == null) return;
 		ReplaceTextJob job = new ReplaceTextJob(this, replace);
 	}
 
@@ -2079,97 +2299,19 @@ public class EditWindow extends JPanel
 		ReplaceAllTextJob job = new ReplaceAllTextJob(this, replace);
 	}
 
-	/**
-	 * Method to all all displayable variable strings to the list of strings in the Cell.
-	 * @param eObj the ElectricObject on which variables should be examined.
-	 * @param foundInCell the list of strings found in the cell.
-	 * @param search the string to find on the text.
-	 * @param caseSensitive true to do a case-sensitive search.
-	 */
-	private void addVariableTextToList(ElectricObject eObj, List<StringsInCell> foundInCell, 
-	                                   String search, boolean caseSensitive,
-	                                   boolean regExp, WhatToSearch what)
-	{
-		for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
-		{
-			Variable var = it.next();
-			if (!var.isDisplay()) continue;
-			Object obj = var.getObject();
-			if (obj instanceof String)
-			{
-				findAllMatches(eObj, var, -1, null, (String)obj, foundInCell, 
-				               search, caseSensitive, regExp, what);
-			} else if (obj instanceof String[])
-			{
-				String [] strings = (String [])obj;
-				for(int i=0; i<strings.length; i++)
-				{
-					findAllMatches(eObj, var, i, null, strings[i], foundInCell, 
-					               search, caseSensitive, regExp, what);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Method to find all strings on a given database string, and add matches to the list.
-	 * @param object the Object on which the string resides.
-	 * @param variable the Variable on which the string resides.
-	 * @param lineInVariable the line number in arrayed variables.
-	 * @param name the name on which the string resides.
-	 * @param theLine the actual string from the database.
-	 * @param foundInCell the list of found strings.
-	 * @param search the string to find.
-	 * @param caseSensitive true to do a case-sensitive search.
-	 */
-	private static void findAllMatches(Object object, Variable variable, 
-	                                   int lineInVariable, Name name, 
-	                                   String theLine, List<StringsInCell> foundInCell,
-		                               String search, boolean caseSensitive,
-		                               boolean regExp, WhatToSearch what)
-	{
-		int flags = 
-			caseSensitive ? 0 : Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
-		Pattern p = regExp ? Pattern.compile(search, flags) : null;
-		Matcher m = regExp ? p.matcher(theLine) : null;
-		for(int startPos = 0; ; )
-		{
-			int endPos;
-			if (regExp) {
-				boolean found = m.find();
-				if (!found) break;
-				startPos = m.start();
-				endPos = m.end();
-			} else {
-				startPos = TextUtils.findStringInString(theLine, search, startPos, caseSensitive, false);
-				if (startPos < 0) break;
-				endPos = startPos + search.length();
-			}
-			String regExpSearch = regExp ? search : null;
-			Variable.Key key = null;
-			if (variable != null) key = variable.getKey();
-			foundInCell.add(
-			  new StringsInCell(object, key, name, lineInVariable, theLine,
-			                    startPos, endPos, regExpSearch, what));
-			startPos = endPos;
-		}
-	}
-
-	/**
+    /**
 	 * Class to change text in a new thread.
 	 */
 	private static class ReplaceTextJob extends Job
 	{
 		private String replace;
         private Cell cell;
-        private List<StringsInCell> foundInCell;
-        private StringsInCell currentStringInCell;
+		private StringSearch search;
 
 		private ReplaceTextJob(EditWindow wnd, String replace)
 		{
 			super("Replace Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.foundInCell = wnd.foundInCell;
-            this.currentStringInCell = wnd.currentStringInCell;
+			this.search = wnd.textSearch;
             this.cell = wnd.cell;
 			this.replace = replace;
 			startJob();
@@ -2177,8 +2319,9 @@ public class EditWindow extends JPanel
 
 		public boolean doIt() throws JobException
 		{
-			changeOneText(foundInCell, currentStringInCell, replace, cell);
-			return true;
+			StringSearch.changeOneText(search.foundInCell, search.currentStringInCell, replace, cell);
+            fieldVariableChanged("search");
+            return true;
 		}
 	}
 
@@ -2187,33 +2330,23 @@ public class EditWindow extends JPanel
 	 */
 	private static class ReplaceAllTextJob extends Job
 	{
-		private EditWindow wnd;
+		private StringSearch search;
 		private String replace;
+        private Cell cell;
 
 		public ReplaceAllTextJob(EditWindow wnd, String replace)
 		{
 			super("Replace All Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.wnd = wnd;
+			this.search = wnd.textSearch;
 			this.replace = replace;
+            this.cell = wnd.cell;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			int total = 0;
-			for(wnd.currentFindPosition = 0; wnd.currentFindPosition < wnd.foundInCell.size(); wnd.currentFindPosition++)
-			{
-				wnd.currentStringInCell = wnd.foundInCell.get(wnd.currentFindPosition);
-				changeOneText(wnd.foundInCell, wnd.currentStringInCell, replace, wnd.cell);
-				total++;
-			}
-			if (total == 0)
-			{
-				Toolkit.getDefaultToolkit().beep();
-			} else
-			{
-				System.out.println("Replaced " + total + " times");
-			}
+            search.replaceAllText(replace, cell);
+            fieldVariableChanged("search");
 			return true;
 		}
 	}
@@ -2228,110 +2361,6 @@ public class EditWindow extends JPanel
 		String highlightStr = repeatChar('^', sic.endPosition-sic.startPosition); 
 		System.out.println(foundHdr+foundStr+replaceHdr+replaceStr+"\n"+
 		                   highlightHdr+highlightStr);
-	}
-
-	/**
-	 * Method to change a string to another.
-     * @param foundInCell list of string to search
-	 * @param sic the string being replaced.
-	 * @param rep the new string.
-	 * @param cell the Cell in which these strings reside.
-	 */
-	private static void changeOneText(List<StringsInCell> foundInCell, StringsInCell sic, String rep, Cell cell)
-	{
-		if (sic.replaced) return;
-		sic.replaced = true;
-		String oldString = sic.theLine;
-		String newString;
-		if (sic.regExpSearch!=null) {
-			Pattern p = Pattern.compile(sic.regExpSearch);
-			Matcher m = p.matcher(oldString);
-			boolean found = m.find(sic.startPosition);
-			LayoutLib.error(!found, "regExp find before replace failed");
-			try {
-				StringBuffer ns = new StringBuffer();
-				m.appendReplacement(ns, rep);
-				m.appendTail(ns);
-				newString = ns.toString();
-			} catch (Exception e) {
-				System.out.println("Regular expression replace failed");
-				newString = oldString;
-			}
-		} else {
-			newString = oldString.substring(0, sic.startPosition) + rep + oldString.substring(sic.endPosition);
-		}
-		printChange(sic, newString);
-		if (sic.object == null)
-		{
-			// cell variable name name
-			cell.updateVar(sic.key, newString);
-		} else
-		{
-			if (sic.key == null)
-			{
-				if (sic.name == null)
-				{
-					// export name
-					Export pp = (Export)sic.object;
-					pp.rename(newString);
-//					Undo.redrawObject(pp.getOriginalPort().getNodeInst());				
-				} else if (sic.object instanceof NodeInst)
-				{
-					// node name
-					NodeInst ni = (NodeInst)sic.object;
-					ni.setName(newString);
-//					Undo.redrawObject(ni);				
-				} else {
-					// arc name
-					ArcInst ai = (ArcInst)sic.object;
-					ai.setName(newString);
-//					Undo.redrawObject(ai);				
-                }
-			} else
-			{
-				// text on a variable
-				ElectricObject base = (ElectricObject)sic.object;
-				Variable var = base.getVar(sic.key);
-				Object obj = var.getObject();
-//				Variable newVar = null;
-				if (obj instanceof String)
-				{
-					base.updateVar(sic.key, newString);
-				} else if (obj instanceof String[])
-				{
-					String [] oldLines = (String [])obj;
-					String [] newLines = new String[oldLines.length];
-					for(int i=0; i<oldLines.length; i++)
-					{
-						if (i == sic.lineInVariable) newLines[i] = newString; else
-							newLines[i] = oldLines[i];
-					}
-					base.updateVar(sic.key, newLines);
-				}
-			}
-		}
-
-		int delta = newString.length() - oldString.length();
-		if (delta != 0)
-		{
-			// because the replacement changes the line length, must update other search strings
-			for(StringsInCell oSIC : foundInCell )
-			{
-				if (oSIC == sic) continue;
-				if (oSIC.object != sic.object) continue;
-				if (oSIC.key != sic.key) continue;
-				if (oSIC.name != sic.name) continue;
-				if (oSIC.lineInVariable != sic.lineInVariable) continue;
-
-				// part of the same string: update it
-				oSIC.theLine = newString;
-				if (oSIC.startPosition > sic.startPosition)
-				{
-					oSIC.startPosition += delta;
-					oSIC.endPosition += delta;
-				}
-			}
-		}
 	}
 
     // ************************************* POPUP CLOUD *************************************
