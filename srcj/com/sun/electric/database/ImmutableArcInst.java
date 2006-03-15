@@ -26,6 +26,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -194,7 +195,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	/** prefix for autonameing. */                          public static final Name BASENAME = Name.findName("net@0");
 
     public final static ImmutableArcInst[] NULL_ARRAY = {};
-
+    public final static ImmutableArrayList<ImmutableArcInst> EMPTY_LIST = new ImmutableArrayList<ImmutableArcInst>(NULL_ARRAY);
+    
     /** id of this ArcInst in parent. */                            public final int arcId;
 	/** Arc prototype. */                                           public final ArcProto protoType;
 	/** name of this ImmutableArcInst. */							public final Name name;

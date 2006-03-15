@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.ImmutableArrayList;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -43,16 +44,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Snapshot {
     private static final AtomicInteger snapshotCount = new AtomicInteger();
-    public static final Snapshot EMPTY = new Snapshot(0, CellBackup.NULL_ARRAY, new int[0], ERectangle.NULL_ARRAY, LibraryBackup.NULL_ARRAY);
+    public static final Snapshot EMPTY = new Snapshot(0, CellBackup.EMPTY_LIST, new int[0], ERectangle.EMPTY_LIST, LibraryBackup.EMPTY_LIST);
     
     public final int snapshotId;
-    public final CellBackup[] cellBackups;
+    public final ImmutableArrayList<CellBackup> cellBackups;
     public final int[] cellGroups;
-    public final ERectangle[] cellBounds;
-    public final LibraryBackup[] libBackups;
+    public final ImmutableArrayList<ERectangle> cellBounds;
+    public final ImmutableArrayList<LibraryBackup> libBackups;
 
     /** Creates a new instance of Snapshot */
-    private Snapshot(int snapshotId, CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
+    private Snapshot(int snapshotId,
+            ImmutableArrayList<CellBackup> cellBackups,
+            int[] cellGroups,
+            ImmutableArrayList<ERectangle> cellBounds,
+            ImmutableArrayList<LibraryBackup> libBackups) {
         this.snapshotId = snapshotId;
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
@@ -63,28 +68,28 @@ public class Snapshot {
     /**
      * Creates a new instance of Snapshot which differs from this Snapshot.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
-     * @param cellBackups array indexed by cellIndex of new CellBackups.
+     * @param cellBackups list indexed by cellIndex of new CellBackups.
      * @param cellGroups array indexed by cellIndex of cellGroups numbers.
-     * @param cellBounds array indexed by cellIndex of cell bounds.
-     * @param libBackups array index by cellIndex of LibraryBackups.
+     * @param cellBounds list indexed by cellIndex of cell bounds.
+     * @param libBackups list indexed by cellIndex of LibraryBackups.
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public Snapshot with(CellBackup[] cellBackups, int[] cellGroups, ERectangle[] cellBounds, LibraryBackup[] libBackups) {
+    public Snapshot with(CellBackup[] cellBackupsArray, int[] cellGroups, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
-        cellBackups = copyArray(cellBackups, this.cellBackups);
+        ImmutableArrayList<CellBackup> cellBackups = copyArray(cellBackupsArray, this.cellBackups);
         cellGroups = copyArray(cellGroups, this.cellGroups);
-        cellBounds = copyArray(cellBounds, this.cellBounds);
-        libBackups = copyArray(libBackups, this.libBackups);
-        boolean namesChanged = this.cellGroups != cellGroups || this.libBackups != libBackups || this.cellBackups.length != cellBackups.length;
+        ImmutableArrayList<ERectangle> cellBounds = copyArray(cellBoundsArray, this.cellBounds);
+        ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
+        boolean namesChanged = this.cellGroups != cellGroups || this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
         if (!namesChanged && this.cellBackups == cellBackups && this.cellBounds == cellBounds)
             return this;
         
         // Gather changes
         HashSet<CellUsage> checkUsages = new HashSet<CellUsage>();
-        for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
-            CellBackup newBackup = cellBackups[cellIndex];
+        for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
+            CellBackup newBackup = cellBackups.get(cellIndex);
             CellBackup oldBackup = getCell(cellIndex);
             if (newBackup == oldBackup) continue;
             if (newBackup == null) {
@@ -106,8 +111,8 @@ public class Snapshot {
                 for (int i = 0, numUsages = cellId.numUsagesOf(); i < numUsages; i++) {
                     CellUsage u = cellId.getUsageOf(i);
                     int protoCellIndex = u.protoId.cellIndex;
-                    if (protoCellIndex < cellBackups.length) continue;
-                    CellBackup protoBackup = cellBackups[protoCellIndex];
+                    if (protoCellIndex >= cellBackups.size()) continue;
+                    CellBackup protoBackup = cellBackups.get(protoCellIndex);
                     if (protoBackup == null) continue;
                     if (u.indexInParent < protoBackup.exportUsages.length && protoBackup.exportUsages[u.indexInParent] != null)
                         checkUsages.add(u);
@@ -117,8 +122,8 @@ public class Snapshot {
         
         // Check usages
         for (CellUsage u: checkUsages) {
-            CellBackup parentBackup = cellBackups[u.parentId.cellIndex];
-            CellBackup protoBackup = cellBackups[u.protoId.cellIndex];
+            CellBackup parentBackup = cellBackups.get(u.parentId.cellIndex);
+            CellBackup protoBackup = cellBackups.get(u.protoId.cellIndex);
             BitSet bs = (BitSet)parentBackup.exportUsages[u.indexInParent].clone();
             bs.andNot(protoBackup.definedExports);
             if (!bs.isEmpty())
@@ -135,20 +140,16 @@ public class Snapshot {
         return snapshot;
     }
     
-    private static <T> T[] copyArray(T[] newArray, T[] oldArray) {
-        if (newArray == null) return oldArray;
+    private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
+        if (newArray == null) return oldList;
         int l;
         for (l = newArray.length; l > 0 && newArray[l - 1] == null; l--);
-        if (l == oldArray.length) {
+        if (l == oldList.size()) {
             int i = 0;
-            while (i < oldArray.length && newArray[i] == oldArray[i]) i++;
-            if (i == l) return oldArray;
+            while (i < oldList.size() && newArray[i] == oldList.get(i)) i++;
+            if (i == l) return oldList;
         }
-        T[] copyArray = (T[])Array.newInstance(oldArray.getClass().getComponentType(), l);
-        System.arraycopy(newArray, 0, copyArray, 0, l);
-        if (l > 0 && copyArray[l - 1] == null)
-            throw new ConcurrentModificationException();
-        return copyArray;
+        return new ImmutableArrayList<T>(newArray, 0, l);
     }
     
     private static int[] copyArray(int[] newArray, int[] oldArray) {
@@ -171,7 +172,7 @@ public class Snapshot {
         if (oldSnapshot == null) oldSnapshot = Snapshot.EMPTY;
         List<LibId> changed = null;
         if (oldSnapshot.libBackups != libBackups) {
-            int numLibs = Math.max(oldSnapshot.libBackups.length, libBackups.length);
+            int numLibs = Math.max(oldSnapshot.libBackups.size(), libBackups.size());
             for (int i = 0; i < numLibs; i++) {
                 LibraryBackup oldBackup = oldSnapshot.getLib(i);
                 LibraryBackup newBackup = getLib(i);
@@ -187,7 +188,7 @@ public class Snapshot {
     public List<CellId> getChangedCells(Snapshot oldSnapshot) {
         if (oldSnapshot == null) oldSnapshot = Snapshot.EMPTY;
         List<CellId> changed = null;
-        int numCells = Math.max(oldSnapshot.cellBackups.length, cellBackups.length);
+        int numCells = Math.max(oldSnapshot.cellBackups.size(), cellBackups.size());
         for (int i = 0; i < numCells; i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = getCell(i);
@@ -199,38 +200,29 @@ public class Snapshot {
         return changed;
     }
     
-    public CellBackup getCell(CellId cellId) {
-        int cellIndex = cellId.cellIndex;
-        return cellIndex < cellBackups.length ? cellBackups[cellIndex] : null; 
-    }
+    public CellBackup getCell(CellId cellId) { return getCell(cellId.cellIndex); }
     
     public CellBackup getCell(int cellIndex) {
-        return cellIndex < cellBackups.length ? cellBackups[cellIndex] : null; 
+        return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null; 
     }
     
-    public ERectangle getCellBounds(CellId cellId) {
-        int cellIndex = cellId.cellIndex;
-        return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null; 
-    }
+    public ERectangle getCellBounds(CellId cellId) { return getCellBounds(cellId.cellIndex); }
     
     public ERectangle getCellBounds(int cellIndex) {
-        return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null; 
+        return cellIndex < cellBounds.size() ? cellBounds.get(cellIndex) : null; 
     }
     
-    public LibraryBackup getLib(LibId libId) {
-        int libIndex = libId.libIndex;
-        return libIndex < libBackups.length ? libBackups[libIndex] : null; 
-    }
+    public LibraryBackup getLib(LibId libId) { return getLib(libId.libIndex); }
     
     private LibraryBackup getLib(int libIndex) {
-        return libIndex < libBackups.length ? libBackups[libIndex] : null; 
+        return libIndex < libBackups.size() ? libBackups.get(libIndex) : null; 
     }
     
     private boolean equals(Snapshot that) {
-        return Arrays.equals(this.cellBackups, that.cellBackups) &&
-                Arrays.equals(this.libBackups, that.libBackups) &&
+        return this.cellBackups.equals(that.cellBackups) &&
+                this.libBackups.equals(that.libBackups) &&
                 Arrays.equals(this.cellGroups, that.cellGroups) &&
-                Arrays.equals(this.cellBounds, that.cellBounds);
+                this.cellBounds.equals(that.cellBounds);
     }
     
     public void writeDiffs(SnapshotWriter writer, Snapshot oldSnapshot) throws IOException {
@@ -238,8 +230,8 @@ public class Snapshot {
         boolean libsChanged = oldSnapshot.libBackups != libBackups;
         writer.out.writeBoolean(libsChanged);
         if (libsChanged) {
-            writer.out.writeInt(libBackups.length);
-            for (int i = 0; i < libBackups.length; i++) {
+            writer.out.writeInt(libBackups.size());
+            for (int i = 0; i < libBackups.size(); i++) {
                 LibraryBackup oldBackup = oldSnapshot.getLib(i);
                 LibraryBackup newBackup = getLib(i);
                 if (oldBackup == newBackup) continue;
@@ -256,10 +248,10 @@ public class Snapshot {
             writer.out.writeInt(Integer.MAX_VALUE);
         }
 
-        writer.out.writeInt(cellBackups.length);
+        writer.out.writeInt(cellBackups.size());
         boolean boundsChanged = oldSnapshot.cellBounds != cellBounds;
         writer.out.writeBoolean(boundsChanged);
-        for (int i = 0; i < cellBackups.length; i++) {
+        for (int i = 0; i < cellBackups.size(); i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = getCell(i);
             if (oldBackup == newBackup) continue;
@@ -276,7 +268,7 @@ public class Snapshot {
         writer.out.writeInt(Integer.MAX_VALUE);
         
         if (boundsChanged) {
-            for (int i = 0; i < cellBackups.length; i++) {
+            for (int i = 0; i < cellBackups.size(); i++) {
                 CellBackup newBackup = getCell(i);
                 if (newBackup == null) continue;
                 ERectangle oldBounds = oldSnapshot.getCellBounds(i);
@@ -304,50 +296,57 @@ public class Snapshot {
     
     public static Snapshot readSnapshot(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
         int snapshotId = reader.in.readInt();
-        LibraryBackup[] libBackups = oldSnapshot.libBackups;
+        ImmutableArrayList<LibraryBackup> libBackups = oldSnapshot.libBackups;
         boolean libsChanged = reader.in.readBoolean();
         if (libsChanged) {
             int libLen = reader.in.readInt();
-            libBackups = new LibraryBackup[libLen];
-            System.arraycopy(oldSnapshot.libBackups, 0, libBackups, 0, Math.min(oldSnapshot.libBackups.length, libLen));
+            LibraryBackup[] libBackupsArray = new LibraryBackup[libLen];
+            for (int libIndex = 0, numLibs = Math.min(oldSnapshot.libBackups.size(), libLen); libIndex < numLibs; libIndex++)
+                libBackupsArray[libIndex] = oldSnapshot.libBackups.get(libIndex);
             for (;;) {
                 int libIndex = reader.in.readInt();
                 if (libIndex == Integer.MAX_VALUE) break;
                 if (libIndex >= 0) {
                     LibraryBackup newBackup = LibraryBackup.read(reader);
-                    libBackups[libIndex] = newBackup;
+                    libBackupsArray[libIndex] = newBackup;
                 } else {
                     libIndex = ~libIndex;
-                    assert libBackups[libIndex] != null;
-                    libBackups[libIndex] = null;
+                    assert libBackupsArray[libIndex] != null;
+                    libBackupsArray[libIndex] = null;
                 }
             }
+            libBackups = new ImmutableArrayList<LibraryBackup>(libBackupsArray);
         }
 
         int cellLen = reader.in.readInt();
-        CellBackup[] cellBackups = new CellBackup[cellLen];
-        System.arraycopy(oldSnapshot.cellBackups, 0, cellBackups, 0, Math.min(oldSnapshot.cellBackups.length, cellLen));
+        int cellMax = Math.min(oldSnapshot.cellBackups.size(), cellLen);
+        CellBackup[] cellBackupsArray = new CellBackup[cellLen];
+        for (int cellIndex = 0; cellIndex < cellMax; cellIndex++)
+            cellBackupsArray[cellIndex] = oldSnapshot.cellBackups.get(cellIndex);
         boolean boundsChanged = reader.in.readBoolean();
-        ERectangle[] cellBounds = oldSnapshot.cellBounds;
+        ImmutableArrayList<ERectangle> cellBounds = oldSnapshot.cellBounds;
+        ERectangle[] cellBoundsArray = null;
         if (boundsChanged) {
-            cellBounds = new ERectangle[cellLen];
-            System.arraycopy(oldSnapshot.cellBounds, 0, cellBounds, 0, Math.min(oldSnapshot.cellBounds.length, cellLen));
+            cellBoundsArray = new ERectangle[cellLen];
+            for (int cellIndex = 0, numCells = Math.min(oldSnapshot.cellBounds.size(), cellLen); cellIndex < numCells; cellIndex++)
+                cellBoundsArray[cellIndex] = oldSnapshot.cellBounds.get(cellIndex);
         }
         for (;;) {
             int cellIndex = reader.in.readInt();
             if (cellIndex == Integer.MAX_VALUE) break;
             if (cellIndex >= 0) {
                 CellBackup newBackup = CellBackup.read(reader);
-                cellBackups[cellIndex] = newBackup;
+                cellBackupsArray[cellIndex] = newBackup;
             } else {
                 cellIndex = ~cellIndex;
-                assert cellBackups[cellIndex] != null;
-                cellBackups[cellIndex] = null;
+                assert cellBackupsArray[cellIndex] != null;
+                cellBackupsArray[cellIndex] = null;
                 assert boundsChanged;
-                assert cellBounds[cellIndex] != null;
-                cellBounds[cellIndex] = null;
+                assert cellBoundsArray[cellIndex] != null;
+                cellBoundsArray[cellIndex] = null;
             }
         }
+        ImmutableArrayList<CellBackup> cellBackups = new ImmutableArrayList<CellBackup>(cellBackupsArray);
         
         if (boundsChanged) {
             for (;;) {
@@ -358,8 +357,9 @@ public class Snapshot {
                 double width = reader.in.readDouble();
                 double height = reader.in.readDouble();
                 ERectangle newBounds = new ERectangle(x, y, width, height);
-                cellBounds[cellIndex] = newBounds;
+                cellBoundsArray[cellIndex] = newBounds;
             }
+            cellBounds = new ImmutableArrayList<ERectangle>(cellBoundsArray);
         }
         
         int[] cellGroups = oldSnapshot.cellGroups;;
@@ -370,9 +370,9 @@ public class Snapshot {
             for (int i = 0; i < cellGroups.length; i++)
                 cellGroups[i] = reader.in.readInt();
         }
-        for (int i = 0; i < cellBackups.length; i++) {
-            assert (cellBackups[i] != null) == (cellBounds[i] != null);
-            assert (cellBackups[i] != null) == (cellGroups[i] >= 0);
+        for (int i = 0; i < cellBackups.size(); i++) {
+            assert (cellBackups.get(i) != null) == (cellBounds.get(i) != null);
+            assert (cellBackups.get(i) != null) == (cellGroups[i] >= 0);
         }
         return new Snapshot(snapshotId, cellBackups, cellGroups, cellBounds, libBackups);
     }
@@ -392,29 +392,29 @@ public class Snapshot {
         for (CellBackup cellBackup: cellBackups) {
             if (cellBackup != null) cellBackup.check();
         }
-        if (libBackups.length > 0)
-            assert libBackups[libBackups.length - 1] != null;
-        if (cellBackups.length > 0)
-            assert cellBackups[cellBackups.length - 1] != null;
+        if (libBackups.size() > 0)
+            assert libBackups.get(libBackups.size() - 1) != null;
+        if (cellBackups.size() > 0)
+            assert cellBackups.get(cellBackups.size() - 1) != null;
         checkNames(cellBackups, cellGroups, libBackups);
-        assert cellBackups.length == cellBounds.length;
-        for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
-            CellBackup cellBackup = cellBackups[cellIndex];
+        assert cellBackups.size() == cellBounds.size();
+        for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
+            CellBackup cellBackup = cellBackups.get(cellIndex);
             if (cellBackup == null) {
-                assert cellBounds[cellIndex] == null;
+                assert cellBounds.get(cellIndex) == null;
                 continue;
             }
-            assert cellBounds[cellIndex] != null;
+            assert cellBounds.get(cellIndex) != null;
             CellId cellId = cellBackup.d.cellId;
             for (int i = 0; i < cellBackup.cellUsages.length; i++) {
                 if (cellBackup.cellUsages[i] == 0) continue;
                 CellUsage u = cellId.getUsageIn(i);
                 int subCellIndex = u.protoId.cellIndex;
-                assert cellBackups[subCellIndex] != null;
+                assert cellBackups.get(subCellIndex) != null;
                 BitSet exportUsage = cellBackup.exportUsages[i];
                 if (exportUsage != null) {
                     BitSet bs = (BitSet)exportUsage.clone();
-                    bs.andNot(cellBackups[subCellIndex].definedExports);
+                    bs.andNot(cellBackups.get(subCellIndex).definedExports);
                     assert bs.isEmpty();
                 }
             }
@@ -428,12 +428,12 @@ public class Snapshot {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    private static void checkNames(CellBackup[] cellBackups, int[] cellGroups, LibraryBackup[] libBackups) {
+    private static void checkNames(ImmutableArrayList<CellBackup> cellBackups, int[] cellGroups, ImmutableArrayList<LibraryBackup> libBackups) {
         HashSet<String> libNames = new HashSet<String>();
         ArrayList<HashMap<String,Integer>> protoNameToGroup = new ArrayList<HashMap<String,Integer>>();
         ArrayList<HashSet<CellName>> cellNames = new ArrayList<HashSet<CellName>>();
-        for (int libIndex = 0; libIndex < libBackups.length; libIndex++) {
-            LibraryBackup libBackup = libBackups[libIndex];
+        for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
+            LibraryBackup libBackup = libBackups.get(libIndex);
             if (libBackup == null) {
                 protoNameToGroup.add(null);
                 cellNames.add(null);
@@ -447,18 +447,18 @@ public class Snapshot {
             if (!libNames.add(libName))
                 throw new IllegalArgumentException("duplicate libName");
             for (LibId libId: libBackup.referencedLibs) {
-                if (libId != libBackups[libId.libIndex].d.libId)
+                if (libId != libBackups.get(libId.libIndex).d.libId)
                     throw new IllegalArgumentException("LibId in referencedLibs");
             }
         }
-        assert protoNameToGroup.size() == libBackups.length && cellNames.size() == libBackups.length;
+        assert protoNameToGroup.size() == libBackups.size() && cellNames.size() == libBackups.size();
         
-        if (cellBackups.length != cellGroups.length)
+        if (cellBackups.size() != cellGroups.length)
             throw new IllegalArgumentException("cellGroups.length");
         ArrayList<LibId> groupLibs = new ArrayList<LibId>();
         BitSet mainSchematicsFoundInGroup = new BitSet();
-        for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
-            CellBackup cellBackup = cellBackups[cellIndex];
+        for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
+            CellBackup cellBackup = cellBackups.get(cellIndex);
             if (cellBackup == null) {
                 if (cellGroups[cellIndex] != -1)
                     throw new IllegalArgumentException("cellGroups");
@@ -470,7 +470,7 @@ public class Snapshot {
                 throw new IllegalArgumentException("CellId");
             LibId libId = d.libId;
             int libIndex = libId.libIndex;
-            if (libId != libBackups[libIndex].d.libId)
+            if (libId != libBackups.get(libIndex).d.libId)
                 throw new IllegalArgumentException("LibId in ImmutableCell");
             int cellGroup = cellGroups[cellIndex];
             if (cellGroup == groupLibs.size())

@@ -369,7 +369,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private static final int[] NULL_INT_ARRAY = {};
 	private static final Export[] NULL_EXPORT_ARRAY = {};
-    private static final BitSet[] NULL_BIT_SET_ARRAY = {};
 
 	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
 //	/** set if cell is modified */						            private static final int MODIFIED      =     01000000;
@@ -936,15 +935,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         boolean isMainSchematics = cellGroup.getMainSchematics() == this;
         if (backup == null) {
             getTechnology();
-            backup = new CellBackup(getD(), revisionDate, modified, isMainSchematics,
-                    ImmutableNodeInst.NULL_ARRAY, ImmutableArcInst.NULL_ARRAY, ImmutableExport.NULL_ARRAY,
-                    NULL_INT_ARRAY, new BitSet(), NULL_BIT_SET_ARRAY);
+            backup = new CellBackup(getD(), revisionDate, modified, isMainSchematics);
             assert !cellBackupFresh && !cellContentsFresh;
         }
-        ImmutableNodeInst[] nodes = backup.nodes;
-        ImmutableArcInst[] arcs = backup.arcs;
-        ImmutableExport[] exports = backup.exports;
-        BitSet definedExports = backup.definedExports;
+        ImmutableNodeInst[] nodes = null;
+        ImmutableArcInst[] arcs = null;
+        ImmutableExport[] exports = null;
         BitSet[] exportUsages = backup.exportUsages;
         if (!cellContentsFresh) {
 //            System.out.println("Refersh contents of " + this);
@@ -955,19 +951,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             arcs = backupArcs(exportUsages);
             exports = backupExports(exportUsages);
             exportUsages = backupExportUsages(exportUsages);
-            BitSet newDefinedExports = new BitSet();
-            for (ImmutableExport eid: exports)
-                newDefinedExports.set(eid.exportId.chronIndex);
-            if (!newDefinedExports.equals(definedExports))
-                definedExports = newDefinedExports;
         }
-        if (getD() != backup.d || revisionDate != backup.revisionDate || modified != backup.modified ||
-                isMainSchematics != backup.isMainSchematics ||
-                nodes != backup.nodes || arcs != backup.arcs || exports != backup.exports) {
-            backup = new CellBackup(getD(), revisionDate, modified, isMainSchematics,
-                    nodes, arcs, exports, (int[])cellUsages.clone(), definedExports, exportUsages);
-        }
-        assert definedExports == backup.definedExports;
+        backup = backup.with(getD(), revisionDate, modified, isMainSchematics,
+                nodes, arcs, exports, (int[])cellUsages.clone(), exportUsages);
         assert exportUsages == backup.exportUsages;
         cellBackupFresh = true;
         cellContentsFresh = true;
@@ -980,77 +966,65 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         assert cellBackup.modified == modified;
         boolean isMainSchematic = cellGroup.getMainSchematics() == this;
         assert cellBackup.isMainSchematics == isMainSchematic;
-        assert cellBackup.nodes.length == nodes.size();
-        for (int i = 0; i < cellBackup.nodes.length; i++)
-            assert cellBackup.nodes[i] == nodes.get(i).getD();
-        assert cellBackup.arcs.length == arcs.size();
-        for (int i = 0; i < cellBackup.arcs.length; i++)
-            assert cellBackup.arcs[i] == arcs.get(i).getD();
-        assert cellBackup.exports.length == exports.length;
-        for (int i = 0; i < cellBackup.exports.length; i++)
-            assert cellBackup.exports[i] == exports[i].getD();
+        assert cellBackup.nodes.size() == nodes.size();
+        for (int i = 0; i < cellBackup.nodes.size(); i++)
+            assert cellBackup.nodes.get(i) == nodes.get(i).getD();
+        assert cellBackup.arcs.size() == arcs.size();
+        for (int i = 0; i < cellBackup.arcs.size(); i++)
+            assert cellBackup.arcs.get(i) == arcs.get(i).getD();
+        assert cellBackup.exports.size() == exports.length;
+        for (int i = 0; i < cellBackup.exports.size(); i++)
+            assert cellBackup.exports.get(i) == exports[i].getD();
     }
     
     private ImmutableNodeInst[] backupNodes(BitSet[] exportUsages) {
-        ImmutableNodeInst[] newNodes = null;
-        if (nodes.size() != backup.nodes.length)
-            newNodes = new ImmutableNodeInst[nodes.size()];
+        ImmutableNodeInst[] newNodes = new ImmutableNodeInst[nodes.size()];
+        boolean changed = nodes.size() != backup.nodes.size();
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             ImmutableNodeInst d = ni.getD();
             if (ni.getProto() instanceof Cell) {
                 Cell subCell = (Cell)ni.getProto();
+                CellUsage u = getId().getUsageIn(subCell.getId());
+                if (exportUsages[u.indexInParent] == null)
+                    exportUsages[u.indexInParent] = new BitSet();
                 for (int j = 0, numPorts = subCell.getNumPorts(); j < numPorts; j++) {
                     PortInst pi = ni.getPortInst(j);
                     if (pi.getNumVariables() > 0)
                         registerPortInstUsage(pi, exportUsages);
                 } 
             }
-            if (newNodes == null) {
-                if (backup.nodes[i] == d) continue;
-                newNodes = new ImmutableNodeInst[nodes.size()];
-                System.arraycopy(backup.nodes, 0, newNodes, 0, newNodes.length);
-            }
+            changed = changed || backup.nodes.get(i) != d;
             newNodes[i] = d;
         }
-        return newNodes != null ? newNodes : backup.nodes;
+        return changed ? newNodes : null;
     }
     
     private ImmutableArcInst[] backupArcs(BitSet[] exportUsages) {
-        ImmutableArcInst[] newArcs = null;
-        if (arcs.size() != backup.arcs.length)
-            newArcs = new ImmutableArcInst[arcs.size()];
+        ImmutableArcInst[] newArcs = new ImmutableArcInst[arcs.size()];
+        boolean changed = arcs.size() != backup.arcs.size();
         for (int i = 0; i < arcs.size(); i++) {
             ArcInst ai = arcs.get(i);
             ImmutableArcInst d = ai.getD();
             registerPortInstUsage(ai.getTailPortInst(), exportUsages);
             registerPortInstUsage(ai.getHeadPortInst(), exportUsages);
-            if (newArcs == null) {
-                if (backup.arcs[i] == d) continue;
-                newArcs = new ImmutableArcInst[arcs.size()];
-                System.arraycopy(backup.arcs, 0, newArcs, 0, newArcs.length);
-            }
+            changed = changed || backup.arcs.get(i) != d;
             newArcs[i] = d;
         }
-        return newArcs != null ? newArcs : backup.arcs;
+        return changed ? newArcs : null;
     }
     
     private ImmutableExport[] backupExports(BitSet[] exportUsages) {
-        ImmutableExport[] newExports = null;
-        if (exports.length != backup.exports.length)
-            newExports = new ImmutableExport[exports.length];
+        ImmutableExport[] newExports = new ImmutableExport[exports.length];
+        boolean changed = exports.length != backup.exports.size();
         for (int i = 0; i < exports.length; i++) {
             Export e = exports[i];
             ImmutableExport d = e.getD();
             registerPortInstUsage(e.getOriginalPort(), exportUsages);
-            if (newExports == null) {
-                if (backup.exports[i] == d) continue;
-                newExports = new ImmutableExport[exports.length];
-                System.arraycopy(backup.exports, 0, newExports, 0, newExports.length);
-            }
+            changed = changed || backup.exports.get(i) != d;
             newExports[i] = d;
         }
-        return newExports != null ? newExports : backup.exports;
+        return changed ? newExports : null;
     }
     
     private BitSet[] backupExportUsages(BitSet[] exportUsages) {
@@ -1106,8 +1080,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             // the next line used to be: rTree = null;
             tempNodeNames.clear();
         }
-        for (int i = 0; i < newBackup.nodes.length; i++) {
-            ImmutableNodeInst d = newBackup.nodes[i];
+        for (int i = 0; i < newBackup.nodes.size(); i++) {
+            ImmutableNodeInst d = newBackup.nodes.get(i);
             while (d.nodeId >= chronNodes.size()) chronNodes.add(null);
             NodeInst ni = chronNodes.get(d.nodeId);
             if (ni != null) {
@@ -1133,7 +1107,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 essenBounds.add(ni);
 //            ni.check();
         }
-        assert nodes.size() == newBackup.nodes.length;
+        assert nodes.size() == newBackup.nodes.size();
 
         int nodeCount = 0;
         for (int i = 0; i < chronNodes.size(); i++) {
@@ -1159,8 +1133,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
         arcs.clear();
         maxArcSuffix = -1;
-        for (int i = 0; i < newBackup.arcs.length; i++) {
-            ImmutableArcInst d = newBackup.arcs[i];
+        for (int i = 0; i < newBackup.arcs.size(); i++) {
+            ImmutableArcInst d = newBackup.arcs.get(i);
             while (d.arcId >= chronArcs.size()) chronArcs.add(null);
             ArcInst ai = chronArcs.get(d.arcId);
             PortInst headPi = getPortInst(d.headNodeId, d.headPortId);
@@ -1201,9 +1175,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ni.sortConnections();
         }
 
-        exports = new Export[newBackup.exports.length];
-        for (int i = 0; i < newBackup.exports.length; i++) {
-            ImmutableExport d = newBackup.exports[i];
+        exports = new Export[newBackup.exports.size()];
+        for (int i = 0; i < newBackup.exports.size(); i++) {
+            ImmutableExport d = newBackup.exports.get(i);
             // Add to chronExports 
             int chronIndex = d.exportId.getChronIndex();
             if (chronExports.length <= chronIndex) {
@@ -3644,9 +3618,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return he most recent version of this Cell.
 	 */
     public Cell getNewestVersion() {
-        synchronized (lib.cells) {
+//        synchronized (lib.cells) {
             return newestVersion;
-        }
+//        }
     }
 
 	/*

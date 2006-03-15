@@ -23,14 +23,15 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.text.ImmutableArrayList;
 import java.io.IOException;
 
 /**
  *
- * @author dn146861
  */
 public class LibraryBackup {
     public static final LibraryBackup[] NULL_ARRAY = {};
+    public static final ImmutableArrayList<LibraryBackup> EMPTY_LIST = new ImmutableArrayList<LibraryBackup>(NULL_ARRAY);
     
     /** Library persistent data. */                                     public final ImmutableLibrary d;
     /** True if library needs saving to disk. */                        public final boolean modified;

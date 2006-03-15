@@ -89,6 +89,7 @@ class EThread extends Thread {
                         database.getNetworkManager().endBatch();
                         database.lowLevelSetCanChanging(false);
                         ejob.newSnapshot = database.backup();
+                        ejob.serializeResult();
                         break;
                     case UNDO:
                         database.lowLevelSetCanUndoing(true);
@@ -100,17 +101,18 @@ class EThread extends Thread {
                         database.undo(undoSnapshot);
                         database.getNetworkManager().endBatch();
                         database.lowLevelSetCanUndoing(false);
+                        ejob.serializeResult();
                         break;
                     case REMOTE_EXAMINE:
                         if (!ejob.serverJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
+                        ejob.serializeResult();
                         break;
                     case EXAMINE:
                         if (!ejob.clientJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         break;
                 }
-                ejob.serializeResult();
                 ejob.newSnapshot = database.backup();
 //                database.checkFresh(ejob.newSnapshot);
 //                ejob.state = EJob.State.SERVER_DONE;

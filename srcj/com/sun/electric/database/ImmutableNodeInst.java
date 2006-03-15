@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -124,6 +125,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	public static final Flag LOCKED = new Flag(NILOCKED);
     
     public final static ImmutableNodeInst[] NULL_ARRAY = {};
+    public final static ImmutableArrayList<ImmutableNodeInst> EMPTY_LIST = new ImmutableArrayList<ImmutableNodeInst>(NULL_ARRAY);
     
     /** id of this NodeInst in parent. */                           public final int nodeId;
 	/** Prototype id. */                                            public final NodeProtoId protoId;
@@ -441,6 +443,12 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         int portChronIndex = portProtoId.getChronIndex();
         return portChronIndex < ports.length ? ports[portChronIndex] : ImmutablePortInst.EMPTY;
     }
+    
+    /**
+     * Returns true if this ImmutableNodeInst has variables on port instances.
+     * @return true if this ImmutableNodeInst has variables on port instances.
+     */
+    public boolean hasPortInstVariables() { return ports.length > 0; }
     
 //    /**
 //     * Returns flags of this ImmutableNodeInst.

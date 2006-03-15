@@ -172,13 +172,13 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 	 * Method to return the parent NodeProtoId of this PrimitivePort.
 	 * @return the parent NodeProtoId of this PrimitivePort.
 	 */
-	public NodeProtoId getParentId() { return parent; }
+	public PrimitiveNode getParentId() { return parent; }
 
 	/**
 	 * Method to return the parent NodeProto of this PrimitivePort.
 	 * @return the parent NodeProto of this PrimitivePort.
 	 */
-	public NodeProto getParent() { return parent; }
+	public PrimitiveNode getParent() { return parent; }
 
 	/**
 	 * Method to get the index of this PrimitivePort.

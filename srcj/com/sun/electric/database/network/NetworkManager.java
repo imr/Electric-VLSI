@@ -169,7 +169,7 @@ public class NetworkManager {
      */
     private void updateAll(Snapshot oldSnapshot, Snapshot newSnapshot) {
         invalidate();
-        int maxCells = Math.max(oldSnapshot.cellBackups.length, newSnapshot.cellBackups.length);
+        int maxCells = Math.max(oldSnapshot.cellBackups.size(), newSnapshot.cellBackups.size());
         if (cells.length < maxCells) {
             NetCell[] newCells = new NetCell[Math.max(cells.length*2, maxCells)];
             System.arraycopy(cells, 0, newCells, 0, cells.length);
@@ -229,8 +229,8 @@ public class NetworkManager {
             Cell cell = CellId.getByIndex(i).inDatabase(database);
             boolean exportsChanged = !newBackup.sameExports(oldBackup);
             if (!exportsChanged) {
-                for (int j = 0; j < newBackup.exports.length; j++) {
-                    if (newBackup.exports[j].name != oldBackup.exports[j].name)
+                for (int j = 0; j < newBackup.exports.size(); j++) {
+                    if (newBackup.exports.get(j).name != oldBackup.exports.get(j).name)
                         exportsChanged = true;
                 }
             }

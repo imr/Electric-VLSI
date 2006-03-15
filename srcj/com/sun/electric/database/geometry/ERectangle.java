@@ -24,6 +24,7 @@
 
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.text.ImmutableArrayList;
 import java.awt.geom.Rectangle2D;
 
 /**
@@ -34,6 +35,7 @@ import java.awt.geom.Rectangle2D;
  */
 public class ERectangle extends Rectangle2D.Double {
     public static final ERectangle[] NULL_ARRAY = {};
+    public static final ImmutableArrayList<ERectangle> EMPTY_LIST = new ImmutableArrayList<ERectangle>(NULL_ARRAY);
     
     /**
      * Constructs and initializes a <code>ERectangle</code>

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,21 +33,27 @@ import java.util.BitSet;
  */
 public class CellBackup {
     public static final CellBackup[] NULL_ARRAY = {};
+    public static final ImmutableArrayList<CellBackup> EMPTY_LIST = new ImmutableArrayList<CellBackup>(NULL_ARRAY);
+    private static final BitSet[] NULL_BIT_SET_ARRAY = {};
+    private static final int[] NULL_INT_ARRAY = {};
     
     /** Cell persistent data. */                                    public final ImmutableCell d;
 	/** The date this ImmutableCell was last modified. */           public final long revisionDate;
     /** "Modified" flag of the Cell. */                             public final byte modified;
 	/** This Cell is mainSchematics in its group. */				public final boolean isMainSchematics;
-    /** An array of Exports on the Cell by chronological index. */  public final ImmutableExport[] exports;
-	/** A list of NodeInsts in this Cell. */						public final ImmutableNodeInst[] nodes;
+    /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
+	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
     /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
     /** Bitmap of defined exports. */                               public final BitSet definedExports; 
     /** Bitmap of used exports for each CellUsage. */               public final BitSet[] exportUsages;
-    /** A list of ArcInsts in this Cell. */							public final ImmutableArcInst[] arcs;
+    /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
 
     /** Creates a new instance of CellBackup */
-    public CellBackup(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics,
-            ImmutableNodeInst[] nodes, ImmutableArcInst[] arcs, ImmutableExport[] exports, int[] cellUsages, BitSet definedExports, BitSet[] exportUsages) {
+    private CellBackup(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics,
+            ImmutableArrayList<ImmutableNodeInst> nodes,
+            ImmutableArrayList<ImmutableArcInst> arcs,
+            ImmutableArrayList<ImmutableExport> exports,
+            int[] cellUsages, BitSet definedExports, BitSet[] exportUsages) {
         this.d = d;
         this.revisionDate = revisionDate;
         this.modified = modified;
@@ -60,19 +67,64 @@ public class CellBackup {
         check();
     }
     
+    /** Creates a new instance of CellBackup */
+    public CellBackup(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics) {
+        this(d, revisionDate, modified, isMainSchematics,
+                ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
+                NULL_INT_ARRAY, new BitSet(), NULL_BIT_SET_ARRAY);
+    }
+    
+    /**
+     * Creates a new instance of CellBackup which differs from this CellBackup.
+     * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
+     * @param cellBackups list indexed by cellIndex of new CellBackups.
+     * @param cellGroups array indexed by cellIndex of cellGroups numbers.
+     * @param cellBounds list indexed by cellIndex of cell bounds.
+     * @param libBackups list indexed by cellIndex of LibraryBackups.
+     * @return new snapshot which differs froms this Snapshot or this Snapshot.
+     * @throws IllegalArgumentException on invariant violation.
+     * @throws ArrayOutOfBoundsException on some invariant violations.
+     */
+    public CellBackup with(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics,
+            ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray,
+            int[] cellUsages, BitSet[] exportUsages) {
+        ImmutableArrayList<ImmutableNodeInst> nodes = copyArray(nodesArray, this.nodes);
+        ImmutableArrayList<ImmutableArcInst> arcs = copyArray(arcsArray, this.arcs);
+        ImmutableArrayList<ImmutableExport> exports = copyArray(exportsArray, this.exports);
+        if (this.d == d && this.revisionDate == revisionDate && this.modified == modified &&
+                this.isMainSchematics == isMainSchematics &&
+                this.nodes == nodes && this.arcs == arcs && this.exports == exports) {
+            return this;
+        }
+        
+        BitSet definedExports = new BitSet();
+        for (ImmutableExport eid: exports)
+            definedExports.set(eid.exportId.chronIndex);
+        if (definedExports.equals(this.definedExports))
+            definedExports = this.definedExports;
+        
+        CellBackup backup = new CellBackup(d, revisionDate, modified, isMainSchematics,
+                nodes, arcs, exports, (int[])cellUsages.clone(), definedExports, exportUsages);
+        return backup;
+    }
+    
+    private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
+        return newArray != null ? new ImmutableArrayList<T>(newArray) : oldList;
+    }
+    
     /**
      * Returns ImmutableNodeInst by its node id.
      * @param nodeId id of node.
      * @return ImmutableNodeInst with this id or null if node doesn't exist.
      */
-    public ImmutableNodeInst getNode(int nodeId) { return nodeId < nodes.length ? nodes[nodeId] : null; }
+    public ImmutableNodeInst getNode(int nodeId) { return nodeId < nodes.size() ? nodes.get(nodeId) : null; }
     
     /**
      * Returns ImmutableArcInst by its arc id.
      * @param arcId id of node.
      * @return ImmutableArcInst with this id or null if node doesn't exist.
      */
-    public ImmutableArcInst getArc(int arcId) { return arcId < arcs.length ? arcs[arcId] : null; }
+    public ImmutableArcInst getArc(int arcId) { return arcId < arcs.size() ? arcs.get(arcId) : null; }
     
     /**
      * Writes this CellBackup to SnapshotWriter.
@@ -85,19 +137,19 @@ public class CellBackup {
         writer.out.writeBoolean(isMainSchematics);
         writer.out.writeInt(cellUsages.length);
         writer.out.writeInt(exportUsages.length);
-        writer.out.writeInt(nodes.length);
+        writer.out.writeInt(nodes.size());
         int maxNodeId = -1;
-        for (int i = 0; i < nodes.length; i++)
-            maxNodeId = Math.max(maxNodeId, nodes[i].nodeId);
+        for (int i = 0; i < nodes.size(); i++)
+            maxNodeId = Math.max(maxNodeId, nodes.get(i).nodeId);
         writer.out.writeInt(maxNodeId);
-        for (int i = 0; i < nodes.length; i++)
-            nodes[i].write(writer);
-        writer.out.writeInt(arcs.length);
-        for (int i = 0; i < arcs.length; i++)
-            arcs[i].write(writer);
-        writer.out.writeInt(exports.length);
-        for (int i = 0; i < exports.length; i++)
-            exports[i].write(writer);
+        for (ImmutableNodeInst n: nodes)
+            n.write(writer);
+        writer.out.writeInt(arcs.size());
+        for (ImmutableArcInst a: arcs)
+            a.write(writer);
+        writer.out.writeInt(exports.size());
+        for (ImmutableExport e: exports)
+            e.write(writer);
     }
     
     /**
@@ -109,6 +161,7 @@ public class CellBackup {
         long revisionDate = reader.in.readLong();
         byte modified = reader.in.readByte();
         boolean isMainSchematics = reader.in.readBoolean();
+        CellBackup backup = new CellBackup(d, revisionDate, modified, isMainSchematics);
         int cellUsagesLen = reader.in.readInt();
         int[] cellUsages = new int[cellUsagesLen];
         int exportUsagesLen = reader.in.readInt();
@@ -145,14 +198,13 @@ public class CellBackup {
         }
         int exportsLength = reader.in.readInt();
         ImmutableExport[] exports = new ImmutableExport[exportsLength];
-        BitSet definedExports = new BitSet();
         for (int i = 0; i < exportsLength; i++) {
             ImmutableExport eid = ImmutableExport.read(reader);
-            definedExports.set(eid.exportId.chronIndex);
             registerPortInstUsage(d.cellId, nodesById[eid.originalNodeId], eid.originalPortId, exportUsages);
             exports[i] = eid;
         }
-        return new CellBackup(d, revisionDate, modified, isMainSchematics, nodes, arcs, exports, cellUsages, definedExports, exportUsages);
+        backup = backup.with(d,revisionDate, modified, isMainSchematics, nodes, arcs, exports, cellUsages, exportUsages);
+        return backup;
     }
     
     /**
@@ -186,8 +238,7 @@ public class CellBackup {
         int[] checkCellUsages = checkCellUsages = (int[])cellUsages.clone();
         ArrayList<ImmutableNodeInst> nodesById = new ArrayList<ImmutableNodeInst>();
         ImmutableNodeInst prevN = null;
-        for (int i = 0; i < nodes.length; i++) {
-            ImmutableNodeInst n = nodes[i];
+        for (ImmutableNodeInst n: nodes) {
             n.check();
             while (n.nodeId >= nodesById.size()) nodesById.add(null);
             ImmutableNodeInst oldNode = nodesById.set(n.nodeId, n);
@@ -205,6 +256,7 @@ public class CellBackup {
                 CellId subCellId = (CellId)n.protoId;
                 CellUsage u = cellId.getUsageIn(subCellId);
                 checkCellUsages[u.indexInParent]--;
+                assert exportUsages[u.indexInParent] != null;
                 for (int j = 0; j < n.ports.length; j++) {
                     ImmutablePortInst pid = n.ports[j];
                     if (pid == ImmutablePortInst.EMPTY) continue;
@@ -216,8 +268,7 @@ public class CellBackup {
             assert checkCellUsages[i] == 0;
         BitSet arcIds = new BitSet();
         ImmutableArcInst prevA = null;
-        for (int i = 0; i < arcs.length; i++) {
-            ImmutableArcInst a = arcs[i];
+        for (ImmutableArcInst a:arcs) {
             assert !arcIds.get(a.arcId);
             arcIds.set(a.arcId);
 			if (prevA != null) {
@@ -235,14 +286,14 @@ public class CellBackup {
             checkPortInst(nodesById.get(a.headNodeId), a.headPortId);
         }
         BitSet exportChronIndicies = new BitSet();
-        for (int i = 0; i < exports.length; i++) {
-            ImmutableExport e = exports[i];
+        for (int i = 0; i < exports.size(); i++) {
+            ImmutableExport e = exports.get(i);
             e.check();
             assert e.exportId.parentId == cellId;
             assert !exportChronIndicies.get(e.exportId.chronIndex);
             exportChronIndicies.set(e.exportId.chronIndex);
             if (i > 0)
-                assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].name.toString(), e.name.toString()) < 0) : i;
+                assert(TextUtils.STRING_NUMBER_ORDER.compare(exports.get(i - 1).name.toString(), e.name.toString()) < 0) : i;
             checkPortInst(nodesById.get(e.originalNodeId), e.originalPortId);
         }
         assert exportChronIndicies.equals(definedExports);
@@ -260,10 +311,10 @@ public class CellBackup {
     
     public boolean sameExports(CellBackup thatBackup) {
         if (thatBackup == this) return true;
-        if (exports.length != thatBackup.exports.length)
+        if (exports.size() != thatBackup.exports.size())
             return false;
-        for (int i = 0; i < exports.length; i++) {
-            if (exports[i].exportId != thatBackup.exports[i].exportId)
+        for (int i = 0; i < exports.size(); i++) {
+            if (exports.get(i).exportId != thatBackup.exports.get(i).exportId)
                 return false;
         }
         return true;

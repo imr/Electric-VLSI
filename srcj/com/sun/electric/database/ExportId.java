@@ -67,7 +67,7 @@ public final class ExportId implements PortProtoId, Serializable
 	 * Method to return the parent NodeProtoId of this ExportId.
 	 * @return the parent NodeProtoId of this ExportId.
 	 */
-	public NodeProtoId getParentId() { return parentId; }
+	public CellId getParentId() { return parentId; }
 
     /**
      * Method to return chronological index of this ExportId in parent.
@@ -79,7 +79,7 @@ public final class ExportId implements PortProtoId, Serializable
 	 * Method to return the PortProto representiong ExportId in the current thread.
 	 * @return the PortProto representing ExportId in the current thread.
 	 */
-    public PortProto inCurrentThread() {
+    public Export inCurrentThread() {
         Cell cell = Cell.inCurrentThread(parentId);
         if (cell == null) return null;
         return cell.getExportChron(chronIndex);

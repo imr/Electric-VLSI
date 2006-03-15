@@ -1017,7 +1017,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * @param portIndex specified position of PortProto.
 	 * @return the PortProto at specified position..
 	 */
-	public final PortProto getPort(int portIndex)
+	public final PrimitivePort getPort(int portIndex)
 	{
 		return primPorts[portIndex];
 	}
@@ -1028,7 +1028,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * @return the PortProto.
      * @throws IllegalArgumentException if portProtoId is not from this NodeProto.
 	 */
-	public PortProto getPort(PortProtoId portProtoId) {
+	public PrimitivePort getPort(PortProtoId portProtoId) {
         if (portProtoId.getParentId() != this) throw new IllegalArgumentException();
         PrimitivePort pp = (PrimitivePort)portProtoId;
         assert primPorts[pp.getPortIndex()] == pp;

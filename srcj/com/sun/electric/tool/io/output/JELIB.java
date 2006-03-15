@@ -216,6 +216,7 @@ public class JELIB extends Output
 // 				printWriter.println("W" + convertString(ap.getName()));
 // 			}
 		}
+        printWriter.println();
 
 		// gather groups and put cell names into objInfo
 		LinkedHashSet<Cell.CellGroup> groups = new LinkedHashSet<Cell.CellGroup>();
@@ -232,10 +233,10 @@ public class JELIB extends Output
 		{
 			Cell cell = cIt.next();
             writeCell(cell);
+            printWriter.println();
 		}
 
 		// write groups in alphabetical order
-		printWriter.println();
 		printWriter.println("# Groups:");
 		for(Cell.CellGroup group : groups)
 		{
@@ -271,8 +272,7 @@ public class JELIB extends Output
      */
     protected void writeCell(Cell cell) {
         // write the Cell name
-        printWriter.println();
-        printWriter.println("# Cell " + cell.noLibDescribe());
+        printWriter.println("# Cell " + cell.getCellName());
         printWriter.print("C" + convertString(cell.getCellName().toString()));
         printWriter.print("|" + convertString(cell.getTechnology().getTechName()));
         printWriter.print("|" + cell.getCreationDate().getTime());

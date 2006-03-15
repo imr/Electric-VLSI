@@ -25,9 +25,11 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+
 import java.io.IOException;
 
 /**
@@ -36,6 +38,7 @@ import java.io.IOException;
 public class ImmutableExport extends ImmutableElectricObject {
     
     public final static ImmutableExport[] NULL_ARRAY = {};
+    public final static ImmutableArrayList<ImmutableExport> EMPTY_LIST = new ImmutableArrayList<ImmutableExport>(NULL_ARRAY);
     
     /** id of this Export. */                                       public final ExportId exportId;
 	/** name of this ImmutableExport. */							public final Name name;
