@@ -112,7 +112,7 @@ public class ImmutableExport extends ImmutableElectricObject {
 	 * @throws NullPointerException if name is null
 	 */
 	public ImmutableExport withName(Name name) {
-		if (this.name.equals(name)) return this;
+		if (this.name.toString().equals(name.toString())) return this;
 		if (name == null) throw new NullPointerException("name");
 //        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
 		return new ImmutableExport(this.exportId, name, this.nameDescriptor,

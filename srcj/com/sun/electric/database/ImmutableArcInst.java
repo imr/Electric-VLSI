@@ -310,7 +310,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @throws IllegalArgumentException if name is not valid.
 	 */
 	public ImmutableArcInst withName(Name name) {
-		if (this.name.equals(name)) return this;
+		if (this.name.toString().equals(name.toString())) return this;
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) throw new IllegalArgumentException("name");
 		return new ImmutableArcInst(this.arcId, this.protoType, name, this.nameDescriptor,

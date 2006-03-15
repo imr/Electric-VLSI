@@ -243,7 +243,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @throws NullPointerException if name is null.
 	 */
 	public ImmutableNodeInst withName(Name name) {
-		if (this.name.equals(name)) return this;
+		if (this.name.toString().equals(name.toString())) return this;
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");

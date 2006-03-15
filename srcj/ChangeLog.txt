@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/15/06, DN) User can't change case of a letter in export/node/arc names (Bug #873).
+FIX: In ImmutableExport/NodeInst/ArcInst comper name.toString() instead of name.
+
 BUG: (3/15/06, RK) NCC: Change NccJob to avoid Bug # 825 and the bugs introduced in an attempt to fix it.
 
 IMP: (3/15/06, RK) NCC: Choose alphabetically first name for a Port (Bugzilla #540). Add regressions to test this.
