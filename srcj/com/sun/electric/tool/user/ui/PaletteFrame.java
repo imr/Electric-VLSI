@@ -587,6 +587,9 @@ public class PaletteFrame implements MouseListener
         	}
 			highlighter.finished();
 
+            // regaining focus in editing space
+            wnd.requestFocus();
+            
 			// for technology edit cells, mark the new geometry specially
 			if (cell.isInTechnologyLibrary())
 			{

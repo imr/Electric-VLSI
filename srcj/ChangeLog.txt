@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04g: *********************************
 
+BUG: (3/15/06, GVG) Wrong focus after putting a cell instance down (Bug #877)
+FIX: Forcing EditWindow.requestFocus() in PlaceNewNode.terminateOK().
+
 BUG: (3/15/06, SMR) "Insert Jog In Arc" fails (Bug #881).
 FIX: Made Highlight parameter transient, converted Point2D to EPoint.
 
