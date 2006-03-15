@@ -69,8 +69,6 @@ import java.util.Iterator;
  */
 public class Export extends ElectricObject implements PortProto, Comparable<Export>
 {
-	/** Special name for text descriptor of export name */	public static final String EXPORT_NAME_TD = new String("EXPORT_name");
-
 	/** Key of text descriptor of export name */            public static final Variable.Key EXPORT_NAME = Variable.newKey("EXPORT_name");
 	/** Key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = Variable.newKey("EXPORT_reference_name");
 

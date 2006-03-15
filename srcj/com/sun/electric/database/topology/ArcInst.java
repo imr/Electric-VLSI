@@ -84,7 +84,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 1;
     
 
-	/** special name for text descriptor of arc name */	public static final String ARC_NAME_TD = new String("ARC_name");
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = Variable.newKey("ARC_name");
 	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = Variable.newKey("ARC_radius");
 

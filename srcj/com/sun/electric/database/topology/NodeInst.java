@@ -87,9 +87,6 @@ import java.util.TreeMap;
  */
 public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 {
-	/** special name for text descriptor of prototype name */	public static final String NODE_PROTO_TD = new String("NODE_proto");
-	/** special name for text descriptor of instance name */	public static final String NODE_NAME_TD = new String("NODE_name");
-
 	/** key of text descriptor with prototype name. */          public static final Variable.Key NODE_PROTO = Variable.newKey("NODE_proto");
 	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = Variable.newKey("NODE_name");
 	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = Variable.newKey("trace");
