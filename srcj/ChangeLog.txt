@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04h: *********************************
+
 ************************* Version 8.04g: *********************************
 
 NOTE: Regressios for v8.04g release were tagged as version8-04gAgain
