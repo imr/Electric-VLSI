@@ -542,7 +542,8 @@ public class CircuitChanges
 	public static void renameCellInJob(Cell cell, String newName)
 	{
 		// see if the rename should also regroup
-		Cell.CellGroup newGroup = null;
+		String newGroupCell = null;
+
 		for(Iterator<Cell> it = cell.getLibrary().getCells(); it.hasNext(); )
 		{
 			Cell oCell = it.next();
@@ -550,11 +551,11 @@ public class CircuitChanges
 			{
 				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
 					"Also place the cell into the " + oCell.getCellGroup().getName() + " group?");
-				if (response == JOptionPane.YES_OPTION) newGroup = oCell.getCellGroup();
+				if (response == JOptionPane.YES_OPTION) newGroupCell = oCell.getName();
 				break;
 			}
 		}
-		new CellChangeJobs.RenameCell(cell, newName, newGroup);
+		new CellChangeJobs.RenameCell(cell, newName, newGroupCell);
 	}
 
 	public static void renameCellGroupInJob(Cell.CellGroup cellGroup, String newName)
