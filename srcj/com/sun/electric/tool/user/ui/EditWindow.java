@@ -2121,6 +2121,9 @@ public class EditWindow extends JPanel
                 ElectricObject eObj = (ElectricObject)currentStringInCell.object;
                 Variable.Key key = currentStringInCell.key;
                 if (eObj instanceof Export) key = Export.EXPORT_NAME;
+                else if (eObj instanceof ArcInst) key = ArcInst.ARC_NAME;
+                else if (eObj instanceof NodeInst) key = NodeInst.NODE_NAME;
+                assert(key != null);
                 highlighter.addText(eObj, cell, key);
             }
             highlighter.finished();

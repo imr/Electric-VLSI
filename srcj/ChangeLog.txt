@@ -6,6 +6,9 @@ NOTE: Please place changes under the version that will be released next.
 
 NOTE: Regressios for v8.04g release were tagged as version8-04gAgain
 
+BUG: (3/15/06, GVG) FindAndReplace dialog: find doesn't highlight some nodes (Bug #882)
+FIX: detecting null key.
+
 BUG: (3/15/06, GVG) Wrong focus after putting a cell instance down (Bug #877)
 FIX: Forcing EditWindow.requestFocus() in PlaceNewNode.terminateOK().
 
