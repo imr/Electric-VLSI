@@ -235,7 +235,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
      * @param node
      * @param count
      * @return
-     */ 
+     */
     private int countChildrenAndExpandInPath(Cell cell, TreeModel treeModel, TreePath path, Object node, int count)
     {
         int numChildren = treeModel.getChildCount(node);
@@ -245,6 +245,18 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             count++;
             Object obj = child.getUserObject();
 
+            if (obj == cell)
+                return count; // found location in library
+
+            // Obj represents the latest version of the given cell and the given cell is an older version.
+            // treeModel.getChildCount(child) > 0 otherwise it will go down every single version.
+            if (treeModel.getChildCount(child) > 0 && obj instanceof Cell && ((Cell)obj).getCellGroup() == cell.getCellGroup())
+            {
+                TreePath descentPath = path.pathByAddingChild(child);
+                expandPath(descentPath);
+                return countChildrenAndExpandInPath(cell, treeModel, descentPath, child, count);
+            }
+            // Obj represents the cell group
             if (obj == cell.getCellGroup())
             {
                 TreePath descentPath = path.pathByAddingChild(child);
@@ -252,8 +264,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                 return countChildrenAndExpandInPath(cell, treeModel, descentPath, child, count);
             }
 
-            if (obj == cell)
-                return count; // found location in library
         }
         return count;
     }
