@@ -44,25 +44,25 @@ public class DisplayedText implements Serializable
 		this.key = key;
 	}
 
-	public static DisplayedText makeDisplayedExport(Export e)
-	{
-		return new DisplayedText(e, Export.EXPORT_NAME);
-	}
+//	public static DisplayedText makeDisplayedExport(Export e)
+//	{
+//		return new DisplayedText(e, Export.EXPORT_NAME);
+//	}
+//
+//	public static DisplayedText makeDisplayedArcName(ArcInst ai)
+//	{
+//		return new DisplayedText(ai, ArcInst.ARC_NAME);
+//	}
+//
+//	public static DisplayedText makeDisplayedNodeName(NodeInst ni)
+//	{
+//		return new DisplayedText(ni, NodeInst.NODE_NAME);
+//	}
 
-	public static DisplayedText makeDisplayedArcName(ArcInst ai)
-	{
-		return new DisplayedText(ai, ArcInst.ARC_NAME);
-	}
-
-	public static DisplayedText makeDisplayedNodeName(NodeInst ni)
-	{
-		return new DisplayedText(ni, NodeInst.NODE_NAME);
-	}
-
-	public static DisplayedText makeDisplayedNodeProtoName(NodeInst ni)
-	{
-		return new DisplayedText(ni, NodeInst.NODE_PROTO);
-	}
+//	public static DisplayedText makeDisplayedNodeProtoName(NodeInst ni)
+//	{
+//		return new DisplayedText(ni, NodeInst.NODE_PROTO);
+//	}
 
 	public ElectricObject getElectricObject() { return eObj; }
 
