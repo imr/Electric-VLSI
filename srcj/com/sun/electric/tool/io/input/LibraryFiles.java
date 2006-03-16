@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -53,6 +54,7 @@ import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
@@ -309,7 +311,112 @@ public abstract class LibraryFiles extends Input
 		}
 		return in.lib;
 	}
-	
+
+    /**
+     * Reload a library from disk.  Note this is different from calling
+     * {@see #reloadLibraryCells(List<Cell>)} with a list of Cells in the library,
+     * because it also reloads new
+     * cells from disk that are not currently in memory.
+     * @param lib
+     */
+    public static void reloadLibrary(Library lib) {
+        if (!lib.isFromDisk()) {
+            System.out.println("No disk file associated with this library, cannot reload from disk");
+            return;
+        }
+        FileType type = OpenFile.getOpenFileType(lib.getLibFile().getPath(), FileType.JELIB);
+
+        // rename old library, read in disk library as replacement
+        // replace all cells in old library by newly read-in cells from disk library
+
+        String name = lib.getName();
+        URL libFile = lib.getLibFile();
+        lib.setName("___old___"+name);
+        Library newLib = readLibrary(libFile, name, type, true, null);
+
+        // replace all old cells with new cells
+        Cell.setAllowCircularLibraryDependences(true);
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+            Cell oldCell = it.next();
+            String cellName = oldCell.getCellName().toString();
+
+            Cell newCell = newLib.findNodeProto(cellName);
+            if (newCell == null) {
+                // doesn't exist in new library, copy it over
+                System.out.println("Warning, Cell "+oldCell.describe(false)+" does not exist in reloaded library. Copying it to reloaded library.");
+                newCell = Cell.copyNodeProto(oldCell, newLib, cellName, true);
+            }
+            // replace all usages of old cell with new cell
+            List<NodeInst> instances = new ArrayList<NodeInst>();
+            for(Iterator<NodeInst> it2 = oldCell.getInstancesOf(); it2.hasNext(); ) {
+                instances.add(it2.next());
+            }
+            for (NodeInst ni : instances) {
+                CircuitChangeJobs.replaceNodeInst(ni, newCell, true, true);
+            }
+        }
+        Cell.setAllowCircularLibraryDependences(false);
+
+        // close temp library
+        lib.kill("delete old library");
+    }
+
+    /**
+     * Reload Cells from disk.  Other cells in the library will not be affected.
+     * These cells must all be from the same library.
+     */
+    public static void reloadLibraryCells(List<Cell> cellList) {
+        if (cellList == null || cellList.size() == 0) return;
+        Library lib = cellList.get(0).getLibrary();
+
+        if (!lib.isFromDisk()) {
+            System.out.println("No disk file associated with this library, cannot reload from disk");
+            return;
+        }
+        FileType type = OpenFile.getOpenFileType(lib.getLibFile().getPath(), FileType.JELIB);
+
+        // Load disk library as temp library.
+        // Then, copy over new cells from temp library to replace current cells in memory,
+        // then close temp library.
+
+        String name = lib.getName();
+        URL libFile = lib.getLibFile();
+        Library newLib = readLibrary(libFile, "___reloaded___"+name, type, true, null);
+
+        // replace all old cells with new cells
+        Cell.setAllowCircularLibraryDependences(true);
+        for (Cell oldCell : cellList) {
+            String cellName = oldCell.getCellName().toString(); // contains version and view info
+
+            Cell newCell = newLib.findNodeProto(cellName);
+            if (newCell == null) {
+                System.out.println("Cell "+oldCell.describe(false)+" cannot be reloaded, it does not exist in disk library");
+                continue;
+            }
+
+            // rename oldCell
+            oldCell.rename("___old___"+oldCell.getName());      // must not contain version or view info
+            // copy newCell over with oldCell's name
+            newCell = Cell.copyNodeProto(newCell, lib, cellName, true);
+
+            // replace all usages of old cell with new cell
+            List<NodeInst> instances = new ArrayList<NodeInst>();
+            for(Iterator<NodeInst> it2 = oldCell.getInstancesOf(); it2.hasNext(); ) {
+                instances.add(it2.next());
+            }
+            for (NodeInst ni : instances) {
+                CircuitChangeJobs.replaceNodeInst(ni, newCell, true, true);
+            }
+
+            // kill oldCell
+            oldCell.kill();
+        }
+        Cell.setAllowCircularLibraryDependences(false);
+
+        // close temp library
+        newLib.kill("delete temp library");
+    }
+
 	// *************************** THE CREATION INTERFACE ***************************
 
 	public static void initializeLibraryInput()
