@@ -24,8 +24,6 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.Main;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.network.NetworkTool;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
