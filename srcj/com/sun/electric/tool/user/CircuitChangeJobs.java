@@ -684,7 +684,7 @@ public class CircuitChangeJobs
 	{
 		private Cell cell;
 		private int how;
-        private List<Highlight2> highlighted;
+        private List<ElectricObject> objList;
         private boolean repaintContents, repaintAny;
 
         public ChangeArcProperties(Cell cell, int how, List<Highlight2> highlighted)
@@ -692,7 +692,14 @@ public class CircuitChangeJobs
 			super("Align objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.how = how;
-            this.highlighted = highlighted;
+            this.objList = new ArrayList<ElectricObject>();
+
+            for(Highlight2 h : highlighted)
+			{
+				if (!h.isHighlightEOBJ()) continue;
+                objList.add(h.getElectricObject());
+            }
+
 			startJob();
 		}
 
@@ -702,10 +709,8 @@ public class CircuitChangeJobs
 			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
 			int numSet = 0, numUnset = 0;
-			for(Highlight2 h : highlighted)
+			for(ElectricObject eobj : objList)
 			{
-				if (!h.isHighlightEOBJ()) continue;
-				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
