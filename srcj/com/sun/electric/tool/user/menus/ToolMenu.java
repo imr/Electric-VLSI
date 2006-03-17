@@ -168,8 +168,7 @@ public class ToolMenu {
             } });
 
         drcSubMenu.addMenuItem("_List Layer Coverage on Cell", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE,
-                        LayerCoverageTool.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
+                new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(LayerCoverageTool.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
 
 		drcSubMenu.addSeparator();
 		drcSubMenu.addMenuItem("Import _Assura DRC Errors for Current Cell...", null,
@@ -503,8 +502,7 @@ public class ToolMenu {
 		MenuBar.Menu generationSubMenu = MenuBar.makeMenu("_Generation");
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE,
-                    LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP);}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP);}});
 		generationSubMenu.addMenuItem("_Pad Frame Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("_ROM Generator...", null,
@@ -619,11 +617,11 @@ public class ToolMenu {
      * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
      * except "List Geometry on Network" commands.
      */
-    public static void layerCoverageCommand(Job.Type jobType, LayerCoverageTool.LCMode func, GeometryHandler.GHMode mode)
+    public static void layerCoverageCommand(LayerCoverageTool.LCMode func, GeometryHandler.GHMode mode)
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
-        LayerCoverageTool.layerCoverageCommand(jobType, func, mode, curCell);
+        LayerCoverageTool.layerCoverageCommand(func, mode, curCell, true);
     }
 
     private static class BackAnnotateJob extends Job {

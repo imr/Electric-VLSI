@@ -2361,16 +2361,18 @@ public class FillGenerator implements Serializable {
 		        e.setCharacteristic(p.getPortProto().getCharacteristic());
             }
 
+            int count = 0;
+
             // First attempt if ports are below a power/ground bars
             for (PortInst p : portList)
             {
-//                Rectangle2D nodeBounds = new Rectangle2D.Double(); // need a copy of the original
-//                nodeBounds.setRect(p.getNodeInst().getBounds());
-
+                count++;
                 assert(p.getPortProto() instanceof Export);
 
                 Export ex = (Export)p.getPortProto();
                 Cell exportCell = (Cell)p.getNodeInst().getProto();
+
+                System.out.println("Ce " + count + " " + ex.getOriginalPort().getNodeInst().getName());    
                 Rectangle2D rect = LayerCoverageTool.getGeometryOnNetwork(exportCell, ex.getOriginalPort(),
                         Tech.m2pin.getLayers()[0].getLayer().getNonPseudoLayer());
 
@@ -2743,8 +2745,6 @@ public class FillGenerator implements Serializable {
 
             Rectangle2D portInConFill = new Rectangle2D.Double();
             portInConFill.setRect(p.getPoly().getBounds2D());
-//            ((Export)((Export)p.getPortProto()).getOriginalPort().getPortProto()).getOriginalPort();
-//            DBMath.transformRect(portInConFill, nodeTransOut);
             DBMath.transformRect(portInConFill, fillTransIn);
 
             // Routing the new contact to topCell in connectNi instead of top cell
@@ -2787,6 +2787,8 @@ public class FillGenerator implements Serializable {
                 // adding contact
                 added = LayoutLib.newNodeInst(Tech.m2m3, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
                         width, height, 0, container.connectionCell);
+                if (added.getName().startsWith("contact@46"))
+                    System.out.println("DD");
                 container.fillContactList.add(added);
 //                 // Creating the export above the contact in the connection cell
 //                Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),

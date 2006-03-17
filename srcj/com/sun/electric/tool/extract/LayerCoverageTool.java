@@ -25,18 +25,13 @@ package com.sun.electric.tool.extract;
 
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.MessagesStream;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -44,8 +39,8 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
@@ -53,7 +48,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.Tool;
 
-import javax.swing.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Area;
 import java.awt.geom.AffineTransform;
@@ -170,11 +164,24 @@ public class LayerCoverageTool extends Tool
      * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
      * except "List Geometry on Network" commands.
      */
-    public static void layerCoverageCommand(Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
-                                            Cell curCell)
+    public static List<Object> layerCoverageCommand(LCMode func, GeometryHandler.GHMode mode, Cell curCell, boolean startJob)
     {
-        LayerCoverageJob job = new LayerCoverageJob(curCell, jobType, func, mode, null);
-        job.startJob();
+        // Must be change job for merge and implant;
+        Job.Type jobType = (func == LayerCoverageTool.LCMode.MERGE || func == LayerCoverageTool.LCMode.IMPLANT) ?
+                Job.Type.CHANGE : Job.Type.EXAMINE;
+        LayerCoverageJob job = new LayerCoverageJob(!startJob, curCell, jobType, func, mode, null);
+        if (startJob)
+            job.startJob();
+        else
+        {
+            try
+            {
+                job.doIt();
+            }
+            catch (Exception e) {};
+            return job.nodesAdded;
+        }
+        return null;
     }
     
     /**
@@ -230,7 +237,7 @@ public class LayerCoverageTool extends Tool
         GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false, layer);
 //        LayerCoverageData data = new LayerCoverageData(null, exportCell, LCMode.NETWORK,
 //                GeometryHandler.GHMode.ALGO_SWEEP, geoms, null);
-		LayerCoverageJob job = new LayerCoverageJob(exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
+		LayerCoverageJob job = new LayerCoverageJob(true, exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
                 GeometryHandler.GHMode.ALGO_SWEEP, geoms);
 
         // Must run it now
@@ -263,8 +270,7 @@ public class LayerCoverageTool extends Tool
 	    double lambda = 1; // lambdaofcell(np);
         // startJob is identical to printable
 	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob, null);
-//        LayerCoverageData data = new LayerCoverageData(null, cell, LCMode.NETWORK, mode, geoms, null);
-		Job job = new LayerCoverageJob(cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms);
+		Job job = new LayerCoverageJob(!startJob, cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms);
 
         if (startJob)
             job.startJob();
@@ -443,25 +449,18 @@ public class LayerCoverageTool extends Tool
      ************************************************************************/
     private static class LayerCoverageJob extends Job
     {
-//        private LayerCoverageData coverageData;
         private Cell cell;
         private LCMode func;
         private GeometryHandler.GHMode mode;
         private GeometryOnNetwork geoms;
         private List<Object> nodesAdded;
-//        public LayerCoverageJob(LayerCoverageData data, Type jobType, Highlighter highlighter)
-//        {
-//            super("Layer Coverage on " + data.curCell, User.getUserTool(), jobType, null, null, Priority.USER);
-////            this.coverageData = data;
-//            this.highlighter = highlighter;
-//
-//            setReportExecutionFlag(true);
-//        }
+        private boolean manualStart; // in case of manual start, fieldVariableChanged can't be called
 
-        public LayerCoverageJob(Cell cell, Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
+        public LayerCoverageJob(boolean manualStart, Cell cell, Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
                                 GeometryOnNetwork geoms)
         {
             super("Layer Coverage on " + cell, User.getUserTool(), jobType, null, null, Priority.USER);
+            this.manualStart = manualStart;
             this.cell = cell;
             this.func = func;
             this.mode = mode;
@@ -478,7 +477,8 @@ public class LayerCoverageTool extends Tool
             {
                 nodesAdded = new ArrayList<Object>();
                 nodesAdded.addAll(data.getNodesToHighlight());
-                fieldVariableChanged("nodesAdded");
+                if (!manualStart)
+                    fieldVariableChanged("nodesAdded");
             }
             return done;
         }
@@ -488,15 +488,12 @@ public class LayerCoverageTool extends Tool
             // For implant highlight the new nodes
             if (func == LCMode.IMPLANT)
             {
-                EditWindow wnd = EditWindow.needCurrent();
-                Highlighter highlighter = null;
-                if ((wnd != null) && (wnd.getCell() == cell))
-                highlighter = wnd.getHighlighter();
-                if (highlighter == null) return; // nothing to do
+                EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
+                if (wnd == null) return; // no GUi present
                 if (nodesAdded == null) return; // nothing to show
                 for (Object node : nodesAdded)
                 {
-                    highlighter.addElectricObject((NodeInst)node, cell);
+                    wnd.addElectricObject((NodeInst)node, cell);
                 }
             }
         }
@@ -901,7 +898,7 @@ public class LayerCoverageTool extends Tool
 	    private void addLayer(Layer layer, double area, double halfperimeter)
         {
             assert(layer != null);
-            if (layer != onlyThisLayer) return; // skip this one
+            if (onlyThisLayer != null && layer != onlyThisLayer) return; // skip this one
 	        layers.add(layer);
 	        areas.add(new Double(area));
 	        halfPerimeters.add(new Double(halfperimeter));
@@ -978,165 +975,8 @@ public class LayerCoverageTool extends Tool
      ***********************************/
     public static boolean testAll()
     {
-        return (basicAreaCoverageTest("area.log"));
+        //return (LayerCoverageToolTest.basicAreaCoverageTest("area.log"));
+        return true;
     }
 
-    private static class FakeCoverageCircuitry extends Job
-    {
-        private String theTechnology;
-        private Cell myCell;
-
-        protected FakeCoverageCircuitry(String tech)
-        {
-            super("Make fake circuitry for coverage tests", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            theTechnology = tech;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-            myCell = doItInternal(theTechnology);
-			fieldVariableChanged("myCell");
-            return true;
-        }
-
-        public void terminateOK()
-        {
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
-			// display a cell
-            if (!BATCHMODE)
-			    WindowFrame.createEditWindow(myCell);
-        }
-
-        private static Cell doItInternal(String technology)
-		{
-			// get information about the nodes
-			Technology tech = Technology.findTechnology(technology);
-			if (tech == null)
-			{
-				System.out.println("Technology not found in createCoverageTestCells");
-				return null;
-			}
-			tech.setCurrent();
-
-			NodeProto m1NodeProto = Cell.findNodeProto(technology+":Metal-1-Node");
-            NodeProto m2NodeProto = Cell.findNodeProto(technology+":Metal-2-Node");
-            NodeProto m3NodeProto = Cell.findNodeProto(technology+":Metal-3-Node");
-            NodeProto m4NodeProto = Cell.findNodeProto(technology+":Metal-4-Node");
-
-            NodeProto invisiblePinProto = Cell.findNodeProto("generic:Invisible-Pin");
-
-			// get information about the arcs
-			ArcProto m1ArcProto = ArcProto.findArcProto(technology+":Metal-1");
-
-			// get the current library
-			Library mainLib = Library.getCurrent();
-
-			// create a layout cell in the library
-			Cell m1Cell = Cell.makeInstance(mainLib, technology+"Metal1Test{lay}");
-            NodeInst metal1Node = NodeInst.newInstance(m1NodeProto, new Point2D.Double(0, 0), m1NodeProto.getDefWidth(), m1NodeProto.getDefHeight(), m1Cell);
-
-            // Two metals
-            Cell myCell = Cell.makeInstance(mainLib, technology+"M1M2Test{lay}");
-            NodeInst node = NodeInst.newInstance(m1NodeProto, new Point2D.Double(-m1NodeProto.getDefWidth()/2, -m1NodeProto.getDefHeight()/2),
-                    m1NodeProto.getDefWidth(), m1NodeProto.getDefHeight(), myCell);
-            node = NodeInst.newInstance(m2NodeProto, new Point2D.Double(-m2NodeProto.getDefWidth()/2, m2NodeProto.getDefHeight()/2),
-                    m2NodeProto.getDefWidth(), m2NodeProto.getDefHeight(), myCell);
-            node = NodeInst.newInstance(m3NodeProto, new Point2D.Double(m3NodeProto.getDefWidth()/2, -m3NodeProto.getDefHeight()/2),
-                    m3NodeProto.getDefWidth(), m3NodeProto.getDefHeight(), myCell);
-            node = NodeInst.newInstance(m4NodeProto, new Point2D.Double(m4NodeProto.getDefWidth()/2, m4NodeProto.getDefHeight()/2),
-                    m4NodeProto.getDefWidth(), m4NodeProto.getDefHeight(), myCell);
-
-			// now up the hierarchy
-			Cell higherCell = Cell.makeInstance(mainLib, "higher{lay}");
-			Rectangle2D bounds = myCell.getBounds();
-			double myWidth = myCell.getDefWidth();
-			double myHeight = myCell.getDefHeight();
-            for (int iX = 0; iX < 2; iX++) {
-                boolean flipX = iX != 0;
-                for (int i = 0; i < 4; i++) {
-                    Orientation orient = Orientation.fromJava(i*900, flipX, false);
-                    NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(i*myWidth, iX*myHeight), myWidth, myHeight, higherCell, orient, null, 0);
-                    instanceNode.setExpanded();
-                }
-            }
-			System.out.println("Created " + higherCell);
-
-            return myCell;
-		}
-    }
-
-    /**
-     *
-     * @param tech
-     * @param asJob
-     */
-    public static void makeFakeCircuitryForCoverageCommand(String tech, boolean asJob)
-	{
-		// test code to make and show something
-        if (asJob)
-        {
-            new FakeCoverageCircuitry(tech);
-        }
-        else
-        {
-            final Cell myCell = FakeCoverageCircuitry.doItInternal(tech);
-            if (!Job.BATCHMODE)
-            {
-                SwingUtilities.invokeLater(new Runnable() {
-	            public void run() { WindowFrame.createEditWindow(myCell); }});
-            }
-        }
-	}
-
-    /**
-     * Basic test of area coverage. Function must be public due to regressions.
-     * @param logname
-     * @return
-     */
-    public static boolean basicAreaCoverageTest(String logname)
-    {
-        boolean[] errorCounts = new boolean[2];
-        double delta = DBMath.getEpsilon()* DBMath.getEpsilon();
-        double wireLength = GenMath.toNearest(163.30159818105273, delta);
-
-        try {
-          MessagesStream.getMessagesStream().save(logname);
-          String techName = "tsmc90";
-          makeFakeCircuitryForCoverageCommand(techName, false);
-          Library rootLib = Library.findLibrary("noname");
-          Cell cell = rootLib.findNodeProto("higher{lay}");
-          Technology curTech = cell.getTechnology();
-
-          // Setting 10% as default value
-          for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
-          {
-            Layer layer = it.next();
-            layer.setFactoryAreaCoverageInfo(10);
-          }
-
-          System.out.println("------RUNNING MERGE MODE -------------");
-          Map<Layer,Double> map = layerCoverageCommand(cell, GeometryHandler.GHMode.ALGO_MERGE, false);
-            double area = 0;
-            for(Layer layer : map.keySet())
-            {
-                Double val = map.get(layer);
-                if (val != null)
-                    area += val;
-            }
-          errorCounts[0] = map == null;
-
-          System.out.println("------RUNNING SWEEP MODE -------------");
-          map = layerCoverageCommand(cell, GeometryHandler.GHMode.ALGO_SWEEP, false);
-          errorCounts[1] = map == null;
-        } catch (Exception e) {
-          System.out.println("exception: "+e);
-          e.printStackTrace();
-          return false;
-        }
-
-        System.out.println("Error results : MERGE=" + errorCounts[0] + " SWEEP=" + errorCounts[1]);
-        return(!errorCounts[0] && !errorCounts[1]);
-    }
 }

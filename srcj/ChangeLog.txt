@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+IMP: (3/17/06, GVG) Adding tests plugin including TestMenu. Using reflection to avoid dependency on new plugin
+LayerCoverageTool tests are there for now. DRC and ERC should come next.
+
 BUG: (3/16/06, GVG) Coverage Implant not serializable.
 FIX: Fixed by change LayerCoverageTool job
 

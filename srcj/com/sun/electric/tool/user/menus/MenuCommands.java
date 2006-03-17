@@ -97,15 +97,18 @@ public final class MenuCommands
 
         if (true) {
             // add the SunAsyncMenu and/or TestsMenu if there
-            String[] plugins = {"menus.SunAsyncMenu", "tests.TestsMenu"};
+            String[] plugins = {"menus.SunAsyncMenu", "tests.TestMenu"};
             try {
                 for (String menuName : plugins)
                 {
-                    Class SunAsyncMenuClass = Class.forName("com.sun.electric.plugins."+menuName);
-                    java.lang.reflect.Method addMenu = SunAsyncMenuClass.getMethod("addMenu", new Class[] { MenuBar.class });
+                    Class menuClass = Class.forName("com.sun.electric.plugins."+menuName);
+                    java.lang.reflect.Method addMenu = menuClass.getMethod("addMenu", new Class[] { MenuBar.class });
                     addMenu.invoke(null, new Object [] {menuBar});
                 }
-            } catch (Exception e) {}
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
 
         MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);

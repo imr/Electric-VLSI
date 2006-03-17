@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.WeakReferences;
@@ -50,7 +49,6 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -61,7 +59,6 @@ import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
-import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -86,6 +83,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.*;
 
@@ -102,8 +100,7 @@ public class DebugMenus
 
 		helpMenu.addMenuItem("Make fake circuitry MoCMOS", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("mocmos", true); } });
-		if (Technology.getTSMC90Technology() != null)
-			helpMenu.addMenuItem("Make fake circuitry TSMC90", null,
+        helpMenu.addMenuItem("Make fake circuitry TSMC90", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90", true); } });
 		helpMenu.addMenuItem("Make fake analog simulation window", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
@@ -177,6 +174,10 @@ public class DebugMenus
 
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("Test Layer", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {makeFakeJobCommand();}});
+        gildaMenu.addMenuItem("Hierarchy fill Intersection", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(true, false);}});
         gildaMenu.addMenuItem("QTREE", null,
                                 new ActionListener() { public void actionPerformed(ActionEvent e) {testQTree();}});
         gildaMenu.addMenuItem("Count Lib", null,
@@ -191,10 +192,6 @@ public class DebugMenus
                                 System.out.println("Library " + lib.getName() + " number = " + count);
                             }
                         }});
-        gildaMenu.addMenuItem("Hierarchy fill Binary", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(true, true);}});
-        gildaMenu.addMenuItem("Hierarchy fill Intersection", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(true, false);}});
         gildaMenu.addMenuItem("Flat fill", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {newFill(false, false);}});
         gildaMenu.addMenuItem("Dialog fill", null,
@@ -230,19 +227,17 @@ public class DebugMenus
 	    gildaMenu.addMenuItem("List Geometry on Network SWEEP", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(GeometryHandler.GHMode.ALGO_SWEEP); } });
         gildaMenu.addMenuItem("Merge Polyons Merge", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageTool.LCMode.MERGE, GeometryHandler.GHMode.ALGO_MERGE);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(LayerCoverageTool.LCMode.MERGE, GeometryHandler.GHMode.ALGO_MERGE);}});
         gildaMenu.addMenuItem("Merge Polyons Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageTool.LCMode.MERGE, GeometryHandler.GHMode.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(LayerCoverageTool.LCMode.MERGE, GeometryHandler.GHMode.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants Merge", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_MERGE);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_MERGE);}});
         gildaMenu.addMenuItem("Covering Implants Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants Old", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
-        gildaMenu.addMenuItem("Generate Fake Nodes", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {genFakeNodes();}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageTool.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(LayerCoverageTool.LCMode.AREA, GeometryHandler.GHMode.ALGO_SWEEP); } });
 
         /****************************** Dima's TEST MENU ******************************/
 
@@ -264,69 +259,34 @@ public class DebugMenus
 
 	// ---------------------- For Regression Testing -----------------
 
-    /**
-     * Class to set a cell to be the current cell, done in a Job.
-     * By encapsulating this simple operation in a Job, it gets done
-     * in the proper order when scheduled by a regression test.
-     */
-	private static class SetCellJob extends Job
-    {
-    	private String cellName;
-
-        public SetCellJob(String cellName)
-        {
-            super("Set current cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cellName = cellName;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-    		Library lib = Library.getCurrent();
-    		Job.getUserInterface().setCurrentCell(lib, lib.findNodeProto(cellName));
-            return true;
-        }
-    }
-
-	private static class SaveLibraryJob extends Job
-    {
-    	private String fileName;
-
-    	public SaveLibraryJob(String fileName)
-        {
-            super("Save Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.fileName = fileName;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-    		Library lib = Library.getCurrent();
-    		Cell cell = Job.getUserInterface().getCurrentCell(lib);
-    		if (cell != null) cell.lowLevelSetRevisionDate(new Date(0));	// reset modification date for consistent output
-    		URL outURL = TextUtils.makeURLToFile(fileName);
-    		lib.setLibFile(outURL);
-    		lib.setName(TextUtils.getFileNameWithoutExtension(outURL));
-    		Output.writeLibrary(lib, FileType.JELIB, false, false);
-            return true;
-        }
-    }
-
 	// ---------------------- Help Menu additions -----------------
 
-	public static void makeFakeCircuitryCommand(String tech, boolean asJob)
-	{
-		// test code to make and show something
-        if (asJob)
+    private static void makeFakeCircuitryCommand(String tech, boolean asJob)
+    {
+        // Using reflection to not force the loading of test plugin
+        try
         {
-            MakeFakeCircuitry job = new MakeFakeCircuitry(tech);
-        } else
-        {
-            Cell myCell = MakeFakeCircuitry.doItInternal(tech);
-            if (!Job.BATCHMODE)
-			    WindowFrame.createEditWindow(myCell);
+            Class makeFakeCircuitry = Class.forName("com.sun.electric.tests.MakeFakeCircuitry");
+            Method makeMethod = makeFakeCircuitry.getDeclaredMethod("makeFakeCircuitryCommand", new Class[] {String.class, String.class, Boolean.class});
+            makeMethod.invoke(null, new Object[] {"noname", tech, new Boolean(asJob)});
         }
-	}
+        catch (Exception ex) {};
+    }
+
+    private static void makeFakeJobCommand()
+    {
+        // Using reflection to not force the loading of test plugin
+        try
+        {
+            Class fakeJob = Class.forName("com.sun.electric.plugins.tests.FakeTestJob");
+            Constructor<Object> instance = fakeJob.getDeclaredConstructor(new Class[]{Integer.class});
+            instance.newInstance(new Object[] {new Integer(1)});
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+        };
+    }
 
 //	/**
 //	 * Class to test compaction regressions in a new thread.
@@ -349,189 +309,6 @@ public class DebugMenus
 //            return true;
 //        }
 //	}
-
-	/**
-	 * Class to read a library in a new thread.
-	 */
-	private static class MakeFakeCircuitry extends Job
-	{
-		private String theTechnology;
-		private Cell myCell;
-
-		protected MakeFakeCircuitry(String tech)
-		{
-			super("Make fake circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			theTechnology = tech;
-			startJob();
-		}
-
-		public boolean doIt() throws JobException
-		{
-			myCell = doItInternal(theTechnology);
-			fieldVariableChanged("myCell");
-            return true;
-        }
-
-        public void terminateOK()
-        {
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
-
-			// display a cell
-            if (!BATCHMODE)
-			    WindowFrame.createEditWindow(myCell);
-        }
-
-        /**
-         * External static call for regressions
-         * @param technology
-         * @return
-         */
-		private static Cell doItInternal(String technology)
-		{
-			// get information about the nodes
-			Technology tech = Technology.findTechnology(technology);
-			if (tech == null)
-			{
-				System.out.println("Technology not found in MakeFakeCircuitry");
-				return null;
-			}
-			tech.setCurrent();
-
-			StringBuffer polyName = new StringBuffer("Polysilicon");
-			String lateral = "top";
-
-			if (technology.equals("mocmos"))
-			{
-				polyName.append("-1");
-				lateral = "right";
-			}
-
-			NodeProto m1m2Proto = Cell.findNodeProto(technology+":Metal-1-Metal-2-Con");
-			NodeProto m2PinProto = Cell.findNodeProto(technology+":Metal-2-Pin");
-			NodeProto p1PinProto = Cell.findNodeProto(technology+":" + polyName + "-Pin");
-			NodeProto m1PolyConProto = Cell.findNodeProto(technology+":Metal-1-" + polyName + "-Con");
-			NodeProto pTransProto = Cell.findNodeProto(technology+":P-Transistor");
-			NodeProto nTransProto = Cell.findNodeProto(technology+":N-Transistor");
-			NodeProto invisiblePinProto = Cell.findNodeProto("generic:Invisible-Pin");
-
-			// get information about the arcs
-			ArcProto m1Proto = ArcProto.findArcProto(technology+":Metal-1");
-			ArcProto m2Proto = ArcProto.findArcProto(technology+":Metal-2");
-			ArcProto p1Proto = ArcProto.findArcProto(technology+":"+polyName);
-
-			// get the current library
-			Library mainLib = Library.getCurrent();
-
-			// create a layout cell in the library
-			Cell myCell = Cell.makeInstance(mainLib, technology+"test{lay}");
-			NodeInst metal12Via = NodeInst.newInstance(m1m2Proto, new Point2D.Double(-20.0, 20.0), m1m2Proto.getDefWidth(), m1m2Proto.getDefHeight(), myCell);
-			NodeInst contactNode = NodeInst.newInstance(m1PolyConProto, new Point2D.Double(20.0, 20.0), m1PolyConProto.getDefWidth(), m1PolyConProto.getDefHeight(), myCell);
-			NodeInst metal2Pin = NodeInst.newInstance(m2PinProto, new Point2D.Double(-20.0, 10.0), m2PinProto.getDefWidth(), m2PinProto.getDefHeight(), myCell);
-			NodeInst poly1PinA = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), myCell);
-			NodeInst poly1PinB = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -10.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), myCell);
-			NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), myCell);
-			NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 10.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), myCell, Orientation.fromAngle(3150), "rotated", 0);
-			if (metal12Via == null || contactNode == null || metal2Pin == null || poly1PinA == null ||
-				poly1PinB == null || transistor == null || rotTrans == null) return myCell;
-
-			// make arcs to connect them
-			PortInst m1m2Port = metal12Via.getOnlyPortInst();
-			PortInst contactPort = contactNode.getOnlyPortInst();
-			PortInst m2Port = metal2Pin.getOnlyPortInst();
-			PortInst p1PortA = poly1PinA.getOnlyPortInst();
-			PortInst p1PortB = poly1PinB.getOnlyPortInst();
-			PortInst transPortR = transistor.findPortInst("poly-" + lateral);
-            // Old style
-            if (transPortR == null) transPortR = transistor.findPortInst("p-trans-poly-" + lateral);
-			PortInst transRPortR = rotTrans.findPortInst("poly-" + lateral);
-            // Old style
-            if (transRPortR == null) transRPortR = rotTrans.findPortInst("n-trans-poly-" + lateral);
-			ArcInst metal2Arc = ArcInst.makeInstance(m2Proto, m2Proto.getWidth(), m2Port, m1m2Port);
-			if (metal2Arc == null) return myCell;
-			metal2Arc.setRigid(true);
-			ArcInst metal1Arc = ArcInst.makeInstance(m1Proto, m1Proto.getWidth(), contactPort, m1m2Port);
-			if (metal1Arc == null) return myCell;
-			ArcInst polyArc1 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), contactPort, p1PortB);
-			if (polyArc1 == null) return myCell;
-			ArcInst polyArc3 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), p1PortB, p1PortA);
-			if (polyArc3 == null) return myCell;
-			ArcInst polyArc2 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transPortR, p1PortA);
-			if (polyArc2 == null) return myCell;
-			ArcInst polyArc4 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transRPortR, p1PortB);
-			if (polyArc4 == null) return myCell;
-			// export the two pins
-			Export m1Export = Export.newInstance(myCell, m1m2Port, "in");
-			m1Export.setCharacteristic(PortCharacteristic.IN);
-			Export p1Export = Export.newInstance(myCell, p1PortA, "out");
-			p1Export.setCharacteristic(PortCharacteristic.OUT);
-			System.out.println("Created " + myCell);
-
-
-			// now up the hierarchy
-			Cell higherCell = Cell.makeInstance(mainLib, "higher{lay}");
-			Rectangle2D bounds = myCell.getBounds();
-			double myWidth = myCell.getDefWidth();
-			double myHeight = myCell.getDefHeight();
-            for (int iX = 0; iX < 2; iX++) {
-                boolean flipX = iX != 0;
-                for (int i = 0; i < 4; i++) {
-                    Orientation orient = Orientation.fromJava(i*900, flipX, false);
-                    NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(i*100, iX*200), myWidth, myHeight, higherCell, orient, null, 0);
-                    instanceNode.setExpanded();
-                    NodeInst instanceUNode = NodeInst.newInstance(myCell, new Point2D.Double(i*100, iX*200 + 100), myWidth, myHeight, higherCell, orient, null, 0);
-                    if (iX == 0 && i == 0) {
-                        PortInst instance1Port = instanceNode.findPortInst("in");
-                        PortInst instance2Port = instanceUNode.findPortInst("in");
-                        ArcInst instanceArc = ArcInst.makeInstance(m1Proto, m1Proto.getWidth(), instance1Port, instance2Port);
-                    }
-                }
-            }
-			System.out.println("Created " + higherCell);
-
-
-			// now a rotation test
-			Cell rotTestCell = Cell.makeInstance(mainLib, "rotationTest{lay}");
-            TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withRelSize(10);
-            for (int iY = 0; iY < 2; iY++) {
-                boolean flipY = iY != 0;
-                for (int iX = 0; iX < 2; iX++) {
-                    boolean flipX = iX != 0;
-                    for (int i = 0; i < 4; i++) {
-                        int angle = i*900;
-                        Orientation orient = Orientation.fromJava(angle, flipX, flipY);
-                        int x = i*100;
-                        int y = iX*100 + iY*200;
-                        NodeInst ni = NodeInst.newInstance(myCell, new Point2D.Double(x, y), myWidth, myHeight, rotTestCell, orient, null, 0);
-                        ni.setExpanded();
-                        NodeInst nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(x, y - 35), 0, 0, rotTestCell);
-                        String message = "Rotated " + (orient == Orientation.IDENT ? "0" : orient.toString());
-                        Variable var = nodeLabel.newVar(Artwork.ART_MESSAGE, message,td);
-//                        var.setRelSize(10);
-                    }
-                }
-            }
-			System.out.println("Created " + rotTestCell);
-
-
-			// now up the hierarchy even farther
-			Cell bigCell = Cell.makeInstance(mainLib, "big{lay}");
-			int arraySize = 20;
-			for(int y=0; y<arraySize; y++)
-			{
-				for(int x=0; x<arraySize; x++)
-				{
-					String theName = "arr["+ x + "][" + y + "]";
-					NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(x*(myWidth+2), y*(myHeight+2)),
-						myWidth, myHeight, bigCell, Orientation.IDENT, theName, 0);
-					instanceNode.setOff(NodeInst.NODE_NAME, 0, 8);
-					if ((x%2) == (y%2)) instanceNode.setExpanded();
-				}
-			}
-			System.out.println("Created " + bigCell);
-			return myCell;
-		}
-	}
 
 	/**
 	 * Test method to build an analog waveform with fake data.
@@ -681,6 +458,7 @@ public class DebugMenus
     }
 
 	// ---------------------- Gilda's Stuff MENU -----------------
+
     private static void testQTree()
     {
         Cell cell = WindowFrame.getCurrentCell();
@@ -1033,11 +811,6 @@ public class DebugMenus
             ActivityLogger.logException(e);
         }
 	}
-
-    public static void genFakeNodes()
-    {
-        LayerCoverageTool.makeFakeCircuitryForCoverageCommand("tsmc90", true);
-    }
 
 	/**
 	 * First attempt for coverage implant
