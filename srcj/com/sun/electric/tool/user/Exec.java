@@ -25,7 +25,6 @@ package com.sun.electric.tool.user;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * Runtime.exec() has many pitfalls to it's proper use.  This class
@@ -230,7 +229,7 @@ public class Exec extends Thread {
                     com.append(exec[i]+" ");
             }
 
-            System.out.println("Process finished [exit: "+exitVal+"]: "+com.toString());
+            //System.out.println("Process finished [exit: "+exitVal+"]: "+com.toString());
             synchronized(finishedListeners) {
                 FinishedEvent e = new FinishedEvent(this, com.toString(), dir, exitVal);
                 ArrayList<FinishedListener> copy = new ArrayList<FinishedListener>();
