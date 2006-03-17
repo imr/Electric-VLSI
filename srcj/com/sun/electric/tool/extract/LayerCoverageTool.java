@@ -169,7 +169,7 @@ public class LayerCoverageTool extends Tool
         // Must be change job for merge and implant;
         Job.Type jobType = (func == LayerCoverageTool.LCMode.MERGE || func == LayerCoverageTool.LCMode.IMPLANT) ?
                 Job.Type.CHANGE : Job.Type.EXAMINE;
-        LayerCoverageJob job = new LayerCoverageJob(!startJob, curCell, jobType, func, mode, null);
+        LayerCoverageJob job = new LayerCoverageJob(!startJob, curCell, jobType, func, mode, null, null);
         if (startJob)
             job.startJob();
         else
@@ -235,10 +235,11 @@ public class LayerCoverageTool extends Tool
         HashSet<Network> nets = new HashSet<Network>();
         nets.add(net);
         GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false, layer);
-//        LayerCoverageData data = new LayerCoverageData(null, exportCell, LCMode.NETWORK,
-//                GeometryHandler.GHMode.ALGO_SWEEP, geoms, null);
+        // This assumes that pi.getBounds() alywas gives you a degenerated rectangle (zero area) so
+        // only a point should be searchedd.
 		LayerCoverageJob job = new LayerCoverageJob(true, exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
-                GeometryHandler.GHMode.ALGO_SWEEP, geoms);
+                GeometryHandler.GHMode.ALGO_SWEEP, geoms,
+                new Point2D.Double(pi.getBounds().getX(), pi.getBounds().getY()));
 
         // Must run it now
         try
@@ -246,11 +247,12 @@ public class LayerCoverageTool extends Tool
             job.doIt();  // Former listGeometryOnNetworksNoJob
         } catch (JobException e)
         {
+            e.printStackTrace();
         }
-//        Collection<PolyBase> list = data.tree.getObjects(layer, false, true);.
         List<Object> list = job.nodesAdded;
         // Don't know what to do if there is more than one
-//        if (list.size() != 1)
+        if (list.size() != 1)
+            System.out.println("Prblem here");
 //        assert(list.size() == 1);
         PolyBase poly = (PolyBase)list.toArray()[0];
         return poly.getBounds2D();
@@ -270,7 +272,7 @@ public class LayerCoverageTool extends Tool
 	    double lambda = 1; // lambdaofcell(np);
         // startJob is identical to printable
 	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob, null);
-		Job job = new LayerCoverageJob(!startJob, cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms);
+		Job job = new LayerCoverageJob(!startJob, cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms, null);
 
         if (startJob)
             job.startJob();
@@ -293,21 +295,24 @@ public class LayerCoverageTool extends Tool
     {
         private Cell curCell;
         private Job parentJob; // to stop if parent job is killed
-        private GeometryHandler tree;
         private LCMode function;
+        private GeometryHandler.GHMode mode;
         private GeometryOnNetwork geoms;  // Valid only for network job
         private Rectangle2D bBox; // To crop geometry under analysis by given bounding box
         private List<Object> nodesToExamine = new ArrayList<Object>(); // for implant
+        private Point2D overlapPoint; // to detec if obtained geometry is connected to original request,
+        // Network in fill generator
 
         LayerCoverageData(Job parentJob, Cell cell, LCMode func, GeometryHandler.GHMode mode,
-                          GeometryOnNetwork geoms, Rectangle2D bBox)
+                          GeometryOnNetwork geoms, Rectangle2D bBox, Point2D overlapPoint)
         {
             this.parentJob = parentJob;
             this.curCell = cell;
-            this.tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers());
+            this.mode = mode;
             this.function = func;
             this.geoms = geoms; // Valid only for network
             this.bBox = bBox;
+            this.overlapPoint = overlapPoint;
 
             if (func == LCMode.AREA && this.geoms == null)
                 this.geoms = new GeometryOnNetwork(curCell, null, 1, true, null);
@@ -317,6 +322,7 @@ public class LayerCoverageTool extends Tool
 
         boolean doIt()
         {
+            GeometryHandler tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers());
             HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
             List<NodeInst> deleteList = new ArrayList<NodeInst>(); // should only be used by IMPLANT
             // enumerate the hierarchy below here
@@ -410,7 +416,21 @@ public class LayerCoverageTool extends Tool
                             Collection<PolyBase> set = tree.getObjects(layer, false, true);
 
                             if (geoms != null && geoms.onlyThisLayer != null)
-                                nodesToExamine.addAll(set);
+                            {
+                                if (layer != geoms.onlyThisLayer) continue; // ignore this layer
+                                // Add all elements
+                                if (overlapPoint == null)
+                                    nodesToExamine.addAll(set);
+                                else
+                                {
+                                    // they must be connected
+                                    for (PolyBase p : set)
+                                    {
+                                        if (p.contains(overlapPoint))
+                                            nodesToExamine.add(p);
+                                    }
+                                }
+                            }
 
                             double layerArea = 0;
                             double perimeter = 0;
@@ -455,9 +475,10 @@ public class LayerCoverageTool extends Tool
         private GeometryOnNetwork geoms;
         private List<Object> nodesAdded;
         private boolean manualStart; // in case of manual start, fieldVariableChanged can't be called
+        private Point2D overlapPoint; // to get to crop the search if a given bbox is not null
 
         public LayerCoverageJob(boolean manualStart, Cell cell, Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
-                                GeometryOnNetwork geoms)
+                                GeometryOnNetwork geoms, Point2D overlapPoint)
         {
             super("Layer Coverage on " + cell, User.getUserTool(), jobType, null, null, Priority.USER);
             this.manualStart = manualStart;
@@ -465,12 +486,13 @@ public class LayerCoverageTool extends Tool
             this.func = func;
             this.mode = mode;
             this.geoms = geoms;
+            this.overlapPoint = overlapPoint;
             setReportExecutionFlag(true);
         }
 
         public boolean doIt() throws JobException
         {
-            LayerCoverageData data = new LayerCoverageData(null, cell, func, mode, geoms, null);
+            LayerCoverageData data = new LayerCoverageData(null, cell, func, mode, geoms, null, overlapPoint);
             boolean done = data.doIt();
 
             if (func == LCMode.IMPLANT || (func == LCMode.NETWORK && geoms != null))
@@ -548,7 +570,7 @@ public class LayerCoverageTool extends Tool
                     System.out.println("Calculating Coverage on cell '" + curCell.getName() + "' for area (" +
                             DBMath.round(posX) + "," + DBMath.round(posY) + ") (" +
                             DBMath.round(box.getMaxX()) + "," + DBMath.round(box.getMaxY()) + ")");
-                    LayerCoverageData data = new LayerCoverageData(this, curCell, LCMode.AREA, mode, geoms, box);
+                    LayerCoverageData data = new LayerCoverageData(this, curCell, LCMode.AREA, mode, geoms, box, null);
                     if (!data.doIt())  // aborted by user
                     {
                         return false; // didn't finish
@@ -618,7 +640,8 @@ public class LayerCoverageTool extends Tool
 			}
 		}
 
-		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, LCMode func, HashMap<Layer,Set<PolyBase>> original, Set netSet, Rectangle2D bBox)
+		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, LCMode func,
+                            HashMap<Layer,Set<PolyBase>> original, Set netSet, Rectangle2D bBox)
 		{
             this.parentJob = job;
 			this.tree = t;

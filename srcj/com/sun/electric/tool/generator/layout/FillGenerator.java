@@ -40,6 +40,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
@@ -2372,15 +2373,11 @@ public class FillGenerator implements Serializable {
                 Export ex = (Export)p.getPortProto();
                 Cell exportCell = (Cell)p.getNodeInst().getProto();
 
-                System.out.println("Ce " + count + " " + ex.getOriginalPort().getNodeInst().getName());    
                 Rectangle2D rect = LayerCoverageTool.getGeometryOnNetwork(exportCell, ex.getOriginalPort(),
                         Tech.m2pin.getLayers()[0].getLayer().getNonPseudoLayer());
 
                 // Transformation of the cell instance containing this port
                 AffineTransform trans = p.getNodeInst().transformOut();
-
-//                // Transforming rectangle with gnd/power metal into the connection cell
-//                DBMath.transformRect(rect, trans);
 
                 // Looking to detect any possible contact based on overlap between this geometry and fill
                 NodeInst added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon, conTransOut);
@@ -2496,6 +2493,10 @@ public class FillGenerator implements Serializable {
         public void terminateOK()
         {
             log.termLogging(false);
+            long endTime = System.currentTimeMillis();
+            int errorCount = log.getNumErrors();
+            int warnCount = log.getNumWarnings();
+            System.out.println(errorCount + " errors and " + warnCount + " warnings found (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
         }
 
         /**

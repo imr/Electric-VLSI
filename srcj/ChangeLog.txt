@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
-BUG (3/17/06, GVG) Arc routing complaiing about "domain violation while figuring angle in radians" (Bug #888).
+BUG (3/17/06, GVG) Arc routing complaing about "domain violation while figuring angle in radians" (Bug #888).
 It happens when you are rounting two nodes in top of each other (tail and head points are identical).
 FIX: Detecting the case.
 
