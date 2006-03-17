@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/16/06, GVG) Coverage Implant not serializable.
+FIX: Fixed by change LayerCoverageTool job
+
 BUG: (3/16/06, RK) Fix bug in NCC regression script
 
 BUG: (3/16/06, GVG) Cannpt serialize HighlightEOBJ in ChangeArcProperties job (Bug #885)

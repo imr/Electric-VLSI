@@ -623,11 +623,7 @@ public class ToolMenu {
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
-	    EditWindow wnd = EditWindow.needCurrent();
-	    Highlighter highlighter = null;
-	    if ((wnd != null) && (wnd.getCell() == curCell))
-		    highlighter = wnd.getHighlighter();
-        LayerCoverageTool.layerCoverageCommand(jobType, func, mode, curCell, highlighter);
+        LayerCoverageTool.layerCoverageCommand(jobType, func, mode, curCell);
     }
 
     private static class BackAnnotateJob extends Job {

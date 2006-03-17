@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.hierarchy.Cell;
@@ -170,10 +171,9 @@ public class LayerCoverageTool extends Tool
      * except "List Geometry on Network" commands.
      */
     public static void layerCoverageCommand(Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
-                                            Cell curCell, Highlighter highlighter)
+                                            Cell curCell)
     {
-        LayerCoverageData data = new LayerCoverageData(null, curCell, func, mode, highlighter, null, null);
-        Job job = new LayerCoverageJob(data, jobType);
+        LayerCoverageJob job = new LayerCoverageJob(curCell, jobType, func, mode, null);
         job.startJob();
     }
     
@@ -198,8 +198,7 @@ public class LayerCoverageTool extends Tool
         if (width > bbox.getWidth()) width = bbox.getWidth();
         if (height > bbox.getHeight()) height = bbox.getHeight();
         Map<Layer,Double> map = null;
-        AreaCoverageJob job = new AreaCoverageJob(cell, null, mode, width, height,
-                deltaX, deltaY);
+        AreaCoverageJob job = new AreaCoverageJob(cell, mode, width, height, deltaX, deltaY);
 
         // No regression
         if (startJob)
@@ -228,10 +227,12 @@ public class LayerCoverageTool extends Tool
         Network net = netlist.getNetwork(pi);
         HashSet<Network> nets = new HashSet<Network>();
         nets.add(net);
-        GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false);
-        LayerCoverageData data = new LayerCoverageData(null, exportCell, LCMode.NETWORK,
-                GeometryHandler.GHMode.ALGO_SWEEP, null, geoms, null);
-		LayerCoverageJob job = new LayerCoverageJob(data, Job.Type.EXAMINE);
+        GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false, layer);
+//        LayerCoverageData data = new LayerCoverageData(null, exportCell, LCMode.NETWORK,
+//                GeometryHandler.GHMode.ALGO_SWEEP, geoms, null);
+		LayerCoverageJob job = new LayerCoverageJob(exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
+                GeometryHandler.GHMode.ALGO_SWEEP, geoms);
+
         // Must run it now
         try
         {
@@ -239,7 +240,8 @@ public class LayerCoverageTool extends Tool
         } catch (JobException e)
         {
         }
-        Collection<PolyBase> list = data.tree.getObjects(layer, false, true);
+//        Collection<PolyBase> list = data.tree.getObjects(layer, false, true);.
+        List<Object> list = job.nodesAdded;
         // Don't know what to do if there is more than one
 //        if (list.size() != 1)
 //        assert(list.size() == 1);
@@ -260,9 +262,9 @@ public class LayerCoverageTool extends Tool
 	    if (cell == null || nets == null || nets.isEmpty()) return null;
 	    double lambda = 1; // lambdaofcell(np);
         // startJob is identical to printable
-	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob);
-        LayerCoverageData data = new LayerCoverageData(null, cell, LCMode.NETWORK, mode, null, geoms, null);
-		Job job = new LayerCoverageJob(data, Job.Type.EXAMINE);
+	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob, null);
+//        LayerCoverageData data = new LayerCoverageData(null, cell, LCMode.NETWORK, mode, geoms, null);
+		Job job = new LayerCoverageJob(cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms);
 
         if (startJob)
             job.startJob();
@@ -287,30 +289,30 @@ public class LayerCoverageTool extends Tool
         private Job parentJob; // to stop if parent job is killed
         private GeometryHandler tree;
         private LCMode function;
-        private List<NodeInst> deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
-        private HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
-        private Highlighter highlighter; // To highlight new implants
         private GeometryOnNetwork geoms;  // Valid only for network job
         private Rectangle2D bBox; // To crop geometry under analysis by given bounding box
+        private List<Object> nodesToExamine = new ArrayList<Object>(); // for implant
 
-        LayerCoverageData(Job parentJob, Cell cell, LCMode func, GeometryHandler.GHMode mode, Highlighter highlighter,
-                          LayerCoverageTool.GeometryOnNetwork geoms, Rectangle2D bBox)
+        LayerCoverageData(Job parentJob, Cell cell, LCMode func, GeometryHandler.GHMode mode,
+                          GeometryOnNetwork geoms, Rectangle2D bBox)
         {
             this.parentJob = parentJob;
             this.curCell = cell;
             this.tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers());
             this.function = func;
-            this.deleteList = new ArrayList<NodeInst>(); // should only be used by IMPLANT
-            this.highlighter = highlighter;
             this.geoms = geoms; // Valid only for network
             this.bBox = bBox;
 
             if (func == LCMode.AREA && this.geoms == null)
-                this.geoms = new GeometryOnNetwork(curCell, null, 1, true);
+                this.geoms = new GeometryOnNetwork(curCell, null, 1, true, null);
         }
+
+        List<Object> getNodesToHighlight() { return nodesToExamine; }
 
         boolean doIt()
         {
+            HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
+            List<NodeInst> deleteList = new ArrayList<NodeInst>(); // should only be used by IMPLANT
             // enumerate the hierarchy below here
             LayerVisitor visitor = new LayerVisitor(parentJob, tree, deleteList, function,
                     originalPolygons, (geoms != null) ? (geoms.nets) : null, bBox);
@@ -323,7 +325,6 @@ public class LayerCoverageTool extends Tool
                 case IMPLANT:
                     {
                         // With polygons collected, new geometries are calculated
-                        if (highlighter != null) highlighter.clear();
                         boolean noNewNodes = true;
                         boolean isMerge = (function == LCMode.MERGE);
                         Rectangle2D rect;
@@ -363,8 +364,7 @@ public class LayerCoverageTool extends Tool
                                 PrimitiveNode priNode = layer.getPureLayerNode();
                                 // Adding the new implant. New implant not assigned to any local variable                                .
                                 NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell);
-                                if (highlighter != null)
-                                    highlighter.addElectricObject(node, curCell);
+                                nodesToExamine.add(node);
 
                                 if (isMerge)
                                 {
@@ -381,7 +381,6 @@ public class LayerCoverageTool extends Tool
                                 noNewNodes = false;
                             }
                         }
-                        if (highlighter != null) highlighter.finished();
                         for (NodeInst node : deleteList)
                         {
                             node.kill();
@@ -403,6 +402,10 @@ public class LayerCoverageTool extends Tool
                         for (Layer layer : list)
                         {
                             Collection<PolyBase> set = tree.getObjects(layer, false, true);
+
+                            if (geoms != null && geoms.onlyThisLayer != null)
+                                nodesToExamine.addAll(set);
+
                             double layerArea = 0;
                             double perimeter = 0;
 
@@ -440,18 +443,62 @@ public class LayerCoverageTool extends Tool
      ************************************************************************/
     private static class LayerCoverageJob extends Job
     {
-        private LayerCoverageData coverageData;
-        public LayerCoverageJob(LayerCoverageData data, Type jobType)
-        {
-            super("Layer Coverage on " + data.curCell, User.getUserTool(), jobType, null, null, Priority.USER);
-            this.coverageData = data;
+//        private LayerCoverageData coverageData;
+        private Cell cell;
+        private LCMode func;
+        private GeometryHandler.GHMode mode;
+        private GeometryOnNetwork geoms;
+        private List<Object> nodesAdded;
+//        public LayerCoverageJob(LayerCoverageData data, Type jobType, Highlighter highlighter)
+//        {
+//            super("Layer Coverage on " + data.curCell, User.getUserTool(), jobType, null, null, Priority.USER);
+////            this.coverageData = data;
+//            this.highlighter = highlighter;
+//
+//            setReportExecutionFlag(true);
+//        }
 
+        public LayerCoverageJob(Cell cell, Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
+                                GeometryOnNetwork geoms)
+        {
+            super("Layer Coverage on " + cell, User.getUserTool(), jobType, null, null, Priority.USER);
+            this.cell = cell;
+            this.func = func;
+            this.mode = mode;
+            this.geoms = geoms;
             setReportExecutionFlag(true);
         }
 
         public boolean doIt() throws JobException
         {
-            return coverageData.doIt();
+            LayerCoverageData data = new LayerCoverageData(null, cell, func, mode, geoms, null);
+            boolean done = data.doIt();
+
+            if (func == LCMode.IMPLANT || (func == LCMode.NETWORK && geoms != null))
+            {
+                nodesAdded = new ArrayList<Object>();
+                nodesAdded.addAll(data.getNodesToHighlight());
+                fieldVariableChanged("nodesAdded");
+            }
+            return done;
+        }
+
+        public void terminateOK()
+        {
+            // For implant highlight the new nodes
+            if (func == LCMode.IMPLANT)
+            {
+                EditWindow wnd = EditWindow.needCurrent();
+                Highlighter highlighter = null;
+                if ((wnd != null) && (wnd.getCell() == cell))
+                highlighter = wnd.getHighlighter();
+                if (highlighter == null) return; // nothing to do
+                if (nodesAdded == null) return; // nothing to show
+                for (Object node : nodesAdded)
+                {
+                    highlighter.addElectricObject((NodeInst)node, cell);
+                }
+            }
         }
     }
 
@@ -463,17 +510,14 @@ public class LayerCoverageTool extends Tool
         private Cell curCell;
         private double deltaX, deltaY;
         private double width, height;
-        private Highlighter highlighter;
         private GeometryHandler.GHMode mode;
-        private boolean foundError = false;
         private Map<Layer,Double> internalMap;
 
-        public AreaCoverageJob(Cell cell, Highlighter highlighter, GeometryHandler.GHMode mode,
+        public AreaCoverageJob(Cell cell, GeometryHandler.GHMode mode,
                                double width, double height, double deltaX, double deltaY)
         {
             super("Layer Coverage", User.getUserTool(), Type.EXAMINE, null, null, Priority.USER);
             this.curCell = cell;
-            this.highlighter = highlighter;
             this.mode = mode;
             this.width = width;
             this.height = height;
@@ -503,19 +547,16 @@ public class LayerCoverageTool extends Tool
                 for (double posX = bBoxOrig.getMinX(); posX < maxX; posX += deltaX)
                 {
                     Rectangle2D box = new Rectangle2D.Double(posX, posY, width, height);
-                    GeometryOnNetwork geoms = new GeometryOnNetwork(curCell, null, 1, true);
+                    GeometryOnNetwork geoms = new GeometryOnNetwork(curCell, null, 1, true, null);
                     System.out.println("Calculating Coverage on cell '" + curCell.getName() + "' for area (" +
                             DBMath.round(posX) + "," + DBMath.round(posY) + ") (" +
                             DBMath.round(box.getMaxX()) + "," + DBMath.round(box.getMaxY()) + ")");
-                    LayerCoverageData data = new LayerCoverageData(this, curCell, LCMode.AREA, mode, highlighter,
-                            geoms, box);
+                    LayerCoverageData data = new LayerCoverageData(this, curCell, LCMode.AREA, mode, geoms, box);
                     if (!data.doIt())  // aborted by user
                     {
-                        foundError = true;
                         return false; // didn't finish
                     }
-                    if (geoms.analyzeCoverage(box, errorLogger))
-                        foundError = true;
+                    geoms.analyzeCoverage(box, errorLogger);
 
                     for (int i = 0; i < geoms.layers.size(); i++)
                     {
@@ -832,6 +873,7 @@ public class LayerCoverageTool extends Tool
 	    protected Set<Network> nets;
 	    private double lambda;
 		private boolean printable;
+        private Layer onlyThisLayer;
 
 	    // these lists tie together a layer, its area, and its half-perimeter
 	    private ArrayList<Layer> layers;
@@ -840,10 +882,13 @@ public class LayerCoverageTool extends Tool
 	    private double totalWire;
         private double totalArea;
 
-	    public GeometryOnNetwork(Cell cell, Set<Network> nets, double lambda, boolean printable) {
+	    public GeometryOnNetwork(Cell cell, Set<Network> nets, double lambda, boolean printable,
+                                 Layer onlyThisLayer)
+        {
 	        this.cell = cell;
 	        this.nets = nets;
 	        this.lambda = lambda;
+            this.onlyThisLayer = onlyThisLayer;
 	        layers = new ArrayList<Layer>();
 	        areas = new ArrayList<Double>();
 	        halfPerimeters = new ArrayList<Double>();
@@ -853,7 +898,10 @@ public class LayerCoverageTool extends Tool
 	    }
 	    public double getTotalWireLength() { return totalWire; }
         protected void setTotalArea(double area) {totalArea = area; }
-	    private void addLayer(Layer layer, double area, double halfperimeter) {
+	    private void addLayer(Layer layer, double area, double halfperimeter)
+        {
+            assert(layer != null);
+            if (layer != onlyThisLayer) return; // skip this one
 	        layers.add(layer);
 	        areas.add(new Double(area));
 	        halfPerimeters.add(new Double(halfperimeter));
