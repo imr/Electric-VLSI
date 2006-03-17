@@ -50,8 +50,6 @@ import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.cvspm.CVS;
-import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
@@ -328,11 +326,11 @@ public class Output
 	 * also include the hierarchy below it.
 	 * The alternative is to write the entire library, regardless of
 	 * hierarchical structure (use "WriteLibrary").
-     * @param cellJob contains following information
-     * cell: the Cell to be written.
-     * context: the VarContext of the Cell (its position in the hierarchy above it).
-     * filePath: the path to the disk file to be written.
-     * type: the format of the output file.
+     * @param cell: the Cell to be written.
+     * @param context: the VarContext of the Cell (its position in the hierarchy above it).
+     * @param filePath: the path to the disk file to be written.
+     * @param type: the format of the output file. 
+     * @param override a list of overriding polygons to write.
      * NOTE: Keep public for regressions
      */
     public static void writeCell(Cell cell, VarContext context, String filePath, FileType type, List<PolyBase> override)
