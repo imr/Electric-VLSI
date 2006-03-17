@@ -101,7 +101,7 @@ public class OpenFile
          * @return true if the file is traversable, false otherwise
          */
         public boolean isTraversable(File f) {
-            if (f.getName().toLowerCase().endsWith(FileType.DELIB.getExtensions()[0])) {
+            if (f.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
                 return false;
             }
             return super.isTraversable(f);
