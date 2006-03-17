@@ -25,7 +25,10 @@
 package com.sun.electric.tool.io.input;
 
 
+import com.sun.electric.database.hierarchy.Cell;
+
 import java.io.*;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -66,6 +69,12 @@ public class DELIB extends JELIB {
     }
 
     protected void readCell(String line) throws IOException {
+        if (lineReader != headerReader) {
+            // already reading a separate cell file
+            super.readCell(line);
+            return;
+        }
+
         // get the file location; remove 'C' at start
         String cellFile = line.substring(1, line.length());
         File cellFD = new File(filePath + File.separator + cellFile);
@@ -79,21 +88,7 @@ public class DELIB extends JELIB {
             return;
         }
         lineReader = cellReader;
-
-        // read cell line of cell file
-        for(;;) {
-            line = lineReader.readLine();
-            if (line == null) break;
-            if (line.length() == 0) continue;
-            if (line.charAt(0) == 'C') break;
-        }
-        if (line == null) {
-            System.out.println("Error reading file "+cellFD);
-            lineReader = headerReader;
-            return;
-        }
-
-        super.readCell(line);
+        readFromFile();
         lineReader.close();
         lineReader = headerReader;
     }

@@ -118,7 +118,13 @@ public class JELIB extends LibraryFiles
 	private int revision;
 	private char escapeChar = '\\';
 	private String curLibName;
-   
+
+    private String curExternalLibName = "";
+    private String curExternalCellName = "";
+    private Technology curTech = null;
+    private PrimitiveNode curPrim = null;
+    private ArrayList<Cell[]> groupLines;
+
 //	/** The number of lines that have been "processed" so far. */	private int numProcessed;
 //	/** The number of lines that must be "processed". */			private int numToProcess;
 
@@ -176,13 +182,103 @@ public class JELIB extends LibraryFiles
 		curLibName = null;
 		version = null;
 		revision = revisions.length;
-		String curExternalLibName = "";
-		String curExternalCellName = "";
-		Technology curTech = null;
-		PrimitiveNode curPrim = null;
+		curExternalLibName = "";
+		curExternalCellName = "";
+		curTech = null;
+		curPrim = null;
 		externalCells = new HashMap<String,Rectangle2D>();
 		externalExports = new HashMap<String,Point2D.Double>();
-		ArrayList<Cell[]> groupLines = new ArrayList<Cell[]>();
+		groupLines = new ArrayList<Cell[]>();
+
+        // do all the reading
+        readFromFile();
+
+        // collect the cells by common protoName and by "groupLines" relation
+        TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
+        HashMap<String,String> protoNames = new HashMap<String,String>();
+        for (Iterator<Cell> cit = lib.getCells(); cit.hasNext();)
+        {
+            Cell cell = cit.next();
+            String protoName = protoNames.get(cell.getName());
+            if (protoName == null)
+            {
+                protoName = cell.getName();
+                protoNames.put(protoName, protoName);
+            }
+            transitive.theseAreRelated(cell, protoName);
+        }
+        for (Cell[] groupLine : groupLines)
+        {
+            Cell firstCell = null;
+            for (int i = 0; i < groupLine.length; i++)
+            {
+                if (groupLine[i] == null) continue;
+                if (firstCell == null)
+                    firstCell = groupLine[i];
+                else
+                    transitive.theseAreRelated(firstCell, groupLine[i]);
+            }
+        }
+
+        // create the cell groups
+        for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
+        {
+            Set<Object> group = git.next();
+            Cell firstCell = null;
+            for (Object o : group)
+            {
+                if (!(o instanceof Cell)) continue;
+                Cell cell = (Cell)o;
+                if (firstCell == null)
+                    firstCell = cell;
+                else
+                    cell.joinGroup(firstCell);
+            }
+        }
+
+        // set main schematic cells
+        for (Cell[] groupLine : groupLines)
+        {
+            Cell firstCell = groupLine[0];
+            if (firstCell == null) continue;
+            if (firstCell.isSchematic() && firstCell.getNewestVersion() == firstCell)
+                firstCell.getCellGroup().setMainSchematics(firstCell);
+        }
+
+        // sensibility check: shouldn't all cells with the same root name be in the same group?
+        HashMap<String,Cell.CellGroup> cellGroups = new HashMap<String,Cell.CellGroup>();
+        for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+        {
+            Cell cell = it.next();
+            String canonicName = TextUtils.canonicString(cell.getName());
+            Cell.CellGroup group = cell.getCellGroup();
+            Cell.CellGroup groupOfName = cellGroups.get(canonicName);
+            if (groupOfName == null)
+            {
+                cellGroups.put(canonicName, group);
+            } else
+            {
+                if (groupOfName != group)
+                {
+                    Input.errorLogger.logError(filePath + ", Library has multiple cells named '" +
+                        canonicName + "' that are not in the same group", -1);
+
+                    // Join groups with like-names cells
+// 					for (Iterator cit = group.getCells(); cit.hasNext(); )
+// 					{
+// 						Cell cellInGroup = cit.next();
+// 						cellInGroup.setCellGroup(groupOfName);
+// 					}
+                }
+            }
+        }
+
+        lib.clearChanged();
+        lib.setFromDisk();
+        return false;
+    }
+
+    protected void readFromFile() throws IOException {
 		for(;;)
 		{
 			// get keyword from file
@@ -471,90 +567,6 @@ public class JELIB extends LibraryFiles
 			Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
 				", Unrecognized line: " + line, -1);
 		}
-
-		// collect the cells by common protoName and by "groupLines" relation
-		TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
-		HashMap<String,String> protoNames = new HashMap<String,String>();
-		for (Iterator<Cell> cit = lib.getCells(); cit.hasNext();)
-		{
-			Cell cell = cit.next();
-			String protoName = protoNames.get(cell.getName());
-			if (protoName == null)
-			{
-				protoName = cell.getName();
-				protoNames.put(protoName, protoName);
-			}
-			transitive.theseAreRelated(cell, protoName);
-		}
-		for (Cell[] groupLine : groupLines)
-		{
-			Cell firstCell = null;
-			for (int i = 0; i < groupLine.length; i++)
-			{
-				if (groupLine[i] == null) continue;
-				if (firstCell == null)
-					firstCell = groupLine[i];
-				else
-					transitive.theseAreRelated(firstCell, groupLine[i]);
-			}
-		}
-
-		// create the cell groups
-		for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
-		{
-			Set<Object> group = git.next();
-			Cell firstCell = null;
-			for (Object o : group)
-			{
-				if (!(o instanceof Cell)) continue;
-				Cell cell = (Cell)o;
-				if (firstCell == null)
-					firstCell = cell;
-				else
-					cell.joinGroup(firstCell);
-			}
-		}
-
-		// set main schematic cells
-		for (Cell[] groupLine : groupLines)
-		{
-			Cell firstCell = groupLine[0];
-			if (firstCell == null) continue;
-			if (firstCell.isSchematic() && firstCell.getNewestVersion() == firstCell)
-				firstCell.getCellGroup().setMainSchematics(firstCell);
-		}
-
-		// sensibility check: shouldn't all cells with the same root name be in the same group?
-		HashMap<String,Cell.CellGroup> cellGroups = new HashMap<String,Cell.CellGroup>();
-		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
-		{
-			Cell cell = it.next();
-			String canonicName = TextUtils.canonicString(cell.getName());
-			Cell.CellGroup group = cell.getCellGroup();
-			Cell.CellGroup groupOfName = cellGroups.get(canonicName);
-			if (groupOfName == null)
-			{
-				cellGroups.put(canonicName, group);
-			} else
-			{
-				if (groupOfName != group)
-				{
-					Input.errorLogger.logError(filePath + ", Library has multiple cells named '" +
-						canonicName + "' that are not in the same group", -1);
-
-					// Join groups with like-names cells
-// 					for (Iterator cit = group.getCells(); cit.hasNext(); )
-// 					{
-// 						Cell cellInGroup = cit.next();
-// 						cellInGroup.setCellGroup(groupOfName);
-// 					}
-				}
-			}
-		}
-
-		lib.clearChanged();
-		lib.setFromDisk();
-		return false;
 	}
 
     protected void readCell(String line) throws IOException {
