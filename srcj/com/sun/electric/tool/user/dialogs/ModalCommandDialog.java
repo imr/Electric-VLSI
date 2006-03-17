@@ -48,12 +48,13 @@ public class ModalCommandDialog extends javax.swing.JDialog implements Exec.Fini
     private Exec exec;
 
     /** Creates new form ModalCommandDialog */
-    public ModalCommandDialog(Frame owner, boolean modal, Exec e, String message) {
+    public ModalCommandDialog(Frame owner, boolean modal, Exec e, String message1, String message2) {
         super(owner, modal);
         this.exec = e;
         this.exec.addFinishedListener(this);
         initComponents();
-        jLabel1.setText(message);
+        jLabel1.setText(message1);
+        jLabel2.setText(message2);
         if (owner != null) {
             Rectangle rect = owner.getBounds();
             Rectangle size = getBounds();
@@ -77,8 +78,9 @@ public class ModalCommandDialog extends javax.swing.JDialog implements Exec.Fini
 
         jLabel1 = new javax.swing.JLabel();
         cancelButton = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
 
-        setLayout(new java.awt.GridBagLayout());
+        getContentPane().setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("jLabel1");
@@ -86,7 +88,7 @@ public class ModalCommandDialog extends javax.swing.JDialog implements Exec.Fini
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
-        add(jLabel1, gridBagConstraints);
+        getContentPane().add(jLabel1, gridBagConstraints);
 
         cancelButton.setText("Cancel");
         cancelButton.addActionListener(new java.awt.event.ActionListener() {
@@ -97,9 +99,18 @@ public class ModalCommandDialog extends javax.swing.JDialog implements Exec.Fini
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(6, 0, 6, 0);
-        add(cancelButton, gridBagConstraints);
+        getContentPane().add(cancelButton, gridBagConstraints);
+
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel2.setText("jLabel2");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(5, 5, 5, 5);
+        getContentPane().add(jLabel2, gridBagConstraints);
 
     }// </editor-fold>//GEN-END:initComponents
 
@@ -113,6 +124,7 @@ public class ModalCommandDialog extends javax.swing.JDialog implements Exec.Fini
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancelButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     // End of variables declaration//GEN-END:variables
 
     public void processFinished(Exec.FinishedEvent e) {

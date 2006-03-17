@@ -31,12 +31,17 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.dialogs.ModalCommandDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.output.DELIB;
+import com.sun.electric.tool.Job;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.net.URL;
 
 /**
  * Created by IntelliJ IDEA.
@@ -52,116 +57,193 @@ import java.io.OutputStream;
  */
 public class CVS {
 
+    public static boolean isEnabled() { return false; }
+
     public static void checkoutFromRepository() {
+        // get list of modules in repository
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        runModalCVSCommand("-n checkout -c", "Getting modules in repository...", User.getWorkingDirectory(), out);
 
+        // this must come after the runModal command
+        LineNumberReader result = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+
+        List<String> modules = new ArrayList<String>();
+        for (;;) {
+            String line = null;
+            try {
+                line = result.readLine();
+            } catch (IOException e) {
+                System.out.println(e.getMessage());
+                return;
+            }
+            if (line == null) break;
+            line = line.trim();
+            if (line.equals("")) continue;
+
+            String[] parts = line.split("\\s");
+            modules.add(parts[0]);
+        }
+        if (modules.size() == 0) {
+            System.out.println("No modules in CVS!");
+            return;
+        }
+        Object ret = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), "Choose Module to Checkout",
+                "Checkout Module...", JOptionPane.QUESTION_MESSAGE, null, modules.toArray(), modules.toArray()[0]);
+        if (ret == null) {
+            // user cancelled
+            return;
+        }
+        String module = (String)ret;
+        // choose directory to checkout to
+        String directory = OpenFile.chooseDirectory("Choose directory in which to checkout module "+module);
+        if (directory == null) {
+            // user cancelled
+            return;
+        }
+        // checkout module to current working directory
+        String cmd = "checkout "+module;
+        runModalCVSCommand(cmd, "Checking out '"+module+"' to "+directory, directory, System.out);
+        System.out.println("Checked out '"+module+"' to '"+directory+"'");
     }
 
-    // -------------- Updating -----------------
-
-    public static void updateAllLibraries() {
-
-    }
-
-    public static void updateLibrary(Library lib) {
-
-    }
-
-    public static void updateCell(Cell cell) {
-
-    }
-
-    // -------------- Adding ---------------------
-
-    public static void addAllLibraries() {
-
-    }
-
-    public static void addLibrary(Library lib) {
-
-    }
-
-    public static void addCell(Cell cell) {
-        // first make sure that library is in Repository
-
-    }
-
-    // -------------- Committing -----------------
-
-    public static void commitAllLibraries() {
-
-    }
-
-    public static void commitLibrary(Library lib) {
-
-    }
-
-    public static void commitCell(Cell cell) {
-
-    }
-
-    public static String getCommitMessage() {
-
-        return "";
-    }
-
-    // ---------------- Editing ------------------
-
-    public static void editLibrary(Library lib) {
-
-    }
-
-    public static void editCell(Cell cell) {
-
-    }
-
-    public static void uneditLibrary(Library lib) {
-
-    }
-
-    public static void uneditCell(Cell cell) {
-
-    }
-
-    // -------------------------------------------
+    // ------------------------------------------------------------------------
 
     /**
-     * This will run a CVS command and block the GUI until the command
-     * completes, or until the user hits 'cancel', which will try to
-     * terminate the external command.
-     * @param cmd
+     * This will run a CVS command in-thread; i.e. the current thread will
+     * block until the CVS command completes.
+     * @param cmd the command to run
+     * @param comment the message to display on the dialog
+     * @param workingDir the directory in which to run the CVS command
+     * (null for current working directory). I recommend you specify
+     * this as the current library dir.
      * @param out where the result of the command gets printed. May be
      * a ByteArrayOutputStream for storing it, or just System.out for
      * printing it.
      */
-    public static void runModalCVSCommand(String cmd, OutputStream out) {
+    public static void runCVSCommand(String cmd, String comment, String workingDir, OutputStream out) {
         String run = getCVSProgram() + " -d"+getRepository()+" "+cmd;
 
-        //run = "sleep 4";
-        Exec e = new Exec(run, null, new File(User.getWorkingDirectory()), out, out);
+        System.out.println(comment);
+        Exec e = new Exec(run, null, new File(workingDir), out, out);
+        e.run();
+    }
+
+    /**
+     * This will run a CVS command in a separate Thread and block the GUI until the command
+     * completes, or until the user hits 'cancel', which will try to
+     * terminate the external command.  This method returns after
+     * the cvs command has completed.
+     * @param cmd the command to run
+     * @param comment the message to display on the dialog
+     * @param workingDir the directory in which to run the CVS command
+     * (null for current working directory). I recommend you specify
+     * this as the current library dir.
+     * @param out where the result of the command gets printed. May be
+     * a ByteArrayOutputStream for storing it, or just System.out for
+     * printing it.
+     */
+    public static void runModalCVSCommand(String cmd, String comment, String workingDir, OutputStream out) {
+        String run = getCVSProgram() + " -d"+getRepository()+" "+cmd;
+
+        Exec e = new Exec(run, null, new File(workingDir), out, out);
         // add a listener to get rid of the modal dialog when the command finishes
         String message = "Running: "+run;
         JFrame frame = TopLevel.getCurrentJFrame();
-        ModalCommandDialog dialog = new ModalCommandDialog(frame, true, e, message);
+        ModalCommandDialog dialog = new ModalCommandDialog(frame, true, e, message, comment);
         dialog.setVisible(true);
     }
 
+    // -------------------------- Utility Commands --------------------------
+
     public static void testModal() {
-        runModalCVSCommand("-n history -c -a", System.out);
+        runModalCVSCommand("-n history -c -a", "testing command", User.getWorkingDirectory(), System.out);
     }
 
+    /**
+     * Get the file for the given Cell, assuming the library is
+     * in DELIB format.  If not, returns null.
+     * @param cell
+     * @return
+     */
+    public static File getCellFile(Cell cell) {
+        if (isDELIB(cell.getLibrary())) {
+            String relativeFile = DELIB.getCellFile(cell);
+            URL libFile = cell.getLibrary().getLibFile();
+            return new File(libFile.getFile(), relativeFile);
+        }
+        return null;
+    }
+
+    public static boolean isDELIB(Library lib) {
+        URL libFile = lib.getLibFile();
+        FileType type = OpenFile.getOpenFileType(libFile.getFile(), FileType.JELIB);
+        return (type == FileType.DELIB);
+    }
 
     /**
-     * Use this to capture the output of a CVS command
+     * Returns true if this file has is being maintained from a
+     * CVS respository, returns false otherwise.
      */
-    public abstract class CVSExecListener implements Exec.FinishedListener {
-        ByteArrayOutputStream out;
-        ByteArrayOutputStream err;
-        public CVSExecListener() {
-            out = new ByteArrayOutputStream();
-            err = new ByteArrayOutputStream();
+    public static boolean isFileInCVS(File fd) {
+        // get directory file is in
+        if (fd == null) return false;
+        File parent = fd.getParentFile();
+        File CVSDIR = new File(parent, "CVS");
+        if (!CVSDIR.exists()) return false;
+        File entries = new File(CVSDIR, "Entries");
+        if (!entries.exists()) return false;
+        // make sure file is mentioned in Entries file
+        String filename = fd.getName();
+        try {
+            FileReader fr = new FileReader(entries);
+            LineNumberReader reader = new LineNumberReader(fr);
+            for (;;) {
+                String line = reader.readLine();
+                if (line == null) break;
+                if (line.equals("")) continue;
+                String parts[] = line.split("/");
+                if (parts.length >= 2 && parts[1].equals(filename)) return true;
+            }
+
+        } catch (IOException e) {
         }
-        public ByteArrayOutputStream getOut() { return out; }
-        public ByteArrayOutputStream getErr() { return err; }
+        return false;
+    }
+
+    /**
+     * Used by commands that require the library to be in sync with the disk.
+     * @param lib
+     * @param dialog true to pop up a dialog to tell the user, false to not do so.
+     * @return true if not modified, false if modified
+     */
+    public static boolean assertNotModified(Library lib, String cmd, boolean dialog) {
+        if (lib.isChanged()) {
+            if (dialog) {
+                Job.getUserInterface().showErrorMessage("Library "+lib.getName()+" must be saved to run CVS "+cmd, "CVS "+cmd);
+            } else {
+                System.out.println("Library "+lib.getName()+" must be saved to run CVS "+cmd);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Used by commands that require the library to be in sync with the disk.
+     * @param cell
+     * @param dialog true to pop up a dialog to tell the user, false to not do so.
+     * @return true if not modified, false if modified
+     */
+    public static boolean assertNotModified(Cell cell, String cmd, boolean dialog) {
+        if (cell.isModified(true)) {
+            if (dialog) {
+                Job.getUserInterface().showErrorMessage("Cell "+cell.getName()+" must be saved to run CVS "+cmd, "CVS "+cmd);
+            } else {
+                System.out.println("Cell "+cell.getName()+" must be saved to run CVS "+cmd);
+            }
+            return false;
+        }
+        return true;
     }
 
     // ------------------- Preferences --------------------
