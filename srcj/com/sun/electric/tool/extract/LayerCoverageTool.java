@@ -325,9 +325,17 @@ public class LayerCoverageTool extends Tool
             GeometryHandler tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers());
             HashMap<Layer,Set<PolyBase>> originalPolygons = new HashMap<Layer,Set<PolyBase>>(); // Storing initial nodes
             List<NodeInst> deleteList = new ArrayList<NodeInst>(); // should only be used by IMPLANT
+            Set<Network> netSet = null;
+            Layer onlyThisLayer = null;
+
+            if (geoms != null)
+            {
+                netSet = geoms.nets;
+                onlyThisLayer = geoms.onlyThisLayer;
+            }
             // enumerate the hierarchy below here
             LayerVisitor visitor = new LayerVisitor(parentJob, tree, deleteList, function,
-                    originalPolygons, (geoms != null) ? (geoms.nets) : null, bBox);
+                    originalPolygons, netSet, bBox, onlyThisLayer);
             HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, visitor);
             tree.postProcess(true);
 
@@ -619,12 +627,32 @@ public class LayerCoverageTool extends Tool
 		private Set netSet; // For network type, rest is null
         private Rectangle2D origBBox;
         private Area origBBoxArea;   // Area is always in coordinates of top cell
+        private Layer onlyThisLayer;
+
+		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, LCMode func,
+                            HashMap<Layer, Set<PolyBase>> original, Set netSet, Rectangle2D bBox, Layer onlyThisLayer)
+		{
+            this.parentJob = job;
+			this.tree = t;
+			this.deleteList = delList;
+			this.function = func;
+			this.originalPolygons = original;
+			this.netSet = netSet;
+            this.origBBox = bBox;
+            origBBoxArea = (bBox != null) ? new Area(origBBox) : null;
+            this.onlyThisLayer = onlyThisLayer;
+		}
 
 		/**
 		 * Determines if function of given layer is applicable for the corresponding operation
 		 */
-		private static boolean isValidFunction(Layer.Function func, LCMode function)
+		private boolean isValidFunction(Layer layer, LCMode function)
 		{
+            if (onlyThisLayer != null && layer != onlyThisLayer)
+                return false;
+
+            Layer.Function func = layer.getFunction();
+
 			switch (function)
 			{
                 case MERGE:
@@ -638,19 +666,6 @@ public class LayerCoverageTool extends Tool
 				default:
 					return (false);
 			}
-		}
-
-		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, LCMode func,
-                            HashMap<Layer,Set<PolyBase>> original, Set netSet, Rectangle2D bBox)
-		{
-            this.parentJob = job;
-			this.tree = t;
-			this.deleteList = delList;
-			this.function = func;
-			this.originalPolygons = original;
-			this.netSet = netSet;
-            this.origBBox = bBox;
-            origBBoxArea = (bBox != null) ? new Area(origBBox) : null;
 		}
 
         /**
@@ -733,9 +748,8 @@ public class LayerCoverageTool extends Tool
 				{
 					Poly poly = polyList[i];
 					Layer layer = poly.getLayer();
-					Layer.Function func = layer.getFunction();
 
-					boolean value = isValidFunction(func, function);
+					boolean value = isValidFunction(layer, function);
 					if (!value) continue;
 
 					poly.transform(info.getTransformToRoot());
@@ -830,10 +844,9 @@ public class LayerCoverageTool extends Tool
 			{
 				Poly poly = polyList[i];
 				Layer layer = poly.getLayer();
-				Layer.Function func = layer.getFunction();
 
 				// Only checking poly or metal for AREA case
-				boolean value = isValidFunction(func, function);
+				boolean value = isValidFunction(layer, function);
 				if (!value) continue;
 
 				if (poly.getPoints().length < 3)
