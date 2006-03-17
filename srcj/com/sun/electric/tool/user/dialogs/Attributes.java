@@ -538,6 +538,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         selectedVarKey = var.getKey();
 
         // set the Name field
+		boolean oldLoading = loading;
+		loading = true;
         initialName = cellRenderer.getVariableText(var);
         String pt = initialName;
         name.setText(pt);
@@ -546,8 +548,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         initialValue = var.getPureValue(-1);
 
         // set the Value field
-		boolean oldLoading = loading;
-		loading = true;
 		String oldValue = value.getText();
 		if (!oldValue.equals(initialValue))
 			value.setText(initialValue);
