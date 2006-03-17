@@ -26,6 +26,7 @@ package com.sun.electric.tool.io.input;
 
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.io.FileType;
 
 import java.io.*;
 import java.util.List;
@@ -93,4 +94,6 @@ public class DELIB extends JELIB {
         lineReader = headerReader;
     }
 
+
+    protected FileType getPreferredFileType() { return FileType.DELIB; }
 }

@@ -310,7 +310,7 @@ public class JELIB extends LibraryFiles
 				if (Library.findLibrary(curExternalLibName) != null) continue;
 
 				// recurse
-				readExternalLibraryFromFilename(unQuote(pieces.get(1)), FileType.JELIB);
+				readExternalLibraryFromFilename(unQuote(pieces.get(1)), getPreferredFileType());
 				continue;
 			}
 
@@ -1932,4 +1932,6 @@ public class JELIB extends LibraryFiles
 		if (pn != null) return pn;
 		return tech.convertOldNodeName(name);
 	}
+
+    protected FileType getPreferredFileType() { return FileType.JELIB; }
 }
