@@ -118,52 +118,7 @@ public class JELIB extends Output
 		}
 
 		// write external library information
-		boolean libraryHeaderPrinted = false;
-		for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library eLib = it.next();
-			if (eLib == lib || !objInfo.containsKey(eLib)) continue;
-			if (!libraryHeaderPrinted)
-			{
-				printWriter.println();
-				printWriter.println("# External Libraries and cells:");
-				libraryHeaderPrinted = true;
-			}
-			URL libUrl = eLib.getLibFile();
-			String libFile = eLib.getName();
-			if (libUrl != null)
-			{
-				String mainLibPath = TextUtils.getFilePath(lib.getLibFile());
-				String thisLibPath = TextUtils.getFilePath(libUrl);
-				if (!mainLibPath.equals(thisLibPath)) libFile = libUrl.toString();
-			}
-			printWriter.println();
-			printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
-			for(Iterator<Cell> cIt = eLib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-				if (!objInfo.containsKey(cell)) continue;
-				Rectangle2D bounds = cell.getBounds();
-				printWriter.println("R" + convertString(cell.getCellName().toString()) +
-					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
-					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
-					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
-					"|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
-					"|" + cell.getCreationDate().getTime() +
-					"|" + cell.getRevisionDate().getTime());
-                cellNames.put(cell, getFullCellName(cell));
-				for (Iterator<Export> eIt = cell.getExports(); eIt.hasNext(); )
-				{
-					Export export = eIt.next();
-					//if (!externalObjs.contains(export)) continue;
-
-					Poly poly = export.getOriginalPort().getPoly();
-					printWriter.println("F" + convertString(export.getName()) +
-						"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
-						"|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
-				}
-			}
-		}
+        writeExternalLibraryInfo(lib, objInfo);
 
 		// write tool information
 		boolean toolHeaderPrinted = false;
@@ -418,6 +373,55 @@ public class JELIB extends Output
         printWriter.println("X");
     }
 
+    protected void writeExternalLibraryInfo(Library thisLib, HashMap<Object,Integer> references) {
+        // write external library information
+        boolean libraryHeaderPrinted = false;
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+        {
+            Library eLib = it.next();
+            if (eLib == thisLib || !references.containsKey(eLib)) continue;
+            if (!libraryHeaderPrinted)
+            {
+                printWriter.println();
+                printWriter.println("# External Libraries and cells:");
+                libraryHeaderPrinted = true;
+            }
+            URL libUrl = eLib.getLibFile();
+            String libFile = eLib.getName();
+            if (libUrl != null)
+            {
+                String mainLibPath = TextUtils.getFilePath(thisLib.getLibFile());
+                String thisLibPath = TextUtils.getFilePath(libUrl);
+                if (!mainLibPath.equals(thisLibPath)) libFile = libUrl.toString();
+            }
+            printWriter.println();
+            printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
+            for(Iterator<Cell> cIt = eLib.getCells(); cIt.hasNext(); )
+            {
+                Cell cell = cIt.next();
+                if (!references.containsKey(cell)) continue;
+                Rectangle2D bounds = cell.getBounds();
+                printWriter.println("R" + convertString(cell.getCellName().toString()) +
+                    "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
+                    "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
+                    "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
+                    "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
+                    "|" + cell.getCreationDate().getTime() +
+                    "|" + cell.getRevisionDate().getTime());
+                cellNames.put(cell, getFullCellName(cell));
+                for (Iterator<Export> eIt = cell.getExports(); eIt.hasNext(); )
+                {
+                    Export export = eIt.next();
+                    //if (!externalObjs.contains(export)) continue;
+
+                    Poly poly = export.getOriginalPort().getPoly();
+                    printWriter.println("F" + convertString(export.getName()) +
+                        "|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
+                        "|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
+                }
+            }
+        }
+    }
 
 	/**
 	 * Method to convert a variable to a string that describes its TextDescriptor

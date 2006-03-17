@@ -50,6 +50,8 @@ import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
@@ -115,6 +117,7 @@ public class Output
 	/** for writing text files */						protected PrintWriter printWriter;
 	/** for writing binary files */						protected DataOutputStream dataOutputStream;
 	/** Map of referenced objects for library files */	HashMap<Object,Integer> objInfo;
+	/** Map of referenced objects for library files, by Cell  */	HashMap<Cell,HashMap<Object,Integer>> cellRefs;
 	/** Maps memory face index to disk face index */	int[] faceMap;
 	/** Name space of variable names */					TreeMap<String,Short> nameSpace;
 	/** True to write with less information displayed */protected boolean quiet;
@@ -310,6 +313,12 @@ public class Output
 		}
         // Update the version in library read in memomy
         lib.setVersion(Version.getVersion());
+        // if using CVS, update state
+/*
+        if (CVS.isEnabled()) {
+            CVSLibrary.updateState(lib);
+        }
+*/
 		return false;
 	}
     
@@ -417,11 +426,14 @@ public class Output
 	void gatherReferencedObjects(Library lib, boolean needVars)
 	{
 		objInfo = new HashMap<Object,Integer>();
+        cellRefs = new HashMap<Cell,HashMap<Object,Integer>>();
 		nameSpace = needVars ? new TreeMap<String,Short>(TextUtils.STRING_NUMBER_ORDER) : null;
 		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 		{
 			Cell cell = cIt.next();
 			gatherCell(cell);
+            HashMap<Object,Integer> refs = new HashMap<Object,Integer>();
+            cellRefs.put(cell, refs);
 
 			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 			{
@@ -432,10 +444,15 @@ public class Output
 				if (ni.isCellInstance())
 				{
 					gatherCell((Cell)np);
+                    refs.put((Cell)np, null);
+                    refs.put(((Cell)np).getView(), null);
+                    refs.put(((Cell)np).getLibrary(), null);
 				} else
 				{
 					gatherObj(np);
 					gatherObj(((PrimitiveNode)np).getTechnology());
+                    refs.put(np, null);
+                    refs.put(((PrimitiveNode)np).getTechnology(), null);
 				}
 				for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 				{
@@ -707,7 +724,7 @@ public class Output
             printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
         } catch (IOException e)
 		{
-            System.out.println("Error opening " + filePath);
+            System.out.println("Error opening " + filePath+": "+e.getMessage());
             return true;
         }
         return false;

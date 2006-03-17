@@ -25,8 +25,10 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 
 import java.io.*;
+import java.util.HashMap;
 
 /**
  * Created by IntelliJ IDEA.
@@ -79,6 +81,10 @@ public class DELIB extends JELIB {
             return;
         }
 
+        // write out external references for this cell
+        HashMap<Object,Integer> references = cellRefs.get(cell);
+        super.writeExternalLibraryInfo(cell.getLibrary(), references);
+
         // write out the cell into the new file
         super.writeCell(cell);
 
@@ -86,6 +92,9 @@ public class DELIB extends JELIB {
         // set the print writer back
         printWriter = headerWriter;
         printWriter.println("C"+cellFile);
+    }
+
+    protected void writeExternalLibraryInfo(Library lib, HashMap<Object,Integer> references) {
     }
 
     /**
@@ -115,7 +124,7 @@ public class DELIB extends JELIB {
             printWriter = new PrintWriter(new BufferedWriter(new FileWriter(headerFile)));
         } catch (IOException e)
 		{
-            System.out.println("Error opening " + filePath);
+            System.out.println("Error opening " + headerFile+": "+e.getMessage());
             return true;
         }
         return false;
