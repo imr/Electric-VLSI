@@ -149,6 +149,8 @@ public class DELIB extends JELIB {
      */
     public static String getCellFile(Cell cell) {
         String dir = getCellSubDir(cell);
-        return dir + File.separator + cell.getName() + "." + cell.getView().getAbbreviation();
+        String cellName = cell.getName();
+        if (cell.getVersion() > 1) cellName = cell.getName() + "_" + cell.getVersion();
+        return dir + File.separator + cellName + "." + cell.getView().getAbbreviation();
     }
 }
