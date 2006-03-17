@@ -287,7 +287,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 1, getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, CircuitChangeJobs.ChangeArcEnum.RIGID, getHighlighted());
 	}
 
 	/**
@@ -297,7 +297,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 2, getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, CircuitChangeJobs.ChangeArcEnum.NONRIGID, getHighlighted());
 	}
 
 	/**
@@ -307,7 +307,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 3, getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, CircuitChangeJobs.ChangeArcEnum.FIXEDANGLE, getHighlighted());
 	}
 
 	/**
@@ -317,7 +317,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 4, getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, CircuitChangeJobs.ChangeArcEnum.NONFIXEDANGLE, getHighlighted());
 	}
 
 	/**
@@ -327,7 +327,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 5, getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, CircuitChangeJobs.ChangeArcEnum.DIRECTIONAL, getHighlighted());
 	}
 
 	/**
@@ -337,7 +337,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 6, getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, CircuitChangeJobs.ChangeArcEnum.HEADEXTEND, getHighlighted());
 	}
 
 	/**
@@ -347,7 +347,7 @@ public class CircuitChanges
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		new CircuitChangeJobs.ChangeArcProperties(cell, 7, getHighlighted());
+		new CircuitChangeJobs.ChangeArcProperties(cell, CircuitChangeJobs.ChangeArcEnum.TAILEXTEND, getHighlighted());
 	}
 
 	/**

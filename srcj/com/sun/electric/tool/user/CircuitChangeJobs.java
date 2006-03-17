@@ -679,15 +679,28 @@ public class CircuitChangeJobs
 	}
 
 	/****************************** ARC MODIFICATION ******************************/
+    public enum ChangeArcEnum {
+        RIGID("Rigid"),
+        NONRIGID("Non-Rigid"),
+        FIXEDANGLE("Fixed-Angle"),
+        NONFIXEDANGLE("Not-Fixed-Angle"),
+        DIRECTIONAL("Directional"),
+        HEADEXTEND("extend the head end"),
+        TAILEXTEND("extend the tail end");
+
+        private String name;
+        ChangeArcEnum(String n) { name = n; }
+        public String toString() { return name; }
+    }
 
 	public static class ChangeArcProperties extends Job
 	{
 		private Cell cell;
-		private int how;
+		private ChangeArcEnum how;
         private List<ElectricObject> objList;
         private boolean repaintContents, repaintAny;
 
-        public ChangeArcProperties(Cell cell, int how, List<Highlight2> highlighted)
+        public ChangeArcProperties(Cell cell, ChangeArcEnum how, List<Highlight2> highlighted)
 		{
 			super("Align objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -716,35 +729,35 @@ public class CircuitChangeJobs
 					ArcInst ai = (ArcInst)eobj;
 					switch (how)
 					{
-						case 1:
+						case RIGID:
 							if (!ai.isRigid())
 							{
 								ai.setRigid(true);
 								numSet++;
 							}
 							break;
-						case 2:
+						case NONRIGID:
 							if (ai.isRigid())
 							{
 								ai.setRigid(false);
 								numSet++;
 							}
 							break;
-						case 3:
+						case FIXEDANGLE:
 							if (!ai.isFixedAngle())
 							{
 								ai.setFixedAngle(true);
 								numSet++;
 							}
 							break;
-						case 4:
+						case NONFIXEDANGLE:
 							if (ai.isFixedAngle())
 							{
 								ai.setFixedAngle(false);
 								numSet++;
 							}
 							break;
-						case 5:		// toggle directionality
+						case DIRECTIONAL:		// toggle directionality
 							if (ai.isHeadArrowed())
 							{
 								ai.setHeadArrowed(false);
@@ -757,7 +770,7 @@ public class CircuitChangeJobs
 								numSet++;
 							}
 							break;
-						case 6:		// end-extend the head
+						case HEADEXTEND:		// end-extend the head
 							if (ai.isHeadExtended())
 							{
 								ai.setHeadExtended(false);
@@ -768,7 +781,7 @@ public class CircuitChangeJobs
 								numSet++;
 							}
 							break;
-						case 7:		// end-extend the tail
+						case TAILEXTEND:		// end-extend the tail
 							if (ai.isTailExtended())
 							{
 								ai.setTailExtended(false);
@@ -789,15 +802,14 @@ public class CircuitChangeJobs
 				String action = "";
 				repaintAny = true;
 				repaintContents = false;
+                action = how.toString();
+
 				switch (how)
 				{
-					case 1: action = "Rigid";   break;
-					case 2: action = "Non-Rigid";   break;
-					case 3: action = "Fixed-Angle";   break;
-					case 4: action = "Not-Fixed-Angle";   break;
-					case 5: action = "Directional";   repaintContents = true;   break;
-					case 6: action = "extend the head end";   repaintContents = true;   break;
-					case 7: action = "extend the head end";   repaintContents = true;   break;
+                    case DIRECTIONAL:
+                    case HEADEXTEND:
+                    case TAILEXTEND:
+                        repaintContents = true;   break;
 				}
 				if (numUnset == 0) System.out.println("Made " + numSet + " arcs " + action); else
 					if (numSet == 0) System.out.println("Made " + numUnset + " arcs not " + action); else
