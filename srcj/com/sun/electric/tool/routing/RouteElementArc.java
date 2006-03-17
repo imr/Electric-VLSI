@@ -362,10 +362,12 @@ public class RouteElementArc extends RouteElement {
             // figure out highlight area based on arc width and start and end locations
             Point2D headPoint = headConnPoint;
             Point2D tailPoint = tailConnPoint;
+
             double offset = 0.5*getOffsetArcWidth();
             Cell cell = getCell();
 
-            int angle = GenMath.figureAngle(headPoint, tailPoint);
+            // if they are the same point, the two nodes are in top of each other
+            int angle = (headPoint.equals(tailPoint)) ? 0 : GenMath.figureAngle(headPoint, tailPoint);
             double length = headPoint.distance(tailPoint);
         	Poly poly = Poly.makeEndPointPoly(length, getOffsetArcWidth(), angle, headPoint, offset,
         		tailPoint, offset, Poly.Type.FILLED);

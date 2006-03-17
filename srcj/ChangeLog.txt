@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG (3/17/06, GVG) Arc routing complaiing about "domain violation while figuring angle in radians" (Bug #888).
+It happens when you are rounting two nodes in top of each other (tail and head points are identical).
+FIX: Detecting the case.
+
 IMP: (3/17/06, GVG) Adding tests plugin including TestMenu. Using reflection to avoid dependency on new plugin
 LayerCoverageTool tests are there for now. DRC and ERC should come next.
 
@@ -12,7 +16,7 @@ FIX: Fixed by change LayerCoverageTool job
 
 BUG: (3/16/06, RK) Fix bug in NCC regression script
 
-BUG: (3/16/06, GVG) Cannpt serialize HighlightEOBJ in ChangeArcProperties job (Bug #885)
+BUG: (3/16/06, GVG) Cannot serialize HighlightEOBJ in ChangeArcProperties job (Bug #885)
 FIX: Replace HighlightEOBJ dependency by using a list of ElectricObject.
 
 BUG: (3/15/06, GVG) Cannot serialize on rename (Bug #883)
