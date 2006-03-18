@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.project;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
@@ -281,7 +280,7 @@ public class LibraryDialog extends EDialog
 			return true;
 		}
 
-	    public void terminateIt(Throwable je)
+	    public void terminateOK()
         {
         	// take the new version of the project database from the server
 			Project.projectDB = pdb;
