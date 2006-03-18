@@ -453,7 +453,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectNothingCommand(); }});
 		selListSubMenu.addSeparator();
 		selListSubMenu.addMenuItem("_Select Object...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { SelectObject.selectObjectDialog(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { SelectObject.selectObjectDialog(null, false); }});
 		selListSubMenu.addMenuItem("Deselect All _Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { deselectAllArcsCommand(); }});
 		selListSubMenu.addSeparator();

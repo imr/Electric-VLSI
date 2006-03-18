@@ -60,6 +60,7 @@ import javax.swing.ListSelectionModel;
  */
 public class SelectObject extends EDialog implements DatabaseChangeListener
 {
+    private static SelectObject theDialog = null;
 	private static final int NODES   = 1;
 	private static final int ARCS    = 2;
 	private static final int EXPORTS = 3;
@@ -70,10 +71,16 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 	private DefaultListModel model;
     private Highlighter highlighter;
 
-	public static void selectObjectDialog()
+	public static void selectObjectDialog(Cell thisCell, boolean updateOnlyIfVisible)
 	{
-		SelectObject dialog = new SelectObject(TopLevel.getCurrentJFrame(), false);
-		dialog.setVisible(true);
+        if (theDialog == null)
+        {
+            if (updateOnlyIfVisible) return; // it is not previously open
+            theDialog = new SelectObject(TopLevel.getCurrentJFrame(), false);
+        }
+        if (updateOnlyIfVisible && !theDialog.isVisible()) return; // it is not previously visible
+		theDialog.setVisible(true);
+		theDialog.buttonClicked(thisCell);
 	}
 
 	/** Creates new form SelectObject */
@@ -108,21 +115,20 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 
 		nodes.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { buttonClicked(); }
+			public void actionPerformed(ActionEvent evt) { buttonClicked(null); }
 		});
 		arcs.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { buttonClicked(); }
+			public void actionPerformed(ActionEvent evt) { buttonClicked(null); }
 		});
 		exports.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { buttonClicked(); }
+			public void actionPerformed(ActionEvent evt) { buttonClicked(null); }
 		});
 		networks.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { buttonClicked(); }
+			public void actionPerformed(ActionEvent evt) { buttonClicked(null); }
 		});
-		buttonClicked();
 
 		// special case for this dialog: allow Electric quick-keys to pass-through
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
@@ -150,7 +156,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 	public void databaseChanged(DatabaseChangeEvent e)
 	{
 		if (!isVisible()) return;
-		buttonClicked();
+		buttonClicked(null);
 	}
 
 	private void listClicked()
@@ -226,10 +232,15 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		}
 	}
 
-	private void buttonClicked()
+    /**
+     * Method to load the dialog depending on cell selected.
+     * It is not getCurrentCell because of down/up hierarchy calls.
+     * @param thisCell
+     */
+	private void buttonClicked(Cell thisCell)
 	{
 		model.clear();
-		cell = WindowFrame.getCurrentCell();
+		cell = (thisCell != null) ? thisCell: WindowFrame.getCurrentCell();
 		if (cell == null) return;
         WindowFrame wf = WindowFrame.getCurrentWindowFrame();
         if (wf == null) return;
