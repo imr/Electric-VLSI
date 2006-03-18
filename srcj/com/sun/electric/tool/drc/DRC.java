@@ -36,7 +36,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
@@ -47,15 +46,12 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.MessagesStream;
 
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.prefs.Preferences;
-import java.net.URL;
 
 /**
  * This is the Design Rule Checker tool.
@@ -1077,100 +1073,5 @@ public class DRC extends Listener
     public static boolean testAll()
     {
         return true;
-//        return (basicDRCTest("/Users/Gilda/IdeaProjects/Electric/regression/data/qFourP2-electric-final",
-//                "ALLPADSDRC", "pads180nm_100um.elib", "ALLPADS", 78, 66, 165, 66, 3, 66));
-    }
-
-    /**
-     *
-     * @param regressiondata
-     * @param testcell
-     * @param testlib
-     * @param log
-     * @param ERROR_EXHAUSTIVE
-     * @param ERROR_CELL
-     * @param ERROR_DEFAULT
-     * @param WARN_EXHAUSTIVE
-     * @param WARN_CELL
-     * @param WARN_DEFAULT
-     * @return true if test was successful
-     */
-    private boolean basicDRCTest(String regressiondata, String testcell, String testlib, String log,
-                              int ERROR_EXHAUSTIVE, int ERROR_CELL, int ERROR_DEFAULT,
-                              int WARN_EXHAUSTIVE, int WARN_CELL, int WARN_DEFAULT)
-    {
-        String logname = log+Version.getVersion()+".log";
-        int[] errorCounts = new int[3];
-        int[] warnCounts = new int[3];
-
-        try {
-          MessagesStream.getMessagesStream().save(logname);
-
-          LayoutLib.openLibForRead(regressiondata+"/"+testlib);
-          URL fileURL = TextUtils.makeURLToFile(testlib);
-          String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-          Library rootLib = Library.findLibrary(libName);
-          Cell lay = rootLib.findNodeProto(testcell+"{lay}");
-
-          if (lay == null) return(false); // error reading the cell
-
-          //No resolution check for now
-          lay.getTechnology().setResolution(0.0);
-          //No area nor surround checking Since v8.03j, they are not variables stored in library.
-          boolean oldAreaValue = DRC.isIgnoreAreaChecking();
-          DRC.setIgnoreAreaChecking(true);
-          boolean oldExtValue = DRC.isIgnoreExtensionRuleChecking();
-          DRC.setIgnoreExtensionRuleChecking(true);
-
-          // Default run
-          System.out.println("------RUNNING DEFAULT MODE -------------");
-          DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_DEFAULT);
-          DRC.resetDRCDates();
-          long startTime = System.currentTimeMillis();
-          ErrorLogger errorLogger = Quick.checkDesignRules(lay, null, null, null, null);
-          errorCounts[DRC.DRCCheckMode.ERROR_CHECK_DEFAULT.mode()] = errorLogger.getNumErrors();
-          warnCounts[DRC.DRCCheckMode.ERROR_CHECK_DEFAULT.mode()] = errorLogger.getNumWarnings();
-          System.out.println(errorCounts[DRC.DRCCheckMode.ERROR_CHECK_DEFAULT.mode()] + " errors and " + warnCounts[DRC.DRCCheckMode.ERROR_CHECK_DEFAULT.mode()] +  " warnings found (took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
-          System.out.println();
-
-          // Exhaustive run
-          System.out.println("------RUNNING EXHAUSTIVE MODE -------------");
-          DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE);
-          DRC.resetDRCDates();
-          startTime = System.currentTimeMillis();
-          errorLogger = Quick.checkDesignRules(lay, null, null, null, null);
-          errorCounts[DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE.mode()] = errorLogger.getNumErrors();
-          warnCounts[DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE.mode()] = errorLogger.getNumWarnings();
-          System.out.println(errorCounts[DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE.mode()] + " errors and " + warnCounts[DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE.mode()] + " warnings found (took "
-        + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
-          System.out.println();
-
-          // Only 1 per cell run
-          System.out.println("------RUNNING CELL MODE -------------");
-          DRC.setErrorType(DRC.DRCCheckMode.ERROR_CHECK_CELL);
-          DRC.resetDRCDates();
-          startTime = System.currentTimeMillis();
-          errorLogger = Quick.checkDesignRules(lay, null, null, null, null);
-          errorCounts[DRC.DRCCheckMode.ERROR_CHECK_CELL.mode()] = errorLogger.getNumErrors();
-          warnCounts[DRC.DRCCheckMode.ERROR_CHECK_CELL.mode()] = errorLogger.getNumWarnings();
-          System.out.println(errorCounts[DRC.DRCCheckMode.ERROR_CHECK_CELL.mode()] + " errors and " + warnCounts[DRC.DRCCheckMode.ERROR_CHECK_CELL.mode()] + " warnings found (took "
-        + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
-
-          // Restore previous values
-          DRC.setIgnoreAreaChecking(oldAreaValue);
-          DRC.setIgnoreExtensionRuleChecking(oldExtValue);
-        } catch (Exception e) {
-          System.out.println("exception: "+e);
-          e.printStackTrace();
-          return(false);
-        }
-
-        boolean exhaustiveRun = (errorCounts[DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE.mode()] == ERROR_EXHAUSTIVE &&
-                warnCounts[DRC.DRCCheckMode.ERROR_CHECK_EXHAUSTIVE.mode()] == WARN_EXHAUSTIVE);
-        boolean cellRun = (errorCounts[DRC.DRCCheckMode.ERROR_CHECK_CELL.mode()] == ERROR_CELL &&
-                warnCounts[DRC.DRCCheckMode.ERROR_CHECK_CELL.mode()] == WARN_CELL);
-        boolean defaultRun = (errorCounts[DRC.DRCCheckMode.ERROR_CHECK_DEFAULT.mode()] == ERROR_DEFAULT &&
-                warnCounts[DRC.DRCCheckMode.ERROR_CHECK_DEFAULT.mode()] == WARN_DEFAULT);
-        return(exhaustiveRun && cellRun && defaultRun);
     }
 }
