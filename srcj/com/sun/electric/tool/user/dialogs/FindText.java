@@ -448,6 +448,7 @@ public class FindText extends EDialog
 		if (lastSearch == null) return;
 		WindowContent content = wf.getContent();
 		content.replaceText(replaceString.getText());
+        replace.setEnabled(false);
 
 	}//GEN-LAST:event_replaceActionPerformed
 
@@ -464,11 +465,12 @@ public class FindText extends EDialog
 		}
 		if (lastSearch == null)
 		{
-			content.initTextSearch(search, caseSensitive.isSelected(), 
+			content.initTextSearch(search, caseSensitive.isSelected(),
 			                       regExp.isSelected(), getWhatToSearch());
 		}
 		lastSearch = search;
 		if (!content.findNextText(findReverse.isSelected())) lastSearch = null;
+        replace.setEnabled(true);
 	}//GEN-LAST:event_findActionPerformed
 
 	/** Closes the dialog */
