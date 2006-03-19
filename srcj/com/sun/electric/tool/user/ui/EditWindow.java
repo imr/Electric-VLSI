@@ -63,6 +63,7 @@ import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
+import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.BasicStroke;
@@ -1865,6 +1866,7 @@ public class EditWindow extends JPanel
             boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
             TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.NODE_NAME);
             TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.NODE_VAR);
+
             for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
             {
                 NodeInst ni = it.next();
@@ -1873,13 +1875,12 @@ public class EditWindow extends JPanel
                     Name name = ni.getNameKey();
                     if (doTemp || !name.isTempname())
                     {
-                        findAllMatches(ni, null, 0, name, name.toString(),
-                                search, caseSensitive, regExp, what);
+                        findAllMatches(ni, NodeInst.NODE_NAME, 0, name.toString(), search, caseSensitive, regExp);
                     }
                 }
                 if (whatVar!=null)
                 {
-                    addVariableTextToList(ni, search, caseSensitive,regExp, whatVar);
+                    addVariableTextToList(ni, search, caseSensitive,regExp);
                 }
             }
         }
@@ -1898,12 +1899,12 @@ public class EditWindow extends JPanel
                     Name name = ai.getNameKey();
                     if (doTemp || !name.isTempname())
                     {
-                        findAllMatches(ai, null, 0, name, name.toString(),
-                                search, caseSensitive, regExp, what);
+                        findAllMatches(ai, ArcInst.ARC_NAME, 0, name.toString(),
+                                search, caseSensitive, regExp);
                     }
                 }
                 if (whatVar!=null) {
-                    addVariableTextToList(ai, search, caseSensitive, regExp, whatVar);
+                    addVariableTextToList(ai, search, caseSensitive, regExp);
                 }
             }
         }
@@ -1918,10 +1919,10 @@ public class EditWindow extends JPanel
                 Export pp = it.next();
                 if (what!=null) {
                     Name name = pp.getNameKey();
-                    findAllMatches(pp, null, 0, null, name.toString(), search, caseSensitive, regExp, what);
+                    findAllMatches(pp, Export.EXPORT_NAME, 0, name.toString(), search, caseSensitive, regExp);
                 }
                 if (whatVar!=null) {
-                    addVariableTextToList(pp, search, caseSensitive, regExp, whatVar);
+                    addVariableTextToList(pp, search, caseSensitive, regExp);
                 }
             }
         }
@@ -1934,8 +1935,8 @@ public class EditWindow extends JPanel
                 {
                     Variable var = it.next();
                     if (!var.isDisplay()) continue;
-                    findAllMatches(null, var, -1, null, var.getPureValue(-1),
-                            search, caseSensitive, regExp, whatVar);
+                    findAllMatches(null, var.getKey(), -1, var.getPureValue(-1),
+                            search, caseSensitive, regExp);
                 }
             }
         }
@@ -1978,34 +1979,29 @@ public class EditWindow extends JPanel
                 cell.updateVar(sic.key, newString);
             } else
             {
-                if (sic.key == null)
+                if (sic.key == NodeInst.NODE_NAME)
                 {
-//                    if (sic.name == null)
-                    if (sic.object instanceof Export)
-                    {
-                        // export name
-                        Export pp = (Export)sic.object;
-                        pp.rename(newString);
-    //					Undo.redrawObject(pp.getOriginalPort().getNodeInst());
-                    } else if (sic.object instanceof NodeInst)
-                    {
                         // node name
                         NodeInst ni = (NodeInst)sic.object;
                         ni.setName(newString);
-    //					Undo.redrawObject(ni);
-                    } else {
+                }
+                else if (sic.key == ArcInst.ARC_NAME)
+                {
                         // arc name
                         ArcInst ai = (ArcInst)sic.object;
                         ai.setName(newString);
-    //					Undo.redrawObject(ai);
-                    }
+                }
+                else if (sic.key == Export.EXPORT_NAME)
+                {
+                        // export name
+                        Export pp = (Export)sic.object;
+                        pp.rename(newString);
                 } else
                 {
                     // text on a variable
                     ElectricObject base = (ElectricObject)sic.object;
                     Variable var = base.getVar(sic.key);
                     Object obj = var.getObject();
-    //				Variable newVar = null;
                     if (obj instanceof String)
                     {
                         base.updateVar(sic.key, newString);
@@ -2133,18 +2129,17 @@ public class EditWindow extends JPanel
         /**
          * Method to find all strings on a given database string, and add matches to the list.
          * @param object the Object on which the string resides.
-         * @param variable the Variable on which the string resides.
+         * @param key the Variable.key on which the string resides.
          * @param lineInVariable the line number in arrayed variables.
-         * @param name the name on which the string resides.
          * @param theLine the actual string from the database.
          * @param search the string to find.
          * @param caseSensitive true to do a case-sensitive
          */
-        protected void findAllMatches(Object object, Variable variable,
-                                   int lineInVariable, Name name,
-                                   String theLine,
-                                   String search, boolean caseSensitive,
-                                   boolean regExp, WhatToSearch what)
+        protected void findAllMatches(Object object, Variable.Key key,
+                                      int lineInVariable,
+                                      String theLine,
+                                      String search, boolean caseSensitive,
+                                      boolean regExp)
         {
             int flags =
                 caseSensitive ? 0 : Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
@@ -2164,11 +2159,8 @@ public class EditWindow extends JPanel
                     endPos = startPos + search.length();
                 }
                 String regExpSearch = regExp ? search : null;
-                Variable.Key key = null;
-                if (variable != null) key = variable.getKey();
-                foundInCell.add(
-                  new StringsInCell(object, key, name, lineInVariable, theLine,
-                                    startPos, endPos, regExpSearch, what));
+                foundInCell.add(new StringsInCell(object, key, lineInVariable, theLine,
+                                    startPos, endPos, regExpSearch));
                 startPos = endPos;
             }
         }
@@ -2181,7 +2173,7 @@ public class EditWindow extends JPanel
          */
         private void addVariableTextToList(ElectricObject eObj,
                                            String search, boolean caseSensitive,
-                                           boolean regExp, WhatToSearch what)
+                                           boolean regExp)
         {
             for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
             {
@@ -2190,15 +2182,15 @@ public class EditWindow extends JPanel
                 Object obj = var.getObject();
                 if (obj instanceof String)
                 {
-                    findAllMatches(eObj, var, -1, null, (String)obj,
-                                   search, caseSensitive, regExp, what);
+                    findAllMatches(eObj, var.getKey(), -1, (String)obj,
+                                   search, caseSensitive, regExp);
                 } else if (obj instanceof String[])
                 {
                     String [] strings = (String [])obj;
                     for(int i=0; i<strings.length; i++)
                     {
-                        findAllMatches(eObj, var, i, null, strings[i],
-                                       search, caseSensitive, regExp, what);
+                        findAllMatches(eObj, var.getKey(), i, strings[i],
+                                       search, caseSensitive, regExp);
                     }
                 }
             }
@@ -2212,28 +2204,25 @@ public class EditWindow extends JPanel
 	{
 		/** the object that the string resides on */	final Object object;
 		/** the Variable that the string resides on */	final Variable.Key key;
-//		/** the Name that the string resides on */		final Name name;
 		/** the original string. */						String theLine;
 		/** the line number in arrayed variables */		final int lineInVariable;
 		/** the starting character position */			int startPosition;
 		/** the ending character position */			int endPosition;
 		/** the Regular Expression searched for */		final String regExpSearch;
-		/** descriptor for String's object */			final TextUtils.WhatToSearch what; 
 		/** true if the replacement has been done */	boolean replaced;
 
-		StringsInCell(Object object, Variable.Key key, Name name, 
-		              int lineInVariable, String theLine, int startPosition, 
-		              int endPosition, String regExpSearch, TextUtils.WhatToSearch what)
+		StringsInCell(Object object, Variable.Key key,
+                      int lineInVariable, String theLine, int startPosition,
+                      int endPosition, String regExpSearch)
 		{
 			this.object = object;
+            assert(key!=null);
 			this.key = key;
-//			this.name = name;
 			this.lineInVariable = lineInVariable;
 			this.theLine = theLine;
 			this.startPosition = startPosition;
 			this.endPosition = endPosition;
 			this.regExpSearch = regExpSearch;
-			this.what = what;
 			this.replaced = false;
 		}
 
@@ -2264,7 +2253,7 @@ public class EditWindow extends JPanel
 	}
 
 	private static void printFind(StringsInCell sic) {
-		String foundHdr = "Found  "+sic.what+": ";
+		String foundHdr = "Found  "+sic.key+": ";
 		String foundStr = sic.theLine;
 		String highlightHdr = repeatChar(' ', foundHdr.length()+sic.startPosition);
 		String highlight =	repeatChar('^', sic.endPosition-sic.startPosition); 
@@ -2356,7 +2345,7 @@ public class EditWindow extends JPanel
 
 	private static void printChange(StringsInCell sic, String newString)
 	{
-		String foundHdr = "Change "+sic.what+": ";
+		String foundHdr = "Change "+sic.key+": ";
 		String foundStr = sic.theLine;
 		String replaceHdr = "  ->  ";
 		String replaceStr = newString;
@@ -3074,6 +3063,8 @@ public class EditWindow extends JPanel
 			WindowFrame newWF = WindowFrame.createEditWindow(schCell);
 			newWND = (EditWindow)newWF.getContent();
 		}
+        else
+            SelectObject.selectObjectDialog(schCell, true);
 
         if (desiredNO != null)
         {
@@ -3160,34 +3151,6 @@ public class EditWindow extends JPanel
         	}
         	if (selectedExport != null) break;
         }
-//        List what>Highlight> = highlighter.getHighlights();
-//        for(Highlight h : what)
-//        {
-//        	if (h.getType() == Highlight.Type.EOBJ)
-//        	{
-//        		ElectricObject eObj = h.getElectricObject();
-//        		if (eObj instanceof PortInst)
-//        		{
-//        			PortInst pi = (PortInst)eObj;
-//        			for(Iterator<Export> eIt = pi.getNodeInst().getExports(); eIt.hasNext(); )
-//        			{
-//        				Export e = eIt.next();
-//        				if (e.getOriginalPort() == pi)
-//        				{
-//        					selectedExport = e;
-//        					break;
-//        				}
-//        			}
-//        		}
-//        	} else if (h.getType() == Highlight.Type.TEXT)
-//        	{
-//        		if (h.getVar() == null && h.getName() == null && h.getElectricObject() instanceof Export)
-//        		{
-//					selectedExport = (Export)h.getElectricObject();
-//					break;
-//        		}
-//        	}
-//        }
 
         try {
             Nodable no = cellVarContext.getNodable();
@@ -3249,6 +3212,7 @@ public class EditWindow extends JPanel
                 else
 					highlighter.addElectricObject(no.getNodeInst(), parent);
                 // highlight portinst selected at the time, if any
+                SelectObject.selectObjectDialog(parent, true);
 				return;
 			}
 
@@ -3259,6 +3223,7 @@ public class EditWindow extends JPanel
 				if (schCell != null)
 				{
 					setCell(schCell, VarContext.globalContext);
+                    SelectObject.selectObjectDialog(schCell, true);
 					return;
 				}
 			}            
@@ -3316,6 +3281,7 @@ public class EditWindow extends JPanel
                     }
                 }
                 highlighter.finished();
+                SelectObject.selectObjectDialog(parent, true);
 			} else
 			{
 				// prompt the user to choose a parent cell
