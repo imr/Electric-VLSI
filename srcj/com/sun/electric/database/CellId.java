@@ -180,7 +180,7 @@ public final class CellId implements NodeProtoId, Serializable
      * @return ExportId whith specified chronological index.
      * @throws ArrayIndexOutOfBoundsException if no such ExportId.
      */
-    public ExportId getExportId(int chronIndex) {
+    public ExportId getPortId(int chronIndex) {
         // synchronized because exportIds is volatile and its entries are final.
         return exportIds[chronIndex];
     }
@@ -188,7 +188,7 @@ public final class CellId implements NodeProtoId, Serializable
     ExportId getExportIdByChronIndex(int chronIndex) {
         while (chronIndex >= numExportIds())
             newExportId();
-        return getExportId(chronIndex);
+        return getPortId(chronIndex);
     }
     
     /**

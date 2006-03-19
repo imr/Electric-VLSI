@@ -167,7 +167,7 @@ public class CVS {
      */
     public static File getCellFile(Cell cell) {
         if (isDELIB(cell.getLibrary())) {
-            String relativeFile = DELIB.getCellFile(cell);
+            String relativeFile = DELIB.getCellFile(cell.backup());
             URL libFile = cell.getLibrary().getLibFile();
             return new File(libFile.getFile(), relativeFile);
         }

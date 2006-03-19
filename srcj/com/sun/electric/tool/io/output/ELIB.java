@@ -104,7 +104,7 @@ public class ELIB extends Output
 	private boolean writeTheLibrary(Library lib)
 		throws IOException
 	{
-		gatherReferencedObjects(lib, true);
+		gatherReferencedObjects(lib);
 
 		int magic = ELIBConstants.MAGIC13;
 		if (compatibleWith6) magic = ELIBConstants.MAGIC11;

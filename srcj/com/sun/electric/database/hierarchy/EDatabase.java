@@ -279,7 +279,10 @@ public class EDatabase {
      */
     public Snapshot backup() {
         if (snapshotFresh) return snapshot;
+        return doBackup();
+    }
         
+    private Snapshot doBackup() {    
         long startTime = System.currentTimeMillis();
         LibraryBackup[] libBackups = new LibraryBackup[linkedLibs.size()];
         boolean libsChanged = libBackups.length != snapshot.libBackups.size();
@@ -292,10 +295,6 @@ public class EDatabase {
         if (!libsChanged) libBackups = null;
         
         CellBackup[] cellBackups = new CellBackup[linkedCells.size()];
-        for (int i = 0; i < cellBackups.length; i++) {
-            Cell cell = linkedCells.get(i);
-            if (cell != null) cellBackups[i] = cell.backup();
-        }
         ERectangle[] cellBounds = new ERectangle[cellBackups.length];
         int[] cellGroups = new int[cellBackups.length];
         Arrays.fill(cellGroups, -1);
@@ -363,9 +362,9 @@ public class EDatabase {
         int cellIndex = cellId.cellIndex;
         if (recovered.get(cellIndex)) return;
         CellBackup newBackup = snapshot.getCell(cellId);
-        for (int i = 0; i < newBackup.cellUsages.length; i++) {
-            if (newBackup.cellUsages[i] <= 0) continue;
+        for (int i = 0, numUsages = cellId.numUsagesIn(); i < numUsages; i++) {
             CellUsage u = cellId.getUsageIn(i);
+            if (newBackup.getInstCount(u) <= 0) continue;
             recoverRecursively(u.protoId, recovered);
         }
         Cell cell = getCell(cellId);
@@ -448,9 +447,9 @@ public class EDatabase {
         assert cellId != null;
         boolean subCellsExportsModified = false;
         boolean subCellsBoundsModified = false;
-        for (int i = 0; i < newBackup.cellUsages.length; i++) {
-            if (newBackup.cellUsages[i] <= 0) continue;
+        for (int i = 0, numUsages = cellId.numUsagesIn(); i < numUsages; i++) {
             CellUsage u = cellId.getUsageIn(i);
+            if (newBackup.getInstCount(u) <= 0) continue;
             undoRecursively(oldSnapshot, u.protoId, updated, exportsModified, boundsModified);
             int subCellIndex = u.protoId.cellIndex;
             if (exportsModified.get(subCellIndex))

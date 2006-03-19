@@ -80,14 +80,19 @@ import javax.swing.SwingUtilities;
 public class MessagesWindow
 	implements Observer, ActionListener, MouseListener, KeyListener, Runnable, ClipboardOwner
 {
-	private ArrayList<String> history;
+    private static final String[] NULL_STRING_ARRAY = {};
+    private static final int STACK_SIZE = 1024;
+
+    private ArrayList<String> history;
 	private JTextField entry;
 	private JTextArea info;
 	private Container contentFrame;
 	private int histidx = 0;
-	private Thread ticker = null;
-	private StringBuffer buffer = new StringBuffer();
+	private Thread ticker = new Thread(null, this, "MessagesTicker", STACK_SIZE);
+    private boolean dumpInvoked = false;
+	private ArrayList<String> buffer = new ArrayList<String>();
 	private Container jf;
+    
 
 	// -------------------- private and protected methods ------------------------
 	public MessagesWindow()
@@ -132,6 +137,7 @@ public class MessagesWindow
 		scrollPane.setPreferredSize(msgSize);
 		contentFrame.add(scrollPane, BorderLayout.CENTER);
 
+        ticker.start();
 //		jf.setLocation(150, scrnSize.height/100*80);
 		if (TopLevel.isMDIMode())
 		{
@@ -176,40 +182,43 @@ public class MessagesWindow
 
 	private void appendString(String str)
 	{
-        if (str.equals("")) return;
+        if (str.length() == 0) return;
 
 		synchronized (buffer)
 		{
-			buffer.append(str);
-			if (ticker == null)
-			{
-				ticker = new Thread(this);
-				ticker.start();
-			}
+            if (buffer.isEmpty())
+                buffer.notify();
+			buffer.add(str);
 		}
 	}
 
-	public void run()
-	{
-		try
-		{
-			Thread.sleep(200);
-		} catch (InterruptedException ie)
-		{
-		}
-		ticker = null;
-		SwingUtilities.invokeLater(new Runnable()
-		{
-			public void run()
-			{
-				synchronized (buffer)
-				{
-					dump(buffer.toString());
-					buffer.setLength(0);
-				}
-			}
-		});
-	}
+    public void run() {
+        for (;;) {
+            synchronized (buffer) {
+                try {
+                    while (dumpInvoked || buffer.isEmpty())
+                        buffer.wait();
+                } catch (InterruptedException ie) {
+                }
+                dumpInvoked = true;
+            }
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException ie) {}
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    String[] strings;
+                    synchronized (buffer) {
+                        strings = buffer.toArray(NULL_STRING_ARRAY);
+                        buffer.clear();
+                        dumpInvoked = false;
+                    }
+                    for (String s: strings)
+                        dump(s);
+                }
+            });
+        }
+    }
 
 	protected void dump(String str)
 	{

@@ -266,7 +266,7 @@ public class DebugMenus
         // Using reflection to not force the loading of test plugin
         try
         {
-            Class makeFakeCircuitry = Class.forName("com.sun.electric.tests.MakeFakeCircuitry");
+            Class makeFakeCircuitry = Class.forName("com.sun.electric.plugins.tests.MakeFakeCircuitry");
             Method makeMethod = makeFakeCircuitry.getDeclaredMethod("makeFakeCircuitryCommand", new Class[] {String.class, String.class, Boolean.class});
             makeMethod.invoke(null, new Object[] {"noname", tech, new Boolean(asJob)});
         }

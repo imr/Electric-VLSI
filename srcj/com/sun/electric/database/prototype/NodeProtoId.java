@@ -36,6 +36,14 @@ import com.sun.electric.database.hierarchy.EDatabase;
  */
 public interface NodeProtoId
 {
+    /**
+     * Returns PortProtoId in this node proto with specified chronological index.
+     * @param chronIndex chronological index of ExportId.
+     * @return PortProtoId whith specified chronological index.
+     * @throws ArrayIndexOutOfBoundsException if no such ExportId.
+     */
+    public PortProtoId getPortId(int chronIndex);
+    
      /**
      * Method to return the NodeProto representing NodeProtoId in the server EDatabase.
      * @return the NodeProto representing NodeProtoId in the server database.

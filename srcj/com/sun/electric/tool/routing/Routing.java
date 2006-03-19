@@ -152,10 +152,21 @@ public class Routing extends Listener
             if (cell == null) continue;
             CellBackup oldBackup = oldSnapshot.getCell(cellId);
             if (oldBackup == null) continue; // Don't route in new cells
+            if (oldBackup == cell.backup()) continue;
+            ArrayList<ImmutableNodeInst> oldNodes = new ArrayList<ImmutableNodeInst>();
+            for (ImmutableNodeInst n: oldBackup.nodes) {
+                while (n.nodeId >= oldNodes.size()) oldNodes.add(null);
+                oldNodes.set(n.nodeId, n);
+            }
+            ArrayList<ImmutableArcInst> oldArcs = new ArrayList<ImmutableArcInst>();
+            for (ImmutableArcInst a: oldBackup.arcs) {
+                while (a.arcId >= oldArcs.size()) oldArcs.add(null);
+                oldArcs.set(a.arcId, a);
+            }
             for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
                 NodeInst ni = it.next();
                 ImmutableNodeInst d = ni.getD();
-                ImmutableNodeInst oldD = oldBackup.getNode(d.nodeId);
+                ImmutableNodeInst oldD = d.nodeId < oldNodes.size() ? oldNodes.get(d.nodeId) : null;
                 if (oldD == null) {
                     if (current.numCreatedNodes < 3)
                         current.createdNodes[current.numCreatedNodes++] = ni;
@@ -166,7 +177,7 @@ public class Routing extends Listener
             for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
                 ArcInst ai = it.next();
                 ImmutableArcInst d = ai.getD();
-                ImmutableArcInst oldD = oldBackup.getArc(d.arcId);
+                ImmutableArcInst oldD = d.arcId < oldArcs.size( ) ? oldArcs.get(d.arcId) : null;
                 if (oldD == null) {
                     if (current.numCreatedArcs < 3)
                         current.createdArcs[current.numCreatedArcs++] = ai;

@@ -24,10 +24,17 @@
 
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.LibId;
+import com.sun.electric.database.hierarchy.View;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.BitSet;
 import java.util.HashMap;
 
 /**
@@ -48,27 +55,27 @@ public class DELIB extends JELIB {
      * write a reference to an external file, and write the contents there
      * @param cell
      */
-    protected void writeCell(Cell cell) {
-        String cellDir = getCellSubDir(cell);
+    void writeCell(CellBackup cellBackup) {
+        String cellDir = getCellSubDir(cellBackup);
         File cellFD = new File(filePath + File.separator + cellDir);
         if (cellFD.exists()) {
             if (!cellFD.isDirectory()) {
                 System.out.println("Error, file "+cellFD+" is not a directory, moving it to "+cellDir+".old");
                 if (!cellFD.renameTo(new File(cellDir+".old"))) {
-                    System.out.println("Error, unable to rename file "+cellFD+" to "+cellDir+".old, skipping cell "+cell.describe(false));
+                    System.out.println("Error, unable to rename file "+cellFD+" to "+cellDir+".old, skipping cell "+cellBackup.d.cellName);
                     return;
                 }
             }
         } else {
             // create the directory
             if (!cellFD.mkdir()) {
-                System.out.println("Failed to make directory: "+cellFD+", skipping cell "+cell.describe(false));
+                System.out.println("Failed to make directory: "+cellFD+", skipping cell "+cellBackup.d.cellName);
                 return;
             }
         }
 
         // create cell file in directory
-        String cellFile = getCellFile(cell);
+        String cellFile = getCellFile(cellBackup);
         String cellFileAbs = filePath + File.separator + cellFile;
         // save old printWriter
         PrintWriter headerWriter = printWriter;
@@ -82,11 +89,14 @@ public class DELIB extends JELIB {
         }
 
         // write out external references for this cell
-        HashMap<Object,Integer> references = cellRefs.get(cell);
-        super.writeExternalLibraryInfo(cell.getLibrary(), references);
+        BitSet usedLibs = new BitSet();
+        HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
+        cellBackup.gatherUsages(usedLibs, usedExports);
+        gatherLibs(usedLibs, usedExports);
+        super.writeExternalLibraryInfo(cellBackup.d.libId, usedLibs, usedExports);
 
         // write out the cell into the new file
-        super.writeCell(cell);
+        super.writeCell(cellBackup);
 
         printWriter.close();
         // set the print writer back
@@ -94,7 +104,7 @@ public class DELIB extends JELIB {
         printWriter.println("C"+cellFile);
     }
 
-    protected void writeExternalLibraryInfo(Library lib, HashMap<Object,Integer> references) {
+    void writeExternalLibraryInfo(LibId libId,  BitSet usedLibs, HashMap<CellId,BitSet> usedExports) {
     }
 
     /**
@@ -133,11 +143,11 @@ public class DELIB extends JELIB {
     /**
      * Cell subdirectory name. This is the directory inside the
      * .delib directory containing the Cell files for the specified cell.
-     * @param cell
+     * @param cellBackup
      * @return
      */
-    public static String getCellSubDir(Cell cell) {
-        return cell.getName();
+    public static String getCellSubDir(CellBackup cellBackup) {
+        return cellBackup.d.cellName.getName();
     }
 
     /**
@@ -147,10 +157,12 @@ public class DELIB extends JELIB {
      * @param cell
      * @return
      */
-    public static String getCellFile(Cell cell) {
-        String dir = getCellSubDir(cell);
-        String cellName = cell.getName();
-        if (cell.getVersion() > 1) cellName = cell.getName() + "_" + cell.getVersion();
-        return dir + File.separator + cellName + "." + cell.getView().getAbbreviation();
+    public static String getCellFile(CellBackup cellBackup) {
+        String dir = getCellSubDir(cellBackup);
+        String cellName = cellBackup.d.cellName.getName();
+        int version = cellBackup.d.cellName.getVersion();
+        View view = cellBackup.d.cellName.getView();
+        if (version > 1) cellName = cellName + "_" + version;
+        return dir + File.separator + cellName + "." + view.getAbbreviation();
     }
 }

@@ -22,38 +22,49 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database;
+
+import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.Variable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Map;
+
 /**
  *
  */
 public class CellBackup {
     public static final CellBackup[] NULL_ARRAY = {};
     public static final ImmutableArrayList<CellBackup> EMPTY_LIST = new ImmutableArrayList<CellBackup>(NULL_ARRAY);
-    private static final BitSet[] NULL_BIT_SET_ARRAY = {};
+
     private static final int[] NULL_INT_ARRAY = {};
-    
+    static final CellUsageInfo[] NULL_CELL_USAGE_INFO_ARRAY = {};
+
     /** Cell persistent data. */                                    public final ImmutableCell d;
 	/** The date this ImmutableCell was last modified. */           public final long revisionDate;
     /** "Modified" flag of the Cell. */                             public final byte modified;
 	/** This Cell is mainSchematics in its group. */				public final boolean isMainSchematics;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
-    /** Counts of NodeInsts for each CellUsage. */                  public final int[] cellUsages;
-    /** Bitmap of defined exports. */                               public final BitSet definedExports; 
-    /** Bitmap of used exports for each CellUsage. */               public final BitSet[] exportUsages;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
+    /** Bitmap of libraries used in vars. */                        final BitSet usedLibs;
+    /** CellUsageInfos indexed by CellUsage.indefInParent */        final CellUsageInfo[] cellUsages;
+    /** definedExport == [0..definedExportLength) - deletedExports . */
+    /** Map from chronIndex of Exports to sortIndex. */             final int exportIndex[];
+    /** Bitmap of defined exports. */                               final BitSet definedExports;
+    /** Length of defined exports. */                               final int definedExportsLength;
+    /** Bitmap of deleted exports. */                               final BitSet deletedExports;
 
     /** Creates a new instance of CellBackup */
     private CellBackup(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics,
             ImmutableArrayList<ImmutableNodeInst> nodes,
             ImmutableArrayList<ImmutableArcInst> arcs,
             ImmutableArrayList<ImmutableExport> exports,
-            int[] cellUsages, BitSet definedExports, BitSet[] exportUsages) {
+            BitSet usedLibs, CellUsageInfo[] cellUsages, int[] exportIndex, BitSet definedExports, int definedExportsLength, BitSet deletedExports) {
         this.d = d;
         this.revisionDate = revisionDate;
         this.modified = modified;
@@ -61,9 +72,12 @@ public class CellBackup {
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
+        this.usedLibs = usedLibs;
         this.cellUsages = cellUsages;
+        this.exportIndex = exportIndex;
         this.definedExports = definedExports;
-        this.exportUsages = exportUsages;
+        this.definedExportsLength = definedExportsLength;
+        this.deletedExports = deletedExports;
         check();
     }
     
@@ -71,7 +85,15 @@ public class CellBackup {
     public CellBackup(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics) {
         this(d, revisionDate, modified, isMainSchematics,
                 ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
-                NULL_INT_ARRAY, new BitSet(), NULL_BIT_SET_ARRAY);
+                EMPTY_BITSET, NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
+        if (d.cellName == null)
+            throw new NullPointerException("cellName");
+        if (d.cellName.getVersion() <= 0)
+            throw new IllegalArgumentException("cellVersion");
+        if (d.tech == null)
+            throw new NullPointerException("tech");
+        if (modified < -1 || 1 < modified)
+            throw new IllegalArgumentException("modified");
     }
     
     /**
@@ -86,8 +108,7 @@ public class CellBackup {
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
     public CellBackup with(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics,
-            ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray,
-            int[] cellUsages, BitSet[] exportUsages) {
+            ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
         ImmutableArrayList<ImmutableNodeInst> nodes = copyArray(nodesArray, this.nodes);
         ImmutableArrayList<ImmutableArcInst> arcs = copyArray(arcsArray, this.arcs);
         ImmutableArrayList<ImmutableExport> exports = copyArray(exportsArray, this.exports);
@@ -97,14 +118,76 @@ public class CellBackup {
             return this;
         }
         
-        BitSet definedExports = new BitSet();
-        for (ImmutableExport eid: exports)
-            definedExports.set(eid.exportId.chronIndex);
-        if (definedExports.equals(this.definedExports))
-            definedExports = this.definedExports;
+        CellId cellId = d.cellId;
+        if (this.d != d) {
+            if (d.cellName == null)
+                throw new NullPointerException("cellName");
+            if (d.cellName.getVersion() <= 0)
+                throw new IllegalArgumentException("cellVersion");
+            if (d.tech == null)
+                throw new NullPointerException("tech");
+            if (cellId != this.d.cellId)
+                throw new IllegalArgumentException("cellId");
+        }
+        if (modified < -1 || 1 < modified)
+            throw new IllegalArgumentException("modified");
+        
+        BitSet usedLibs = this.usedLibs;
+        CellUsageInfo[] cellUsages = this.cellUsages;
+        if (this.d.getVars() != d.getVars() || nodes != this.nodes || arcs != this.arcs || exports != this.exports) {
+            UsageCollector uc = new UsageCollector(d, nodes, arcs, exports);
+            usedLibs = uc.getLibUsages(this.usedLibs);
+            cellUsages = uc.getCellUsages(cellId, this.cellUsages);
+        }
+        
+        int[] exportIndex = this.exportIndex;
+        BitSet definedExports = this.definedExports;
+        int definedExportsLength = this.definedExportsLength;
+        BitSet deletedExports = this.deletedExports;
+        if (exports != this.exports) {
+            int exportIndexLength = 0;
+            String prevExportName = null;
+            for (ImmutableExport e: exports) {
+                if (e.exportId.parentId != cellId)
+                    throw new IllegalArgumentException("exportId");
+                String exportName = e.name.toString();
+                if (prevExportName != null && TextUtils.STRING_NUMBER_ORDER.compare(prevExportName, exportName) >= 0)
+                    throw new IllegalArgumentException("exportName");
+                prevExportName = exportName;
+                int chronIndex = e.exportId.chronIndex;
+                exportIndexLength = Math.max(exportIndexLength, chronIndex + 1);
+            }
+            exportIndex = new int[exportIndexLength];
+            Arrays.fill(exportIndex, -1);
+            for (int portIndex = 0; portIndex < exports.size(); portIndex++) {
+                ImmutableExport e = exports.get(portIndex);
+                int chronIndex = e.exportId.chronIndex;
+                if (exportIndex[chronIndex] >= 0)
+                    throw new IllegalArgumentException("exportChronIndex");
+                exportIndex[chronIndex] = portIndex;
+                //checkPortInst(nodesById.get(e.originalNodeId), e.originalPortId);
+            }
+            if (Arrays.equals(this.exportIndex, exportIndex)) {
+                exportIndex = this.exportIndex;
+            } else {
+                definedExports = new BitSet();
+                for (int chronIndex: exportIndex) {
+                    if (chronIndex < 0) continue;
+                    definedExports.set(chronIndex);
+                }
+                definedExports = UsageCollector.bitSetWith(this.definedExports, definedExports);
+                if (definedExports != this.definedExports) {
+                    definedExportsLength = definedExports.length();
+                    deletedExports = new BitSet();
+                    deletedExports.set(0, definedExportsLength);
+                    deletedExports.andNot(definedExports);
+                    deletedExports = UsageCollector.bitSetWith(this.deletedExports, deletedExports);
+                }
+            }
+        }
         
         CellBackup backup = new CellBackup(d, revisionDate, modified, isMainSchematics,
-                nodes, arcs, exports, (int[])cellUsages.clone(), definedExports, exportUsages);
+                nodes, arcs, exports, usedLibs, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
         return backup;
     }
     
@@ -117,6 +200,7 @@ public class CellBackup {
      * @param nodeId id of node.
      * @return ImmutableNodeInst with this id or null if node doesn't exist.
      */
+    // FIX ME !!!
     public ImmutableNodeInst getNode(int nodeId) { return nodeId < nodes.size() ? nodes.get(nodeId) : null; }
     
     /**
@@ -124,7 +208,70 @@ public class CellBackup {
      * @param arcId id of node.
      * @return ImmutableArcInst with this id or null if node doesn't exist.
      */
+    // FIX ME !!!
     public ImmutableArcInst getArc(int arcId) { return arcId < arcs.size() ? arcs.get(arcId) : null; }
+    
+    /**
+     * Returns ImmutableExport by its export id.
+     * @param exportId id of export.
+     * @return ImmutableExport with this id or null if node doesn't exist.
+     */
+    public ImmutableExport getExport(ExportId exportId) {
+        if (exportId.parentId != d.cellId)
+            throw new IllegalArgumentException();
+        int chronIndex = exportId.chronIndex;
+        int portIndex = chronIndex < exportIndex.length ? exportIndex[chronIndex] : -1;
+        return portIndex >= 0 ? exports.get(portIndex) : null;
+    }
+    
+    /**
+     * Returns subcell instance counts, indexed by CellUsage.indexInParent. 
+     * @return subcell instance counts, indexed by CellUsage.indexInParent. 
+     */
+    public int[] getInstCounts() {
+        int l = cellUsages.length;
+        while (l > 0 && (cellUsages[l - 1] == null || cellUsages[l - 1].instCount == 0)) l--;
+        if (l == 0) return NULL_INT_ARRAY;
+        int[] instCounts = new int[l];
+        for (int indexInParent = 0; indexInParent < l; indexInParent++) {
+            if (cellUsages[indexInParent] != null)
+                instCounts[indexInParent] = cellUsages[indexInParent].instCount;
+        }
+        return instCounts;
+    }
+    
+    /**
+     * For given CellUsage in this cell returns count of subcell instances.
+     * @param u CellUsage.
+     * @return count of subcell instances.
+     * @throws IllegalArgumentException if CellUsage's parent is not this cell.
+     */
+    public int getInstCount(CellUsage u) {
+        if (u.parentId != d.cellId)
+            throw new IllegalArgumentException();
+        return u.indexInParent < cellUsages.length ? cellUsages[u.indexInParent].instCount : 0;
+    }
+
+    /**
+     * Gather useages of libraries/cells/exports.
+     * @param usedLibs bitset where LibIds used in variables are accumulates.
+     * @param cells/exports Map from CellId to ExportId set, where used cells/expors are accumulated.
+     */
+    public void gatherUsages(BitSet usedLibs, Map<CellId,BitSet> usedExports) {
+        usedLibs.or(this.usedLibs);
+        for (int indexInParent = 0; indexInParent < cellUsages.length; indexInParent++) {
+            CellUsageInfo cui = cellUsages[indexInParent];
+            if (cui == null) continue;
+            CellId cellId = d.cellId.getUsageIn(indexInParent).protoId;
+            
+            BitSet exports = usedExports.get(cellId);
+            if (exports == null) {
+                exports = new BitSet();
+                usedExports.put(cellId, exports);
+            }
+            exports.or(cui.usedExports);
+        }
+    }
     
     /**
      * Writes this CellBackup to SnapshotWriter.
@@ -135,13 +282,7 @@ public class CellBackup {
         writer.out.writeLong(revisionDate);
         writer.out.writeByte(modified);
         writer.out.writeBoolean(isMainSchematics);
-        writer.out.writeInt(cellUsages.length);
-        writer.out.writeInt(exportUsages.length);
         writer.out.writeInt(nodes.size());
-        int maxNodeId = -1;
-        for (int i = 0; i < nodes.size(); i++)
-            maxNodeId = Math.max(maxNodeId, nodes.get(i).nodeId);
-        writer.out.writeInt(maxNodeId);
         for (ImmutableNodeInst n: nodes)
             n.write(writer);
         writer.out.writeInt(arcs.size());
@@ -162,84 +303,45 @@ public class CellBackup {
         byte modified = reader.in.readByte();
         boolean isMainSchematics = reader.in.readBoolean();
         CellBackup backup = new CellBackup(d, revisionDate, modified, isMainSchematics);
-        int cellUsagesLen = reader.in.readInt();
-        int[] cellUsages = new int[cellUsagesLen];
-        int exportUsagesLen = reader.in.readInt();
-        BitSet[] exportUsages = new BitSet[exportUsagesLen];
+        
         int nodesLength = reader.in.readInt();
         ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
-        int maxNodeId = reader.in.readInt();
-        ImmutableNodeInst[] nodesById = new ImmutableNodeInst[maxNodeId + 1];
-        for (int i = 0; i < nodesLength; i++) {
-            ImmutableNodeInst nid = ImmutableNodeInst.read(reader);
-            assert nodesById[nid.nodeId] == null;
-            nodesById[nid.nodeId] = nid;
-            if (nid.protoId instanceof CellId) {
-                CellId subCellId = (CellId)nid.protoId;
-                CellUsage u = d.cellId.getUsageIn(subCellId);
-                cellUsages[u.indexInParent]++;
-                if (nid.ports != null) {
-                    for (int j = 0; j < nid.ports.length; j++) {
-                        ImmutablePortInst pid = nid.ports[j];
-                        if (pid == ImmutablePortInst.EMPTY) continue;
-                        registerPortInstUsage(d.cellId, nid, u.protoId.getExportId(j), exportUsages);
-                    }
-                }
-            }
-            nodes[i] = nid;
-        }
+        for (int i = 0; i < nodesLength; i++)
+            nodes[i] = ImmutableNodeInst.read(reader);
+        
         int arcsLength = reader.in.readInt();
         ImmutableArcInst[] arcs = new ImmutableArcInst[arcsLength];
-        for (int i = 0; i < arcsLength; i++) {
-            ImmutableArcInst aid = ImmutableArcInst.read(reader);
-            registerPortInstUsage(d.cellId, nodesById[aid.tailNodeId], aid.tailPortId, exportUsages);
-            registerPortInstUsage(d.cellId, nodesById[aid.headNodeId], aid.headPortId, exportUsages);
-            arcs[i] = aid;
-        }
+        for (int i = 0; i < arcsLength; i++)
+            arcs[i] = ImmutableArcInst.read(reader);
+        
         int exportsLength = reader.in.readInt();
         ImmutableExport[] exports = new ImmutableExport[exportsLength];
-        for (int i = 0; i < exportsLength; i++) {
-            ImmutableExport eid = ImmutableExport.read(reader);
-            registerPortInstUsage(d.cellId, nodesById[eid.originalNodeId], eid.originalPortId, exportUsages);
-            exports[i] = eid;
-        }
-        backup = backup.with(d,revisionDate, modified, isMainSchematics, nodes, arcs, exports, cellUsages, exportUsages);
+        for (int i = 0; i < exportsLength; i++)
+            exports[i] = ImmutableExport.read(reader);
+        
+        backup = backup.with(d, revisionDate, modified, isMainSchematics, nodes, arcs, exports);
         return backup;
     }
-    
-    /**
-     * Low-level method to register PortInst in ExportUsage arrays.
-     * @param parentId cell parent of PortInst.
-     * @param nodeId node id of PortInst.
-     * @param portId port id of PortInst.
-     * @exportUsages array for registration.
-     */
-    public static void registerPortInstUsage(CellId parentId, ImmutableNodeInst nodeId, PortProtoId portId, BitSet[] exportUsages) {
-        if (!(nodeId.protoId instanceof CellId)) return;
-        CellUsage u = parentId.getUsageIn((CellId)nodeId.protoId);
-        BitSet exportUsage = exportUsages[u.indexInParent];
-        if (exportUsage == null) {
-            exportUsage = new BitSet();
-            exportUsages[u.indexInParent] = exportUsage;
-        }
-        exportUsage.set(portId.getChronIndex());
-    }
-    
+
     /**
 	 * Checks invariant of this CellBackup.
 	 * @throws AssertionError if invariant is broken.
 	 */
     public void check() {
         d.check();
+        checkVars(d);
         assert d.cellName.getVersion() > 0;
         assert d.tech != null;
         assert -1 <= modified && modified <= 1;
         CellId cellId = d.cellId;
-        int[] checkCellUsages = checkCellUsages = (int[])cellUsages.clone();
+        int[] checkCellUsages = getInstCounts();
         ArrayList<ImmutableNodeInst> nodesById = new ArrayList<ImmutableNodeInst>();
         ImmutableNodeInst prevN = null;
         for (ImmutableNodeInst n: nodes) {
             n.check();
+            checkVars(n);
+            for (ImmutablePortInst pid: n.ports)
+                checkVars(pid);
             while (n.nodeId >= nodesById.size()) nodesById.add(null);
             ImmutableNodeInst oldNode = nodesById.set(n.nodeId, n);
             assert oldNode == null;
@@ -256,11 +358,11 @@ public class CellBackup {
                 CellId subCellId = (CellId)n.protoId;
                 CellUsage u = cellId.getUsageIn(subCellId);
                 checkCellUsages[u.indexInParent]--;
-                assert exportUsages[u.indexInParent] != null;
+                assert cellUsages[u.indexInParent] != null;
                 for (int j = 0; j < n.ports.length; j++) {
                     ImmutablePortInst pid = n.ports[j];
                     if (pid == ImmutablePortInst.EMPTY) continue;
-                    checkPortInst(n, subCellId.getExportId(j));
+                    checkPortInst(n, subCellId.getPortId(j));
                 }
             }
         }
@@ -268,7 +370,7 @@ public class CellBackup {
             assert checkCellUsages[i] == 0;
         BitSet arcIds = new BitSet();
         ImmutableArcInst prevA = null;
-        for (ImmutableArcInst a:arcs) {
+        for (ImmutableArcInst a: arcs) {
             assert !arcIds.get(a.arcId);
             arcIds.set(a.arcId);
 			if (prevA != null) {
@@ -282,31 +384,88 @@ public class CellBackup {
             prevA = a;
             
             a.check();
+            checkVars(a);
             checkPortInst(nodesById.get(a.tailNodeId), a.tailPortId);
             checkPortInst(nodesById.get(a.headNodeId), a.headPortId);
         }
-        BitSet exportChronIndicies = new BitSet();
+        
+        if (exportIndex.length > 0)
+            assert exportIndex[exportIndex.length - 1] >= 0;
+        assert exportIndex.length == definedExportsLength;
+        assert definedExports.length() == definedExportsLength;
         for (int i = 0; i < exports.size(); i++) {
             ImmutableExport e = exports.get(i);
             e.check();
+            checkVars(e);
             assert e.exportId.parentId == cellId;
-            assert !exportChronIndicies.get(e.exportId.chronIndex);
-            exportChronIndicies.set(e.exportId.chronIndex);
+            assert exportIndex[e.exportId.chronIndex] == i;
             if (i > 0)
                 assert(TextUtils.STRING_NUMBER_ORDER.compare(exports.get(i - 1).name.toString(), e.name.toString()) < 0) : i;
             checkPortInst(nodesById.get(e.originalNodeId), e.originalPortId);
         }
-        assert exportChronIndicies.equals(definedExports);
+        int exportCount = 0;
+        for (int chronIndex = 0; chronIndex < exportIndex.length; chronIndex++) {
+            int portIndex = exportIndex[chronIndex];
+            if (portIndex == -1) {
+                assert !definedExports.get(chronIndex);
+                continue;
+            }
+            assert definedExports.get(chronIndex);
+            exportCount++;
+            assert exports.get(portIndex).exportId.chronIndex == chronIndex;
+        }
+        assert exports.size() == exportCount;
+        BitSet checkDeleted = new BitSet();
+        checkDeleted.set(0, definedExportsLength);
+        checkDeleted.andNot(definedExports);
+        assert deletedExports.equals(checkDeleted);
+        if (definedExports.isEmpty())
+            assert definedExports == EMPTY_BITSET;
+        if (deletedExports.isEmpty())
+            assert deletedExports == EMPTY_BITSET;
+        if (usedLibs.isEmpty())
+            assert usedLibs == EMPTY_BITSET;
+        for (CellUsageInfo cui: cellUsages) {
+            if (cui != null)
+                cui.check();
+        }
+    }
+    
+    private void checkVars(ImmutableElectricObject d) {
+        for (Variable var: d.getVars()) {
+            Object o = var.getObject();
+            if (o instanceof Object[]) {
+                Object[] a = (Object[])o;
+                for (Object e: a)
+                    checkVarObj(e);
+            } else {
+                checkVarObj(o);
+            }
+        }
+    }
+    
+    private void checkVarObj(Object o) {
+        if (o instanceof LibId) {
+            int libIndex = ((LibId)o).libIndex;
+            assert usedLibs.get(libIndex);
+        } else if (o instanceof CellId) {
+            CellUsage u = d.cellId.getUsageIn((CellId)o);
+            assert cellUsages[u.indexInParent] != null;
+        } else if (o instanceof ExportId) {
+            checkExportId((ExportId)o);
+        }
     }
     
     private void checkPortInst(ImmutableNodeInst node, PortProtoId portId) {
         assert node != null;
         assert portId.getParentId() == node.protoId;
-        if (portId instanceof ExportId) {
-            CellId protoId = (CellId)node.protoId;
-            CellUsage u = d.cellId.getUsageIn(protoId);
-            assert exportUsages[u.indexInParent].get(portId.getChronIndex());
-        }
+        if (portId instanceof ExportId)
+            checkExportId((ExportId)portId);
+    }
+    
+    private void checkExportId(ExportId exportId) {
+        CellUsage u = d.cellId.getUsageIn(exportId.parentId);
+        assert cellUsages[u.indexInParent].usedExports.get(exportId.getChronIndex());
     }
     
     public boolean sameExports(CellBackup thatBackup) {
@@ -318,5 +477,35 @@ public class CellBackup {
                 return false;
         }
         return true;
+    }
+    
+    static class CellUsageInfo {
+        final int instCount;
+        final BitSet usedExports;
+        final int usedExportsLength;
+        
+        CellUsageInfo(int instCount, BitSet usedExports) {
+            this.instCount = instCount;
+            usedExportsLength = usedExports.length();
+            this.usedExports = usedExportsLength > 0 ? usedExports : EMPTY_BITSET;
+        }
+        
+        CellUsageInfo with(int instCount, BitSet usedExports) {
+            usedExports = UsageCollector.bitSetWith(this.usedExports, usedExports);
+            if (this.instCount == instCount && this.usedExports == usedExports) return this;
+            return new CellUsageInfo(instCount, usedExports);
+        }
+        
+        void checkUsage(CellBackup subCellBackup) {
+            if (subCellBackup.definedExportsLength < usedExportsLength || subCellBackup.deletedExports.intersects(usedExports))
+                throw new IllegalArgumentException("exportUsages");
+        }
+        
+        private void check() {
+            assert instCount >= 0;
+            assert usedExportsLength == usedExports.length();
+            if (usedExportsLength == 0)
+                assert usedExports == EMPTY_BITSET;
+        }
     }
 }

@@ -370,12 +370,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private static final int[] NULL_INT_ARRAY = {};
 	private static final Export[] NULL_EXPORT_ARRAY = {};
 
-	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
+	/** set if instances should be expanded */						public static final int WANTNEXPAND   =           02;
 //	/** set if cell is modified */						            private static final int MODIFIED      =     01000000;
-	/** set if everything in cell is locked */						private static final int NPLOCKED      =     04000000;
-	/** set if instances in cell are locked */						private static final int NPILOCKED     =    010000000;
-	/** set if cell is part of a "cell library" */					private static final int INCELLLIBRARY =    020000000;
-	/** set if cell is from a technology-library */					private static final int TECEDITCELL   =    040000000;
+	/** set if everything in cell is locked */						public static final int NPLOCKED      =     04000000;
+	/** set if instances in cell are locked */						public static final int NPILOCKED     =    010000000;
+	/** set if cell is part of a "cell library" */					public static final int INCELLLIBRARY =    020000000;
+	/** set if cell is from a technology-library */					public static final int TECEDITCELL   =    040000000;
 	/** set if cell is a multi-page schematic */					private static final int MULTIPAGE     = 017600000000;
 
 	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
@@ -932,6 +932,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
     public CellBackup backup() {
         if (cellBackupFresh) return backup;
+        return doBackup();
+    }
+    
+    private CellBackup doBackup() {
         boolean isMainSchematics = cellGroup.getMainSchematics() == this;
         if (backup == null) {
             getTechnology();
@@ -941,20 +945,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         ImmutableNodeInst[] nodes = null;
         ImmutableArcInst[] arcs = null;
         ImmutableExport[] exports = null;
-        BitSet[] exportUsages = backup.exportUsages;
         if (!cellContentsFresh) {
 //            System.out.println("Refersh contents of " + this);
-            int len;
-            for (len = cellUsages.length; len > 0 && cellUsages[len - 1] == 0; len--);
-            exportUsages = new BitSet[len];
-            nodes = backupNodes(exportUsages);
-            arcs = backupArcs(exportUsages);
-            exports = backupExports(exportUsages);
-            exportUsages = backupExportUsages(exportUsages);
+            nodes = backupNodes();
+            arcs = backupArcs();
+            exports = backupExports();
         }
         backup = backup.with(getD(), revisionDate, modified, isMainSchematics,
-                nodes, arcs, exports, (int[])cellUsages.clone(), exportUsages);
-        assert exportUsages == backup.exportUsages;
+                nodes, arcs, exports);
         cellBackupFresh = true;
         cellContentsFresh = true;
         return backup;
@@ -977,72 +975,42 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert cellBackup.exports.get(i) == exports[i].getD();
     }
     
-    private ImmutableNodeInst[] backupNodes(BitSet[] exportUsages) {
+    private ImmutableNodeInst[] backupNodes() {
         ImmutableNodeInst[] newNodes = new ImmutableNodeInst[nodes.size()];
         boolean changed = nodes.size() != backup.nodes.size();
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             ImmutableNodeInst d = ni.getD();
-            if (ni.getProto() instanceof Cell) {
-                Cell subCell = (Cell)ni.getProto();
-                CellUsage u = getId().getUsageIn(subCell.getId());
-                if (exportUsages[u.indexInParent] == null)
-                    exportUsages[u.indexInParent] = new BitSet();
-                for (int j = 0, numPorts = subCell.getNumPorts(); j < numPorts; j++) {
-                    PortInst pi = ni.getPortInst(j);
-                    if (pi.getNumVariables() > 0)
-                        registerPortInstUsage(pi, exportUsages);
-                } 
-            }
             changed = changed || backup.nodes.get(i) != d;
             newNodes[i] = d;
         }
         return changed ? newNodes : null;
     }
     
-    private ImmutableArcInst[] backupArcs(BitSet[] exportUsages) {
+    private ImmutableArcInst[] backupArcs() {
         ImmutableArcInst[] newArcs = new ImmutableArcInst[arcs.size()];
         boolean changed = arcs.size() != backup.arcs.size();
         for (int i = 0; i < arcs.size(); i++) {
             ArcInst ai = arcs.get(i);
             ImmutableArcInst d = ai.getD();
-            registerPortInstUsage(ai.getTailPortInst(), exportUsages);
-            registerPortInstUsage(ai.getHeadPortInst(), exportUsages);
             changed = changed || backup.arcs.get(i) != d;
             newArcs[i] = d;
         }
         return changed ? newArcs : null;
     }
     
-    private ImmutableExport[] backupExports(BitSet[] exportUsages) {
+    private ImmutableExport[] backupExports() {
         ImmutableExport[] newExports = new ImmutableExport[exports.length];
         boolean changed = exports.length != backup.exports.size();
         for (int i = 0; i < exports.length; i++) {
             Export e = exports[i];
             ImmutableExport d = e.getD();
-            registerPortInstUsage(e.getOriginalPort(), exportUsages);
             changed = changed || backup.exports.get(i) != d;
             newExports[i] = d;
         }
         return changed ? newExports : null;
     }
     
-    private BitSet[] backupExportUsages(BitSet[] exportUsages) {
-        boolean changed = exportUsages.length != backup.exportUsages.length;
-        int minLen = Math.min(exportUsages.length, backup.exportUsages.length);
-        for (int i = 0; i < minLen; i++) {
-            BitSet oldU = backup.exportUsages[i];
-            if (exportUsages[i] != null && exportUsages[i].equals(oldU))
-                exportUsages[i] = oldU;
-            changed = changed || exportUsages[i] != oldU;
-        }
-        return changed ? exportUsages : backup.exportUsages;
-    }
-    
-    void registerPortInstUsage(PortInst pi, BitSet[] exportUsages) {
-        CellBackup.registerPortInstUsage(getId(), pi.getNodeInst().getD(), pi.getPortProto().getId(), exportUsages);
-    }
-   
     void recover(CellBackup newBackup, ERectangle cellBounds) {
         update(true, newBackup, null);
         assert cellBounds != null;
@@ -1073,7 +1041,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
        // Update NodeInsts
         nodes.clear();
         essenBounds.clear();
-        cellUsages = (int[])newBackup.cellUsages.clone();
+        cellUsages = newBackup.getInstCounts();
         int tempNodeCount = 0;
         rTree = RTNode.makeTopLevel();
         if (full) {
@@ -2736,14 +2704,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @param portIndex specified position of PortProto.
 	 * @return the PortProto at specified position..
 	 */
-	public PortProto getPort(int portIndex) { return exports[portIndex]; }
+	public Export getPort(int portIndex) { return exports[portIndex]; }
 
 	/**
 	 * Method to return the PortProto by thread-independent PortProtoId.
 	 * @param portProtoId thread-independent PortProtoId.
 	 * @return the PortProto.
 	 */
-	public PortProto getPort(PortProtoId portProtoId) {
+	public Export getPort(PortProtoId portProtoId) {
         if (portProtoId.getParentId() != getId()) throw new IllegalArgumentException();
         return chronExports[portProtoId.getChronIndex()];
     }
@@ -3681,6 +3649,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		if (cellGroup == null) cellGroup = new CellGroup(lib);
         checkChanging();
 		if (cellGroup == this.cellGroup) return;
+        database.unfreshSnapshot();
         lib.setChanged();
 		String protoName = getName();
 		for (Iterator<Cell> it = getViewsTail(); it.hasNext(); )
@@ -4335,8 +4304,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
              }
             nodeNames.add(ni.getNameKey());
 		}
-        for(Iterator<Export> it = getExports(); it.hasNext(); ) {
-            Export e = it.next();
+        Export[] exportsCopy = (Export[])exports.clone();
+        for(Export e: exportsCopy) {
             if (ImmutableExport.validExportName(e.getName()) != null) continue;
             String msg = this + " has bad export name " + e.getName() + " ";
             if (repair) {

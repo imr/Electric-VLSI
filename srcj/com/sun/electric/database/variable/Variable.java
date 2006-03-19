@@ -319,6 +319,12 @@ public class Variable
      * @return true if the value is array,
      */
     public boolean isArray() { return (type & ARRAY) != 0; }
+
+    /**
+     * Returns true if the value contaoins references to database objects.
+     * @return true if the value contaoins references to database objects.
+     */
+    public boolean hasReferences() { return type < STRING; }
     
     /**
      * Get the number of entries stored in this Variable.

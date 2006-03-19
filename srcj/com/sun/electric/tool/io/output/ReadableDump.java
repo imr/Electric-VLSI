@@ -103,7 +103,7 @@ public class ReadableDump extends Output
 		// clear error counters
 		nodeInstError = portProtoError = arcInstError = typeError = 0;
 
-		gatherReferencedObjects(lib, true);
+		gatherReferencedObjects(lib);
 
 		// determine proper library order
 		cellGrouping = new HashMap<Cell,DBMath.MutableInteger>();

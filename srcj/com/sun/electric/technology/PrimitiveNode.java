@@ -574,6 +574,14 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		return pn;
 	}
 
+    /**
+     * Returns PrimitivePort in this PrimitiveNode parent cell with specified chronological index.
+     * @param chronIndex chronological index of PrimitiveNode.
+     * @return PrimitivePoirt whith specified chronological index.
+     * @throws ArrayIndexOutOfBoundsException if no such PrimitivePort.
+     */
+    public PrimitivePort getPortId(int chronIndex) { return primPorts[chronIndex]; }
+    
      /**
      * Method to return the NodeProto representing NodeProtoId in the server EDatabase.
      * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.

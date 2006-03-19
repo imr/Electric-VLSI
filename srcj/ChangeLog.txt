@@ -4,9 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
-Bugzilla #s to close: 318 (works now), 
-IMP: (3/18/06, GVG) Select Object dialog was useless if you navigate down/up the hierarchy (Bug #862)
+BUG: (3/19/06, DN) System.out.println() may be blocked for 200ms .
+FIX: In MessagesWindow remove sleep(200) out of synchronized block.
 
+BUG: (3/19/06, DN) Some export names are not repaired.
+FIX: In Cell.checkAndRepair iterate over copy of exports array.
+
+IMP: (3/18/06, GVG) Select Object dialog was useless if you navigate down/up the hierarchy (Bug #862)
+ 
 BUG: (3/18/06, GVG) "Project file not fund" message in Project Management (Bug #849).
 FIX: RetrieveLibraryFromRepositoryJob implements terminateOK() instead of terminateIt.
 
@@ -42,7 +47,7 @@ BUG: (3/15/06, SMR) "Insert Jog In Arc" fails (Bug #881).
 FIX: Made Highlight parameter transient, converted Point2D to EPoint.
 
 BUG: (3/15/06, DN) User can't change case of a letter in export/node/arc names (Bug #873).
-FIX: In ImmutableExport/NodeInst/ArcInst comper name.toString() instead of name.
+FIX: In ImmutableExport/NodeInst/ArcInst compare name.toString() instead of name.
 
 BUG: (3/15/06, RK) NCC: Change NccJob to avoid Bug # 825 and the bugs introduced in an attempt to fix it.
 

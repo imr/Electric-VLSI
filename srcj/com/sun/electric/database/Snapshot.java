@@ -86,8 +86,15 @@ public class Snapshot {
         if (!namesChanged && this.cellBackups == cellBackups && this.cellBounds == cellBounds)
             return this;
         
-        // Gather changes
-        HashSet<CellUsage> checkUsages = new HashSet<CellUsage>();
+        // Check usages in libs
+        for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
+            LibraryBackup libBackup = libBackups.get(libIndex);
+            if (libBackup == null) continue;
+            checkUsedLibs(libBackup.usedLibs);
+            checkLibExports(libBackup);
+        }
+
+        // Check usages in cells
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup newBackup = cellBackups.get(cellIndex);
             CellBackup oldBackup = getCell(cellIndex);
@@ -99,35 +106,40 @@ public class Snapshot {
             if (oldBackup == null || newBackup.d.cellName != oldBackup.d.cellName || newBackup.isMainSchematics != oldBackup.isMainSchematics)
                 namesChanged = true;
             
-            // Gather CellUsages to check.
+            // Check lib usages.
+            checkUsedLibs(newBackup.usedLibs);
+
+            // If usages changed, Check CellUsagesIn.
             CellId cellId = newBackup.d.cellId;
-            for (int i = 0; i < newBackup.exportUsages.length; i++) {
-                BitSet bs = newBackup.exportUsages[i];
-                if (bs == null) continue;
-                if (oldBackup != null && i < oldBackup.exportUsages.length && bs == oldBackup.exportUsages[i]) continue;
-                checkUsages.add(cellId.getUsageIn(i));
-            }
-            if (oldBackup == null || newBackup.definedExports != oldBackup.definedExports) {
-                for (int i = 0, numUsages = cellId.numUsagesOf(); i < numUsages; i++) {
-                    CellUsage u = cellId.getUsageOf(i);
-                    int protoCellIndex = u.protoId.cellIndex;
-                    if (protoCellIndex >= cellBackups.size()) continue;
-                    CellBackup protoBackup = cellBackups.get(protoCellIndex);
-                    if (protoBackup == null) continue;
-                    if (u.indexInParent < protoBackup.exportUsages.length && protoBackup.exportUsages[u.indexInParent] != null)
-                        checkUsages.add(u);
+            if (oldBackup == null || newBackup.cellUsages != oldBackup.cellUsages) {
+                for (int i = 0; i < newBackup.cellUsages.length; i++) {
+                    CellBackup.CellUsageInfo cui = newBackup.cellUsages[i];
+                    if (cui == null) continue;
+                    if (oldBackup != null && i < oldBackup.cellUsages.length && cui.usedExports == oldBackup.cellUsages[i].usedExports) continue;
+                    CellUsage u = cellId.getUsageIn(i);
+                    CellBackup protoBackup = cellBackups.get(u.protoId.cellIndex);
+                    if (protoBackup == null)
+                        throw new IllegalArgumentException("protoBackup");
+                    cui.checkUsage(protoBackup);
                 }
             }
-        }
-        
-        // Check usages
-        for (CellUsage u: checkUsages) {
-            CellBackup parentBackup = cellBackups.get(u.parentId.cellIndex);
-            CellBackup protoBackup = cellBackups.get(u.protoId.cellIndex);
-            BitSet bs = (BitSet)parentBackup.exportUsages[u.indexInParent].clone();
-            bs.andNot(protoBackup.definedExports);
-            if (!bs.isEmpty())
-                throw new IllegalArgumentException("exportUsages");
+            
+            // If some exports deleted, check CellUsagesOf
+            if (oldBackup == null) continue;
+            if (newBackup.definedExportsLength >= oldBackup.definedExportsLength &&
+                    (newBackup.deletedExports == oldBackup.deletedExports ||
+                    !newBackup.deletedExports.intersects(oldBackup.definedExports))) continue;
+            for (int i = 0, numUsages = cellId.numUsagesOf(); i < numUsages; i++) {
+                CellUsage u = cellId.getUsageOf(i);
+                int parentCellIndex = u.parentId.cellIndex;
+                if (parentCellIndex >= cellBackups.size()) continue;
+                CellBackup parentBackup = cellBackups.get(parentCellIndex);
+                if (parentBackup == null) continue;
+                if (u.indexInParent >= parentBackup.cellUsages.length) continue;
+                CellBackup.CellUsageInfo cui = parentBackup.cellUsages[u.indexInParent];
+                if (cui == null) continue;
+                cui.checkUsage(newBackup);
+            }
         }
         
         // Check names
@@ -138,6 +150,30 @@ public class Snapshot {
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
+    }
+    
+    private void checkUsedLibs(BitSet usedLibs) {
+        if (usedLibs.isEmpty()) return;
+        int usedLibsLength = usedLibs.length();
+        if (usedLibsLength > libBackups.size())
+            throw new IllegalArgumentException("usedLibsLength");
+        for (int libIndex = 0; libIndex < usedLibsLength; libIndex++) {
+            if (usedLibs.get(libIndex) && libBackups.get(libIndex) == null)
+                throw new IllegalArgumentException("usedLibs");
+        }
+    }
+    
+    private void checkLibExports(LibraryBackup libBackup) {
+        if (libBackup.usedExports == null) return;
+        for (CellId cellId: libBackup.usedExports.keySet()) {
+            CellBackup cellBackup = getCell(cellId);
+            if (cellBackup == null)
+                throw new IllegalArgumentException("usedCells");
+            BitSet usedExportsCopy = (BitSet)libBackup.usedExports.get(cellId).clone();
+            usedExportsCopy.andNot(cellBackup.definedExports);
+            if (!usedExportsCopy.isEmpty())
+                throw new IllegalArgumentException("usedExports");
+        }
     }
     
     private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
@@ -387,7 +423,10 @@ public class Snapshot {
     public void check() {
         long startTime = System.currentTimeMillis();
         for (LibraryBackup libBackup: libBackups) {
-            if (libBackup != null) libBackup.check();
+            if (libBackup == null) continue;
+            libBackup.check();
+            checkUsedLibs(libBackup.usedLibs);
+            checkLibExports(libBackup);
         }
         for (CellBackup cellBackup: cellBackups) {
             if (cellBackup != null) cellBackup.check();
@@ -405,18 +444,15 @@ public class Snapshot {
                 continue;
             }
             assert cellBounds.get(cellIndex) != null;
+            for (int libIndex = 0, usedLibsLength = cellBackup.usedLibs.length(); libIndex < usedLibsLength; libIndex++)
+                assert getLib(libIndex) != null || !cellBackup.usedLibs.get(libIndex);
             CellId cellId = cellBackup.d.cellId;
             for (int i = 0; i < cellBackup.cellUsages.length; i++) {
-                if (cellBackup.cellUsages[i] == 0) continue;
+                CellBackup.CellUsageInfo cui = cellBackup.cellUsages[i];
+                if (cui == null) continue;
                 CellUsage u = cellId.getUsageIn(i);
                 int subCellIndex = u.protoId.cellIndex;
-                assert cellBackups.get(subCellIndex) != null;
-                BitSet exportUsage = cellBackup.exportUsages[i];
-                if (exportUsage != null) {
-                    BitSet bs = (BitSet)exportUsage.clone();
-                    bs.andNot(cellBackups.get(subCellIndex).definedExports);
-                    assert bs.isEmpty();
-                }
+                cui.checkUsage(cellBackups.get(subCellIndex));
             }
         }
         long endTime = System.currentTimeMillis();

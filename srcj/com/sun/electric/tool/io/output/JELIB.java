@@ -25,37 +25,50 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.CellBackup;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ExportId;
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableCell;
+import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
+import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.ImmutablePortInst;
+import com.sun.electric.database.LibId;
+import com.sun.electric.database.LibraryBackup;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.NodeProtoId;
+import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 
 /**
@@ -63,7 +76,8 @@ import java.util.List;
  */
 public class JELIB extends Output
 {
-    private HashMap<Cell,String> cellNames = new HashMap<Cell,String>();
+    private Snapshot snapshot;
+    private HashMap<CellId,String> cellNames = new HashMap<CellId,String>();
     
 	JELIB()
 	{
@@ -78,7 +92,12 @@ public class JELIB extends Output
 	{
 		try
 		{
-			return writeTheLibrary(lib);
+            writeTheLibrary(lib.getDatabase().backup(), lib.getId());
+            
+            // clean up and return
+            lib.setFromDisk();
+            if (!quiet) System.out.println(filePath + " written");
+            return false;
 		} catch (IOException e)
 		{
 			System.out.println("End of file reached while writing " + filePath);
@@ -86,76 +105,86 @@ public class JELIB extends Output
 		}
 	}
 
-	/**
-	 * Method to write the .jelib file.
-	 * @param lib the Library to write.
-	 * @return true on error.
-	 */
-	private boolean writeTheLibrary(Library lib)
-		throws IOException
-	{
-		// gather all referenced objects
-		gatherReferencedObjects(lib, false);
-
-		// write header information (library, version, main cell)
-		printWriter.println("# header information:");
-		printWriter.print("H" + convertString(lib.getName()) + "|" + Version.getVersion());
-		printlnVars(lib, null);
-
-		// write view information
-		boolean viewHeaderPrinted = false;
-		for(Iterator<View> it = View.getViews(); it.hasNext(); )
-		{
-			View view = it.next();
-			if (!objInfo.containsKey(view)) continue;
-			if (!viewHeaderPrinted)
-			{
-				printWriter.println();
-				printWriter.println("# Views:");
-				viewHeaderPrinted = true;
-			}
-			printWriter.println("V" + convertString(view.getFullName()) + "|" + convertString(view.getAbbreviation()));
-		}
-
-		// write external library information
-        writeExternalLibraryInfo(lib, objInfo);
-
-		// write tool information
-		boolean toolHeaderPrinted = false;
-		for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
-		{
-			Tool tool = it.next();
-			if (Pref.getMeaningVariables(tool).size() == 0) continue;
-			if (!toolHeaderPrinted)
-			{
-				printWriter.println();
-				printWriter.println("# Tools:");
-				toolHeaderPrinted = true;
-			}
-			printWriter.print("O" + convertString(tool.getName()));
-			printlnMeaningPrefs(tool);
-		}
-
-		// write technology information
-		boolean technologyHeaderPrinted = false;
-		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			if (!objInfo.containsKey(tech))	continue;
-			if (!technologyHeaderPrinted)
-			{
-				printWriter.println();
-				printWriter.println("# Technologies:");
-				technologyHeaderPrinted = true;
-			}
-			printWriter.print("T" + convertString(tech.getTechName()));
-			printlnMeaningPrefs(tech);
-
+    /**
+     * Method to write the .jelib file.
+     * @param lib the Library to write.
+     */
+    private void writeTheLibrary(Snapshot snapshot, LibId libId)
+    throws IOException {
+        // gather all referenced objects
+        this.snapshot = snapshot;
+        LibraryBackup libBackup = snapshot.getLib(libId);
+        BitSet usedLibs = new BitSet();
+        HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
+        TreeMap<CellName,CellBackup> sortedCells = new TreeMap<CellName,CellBackup>();
+        libBackup.gatherUsages(usedLibs, usedExports);
+        for (CellBackup cellBackup: snapshot.cellBackups) {
+            if (cellBackup == null || cellBackup.d.libId != libId) continue;
+            sortedCells.put(cellBackup.d.cellName, cellBackup);
+            cellBackup.gatherUsages(usedLibs, usedExports);
+        }
+        gatherLibs(usedLibs, usedExports);
+        
+        // write header information (library, version, main cell)
+        printWriter.println("# header information:");
+        printWriter.print("H" + convertString(libBackup.d.libName) + "|" + Version.getVersion());
+        printlnVars(libBackup.d);
+        
+        // write view information
+        boolean viewHeaderPrinted = false;
+        HashSet<View> usedViews = new HashSet<View>();
+        for (CellBackup cellBackup: snapshot.cellBackups) {
+            if (cellBackup == null) continue;
+            if (cellBackup.d.libId != libId && !usedExports.containsKey(cellBackup.d.cellId)) continue;
+            usedViews.add(cellBackup.d.cellName.getView());
+        }
+        for(Iterator<View> it = View.getViews(); it.hasNext(); ) {
+            View view = it.next();
+            if (!usedViews.contains(view)) continue;
+            if (!viewHeaderPrinted) {
+                printWriter.println();
+                printWriter.println("# Views:");
+                viewHeaderPrinted = true;
+            }
+            printWriter.println("V" + convertString(view.getFullName()) + "|" + convertString(view.getAbbreviation()));
+        }
+        
+        // write external library information
+        writeExternalLibraryInfo(libId, usedLibs, usedExports);
+        
+        // write tool information
+        boolean toolHeaderPrinted = false;
+        for(Iterator<Tool> it = Tool.getTools(); it.hasNext(); ) {
+            Tool tool = it.next();
+            if (Pref.getMeaningVariables(tool).size() == 0) continue;
+            if (!toolHeaderPrinted) {
+                printWriter.println();
+                printWriter.println("# Tools:");
+                toolHeaderPrinted = true;
+            }
+            printWriter.print("O" + convertString(tool.getName()));
+            printlnMeaningPrefs(tool);
+        }
+        
+        // write technology information
+        boolean technologyHeaderPrinted = false;
+        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
+            Technology tech = it.next();
+            if (Pref.getMeaningVariables(tech).size() == 0) continue;
+//			if (!objInfo.containsKey(tech))	continue;
+            if (!technologyHeaderPrinted) {
+                printWriter.println();
+                printWriter.println("# Technologies:");
+                technologyHeaderPrinted = true;
+            }
+            printWriter.print("T" + convertString(tech.getTechName()));
+            printlnMeaningPrefs(tech);
+            
 // 			for(Iterator<PrimitiveNode> nIt = tech.getNodes(); nIt.hasNext(); )
 // 			{
 // 				PrimitiveNode pn = nIt.next();
 // 				if (!externalObjs.contains(pn)) continue;
-
+            
 // 				printWriter.println("D" + convertString(pn.getName()));
 // 				for(Iterator<PrimitivePort> pIt = pn.getPorts(); pIt.hasNext(); )
 // 				{
@@ -170,257 +199,296 @@ public class JELIB extends Output
 // 				if (!externalObjs.contains(ap)) continue;
 // 				printWriter.println("W" + convertString(ap.getName()));
 // 			}
-		}
+        }
         printWriter.println();
-
-		// gather groups and put cell names into objInfo
-		LinkedHashSet<Cell.CellGroup> groups = new LinkedHashSet<Cell.CellGroup>();
-		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-		{
-			Cell cell = cIt.next();
-			if (!groups.contains(cell.getCellGroup()))
-				groups.add(cell.getCellGroup());
-			cellNames.put(cell, convertString(cell.getCellName().toString()));
-		}
-
-		// write the cells of the database
-		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-		{
-			Cell cell = cIt.next();
-            writeCell(cell);
+        
+        // gather groups
+        ArrayList<CellGroup> chronGroups = new ArrayList<CellGroup>();
+        ArrayList<CellGroup> sortedGroups = new ArrayList<CellGroup>();
+        for (CellBackup cellBackup: sortedCells.values()) {
+			cellNames.put(cellBackup.d.cellId, convertString(cellBackup.d.cellName.toString()));
+            
+            int groupIndex = snapshot.cellGroups[cellBackup.d.cellId.cellIndex];
+            while (groupIndex >= chronGroups.size()) chronGroups.add(null);
+            CellGroup group = chronGroups.get(groupIndex);
+            if (group == null) {
+                group = new CellGroup();
+                chronGroups.set(groupIndex, group);
+                sortedGroups.add(group);
+            }
+            group.cellNames.add(cellBackup.d.cellName);
+            if (cellBackup.isMainSchematics)
+                group.mainSchematics = cellBackup.d.cellName;
+        }
+        
+        // write cells
+        for (CellBackup cellBackup: sortedCells.values()) {
+            writeCell(cellBackup);
             printWriter.println();
-		}
+        }
+            
+        // write groups in alphabetical order
+        printWriter.println("# Groups:");
+        for (CellGroup group: sortedGroups) {
+            printWriter.print("G");
+            
+            // if there is a main schematic cell, write that first
+            if (group.mainSchematics != null)
+                printWriter.print(convertString(group.mainSchematics.toString()));
+            
+            for(CellName cellName: group.cellNames) {
+                if (cellName.equals(group.mainSchematics)) continue;
+                printWriter.print("|" + cellName);
+            }
+            printWriter.println();
+        }
+        
+//		LinkedHashSet<Cell.CellGroup> groups = new LinkedHashSet<Cell.CellGroup>();
+//		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+//		{
+//			Cell cell = cIt.next();
+//			if (!groups.contains(cell.getCellGroup()))
+//				groups.add(cell.getCellGroup());
+//			cellNames.put(cell.getId(), convertString(cell.getCellName().toString()));
+//		}
+//
+//		// write the cells of the database
+//		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+//		{
+//			Cell cell = cIt.next();
+//            writeCell(cell.backup());
+//            printWriter.println();
+//		}
+//
+//		// write groups in alphabetical order
+//		printWriter.println("# Groups:");
+//		for(Cell.CellGroup group : groups)
+//		{
+//			printWriter.print("G");
+//
+//			// if there is a main schematic cell, write that first
+//			Cell main = group.getMainSchematics();
+//			if (main != null)
+//			{
+//				printWriter.print(convertString(main.getCellName().toString()));
+//			}
+//
+//			for(Iterator<Cell> cIt = group.getCells(); cIt.hasNext(); )
+//			{
+//				Cell cell = cIt.next();
+//				if (cell == main) continue;
+//
+//				printWriter.print("|");
+//				printWriter.print(cellNames.get(cell.getId()));
+//			}
+//			printWriter.println();
+//      }
+    }
 
-		// write groups in alphabetical order
-		printWriter.println("# Groups:");
-		for(Cell.CellGroup group : groups)
-		{
-			printWriter.print("G");
-
-			// if there is a main schematic cell, write that first
-			Cell main = group.getMainSchematics();
-			if (main != null)
-			{
-				printWriter.print(convertString(main.getCellName().toString()));
-			}
-
-			for(Iterator<Cell> cIt = group.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-				if (cell == main) continue;
-
-				printWriter.print("|");
-				printWriter.print(cellNames.get(cell));
-			}
-			printWriter.println();
-		}
-
-		// clean up and return
-		lib.setFromDisk();
-		if (!quiet) System.out.println(filePath + " written");
-		return false;
-	}
-
+    private static class CellGroup {
+        TreeSet<CellName> cellNames = new TreeSet<CellName>();
+        CellName mainSchematics;
+    }
+    
     /**
      * Method to write a cell to the output file
      * @param cell the cell to write
      */
-    protected void writeCell(Cell cell) {
+    void writeCell(CellBackup cellBackup) {
+        ImmutableCell d = cellBackup.d;
         // write the Cell name
-        printWriter.println("# Cell " + cell.getCellName());
-        printWriter.print("C" + convertString(cell.getCellName().toString()));
-        printWriter.print("|" + convertString(cell.getTechnology().getTechName()));
-        printWriter.print("|" + cell.getCreationDate().getTime());
-        printWriter.print("|" + cell.getRevisionDate().getTime());
-        StringBuffer cellBits = new StringBuffer();
-        if (cell.isInCellLibrary()) cellBits.append("C");
-        if (cell.isWantExpanded()) cellBits.append("E");
-        if (cell.isInstancesLocked()) cellBits.append("I");
-        if (cell.isAllLocked()) cellBits.append("L");
-        if (cell.isInTechnologyLibrary()) cellBits.append("T");
+        printWriter.println("# Cell " + d.cellName);
+        printWriter.print("C" + convertString(d.cellName.toString()));
+        printWriter.print("|" + convertString(d.tech.getTechName()));
+        printWriter.print("|" + d.creationDate);
+        printWriter.print("|" + cellBackup.revisionDate);
+        StringBuilder cellBits = new StringBuilder();
+        if ((d.flags & Cell.INCELLLIBRARY) != 0) cellBits.append("C");
+        if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellName.getView() == View.ICON) cellBits.append("E");
+        if ((d.flags & Cell.NPILOCKED) != 0) cellBits.append("I");
+        if ((d.flags & Cell.NPLOCKED) != 0) cellBits.append("L");
+        if ((d.flags & Cell.TECEDITCELL) != 0) cellBits.append("T");
         printWriter.print("|" + cellBits.toString());
-        printlnVars(cell, cell);
+        printlnVars(d);
 
-        String[] nodeNames = new String[cell.getNumNodes()];
+        ArrayList<String> nodeNames = new ArrayList<String>();
         // write the nodes in this cell (sorted by node name)
-        // write the nodes in this cell
         Name prevNodeName = null;
         int duplicate = 0;
-        for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-        {
-            NodeInst ni = it.next();
-            NodeProto np = ni.getProto();
-            if (ni.isCellInstance())
+        for (ImmutableNodeInst n: cellBackup.nodes) {
+            NodeProtoId np = n.protoId;
+            if (np instanceof CellId)
             {
                 printWriter.print("I" + cellNames.get(np));
             } else {
                 PrimitiveNode prim = (PrimitiveNode)np;
-                if (cell.getTechnology() == prim.getTechnology())
+                if (d.tech == prim.getTechnology())
                     printWriter.print("N" + convertString(prim.getName()));
                 else
                     printWriter.print("N" + convertString(prim.getFullName()));
             }
-            Name nodeName = ni.getNameKey();
             String diskNodeName;
-            if (nodeName != prevNodeName) {
-                prevNodeName = nodeName;
+            if (n.name != prevNodeName) {
+                prevNodeName = n.name;
                 duplicate = 0;
-                diskNodeName = convertString(ni.getName());
+                diskNodeName = convertString(n.name.toString());
             } else {
                 duplicate++;
-                diskNodeName = "\"" + convertQuotedString(ni.getName()) + "\"" + duplicate;
+                diskNodeName = "\"" + convertQuotedString(n.name.toString()) + "\"" + duplicate;
             }
-            nodeNames[ni.getNodeIndex()] = diskNodeName;
+            int nodeId = n.nodeId;
+            while (nodeId >= nodeNames.size()) nodeNames.add(null);
+            nodeNames.set(nodeId, diskNodeName);
             printWriter.print("|" + diskNodeName + "|");
-            if (!ni.getNameKey().isTempname())
-                printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME)));
-            printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
-            printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY(), 0));
-            if (!ni.isCellInstance())
+            if (!n.name.isTempname())
+                printWriter.print(describeDescriptor(null, n.nameDescriptor));
+            printWriter.print("|" + TextUtils.formatDouble(n.anchor.getX(), 0));
+            printWriter.print("|" + TextUtils.formatDouble(n.anchor.getY(), 0));
+            if (!(np instanceof CellId))
             {
-                printWriter.print("|" + TextUtils.formatDouble(ni.getXSize(), 0));
-                printWriter.print("|" + TextUtils.formatDouble(ni.getYSize(), 0));
+                printWriter.print("|" + TextUtils.formatDouble(n.width, 0));
+                printWriter.print("|" + TextUtils.formatDouble(n.height, 0));
             }
             printWriter.print('|');
-            if (ni.isXMirrored()) printWriter.print('X');
-            if (ni.isYMirrored()) printWriter.print('Y');
-            int angle = ni.getAngle() % 3600;
+            if (n.orient.isXMirrored()) printWriter.print('X');
+            if (n.orient.isYMirrored()) printWriter.print('Y');
+            int angle = n.orient.getAngle() % 3600;
             if (angle == 900 || angle == -2700) printWriter.print("R");
             else if (angle == 1800 || angle == -1800) printWriter.print("RR");
             else if (angle == 2700 || angle == -900) printWriter.print("RRR");
             else if (angle != 0) printWriter.print(angle);
-            StringBuffer nodeBits = new StringBuffer();
-            if (ni.isHardSelect()) nodeBits.append("A");
-//				if (ni.isExpanded()) nodeBits.append("E");
-            if (ni.isLocked()) nodeBits.append("L");
-//				if (ni.isShortened()) nodeBits.append("S");
-            if (ni.isVisInside()) nodeBits.append("V");
-//				if (ni.isWiped()) nodeBits.append("W");
-            int ts = ni.getTechSpecific();
+            StringBuilder nodeBits = new StringBuilder();
+            if (n.is(ImmutableNodeInst.HARD_SELECT)) nodeBits.append("A");
+            if (n.is(ImmutableNodeInst.LOCKED)) nodeBits.append("L");
+            if (n.is(ImmutableNodeInst.VIS_INSIDE)) nodeBits.append("V");
+            int ts = n.techBits;
             if (ts != 0) nodeBits.append(ts);
             printWriter.print("|" + nodeBits.toString());
-            if (np instanceof Cell)
+            if (np instanceof CellId)
             {
-                String tdString = describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_PROTO));
+                String tdString = describeDescriptor(null, n.protoDescriptor);
                 printWriter.print("|" + tdString);
             }
-            printlnVars(ni, cell);
+            printlnVars(n);
         }
 
         // write the arcs in this cell
-        for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-        {
-            ArcInst ai = it.next();
-            ArcProto ap = ai.getProto();
-            if (cell.getTechnology() == ap.getTechnology())
+        for (ImmutableArcInst a: cellBackup.arcs) {
+            ArcProto ap = a.protoType;
+            if (cellBackup.d.tech == ap.getTechnology())
                 printWriter.print("A" + convertString(ap.getName()));
             else
                 printWriter.print("A" + convertString(ap.getFullName()));
-            //printWriter.print("|" + getGeomName(ai) + "|");
-            printWriter.print("|" + convertString(ai.getName()) + "|");
-            if (!ai.getNameKey().isTempname())
-                printWriter.print(describeDescriptor(null, ai.getTextDescriptor(ArcInst.ARC_NAME)));
-            printWriter.print("|" + TextUtils.formatDouble(ai.getWidth(), 0));
-            StringBuffer arcBits = new StringBuffer();
+            printWriter.print("|" + convertString(a.name.toString()) + "|");
+            if (!a.name.isTempname())
+                printWriter.print(describeDescriptor(null, a.nameDescriptor));
+            printWriter.print("|" + TextUtils.formatDouble(a.width, 0));
+            StringBuilder arcBits = new StringBuilder();
 
-            if (ai.isHardSelect()) arcBits.append("A");
-            if (ai.isBodyArrowed()) arcBits.append("B");
-            if (!ai.isFixedAngle()) arcBits.append("F");
-            if (ai.isHeadNegated()) arcBits.append("G");
-            if (!ai.isHeadExtended()) arcBits.append("I");
-            if (!ai.isTailExtended()) arcBits.append("J");
-            if (ai.isTailNegated()) arcBits.append("N");
-            if (ai.isRigid()) arcBits.append("R");
-            if (ai.isSlidable()) arcBits.append("S");
-            if (ai.isHeadArrowed()) arcBits.append("X");
-            if (ai.isTailArrowed()) arcBits.append("Y");
-            printWriter.print("|" + arcBits.toString() + ai.getAngle());
-            for(int e=1; e >= 0; e--)
-//				for(int e=0; e<2; e++)
-            {
-                NodeInst ni = ai.getPortInst(e).getNodeInst();
-                printWriter.print("|" + nodeNames[ni.getNodeIndex()] + "|");
-                PortProto pp = ai.getPortInst(e).getPortProto();
-                if (ni.getProto().getNumPorts() > 1)
-                    printWriter.print(convertString(pp.getName()));
-                printWriter.print("|" + TextUtils.formatDouble(ai.getLocation(e).getX(), 0));
-                printWriter.print("|" + TextUtils.formatDouble(ai.getLocation(e).getY(), 0));
-            }
-            printlnVars(ai, cell);
+            if (a.is(ImmutableArcInst.HARD_SELECT)) arcBits.append("A");
+            if (a.is(ImmutableArcInst.BODY_ARROWED)) arcBits.append("B");
+            if (!a.is(ImmutableArcInst.FIXED_ANGLE)) arcBits.append("F");
+            if (a.is(ImmutableArcInst.HEAD_NEGATED)) arcBits.append("G");
+            if (!a.is(ImmutableArcInst.HEAD_EXTENDED)) arcBits.append("I");
+            if (!a.is(ImmutableArcInst.TAIL_EXTENDED)) arcBits.append("J");
+            if (a.is(ImmutableArcInst.TAIL_NEGATED)) arcBits.append("N");
+            if (a.is(ImmutableArcInst.RIGID)) arcBits.append("R");
+            if (a.is(ImmutableArcInst.SLIDABLE)) arcBits.append("S");
+            if (a.is(ImmutableArcInst.HEAD_ARROWED)) arcBits.append("X");
+            if (a.is(ImmutableArcInst.TAIL_ARROWED)) arcBits.append("Y");
+            printWriter.print("|" + arcBits.toString() + a.angle);
+
+            printWriter.print("|" + nodeNames.get(a.headNodeId) + "|" + getPortName(a.headPortId));
+            printWriter.print("|" + TextUtils.formatDouble(a.headLocation.getX(), 0));
+            printWriter.print("|" + TextUtils.formatDouble(a.headLocation.getY(), 0));
+
+            printWriter.print("|" + nodeNames.get(a.tailNodeId) + "|" + getPortName(a.tailPortId));
+            printWriter.print("|" + TextUtils.formatDouble(a.tailLocation.getX(), 0));
+            printWriter.print("|" + TextUtils.formatDouble(a.tailLocation.getY(), 0));
+
+            printlnVars(a);
         }
 
         // write the exports in this cell
-        for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
-        {
-            Export pp = it.next();
-            printWriter.print("E" + convertString(pp.getName()));
-            printWriter.print("|" + describeDescriptor(null, pp.getTextDescriptor(Export.EXPORT_NAME)));
-
-            PortInst subPI = pp.getOriginalPort();
-            NodeInst subNI = subPI.getNodeInst();
-            PortProto subPP = subPI.getPortProto();
-            printWriter.print("|" + nodeNames[subNI.getNodeIndex()] + "|");
-            if (subNI.getProto().getNumPorts() > 1)
-                printWriter.print(convertString(subPP.getName()));
-            printWriter.print("|" + pp.getCharacteristic().getShortName());
-            if (pp.isAlwaysDrawn()) printWriter.print("/A");
-            if (pp.isBodyOnly()) printWriter.print("/B");
-
-            printlnVars(pp, cell);
+        for (ImmutableExport e: cellBackup.exports) {
+            printWriter.print("E" + convertString(e.name.toString()));
+            printWriter.print("|" + describeDescriptor(null, e.nameDescriptor));
+            printWriter.print("|" + nodeNames.get(e.originalNodeId) + "|" + getPortName(e.originalPortId));
+            printWriter.print("|" + e.characteristic.getShortName());
+            if (e.alwaysDrawn) printWriter.print("/A");
+            if (e.bodyOnly) printWriter.print("/B");
+            printlnVars(e);
         }
 
         // write the end-of-cell marker
         printWriter.println("X");
     }
 
-    protected void writeExternalLibraryInfo(Library thisLib, HashMap<Object,Integer> references) {
+    void writeExternalLibraryInfo(LibId thisLib, BitSet usedLibs, HashMap<CellId,BitSet> usedExports) {
         // write external library information
         boolean libraryHeaderPrinted = false;
-        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-        {
-            Library eLib = it.next();
-            if (eLib == thisLib || !references.containsKey(eLib)) continue;
+        TreeMap<String,LibraryBackup> sortedLibraries = new TreeMap<String,LibraryBackup>(TextUtils.STRING_NUMBER_ORDER);
+        for (LibraryBackup libBackup: snapshot.libBackups) {
+            if (libBackup == null) continue;
+            if (usedLibs.get(libBackup.d.libId.libIndex))
+                sortedLibraries.put(libBackup.d.libName, libBackup);
+        }
+        String mainLibPath = TextUtils.getFilePath(snapshot.getLib(thisLib).d.libFile);
+        for (LibraryBackup l: sortedLibraries.values()) {
+            if (l.d.libId == thisLib) continue;
             if (!libraryHeaderPrinted)
             {
                 printWriter.println();
                 printWriter.println("# External Libraries and cells:");
                 libraryHeaderPrinted = true;
             }
-            URL libUrl = eLib.getLibFile();
-            String libFile = eLib.getName();
+            URL libUrl = l.d.libFile;
+            String libFile = l.d.libName;
             if (libUrl != null)
             {
-                String mainLibPath = TextUtils.getFilePath(thisLib.getLibFile());
                 String thisLibPath = TextUtils.getFilePath(libUrl);
                 if (!mainLibPath.equals(thisLibPath)) libFile = libUrl.toString();
             }
             printWriter.println();
-            printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
-            for(Iterator<Cell> cIt = eLib.getCells(); cIt.hasNext(); )
-            {
-                Cell cell = cIt.next();
-                if (!references.containsKey(cell)) continue;
-                Rectangle2D bounds = cell.getBounds();
-                printWriter.println("R" + convertString(cell.getCellName().toString()) +
+            printWriter.println("L" + convertString(l.d.libName) + "|" + convertString(libFile));
+         
+            TreeMap<CellName,CellBackup> sortedCells = new TreeMap<CellName,CellBackup>();
+            for (CellBackup cellBackup: snapshot.cellBackups) {
+                if (cellBackup == null) continue;
+                if (cellBackup.d.libId != l.d.libId) continue;
+                if (usedExports.get(cellBackup.d.cellId) != null)
+                    sortedCells.put(cellBackup.d.cellName, cellBackup);
+            }
+            for (CellBackup cellBackup: sortedCells.values()) {
+                CellId cellId = cellBackup.d.cellId;
+                BitSet exportsUsedInCell = usedExports.get(cellId);
+                ERectangle bounds = snapshot.getCellBounds(cellId);
+                printWriter.println("R" + convertString(cellBackup.d.cellName.toString()) +
                     "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
                     "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
                     "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
                     "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
-                    "|" + cell.getCreationDate().getTime() +
-                    "|" + cell.getRevisionDate().getTime());
-                cellNames.put(cell, getFullCellName(cell));
-                for (Iterator<Export> eIt = cell.getExports(); eIt.hasNext(); )
-                {
-                    Export export = eIt.next();
-                    //if (!externalObjs.contains(export)) continue;
+                    "|" + cellBackup.d.creationDate +
+                    "|" + cellBackup.revisionDate);
+                cellNames.put(cellId, getFullCellName(cellId));
+                for (ImmutableExport e: cellBackup.exports) {
+                    if (!exportsUsedInCell.get(e.exportId.chronIndex)) continue;
+                    printWriter.println("F" + convertString(e.name.toString()) + "||");
 
-                    Poly poly = export.getOriginalPort().getPoly();
-                    printWriter.println("F" + convertString(export.getName()) +
-                        "|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
-                        "|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
+//                    Export export = cellId.inCurrentThread().getPort(e.exportId);
+//
+//                    Poly poly = export.getOriginalPort().getPoly();
+//                    printWriter.println("F" + convertString(e.name.toString()) +
+//                        "|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
+//                        "|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
                 }
             }
         }
+    }
+    
+    void gatherLibs(BitSet usedLibs, Map<CellId,BitSet> usedExports) {
+        for (CellId cellId: usedExports.keySet())
+            usedLibs.set(snapshot.getCell(cellId).d.libId.libIndex);
     }
 
 	/**
@@ -559,44 +627,50 @@ public class JELIB extends Output
 	}
 
 	/**
-	 * Method to write the variables on an object.
-	 * If object is NodeInst write variables on its PortInsts also.
-	 * The current cell is "curCell" such that any references to objects in a cell
-	 * must be in this cell.
+	 * Method to write the variables on an ImmutableElectricObject.
+	 * If object is ImmuatbleNodeInst write variables on its PortInsts also.
 	 */
-	private void printlnVars(ElectricObject eObj, Cell curCell)
-	{
-		// write the variables
-		printVars(eObj, curCell);
-		if (eObj instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)eObj;
-			for(Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); )
-			{
-				PortInst pi = it.next();
-				if (pi.getNumVariables() != 0)
-					printVars(pi, curCell);
-			}
-		}
-		printWriter.println();
-	}
+    private void printlnVars(ImmutableElectricObject d) {
+        // write the variables
+        printVars(null, d);
+        if (d instanceof ImmutableNodeInst) {
+            ImmutableNodeInst nid = (ImmutableNodeInst)d;
+            if (nid.hasPortInstVariables()) {
+                if (nid.protoId instanceof CellId) {
+                    CellBackup protoBackup = snapshot.getCell((CellId)nid.protoId);
+                    for (int portIndex = 0; portIndex < protoBackup.exports.size(); portIndex++) {
+                        ImmutableExport e = protoBackup.exports.get(portIndex);
+                        ImmutablePortInst pid = nid.getPortInst(e.exportId);
+                        if (pid.getNumVariables() == 0) continue;
+                        printVars(e.name.toString(), pid);
+                    }
+                } else {
+                    PrimitiveNode pn = (PrimitiveNode)nid.protoId;
+                    for (int portIndex = 0; portIndex < pn.getNumPorts(); portIndex++) {
+                        PrimitivePort pp = pn.getPort(portIndex);
+                        ImmutablePortInst pid = nid.getPortInst(pp);
+                        if (pid.getNumVariables() == 0) continue;
+                        printVars(pp.getName(), pid);
+                    }
+                }
+            }
+        }
+        printWriter.println();
+    }
 
 	/**
-	 * Method to write the variables on an object.  The current cell is
-	 * "curCell" such that any references to objects in a cell must be in
-	 * this cell.
-	 */
-	private void printVars(ElectricObject eObj, Cell curCell)
+	 * Method to write the variables on an object.
+     */
+	private void printVars(String portName, ImmutableElectricObject d)
 	{
 		// write the variables
-		for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
+		for(Iterator<Variable> it = d.getVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
-			Object varObj = var.getObjectInCurrentThread();
-            if (varObj == null) continue;
+			Object varObj = var.getObject();
 			String tdString = describeDescriptor(var, var.getTextDescriptor());
-			printWriter.print("|" + convertVariableName(diskName(eObj, var)) + "(" + tdString + ")");
-			String pt = makeString(varObj, curCell);
+			printWriter.print("|" + convertVariableName(diskName(portName, var)) + "(" + tdString + ")");
+			String pt = makeString(varObj);
 			if (pt == null) pt = "";
 			printWriter.print(pt);
 		}
@@ -611,7 +685,7 @@ public class JELIB extends Output
 		for(Pref pref : prefs)
 		{
 			Object value = pref.getValue();
-			printWriter.print("|" + convertVariableName(pref.getPrefName()) + "()" + makeString(value, null));
+			printWriter.print("|" + convertVariableName(pref.getPrefName()) + "()" + makeString(value));
 		}
 		printWriter.println();
 	}
@@ -620,7 +694,7 @@ public class JELIB extends Output
 	 * Method to convert variable "var" to a string for printing in the text file.
 	 * returns zero on error
 	 */
-	private String makeString(Object obj, Cell curCell)
+	private String makeString(Object obj)
 	{
 		StringBuffer infstr = new StringBuffer();
         char type = getVarType(obj);
@@ -634,12 +708,12 @@ public class JELIB extends Output
 			{
 				Object oneObj = objArray[i];
 				if (i != 0) infstr.append(',');
-				makeStringVar(infstr, type, oneObj, curCell, true);
+				makeStringVar(infstr, type, oneObj, true);
 			}
 			infstr.append(']');
 		} else
 		{
-			makeStringVar(infstr, type, obj, curCell, false);
+			makeStringVar(infstr, type, obj, false);
 		}
 		return infstr.toString();
 	}
@@ -648,23 +722,23 @@ public class JELIB extends Output
 	 * Method to make a string from the value in "addr" which has a type in
 	 * "type".
 	 */
-	private void makeStringVar(StringBuffer infstr, char type, Object obj, Cell curCell, boolean inArray)
+	private void makeStringVar(StringBuffer infstr, char type, Object obj, boolean inArray)
 	{
         if (obj == null) return;
         switch (type) {
             case 'B': infstr.append(((Boolean)obj).booleanValue() ? 'T' : 'F'); return;
-            case 'C': infstr.append(convertString(getFullCellName((Cell)obj), inArray)); return;
+            case 'C': infstr.append(convertString(getFullCellName((CellId)obj), inArray)); return;
             case 'D': infstr.append(((Double)obj).doubleValue()); return;
             case 'E': {
-                Export pp = (Export)obj;
-                infstr.append(convertString(getFullCellName((Cell)pp.getParent()) + ":" + pp.getName(), inArray));
+                ExportId pp = (ExportId)obj;
+                infstr.append(convertString(getFullCellName(pp.getParentId()) + ":" + getPortName(pp), inArray));
                 return;
             }
             case 'F': infstr.append(((Float)obj).floatValue()); return;
             case 'G': infstr.append(((Long)obj).longValue()); return;
             case 'H': infstr.append(((Short)obj).shortValue()); return;
             case 'I': infstr.append(((Integer)obj).intValue()); return;
-            case 'L': infstr.append(convertString(((Library)obj).getName(), inArray)); return;
+            case 'L': infstr.append(convertString(snapshot.getLib((LibId)obj).d.libName, inArray)); return;
             case 'O': infstr.append(convertString(((Tool)obj).getName(), inArray)); return;
             case 'P': infstr.append(convertString(((PrimitiveNode)obj).getFullName(), inArray)); return;
             case 'R': infstr.append(convertString(((ArcProto)obj).getFullName(), inArray)); return;
@@ -679,9 +753,22 @@ public class JELIB extends Output
 		}
 	}
 
-	private String getFullCellName(Cell cell)
-	{
-		return convertString(cell.getLibrary().getName() + ":" + cell.getCellName());
+    private String getPortName(PortProtoId portId) {
+        if (portId instanceof PrimitivePort) {
+            PrimitivePort pp = (PrimitivePort)portId;
+            return pp.getParent().getNumPorts() > 1 ? pp.getName() : "";
+        }
+        ExportId exportId = (ExportId)portId;
+        CellBackup cellBackup = snapshot.getCell(exportId.parentId);
+//        if (cellBackup.exports.size() <= 1) return "";
+        ImmutableExport e = cellBackup.getExport(exportId);
+        return e.name.toString();
+    }
+    
+	private String getFullCellName(CellId cellId) {
+        ImmutableCell d = snapshot.getCell(cellId).d;
+        LibraryBackup libBackup = snapshot.getLib(d.libId);
+		return convertString(libBackup.d.libName + ":" + d.cellName);
 	}
 
 	/**
@@ -693,14 +780,14 @@ public class JELIB extends Output
 		if (obj instanceof String        || obj instanceof String [])        return 'S';
         
 		if (obj instanceof Boolean       || obj instanceof Boolean [])       return 'B';
-		if (obj instanceof Cell          || obj instanceof Cell [])          return 'C';
+		if (obj instanceof CellId        || obj instanceof CellId [])        return 'C';
 		if (obj instanceof Double        || obj instanceof Double [])        return 'D';
-		if (obj instanceof Export        || obj instanceof Export [])        return 'E';
+		if (obj instanceof ExportId      || obj instanceof ExportId [])      return 'E';
 		if (obj instanceof Float         || obj instanceof Float [])         return 'F';
 		if (obj instanceof Long          || obj instanceof Long [])          return 'G';
 		if (obj instanceof Short         || obj instanceof Short [])         return 'H';
 		if (obj instanceof Integer       || obj instanceof Integer [])       return 'I';
-		if (obj instanceof Library       || obj instanceof Library [])       return 'L';
+		if (obj instanceof LibId         || obj instanceof LibId [])         return 'L';
 		if (obj instanceof Tool          || obj instanceof Tool [])          return 'O';
 		if (obj instanceof PrimitiveNode || obj instanceof PrimitiveNode []) return 'P';
 		if (obj instanceof ArcProto      || obj instanceof ArcProto [])      return 'R';
