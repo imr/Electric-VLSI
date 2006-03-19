@@ -4,8 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+Bugzilla #s to close: 318 (works now), 
 IMP: (3/18/06, GVG) Select Object dialog was useless if you navigate down/up the hierarchy (Bug #862)
- 
+
 BUG: (3/18/06, GVG) "Project file not fund" message in Project Management (Bug #849).
 FIX: RetrieveLibraryFromRepositoryJob implements terminateOK() instead of terminateIt.
 
