@@ -412,7 +412,7 @@ public final class Main
             Job.getExtendedUserInterface().finishInitialization();
         }
         
-        public void terminateFail(JobException jobException) {
+        public void terminateFail(Throwable jobException) {
             System.out.println("Initialization failed");
             System.exit(1);
         }

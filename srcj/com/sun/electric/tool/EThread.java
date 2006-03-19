@@ -73,10 +73,7 @@ class EThread extends Thread {
                 if (ejob.jobType != Job.Type.EXAMINE && !ejob.startedByServer) {
                     Throwable e = ejob.deserializeToServer();
                     if (e != null)
-                    {
-                        e.printStackTrace();
                         throw e;
-                    }
                 }
                 switch (ejob.jobType) {
                     case CHANGE:
@@ -89,7 +86,6 @@ class EThread extends Thread {
                         database.getNetworkManager().endBatch();
                         database.lowLevelSetCanChanging(false);
                         ejob.newSnapshot = database.backup();
-                        ejob.serializeResult();
                         break;
                     case UNDO:
                         database.lowLevelSetCanUndoing(true);
@@ -101,18 +97,22 @@ class EThread extends Thread {
                         database.undo(undoSnapshot);
                         database.getNetworkManager().endBatch();
                         database.lowLevelSetCanUndoing(false);
-                        ejob.serializeResult();
                         break;
                     case REMOTE_EXAMINE:
                         if (!ejob.serverJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
-                        ejob.serializeResult();
                         break;
                     case EXAMINE:
+                        if (ejob.startedByServer) {
+                            Throwable e = ejob.deserializeToClient();
+                            if (e != null)
+                                throw e;
+                        }
                         if (!ejob.clientJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         break;
                 }
+                ejob.serializeResult();
                 ejob.newSnapshot = database.backup();
 //                database.checkFresh(ejob.newSnapshot);
 //                ejob.state = EJob.State.SERVER_DONE;

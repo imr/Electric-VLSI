@@ -58,7 +58,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     /** mutex for database synchronization. */  private final Condition databaseChangesMutex = newCondition();
     
     private final ServerSocket serverSocket;
-    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
+//    private final ArrayList<EJob> finishedJobs = new ArrayList<EJob>();
     private final ArrayList<Client> serverConnections = new ArrayList<Client>();
     private final UserInterface redirectInterface = new UserInterfaceRedirect();
     private int numThreads;
@@ -121,7 +121,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                 case SERVER_DONE:
                     setEJobState(ejob, EJob.State.CLIENT_DONE, null);
                 case CLIENT_DONE:
-                    finishedJobs.remove(j.ejob);
+//                    finishedJobs.remove(j.ejob);
                     if (!Job.BATCHMODE && !guiChanged)
                         SwingUtilities.invokeLater(this);
                     guiChanged = true;
@@ -147,11 +147,11 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         lock();
         try {
             ArrayList<Job> jobsList = new ArrayList<Job>();
-            for (EJob ejob: finishedJobs) {
-                Job job = ejob.getJob();
-                if (job != null)
-                    jobsList.add(job);
-            }
+//            for (EJob ejob: finishedJobs) {
+//                Job job = ejob.getJob();
+//                if (job != null)
+//                    jobsList.add(job);
+//            }
             for (EJob ejob: startedJobs) {
                 Job job = ejob.getJob();
                 if (job != null)
@@ -196,20 +196,20 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         signalledEThread = true;
     }
     
-    private EJob selectTerminateIt() {
-        lock();
-        try {
-            for (int i = 0; i < finishedJobs.size(); i++) {
-                EJob ejob = finishedJobs.get(i);
-                if (ejob.state == EJob.State.CLIENT_DONE) continue;
-//                finishedJobs.remove(i);
-                return ejob;
-            }
-        } finally {
-            unlock();
-        }
-        return null;
-    }
+//    private EJob selectTerminateIt() {
+//        lock();
+//        try {
+//            for (int i = 0; i < finishedJobs.size(); i++) {
+//                EJob ejob = finishedJobs.get(i);
+//                if (ejob.state == EJob.State.CLIENT_DONE) continue;
+////                finishedJobs.remove(i);
+//                return ejob;
+//            }
+//        } finally {
+//            unlock();
+//        }
+//        return null;
+//    }
     
     void wantUpdateGui() {
         lock();
@@ -262,13 +262,13 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                         runningChangeJob = false;
                 }
                 assert removed;
-                if (Job.threadMode != Job.Mode.BATCH && ejob.client == null)
-                    finishedJobs.add(ejob);
+//                if (Job.threadMode != Job.Mode.BATCH && ejob.client == null)
+//                    finishedJobs.add(ejob);
                 break;
             case CLIENT_DONE:
                 assert oldState == EJob.State.SERVER_DONE;
-                if (ejob.clientJob.deleteWhenDone)
-                    finishedJobs.remove(ejob);
+//                if (ejob.clientJob.deleteWhenDone)
+//                    finishedJobs.remove(ejob);
         }
         ejob.state = newState;
         Client.fireEJobEvent(ejob);
@@ -335,15 +335,15 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             }
             JobTree.update(jobs);
             TopLevel.setBusyCursor(isChangeJobQueuedOrRunning());
-            for (;;) {
-                EJob ejob = selectTerminateIt();
-                if (ejob == null) break;
-                
-                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminate {0}", ejob.jobName);
-                Job.runTerminate(ejob);
-                setEJobState(ejob, EJob.State.CLIENT_DONE, null);
-                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminated {0}", ejob.jobName);
-            }
+//            for (;;) {
+//                EJob ejob = selectTerminateIt();
+//                if (ejob == null) break;
+//                
+//                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminate {0}", ejob.jobName);
+//                Job.runTerminate(ejob);
+//                setEJobState(ejob, EJob.State.CLIENT_DONE, null);
+//                Job.logger.logp(Level.FINE, CLASS_NAME, "run", "terminated {0}", ejob.jobName);
+//            }
             Job.logger.logp(Level.FINE, CLASS_NAME, "run", "wantToRedoJobTree");
         }
         Job.logger.logp(Level.FINE, CLASS_NAME, "run", "EXIT");

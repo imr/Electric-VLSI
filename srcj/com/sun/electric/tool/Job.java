@@ -23,18 +23,17 @@
  */
 package com.sun.electric.tool;
 
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CantEditException;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Toolkit;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -301,6 +300,8 @@ public abstract class Job implements Serializable {
             if (message == null)
                 message = "Job " + ejob.jobName + " failed";
             System.out.println(message);
+        } else {
+            ActivityLogger.logException(jobException);
         }
     }
     
