@@ -147,7 +147,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 * If the Library file is given and it points to an existing file, then the I/O system
 	 * can be told to read that file and populate the Library.
 	 * @return the Library object.
-     * @throws NullPoinerException if libId or legalName is null.
+     * @throws NullPointerException if libId or legalName is null.
      * @throws IllegalArgumentException if libId is occupied or legalName is not legal or
      * library with such name exists
 	 */
@@ -208,23 +208,25 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 		// cannot delete the current library
 		Library newCurLib = null;
 		if (curLib == this)
-		{
-			// find another library
-			for (Library lib : database.libraries.values())
-			{
-				if (lib == curLib) continue;
-				if (lib.isHidden()) continue;
-				newCurLib = lib;
-				break;
-			}
-			if (newCurLib == null)
-			{
-				System.out.println("Cannot delete the last library");
-				Job.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
-					"Close library");
-				return false;
-			}
-		}
+            curLib = null;
+
+//		{
+//			// find another library
+//			for (Library lib : database.libraries.values())
+//			{
+//				if (lib == curLib) continue;
+//				if (lib.isHidden()) continue;
+//				newCurLib = lib;
+//				break;
+//			}
+//			if (newCurLib == null)
+//			{
+//				System.out.println("Cannot delete the last library");
+//				Job.getUserInterface().showInformationMessage("Cannot delete the last "+toString(),
+//					"Close library");
+//				return false;
+//			}
+//		}
 
 		// make sure it is in the list of libraries
 		if (database.libraries.get(getName()) != this)

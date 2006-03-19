@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+Bugzilla #s to close: 318 (works now),
+
+IMP: (3/19/06, GVG) Able to close the last library (Bug #812)
+
 BUG: (3/19/06, DN) System.out.println() may be blocked for 200ms .
 FIX: In MessagesWindow remove sleep(200) out of synchronized block.
 
