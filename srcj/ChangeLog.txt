@@ -11,8 +11,10 @@ Bugzilla #s to close: 318 (works now),
 
 IMP: (3/19/06, GVG) Able to close the last library (Bug #812)
 
-BUG: (3/19/06, DN) System.out.println() may be blocked for 200ms .
-FIX: In MessagesWindow remove sleep(200) out of synchronized block.
+BUG: (3/19/06, DN) System.out.println() is blocked while append in MessagesWindow occurs.
+     New thread is invoked every 200 ms.
+FIX: In MessagesWindow remove "dump" out of synchronized block.
+     Use one Ticker thread for all the time.
 
 BUG: (3/19/06, DN) Some export names are not repaired.
 FIX: In Cell.checkAndRepair iterate over copy of exports array.
