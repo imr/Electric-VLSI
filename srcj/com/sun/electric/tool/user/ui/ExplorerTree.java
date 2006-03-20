@@ -27,6 +27,10 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.Update;
+import com.sun.electric.tool.cvspm.CVSLibrary;
+import com.sun.electric.tool.cvspm.Edit;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.project.AddCellJob;
@@ -53,10 +57,7 @@ import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.waveform.SweepSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Image;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -564,6 +565,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (iconLibrary == null)
 					iconLibrary = Resources.getResource(getClass(), "IconLibrary.gif");
 				if (lib.isChanged()) setFont(boldFont);
+                if (CVS.isEnabled()) setForeground(CVSLibrary.getColor(lib));
 				setIcon(iconLibrary);
 			}
 			if (nodeInfo instanceof ExplorerTreeModel.CellAndCount)
@@ -578,6 +580,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				Cell cell = (Cell)nodeInfo;
                 if (cell.isModified(true)) setFont(boldFont);
                 else if (cell.isModified(false)) setFont(italicFont);
+                if (CVS.isEnabled()) setForeground(CVSLibrary.getColor(cell));
 				IconGroup ig;
 				if (cell.isIcon()) ig = findIconGroup(View.ICON); else
 					if (cell.getView() == View.LAYOUT) ig = findIconGroup(View.LAYOUT); else
@@ -617,6 +620,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                 }
                 if (status == 1) setFont(boldFont);
                 else if (status == 0) setFont(italicFont);
+                if (CVS.isEnabled()) setForeground(CVSLibrary.getColor(cg));
 				if (iconGroup == null)
 					iconGroup = Resources.getResource(getClass(), "IconGroup.gif");
 				setIcon(iconGroup);
@@ -1194,6 +1198,40 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reViewCellAction(e); } });
 				}
 
+
+                if (CVS.isEnabled()) {
+                    menu.addSeparator();
+
+                    JMenu cvsMenu = new JMenu("CVS");
+                    menu.add(cvsMenu);
+
+                    menuItem = new JMenuItem("Edit");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Edit.edit((Cell)getCurrentlySelectedObject(0), true); }});
+
+                    menuItem = new JMenuItem("Commit");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Update.updateCell((Cell)getCurrentlySelectedObject(0)); }});
+
+                    menuItem = new JMenuItem("Rollback");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Edit.unedit((Cell)getCurrentlySelectedObject(0)); }});
+
+
+                    menuItem = new JMenuItem("Update");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Update.updateCell((Cell)getCurrentlySelectedObject(0)); }});
+
+                    menuItem = new JMenuItem("Get Status");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Update.getStatus((Cell)getCurrentlySelectedObject(0)); }});
+                }
+
                 menu.addSeparator();
 
 				if (cell.isSchematic() && cell.getNewestVersion() == cell &&
@@ -1297,6 +1335,24 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menuItem = new JMenuItem("Close Library");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryAction(); } });
+
+
+                if (CVS.isEnabled()) {
+                    menu.addSeparator();
+
+                    JMenu cvsMenu = new JMenu("CVS");
+                    menu.add(cvsMenu);
+
+                    menuItem = new JMenuItem("Get Status");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Update.getStatus((Library)getCurrentlySelectedObject(0)); }});
+
+                    menuItem = new JMenuItem("Update Library");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Update.updateLibrary((Library)getCurrentlySelectedObject(0)); }});
+                }
 
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
