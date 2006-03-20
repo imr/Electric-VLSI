@@ -98,35 +98,35 @@ public class Snapshot {
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup newBackup = cellBackups.get(cellIndex);
             CellBackup oldBackup = getCell(cellIndex);
-            if (newBackup == oldBackup) continue;
-            if (newBackup == null) {
-                namesChanged = true;
-                continue;
-            }
-            if (oldBackup == null || newBackup.d.cellName != oldBackup.d.cellName || newBackup.isMainSchematics != oldBackup.isMainSchematics)
-                namesChanged = true;
-            
-            // Check lib usages.
-            checkUsedLibs(newBackup.usedLibs);
-
-            // If usages changed, Check CellUsagesIn.
-            CellId cellId = newBackup.d.cellId;
-            if (oldBackup == null || newBackup.cellUsages != oldBackup.cellUsages) {
-                for (int i = 0; i < newBackup.cellUsages.length; i++) {
-                    CellBackup.CellUsageInfo cui = newBackup.cellUsages[i];
-                    if (cui == null) continue;
-                    if (oldBackup != null && i < oldBackup.cellUsages.length && cui.usedExports == oldBackup.cellUsages[i].usedExports) continue;
-                    CellUsage u = cellId.getUsageIn(i);
-                    CellBackup protoBackup = cellBackups.get(u.protoId.cellIndex);
-                    if (protoBackup == null)
-                        throw new IllegalArgumentException("protoBackup");
-                    cui.checkUsage(protoBackup);
+            CellId cellId;
+            if (newBackup != null) {
+                if (oldBackup == null || newBackup.d.cellName != oldBackup.d.cellName || newBackup.isMainSchematics != oldBackup.isMainSchematics)
+                    namesChanged = true;
+                
+                // Check lib usages.
+                checkUsedLibs(newBackup.usedLibs);
+                
+                // If usages changed, check CellUsagesIn.
+                cellId = newBackup.d.cellId;
+                if (oldBackup == null || newBackup.cellUsages != oldBackup.cellUsages) {
+                    for (int i = 0; i < newBackup.cellUsages.length; i++) {
+                        CellBackup.CellUsageInfo cui = newBackup.cellUsages[i];
+                        if (cui == null) continue;
+                        if (oldBackup != null && i < oldBackup.cellUsages.length && cui.usedExports == oldBackup.cellUsages[i].usedExports) continue;
+                        CellUsage u = cellId.getUsageIn(i);
+                        CellBackup protoBackup = cellBackups.get(u.protoId.cellIndex);
+                        cui.checkUsage(protoBackup);
+                    }
                 }
+            } else {
+                if (oldBackup == null) continue;
+                cellId = oldBackup.d.cellId;
+                namesChanged = true;
             }
             
             // If some exports deleted, check CellUsagesOf
             if (oldBackup == null) continue;
-            if (newBackup.definedExportsLength >= oldBackup.definedExportsLength &&
+            if (newBackup != null && newBackup.definedExportsLength >= oldBackup.definedExportsLength &&
                     (newBackup.deletedExports == oldBackup.deletedExports ||
                     !newBackup.deletedExports.intersects(oldBackup.definedExports))) continue;
             for (int i = 0, numUsages = cellId.numUsagesOf(); i < numUsages; i++) {
@@ -444,8 +444,7 @@ public class Snapshot {
                 continue;
             }
             assert cellBounds.get(cellIndex) != null;
-            for (int libIndex = 0, usedLibsLength = cellBackup.usedLibs.length(); libIndex < usedLibsLength; libIndex++)
-                assert getLib(libIndex) != null || !cellBackup.usedLibs.get(libIndex);
+            checkUsedLibs(cellBackup.usedLibs);
             CellId cellId = cellBackup.d.cellId;
             for (int i = 0; i < cellBackup.cellUsages.length; i++) {
                 CellBackup.CellUsageInfo cui = cellBackup.cellUsages[i];
@@ -530,5 +529,12 @@ public class Snapshot {
                 mainSchematicsFoundInGroup.set(cellGroup);
             }
         }
+    }
+    
+    /**
+     * Restarts Snapshot module.
+     */
+    static void restart() {
+        snapshotCount.set(0);
     }
 }

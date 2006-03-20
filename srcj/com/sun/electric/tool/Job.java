@@ -48,9 +48,29 @@ import java.util.logging.Logger;
  * <p>Job job = new Job(name);
  * <p>job.start();
  * 
- * <p>The extending class must implement doIt(), which does the job and
- * returns status (true on success; false on failure);
- * and getProgress(), which returns a string indicating the current status.
+ * <p>Job subclass must implement "doIt" method, it may override "terminateOK" method.
+ * <p>Job subclass is activated by "Job.startJob()". In case of exception in constructor it is not activated.
+ *    Hence "doIt" and "terminateOK" method are not called.
+ * <p>Job subclass must be serializable for CHANGE and REMOTE_EXAMINE mode.
+ *    Serialization occurs at the moment when "Job.startJob()" is called.
+ *    Fields that are not needed on the server are escaped from serialization by "transient" keyword.
+ *    "doIt" is executed on serverDatabase for CHANGE and REMOTE_EXAMINE mode.
+ *    "doIt" is executed on clientDatabase for EXAMINE mode, Job subclass need not be serializable.
+ * <p>"doIt" may return true, may return false, may throw JobException or any other Exception/Error.
+ *    Return true is considered normal termination.
+ *    Return false and throwing any Exception/Throwable are failure terminations.
+ * <p>On normal termination in CHANGE or REMOTE_EXAMINE mode "fieldVariableChange" variables are serialized.
+ *    In case of REMOTE_EXAMINE they are serialized on read-only database state.
+ *    In case of CHANGE they are serialized on database state after Constraint propagation.
+ *    In case of EXAMINE they are not serialized, but they are checked for valid field names.
+ *    Some time later the changed variables are deserialized on client database.
+ *    If serialization on server and deserialization on client was OK then terminateOK method is called on client database for
+ *       all three modes CHANGE, REMOTE_EXAMINE, EXAMINE.
+ *    If serialization/deserialization failed then terminateOK is not called, error message is issued.
+ * <p>In case of failure termination no terminateOK is called, error message is issued,
+ *
+ * <p>The extendig class may override getProgress(),
+ * which returns a string indicating the current status.
  * Job also contains boolean abort, which gets set when the user decides
  * to abort the Job.  The extending class' code should check abort when/where
  * applicable.
@@ -60,6 +80,8 @@ import java.util.logging.Logger;
  *
  * @author  gainsley
  */
+
+
 public abstract class Job implements Serializable {
 
     private static boolean GLOBALDEBUG = false;

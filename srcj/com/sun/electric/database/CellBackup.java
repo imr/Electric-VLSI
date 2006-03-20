@@ -82,8 +82,8 @@ public class CellBackup {
     }
     
     /** Creates a new instance of CellBackup */
-    public CellBackup(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics) {
-        this(d, revisionDate, modified, isMainSchematics,
+    public CellBackup(ImmutableCell d) {
+        this(d, 0, (byte)-1, false,
                 ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
                 EMPTY_BITSET, NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
         if (d.cellName == null)
@@ -302,7 +302,7 @@ public class CellBackup {
         long revisionDate = reader.in.readLong();
         byte modified = reader.in.readByte();
         boolean isMainSchematics = reader.in.readBoolean();
-        CellBackup backup = new CellBackup(d, revisionDate, modified, isMainSchematics);
+        CellBackup backup = new CellBackup(d.withoutVariables());
         
         int nodesLength = reader.in.readInt();
         ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
@@ -497,6 +497,8 @@ public class CellBackup {
         }
         
         void checkUsage(CellBackup subCellBackup) {
+            if (subCellBackup == null)
+                throw new IllegalArgumentException("subCell deleted");
             if (subCellBackup.definedExportsLength < usedExportsLength || subCellBackup.deletedExports.intersects(usedExports))
                 throw new IllegalArgumentException("exportUsages");
         }

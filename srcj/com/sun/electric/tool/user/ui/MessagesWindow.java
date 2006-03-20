@@ -90,7 +90,7 @@ public class MessagesWindow
 	private int histidx = 0;
 	private Thread ticker = new Thread(null, this, "MessagesTicker", STACK_SIZE);
     private boolean dumpInvoked = false;
-	private ArrayList<String> buffer = new ArrayList<String>();
+	private StringBuilder buffer = new StringBuilder();
 	private Container jf;
     
 
@@ -186,9 +186,9 @@ public class MessagesWindow
 
 		synchronized (buffer)
 		{
-            if (buffer.isEmpty())
+            if (buffer.length() == 0)
                 buffer.notify();
-			buffer.add(str);
+			buffer.append(str);
 		}
 	}
 
@@ -196,7 +196,7 @@ public class MessagesWindow
         for (;;) {
             synchronized (buffer) {
                 try {
-                    while (dumpInvoked || buffer.isEmpty())
+                    while (dumpInvoked || buffer.length() == 0)
                         buffer.wait();
                 } catch (InterruptedException ie) {
                 }
@@ -207,14 +207,13 @@ public class MessagesWindow
             } catch (InterruptedException ie) {}
             SwingUtilities.invokeLater(new Runnable() {
                 public void run() {
-                    String[] strings;
+                    String s;
                     synchronized (buffer) {
-                        strings = buffer.toArray(NULL_STRING_ARRAY);
-                        buffer.clear();
+                        s = buffer.toString();
+                        buffer.setLength(0);
                         dumpInvoked = false;
                     }
-                    for (String s: strings)
-                        dump(s);
+                    dump(s);
                 }
             });
         }

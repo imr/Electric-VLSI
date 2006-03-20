@@ -471,5 +471,11 @@ public final class CellId implements NodeProtoId, Serializable
             assert this == cellIds.get(cellIndex);
         }
     }
-         
+    
+    /**
+     * Restarts CellIds pool.
+     */
+    static void restart() {
+        cellIds.clear();
+    }
 }

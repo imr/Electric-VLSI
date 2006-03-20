@@ -939,7 +939,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         boolean isMainSchematics = cellGroup.getMainSchematics() == this;
         if (backup == null) {
             getTechnology();
-            backup = new CellBackup(getD(), revisionDate, modified, isMainSchematics);
+            backup = new CellBackup(getD().withoutVariables());
             assert !cellBackupFresh && !cellContentsFresh;
         }
         ImmutableNodeInst[] nodes = null;

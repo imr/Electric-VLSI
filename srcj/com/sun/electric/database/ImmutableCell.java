@@ -153,6 +153,17 @@ public class ImmutableCell extends ImmutableElectricObject {
                 this.creationDate, this.tech, this.flags, vars);
     }
     
+	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by removing all Variables.
+     * Returns this ImmutableCell if it hasn't variables.
+	 * @return ImmutableCell without Variables.
+	 */
+    public ImmutableCell withoutVariables() {
+        if (this.getNumVariables() == 0) return this;
+		return new ImmutableCell(this.cellId, this.libId, this.cellName,
+                this.creationDate, this.tech, this.flags, Variable.NULL_ARRAY);
+    }
+    
     /**
      * Writes this ImmutableCell to SnapshotWriter.
      * @param writer where to write.

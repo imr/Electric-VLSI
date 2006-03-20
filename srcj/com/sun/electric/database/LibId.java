@@ -117,4 +117,11 @@ public final class LibId implements Serializable
         if (lib != null) s += "(" + lib.getName() + ")";
         return s;
     }
+    
+    /**
+     * Restarts LibIds pool.
+     */
+    static void restart() {
+        libIds.clear();
+    }
 }
