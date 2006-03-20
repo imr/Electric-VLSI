@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/20/06, GVG) CheckAndRepair on arcs only reporting the error in repair mode.
+FIX: Create the error logger also in check mode.
+
 IMP/MAN: (3/19/06, GVG) Ability to leave unconnected pins (Bug 488)
 New preferences added in Routing tool.
 

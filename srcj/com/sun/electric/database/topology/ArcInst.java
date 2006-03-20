@@ -1526,7 +1526,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
         if (ap.isNotUsed())
         {
-            if (repair)
+//            if (repair)
             if (errorLogger != null)
             {
                 String msg = "Prototype of arc " + getName() + " is unused";
