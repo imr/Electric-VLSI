@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/21/06, DN) Assertion in CellBackup on incorrect definedExports(seen in FillGenerator) (Bug #891).
+FIX: In CellBackup.with correctly update definedExports set.
+
 BUG: (3/20/06, GVG) CheckAndRepair on arcs only reporting the error in repair mode.
 FIX: Create the error logger also in check mode.
 

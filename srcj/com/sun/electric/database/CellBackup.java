@@ -171,8 +171,8 @@ public class CellBackup {
                 exportIndex = this.exportIndex;
             } else {
                 definedExports = new BitSet();
-                for (int chronIndex: exportIndex) {
-                    if (chronIndex < 0) continue;
+                for (int chronIndex = 0; chronIndex < exportIndex.length; chronIndex++) {
+                    if (exportIndex[chronIndex] < 0) continue;
                     definedExports.set(chronIndex);
                 }
                 definedExports = UsageCollector.bitSetWith(this.definedExports, definedExports);
