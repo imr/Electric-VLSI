@@ -81,7 +81,7 @@ public class MessagesWindow
 	implements Observer, ActionListener, MouseListener, KeyListener, Runnable, ClipboardOwner
 {
     private static final String[] NULL_STRING_ARRAY = {};
-    private static final int STACK_SIZE = 1024;
+    private static final int STACK_SIZE = 8*1024;
 
     private ArrayList<String> history;
 	private JTextField entry;
