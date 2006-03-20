@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+IMP/MAN: (3/19/06, GVG) Ability to leave unconnected pins (Bug 488)
+New preferences added in Routing tool.
+
 Bugzilla #s to close: 318 (works now),
 
 IMP: (3/19/06, GVG) Able to close the last library (Bug #812)

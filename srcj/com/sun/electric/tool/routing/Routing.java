@@ -964,6 +964,20 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchInteractive(boolean on) { cacheMimicStitchInteractive.setBoolean(on); }
 
+
+    private static Pref cacheMimicStitchPinsKept = Pref.makeBooleanPref("MimicStitchPinsKept", Routing.tool.prefs, false);
+	/**
+	 * Method to tell whether Mimic-stitching keeps pins even if it has no arc connections.
+	 * The default is "false".
+	 * @return true if Mimic-stitching runs interactively.
+	 */
+	public static boolean isMimicStitchPinsKept() { return cacheMimicStitchPinsKept.getBoolean(); }
+	/**
+	 * Method to set whether Mimic-stitching keeps pins even if it has no arc connections.
+	 * @param on true if Mimic-stitching runs interactively.
+	 */
+	public static void setMimicStitchPinsKept(boolean on) { cacheMimicStitchPinsKept.setBoolean(on); }
+
 	private static Pref cacheMimicStitchMatchPorts = Pref.makeBooleanPref("MimicStitchMatchPorts", Routing.tool.prefs, false);
 	/**
 	 * Method to tell whether Mimic-stitching only works between matching ports.
