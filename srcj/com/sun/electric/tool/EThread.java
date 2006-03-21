@@ -120,10 +120,11 @@ class EThread extends Thread {
             } catch (Throwable e) {
                 e.getStackTrace();
                 e.printStackTrace();
-                if (!ejob.isExamine())
+                if (!ejob.isExamine()) {
                     recoverDatabase();
-                database.lowLevelSetCanChanging(false);
-                database.lowLevelSetCanUndoing(false);
+                    database.lowLevelSetCanChanging(false);
+                    database.lowLevelSetCanUndoing(false);
+                }
                 ejob.serializeExceptionResult(e);
 //                ejob.state = EJob.State.SERVER_FAIL;
             } finally {
