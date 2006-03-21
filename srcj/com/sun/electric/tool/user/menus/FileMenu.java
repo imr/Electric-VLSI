@@ -24,6 +24,9 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.LibId;
+import com.sun.electric.database.LibraryBackup;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -32,9 +35,9 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.JobManager;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.GDSMap;
@@ -89,6 +92,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.prefs.BackingStoreException;
 
 import javax.print.PrintService;
@@ -1425,19 +1429,6 @@ public class FileMenu {
      * @return true if libraries saved (if they needed saving), false otherwise
      */
     public static boolean forceSave(boolean confirm) {
-        boolean dirty = false;
-        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-        {
-            Library lib = it.next();
-            if (lib.isHidden()) continue;
-            if (!lib.isChanged()) continue;
-            dirty = true;
-            break;
-        }
-        if (!dirty) {
-            System.out.println("Libraries have not changed, not saving");
-            return true;
-        }
         if (confirm) {
             String [] options = { "Cancel", "Force Save"};
             int i = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
@@ -1458,32 +1449,70 @@ public class FileMenu {
             return false;
         }
         // set libraries to save to panic dir
-        boolean retValue = true;
-        FileType type = FileType.DEFAULTLIB;
-        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-        {
-            Library lib = it.next();
-            if (lib.isHidden()) continue;
-            System.out.print("."); System.out.flush();
-            URL libURL = lib.getLibFile();
-            File newLibFile = null;
-            if (libURL == null || libURL.getPath() == null) {
-                newLibFile = new File(panicDir.getAbsolutePath(), lib.getName()+type.getExtensions()[0]);
-            } else {
-                File libFile = new File(libURL.getPath());
-                String fileName = libFile.getName();
-                if (fileName == null) fileName = lib.getName() + type.getExtensions()[0];
-                newLibFile = new File(panicDir.getAbsolutePath(), fileName);
-            }
-            URL newLibURL = TextUtils.makeURLToFile(newLibFile.getAbsolutePath());
-            lib.setLibFile(newLibURL);
-            boolean error = Output.writeLibrary(lib, type, false, false);
-            if (error) {
-                System.out.println("Error saving "+lib);
-                retValue = false;
-            }
-        }
-        System.out.println(" Libraries saved");
-        return retValue;
+        Snapshot panicSnapshot = JobManager.findValidSnapshot();
+        return !Output.writePanicSnapshot(panicSnapshot, panicDir);
     }
+    
+//    public static boolean forceSave(boolean confirm) {
+//        boolean dirty = false;
+//        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+//        {
+//            Library lib = it.next();
+//            if (lib.isHidden()) continue;
+//            if (!lib.isChanged()) continue;
+//            dirty = true;
+//            break;
+//        }
+//        if (!dirty) {
+//            System.out.println("Libraries have not changed, not saving");
+//            return true;
+//        }
+//        if (confirm) {
+//            String [] options = { "Cancel", "Force Save"};
+//            int i = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+//                 new String [] {"Warning! Saving changes now may create bad libraries!",
+//                                "Libraries will be saved to \"Panic\" directory in current directory",
+//                                "Do you really want to force save?"},
+//                 "Force Save", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+//                 options, options[0]);
+//            if (i == 0) return false;
+//        }
+//        // try to create the panic directory
+//        String currentDir = User.getWorkingDirectory();
+//        System.out.println("Saving libraries in panic directory under " + currentDir); System.out.flush();
+//        File panicDir = new File(currentDir, "panic");
+//        if (!panicDir.exists() && !panicDir.mkdir()) {
+//            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Could not create panic directory",
+//                 panicDir.getAbsolutePath()}, "Error creating panic directory", JOptionPane.ERROR_MESSAGE);
+//            return false;
+//        }
+//        // set libraries to save to panic dir
+//        boolean retValue = true;
+//        FileType type = FileType.DEFAULTLIB;
+//        for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+//        {
+//            Library lib = it.next();
+//            if (lib.isHidden()) continue;
+//            System.out.print("."); System.out.flush();
+//            URL libURL = lib.getLibFile();
+//            File newLibFile = null;
+//            if (libURL == null || libURL.getPath() == null) {
+//                newLibFile = new File(panicDir.getAbsolutePath(), lib.getName()+type.getExtensions()[0]);
+//            } else {
+//                File libFile = new File(libURL.getPath());
+//                String fileName = libFile.getName();
+//                if (fileName == null) fileName = lib.getName() + type.getExtensions()[0];
+//                newLibFile = new File(panicDir.getAbsolutePath(), fileName);
+//            }
+//            URL newLibURL = TextUtils.makeURLToFile(newLibFile.getAbsolutePath());
+//            lib.setLibFile(newLibURL);
+//            boolean error = Output.writeLibrary(lib, type, false, false);
+//            if (error) {
+//                System.out.println("Error saving "+lib);
+//                retValue = false;
+//            }
+//        }
+//        System.out.println(" Libraries saved");
+//        return retValue;
+//    }
 }

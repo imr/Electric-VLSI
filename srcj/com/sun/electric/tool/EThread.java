@@ -28,6 +28,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -119,12 +120,10 @@ class EThread extends Thread {
             } catch (Throwable e) {
                 e.getStackTrace();
                 e.printStackTrace();
-                if (!ejob.isExamine()) {
-                    database.lowLevelSetCanUndoing(true);
-                    database.recover(ejob.oldSnapshot);
-                    ejob.newSnapshot = ejob.oldSnapshot;
-                    database.getNetworkManager().endBatch();
-                }
+                if (!ejob.isExamine())
+                    recoverDatabase();
+                database.lowLevelSetCanChanging(false);
+                database.lowLevelSetCanUndoing(false);
                 ejob.serializeExceptionResult(e);
 //                ejob.state = EJob.State.SERVER_FAIL;
             } finally {
@@ -140,6 +139,29 @@ class EThread extends Thread {
         }
     }
     
+    private void recoverDatabase() {
+        database.lowLevelSetCanUndoing(true);
+        try {
+            database.recover(ejob.oldSnapshot);
+            database.getNetworkManager().endBatch();
+            ejob.newSnapshot = ejob.oldSnapshot;
+            return;
+        } catch (Throwable e) {
+            ActivityLogger.logException(e);
+        }
+        for (;;) {
+            try {
+                Snapshot snapshot = findValidSnapshot();
+                database.recover(snapshot);
+                database.getNetworkManager().endBatch();
+                ejob.newSnapshot = snapshot;
+                return;
+            } catch (Throwable e) {
+                ActivityLogger.logException(e);
+            }
+        }
+    }
+    
     UserInterface getUserInterface() { return userInterface; }
 
     void print(String str) {
@@ -147,24 +169,47 @@ class EThread extends Thread {
         Client.print(client, str);
     }
     
-    private static Snapshot findInCache(int snapshotId) {
-        for (int i = snapshotCache.size() - 1; i >= 0; i--) {
-            Snapshot snapshot = snapshotCache.get(i);
-            if (snapshot.snapshotId == snapshotId)
+    /**
+     * Find some valid snapshot in cache.
+     */
+    static Snapshot findValidSnapshot() {
+        for (;;) {
+            Snapshot snapshot;
+            synchronized (snapshotCache) {
+                if (snapshotCache.isEmpty()) return Snapshot.EMPTY;
+                snapshot = snapshotCache.remove(snapshotCache.size() - 1);
+            }
+            try {
+                snapshot.check();
                 return snapshot;
+            } catch (Throwable e) {
+                ActivityLogger.logException(e);
+            }
+        }
+    }
+    
+    private static Snapshot findInCache(int snapshotId) {
+        synchronized (snapshotCache) {
+            for (int i = snapshotCache.size() - 1; i >= 0; i--) {
+                Snapshot snapshot = snapshotCache.get(i);
+                if (snapshot.snapshotId == snapshotId)
+                    return snapshot;
+            }
         }
         return null;
     }
     
     
     private static void putInCache(Snapshot oldSnapshot, Snapshot newSnapshot) {
-        if (!snapshotCache.contains(newSnapshot)) {
-            while (!snapshotCache.isEmpty() && snapshotCache.get(snapshotCache.size() - 1) != oldSnapshot)
-                snapshotCache.remove(snapshotCache.size() - 1);
-            snapshotCache.add(newSnapshot);
+        synchronized (snapshotCache) {
+            if (!snapshotCache.contains(newSnapshot)) {
+                while (!snapshotCache.isEmpty() && snapshotCache.get(snapshotCache.size() - 1) != oldSnapshot)
+                    snapshotCache.remove(snapshotCache.size() - 1);
+                snapshotCache.add(newSnapshot);
+            }
+            while (snapshotCache.size() > maximumSnapshots)
+                snapshotCache.remove(0);
         }
-        while (snapshotCache.size() > maximumSnapshots)
-            snapshotCache.remove(0);
     }
     
 	/**

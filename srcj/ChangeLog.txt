@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/21/06, DN) Database invariant checking prevents Force quit-save (Bug #861).
+FIX: Force quit find last consistent Snapshot and saves it to panic directory.
+
 BUG: (3/21/06, GVG) duplication {lay} versioning detecting wrong view (Bug #895)
 FIX: View was not checked.
 

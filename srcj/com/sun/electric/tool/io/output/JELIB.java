@@ -41,7 +41,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
@@ -77,6 +76,7 @@ import java.util.TreeSet;
 public class JELIB extends Output
 {
     private Snapshot snapshot;
+    private Map<LibId,URL> libFiles;
     private HashMap<CellId,String> cellNames = new HashMap<CellId,String>();
     
 	JELIB()
@@ -88,15 +88,12 @@ public class JELIB extends Output
 	 * @param lib the Library to be written.
 	 * @return true on error.
 	 */
-	protected boolean writeLib(Library lib)
+	protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles)
 	{
 		try
 		{
-            writeTheLibrary(lib.getDatabase().backup(), lib.getId());
-            
-            // clean up and return
-            lib.setFromDisk();
-            if (!quiet) System.out.println(filePath + " written");
+            this.libFiles = libFiles;
+            writeTheLibrary(snapshot, libId);
             return false;
 		} catch (IOException e)
 		{
@@ -434,6 +431,8 @@ public class JELIB extends Output
                 sortedLibraries.put(libBackup.d.libName, libBackup);
         }
         String mainLibPath = TextUtils.getFilePath(snapshot.getLib(thisLib).d.libFile);
+        if (libFiles != null && libFiles.containsKey(thisLib))
+            mainLibPath = TextUtils.getFilePath(libFiles.get(thisLib));
         for (LibraryBackup l: sortedLibraries.values()) {
             if (l.d.libId == thisLib) continue;
             if (!libraryHeaderPrinted)
@@ -443,6 +442,8 @@ public class JELIB extends Output
                 libraryHeaderPrinted = true;
             }
             URL libUrl = l.d.libFile;
+            if (libFiles != null && libFiles.containsKey(l.d.libId))
+                libUrl = libFiles.get(l.d.libId);
             String libFile = l.d.libName;
             if (libUrl != null)
             {

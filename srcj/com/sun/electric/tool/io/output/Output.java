@@ -23,7 +23,9 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.CellId;
+import com.sun.electric.database.LibId;
+import com.sun.electric.database.LibraryBackup;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -49,6 +51,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.JobManager;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
@@ -124,15 +127,15 @@ public class Output
 	{
 	}
 
-	/**
-	 * Method to write a Library.
-	 * This method is never called.
-	 * Instead, it is always overridden by the appropriate write subclass.
-	 * @param lib the Library to be written.
-     * @return true on error.
-	 */
-	protected boolean writeLib(Library lib) { return true; }
-
+//	/**
+//	 * Method to write a Library.
+//	 * This method is never called.
+//	 * Instead, it is always overridden by the appropriate write subclass.
+//	 * @param lib the Library to be written.
+//     * @return true on error.
+//	 */
+//	protected boolean writeLib(Library lib) { return true; }
+//
     /**
      * Method to write a cell.
      * This method is never called.
@@ -143,6 +146,52 @@ public class Output
      */
     protected boolean writeCell(Cell cell, VarContext context) { return true; }
 
+	/**
+	 * Method to write all Libraries in Snapsht into a panic directory.
+     * @param snapshot Snapshot to save.
+     * @param panicDir panic directory to save.
+     * @return true on error.
+	 */
+	public static boolean writePanicSnapshot(Snapshot panicSnapshot, File panicDir) {
+        FileType type = FileType.DEFAULTLIB;
+        HashMap<LibId,URL> libFiles = new HashMap<LibId,URL>();
+        TreeMap<String,LibId> sortedLibs = new TreeMap<String,LibId>(TextUtils.STRING_NUMBER_ORDER);
+        for (LibraryBackup libBackup: panicSnapshot.libBackups) {
+            if (libBackup == null) continue;
+            if ((libBackup.d.flags & Library.HIDDENLIBRARY) != 0) continue;
+            LibId libId = libBackup.d.libId;
+            String libName = libBackup.d.libName;
+            URL libURL = libBackup.d.libFile;
+            File newLibFile = null;
+            if (libURL == null || libURL.getPath() == null) {
+                newLibFile = new File(panicDir.getAbsolutePath(), libName + "." + type.getExtensions()[0]);
+            } else {
+                File libFile = new File(libURL.getPath());
+                String fileName = libFile.getName();
+                if (fileName == null) fileName = libName + "." + type.getExtensions()[0];
+                newLibFile = new File(panicDir.getAbsolutePath(), fileName);
+            }
+            URL newLibURL = TextUtils.makeURLToFile(newLibFile.getAbsolutePath());
+            libFiles.put(libId, newLibURL);
+            sortedLibs.put(libName, libId);
+        }
+        boolean error = false;
+        for (LibId libId: sortedLibs.values()) {
+            System.out.print("."); System.out.flush();
+            URL libURL = libFiles.get(libId);
+            JELIB jelib = new JELIB();
+    		String properOutputName = TextUtils.getFilePath(libURL) + TextUtils.getFileNameWithoutExtension(libURL) + ".jelib";
+            if (jelib.openTextOutputStream(properOutputName) ||
+                    jelib.writeLib(panicSnapshot, libId, libFiles) ||
+                    jelib.closeTextOutputStream()) {
+                System.out.println("Error saving "+panicSnapshot.getLib(libId).d.libName);
+                error = true;
+            }
+        }
+        System.out.println(" Libraries saved");
+        return error;
+    }
+    
 	/**
 	 * Method to write an entire Library with a particular format.
 	 * This is used for output formats that capture the entire library
@@ -157,8 +206,6 @@ public class Output
 	 */
 	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6, boolean quiet)
 	{
-		Output out;
-
         // scan for Dummy Cells, warn user that they still exist
         List<String> dummyCells = new ArrayList<String>();
         dummyCells.add("WARNING: "+lib+" contains the following Dummy cells:");
@@ -276,39 +323,39 @@ public class Output
 				ELIB elib = new ELIB();
 				elib.quiet = quiet;
 				if (compatibleWith6) elib.write6Compatible();
-				out = (Output)elib;
-				if (out.openBinaryOutputStream(properOutputName)) return true;
-				if (out.writeLib(lib)) return true;
-				if (out.closeBinaryOutputStream()) return true;
+				if (elib.openBinaryOutputStream(properOutputName)) return true;
+				if (elib.writeLib(lib)) return true;
+				if (elib.closeBinaryOutputStream()) return true;
 			} else
 			{
 				JELIB jelib = new JELIB();
 				jelib.quiet = quiet;
-				out = (Output)jelib;
-				if (out.openTextOutputStream(properOutputName)) return true;
-				if (out.writeLib(lib)) return true;
-				if (out.closeTextOutputStream()) return true;
+				if (jelib.openTextOutputStream(properOutputName)) return true;
+				if (jelib.writeLib(lib.getDatabase().backup(), lib.getId(), null)) return true;
+				if (jelib.closeTextOutputStream()) return true;
 			}
  		} else if (type == FileType.READABLEDUMP)
 		{
-			out = (Output)new ReadableDump();
-			out.quiet = quiet;
-			if (out.openTextOutputStream(properOutputName)) return true;
-			if (out.writeLib(lib)) return true;
-			if (out.closeTextOutputStream()) return true;
+            ReadableDump readableDump = new ReadableDump();
+			readableDump.quiet = quiet;
+			if (readableDump.openTextOutputStream(properOutputName)) return true;
+			if (readableDump.writeLib(lib)) return true;
+			if (readableDump.closeTextOutputStream()) return true;
         } else if (type == FileType.DELIB)
         {
             DELIB delib = new DELIB();
             delib.quiet = quiet;
-            out = (Output)delib;
-            if (out.openTextOutputStream(properOutputName)) return true;
-            if (out.writeLib(lib)) return true;
-            if (out.closeTextOutputStream()) return true;
+            if (delib.openTextOutputStream(properOutputName)) return true;
+            if (delib.writeLib(lib.getDatabase().backup(), lib.getId(), null)) return true;
+            if (delib.closeTextOutputStream()) return true;
 		} else
 		{
 			System.out.println("Unknown export type: " + type);
 			return true;
 		}
+		// clean up and return
+        lib.setFromDisk();
+		if (!quiet) System.out.println(properOutputName + " written");
         // Update the version in library read in memomy
         lib.setVersion(Version.getVersion());
         // if using CVS, update state

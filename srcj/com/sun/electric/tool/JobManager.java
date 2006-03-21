@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.Snapshot;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.locks.Condition;
@@ -31,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  *
  */
-abstract class JobManager {
+public abstract class JobManager {
     private final ReentrantLock lock = new ReentrantLock();
     /** started jobs */ final ArrayList<EJob> startedJobs = new ArrayList<EJob>();
     /** waiting jobs */ final ArrayList<EJob> waitingJobs = new ArrayList<EJob>();
@@ -49,5 +50,12 @@ abstract class JobManager {
     abstract Iterator<Job> getAllJobs();
     abstract void wantUpdateGui();
     
+    /**
+     * Find some valid snapshot in cache.
+     * @return some valid snapshot
+     */
+    public static Snapshot findValidSnapshot() {
+        return EThread.findValidSnapshot();
+    }
 }
     

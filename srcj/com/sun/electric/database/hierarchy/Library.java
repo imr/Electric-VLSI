@@ -75,7 +75,7 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 //	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS =                 070;
 //	/** right shift for LIBUNITS */							private static final int LIBUNITSSH =                 3;
 //	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR =         0100;
-	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
+	/** library is "hidden" (clipboard library) */			public static final int HIDDENLIBRARY =           0200;
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
     /** Database to which this Library belongs. */          private final EDatabase database;

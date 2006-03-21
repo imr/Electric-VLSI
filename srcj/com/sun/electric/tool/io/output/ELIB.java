@@ -466,12 +466,6 @@ public class ELIB extends Output
 				writeNodeInst(ni);
 			}
 		}
-
-		if (!lib.isHidden() && !quiet)
-		{
-			System.out.println(filePath + " written (" + cellsHere + " cells)");
-		}
-		lib.setFromDisk();
 		// library written successfully
 		return false;
 	}

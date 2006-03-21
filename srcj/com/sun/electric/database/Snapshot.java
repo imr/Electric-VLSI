@@ -112,7 +112,10 @@ public class Snapshot {
                     for (int i = 0; i < newBackup.cellUsages.length; i++) {
                         CellBackup.CellUsageInfo cui = newBackup.cellUsages[i];
                         if (cui == null) continue;
-                        if (oldBackup != null && i < oldBackup.cellUsages.length && cui.usedExports == oldBackup.cellUsages[i].usedExports) continue;
+                        if (oldBackup != null && i < oldBackup.cellUsages.length) {
+                            CellBackup.CellUsageInfo oldCui = oldBackup.cellUsages[i];
+                            if (oldCui != null && cui.usedExports == oldCui.usedExports) continue;
+                        }
                         CellUsage u = cellId.getUsageIn(i);
                         CellBackup protoBackup = cellBackups.get(u.protoId.cellIndex);
                         cui.checkUsage(protoBackup);
