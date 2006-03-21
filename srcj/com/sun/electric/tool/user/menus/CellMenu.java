@@ -460,7 +460,8 @@ public class CellMenu {
         String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
         	"Name of duplicated cell", cell.getName() + "NEW");
         if (newName == null) return;
-		if (cell.getLibrary().findNodeProto(newName) != null)
+        Cell already = cell.getLibrary().findNodeProto(newName);
+		if (already != null && already.getView() == cell.getView())
 		{
 			int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
 				"Cell " + newName + " already exists.  Make this a new version?", "Confirm duplication",
