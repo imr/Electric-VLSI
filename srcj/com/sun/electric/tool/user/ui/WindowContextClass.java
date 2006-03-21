@@ -57,8 +57,9 @@ public abstract class WindowContextClass extends JPanel
 			{
 				title.append(" - Page " + (pageNo+1));
 			}
-			if (cell.getLibrary() != Library.getCurrent())
-				title.append(" - Current library: " + Library.getCurrent().getName());
+            Library curLib = Library.getCurrent();
+			if (cell.getLibrary() != curLib && curLib != null)
+				title.append(" - Current library: " + curLib.getName());
 		}
 		else
 			title.append("***NONE***");

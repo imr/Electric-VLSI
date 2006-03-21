@@ -940,7 +940,7 @@ public class WindowFrame extends Observable
 		// StringBuffer should be more efficient
 		StringBuffer title = new StringBuffer();
 
-		if (cell != null)
+		if (cell != null && cell.isLinked())
 		{
 			title.append(prefix + cell.libDescribe());
 
@@ -948,8 +948,9 @@ public class WindowFrame extends Observable
 			{
 				title.append(" - Page " + (pageNo+1));
 			}
-			if (cell.getLibrary() != Library.getCurrent())
-				title.append(" - Current library: " + Library.getCurrent().getName());
+            Library curLib = Library.getCurrent();
+			if (cell.getLibrary() != curLib && curLib != null)
+				title.append(" - Current library: " + curLib.getName());
 		}
 		else
 			title.append("***NONE***");
