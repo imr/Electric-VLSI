@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/21/08, DN) Regressions and those errors not catched/running forever... (Bug #901)
+FIX: Uodate Regression.java to recent changes in ServerClient.java 
+
 BUG: (3/21/06, DN) All libraries marked changed after loading up (Bug #900)
 FIX: In Main.InitDatabase insert Input.changesQuiet(false). 
 

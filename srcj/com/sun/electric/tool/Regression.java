@@ -52,7 +52,7 @@ public class Regression {
             Socket socket = null;
             for (int i = 0; i < 100; i++) {
                 try {
-                    Thread.currentThread().sleep(10);
+                    Thread.currentThread().sleep(20);
                     socket = new Socket((String)null, port);
                 } catch (IOException e) {
                 } catch (InterruptedException e) {
@@ -93,10 +93,22 @@ public class Regression {
                         break;
                     case 2:
                         Integer jobId = Integer.valueOf(reader.in.readInt());
+                        String jobName = reader.in.readUTF();
                         EJob.State newState = EJob.State.valueOf(reader.in.readUTF());
-                        int len = reader.in.readInt();
-                        byte[] bytes = new byte[len];
-                        reader.in.readFully(bytes);
+                        long timeStamp = reader.in.readLong();
+                        if (newState == EJob.State.WAITING) {
+                            boolean hasSerializedJob = reader.in.readBoolean();
+                            if (hasSerializedJob) {
+                                int length = reader.in.readInt();
+                                byte[] serializedJob = new byte[length];
+                                reader.in.readFully(serializedJob);
+                            }
+                        }
+                        if (newState == EJob.State.SERVER_DONE) {
+                            int len = reader.in.readInt();
+                            byte[] bytes = new byte[len];
+                            reader.in.readFully(bytes);
+                        }
 //                        System.out.println("Job " + jobId + " terminated " + bytes.length);
                         break;
                     case 3:

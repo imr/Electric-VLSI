@@ -126,9 +126,9 @@ class ClientJobManager extends JobManager {
                     case 2:
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
                         Integer jobId = Integer.valueOf(reader.in.readInt());
-                        EJob.State newState = EJob.State.valueOf(reader.in.readUTF());
                         String jobName = reader.in.readUTF();
-                        long timeStampe = reader.in.readLong();
+                        EJob.State newState = EJob.State.valueOf(reader.in.readUTF());
+                        long timeStamp = reader.in.readLong();
                         if (newState == EJob.State.WAITING) {
                             boolean hasSerializedJob = reader.in.readBoolean();
                             if (hasSerializedJob) {
