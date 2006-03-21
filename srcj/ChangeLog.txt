@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+IMP/MAN: (3/21/06, DN) Snapshot Logging which is enabled by button in GeneralTab panel.
+   Logging is performed to temporary file in platform-dependent  directory. Name of the file
+   is printed to "electric.log" and to stdin.
+
 BUG: (3/21/06, DN) Exception in WindowFrame.composeTitle after close of current library.
 FIX: Check if current Library is null.
 

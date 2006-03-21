@@ -56,7 +56,7 @@ public class StreamClient extends Client {
         writer = new SnapshotWriter(new DataOutputStream(outputStream));
         this.initialSnapshot = initialSnapshot;
         dispatcher = new ServerEventDispatcher();
-        reader = new ClientReader(inputStream);
+        reader = inputStream != null ? new ClientReader(inputStream) : null;
     }
     
     void start() { dispatcher.start(); }
@@ -67,7 +67,6 @@ public class StreamClient extends Client {
     class ServerEventDispatcher extends Thread {
         private static final long STACK_SIZE = 20*(1 << 10);
         private Snapshot currentSnapshot = Snapshot.EMPTY;
-        private Snapshot initialSnapshot;
         private ServerEvent lastEvent = getQueueTail();
     
         private ServerEventDispatcher() {
@@ -76,11 +75,13 @@ public class StreamClient extends Client {
         
         public void run() {
             try {
-                reader.start();
+                if (reader != null)
+                    reader.start();
                 writer.out.writeInt(Job.PROTOCOL_VERSION);
                 writeSnapshot(initialSnapshot, false);
                 initialSnapshot = null;
                 for (;;) {
+                    lock.lock();
                     try {
                         while (lastEvent.next == null)
                             queueChanged.await();
@@ -125,19 +126,32 @@ public class StreamClient extends Client {
         currentSnapshot = newSnapshot;
     }
     
-    void writeEJobEvent(EJob ejob, EJob.State newState) throws IOException {
-        if (ejob.newSnapshot != currentSnapshot) {
+    void writeEJobEvent(EJob ejob, EJob.State newState, long timeStamp) throws IOException {
+        if (ejob.newSnapshot != null && ejob.newSnapshot != currentSnapshot) {
             writeSnapshot(ejob.newSnapshot, ejob.jobType == Job.Type.UNDO);
         }
         switch (newState) {
+            case WAITING:
+            case RUNNING:
             case SERVER_DONE:
-                if (ejob.client == StreamClient.this) {
-                    writer.out.writeByte(2);
-                    writer.out.writeInt(ejob.jobId);
-                    writer.out.writeUTF(newState.toString());
+//                if (ejob.client == StreamClient.this) {
+                writer.out.writeByte(2);
+                writer.out.writeInt(ejob.jobId);
+                writer.out.writeUTF(ejob.jobName);
+                writer.out.writeUTF(newState.toString());
+                writer.out.writeLong(timeStamp);
+                if (newState == EJob.State.WAITING) {
+                    writer.out.writeBoolean(ejob.serializedJob != null);
+                    if (ejob.serializedJob != null) {
+                        writer.out.writeInt(ejob.serializedJob.length);
+                        writer.out.write(ejob.serializedJob);
+                    }
+                }
+                if (newState == EJob.State.SERVER_DONE) {
                     writer.out.writeInt(ejob.serializedResult.length);
                     writer.out.write(ejob.serializedResult);
                 }
+//                }
                 break;
         }
     }

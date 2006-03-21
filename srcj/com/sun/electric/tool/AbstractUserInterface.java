@@ -40,18 +40,18 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
     }
 
     // For Mac OS X version
-    public void initializeInitJob(Job job, Object mode) {}
+    protected void initializeInitJob(Job job, Object mode) {}
 
 
-    public void addEvent(Client.ServerEvent serverEvent) {}
+    protected void addEvent(Client.ServerEvent serverEvent) {}
     
     public void finishInitialization() {}
     
-    public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+    protected void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         if (!errors.isEmpty()) System.out.println(errors.size() + " network errors in " + cell);
     }
     
-    public void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
+    protected void updateIncrementalDRCErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {
         if (!errors.isEmpty()) System.out.println(errors.size() + " drc errors in " + cell);
     }
     
@@ -76,14 +76,14 @@ public abstract class AbstractUserInterface extends Client implements UserInterf
      * @param newUndoEnabled new status of undo button.
      * @param newRedoEnabled new status of redo button.
      */
-    public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
+    protected void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {}
     
     /**
      * Show new database snapshot.
      * @param newSnapshot new snapshot.
      */
-    public void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {}
+    protected void showSnapshot(Snapshot newSnapshot, boolean undoRedo) {}
     
     
-    public void beep() {}
+    protected void beep() {}
 }

@@ -33,9 +33,13 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.JobTree;
 import com.sun.electric.tool.user.ui.TopLevel;
 import java.awt.geom.Point2D;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -85,6 +89,8 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             System.out.println("ServerSocket mode failure: " + e.getMessage());
         }
         this.serverSocket = serverSocket;
+        if (User.isSbapshotLogging())
+            initSnapshotLogging();
     }
     
     private int initThreads(int recommendedNumThreads) {
@@ -93,6 +99,27 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             maxNumThreads = recommendedNumThreads;
         Job.logger.logp(Level.FINE, CLASS_NAME, "initThreads", "maxNumThreads=" + maxNumThreads);
         return maxNumThreads;
+    }
+
+    void initSnapshotLogging() {
+        int connectionId = serverConnections.size();
+        StreamClient conn;
+        lock();
+        try {
+            File tempFile = File.createTempFile("elec", ".slog");
+            FileOutputStream out = new FileOutputStream(tempFile);
+            System.out.println("Writing snapshot log to " + tempFile);
+            ActivityLogger.logMessage("Writing snapshot log to " + tempFile);
+            conn = new StreamClient(connectionId, null, new BufferedOutputStream(out), currentSnapshot);
+            serverConnections.add(conn);
+        } catch (IOException e) {
+            System.out.println("Failed to create snapshot log file:" + e.getMessage());
+            return;
+        } finally {
+            unlock();
+        }
+        System.out.println("Accepted connection " + connectionId);
+        conn.start();
     }
     
     /** Add job to list of jobs */
@@ -302,9 +329,9 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             // Wait for connections
             for (;;) {
                 Socket socket = serverSocket.accept();
+                int connectionId = serverConnections.size();
                 StreamClient conn;
                 lock();
-                int connectionId = serverConnections.size();
                 try {
                     conn = new StreamClient(connectionId, socket.getInputStream(), socket.getOutputStream(), currentSnapshot);
                     serverConnections.add(conn);

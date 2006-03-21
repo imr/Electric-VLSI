@@ -36,6 +36,7 @@ import com.sun.electric.tool.AbstractUserInterface;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
@@ -397,6 +398,7 @@ public final class Main
 //			}
 
             // open no name library first
+            Input.changesQuiet(true);
             Library mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
             mainLib.setCurrent();

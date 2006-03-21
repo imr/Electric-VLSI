@@ -2219,6 +2219,19 @@ public class User extends Listener
 	 */
 	public static void setUseClientServer(boolean on) { cacheUseClientServer.setBoolean(on); }
 
+	private static Pref cacheSnapshotLogging = Pref.makeBooleanPref("SnapshotLogging", tool.prefs, false);
+	/**
+	 * Method to tell whether to perform snapshot logging in a temporary file.
+	 * The default is "false".
+	 * @return true to perform snapshot logging in a temporary file
+	 */
+	public static boolean isSbapshotLogging() { return cacheSnapshotLogging.getBoolean(); }
+	/**
+	 * Method to set whether to perform snapshot logging in a temporary file
+	 * @param on true to perform snapshot logging iu a temporary file
+	 */
+	public static void setSnapshotLogging(boolean on) { cacheSnapshotLogging.setBoolean(on); }
+
 	private static Pref cacheAutoTechnologySwitch = Pref.makeBooleanPref("AutoTechnologySwitch", tool.prefs, true);
 	/**
 	 * Method to tell whether to switch technologies automatically when changing the current Cell.

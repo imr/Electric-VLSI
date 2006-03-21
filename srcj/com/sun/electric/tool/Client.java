@@ -67,10 +67,12 @@ public abstract class Client {
     static class EJobEvent extends ServerEvent {
         private final EJob ejob;
         private final EJob.State newState;
+        private final long timeStamp;
         
         private EJobEvent(EJob ejob, EJob.State newState) {
             this.ejob = ejob;
             this.newState = newState;
+            timeStamp = System.currentTimeMillis();
         }
         
         public void run() {
@@ -112,7 +114,7 @@ public abstract class Client {
         }
         
         void dispatchOnStreamClient(StreamClient client) throws IOException {
-            client.writeEJobEvent(ejob, newState);
+            client.writeEJobEvent(ejob, newState, timeStamp);
         }
     }
     

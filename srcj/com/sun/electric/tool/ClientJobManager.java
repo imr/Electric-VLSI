@@ -127,11 +127,23 @@ class ClientJobManager extends JobManager {
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
                         Integer jobId = Integer.valueOf(reader.in.readInt());
                         EJob.State newState = EJob.State.valueOf(reader.in.readUTF());
-                        int len = reader.in.readInt();
-                        byte[] bytes = new byte[len];
-                        reader.in.readFully(bytes);
+                        String jobName = reader.in.readUTF();
+                        long timeStampe = reader.in.readLong();
+                        if (newState == EJob.State.WAITING) {
+                            boolean hasSerializedJob = reader.in.readBoolean();
+                            if (hasSerializedJob) {
+                                int length = reader.in.readInt();
+                                byte[] serializedJob = new byte[length];
+                                reader.in.readFully(serializedJob);
+                            }
+                        }
+                        if (newState == EJob.State.SERVER_DONE) {
+                            int len = reader.in.readInt();
+                            byte[] bytes = new byte[len];
+                            reader.in.readFully(bytes);
+                            clientFifo.put(jobId, bytes);
+                        }
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", jobId);
-                        clientFifo.put(jobId, bytes);
                         break;
                     case 3:
                         logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr begin");
