@@ -402,6 +402,7 @@ public final class Main
             Library mainLib = Library.newInstance("noname", null);
             if (mainLib == null) return false;
             mainLib.setCurrent();
+            Input.changesQuiet(false);
 
 			openCommandLineLibs(argsList);
             if (beanShellScript != null)

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/21/06, DN) All libraries marked changed after loading up (Bug #900)
+FIX: In Main.InitDatabase insert Input.changesQuiet(false). 
+
 IMP/MAN: (3/21/06, DN) Snapshot Logging which is enabled by button in GeneralTab panel.
    Logging is performed to temporary file in platform-dependent  directory. Name of the file
    is printed to "electric.log" and to stdin.
