@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.cvspm.CVSLibrary;
@@ -514,7 +515,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(cell);
 
 			// begin the drag
-            if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+            if (Client.getOperatingSystem() == Client.OS.MACINTOSH)
             {
                 // OS X has problems creating DefaultDragImage
                 Image img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);

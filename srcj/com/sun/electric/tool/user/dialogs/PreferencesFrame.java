@@ -440,15 +440,7 @@ public class PreferencesFrame extends EDialog
         top.getTheMenuBar().restoreSavedBindings(false); // trying to cache again
 
 		// recache all layers and their graphics
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-			{
-				Layer layer = lIt.next();
-				layer.getGraphics().recachePrefs();
-			}
-		}
+        Technology.cacheTransparentLayerColors();
 
 		// close dialog now because all values are cached badly
 		closeDialog(null);

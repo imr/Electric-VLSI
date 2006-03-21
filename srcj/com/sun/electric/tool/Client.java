@@ -35,12 +35,66 @@ import java.io.IOException;
 public abstract class Client {
     final int connectionId;
     final String userName = System.getProperty("user.name");
-    
+	/** The current operating system. */					private static final OS os = OSInitialize();
+
+    /**
+	 * OS is a typesafe enum class that describes the current operating system.
+	 */
+	public enum OS
+	{
+		/** Describes Windows. */							WINDOWS("Windows"),
+		/** Describes UNIX/Linux. */						UNIX("UNIX"),
+		/** Describes Macintosh. */							MACINTOSH("Macintosh");
+
+		private String name;
+
+		private OS(String name) { this.name = name; }
+
+		/**
+		 * Returns a printable version of this OS.
+		 * @return a printable version of this OS.
+		 */
+		public String toString() { return name; }
+    }
+
+    private static OS OSInitialize()
+    {
+        try{
+            String osName = System.getProperty("os.name").toLowerCase();
+            if (osName.startsWith("windows"))
+            {
+                return Client.OS.WINDOWS;
+
+            } else if (osName.startsWith("linux") ||
+                    osName.startsWith("solaris") || osName.startsWith("sunos"))
+            {
+                return Client.OS.UNIX;
+            } else if (osName.startsWith("mac"))
+            {
+                return Client.OS.MACINTOSH;
+            }
+        } catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        System.out.println("No OS detected");
+        return null;
+    }
+
+    /**
+	 * Method to tell which operating system Electric is running on.
+	 * @return the operating system Electric is running on.
+	 */
+	public static OS getOperatingSystem() { return os; }
+
+    public static boolean isOSWindows() { return os == OS.WINDOWS; }
+    public static boolean isOSMac() { return os == OS.MACINTOSH; }
+
     /** Creates a new instance of AbstractClient */
     public Client(int connectionId) {
         this.connectionId = connectionId;
     }
-   
+
     public static class ServerEvent implements Runnable {
         ServerEvent next;
                 
@@ -135,5 +189,4 @@ public abstract class Client {
                 client.writeString(s);
         }
     }
-    
 }

@@ -34,6 +34,7 @@ import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.menus.EditMenu;
+import com.sun.electric.tool.Client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -104,7 +105,7 @@ public class ClickZoomWireListener
     private EventListener oldListener;          /* used when swtiching back to old listener */
 
     // mac stuff
-    private static final boolean isMac = System.getProperty("os.name").toLowerCase().startsWith("mac");
+    private static final boolean isMac = Client.isOSMac();
 
     /** Class Mode lets us set a common mode over several types of events,
      *  letting initial events (like a right mouse click) set the context for

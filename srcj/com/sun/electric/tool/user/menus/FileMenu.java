@@ -38,6 +38,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.JobManager;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.GDSMap;
@@ -280,7 +281,7 @@ public class FileMenu {
 
 		fileMenu.addSeparator();
 
-		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
+		if (Client.getOperatingSystem() != Client.OS.MACINTOSH)
 		{
 			fileMenu.addMenuItem("_Quit", KeyStroke.getKeyStroke('Q', buckyBit),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });

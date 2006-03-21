@@ -28,6 +28,7 @@ import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibDirs;
+import com.sun.electric.tool.Client;
 
 import java.awt.FileDialog;
 import java.io.File;
@@ -146,7 +147,7 @@ public class OpenFile
 
 		boolean useSwing = true;
         // MacOS Open Dialog doesn't work when directories must be available for selection
-		if (!wantDirectory && TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+		if (!wantDirectory && Client.getOperatingSystem() == Client.OS.MACINTOSH)
 			useSwing = false;
 
 //		if (location == null) location = new Point(100, 50);
@@ -236,7 +237,7 @@ public class OpenFile
         if (types == null) types = new FileType [] {com.sun.electric.tool.io.FileType.ANY};
 
 		boolean useSwing = true;
-		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+		if (Client.getOperatingSystem() == Client.OS.MACINTOSH)
 			useSwing = false;
 
 		if (useSwing)

@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Client;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -81,18 +82,17 @@ public class MessagesWindow
 	implements Observer, ActionListener, MouseListener, KeyListener, Runnable, ClipboardOwner
 {
     private static final String[] NULL_STRING_ARRAY = {};
-    private static final int STACK_SIZE = 8*1024;
+    private static final int STACK_SIZE = Client.isOSMac()?0:8*1024;
 
     private ArrayList<String> history;
 	private JTextField entry;
 	private JTextArea info;
 	private Container contentFrame;
 	private int histidx = 0;
-	private Thread ticker = new Thread(null, this, "MessagesTicker", STACK_SIZE);
+	private final Thread ticker = new Thread(null, this, "MessagesTicker", STACK_SIZE);
     private boolean dumpInvoked = false;
 	private StringBuilder buffer = new StringBuilder();
 	private Container jf;
-    
 
 	// -------------------- private and protected methods ------------------------
 	public MessagesWindow()

@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -282,7 +283,7 @@ public class WindowFrame extends Observable
 		sideBar = new JTabbedPane();
 
 		// Only Mac version will align tabs on the left. The text orientation is vertical by default on Mac
-        if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+        if (Client.getOperatingSystem() == Client.OS.MACINTOSH)
 			sideBar.setTabPlacement(JTabbedPane.LEFT);
 		paletteTab = PaletteFrame.newInstance(this);
 		layersTab = new LayerTab(this);
@@ -813,7 +814,7 @@ public class WindowFrame extends Observable
         // remove references to this
         synchronized(windowList) {
             if (windowList.size() <= 1 && !TopLevel.isMDIMode() &&
-				TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
+				Client.getOperatingSystem() != Client.OS.MACINTOSH)
             {
                 FileMenu.quitCommand();
                 //JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),

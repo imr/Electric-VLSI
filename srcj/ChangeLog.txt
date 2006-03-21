@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/21/06, GVG) STACK_SIZE in Thread must be 0 on MacOSX.
+FIX: Refactoring of a few classes and OS class was moved from TopLevel to Client class.
+Avoiding multiple ways to determine OS so please use Client API.
+
+BUG: (3/21/06, GVG) Few problems with Colors prefs on Mac described in Bug #645.
+One of them was that Electric was reloading only transparent colors after Pref import
+FIX: Recaching all color preferences. PrefType enum added.
+
 BUG: (3/21/08, DN) Regressions and those errors not catched/running forever... (Bug #901)
 FIX: Uodate Regression.java to recent changes in ServerClient.java 
 

@@ -108,7 +108,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     public void initializeInitJob(Job job, Object mode)
     {
         // Only valid for Mac OS X
-        if (!System.getProperty("os.name").toLowerCase().startsWith("mac")) return;
+        if (!Client.isOSMac()) return;
 
         if (mode != Mode.MDI)
             new EventProcessor();
@@ -129,7 +129,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         }
         public void run()
         {
-            if (!System.getProperty("os.name").toLowerCase().startsWith("mac")) return;
+            if (!Client.isOSMac()) return;
 
             try {
                 Class osXClass = Class.forName(getMacClassName());
@@ -164,7 +164,7 @@ public class UserInterfaceMain extends AbstractUserInterface
         public void run() {
             assert SwingUtilities.isEventDispatchThread();
             // see if there is a Mac OS/X interface
-            if (System.getProperty("os.name").toLowerCase().startsWith("mac")) {
+            if (Client.isOSMac()) {
                 try {
                     Class osXClass = Class.forName(getMacClassName());
                     Method osXRegisterMethod = null;

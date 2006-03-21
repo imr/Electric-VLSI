@@ -121,11 +121,11 @@ public class OptionReconcile extends EDialog
 			String oldValue = null, newValue = null;
 			switch (pref.getType())
 			{
-				case Pref.BOOLEAN:
+				case BOOLEAN:
 					oldValue = ((Integer)pref.getValue()).intValue() == 0 ? "OFF" : "ON";
 					newValue = ((Integer)obj).intValue() == 0 ? "OFF" : "ON";
 					break;
-				case Pref.INTEGER:
+				case INTEGER:
 					int oldIntValue = ((Integer)pref.getValue()).intValue();
 					int newIntValue = ((Integer)obj).intValue();
 					String [] trueMeaning = meaning.getTrueMeaning();
@@ -139,7 +139,7 @@ public class OptionReconcile extends EDialog
 						newValue = Integer.toString(newIntValue);
 					}
 					break;
-				case Pref.DOUBLE:
+				case DOUBLE:
 					oldValue = Double.toString(((Double)pref.getValue()).doubleValue());
 					if (obj instanceof Double)
 						newValue = Double.toString(((Double)obj).doubleValue()); else
@@ -150,7 +150,7 @@ public class OptionReconcile extends EDialog
 						break;
 					}
 					break;
-				case Pref.STRING:
+				case STRING:
 					oldValue = pref.getValue().toString();
 					newValue = obj.toString();
 					break;

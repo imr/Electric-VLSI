@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.Client;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -209,7 +210,7 @@ public class MeasureListener
 
 
     // mac stuff
-    private static final boolean isMac = System.getProperty("os.name").toLowerCase().startsWith("mac");
+    private static final boolean isMac = Client.isOSMac();
 
     /**
      * See if event is a left mouse click.  Platform independent.

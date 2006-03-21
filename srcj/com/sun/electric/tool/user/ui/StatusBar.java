@@ -39,6 +39,7 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.Client;
 
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -121,7 +122,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         }
         //gbc.ipadx = 5;
         gbc.anchor = GridBagConstraints.WEST;
-        int rightInsert = (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH) ? 20 : 4;
+        int rightInsert = (Client.getOperatingSystem() == Client.OS.MACINTOSH) ? 20 : 4;
         gbc.insets = new java.awt.Insets(0, 4, 0, rightInsert);
 		add(field, gbc);
 	}

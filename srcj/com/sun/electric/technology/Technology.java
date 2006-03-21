@@ -3315,15 +3315,26 @@ public class Technology implements Comparable<Technology>
 	/**
 	 * Method to reload the color map when the layer color preferences have changed.
 	 */
-	public void cacheTransparentLayerColors()
+	public static void cacheTransparentLayerColors()
 	{
-		if (transparentLayers <= 0) return;
-		Color [] layers = new Color[transparentLayers];
-		for(int i=0; i<transparentLayers; i++)
-		{
-			layers[i] = new Color(transparentColorPrefs[i].getInt());
-		}
-		setColorMapFromLayers(layers);
+        // recache technology color information
+        for(Iterator<Technology> it = getTechnologies(); it.hasNext(); )
+        {
+            Technology tech = it.next();
+            for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+            {
+                Layer layer = lIt.next();
+                layer.getGraphics().recachePrefs();
+            }
+
+            if (tech.transparentLayers <= 0) continue;
+            Color [] layers = new Color[tech.transparentLayers];
+            for(int i=0; i<tech.transparentLayers; i++)
+            {
+                layers[i] = new Color(tech.transparentColorPrefs[i].getInt());
+            }
+            tech.setColorMapFromLayers(layers);
+        }
 	}
 
 	/**

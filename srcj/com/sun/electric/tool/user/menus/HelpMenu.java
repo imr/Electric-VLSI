@@ -30,6 +30,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.Client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,7 +51,7 @@ public class HelpMenu {
         MenuBar.Menu helpMenu = MenuBar.makeMenu("_Help");
         menuBar.add(helpMenu);
 
-        if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
+        if (Client.getOperatingSystem() != Client.OS.MACINTOSH)
         {
             helpMenu.addMenuItem("_About Electric...", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });

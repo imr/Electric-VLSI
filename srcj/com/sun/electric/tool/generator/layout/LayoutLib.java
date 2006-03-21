@@ -29,7 +29,6 @@ import java.awt.geom.Rectangle2D;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Properties;
 import java.util.List;
 
 import com.sun.electric.database.geometry.DBMath;
@@ -55,7 +54,6 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.Job;
 
 /*
  * The LayoutLib class provides an assortment of methods that I
@@ -87,24 +85,6 @@ public class LayoutLib {
 
 		// The following prints a stack trace in the Electric messages window
 		throw e;
-	}
-	/**
-	 * Find out if we're currently running under windows. 
-	 * @return true if operating system is some variant of Microsoft Windows.
-	 */
-	public static boolean osIsWindows() {
-		Properties props = System.getProperties();
-		String osName = ((String) props.get("os.name")).toLowerCase();
-		return osName.indexOf("windows") != -1;
-	}
-	/**
-	 * get user name from System properties 
-	 * @return name of user
-	 */
-	public static String userName() {
-		Properties props = System.getProperties();
-		String name = (String) props.get("user.name");
-		return name;
 	}
 
 	/** 

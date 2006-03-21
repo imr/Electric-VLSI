@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.Client;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -69,33 +70,13 @@ import javax.swing.UIManager;
  */
 public class TopLevel extends JFrame
 {
-	/**
-	 * OS is a typesafe enum class that describes the current operating system.
-	 */
-	public static class OS
-	{
-		private final String name;
 
-		private OS(String name) { this.name = name; }
-
-		/**
-		 * Returns a printable version of this OS.
-		 * @return a printable version of this OS.
-		 */
-		public String toString() { return name; }
-
-		/** Describes Windows. */							public static final OS WINDOWS   = new OS("Windows");
-		/** Describes UNIX/Linux. */						public static final OS UNIX      = new OS("UNIX");
-		/** Describes Macintosh. */							public static final OS MACINTOSH = new OS("Macintosh");
-	}
-
-	/** True if in MDI mode, otherwise SDI. */				private static UserInterfaceMain.Mode mode;
+    /** True if in MDI mode, otherwise SDI. */				private static UserInterfaceMain.Mode mode;
 	/** The desktop pane (if MDI). */						private static JDesktopPane desktop = null;
 	/** The main frame (if MDI). */							private static TopLevel topLevel = null;
 	/** The only status bar (if MDI). */					private StatusBar sb = null;
 	/** The WindowFrame associated with this (if SDI). */	private WindowFrame wf = null;
 	/** The size of the screen. */							private static Dimension scrnSize;
-	/** The current operating system. */					private static OS os;
 	/** The messagesWindow window. */								private static MessagesWindow messagesWindow;
     /** The rate of double-clicks. */						private static int doubleClickDelay;
 	/** The cursor being displayed. */						private static Cursor cursor;
@@ -190,7 +171,7 @@ public class TopLevel extends JFrame
         Object click = tk.getDesktopProperty("awt.multiClickInterval");
         if (click == null) doubleClickDelay = 500; else
             doubleClickDelay = Integer.parseInt(click.toString());
-        
+
         // a more advanced way of determining the size of a screen
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice [] gs = ge.getScreenDevices();
@@ -203,27 +184,25 @@ public class TopLevel extends JFrame
         }
 		// setup specific look-and-feel
         UserInterfaceMain.Mode osMode = null;
+        Client.OS os = Client.getOperatingSystem();
 		try{
-			String osName = System.getProperty("os.name").toLowerCase();
-			if (osName.startsWith("windows"))
-			{
-				os = OS.WINDOWS;
-				osMode = UserInterfaceMain.Mode.MDI;
+            switch (os)
+            {
+                case WINDOWS:
+                    osMode = UserInterfaceMain.Mode.MDI;
 
-				scrnSize.height -= 30;
-				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-
-			} else if (osName.startsWith("linux") || osName.startsWith("solaris") || osName.startsWith("sunos"))
-			{
-				os = OS.UNIX;
-                osMode = UserInterfaceMain.Mode.SDI;
-                //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
-                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-			} else if (osName.startsWith("mac"))
-			{
-				os = OS.MACINTOSH;
-                osMode = UserInterfaceMain.Mode.SDI;
-                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+                    scrnSize.height -= 30;
+                    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+                    break;
+                case UNIX:
+                    osMode = UserInterfaceMain.Mode.SDI;
+                    //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
+                    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+                    break;
+                case MACINTOSH:
+                    osMode = UserInterfaceMain.Mode.SDI;
+                    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+                    break;
 			}
 		} catch(Exception e) {}
 
@@ -238,7 +217,7 @@ public class TopLevel extends JFrame
         String setting = User.getInitialWorkingDirectorySetting();
         if (setting.equals(User.INITIALWORKINGDIRSETTING_BASEDONOS)) {
             // default is last used dir
-            if (os == OS.UNIX) {
+            if (os == Client.OS.UNIX) {
                 // switch to current dir
                 User.setWorkingDirectory(System.getProperty("user.dir"));
             }
@@ -277,13 +256,7 @@ public class TopLevel extends JFrame
 		return new Rectangle(lowX, lowY, width, height);
 	}
 
-	/**
-	 * Method to tell which operating system Electric is running on.
-	 * @return the operating system Electric is running on.
-	 */
-	public static OS getOperatingSystem() { return os; }
-
-	/**
+    /**
 	 * Method to tell whether Electric is running in SDI or MDI mode.
 	 * SDI is Single Document Interface, where each document appears in its own window.
 	 * This is used on UNIX/Linux and on Macintosh.

@@ -28,7 +28,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.CircuitChanges;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -205,14 +204,16 @@ public class Pref
 		public Object getDesiredValue() { return desiredValue; }
 	}
 
-	/** The value for boolean options. */		public static final int BOOLEAN = 0;
-	/** The value for integer options. */		public static final int INTEGER = 1;
-	/** The value for long options. */			public static final int LONG    = 2;
-	/** The value for double options. */		public static final int DOUBLE  = 3;
-	/** The value for string options. */		public static final int STRING  = 4;
+    public enum PrefType {
+	/** The value for boolean options. */		BOOLEAN,
+	/** The value for integer options. */		INTEGER,
+	/** The value for long options. */			LONG,
+	/** The value for double options. */		DOUBLE,
+	/** The value for string options. */		STRING;
+    }
 
 	private   final String      name;
-	private   int         type;
+	private   PrefType         type;
 	private   final Preferences prefs;
 	private   Meaning     meaning;
 	private   Object      cachedObj;
@@ -330,11 +331,7 @@ public class Pref
 			}
 
 			// recache technology color information
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = it.next();
-				tech.cacheTransparentLayerColors();
-			}
+            Technology.cacheTransparentLayerColors();
 		} catch (InvalidPreferencesFormatException e)
 		{
 			System.out.println("Invalid preferences format");
@@ -347,11 +344,7 @@ public class Pref
 		}
 
         Job.getExtendedUserInterface().restoreSavedBindings(false);
-//        if (!Job.BATCHMODE) {
-//            TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-//            top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
-//        }
-
+        Job.getUserInterface().repaintAllEditWindows();
 		System.out.println("...preferences imported from " + fileURL.getFile());
 	}
 
@@ -387,12 +380,11 @@ public class Pref
 	 * Factory methods to create a boolean Pref objects.
 	 * The proper way to create a boolean Pref is with makeBooleanPref;
 	 * use of this method is only for subclasses.
-	 * @param prefs the actual java.util.prefs.Preferences object to use for this Pref.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
 	protected void initBoolean(boolean factory)
 	{
-		this.type = BOOLEAN;
+		this.type = PrefType.BOOLEAN;
 //		this.meaning = null;
 		this.factoryObj = new Integer(factory ? 1 : 0);
 		if (prefs != null) this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0); else
@@ -434,7 +426,7 @@ public class Pref
 	 */
 	protected void initInt(int factory)
 	{
-		this.type = INTEGER;
+		this.type = PrefType.INTEGER;
 //		this.meaning = null;
 		this.factoryObj = new Integer(factory);
 		if (prefs != null) this.cachedObj = new Integer(prefs.getInt(name, factory)); else
@@ -476,7 +468,7 @@ public class Pref
 	 */
 	protected void initLong(long factory)
 	{
-		this.type = LONG;
+		this.type = PrefType.LONG;
 //		this.meaning = null;
 		this.factoryObj = new Long(factory);
 		if (prefs != null) this.cachedObj = new Long(prefs.getLong(name, factory)); else
@@ -518,7 +510,7 @@ public class Pref
 	 */
 	protected void initDouble(double factory)
 	{
-		this.type = DOUBLE;
+		this.type = PrefType.DOUBLE;
 //		this.meaning = null;
 		this.factoryObj = new Double(factory);
 		if (prefs != null) this.cachedObj = new Double(prefs.getDouble(name, factory)); else
@@ -560,7 +552,7 @@ public class Pref
 	 */
 	protected void initString(String factory)
 	{
-		this.type = STRING;
+		this.type = PrefType.STRING;
 //		this.meaning = null;
 		this.factoryObj = new String(factory);
 		if (prefs != null) this.cachedObj = new String(prefs.get(name, factory)); else
@@ -689,7 +681,7 @@ public class Pref
 	 * Method to get the type of this Pref object.
 	 * @return an integer type: either BOOLEAN, INTEGER, LONG, DOUBLE, or STRING.
 	 */
-	public int getType() { return type; }
+	public PrefType getType() { return type; }
 
 	/**
 	 * Method to get the Meaning associated with this Pref object.
@@ -1058,13 +1050,13 @@ public class Pref
             // set the option
             switch (pref.getType())
             {
-                case Pref.BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
-                case Pref.INTEGER: pref.setInt(((Integer)obj).intValue());            break;
-                case Pref.DOUBLE:
+                case BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
+                case INTEGER: pref.setInt(((Integer)obj).intValue());            break;
+                case DOUBLE:
                     if (obj instanceof Double) pref.setDouble(((Double)obj).doubleValue()); else
                         if (obj instanceof Float) pref.setDouble((double)((Float)obj).floatValue());
                     break;
-                case Pref.STRING:  pref.setString((String)obj);                       break;
+                case STRING:  pref.setString((String)obj);                       break;
                 default: continue;
             }
             System.out.println("Meaning variable "+meaning.pref.name+" on " + meaning.ownerObj+" changed to "+obj);

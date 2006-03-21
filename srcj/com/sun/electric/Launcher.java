@@ -24,6 +24,7 @@
 package com.sun.electric;
 
 import com.sun.electric.tool.Regression;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.User;
 
 import java.net.URL;
@@ -60,8 +61,7 @@ public final class Launcher
         }
 
         String program = "java";
-		String osName = System.getProperty("os.name").toLowerCase();
-        if (osName.startsWith("windows")) program = "javaw";
+        if (Client.isOSWindows()) program = "javaw";
 
         if (args.length >= 1 && args[0].equals("-regression")) {
             invokeRegression(args, program);

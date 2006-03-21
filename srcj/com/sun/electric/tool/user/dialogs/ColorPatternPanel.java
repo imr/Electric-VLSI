@@ -41,7 +41,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -49,9 +48,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.colorchooser.ColorSelectionModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
@@ -470,7 +467,7 @@ public class ColorPatternPanel extends JPanel
 			currentLI.useStipplePrinter = useStipplePatternPrinter.isSelected();
 		}
 		currentLI.transparentLayer = transparentLayer.getSelectedIndex();
-		boolean colorsEnabled = currentLI.transparentLayer == 0;
+//		boolean colorsEnabled = currentLI.transparentLayer == 0;
 		currentLI.opacity = TextUtils.atof(opacity.getText());
 		Color newColor = new Color(currentLI.red, currentLI.green, currentLI.blue);
 		colorChooser.setColor(newColor);
