@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/21/06, DN) Database is currupted after node change (Bug #897).
+FIX: In CellBackup.getInstCount check for null CellUsageInfo.
+
 BUG: (3/21/06, DN) Database invariant checking prevents Force quit-save (Bug #861).
 FIX: Force quit find last consistent Snapshot and saves it to panic directory.
 

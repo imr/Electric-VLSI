@@ -249,7 +249,10 @@ public class CellBackup {
     public int getInstCount(CellUsage u) {
         if (u.parentId != d.cellId)
             throw new IllegalArgumentException();
-        return u.indexInParent < cellUsages.length ? cellUsages[u.indexInParent].instCount : 0;
+        if (u.indexInParent >= cellUsages.length) return 0;
+        CellUsageInfo cui = cellUsages[u.indexInParent];
+        if (cui == null) return 0;
+        return cui.instCount;
     }
 
     /**
