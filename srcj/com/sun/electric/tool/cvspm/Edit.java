@@ -27,6 +27,7 @@ package com.sun.electric.tool.cvspm;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.User;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import java.util.List;
 import java.util.Iterator;
 import java.util.Date;
 import java.text.DateFormat;
+import java.net.InetAddress;
 
 /**
  * Created by IntelliJ IDEA.
@@ -46,56 +48,20 @@ public class Edit {
 
     // ------------------------ Edit -----------------------------
 
-    /** Establish a lock on an entire library and all it's cells.
-     * Returns true if the Library was locked for your edit,
-     * false if it cannot be because someone else has locked it
-     * for edit.
-     * If 'showDialog' is true, an error dialog pops if the edit
-     * was unsuccessful, otherwise the error message is printed to System.out.
-     * @param lib
-     * @param showDialog
-     * @return
-     */
-    public static boolean edit(Library lib, boolean showDialog) {
-        File file = new File(lib.getLibFile().getPath());
-        if (!CVS.isFileInCVS(file)) return true;
-
-        String dir = file.getParent();
-        String delib = file.getName();
-
-        boolean success = edit(delib, dir, showDialog);
-        if (success) {
-            CVSLibrary.setEditing(lib, true);
-        }
-        return success;
-    }
-
     /**
-     * Establish a lock on the Cell that only you can edit it.
-     * Returns true if the Cell was locked for your edit,
-     * false if it cannot be because someone else has locked it for edit.
-     * If 'showDialog' is true, an error dialog pops if the edit
-     * was unsuccessful, otherwise the error message is printed to System.out.
+     * Mark the current user as an editor of the cell
      * @param cell
      * @return
      */
-    public static boolean edit(Cell cell, boolean showDialog) {
+    public static boolean edit(Cell cell) {
         File file = CVS.getCellFile(cell);
-        if (!CVS.isDELIB(cell.getLibrary())) {
-            // cannot lock single cell, attempt to lock entire library
-            System.out.println("Attempting to Edit entire library for Cell "+cell.describe(false));
-            return edit(cell.getLibrary(), showDialog);
-        }
+        if (!CVS.isDELIB(cell.getLibrary())) return false;
         if (!CVS.isFileInCVS(CVS.getCellFile(cell))) return false;
 
         String dir = file.getParent();
         String c = file.getName();
 
-        boolean success = edit(c, dir, showDialog);
-        if (success) {
-            CVSLibrary.setEditing(cell, true);
-            
-        }
+        boolean success = edit(c, dir);
         return success;
     }
 
@@ -106,77 +72,96 @@ public class Edit {
      * just prints to System.out.
      * @return true if the edit lock is now yours, false otherwise.
      */
-    public static boolean edit(String file, String dir, boolean showDialog) {
+    public static boolean edit(String file, String dir) {
 
         // check if anyone else is editing the file
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CVS.runModalCVSCommand("editors "+file, "Checking for editors of "+file,
-                dir, out);
-        LineNumberReader result = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
-        List<Editor> editors = parseOutput(result);
-        if (editors.size() != 0) {
-            // someone editing, show who
-            List<String> message = new ArrayList<String>();
-            message.add("Error: Cannot edit "+file+" because it is already being edited by:");
-            for (Editor editor : editors) {
-                message.add(editor.getUser()+"@"+editor.getComputer()+" at "+editor.getDate());
-            }
-            if (showDialog) {
-                Job.getUserInterface().showErrorMessage(message.toArray(), "Edit Unavailable");
-            } else {
-                for (String s : message) System.out.println(s);
-            }
-            return false;
-        }
         // no one editing, set edit lock
-        CVS.runModalCVSCommand("edit -a none "+file, "Edit "+file,
+        CVS.runCVSCommand("edit -a none "+file, "Edit",
                 dir, System.out);
         return true;
     }
 
+    // ---------------------- Get Editors ----------------------------
 
-    // ------------------------ Unedit -----------------------------
-
-    public static void uneditAllLibraries() {
+    public static void listEditorsAllLibraries() {
+        List<Library> allLibs = new ArrayList<Library>();
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = it.next();
-            unedit(lib);
+            if (lib.isHidden()) continue;
+            if (!lib.isFromDisk()) continue;
+            if (!CVS.assertInCVS(lib, "List CVS Editors", false)) continue;
+            allLibs.add(lib);
+        }
+        (new ListEditorsJob(allLibs, null)).startJob();
+    }
+
+    public static void listEditors(Library lib) {
+        List<Library> libs = new ArrayList<Library>();
+        libs.add(lib);
+        (new ListEditorsJob(libs, null)).startJob();
+    }
+
+    public static void listEditors(Cell cell) {
+        List<Cell> cells = new ArrayList<Cell>();
+        cells.add(cell);
+        (new ListEditorsJob(null, cells)).startJob();
+    }
+
+    public static class ListEditorsJob extends Job {
+        private List<Library> libs;
+        private List<Cell> cells;
+        public ListEditorsJob(List<Library> libs, List<Cell> cells) {
+            super("List CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.libs = libs;
+            this.cells = cells;
+            if (this.libs == null) this.libs = new ArrayList<Library>();
+            if (this.cells == null) this.cells = new ArrayList<Cell>();
+        }
+        public boolean doIt() {
+            String useDir = CVS.getUseDir(libs, cells);
+            StringBuffer libsBuf = CVS.getLibraryFiles(libs, useDir);
+            StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
+
+            String args = libsBuf + " " + cellsBuf;
+            if (args.trim().equals("")) return true;
+
+            CVS.runCVSCommand("editors "+args, "List CVS Editors", useDir, System.out);
+            System.out.println("List CVS Editors complete.");
+            return true;
         }
     }
 
-    public static void unedit(Library lib) {
+/*
+    static List<Editor> getEditors(Library lib) {
         File file = new File(lib.getLibFile().getPath());
-        if (!CVS.isFileInCVS(file)) return;
-
+        if (!CVS.isFileInCVS(file)) {
+            // library not in CVS
+            System.out.println(lib.getName()+" is not in CVS");
+            return null;
+        }
         String dir = file.getParent();
         String delib = file.getName();
+        return getEditors(delib, dir);
 
-        unedit(delib, dir);
-        CVSLibrary.setEditing(lib, false);
     }
 
-    public static void unedit(Cell cell) {
+    static List<Editor> getEditors(Cell cell) {
         File file = CVS.getCellFile(cell);
-        if (!CVS.isFileInCVS(CVS.getCellFile(cell))) {
-            System.out.println("Can't Unedit "+cell.describe(false)+", Cell file not in CVS");
-            return;
-        }
+        if (!CVS.isFileInCVS(CVS.getCellFile(cell))) return null;
+
         String dir = file.getParent();
         String c = file.getName();
-
-        unedit(c, dir);
-        CVSLibrary.setEditing(cell, false);
+        return getEditors(c, dir);
     }
 
-    /**
-     * Unedit a file and it's sub-directories and sub-files.
-     * @param file
-     * @param dir
-     */
-    public static void unedit(String file, String dir) {
-        CVS.runCVSCommand("unedit "+file, "Unediting "+file,
-                dir, System.out);
+    static List<Editor> getEditors(String file, String dir) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        CVS.runCVSCommand("editors "+file, "Checking for editors of "+file,
+                dir, out);
+        LineNumberReader result = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+        return parseOutput(result);
     }
+*/
 
     // ----------------------- Edit Output Parsing --------------------------
 
@@ -198,20 +183,34 @@ public class Edit {
         return editors;
     }
 
+    /**
+     * See if the specified Editor is referring to me on this host,
+     * returns true if so, false otherwise.
+     * @param editor
+     * @return
+     */
+    static boolean isMe(Editor editor) {
+        if (editor.getUser().equals(getUserName()) && editor.getHostname().equals(getHostName()))
+            return true;
+        return false;
+    }
+
     public static class Editor {
-        private final String abbreviatedFile;
+        private final String file;
         private final String user;
         private final Date date;
-        private final String computer;
-        private final File file;
-        private Editor(String abbrevFile, String user, Date date, String computer, File file) {
-            this.abbreviatedFile = abbrevFile;
+        private final String hostname;
+        private final String dir;
+        private final File FD;
+        private Editor(String file, String user, Date date, String hostname, String dir) {
+            this.file = file;
             this.user = user;
             this.date = date;
-            this.computer = computer;
-            this.file = file;
+            this.hostname = hostname;
+            this.dir = dir;
+            this.FD = new File(dir, file);
         }
-        private static Editor parse(String editorResultLine) {
+        static Editor parse(String editorResultLine) {
             // parse editor command result
             String parts[] = editorResultLine.split("\\t");
             if (parts.length == 5) {
@@ -225,18 +224,33 @@ public class Edit {
                     date = new Date(0);
                 }
                 String computer = parts[3];
-                File file = new File(parts[4]);
-                return new Editor(abbreviatedFile, user, date, computer, file);
+                String dir = parts[4];
+                return new Editor(abbreviatedFile, user, date, computer, dir);
             } else {
                 System.out.println("Bad Editor result line format: "+editorResultLine);
             }
             return null;
         }
-        public String getAbbrevFile() { return abbreviatedFile; }
+        public String getAbbrevFile() { return file; }
         public String getUser() { return user; }
         public Date getDate() { return date; }
-        public String getComputer() { return computer; }
-        public File getFile() { return file; }
+        public String getHostname() { return hostname; }
+        public File getFile() { return FD; }
+        public String getDir() { return dir; }
     }
 
+    private static final String hostName;
+    private static final String userName;
+    static {
+        String name = "unknownHost";
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            name = addr.getHostName();
+        } catch (java.net.UnknownHostException e) {
+        }
+        hostName = name;
+        userName = System.getProperty("user.name", "unknownUser");
+    }
+    public static final String getHostName() { return hostName; }
+    public static final String getUserName() { return userName; }
 }

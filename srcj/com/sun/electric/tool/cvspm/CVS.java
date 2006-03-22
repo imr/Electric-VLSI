@@ -27,6 +27,7 @@ package com.sun.electric.tool.cvspm;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
@@ -41,6 +42,7 @@ import javax.swing.*;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.net.URL;
 
 /**
@@ -123,7 +125,7 @@ public class CVS {
     public static void runCVSCommand(String cmd, String comment, String workingDir, OutputStream out) {
         String run = getCVSProgram() + " -d"+getRepository()+" "+cmd;
 
-        System.out.println(comment);
+        System.out.println(comment+": cvs "+cmd);
         Exec e = new Exec(run, null, new File(workingDir), out, out);
         e.run();
     }
@@ -246,6 +248,152 @@ public class CVS {
         return true;
     }
 
+    /**
+     * Returns true if the library is in CVS, otherwise generates an error message.
+     * @param lib the library to check
+     * @param cmd the CVS command (for error message display)
+     * @param dialog true to show a modal dialog, false to write error to message window
+     * @return true if it is in cvs, false otherwise
+     */
+    public static boolean assertInCVS(Library lib, String cmd, boolean dialog) {
+        File libFile = new File(lib.getLibFile().getPath());
+        if (!CVS.isFileInCVS(libFile)) {
+            if (libFile.getPath().indexOf("com/sun/electric/lib/spiceparts") != -1) return false;
+            String message = "Library "+lib.getName()+" is not part of CVS repository.\n" +
+                        "Use 'CVS Add' to add to current repository.";
+            if (dialog) {
+                Job.getUserInterface().showErrorMessage(message, "CVS "+cmd+" Failed");
+            } else {
+                System.out.println(message+" CVS "+cmd+" Failed");
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns true if the Cell is in CVS, otherwise generates an error message.
+     * @param cell the cell to check
+     * @param cmd the CVS command (for error message display)
+     * @param dialog true to show a modal dialog, false to write error to message window
+     * @return true if it is in cvs, false otherwise
+     */
+    public static boolean assertInCVS(Cell cell, String cmd, boolean dialog) {
+        File cellFile = getCellFile(cell);
+        if (cellFile == null) {
+            String message = "Cell "+cell.libDescribe()+" is not part of CVS repository.\n" +
+                        "Use 'CVS Add' to add to current repository.";
+            if (dialog) {
+                Job.getUserInterface().showErrorMessage(message, "CVS "+cmd+" Failed");
+            } else {
+                System.out.println(message+" CVS "+cmd+" Failed");
+            }
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Get a command directory in which to run a CVS command on the given
+     * libraries and cells.  This just picks the parent dir of
+     * the first library found.
+     * @param libs
+     * @param cells
+     * @return
+     */
+    static String getUseDir(List<Library> libs, List<Cell> cells) {
+        if (libs != null) {
+            for (Library lib : libs) {
+                if (lib.isHidden()) continue;
+                if (!lib.isFromDisk()) continue;
+                File libFile = new File(lib.getLibFile().getPath());
+                return libFile.getParent();
+            }
+        }
+        if (cells != null) {
+            for (Cell cell : cells) {
+                Library lib = cell.getLibrary();
+                if (lib.isHidden()) continue;
+                if (!lib.isFromDisk()) continue;
+                File libFile = new File(lib.getLibFile().getPath());
+                return libFile.getParent();
+            }
+        }
+        return User.getWorkingDirectory();
+    }
+
+    /**
+     * Get a String of filenames for the associated libraries, to pass as the
+     * 'files' argument to a CVS command.  Any files in 'useDir' will
+     * be relative names, otherwise they will be absolute file names.
+     * @param libs
+     * @return
+     */
+    static StringBuffer getLibraryFiles(List<Library> libs, String useDir) {
+        StringBuffer libsBuf = new StringBuffer();
+        if (libs == null) return libsBuf;
+        for (Library lib : libs) {
+            String file = lib.getLibFile().getPath();
+            if (file.startsWith(useDir)) {
+                file = file.substring(useDir.length()+1, file.length());
+            }
+            libsBuf.append(file+" ");
+        }
+        return libsBuf;
+    }
+
+    /**
+     * Get a String of filenames for the associated cells, to pass as the
+     * 'files' argument to a CVS command.  Any files in 'useDir' will
+     * be relative names, otherwise they will be absolute file names.
+     * @param cells
+     * @return
+     */
+    static StringBuffer getCellFiles(List<Cell> cells, String useDir) {
+        StringBuffer cellsBuf = new StringBuffer();
+        if (cells == null) return cellsBuf;
+        for (Cell cell : cells) {
+            String file = getCellFile(cell).getPath();
+            if (file.startsWith(useDir)) {
+                file = file.substring(useDir.length()+1, file.length());
+            }
+            cellsBuf.append(file+" ");
+        }
+        return cellsBuf;
+    }
+
+    /**
+     * Get the Cell for the given path. The path is to be of the format
+     * .../libraryName.delib/cellname/cellname.view. Returns null if
+     * not of the correct format, if the library cannot be found, or
+     * if the cell cannot be found.
+     * @param path
+     * @return
+     */
+    static Cell getCellFromPath(String path) {
+        int delibExt = path.toLowerCase().indexOf(".delib"+File.separator);
+        if (delibExt == -1) return null;
+
+        // get the library
+        String libpath = path.substring(0, delibExt);
+        File libFile = new File(libpath);
+        String libName = libFile.getName();
+        Library lib = Library.findLibrary(libName);
+        if (lib == null) return null;
+
+        // get cell file
+        File file = new File(path);
+        String cellFile = file.getName();
+        int ext = cellFile.indexOf('.');
+        if (ext == -1) return null;
+        String cellName = cellFile.substring(0, ext);
+        String view = cellFile.substring(ext+1);
+        View realView = View.findView(view);
+        if (realView == null) return null;
+        Cell cell = lib.findNodeProto(cellName+"{"+view+"}");
+        return cell;
+    }
+
     // ------------------- Preferences --------------------
 
     /**
@@ -257,11 +405,19 @@ public class CVS {
         return getCVSRepository();
     }
 
-    private static Pref cacheCVSProgram = Pref.makeStringPref("CVS Program", User.getUserTool().prefs, "cvspm");
+    private static Pref cacheCVSEnabled = Pref.makeBooleanPref("CVS Enabled", User.getUserTool().prefs, false);
+    public static boolean getCVSEnabled() { return cacheCVSEnabled.getBoolean(); }
+    public static void setCVSEnabled(boolean b) { cacheCVSEnabled.setBoolean(b); }
+
+    private static Pref cacheCVSProgram = Pref.makeStringPref("CVS Program", User.getUserTool().prefs, "cvs");
     public static String getCVSProgram() { return cacheCVSProgram.getString(); }
     public static void setCVSProgram(String s) { cacheCVSProgram.setString(s); }
 
     private static Pref cacheCVSRepository = Pref.makeStringPref("CVS Repository", User.getUserTool().prefs, "");
     public static String getCVSRepository() { return cacheCVSRepository.getString(); }
     public static void setCVSRepository(String s) { cacheCVSRepository.setString(s); }
+
+    private static Pref cacheCVSLastCommitMessage = Pref.makeStringPref("CVS Last Commit Message", User.getUserTool().prefs, "");
+    public static String getCVSLastCommitMessage() { return cacheCVSLastCommitMessage.getString(); }
+    public static void setCVSLastCommitMessage(String s) { cacheCVSLastCommitMessage.setString(s); }
 }

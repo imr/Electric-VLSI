@@ -48,8 +48,8 @@ public class State implements Comparable {
     public static final State PATCHED =  new State("P", "Needs Patch",  "Patched", 4);
     public static final State ADDED =    new State("A", "Locally Added", "Added", 5);
     public static final State REMOVED =  new State("R", "Locally Removed", "Removed", 6);
-    public static final State MODIFIED = new State("M", "Locally Modified", "Locally Modified", 1);
-    public static final State CONFLICT = new State("C", "Conflicts With Repository", "Has Conflicts", 2);
+    public static final State MODIFIED = new State("M", "Locally Modified", "Locally Modified", 2);
+    public static final State CONFLICT = new State("C", "Conflicts With Repository", "Has Conflicts", 1);
     public static final State UNKNOWN =  new State("?", "Unknown", "Unknown", 7);
     public static final State NONE =     new State("",  "None", "None", 8);
 

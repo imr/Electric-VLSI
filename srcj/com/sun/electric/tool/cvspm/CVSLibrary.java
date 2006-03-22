@@ -27,6 +27,7 @@ package com.sun.electric.tool.cvspm;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.util.*;
@@ -46,10 +47,27 @@ public class CVSLibrary {
     private FileType type;
     private State libState;
     private Map<Cell,State> cellStates;
-    private Map<Cell,Cell> editing;     // cells user has edit lock for
+    private Map<Cell,Cell> editing;         // list of cells I am editing
 
     private static Map<Library,CVSLibrary> CVSLibraries = new HashMap<Library,CVSLibrary>();
 
+    private CVSLibrary(Library lib) {
+        this.lib = lib;
+        String libFile = lib.getLibFile().getPath();
+        type = OpenFile.getOpenFileType(libFile, FileType.JELIB);
+        libState = State.NONE;
+
+        cellStates = new HashMap<Cell,State>();
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+            Cell cell = it.next();
+            cellStates.put(cell, State.NONE);
+            if (CVS.isDELIB(lib)) {
+                if (!CVS.isFileInCVS(CVS.getCellFile(cell))) cellStates.put(cell, State.UNKNOWN);
+            }
+
+        }
+        editing = new HashMap<Cell,Cell>();
+    }
     /**
      * Add a library to the list of CVS libraries, that will maintain
      * the known state of the library with respect to CVS.  The known
@@ -77,96 +95,60 @@ public class CVSLibrary {
     }
 
     /**
-     * Update maintained state of libraries by checking CVS
+     * See if library is part of CVS repository
+     * @param lib
+     * @return true if it is part of a CVS repository,
+     * false otherwise
      */
-    public static void updateStateAllLibraries() {
-        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-            Library lib = it.next();
-            updateState(lib);
-        }
+    public static boolean isInCVS(Library lib) {
+        CVSLibrary cvslib = CVSLibraries.get(lib);
+        if (cvslib == null) return false;
+        return true;
     }
 
     /**
-     * Update maintained state of library by checking CVS
-     * @param lib
+     * See if cell is part of CVS repository (DELIB), or
+     * is part of library that is part of repository (JELIB).
+     * @param cell
+     * @return
      */
-    public static void updateState(Library lib) {
+    public static boolean isInCVS(Cell cell) {
+        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
+        if (cvslib == null) return false;
+        if (cvslib.type != FileType.DELIB) return true;
+        State state = cvslib.cellStates.get(cell);
+        if (state == null) return false;
+        return true;
+    }
+
+    // --------------------- State recording ---------------------
+
+    /**
+     * Set state of a Cell
+     * @param cell
+     * @param state
+     */
+    public static void setState(Cell cell, State state) {
+        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
+        if (cvslib == null) return;
+        if (state == null)
+            return;
+        cvslib.cellStates.put(cell, state);
+    }
+
+    /**
+     * Set state of all Cells in a library
+     * @param lib
+     * @param state
+     */
+    public static void setState(Library lib, State state) {
         CVSLibrary cvslib = CVSLibraries.get(lib);
         if (cvslib == null) return;
-        cvslib.updateState();
-    }
-
-    private void updateState() {
-        Update.StatusResult result = Update.status(lib);
-        Map<String,State> fileStates = getFileStates(result);
-        if (type != FileType.DELIB) {
-            // look for library state
-            State state = fileStates.get(lib.getName()+type.getExtensions()[0]);
-            if (state == null) state = State.NONE;
-            libState = state;
-        } else {
-            // get states for all Cells
-            Set<State> states = new TreeSet<State>();
-            for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-                Cell cell = it.next();
-                State state = fileStates.get(cell.getName()+"."+cell.getView().getAbbreviation());
-                if (state == null) state = State.NONE;
-                cellStates.put(cell, state);
-                states.add(state);
-            }
-            libState = State.NONE;
-            if (states.size() > 0) libState = states.iterator().next();
-        }
-    }
-
-    private static Map<String,State> getFileStates(Update.StatusResult result) {
-        Map<String,State> states = new HashMap<String,State>();
-        for (String s : result.getUpdated()) {
-            states.put(getFileFromPath(s), State.UPDATE);
-        }
-        for (String s : result.getAdded()) {
-            states.put(getFileFromPath(s), State.ADDED);
-        }
-        for (String s : result.getRemoved()) {
-            states.put(getFileFromPath(s), State.REMOVED);
-        }
-        for (String s : result.getConflicts()) {
-            states.put(getFileFromPath(s), State.CONFLICT);
-        }
-        for (String s : result.getModified()) {
-            states.put(getFileFromPath(s), State.MODIFIED);
-        }
-        for (String s : result.getUnknown()) {
-            states.put(getFileFromPath(s), State.UNKNOWN);
-        }
-        return states;
-    }
-
-    private static String getFileFromPath(String path) {
-        int i = path.lastIndexOf(File.separator);
-        if (i == path.length()-1) {
-            // last char, path is a directory, chop it off
-            path = path.substring(0, path.length()-1);
-            i = path.lastIndexOf(File.separator);
-        }
-        return path.substring(i+1, path.length());
-    }
-
-
-    private CVSLibrary(Library lib) {
-        this.lib = lib;
-        String libFile = lib.getLibFile().getPath();
-        type = OpenFile.getOpenFileType(libFile, FileType.JELIB);
-        libState = State.NONE;
-
-        cellStates = null;
-        editing = new HashMap<Cell,Cell>();
-        if (type == FileType.DELIB) {
-            cellStates = new HashMap<Cell,State>(); // only DELIBs have separate files for each cell
-            for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-                Cell cell = it.next();
-                cellStates.put(cell, State.NONE);
-            }
+        if (state == null)
+            return;
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+            Cell cell = it.next();
+            cvslib.cellStates.put(cell, state);
         }
     }
 
@@ -182,15 +164,24 @@ public class CVSLibrary {
 
     static State getState(Library lib) {
         CVSLibrary cvslib = CVSLibraries.get(lib);
-        if (cvslib == null) return State.NONE;
-        return cvslib.libState;
+        if (cvslib == null) return State.UNKNOWN;
+        Set<State> states = new TreeSet<State>();
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+            Cell cell = it.next();
+            State state = cvslib.cellStates.get(cell);
+            if (state == null) continue;
+            states.add(state);
+        }
+        Iterator<State> it = states.iterator();
+        if (it.hasNext()) return it.next();
+        return State.UNKNOWN;
     }
 
     static State getState(Cell cell) {
         CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
-        if (cvslib == null) return State.NONE;
+        if (cvslib == null) return State.UNKNOWN;
         State state = cvslib.cellStates.get(cell);
-        if (state == null) return State.NONE;
+        if (state == null) return State.UNKNOWN;
         return state;
     }
 
@@ -208,10 +199,10 @@ public class CVSLibrary {
         if (state == State.UPDATE) return Color.black;
         if (state == State.MODIFIED) return Color.blue;
         if (state == State.CONFLICT) return Color.red;
-        if (state == State.ADDED) return Color.orange;
-        if (state == State.REMOVED) return Color.orange;
+        if (state == State.ADDED) return Color.green;
+        if (state == State.REMOVED) return Color.green;
         if (state == State.PATCHED) return Color.black;
-        if (state == State.UNKNOWN) return Color.lightGray;
+        if (state == State.UNKNOWN) return Color.orange;
         return Color.black;
     }
 
@@ -221,36 +212,68 @@ public class CVSLibrary {
         return Color.black;
     }
 
-    // ------------------------- Edit Lock ---------------------------
+    // -------------------- Editing tracking ---------------------
 
-    /**
-     * Lock or Unlock edit lock for the cell
-     * @param cell
-     * @param setLocked
-     */
-    static void setEditing(Cell cell, boolean setLocked) {
+    public static void setEditing(Cell cell, boolean editing) {
         CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
         if (cvslib == null) return;
-        if (setLocked) {
+        if (editing) {
             cvslib.editing.put(cell, cell);
         } else {
             cvslib.editing.remove(cell);
         }
     }
 
-    /**
-     * Lock or Unlock edit lock for the entire library
-     */
-    static void setEditing(Library lib, boolean setLocked) {
+    public static boolean isEditing(Cell cell) {
+        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
+        if (cvslib == null) return false;
+        return cvslib.editing.containsKey(cell);
+    }
+
+    static void clearEditors(Library lib) {
         CVSLibrary cvslib = CVSLibraries.get(lib);
         if (cvslib == null) return;
+        cvslib.editing.clear();
+    }
+
+    /**
+     * Method called when saving a library, BEFORE the library
+     * file(s) are written.
+     * @param lib
+     */
+    public static void savingLibrary(Library lib) {
+        if (!CVS.isDELIB(lib)) {
+            return;
+        }
+        // all modifies cells must have edit turned on
+        List<Cell> modifiedCells = new ArrayList<Cell>();
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell cell = it.next();
-            if (setLocked) {
-                cvslib.editing.put(cell, cell);
-            } else {
-                cvslib.editing.remove(cell);
+            if (cell.isModified(true)) modifiedCells.add(cell);
+        }
+        // turn on edit for cells that are not being edited
+        StringBuffer buf = new StringBuffer();
+        for (Cell cell : modifiedCells) {
+            if (!CVS.isFileInCVS(CVS.getCellFile(cell))) continue;
+            // make sure state of cell is 'modified'
+            setState(cell, State.MODIFIED);
+            if (!isEditing(cell)) {
+                buf.append(DELIB.getCellFile(cell)+" ");
             }
         }
+        if (buf.length() == 0) return;      // nothing to 'edit'
+        // turn on edit for files to be modified
+        // note that header is never to have edit on or off
+        Edit.edit(buf.toString(), lib.getLibFile().getPath());
     }
+
+    /**
+     * Method called when closing library.  Should be called
+     * after library is closed.
+     * @param lib
+     */
+    public static void closeLibrary(Library lib) {
+        removeLibrary(lib);
+    }
+
 }

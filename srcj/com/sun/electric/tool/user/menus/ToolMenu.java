@@ -79,6 +79,8 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.cvspm.Update;
+import com.sun.electric.tool.cvspm.Commit;
+import com.sun.electric.tool.cvspm.Edit;
 import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.AssuraDrcErrors;
 import com.sun.electric.tool.drc.CalibreDrcErrors;
@@ -538,21 +540,30 @@ public class ToolMenu {
 		compactionSubMenu.addMenuItem("Do _Compaction", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
 
-        if (CVS.isEnabled()) {
-            // ------------------ CVS
-            MenuBar.Menu cvsSubMenu = MenuBar.makeMenu("CVS");
-            toolMenu.add(cvsSubMenu);
-            cvsSubMenu.addMenuItem("Checkout From Repository", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { CVS.checkoutFromRepository(); }});
-            cvsSubMenu.addMenuItem("Update All Libraries", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { Update.updateAllLibraries(); }});
-            cvsSubMenu.addMenuItem("Commit All Libraries", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {  }});
-            cvsSubMenu.addMenuItem("test", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { CVS.testModal(); }});
-            cvsSubMenu.addMenuItem("Check Status All Libraries", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { Update.getStatusAllLibraries(); }});
-        }
+        // ------------------ CVS
+        boolean cvsEnabled = CVS.isEnabled();
+        MenuBar.Menu cvsSubMenu = MenuBar.makeMenu("CVS");
+        toolMenu.add(cvsSubMenu);
+        MenuBar.MenuItem m;
+        m = cvsSubMenu.addMenuItem("Commit All Libraries", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Commit.commitAllLibraries(); }});
+        m.setEnabled(cvsEnabled);
+        m = cvsSubMenu.addMenuItem("Update All Libraries", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Update.updateAllLibraries(Update.UPDATE); }});
+        m.setEnabled(cvsEnabled);
+        m = cvsSubMenu.addMenuItem("Get Status All Libraries", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Update.updateAllLibraries(Update.STATUS); }});
+        m.setEnabled(cvsEnabled);
+        m = cvsSubMenu.addMenuItem("List Editors All Libraries", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Edit.listEditorsAllLibraries(); }});
+        m.setEnabled(cvsEnabled);
+        cvsSubMenu.addSeparator();
+        m = cvsSubMenu.addMenuItem("Checkout From Repository", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CVS.checkoutFromRepository(); }});
+        m.setEnabled(cvsEnabled);
+        m = cvsSubMenu.addMenuItem("test", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { CVS.testModal(); }});
+        m.setEnabled(cvsEnabled);
 
 
         //------------------- Others

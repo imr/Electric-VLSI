@@ -31,6 +31,8 @@ import com.sun.electric.tool.Client;
 import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.cvspm.CVSLibrary;
+import com.sun.electric.tool.cvspm.Commit;
+import com.sun.electric.tool.cvspm.AddRemove;
 import com.sun.electric.tool.cvspm.Edit;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
@@ -81,6 +83,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.io.File;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -1203,34 +1206,52 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                 if (CVS.isEnabled()) {
                     menu.addSeparator();
 
+                    boolean enabled = CVSLibrary.isInCVS((Cell)getCurrentlySelectedObject(0));
+
                     JMenu cvsMenu = new JMenu("CVS");
                     menu.add(cvsMenu);
-
-                    menuItem = new JMenuItem("Edit");
-                    cvsMenu.add(menuItem);
-                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                        Edit.edit((Cell)getCurrentlySelectedObject(0), true); }});
 
                     menuItem = new JMenuItem("Commit");
                     cvsMenu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                        Update.updateCell((Cell)getCurrentlySelectedObject(0)); }});
-
-                    menuItem = new JMenuItem("Rollback");
-                    cvsMenu.add(menuItem);
-                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                        Edit.unedit((Cell)getCurrentlySelectedObject(0)); }});
-
+                        Commit.commit((Cell)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
 
                     menuItem = new JMenuItem("Update");
                     cvsMenu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                        Update.updateCell((Cell)getCurrentlySelectedObject(0)); }});
+                        Update.updateCell((Cell)getCurrentlySelectedObject(0), Update.UPDATE); }});
+                    menuItem.setEnabled(enabled);
 
                     menuItem = new JMenuItem("Get Status");
                     cvsMenu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                        Update.getStatus((Cell)getCurrentlySelectedObject(0)); }});
+                        Update.updateCell((Cell)getCurrentlySelectedObject(0), Update.STATUS); }});
+                    menuItem.setEnabled(enabled);
+
+                    menuItem = new JMenuItem("List Editors");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Edit.listEditors((Cell)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
+
+                    menuItem = new JMenuItem("Rollback");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Update.rollback((Cell)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
+
+                    menuItem = new JMenuItem("Add to CVS");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        AddRemove.add((Cell)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(!enabled);
+
+/*                    menuItem = new JMenuItem("Remove from CVS");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        AddRemove.remove((Cell)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);*/
                 }
 
                 menu.addSeparator();
@@ -1341,18 +1362,53 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                 if (CVS.isEnabled()) {
                     menu.addSeparator();
 
+                    boolean enabled = CVSLibrary.isInCVS((Library)getCurrentlySelectedObject(0));
+
                     JMenu cvsMenu = new JMenu("CVS");
                     menu.add(cvsMenu);
 
-                    menuItem = new JMenuItem("Get Status");
+                    menuItem = new JMenuItem("Commit");
                     cvsMenu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                        Update.getStatus((Library)getCurrentlySelectedObject(0)); }});
+                        Commit.commit((Library)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
 
                     menuItem = new JMenuItem("Update Library");
                     cvsMenu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                        Update.updateLibrary((Library)getCurrentlySelectedObject(0)); }});
+                        Update.updateLibrary((Library)getCurrentlySelectedObject(0), Update.UPDATE); }});
+                    menuItem.setEnabled(enabled);
+
+                    menuItem = new JMenuItem("Get Status");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Update.updateLibrary((Library)getCurrentlySelectedObject(0), Update.STATUS); }});
+                    menuItem.setEnabled(enabled);
+
+                    menuItem = new JMenuItem("List Editors");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Edit.listEditors((Library)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
+
+                    menuItem = new JMenuItem("Rollback");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Update.rollback((Library)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
+
+                    menuItem = new JMenuItem("Add to CVS");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        AddRemove.add((Library)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(!enabled);
+
+/*                    menuItem = new JMenuItem("Remove from CVS");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        AddRemove.remove((Library)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
+                    */
                 }
 
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());

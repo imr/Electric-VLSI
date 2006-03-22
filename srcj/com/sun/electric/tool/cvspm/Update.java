@@ -26,20 +26,14 @@ package com.sun.electric.tool.cvspm;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.input.LibraryFiles;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import javax.swing.JOptionPane;
 import java.io.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -50,104 +44,115 @@ import java.util.Iterator;
  */
 public class Update {
 
-    // -------------- Updating -----------------
+    public static final int UPDATE = 0;
+    public static final int STATUS = 1;
+    public static final int ROLLBACK = 2;
 
-    public static void updateAllLibraries() {
-
-    }
-
-    // -------------- Update Library -------------------
-
-    public static void updateLibrary(Library lib) {
-        (new UpdateLibraryJob(lib)).startJob();
-    }
-
-    private static class UpdateLibraryJob extends Job {
-        private Library lib;
-        public UpdateLibraryJob(Library lib) {
-            super("CVS Update Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.lib = lib;
-        }
-        public boolean doIt() {
-            if (!lib.isFromDisk()) {
-                System.out.println("Cannot update libraries without disk files, and that have not been checked out from CVS");
-                return true;
-            }
-
-            // check if library has been changed, ask if user wants to discard changes if so
-            if (lib.isChanged()) {
-                String [] choices = { "Save Changes then Update", "Discard Changes then Update", "Cancel" };
-                int choice = Job.getUserInterface().askForChoice("Library "+lib.getName()+"has been modified in memory:",
-                        "CVS Update", choices, choices[2]);
-                if (choice == 2) return true;
-                if (choice == 0) {
-                    // save library
-                    FileMenu.saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false);
-                }
-            }
-            LibraryFiles.reloadLibrary(lib);
-            EDatabase.serverDatabase().checkInvariants();
-            return true;
-        }
-    }
-
-    // -------------- Update Cell ----------------------
+    // ------------------ Update/Status ---------------------
 
     /**
-     * Does not update header file from DELIB.
-     * @param cell
+     * Update all libraries.
+     * @param type the type of update to do
      */
-    public static void updateCell(Cell cell) {
-        if (!CVS.isFileInCVS(CVS.getCellFile(cell))) {
-            System.out.println("Cell "+cell.describe(true)+" is not in CVS");
-            return;
+    public static void updateAllLibraries(int type) {
+        boolean dialog = true;
+        if (type == STATUS) dialog = false;
+
+        List<Library> allLibs = new ArrayList<Library>();
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = it.next();
+            if (lib.isHidden()) continue;
+            if (!lib.isFromDisk()) continue;
+            if (!CVS.assertInCVS(lib, getMessage(type), dialog)) continue;
+            if (type != STATUS && !CVS.assertNotModified(lib, getMessage(type), dialog)) continue;
+            allLibs.add(lib);
         }
-        Snapshot checkedSnapshot = EDatabase.clientDatabase().backup();
-        CellBackup cellbackup = checkedSnapshot.getCell(cell.getCellIndex());
-        // check if cell has been modified (don't care about other cells modifications)
-        if (cellbackup.modified >= 1) {
-            Job.getUserInterface().showErrorMessage("Cell is modified. Cell must be saved before doing Update",
-                    "Cell Update Error");
-            return;
-        }
-        Job job = new UpdateCellJob(cell, checkedSnapshot.snapshotId);
-        job.startJob();
+        (new UpdateJob(null, allLibs, type)).startJob();
     }
 
-    private static class UpdateCellJob extends Job {
-        private Cell cell;
-        private int snapshotId;
-        private int updateResult;   // 1 to do nothing, 0 to reload from disk, -1 if conflicts
-        public UpdateCellJob(Cell cell, int snapshotId) {
-            super("CVS Update Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.snapshotId = snapshotId;
+    /**
+     * Update all Cells from a library.
+     * @param lib
+     * @param type the type of update to do
+     */
+    public static void updateLibrary(Library lib, int type) {
+        boolean dialog = true;
+        if (type == STATUS) dialog = false;
+
+        if (!CVS.assertInCVS(lib, getMessage(type), dialog)) return;
+        if (type == UPDATE && !CVS.assertNotModified(lib, getMessage(type), dialog)) return;
+
+        List<Library> libsToUpdate = new ArrayList<Library>();
+        libsToUpdate.add(lib);
+        (new UpdateJob(null, libsToUpdate, type)).startJob();
+    }
+
+    /**
+     * Update a Cell.
+     * @param cell
+     * @param type the type of update to do
+     */
+    public static void updateCell(Cell cell, int type) {
+        boolean dialog = true;
+        if (type == STATUS) dialog = false;
+
+        if (!CVS.assertInCVS(cell, getMessage(type), dialog)) return;
+        if (type != STATUS && !CVS.assertNotModified(cell, getMessage(type), dialog)) return;
+
+        List<Cell> cellsToUpdate = new ArrayList<Cell>();
+        cellsToUpdate.add(cell);
+        (new UpdateJob(cellsToUpdate, null, type)).startJob();
+    }
+
+    private static class UpdateJob extends Job {
+        private List<Cell> cellsToUpdate;
+        private List<Library> librariesToUpdate;
+        private int type;
+        /**
+         * Update cells and/or libraries.
+         * @param cellsToUpdate
+         * @param librariesToUpdate
+         */
+        private UpdateJob(List<Cell> cellsToUpdate, List<Library> librariesToUpdate,
+                          int type) {
+            super("CVS Update Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cellsToUpdate = cellsToUpdate;
+            this.librariesToUpdate = librariesToUpdate;
+            this.type = type;
+            if (this.cellsToUpdate == null) this.cellsToUpdate = new ArrayList<Cell>();
+            if (this.librariesToUpdate == null) this.librariesToUpdate = new ArrayList<Library>();
         }
-        public boolean doIt() throws JobException {
-            // check if Cell is changed, ask if user wants to discard changes if so
-            if (EDatabase.serverDatabase().backup().snapshotId != snapshotId) {
-                // database has changed since we checked for Cell modification
-                throw new JobException("Server modified database since checks on Client side");
+        public boolean doIt() {
+            String useDir = CVS.getUseDir(librariesToUpdate, cellsToUpdate);
+            StringBuffer libs = CVS.getLibraryFiles(librariesToUpdate, useDir);
+            StringBuffer cells = CVS.getCellFiles(cellsToUpdate, useDir);
+            String updateFiles = libs.toString() + " " + cells.toString();
+            if (updateFiles.trim().equals("")) return true;
+
+            StatusResult result = update(updateFiles, useDir, type);
+            commentStatusResult(result, type);
+
+            // reload libs if needed
+            if (type != STATUS) {
+                List<Library> libsToReload = new ArrayList<Library>();
+                for (Cell cell : result.getCells(State.UPDATE)) {
+                    Library lib = cell.getLibrary();
+                    if (!libsToReload.contains(lib))
+                        libsToReload.add(lib);
+                }
+                for (Library lib : libsToReload) {
+                    LibraryFiles.reloadLibrary(lib);
+                }
             }
-
-            // get cell file
-            File cellFile = CVS.getCellFile(cell);
-            if (cellFile == null) return true;
-
-            String dir = cellFile.getParent();
-            String c = cellFile.getName();
-
-            // issue CVS update command
-            StatusResult result = update(c, dir);
-            updateResult = commentUpdate(result);
-            if (updateResult == 0) {
-                // reload data from disk
-                List<Cell> list = new ArrayList<Cell>();
-                list.add(cell);
-                LibraryFiles.reloadLibraryCells(list);
+            if (type == ROLLBACK) {
+                // turn off edit for rolled back cells
+                for (Cell cell : result.getCells(State.UPDATE)) {
+                    CVSLibrary.setEditing(cell, false);
+                }
             }
-
-            EDatabase.serverDatabase().checkInvariants();
+            // update states
+            updateStates(result);
+            System.out.println(getMessage(type)+" complete.");
             return true;
         }
     }
@@ -158,169 +163,79 @@ public class Update {
      * @param dir
      * @return
      */
-    public static StatusResult update(String file, String dir) {
+    private static StatusResult update(String file, String dir, int type) {
+        String command = "-q update -P ";
+        String message = "Running CVS Update";
+        if (type == STATUS) {
+            command = "-nq update ";
+            message = "Running CVS Status";
+        }
+        if (type == ROLLBACK) {
+            command = "-q update -C -P ";
+            message = "Rollback from CVS";
+        }
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CVS.runCVSCommand("-nq update "+file, "Getting status for "+file,
+        CVS.runCVSCommand(command+file, message,
                     dir, out);
         LineNumberReader result = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
         return parseOutput(result);
     }
 
-
-    // ---------------- All Library Status ----------------
-
-    public static void getStatusAllLibraries() {
-        // check modification status of current state of database
-        boolean modified = false;
-        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-            Library lib = it.next();
-            if (lib.isHidden()) continue;
-            if (lib.isChanged()) {
-                modified = true;
-                break;
-            }
+    private static String getMessage(int type) {
+        switch(type) {
+            case 0: return "Update";
+            case 1: return "Status";
+            case 2: return "Rollback";
         }
-        if (modified) {
-            // warn user
-            boolean confirm = Job.getUserInterface().confirmMessage(
-                    "One or more Libraries has changes in memory; CVS status compares only\n"+
-                    "disk files to repository files. Continue anyway?");
-            if (!confirm) return;
-        }
-        LibraryStatusJob job = new LibraryStatusJob(null);
-        job.startJob();
+        return "";
     }
 
-    // ---------------- Library Status ----------------
-
-    public static void getStatus(Library lib) {
-        // check modification status of current state of database
-        if (lib.isChanged()) {
-            // warn user
-            boolean confirm = Job.getUserInterface().confirmMessage(
-                    "Library has changes in memory; CVS status compares only\n"+
-                    "disk files to repository files. Continue anyway?");
-            if (!confirm) return;
+    private static void updateStates(StatusResult result) {
+        for (Cell cell : result.getCells(State.ADDED)) {
+            CVSLibrary.setState(cell, State.ADDED);
         }
-        LibraryStatusJob job = new LibraryStatusJob(lib);
-        job.startJob();
+        for (Cell cell : result.getCells(State.REMOVED)) {
+            CVSLibrary.setState(cell, State.REMOVED);
+        }
+        for (Cell cell : result.getCells(State.MODIFIED)) {
+            CVSLibrary.setState(cell, State.MODIFIED);
+        }
+        for (Cell cell : result.getCells(State.CONFLICT)) {
+            CVSLibrary.setState(cell, State.CONFLICT);
+        }
+        for (Cell cell : result.getCells(State.UPDATE)) {
+            CVSLibrary.setState(cell, State.UPDATE);
+        }
+        for (Cell cell : result.getCells(State.UNKNOWN)) {
+            CVSLibrary.setState(cell, State.UNKNOWN);
+        }
+
     }
 
+    // -------------------- Rollback ----------------------------
 
-    private static class LibraryStatusJob extends Job {
-        private Library lib;
-        private LibraryStatusJob(Library lib) {
-            super("CVS Status", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            this.lib = lib;
-        }
-        public boolean doIt() {
-            boolean allfilesuptodate = true;
-            if (lib == null) {
-                // do for all libraries
-                for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
-                    Library lib = it.next();
-                    if (lib.isHidden()) continue;
-                    if (!doItOneLib(lib))
-                        allfilesuptodate = false;
-                }
-            } else {
-                if (!doItOneLib(lib))
-                    allfilesuptodate = false;
-            }
-            if (allfilesuptodate) {
-                System.out.println("All files up-to-date");
-            } else {
-                System.out.println("All other files up-to-date");
-            }
-            return true;
-        }
-        /** Return true if all files are up to date, false otherwise */
-        private boolean doItOneLib(Library lib) {
-            StatusResult result = status(lib);
-            return commentStatus(result);
-        }
+    public static void rollback(Cell cell) {
+        int ret = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+                "WARNING! Disk file for Cell "+cell.libDescribe()+" will revert to latest CVS version!\n"+
+                "All uncommited changes will be lost!!!  Continue anyway?", "Rollback Cell", JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+        if (ret == JOptionPane.NO_OPTION) return;
+
+        updateCell(cell, ROLLBACK);
     }
 
+    public static void rollback(Library lib) {
+        int ret = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+                "WARNING! Disk file(s) for Library"+lib.getName()+" will revert to latest CVS version!\n"+
+                "All uncommited changes will be lost!!!  Continue anyway?", "Rollback Library", JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+        if (ret == JOptionPane.NO_OPTION) return;
 
-    // ---------------- Cell Status -------------------
-
-    public static void getStatus(Cell cell) {
-        if (!CVS.isFileInCVS(CVS.getCellFile(cell))) {
-            System.out.println("Cell "+cell.describe(true)+" is not in CVS");
-            return;
-        }
-
-        if (cell.isModified(true)) {
-            boolean confirm = Job.getUserInterface().confirmMessage(
-                    "Cell has changes in memory; CVS status compares only\n"+
-                    "disk files to repository files. Continue anyway?");
-            if (!confirm) return;
-        }
-        Job job = new CellStatusJob(cell);
-        job.startJob();
+        updateLibrary(lib, ROLLBACK);
     }
 
-    private static class CellStatusJob extends Job {
-        private Cell cell;
-        private CellStatusJob(Cell cell) {
-            super("CVS Status", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            this.cell = cell;
-        }
-        public boolean doIt() {
-            StatusResult result = status(cell);
-            if (commentStatus(result)) {
-                System.out.println("Cell is up-to-date");
-            }
-            return true;
-        }
-    }
-
-    // ------------------------ Status Methods -----------------------
-
-    /**
-     * Get the status for the library. Returns null on error.
-     * @param lib
-     * @return
-     */
-    public static StatusResult status(Library lib) {
-        File file = new File(lib.getLibFile().getPath());
-        if (!CVS.isFileInCVS(file)) {
-            // library not in CVS
-            System.out.println(lib.getName()+" is not in CVS");
-            return null;
-        }
-        String dir = file.getParent();
-        String delib = file.getName();
-        return status(delib, dir);
-    }
-
-    /**
-     * Get the status for the Cell.  Returns null on error.
-     * @param cell
-     * @return
-     */
-    public static StatusResult status(Cell cell) {
-        File file = CVS.getCellFile(cell);
-        if (!CVS.isFileInCVS(CVS.getCellFile(cell))) return null;
-
-        String dir = file.getParent();
-        String c = file.getName();
-        return status(c, dir);
-    }
-
-    /**
-     * Get the status for a given file, in the given directory.
-     * @param file
-     * @param dir
-     * @return
-     */
-    public static StatusResult status(String file, String dir) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CVS.runCVSCommand("-nq update "+file, "Getting status for "+file,
-                    dir, out);
-        LineNumberReader result = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
-        return parseOutput(result);
-    }
+    // ---------------------- Output Parsing -------------------------
 
     /**
      * Parse the output of an 'cvs -nq update' command, which
@@ -346,29 +261,23 @@ public class Update {
             if (parts.length != 2) continue;
             State state = State.getState(parts[0]);
             if (state == null) continue;
-            if (state == State.UPDATE || state == State.PATCHED) {
-                result.updated.add(parts[1]);
-                continue;
+            if (state == State.PATCHED) state = State.UPDATE;
+
+            // find Cell for filename
+            String filename = parts[1];
+            File file = new File(filename);
+            if (filename.toLowerCase().endsWith(".jelib")) {
+                // jelib library file, set state of all cells
+                Library lib = Library.findLibrary(file.getName());
+                if (lib == null) continue;
+                for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                    Cell cell = it.next();
+                    result.addCell(state, cell);
+                }
             }
-            if (state == State.ADDED) {
-                result.added.add(parts[1]);
-                continue;
-            }
-            if (state == State.REMOVED) {
-                result.removed.add(parts[1]);
-                continue;
-            }
-            if (state == State.MODIFIED) {
-                result.modified.add(parts[1]);
-                continue;
-            }
-            if (state == State.CONFLICT) {
-                result.conflict.add(parts[1]);
-                continue;
-            }
-            if (state == State.UNKNOWN) {
-                result.unknown.add(parts[1]);
-                continue;
+            Cell cell = CVS.getCellFromPath(filename);
+            if (cell != null) {
+                result.addCell(state, cell);
             }
         }
         return result;
@@ -378,82 +287,57 @@ public class Update {
      * Parse the output of an 'cvs -nq update' command, which
      * checks the status of the given files.
      * Returns true if all files are up-to-date, false otherwise
-     * @return
      */
-    public static boolean commentStatus(StatusResult result) {
-        if (result.added.size() > 0) {
-            for (String s : result.added) System.out.println("Added\t"+s);
+    public static void commentStatusResult(StatusResult result, int type) {
+        boolean allFilesUpToDate = true;
+        for (Cell cell : result.getCells(State.ADDED)) {
+            System.out.println("Added\t"+cell.libDescribe());
+            allFilesUpToDate = false;
         }
-        if (result.removed.size() > 0) {
-            for (String s : result.removed) System.out.println("Removed\t"+s);
+        for (Cell cell : result.getCells(State.REMOVED)) {
+            System.out.println("Removed\t"+cell.libDescribe());
+            allFilesUpToDate = false;
         }
-        if (result.modified.size() > 0) {
-            for (String s : result.modified) System.out.println("Modified\t"+s);
+        for (Cell cell : result.getCells(State.MODIFIED)) {
+            System.out.println("Modified\t"+cell.libDescribe());
+            allFilesUpToDate = false;
         }
-        if (result.conflict.size() > 0) {
-            for (String s : result.conflict) System.out.println("Conflicts\t"+s);
+        for (Cell cell : result.getCells(State.CONFLICT)) {
+            System.out.println("Conflicts\t"+cell.libDescribe());
+            allFilesUpToDate = false;
         }
-        if (result.updated.size() > 0) {
-            for (String s : result.updated) System.out.println("NeedsUpdate\t"+s);
+        for (Cell cell : result.getCells(State.UPDATE)) {
+            if (type == STATUS)
+                System.out.println("NeedsUpdate\t"+cell.libDescribe());
+            if (type == UPDATE)
+                System.out.println("Updated\t"+cell.libDescribe());
+            allFilesUpToDate = false;
         }
-
-        if (result.getTotalMentioned() == 0) {
-            return true;
-            //System.out.println("All files up-to-date");
-        } else {
-            return false;
-            //System.out.println("All other files up-to-date.");
+        if (type == STATUS) {
+            if (allFilesUpToDate) System.out.println("All files up-to-date");
+            else System.out.println("All other files up-to-date");
         }
-    }
-
-    /**
-     * Parse the output of an update command, 'cvs -q update'.
-     * @return 1 if nothing needs to be done, 0 if library
-     * should be reloaded from disk, -1 if conflicts were found.
-     */
-    private static int commentUpdate(StatusResult result) {
-        if (result.added.size() > 0) {
-            for (String s : result.added) System.out.println("Added\t"+s);
-        }
-        if (result.removed.size() > 0) {
-            for (String s : result.removed) System.out.println("Removed\t"+s);
-        }
-        if (result.modified.size() > 0) {
-            for (String s : result.modified) System.out.println("Modified\t"+s);
-        }
-        if (result.conflict.size() > 0) {
-            for (String s : result.conflict) System.out.println("Conflicts\t"+s);
-        }
-        if (result.updated.size() > 0) {
-            for (String s : result.updated) System.out.println("Updated\t"+s);
-        }
-
-        if (result.conflict.size() > 0) {
-            return -1;  //conflicts found
-        }
-        if (result.updated.size() > 0) {
-            return 0;   // need to reload from disk
-        }
-        return 1;
     }
 
     public static class StatusResult {
-        private List<String> updated = new ArrayList<String>();
-        private List<String> added = new ArrayList<String>();
-        private List<String> removed = new ArrayList<String>();
-        private List<String> modified = new ArrayList<String>();
-        private List<String> conflict = new ArrayList<String>();
-        private List<String> unknown = new ArrayList<String>();
-        private StatusResult() {}
-        public List<String> getUpdated() { return updated; }
-        public List<String> getAdded() { return added; }
-        public List<String> getRemoved() { return removed; }
-        public List<String> getModified() { return modified; }
-        public List<String> getConflicts() { return conflict; }
-        public List<String> getUnknown() { return unknown; }
-        public int getTotalMentioned() {
-            return (added.size() + removed.size() + modified.size() +
-                    conflict.size() + updated.size());
+        private Map<State,List<Cell>> cells;
+
+        private StatusResult() {
+            cells = new HashMap<State,List<Cell>>();
+        }
+        private void addCell(State state, Cell cell) {
+            List<Cell> statecells = cells.get(state);
+            if (statecells == null) {
+                statecells = new ArrayList<Cell>();
+                cells.put(state, statecells);
+            }
+            statecells.add(cell);
+        }
+        public List<Cell> getCells(State state) {
+            List<Cell> statecells = cells.get(state);
+            if (statecells == null)
+                statecells = new ArrayList<Cell>();
+            return statecells;
         }
     }
 

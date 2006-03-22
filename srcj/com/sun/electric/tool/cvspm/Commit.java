@@ -24,6 +24,19 @@
 
 package com.sun.electric.tool.cvspm;
 
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.output.DELIB;
+
+import javax.swing.JOptionPane;
+import java.io.File;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+
 /**
  * Created by IntelliJ IDEA.
  * User: gainsley
@@ -33,5 +46,103 @@ package com.sun.electric.tool.cvspm;
  */
 public class Commit {
 
+    public static void commitAllLibraries() {
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = it.next();
+            commit(lib);
+        }
+    }
+
+    /**
+     * Commit a library into CVS.
+     * @param lib
+     */
+    public static void commit(Library lib) {
+        if (!CVS.assertInCVS(lib, "Commit", true)) return;
+        if (!CVS.assertNotModified(lib, "Commit", true)) return;
+
+        String lastCommitMessage = CVS.getCVSLastCommitMessage();
+        String commitMessage = JOptionPane.showInputDialog(
+                TopLevel.getCurrentJFrame(),
+                "Commit message for Library "+lib.getName()+":",
+                lastCommitMessage
+        );
+        if (commitMessage == null) return;  // user cancelled
+        if (!commitMessage.equals(lastCommitMessage))
+            CVS.setCVSLastCommitMessage(commitMessage);
+
+        List<Library> libsCommitted = new ArrayList<Library>();
+        libsCommitted.add(lib);
+        (new CommitJob(commitMessage, libsCommitted, null)).startJob();
+    }
+
+    /**
+     * Commit a Cell into CVs. Only works with DELIB file format.
+     * Does not commit the header file for the library.
+     * @param cell
+     */
+    public static void commit(Cell cell) {
+        if (!CVS.assertInCVS(cell, "Commit", true)) return;
+        if (!CVS.assertNotModified(cell, "Commit", true)) return;
+
+        String lastCommitMessage = CVS.getCVSLastCommitMessage();
+        String commitMessage = JOptionPane.showInputDialog(
+                TopLevel.getCurrentJFrame(),
+                "Commit message for Cell "+cell.libDescribe()+":",
+                lastCommitMessage
+        );
+        if (commitMessage == null) return;  // user cancelled
+        if (!commitMessage.equals(lastCommitMessage))
+            CVS.setCVSLastCommitMessage(commitMessage);
+
+        List<Cell> cellsCommitted = new ArrayList<Cell>();
+        cellsCommitted.add(cell);
+        (new CommitJob(commitMessage, null, cellsCommitted)).startJob();
+    }
+
+    private static class CommitJob extends Job {
+        private String message;
+        private List<Library> libsToCommit;
+        private List<Cell> cellsToCommit;
+        /**
+         * Commit cells and/or libraries.
+         * @param message the commit log message
+         * @param libsToCommit
+         * @param cellsToCommit
+         */
+        private CommitJob(String message, List<Library> libsToCommit, List<Cell> cellsToCommit) {
+            super("CVS Commit", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.message = message;
+            this.libsToCommit = libsToCommit;
+            this.cellsToCommit = cellsToCommit;
+            if (this.libsToCommit == null) this.libsToCommit = new ArrayList<Library>();
+            if (this.cellsToCommit == null) this.cellsToCommit = new ArrayList<Cell>();
+        }
+        public boolean doIt() {
+            // list of library files to commit
+            String useDir = CVS.getUseDir(libsToCommit, cellsToCommit);
+            StringBuffer libs = CVS.getLibraryFiles(libsToCommit, useDir);
+            StringBuffer cells = CVS.getCellFiles(cellsToCommit, useDir);
+            String commitFiles = libs + " " + cells;
+            if (commitFiles.trim().equals("")) return true;
+
+            CVS.runCVSCommand("-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);
+            System.out.println("Commit complete");
+            return true;
+        }
+        public void terminateOK() {
+            // remove editors for lib
+            for (Library lib : libsToCommit) {
+                CVSLibrary.clearEditors(lib);
+                CVSLibrary.setState(lib, State.NONE);
+            }
+            if (cellsToCommit != null) {
+                for (Cell cell : cellsToCommit) {
+                    CVSLibrary.setEditing(cell, false);
+                    CVSLibrary.setState(cell, State.NONE);
+                }
+            }
+        }
+    }
 
 }
