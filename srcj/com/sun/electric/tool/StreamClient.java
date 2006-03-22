@@ -49,6 +49,8 @@ public class StreamClient extends Client {
     private Snapshot initialSnapshot;
     private final ServerEventDispatcher dispatcher; 
     private final ClientReader reader;
+    private static final long STACK_SIZE_EVENT = isOSMac()?0:20*(1 << 10);
+    private final static int STACK_SIZE_READER = isOSMac()?0:1024;
     
     StreamClient(int connectionId, InputStream inputStream, OutputStream outputStream, Snapshot initialSnapshot) {
         super(connectionId);
@@ -65,12 +67,11 @@ public class StreamClient extends Client {
     }
     
     class ServerEventDispatcher extends Thread {
-        private static final long STACK_SIZE = 20*(1 << 10);
         private Snapshot currentSnapshot = Snapshot.EMPTY;
         private ServerEvent lastEvent = getQueueTail();
     
         private ServerEventDispatcher() {
-            super(null, null, "Dispatcher-" + connectionId, STACK_SIZE);
+            super(null, null, "Dispatcher-" + connectionId, STACK_SIZE_EVENT);
         }
         
         public void run() {
@@ -162,11 +163,10 @@ public class StreamClient extends Client {
     }
     
     private class ClientReader extends Thread {
-        private final static int STACK_SIZE = 1024;
         private final DataInputStream in;
         
         private ClientReader(InputStream inputStream) {
-            super(null, null, "ClientReader-" + connectionId, STACK_SIZE);
+            super(null, null, "ClientReader-" + connectionId, STACK_SIZE_READER);
             in = new DataInputStream(new BufferedInputStream(inputStream));
         }
         
