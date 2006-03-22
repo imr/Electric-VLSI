@@ -258,7 +258,7 @@ public class CVSLibrary {
             // make sure state of cell is 'modified'
             setState(cell, State.MODIFIED);
             if (!isEditing(cell)) {
-                buf.append(DELIB.getCellFile(cell)+" ");
+                buf.append(DELIB.getCellFile(cell.backup())+" ");
             }
         }
         if (buf.length() == 0) return;      // nothing to 'edit'

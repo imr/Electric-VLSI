@@ -129,14 +129,14 @@ public class AddRemove {
         private void generate(StringBuffer buf, Cell cell, String useDir) {
             String libfile = cell.getLibrary().getLibFile().getPath();
             // get cell directory if not already added before
-            File celldirFile = new File(libfile, DELIB.getCellSubDir(cell));
+            File celldirFile = new File(libfile, DELIB.getCellSubDir(cell.backup()));
             String celldir = celldirFile.getPath();
             if (!addedCellDirs.containsKey(celldir)) {
                 add(buf, celldir, useDir);
                 addedCellDirs.put(celldir, null);
             }
             // check cell files
-            File cellFile = new File(libfile, DELIB.getCellFile(cell));
+            File cellFile = new File(libfile, DELIB.getCellFile(cell.backup()));
             add(buf, cellFile.getPath(), useDir);
         }
         private void add(StringBuffer buf, String file, String useDir) {
