@@ -54,6 +54,8 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.JobManager;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LibraryFiles;
@@ -346,6 +348,9 @@ public class Output
             DELIB delib = new DELIB();
             delib.quiet = quiet;
             if (delib.openTextOutputStream(properOutputName)) return true;
+            if (CVS.isEnabled()) {
+                CVSLibrary.savingLibrary(lib);
+            }
             if (delib.writeLib(lib.getDatabase().backup(), lib.getId(), null)) return true;
             if (delib.closeTextOutputStream()) return true;
 		} else

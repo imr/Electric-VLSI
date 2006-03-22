@@ -46,14 +46,17 @@ import java.util.HashMap;
  */
 public class DELIB extends JELIB {
 
-    DELIB() {}
+    DELIB() {
+        cellFileMap = new HashMap<String,Integer>();
+    }
 
     private String headerFile;
+    private HashMap<String,Integer> cellFileMap;
 
     /**
      * Write a cell. Instead of writing it to the jelib file,
      * write a reference to an external file, and write the contents there
-     * @param cell
+     * @param cellBackup
      */
     void writeCell(CellBackup cellBackup) {
         String cellDir = getCellSubDir(cellBackup);
@@ -80,8 +83,15 @@ public class DELIB extends JELIB {
         // save old printWriter
         PrintWriter headerWriter = printWriter;
         // set current print writer to cell file
+        boolean append = false;
         try {
-            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(cellFileAbs)));
+            // check to see if this a version of a cell we've already written,
+            // if so, append to the same file
+            if (cellFileMap.containsKey(cellFileAbs))
+                append = true;
+            cellFileMap.put(cellFileAbs, null);
+
+            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(cellFileAbs, append)));
         } catch (IOException e) {
             System.out.println("Error opening "+cellFileAbs+", skipping cell: "+e.getMessage());
             printWriter = headerWriter;
@@ -101,7 +111,7 @@ public class DELIB extends JELIB {
         printWriter.close();
         // set the print writer back
         printWriter = headerWriter;
-        printWriter.println("C"+cellFile);
+        if (!append) printWriter.println("C"+cellFile);
     }
 
     void writeExternalLibraryInfo(LibId libId,  BitSet usedLibs, HashMap<CellId,BitSet> usedExports) {
@@ -154,15 +164,15 @@ public class DELIB extends JELIB {
      * Cell file name.  This is the path, relative to the .delib directory
      * path, of the file for the specified cell.  Note it is a relative path,
      * not an absolute path. Ex: LEsettings/LEsettings.sch
-     * @param cell
+     * @param cellBackup
      * @return
      */
     public static String getCellFile(CellBackup cellBackup) {
         String dir = getCellSubDir(cellBackup);
         String cellName = cellBackup.d.cellName.getName();
-        int version = cellBackup.d.cellName.getVersion();
+        //int version = cellBackup.d.cellName.getVersion();
         View view = cellBackup.d.cellName.getView();
-        if (version > 1) cellName = cellName + "_" + version;
+        //if (version > 1) cellName = cellName + "_" + version;
         return dir + File.separator + cellName + "." + view.getAbbreviation();
     }
 }

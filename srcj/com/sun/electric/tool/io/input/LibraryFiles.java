@@ -50,6 +50,9 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.CVSLibrary;
+import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
@@ -240,6 +243,10 @@ public abstract class LibraryFiles extends Input
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
 		}
 
+        // if CVS is enabled, get status of library
+        if (CVS.isEnabled()) {
+            Update.updateAllLibraries(Update.STATUS);
+        }
 		errorLogger.termLogging(true);
 
 		return lib;
@@ -309,6 +316,9 @@ public abstract class LibraryFiles extends Input
 			if (in.topLevelLibrary) mainLibDirectory = null;
 			return null;
 		}
+        if (CVS.isEnabled()) {
+            CVSLibrary.addLibrary(lib);
+        }
 		return in.lib;
 	}
 
@@ -332,6 +342,7 @@ public abstract class LibraryFiles extends Input
         String name = lib.getName();
         URL libFile = lib.getLibFile();
         lib.setName("___old___"+name);
+        lib.setHidden();                // hide the old library
         Library newLib = readLibrary(libFile, name, type, true, null);
 
         // replace all old cells with new cells
@@ -359,6 +370,7 @@ public abstract class LibraryFiles extends Input
 
         // close temp library
         lib.kill("delete old library");
+        System.out.println("Reloaded library "+newLib.getName()+" from disk.");
     }
 
     /**
