@@ -1231,7 +1231,8 @@ public class ClickZoomWireListener
                 case 1: {
                     if (ap.getFunction() == ArcProto.Function.METAL1) { found = true; } break; }
                 case 2: {
-                    if (ap.getFunction() == ArcProto.Function.METAL2) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL2
+                            || ap.getFunction() == ArcProto.Function.BUS) { found = true; } break; }
                 case 3: {
                     if (ap.getFunction() == ArcProto.Function.METAL3) { found = true; } break; }
                 case 4: {

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+IMP: (3/22/06, GVG) Number keys should switch between wire and bus in schematics (Bug 651)
+
 BUG: (3/21/06, GVG) STACK_SIZE in Thread must be 0 on MacOSX.
 FIX: Refactoring of a few classes and OS class was moved from TopLevel to Client class.
 Avoiding multiple ways to determine OS so please use Client API.
