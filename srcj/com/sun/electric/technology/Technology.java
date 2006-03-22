@@ -3935,7 +3935,7 @@ public class Technology implements Comparable<Technology>
                     obj = null;
                 else if (obj instanceof List)
                 {
-                    List<Object> l = (List<Object>)obj;
+                    List<?> l = (List)obj;
                     Object o = l.get(0);
                     if (o instanceof NodeInst)
                     {

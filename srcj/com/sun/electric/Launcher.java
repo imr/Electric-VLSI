@@ -61,7 +61,7 @@ public final class Launcher
         }
 
         String program = "java";
-        if (Client.isOSWindows()) program = "javaw";
+//        if (Client.isOSWindows()) program = "javaw";
 
         if (args.length >= 1 && args[0].equals("-regression")) {
             invokeRegression(args, program);

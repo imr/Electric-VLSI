@@ -1291,7 +1291,7 @@ public class Simulation extends Tool
         /** Spice 2 engine. */		SPICE_ENGINE_2(0, "Spice 2"),
         /** Spice 3 engine. */		SPICE_ENGINE_3(1, "Spice 3"),
         /** HSpice engine. */		SPICE_ENGINE_H(2, "HSpice"),
-        /** PSpice engine. */		SPICE_ENGINE_P(3, "PSice"),
+        /** PSpice engine. */		SPICE_ENGINE_P(3, "PSpice"),
         /** GNUCap engine. */		SPICE_ENGINE_G(4, "Gnucap"),
         /** SmartSpice engine. */	SPICE_ENGINE_S(5, "SmartSpice"),
         /** HSpice engine for Assura. */	    SPICE_ENGINE_H_ASSURA(6, "HSpice for Assura");
