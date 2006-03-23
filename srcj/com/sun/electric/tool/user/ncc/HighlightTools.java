@@ -119,9 +119,13 @@ public class HighlightTools {
         for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
             Network net = (Network)it.next();
             if (! net.hasName(name)) continue;
+            highlighter.addNetwork(net, cell);
             for (Iterator<Export> it2 = net.getExports(); it2.hasNext(); ) {
                 Export exp = (Export)it2.next();
-                highlighter.addText(exp, cell, null);
+                // All the following appear to have no affect
+                //highlighter.addText(exp, cell, null);
+                //highlighter.addElectricObject(exp, cell);
+                //highlighter.addObject(exp, cell);
             }
         }
     }

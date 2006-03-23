@@ -33,47 +33,84 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
     <b>Copy Schematic Names to Layout</b>
     
     For each pair of matching schematic and layout Cells, rename networks 
+    and nodes 
     in the layout Cell to have the same name as the equivalent networks
-    in the schematic Cell. This command only changes the name of layout 
-    networks that have no user-assigned names. If a layout network has
+    in the schematic Cell. This command copies only user-assigned names
+    from the schematic to the layout. Furthermore, it only changes the names
+    of layout
+    networks and nodes 
+    that have no user-assigned names. If a layout network 
+    or node has
     a user-assigned name that does not match the schematic then this 
     command prints a warning. This command also warns when non-equivalent
-    networks have the same name. This command uses the result generated
-    by the most recent run of NCC.
+    networks or nodes have the same user-assigned name. 
     <p>
-    Note: This command clears the saved result from the last run of NCC. 
+    Notes:
+    <ul>
+    <li>
+    This command uses the result 
+    generated
+    by the most recent run of NCC. That NCC run should be hierarchical 
+    without
+    size checking.
+    </li><li>
+    This command clears the saved result from the last run of NCC. 
     If you need to run a command that needs the last result, for example
     "Highlight Equivalent", then you must rerun NCC.
+    </li>
+    </ul>
     </p>
 </li>
 
 <li>
 	<b> Highlight Equivalent </b>
 
-	Highlight the network that is equivalent to the currently selected
-	network. The user should be aware of a number of limitations:  
+	Highlight the network or node that is equivalent to the currently 
+	selected
+	network or node. The user should be aware of a number of limitations:  
 	<ol>
-	<li> 
-		This command only works for networks in the root cells.
+	<li>
+		This command works best for networks in the top
+		level cells compared by the most recent NCC run.
+	</li>
+	<li>
+		This command also works for nodes in the top
+		level cells compared by the most recent NCC run as long
+		as those nodes are primitive transistors or were treated as
+		primitives because NCC compared them hierarchically.
 	</li>
 	<li> 
-		Because NCC performs series / parallel combination, NCC
-		can't find equivalents for certain networks. For example,
+		Because NCC combines MOS transistors that are in series 
+		into a single NMOS_*STACK,
+		NCC
+		can't find equivalents for certain networks and nodes. 
+		For example,
 		when NCC merges two series MOS transistors into a single
 		NMOS_2STACK it removes the network between them from NCC's
 		database. Therefore if you click on that network and ask
 		to highlight the equivalent, NCC won't be able to find 
-		an equivalent.
+		an equivalent. 
 	</li>
-	<li> 
-		NCC merges networks connected by parasitic resistors
-		and exportsConnectedByParent annotations. When NCC does this
-		it removes all but one of those networks from its database. 
-		If you click on one of the removed networks and ask to
-		highlight the equivalent, then NCC won't be able to find
-		an equivalent.
+	<li>
+		Because NCC combines MOS 
+		transistors that are in parallel, it can't find equivalents
+		for certain networks and nodes. For example when NCC
+		detects two parallel MOS
+		transistors, it removes one from NCC's database but adds
+		it's width to the other. Therefore if you click
+		on the transistor that was discarded and ask to highlight the equivalent, NCC
+		won't be able to find an equivalent.
 	</li>
 	</ol>
+	<p>
+	Note:
+	<ul>
+	<li>
+	    This command uses the result 
+	    generated
+	    by the most recent run of NCC. 
+	 </li>
+	 </ul>
 </li>
 
 <li>

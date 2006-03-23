@@ -2,6 +2,7 @@ package com.sun.electric.tool.user.ncc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,6 +17,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -24,6 +26,8 @@ import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.generator.layout.NodaNets;
+import com.sun.electric.tool.generator.layout.NodaNets.NodaPortInst;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -36,11 +40,52 @@ import com.sun.electric.tool.user.Highlighter;
 public class HighlightEquivalent {
 	private static void prln(String s) {System.out.println(s);}
 	
+	
+	private NodaPortInst getPortFromUnshortedNet(Network n) {
+		NodaNets noshortNets = new NodaNets(n.getParent(), false);
+		Collection<NodaPortInst> ports = noshortNets.getPorts(n);
+		for (NodaPortInst pi : ports) return pi;
+
+		LayoutLib.error(true, "No ports found on Network?");
+		return null;
+	}
+
+	// GUI netlists don't treat resistors as shorts. Let's find an
+	// equivalent shorted-resistor Network. This is tricky. All
+	// Networks except globals are guaranteed to be connected to at 
+	// least one port. Therefore find a port on the old network,
+	// short resistors, and try to find the network connected to the
+	// same port.
+	private Network netWhenResShorted(Network n) {
+		// if resistors already shorted then nothing else can be done
+		if (n.getNetlist().getShortResistors()) return null;
+		prln("    RK Debug: Try shorting resistors");
+		
+		NodaPortInst port = getPortFromUnshortedNet(n);
+		NodaNets shortedNets = new NodaNets(n.getParent(), true);
+		Nodable no = shortedNets.getNoda(port.getNodable().getName());
+		for (NodaPortInst pi : shortedNets.getPorts(no)) {
+			if (pi.getIndex()==port.getIndex() &&
+				pi.getPortProto()==port.getPortProto()) {
+				return pi.getNet();
+			}
+		}
+		prln("    RK Debug: Shorting resistors fails");
+		
+		return null;
+	}
+	
 	private void highlightEquivalentNet(Network n, Equivalence e, 
 			                            CellContext cc) {
 		prln("Finding equivalent of Network: "+n.describe(false));
 		NetNameProxy eqProx = e.findEquivalentNet(cc.context, n);
-		if (eqProx==null) {prln("Can't find an equivalent network.");  return;}
+		if (eqProx==null) {
+			// try extending this net by shorting resistors
+			n = netWhenResShorted(n);
+			if (n==null) {prln("Can't find an equivalent network.");  return;}
+			eqProx = e.findEquivalentNet(cc.context, n);
+			if (eqProx==null) {prln("Can't find an equivalent network.");  return;}
+		}
 		VarContext eqCtxt = eqProx.getContext();
 		Cell eqCell = eqProx.leafCell();
 		Highlighter h = HighlightTools.getHighlighter(eqCell, eqCtxt);
@@ -86,14 +131,6 @@ public class HighlightEquivalent {
 			return;
 		}
 		highlightEquivalentNet(n, e, cc);
-	}
-	
-	private List<NodeInst> getNodes(List<Geometric> geoms) {
-		List<NodeInst> nodes = new ArrayList<NodeInst>();
-		for (Geometric g : geoms) {
-			if (g instanceof NodeInst) nodes.add((NodeInst)g);
-		}
-		return nodes;
 	}
 	
 	private List<Nodable> findNodablesFrom(NodeInst ni) {
@@ -145,7 +182,7 @@ public class HighlightEquivalent {
 
 		NodableNameProxy eqProx = e.findEquivalentNode(cc.context,node);
 		if (eqProx==null) {
-			prln(" No equivalent found.");
+			prln(" No equivalent Node found.");
 			return;
 		}
 		Nodable eqNo = eqProx.getNodable();
@@ -160,11 +197,6 @@ public class HighlightEquivalent {
 	
 	private void highlightEquivOfGeometric(List<Geometric> geoms, 
 			                        	   Equivalence e, CellContext cc) {
-		if (geoms.size()==0) {
-			prln("I couldn't find anything to highlight");
-			return;
-		}
-		
 		Geometric g = geoms.iterator().next();
 		if (!(g instanceof NodeInst)) {
 			prln("Highlighted object is not a nodeInst: ");
@@ -193,10 +225,14 @@ public class HighlightEquivalent {
 		List<Geometric> geoms = wnd.getHighlightedEObjs(true, false);
 		if (geoms.size()>0) {
 			highlightEquivOfGeometric(geoms, e, cc);
-		} else {
-			Set<Network> nets = wnd.getHighlightedNetworks();
-			highlightEquivOfNet(nets, e, cc);
+			return;
 		}
+		Set<Network> nets = wnd.getHighlightedNetworks();
+		if (nets.size()>0) {
+			highlightEquivOfNet(nets, e, cc);
+			return;
+		}
+		prln("No arc or node is selected");
 	}
 	
 	private HighlightEquivalent() {highlight1();}
