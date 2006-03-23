@@ -56,6 +56,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -3136,6 +3137,27 @@ public class CircuitChangeJobs
 					System.out.println("No errors found");
 				errorLogger.termLogging(true);
 			}
+			return true;
+		}
+	}
+
+    /**
+	 * This class implement the command to reload a library
+	 */
+	public static class ReloadLibraryJob extends Job
+	{
+		private Library lib;
+
+		public ReloadLibraryJob(Library lib)
+		{
+			super("Reload Library " + lib.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.lib = lib;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+            LibraryFiles.reloadLibrary(lib);
 			return true;
 		}
 	}

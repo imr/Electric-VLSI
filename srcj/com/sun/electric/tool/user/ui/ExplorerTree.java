@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.cvspm.CVS;
@@ -37,6 +36,7 @@ import com.sun.electric.tool.cvspm.AddRemove;
 import com.sun.electric.tool.cvspm.Edit;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.project.AddCellJob;
 import com.sun.electric.tool.project.AddLibraryJob;
 import com.sun.electric.tool.project.CancelCheckOutJob;
@@ -49,13 +49,9 @@ import com.sun.electric.tool.project.UpdateJob;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
@@ -85,7 +81,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -1360,9 +1355,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryAction(); } });
 
-                menuItem = new JMenuItem("Replace Library");
+                menuItem = new JMenuItem("Reload Library");
                 menu.add(menuItem);
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { replaceLibraryAction(); } });
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reloadLibraryAction(); } });
 
                 if (CVS.isEnabled()) {
                     menu.addSeparator();
@@ -1652,26 +1647,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			FileMenu.closeLibraryCommand(lib);
 		}
 
-        private void replaceLibraryAction()
+        private void reloadLibraryAction()
         {
-//            Library lib = (Library)getCurrentlySelectedObject(0);
-//            String fileName = lib.getName();
-//            URL fileURL = lib.getLibFile();
-//            if (fileName != null)
-//            {
-//                // start a job to do the input
-//                URL fileURL = TextUtils.makeURLToFile(fileName);
-//                String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-//                Library deleteLib = Library.findLibrary(libName);
-//                if (deleteLib != null)
-//                {
-//                    // library already exists, prompt for save
-//                    if (FileMenu.preventLoss(deleteLib, 2)) return;
-//                    WindowFrame.removeLibraryReferences(deleteLib);
-//                }
-//                FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
-//                new FileMenu.ReadLibrary(fileURL, type, deleteLib);
-//            }
+            Library lib = (Library)getCurrentlySelectedObject(0);
+            new CircuitChangeJobs.ReloadLibraryJob(lib);
         }
 
 		private void renameGroupAction()
