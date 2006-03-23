@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
-IMP: (3/23/06, RK) NCC: trace resistor connectivity when highlighting equivalent Networks.
+IMP: (3/23/06, RK) NCC: trace resistor connectivity when highlighting equivalent Networks. Update User Manual.
 
 IMP: (3/22/06, GVG) Extra code in StreamClient to force stack size = 0 for Mac.
 
