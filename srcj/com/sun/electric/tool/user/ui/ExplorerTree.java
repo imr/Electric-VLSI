@@ -1654,24 +1654,24 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
         private void replaceLibraryAction()
         {
-            Library lib = (Library)getCurrentlySelectedObject(0);
-            String fileName = lib.getName();
-            URL fileURL = lib.getLibFile();
-            if (fileName != null)
-            {
-                // start a job to do the input
-                URL fileURL = TextUtils.makeURLToFile(fileName);
-                String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-                Library deleteLib = Library.findLibrary(libName);
-                if (deleteLib != null)
-                {
-                    // library already exists, prompt for save
-                    if (FileMenu.preventLoss(deleteLib, 2)) return;
-                    WindowFrame.removeLibraryReferences(deleteLib);
-                }
-                FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
-                new FileMenu.ReadLibrary(fileURL, type, deleteLib);
-            }
+//            Library lib = (Library)getCurrentlySelectedObject(0);
+//            String fileName = lib.getName();
+//            URL fileURL = lib.getLibFile();
+//            if (fileName != null)
+//            {
+//                // start a job to do the input
+//                URL fileURL = TextUtils.makeURLToFile(fileName);
+//                String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+//                Library deleteLib = Library.findLibrary(libName);
+//                if (deleteLib != null)
+//                {
+//                    // library already exists, prompt for save
+//                    if (FileMenu.preventLoss(deleteLib, 2)) return;
+//                    WindowFrame.removeLibraryReferences(deleteLib);
+//                }
+//                FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
+//                new FileMenu.ReadLibrary(fileURL, type, deleteLib);
+//            }
         }
 
 		private void renameGroupAction()
