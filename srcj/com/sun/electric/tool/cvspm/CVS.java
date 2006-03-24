@@ -62,7 +62,6 @@ import java.net.URL;
  */
 public class CVS {
 
-    public static boolean isEnabled() { return true; }
 
     public static void checkoutFromRepository() {
         // get list of modules in repository
@@ -493,11 +492,9 @@ public class CVS {
         return getCVSRepository();
     }
 
-/*
     private static Pref cacheCVSEnabled = Pref.makeBooleanPref("CVS Enabled", User.getUserTool().prefs, false);
-    public static boolean getCVSEnabled() { return cacheCVSEnabled.getBoolean(); }
-    public static void setCVSEnabled(boolean b) { cacheCVSEnabled.setBoolean(b); }
-*/
+    public static boolean isEnabled() { return cacheCVSEnabled.getBoolean(); }
+    public static void setEnabled(boolean b) { cacheCVSEnabled.setBoolean(b); }
 
     private static Pref cacheCVSProgram = Pref.makeStringPref("CVS Program", User.getUserTool().prefs, "cvs");
     public static String getCVSProgram() { return cacheCVSProgram.getString(); }

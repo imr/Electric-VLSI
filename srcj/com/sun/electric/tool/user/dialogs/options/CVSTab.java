@@ -35,6 +35,7 @@ public class CVSTab extends PreferencePanel {
     public void init() {
         cvsRepository.setText(CVS.getCVSRepository());
         cvsProgram.setText(CVS.getCVSProgram());
+        enableCVS.setSelected(CVS.isEnabled());
     }
 
     /**
@@ -46,6 +47,8 @@ public class CVSTab extends PreferencePanel {
         if (!str.equals(CVS.getCVSRepository())) CVS.setCVSRepository(str);
         str = cvsProgram.getText();
         if (!str.equals(CVS.getCVSProgram())) CVS.setCVSProgram(str);
+        boolean b = enableCVS.isSelected();
+        if (b != CVS.isEnabled()) CVS.setEnabled(b);
     }
 
 
@@ -63,6 +66,7 @@ public class CVSTab extends PreferencePanel {
         jLabel2 = new javax.swing.JLabel();
         cvsRepository = new javax.swing.JTextField();
         cvsProgram = new javax.swing.JTextField();
+        enableCVS = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -72,19 +76,23 @@ public class CVSTab extends PreferencePanel {
         jLabel1.setText("CVS program: ");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         cvsPanel.add(jLabel1, gridBagConstraints);
 
         jLabel2.setText("CVS Repository: ");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         cvsPanel.add(jLabel2, gridBagConstraints);
 
         cvsRepository.setColumns(16);
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
@@ -92,10 +100,21 @@ public class CVSTab extends PreferencePanel {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
         cvsPanel.add(cvsProgram, gridBagConstraints);
+
+        enableCVS.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        enableCVS.setLabel("Enable CVS");
+        enableCVS.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(12, 4, 12, 4);
+        cvsPanel.add(enableCVS, gridBagConstraints);
+        enableCVS.getAccessibleContext().setAccessibleName("EnableCVS");
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -110,6 +129,7 @@ public class CVSTab extends PreferencePanel {
     private javax.swing.JPanel cvsPanel;
     private javax.swing.JTextField cvsProgram;
     private javax.swing.JTextField cvsRepository;
+    private javax.swing.JCheckBox enableCVS;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     // End of variables declaration//GEN-END:variables
