@@ -3628,20 +3628,7 @@ public class EditWindow extends JPanel
 	 */
 	public static void gridAlign(Point2D pt)
 	{
-		gridAlign(pt, User.getAlignmentToGrid());
-	}
-
-	/**
-	 * Method to snap a point to the nearest database-space grid unit.
-	 * @param pt the point to be snapped.
-	 * @param alignment the alignment value to use.
-	 */
-	public static void gridAlign(Point2D pt, double alignment)
-	{
-        if (alignment <= 0) return;
-		long x = Math.round(pt.getX() / alignment);
-		long y = Math.round(pt.getY() / alignment);
-		pt.setLocation(x * alignment, y * alignment);
+		DBMath.gridAlign(pt, User.getAlignmentToGrid());
 	}
 
 	// ************************************* TEXT *************************************

@@ -29,6 +29,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -55,6 +57,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.plugins.sunRouter.global.xzglobal.Net;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -321,6 +324,7 @@ public class AutoStitch
 		nodeMark = null;
 
         // create the routes
+//		Collections.sort(allRoutes, new compRoutes());
         for (Route route : allRoutes)
         {
             RouteElement re = route.get(0);
@@ -415,6 +419,70 @@ public class AutoStitch
         }
 	}
 
+//	public static class compRoutes implements Comparator<Route>
+//	{
+//    	public int compare(Route r1, Route r2)
+//        {
+//    		// get the first route in proper order
+//			RouteElementPort r1s = r1.getStart();
+//			RouteElementPort r1e = r1.getEnd();
+//			NodeInst n1s = r1s.getPortInst().getNodeInst();
+//			NodeInst n1e = r1e.getPortInst().getNodeInst();
+//			if (n1s.compareTo(n1e) < 0)
+//			{
+//				NodeInst s = n1s;   n1s = n1e;   n1e = s;
+//				RouteElementPort se = r1s;   r1s = r1e;   r1e = se;
+//			}
+//
+//			// get the second route in proper order
+//			RouteElementPort r2s = r2.getStart();
+//			RouteElementPort r2e = r2.getEnd();
+//			NodeInst n2s = r2s.getPortInst().getNodeInst();
+//			NodeInst n2e = r2e.getPortInst().getNodeInst();
+//			if (n2s.compareTo(n2e) < 0)
+//			{
+//				NodeInst s = n2s;   n1s = n2e;   n2e = s;
+//				RouteElementPort se = r2s;   r2s = r2e;   r2e = se;
+//			}
+//
+//			// sort by the starting and ending nodes
+//			int res = n1s.compareTo(n2s);
+//			if (res != 0) return res;
+//			res = n1e.compareTo(n2e);
+//			if (res != 0) return res;
+//
+//			// sort by the starting and ending port names
+//			res = r1s.getPortInst().getPortProto().getName().compareTo(r2s.getPortInst().getPortProto().getName());
+//			if (res != 0) return res;
+//			res = r1e.getPortInst().getPortProto().getName().compareTo(r2e.getPortInst().getPortProto().getName());
+//			if (res != 0) return res;
+//
+//			// sort by the starting and ending port locations
+//			Poly p1s = r1s.getPortInst().getPoly();
+//			Poly p2s = r2s.getPortInst().getPoly();
+//			double x1 = p1s.getCenterX();
+//			double y1 = p1s.getCenterY();
+//			double x2 = p2s.getCenterX();
+//			double y2 = p2s.getCenterY();
+//			if (x1 < x2) return 1;
+//			if (x1 > x2) return -1;
+//			if (y1 < y2) return 1;
+//			if (y1 > y2) return -1;
+//
+//			Poly p1e = r1e.getPortInst().getPoly();
+//			Poly p2e = r2e.getPortInst().getPoly();
+//			x1 = p1e.getCenterX();
+//			y1 = p1e.getCenterY();
+//			x2 = p2e.getCenterX();
+//			y2 = p2e.getCenterY();
+//			if (x1 < x2) return 1;
+//			if (x1 > x2) return -1;
+//			if (y1 < y2) return 1;
+//			if (y1 > y2) return -1;
+//			return 0;
+//        }
+//	}
+   
 	/**
 	 * Method to determine if an arc is too wide for its ends.
 	 * Arcs that are wider than their nodes stick out from those nodes,

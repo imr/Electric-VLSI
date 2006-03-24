@@ -685,7 +685,7 @@ public class Clipboard
 			}
 		}
 
-        EditWindow.gridAlign(delta, alignment);
+		DBMath.gridAlign(delta, alignment);
         double dX = delta.getX();
         double dY = delta.getY();
 
@@ -1005,7 +1005,7 @@ public class Clipboard
 			// mouseDB == null if you press arrow keys before placing the new copy
 			if (mouseDB == null) return null;
 			double alignment = User.getAlignmentToGrid();
-			EditWindow.gridAlign(mouseDB, alignment);
+			DBMath.gridAlign(mouseDB, alignment);
 			// this is the point on the clipboard cell that will be pasted at the mouse location
 			Point2D refPastePoint = new Point2D.Double(pasteBounds.getCenterX() + translateX,
 													   pasteBounds.getCenterY() + translateY);
@@ -1020,7 +1020,7 @@ public class Clipboard
 			}
 			// this is now a delta, not a point
 			refPastePoint.setLocation(deltaX, deltaY);
-			EditWindow.gridAlign(refPastePoint, alignment);
+			DBMath.gridAlign(refPastePoint, alignment);
 			return refPastePoint;
 		}
 

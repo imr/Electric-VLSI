@@ -452,7 +452,7 @@ public class CircuitChangeJobs
 				// ignore pins
 //				if (ni.getFunction() == PrimitiveNode.Function.PIN) continue;
 				Point2D center = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-				EditWindow.gridAlign(center, alignment);
+				DBMath.gridAlign(center, alignment);
 				double bodyXOffset = center.getX() - ni.getAnchorCenterX();
 				double bodyYOffset = center.getY() - ni.getAnchorCenterY();
 	
@@ -465,7 +465,7 @@ public class CircuitChangeJobs
 					PortInst pi = pIt.next();
 					Poly poly = pi.getPoly();
 					Point2D portCenter = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-					EditWindow.gridAlign(portCenter, alignment);
+					DBMath.gridAlign(portCenter, alignment);
 					double pXO = portCenter.getX() - poly.getCenterX();
 					double pYO = portCenter.getY() - poly.getCenterY();
 					if (firstPort)
@@ -498,8 +498,8 @@ public class CircuitChangeJobs
 							if (bounds == null) continue;
 							Point2D polyPoint1 = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
 							Point2D polyPoint2 = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-							EditWindow.gridAlign(polyPoint1, alignment);
-							EditWindow.gridAlign(polyPoint2, alignment);
+							DBMath.gridAlign(polyPoint1, alignment);
+							DBMath.gridAlign(polyPoint2, alignment);
 							if (polyPoint1.getX() == bounds.getMinX() &&
 								polyPoint2.getX() == bounds.getMaxX()) bodyXOffset = 0;
 							if (polyPoint1.getY() == bounds.getMinY() &&
@@ -553,8 +553,8 @@ public class CircuitChangeJobs
 				Point2D origTail = ai.getTailLocation();
 				Point2D arcHead = new Point2D.Double(origHead.getX(), origHead.getY());
 				Point2D arcTail = new Point2D.Double(origTail.getX(), origTail.getY());
-				EditWindow.gridAlign(arcHead, alignment);
-				EditWindow.gridAlign(arcTail, alignment);
+				DBMath.gridAlign(arcHead, alignment);
+				DBMath.gridAlign(arcTail, alignment);
 	
 				double headXOff = arcHead.getX() - origHead.getX();
 				double headYOff = arcHead.getY() - origHead.getY();

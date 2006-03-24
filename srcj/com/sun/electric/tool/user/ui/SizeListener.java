@@ -591,7 +591,7 @@ public class SizeListener
 		} else
 		{
 			double alignment = User.getAlignmentToGrid();
-			EditWindow.gridAlign(newSize, alignment);
+			DBMath.gridAlign(newSize, alignment);
 		}
 
 		// determine the new center point

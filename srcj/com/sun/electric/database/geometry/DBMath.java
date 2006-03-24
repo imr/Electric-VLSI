@@ -132,7 +132,20 @@ public class DBMath extends GenMath {
 		return Math.rint(x * GRID) / GRID;
 	}
 
-    /**
+	/**
+	 * Method to snap a point to the nearest database-space grid unit.
+	 * @param pt the point to be snapped.
+	 * @param alignment the alignment value to use.
+	 */
+	public static void gridAlign(Point2D pt, double alignment)
+	{
+        if (alignment <= 0) return;
+		long x = Math.round(pt.getX() / alignment);
+		long y = Math.round(pt.getY() / alignment);
+		pt.setLocation(x * alignment, y * alignment);
+	}
+
+	/**
      * Method to compare two double-precision database coordinates within an approximate epsilon.
      * @param a the first point.
      * @param b the second point.

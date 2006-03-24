@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -533,7 +534,7 @@ public class ViewChanges
 					iconPos.setLocation(cellBounds.getMinX()-halfWidth, cellBounds.getMinY()-halfHeight);
 					break;
 			}
-			EditWindow.gridAlign(iconPos, alignment);
+			DBMath.gridAlign(iconPos, alignment);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
 			iconNode = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);

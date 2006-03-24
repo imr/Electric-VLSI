@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -85,7 +86,7 @@ public class PadGenerator
     public static void makePadFrame(Library destLib, String fileName)
 	{
         if (fileName == null) return;
-		new MakePadFrame(destLib, fileName);
+		new MakePadFrame(destLib, fileName, User.getAlignmentToGrid());
     }
 
 	/**
@@ -94,9 +95,9 @@ public class PadGenerator
      * @param destLib destination library.
 	 * @param fileName the array file name.
 	 */
-	public static Cell makePadFrameNoJob(Library destLib, String fileName)
+	public static Cell makePadFrameNoJob(Library destLib, String fileName, double alignment)
 	{
-		PadGenerator pg = new PadGenerator(destLib, fileName);
+		PadGenerator pg = new PadGenerator(destLib, fileName, alignment);
 		return pg.MakePadFrame();
 	}
 
@@ -105,18 +106,20 @@ public class PadGenerator
         private Library destLib;
         private String fileName;
         private Cell frameCell;
+        private double alignment;
 
-		private MakePadFrame(Library destLib, String fileName)
+		private MakePadFrame(Library destLib, String fileName, double alignment)
 		{
             super("Pad Frame Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.destLib = destLib;
             this.fileName = fileName;
+            this.alignment = alignment;
             startJob();
         }
 
         public boolean doIt() throws JobException
 		{
-			frameCell = makePadFrameNoJob(destLib, fileName);
+			frameCell = makePadFrameNoJob(destLib, fileName, alignment);
 			fieldVariableChanged("frameCell");
 			return true;
 		}
@@ -131,6 +134,7 @@ public class PadGenerator
 
     private Library destLib;                        // destination library
 	private String fileName;						// name of file with pad array instructions
+	private double alignment;						// alignment amount
 	private String padframename;                    // name of pad frame cell
 	private String corename;                        // core cell to stick in pad frame
 	private int lineno;                             // line no of the pad array file we are processing
@@ -187,10 +191,11 @@ public class PadGenerator
         String exportName;
     }
 
-	private PadGenerator(Library destLib, String fileName)
+	private PadGenerator(Library destLib, String fileName, double alignment)
 	{
         this.destLib = destLib;
         this.fileName = fileName;
+        this.alignment = alignment;
         alignments = new HashMap<String,ArrayAlign>();
         exports = new HashMap<String,PadExports>();
         views = new ArrayList<View>();
@@ -870,7 +875,7 @@ public class PadGenerator
 
                 Rectangle2D bounds = framecell.getBounds();
                 Point2D center = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
-                Job.getUserInterface().alignToGrid(center);
+                DBMath.gridAlign(center, alignment);
 
                 SizeOffset so = corenp.getProtoSizeOffset();
                 NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell);
@@ -1023,7 +1028,7 @@ public class PadGenerator
                     iconPos.setLocation(cellBounds.getMinX() - halfWidth, cellBounds.getMinY() - halfHeight);
                     break;
             }
-            Job.getUserInterface().alignToGrid(iconPos);
+            DBMath.gridAlign(iconPos, alignment);
             double px = iconCell.getBounds().getWidth();
             double py = iconCell.getBounds().getHeight();
             NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, framecell);
