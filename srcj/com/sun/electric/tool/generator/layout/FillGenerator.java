@@ -2255,6 +2255,7 @@ public class FillGenerator implements Serializable {
             // Searching common power/gnd connections and skip the ones are in the same network
             // Don't change List by Set otherwise the sequence given by Set is not deterministic and hard to debug
             List<PortInst> portList = new ArrayList<PortInst>();
+            Netlist topCellNetlist = topCell.acquireUserNetlist();
 
             for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
             {
@@ -2271,6 +2272,13 @@ public class FillGenerator implements Serializable {
                         // Simple case
                         portList.add(p);
                     }
+                    for (Iterator<Export> itE = ni.getExports(); itE.hasNext(); )
+                    {
+                        Export e = itE.next();
+                        if (!e.isGround() && !e.isPower())
+                            continue;
+                        portList.add(e.getOriginalPort());
+                    }
                 }
                 else
                 {
@@ -2278,6 +2286,7 @@ public class FillGenerator implements Serializable {
                     Netlist netlist = cell.acquireUserNetlist();
                     List<PortInst> list = new ArrayList<PortInst>();
                     List<Network> nets = new ArrayList<Network>();
+
                     for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
                     {
                         PortInst p = itP.next();
@@ -2289,6 +2298,32 @@ public class FillGenerator implements Serializable {
                         assert(p.getPortProto() instanceof Export);
                         Export ex = (Export)p.getPortProto();
                         Network net = netlist.getNetwork(ex.getOriginalPort());
+                        Network topNet = topCellNetlist.getNetwork(p);
+                        Cell fillCell = null;
+
+                        // search for possible existing fill already defined
+                        for (Iterator<Nodable> itN = topNet.getNetlist().getNodables(); itN.hasNext(); )
+                        {
+                            Nodable no = itN.next();
+                            if (ni == no) continue; // skip itself
+                            if (!no.isCellInstance()) continue; // skip any flat PrimitiveNode?
+                            Cell c = (Cell)ni.getProto();
+                            if (c == p.getNodeInst().getProto()) // skip port parent
+                                continue;
+                            if (c.getName().indexOf("fill") == -1) continue; // not a fill cell
+                            fillCell = c;
+                            break;
+                        }
+                        if (fillCell != null)
+                            System.out.println("FF");
+
+//                        for (Iterator<PortInst> itNP = topNet.getPorts(); itNP.hasNext();)
+//                        {
+//                            PortInst barP = itNP.next();
+//                            if (barP == p) continue; // skip itself
+//                            if (barP.getNodeInst() == p.getNodeInst()) continue; // skip all ports from same cell
+//                            System.out.println("DD");
+//                        }
                         if (!nets.contains(net))
                         {
                             list.add(p);
@@ -2687,22 +2722,38 @@ public class FillGenerator implements Serializable {
                 // Add only the piece that overlap. If more than 1 arc covers the same area -> only 1 contact
                 // will be added.
                 Rectangle2D newElem = new Rectangle2D.Double(geomBnd.getX(), contactArea.getY(), width, height);
+                double newElemMinX = newElem.getMinX();
+                double newElemMaxX = newElem.getMaxX();
+                double areaMinX = contactArea.getMinX();
+                double areaMaxX = contactArea.getMaxX();
+
                 // Don't consider no overlapping areas
-                if (newElem.getMaxX() < geomBnd.getMinX() || geomBnd.getMaxX() < newElem.getMaxX())
+//                if (newElem.getMaxX() < geomBnd.getMinX() || geomBnd.getMaxX() < newElem.getMaxX())
+                if (newElemMaxX < contactArea.getMinX() || contactArea.getMaxX() < newElemMinX)
                     continue;
-                // Getting the intersection along X axis. Along Y it should cover completely
-                double minX = Math.max(geomBnd.getMinX(), contactArea.getMinX());
-                double maxX = Math.min(geomBnd.getMaxX(), contactArea.getMaxX());
-                double overlap = (maxX-minX)/width;
-                // Checking if new element is completely inside the contactArea otherwise routeToClosestArc could add
-                // the missing contact
-                // Acepting more than 50% overlap
-//                System.out.println("Overlap " + overlap);
-                if (overlap < 0.5)
-//                if (newElem.getMinX() < contactArea.getMinX() || newElem.getMaxX() > contactArea.getMaxX())
+                boolean containMin = newElemMinX <= areaMinX && areaMinX <= newElemMaxX;
+                boolean containMax = newElemMinX <= areaMaxX && areaMaxX <= newElemMaxX;
+
+                // Either end is not contained otherwise the contact is fully contained by the arc
+                if (!containMin || !containMax)
                 {
-                    System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p);
-                    continue;
+                    // Getting the intersection along X axis. Along Y it should cover completely
+                    assert(geomBnd.getMinX() == newElemMinX);
+                    assert(geomBnd.getMaxX() == newElemMaxX);
+
+                    double minX = Math.max(geomBnd.getMinX(), areaMinX);
+                    double maxX = Math.min(geomBnd.getMaxX(), areaMaxX);
+                    double overlap = (maxX-minX)/width;
+                    // Checking if new element is completely inside the contactArea otherwise routeToClosestArc could add
+                    // the missing contact
+                    // Acepting more than 50% overlap
+    //                System.out.println("Overlap " + overlap);
+                    if (overlap < 0.5)
+    //                if (newElem.getMinX() < contactArea.getMinX() || newElem.getMaxX() > contactArea.getMaxX())
+                    {
+                        System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p);
+                        continue;
+                    }
                 }
                 // Transforming geometry up to fillCell coordinates
                 DBMath.transformRect(newElem, upTrans);
@@ -2748,20 +2799,11 @@ public class FillGenerator implements Serializable {
             portInConFill.setRect(p.getPoly().getBounds2D());
             DBMath.transformRect(portInConFill, fillTransIn);
 
-            // Routing the new contact to topCell in connectNi instead of top cell
             // Creating the corresponding export in connectionNi (projection pin)
             // This should be done only once!
             NodeInst pinNode = LayoutLib.newNodeInst(Tech.m2pin, portInConFill.getCenterX(), portInConFill.getCenterY(),
                     Tech.m2pin.getDefWidth(), height, 0, container.connectionCell);
             PortInst pin = pinNode.getOnlyPortInst();
-            // Export connect projected pin in ConnectionCell
-            Export pinExport = Export.newInstance(container.connectionCell, pin, "proj-"+p.getPortProto().getName());
-            pinExport.setCharacteristic(p.getPortProto().getCharacteristic());
-            // Connect projected pin in ConnectionCell with real port
-            PortInst pinPort = container.connectionNi.findPortInstFromProto(pinExport);
-            Route conTopExportRoute = container.router.planRoute(topCell, p, pinPort,
-                    new Point2D.Double(p.getPoly().getBounds2D().getCenterX(), p.getPoly().getBounds2D().getCenterY()), null, false);
-            Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
 
             Collection set = handler.getObjects(results.toArray()[0], false, true);
 
@@ -2788,8 +2830,6 @@ public class FillGenerator implements Serializable {
                 // adding contact
                 added = LayoutLib.newNodeInst(Tech.m2m3, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
                         width, height, 0, container.connectionCell);
-                if (added.getName().startsWith("contact@46"))
-                    System.out.println("DD");
                 container.fillContactList.add(added);
 //                 // Creating the export above the contact in the connection cell
 //                Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),
@@ -2842,6 +2882,18 @@ public class FillGenerator implements Serializable {
                     Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
                 }
             }
+
+            // Done at the end so extra connections would not produce collisions.
+            // Routing the new contact to topCell in connectNi instead of top cell
+            // Export connect projected pin in ConnectionCell
+            Export pinExport = Export.newInstance(container.connectionCell, pin, "proj-"+p.getPortProto().getName());
+            pinExport.setCharacteristic(p.getPortProto().getCharacteristic());
+            // Connect projected pin in ConnectionCell with real port
+            PortInst pinPort = container.connectionNi.findPortInstFromProto(pinExport);
+            Route conTopExportRoute = container.router.planRoute(topCell, p, pinPort,
+                    new Point2D.Double(p.getPoly().getBounds2D().getCenterX(), p.getPoly().getBounds2D().getCenterY()), null, false);
+            Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+
             return added;
         }
 
@@ -2923,5 +2975,27 @@ public class FillGenerator implements Serializable {
         fillLayers.add(Layer.Function.CONTACT3);
         fillLayers.add(Layer.Function.METAL3);
     };
+
+    public static void generateAutoFill(Cell cell, boolean hierarchy, boolean binary)
+    {
+        // Creating fill template
+        FillGenerator fg = new FillGenerator(cell.getTechnology());
+        fg.setFillLibrary("autoFillLib");
+        Rectangle2D bnd = cell.getBounds();
+
+        double drcSpacingRule = 6;
+        double vddReserve = drcSpacingRule*2;
+        double gndReserve = drcSpacingRule*3;
+        double minSize = vddReserve + gndReserve + 2*drcSpacingRule + 2*gndReserve + 2*vddReserve;
+        fg.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize);
+        fg.setFillCellWidth(bnd.getWidth());
+        fg.setFillCellHeight(bnd.getHeight());
+        fg.setDRCSpacing(drcSpacingRule);
+        fg.setBinaryMode(binary);
+        fg.makeEvenLayersHorizontal(true);
+        fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
+        fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
+        new FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, hierarchy);
+    }
 }
 

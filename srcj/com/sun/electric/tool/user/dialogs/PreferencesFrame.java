@@ -49,6 +49,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.lang.reflect.Constructor;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -145,6 +146,18 @@ public class PreferencesFrame extends EDialog
 		PrintingTab prt = new PrintingTab(parent, modal);
 		optionPanes.add(prt);
 		generalSet.add(new DefaultMutableTreeNode(prt.getName()));
+
+        /// Open test tab only if plugin is available
+        // Using reflection to not force the loading of test plugin
+        try
+        {
+            Class testTab = Class.forName("com.sun.electric.plugins.tests.TestTab");
+            Constructor<Object> tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
+            PreferencePanel tesT = (PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(modal)});
+            optionPanes.add(tesT);
+            generalSet.add(new DefaultMutableTreeNode(tesT.getName()));
+        }
+        catch (Exception ex) { /* do nothing */ };
 
 
 		// the "Display" section of the Preferences

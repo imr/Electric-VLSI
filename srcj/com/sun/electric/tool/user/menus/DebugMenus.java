@@ -489,24 +489,7 @@ public class DebugMenus
         Cell cell = WindowFrame.getCurrentCell();
         if (cell == null) return;
 
-        // Creating fill template
-        FillGenerator fg = new FillGenerator(cell.getTechnology());
-        fg.setFillLibrary("autoFillLib");
-        Rectangle2D bnd = cell.getBounds();
-
-        double drcSpacingRule = 6;
-        double vddReserve = drcSpacingRule*2;
-        double gndReserve = drcSpacingRule*3;
-        double minSize = vddReserve + gndReserve + 2*drcSpacingRule + 2*gndReserve + 2*vddReserve;
-        fg.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize);
-        fg.setFillCellWidth(bnd.getWidth());
-        fg.setFillCellHeight(bnd.getHeight());
-        fg.setDRCSpacing(drcSpacingRule);
-        fg.setBinaryMode(binary);
-        fg.makeEvenLayersHorizontal(true);
-        fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
-        fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
-        new FillGenerator.FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, hierarchy);
+        FillGenerator.generateAutoFill(cell, hierarchy, binary);
     }
 
     private static void cleanSetOfLibraries()

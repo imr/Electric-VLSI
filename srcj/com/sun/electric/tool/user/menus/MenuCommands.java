@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -32,7 +31,6 @@ import com.sun.electric.tool.user.menus.MenuBar.MenuItem;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.Job;
 
 import java.awt.event.ActionListener;
@@ -79,6 +77,18 @@ public final class MenuCommands
         }
     }
 
+    private static void addExtraMenu(MenuBar menuBar , String plugin)
+    {
+        try {
+            Class menuClass = Class.forName("com.sun.electric.plugins."+plugin);
+            java.lang.reflect.Method addMenu = menuClass.getMethod("addMenu", new Class[] { MenuBar.class });
+            addMenu.invoke(null, new Object [] {menuBar});
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
 	/**
 	 * Method to create the pulldown menus.
 	 */
@@ -95,26 +105,19 @@ public final class MenuCommands
         WindowMenu.addWindowMenu(menuBar);
         ToolMenu.addToolMenu(menuBar);
 
-        if (true) {
+        if (true)
+        {
             // add the SunAsyncMenu and/or TestsMenu if there
-            String[] plugins = {"menus.SunAsyncMenu", "tests.TestMenu"};
-            try {
-                for (String menuName : plugins)
-                {
-                    Class menuClass = Class.forName("com.sun.electric.plugins."+menuName);
-                    java.lang.reflect.Method addMenu = menuClass.getMethod("addMenu", new Class[] { MenuBar.class });
-                    addMenu.invoke(null, new Object [] {menuBar});
-                }
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
+            addExtraMenu(menuBar, "menus.SunAsyncMenu");
         }
 
         MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
 
 		if (Job.getDebug())
+        {
 	        DebugMenus.addDebugMenus(menuBar, helpMenu);
+            addExtraMenu(menuBar, "tests.TestMenu");
+        }
 
         /********************************* Hidden Menus *******************************/
 
