@@ -53,6 +53,7 @@ import com.sun.electric.tool.user.User;
 
 import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -543,6 +544,70 @@ public class Routing extends Listener
 		{
 			setMimicStitchOn(false);
 			System.out.println("Mimic-stitching disabled");
+		}
+	}
+
+	/****************************** SUN ROUTER INTERFACE ******************************/
+
+    private static boolean sunRouterChecked = false;
+	private static Class sunRouterClass = null;
+	private static Method sunRouterMethod;
+
+	/**
+	 * Method to tell whether the Sun Router is available.
+	 * This is a proprietary tool from Sun Microsystems.
+	 * This method dynamically figures out whether the router is present by using reflection.
+	 * @return true if the Sun Router is available.
+	 */
+	public static boolean hasSunRouter()
+	{
+		if (!sunRouterChecked)
+		{
+			sunRouterChecked = true;
+
+			// find the Sun Router class
+			try
+			{
+				sunRouterClass = Class.forName("com.sun.electric.plugins.sunRouter.sunRouter");
+			} catch (ClassNotFoundException e)
+			{
+				sunRouterClass = null;
+				return false;
+			}
+
+			// find the necessary method on the router class
+			try
+			{
+				sunRouterMethod = sunRouterClass.getMethod("routeCell", new Class[] {Cell.class});
+			} catch (NoSuchMethodException e)
+			{
+				sunRouterClass = null;
+				return false;
+			}
+		}
+
+		// if already initialized, return
+		if (sunRouterClass == null) return false;
+	 	return true;
+	}
+
+	/**
+	 * Method to invoke the Sun Router via reflection.
+	 * @param cell the Cell to route.
+	 */
+	public static void sunRouteCurrentCell()
+	{
+		if (!hasSunRouter()) return;
+		UserInterface ui = Job.getUserInterface();
+		Cell curCell = ui.needCurrentCell();
+		if (curCell == null) return;
+		try
+		{
+			sunRouterMethod.invoke(sunRouterClass, new Object[] {curCell});
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the Sun Router module");
+            e.printStackTrace(System.out);
 		}
 	}
 

@@ -489,6 +489,14 @@ public class ToolMenu {
 		routingSubMenu.addMenuItem("_River-Route", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { River.riverRoute(); }});
 
+		if (Routing.hasSunRouter())
+		{
+			routingSubMenu.addSeparator();
+	
+			routingSubMenu.addMenuItem("Sun Router", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.sunRouteCurrentCell(); }});
+		}
+
 		routingSubMenu.addSeparator();
 
 		routingSubMenu.addMenuItem("_Unroute", null,
