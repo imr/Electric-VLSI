@@ -34,6 +34,7 @@ import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.cvspm.Commit;
 import com.sun.electric.tool.cvspm.AddRemove;
 import com.sun.electric.tool.cvspm.Edit;
+import com.sun.electric.tool.cvspm.Log;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.io.input.LibraryFiles;
@@ -1204,6 +1205,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                     menu.addSeparator();
 
                     boolean enabled = CVSLibrary.isInCVS((Cell)getCurrentlySelectedObject(0));
+                    boolean isDELIB = CVS.isDELIB(cell.getLibrary());
 
                     JMenu cvsMenu = new JMenu("CVS");
                     menu.add(cvsMenu);
@@ -1232,6 +1234,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                         Edit.listEditors((Cell)getCurrentlySelectedObject(0)); }});
                     menuItem.setEnabled(enabled);
 
+                    menuItem = new JMenuItem("Show Log");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Log.showLog((Cell)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
+
+                    cvsMenu.addSeparator();
+
                     menuItem = new JMenuItem("Rollback");
                     cvsMenu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
@@ -1242,7 +1252,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                     cvsMenu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
                         AddRemove.add((Cell)getCurrentlySelectedObject(0)); }});
-                    menuItem.setEnabled(!enabled);
+                    menuItem.setEnabled(!enabled && isDELIB);
 
 /*                    menuItem = new JMenuItem("Remove from CVS");
                     cvsMenu.add(menuItem);

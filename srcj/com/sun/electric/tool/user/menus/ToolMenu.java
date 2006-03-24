@@ -549,7 +549,7 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
 
         // ------------------ CVS
-        boolean cvsEnabled = CVS.isEnabled();
+        boolean cvsEnabled = true;
         MenuBar.Menu cvsSubMenu = MenuBar.makeMenu("CVS");
         toolMenu.add(cvsSubMenu);
         MenuBar.MenuItem m;
@@ -569,10 +569,6 @@ public class ToolMenu {
         m = cvsSubMenu.addMenuItem("Checkout From Repository", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CVS.checkoutFromRepository(); }});
         m.setEnabled(cvsEnabled);
-        m = cvsSubMenu.addMenuItem("test", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CVS.testModal(); }});
-        m.setEnabled(cvsEnabled);
-
 
         //------------------- Others
 
