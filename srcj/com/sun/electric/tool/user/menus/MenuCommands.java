@@ -115,8 +115,8 @@ public final class MenuCommands
 
 		if (Job.getDebug())
         {
-	        DebugMenus.addDebugMenus(menuBar, helpMenu);
             addExtraMenu(menuBar, "tests.TestMenu");
+	        DebugMenus.addDebugMenus(menuBar, helpMenu);
         }
 
         /********************************* Hidden Menus *******************************/
