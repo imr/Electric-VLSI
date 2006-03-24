@@ -116,7 +116,8 @@ public final class Launcher
 		if (enableAssertions)
 			command += " -ea"; // enable assertions
 		command += " -mx" + maxMemWanted + "m ";
-        command += " -XX:MaxPermSize=" + maxPermWanted + "m ";
+        if (maxPermWanted > 0)
+            command += " -XX:MaxPermSize=" + maxPermWanted + "m ";
         command += "com.sun.electric.Main";
         if (maxMemWanted > maxMem)
             System.out.println("Current Java memory limit of "+maxMem+"MEG is too small, rerunning Electric with a memory limit of "+maxMemWanted+"MEG");
