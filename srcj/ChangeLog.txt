@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+IMP: (3/24/06, RK) First step in moving NCC regressions to Dima's and Gilda's all-Java model
+
 IMP/MAN: (3/24/06, GVG) TestTab and GenerationTest class
 
 BUG: (3/24/06, GVG) MaxPerm=0 on Windows causes problems (not seen on Linux/Mac) (Bug #905)
