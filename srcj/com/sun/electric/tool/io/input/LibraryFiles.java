@@ -394,6 +394,7 @@ public abstract class LibraryFiles extends Input
         String name = lib.getName();
         URL libFile = lib.getLibFile();
         Library newLib = readLibrary(libFile, "___reloaded___"+name, type, true, null);
+        newLib.setHidden();
 
         // replace all old cells with new cells
         Cell.setAllowCircularLibraryDependences(true);
@@ -427,6 +428,7 @@ public abstract class LibraryFiles extends Input
 
         // close temp library
         newLib.kill("delete temp library");
+        System.out.println("Reloaded Cells from disk.");
     }
 
 	// *************************** THE CREATION INTERFACE ***************************
