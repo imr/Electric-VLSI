@@ -24,7 +24,6 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellId;
-import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
@@ -35,6 +34,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
@@ -69,6 +69,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -981,7 +982,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		// remove this node from the cell
 		parent.removeNode(this);
 		parent.unLinkNode(this);
-		parent.checkInvariants();
 	}
 
 	/**
@@ -2055,7 +2055,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             Connection con = savedConnections.get(i);
             addConnection(con);
         }
-        check();
 	}
 
     /** 
@@ -2446,7 +2445,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         while (!c.equals(connections.get(pos)))
             pos++;
 		connections.remove(pos);
-        check();
         
 		computeWipeState();
         updateShrinkage();
@@ -3195,38 +3193,51 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Method to check invariants in this NodeInst.
 	 * @exception AssertionError if invariants are not valid
 	 */
-	public void check()
-	{
+	public void check(BitSet exportSet, BitSet tailSet, BitSet headSet) {
+        assert isLinked();
         super.check();
-		assert d.name != null;
-
-		if (protoType instanceof Cell)
-		{
-			int foundUsage = 0;
-			for (Iterator<CellUsage> it = ((Cell)protoType).getUsagesOf(); it.hasNext(); )
-			{
-				CellUsage u = it.next();
-				if (u.parentId == parent.getId()) foundUsage++;
-			}
-			assert foundUsage == 1;
-		}
-
-		assert portInsts != null;
+        
 		assert portInsts.length == protoType.getNumPorts();
-		for (int i = 0; i < portInsts.length; i++)
-		{
-			PortProto pp = protoType.getPort(i);
-			assert pp.getPortIndex() == i;
-			PortInst pi = portInsts[i];
-			assert pi.getPortProto() == pp;
-		}
-		assert exports != null;
+        for (int i = 0; i < portInsts.length; i++) {
+            PortInst pi = portInsts[i];
+            assert pi.getNodeInst() == this;
+            PortProto pp = pi.getPortProto();
+            assert pp == protoType.getPort(i);
+        }
+        
+        for (int i = 0; i < exports.length; i++) {
+            Export e = exports[i];
+            assert e.getParent() == parent && e.isLinked();
+            PortInst pi = e.getOriginalPort();
+            assert pi.getNodeInst() == this;
+            int exportIndex = e.getPortIndex();
+            assert exportSet.get(exportIndex);
+            exportSet.clear(exportIndex);
+        }
         
         int lastPortIndex = -1;
         for (int i = 0; i < connections.size(); i++) {
             Connection con = connections.get(i);
+            ArcInst ai = con.getArc();
+            assert ai.getParent() == parent && ai.isLinked();
             PortInst pi = con.getPortInst();
             assert pi.getNodeInst() == this;
+            int arcIndex = ai.getArcIndex();
+            switch (con.getEndIndex()) {
+                case ArcInst.TAILEND:
+                    assert ai.getTail() == con;
+                    assert tailSet.get(arcIndex);
+                    tailSet.clear(arcIndex);
+                    break;
+                case ArcInst.HEADEND:
+                    assert ai.getHead() == con;
+                    assert headSet.get(arcIndex);
+                    headSet.clear(arcIndex);
+                    break;
+                default:
+                    assert false;
+            }
+            
             int portIndex = pi.getPortIndex();
             assert lastPortIndex <= portIndex;
             lastPortIndex = portIndex;

@@ -560,8 +560,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		// remove this arc from the cell
 		parent.removeArc(this);
 		parent.unLinkArc(this);
-
-		if (Job.getDebug()) parent.checkInvariants();
 	}
 
 	/**
@@ -1601,19 +1599,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			errorCount++;
 		}
 		return errorCount;
-	}
-
-	/**
-	 * Method to check invariants in this ArcInst.
-	 * @exception AssertionError if invariants are not valid
-	 */
-	public void check()
-	{
-        super.check();
-		assert d.name != null;
-
-		assert headEnd.getArc() == this;
-		assert tailEnd.getArc() == this;
 	}
 
 	/**

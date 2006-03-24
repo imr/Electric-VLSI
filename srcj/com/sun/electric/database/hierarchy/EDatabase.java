@@ -414,7 +414,8 @@ public class EDatabase {
             }
         } else {
             cellGroupsChanged = true;
-            cellNamesChangedInLibrary.set(0, snapshot.libBackups.size());
+            if (snapshot.libBackups.size() > 0) // Bug in BitSet.set(int,int) on Sun JDK
+                cellNamesChangedInLibrary.set(0, snapshot.libBackups.size());
         }
         
         BitSet updated = new BitSet();
@@ -436,7 +437,7 @@ public class EDatabase {
         long endTime = System.currentTimeMillis();
         if (Job.getDebug()) {
             System.out.println("undo took: " + (endTime - startTime) + " msec");
-            checkFresh(snapshot);
+//            checkFresh(snapshot);
         }
     }
     
@@ -460,7 +461,6 @@ public class EDatabase {
         Cell cell = getCell(cellId);
         CellBackup oldBackup = oldSnapshot.getCell(cellId);
         ERectangle oldBounds = oldSnapshot.getCellBounds(cellId);
-        assert cell.getLibrary() == getLib(newBackup.d.libId);
         cell.undo(newBackup, snapshot.getCellBounds(cellId),
                 subCellsExportsModified ? exportsModified : null,
                 subCellsBoundsModified ? boundsModified : null);
@@ -528,7 +528,7 @@ public class EDatabase {
             Cell cell = linkedCells.get(cellIndex);
             if (newBackup == null) {
                 if (cell != null) linkedCells.set(cellIndex, null);
-            } else if (cell == null || cell.getLibrary().getId() != newBackup.d.libId) {
+            } else if (cell == null) {
                 linkedCells.set(cellIndex, new Cell(this, newBackup.d));
             }
         }
@@ -555,58 +555,6 @@ public class EDatabase {
             new Cell.CellGroup(groups.get(i), mainSchematics.get(i));
     }
     
-    /**
-     * Checks that Electric database has the expected state.
-     * @expectedSnapshot expected state.
-     */
-    public void checkFresh(Snapshot expectedSnapshot) {
-        long startTime = System.currentTimeMillis();
-        for (Iterator<Library> lit = Library.getLibraries(); lit.hasNext(); ) {
-            Library lib = lit.next();
-            LibraryBackup libBackup = snapshot.getLib(lib.getId());
-            assert libBackup.d == lib.getD();
-            for (Iterator<Cell> cit = lib.getCells(); cit.hasNext(); ) {
-                Cell cell = cit.next();
-                CellBackup cellBackup = snapshot.getCell((CellId)cell.getId());
-                assert cellBackup.d == cell.getD();
-            }
-        }
-        for (int i = 0; i < snapshot.libBackups.size(); i++) {
-            LibraryBackup libBackup = snapshot.libBackups.get(i);
-            if (libBackup == null) continue;
-            LibId libId = libBackup.d.libId;
-            assert libId.libIndex == i;
-            Library lib = getLib(libId);
-            lib.checkFresh(libBackup);
-        }
-        for (int i = 0; i < snapshot.cellBackups.size(); i++) {
-            CellBackup cellBackup = snapshot.getCell(i);
-            if (cellBackup == null) continue;
-            CellId cellId = cellBackup.d.cellId;
-            assert cellId.cellIndex == i;
-            Cell cell = getCell(cellId);
-            cell.checkFresh(cellBackup);
-            assert snapshot.getCellBounds(cellId) == cell.getBounds();
-        }
-        
-        HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();
-        for (int i = 0; i < snapshot.cellBackups.size(); i++) {
-            CellBackup cellBackup = snapshot.getCell(i);
-            if (cellBackup == null) continue;
-            Cell cell = Cell.inCurrentThread(cellBackup.d.cellId);
-            Cell.CellGroup cellGroup = cell.getCellGroup();
-            Integer gn = groupNums.get(cellGroup);
-            if (gn == null) {
-                gn = Integer.valueOf(groupNums.size());
-                groupNums.put(cellGroup, gn);
-            }
-            assert snapshot.cellGroups[i] == gn.intValue();
-        }
-        assert snapshot == expectedSnapshot;
-        long endTime = System.currentTimeMillis();
-        System.out.println("checkFresh took: " + (endTime - startTime) + " msec");
-    }
-
 	/**
 	 * Method to check invariants in all Libraries.
 	 * @return true if invariants are valid
@@ -619,18 +567,7 @@ public class EDatabase {
             CellId.checkInvariants();
             backup();
             snapshot.check();
-            checkFresh(snapshot);
-            
-			TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-			for (Map.Entry<String,Library> e : libraries.entrySet())
-			{
-				String libName = (String)e.getKey();
-				Library lib = (Library)e.getValue();
-				assert libName.equals(lib.getName()) : libName + " " + lib;
-				assert !libNames.contains(libName) : "case insensitive " + libName;
-				libNames.add(libName);
-				lib.check();
-			}
+            check();
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("**** Check Invariants took " + finalTime + " seconds");
@@ -647,5 +584,85 @@ public class EDatabase {
 		}
 		return false;
 	}
+
+	/**
+	 * Method to check invariants in this EDatabase.
+	 * @exception AssertionError if invariants are not valid
+	 */
+    private void check() {
+        if (snapshotFresh) {
+            assert linkedLibs.size() == snapshot.libBackups.size();
+            assert linkedCells.size() == snapshot.cellBackups.size();
+        }
+        
+        for (int libIndex = 0; libIndex < linkedLibs.size(); libIndex++) {
+            Library lib = linkedLibs.get(libIndex);
+            if (lib == null) {
+                if (snapshotFresh) assert snapshot.libBackups.get(libIndex) == null;
+                continue;
+            }
+            assert lib.getId() == LibId.getByIndex(libIndex);
+            assert libraries.get(lib.getName()) == lib;
+            lib.check();
+            if (snapshotFresh)
+                assert lib.libBackupFresh && lib.backup == snapshot.libBackups.get(libIndex);
+        }
+        
+        for (int cellIndex = 0; cellIndex < linkedCells.size(); cellIndex++) {
+            Cell cell = linkedCells.get(cellIndex);
+            if (cell == null) {
+                if (snapshotFresh) assert snapshot.cellBounds.get(cellIndex) == null;
+                continue;
+            }
+            assert cell.getId() == CellId.getByIndex(cellIndex);
+            Library lib = cell.getLibrary();
+            assert lib.cells.get(cell.getCellName()) == cell;
+            cell.check();
+            if (snapshotFresh) {
+                assert cell.cellBackupFresh;
+                assert cell.backup == snapshot.cellBackups.get(cellIndex);
+                assert cell.getBounds() == snapshot.cellBounds.get(cellIndex);
+            }
+        }
+        
+        TreeSet<String> libNames = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        for (Map.Entry<String,Library> e : libraries.entrySet()) {
+            String libName = (String)e.getKey();
+            Library lib = (Library)e.getValue();
+            assert libName == lib.getName();
+            assert linkedLibs.get(lib.getId().libIndex) == lib;
+            
+            assert !libNames.contains(libName) : "case insensitive " + libName;
+            libNames.add(libName);
+        }
+        
+        if (snapshotFresh) {
+            HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();
+            for (int i = 0; i < snapshot.cellBackups.size(); i++) {
+                CellBackup cellBackup = snapshot.getCell(i);
+                if (cellBackup == null) {
+                    assert snapshot.cellGroups[i] == -1;
+                    continue;
+                }
+                Cell cell = getCell(cellBackup.d.cellId);
+                Cell.CellGroup cellGroup = cell.getCellGroup();
+                Integer gn = groupNums.get(cellGroup);
+                if (gn == null) {
+                    gn = Integer.valueOf(groupNums.size());
+                    groupNums.put(cellGroup, gn);
+                }
+                assert snapshot.cellGroups[i] == gn.intValue();
+            }
+        }
+    }
+    
+    /**
+     * Checks that Electric database has the expected state.
+     * @expectedSnapshot expected state.
+     */
+    public void checkFresh(Snapshot expectedSnapshot) {
+        assert snapshotFresh && snapshot == expectedSnapshot;
+        check();
+    }
 
 }

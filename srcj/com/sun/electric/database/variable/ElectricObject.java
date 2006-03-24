@@ -1299,9 +1299,8 @@ public abstract class ElectricObject // extends Observable implements Observer
 //    }
     
 	/**
-	 * Method to check invariants in this Library.
+	 * Method to check invariants in this ElectricObject.
 	 * @exception AssertionError if invariants are not valid
 	 */
-	protected void check() {
-	}
+	protected void check() {}
 }

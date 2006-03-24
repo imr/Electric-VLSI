@@ -109,8 +109,6 @@ import java.util.prefs.Preferences;
  */
 public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 {
-	private static final boolean EXPORT_NAMES_CASE_INSENSITIVE = false;
-
 	// ------------------------- private classes -----------------------------
 
 	/**
@@ -388,7 +386,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** Database to which this Library belongs. */                  private final EDatabase database;
     /** Persistent data of this Cell. */                            private ImmutableCell d;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
-	/** The library this Cell belongs to. */						private final Library lib;
+	/** The library this Cell belongs to. */						private Library lib;
     /** The newest version of this Cell. */                         Cell newestVersion;
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
@@ -411,8 +409,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** "Modified" flag of the Cell. */                             private byte modified = -1;
 	/** The temporary integer value. */								private int tempInt;
     /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
-    /** Last backup of this Cell */                                 private CellBackup backup;
-    /** True if cell together with contents matches cell backup. */ private boolean cellBackupFresh;
+    /** Last backup of this Cell */                                 CellBackup backup;
+    /** True if cell together with contents matches cell backup. */ boolean cellBackupFresh;
     /** True if cell contents matches cell backup. */               private boolean cellContentsFresh;
     
 
@@ -740,6 +738,58 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
+	 * Method to replace subcells of a Cell by cells with similar name in Cell's  Library.
+	 * @return the new Cell in the destination Library.
+	 */
+    public void replaceSubcellsByExisting() {
+        // scan all subcells to see if they are found in the new library
+		HashMap<NodeInst,Cell> nodePrototypes = new HashMap<NodeInst,Cell>();
+        for(Iterator<NodeInst> it = getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            if (!ni.isCellInstance()) continue;
+            Cell niProto = (Cell)ni.getProto();
+            if (niProto.lib == lib) continue;
+            
+            // search for cell with same name and view in new library
+            Cell lnt = null;
+            for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); ) {
+                lnt = cIt.next();
+                if (lnt.getName().equalsIgnoreCase(niProto.getName()) &&
+                        lnt.getView() == niProto.getView()) break;
+                lnt = null;
+            }
+            if (lnt == null) continue;
+            
+            // make sure all used ports can be found on the uncopied cell
+            boolean validPorts = true;
+            for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); ) {
+                PortInst pi = pIt.next();
+                PortProto pp = pi.getPortProto();
+                PortProto ppt = lnt.findPortProto(pp.getName());
+                if (ppt != null) {
+                    // the connections must match, too
+//						if (pp->connects != ppt->connects) ppt = null;
+                }
+                if (ppt == null) {
+                    System.out.println("Cannot use subcell " + lnt.noLibDescribe() + " in " + lib +
+                            ": exports don't match");
+                    validPorts = false;
+                    break;
+                }
+            }
+            if (!validPorts) continue;
+            
+            // match found: use the prototype from the destination library
+            nodePrototypes.put(ni, lnt);
+        }
+        for (Map.Entry<NodeInst,Cell> e: nodePrototypes.entrySet()) {
+            NodeInst ni = e.getKey();
+            Cell newProto = e.getValue();
+            ni.replace(newProto, false, false);
+        }
+    }
+        
+	/**
 	 * Method to rename this Cell.
 	 * @param newName the new name of this cell.
 	 */
@@ -769,11 +819,38 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         // add again to the library and to possibly to new cell group
 		lowLevelLinkCellName(true);
         notifyRename();
-		checkInvariants();
+	}
+    
+	/**
+	 * Method to move this Cell to another library.
+	 * @param newLib the new library of this cell.
+     * @throws IlleagalArgumentException if this cell or new library is not linked to database.
+	 */
+	public void move(Library newLib)
+	{
+		checkChanging();
+        if (!isLinked())
+            throw new IllegalArgumentException();
+        if (!newLib.isLinked())
+            throw new IllegalArgumentException("newLib");
+		if (newLib == lib) return;
+
+		// remove temporarily from the library and from cell group
+		lib.removeCell(this);
+		cellGroup.remove(this);
+        cellGroup = null;
+
+		// do the rename
+        setD(getD().withLibrary(newLib.getId()));
+        lib = newLib;
+
+        // add again to the library and to possibly to new cell group
+		lowLevelLinkCellName(true);
+        notifyRename();
 	}
     
     /**
-     * Signal parent cell about renaming of this subcell.
+     * Signal parent cell about renaming or moving of this subcell.
      */
     void notifyRename() {
         for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
@@ -853,7 +930,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		// success
         database.addCell(this);
-		checkInvariants();
         
 		// handle change control, constraint, and broadcast
         database.unfreshSnapshot();
@@ -958,23 +1034,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return backup;
     }
     
-    public void checkFresh(CellBackup cellBackup) {
-        assert cellBackup.d == getD();
-        assert cellBackup.revisionDate == revisionDate;
-        assert cellBackup.modified == modified;
-        boolean isMainSchematic = cellGroup.getMainSchematics() == this;
-        assert cellBackup.isMainSchematics == isMainSchematic;
-        assert cellBackup.nodes.size() == nodes.size();
-        for (int i = 0; i < cellBackup.nodes.size(); i++)
-            assert cellBackup.nodes.get(i) == nodes.get(i).getD();
-        assert cellBackup.arcs.size() == arcs.size();
-        for (int i = 0; i < cellBackup.arcs.size(); i++)
-            assert cellBackup.arcs.get(i) == arcs.get(i).getD();
-        assert cellBackup.exports.size() == exports.length;
-        for (int i = 0; i < cellBackup.exports.size(); i++)
-            assert cellBackup.exports.get(i) == exports[i].getD();
-    }
-    
     private ImmutableNodeInst[] backupNodes() {
         ImmutableNodeInst[] newNodes = new ImmutableNodeInst[nodes.size()];
         boolean changed = nodes.size() != backup.nodes.size();
@@ -1036,6 +1095,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
         checkUndoing();
      	this.d = newBackup.d;
+        lib = database.getLib(newBackup.d.libId);
         this.revisionDate = newBackup.revisionDate;
         this.modified = newBackup.modified;
        // Update NodeInsts
@@ -2469,15 +2529,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		checkChanging();
 
-		int portIndex;
-		if (EXPORT_NAMES_CASE_INSENSITIVE)
-		{
-			portIndex = - searchExportCanonic(export.getNameKey().canonicString()) - 1;
-		} else
-		{
-			portIndex = - searchExport(export.getName()) - 1;
-		}
-		
+		int portIndex = - searchExport(export.getName()) - 1;
 		assert portIndex >= 0;
 		export.setPortIndex(portIndex);
 
@@ -2558,15 +2610,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	void moveExport(int oldPortIndex, String newName)
 	{
 		Export export = exports[oldPortIndex];
-		int newPortIndex;
-		if (EXPORT_NAMES_CASE_INSENSITIVE)
-		{
-			newPortIndex = - searchExportCanonic(TextUtils.canonicString(newName)) - 1;
-		} else
-		{
-			newPortIndex = - searchExport(newName) - 1;
-		}
-		
+		int newPortIndex = - searchExport(newName) - 1;
 		if (newPortIndex < 0) return;
 		if (newPortIndex > oldPortIndex)
 			newPortIndex--;
@@ -2642,29 +2686,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to find the PortProto that has a particular Name.
 	 * @return the PortProto, or null if there is no PortProto with that name.
 	 */
-	public PortProto findPortProto(Name name)
-	{
-		if (EXPORT_NAMES_CASE_INSENSITIVE)
-		{
-	        if (name == null) return null;
-			int portIndex = searchExportCanonic(name.canonicString());
-			if (portIndex >= 0) return exports[portIndex];
-			return null;
-		} else
-		{
-			if (name == null) return null;
-			int portIndex = searchExport(name.toString());
-			if (portIndex >= 0) return exports[portIndex];
-			String nameString = name.canonicString();
-			for (int i = 0; i < exports.length; i++)
-			{
-				Export e = exports[i];
-				if (e.getNameKey().canonicString() == nameString)
-					return e;
-			}
-			return null;
-		}
-	}
+    public PortProto findPortProto(Name name) {
+        if (name == null) return null;
+        int portIndex = searchExport(name.toString());
+        if (portIndex >= 0) return exports[portIndex];
+        String nameString = name.canonicString();
+        for (int i = 0; i < exports.length; i++) {
+            Export e = exports[i];
+            if (e.getNameKey().canonicString() == nameString)
+                return e;
+        }
+        return null;
+    }
 
 	/**
 	 * Method to determine if a given PortProto is considered as export
@@ -2771,39 +2804,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			int mid = (low + high) >> 1;
 			Export e = exports[mid];
 			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(e.getName(), name);
-
-			if (cmp < 0)
-				low = mid + 1;
-			else if (cmp > 0)
-				high = mid - 1;
-			else
-				return mid; // Export found
-		}
-		return -(low + 1);  // Export not found.
-    }
-
-    /**
-     * Searches the exports for the specified name using the binary
-     * search algorithm (case insensitive).
-     * @param name the name to be searched.
-     * @return index of the search name, if it is contained in the exports;
-     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
-     *	       <i>insertion point</i> is defined as the point at which the
-     *	       Export would be inserted into the list: the index of the first
-     *	       element greater than the name, or <tt>exports.length()</tt>, if all
-     *	       elements in the list are less than the specified name.  Note
-     *	       that this guarantees that the return value will be &gt;= 0 if
-     *	       and only if the Export is found.
-     */
-	private int searchExportCanonic(String name)
-	{
-		int low = 0;
-		int high = exports.length-1;
-
-		while (low <= high) {
-			int mid = (low + high) >> 1;
-			Export e = exports[mid];
-			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(e.getNameKey().canonicString(), name);
 
 			if (cmp < 0)
 				low = mid + 1;
@@ -4378,140 +4378,134 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return nameKey != null && nameKey.busWidth() == busWidth;
     }
 
-	/**
-	 * Method to check invariants in this Cell.
-	 * @exception AssertionError if invariants are not valid
-	 */
-	protected void check()
-	{
-        super.check();
+    /**
+     * Method to check invariants in this Cell.
+     * @exception AssertionError if invariants are not valid
+     */
+    protected void check() {
         CellId cellId = getD().cellId;
-		assert database.getCell(cellId) == this;
-		assert getCellName() != null;
-		assert getVersion() > 0;
-
-		for (int i = 0; i < exports.length; i++)
-		{
-			Export e = exports[i];
-			assert e.getParent() == this;
-			assert e.getPortIndex() == i : e;
-			if (i > 0)
-			{
-				if (EXPORT_NAMES_CASE_INSENSITIVE)
-				{
-					assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].getNameKey().canonicString(), e.getNameKey().canonicString()) < 0) : i;
-				} else
-				{
-					assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].getName(), e.getName()) < 0) : i;
-				}
-			}
-			e.check();
-            assert e == chronExports[e.getExportId().chronIndex]; 
-		}
-        for (int i = 0; i < chronExports.length; i++) {
-            Export e = chronExports[i];
-            if (e == null) continue;
-            assert e.isLinked();
+        super.check();
+        assert database.getCell(cellId) == this;
+        assert database.getLib(getD().libId) == lib;
+        assert getCellName() != null;
+        assert getVersion() > 0;
+        
+        if (cellBackupFresh) {
+            assert backup.d == getD();
+            assert backup.revisionDate == revisionDate;
+            assert backup.modified == modified;
+            assert backup.isMainSchematics == (cellGroup.getMainSchematics() == this);
+            assert cellContentsFresh;
         }
-
-		// make sure that every connection is on an arc and a node
-//		HashSet connections = new HashSet();
-		ArcInst prevAi = null;
-		for(int i = 0; i < arcs.size(); i++)
-		{
-			ArcInst ai = arcs.get(i);
-			assert ai.getParent() == this;
-            assert chronArcs.get(ai.getD().arcId) == ai;
-			assert ai.getArcIndex() == i;
-			if (prevAi != null)
-			{
-				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevAi.getName(), ai.getName());
-				assert cmp <= 0;
-				if (cmp == 0)
-					assert prevAi.getD().arcId < ai.getD().arcId;
-			}
-			ai.check();
-			prevAi = ai;
-		}
-        int countArcs = 0;
-        for (int i = 0; i < chronArcs.size(); i++)
-            if (chronArcs.get(i) != null) countArcs++;
-        assert countArcs == arcs.size();
-
-        // now make sure that all nodes reference them
-		NodeInst prevNi = null;
+        if (cellContentsFresh) {
+            assert backup.nodes.size() == nodes.size();
+            assert backup.arcs.size() == arcs.size();
+            assert backup.exports.size() == exports.length;
+        }
+        
+        // check exports
+        for (int portIndex = 0; portIndex < exports.length; portIndex++) {
+            Export e = exports[portIndex];
+            assert e.getParent() == this;
+            assert e.getPortIndex() == portIndex;
+            assert chronExports[e.getId().getChronIndex()] == e;
+            if (cellContentsFresh) assert backup.exports.get(portIndex) == e.getD();
+            if (portIndex > 0)
+                assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[portIndex - 1].getName(), e.getName()) < 0);
+            assert e.getOriginalPort() == getPortInst(e.getD().originalNodeId, e.getD().originalPortId);
+        }
+        for (int chronIndex = 0; chronIndex < chronExports.length; chronIndex++) {
+            Export e = chronExports[chronIndex];
+            if (e == null) continue;
+            assert e.getId() == cellId.getPortId(chronIndex);
+            assert e == exports[e.getPortIndex()];
+        }
+        
+        // check arcs
+        ArcInst prevAi = null;
+        for(int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
+            ArcInst ai = arcs.get(arcIndex);
+            ImmutableArcInst a = ai.getD();
+            assert ai.getParent() == this;
+            assert ai.getArcIndex() == arcIndex;
+            assert chronArcs.get(a.arcId) == ai;
+            if (cellContentsFresh) assert backup.arcs.get(arcIndex) == a;
+            if (prevAi != null) {
+                int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevAi.getName(), ai.getName());
+                assert cmp <= 0;
+                if (cmp == 0)
+                    assert prevAi.getD().arcId < a.arcId;
+            }
+            assert ai.getHeadPortInst() == getPortInst(a.headNodeId, a.headPortId);
+            assert ai.getTailPortInst() == getPortInst(a.tailNodeId, a.tailPortId);
+            prevAi = ai;
+        }
+        for (int arcId = 0; arcId < chronArcs.size(); arcId++) {
+            ArcInst ai = chronArcs.get(arcId);
+            if (ai == null) continue;
+            assert ai.getD().arcId == arcId;
+            assert ai == arcs.get(ai.getArcIndex());
+        }
+        
+        // check nodes
+        BitSet exportSet = new BitSet();
+        if (exports.length > 0)  // Bug in BitSet.set(int,int) on Sun JDK
+            exportSet.set(0, exports.length);
+        BitSet tailSet = new BitSet();
+        BitSet headSet = new BitSet();
+        if (arcs.size() > 0) {  // Bug in BitSet.set(int,int) on Sun JDK
+            tailSet.set(0, arcs.size());
+            headSet.set(0, arcs.size());
+        }
+        int connectionCount = 0;
+        NodeInst prevNi = null;
         int[] usages = new int[cellId.numUsagesIn()];
-		for(int i = 0; i < nodes.size(); i++)
-		{
-			NodeInst ni = nodes.get(i);
-			assert ni.getParent() == this;
-            assert chronNodes.get(ni.getD().nodeId) == ni;
-			assert ni.getNodeIndex() == i;
-			if (prevNi != null)
-			{
-				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevNi.getName(), ni.getName());
-				assert cmp <= 0;
-				if (cmp == 0)
-					assert prevNi.getD().nodeId < ni.getD().nodeId;
-			}
+        for(int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
+            NodeInst ni = nodes.get(nodeIndex);
+            ImmutableNodeInst n = ni.getD();
+            assert ni.getParent() == this;
+            assert ni.getNodeIndex() == nodeIndex;
+            assert chronNodes.get(n.nodeId) == ni;
+            if (cellContentsFresh) assert backup.nodes.get(nodeIndex) == n;
+            if (prevNi != null) {
+                int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevNi.getName(), ni.getName());
+                assert cmp <= 0;
+                if (cmp == 0)
+                    assert prevNi.getD().nodeId < n.nodeId;
+            }
             if (ni.isCellInstance()) {
                 Cell subCell = (Cell)ni.getProto();
+                assert subCell.isLinked();
+                assert subCell.database == database;
                 CellUsage u = cellId.getUsageIn(subCell.getId());
                 usages[u.indexInParent]++;
             }
-			ni.check();
-//			for(Iterator<Connection> pIt = ni.getConnections(); pIt.hasNext(); )
-//			{
-//				Connection con = pIt.next();
-//                ArcInst ai = con.getArc();
-//                assert ai.getParent() == this && ai.isLinked();
-//			}
-			prevNi = ni;
-		}
-        int countNodes = 0;
-        for (int i = 0; i < chronNodes.size(); i++)
-            if (chronNodes.get(i) != null) countNodes++;
-        assert countNodes == nodes.size();
-
+            ni.check(exportSet, tailSet, headSet);
+            prevNi = ni;
+        }
+        assert exportSet.isEmpty();
+        assert tailSet.isEmpty() && headSet.isEmpty();
+        for (int nodeId = 0; nodeId < chronNodes.size(); nodeId++) {
+            NodeInst ni = chronNodes.get(nodeId);
+            if (ni == null) continue;
+            assert ni.getD().nodeId == nodeId;
+            assert ni == nodes.get(ni.getNodeIndex());
+        }
+        
 //        rTree.checkRTree(0, this);
         
-		// check node usages
+        // check node usages
         for (int i = 0; i < cellUsages.length; i++)
             assert cellUsages[i] == usages[i];
         for (int i = cellUsages.length; i < usages.length; i++)
             assert usages[i] == 0;
-
-		// check group pointers
-		assert cellGroup.containsCell(this);
-	}
-
-	private static boolean invariantsFailed = false;
-
-	/**
-	 * Method to check invariants in this Cell.
-	 * @return true if invariants are valid
-	 */
-	public boolean checkInvariants()
-	{
-		try
-		{
-			check();
-			return true;
-		} catch (Throwable e)
-		{
-			if (!invariantsFailed)
-			{
-				System.out.println("Exception checking invariants of " + this);
-				e.printStackTrace();
-				ActivityLogger.logException(e);
-				invariantsFailed = true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Method to tell whether an ElectricObject exists in this Cell.
+        
+        // check group pointers
+        assert cellGroup.containsCell(this);
+    }
+    
+    /**
+     * Method to tell whether an ElectricObject exists in this Cell.
 	 * Used when saving and restoring highlighting to ensure that the object still
 	 * exists.
 	 * @param eObj the ElectricObject in question

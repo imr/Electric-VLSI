@@ -80,6 +80,19 @@ public class ImmutableCell extends ImmutableElectricObject {
     }
 
 	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by library id.
+	 * @param libId new library id.
+	 * @return ImmutableCell which differs from this ImmutableCell by library id.
+	 * @throws NullPointerException if libId is null.
+	 */
+	public ImmutableCell withLibrary(LibId libId) {
+        if (this.libId == libId) return this;
+        if (libId == null) throw new NullPointerException("libId");
+		return new ImmutableCell(this.cellId, libId, this.cellName,
+                this.creationDate, this.tech, this.flags, getVars());
+	}
+
+	/**
 	 * Returns ImmutableCell which differs from this ImmutableCell by cell name.
 	 * @param cellName new cell name.
 	 * @return ImmutableCell which differs from this ImmutableCell by cell name.

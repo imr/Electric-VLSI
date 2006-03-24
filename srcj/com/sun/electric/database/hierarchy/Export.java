@@ -915,24 +915,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	public EDatabase getDatabase() { return parent.getDatabase(); }
 
 	/**
-	 * Method to check invariants in this Export.
-	 * @exception AssertionError if invariants are not valid
-	 */
-	protected void check()
-	{
-        super.check();
-		assert originalPort != null;
-		NodeInst ni = originalPort.getNodeInst();
-        assert d.originalNodeId == ni.getD().nodeId;
-		PortProto pp = originalPort.getPortProto();
-        assert d.originalPortId == pp.getId();
-		assert ni.getParent() == parent && ni.isLinked();
-		assert ni.getProto() == pp.getParent();
-        assert d.exportId.parentId == parent.getD().cellId;
-		if (pp instanceof Export) assert ((Export)pp).isLinked();
-	}
-
-	/**
 	 * Method to return the PortProto that is equivalent to this in the
 	 * corresponding schematic Cell.
 	 * It finds the PortProto with the same name on the corresponding Cell.

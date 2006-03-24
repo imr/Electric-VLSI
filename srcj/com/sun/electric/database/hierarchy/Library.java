@@ -82,8 +82,8 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
     /** persistent data of this Library. */                 private ImmutableLibrary d;
     /** true of library needs saving. */                    private boolean modified;
     /** list of referenced libs */                          private final List<Library> referencedLibs = new ArrayList<Library>();
-    /** Last backup of this Library */                      private LibraryBackup backup;
-    /** True if library matches lib backup. */              private boolean libBackupFresh;
+    /** Last backup of this Library */                      LibraryBackup backup;
+    /** True if library matches lib backup. */              boolean libBackupFresh;
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
     /** preferences for this library */                     Preferences prefs;
@@ -690,10 +690,20 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 	 */
 	protected void check()
 	{
+        if (libBackupFresh) {
+            assert getD() == backup.d;
+            assert modified == backup.modified;
+            assert backup.referencedLibs.length == referencedLibs.size();
+        }
         super.check();
 		assert d.libName != null;
 		assert d.libName.length() > 0;
 		assert d.libName.indexOf(' ') == -1 && d.libName.indexOf(':') == -1 : d.libName;
+        for (int i = 0; i < referencedLibs.size(); i++) {
+            Library rLib = referencedLibs.get(i);
+            assert rLib.isLinked() && rLib.database == database;
+            if (libBackupFresh) assert backup.referencedLibs[i] == referencedLibs.get(i).getId();
+        }
 		HashSet<Cell.CellGroup> cellGroups = new HashSet<Cell.CellGroup>();
 		String protoName = null;
 		Cell.CellGroup cellGroup = null;
@@ -702,7 +712,8 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 		{
 			CellName cn = (CellName)e.getKey();
 			Cell cell = (Cell)e.getValue();
-			assert cell.getCellName().equals(cn);
+            assert cell.isLinked() && cell.getDatabase() == database;
+			assert cell.getCellName() == cn;
 			assert cell.getLibrary() == this;
 			if (protoName == null || !cell.getName().equals(protoName))
 			{
@@ -716,7 +727,6 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
                 newestVersion = cell;
 			assert cell.getCellGroup() == cellGroup : cell;
             assert cell.newestVersion == newestVersion;
-			cell.check();
 		}
 		for (Iterator<Cell.CellGroup> it = cellGroups.iterator(); it.hasNext(); )
 		{

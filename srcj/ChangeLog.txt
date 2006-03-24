@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+IMP: (3/24/06, DN) Added method Cell.move(Library newLib) for CrossLibraryMove.
+     Database methods checkFresh moved to check.    
+
+BUG: (3/24/06, DN)) Read Library Job used getCurrentCell inside doIt.
+FIX: Move it to terminateOK.
+
 IMP/MAN: (3/23/06, GVG) Access to reloadLibrary in ExplorerTree (no cvs mode).
                                    
 IMP: (3/23/06, JG): Need facility to reload changed libraries from disk (Bug #721)

@@ -297,7 +297,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
         jPanel7.add(routMimicNoOtherArcs, gridBagConstraints);
 
-        routMimicKeepPins.setLabel("Keep Pins");
+        routMimicKeepPins.setText("Keep Pins");
         routMimicKeepPins.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 routMimicKeepPinsActionPerformed(evt);

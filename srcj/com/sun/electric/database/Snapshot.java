@@ -100,7 +100,10 @@ public class Snapshot {
             CellBackup oldBackup = getCell(cellIndex);
             CellId cellId;
             if (newBackup != null) {
-                if (oldBackup == null || newBackup.d.cellName != oldBackup.d.cellName || newBackup.isMainSchematics != oldBackup.isMainSchematics)
+                if (oldBackup == null ||
+                        newBackup.d.libId != oldBackup.d.libId ||
+                        newBackup.d.cellName != oldBackup.d.cellName ||
+                        newBackup.isMainSchematics != oldBackup.isMainSchematics)
                     namesChanged = true;
                 
                 // Check lib usages.

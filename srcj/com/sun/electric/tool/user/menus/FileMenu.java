@@ -368,7 +368,7 @@ public class FileMenu {
 		private URL fileURL;
 		private FileType type;
 		private Library deleteLib;
-        private Cell showThisCell;
+//        private Cell showThisCell;
         private HashMap<Object,Map<String,Object>> meaningVariables;
         private Library lib;
 
@@ -411,8 +411,8 @@ public class FileMenu {
             }
 //            Undo.noUndoAllowed();
             lib.setCurrent();
-            showThisCell = Job.getUserInterface().getCurrentCell(lib);
-			fieldVariableChanged("showThisCell");
+//            showThisCell = Job.getUserInterface().getCurrentCell(lib);
+//			fieldVariableChanged("showThisCell");
 			if (deleteLib != null)
 				deleteLib.kill("replace");
 			return true;
@@ -422,6 +422,7 @@ public class FileMenu {
         {
             Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
             meaningVariables = null;
+            Cell showThisCell = Job.getUserInterface().getCurrentCell(lib);
         	doneOpeningLibrary(showThisCell);
 
             // Repair libraries.
