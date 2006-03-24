@@ -45,7 +45,7 @@ public class CVSLibrary {
 
     private Library lib;
     private FileType type;
-    private State libState;
+    private State libState;                 // only used for non-DELIB file types
     private Map<Cell,State> cellStates;
     private Map<Cell,Cell> editing;         // list of cells I am editing
 
@@ -107,15 +107,14 @@ public class CVSLibrary {
     }
 
     /**
-     * See if cell is part of CVS repository (DELIB), or
-     * is part of library that is part of repository (JELIB).
+     * See if cell is part of CVS repository (DELIB).
      * @param cell
      * @return
      */
     public static boolean isInCVS(Cell cell) {
         CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
         if (cvslib == null) return false;
-        if (cvslib.type != FileType.DELIB) return true;
+        if (cvslib.type != FileType.DELIB) return false;
         State state = cvslib.cellStates.get(cell);
         if (state == null) return false;
         return true;
@@ -146,6 +145,10 @@ public class CVSLibrary {
         if (cvslib == null) return;
         if (state == null)
             return;
+        if (cvslib.type != FileType.DELIB) {
+            cvslib.libState = state;
+            return;
+        }
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell cell = it.next();
             cvslib.cellStates.put(cell, state);
@@ -165,6 +168,9 @@ public class CVSLibrary {
     static State getState(Library lib) {
         CVSLibrary cvslib = CVSLibraries.get(lib);
         if (cvslib == null) return State.UNKNOWN;
+        if (cvslib.type != FileType.DELIB) {
+            return cvslib.libState;
+        }
         Set<State> states = new TreeSet<State>();
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell cell = it.next();
@@ -243,6 +249,9 @@ public class CVSLibrary {
      */
     public static void savingLibrary(Library lib) {
         if (!CVS.isDELIB(lib)) {
+            File file = new File(lib.getLibFile().getPath());
+            if (!CVS.isFileInCVS(file)) return;
+            Edit.edit(file.getParentFile().getPath(), file.getName());
             return;
         }
         // all modifies cells must have edit turned on

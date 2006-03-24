@@ -108,6 +108,7 @@ public class Update {
         private List<Cell> cellsToUpdate;
         private List<Library> librariesToUpdate;
         private int type;
+        private List<Library> libsToReload;
         /**
          * Update cells and/or libraries.
          * @param cellsToUpdate
@@ -133,8 +134,8 @@ public class Update {
             commentStatusResult(result, type);
 
             // reload libs if needed
+            libsToReload = new ArrayList<Library>();
             if (type != STATUS) {
-                List<Library> libsToReload = new ArrayList<Library>();
                 for (Cell cell : result.getCells(State.UPDATE)) {
                     Library lib = cell.getLibrary();
                     if (!libsToReload.contains(lib))
@@ -153,7 +154,11 @@ public class Update {
             // update states
             updateStates(result);
             System.out.println(getMessage(type)+" complete.");
+            fieldVariableChanged("libsToReload");
             return true;
+        }
+        public void terminateOK() {
+            CVS.fixStaleCellReferences(libsToReload);
         }
     }
 
@@ -268,12 +273,10 @@ public class Update {
             File file = new File(filename);
             if (filename.toLowerCase().endsWith(".jelib")) {
                 // jelib library file, set state of all cells
-                Library lib = Library.findLibrary(file.getName());
+                String endfile = file.getName();
+                Library lib = Library.findLibrary(endfile.substring(0, endfile.length()-6));
                 if (lib == null) continue;
-                for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-                    Cell cell = it.next();
-                    result.addCell(state, cell);
-                }
+                CVSLibrary.setState(lib, state);
             }
             Cell cell = CVS.getCellFromPath(filename);
             if (cell != null) {

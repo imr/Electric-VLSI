@@ -1,0 +1,324 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: Log.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
+package com.sun.electric.tool.cvspm;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.tool.user.dialogs.CVSLog;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.input.LibraryFiles;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.LineNumberReader;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: gainsley
+ * Date: Mar 23, 2006
+ * Time: 3:10:57 PM
+ * To change this template use File | Settings | File Templates.
+ */
+public class Log {
+
+    public static void showLog(Cell cell) {
+        List<Cell> cells = new ArrayList<Cell>();
+        cells.add(cell);
+        String useDir = CVS.getUseDir(null, cells);
+        StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        CVS.runCVSCommand("log "+cellsBuf, "Show CVS Log", useDir, out);
+        LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+        System.out.println("Show CVS Log complete.");
+        Log log = new Log(cell);
+        log.parseLogOutput(reader);
+
+        CVSLog dialog = new CVSLog(log.entries, "CVS Log for "+cell.libDescribe());
+        dialog.setVisible(true);
+    }
+
+    /**
+     * Compare the specified version with the local copy
+     * @param entry
+     */
+    public static void compareWithLocal(LogEntry entry) {
+        Cell cell = entry.cell;
+        String version = entry.version;
+
+        List<Cell> cells = new ArrayList<Cell>();
+        cells.add(cell);
+        String useDir = CVS.getUseDir(null, cells);
+        StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
+
+        CVS.runCVSCommand("diff -r "+version+" "+cellsBuf, "Compare with Local", useDir, System.out);
+        System.out.println("Compare with Local complete.");
+    }
+
+    public static void compare(LogEntry entry1, LogEntry entry2) {
+        Cell cell = entry1.cell;
+        String version1 = entry1.version;
+        String version2 = entry2.version;
+
+        List<Cell> cells = new ArrayList<Cell>();
+        cells.add(cell);
+        String useDir = CVS.getUseDir(null, cells);
+        StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
+
+        CVS.runCVSCommand("diff -r "+version1+" -r "+version2+" "+cellsBuf, "Compare Versions", useDir, System.out);
+        System.out.println("Compare Versions complete.");
+    }
+
+    public static void getVersion(LogEntry entry) {
+        (new RevertToVersion(entry)).startJob();
+    }
+
+    public static class RevertToVersion extends Job {
+        private LogEntry entry;
+        public RevertToVersion(LogEntry entry) {
+            super("Revert to CVS Version", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.entry = entry;
+        }
+        public boolean doIt() {
+            Cell cell = entry.cell;
+            String version = entry.version;
+
+            List<Cell> cells = new ArrayList<Cell>();
+            cells.add(cell);
+            String useDir = CVS.getUseDir(null, cells);
+            StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
+
+            File cellFile = new File(useDir, cellsBuf.toString().trim());
+            File cellFileBackup = new File(useDir, cellsBuf.toString().trim()+"___version"+version);
+            String cellFilePath = cellFile.getPath();
+            String cellFileBackupPath = cellFileBackup.getPath();
+            if (!cellFile.exists()) {
+                System.out.println("Error: File does not exist: "+cellFile.getPath());
+                return false;
+            }
+
+            CVS.runCVSCommand("update -r "+version+" "+cellsBuf, "Get Version", useDir, System.out);
+            // copy old file away
+            if (cellFileBackup.exists()) {
+                if (!cellFileBackup.delete()) {
+                    System.out.println("Error: Could not delete backup file: "+cellFileBackup.getPath());
+                    return false;
+                }
+            }
+            if (!cellFile.renameTo(cellFileBackup)) {
+                System.out.println("Error: Could not rename file "+cellFile.getPath()+" to "+cellFileBackup.getPath());
+                return false;
+            }
+            // update with current version, remove sticky tag
+            CVS.runCVSCommand("update -A "+cellsBuf, "Remove Sticky Tag", useDir, System.out);
+
+            // delete updated file, and move back old version file
+            File oldCellFile = new File(cellFilePath);
+            if (!oldCellFile.delete()) {
+                System.out.println("Error: Could not delete file: "+cellFile.getPath());
+                return false;
+            }
+            if (!cellFileBackup.renameTo(new File(cellFilePath))) {
+                System.out.println("Error: Could not rename file "+cellFileBackup.getPath()+" to "+cellFilePath);
+                return false;
+            }
+            // reload cell
+            //LibraryFiles.reloadLibraryCells(cells);
+            LibraryFiles.reloadLibrary(cell.getLibrary());
+
+            System.out.println("Get Version complete.");
+            return true;
+        }
+        public void terminateOK() {
+            Library newLib = Library.findLibrary(entry.cell.getLibrary().getName());
+            if (newLib == null) return;
+            Cell newCell = newLib.findNodeProto(entry.cell.noLibDescribe());
+            if (newCell == null) return;
+            showLog(newCell);
+            CVS.fixStaleCellReferences(entry.cell.getLibrary());
+        }
+    }
+
+    // -------------------------------------------------------
+
+    private HashMap<String,String> versionsToTags;
+    private List<LogEntry> entries;
+    private Cell cell;
+    private String headVersion;
+
+    private Log(Cell cell) {
+        this.cell = cell;
+        versionsToTags = new HashMap<String,String>();
+        entries = new ArrayList<LogEntry>();
+        headVersion = "";
+    }
+
+    private void parseLogOutput(LineNumberReader reader) {
+        try {
+            parseLog(reader);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+    }
+
+
+    private void parseLog(LineNumberReader reader) throws IOException {
+        // parse header, don't care about stuff until symbolic names (tags)
+        for (;;) {
+            String line = reader.readLine();
+            if (line == null) return;
+            if (line.equals("")) continue;
+
+            if (line.startsWith("head:")) {
+                headVersion = line.substring(5).trim();
+            }
+
+            if (line.startsWith("symbolic names:")) {
+                parseSymbolicNames(reader);
+            }
+            if (line.startsWith("revision")) {
+                LogEntry entry = parseLogEntry(line, reader);
+                if (entry != null)
+                    entries.add(entry);
+            }
+        }
+    }
+
+    private void parseSymbolicNames(LineNumberReader reader) throws IOException {
+        for (;;) {
+            String line = reader.readLine();
+            if (line == null) return;
+            if (line.equals("")) continue;
+            if (line.startsWith("keyword substitution")) return;
+
+            String parts[] = line.trim().split(":\\s+");
+            if (parts.length != 2) {
+                System.out.println("Bad format for symbolic name: "+line);
+                continue;
+            }
+            versionsToTags.put(parts[1], parts[0]);
+        }
+    }
+    private LogEntry parseLogEntry(String line, LineNumberReader reader)
+        throws IOException {
+        // get revision
+        String parts[] = line.trim().split("\\s+");
+        if (parts.length != 2) {
+            System.out.println("Bad revision line format: "+line);
+            return null;
+        }
+        String version = parts[1];
+        String tag = versionsToTags.get(version);
+        if (tag == null) tag = "";
+
+        line = reader.readLine();
+        if (line == null) {
+            System.out.println("Unexpected end of file");
+            return null;
+        }
+        parts = line.trim().split(";\\s+");
+        String branch = "";
+        String date = "";
+        String author = "";
+        String state = "";
+        StringBuffer commitMessage = new StringBuffer();
+        for (int i=0; i<parts.length; i++) {
+            if (parts[i].startsWith("date: ")) {
+                date = parts[i].substring(6);
+            }
+            else if (parts[i].startsWith("author: ")) {
+                author = parts[i].substring(7).trim();
+            }
+            else if (parts[i].startsWith("state: ")) {
+                state = parts[i].substring(6).trim();
+            }
+        }
+
+        line = reader.readLine();
+        while (!line.startsWith("-----------------------") &&
+               !line.startsWith("==========================")) {
+            if (line.startsWith("branches: ")) {
+                branch = line.substring(9).trim();
+                line = reader.readLine();
+                continue;
+            }
+            // commit message...may span multiple lines
+            commitMessage.append(line+"\n");
+            line = reader.readLine();
+        }
+
+        return new LogEntry(cell, version, branch, date, author, commitMessage.toString(),
+                state, tag, headVersion);
+    }
+
+
+    public static class LogEntry implements Serializable {
+        public final Cell cell;
+        public final String version;
+        public final String branch;
+        public final String date;
+        public final String author;
+        public final String commitMessage;
+        public final String state;
+        public final String tag;
+        public final String headVersion;        // current local version
+        private LogEntry(Cell cell,
+                         String version,
+                         String branch,
+                         String date,
+                         String author,
+                         String commitMessage,
+                         String state,
+                         String tag,
+                         String headVersion) {
+            this.cell = cell;
+            this.version = version;
+            this.branch = branch;
+            this.date = date;
+            this.author = author;
+            this.commitMessage = commitMessage;
+            this.state = state;
+            this.tag = tag;
+            this.headVersion = headVersion;
+        }
+        public void print() {
+            System.out.println(version + "\t" +
+                    branch + "\t" +
+                    date + "\t" +
+                    author + "\t" +
+                    commitMessage.replaceAll("\\n", " ") +
+                    state + "\t" +
+                    tag);
+        }
+    }
+}

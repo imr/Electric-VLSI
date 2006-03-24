@@ -29,11 +29,14 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.dialogs.ModalCommandDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.Job;
@@ -59,7 +62,7 @@ import java.net.URL;
  */
 public class CVS {
 
-    public static boolean isEnabled() { return false; }
+    public static boolean isEnabled() { return true; }
 
     public static void checkoutFromRepository() {
         // get list of modules in repository
@@ -123,10 +126,59 @@ public class CVS {
      * printing it.
      */
     public static void runCVSCommand(String cmd, String comment, String workingDir, OutputStream out) {
-        String run = getCVSProgram() + " -d"+getRepository()+" "+cmd;
+        String specifyRepository = "";
+        if (!getRepository().equals("")) specifyRepository = " -d"+getRepository();
+        String run = getCVSProgram() + specifyRepository +" "+cmd;
 
         System.out.println(comment+": cvs "+cmd);
         Exec e = new Exec(run, null, new File(workingDir), out, out);
+        e.run();
+    }
+
+    /**
+     * Run this command if you have quotes ("") in your command that delimit a single
+     * argument. Normally exec breaks up the string command by whitespace, ignoring
+     * quotes. This command will preprocess the command to ensure it thinks of the
+     * string in quotes as one argument.
+     * @param cmd the command to run
+     * @param comment the message to display on the dialog
+     * @param workingDir the directory in which to run the CVS command
+     * (null for current working directory). I recommend you specify
+     * this as the current library dir.
+     * @param out where the result of the command gets printed. May be
+     * a ByteArrayOutputStream for storing it, or just System.out for
+     * printing it.
+     */
+    static void runCVSCommandWithQuotes(String cmd, String comment, String workingDir, OutputStream out) {
+        String specifyRepository = "";
+        if (!getRepository().equals("")) specifyRepository = " -d "+getRepository();
+
+        cmd = getCVSProgram() + specifyRepository + " " + cmd;
+
+        // break command into separate arguments
+        List<String> execparts = new ArrayList<String>();
+        String [] quoteParts = cmd.split("\"");
+        for (int i=0; i<quoteParts.length; i++) {
+            if (i % 2 == 0) {
+                // evens are not enclosed in quotes
+                String [] parts = quoteParts[i].trim().split("\\s+");
+                for (int j=0; j<parts.length; j++)
+                    execparts.add(parts[j]);
+            } else {
+                // odds are enclosed in quotes
+                execparts.add(quoteParts[i]);
+            }
+
+        }
+        String [] exec = new String[execparts.size()];
+        for (int i=0; i<exec.length; i++) {
+            exec[i] = execparts.get(i);
+            // debug
+            //System.out.println(i+": "+exec[i]);
+        }
+
+        System.out.println(comment+": "+cmd);
+        Exec e = new Exec(exec, null, new File(workingDir), out, out);
         e.run();
     }
 
@@ -394,6 +446,40 @@ public class CVS {
         return cell;
     }
 
+    /**
+     * Reloading libraries has the side affect that any EditWindows
+     * containing cells that were reloaded now point to old, unlinked
+     * cells instead of the new ones. This method checks for this state
+     * and fixes it.
+     */
+    public static void fixStaleCellReferences(List<Library> libs) {
+        for (Library lib : libs) {
+            fixStaleCellReferences(lib);
+        }
+    }
+    /**
+     * Reloading libraries has the side affect that any EditWindows
+     * containing cells that were reloaded now point to old, unlinked
+     * cells instead of the new ones. This method checks for this state
+     * and fixes it.
+     */
+    public static void fixStaleCellReferences(Library reloadedLib) {
+        for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+            WindowFrame frame = it.next();
+            if (frame.getContent() instanceof EditWindow) {
+                EditWindow wnd = (EditWindow)frame.getContent();
+                Cell cell = wnd.getCell();
+                if (!cell.isLinked()) {
+                    Library newLib = Library.findLibrary(cell.getLibrary().getName());
+                    if (newLib == null) return;
+                    Cell newCell = newLib.findNodeProto(cell.noLibDescribe());
+                    if (newCell == null) return;
+                    wnd.setCell(newCell, VarContext.globalContext);
+                }
+            }
+        }
+    }
+
     // ------------------- Preferences --------------------
 
     /**
@@ -405,9 +491,11 @@ public class CVS {
         return getCVSRepository();
     }
 
+/*
     private static Pref cacheCVSEnabled = Pref.makeBooleanPref("CVS Enabled", User.getUserTool().prefs, false);
     public static boolean getCVSEnabled() { return cacheCVSEnabled.getBoolean(); }
     public static void setCVSEnabled(boolean b) { cacheCVSEnabled.setBoolean(b); }
+*/
 
     private static Pref cacheCVSProgram = Pref.makeStringPref("CVS Program", User.getUserTool().prefs, "cvs");
     public static String getCVSProgram() { return cacheCVSProgram.getString(); }

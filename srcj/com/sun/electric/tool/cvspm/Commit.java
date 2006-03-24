@@ -29,10 +29,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.output.DELIB;
 
 import javax.swing.JOptionPane;
-import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -126,7 +124,7 @@ public class Commit {
             String commitFiles = libs + " " + cells;
             if (commitFiles.trim().equals("")) return true;
 
-            CVS.runCVSCommand("-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);
+            CVS.runCVSCommandWithQuotes("-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);
             System.out.println("Commit complete");
             return true;
         }
