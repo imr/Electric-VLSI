@@ -453,6 +453,7 @@ public class CVS {
      * and fixes it.
      */
     public static void fixStaleCellReferences(List<Library> libs) {
+        if (libs == null) return;
         for (Library lib : libs) {
             fixStaleCellReferences(lib);
         }
@@ -464,6 +465,7 @@ public class CVS {
      * and fixes it.
      */
     public static void fixStaleCellReferences(Library reloadedLib) {
+        if (reloadedLib == null) return;
         for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
             WindowFrame frame = it.next();
             if (frame.getContent() instanceof EditWindow) {
