@@ -394,7 +394,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         {
             if (obj instanceof List)
             {
-                List<Object> list = (List<Object>)obj;
+                List<?> list = (List)obj;
 	            // Getting first element
                 obj = list.get(0);
 	            if (obj instanceof List) obj = ((List)obj).get(0);
@@ -409,7 +409,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 							menu.add((JSeparator)item);
 						else if (item instanceof List)
 						{
-							List<Object> subList = (List<Object>)item;
+							List<?> subList = (List)item;
 							for (Object subItem : subList)
 							{
                                 subItem = getInUsed(subItem);

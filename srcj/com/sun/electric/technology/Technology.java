@@ -542,8 +542,7 @@ public class Technology implements Comparable<Technology>
 	/** number of transparent layers in technology */		private int transparentLayers;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
 	/** the color map for this technology */				private Color [] colorMap;
-	/** list of layers in this technology */				private List<Layer> layers;
-	/** count of layers in this technology */				private int layerIndex = 0;
+	/** list of layers in this technology */				private final List<Layer> layers = new ArrayList<Layer>();
 	/** list of primitive nodes in this technology */		private LinkedHashMap<String,PrimitiveNode> nodes = new LinkedHashMap<String,PrimitiveNode>();
     /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 	/** list of arcs in this technology */					private LinkedHashMap<String,ArcProto> arcs = new LinkedHashMap<String,ArcProto>();
@@ -590,7 +589,6 @@ public class Technology implements Comparable<Technology>
 	protected Technology(String techName)
 	{
 		this.techName = techName;
-		this.layers = new ArrayList<Layer>();
 		this.nodeLayers = new ArrayList<NodeLayer>();
 		//this.scale = 1.0;
 		this.scaleRelevant = true;
@@ -958,7 +956,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void addLayer(Layer layer)
 	{
-		layer.setIndex(layerIndex++);
+		layer.setIndex(layers.size());
 		layers.add(layer);
 	}
 

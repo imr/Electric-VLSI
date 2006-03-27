@@ -57,7 +57,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.plugins.sunRouter.global.xzglobal.Net;
+//import com.sun.electric.plugins.sunRouter.global.xzglobal.Net;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;

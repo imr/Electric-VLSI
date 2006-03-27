@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -66,7 +65,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Class to do rapid redraw by caching the vector coordinates of all objects.
@@ -1965,4 +1966,46 @@ public class VectorDrawing
 		return oName;
 	}
 
+    public static void showStatistics() {
+        Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSort);
+        int numCells = 0, numCellLayer = 0;
+        int totalNoBox = 0, totalNoPoly = 0, totalNoDisc = 0, totalNoText = 0, totalNoOther = 0;
+        for (VectorCellGroup vg: cachedCells.values()) {
+            VectorCell vc = vg.getAnyCell();
+            Map<Layer,GenMath.MutableInteger> layerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSort);
+            int noText = 0, noOther = 0;
+            for (VectorBase vs: vc.shapes) {
+                if (vs.layer != null &&
+                        (vs instanceof VectorManhattan ||
+                        vs instanceof VectorPolygon ||
+                        vs instanceof VectorCircle && ((VectorCircle)vs).nature == 2)) {
+                    if (vs instanceof VectorManhattan)
+                        totalNoBox++;
+                    else if (vs instanceof VectorPolygon)
+                        totalNoPoly++;
+                    else if (vs instanceof VectorCircle)
+                        totalNoDisc++;
+                    GenMath.addToBag(layerBag, vs.layer);
+                } else if (vs instanceof VectorText)
+                    noText++;
+                else
+                    noOther++;
+            }
+            GenMath.addToBag(totalLayerBag, layerBag);
+            numCells++;
+            numCellLayer += layerBag.size();
+            totalNoText += noText;
+            totalNoOther += noOther;
+            System.out.print(vg.cell + " " + vg.orientations.size() + " ors " + vc.subCells.size() + " subs " + vc.shapes.size() +
+                    " shapes " + noText + ":TEXT " + noOther + ":OTHER");
+            for (Map.Entry<Layer,GenMath.MutableInteger> e: layerBag.entrySet())
+                System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
+            System.out.println();
+        }
+        System.out.println(numCells + " cells " + numCellLayer + " cellLayes");
+        System.out.println(totalNoBox + " boxes " + totalNoPoly + " polys " + totalNoDisc + " discs " + totalNoText + " texts " + totalNoOther + " others");
+        for (Map.Entry<Layer,GenMath.MutableInteger> e: totalLayerBag.entrySet())
+            System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
+        System.out.println();
+    }
 }

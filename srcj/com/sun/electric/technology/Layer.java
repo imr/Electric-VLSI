@@ -421,7 +421,7 @@ public class Layer
 	}
 
 	private String name;
-	private int index;
+	private int index = -1; // contains index in technology or -1 for standalone layers
 	private Technology tech;
 	private EGraphics graphics;
 	private Function function;

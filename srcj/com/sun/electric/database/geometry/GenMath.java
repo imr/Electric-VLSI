@@ -133,7 +133,7 @@ public class GenMath
      * @param bag Map implementing Bag.
      * @param key object to add to bag.
      */
-	public static void addToBag(Map<Object,MutableInteger> bag, Object key)
+	public static <T> void addToBag(Map<T,MutableInteger> bag, T key)
 	{
 		addToBag(bag, key, 1);
 	}
@@ -143,10 +143,10 @@ public class GenMath
      * @param bag bag to update.
      * @param otherBag bag used for update.
      */
-	public static void addToBag(Map<Object,MutableInteger> bag,
-						 Map<Object,MutableInteger> otherBag)
+	public static <T> void addToBag(Map<T,MutableInteger> bag,
+						 Map<T,MutableInteger> otherBag)
 	{
-		for (Map.Entry<Object,MutableInteger> e : otherBag.entrySet())
+		for (Map.Entry<T,MutableInteger> e : otherBag.entrySet())
 		{
 			MutableInteger count = (MutableInteger)e.getValue();
 			addToBag(bag, e.getKey(), count.intValue());
@@ -160,7 +160,7 @@ public class GenMath
      * @param key object in a bag.
 	 * @param c count to add to bag.
      */
-	public static void addToBag(Map<Object,MutableInteger> bag, Object key, int c)
+	public static <T> void addToBag(Map<T,MutableInteger> bag, T key, int c)
 	{
 		MutableInteger count = bag.get(key);
 		if (count == null)
@@ -177,7 +177,7 @@ public class GenMath
 	 * @param key a key to an entry in the collection.
 	 * @return the value at that key.
 	 */
-	public static int countInBag(Map<Object,MutableInteger> bag, Object key)
+	public static <T> int countInBag(Map<T,MutableInteger> bag, T key)
 	{
 		MutableInteger count = bag.get(key);
 		return count != null ? count.intValue() : 0;
