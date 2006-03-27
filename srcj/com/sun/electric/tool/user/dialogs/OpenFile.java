@@ -36,7 +36,6 @@ import java.util.Iterator;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
-import javax.swing.filechooser.FileFilter;
 
 /**
  * Class to handle file selection dialogs.
@@ -107,6 +106,22 @@ public class OpenFile
             }
             return super.isTraversable(f);
         }
+
+        /**
+         * Overridden to return true when the currently selected file is a .delib file.
+         * This allows .DELIB to be treated as files for the approve (open/save) button.
+         * @return
+         */
+        public boolean isDirectorySelectionEnabled() {
+            File file = getSelectedFile();
+            // return true if a .delib file is selected, otherwise call the parent method
+            if (file != null &&
+                (super.getFileSelectionMode() != JFileChooser.DIRECTORIES_ONLY) &&
+                file.getName().toLowerCase().endsWith("."+FileType.DELIB.getExtensions()[0])) {
+                return true;
+            }
+            return super.isDirectorySelectionEnabled();
+        }
 	}
 
 //	/** the location of the open file dialog */		private static Point location = null;
@@ -159,7 +174,7 @@ public class OpenFile
 			dialog.setDialogTitle(title);
             dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
 			if (type != null) {
-                if (type == FileType.ELIB || type == FileType.JELIB ||
+                if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB ||
                     type == FileType.LIBFILE || type == FileType.LIBRARYFORMATS) {
                     LibDirs.LibDirFileSystemView view = LibDirs.newLibDirFileSystemView(dialog.getFileSystemView());
                     dialog.setFileSystemView(view);
