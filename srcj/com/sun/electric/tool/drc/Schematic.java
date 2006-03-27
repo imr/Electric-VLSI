@@ -299,7 +299,6 @@ public class Schematic
 				{
 					Variable var = (Variable)it.next();
                     if (!ni.isParam(var.getKey())) continue;
-//					if (!var.isParam()) continue;
 
                     Variable foundVar = contentsCell.getParameter(var.getKey());
 //					Variable foundVar = null;
@@ -330,7 +329,6 @@ public class Schematic
 								" had incorrect units (now fixed)", geom, cell, null, 0);
 //							ni.addVar(var.withUnit(foundVar.getUnit()));
                             addVariable(ni, var.withUnit(foundVar.getUnit()));
-//							var.setUnit(foundVar.getUnit());
 						}
 
 						// make sure visibility is OK
@@ -343,7 +341,6 @@ public class Schematic
 									" should not be visible (now fixed)", geom, cell, null, 0);
 //                                ni.addVar(var.withDisplay(false));
                                 addVariable(ni, var.withDisplay(false));
-//								var.setDisplay(false);
 							}
 						} else
 						{
@@ -354,7 +351,6 @@ public class Schematic
 									" should be visible (now fixed)", geom, cell, null, 0);
 //                                ni.addVar(var.withDisplay(true));
                                 addVariable(ni, var.withDisplay(true));
-//								var.setDisplay(true);
 							}
 						}
 					}
