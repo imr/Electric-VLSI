@@ -44,6 +44,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 
 import java.util.HashMap;
@@ -53,7 +54,7 @@ import java.util.HashMap;
  * <P>
  * This immutable class is thread-safe.
  */
-public class Variable
+public class Variable implements Serializable
 {
 	/**
 	 * The Key class caches Variable names.
