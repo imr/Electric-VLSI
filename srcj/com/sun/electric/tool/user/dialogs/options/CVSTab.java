@@ -7,8 +7,12 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.Update;
+import com.sun.electric.tool.cvspm.CVSLibrary;
+import com.sun.electric.database.hierarchy.Library;
 
 import javax.swing.*;
+import java.util.Iterator;
 
 /**
  *
@@ -48,7 +52,20 @@ public class CVSTab extends PreferencePanel {
         str = cvsProgram.getText();
         if (!str.equals(CVS.getCVSProgram())) CVS.setCVSProgram(str);
         boolean b = enableCVS.isSelected();
-        if (b != CVS.isEnabled()) CVS.setEnabled(b);
+        if (b != CVS.isEnabled()) {
+            CVS.setEnabled(b);
+            if (b) {
+                // user turned on CVS, update status of all libraries
+                for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+                    CVSLibrary.addLibrary(it.next());
+                }
+                Update.updateAllLibraries(Update.STATUS);
+            } else {
+                for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+                    CVSLibrary.removeLibrary(it.next());
+                }
+            }
+        }
     }
 
 
