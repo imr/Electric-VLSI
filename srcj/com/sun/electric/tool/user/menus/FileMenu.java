@@ -351,6 +351,9 @@ public class FileMenu {
     public static FileType getLibraryFormat(String fileName, FileType defaultType) {
         if (fileName != null)
         {
+            if (fileName.endsWith(File.separator)) {
+                fileName = fileName.substring(0, fileName.length()-File.separator.length());
+            }
             for (int i=0; i<FileType.libraryTypes.length; i++) {
                 FileType type = FileType.libraryTypes[i];
                 if (fileName.endsWith("."+type.getExtensions()[0])) return type;
@@ -549,6 +552,14 @@ public class FileMenu {
                     URL f = TextUtils.makeURLToFile(fileName + "." + FileType.ELIB.getExtensions()[0]);
                     if (TextUtils.URLExists(f, null)) {
                         defType = FileType.ELIB;
+                        file = f;
+                    }
+                }
+                if (defType == null) {
+                    // no valid extension, search for file with extension
+                    URL f = TextUtils.makeURLToFile(fileName + "." + FileType.DELIB.getExtensions()[0]);
+                    if (TextUtils.URLExists(f, null)) {
+                        defType = FileType.DELIB;
                         file = f;
                     }
                 }
