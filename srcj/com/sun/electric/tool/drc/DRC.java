@@ -320,7 +320,7 @@ public class DRC extends Listener
 
 		}
 		// never used
-		public boolean doIt() throws JobException { return (false);}
+		public boolean doIt() { return (false);}
 	}
 
     /**
@@ -345,7 +345,7 @@ public class DRC extends Listener
 			startJob();
 		}
 
-		public boolean doIt() throws JobException
+		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
             ErrorLogger errorLog = null;
@@ -374,7 +374,7 @@ public class DRC extends Listener
 			startJob();
 		}
 
-		public boolean doIt() throws JobException
+		public boolean doIt()
 		{
 			incrementalRunning = true;
             ErrorLogger errorLog = null;
@@ -966,7 +966,7 @@ public class DRC extends Listener
             startJob();
         }
 
-        public boolean doIt() throws JobException
+        public boolean doIt()
         {
             if (isDatesStoredInMemory())
             {
@@ -1020,9 +1020,8 @@ public class DRC extends Listener
                 {
                     Cell cell = it.next();
 
-    //                    Date now = goodDRCDate.get(cell);
                     if (!cell.isLinked())
-                        System.out.println("Cell '" + cell + "' is invalid to update DRC date");
+                        new JobException("Cell '" + cell + "' is invalid to update DRC date");
                     else
                     {
                         if (inMemory)
@@ -1041,7 +1040,7 @@ public class DRC extends Listener
                 {
                     Cell cell = it.next();
                     if (!cell.isLinked())
-                        System.out.println("Cell '" + cell + "' is invalid to clean DRC date");
+                        new JobException("Cell '" + cell + "' is invalid to clean DRC date");
                     else
                     {
                         if (inMemory)
