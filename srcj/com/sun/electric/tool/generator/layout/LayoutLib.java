@@ -114,7 +114,6 @@ public class LayoutLib {
 	 * create a new Library and return it.
 	 *
 	 * @param libName the name of the Library
-	 * @param libFileName the fully qualified path name of the Library
 	 * file on disk
 	 * @return the desired library
 	 */
@@ -135,14 +134,13 @@ public class LayoutLib {
 //		error(lib==null, "can't open Library for modify: "+libName);
 //		return lib;
 //	}
-	public static Library openLibForWrite(String libName, String libFileName) {
+	public static Library openLibForWrite(String libName) {
 		// return an open Library if it exists
 		Library lib = Library.findLibrary(libName);
 		if (lib!=null)  return lib;
 
 		// create a new Library
-		URL libFileURL = TextUtils.makeURLToFile(libFileName);
-		lib = Library.newInstance(libName, libFileURL);
+		lib = Library.newInstance(libName, null);
 
 		error(lib==null, "can't open Library for modify: "+libName);
 		return lib;

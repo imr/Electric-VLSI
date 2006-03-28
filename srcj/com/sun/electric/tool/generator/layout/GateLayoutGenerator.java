@@ -131,8 +131,7 @@ public class GateLayoutGenerator extends Job {
 
 	public boolean doIt() throws JobException {
 		String outLibNm = "autoGenLib"+foundry;
-		String outLibDir = "";
-		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
+		Library outLib = LayoutLib.openLibForWrite(outLibNm);
 
 		if (cell==null) {
 			System.out.println("Please open the schematic for which you " +

@@ -251,11 +251,16 @@ public class LayerCoverageTool extends Tool
         }
         List<Object> list = job.nodesAdded;
         // Don't know what to do if there is more than one
+        Rectangle2D rect = null;
         if (list.size() != 1)
             System.out.println("Prblem here");
 //        assert(list.size() == 1);
-        PolyBase poly = (PolyBase)list.toArray()[0];
-        return poly.getBounds2D();
+        else
+        {
+            PolyBase poly = (PolyBase)list.toArray()[0];
+            rect = poly.getBounds2D();
+        }
+        return rect;
     }
 
     /**

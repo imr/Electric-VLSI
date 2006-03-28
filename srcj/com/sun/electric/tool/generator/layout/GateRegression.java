@@ -103,7 +103,7 @@ public class GateRegression extends Job {
 		System.out.println("begin Gate Regression");
         String name = "gilda"+techNm;
 		Library scratchLib =
-		  LayoutLib.openLibForWrite(name, name);
+		  LayoutLib.openLibForWrite(name);
 
 //        Tech.setTechnology(techNm);     This call can't be done inside the doIt() because it calls the preferences
         StdCellParams stdCell;
@@ -165,7 +165,7 @@ public class GateRegression extends Job {
 		System.out.println("begin Gate Regression");
 
 		Library scratchLib =
-		  LayoutLib.openLibForWrite("scratch", "scratch"+techNm);
+		  LayoutLib.openLibForWrite("scratch"+techNm);
 
 //        Tech.setTechnology(techNm);     This call can't be done inside the doIt() because it calls the preferences
         StdCellParams stdCell;

@@ -4,8 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
-BUG: (3/28/06, RK) All-Java NCC regression test causes Netlist tool to throw exception. First exception was bug in regression, not Netlist tool. I no longer see the second exception so I think Dima fixed it. (Bugzilla #907) 
+IMP: (3/28/06, GVG) More AFG code
 
+BUG: (3/28/06, RK) All-Java NCC regression test causes Netlist tool to throw exception. First exception was bug in regression, not Netlist tool.
+I no longer see the second exception so I think Dima fixed it. (Bugzilla #907) 
 
 ************************* Version 8.04h: *********************************
 
