@@ -6,6 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04h: *********************************
 
+BUG: (3/28/06, RK) All-Java NCC regression test causes Netlist tool to throw exception. First exception was bug in regression, not Netlist tool. I no longer see the second exception so I think Dima fixed it. (Bugzilla #907) 
+
 BUG: (3/27/06, GVG)  (Exception in incremental DRC on file read in (Bug #906)
 FIX: Variable was not serializable.
 
