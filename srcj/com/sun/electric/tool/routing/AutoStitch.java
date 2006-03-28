@@ -25,16 +25,6 @@
  */
 package com.sun.electric.tool.routing;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
@@ -64,6 +54,18 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.CircuitChangeJobs;
+import java.util.Collections;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Class which implements the Auto Stitching tool.
@@ -321,7 +323,7 @@ public class AutoStitch
 		nodeMark = null;
 
         // create the routes
-//		Collections.sort(allRoutes, new compRoutes());
+		Collections.sort(allRoutes, new compRoutes());
         for (Route route : allRoutes)
         {
             RouteElement re = route.get(0);
@@ -416,44 +418,44 @@ public class AutoStitch
         }
 	}
 
-//	public static class compRoutes implements Comparator<Route>
-//	{
-//    	public int compare(Route r1, Route r2)
-//        {
-//    		// get the first route in proper order
-//			RouteElementPort r1s = r1.getStart();
-//			RouteElementPort r1e = r1.getEnd();
-//			NodeInst n1s = r1s.getPortInst().getNodeInst();
-//			NodeInst n1e = r1e.getPortInst().getNodeInst();
-//			if (n1s.compareTo(n1e) < 0)
-//			{
-//				NodeInst s = n1s;   n1s = n1e;   n1e = s;
-//				RouteElementPort se = r1s;   r1s = r1e;   r1e = se;
-//			}
-//
-//			// get the second route in proper order
-//			RouteElementPort r2s = r2.getStart();
-//			RouteElementPort r2e = r2.getEnd();
-//			NodeInst n2s = r2s.getPortInst().getNodeInst();
-//			NodeInst n2e = r2e.getPortInst().getNodeInst();
-//			if (n2s.compareTo(n2e) < 0)
-//			{
-//				NodeInst s = n2s;   n1s = n2e;   n2e = s;
-//				RouteElementPort se = r2s;   r2s = r2e;   r2e = se;
-//			}
-//
-//			// sort by the starting and ending nodes
-//			int res = n1s.compareTo(n2s);
-//			if (res != 0) return res;
-//			res = n1e.compareTo(n2e);
-//			if (res != 0) return res;
-//
-//			// sort by the starting and ending port names
-//			res = r1s.getPortInst().getPortProto().getName().compareTo(r2s.getPortInst().getPortProto().getName());
-//			if (res != 0) return res;
-//			res = r1e.getPortInst().getPortProto().getName().compareTo(r2e.getPortInst().getPortProto().getName());
-//			if (res != 0) return res;
-//
+	public static class compRoutes implements Comparator<Route>
+	{
+    	public int compare(Route r1, Route r2)
+        {
+    		// get the first route in proper order
+			RouteElementPort r1s = r1.getStart();
+			RouteElementPort r1e = r1.getEnd();
+			NodeInst n1s = r1s.getPortInst().getNodeInst();
+			NodeInst n1e = r1e.getPortInst().getNodeInst();
+			if (n1s.compareTo(n1e) < 0)
+			{
+				NodeInst s = n1s;   n1s = n1e;   n1e = s;
+				RouteElementPort se = r1s;   r1s = r1e;   r1e = se;
+			}
+
+			// get the second route in proper order
+			RouteElementPort r2s = r2.getStart();
+			RouteElementPort r2e = r2.getEnd();
+			NodeInst n2s = r2s.getPortInst().getNodeInst();
+			NodeInst n2e = r2e.getPortInst().getNodeInst();
+			if (n2s.compareTo(n2e) < 0)
+			{
+				NodeInst s = n2s;   n2s = n2e;   n2e = s;
+				RouteElementPort se = r2s;   r2s = r2e;   r2e = se;
+			}
+
+			// sort by the starting and ending nodes
+			int res = n1s.compareTo(n2s);
+			if (res != 0) return res;
+			res = n1e.compareTo(n2e);
+			if (res != 0) return res;
+
+			// sort by the starting and ending port names
+			res = r1s.getPortInst().getPortProto().getName().compareTo(r2s.getPortInst().getPortProto().getName());
+			if (res != 0) return res;
+			res = r1e.getPortInst().getPortProto().getName().compareTo(r2e.getPortInst().getPortProto().getName());
+			if (res != 0) return res;
+
 //			// sort by the starting and ending port locations
 //			Poly p1s = r1s.getPortInst().getPoly();
 //			Poly p2s = r2s.getPortInst().getPoly();
@@ -476,9 +478,9 @@ public class AutoStitch
 //			if (x1 > x2) return -1;
 //			if (y1 < y2) return 1;
 //			if (y1 > y2) return -1;
-//			return 0;
-//        }
-//	}
+			return 0;
+        }
+	}
    
 	/**
 	 * Method to determine if an arc is too wide for its ends.

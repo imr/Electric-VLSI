@@ -356,23 +356,25 @@ public class Routing extends Listener
 			// make arrays of what to unroute
 			int total = nets.size();
 			Network [] netsToUnroute = new Network[total];
-			List<Connection> [] netEnds = new List[total];
-			HashSet<ArcInst> [] arcsToDelete = new HashSet[total];
-			HashSet<NodeInst> [] nodesToDelete = new HashSet[total];
+			ArrayList<List<Connection>> netEnds = new ArrayList<List<Connection>>();
+			ArrayList<HashSet<ArcInst>> arcsToDelete = new ArrayList<HashSet<ArcInst>>();
+			ArrayList<HashSet<NodeInst>> nodesToDelete = new ArrayList<HashSet<NodeInst>>();
 			int i = 0;
 			for(Network net : nets)
 			{
 				netsToUnroute[i] = net;
-				arcsToDelete[i] = new HashSet<ArcInst>();
-				nodesToDelete[i] = new HashSet<NodeInst>();
-				netEnds[i] = findNetEnds(net, arcsToDelete[i], nodesToDelete[i], netList);
+                HashSet<ArcInst> arcs = new HashSet<ArcInst>();
+                HashSet<NodeInst> nodes = new HashSet<NodeInst>();
+				arcsToDelete.add(arcs);
+				nodesToDelete.add(nodes);
+				netEnds.add(findNetEnds(net, arcs, nodes, netList));
 				i++;
 			}
 
 			// do the unrouting
 			for(int j=0; j<total; j++)
 			{
-				if (unrouteNet(netsToUnroute[j], arcsToDelete[j], nodesToDelete[j], netEnds[j], netList, highlightThese)) break;
+				if (unrouteNet(netsToUnroute[j], arcsToDelete.get(j), nodesToDelete.get(j), netEnds.get(j), netList, highlightThese)) break;
 			}
 			fieldVariableChanged("highlightThese");
 			return true;

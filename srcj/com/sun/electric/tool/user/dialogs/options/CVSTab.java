@@ -123,7 +123,7 @@ public class CVSTab extends PreferencePanel {
         cvsPanel.add(cvsProgram, gridBagConstraints);
 
         enableCVS.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        enableCVS.setLabel("Enable CVS");
+        enableCVS.setText("Enable CVS");
         enableCVS.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
