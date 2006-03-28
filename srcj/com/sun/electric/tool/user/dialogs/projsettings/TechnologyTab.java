@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.dialogs.projsettings;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.Foundry;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
@@ -36,11 +35,8 @@ import com.sun.electric.tool.user.ui.VectorDrawing;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
-import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -62,10 +58,10 @@ public class TechnologyTab extends ProjSettingsPanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Technology"; }
 
-	private JList schemPrimList;
-	private DefaultListModel schemPrimModel;
-	private HashMap<PrimitiveNode,String> schemPrimMap;
-	private boolean changingVHDL = false;
+//	private JList schemPrimList;
+//	private DefaultListModel schemPrimModel;
+//	private HashMap<PrimitiveNode,String> schemPrimMap;
+//	private boolean changingVHDL = false;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -110,21 +106,6 @@ public class TechnologyTab extends ProjSettingsPanel
         }
         defaultFoundryPulldown.setEnabled(foundry != Foundry.Type.NONE);
         defaultFoundryPulldown.setSelectedItem(foundry);
-//      defaultFoundryPulldown.addActionListener(new ActionListener()
-//		{
-//			public void actionPerformed(ActionEvent evt)
-//            {
-//                Foundry.Type mode = (Foundry.Type)defaultFoundryPulldown.getSelectedItem();
-//                for (Foundry f : curTech.getFoundries())
-//                {
-//                    if (f.getType() != mode) continue;
-//                    // Foundry found
-//                    drRules = curTech.getFactoryDesignRules(f);
-//                    rulesPanel.init(curTech, mode, drRules);
-//                    break;
-//                }
-//            }
-//		});
 
         // Tabs for extra technologies if available
         jPanel3.remove(tsmc90Panel);
@@ -205,7 +186,6 @@ public class TechnologyTab extends ProjSettingsPanel
         String defaultTech = (String)defaultTechPulldown.getSelectedItem();
 		if (!defaultTech.equals(User.getDefaultTechnology()))
 			User.setDefaultTechnology(defaultTech);
-
 
         Foundry.Type foundry = (Foundry.Type)defaultFoundryPulldown.getSelectedItem();
         if (foundry == null) return; // technology without design rules.

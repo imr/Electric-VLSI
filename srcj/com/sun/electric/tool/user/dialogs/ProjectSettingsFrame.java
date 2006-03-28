@@ -24,8 +24,6 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
@@ -42,9 +40,7 @@ import com.sun.electric.tool.user.dialogs.projsettings.SkillTab;
 import com.sun.electric.tool.user.dialogs.projsettings.TechnologyTab;
 import com.sun.electric.tool.user.dialogs.projsettings.VerilogTab;
 import com.sun.electric.tool.user.help.ManualViewer;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -57,7 +53,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JButton;
