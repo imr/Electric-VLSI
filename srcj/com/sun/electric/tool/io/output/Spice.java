@@ -82,6 +82,8 @@ public class Spice extends Topology
 	/** key of Variable holding PSpice templates. */			public static final Variable.Key SPICE_P_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_pspice");
 	/** key of Variable holding GnuCap templates. */			public static final Variable.Key SPICE_GC_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_gnucap");
 	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_SM_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_smartspice");
+	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_A_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_assura");
+	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_C_TEMPLATE_KEY = Variable.newKey("ATTR_SPICE_template_calibre");
 	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = Variable.newKey("SIM_spice_card");
 	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = Variable.newKey("SIM_spice_declaration");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
@@ -109,6 +111,7 @@ public class Spice extends Topology
 	/** those cells that have overridden models */	private HashSet<Cell> modelOverrides = new HashSet<Cell>();
     /** List of segmented nets and parasitics */    private List<SegmentedNets> segmentedParasiticInfo = new ArrayList<SegmentedNets>();
     /** Networks exempted during parasitic ext */   private ExemptedNets exemptedNets;
+    /** Whether or not to write empty subckts  */   private boolean writeEmptySubckts = true;
 
     /** map of "parameterized" cells that are not covered by Topology */    private Map<Cell,Cell> uniquifyCells;
     /** uniqueID */                                                         private int uniqueID;
@@ -290,8 +293,13 @@ public class Spice extends Topology
 			case SPICE_ENGINE_P: preferedEngineTemplateKey = SPICE_P_TEMPLATE_KEY;   break;
 			case SPICE_ENGINE_G: preferedEngineTemplateKey = SPICE_GC_TEMPLATE_KEY;   break;
 			case SPICE_ENGINE_S: preferedEngineTemplateKey = SPICE_SM_TEMPLATE_KEY;   break;
-            case SPICE_ENGINE_H_ASSURA: preferedEngineTemplateKey = SPICE_H_TEMPLATE_KEY;  assuraHSpice = true; break;
+            case SPICE_ENGINE_H_ASSURA: preferedEngineTemplateKey = SPICE_A_TEMPLATE_KEY;  assuraHSpice = true; break;
+            case SPICE_ENGINE_H_CALIBRE: preferedEngineTemplateKey = SPICE_C_TEMPLATE_KEY;  assuraHSpice = true; break;
 		}
+        if (assuraHSpice || (useCDL && CDLWRITESEMPTYSUBCKTS) ||
+            (!useCDL && !Simulation.isSpiceWriteEmtpySubckts())) {
+            writeEmptySubckts = false;
+        }
 
 		// get the mask scale
 		maskScale = 1.0;
@@ -413,9 +421,9 @@ public class Spice extends Topology
     {
         Variable varTemplate = null;
 
+        varTemplate = cell.getVar(preferedEngineTemplateKey);
         if (!assuraHSpice) // null in case of NO_TEMPLATE_KEY
         {
-            varTemplate = cell.getVar(preferedEngineTemplateKey);
             if (varTemplate == null)
                 varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
         }
@@ -723,7 +731,7 @@ public class Spice extends Topology
 			multiLinePrint(true, "\n*** TOP LEVEL CELL: " + cell.describe(false) + "\n");
 		} else
 		{
-            if ((useCDL && !CDLWRITESEMPTYSUBCKTS) || (!useCDL && !Simulation.isSpiceWriteEmtpySubckts())) {
+            if (!writeEmptySubckts) {
                 if (cellIsEmpty(cell))
                     return;
             }
@@ -925,7 +933,7 @@ public class Spice extends Topology
 				CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
 				if (subCni == null) continue;
 
-                if ((useCDL && !CDLWRITESEMPTYSUBCKTS) || (!useCDL && !Simulation.isSpiceWriteEmtpySubckts())) {
+                if (!writeEmptySubckts) {
                     // do not instantiate if empty
                     if (cellIsEmpty((Cell)niProto))
                         continue;
@@ -2267,10 +2275,10 @@ public class Spice extends Topology
 
 		// skip if there is a template
         Variable varTemplate = null;
+        varTemplate = cell.getVar(preferedEngineTemplateKey);
+        if (varTemplate != null) return true;
         if (!assuraHSpice)
         {
-            varTemplate = cell.getVar(preferedEngineTemplateKey);
-            if (varTemplate != null) return true;
             varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
         }
         if (varTemplate != null) return true;
@@ -2720,6 +2728,14 @@ public class Spice extends Topology
                 break;
             }
         }
+        // look for a model file on the current cell
+        String fileName = cell.getSpiceModelFile();
+        if (fileName.length() > 0) {
+            if (!fileName.startsWith("-----")) {
+                empty = false;
+            }
+        }
+
         // empty
         if (CELLISEMPTYDEBUG && empty) {
             System.out.println(cell+" is empty and contains the following empty cells:");

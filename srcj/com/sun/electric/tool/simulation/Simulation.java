@@ -1294,7 +1294,8 @@ public class Simulation extends Tool
         /** PSpice engine. */		SPICE_ENGINE_P(3, "PSpice"),
         /** GNUCap engine. */		SPICE_ENGINE_G(4, "Gnucap"),
         /** SmartSpice engine. */	SPICE_ENGINE_S(5, "SmartSpice"),
-        /** HSpice engine for Assura. */	    SPICE_ENGINE_H_ASSURA(6, "HSpice for Assura");
+        /** HSpice engine for Assura. */	    SPICE_ENGINE_H_ASSURA(6, "HSpice for Assura"),
+        /** HSpice engine for Calibre. */	    SPICE_ENGINE_H_CALIBRE(7, "HSpice for Calibre");
 
         private int code;
         private String name;
