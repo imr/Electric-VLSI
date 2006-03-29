@@ -353,20 +353,17 @@ public class LayerCoverageTool extends Tool
                         boolean noNewNodes = true;
                         boolean isMerge = (function == LCMode.MERGE);
                         Rectangle2D rect;
-                        PolyBase polyB = null;
                         Point2D [] points;
 
                         // Need to detect if geometry was really modified
-                        for(Iterator<Layer> it = tree.getKeyIterator(); it.hasNext(); )
+                        for (Layer layer : tree.getKeySet())
                         {
-                            Layer layer = it.next();
                             Collection<PolyBase> set = tree.getObjects(layer, !isMerge, true);
-                            Set polySet = (function == LCMode.IMPLANT) ? originalPolygons.get(layer) : null;
+                            Set<PolyBase> polySet = (function == LCMode.IMPLANT) ? originalPolygons.get(layer) : null;
 
                             // Ready to create new implants.
-                            for (Iterator<PolyBase> i = set.iterator(); i.hasNext(); )
+                            for (PolyBase polyB : set)
                             {
-                                polyB = i.next();
                                 points = polyB.getPoints();
                                 rect = polyB.getBounds2D();
 

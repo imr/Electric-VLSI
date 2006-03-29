@@ -334,26 +334,27 @@ public class Quick
 		// now allocate space for hierarchical network arrays
 		//int totalNetworks = 0;
 		networkLists = new HashMap<Network,Integer[]>();
-		for(Iterator it = checkProtos.entrySet().iterator(); it.hasNext(); )
+        for (Map.Entry<Cell,CheckProto> e : checkProtos.entrySet())
+//		for(Iterator it = checkProtos.entrySet().iterator(); it.hasNext(); )
 		{
-			Map.Entry e = (Map.Entry)it.next();
-			Cell libCell = (Cell)e.getKey();
+//			Map.Entry e = (Map.Entry)it.next();
+			Cell libCell = e.getKey();
 			CheckProto subCP = (CheckProto)e.getValue();
 			if (subCP.hierInstanceCount > 0)
 			{
 				// allocate net number lists for every net in the cell
-				for(Iterator nIt = subCP.netlist.getNetworks(); nIt.hasNext(); )
+				for(Iterator<Network> nIt = subCP.netlist.getNetworks(); nIt.hasNext(); )
 				{
-					Network net = (Network)nIt.next();
+					Network net = nIt.next();
 					Integer [] netNumbers = new Integer[subCP.hierInstanceCount];
 					for(int i=0; i<subCP.hierInstanceCount; i++) netNumbers[i] = new Integer(0);
 					networkLists.put(net, netNumbers);
 					//totalNetworks += subCP.hierInstanceCount;
 				}
 			}
-			for(Iterator nIt = libCell.getNodes(); nIt.hasNext(); )
+			for(Iterator<NodeInst> nIt = libCell.getNodes(); nIt.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)nIt.next();
+				NodeInst ni = nIt.next();
 				NodeProto np = ni.getProto();
 				if (!ni.isCellInstance()) continue;
 
@@ -365,9 +366,9 @@ public class Quick
 				ci.offset = ocp.totalPerCell;
 			}
 			checkTimeStamp++;
-			for(Iterator nIt = libCell.getNodes(); nIt.hasNext(); )
+			for(Iterator<NodeInst> nIt = libCell.getNodes(); nIt.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)nIt.next();
+				NodeInst ni = nIt.next();
 				NodeProto np = ni.getProto();
 				if (!ni.isCellInstance()) continue;
 
@@ -389,9 +390,9 @@ public class Quick
 		checkNetNumber = 1;
 
 		HashMap<Network,Integer> enumeratedNets = new HashMap<Network,Integer>();
-		for(Iterator nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
+		for(Iterator<Network> nIt = cp.netlist.getNetworks(); nIt.hasNext(); )
 		{
-			Network net = (Network)nIt.next();
+			Network net = nIt.next();
 			enumeratedNets.put(net, new Integer(checkNetNumber));
 			checkNetNumber++;
 		}
@@ -840,16 +841,18 @@ public class Quick
             // More than one type used.
             if (od2Layers.size() != 1)
             {
-                Set set = od2Layers.keySet();
-                Object[] keys = set.toArray();
-                for (int i = 0; i < set.size(); i++)
+//                Set set = od2Layers.keySet();
+//                Object[] keys = set.toArray();
+                for (Map.Entry<Layer,NodeInst> e : od2Layers.entrySet())
+//                for (int i = 0; i < set.size(); i++)
                 {
-                    Layer lay1 = (Layer)keys[i];
+//                    Layer lay1 = (Layer)keys[i];
+                    Layer lay1 = e.getKey();
                     if (lay1 == layer) continue;
                     int index = tech.getRuleIndex(lay1.getIndex(), layer.getIndex());
                     if (DRC.isForbiddenNode(index, DRCTemplate.DRCRuleType.COMBINATION, tech))
                     {
-                        NodeInst node = (NodeInst)od2Layers.get(lay1);
+                        NodeInst node = e.getValue(); // od2Layers.get(lay1);
                         String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
                                 node.getParent().getName() + ":" + node.getName() +"') not allowed by selected foundry";
                         reportError(DRCErrorType.FORBIDDEN, message, ni.getParent(), -1, -1, null, null, ni, null, null, node, null);
@@ -871,7 +874,7 @@ public class Quick
 		// ignore arcs with no topology
 		Network net = cp.netlist.getNetwork(ai, 0);
 		if (net == null) return false;
-		Integer [] netNumbers = (Integer [])networkLists.get(net);
+		Integer [] netNumbers = networkLists.get(net);
 
 		if (nodesMap.get(ai) != null)
 		{
@@ -1111,7 +1114,7 @@ public class Quick
 					int net = -1;
 					if (jNet != null)
 					{
-						Integer [] netList = (Integer [])networkLists.get(jNet);
+						Integer [] netList = networkLists.get(jNet);
 						net = netList[globalIndex].intValue();
 					}
 					boolean ret = badSubBox(poly, layer, net, tech, ai, upTrans,
@@ -1392,7 +1395,7 @@ public class Quick
 
 				// see whether the two objects are electrically connected
                 Network jNet = netlist.getNetwork(ai, 0);
-                Integer [] netNumbers = (Integer [])networkLists.get(jNet);
+                Integer [] netNumbers = networkLists.get(jNet);
                 int nNet = netNumbers[cellGlobalIndex].intValue();
 				boolean con = false;
 				if (net >= 0 && nNet == net) con = true;
@@ -2050,7 +2053,7 @@ public class Quick
 			{
 				ArcInst oAi = (ArcInst)geom;
 				Network jNet = netlist.getNetwork(oAi, 0);
-				Integer [] netNumbers = (Integer [])networkLists.get(jNet);
+				Integer [] netNumbers = networkLists.get(jNet);
 				net = netNumbers[globalIndex].intValue();
 			}
 
@@ -2138,9 +2141,10 @@ public class Quick
 	 */
 	private boolean findInteraction(InstanceInter dii)
 	{
-		for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
+//		for(Iterator it = instanceInteractionList.iterator(); it.hasNext(); )
+        for (InstanceInter thisII : instanceInteractionList)
 		{
-			InstanceInter thisII = (InstanceInter)it.next();
+//			InstanceInter thisII = (InstanceInter)it.next();
 			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
 				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
 				thisII.dx == dii.dx && thisII.dy == dii.dy &&
@@ -2255,13 +2259,15 @@ public class Quick
 		}
 
 		// update the counts for this cell
-		for(Iterator it = subCheckProtos.iterator(); it.hasNext(); )
+//		for(Iterator it = subCheckProtos.iterator(); it.hasNext(); )
+        for (CheckProto cp : subCheckProtos)
 		{
-			CheckProto cp = (CheckProto)it.next();
+//			CheckProto cp = (CheckProto)it.next();
 			cp.hierInstanceCount += cp.instanceCount;
-			for(Iterator nIt = cp.nodesInCell.iterator(); nIt.hasNext(); )
+//			for(Iterator nIt = cp.nodesInCell.iterator(); nIt.hasNext(); )
+            for (CheckInst ci : cp.nodesInCell)
 			{
-				CheckInst ci = (CheckInst)nIt.next();
+//				CheckInst ci = (CheckInst)nIt.next();
 				ci.multiplier = cp.instanceCount;
 			}
 		}
@@ -2287,7 +2293,7 @@ public class Quick
 		{
 			Network net = nIt.next();
 			Integer netNumber = enumeratedNets.get(net);
-			Integer [] netNumbers = (Integer [])networkLists.get(net);
+			Integer [] netNumbers = networkLists.get(net);
 			netNumbers[globalIndex] = netNumber;
 		}
 
@@ -2315,13 +2321,13 @@ public class Quick
 				Export subPP = (Export)pi.getPortProto();
 				Network net = cp.netlist.getNetwork(ni, subPP, 0);
 				if (net == null) continue;
-				Integer netNumber = (Integer)enumeratedNets.get(net);
+				Integer netNumber = enumeratedNets.get(net);
 				Network subNet = subCP.netlist.getNetwork(subPP, 0);
 				subEnumeratedNets.put(subNet, netNumber);
 			}
-			for(Iterator nIt = subCP.netlist.getNetworks(); nIt.hasNext(); )
+			for(Iterator<Network> nIt = subCP.netlist.getNetworks(); nIt.hasNext(); )
 			{
-				Network net = (Network)nIt.next();
+				Network net = nIt.next();
 				if (subEnumeratedNets.get(net) == null)
 					subEnumeratedNets.put(net, new Integer(checkNetNumber++));
 			}
@@ -2526,9 +2532,10 @@ public class Quick
         boolean minAreaDone = true;
         boolean enclosedAreaDone = true;
 
-		for(Iterator<PolyBase> pIt = set.iterator(); pIt.hasNext(); )
+//		for(Iterator<PolyBase> pIt = set.iterator(); pIt.hasNext(); )
+        for (PolyBase obj : set)
 		{
-            PolyBase obj = pIt.next();
+//            PolyBase obj = pIt.next();
 			if (obj == null) throw new Error("wrong condition in Quick.checkMinArea()");
 
 			List<PolyBase> list = obj.getSortedLoops();
@@ -2539,12 +2546,15 @@ public class Quick
 			DRCTemplate oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
 			// Looping over simple polygons. Possible problems with disconnected elements
 			// polyArray.length = Maximum number of distintic loops
-			for (int i = 0; i < list.size(); i++)
+            int i = 0;
+            for (PolyBase listObj : list)
+//			for (int i = 0; i < list.size(); i++)
 			{
-                PolyBase listObj = list.get(i);
+//                PolyBase listObj = list.get(i);
 				double area = ((PolyBase)listObj).getArea();
 				DRCTemplate minRule = (i%2 == 0) ? evenRule : oddRule;
                 PolyBase simplePn = listObj;
+                i++;
 
                 // Check slot size when area is checked
                 if (minRule == minAreaRule && slotSizeRule != null)
@@ -2579,7 +2589,6 @@ public class Quick
 		return errorFound;
 
 	}
-                                    private static int count = 0;
 
     /**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
@@ -2600,7 +2609,7 @@ public class Quick
 
         CheckAreaEnumerator quickArea = new CheckAreaEnumerator(selectMergeMap, mergeMode);
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
-        GeometryHandler geom = (GeometryHandler)quickArea.mainMergeMap.get(cell);
+        GeometryHandler geom = quickArea.mainMergeMap.get(cell);
 
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rules
         for(Iterator<Layer> layerIt = cell.getTechnology().getLayers(); layerIt.hasNext(); )
@@ -2627,11 +2636,12 @@ public class Quick
 //		}
 
 		// Special cases for select areas. You can't evaluate based on networks
-        GeometryHandler selectMerge = (GeometryHandler)selectMergeMap.get(cell);
-		for(Iterator<Layer> it = selectMerge.getKeyIterator(); it.hasNext(); )
+        GeometryHandler selectMerge = selectMergeMap.get(cell);
+        for (Layer layer : selectMerge.getKeySet())
+//		for(Iterator<Layer> it = selectMerge.getKeyIterator(); it.hasNext(); )
 		{
-			Layer layer = it.next();
-			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer, true, null, null);
+//			Layer layer = it.next();
+			errorFound += checkMinAreaLayer(selectMerge, cell, layer, true, null, null);
 		}
 
 		return errorFound;
@@ -2685,9 +2695,10 @@ public class Quick
         selectMerge.postProcess(true);
 
 		// Special cases for select areas. You can't evaluate based on networks
-		for(Iterator<Layer> it = selectMerge.getKeyIterator(); it.hasNext(); )
+        for (Layer layer : selectMerge.getKeySet())
+//		for(Iterator<Layer> it = selectMerge.getKeyIterator(); it.hasNext(); )
 		{
-			Layer layer = it.next();
+//			Layer layer = it.next();
 			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer, true, null, null);
 		}
 
@@ -3419,11 +3430,12 @@ public class Quick
 		// error if the merged area doesn't contain 100% the search area.
 		if (!found)
 		{
-            List polyList = PolyBase.getPointsInArea(polyArea, layer, true, true, null);
+            List<PolyBase> polyList = PolyBase.getPointsInArea(polyArea, layer, true, true, null);
 
-            for (Iterator it = polyList.iterator(); it.hasNext(); )
+//            for (Iterator it = polyList.iterator(); it.hasNext(); )
+            for (PolyBase nPoly : polyList)
             {
-                PolyBase nPoly = (PolyBase)it.next();
+//                PolyBase nPoly = (PolyBase)it.next();
                 reportError(DRCErrorType.LAYERSURROUNDERROR, "Polysilicon not covered, ", cell, minOverlapRule.value1, -1, minOverlapRule.ruleName,
                             nPoly, geom, layer, null, null, null);
             }
@@ -3477,9 +3489,10 @@ public class Quick
 				List<Point2D> newExtraPoints = new ArrayList<Point2D>();
 				found = checkThisCellExtensionRule(geom, layer, poly, drcLayers, (Cell)np, polyArea, polyBnd, minOverlapRule,
 				        found, newExtraPoints);
-				for (Iterator<Point2D> it = newExtraPoints.iterator(); it.hasNext();)
+                for (Point2D point : newExtraPoints)
+//				for (Iterator<Point2D> it = newExtraPoints.iterator(); it.hasNext();)
 				{
-					Point2D point = it.next();
+//					Point2D point = it.next();
 					cellUpTrans.transform(point, point);
 					checkExtraPoints.add(point);
 				}
@@ -3695,7 +3708,7 @@ public class Quick
 						System.out.println("Here is different in activeOnTransistorRecurse");
                 if (found)
                     continue;
-				Integer [] netNumbers = (Integer [])networkLists.get(piNet);
+				Integer [] netNumbers = networkLists.get(piNet);
 				int net = netNumbers[globalIndex].intValue();
 				if (net < 0) continue;
 				if (net == net1) on1 = true;
@@ -3817,9 +3830,10 @@ public class Quick
                 }
                 cropArcPolyList = new Poly[totalPolys];
                 int destPos = 0;
-                for (int j = 0; j < arcPolys.size(); j++)
+                for (Poly[] arcs : arcPolys)
+//                for (int j = 0; j < arcPolys.size(); j++)
                 {
-                    Poly[] arcs = arcPolys.get(j);
+//                    Poly[] arcs = arcPolys.get(j);
                     System.arraycopy(arcs, 0, cropArcPolyList, destPos, arcs.length);
                     destPos += arcs.length;
                 }
@@ -4037,7 +4051,7 @@ public class Quick
 
 		// see if there is an arc connected
 		Network net = netlist.getNetwork(ni, pp, 0);
-		Integer [] nets = (Integer [])networkLists.get(net);
+		Integer [] nets =networkLists.get(net);
 		if (nets == null) return -1;
 		return nets[globalIndex].intValue();
 	}
@@ -4120,7 +4134,7 @@ public class Quick
 		buildLayerInteractions(np.getTechnology());
 
 		// find this node in the table
-		boolean [] validLayers = (boolean [])layersInterNodes.get(np);
+		boolean [] validLayers = layersInterNodes.get(np);
 		if (validLayers == null) return false;
 		return validLayers[layer.getIndex()];
 	}
@@ -4134,7 +4148,7 @@ public class Quick
 		buildLayerInteractions(ap.getTechnology());
 
 		// find this node in the table
-		boolean [] validLayers = (boolean [])layersInterArcs.get(ap);
+		boolean [] validLayers = layersInterArcs.get(ap);
 		if (validLayers == null) return false;
 		return validLayers[layer.getIndex()];
 	}
@@ -4153,41 +4167,19 @@ public class Quick
 			NodeProto np = ni.getProto();
 			if (np == Generic.tech.drcNode)
 			{
-//				DRCExclusion dex = new DRCExclusion();
-//				dex.cell = cell;
-//				// extract the information about this DRC exclusion node
-//				dex.poly = new PolyBase(ni.getBounds());
-
-                //@ToDo: it must get the original polygon
 				/*
 				AffineTransform subUpTrans = ni.rotateOut();
 				subUpTrans.preConcatenate(upTrans);
 				dex.poly.transform(subUpTrans);
 				*/
-//				dex.poly.setStyle(Poly.Type.FILLED);
-//				dex.ni = ni;
                 // Must get polygon from getNodeShape otherwise it will miss
                 // rings
                 Poly [] list = cell.getTechnology().getShapeOfNode(ni, null, null, true, true, null);
-                Area thisArea = new Area(list[0]); // ni.getBounds());
+                Area thisArea = new Area(list[0]);
                 if (area == null)
                     area = thisArea;
                 else
                     area.add(thisArea);
-
-//				// see if it is already in the list
-//				boolean found = false;
-//				for(Iterator<DRCExclusion> dIt = exclusionList.iterator(); dIt.hasNext(); )
-//				{
-//					DRCExclusion oDex = dIt.next();
-//					if (oDex.cell != cell) continue;
-//					if (oDex.poly.polySame(dex.poly))
-//					{
-//						found = true;
-//						break;
-//					}
-//				}
-//				if (!found) exclusionList.add(dex);
 				continue;
 			}
 
@@ -4207,51 +4199,26 @@ public class Quick
         Area area = exclusionMap.get(cell);
         if (area == null) return false;
 
-        int count = 0;
+        int count = 0, i = -1;
 
-        for (int i = 0; i < polyList.size(); i++)
+        for (PolyBase thisPoly : polyList)
+//        for (int i = 0; i < polyList.size(); i++)
         {
-            PolyBase thisPoly = polyList.get(i);
+//            PolyBase thisPoly = polyList.get(i);
+            i++;
             if (thisPoly == null)
                 continue; // MinNode case
             boolean found = area.contains(thisPoly.getBounds2D());
 
             if (found) count++;
             else DRCexclusionMsg.append("\n\t(DRC Exclusion in '" + cell.getName() + "' does not completely contain " +
-                        ((Geometric)geomList.get(i)) + ")");
+                        geomList.get(i) + ")");
         }
         // At least one DRC exclusion that contains both
         if (count == polyList.size())
             return true;
         return false;
     }
-
-//    private boolean checkExclusionList(Cell cell, List<PolyBase> polyList, List<Geometric> geomList, StringBuffer DRCexclusionMsg)
-//    {
-//        for(Iterator<DRCExclusion> it = exclusionList.iterator(); it.hasNext(); )
-//        {
-//            DRCExclusion dex = it.next();
-//            if (cell != dex.cell) continue;
-//            PolyBase poly = dex.poly;
-//            int count = 0;
-//
-//            for (int i = 0; i < polyList.size(); i++)
-//            {
-//                PolyBase thisPoly = polyList.get(i);
-//                if (thisPoly == null)
-//                    continue; // MinNode case
-//                boolean found = poly.contains(thisPoly.getBounds2D());
-//
-//                if (found) count++;
-//                else DRCexclusionMsg.append("\n\t(DRC Exclusion '" + dex.ni.getName() + "' does not completely contain " +
-//                            ((Geometric)geomList.get(i)) + ")");
-//            }
-//            // At least one DRC exclusion that contains both
-//            if (count == polyList.size())
-//                return true;
-//        }
-//        return false;
-//    }
 
 	/* Adds details about an error to the error list */
 	private void reportError(DRCErrorType errorType, String msg,
@@ -4711,9 +4678,10 @@ public class Quick
                     continue;
                 bucket.mainMerge.postProcess(true);
                 bucket.merged = true;
-                for(Iterator<Layer> it = bucket.mainMerge.getKeyIterator(); it.hasNext(); )
+                for (Layer layer : bucket.mainMerge.getKeySet())
+//                for(Iterator<Layer> it = bucket.mainMerge.getKeyIterator(); it.hasNext(); )
                 {
-                    Layer layer = it.next();
+//                    Layer layer = it.next();
                     if (bucket.skipLayer(layer)) continue; // done!
                     checkMinAreaLayer(bucket.mainMerge, info.getCell(), layer, isTopCell, bucket.minAreaLayerMapDone,
                             bucket.enclosedAreaLayerMapDone);

@@ -30,6 +30,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 /**
  * To handle merge operation. Two different classes have been proposed
@@ -98,7 +99,7 @@ public abstract class GeometryHandler {
      * Method to subtract all geometries stored in hash map from corresponding layers
      * @param map
      */
-    public void subtractAll(HashMap map)
+    public void subtractAll(HashMap<Layer,List<PolyBase>> map)
     {
         System.out.println("Error: subtractAll not implemented for GeometryHandler subclass " + this.getClass().getName());
     }
@@ -114,20 +115,20 @@ public abstract class GeometryHandler {
 	/**
 	 * Access to keySet with iterator
 	 * @return iterator for keys in hashmap
-	 */
-	public Iterator<Layer> getKeyIterator()
-	{
-		return (getKeySet().iterator());
-	}
+//	 */
+//	public Iterator<Layer> getKeyIterator()
+//	{
+//		return (getKeySet().iterator());
+//	}
 
 	/**
 	 * Iterator among all layers inserted.
 	 * @return an iterator over all layers inserted.
 	 */
-	public Iterator getIterator()
-	{
-		return (layers.values().iterator());
-	}
+//	public Iterator getIterator()
+//	{
+//		return (layers.values().iterator());
+//	}
 
 	/**
 	 * To retrieve leave elements from internal structure

@@ -609,7 +609,7 @@ public class DRC extends Listener
 	 */
 	private static StringBuffer getDRCOverrides(Technology tech)
 	{
-		Pref pref = (Pref)prefDRCOverride.get(tech);
+		Pref pref = prefDRCOverride.get(tech);
 		if (pref == null)
 		{
 			pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), tool.prefs, "");
@@ -632,7 +632,7 @@ public class DRC extends Listener
 			System.out.println("Warning: Design rule overrides are too complex to be saved (are " +
 				sb.length() + " long which is more than the limit of " + Preferences.MAX_VALUE_LENGTH + ")");
 		}
-		Pref pref = (Pref)prefDRCOverride.get(tech);
+		Pref pref = prefDRCOverride.get(tech);
 		if (pref == null)
 		{
 			pref = Pref.makeStringPref("DRCOverridesFor" + tech.getTechName(), tool.prefs, "");
@@ -1016,16 +1016,17 @@ public class DRC extends Listener
 
             if (goodDRCDate != null)
             {
-                for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
+                for (Map.Entry<Cell,Date> e : goodDRCDate.entrySet())
+//                for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
                 {
-                    Cell cell = it.next();
+                    Cell cell = e.getKey(); //.next();
 
                     if (!cell.isLinked())
                         new JobException("Cell '" + cell + "' is invalid to update DRC date");
                     else
                     {
                         if (inMemory)
-                            storedDRCDate.put(cell, new StoreDRCInfo(goodDRCDate.get(cell).getTime(), activeBits));
+                            storedDRCDate.put(cell, new StoreDRCInfo(e.getValue().getTime(), activeBits));
                         else
                             goodDRCCells.add(cell);
                     }
@@ -1036,9 +1037,10 @@ public class DRC extends Listener
 
             if (cleanDRCDate != null)
             {
-                for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
+                for (Cell cell : cleanDRCDate.keySet())
+//                for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
                 {
-                    Cell cell = it.next();
+//                    Cell cell = e.getKey(); //it.next();
                     if (!cell.isLinked())
                         new JobException("Cell '" + cell + "' is invalid to clean DRC date");
                     else
@@ -1055,10 +1057,12 @@ public class DRC extends Listener
             if (newVariables != null)
             {
                 assert(!inMemory);
-                for (NodeInst ni : newVariables.keySet())
+                for (Map.Entry<NodeInst,List<Variable>> e : newVariables.entrySet())
+//                for (NodeInst ni : newVariables.keySet())
                 {
-                    List<Variable> list = newVariables.get(ni);
-                    for (Variable var : list)
+                    NodeInst ni = e.getKey();
+//                    List<Variable> list = newVariables.get(ni);
+                    for (Variable var : e.getValue())
                         ni.addVar(var);
                 }
             }

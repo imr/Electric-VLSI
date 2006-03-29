@@ -310,9 +310,8 @@ public class HPGL extends Output
 			}
 
 			// extract merged data and add it to overall geometry
-			for(Iterator<Layer> it = merge.getKeyIterator(); it.hasNext(); )
+            for (Layer layer : merge.getKeySet())
 			{
-				Layer layer = it.next();
 				List<PolyBase> layerList = getListForLayer(layer);
 				List<PolyBase> geom = merge.getMergedPoints(layer, true);
 				for(PolyBase poly : geom)

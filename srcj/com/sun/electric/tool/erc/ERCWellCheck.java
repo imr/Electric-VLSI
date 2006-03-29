@@ -219,15 +219,13 @@ public class ERCWellCheck
 		int wellIndex = 0;
         GeometryHandler topMerge = cellMerges.get(cell);
 
-		for(Iterator<Layer> it = topMerge.getKeyIterator(); it.hasNext(); )
+        for (Layer layer : topMerge.getKeySet())
+//		for(Iterator<Layer> it = topMerge.getKeyIterator(); it.hasNext(); )
 		{
-			Layer layer = it.next();
+//			Layer layer = it.next();
 
 			// Not sure if null goes here
 			Collection<PolyBase> set = topMerge.getObjects(layer, false, true);
-
-//		    if (Job.getDebug())
-//                System.out.println("Layer " + layer.getName() + " " + set.size());
 
 			for(PolyBase poly : set)
 			{

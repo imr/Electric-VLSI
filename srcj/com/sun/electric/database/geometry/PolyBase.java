@@ -1572,10 +1572,11 @@ public class PolyBase implements Shape, PolyNodeMerge
 				toDelete.clear();
 				if (!simple && !isSingular)
 				{
-					Iterator<PolyBase> it = polyList.iterator();
-					while (it.hasNext())
+//					Iterator<PolyBase> it = polyList.iterator();
+                    for (PolyBase pn : polyList)
+//					while (it.hasNext())
 					{
-						PolyBase pn = it.next();
+//						PolyBase pn = it.next();
 						if (pn.contains(pointList.get(0)) ||
 						    poly.contains(pn.getPoints()[0]))
 						{

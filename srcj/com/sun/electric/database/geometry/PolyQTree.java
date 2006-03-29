@@ -67,9 +67,9 @@ public class PolyQTree extends GeometryHandler
 	 */
 	public void print()
 	{
-		for (Iterator<PolyQNode> it = getIterator(); it.hasNext();)
+        for (Object obj : layers.values())
 		{
-			PolyQNode root = (PolyQNode)(it.next());
+			PolyQNode root = (PolyQNode)obj;
 			if (root != null)
 				root.print();
 		}

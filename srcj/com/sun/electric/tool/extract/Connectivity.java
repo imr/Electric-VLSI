@@ -59,7 +59,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.Routing;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -409,9 +408,9 @@ public class Connectivity
 	private void findMissingWells(PolyMerge merge)
 	{
 		boolean hasPWell = false, hasNWell = false, hasWell = false;
-		for(Iterator<Layer> lIt = merge.getKeyIterator(); lIt.hasNext(); )
+
+        for (Layer layer : merge.getKeySet())
 		{
-			Layer layer = lIt.next();
 			Layer.Function fun = layer.getFunction();
 			if (fun == Layer.Function.WELL) hasWell = true;
 			if (fun == Layer.Function.WELLP) hasPWell = true;
@@ -444,9 +443,9 @@ public class Connectivity
 	{
 		// make a list of layers that could be turned into wires
 		List<Layer> wireLayers = new ArrayList<Layer>();
-		for(Iterator<Layer> lIt = merge.getKeyIterator(); lIt.hasNext(); )
+
+        for (Layer layer : merge.getKeySet())
 		{
-			Layer layer = lIt.next();
 			Layer.Function fun = layer.getFunction();
 			if (fun.isDiff() || fun.isPoly() || fun.isMetal())
 			{
@@ -459,9 +458,9 @@ public class Connectivity
 		}
 
 		// examine each wire layer, looking for a skeletal structure that approximates it
-		for(Layer layer : wireLayers)
+		for (Layer layer : wireLayers)
 		{
-			Layer.Function fun = layer.getFunction();
+//			Layer.Function fun = layer.getFunction();
 
 			// figure out which arc proto to use for the layer
 			ArcProto ap = arcsForLayer.get(layer);
@@ -886,15 +885,15 @@ public class Connectivity
 	{
 		// make a list of all via/cut layers in the technology
 		List<Layer> layers = new ArrayList<Layer>();
-		for(Iterator<Layer> lIt = merge.getKeyIterator(); lIt.hasNext(); )
+
+        for (Layer layer : merge.getKeySet())
 		{
-			Layer layer = lIt.next();
 			Layer.Function fun = layer.getFunction();
 			if (fun.isContact()) layers.add(layer);
 		}
 
 		// examine all vias/cuts for possible contacts
-		for(Layer layer : layers)
+		for (Layer layer : layers)
 		{
 			// compute the possible via nodes that this layer could become
 			List<PossibleVia> possibleVias = findPossibleVias(layer);
@@ -1562,9 +1561,8 @@ public class Connectivity
 	 */
 	private void extendGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell, boolean justExtend)
 	{
-		for(Iterator<Layer> lIt = merge.getKeyIterator(); lIt.hasNext(); )
+        for (Layer layer : merge.getKeySet())
 		{
-			Layer layer = lIt.next();
 			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
 			List<PolyBase> polyList = merge.getMergedPoints(layer, true);
@@ -2284,9 +2282,8 @@ public class Connectivity
 	 */
 	private void convertAllGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
-		for(Iterator<Layer> lIt = merge.getKeyIterator(); lIt.hasNext(); )
+        for (Layer layer : merge.getKeySet())
 		{
-			Layer layer = lIt.next();
 			ArcProto ap = arcsForLayer.get(layer);
 			List<PolyBase> polyList = merge.getMergedPoints(layer, true);
 			for(PolyBase poly : polyList)

@@ -658,18 +658,15 @@ public class Spice extends Topology
 		{
 			Network net = it.next();
 			SpiceNet spNet = spiceNetMap.get(net);
-			for(Iterator<Layer> lIt = spNet.merge.getKeyIterator(); lIt.hasNext(); )
+
+            for (Layer layer : spNet.merge.getKeySet())
 			{
-				Layer layer = lIt.next();
 				List<PolyBase> polyList = spNet.merge.getMergedPoints(layer, true);
 				if (polyList == null) continue;
                 if (polyList.size() > 1)
                     Collections.sort(polyList, GeometryHandler.shapeSort);
 				for(PolyBase poly : polyList)
 				{
-					//Point2D [] pointList = poly.getPoints();
-					//int count = pointList.length;
-
 					// compute perimeter and area
 					double perim = poly.getPerimeter();
 					double area = poly.getArea();

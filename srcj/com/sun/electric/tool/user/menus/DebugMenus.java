@@ -909,9 +909,8 @@ public class DebugMenus
 			List<NodeInst> nodesList = new ArrayList<NodeInst>();
 
 			// Need to detect if geometry was really modified
-			for(Iterator<Layer> it = merge.getKeyIterator(); it.hasNext(); )
+            for (Layer layer : merge.getKeySet())
 			{
-				Layer layer = it.next();
 				List<PolyBase> list = merge.getMergedPoints(layer, true) ;
 
 				// Temp solution until qtree implementation is ready

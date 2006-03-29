@@ -330,9 +330,8 @@ public class ERCAntenna
 					{
 						// get the area of the antenna
 						double totalRegionPerimeterArea = 0.0;
-						for(Iterator<Layer> lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
+                        for (Layer oLay : vmerge.getKeySet())
 						{
-							Layer oLay = lIt.next();
 							double thickness = oLay.getThickness();
 							if (thickness == 0)
 							{
@@ -356,9 +355,8 @@ public class ERCAntenna
 							String errMsg = "layer " + lay.getName() + " has perimeter-area " + totalRegionPerimeterArea +
 								"; gates have area " + totalGateArea + ", ratio is " + ratio + " but limit is " + neededratio;
 							List<PolyBase> polyList = new ArrayList<PolyBase>();
-							for(Iterator<Layer> lIt = vmerge.getKeyIterator(); lIt.hasNext(); )
+                            for (Layer oLay : vmerge.getKeySet())
 							{
-								Layer oLay = lIt.next();
 								List<PolyBase> merges = vmerge.getMergedPoints(oLay, true);
 								for(PolyBase merged : merges)
 								{
