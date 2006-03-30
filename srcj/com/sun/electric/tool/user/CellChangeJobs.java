@@ -1035,21 +1035,20 @@ public class CellChangeJobs
 	 * @param fromCell the original cell being copied.
 	 * @param toLib the destination library to copy the cell.
 	 * @param verbose true to display extra information.
-	 * @param move true to move instead of copy (delete after copying).
+	 * @param move true to move instead of copy.
 	 * @param allRelatedViews true to copy all related views (schematic cell with layout, etc.)
 	 * If false, only schematic/icon relations are copied.
 	 * @param copySubCells true to recursively copy sub-cells.  If true, "useExisting" must be true.
 	 * @param useExisting true to use any existing cells in the destination library
 	 * instead of creating a cross-library reference.  False to copy everything needed.
-	 * @param deletedCells a list (filled by this method) of cells that are deleted.
 	 */
 	public static Cell copyRecursively(Cell fromCell, Library toLib, boolean verbose, boolean move,
-        boolean allRelatedViews, boolean copySubCells, boolean useExisting, List<Cell> deletedCells)
+        boolean allRelatedViews, boolean copySubCells, boolean useExisting)
     {
         Cell.setAllowCircularLibraryDependences(true);
         try {
-            return copyRecursively(fromCell, fromCell.getName(), toLib, fromCell.getView(), verbose, move, "", true,
-                allRelatedViews, allRelatedViews, copySubCells, useExisting, new HashSet<Cell>(), deletedCells);
+            return copyRecursively(fromCell, toLib, verbose, move, "", true,
+                allRelatedViews, allRelatedViews, copySubCells, useExisting, new HashSet<Cell>());
         } finally {
             Cell.setAllowCircularLibraryDependences(false);
         }
@@ -1058,11 +1057,9 @@ public class CellChangeJobs
 	/**
 	 * Method to recursively copy cells between libraries.
 	 * @param fromCell the original cell being copied.
-	 * @param toName the name to give the cell in the destination library.
 	 * @param toLib the destination library to copy the cell.
-	 * @param toView the view to give the cell in the destination library.
 	 * @param verbose true to display extra information.
-	 * @param move true to move instead of copy (delete after copying).
+	 * @param move true to move instead of copy.
 	 * @param subDescript a String describing the nature of this copy (empty string initially).
 	 * @param schematicRelatedView true to copy a schematic related view.  Typically this is true,
 	 * meaning that if copying an icon, also copy the schematic.  If already copying the example icon,
@@ -1077,20 +1074,20 @@ public class CellChangeJobs
 	 * @param existing a Set of Cells that have already been copied to the desitnation library
 	 * and need not be copied again.
 	 */
-	private static Cell copyRecursively(Cell fromCell, String toName, Library toLib,
-		View toView, boolean verbose, boolean move, String subDescript, boolean schematicRelatedView, boolean allRelatedViews,
-		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, HashSet<Cell> existing, List<Cell> deletedCells)
+	private static Cell copyRecursively(Cell fromCell, Library toLib,
+		boolean verbose, boolean move, String subDescript, boolean schematicRelatedView, boolean allRelatedViews,
+		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, HashSet<Cell> existing)
 	{
 		// check for sensibility
 		if (copySubCells && !useExisting)
 			System.out.println("Cross-library copy warning: It makes no sense to copy subcells but not use them");
 
 		// see if the cell is already there
-		for(Cell copiedCell : existing)
-		{
-			if (copiedCell.getName().equalsIgnoreCase(toName) && copiedCell.getView() == toView)
-				return copiedCell;
-		}
+        String toName = fromCell.getName();
+        View toView = fromCell.getView();
+        Cell copiedCell = inDestLib(fromCell, existing);
+        if (copiedCell != null)
+            return copiedCell;
 
 		// copy subcells
 		if (copySubCells || fromCell.isSchematic())
@@ -1110,7 +1107,7 @@ public class CellChangeJobs
 					if (cell.getLibrary() == toLib) continue;
 
 					// see if the cell is already there
-					if (inDestLib(cell, existing)) continue;
+					if (inDestLib(cell, existing) != null) continue;
 
 					// do not copy subcell if it exists already (and was not copied by this operation)
 					if (useExisting)
@@ -1121,9 +1118,9 @@ public class CellChangeJobs
 					// copy subcell if not already there
 					boolean doCopySchematicView = true;
 					if (ni.isIconOfParent()) doCopySchematicView = false;
-					Cell oNp = copyRecursively(cell, cell.getName(), toLib, cell.getView(), verbose,
+					Cell oNp = copyRecursively(cell, toLib, verbose,
 						move, "subcell ", doCopySchematicView, allRelatedViews, allRelatedViewsThisLevel,
-						copySubCells, useExisting, existing, deletedCells);
+						copySubCells, useExisting, existing);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of sub" + cell + " failed"); else
@@ -1153,11 +1150,11 @@ public class CellChangeJobs
 						if (np.getView() != View.SCHEMATIC) continue;
 
 						// see if the cell is already there
-						if (inDestLib(np, existing)) continue;
+						if (inDestLib(np, existing) != null) continue;
 
 						// copy equivalent view if not already there
-						Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
-							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing, deletedCells);
+						Cell oNp = copyRecursively(np, toLib, verbose,
+							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
 						if (oNp == null)
 						{
 							if (move) System.out.println("Move of schematic view " + np + " failed"); else
@@ -1183,11 +1180,11 @@ public class CellChangeJobs
 					if (!np.isIcon()) continue;
 
 					// see if the cell is already there
-					if (inDestLib(np, existing)) continue;
+					if (inDestLib(np, existing) != null) continue;
 
 					// copy equivalent view if not already there
-					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
-						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, deletedCells);
+					Cell oNp = copyRecursively(np, toLib, verbose,
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -1210,11 +1207,11 @@ public class CellChangeJobs
 					if (np.isIcon()) continue;
 
 					// see if the cell is already there
-					if (inDestLib(np, existing)) continue;
+					if (inDestLib(np, existing) != null) continue;
 
 					// copy equivalent view if not already there
-					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
-						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, deletedCells);
+					Cell oNp = copyRecursively(np, toLib, verbose,
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -1228,11 +1225,9 @@ public class CellChangeJobs
 		}
 
 		// see if the cell is NOW there
-		for(Cell copiedCell : existing)
-		{
-			if (copiedCell.getName().equalsIgnoreCase(toName) && copiedCell.getView() == toView)
-				return copiedCell;
-		}
+        copiedCell = inDestLib(fromCell, existing);
+        if (copiedCell != null)
+            return copiedCell;
 
 		// copy the cell
 		String newName = toName;
@@ -1240,21 +1235,22 @@ public class CellChangeJobs
 		{
 			newName = toName + "{" + toView.getAbbreviation() + "}";
 		}
-		Cell newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting);
-		if (newFromCell == null)
-		{
-			if (move)
-			{
-				System.out.println("Move of " + subDescript + fromCell + " failed");
-			} else
-			{
-				System.out.println("Copy of " + subDescript + fromCell + " failed");
-			}
-			return null;
-		}
+        Cell newFromCell;
+        if (move) {
+            fromCell.move(toLib);
+            if (useExisting)
+                fromCell.replaceSubcellsByExisting();
+            newFromCell = fromCell;
+        } else {
+            newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting);
+            if (newFromCell == null) {
+                System.out.println("Copy of " + subDescript + fromCell + " failed");
+                return null;
+            }
+        }
 
-		// remember that this cell was copied
-		existing.add(newFromCell);
+        // remember that this cell was copied
+        existing.add(newFromCell);
 
         // Message before the delete!!
 		if (verbose)
@@ -1272,66 +1268,69 @@ public class CellChangeJobs
 			}
 		}
 
-		// if moving, adjust pointers and kill original cell
-		if (move)
-		{
-			// clear highlighting if the current node is being replaced
-//			list = us_gethighlighted(WANTNODEINST, 0, 0);
-//			for(i=0; list[i] != NOGEOM; i++)
+//		// if moving, adjust pointers and kill original cell
+//		if (move)
+//		{
+//			// clear highlighting if the current node is being replaced
+////			list = us_gethighlighted(WANTNODEINST, 0, 0);
+////			for(i=0; list[i] != NOGEOM; i++)
+////			{
+////				if (!list[i]->entryisnode) continue;
+////				ni = list[i]->entryaddr.ni;
+////				if (ni->proto == fromCell) break;
+////			}
+////			if (list[i] != NOGEOM) us_clearhighlightcount();
+//
+//			// now replace old instances with the moved one
+//			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 //			{
-//				if (!list[i]->entryisnode) continue;
-//				ni = list[i]->entryaddr.ni;
-//				if (ni->proto == fromCell) break;
+//				Library lib = it.next();
+//				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+//				{
+//					Cell np = cIt.next();
+//					boolean found = true;
+//					while (found)
+//					{
+//						found = false;
+//						for(Iterator<NodeInst> nIt = np.getNodes(); nIt.hasNext(); )
+//						{
+//							NodeInst ni = nIt.next();
+//							if (ni.getProto() == fromCell)
+//							{
+//								NodeInst replacedNi = ni.replace(newFromCell, false, false);
+//								if (replacedNi == null)
+//                                {
+//									System.out.println("Error moving " + ni + " in " + np);
+//                                    found = false;
+//                                }
+//								else
+//                                    found = true;
+//								break;
+//							}
+//						}
+//					}
+//				}
 //			}
-//			if (list[i] != NOGEOM) us_clearhighlightcount();
-
-			// now replace old instances with the moved one
-			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-			{
-				Library lib = it.next();
-				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-				{
-					Cell np = cIt.next();
-					boolean found = true;
-					while (found)
-					{
-						found = false;
-						for(Iterator<NodeInst> nIt = np.getNodes(); nIt.hasNext(); )
-						{
-							NodeInst ni = nIt.next();
-							if (ni.getProto() == fromCell)
-							{
-								NodeInst replacedNi = ni.replace(newFromCell, false, false);
-								if (replacedNi == null)
-                                {
-									System.out.println("Error moving " + ni + " in " + np);
-                                    found = false;
-                                }
-								else
-                                    found = true;
-								break;
-							}
-						}
-					}
-				}
-			}
-			if (deletedCells != null) deletedCells.add(fromCell);
-			fromCell.kill();
-		}
+//			if (deletedCells != null) deletedCells.add(fromCell);
+//			fromCell.kill();
+//		}
 		return newFromCell;
 	}
 
 	/**
-	 * Method to return true if a cell like "cell" exists in library "lib".
+	 * Method to return a cell from a ser "existing" with similar name and same view "cell".
+     * @param cell a pattern cell
+     * @param exisring a set where to find
+     * @return a cell from a set with proper name and view.
 	 */
-	private static boolean inDestLib(Cell cell, HashSet<Cell> existing)
+	private static Cell inDestLib(Cell cell, HashSet<Cell> existing)
 	{
 		for(Cell copiedCell : existing)
 		{
 			if (copiedCell.getName().equalsIgnoreCase(cell.getName()) && copiedCell.getView() == cell.getView())
-				return true;
+				return copiedCell;
 		}
-		return false;
+		return null;
 	}
 
 }

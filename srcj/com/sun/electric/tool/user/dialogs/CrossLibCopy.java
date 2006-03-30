@@ -331,7 +331,7 @@ public class CrossLibCopy extends EDialog
 		private Library toLibrary;
 		private transient CrossLibCopy dialog;
 		private boolean deleteAfter, copyRelated, copySubs, useExisting;
-		private List<Cell> deletedCells;
+//		private List<Cell> deletedCells;
 		private int index;
 
 		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
@@ -354,19 +354,19 @@ public class CrossLibCopy extends EDialog
 		public boolean doIt() throws JobException
 		{
 			// do the copy
-			deletedCells = new ArrayList<Cell>();
-			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting, deletedCells);
-			fieldVariableChanged("deletedCells");
+//			deletedCells = new ArrayList<Cell>();
+			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting /*,deletedCells*/);
+//			fieldVariableChanged("deletedCells");
 
 			return true;
 		}
 
         public void terminateOK()
         {
-        	for(Cell cell : deletedCells)
-        	{
-        		CircuitChanges.cleanCellRef(cell);
-        	}
+//        	for(Cell cell : deletedCells)
+//        	{
+//        		CircuitChanges.cleanCellRef(cell);
+//        	}
 
 			// reload the dialog
 			dialog.showCells(false);

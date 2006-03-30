@@ -1329,39 +1329,39 @@ public class TextUtils
                 char ch1 = name1.charAt(pos);
                 char ch2 = name2.charAt(pos);
                 if (ch1 != ch2) {
-                    int digit1 = Character.digit(ch1, 10);
-                    int digit2 = Character.digit(ch2, 10);
+                    int digit1 = digit(ch1);
+                    int digit2 = digit(ch2);
                     if (digit1 >= 0 || digit2 >= 0) {
                         int pos1 = pos + 1, pos2 = pos + 1; // Positions in string to compare
                         
                         // One char is digit, another is not. Is previous digit ?
-                        int digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
+                        int digit = pos > 0 ? digit(name1.charAt(--pos)) : -1;
                         if (digit < 0 && (digit1 < 0 || digit2 < 0)) {
                             // Previos is not digit. Number is less than non-number.
                             return digit2 - digit1;
                         }
                         // Are previus digits all zeros ?
                         while (digit == 0)
-                            digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
+                            digit = pos > 0 ? digit(name1.charAt(--pos)) : -1;
                         if (digit < 0) {
                             // All previos digits are zeros. Skip zeros further.
                             while (digit1 == 0)
-                                digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
+                                digit1 = pos1 < len1 ? digit(name1.charAt(pos1++)) : -1;
                             while (digit2 == 0)
-                                digit2 = pos2 < len2 ? Character.digit(name2.charAt(pos2++), 10) : -1;
+                                digit2 = pos2 < len2 ? digit(name2.charAt(pos2++)) : -1;
                         }
                         
                         // skip matching digits
                         while (digit1 == digit2 && digit1 >= 0) {
-                            digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
-                            digit2 = pos2 < len2 ? Character.digit(name2.charAt(pos2++), 10) : -1;
+                            digit1 = pos1 < len1 ? digit(name1.charAt(pos1++)) : -1;
+                            digit2 = pos2 < len2 ? digit(name2.charAt(pos2++)) : -1;
                         }
                         
                         boolean dig1 = digit1 >= 0;
                         boolean dig2 = digit2 >= 0;
                         for (int i = 0; dig1 && dig2; i++) {
-                            dig1 = pos1 + i < len1 && Character.isDigit(name1.charAt(pos1 + i));
-                            dig2 = pos2 + i < len2 && Character.isDigit(name2.charAt(pos2 + i));
+                            dig1 = pos1 + i < len1 && digit(name1.charAt(pos1 + i)) >= 0;
+                            dig2 = pos2 + i < len2 && digit(name2.charAt(pos2 + i)) >= 0;
                         }
                         if (dig1 != dig2) return dig1 ? 1 : -1;
                         if (digit1 != digit2) return digit1 - digit2;
@@ -1372,6 +1372,13 @@ public class TextUtils
             return len1 - len2;
         }
 	};
+
+    private static int digit(char ch) {
+        if (ch < '\u0080')
+            return ch >= '0' && ch <= '9' ? ch - '0' : -1;
+        else
+            return Character.digit((int)ch, 10);
+    }
 
 //	/**
 //	 * Test of STRING_NUMBER_ORDER.

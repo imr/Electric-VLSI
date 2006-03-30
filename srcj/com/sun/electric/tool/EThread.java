@@ -121,7 +121,7 @@ class EThread extends Thread {
                 e.getStackTrace();
                 e.printStackTrace();
                 if (!ejob.isExamine()) {
-                    recoverDatabase();
+                    recoverDatabase(e instanceof JobException);
                     database.lowLevelSetCanChanging(false);
                     database.lowLevelSetCanUndoing(false);
                 }
@@ -140,10 +140,13 @@ class EThread extends Thread {
         }
     }
     
-    private void recoverDatabase() {
+    private void recoverDatabase(boolean quick) {
         database.lowLevelSetCanUndoing(true);
         try {
-            database.recover(ejob.oldSnapshot);
+            if (quick)
+                database.undo(ejob.oldSnapshot);
+            else
+                database.recover(ejob.oldSnapshot);
             database.getNetworkManager().endBatch();
             ejob.newSnapshot = ejob.oldSnapshot;
             return;
