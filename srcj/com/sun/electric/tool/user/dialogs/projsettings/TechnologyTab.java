@@ -98,8 +98,10 @@ public class TechnologyTab extends ProjSettingsPanel
         // Foundry
         String selectedFoundry = curTech.getPrefFoundry();
     	Foundry.Type foundry = Foundry.Type.NONE;
-        for (Foundry factory : curTech.getFoundries())
+
+        for (Iterator<Foundry> itF = curTech.getFoundries(); itF.hasNext();)    
         {
+            Foundry factory = itF.next();
             Foundry.Type type = factory.getType();
             defaultFoundryPulldown.addItem(type);
             if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;

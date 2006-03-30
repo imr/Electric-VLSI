@@ -1663,8 +1663,9 @@ public class ToolMenu {
             boolean done = false;
 
             // set the new rules under the foundry imported
-            for (Foundry f : tech.getFoundries())
+            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)  
             {
+                Foundry f = itF.next();
                 if (f.getType().name().equalsIgnoreCase(bucket.foundry))
                 {
                     f.setRules(bucket.drcRules);

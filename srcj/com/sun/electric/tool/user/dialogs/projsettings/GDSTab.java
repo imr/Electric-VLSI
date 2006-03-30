@@ -111,8 +111,9 @@ public class GDSTab extends ProjSettingsPanel
 
 			technologySelection.addItem(new TechGDSTab(tech));
 
-            for (Foundry foundry : tech.getFoundries())
+            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
             {
+                Foundry foundry = itF.next();
                 for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
                 {
                     Layer layer = lIt.next();
@@ -186,9 +187,9 @@ public class GDSTab extends ProjSettingsPanel
     {
         foundrySelection.removeAllItems();
         // Foundry
-        for (Foundry f : tech.getFoundries())
+        for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
         {
-            foundrySelection.addItem(f);
+            foundrySelection.addItem(itF.next());
         }
         foundrySelection.setSelectedItem(tech.getSelectedFoundry());
         foundryChanged();
@@ -341,8 +342,9 @@ public class GDSTab extends ProjSettingsPanel
 		{
 			Technology tech = tIt.next();
 
-            for (Foundry foundry : tech.getFoundries())
+            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
             {
+                Foundry foundry = itF.next();
                 for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
                 {
                     Layer layer = lIt.next();

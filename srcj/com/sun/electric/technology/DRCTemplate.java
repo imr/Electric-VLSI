@@ -34,6 +34,7 @@ import javax.xml.parsers.SAXParser;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
@@ -338,9 +339,9 @@ public class DRCTemplate
         // Direct reference in rule, then rule is valid
         if ((rule.when & foundry.getType().mode()) != 0) return true;
         // if not direct reference, see if rule is for another foundry. If yes, then rule is not valid
-        List<Foundry> list = tech.getFoundries();
-        for (Foundry f : tech.getFoundries())
+        for (Iterator<Foundry> it = tech.getFoundries(); it.hasNext();)
         {
+            Foundry f = it.next();
             if (f == foundry) continue;
             if ((rule.when & f.getType().mode()) != 0) return false; // belong to another foundry
         }
@@ -360,14 +361,18 @@ public class DRCTemplate
             out.println("-->");
             out.println("<!DOCTYPE DRCRules SYSTEM \"DRC.dtd\">");
             out.println("<DRCRules>");
-            for (Foundry foundry : tech.getFoundries())
+            
+            for (Iterator<Foundry> it = tech.getFoundries(); it.hasNext();)
             {
+                Foundry foundry = it.next();
                 List<DRCTemplate> rules = foundry.getRules();
                 out.println("    <Foundry name=\"" + foundry.getType().name() + "\">");
 
                 for (DRCTemplate rule : rules)
                 {
-                    if (!isRuleValidInFoundry(tech, foundry, rule)) continue;
+                    boolean oldVa = isRuleValidInFoundry(tech, foundry, rule);
+                    assert(oldVa);
+//                    if (!i) continue;
 
                     String whenName = null;
                     for (DRCMode p : DRCMode.values())
@@ -586,7 +591,7 @@ public class DRCTemplate
                         type = DRCTemplate.DRCRuleType.valueOf(attributes.getValue(i));
                     else if (attributes.getQName(i).equals("when"))
                     {
-                        String[] modes = TextUtils.parseLine(attributes.getValue(i), "|");
+                        String[] modes = TextUtils.parseString(attributes.getValue(i), "|");
                         for (int j = 0; j < modes.length; j++)
                         {
                             DRCTemplate.DRCMode m = DRCTemplate.DRCMode.valueOf(modes[j]);
@@ -608,7 +613,7 @@ public class DRCTemplate
                 // They could be several layer names or pairs of names for the same rule
                 if (layerRule)
                 {
-                    String[] layers = TextUtils.parseLine(layerNames, ",");
+                    String[] layers = TextUtils.parseString(layerNames, ",");
                     for (int i = 0; i < layers.length; i++)
                     {
                         if (nodeNames == null)
@@ -618,7 +623,7 @@ public class DRCTemplate
                         }
                         else
                         {
-                            String[] names = TextUtils.parseLine(nodeNames, ",");
+                            String[] names = TextUtils.parseString(nodeNames, ",");
                             for (int j = 0; j < names.length; j++)
                             {
                                 DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layers[i], null, value, names[j]);
@@ -636,7 +641,7 @@ public class DRCTemplate
                     }
                     else
                     {
-                        String[] names = TextUtils.parseLine(nodeNames, ",");
+                        String[] names = TextUtils.parseString(nodeNames, ",");
                         for (int i = 0; i < names.length; i++)
                         {
                             DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, value, names[i]);
@@ -646,10 +651,10 @@ public class DRCTemplate
                 }
                 else if (layersRule || nodeLayersRule)
                 {
-                    String[] layerPairs = TextUtils.parseLine(layerNames, "{}");
+                    String[] layerPairs = TextUtils.parseString(layerNames, "{}");
                     for (int i = 0; i < layerPairs.length; i++)
                     {
-                        String[] pair = TextUtils.parseLine(layerPairs[i], ",");
+                        String[] pair = TextUtils.parseString(layerPairs[i], ",");
                         if (pair.length != 2) continue;
                         if (nodeNames == null)
                         {
@@ -662,7 +667,7 @@ public class DRCTemplate
                         }
                         else
                         {
-                            String[] names = TextUtils.parseLine(nodeNames, ",");
+                            String[] names = TextUtils.parseString(nodeNames, ",");
                             for (int j = 0; j < names.length; j++)
                             {
                                 DRCTemplate tmp = null;

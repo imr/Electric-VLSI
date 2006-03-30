@@ -725,7 +725,7 @@ public class TextUtils
      * @param delim the delimiters.
 	 * @return an array of Strings for each keyword on the line.
 	 */
-	public static String [] parseLine(String line, String delim)
+	public static String [] parseString(String line, String delim)
 	{
 		StringTokenizer st = new StringTokenizer(line, delim);
 		int total = st.countTokens();

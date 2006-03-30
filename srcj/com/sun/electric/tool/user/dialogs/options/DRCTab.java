@@ -121,7 +121,7 @@ public class DRCTab extends PreferencePanel
 		if (currentValue != DRC.isDatesStoredInMemory())
 			DRC.setDatesStoredInMemory(currentValue);
 
-		if (requestedDRCClearDates) DRC.resetDRCDates();
+		if (requestedDRCClearDates) DRC.resetDRCDates(true);
 	}
 
 	/** This method is called from within the constructor to

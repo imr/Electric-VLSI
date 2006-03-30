@@ -3263,13 +3263,43 @@ public class Technology implements Comparable<Technology>
     }
 
     /**
+	 * Find the Foundry in this technology with a particular name.
+	 * @param name the name of the desired Foundry.
+	 * @return the Foundry with the same name, or null if no Foundry matches.
+	 */
+	public Foundry findFoundry(String name)
+	{
+		if (name == null) return null;
+
+        for (Foundry f : foundries)
+        {
+            Foundry.Type t = f.getType();
+            if (t.name().equalsIgnoreCase(name))
+                return f;
+        }
+		return null;
+	}
+
+    /**
 	 * Get an iterator over all of the Manufacturers.
 	 * @return an iterator over all of the Manufacturers.
 	 */
-	public List<Foundry> getFoundries()
+	public Iterator<Foundry> getFoundries()
 	{
-		return foundries;
+		return foundries.iterator();
 	}
+
+    /**
+     * Method to add a foundry to existing technology after the object was created.
+     * Remove the previus version of the foundry
+     * @param f
+     */
+    public void addFoundry(Foundry f)
+    {
+        Foundry old = findFoundry(f.toString());
+        if (old != null) foundries.remove(old);
+        foundries.add(f);
+    }
 
 	/**
 	 * Method to get the foundry index associated with this technology.
@@ -3278,14 +3308,9 @@ public class Technology implements Comparable<Technology>
     public Foundry getSelectedFoundry()
     {
         String foundryName = getPrefFoundry();
-        for (Foundry f : foundries)
-        {
-            Foundry.Type t = f.getType();
-            if (t.name().equalsIgnoreCase(foundryName))
-                return f;
-        }
+        Foundry f = findFoundry(foundryName);
+        if (f != null) return f;
         if (foundries.size() > 0) return foundries.get(0);
-//        System.out.println("No default foundry selected in " + this);
         return null;
     }
 

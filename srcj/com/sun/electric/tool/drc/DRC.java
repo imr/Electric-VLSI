@@ -952,18 +952,22 @@ public class DRC extends Listener
 
 	/**
 	 * Method to delete all cached date information on all cells.
-	 */
-	public static void resetDRCDates()
+     * @param startJob
+     */
+	public static void resetDRCDates(boolean startJob)
 	{
-        new DRCReset();
+        new DRCReset(startJob);
 	}
 
     private static class DRCReset extends Job
     {
-        DRCReset()
+        DRCReset(boolean startJob)
         {
             super("Resetting DRC Dates", User.getUserTool(), Job.Type.CHANGE, null, null, Priority.USER);
-            startJob();
+            if (startJob)
+                startJob();
+            else
+                doIt();
         }
 
         public boolean doIt()

@@ -912,11 +912,11 @@ public class ErrorLogger implements Serializable
                         message = attributes.getValue(i);
                     else if (attributes.getQName(i).startsWith("cell"))
                     {
-                        String[] names = TextUtils.parseLine(attributes.getValue(i), "{}");
+                        String[] names = TextUtils.parseString(attributes.getValue(i), "{}");
                         cellName = names[0];
                         viewName = names[1];
                         // cellName might contain library name
-                        names = TextUtils.parseLine(cellName, ":");
+                        names = TextUtils.parseString(cellName, ":");
                         if (names.length > 1)
                         {
                             libraryName = names[0];
@@ -927,21 +927,21 @@ public class ErrorLogger implements Serializable
                         geomName = attributes.getValue(i);
                     else if (attributes.getQName(i).startsWith("p1"))
                     {
-                        String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
+                        String[] points = TextUtils.parseString(attributes.getValue(i), "(,)");
                         double x = Double.parseDouble(points[0]);
                         double y = Double.parseDouble(points[1]);
                         p1 = new EPoint(x, y);
                     }
                     else if (attributes.getQName(i).startsWith("p2"))
                     {
-                        String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
+                        String[] points = TextUtils.parseString(attributes.getValue(i), "(,)");
                         double x = Double.parseDouble(points[0]);
                         double y = Double.parseDouble(points[1]);
                         p2 = new EPoint(x, y);
                     }
                     else if (attributes.getQName(i).startsWith("center"))
                     {
-                        String[] points = TextUtils.parseLine(attributes.getValue(i), "(,)");
+                        String[] points = TextUtils.parseString(attributes.getValue(i), "(,)");
                     }
                     else
                         new Error("Invalid attribute in XMLParser");

@@ -4,16 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+IMP: (3/30/06, GVG) Refactoring of test code.
+
 BUG: (3/30/06, DN) Slow after JobException.
 FIX: Use "undo" instead of "recover" after JobException.
 
 BUG: (3/30/06, DN) Removal of entry after move to another library (Bug #868).
-FIX: Use Cell.move in CellChangeJobs.copyRecursively .
+FIX: Use Cell.move in CellChangeJobs.copyRecursively.
 
-IMP: (3/28/06, GVG) More AFG code
+IMP: (3/28/06, GVG) More AFG code. Java1.5 modifications in DRC/LayoutCoverage/GeometryHandler code.
 
 BUG: (3/28/06, RK) All-Java NCC regression test causes Netlist tool to throw exception. First exception was bug in regression, not Netlist tool.
-I no longer see the second exception so I think Dima fixed it. (Bugzilla #907) 
+I no longer see the second exception so I think Dima fixed it. (Bugzilla #907)
 
 ************************* Version 8.04h: *********************************
 

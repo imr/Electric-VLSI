@@ -216,7 +216,7 @@ public class LibToTech
 		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
 
         Foundry mosis = new Foundry(Foundry.Type.MOSIS);
-        tech.getFoundries().add(mosis); // not very elegant because foundries list modified outside of the package.
+        tech.addFoundry(mosis);
 
 		// create the layers
 		for(int i=0; i<lList.length; i++)
@@ -225,7 +225,6 @@ public class LibToTech
 			lay.setFunction(lList[i].fun, lList[i].funExtra);
 			lay.setCIFLayer(lList[i].cif);
             mosis.setGDSLayer(lay, lList[i].gds);
-//			lay.setGDSLayer(lList[i].gds);
 			lay.setResistance(lList[i].spiRes);
 			lay.setCapacitance(lList[i].spiCap);
 			lay.setEdgeCapacitance(lList[i].spiECap);
