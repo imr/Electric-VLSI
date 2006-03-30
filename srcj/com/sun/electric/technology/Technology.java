@@ -3267,7 +3267,7 @@ public class Technology implements Comparable<Technology>
 	 * @param name the name of the desired Foundry.
 	 * @return the Foundry with the same name, or null if no Foundry matches.
 	 */
-	public Foundry findFoundry(String name)
+	private Foundry findFoundry(String name)
 	{
 		if (name == null) return null;
 
