@@ -141,6 +141,11 @@ public abstract class Client {
                 Throwable jobException = null;
                 if (ejob.startedByServer)
                     jobException = ejob.deserializeToClient();
+                if (jobException != null) {
+                    System.out.println("Error deserializing " + ejob.jobName);
+                    ActivityLogger.logException(jobException);
+                    return;
+                }
                 jobException = ejob.deserializeResult();
                 
                 Job job = ejob.clientJob;
