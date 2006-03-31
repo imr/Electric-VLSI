@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
@@ -56,13 +57,14 @@ import java.util.*;
  */
 public class Schematic
 {
-	private static HashSet<Cell> cellsChecked = new HashSet<Cell>();
+    // Cells, nodes and arcs
+	private static HashSet<ElectricObject> nodesChecked = new HashSet<ElectricObject>();
     private static ErrorLogger errorLogger = null;
-    private static HashMap<NodeInst,List<Variable>> newVariables = new HashMap<NodeInst,List<Variable>>();
+    private static HashMap<Geometric,List<Variable>> newVariables = new HashMap<Geometric,List<Variable>>();
 
 	public static ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck)
 	{
-		cellsChecked.clear();
+		nodesChecked.clear();
         newVariables.clear();
 
 //		errorLogger = ErrorLogger.newInstance("Schematic DRC");
@@ -87,7 +89,7 @@ public class Schematic
 
             Cell contentsCell = subCell.contentsView();
             if (contentsCell == null) contentsCell = subCell;
-            if (cellsChecked.contains(contentsCell)) return null;
+            if (nodesChecked.contains(contentsCell)) return null;
             return contentsCell;
         }
         return null;
@@ -95,7 +97,7 @@ public class Schematic
 
 	private static void checkSchematicCellRecursively(Cell cell, Geometric[] geomsToCheck)
 	{
-		cellsChecked.add(cell);
+		nodesChecked.add(cell);
 
 		// ignore if not a schematic
 		if (!cell.isSchematic() && cell.getTechnology() != Schematics.tech)
@@ -191,7 +193,6 @@ public class Schematic
             list = new ArrayList<Variable>();
             newVariables.put(ni, list);
         }
-
         list.add(var);
     }
 
@@ -200,6 +201,11 @@ public class Schematic
 	 */
 	private static void schematicDoCheck(Netlist netlist, Geometric geom)
 	{
+        // Checked already
+        if (nodesChecked.contains(geom))
+            return;
+        nodesChecked.add(geom);
+
 		Cell cell = geom.getParent();
 		if (geom instanceof NodeInst)
 		{

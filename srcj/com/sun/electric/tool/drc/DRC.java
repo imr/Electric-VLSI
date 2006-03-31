@@ -955,7 +955,7 @@ public class DRC extends Listener
     public static void setDatesStoredInMemory(boolean on) { cacheStoreDatesInMemory.setBoolean(on); }
 
     public static void addDRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate,
-                                    HashMap<NodeInst, List<Variable>> newVariables)
+                                    HashMap<Geometric, List<Variable>> newVariables)
     {
         boolean good = (goodDRCDate != null && goodDRCDate.size() > 0);
         boolean clean = (cleanDRCDate != null && cleanDRCDate.size() > 0);
@@ -1014,10 +1014,10 @@ public class DRC extends Listener
 	{
 		HashMap<Cell,Date> goodDRCDate;
 		HashMap<Cell,Cell> cleanDRCDate;
-        HashMap<NodeInst,List<Variable>> newVariables = new HashMap<NodeInst,List<Variable>>();
+        HashMap<Geometric,List<Variable>> newVariables;
         int activeBits;
 
-		public DRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate, HashMap<NodeInst, List<Variable>> newVariables)
+		public DRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate, HashMap<Geometric, List<Variable>> newVariables)
 		{
 			super("Update DRC data", tool, Type.CHANGE, null, null, Priority.USER);
             this.goodDRCDate = goodDRCDate;
@@ -1075,10 +1075,10 @@ public class DRC extends Listener
             if (newVariables != null)
             {
                 assert(!inMemory);
-                for (Map.Entry<NodeInst,List<Variable>> e : newVariables.entrySet())
+                for (Map.Entry<Geometric,List<Variable>> e : newVariables.entrySet())
 //                for (NodeInst ni : newVariables.keySet())
                 {
-                    NodeInst ni = e.getKey();
+                    Geometric ni = e.getKey();
 //                    List<Variable> list = newVariables.get(ni);
                     for (Variable var : e.getValue())
                         ni.addVar(var);

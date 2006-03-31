@@ -4,7 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
-BUG: (3/30/06, GVG) Fixing Bug 910.
+BUG: (3/30/06, GVG) Fixing Bug 910 (Incremental Schematic DRC is broken).
+FIX: Re-organization of errorLoggers so incremental logger will be shared by Layout and Schematics DRC.
+Detecting when nodes are been checked in Schematics DRC.
 
 BUG: (3/30/06, GVG) Mistake in TSMC180.xml DRC deck (wrong NODSIZE for m5m6 contact)
 FIX: value="ALL" instead of value="DE" in ruleName="29.1 TSMC".
