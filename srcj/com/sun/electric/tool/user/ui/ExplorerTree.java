@@ -516,7 +516,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(cell);
 
 			// begin the drag
-            if (Client.getOperatingSystem() == Client.OS.MACINTOSH)
+            if (Client.isOSMac())
             {
                 // OS X has problems creating DefaultDragImage
                 Image img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);

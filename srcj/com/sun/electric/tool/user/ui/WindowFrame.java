@@ -283,7 +283,7 @@ public class WindowFrame extends Observable
 		sideBar = new JTabbedPane();
 
 		// Only Mac version will align tabs on the left. The text orientation is vertical by default on Mac
-        if (Client.getOperatingSystem() == Client.OS.MACINTOSH)
+        if (Client.isOSMac())
 			sideBar.setTabPlacement(JTabbedPane.LEFT);
 		paletteTab = PaletteFrame.newInstance(this);
 		layersTab = new LayerTab(this);
@@ -814,7 +814,7 @@ public class WindowFrame extends Observable
         // remove references to this
         synchronized(windowList) {
             if (windowList.size() <= 1 && !TopLevel.isMDIMode() &&
-				Client.getOperatingSystem() != Client.OS.MACINTOSH)
+				!Client.isOSMac())
             {
                 FileMenu.quitCommand();
                 //JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),

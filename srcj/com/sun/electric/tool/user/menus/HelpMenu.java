@@ -51,7 +51,7 @@ public class HelpMenu {
         MenuBar.Menu helpMenu = MenuBar.makeMenu("_Help");
         menuBar.add(helpMenu);
 
-        if (Client.getOperatingSystem() != Client.OS.MACINTOSH)
+        if (!Client.isOSMac())
         {
             helpMenu.addMenuItem("_About Electric...", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });

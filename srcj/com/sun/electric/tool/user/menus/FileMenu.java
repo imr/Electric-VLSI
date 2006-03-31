@@ -278,7 +278,7 @@ public class FileMenu {
 
 		fileMenu.addSeparator();
 
-		if (Client.getOperatingSystem() != Client.OS.MACINTOSH)
+		if (!Client.isOSMac())
 		{
 			fileMenu.addMenuItem("_Quit", KeyStroke.getKeyStroke('Q', buckyBit),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });

@@ -162,7 +162,7 @@ public class OpenFile
 
 		boolean useSwing = true;
         // MacOS Open Dialog doesn't work when directories must be available for selection
-		if (!wantDirectory && Client.getOperatingSystem() == Client.OS.MACINTOSH)
+		if (!wantDirectory && Client.isOSMac())
 			useSwing = false;
 
 //		if (location == null) location = new Point(100, 50);
@@ -252,7 +252,7 @@ public class OpenFile
         if (types == null) types = new FileType [] {com.sun.electric.tool.io.FileType.ANY};
 
 		boolean useSwing = true;
-		if (Client.getOperatingSystem() == Client.OS.MACINTOSH)
+		if (Client.isOSMac())
 			useSwing = false;
 
 		if (useSwing)

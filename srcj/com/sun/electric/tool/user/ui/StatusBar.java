@@ -122,7 +122,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         }
         //gbc.ipadx = 5;
         gbc.anchor = GridBagConstraints.WEST;
-        int rightInsert = (Client.getOperatingSystem() == Client.OS.MACINTOSH) ? 20 : 4;
+        int rightInsert = (Client.isOSMac()) ? 20 : 4;
         gbc.insets = new java.awt.Insets(0, 4, 0, rightInsert);
 		add(field, gbc);
 	}
