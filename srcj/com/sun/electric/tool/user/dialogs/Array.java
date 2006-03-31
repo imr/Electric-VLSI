@@ -632,7 +632,7 @@ public class Array extends EDialog
 			// if only arraying where DRC valid, check them now and delete what is not valid
 			if (lastDRCGood)
 			{
-				Quick.checkDesignRules(cell, geomsToCheck, validity, null, null);
+				Quick.checkDesignRules(null, cell, geomsToCheck, validity, null);
 				for(int i=1; i<checkNodeCount; i++)
 				{
 					if (!validity[i])

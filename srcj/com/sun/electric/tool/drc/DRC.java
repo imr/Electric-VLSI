@@ -61,7 +61,8 @@ public class DRC extends Listener
 	/** the DRC tool. */								protected static DRC tool = new DRC();
 	/** overrides of rules for each technology. */		private static HashMap<Technology,Pref> prefDRCOverride = new HashMap<Technology,Pref>();
 	/** map of cells and their objects to DRC */		private static HashMap<Cell,HashSet<Geometric>> cellsToCheck = new HashMap<Cell,HashSet<Geometric>>();
-    /** to temporary store DRC dates */                 private static HashMap<Cell,StoreDRCInfo> storedDRCDate = new HashMap<Cell,StoreDRCInfo>();;
+    /** to temporary store DRC dates */                 private static HashMap<Cell,StoreDRCInfo> storedDRCDate = new HashMap<Cell,StoreDRCInfo>();
+	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
 
     private static class StoreDRCInfo
     {
@@ -285,6 +286,20 @@ public class DRC extends Listener
 //	}
 
 	/****************************** DRC INTERFACE ******************************/
+    public static ErrorLogger getDRCErrorLogger(boolean layout, boolean incremental)
+    {
+        ErrorLogger errorLogger = null;
+        String title = (layout) ? "Layout " : "Schematic ";
+
+        if (incremental)
+        {
+            if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)"/*, true*/);
+            errorLogger = errorLoggerIncremental;
+        }
+        else
+            errorLogger = ErrorLogger.newInstance(title + "DRC (full)");
+        return errorLogger;
+    }
 
     /**
      * This method generates a DRC job from the GUI or for a bash script.
@@ -348,12 +363,11 @@ public class DRC extends Listener
 		public boolean doIt()
 		{
 			long startTime = System.currentTimeMillis();
-            ErrorLogger errorLog = null;
+            ErrorLogger errorLog = getDRCErrorLogger(isLayout, false);
             if (isLayout)
-                errorLog = Quick.checkDesignRules(cell, null, null, bounds, this, mergeMode);
+                Quick.checkDesignRules(errorLog, cell, null, null, bounds, this, mergeMode);
             else
-                errorLog = Schematic.doCheck(cell, null);
-
+                Schematic.doCheck(errorLog, cell, null);
             long endTime = System.currentTimeMillis();
             int errorCount = errorLog.getNumErrors();
             int warnCount = errorLog.getNumWarnings();
@@ -377,11 +391,11 @@ public class DRC extends Listener
 		public boolean doIt()
 		{
 			incrementalRunning = true;
-            ErrorLogger errorLog = null;
+            ErrorLogger errorLog = getDRCErrorLogger(isLayout, true);
             if (isLayout)
-                errorLog = Quick.checkDesignRules(cell, objectsToCheck, null, null, this);
+                errorLog = Quick.checkDesignRules(errorLog, cell, objectsToCheck, null, null);
             else
-                errorLog = Schematic.doCheck(cell, objectsToCheck);
+                errorLog = Schematic.doCheck(errorLog, cell, objectsToCheck);
             int errorsFound = errorLog.getNumErrors();
 			if (errorsFound > 0)
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in "+ cell);

@@ -60,13 +60,13 @@ public class Schematic
     private static ErrorLogger errorLogger = null;
     private static HashMap<NodeInst,List<Variable>> newVariables = new HashMap<NodeInst,List<Variable>>();
 
-	public static ErrorLogger doCheck(Cell cell, Geometric[] geomsToCheck)
+	public static ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck)
 	{
 		cellsChecked.clear();
         newVariables.clear();
 
- //       if (errorLogger != null) errorLogger.delete();
-		errorLogger = ErrorLogger.newInstance("Schematic DRC");
+//		errorLogger = ErrorLogger.newInstance("Schematic DRC");
+        errorLogger = errorLog;
 		checkSchematicCellRecursively(cell, geomsToCheck);
 		errorLogger.termLogging(true);
         DRC.addDRCUpdate(0, null, null, newVariables);
@@ -142,7 +142,7 @@ public class Schematic
 
 	private static void checkSchematicCell(Cell cell, boolean justThis, Geometric[] geomsToCheck)
 	{
-		if (justThis) errorLogger = ErrorLogger.newInstance("Schematic DRC");
+//		if (justThis) errorLogger = ErrorLogger.newInstance("Schematic DRC");
 		int initialErrorCount = errorLogger.getNumErrors();
 		Netlist netlist = NetworkTool.getUserNetlist(cell);
 

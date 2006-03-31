@@ -199,7 +199,6 @@ public class Quick
 	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodDRCDate = new HashMap<Cell,Date>();
 	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanDRCDate = new HashMap<Cell,Cell>();
 	/** for logging errors */                                   private ErrorLogger errorLogger;
-	/** for logging incremental errors */                       private static ErrorLogger errorLoggerIncremental = null;
 	/** Top cell for DRC */                                     private Cell topCell;
 
 	/* for figuring out which layers are valid for DRC */
@@ -211,10 +210,11 @@ public class Quick
 	private HashMap<PrimitiveNode, boolean[]> layersInterNodes = null;
 	private HashMap<ArcProto, boolean[]> layersInterArcs = null;
 
-    public static ErrorLogger checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                               Rectangle2D bounds, DRC.CheckDRCJob drcJob)
+    public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
+                                               Rectangle2D bounds)
     {
-        return checkDesignRules(cell, geomsToCheck, validity, bounds, drcJob, GeometryHandler.GHMode.ALGO_SWEEP);
+        if (errorLog == null) errorLog = DRC.getDRCErrorLogger(true, false);
+        return checkDesignRules(errorLog, cell, geomsToCheck, validity, bounds, null, GeometryHandler.GHMode.ALGO_SWEEP);
     }
 
 	/**
@@ -228,16 +228,15 @@ public class Quick
      * @param drcJob
 	 * @return ErrorLogger containing the information
 	 */
-	public static ErrorLogger checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
-                                       Rectangle2D bounds, DRC.CheckDRCJob drcJob, GeometryHandler.GHMode mode)
+	public static ErrorLogger checkDesignRules(ErrorLogger errorLog, Cell cell, Geometric[] geomsToCheck, boolean[] validity,
+                                               Rectangle2D bounds, DRC.CheckDRCJob drcJob, GeometryHandler.GHMode mode)
 	{
 		Quick q = new Quick(drcJob, mode);
-		return q.doCheck(cell, geomsToCheck, validity, bounds);
+		return q.doCheck(errorLog, cell, geomsToCheck, validity, bounds);
 	}
 
-
     // returns the number of errors found
-	private ErrorLogger doCheck(Cell cell, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
+	private ErrorLogger doCheck(ErrorLogger errorLog, Cell cell, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
 	{
 		// Check if there are DRC rules for particular tech
         Technology tech = cell.getTechnology();
@@ -410,14 +409,14 @@ public class Quick
 		boolean validVersion = true;
 	    Version version = cell.getLibrary().getVersion();
 		if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
-		errorLogger = null;
+		errorLogger = errorLog;
         int logsFound = 0;
         int totalErrors = 0;
 
 		if (count == 0)
 		{
 			// just do full DRC here
-			errorLogger = ErrorLogger.newInstance("DRC (full)");
+//			errorLogger = ErrorLogger.newInstance("DRC (full)");
 			totalErrors = checkThisCell(cell, 0, bounds, validVersion);
 
 			// sort the errors by layer
@@ -428,10 +427,10 @@ public class Quick
 			if (validity == null)
 			{
 				// not a quiet DRC, so it must be incremental
-				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)"/*, true*/);
-				errorLoggerIncremental.clearLogs(cell);
-				errorLogger = errorLoggerIncremental;
-                logsFound = errorLoggerIncremental.getNumLogs();
+//				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)"/*, true*/);
+//				errorLoggerIncremental.clearLogs(cell);
+//				errorLogger = errorLoggerIncremental;
+                logsFound = errorLogger.getNumLogs();
 			}
 
             // @TODO missing counting this number of errors.
