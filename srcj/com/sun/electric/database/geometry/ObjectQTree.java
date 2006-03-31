@@ -143,10 +143,13 @@ public class ObjectQTree {
             }
             else
             {
-                for (ObjectNode node : nodes)
+                if (nodes != null)
                 {
-                    if (searchBox.intersects(node.rect))
-                        list.add(node.elem);
+                    for (ObjectNode node : nodes)
+                    {
+                        if (searchBox.intersects(node.rect))
+                            list.add(node.elem);
+                    }
                 }
             }
             return list;

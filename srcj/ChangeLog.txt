@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (3/31/06, GVG) Boundary problems with qTree used in autostich (Bug #912)
+FIX: Detection of empty buckets (no nodes).
+
 BUG: (3/30/06, GVG) Fixing Bug 910 (Incremental Schematic DRC is broken).
 FIX: Re-organization of errorLoggers so incremental logger will be shared by Layout and Schematics DRC.
 Detecting when nodes are been checked in Schematics DRC.
