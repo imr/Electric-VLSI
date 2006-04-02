@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+IMP: (4/02/06, DN) JUnit tests of database are added to CVS, build.xml updated.
+
 BUG: (3/31/06, GVG) Boundary problems with qTree used in autostich (Bug #912)
 FIX: Detection of empty buckets (no nodes).
 
