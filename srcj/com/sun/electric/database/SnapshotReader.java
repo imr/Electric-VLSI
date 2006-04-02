@@ -47,17 +47,20 @@ import java.util.ArrayList;
 public class SnapshotReader {
     
     public DataInputStream in;
-    private ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
-    private ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
-    private ArrayList<Tool> tools = new ArrayList<Tool>();
-    private ArrayList<Technology> techs = new ArrayList<Technology>();
-    private ArrayList<ArcProto> arcProtos = new ArrayList<ArcProto>();
-    private ArrayList<PrimitiveNode> primNodes = new ArrayList<PrimitiveNode>();
-    private ArrayList<Orientation> orients = new ArrayList<Orientation>();
+    private final IdManager idManager;
+    private final ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
+    private final ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
+    private final ArrayList<Tool> tools = new ArrayList<Tool>();
+    private final ArrayList<Technology> techs = new ArrayList<Technology>();
+    private final ArrayList<ArcProto> arcProtos = new ArrayList<ArcProto>();
+    private final ArrayList<PrimitiveNode> primNodes = new ArrayList<PrimitiveNode>();
+    private final ArrayList<Orientation> orients = new ArrayList<Orientation>();
    
     /** Creates a new instance of SnapshotWriter */
-    public SnapshotReader(DataInputStream in) {
+    public SnapshotReader(DataInputStream in, IdManager idManager) {
+        if (in == null || idManager == null) throw new NullPointerException();
         this.in = in;
+        this.idManager = idManager;
     }
 
     /**
@@ -150,8 +153,8 @@ public class SnapshotReader {
      * @return LibId.
      */
     public LibId readLibId() throws IOException {
-        int i = in.readInt();
-        return LibId.getByIndex(i);
+        int libIndex = in.readInt();
+        return idManager.getLibId(libIndex);
     }
     
     /**

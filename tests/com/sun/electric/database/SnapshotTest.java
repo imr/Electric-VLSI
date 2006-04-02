@@ -1,17 +1,32 @@
-/*
- * SnapshotTest.java
- * JUnit based test
+/* -*- tab-width: 4 -*-
  *
- * Created on March 20, 2006, 4:29 PM
+ * Electric(tm) VLSI Design System
+ *
+ * File: SnapshotTest.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 
@@ -26,21 +41,21 @@ import java.util.List;
 import junit.framework.*;
 
 /**
- *
- * @author dn146861
+ * This module tests Snapshots.
  */
 public class SnapshotTest extends TestCase {
     
     private static byte[] emptyDiffEmpty;
+    private IdManager idManager;
+    private Snapshot initialSnapshot;
     
     public SnapshotTest(String testName) {
         super(testName);
     }
 
     protected void setUp() throws Exception {
-        CellId.restart();
-        LibId.restart();
-        Snapshot.restart();
+        idManager = new IdManager();
+        initialSnapshot = idManager.getInitialSnapshot();
         
         // Preload technology
         Technology tech = Schematics.tech;
@@ -48,10 +63,10 @@ public class SnapshotTest extends TestCase {
         // Init emptyDiffEmpty
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(out));
-        Snapshot oldSnapshot = Snapshot.EMPTY;
-        Snapshot instance = Snapshot.EMPTY;
+        Snapshot oldSnapshot = initialSnapshot;
+        Snapshot instance = initialSnapshot;
         try {
-            Snapshot.EMPTY.writeDiffs(writer, Snapshot.EMPTY);
+            initialSnapshot.writeDiffs(writer, initialSnapshot);
             writer.out.close();
             emptyDiffEmpty = out.toByteArray();
         } catch (IOException e) {
@@ -59,11 +74,13 @@ public class SnapshotTest extends TestCase {
         }
     }
 
-    public static void main(String[] args) {}
-    
     protected void tearDown() throws Exception {
+        idManager = null;
+        initialSnapshot = null;
     }
 
+    public static void main(String[] args) {}
+    
     public static Test suite() {
         TestSuite suite = new TestSuite(SnapshotTest.class);
         return suite;
@@ -79,10 +96,10 @@ public class SnapshotTest extends TestCase {
     public void testWith() {
         System.out.println("with");
         
-        LibId libId = new LibId();
+        LibId libId = idManager.newLibId();
         ImmutableLibrary l = ImmutableLibrary.newInstance(libId, "lib", null, null);
         LibraryBackup libBackup = new LibraryBackup(l, false, new LibId[]{});
-        CellId cellId = new CellId();
+        CellId cellId = idManager.newCellId();
         CellName cellName = CellName.parseName("cell;1{sch}");
         ImmutableCell c = ImmutableCell.newInstance(cellId, libId, cellName, 0).withTech(Schematics.tech);
         CellBackup cellBackup = new CellBackup(c);
@@ -92,7 +109,7 @@ public class SnapshotTest extends TestCase {
         ERectangle emptyBound = new ERectangle(0, 0, 0, 0);
         ERectangle[] cellBoundsArray = { emptyBound };
         LibraryBackup[] libBackupsArray = { libBackup };
-        Snapshot instance = Snapshot.EMPTY;
+        Snapshot instance = initialSnapshot;
         
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
         List<ERectangle> expCellBounds = Collections.singletonList(emptyBound);
@@ -118,8 +135,8 @@ public class SnapshotTest extends TestCase {
     public void testGetChangedLibraries() {
         System.out.println("getChangedLibraries");
         
-        Snapshot oldSnapshot = Snapshot.EMPTY;
-        Snapshot instance = Snapshot.EMPTY;
+        Snapshot oldSnapshot = initialSnapshot;
+        Snapshot instance = initialSnapshot;
         
         List<LibId> expResult = Collections.emptyList();
         List<LibId> result = instance.getChangedLibraries(oldSnapshot);
@@ -132,8 +149,8 @@ public class SnapshotTest extends TestCase {
     public void testGetChangedCells() {
         System.out.println("getChangedCells");
         
-        Snapshot oldSnapshot = Snapshot.EMPTY;
-        Snapshot instance = Snapshot.EMPTY;
+        Snapshot oldSnapshot = initialSnapshot;
+        Snapshot instance = initialSnapshot;
         
         List<CellId> expResult = Collections.emptyList();
         List<CellId> result = instance.getChangedCells(oldSnapshot);
@@ -147,7 +164,7 @@ public class SnapshotTest extends TestCase {
         System.out.println("getCell");
         
         CellId cellId = CellId.getByIndex(0);
-        Snapshot instance = Snapshot.EMPTY;
+        Snapshot instance = initialSnapshot;
         
         CellBackup expResult = null;
         CellBackup result = instance.getCell(cellId);
@@ -161,7 +178,7 @@ public class SnapshotTest extends TestCase {
         System.out.println("getCellBounds");
         
         CellId cellId = CellId.getByIndex(0);
-        Snapshot instance = Snapshot.EMPTY;
+        Snapshot instance = initialSnapshot;
         
         ERectangle expResult = null;
         ERectangle result = instance.getCellBounds(cellId);
@@ -174,8 +191,8 @@ public class SnapshotTest extends TestCase {
     public void testGetLib() {
         System.out.println("getLib");
         
-        LibId libId = LibId.getByIndex(0);
-        Snapshot instance = Snapshot.EMPTY;
+        LibId libId = idManager.getLibId(0);
+        Snapshot instance = initialSnapshot;
         
         LibraryBackup expResult = null;
         LibraryBackup result = instance.getLib(libId);
@@ -190,8 +207,8 @@ public class SnapshotTest extends TestCase {
         
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(out));
-        Snapshot oldSnapshot = Snapshot.EMPTY;
-        Snapshot instance = Snapshot.EMPTY;
+        Snapshot oldSnapshot = initialSnapshot;
+        Snapshot instance = initialSnapshot;
         
         instance.writeDiffs(writer, oldSnapshot);
         assertTrue(Arrays.equals(out.toByteArray(), emptyDiffEmpty));
@@ -203,8 +220,8 @@ public class SnapshotTest extends TestCase {
     public void testReadSnapshot() throws Exception {
         System.out.println("readSnapshot");
         
-        SnapshotReader reader = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(emptyDiffEmpty)));
-        Snapshot oldSnapshot = Snapshot.EMPTY;
+        SnapshotReader reader = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(emptyDiffEmpty)), idManager);
+        Snapshot oldSnapshot = initialSnapshot;
         
         ImmutableArrayList<CellBackup> expCellBackups = new ImmutableArrayList<CellBackup>(CellBackup.NULL_ARRAY);
         Snapshot result = Snapshot.readSnapshot(reader, oldSnapshot);
@@ -217,7 +234,7 @@ public class SnapshotTest extends TestCase {
     public void testCheck() {
         System.out.println("check");
         
-        Snapshot instance = Snapshot.EMPTY;
+        Snapshot instance = initialSnapshot;
         
         instance.check();
     }

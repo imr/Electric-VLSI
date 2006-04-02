@@ -91,7 +91,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     private static volatile boolean redoEnabled = false;
     private static final EventListenerList undoRedoListenerList = new EventListenerList();
     private static EventListenerList listenerList = new EventListenerList();
-    private static Snapshot currentSnapshot = Snapshot.EMPTY;
+    private static Snapshot currentSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
     private static EDatabase database = EDatabase.clientDatabase();
 
     private SplashWindow sw = null;

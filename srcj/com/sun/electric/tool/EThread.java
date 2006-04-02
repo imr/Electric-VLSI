@@ -180,7 +180,7 @@ class EThread extends Thread {
         for (;;) {
             Snapshot snapshot;
             synchronized (snapshotCache) {
-                if (snapshotCache.isEmpty()) return Snapshot.EMPTY;
+                if (snapshotCache.isEmpty()) return EDatabase.serverDatabase().getInitialSnapshot();
                 snapshot = snapshotCache.remove(snapshotCache.size() - 1);
             }
             try {

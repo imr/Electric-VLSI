@@ -48,7 +48,7 @@ import java.util.Iterator;
 public class NetworkManager {
     
     /** Database to which this network manager belongs. */ private final EDatabase database;
-    /** Database snapshot before undo */            private Snapshot lastSnapshot = Snapshot.EMPTY;
+    /** Database snapshot before undo */            private Snapshot lastSnapshot;
 	/** NetCells. */								private NetCell[] cells = new NetCell[1];
 
     /** The cell for logging network errors */      private Cell currentErrorCell;
@@ -58,6 +58,7 @@ public class NetworkManager {
     /** Creates a new instance of NetworkManager */
 	public NetworkManager(EDatabase database) {
         this.database = database;
+        lastSnapshot = database.getInitialSnapshot();
 	}
     
 	void setCell(Cell cell, NetCell netCell) {
@@ -83,7 +84,7 @@ public class NetworkManager {
 
         long startTime = System.currentTimeMillis();
 		if (reload) {
-			lastSnapshot = Snapshot.EMPTY;
+			lastSnapshot = database.getInitialSnapshot();
             cells = new NetCell[1];
 		}
         advanceSnapshot();

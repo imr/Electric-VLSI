@@ -25,6 +25,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.SnapshotWriter;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.tool.Client.ServerEvent;
 
 import java.io.BufferedInputStream;
@@ -45,7 +46,7 @@ public class StreamClient extends Client {
     private static ServerEvent queueTail = new ServerEvent();
     
     private final SnapshotWriter writer;
-    private Snapshot currentSnapshot = Snapshot.EMPTY;
+    private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
     private Snapshot initialSnapshot;
     private final ServerEventDispatcher dispatcher; 
     private final ClientReader reader;
@@ -67,7 +68,7 @@ public class StreamClient extends Client {
     }
     
     class ServerEventDispatcher extends Thread {
-        private Snapshot currentSnapshot = Snapshot.EMPTY;
+        private Snapshot currentSnapshot = EDatabase.serverDatabase().getInitialSnapshot();
         private ServerEvent lastEvent = getQueueTail();
     
         private ServerEventDispatcher() {

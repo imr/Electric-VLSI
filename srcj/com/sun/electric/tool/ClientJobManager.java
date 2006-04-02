@@ -77,11 +77,11 @@ class ClientJobManager extends JobManager {
     public void runLoop() {
         logger.entering(CLASS_NAME, "clinetLoop", port);
         SnapshotReader reader = null;
-        Snapshot currentSnapshot = Snapshot.EMPTY;
+        Snapshot currentSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
         try {
             System.out.println("Attempting to connect to port " + port + " ...");
             Socket socket = new Socket((String)null, port);
-            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())));
+            reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), EDatabase.clientDatabase().getIdManager());
             clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             int protocolVersion = reader.in.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {
@@ -309,7 +309,7 @@ class ClientJobManager extends JobManager {
     private final FIFO clientFifo = new FIFO();
     
     private static volatile int clientNumExamine = 0;
-    private static Snapshot clientSnapshot = Snapshot.EMPTY;
+    private static Snapshot clientSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
     
     private final ClientInvoke clientInvoke = new ClientInvoke();
     private class ClientInvoke implements Runnable {

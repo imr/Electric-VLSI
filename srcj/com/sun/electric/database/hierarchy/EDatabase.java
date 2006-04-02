@@ -26,6 +26,7 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.IdManager;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
@@ -60,10 +61,11 @@ public class EDatabase {
     public static EDatabase serverDatabase() { return theDatabase; }
     public static EDatabase clientDatabase() { return theDatabase; }
     
+    /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager = new IdManager();
 	/** list of linked libraries indexed by libId. */           private final ArrayList<Library> linkedLibs = new ArrayList<Library>();
 	/** map of libraries sorted by name */                      final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
 	/** static list of all linked cells indexed by CellId. */	final ArrayList<Cell> linkedCells = new ArrayList<Cell>();
-    /** Last snapshot */                                        private Snapshot snapshot = Snapshot.EMPTY;
+    /** Last snapshot */                                        private Snapshot snapshot = getInitialSnapshot();
     /** True if database matches snapshot. */                   private boolean snapshotFresh;
 	/** Flag set when database invariants failed. */            private boolean invariantsFailed;
     
@@ -74,6 +76,10 @@ public class EDatabase {
     
     /** Creates a new instance of EDatabase */
     private EDatabase() {}
+    
+    public IdManager getIdManager() { return idManager; }
+    
+    public Snapshot getInitialSnapshot() { return idManager.getInitialSnapshot(); }
     
     public NetworkManager getNetworkManager() { return networkManager; }
     
@@ -564,7 +570,7 @@ public class EDatabase {
 		try
 		{
 			long startTime = System.currentTimeMillis();
-            CellId.checkInvariants();
+            idManager.checkInvariants();
             backup();
             snapshot.check();
             check();
@@ -601,7 +607,7 @@ public class EDatabase {
                 if (snapshotFresh) assert snapshot.libBackups.get(libIndex) == null;
                 continue;
             }
-            assert lib.getId() == LibId.getByIndex(libIndex);
+            assert lib.getId() == getIdManager().getLibId(libIndex);
             assert libraries.get(lib.getName()) == lib;
             lib.check();
             if (snapshotFresh)

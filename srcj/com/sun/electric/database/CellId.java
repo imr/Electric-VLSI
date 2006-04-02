@@ -28,19 +28,18 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.tool.Job;
+
 import java.io.ObjectStreamException;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-
 
 /**
  * The CellId class identifies a type of NodeInst independently of threads.
  * It differs from Cell objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method in 1.5, but not thread-safe in 1.4  .
  */
-public final class CellId implements NodeProtoId, Serializable
-{
+public final class CellId implements NodeProtoId, Serializable {
+    /** IdManager which owns this LibId. */
+    public final IdManager idManager;
     /** Unique index of this cell in the database. */
     public final int cellIndex;
     /**
@@ -76,20 +75,15 @@ public final class CellId implements NodeProtoId, Serializable
      **/
     private transient volatile int numArcIds = 0;
     
-    /** List of CellIds created so far. */
-    private static final ArrayList<CellId> cellIds = new ArrayList<CellId>();
     /** Empty hash for initialization. */
     private static final CellUsage[] EMPTY_HASH = { null };
     
     /**
      * CellId constructor.
-     * Creates CellId with unique cellIndex.
      */
-    public CellId() {
-        synchronized(cellIds) {
-            cellIndex = cellIds.size();
-            cellIds.add(this);
-        }
+    CellId(IdManager idManager, int cellIndex) {
+        this.idManager = idManager;
+        this.cellIndex = cellIndex;
     }
     
     /*
@@ -105,11 +99,7 @@ public final class CellId implements NodeProtoId, Serializable
      * @return CellId with given index.
      */
     public static CellId getByIndex(int cellIndex) {
-        synchronized(cellIds) {
-           while (cellIndex >= cellIds.size())
-               new CellId();
-           return cellIds.get(cellIndex);
-        }
+        return EDatabase.theDatabase.getIdManager().getCellId(cellIndex);
     }
     
     /**
@@ -365,20 +355,6 @@ public final class CellId implements NodeProtoId, Serializable
       }
 
 	/**
-	 * Method to check invariants in all Libraries.
-	 */
-	public static void checkInvariants() {
-        int numCellIds;
-        synchronized (cellIds) { numCellIds = cellIds.size(); }
-        for (int i = 0; i < numCellIds; i++) {
-            CellId cellId;
-            synchronized (cellIds) { cellId = (CellId)cellIds.get(i); }
-            assert cellId.cellIndex == i;
-            cellId.check();
-        }
-    }
-    
-	/**
 	 * Checks invariants in this CellId.
      * ALL i: usagesIn[i].parentId == this;
      * ALL i: usagesIn[i].indexInParent == i;
@@ -408,6 +384,7 @@ public final class CellId implements NodeProtoId, Serializable
             // This also guarantees that all elements of usagesIn are distinct.
             assert u.parentId == this;
             assert u.indexInParent == k;
+            assert u.parentId.idManager == idManager;
             u.protoId.checkLinked();
             
             // Check the CellUsage invariants.
@@ -428,6 +405,7 @@ public final class CellId implements NodeProtoId, Serializable
             
             // Check that this CellUsage is properly owned by its parentId and
             // the parentId is in static list of all CellIds.
+            assert u.protoId.idManager == idManager;
             u.parentId.checkLinked();
             assert u == u.parentId.usagesIn[u.indexInParent];
         }
@@ -467,15 +445,6 @@ public final class CellId implements NodeProtoId, Serializable
      * @throws AssertionError if this CellId is not linked.
      */
     private void checkLinked() {
-        synchronized (cellIds) {
-            assert this == cellIds.get(cellIndex);
-        }
-    }
-    
-    /**
-     * Restarts CellIds pool.
-     */
-    static void restart() {
-        cellIds.clear();
+        assert this == idManager.getCellId(cellIndex);
     }
 }

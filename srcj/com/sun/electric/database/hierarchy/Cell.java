@@ -872,7 +872,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		lib.checkChanging();
         Date creationDate = new Date();
-		Cell c = new Cell(lib.getDatabase(), ImmutableCell.newInstance(new CellId(), lib.getId(), null, creationDate.getTime()));
+        EDatabase database = lib.getDatabase();
+        CellId cellId = database.getIdManager().newCellId();
+		Cell c = new Cell(database, ImmutableCell.newInstance(cellId, lib.getId(), null, creationDate.getTime()));
 		return c;
 	}
 

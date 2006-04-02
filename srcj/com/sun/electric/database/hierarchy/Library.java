@@ -133,7 +133,8 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
 		}
 		
 		// create the library
-        return newInstance(EDatabase.theDatabase, new LibId(), legalName, libFile);
+        EDatabase database = EDatabase.theDatabase;
+        return newInstance(database, database.getIdManager().newLibId(), legalName, libFile);
 	}
 
 	/**
@@ -181,12 +182,12 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
         int libIndex;
         
         private LibraryKey(Library lib) {
-            assert  lib.isLinked();
+            assert lib.isLinked();
             libIndex = lib.getId().libIndex;
         }
         
         protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            Library lib = database.getLib(LibId.getByIndex(libIndex));
+            Library lib = database.getLib(database.getIdManager().getLibId(libIndex));
             if (lib == null) throw new InvalidObjectException("Library");
             return lib;
         }

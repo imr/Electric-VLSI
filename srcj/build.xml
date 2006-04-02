@@ -112,6 +112,7 @@
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
            </classpath>
+           <arg value="com.sun.electric.database.IdManagerTest"/>
            <arg value="com.sun.electric.database.SnapshotTest"/>
            <arg value="com.sun.electric.database.geomerty.GenMathTest"/>
            <arg value="com.sun.electric.database.geometry.OrientationTest"/>

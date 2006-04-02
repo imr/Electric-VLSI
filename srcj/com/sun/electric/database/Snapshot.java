@@ -28,7 +28,6 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -37,15 +36,12 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
  */
 public class Snapshot {
-    private static final AtomicInteger snapshotCount = new AtomicInteger();
-    public static final Snapshot EMPTY = new Snapshot(0, CellBackup.EMPTY_LIST, new int[0], ERectangle.EMPTY_LIST, LibraryBackup.EMPTY_LIST);
-    
+    public final IdManager idManager;
     public final int snapshotId;
     public final ImmutableArrayList<CellBackup> cellBackups;
     public final int[] cellGroups;
@@ -53,16 +49,24 @@ public class Snapshot {
     public final ImmutableArrayList<LibraryBackup> libBackups;
 
     /** Creates a new instance of Snapshot */
-    private Snapshot(int snapshotId,
+    private Snapshot(IdManager idManager, int snapshotId,
             ImmutableArrayList<CellBackup> cellBackups,
             int[] cellGroups,
             ImmutableArrayList<ERectangle> cellBounds,
             ImmutableArrayList<LibraryBackup> libBackups) {
+        this.idManager = idManager;
         this.snapshotId = snapshotId;
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
         this.cellBounds = cellBounds;
         this.libBackups = libBackups;
+    }
+    
+    /**
+     * Creates empty snapshot.
+     */
+    Snapshot(IdManager idManager) {
+        this(idManager, 0, CellBackup.EMPTY_LIST, new int[0], ERectangle.EMPTY_LIST, LibraryBackup.EMPTY_LIST);
     }
     
     /**
@@ -150,9 +154,9 @@ public class Snapshot {
         
         // Check names
         if (namesChanged)
-            checkNames(cellBackups, cellGroups, libBackups);
+            checkNames(idManager, cellBackups, cellGroups, libBackups);
         
-        Snapshot snapshot = new Snapshot(snapshotCount.incrementAndGet(), cellBackups, cellGroups, cellBounds, libBackups);
+        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), cellBackups, cellGroups, cellBounds, libBackups);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -211,7 +215,8 @@ public class Snapshot {
     }
     
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
-        if (oldSnapshot == null) oldSnapshot = Snapshot.EMPTY;
+        if (oldSnapshot == null) oldSnapshot = idManager.getInitialSnapshot();
+        if (idManager != oldSnapshot.idManager) throw new IllegalArgumentException();
         List<LibId> changed = null;
         if (oldSnapshot.libBackups != libBackups) {
             int numLibs = Math.max(oldSnapshot.libBackups.size(), libBackups.size());
@@ -220,7 +225,7 @@ public class Snapshot {
                 LibraryBackup newBackup = getLib(i);
                 if (oldBackup == newBackup) continue;
                 if (changed == null) changed = new ArrayList<LibId>();
-                changed.add(LibId.getByIndex(i));
+                changed.add(idManager.getLibId(i));
             }
         }
         if (changed == null) changed = Collections.emptyList();
@@ -228,7 +233,7 @@ public class Snapshot {
     }
     
     public List<CellId> getChangedCells(Snapshot oldSnapshot) {
-        if (oldSnapshot == null) oldSnapshot = Snapshot.EMPTY;
+        if (oldSnapshot == null) oldSnapshot = idManager.getInitialSnapshot();
         List<CellId> changed = null;
         int numCells = Math.max(oldSnapshot.cellBackups.size(), cellBackups.size());
         for (int i = 0; i < numCells; i++) {
@@ -416,7 +421,7 @@ public class Snapshot {
             assert (cellBackups.get(i) != null) == (cellBounds.get(i) != null);
             assert (cellBackups.get(i) != null) == (cellGroups[i] >= 0);
         }
-        return new Snapshot(snapshotId, cellBackups, cellGroups, cellBounds, libBackups);
+        return new Snapshot(oldSnapshot.idManager, snapshotId, cellBackups, cellGroups, cellBounds, libBackups);
     }
     
     /**
@@ -441,7 +446,7 @@ public class Snapshot {
             assert libBackups.get(libBackups.size() - 1) != null;
         if (cellBackups.size() > 0)
             assert cellBackups.get(cellBackups.size() - 1) != null;
-        checkNames(cellBackups, cellGroups, libBackups);
+        checkNames(idManager, cellBackups, cellGroups, libBackups);
         assert cellBackups.size() == cellBounds.size();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
@@ -469,7 +474,7 @@ public class Snapshot {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    private static void checkNames(ImmutableArrayList<CellBackup> cellBackups, int[] cellGroups, ImmutableArrayList<LibraryBackup> libBackups) {
+    private static void checkNames(IdManager idManager, ImmutableArrayList<CellBackup> cellBackups, int[] cellGroups, ImmutableArrayList<LibraryBackup> libBackups) {
         HashSet<String> libNames = new HashSet<String>();
         ArrayList<HashMap<String,Integer>> protoNameToGroup = new ArrayList<HashMap<String,Integer>>();
         ArrayList<HashSet<CellName>> cellNames = new ArrayList<HashSet<CellName>>();
@@ -482,7 +487,7 @@ public class Snapshot {
             }
             protoNameToGroup.add(new HashMap<String,Integer>());
             cellNames.add(new HashSet<CellName>());
-            if (libBackup.d.libId != LibId.getByIndex(libIndex))
+            if (libBackup.d.libId != idManager.getLibId(libIndex))
                 throw new IllegalArgumentException("LibId");
             String libName = libBackup.d.libName;
             if (!libNames.add(libName))
@@ -507,7 +512,7 @@ public class Snapshot {
             }
             ImmutableCell d = cellBackup.d;
             CellId cellId = d.cellId;
-            if (cellId != CellId.getByIndex(cellIndex))
+            if (cellId != idManager.getCellId(cellIndex))
                 throw new IllegalArgumentException("CellId");
             LibId libId = d.libId;
             int libIndex = libId.libIndex;
@@ -535,12 +540,5 @@ public class Snapshot {
                 mainSchematicsFoundInGroup.set(cellGroup);
             }
         }
-    }
-    
-    /**
-     * Restarts Snapshot module.
-     */
-    static void restart() {
-        snapshotCount.set(0);
     }
 }
