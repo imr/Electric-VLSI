@@ -264,6 +264,12 @@
         <delete dir="org"/>
         <delete dir="junit4.0"/>
         <delete quiet="true">
+	    <fileset dir=".">
+	        <include name="to-do.txt"/>
+		<include name="done.txt"/>
+		<include name=".temp$junit.arx"/>
+		<include name="stylesheet.css"/>
+	    </fileset>
             <fileset dir="com">
                 <include name="**/*.class"/>
             </fileset>
