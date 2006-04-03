@@ -246,7 +246,7 @@ public class Simulate extends Input
 		{
 			return FileType.RAWSPICEOUT;
 		}
-		if (format.equalsIgnoreCase("Raw/Smart"))
+		if (format.equalsIgnoreCase("RawSmart"))
 		{
 			return FileType.RAWSSPICEOUT;
 		}
