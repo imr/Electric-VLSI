@@ -3791,23 +3791,30 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 	/**
 	 * Method to find the Cell of a given View that is in the same group as this Cell.
+     * If there is more than one cell matching the View, it will do a name match.
 	 * @param view the View of the other Cell.
 	 * @return the Cell from this group with the specified View.
 	 * Returns null if no such Cell can be found.
 	 */
 	public Cell otherView(View view)
 	{
+        Cell otherViewCell = null;
+
 		// look for views
 		for(Iterator<Cell> it = getCellGroup().getCells(); it.hasNext(); )
 		{
 			Cell cellInGroup = it.next();
-			if (cellInGroup.getView() == view) {
+			if (cellInGroup.getView() == view)
+            {
+                otherViewCell = cellInGroup.getNewestVersion();
+                // Perfect match including name
+                if (cellInGroup.getName().equals(getName()))
                 // get latest version
-                return cellInGroup.getNewestVersion();
+                    return otherViewCell;
             }
 		}
 
-		return null;
+		return otherViewCell;
 	}
 
 	/****************************** NETWORKS ******************************/

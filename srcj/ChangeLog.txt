@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/3/06, GVG) Wrong icon in View->Edit Icon View if more than 1 icon is in the same group (Bug #915)
+Cell.otherView() was retrieving first icon found in the group regardless if it belongs to the correct schematics. 
+FIX. Matching name as well.
+
 IMP: (4/3/06, GVG) Cleaning gateGenerator and moving major regression code to GenerationTest. Gate regressions
 have failed in the last two days due to modifications in Quick class that were not reflectedin test code. This should
 prevent the failures in the future. All regression tests are available in Test->Generation menu.
