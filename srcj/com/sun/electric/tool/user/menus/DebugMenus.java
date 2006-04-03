@@ -121,13 +121,13 @@ public class DebugMenus
 		russMenu.addMenuItem("Gate Generator Regression (MoCMOS)", null,
 							 new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.GateRegression(MoCMOS.tech, Tech.Type.MOCMOS);
+				new com.sun.electric.tool.generator.layout.GateRegression(Tech.Type.MOCMOS);
 			}
 		});
 		if (Technology.getTSMC90Technology() != null)
 			russMenu.addMenuItem("Gate Generator Regression (TSMC90)", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) {
-                    new com.sun.electric.tool.generator.layout.GateRegression(Technology.getTSMC90Technology(), Tech.Type.TSMC90); } });
+                    new com.sun.electric.tool.generator.layout.GateRegression(Tech.Type.TSMC90); } });
         russMenu.addMenuItem("Random Test", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new com.sun.electric.tool.generator.layout.Test();
@@ -197,11 +197,11 @@ public class DebugMenus
         gildaMenu.addMenuItem("Dialog fill", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {FillGen.openFillGeneratorDialog(MoCMOS.tech);}});
         gildaMenu.addMenuItem("Gate Generator TSMC180", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(MoCMOS.tech, Tech.Type.TSMC180);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(Tech.Type.TSMC180);}});
         gildaMenu.addMenuItem("Gate Generator Mosis", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(MoCMOS.tech, Tech.Type.MOCMOS);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(Tech.Type.MOCMOS);}});
         gildaMenu.addMenuItem("Gate Generator TSMC90", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(Technology.getTSMC90Technology(), Tech.Type.TSMC90);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {new GateRegression(Tech.Type.TSMC90);}});
         gildaMenu.addMenuItem("Clean libraries", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {cleanSetOfLibraries();}});
         gildaMenu.addMenuItem("9 layers -> 7 layers", null,
@@ -243,10 +243,10 @@ public class DebugMenus
 
         MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
-	    dimaMenu.addMenuItem("Show vector cache", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showVectorCache(); } });
-	    dimaMenu.addMenuItem("Show graphics", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showGraphics(); } });
+//	    dimaMenu.addMenuItem("Show vector cache", null,
+//            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showVectorCache(); } });
+//	    dimaMenu.addMenuItem("Show graphics", null,
+//            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showGraphics(); } });
 	    dimaMenu.addMenuItem("Test weak references", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { testWeakReferences(); } });
 	    dimaMenu.addMenuItem("Show memory usage", null,

@@ -113,6 +113,7 @@ public class OpenFile
          * @return
          */
         public boolean isDirectorySelectionEnabled() {
+
             File file = getSelectedFile();
             // return true if a .delib file is selected, otherwise call the parent method
             if (file != null &&

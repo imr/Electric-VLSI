@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
@@ -42,8 +41,7 @@ import com.sun.electric.tool.user.User;
  * Regression test for gate generators
  */
 public class GateRegression extends Job {
-    private Technology technology;
-    private Tech.Type foundry;
+    private Tech.Type technology;
 
     // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -53,11 +51,7 @@ public class GateRegression extends Job {
 		}
 	};
 
-//	private static void error(boolean pred, String msg) {
-//		LayoutLib.error(pred, msg);
-//	}
-
-    private static void allSizes(StdCellParams stdCell, Technology technology) {
+    private static void allSizes(StdCellParams stdCell, Tech.Type technology) {
         double minSz = 0.1;
         double maxSz = 200;//500;
         for (double d=minSz; d<maxSz; d*=10) {
@@ -67,15 +61,12 @@ public class GateRegression extends Job {
         }
     }
 
-    public static void aPass(double x, StdCellParams stdCell, Technology technology) {
-        if (technology == MoCMOS.tech) {
-//            Tech.setTechnology(Tech.MOCMOS);
+    public static void aPass(double x, StdCellParams stdCell, Tech.Type technology) {
+        if (technology == Tech.Type.MOCMOS || technology == Tech.Type.TSMC180) {
             MoCMOSGenerator.generateAllGates(x, stdCell);
         }
         Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == tsmc90) {
-//            Tech.setTechnology(Tech.TSMC90);
-
+        if (tsmc90 != null && technology == Tech.Type.TSMC90) {
             // invoke the TSMC90 generator by reflection because it may not exist
     		try
 			{
@@ -92,92 +83,28 @@ public class GateRegression extends Job {
     }
 
     public boolean doIt() throws JobException {
-        if (LOCALDEBUGFLAG) // Gilda for now
-            runGildaTest(technology, foundry);
-        else
-            runRegression(technology, foundry);
+		Library scratchLib =
+		  LayoutLib.openLibForWrite("scratch"+technology);
+        runRegression(technology, scratchLib);
         return true;
     }
 
-     public static int runGildaTest(Technology technology, Tech.Type techNm) {
-		System.out.println("begin Gate Regression");
-        String name = "gilda"+techNm;
-		Library scratchLib =
-		  LayoutLib.openLibForWrite(name);
-
-//        Tech.setTechnology(techNm);     This call can't be done inside the doIt() because it calls the preferences
-        StdCellParams stdCell;
-        Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == tsmc90) {
-            stdCell = new StdCellParams(scratchLib, Tech.Type.TSMC90);
-            stdCell.enableNCC("purpleFour");
-            stdCell.setSizeQuantizationError(0.05);
-            stdCell.setMaxMosWidth(1000);
-        } else {
-            // Test the parameters used by divider
-        	stdCell = GateLayoutGenerator.dividerParams(scratchLib);
-
-        	stdCell.setSizeQuantizationError(0.05);
-        	stdCell.setSimpleName(false);
-
-//        	stdCell = new StdCellParams(scratchLib, Tech.MOCMOS);
-//            stdCell.enableNCC("purpleFour");
-//            stdCell.setSizeQuantizationError(0.05);
-//            stdCell.setMaxMosWidth(1000);
-//            stdCell.setVddY(21);
-//            stdCell.setGndY(-21);
-//            stdCell.setNmosWellHeight(84);
-//            stdCell.setPmosWellHeight(84);
-        }
-
-		// a normal run
-        aPass(1.0, stdCell, technology);
-//         allSizes(stdCell, technology);
-        //Inv2iKn.makePart(10, stdCell);
-        //Inv2iKn_wideOutput.makePart(10, stdCell);
-//        allSizes(stdCell, technology);
-
-        //aPass(50, stdCell, technology);
-
-        // test the ability to move ground bus
-        stdCell.setGndY(stdCell.getGndY() - 7);
-        stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()+7);
-        //allSizes(stdCell, technology);
-        aPass(10, stdCell, technology);
-        aPass(200, stdCell, technology);
-        stdCell.setGndY(stdCell.getGndY() + 7);
-        stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()-7);
-
-        Cell gallery = Gallery.makeGallery(scratchLib);
-//        DrcRings.addDrcRings(gallery, FILTER, stdCell);
-
-        LayoutLib.writeLibrary(scratchLib);
-
-        System.out.println("done.");
-
-        return 0;
-	}
-
     /** Programatic interface to gate regressions.
-     * @param technology
      * @return the number of errors detected */
-    public static int runRegression(Technology technology, Tech.Type techNm) {
+    public static int runRegression(Tech.Type technology, Library scratchLib) {
 		System.out.println("begin Gate Regression");
 
-		Library scratchLib =
-		  LayoutLib.openLibForWrite("scratch"+techNm);
-
-//        Tech.setTechnology(techNm);     This call can't be done inside the doIt() because it calls the preferences
+//        Tech.setTechnology(technology);     This call can't be done inside the doIt() because it calls the preferences
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == tsmc90) {
+        if (tsmc90 != null && technology == Tech.Type.TSMC90) {
             stdCell = new StdCellParams(scratchLib, Tech.Type.TSMC90);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
         } else {
             // Test the parameters used by divider
-        	stdCell = GateLayoutGenerator.dividerParams(scratchLib);
+        	stdCell = GateLayoutGenerator.dividerParams(scratchLib, technology);
 
         	stdCell.setSizeQuantizationError(0.05);
         	stdCell.setSimpleName(false);
@@ -235,11 +162,10 @@ public class GateRegression extends Job {
         return numCifErrs;
 	}
 
-	public GateRegression(Technology tech, Tech.Type techNm) {
+	public GateRegression(Tech.Type techNm) {
 		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE,
 			  null, null, Job.Priority.ANALYSIS);
-        this.technology = tech;
-        this.foundry = techNm;
+        this.technology = techNm;
         Tech.setTechnology(techNm);
 		startJob();
 	}

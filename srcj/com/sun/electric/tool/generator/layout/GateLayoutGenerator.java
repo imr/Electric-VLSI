@@ -45,8 +45,7 @@ import com.sun.electric.technology.Technology;
  * Regression test for gate generators
  */
 public class GateLayoutGenerator extends Job {
-    private Technology technology;
-    private Tech.Type foundry;
+    private Tech.Type technology;
     private Cell cell;
     private VarContext context;
 
@@ -69,15 +68,15 @@ public class GateLayoutGenerator extends Job {
 //	}
 	
 	private Library generateLayout(Library outLib, Cell cell, 
-			                       VarContext context, Technology technology) {
+			                       VarContext context, Tech.Type technology) {
         StdCellParams stdCell;
-        Tech.setTechnology(foundry);
+        Tech.setTechnology(technology);
         Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == tsmc90) {
+        if (tsmc90 != null && technology == Tech.Type.TSMC90) {
             stdCell = sportParams(outLib);
         } else {
             //stdCell = locoParams(outLib);
-            stdCell = dividerParams(outLib);
+            stdCell = dividerParams(outLib, technology);
         }
 
 		GenerateLayoutForGatesInSchematic visitor =
@@ -116,8 +115,8 @@ public class GateLayoutGenerator extends Job {
         return stdCell;
     }
 
-	public static StdCellParams dividerParams(Library outLib) {
-		StdCellParams stdCell = new StdCellParams(outLib, Tech.Type.MOCMOS);
+	public static StdCellParams dividerParams(Library outLib, Tech.Type technology) {
+		StdCellParams stdCell = new StdCellParams(outLib, technology);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -130,7 +129,7 @@ public class GateLayoutGenerator extends Job {
 	}
 
 	public boolean doIt() throws JobException {
-		String outLibNm = "autoGenLib"+foundry;
+		String outLibNm = "autoGenLib"+technology;
 		Library outLib = LayoutLib.openLibForWrite(outLibNm);
 
 		if (cell==null) {
@@ -154,11 +153,10 @@ public class GateLayoutGenerator extends Job {
 		return true;
 	}
 
-	public GateLayoutGenerator(Technology technology, Tech.Type techNm) {
+	public GateLayoutGenerator(Tech.Type techNm) {
 		super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE,
 			  null, null, Job.Priority.ANALYSIS);
-        this.technology = technology;
-        this.foundry = techNm;
+        this.technology = techNm;
         
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.needCurrentEditWindow_();
