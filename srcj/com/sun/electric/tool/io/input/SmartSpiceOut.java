@@ -230,8 +230,19 @@ public class SmartSpiceOut extends Simulate
 					an.setCommonTime(j, time);
 					for(int i=0; i<signalCount; i++)
 					{
-						double value = dataInputStream.readDouble();
+                        double value = 0;
+                        if (true) {
+                            // swap bytes, for smartspice raw files generated on linux.
+                            // with ".options post" (the default) yields this binary format
+                            long lval = dataInputStream.readLong();
+                            lval = Long.reverseBytes(lval);
+                            value = Double.longBitsToDouble(lval);
+                        } else {
+                            // do smartspice output files on other OS's have this byte order?
+                            value = dataInputStream.readDouble();
+                        }
 						allSignals[i].setValue(j, value);
+                        //System.out.println("Read["+i+"]\t"+value);
 					}
 				}
 			}
