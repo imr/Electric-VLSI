@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+IMP: (4/1/06, GVG) Adding message dialog when DRC decks are loaded (with and without errors).
+
+BUG: (4/1/06, GVG) Crash in DRC if selectMerge was found (due to latest changes in minArea to speed up
+the process). This was noticed while checking Bug 121 (fixed already).
+
+BUG: (4/1/06, GVG) DesignRulesPanel not caching minAreValue.
+FIX: (1) MOSRules.setMinValue fixed. (2) DRCDocumentListener added to minArea/minEncArea Texts.
+Extra: more editChanged functions added to avoid the redoing of the entire set of rules every time
+a field was changed.
+
 IMP: (4/02/06, DN) JUnit tests of database are added to CVS, build.xml and regression scripts updated.
 
 BUG: (3/31/06, GVG) Boundary problems with qTree used in autostich (Bug #912)

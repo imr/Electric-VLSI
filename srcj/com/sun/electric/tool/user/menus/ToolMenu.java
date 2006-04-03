@@ -1658,7 +1658,13 @@ public class ToolMenu {
         Technology tech = Technology.getCurrent();
         DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(TextUtils.makeURLToFile(fileName), true);
 
-        for (DRCTemplate.DRCXMLBucket bucket : parser.rulesList)
+        String message = "Deck file '" + fileName + "' loaded ";
+        message += (parser.isParseOK()) ? "without errors." : " with errors. No rules loaded.";
+        JOptionPane.showMessageDialog(null, message);
+
+        if (!parser.isParseOK()) return; // errors in the file
+        
+        for (DRCTemplate.DRCXMLBucket bucket : parser.getRules())
         {
             boolean done = false;
 

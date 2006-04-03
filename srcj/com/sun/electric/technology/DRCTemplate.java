@@ -515,10 +515,20 @@ public class DRCTemplate
     /** Public XML Parser for DRC decks **/
     public static class DRCXMLParser
     {
-        public List<DRCXMLBucket> rulesList = new ArrayList<DRCXMLBucket>();
+        private List<DRCXMLBucket> rulesList = new ArrayList<DRCXMLBucket>();
         private DRCXMLBucket current = null;
+        private boolean fullLoaded = true;
 
-        protected void process(URL fileURL, boolean verbose)
+        public List<DRCXMLBucket> getRules() { return rulesList; }
+        public boolean isParseOK() { return fullLoaded; }
+
+        /**
+         * Method to parse XML file containing the DRC deck
+         * @param fileURL
+         * @param verbose
+         * @return true if file was loaded without problems
+         */
+        protected boolean process(URL fileURL, boolean verbose)
         {
             try
             {
@@ -533,20 +543,27 @@ public class DRCTemplate
 
                 if (verbose) System.out.println("Parsing XML file \"" + fileURL + "\"");
 
-                parser.parse(inputStream, new DRCXMLHandler());
+                DRCXMLHandler handler = new DRCXMLHandler();
+                parser.parse(inputStream, handler);
+                fullLoaded = handler.passed;
 
                 if (verbose) System.out.println("End Parsing XML file ...");
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                if (verbose) e.printStackTrace();
+                fullLoaded = false;
             }
+            return fullLoaded;
         }
 
         private class DRCXMLHandler extends DefaultHandler
         {
+            boolean passed;
+
             DRCXMLHandler()
             {
+                passed = true; // by default there is no error in file
             }
 
             public InputSource resolveEntity (String publicId, String systemId) throws IOException, SAXException
@@ -681,13 +698,17 @@ public class DRCTemplate
                     }
                 }
                 else
+                {
                     System.out.println("Case not implemented in DRCXMLParser");
+                    passed = false;
+                }
             }
 
             public void fatalError(SAXParseException e)
             {
                 System.out.println("Parser Fatal Error");
                 e.printStackTrace();
+                passed = false;
             }
 
             public void warning(SAXParseException e)
@@ -700,6 +721,7 @@ public class DRCTemplate
             {
                 System.out.println("Parser Error");
                 e.printStackTrace();
+                passed = false;
             }
         }
     }

@@ -70,7 +70,7 @@ public class DesignRulesPanel extends JPanel
         curTech = tech;
         foundry = foun;
         drRules = drcR;
-		if (drRules == null) //|| !(rules instanceof MOSRules))
+		if (drRules == null)
 		{
 			drShowOnlyLinesWithRules.setEnabled(false);
 			drNormalConnected.setEnabled(false);
@@ -177,24 +177,49 @@ public class DesignRulesPanel extends JPanel
 
 		// have changes to edit fields get detected immediately
 		designRulesUpdating = false;
-		DRCDocumentListener myDocumentListener = new DRCDocumentListener(this);
-		drNormalConnected.getDocument().addDocumentListener(myDocumentListener);
-		drNormalConnectedRule.getDocument().addDocumentListener(myDocumentListener);
-		drNormalUnconnected.getDocument().addDocumentListener(myDocumentListener);
-		drNormalUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
-		drNormalEdge.getDocument().addDocumentListener(myDocumentListener);
-		drNormalEdgeRule.getDocument().addDocumentListener(myDocumentListener);
-		drWidths.getDocument().addDocumentListener(myDocumentListener);
-		drLengths.getDocument().addDocumentListener(myDocumentListener);
-		drSpacingsRule.getDocument().addDocumentListener(myDocumentListener);
-		drSpacings.getDocument().addDocumentListener(myDocumentListener);
-		drMultiConnected.getDocument().addDocumentListener(myDocumentListener);
-		drMultiConnectedRule.getDocument().addDocumentListener(myDocumentListener);
-		drMultiUnconnected.getDocument().addDocumentListener(myDocumentListener);
-		drMultiUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
-		drNodeWidth.getDocument().addDocumentListener(myDocumentListener);
-		drNodeHeight.getDocument().addDocumentListener(myDocumentListener);
-		drNodeRule.getDocument().addDocumentListener(myDocumentListener);
+
+        DRCDocumentListener listener = new DRCDocumentListener(this, drNormalConnected, DRCDocType.SPACING);
+		drNormalConnected.getDocument().addDocumentListener(listener);
+		drNormalConnectedRule.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drNormalUnconnected, DRCDocType.SPACING);
+		drNormalUnconnected.getDocument().addDocumentListener(listener);
+		drNormalUnconnectedRule.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drNormalEdge, DRCDocType.SPACING);
+		drNormalEdge.getDocument().addDocumentListener(listener);
+		drNormalEdgeRule.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drLayerWidth, DRCDocType.MINIMUM);
+		drLayerWidth.getDocument().addDocumentListener(listener);
+		drLayerWidthRule.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drLayerArea, DRCDocType.MINIMUM);
+		drLayerArea.getDocument().addDocumentListener(listener);
+		drLayerAreaRule.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drLayerEnclosure, DRCDocType.MINIMUM);
+		drLayerEnclosure.getDocument().addDocumentListener(listener);
+		drLayerEAreaRule.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drSpacings, DRCDocType.SPACING);
+		drWidths.getDocument().addDocumentListener(listener);
+		drLengths.getDocument().addDocumentListener(listener);
+		drSpacingsRule.getDocument().addDocumentListener(listener);
+		drSpacings.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drMultiConnected, DRCDocType.SPACING);
+		drMultiConnected.getDocument().addDocumentListener(listener);
+		drMultiConnectedRule.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drMultiConnected, DRCDocType.SPACING);
+		drMultiUnconnected.getDocument().addDocumentListener(listener);
+		drMultiUnconnectedRule.getDocument().addDocumentListener(listener);
+
+        listener = new DRCDocumentListener(this, drNodeWidth, DRCDocType.NODE);
+		drNodeWidth.getDocument().addDocumentListener(listener);
+		drNodeHeight.getDocument().addDocumentListener(listener);
+		drNodeRule.getDocument().addDocumentListener(listener);
 
 		designRulesGetSelectedLayerLoadDRCToList();
 	}
@@ -202,15 +227,39 @@ public class DesignRulesPanel extends JPanel
 	/**
 	 * Class to handle special changes to design rules.
 	 */
+    private enum DRCDocType {NODE, MINIMUM, SPACING};
+
 	private static class DRCDocumentListener implements DocumentListener
 	{
 		private DesignRulesPanel frame;
+        private JTextField field;
+        private DRCDocType type;
 
-		DRCDocumentListener(DesignRulesPanel dialog) { this.frame = dialog; }
+		DRCDocumentListener(DesignRulesPanel dialog, JTextField text, DRCDocType type)
+        {
+            this.frame = dialog;
+            this.field = text;
+            this.type = type;
+        }
 
-		public void changedUpdate(DocumentEvent e) { frame.designRulesEditChanged(); }
-		public void insertUpdate(DocumentEvent e) { frame.designRulesEditChanged(); }
-		public void removeUpdate(DocumentEvent e) { frame.designRulesEditChanged(); }
+        private void update()
+        {
+            switch (type)
+            {
+                case NODE:
+                    frame.editChangedOnNodeRules(field);
+                    break;
+                case MINIMUM:
+                    frame.editChangedOnMinRules(field);
+                    break;
+                case SPACING:
+                    frame.designRulesEditChanged(field);
+                    break;
+            }
+        }
+		public void changedUpdate(DocumentEvent e) { update(); }
+		public void insertUpdate(DocumentEvent e) { update(); }
+		public void removeUpdate(DocumentEvent e) { update(); }
 	}
 
     private int getLayerFromToIndex()
@@ -223,62 +272,17 @@ public class DesignRulesPanel extends JPanel
         return (curTech.getRuleIndex(layer1, layer2));
     }
 
-	/**
-	 * Method called when the user changes any edit field.
-	 */
-	private void designRulesEditChanged()
+    /**
+	 * Method called when the user changes any edit field handling node rules
+     * @param field
+     */
+	private void editChangedOnNodeRules(JTextField field)
 	{
+        assert(drNodeWidth == field || drNodeHeight == field || drNodeRule == field);
+
 		if (designRulesUpdating) return;
 
-		// get layer information
-		int layer1 = designRulesGetSelectedLayer(designRulesFromList);
-		if (layer1 < 0) return;;
-        int dindex = getLayerFromToIndex();
-        if (dindex == -1) return;
-
-		// get new normal spacing values
-        List<DRCTemplate> list = new ArrayList<DRCTemplate>();
-		double value = TextUtils.atof(drNormalConnected.getText());
-        list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
-                0, 0, null, null, value, -1));
-		value = TextUtils.atof(drNormalUnconnected.getText());
-        list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA,
-                0, 0, null, null, value, -1));
-        drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING);
-
-		// get new multicut spacing values
-        list.clear();
-        value = TextUtils.atof(drMultiConnected.getText());
-        list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
-                0, 0, null, null, value, 1));
-		value = TextUtils.atof(drMultiUnconnected.getText());
-        list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA,
-                0, 0, null, null, value, 1));
-        drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.CUTSPA);
-
-		// get new edge values
-        list.clear();
-        value = TextUtils.atof(drNormalEdge.getText());
-        list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
-                0, 0, null, null, value, -1));
-        drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACINGE);
-
-        // get new wide spacing values
-		int curWid = drSpacingsList.getItemCount();
-		if (curWid >= 0 && curWid < wideSpacingRules.size())
-		{
-	        DRCTemplate wr = wideSpacingRules.get(curWid);
-			String widText = drWidths.getText().trim();
-			String lenText = drLengths.getText().trim();
-			if (widText.length() > 0 || lenText.length() > 0)
-			{
-				wr.maxWidth = TextUtils.atof(widText);
-				wr.minLength = TextUtils.atof(lenText);
-				wr.value1 = TextUtils.atof(drSpacings.getText());
-				wr.ruleName = drSpacingsRule.getText();
-		        drRules.setSpacingRules(dindex, wideSpacingRules, DRCTemplate.DRCRuleType.SPACINGW);
-			}
-		}
+        designRulesUpdating = true;
 
 		// pickup changes to node rules
 		int nodeIndex = designRulesNodeList.getSelectedIndex();
@@ -295,27 +299,138 @@ public class DesignRulesPanel extends JPanel
         tmp.value2 = height;
         drRules.addRule(nodeIndex, tmp, DRCTemplate.DRCRuleType.NONE);
 
-		// pickup changes to layer minimum size rule
+        designRulesUpdating = false;
+    }
+
+    /**
+	 * Method called when the user changes any edit field.
+     * @param field
+     */
+	private void editChangedOnMinRules(JTextField field)
+	{
+		if (designRulesUpdating) return;
+
+        designRulesUpdating = true;
+
+		// get layer information
+		int layer1 = designRulesGetSelectedLayer(designRulesFromList);
+		if (layer1 < 0) return;
 		Layer layer = curTech.getLayer(layer1);
-		String minSizeText = drLayerWidth.getText().trim();
-        double minSize = TextUtils.atof(minSizeText);
-        String minSizeRuleName = drLayerWidthRule.getText().trim();
-		if (minSizeText.length() > 0 && minSizeRuleName.length() > 0)
-            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINWID);
 
-        // pickup changes to layer min area rule
-        minSizeText = drLayerArea.getText().trim();
-        minSize = TextUtils.atof(minSizeText);
-        minSizeRuleName = drLayerAreaRule.getText().trim();
-		if (minSizeText.length() > 0)
-            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINAREA);
+        String minSizeText, minSizeRuleName;
+        double minSize;
 
-        // pickup changes to layer min enclose area rule
-        minSizeText = drLayerEnclosure.getText().trim();
-        minSize = TextUtils.atof(minSizeText);
-        minSizeRuleName = drLayerEAreaRule.getText().trim();
-		if (minSizeText.length() > 0)
-            drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
+        // width related fields touched
+        if (field == drLayerWidth)
+        {
+            // pickup changes to layer minimum size rule
+            minSizeText = drLayerWidth.getText().trim();
+            minSize = TextUtils.atof(minSizeText);
+            minSizeRuleName = drLayerWidthRule.getText().trim();
+            if (minSizeText.length() > 0 && minSizeRuleName.length() > 0)
+                drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINWID);
+        }
+        else if (field == drLayerArea)
+        {
+            // pickup changes to layer min area rule
+            minSizeText = drLayerArea.getText().trim();
+            minSize = TextUtils.atof(minSizeText);
+            minSizeRuleName = drLayerAreaRule.getText().trim();
+            if (minSizeText.length() > 0)
+                drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINAREA);
+        }
+        else if (field == drLayerEnclosure)
+        {
+            // pickup changes to layer min enclose area rule
+            minSizeText = drLayerEnclosure.getText().trim();
+            minSize = TextUtils.atof(minSizeText);
+            minSizeRuleName = drLayerEAreaRule.getText().trim();
+            if (minSizeText.length() > 0)
+                drRules.setMinValue(layer, minSizeRuleName, minSize, DRCTemplate.DRCRuleType.MINENCLOSEDAREA);
+        }
+        else
+            System.out.println("Invalid field in editChangedOnMinRules");
+
+        designRulesUpdating = false;
+    }
+
+	/**
+	 * Method called when the user changes any edit field.
+     * @param field
+     */
+	private void designRulesEditChanged(JTextField field)
+	{
+		if (designRulesUpdating) return;
+
+        designRulesUpdating = true;
+
+		// get layer information
+		int layer1 = designRulesGetSelectedLayer(designRulesFromList);
+		if (layer1 < 0) return;;
+        int dindex = getLayerFromToIndex();
+        if (dindex == -1) return;
+
+        List<DRCTemplate> list = new ArrayList<DRCTemplate>();
+        double value;
+
+        if (field == drNormalConnected)
+        {
+            // get new normal spacing values
+            value = TextUtils.atof(drNormalConnected.getText());
+            list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
+                    0, 0, null, null, value, -1));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING);
+        }
+        else if (field == drNormalUnconnected)
+        {
+            value = TextUtils.atof(drNormalUnconnected.getText());
+            list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA,
+                    0, 0, null, null, value, -1));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING);
+        }
+        else if (field == drMultiConnected)
+        {
+		    // get new multicut spacing values
+            value = TextUtils.atof(drMultiConnected.getText());
+            list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
+                    0, 0, null, null, value, 1));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.CUTSPA);
+        }
+        else if (field == drMultiUnconnected)
+        {
+            value = TextUtils.atof(drMultiUnconnected.getText());
+            list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA,
+                    0, 0, null, null, value, 1));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.CUTSPA);
+        }
+        else if (field == drNormalEdge)
+        {
+            // get new edge values
+            value = TextUtils.atof(drNormalEdge.getText());
+            list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
+                    0, 0, null, null, value, -1));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACINGE);
+        }
+        else if (field == drSpacings)
+        {
+            // get new wide spacing values
+            int curWid = drSpacingsList.getItemCount() - 1;
+            if (curWid >= 0 && curWid < wideSpacingRules.size())
+            {
+                DRCTemplate wr = wideSpacingRules.get(curWid);
+                String widText = drWidths.getText().trim();
+                String lenText = drLengths.getText().trim();
+                if (widText.length() > 0 || lenText.length() > 0)
+                {
+                    wr.maxWidth = TextUtils.atof(widText);
+                    wr.minLength = TextUtils.atof(lenText);
+                    wr.value1 = TextUtils.atof(drSpacings.getText());
+                    wr.ruleName = drSpacingsRule.getText();
+                    drRules.setSpacingRules(dindex, wideSpacingRules, DRCTemplate.DRCRuleType.SPACINGW);
+                }
+            }
+        }
+        designRulesUpdating = false;
     }
 
 	/**
@@ -578,14 +693,7 @@ public class DesignRulesPanel extends JPanel
 	public void term()
 	{
         // Getting last changes
-        designRulesEditChanged();
-//		if (designRulesFactoryReset)
-//		{
-//			DRC.resetDRCDates();
-//            DRCRules rules = curTech.getFactoryDesignRules(null);
-//            drRules = rules;
-//		}
-//		DRC.setRules(curTech, drRules);
+        designRulesEditChanged(null);
 	}
 
 	/** This method is called from within the constructor to

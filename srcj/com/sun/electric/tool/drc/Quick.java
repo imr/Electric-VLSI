@@ -2581,9 +2581,9 @@ public class Quick
 						simplePn, null, layer, null, null, null);
 			}
 		}
-        if (minAreaDone)
+        if (minAreaDone && minAreaLayerMapDone != null)
             minAreaLayerMapDone.put(layer, layer);
-        if (enclosedAreaDone)
+        if (enclosedAreaDone && enclosedAreaLayerMapDone != null)
             enclosedAreaLayerMapDone.put(layer, layer);
 		return errorFound;
 
@@ -4485,7 +4485,6 @@ public class Quick
 		public QuickAreaEnumerator(Netlist netlist, GeometryHandler selectMerge, HashMap<NodeInst,NodeInst> notExportedNodes,
 		                           HashMap<NodeInst,NodeInst> checkedNodes, GeometryHandler.GHMode mode)
 		{
-//			this.jNet = jNet;
 			this.otherTypeMerge = selectMerge;
 			this.notExportedNodes = notExportedNodes;
 			this.checkedNodes = checkedNodes;
@@ -4496,8 +4495,6 @@ public class Quick
                 Network net = netIt.next();
                 buckets.add(new QuickAreaBucket(net));
             }
-//            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);    // case 2
-//            for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
 		}
 
         public void setPreProcessFlag(boolean f) { preProcess = f; }
@@ -4520,8 +4517,6 @@ public class Quick
                     buckets.add(new QuickAreaBucket(net));
                 }
             }
-//            for (Layer layer : minAreaLayerMap.keySet()) minAreaLayerMapDone.put(layer, null);     // case 2
-//            for (Layer layer : enclosedAreaLayerMap.keySet()) enclosedAreaLayerMapDone.put(layer, null);
 		}
 
         /**

@@ -474,6 +474,7 @@ public class MOSRules implements DRCRules {
                         case SPACINGW:
                             conListWide[index] = new Double(rule.value1);
                             conListWideRules[index] = rule.ruleName;
+                            if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
                             break;
                         case CUTSPA:
                             conListMulti[index] = new Double(rule.value1);
@@ -495,10 +496,12 @@ public class MOSRules implements DRCRules {
                         case SPACING:
                             unConList[index] = new Double(rule.value1);
                             unConListRules[index] = rule.ruleName;
+                            if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
                             break;
                         case SPACINGW:
                             unConListWide[index] = new Double(rule.value1);
                             unConListWideRules[index] = rule.ruleName;
+                            if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
                             break;
                         case CUTSPA:
                             unConListMulti[index] = new Double(rule.value1);
@@ -710,12 +713,22 @@ public class MOSRules implements DRCRules {
      */
     public void setMinValue(Layer layer, String name, double value, DRCTemplate.DRCRuleType type)
     {
-        if (type != DRCTemplate.DRCRuleType.MINWID) return;
-
         int index = layer.getIndex();
         if (value <= 0) value = MOSNORULE;
-        minWidth[index] = new Double(value);
-        minWidthRules[index] = name;
+
+        switch (type)
+        {
+            case MINWID:
+                minWidth[index] = new Double(value);
+                minWidthRules[index] = name;
+                break;
+            case MINAREA:
+                minArea[index] = new Double(value);
+                minAreaRules[index] = name;
+                break;
+            default:
+                System.out.println("Not implemented for " + type + " in MOSRules.setMinValue");
+        }
     }
 
     /**
