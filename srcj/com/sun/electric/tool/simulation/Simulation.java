@@ -729,6 +729,12 @@ public class Simulation extends Tool
 			}
 		}
 
+        if (an == null) // wrong format?
+        {
+            System.out.println("ERROR: No simulation data found: waveform window not shown");
+			return;
+        }
+
 		// nothing saved, so show a default set of signals (if it even exists)
 		if (sd.isAnalog())
 		{
