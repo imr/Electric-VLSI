@@ -84,6 +84,11 @@ public class StepSize
 			separation = 0;
 			return;
 		}
+        if (Double.isInfinite(l) || Double.isInfinite(h)) {
+            System.out.println("Error: Inifite low or high range detected");
+            separation = 0;
+            return;
+        }
 
 		// determine powers of ten in the range
 		while (range >= 10.0) { range /= 10.0;   rangeScale++; }
