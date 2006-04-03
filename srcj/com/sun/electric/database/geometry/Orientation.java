@@ -288,6 +288,12 @@ public class Orientation implements Serializable {
      */
     public Orientation inverse() { return inverse; }
     
+    /**
+     * Return canonic Orientation to this Orientation.
+     * @return canonic Orientation.
+     */
+    public Orientation canonic() { return jMirrorX ? fromC(cAngle, cTranspose) : this; }
+    
 	/**
 	 * Concatenates this Orientation with other Orientation.
 	 * In matrix notation returns this * that.

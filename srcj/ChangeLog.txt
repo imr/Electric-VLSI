@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+IMP: (4/3/06, DN) Separate list for filled shapes in VectorDrawing.
+
 IMP: (4/1/06, GVG) Adding message dialog when DRC decks are loaded (with and without errors).
 
 BUG: (4/1/06, GVG) Crash in DRC if selectMerge was found (due to latest changes in minArea to speed up

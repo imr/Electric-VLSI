@@ -10,6 +10,11 @@ package com.sun.electric.database.geometry;
 import junit.framework.*;
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
+import com.sun.electric.tool.io.FileType;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 
 /**
  *
@@ -55,6 +60,7 @@ public class OrientationTest extends TestCase {
                     assertEquals(or.getAngle(), mirrorX ? (orC.getAngle() + 1800) % 3600 : orC.getAngle());
                     assertEquals(false, orC.isXMirrored());
                     assertEquals(mirrorX^mirrorY, orC.isYMirrored());
+                    assertSame(or.canonic(), orC);
                     
                     assertTrue(or.pureRotate().equals(orC.pureRotate()));
                     AffineTransform af = AffineTransform.getScaleInstance(mirrorX ? -1 : 1, mirrorY ? -1 : 1);
@@ -92,8 +98,8 @@ public class OrientationTest extends TestCase {
     /**
      * Test of concatenate method, of class com.sun.electric.database.geometry.Orientation.
      */
-    public void testGetConcatenate() {
-        System.out.println("testGetConcatenate");
+    public void testConcatenate() {
+        System.out.println("testConcatenate");
         
         Orientation[] or = makeConcatTests();
         
@@ -259,4 +265,5 @@ public class OrientationTest extends TestCase {
         assertEquals("XYRR", Orientation.fromJava(1800, true, true).toString());
         assertEquals("XYRRR", Orientation.fromJava(2700, true, true).toString());
     }
+
 }

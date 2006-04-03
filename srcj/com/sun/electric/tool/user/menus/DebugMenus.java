@@ -244,7 +244,9 @@ public class DebugMenus
         MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
 	    dimaMenu.addMenuItem("Show vector cache", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { showVectorCache(); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showVectorCache(); } });
+	    dimaMenu.addMenuItem("Show graphics", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showGraphics(); } });
 	    dimaMenu.addMenuItem("Test weak references", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { testWeakReferences(); } });
 	    dimaMenu.addMenuItem("Show memory usage", null,
@@ -1330,10 +1332,6 @@ public class DebugMenus
 
 	// ---------------------- Dima's Stuff MENU -----------------
 
-    private static void showVectorCache() {
-        VectorDrawing.showStatistics();
-    }
-    
     private static void testWeakReferences() {
         ArrayList<SoftReference<Object>> softs = new ArrayList<SoftReference<Object>>();
         WeakReferences<Object> pool = new WeakReferences<Object>();

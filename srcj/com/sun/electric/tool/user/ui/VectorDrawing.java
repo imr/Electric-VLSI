@@ -60,8 +60,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -349,7 +347,7 @@ public class VectorDrawing
 	private static class VectorCellGroup
 	{
 		Cell cell;
-		HashMap<String,VectorCell> orientations;
+		HashMap<Orientation,VectorCell> orientations = new HashMap<Orientation,VectorCell>();
 		VectorCell any;
 		double sizeX, sizeY;
 		List<VectorCellExport> exports;
@@ -357,7 +355,6 @@ public class VectorDrawing
 		VectorCellGroup(Cell cell)
 		{
 			this.cell = cell;
-			orientations = new HashMap<String,VectorCell>();
 			any = null;
 		}
 
@@ -386,8 +383,7 @@ public class VectorDrawing
 
 		void addCell(VectorCell vc, Orientation trans)
 		{
-			String orientationName = makeOrientationName(trans);
-			orientations.put(orientationName, vc);
+			orientations.put(trans.canonic(), vc);
 			any = vc;
 		}
 	}
@@ -406,8 +402,9 @@ public class VectorDrawing
 	 */
 	private static class VectorCell
 	{
-		List<VectorBase> shapes;
-		List<VectorSubCell> subCells;
+		List<VectorBase> filledShapes = new ArrayList<VectorBase>();
+        List<VectorBase> shapes = new ArrayList<VectorBase>();
+		List<VectorSubCell> subCells = new ArrayList<VectorSubCell>();
 		boolean hasFadeColor;
 		int fadeColor;
 		float maxFeatureSize;
@@ -420,8 +417,6 @@ public class VectorDrawing
 
 		VectorCell()
 		{
-			shapes = new ArrayList<VectorBase>();
-			subCells = new ArrayList<VectorSubCell>();
 			hasFadeColor = false;
 			maxFeatureSize = 0;
 			fadeImage = false;
@@ -712,9 +707,8 @@ public class VectorDrawing
 		for(Cell cell : cachedCells.keySet())
 		{
 			VectorCellGroup vcg = cachedCells.get(cell);
-			for(String orientationName : vcg.orientations.keySet())
+			for(VectorCell vc : vcg.orientations.values())
 			{
-				VectorCell vc = vcg.orientations.get(orientationName);
 				vc.fadeImageColors = null;
 				vc.fadeImage = false;
 			}
@@ -745,6 +739,7 @@ public class VectorDrawing
 		if (level == 0) topVD = this;
 
 		// render main list of shapes
+		drawList(oX, oY, vc.filledShapes, level);
 		drawList(oX, oY, vc.shapes, level);
 
 		// now render subcells
@@ -1431,7 +1426,7 @@ public class VectorDrawing
 	private void gatherContents(VectorCell vc, HashMap<Layer,MutableDouble> layerAreas, VarContext context)
 		throws AbortRenderingException
 	{
-		for(VectorBase vb : vc.shapes)
+		for(VectorBase vb : vc.filledShapes)
 		{
 			if (vb.hideOnLowLevel) continue;
 			Layer layer = vb.layer;
@@ -1445,10 +1440,10 @@ public class VectorDrawing
 			{
 				VectorManhattan vm = (VectorManhattan)vb;
 				area = Math.abs((vm.c1X-vm.c2X) * (vm.c1Y-vm.c2Y));
-			} else if (vb instanceof VectorLine)
-			{
-				VectorLine vl = (VectorLine)vb;
-				area = new Point2D.Double(vl.fX, vl.fY).distance(new Point2D.Double(vl.tX, vl.tY));
+//			} else if (vb instanceof VectorLine)
+//			{
+//				VectorLine vl = (VectorLine)vb;
+//				area = new Point2D.Double(vl.fX, vl.fY).distance(new Point2D.Double(vl.tX, vl.tY));
 			} else if (vb instanceof VectorPolygon)
 			{
 				VectorPolygon vp = (VectorPolygon)vb;
@@ -1493,8 +1488,7 @@ public class VectorDrawing
 	{
 		// see if this cell's vectors are cached
 		VectorCellGroup vcg = VectorCellGroup.findCellGroup(cell);
-		String orientationName = makeOrientationName(prevTrans);
-		VectorCell vc = vcg.orientations.get(orientationName);
+		VectorCell vc = vcg.orientations.get(prevTrans.canonic());
 		
 		// if the cell is parameterized, mark it for recaching
 		if (vc != null && vc.isParameterized) vc = null;
@@ -1556,10 +1550,10 @@ public class VectorDrawing
 		}
 
 		// for schematics, sort the polygons by layer so that busses are drawn first
-		if (cell.getView() == View.SCHEMATIC)
-		{
-            Collections.sort(vc.shapes, new ShapeByLayer());
-		}
+//		if (cell.getView() == View.SCHEMATIC)
+//		{
+//            Collections.sort(vc.shapes, new ShapeByLayer());
+//		}
 
 		// show cell variables
 		int numPolys = cell.numDisplayableVariables(true);
@@ -1572,7 +1566,7 @@ public class VectorDrawing
 		if (addThesePolys != null)
 		{
 			for(VectorBase vb : addThesePolys)
-				vc.shapes.add(vb);
+				vc.filledShapes.add(vb);
 		}
 		List<VectorSubCell> addTheseInsts = addInstToCell.get(cell);
 		if (addTheseInsts != null)
@@ -1587,22 +1581,22 @@ public class VectorDrawing
 		return vc;
 	}
 
-	/**
-	 * Comparator class for sorting VectorBase objects by their layer depth.
-	 */
-    public static class ShapeByLayer implements Comparator<VectorBase>
-    {
-		/**
-		 * Method to sort Objects by their string name.
-		 */
-    	public int compare(VectorBase vb1, VectorBase vb2)
-        {
-			int level1 = 1000, level2 = 1000;
-			if (vb1.layer != null) level1 = vb1.layer.getFunction().getLevel();
-			if (vb2.layer != null) level2 = vb2.layer.getFunction().getLevel();
-            return level1 - level2;
-        }
-    }
+//	/**
+//	 * Comparator class for sorting VectorBase objects by their layer depth.
+//	 */
+//    public static class ShapeByLayer implements Comparator<VectorBase>
+//    {
+//		/**
+//		 * Method to sort Objects by their string name.
+//		 */
+//    	public int compare(VectorBase vb1, VectorBase vb2)
+//        {
+//			int level1 = 1000, level2 = 1000;
+//			if (vb1.layer != null) level1 = vb1.layer.getFunction().getLevel();
+//			if (vb2.layer != null) level2 = vb2.layer.getFunction().getLevel();
+//            return level1 - level2;
+//        }
+//    }
 
 	/**
 	 * Method to cache a NodeInst.
@@ -1828,12 +1822,12 @@ public class VectorDrawing
 					}
 				}
 				vm.hideOnLowLevel = hideOnLowLevel;
-				vc.shapes.add(vm);
+				vc.filledShapes.add(vm);
 				vc.maxFeatureSize = Math.max(vc.maxFeatureSize, vm.minSize);
 				return;
 			}
 			VectorPolygon vp = new VectorPolygon(points, layer, graphics, hideOnLowLevel);
-			vc.shapes.add(vp);
+			vc.filledShapes.add(vp);
 			return;
 		}
 		if (style == Poly.Type.CROSSED)
@@ -1925,7 +1919,7 @@ public class VectorDrawing
 		{
 			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(), points[1].getX(),
 				points[1].getY(), 2, layer, graphics, hideOnLowLevel);
-			vc.shapes.add(vci);
+			vc.filledShapes.add(vci);
 			return;
 		}
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
@@ -1952,21 +1946,9 @@ public class VectorDrawing
 		}
 	}
 
-	/**
-	 * Method to construct a string that describes an orientation.
-	 * This method is used instead of "Orientation.toString" because
-	 * it uses the old C style method that isn't redundant.
-	 * @param orient the orientation.
-	 * @return a unique string describing it.
-	 */
-	private static String makeOrientationName(Orientation orient)
-	{
-		String oName = Integer.toString(orient.getCAngle());
-		if (orient.isCTranspose()) oName += "T";
-		return oName;
-	}
-
-    public static void showStatistics() {
+    /*------------------------------------------------------*/
+    
+    public static void showStatistics(Layer layer) {
         Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSort);
         int numCells = 0, numCellLayer = 0;
         int totalNoBox = 0, totalNoPoly = 0, totalNoDisc = 0, totalNoText = 0, totalNoOther = 0;
@@ -1974,19 +1956,18 @@ public class VectorDrawing
             VectorCell vc = vg.getAnyCell();
             Map<Layer,GenMath.MutableInteger> layerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSort);
             int noText = 0, noOther = 0;
-            for (VectorBase vs: vc.shapes) {
-                if (vs.layer != null &&
-                        (vs instanceof VectorManhattan ||
-                        vs instanceof VectorPolygon ||
-                        vs instanceof VectorCircle && ((VectorCircle)vs).nature == 2)) {
-                    if (vs instanceof VectorManhattan)
-                        totalNoBox++;
-                    else if (vs instanceof VectorPolygon)
-                        totalNoPoly++;
-                    else if (vs instanceof VectorCircle)
-                        totalNoDisc++;
-                    GenMath.addToBag(layerBag, vs.layer);
-                } else if (vs instanceof VectorText)
+            for (VectorBase vs: vc.filledShapes) {
+                if (vs instanceof VectorManhattan)
+                    totalNoBox++;
+                else if (vs instanceof VectorPolygon)
+                    totalNoPoly++;
+                else if (vs instanceof VectorCircle)
+                    totalNoDisc++;
+                assert vs.layer != null;
+                GenMath.addToBag(layerBag, vs.layer);
+            }
+           for (VectorBase vs: vc.shapes) {
+                if (vs instanceof VectorText)
                     noText++;
                 else
                     noOther++;
@@ -1996,8 +1977,9 @@ public class VectorDrawing
             numCellLayer += layerBag.size();
             totalNoText += noText;
             totalNoOther += noOther;
-            System.out.print(vg.cell + " " + vg.orientations.size() + " ors " + vc.subCells.size() + " subs " + vc.shapes.size() +
-                    " shapes " + noText + ":TEXT " + noOther + ":OTHER");
+            System.out.print(vg.cell + " " + vg.orientations.size() + " ors " + vc.subCells.size() + " subs " +
+                    vc.filledShapes.size() + " filledShapes " +
+                    noText + ":TEXT " + noOther + ":OTHER");
             for (Map.Entry<Layer,GenMath.MutableInteger> e: layerBag.entrySet())
                 System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
             System.out.println();
@@ -2007,5 +1989,38 @@ public class VectorDrawing
         for (Map.Entry<Layer,GenMath.MutableInteger> e: totalLayerBag.entrySet())
             System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
         System.out.println();
+        
+        EditWindow wnd = (EditWindow)Job.getUserInterface().needCurrentEditWindow_();
+        VectorCellGroup topCell = cachedCells.get(wnd.getCell());
+        HashMap<VectorCell,LayerDrawing.LayerCell> layerCells = new HashMap<VectorCell,LayerDrawing.LayerCell>();
+        LayerDrawing ld = new LayerDrawing(layer);
+        ld.topCell = gatherLayer(topCell, Orientation.IDENT, layer, ld, layerCells);
+        System.out.println(layerCells.size() + " layerCells");
+        ld.draw(wnd);
+    }
+    
+    private static LayerDrawing.LayerCell gatherLayer(VectorCellGroup vcg, Orientation or, Layer layer, LayerDrawing ld, HashMap<VectorCell,LayerDrawing.LayerCell> layerCells) {
+        VectorCell vc = vcg.orientations.get(or.canonic());
+        if (vc == null) return null;
+        LayerDrawing.LayerCell lc = layerCells.get(vc);
+        if (lc == null) {
+            lc = ld.newCell();
+            layerCells.put(vc, lc);
+            for (VectorBase vs: vc.filledShapes) {
+                if (vs.layer == layer && vs instanceof VectorManhattan) {
+                    VectorManhattan vm = (VectorManhattan)vs;
+                    lc.rects.add(new Rectangle2D.Float(vm.c1X, vm.c1Y, vm.c2X - vm.c1X, vm.c2Y - vm.c1Y));
+                }
+            }
+            for (VectorSubCell vsc: vc.subCells) {
+                VectorCellGroup subVC = cachedCells.get(vsc.subCell);
+                if (subVC == null) continue;
+				Orientation recurseTrans = or.concatenate(vsc.pureRotate);
+                LayerDrawing.LayerCell proto = gatherLayer(subVC, recurseTrans, layer, ld, layerCells);
+                if (proto == null) continue;
+                lc.addSubCell(proto, vsc.offsetX, vsc.offsetY);
+            }
+        }
+        return lc;
     }
 }
