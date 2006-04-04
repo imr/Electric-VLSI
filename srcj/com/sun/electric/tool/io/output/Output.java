@@ -29,6 +29,7 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -51,7 +52,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.JobManager;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.cvspm.CVS;
@@ -553,8 +553,7 @@ public class Output
 		for (Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = it.next();
-			Object value = var.getObjectInCurrentThread();
-			if (value == null) continue;
+			Object value = var.getObjectInDatabase(EDatabase.serverDatabase());
 			if (nameSpace != null) putNameSpace(diskName(eObj, var));
 			gatherFont(var.getTextDescriptor());
 			int length = value instanceof Object[] ? ((Object[])value).length : 1;

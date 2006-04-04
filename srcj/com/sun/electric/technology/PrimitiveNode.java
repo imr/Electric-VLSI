@@ -582,27 +582,6 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      */
     public PrimitivePort getPortId(int chronIndex) { return primPorts[chronIndex]; }
     
-     /**
-     * Method to return the NodeProto representing NodeProtoId in the server EDatabase.
-     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
-	 * @return this.
-     */
-    public NodeProto inServerDatabase() { return this; }
-    
-    /**
-     * Method to return the NodeProto representing NodeProtoId in the client EDatabase.
-     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
-	 * @return this.
-     */
-    public NodeProto inClientDatabase() { return this; }
-    
-    /**
-     * Method to return the NodeProto representing NodeProtoId in the database of current thread.
-     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
-	 * @return this.
-    */
-    public NodeProto inThreadDatabase() { return this; }
-    
    /**
      * Method to return the NodeProto representing NodeProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.
@@ -611,13 +590,6 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      */
     public PrimitiveNode inDatabase(EDatabase database) { return this; }
     
- 	/**
-	 * Method to return the NodeProto representiong NodeProtoId in the current thread.
-     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
-	 * @return this.
-	 */
-    public PrimitiveNode inCurrentThread() { return this; } 
-   
     /** Method to return NodeProtoId of this NodeProto.
      * NodeProtoId identifies NodeProto independently of threads.
      * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.

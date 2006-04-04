@@ -95,10 +95,10 @@ class EJob {
         return jobType == Job.Type.EXAMINE || jobType == Job.Type.REMOTE_EXAMINE;
     }   
     
-    Throwable serialize() {
+    Throwable serialize(EDatabase database) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            ObjectOutputStream out = new EObjectOutputStream(byteStream);
+            ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
             out.writeObject(clientJob);
             out.flush();
             serializedJob = byteStream.toByteArray();
@@ -139,10 +139,10 @@ class EJob {
         }
     }
     
-    void serializeResult() {
+    void serializeResult(EDatabase database) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            ObjectOutputStream out = new EObjectOutputStream(byteStream);
+            ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
             out.writeObject(null); // No exception
             out.writeInt(changedFields.size());
             for (Field f: changedFields) {
@@ -159,14 +159,14 @@ class EJob {
         		System.out.println("ERROR: Job '" + jobName + "' cannot serialize returned object: " + nse.getMessage());
         	}
             Job.logger.logp(Level.WARNING, getClass().getName(), "serializeResult", "failure", e);
-            serializeExceptionResult(e);
+            serializeExceptionResult(e, database);
         }
     }
     
-    void serializeExceptionResult(Throwable jobException) {
+    void serializeExceptionResult(Throwable jobException, EDatabase database) {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-            ObjectOutputStream out = new EObjectOutputStream(byteStream);
+            ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
             jobException.getStackTrace();
                 out.writeObject(jobException);
             out.writeInt(0);

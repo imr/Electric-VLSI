@@ -113,7 +113,7 @@ class EThread extends Thread {
                             throw new JobException("job " + ejob.jobName + " returned false");
                         break;
                 }
-                ejob.serializeResult();
+                ejob.serializeResult(database);
                 ejob.newSnapshot = database.backup();
 //                database.checkFresh(ejob.newSnapshot);
 //                ejob.state = EJob.State.SERVER_DONE;
@@ -125,7 +125,7 @@ class EThread extends Thread {
                     database.lowLevelSetCanChanging(false);
                     database.lowLevelSetCanUndoing(false);
                 }
-                ejob.serializeExceptionResult(e);
+                ejob.serializeExceptionResult(e, database);
 //                ejob.state = EJob.State.SERVER_FAIL;
             } finally {
                 database.unlock();

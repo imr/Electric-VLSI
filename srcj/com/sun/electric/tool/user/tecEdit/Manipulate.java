@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -42,7 +43,6 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -74,8 +74,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-
 
 /**
  * This class manipulates technology libraries.
@@ -232,7 +230,7 @@ public class Manipulate
 					Variable var = ni.getVar(Info.LAYER_KEY);
 					if (var == null) continue;
 					CellId cID = (CellId)var.getObject();
-					Cell varCell = (Cell)cID.inServerDatabase();
+					Cell varCell = EDatabase.serverDatabase().getCell(cID);
 					if (varCell == np)
 					{
 						if (warning != null) warning.append(","); else
@@ -1034,7 +1032,7 @@ public class Manipulate
 		Variable var = ni.getVar(Info.LAYER_KEY);
 		if (var == null) return null;
 		CellId cID = (CellId)var.getObject();
-		Cell cell = (Cell)cID.inServerDatabase();
+		Cell cell = EDatabase.serverDatabase().getCell(cID);
 		if (cell != null)
 		{
 			// validate the reference
@@ -1598,7 +1596,7 @@ public class Manipulate
 		if (curLay != null)
 		{
 			CellId cID = (CellId)curLay.getObject();
-			Cell cell = (Cell)cID.inServerDatabase();
+			Cell cell = EDatabase.serverDatabase().getCell(cID);
 			initial = cell.getName().substring(6);
 		} else
 		{
@@ -1690,7 +1688,7 @@ public class Manipulate
 		{
 			CellId [] connects = (CellId [])var.getObject();
 			for(int i=0; i<connects.length; i++)
-				connectSet.add(connects[i].inServerDatabase());
+				connectSet.add(EDatabase.serverDatabase().getCell(connects[i]));
 		}
 
 		// build an array of arc connections
@@ -1998,7 +1996,7 @@ public class Manipulate
 					Variable varLay = cNi.getVar(Info.LAYER_KEY);
 					if (varLay == null) continue;
 					CellId cID = (CellId)varLay.getObject();
-					Cell varCell = cID.inServerDatabase();
+					Cell varCell = EDatabase.serverDatabase().getCell(cID);
 					if (varCell != cell) continue;
 					setPatch(cNi, li.desc);
 				}

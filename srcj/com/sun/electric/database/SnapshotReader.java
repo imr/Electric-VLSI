@@ -164,7 +164,7 @@ public class SnapshotReader {
     public NodeProtoId readNodeProtoId() throws IOException {
         int i = in.readInt();
         if (i >= 0)
-            return CellId.getByIndex(i);
+            return idManager.getCellId(i);
         i = ~i;
         if (i == primNodes.size()) {
             Technology tech = readTechnology();

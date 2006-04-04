@@ -25,16 +25,16 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -46,6 +46,7 @@ import com.sun.electric.tool.Tool;
 import java.awt.Component;
 import java.io.IOException;
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.io.OutputStream;
@@ -57,10 +58,12 @@ import java.util.Iterator;
  * On reading key objects are resolved to Electric objects again.
  */
 public class EObjectOutputStream extends ObjectOutputStream {
+    private final EDatabase database;
     
-    public EObjectOutputStream(OutputStream out) throws IOException {
+    public EObjectOutputStream(OutputStream out, EDatabase database) throws IOException {
         super(out);
         enableReplaceObject(true);
+        this.database = database;
     }
     
     /** 
@@ -102,12 +105,8 @@ public class EObjectOutputStream extends ObjectOutputStream {
      * 		OutputStream.
      */
     protected Object replaceObject(Object obj) throws IOException {
-        if (obj instanceof NodeInst) return new ENodeInst((NodeInst)obj);
-        if (obj instanceof ArcInst) return new EArcInst((ArcInst)obj);
-        if (obj instanceof PortInst) return new EPortInst((PortInst)obj);
-        if (obj instanceof Export) return new EExport((Export)obj);
-        if (obj instanceof Cell) return new ECell((Cell)obj);
-//        if (obj instanceof Library) return new ELibrary((Library)obj);
+        if (obj instanceof ElectricObject && ((ElectricObject)obj).getDatabase() != database)
+            throw new NotSerializableException("other database");
         if (obj instanceof View) return new EView((View)obj);
         if (obj instanceof Technology) return new ETechnology((Technology)obj);
         if (obj instanceof PrimitiveNode) return new EPrimitiveNode((PrimitiveNode)obj);
@@ -126,114 +125,6 @@ public class EObjectOutputStream extends ObjectOutputStream {
         return obj;
     }
 
-    private static class ENodeInst implements Serializable {
-        int cellIndex, nodeId;
-        
-        private ENodeInst(NodeInst ni) {
-            assert ni.isLinked();
-            cellIndex = ni.getParent().getCellIndex();
-            nodeId = ni.getD().nodeId;
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
-            NodeInst ni = cell.getNodeById(nodeId);
-            if (ni == null) throw new InvalidObjectException("NodeInst");
-            return ni;
-        }
-    }
-    
-    private static class EArcInst implements Serializable {
-        int cellIndex, arcId;
-        
-        private EArcInst(ArcInst ai) {
-            assert ai.isLinked();
-            cellIndex = ai.getParent().getCellIndex();
-            arcId = ai.getD().arcId;
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
-            ArcInst ai = cell.getArcById(arcId);
-            if (ai == null) throw new InvalidObjectException("ArcInst");
-            return ai;
-        }
-    }
-    
-    private static class EPortInst implements Serializable {
-        int cellIndex, nodeId, portChronIndex;
-        
-        private EPortInst(PortInst pi) {
-            assert pi.isLinked();
-            cellIndex = pi.getNodeInst().getParent().getCellIndex();
-            nodeId = pi.getNodeInst().getD().nodeId;
-            portChronIndex = pi.getPortProto().getId().getChronIndex();
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
-            NodeInst ni = cell.getNodeById(nodeId);
-            int portIndex;
-            if (ni.isCellInstance()) {
-                Export e = ((Cell)ni.getProto()).getExportChron(portChronIndex);
-                portIndex = e.getPortIndex();
-            } else {
-                portIndex = portChronIndex;
-            }
-            PortInst pi = ni.getPortInst(portIndex);
-            if (pi == null) throw new InvalidObjectException("PortInst");
-            return pi;
-        }
-    }
-    
-    private static class EExport implements Serializable {
-        int cellIndex, exportChronIndex;
-        
-        private EExport(Export e) {
-            assert e.isLinked();
-            cellIndex = ((Cell)e.getParent()).getCellIndex();
-            exportChronIndex = e.getD().exportId.chronIndex;
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
-            Export e = cell.getExportChron(exportChronIndex);
-            if (e == null) throw new InvalidObjectException("Export");
-            return e;
-        }
-    }
-    
-    private static class ECell implements Serializable {
-        int cellIndex;
-        
-        private ECell(Cell cell) {
-        	if (!cell.isLinked()) System.out.println("Cannot serialize "+cell+" which is not linked");
-            assert cell.isLinked();
-            cellIndex = cell.getCellIndex();
-        }
-        
-        private Object readResolve() throws ObjectStreamException {
-            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
-            if (cell == null) throw new InvalidObjectException("Cell");
-            return cell;
-        }
-    }
-    
-//    private static class ELibrary implements Serializable {
-//        int libIndex;
-//        
-//        private ELibrary(Library lib) {
-//            assert  lib.isLinked();
-//            libIndex = lib.getId().libIndex;
-//        }
-//        
-//        private Object readResolve() throws ObjectStreamException {
-//            Library lib = LibId.getByIndex(libIndex).inCurrentThread();
-//            if (lib == null) throw new InvalidObjectException("Library");
-//            return lib;
-//        }
-//    }
-    
     private static class EView implements Serializable {
         String abbreviation;
         
@@ -373,17 +264,17 @@ public class EObjectOutputStream extends ObjectOutputStream {
     }
     
     private static class ENetwork implements Serializable {
-        int cellIndex, netIndex;
+        Cell cell;
+        int netIndex;
         boolean shortResistors;
         
         private ENetwork(Network net) {
-            cellIndex = net.getParent().getCellIndex();
+            cell = net.getParent();
             netIndex = net.getNetIndex();
             shortResistors = net.getNetlist().getShortResistors();
         }
         
         private Object readResolve() throws ObjectStreamException {
-            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
             Netlist netlist = cell.getNetlist(shortResistors);
             Network net = netlist.getNetwork(netIndex);
             // It is necessary to check that it is the same Netlist
@@ -393,16 +284,15 @@ public class EObjectOutputStream extends ObjectOutputStream {
     }
     
     private static class ENodable implements Serializable {
-        int cellIndex;
+        Cell cell;
         String nodableName;
         
         private ENodable(Nodable no) {
-            cellIndex = no.getParent().getCellIndex();
+            cell = no.getParent();
             nodableName = no.getName();
         }
         
         private Object readResolve() throws ObjectStreamException {
-            Cell cell = (Cell)CellId.getByIndex(cellIndex).inCurrentThread();
             Netlist netlist = cell.getUserNetlist();
             Nodable nodable = null;
             for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {

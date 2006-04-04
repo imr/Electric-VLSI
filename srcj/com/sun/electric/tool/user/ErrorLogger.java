@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -157,13 +158,13 @@ public class ErrorLogger implements Serializable
         {
             String className = this.getClass().getSimpleName();
             if (logCellId == null) return;
-            Cell logCell = logCellId.inClientDatabase();
+            Cell logCell = EDatabase.clientDatabase().getCell(logCellId);
             if (logCell == null) return;
             msg.append("\t<" + className + " message=\"" + message + "\" "
                     + "cellName=\"" + logCell.describe(false) + "\">\n");
             for(ErrorHighlight eh : highlights)
             {
-                eh.xmlDescription(msg);
+                eh.xmlDescription(msg, EDatabase.clientDatabase());
             }
             msg.append("\t</" + className + ">\n");
         }
@@ -172,13 +173,13 @@ public class ErrorLogger implements Serializable
          * Returns true if this error log is still valid
          * (In a linked Cell, and all highlights are still valid)
          */
-        public boolean isValid() {
+        public boolean isValid(EDatabase database) {
             if (logCellId == null) return true;
-            if (logCellId.inClientDatabase() == null) return false;
+            if (database.getCell(logCellId) == null) return false;
             // check validity of highlights
             boolean allValid = true;
             for (ErrorHighlight erh : highlights) {
-                if (!erh.isValid()) { allValid = false; break; }
+                if (!erh.isValid(database)) { allValid = false; break; }
             }
             return allValid;
         }

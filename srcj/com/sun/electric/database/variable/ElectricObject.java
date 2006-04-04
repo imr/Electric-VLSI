@@ -35,13 +35,13 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -53,7 +53,7 @@ import java.util.Set;
  * <P>
  * This class should be thread-safe.
  */
-public abstract class ElectricObject // extends Observable implements Observer
+public abstract class ElectricObject implements Serializable
 {
 	// ------------------------ private data ------------------------------------
 

@@ -341,15 +341,15 @@ public class Variable implements Serializable
     public Object getObject() { return (type & ARRAY) != 0 ? ((Object[])value).clone() : value; }
 
     /**
-     * Returns value of this Variable in current thread.
+     * Returns value of this Variable in database.
+     * @param database database
      * @return value of this variable in current thread.
      */
-    public Object getObjectInCurrentThread() {
-        EDatabase database = EDatabase.theDatabase;
+    public Object getObjectInDatabase(EDatabase database) {
         switch (type) {
             case LIBRARY: return database.getLib((LibId)value);
             case CELL: return database.getCell((CellId)value);
-            case EXPORT: return ((ExportId)value).inCurrentThread();
+            case EXPORT: return ((ExportId)value).inDatabase(database);
             case LIBRARY|ARRAY:
                 LibId[] libIds = (LibId[])value;
                 Library[] libs = new Library[libIds.length];
@@ -366,7 +366,7 @@ public class Variable implements Serializable
                 ExportId[] exportIds = (ExportId[])value;
                 Export[] exports = new Export[exportIds.length];
                 for (int i = 0; i < exportIds.length; i++)
-                    if (exportIds[i] != null) exports[i] = (Export)exportIds[i].inCurrentThread();
+                    if (exportIds[i] != null) exports[i] = (Export)exportIds[i].inDatabase(database);
                 return exports;
             default:
                 return (type & ARRAY) != 0 ? ((Object[])value).clone() : value;
@@ -560,13 +560,13 @@ public class Variable implements Serializable
     }
     
     /**
-     * Returns element of array value of this Variable in current thread.
+     * Returns element of array value of this Variable in database.
+     * @param database database.
      * @param index index of array
      * @return element of array value.
      * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
      */
-    public Object getObjectInCurrentThread(int index) {
-        EDatabase database = EDatabase.theDatabase;
+    public Object getObjectInDatabase(EDatabase database, int index) {
         switch (type) {
             case LIBRARY|ARRAY:
                 LibId libId = ((LibId[])value)[index];
@@ -576,7 +576,7 @@ public class Variable implements Serializable
                 return cellId != null ? database.getCell(cellId) : null;
             case EXPORT|ARRAY:
                 ExportId exportId = ((ExportId[])value)[index];
-                return exportId != null ? exportId.inCurrentThread() : null;
+                return exportId != null ? exportId.inDatabase(database) : null;
             default:
                 if ((type & ARRAY) != 0)
                     return ((Object[])value)[index];

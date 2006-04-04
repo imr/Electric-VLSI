@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -976,7 +977,7 @@ public class LibToTech
 					for(int j=0; j<arcCells.length; j++)
 					{
 						// find arc that connects
-						Cell arcCell = (Cell)arcCells[j].inServerDatabase();
+						Cell arcCell = EDatabase.serverDatabase().getCell(arcCells[j]);
 						connections[j] = null;
 						if (arcCell != null)
 						{

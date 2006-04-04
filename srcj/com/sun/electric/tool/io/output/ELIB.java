@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -745,11 +746,7 @@ public class ELIB extends Output
 		throws IOException
 	{
 		// write the number of Variables
-		int count = 0;
-        for (int i = 0, numVars = obj.getNumVariables(); i < numVars; i++) {
-            Variable var = obj.getImmutable().getVar(i);
-            if (var.getObjectInCurrentThread() != null) count++;
-        }
+		int count = obj.getNumVariables();
 		Variable.Key additionalVarKey = null;
 		int additionalVarType = ELIBConstants.VSTRING;
 		Object additionalVarValue = null;
@@ -759,10 +756,7 @@ public class ELIB extends Output
 			for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = pit.next();
-                for (int i = 0, numVars = pi.getNumVariables(); i < numVars; i++) {
-                    Variable var = pi.getImmutable().getVar(i);
-                    if (var.getObjectInCurrentThread() != null) count++;
-                }
+                count += pi.getNumVariables();
 			}
 			additionalVarKey = NodeInst.NODE_NAME;
 			if (ni.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
@@ -844,8 +838,7 @@ public class ELIB extends Output
 		throws IOException
 	{
 		// create the "type" field
-		Object varObj = var.getObjectInCurrentThread();
-        if (varObj == null) return;
+		Object varObj = var.getObjectInDatabase(EDatabase.serverDatabase());
 		writeVariableName(diskName(owner, var));
 		int type = var.getTextDescriptor().getCFlags();
 		if (varObj instanceof Object[])

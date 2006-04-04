@@ -4,6 +4,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.io.FileType;
@@ -124,7 +125,7 @@ public class ErrorLoggerTree {
             this.errors = new ArrayList<ErrorLogger.MessageLog>(errors);
         }
         public void run() {
-            Cell cell = cellId.inClientDatabase();
+            Cell cell = EDatabase.clientDatabase().getCell(cellId);
             if (cell == null) return;
             boolean changed = networkErrorLogger.clearLogs(cell) || !errors.isEmpty();
             networkErrorLogger.addMessages(errors);
@@ -149,7 +150,7 @@ public class ErrorLoggerTree {
             this.errors = new ArrayList<ErrorLogger.MessageLog>(errors);
         }
         public void run() {
-            Cell cell = cellId.inClientDatabase();
+            Cell cell = EDatabase.clientDatabase().getCell(cellId);
             if (cell == null) return;
             boolean changed = drcErrorLogger.clearLogs(cell) || !errors.isEmpty();
             drcErrorLogger.addMessages(errors);
@@ -395,7 +396,7 @@ public class ErrorLoggerTree {
             boolean changed = false;
             for (int i = logger.getNumLogs() - 1; i >= 0; i--) {
                 MessageLog err = logger.getLog(i);
-                if (!err.isValid()) {
+                if (!err.isValid(EDatabase.clientDatabase())) {
                     logger.deleteLog(i);
                     if (i < currentLogNumber)
                         currentLogNumber--;

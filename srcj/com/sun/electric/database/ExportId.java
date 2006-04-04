@@ -23,10 +23,10 @@
  */
 package com.sun.electric.database;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.NodeProtoId;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
+import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
@@ -75,12 +75,14 @@ public final class ExportId implements PortProtoId, Serializable
      */
     public int getChronIndex() { return chronIndex; }
     
-	/**
-	 * Method to return the PortProto representiong ExportId in the current thread.
-	 * @return the PortProto representing ExportId in the current thread.
-	 */
-    public Export inCurrentThread() {
-        Cell cell = Cell.inCurrentThread(parentId);
+   /**
+     * Method to return the Export representing ExportId in the specified EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the Export representing ExportId in the specified database.
+     * This method is not properly synchronized.
+     */
+    public Export inDatabase(EDatabase database) {
+        Cell cell = database.getCell(parentId);
         if (cell == null) return null;
         return cell.getExportChron(chronIndex);
     }

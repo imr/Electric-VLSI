@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
@@ -53,6 +54,8 @@ import com.sun.electric.tool.user.ViewChanges;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
 import java.util.Iterator;
 
 /**
@@ -98,6 +101,24 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
     }
     
+    private Object writeReplace() throws ObjectStreamException { return new ExportKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("Export"); }
+    
+    private static class ExportKey extends EObjectInputStream.Key {
+        ExportId exportId;
+        
+        private ExportKey(Export export) {
+            assert export.isLinked();
+            exportId = export.getId();
+        }
+        
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            Export export = exportId.inDatabase(database);
+            if (export == null) throw new InvalidObjectException("Export");
+            return export;
+        }
+    }
+         
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
@@ -578,13 +599,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * PortProtoId identifies Export independently of threads.
      * @return PortProtoId of this Export.
      */
-    public PortProtoId getId() { return d.exportId; }
-    
-    /** Method to return ExportId of this Export.
-     * ExportId identifies Export independently of threads.
-     * @return ExportId of this Export.
-     */
-    public ExportId getExportId() { return d.exportId; }
+    public ExportId getId() { return d.exportId; }
     
 	/**
 	 * Method to return the parent NodeProto of this Export.

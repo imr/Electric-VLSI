@@ -24,6 +24,7 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.constraint.Constraints;
@@ -34,6 +35,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.DisplayedText;
@@ -44,12 +46,13 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -140,6 +143,26 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		headEnd = new HeadConnection(this);
 	}
 
+    private Object writeReplace() throws ObjectStreamException { return new ArcInstKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("ArcInst"); }
+    
+    private static class ArcInstKey extends EObjectInputStream.Key {
+        Cell cell;
+        int arcId;
+        
+        private ArcInstKey(ArcInst ai) {
+            assert ai.isLinked();
+            cell = ai.getParent();
+            arcId = ai.getD().arcId;
+        }
+        
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            ArcInst ai = cell.getArcById(arcId);
+            if (ai == null) throw new InvalidObjectException("ArcInst");
+            return ai;
+        }
+    }
+         
     /****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**

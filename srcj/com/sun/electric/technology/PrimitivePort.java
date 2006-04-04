@@ -24,9 +24,8 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
@@ -144,17 +143,13 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 
 	// ------------------------ public methods ------------------------
 
-	/**
-	 * Method to return the PortProto representing PrimitivePort in the current thread.
-	 * @return the PortProto representing PortProtoId in the current thread.
-	 */
-    public PortProto inCurrentThread() { return this; }
+    public PrimitivePort inDatabase(EDatabase database) { return this; }
     
     /** Method to return PortProtoId of this PrimitivePort.
      * PortProtoId identifies PrimitivePort independently of threads.
      * @return PortProtoId of this PrimtivePort.
      */
-    public PortProtoId getId() { return this; }
+    public PrimitivePort getId() { return this; }
     
 	/**
 	 * Method to return the name key of this PrimitivePort.

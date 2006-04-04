@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.prototype;
 
+import com.sun.electric.database.hierarchy.EDatabase;
+
 /**
  * The PortProtoId interface identifies a type of PortInst .
  * It can be implemented as PrimitiveNode (for primitives from Technologies)
@@ -46,9 +48,11 @@ public interface PortProtoId
      */
     public int getChronIndex();
     
-	/**
-	 * Method to return the PortProto representiong PortProtoId in the current thread.
-	 * @return the PortProto representing PortProtoId in the current thread.
-	 */
-    public PortProto inCurrentThread();
+   /**
+     * Method to return the PortProto representing PortProtoId in the specified EDatabase.
+     * @param database EDatabase where to get from.
+     * @return the PortProto representing PortProtoId in the specified database.
+     * This method is not properly synchronized.
+     */
+    public PortProto inDatabase(EDatabase database);
 }

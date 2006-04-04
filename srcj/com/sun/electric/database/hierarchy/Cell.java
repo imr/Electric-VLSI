@@ -26,6 +26,7 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
@@ -70,6 +71,8 @@ import java.awt.Dimension;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -426,6 +429,24 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         this.lib = database.getLib(d.libId);
 	}
 
+    private Object writeReplace() throws ObjectStreamException { return new CellKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("Cell"); }
+    
+    private static class CellKey extends EObjectInputStream.Key {
+        CellId cellId;
+        
+        private CellKey(Cell cell) {
+            assert cell.isLinked();
+            cellId = cell.getId();
+        }
+        
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            Cell cell = database.getCell(cellId);
+            if (cell == null) throw new InvalidObjectException("Cell");
+            return cell;
+        }
+    }
+         
 	/****************************** CREATE, DELETE ******************************/
 
 	/**

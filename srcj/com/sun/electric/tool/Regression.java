@@ -78,7 +78,7 @@ public class Regression {
             System.out.println("Connected");
             
             EJob ejob = EvalJavaBsh.runScriptJob(script).ejob;
-            ejob.serialize();
+            ejob.serialize(EDatabase.clientDatabase());
             clientOutputStream.writeInt(ejob.jobId);
             clientOutputStream.writeUTF(ejob.jobType.toString());
             clientOutputStream.writeUTF(ejob.jobName);

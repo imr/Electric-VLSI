@@ -301,6 +301,7 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair)
     {
+        EDatabase database = EDatabase.clientDatabase();
         // if two highlights are requested, find them
         if (gPair != null)
         {
@@ -308,8 +309,8 @@ public class UserInterfaceMain extends AbstractUserInterface
             for(Iterator<ErrorHighlight> it = log.getHighlights(); it.hasNext(); )
             {
                 ErrorHighlight eh = it.next();
-                    if (geom1 == null) geom1 = (Geometric)eh.getObject();
-                    else if (geom2 == null) geom2 = (Geometric)eh.getObject();
+                    if (geom1 == null) geom1 = (Geometric)eh.getObject(database);
+                    else if (geom2 == null) geom2 = (Geometric)eh.getObject(database);
             }
 
             // return geometry if requested
@@ -328,7 +329,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             {
                 ErrorHighlight eh = it.next();
 
-                Cell cell = eh.getCell();
+                Cell cell = eh.getCell(database);
                 // validate the cell (it may have been deleted)
                 if (cell != null)
                 {
@@ -361,7 +362,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                         // make a new window for the cell
                         WindowFrame wf = WindowFrame.createEditWindow(cell);
                         wnd = (EditWindow)wf.getContent();
-                        wnd.setCell(eh.getCell(), eh.getVarContext());
+                        wnd.setCell(eh.getCell(database), eh.getVarContext());
                     }
                     if (highlighter == null) {
                         highlighter = wnd.getHighlighter();
@@ -371,7 +372,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
                 if (highlighter == null) continue;
 
-                eh.addToHighlighter(highlighter);
+                eh.addToHighlighter(highlighter, database);
             }
 
             if (highlighter != null)

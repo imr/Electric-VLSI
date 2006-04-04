@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.tool.Job;
+import java.io.InvalidObjectException;
 
 import java.io.ObjectStreamException;
 import java.io.Serializable;
@@ -39,7 +40,7 @@ import java.io.Serializable;
  */
 public final class CellId implements NodeProtoId, Serializable {
     /** IdManager which owns this LibId. */
-    public final transient IdManager idManager;
+    public final IdManager idManager;
     /** Unique index of this cell in the database. */
     public final int cellIndex;
     /**
@@ -86,22 +87,21 @@ public final class CellId implements NodeProtoId, Serializable {
         this.cellIndex = cellIndex;
     }
     
-    /*
-     * Resolve method for deserialization.
-     */
-    private Object readResolve() throws ObjectStreamException {
-        return getByIndex(cellIndex);
-    }
+    private Object writeReplace() throws ObjectStreamException { return new CellIdKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("CellId"); }
     
-    /**
-     * Returns CellId by given index.
-     * @param cellIndex given index.
-     * @return CellId with given index.
-     */
-    public static CellId getByIndex(int cellIndex) {
-        return EDatabase.theDatabase.getIdManager().getCellId(cellIndex);
+    private static class CellIdKey extends EObjectInputStream.Key {
+        private final int cellIndex;
+        
+        private CellIdKey(CellId cellId) {
+            cellIndex = cellId.cellIndex;
+        }
+        
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            return database.getIdManager().getCellId(cellIndex);
+        }
     }
-    
+         
     /**
      * Returns a number CellUsages with this CellId as a parent cell.
      * This number may grow in time.
@@ -208,43 +208,12 @@ public final class CellId implements NodeProtoId, Serializable {
     public int newArcId() { return numArcIds++; }
     
     /**
-     * Method to return the Cell representing CellId in the server EDatabase.
-     * @param database EDatabase where to get from.
-     * @return the Cell representing CellId in the server database.
-     * This method is not properly synchronized.
-     */
-    public Cell inServerDatabase() { return inDatabase(EDatabase.serverDatabase()); }
-    
-    /**
-     * Method to return the Cell representing CellId in the clinet EDatabase.
-     * @param database EDatabase where to get from.
-     * @return the Cell representing CellId in the client database.
-     * This method is not properly synchronized.
-     */
-    public Cell inClientDatabase() { return inDatabase(EDatabase.clientDatabase()); }
-    
-    /**
-     * Method to return the Cell representing CellId in the specified EDatabase.
-     * @param database EDatabase where to get from.
-     * @return the Cell representing CellId in the specified database.
-     * This method is not properly synchronized.
-     */
-    public Cell inThreadDatabase() { return inDatabase(Job.threadDatabase()); }
-    
-    /**
      * Method to return the Cell representing CellId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the Cell representing CellId in the specified database.
      * This method is not properly synchronized.
      */
     public Cell inDatabase(EDatabase database) { return database.getCell(this); }
-    
-    /**
-     * Method to return the NodeProto representiong NodeProtoId in the current thread.
-     * @return the NodeProto representing NodeProtoId in the current thread.
-     * This method is not properly synchronized.
-     */
-    public Cell inCurrentThread() { return Cell.inCurrentThread(this); }
     
 	/**
 	 * Returns a printable version of this CellId.

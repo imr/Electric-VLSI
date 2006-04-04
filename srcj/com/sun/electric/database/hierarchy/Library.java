@@ -63,7 +63,7 @@ import java.util.prefs.Preferences;
  * Cell, get an Enumeration of all Cells, or find the Cell that the user
  * is currently editing.
  */
-public class Library extends ElectricObject implements Comparable<Library>, Serializable
+public class Library extends ElectricObject implements Comparable<Library>
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = Variable.newKey("LIB_font_associations");
 
@@ -174,20 +174,19 @@ public class Library extends ElectricObject implements Comparable<Library>, Seri
     /**
      * Method for serialization.
      */
-    private Object writeReplace() throws ObjectStreamException {
-        return new LibraryKey(this);
-    }
+    private Object writeReplace() throws ObjectStreamException { return new LibraryKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("Library"); }
     
     private static class LibraryKey extends EObjectInputStream.Key {
-        int libIndex;
+        LibId libId;
         
         private LibraryKey(Library lib) {
             assert lib.isLinked();
-            libIndex = lib.getId().libIndex;
+            libId = lib.getId();
         }
         
         protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
-            Library lib = database.getLib(database.getIdManager().getLibId(libIndex));
+            Library lib = database.getLib(libId);
             if (lib == null) throw new InvalidObjectException("Library");
             return lib;
         }

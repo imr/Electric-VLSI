@@ -389,7 +389,7 @@ class ClientJobManager extends JobManager {
             } else {
                 logger.logp(Level.FINER, CLASS_NAME, "run", "Schedule {0}", job);
                 ejob.jobId = ++numStarted;
-                Throwable e = ejob.serialize();
+                Throwable e = ejob.serialize(EDatabase.clientDatabase());
                 if (e != null) {
                     System.out.println("Job " + this + " was not launched in CLIENT mode");
                     e.printStackTrace(System.out);

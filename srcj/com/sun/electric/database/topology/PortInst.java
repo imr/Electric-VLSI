@@ -33,6 +33,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 
 import java.awt.geom.Rectangle2D;
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -59,6 +61,13 @@ public class PortInst extends ElectricObject
         this.nodeInst = nodeInst;
     }
 
+    private Object readResolve() throws ObjectStreamException {
+        if (nodeInst.getProto() != portProto.getParent()) throw new InvalidObjectException("PortInst");
+        PortInst pi = nodeInst.findPortInstFromProto(portProto);
+        if (pi == null) throw new InvalidObjectException("PortInst");
+        return pi;
+    }
+    
     /**
      * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.

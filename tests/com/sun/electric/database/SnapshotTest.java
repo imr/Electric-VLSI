@@ -163,7 +163,7 @@ public class SnapshotTest extends TestCase {
     public void testGetCell() {
         System.out.println("getCell");
         
-        CellId cellId = CellId.getByIndex(0);
+        CellId cellId = idManager.getCellId(0);
         Snapshot instance = initialSnapshot;
         
         CellBackup expResult = null;
@@ -177,7 +177,7 @@ public class SnapshotTest extends TestCase {
     public void testGetCellBounds() {
         System.out.println("getCellBounds");
         
-        CellId cellId = CellId.getByIndex(0);
+        CellId cellId = idManager.getCellId(0);
         Snapshot instance = initialSnapshot;
         
         ERectangle expResult = null;

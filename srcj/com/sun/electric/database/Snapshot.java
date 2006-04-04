@@ -241,7 +241,7 @@ public class Snapshot {
             CellBackup newBackup = getCell(i);
             if (oldBackup == newBackup) continue;
             if (changed == null) changed = new ArrayList<CellId>();
-            changed.add(CellId.getByIndex(i));
+            changed.add(idManager.getCellId(i));
         }
         if (changed == null) changed = Collections.emptyList();
         return changed;

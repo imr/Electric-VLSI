@@ -153,12 +153,12 @@ public class IdManagerTest extends TestCase {
         System.out.println("newSnapshotId");
         assertEquals(1, idManager.newSnapshotId());
         assertEquals(2, idManager.newSnapshotId());
-        long startTime = System.currentTimeMillis();
-        int snapshotId = -1;
-        for (int i = 0; i < 10000000; i++)
-            snapshotId = idManager.newSnapshotId();
-        long stopTime = System.currentTimeMillis();
-        System.out.println(snapshotId + " ids in " + (stopTime - startTime) + " msec");
+//        long startTime = System.currentTimeMillis();
+//        int snapshotId = -1;
+//        for (int i = 0; i < 10000000; i++)
+//            snapshotId = idManager.newSnapshotId();
+//        long stopTime = System.currentTimeMillis();
+//        System.out.println(snapshotId + " ids in " + (stopTime - startTime) + " msec");
     }
         
 }

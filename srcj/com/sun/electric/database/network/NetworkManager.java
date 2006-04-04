@@ -188,7 +188,8 @@ public class NetworkManager {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             CellBackup newBackup = newSnapshot.getCell(i);
             if (newBackup == null || oldBackup != null) continue;
-            Cell cell = CellId.getByIndex(i).inDatabase(database);
+            CellId cellId = newBackup.d.cellId;
+            Cell cell = database.getCell(cellId);
             if (cell.isIcon() || cell.isSchematic())
                 new NetSchem(cell);
             else
@@ -200,7 +201,8 @@ public class NetworkManager {
             for (int i = 0; i < newSnapshot.cellGroups.length; i++) {
                 if (newSnapshot.cellGroups[i] != i) continue;
                 if (i < oldSnapshot.cellGroups.length && i == oldSnapshot.cellGroups[i]) continue;
-                Cell cell = CellId.getByIndex(i).inDatabase(database);
+                CellId cellId = newSnapshot.getCell(i).d.cellId;
+                Cell cell = database.getCell(cellId);
                 NetSchem.updateCellGroup(cell.getCellGroup());
             }
             // Lower Cell same, but some cells deleted
@@ -208,7 +210,8 @@ public class NetworkManager {
                 int l = oldSnapshot.cellGroups[i];
                 if (l < 0 || l >= newSnapshot.cellGroups.length || newSnapshot.cellGroups[l] != l) continue;
                 if (i < newSnapshot.cellGroups.length && newSnapshot.cellGroups[i] == l) continue;
-                Cell cell = CellId.getByIndex(l).inDatabase(database);
+                CellId cellId = oldSnapshot.getCell(i).d.cellId;
+                Cell cell = database.getCell(cellId);
                 NetSchem.updateCellGroup(cell.getCellGroup());
             }
         }
@@ -218,7 +221,8 @@ public class NetworkManager {
             CellBackup oldBackup = oldSnapshot.getCell(i);
             if (newBackup == null || oldBackup == null) continue;
             if (oldBackup.isMainSchematics == newBackup.isMainSchematics) continue;
-            Cell cell = CellId.getByIndex(i).inDatabase(database);
+            CellId cellId = newBackup.d.cellId;
+            Cell cell = database.getCell(cellId);
             NetSchem.updateCellGroup(cell.getCellGroup());
         }
         // Cell contents changed
@@ -227,7 +231,8 @@ public class NetworkManager {
             CellBackup newBackup = newSnapshot.getCell(i);
             if (newBackup == null || oldBackup == null) continue;
             if (oldBackup == newBackup) continue;
-            Cell cell = CellId.getByIndex(i).inDatabase(database);
+            CellId cellId = newBackup.d.cellId;
+            Cell cell = database.getCell(cellId);
             boolean exportsChanged = !newBackup.sameExports(oldBackup);
             if (!exportsChanged) {
                 for (int j = 0; j < newBackup.exports.size(); j++) {

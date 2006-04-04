@@ -266,14 +266,14 @@ public abstract class Job implements Serializable {
             ejob.startedByServer = true;
             ejob.client = ((EThread)currentThread).ejob.client;
             ejob.serverJob.startTime = System.currentTimeMillis();
-            ejob.serialize();
+            ejob.serialize(EDatabase.serverDatabase());
             ejob.clientJob = null;
         } else {
             ejob.client = Job.getExtendedUserInterface();
             ejob.clientJob.startTime = System.currentTimeMillis();
             ejob.serverJob = null;
             if (ejob.jobType != Job.Type.EXAMINE)
-                ejob.serialize();
+                ejob.serialize(EDatabase.clientDatabase());
          }
         jobManager.addJob(ejob, onMySnapshot);
     }

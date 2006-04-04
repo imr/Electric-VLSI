@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
@@ -476,11 +477,7 @@ public class ReadableDump extends Output
 	private void writeVars(ElectricObject obj, Cell curCell)
 	{
 		// write the number of Variables
-		int count = 0;
-        for (int i = 0, numVars = obj.getNumVariables(); i < numVars; i++) {
-            Variable var = obj.getImmutable().getVar(i);
-            if (var.getObjectInCurrentThread() != null) count++;
-        }
+		int count = obj.getNumVariables();
 		Variable.Key additionalVarKey = null;
 		int additionalVarType = ELIBConstants.VSTRING;
 		Object additionalVarValue = null;
@@ -490,10 +487,7 @@ public class ReadableDump extends Output
 			for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); )
 			{
 				PortInst pi = pit.next();
-                for (int i = 0, numVars = pi.getNumVariables(); i < numVars; i++) {
-                    Variable var = pi.getImmutable().getVar(i);
-                    if (var.getObjectInCurrentThread() != null) count++;
-                }
+                count += pi.getNumVariables();
 			}
 			additionalVarKey = NodeInst.NODE_NAME;
 			if (ni.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
@@ -563,8 +557,7 @@ public class ReadableDump extends Output
 	{
 		int type = var.getTextDescriptor().getCFlags();
         
-		Object varObj = var.getObjectInCurrentThread();
-        if (varObj == null) return;
+		Object varObj = var.getObjectInDatabase(EDatabase.serverDatabase());
 
 		// special case for "trace" information on NodeInsts
 		if (owner instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof EPoint[])

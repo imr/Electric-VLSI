@@ -24,6 +24,7 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
@@ -67,6 +68,8 @@ import com.sun.electric.tool.user.User;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.InvalidObjectException;
+import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -175,6 +178,26 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		redoGeometric();
     }
     
+    private Object writeReplace() throws ObjectStreamException { return new NodeInstKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("NodeInst"); }
+    
+    private static class NodeInstKey extends EObjectInputStream.Key {
+        Cell cell;
+        int nodeId;
+        
+        private NodeInstKey(NodeInst ni) {
+            assert ni.isLinked();
+            cell = ni.getParent();
+            nodeId = ni.getD().nodeId;
+        }
+        
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            NodeInst ni = cell.getNodeById(nodeId);
+            if (ni == null) throw new InvalidObjectException("NodeInst");
+            return ni;
+        }
+    }
+         
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**

@@ -309,8 +309,7 @@ public class EDatabase {
         boolean cellBoundsChanged = cellsChanged;
         boolean cellGroupsChanged = cellsChanged;
         for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
-            CellId cellId = CellId.getByIndex(cellIndex);
-            Cell cell = getCell(cellId);
+            Cell cell = getCell(cellIndex);
 			if (cell != null) {
 				cellBackups[cellIndex] = cell.backup();
                 cellBounds[cellIndex] = cell.getBounds();
@@ -323,8 +322,8 @@ public class EDatabase {
                 }
                 cellGroups[cellIndex] = gn.intValue();
             }
-            cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellId);
-            cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellId);
+            cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
+            cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);
             cellGroupsChanged = cellGroupsChanged || cellGroups[cellIndex] != snapshot.cellGroups[cellIndex];
         }
         if (!cellsChanged) cellBackups = null;
@@ -620,7 +619,7 @@ public class EDatabase {
                 if (snapshotFresh) assert snapshot.cellBounds.get(cellIndex) == null;
                 continue;
             }
-            assert cell.getId() == CellId.getByIndex(cellIndex);
+            assert cell.getId() == idManager.getCellId(cellIndex);
             Library lib = cell.getLibrary();
             assert lib.cells.get(cell.getCellName()) == cell;
             cell.check();
