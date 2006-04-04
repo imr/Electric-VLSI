@@ -39,7 +39,7 @@ import java.io.Serializable;
  */
 public final class CellId implements NodeProtoId, Serializable {
     /** IdManager which owns this LibId. */
-    public final IdManager idManager;
+    public final transient IdManager idManager;
     /** Unique index of this cell in the database. */
     public final int cellIndex;
     /**

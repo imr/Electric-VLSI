@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/3/06, DN) Not Serializable exception in IdManager (Bug #916).
+FIX: Make Cell.idManager field transient.
+
 BUG: (4/3/06, GVG) Null exception in Simulation.java if format is not correct but anIt.hasNext() == TRUE.
 FIX: test if an==null in Simulation.java;732.
 

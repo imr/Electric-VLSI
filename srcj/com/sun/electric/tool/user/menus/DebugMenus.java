@@ -243,10 +243,10 @@ public class DebugMenus
 
         MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
-//	    dimaMenu.addMenuItem("Show vector cache", null,
-//            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showVectorCache(); } });
-//	    dimaMenu.addMenuItem("Show graphics", null,
-//            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showGraphics(); } });
+	    dimaMenu.addMenuItem("Show vector cache", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showVectorCache(); } });
+	    dimaMenu.addMenuItem("Show graphics", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { LayerDrawing.showGraphics(); } });
 	    dimaMenu.addMenuItem("Test weak references", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { testWeakReferences(); } });
 	    dimaMenu.addMenuItem("Show memory usage", null,
@@ -493,7 +493,7 @@ public class DebugMenus
         Cell cell = WindowFrame.getCurrentCell();
         if (cell == null) return;
 
-        FillGenerator.generateAutoFill(cell, hierarchy, binary);
+        FillGenerator.generateAutoFill(cell, hierarchy, binary, false);
     }
 
     private static void cleanSetOfLibraries()
