@@ -2218,9 +2218,10 @@ public class FillGenerator implements Serializable {
         private Cell topCell;
         private ErrorLogger log;
         private boolean hierarchy;
+        private boolean doItNow;
 
 		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells,
-                          boolean hierarchy)
+                          boolean hierarchy, boolean doItNow)
 		{
 			super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
             this.perimeter = perim;
@@ -2230,7 +2231,20 @@ public class FillGenerator implements Serializable {
             this.cellsList = cells;
             this.topCell = cell; // Only if 1 cell is generated.
             this.hierarchy = hierarchy;
-			startJob();
+            this.doItNow = doItNow;
+
+            if (doItNow) // call from regressions
+            {
+                try
+                {
+                    doIt();
+                } catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            else
+			    startJob(); // queue the job
 		}
 
         /**
@@ -2358,7 +2372,8 @@ public class FillGenerator implements Serializable {
 		{
             // logger must be created in server otherwise it won't return the elements.
             log = ErrorLogger.newInstance("Fill");
-            fieldVariableChanged("log");
+            if (!doItNow)
+                fieldVariableChanged("log");
 
             // Searching for possible master
             Cell master = searchPossibleMaster();
@@ -2377,7 +2392,7 @@ public class FillGenerator implements Serializable {
                 if (index < firstMetal) firstMetal = index;
 //                if (lastMetal < index) lastMetal = index;
             }
-            if (firstMetal == 2) firstMetal = 3;
+            if (firstMetal <= 2) firstMetal = 3;
             if (lastMetal < firstMetal) lastMetal = firstMetal;
             
             // otherwise pins at edges increase cell sizes and FillRouter.connectCoincident(portInsts)
@@ -3026,7 +3041,7 @@ public class FillGenerator implements Serializable {
         fillLayers.add(Layer.Function.METAL3);
     };
 
-    public static void generateAutoFill(Cell cell, boolean hierarchy, boolean binary)
+    public static void generateAutoFill(Cell cell, boolean hierarchy, boolean binary, boolean doItNow)
     {
         // Creating fill template
         FillGenerator fg = new FillGenerator(cell.getTechnology());
@@ -3045,7 +3060,7 @@ public class FillGenerator implements Serializable {
         fg.makeEvenLayersHorizontal(true);
         fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
         fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
-        new FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, hierarchy);
+        new FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, hierarchy, doItNow);
     }
 }
 
