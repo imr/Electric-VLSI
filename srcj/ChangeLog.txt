@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/4/06, GVG) Rolling back again those changes in NetworkHighlighter.java:TRIMMEDDISPLAY. The code
+becomes extremely slow but affects Bug 716.
+FIX: TRIMMEDDISPLAY = true
+
 BUG: (4/3/06, DN) Not Serializable exception in IdManager (Bug #916).
 FIX: Make Cell.idManager field transient.
 
