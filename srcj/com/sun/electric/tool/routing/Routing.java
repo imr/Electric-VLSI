@@ -570,7 +570,7 @@ public class Routing extends Listener
 			// find the Sun Router class
 			try
 			{
-				sunRouterClass = Class.forName("com.sun.electric.plugins.sunRouter.sunRouter");
+				sunRouterClass = Class.forName("com.sun.electric.plugins.sunRouter.SunRouter");
 			} catch (ClassNotFoundException e)
 			{
 				sunRouterClass = null;
