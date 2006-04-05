@@ -1125,6 +1125,11 @@ public class Library extends ElectricObject implements Comparable<Library>
 		return null;
 	}
 
+    public int getNumCells()
+    {
+        synchronized(cells) { return cells.size(); }
+    }
+
 	/**
 	 * Method to return an Iterator over all Cells in this Library.
 	 * @return an Iterator over all Cells in this Library.
