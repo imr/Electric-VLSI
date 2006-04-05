@@ -294,7 +294,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
         for(Highlight2 h : highlightList)
 		{
 			ElectricObject eobj = h.getElectricObject();
-            h.getInfo(displayList);
+            displayList.add(h.getInfo());
 			if (h.isHighlightEOBJ())
 			{
 				if (eobj instanceof PortInst)

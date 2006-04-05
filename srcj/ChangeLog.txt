@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/5/06, GVG) Highlighter selects wrong object when dialog windows are open (Bug #917).
+FIX: Error in Highlight2.getInfo(): it changed eobj value.
+
 BUG: (4/5/06, SMR) Export names are not incremented properly (Bug #916).
 FIX: In ElectricObject.uniqueObjectNameLow(), check names without case.
 

@@ -220,7 +220,7 @@ public abstract class Highlight2 implements Cloneable{
 	 */
     boolean overHighlighted(EditWindow wnd, int x, int y, Highlighter highlighter) { return false; }
 
-    public void getInfo(List<String> displayList) {;}
+    public String getInfo() { return null;}
 
     /**
      * arc = 0, node = 1, export = 2, text = 3, graphics = 4
@@ -510,11 +510,11 @@ class HighlightLine extends Highlight2
 		return new Rectangle2D.Double(cX, cY, sX, sY);
     }
 
-    public void getInfo(List<String> displayList)
+    public String getInfo()
     {
         String description = "Line from (" + start.getX() + "," + start.getY() + ") to (" +
             end.getX() + "," + end.getY() + ")";
-        displayList.add(description);
+        return description;
     }
 }
 
@@ -618,11 +618,11 @@ class HighlightArea extends Highlight2
         return bounds;
     }
 
-    public void getInfo(List<String> displayList)
+    public String getInfo()
     {
         String description = "Area from " + bounds.getMinX() + "<=X<=" + bounds.getMaxX() +
             " and " + bounds.getMinY() + "<=Y<=" + bounds.getMaxY();
-        displayList.add(description);
+        return description;
     }
 }
 
@@ -1230,21 +1230,23 @@ class HighlightEOBJ extends Highlight2
         return false;
     }
 
-    public void getInfo(List<String> displayList)
+    public String getInfo()
     {
         String description = "";
-        if (eobj instanceof PortInst)
-            eobj = ((PortInst)eobj).getNodeInst();
-        if (eobj instanceof NodeInst)
+        ElectricObject realObj = eobj;
+
+        if (realObj instanceof PortInst)
+            realObj = ((PortInst)realObj).getNodeInst();
+        if (realObj instanceof NodeInst)
         {
-            NodeInst ni = (NodeInst)eobj;
+            NodeInst ni = (NodeInst)realObj;
             description = "Node " + ni.describe(true);
-        } else if (eobj instanceof ArcInst)
+        } else if (realObj instanceof ArcInst)
         {
             ArcInst ai = (ArcInst)eobj;
             description = "Arc " + ai.describe(true);
         }
-        displayList.add(description);
+        return description;
     }
 }
 
@@ -1528,8 +1530,8 @@ class HighlightText extends Highlight2
         return description;
     }
 
-    public void getInfo(List<String> displayList)
+    public String getInfo()
     {
-        displayList.add(describe());
+        return (describe());
     }
 }
