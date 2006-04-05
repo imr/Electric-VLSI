@@ -497,7 +497,7 @@ public class FileMenu {
      * Method to clean up from opening a library.
      * Called from the "terminateOK()" method of a job.
      */
-    private static void doneOpeningLibrary(Cell cell)
+    private static void doneOpeningLibrary(final Cell cell)
     {
         if (cell == null) System.out.println("No current cell in this library");
         else if (!Job.BATCHMODE)
@@ -514,7 +514,7 @@ public class FileMenu {
             {
                 // Redo explorer trees to add new library
                 WindowFrame.wantToRedoLibraryTree();
-                WindowFrame.wantToOpenCurrentLibrary(true);
+                WindowFrame.wantToOpenCurrentLibrary(true, cell);
             }});
     }
 

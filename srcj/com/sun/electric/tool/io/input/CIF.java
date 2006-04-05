@@ -397,7 +397,7 @@ public class CIF extends Input
 	 */
 	protected boolean importALibrary(Library lib)
 	{
-        progress.setNote("Reading CIF file");
+        setProgressNote("Reading CIF file");
 
         // initialize all lists and the searching routines
 		cifCellMap = new HashMap<Integer,BackCIFCell>();
@@ -408,7 +408,7 @@ public class CIF extends Input
 		if (interpret()) return true;
 
 		// instantiate the cif as nodes
-        progress.setNote("Storing CIF in database...");
+        setProgressNote("Storing CIF in database...");
 		if (listToNodes(lib)) return true;
 
 		// clean up

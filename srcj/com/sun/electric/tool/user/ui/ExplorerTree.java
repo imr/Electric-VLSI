@@ -37,7 +37,6 @@ import com.sun.electric.tool.cvspm.Edit;
 import com.sun.electric.tool.cvspm.Log;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
-import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.project.AddCellJob;
 import com.sun.electric.tool.project.AddLibraryJob;
 import com.sun.electric.tool.project.CancelCheckOutJob;

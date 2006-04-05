@@ -106,7 +106,7 @@ class ClientJobManager extends JobManager {
                 //if (sw != null) sw.removeNotify();
                 logger.entering(CLASS_NAME, "InitializeWindows");
                 TopLevel.InitializeWindows();
-                WindowFrame.wantToOpenCurrentLibrary(true);
+                WindowFrame.wantToOpenCurrentLibrary(true, null);
                 logger.exiting(CLASS_NAME, "InitializeWindows");
             }
         });

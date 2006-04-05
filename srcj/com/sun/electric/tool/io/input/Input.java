@@ -29,8 +29,8 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.Job;
 
 import java.io.InputStream;
 import java.io.BufferedInputStream;
@@ -58,7 +58,6 @@ public class Input
 	/** The line number reader (text only). */				protected LineNumberReader lineReader;
 	/** The input stream. */								protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
-	/** The progress during input. */						protected static Progress progress = null;
 	/** the number of bytes of data read so far */			protected long byteCount;
 
 	// ---------------------- private and protected methods -----------------
@@ -216,26 +215,37 @@ public class Input
 		return false;
 	}
 
+    protected static void setProgressNote(String msg)
+    {
+        Job.getUserInterface().setProgressNote(msg);
+    }
+
+    protected static String getProgressNote()
+    {
+        return Job.getUserInterface().getProgressNote();
+    }
+
 	protected static void startProgressDialog(String type, String filePath)
 	{
-		progress = new Progress("Reading " + type + " " + filePath + "...");
-		progress.setProgress(0);
+        Job.getUserInterface().startProgressDialog(type, filePath);
 	}
 
 	protected static void stopProgressDialog()
 	{
-		progress.close();
-		progress = null;
+        Job.getUserInterface().stopProgressDialog();
 	}
-	
+
+    protected static void setProgressValue(int value)
+    {
+        Job.getUserInterface().setProgressValue(value);
+    }
+
 	protected void updateProgressDialog(int bytesRead)
 	{
 		byteCount += bytesRead;
-		if (progress != null && fileLength > 0)
-		{
-			long pct = byteCount * 100L / fileLength;
-			progress.setProgress((int)pct);
-		}
+        if (fileLength == 0) return;
+        long pct = byteCount * 100L / fileLength;
+        Job.getUserInterface().setProgressValue(pct);
 	}
 
 	protected void closeInput()

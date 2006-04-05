@@ -220,7 +220,7 @@ public class WindowFrame extends Observable
 
 		// open the "SIGNALS" part of the explorer panel
 		SwingUtilities.invokeLater(new Runnable() {
-			public void run() { WindowFrame.wantToOpenCurrentLibrary(false); }});
+			public void run() { WindowFrame.wantToOpenCurrentLibrary(false, null); }});
 		return frame;
 	}
 
@@ -535,13 +535,14 @@ public class WindowFrame extends Observable
 	/**
 	 * Method to force the explorer tree to show the current library or signals list.
 	 * @param openLib true to open the current library, false to open the signals list.
-	 */
-	public static void wantToOpenCurrentLibrary(boolean openLib)
+     * @param cell cell to select in ExplorerTree
+     */
+	public static void wantToOpenCurrentLibrary(boolean openLib, Cell cell)
 	{
 		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = it.next();
-			wf.explorerTab.openLibraryInExplorerTree(Library.getCurrent(), null, openLib);
+			wf.explorerTab.openLibraryInExplorerTree(Library.getCurrent(), cell, openLib);
 		}
 	}
 

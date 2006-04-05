@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.Job;
 
 import java.awt.BorderLayout;
 import java.awt.Insets;
@@ -55,7 +54,6 @@ public class Progress
 	 */
 	public Progress(String title)
 	{
-        if (Job.BATCHMODE) return;
 		if (TopLevel.isMDIMode())
 		{
 			jif = new JInternalFrame(title);
@@ -99,7 +97,7 @@ public class Progress
 	 */
 	public void close()
 	{
-		if (progressBar == null) return;
+//		if (progressBar == null) return;
 
 		if (TopLevel.isMDIMode())
 		{

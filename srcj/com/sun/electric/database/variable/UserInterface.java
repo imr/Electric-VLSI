@@ -23,15 +23,12 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
-import java.util.List;
 
 /**
  * This interface provides information from the user interface.
@@ -169,4 +166,31 @@ public interface UserInterface
 	 * Prompts the user and writes the file.
 	 */
 	public void exportPrefs();
+
+    /**
+     * Method to start progress bar
+     */
+    public void startProgressDialog(String type, String filePath);
+
+    /**
+     * Method to stop the progress bar
+     */
+    public void stopProgressDialog();
+
+    /**
+     * Method to update the progress bar
+     */
+    public void setProgressValue(long pct);
+
+    /**
+     * Method to set a text message in the progress dialog.
+     * @param message
+     */
+    public void setProgressNote(String message);
+
+    /**
+     * Method to get text message in the progress dialgo.
+     * @return
+     */
+    public String getProgressNote();
 }

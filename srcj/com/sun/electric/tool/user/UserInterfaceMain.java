@@ -37,6 +37,7 @@ import com.sun.electric.tool.*;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -93,6 +94,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     private static EventListenerList listenerList = new EventListenerList();
     private static Snapshot currentSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
     private static EDatabase database = EDatabase.clientDatabase();
+	/** The progress during input. */						protected static Progress progress = null;
 
     private SplashWindow sw = null;
  
@@ -205,7 +207,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             sw = null;
         }
         TopLevel.InitializeWindows();
-        WindowFrame.wantToOpenCurrentLibrary(true);
+        WindowFrame.wantToOpenCurrentLibrary(true, null);
     }
     
     public EditWindow_ getCurrentEditWindow_() { return EditWindow.getCurrent(); }
@@ -834,5 +836,41 @@ public class UserInterfaceMain extends AbstractUserInterface
 //        }
 //    }
 
+    public void startProgressDialog(String type, String filePath)
+	{
+        try{
+		progress = new Progress("Reading " + type + " " + filePath + "...");
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+		progress.setProgress(0);
+	}
 
+    public void stopProgressDialog()
+	{
+		progress.close();
+		progress = null;
+	}
+
+    public void setProgressValue(long pct)
+	{
+//		if (progress != null && fileLength > 0)
+		{
+//			long pct = byteCount * 100L / fileLength;
+			progress.setProgress((int)pct);
+		}
+	}
+
+    /**
+     * Method to set a text message in the progress dialog.
+     * @param message
+     */
+    public void setProgressNote(String message) { progress.setNote(message); }
+
+    /**
+     * Method to get text message in the progress dialgo.
+     * @return
+     */
+    public String getProgressNote() { return progress.getNote(); }
 }

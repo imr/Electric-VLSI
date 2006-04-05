@@ -323,6 +323,7 @@ public class Change extends EDialog implements HighlightListener
 	 */
 	private void reload(boolean canSwitchLibraries)
 	{
+        System.out.println("realod " + dontReload + " " + canSwitchLibraries);
 		if (dontReload) return;
 
 		changeListModel.clear();

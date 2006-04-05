@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+IMP: (4/5/06, GVG) Expanding and marking cell in case of giving library in command line (no Bugzilla)
+
+BUG: (4/5/06, GVG) Exception in TopLevel on MacOSX in case of -mdi and reading library from command line.
+FIX: desktop instance created before that topLevel. Still unknown why creation of topLevel has problems on MacOXS
+
+IMP: (4/5/06, GVG) Refactoring calling to Progress class. Extra interface added in UserInterface.
+
 BUG: (4/4/06, GVG) Rolling back again those changes in NetworkHighlighter.java:TRIMMEDDISPLAY. The code
 becomes extremely slow but affects Bug 716.
 FIX: TRIMMEDDISPLAY = true

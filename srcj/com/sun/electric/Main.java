@@ -173,6 +173,49 @@ public final class Main
 
     private static class UserInterfaceDummy extends AbstractUserInterface
 	{
+        /**
+         * Method to start progress bar
+         */
+        public void startProgressDialog(String type, String filePath)
+        {
+            System.out.println("Starting Progress Dialog");
+        }
+
+        /**
+         * Method to stop the progress bar
+         */
+        public void stopProgressDialog()
+        {
+            System.out.println("Stopping Progress Dialog");
+        }
+
+        /**
+         * Method to update the progress bar
+         */
+        public void setProgressValue(long pct)
+        {
+            System.out.print(".");
+        }
+
+        /**
+         * Method to set a text message in the progress dialog.
+         * @param message
+         */
+        public void setProgressNote(String message)
+        {
+            System.out.println("Progress Note: '" + message + "'");
+        }
+
+        /**
+         * Method to get text message in the progress dialgo.
+         * @return
+         */
+        public String getProgressNote()
+        {
+            System.out.println("Batch mode Electric has no getProgressNote");
+            return null;
+        }
+
 		public EditWindow_ getCurrentEditWindow_() { return null; }
 		public EditWindow_ needCurrentEditWindow_()
 		{

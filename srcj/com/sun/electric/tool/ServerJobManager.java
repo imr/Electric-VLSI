@@ -431,6 +431,51 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     		Exception e = new Exception();
 			e.printStackTrace(System.out);
     	}
+
+        public void startProgressDialog(String type, String filePath)
+        {
+//            printStackTrace("startProgressDialog");
+            Job.currentUI.startProgressDialog(type, filePath);
+        }
+
+        /**
+         * Method to stop the progress bar
+         */
+        public void stopProgressDialog()
+        {
+//            printStackTrace("stopProgressDialog");
+            Job.currentUI.stopProgressDialog();
+        }
+
+        /**
+         * Method to update the progress bar
+         */
+        public void setProgressValue(long pct)
+        {
+//            printStackTrace("updateProgressDialog");
+            Job.currentUI.setProgressValue(pct);
+        }
+
+        /**
+         * Method to set a text message in the progress dialog.
+         * @param message
+         */
+        public void setProgressNote(String message)
+        {
+//            printStackTrace("setProgressNote");
+            Job.currentUI.setProgressNote(message);
+        }
+
+        /**
+         * Method to get text message in the progress dialgo.
+         * @return
+         */
+        public String getProgressNote()
+        {
+//            printStackTrace("setProgressNote");
+            return Job.currentUI.getProgressNote();
+        }
+
 		public EditWindow_ getCurrentEditWindow_() {
             printStackTrace("getCurrentEditWindow");
             return Job.currentUI.getCurrentEditWindow_();

@@ -100,7 +100,12 @@ public class TopLevel extends JFrame
 		setIconImage(getFrameIcon().getImage());
 
 		// create the menu bar
+        try{
 		menuBar = MenuCommands.createMenuBar();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
 		setJMenuBar(menuBar);
 
 		// create the tool bar
@@ -233,9 +238,15 @@ public class TopLevel extends JFrame
 			Rectangle bound = parseBound(loc);
 			if (bound == null)
 				bound = new Rectangle(scrnSize);
-			topLevel = new TopLevel("Electric", bound, null, null);
+
 			// make the desktop
 			desktop = new JDesktopPane();
+            try{
+			topLevel = new TopLevel("Electric", bound, null, null);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
 			topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
             topLevel.setVisible(true);
 		}

@@ -1338,7 +1338,8 @@ public class GDS extends Input
 			// FILO order, create this nodeproto
 			np = Cell.newInstance(theLibrary, tokenString);
 			if (np == null) handleError("Failed to create SREF proto");
-            progress.setNote("Reading " + tokenString);
+            setProgressValue(0);
+            setProgressNote("Reading " + tokenString);
 		}
 
 		// set the reference node proto

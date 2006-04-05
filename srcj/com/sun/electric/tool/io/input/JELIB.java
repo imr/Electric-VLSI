@@ -33,7 +33,6 @@ import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -55,7 +54,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
-import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -674,7 +672,8 @@ public class JELIB extends LibraryFiles
 		if (cc == null || cc.filledIn) return;
 		instantiateCellContent(cell, cc, recursiveSetupFlag);
 		cellsConstructed++;
-		if (progress != null) progress.setProgress(cellsConstructed * 100 / totalCells);
+        setProgressValue(cellsConstructed * 100 / totalCells);
+//		if (progress != null) progress.setProgress(cellsConstructed * 100 / totalCells);
 		recursiveSetupFlag.add(cell);
         cell.loadExpandStatus();
 	}

@@ -52,7 +52,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
@@ -99,10 +98,10 @@ public class ReadableDump extends LibraryFiles
         private Variable[][] exportVars;
 	};
 
-	/** The current position in the file. */						private int filePosition;
+//	/** The current position in the file. */						private int filePosition;
 	/** The state of reading the file. */							private int textLevel;
 	/** A counter for reading multiple Tools, Technologies, etc. */	private int bitCount;
-	/** The current Cell in the Library. */							private int mainCell;
+//	/** The current Cell in the Library. */							private int mainCell;
 	/** The current ArcInst end being processed. */					private int curArcEnd;
 	/** The current object type being processed. */					private int varPos;
 	/** The current Cell being processed. */						private Cell curCell;
@@ -183,7 +182,7 @@ public class ReadableDump extends LibraryFiles
 		lib.erase();
 
 		textLevel = INLIB;
-		filePosition = 0;
+//		filePosition = 0;
 		for(;;)
 		{
 			// get keyword from file
@@ -380,7 +379,7 @@ public class ReadableDump extends LibraryFiles
 		if (LibraryFiles.VERBOSE)
 			System.out.println("Text: Doing contents of " + cell + " in " + lib);
 		cellsConstructed++;
-		if (progress != null) progress.setProgress(cellsConstructed * 100 / totalCells);
+        setProgressValue(cellsConstructed * 100 / totalCells);
 
 		// now fill in the nodes
 		double lambda = cellLambda[cellIndex];
@@ -635,13 +634,14 @@ public class ReadableDump extends LibraryFiles
 	private boolean getKeyword()
 		throws IOException
 	{
+        int filePostionDelta = 0; // get only delta in file since byteCount exists
 		// skip leading blanks
 		int c = 0;
 		for(;;)
 		{
 			c = lineReader.read();
 			if (c == -1) return true;
-			filePosition++;
+			filePostionDelta++;
 			if (c != ' ') break;
 		}
 
@@ -659,7 +659,7 @@ public class ReadableDump extends LibraryFiles
 		{
 			c = lineReader.read();
 			if (c == -1) return true;
-			filePosition++;
+			filePostionDelta++;
 			if (c == '\n' || (c == ' ' && !inQuote)) break;
 			if (c == '"' && (cindex == 0 || keywordArray[cindex-1] != '^'))
 				inQuote = !inQuote;
@@ -675,10 +675,12 @@ public class ReadableDump extends LibraryFiles
 			keywordArray[cindex++] = (char)c;
 		}
 		keyWord = new String(keywordArray, 0, cindex);
-		if (progress != null && fileLength > 0)
-		{
-			progress.setProgress((int)(filePosition * 100 / fileLength));
-		}
+
+        updateProgressDialog(filePostionDelta);
+//		if (progress != null && fileLength > 0)
+//		{
+//			progress.setProgress((int)(filePosition * 100 / fileLength));
+//		}
 		return false;
 	}
 
@@ -691,7 +693,7 @@ public class ReadableDump extends LibraryFiles
 	private void keywordNewLib()
 	{
 		// set defaults
-		mainCell = -1;
+//		mainCell = -1;
 		varPos = INVTOOL;
 		curTech = null;
 		textLevel = INLIB;
@@ -840,7 +842,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordLibMS()
 	{
-		mainCell = Integer.parseInt(keyWord);
+//		mainCell = Integer.parseInt(keyWord);
 	}
 
 	/**

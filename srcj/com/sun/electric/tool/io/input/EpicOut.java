@@ -29,7 +29,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.user.dialogs.Progress;
 
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -307,7 +306,7 @@ public class EpicOut extends Simulate
 		startProgressDialog("EPIC output", fileURL.getFile());
 
 		// read the actual signal data from the .spo file
-		Stimuli sd = readEpicFile(new EpicReader(fileURL, progress));
+		Stimuli sd = readEpicFile(new EpicReader(fileURL));
         sd.setCell(cell);
 
 		// stop progress dialog
@@ -369,13 +368,12 @@ public class EpicOut extends Simulate
         int curTime = 0;
         int maxT = 0;
         HashMap<String,String> contextNames;
-        Progress progress;
+//        Progress progress;
         
         private static String VERSION_STRING = ";! output_format 5.3";
             
-        EpicReader(URL fileURL, Progress progress)
+        EpicReader(URL fileURL)
         {
-        	this.progress = progress;
             sd = new EpicStimuli();
         	an = new Analysis(sd, Analysis.ANALYSIS_TRANS);
 
@@ -666,7 +664,7 @@ public class EpicOut extends Simulate
                 return true;
             }
             byteCount += bufL;
-            progress.setProgress(fileLength != 0 ? (int)(byteCount/(double)fileLength * 100) : 0);
+            setProgressValue(fileLength != 0 ? (int)(byteCount/(double)fileLength * 100) : 0);
             return false;
         }
     }

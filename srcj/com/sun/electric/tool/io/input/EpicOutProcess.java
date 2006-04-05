@@ -27,22 +27,17 @@ import com.sun.electric.Launcher;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.AnalogSignal;
-import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.ActivityLogger;
 
-import java.awt.geom.Rectangle2D;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -257,10 +252,10 @@ public class EpicOutProcess extends Simulate implements Runnable
                 if (line.startsWith(progressKey)) {
                     line = line.substring(progressKey.length());
                     if (line.startsWith("!"))  {
-                        progress.setNote(line.substring(1));
-                        progress.setProgress(0);
+                        setProgressValue(0);
+                        setProgressNote(line.substring(1));
                     } else {
-                        progress.setProgress(TextUtils.atoi(line));
+                        setProgressValue(TextUtils.atoi(line));
                     }
                     continue;
                 }

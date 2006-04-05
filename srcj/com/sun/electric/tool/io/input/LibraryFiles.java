@@ -24,8 +24,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.CellUsage;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -632,22 +630,15 @@ public abstract class LibraryFiles extends Input
         if (elib != null)
         {
             // read the external library
-            String oldNote = null;
-            if (progress != null)
-            {
-				oldNote = progress.getNote();
-                progress.setProgress(0);
-                progress.setNote("Reading referenced library " + legalLibName + "...");
-            }
+            String oldNote = getProgressNote();
+            setProgressValue(0);
+            setProgressNote("Reading referenced library " + legalLibName + "...");
 
 			// get the library name
 			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
             elib = readALibrary(externalURL, elib, eLibName, importType);
-            if (progress != null)
-            {
-	            progress.setProgress((int)(byteCount * 100 / fileLength));
-	            progress.setNote(oldNote);
-            }
+            setProgressValue((int)(byteCount * 100 / fileLength));
+            setProgressNote(oldNote);
         }
 
         if (elib == null)
@@ -726,11 +717,8 @@ public abstract class LibraryFiles extends Input
 
 	public static void cleanupLibraryInput()
 	{
-		if (progress != null)
-		{
-			progress.setNote("Constructing cell contents...");
-			progress.setProgress(0);
-		}
+        setProgressValue(0);
+        setProgressNote("Constructing cell contents...");
 
 		// Compute technology of new cells
 		Set<Cell> uncomputedCells = new HashSet<Cell>();
