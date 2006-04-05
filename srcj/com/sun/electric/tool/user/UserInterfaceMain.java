@@ -199,14 +199,6 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public void finishInitialization() {
         initializationFinished = true;
-//        if (osXRegisterMethod != null) {
-//            // tell the Mac OS/X system of the initialization job
-//            try {
-//                osXSetJobMethod.invoke(osXClass, new Object[] {job});
-//            } catch (Exception e) {
-//                System.out.println("Error initializing Mac OS/X interface");
-//            }
-//        }
         
         if (sw != null) {
             sw.removeNotify();
