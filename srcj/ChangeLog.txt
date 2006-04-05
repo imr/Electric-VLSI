@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/5/06, SMR) Export names are not incremented properly (Bug #916).
+FIX: In ElectricObject.uniqueObjectNameLow(), check names without case.
+
 IMP: (4/5/06, GVG) Expanding and marking cell in case of giving library in command line (no Bugzilla)
 
 BUG: (4/5/06, GVG) Exception in TopLevel on MacOSX in case of -mdi and reading library from command line.

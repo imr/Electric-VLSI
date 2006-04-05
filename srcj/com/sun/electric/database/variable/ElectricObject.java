@@ -837,7 +837,7 @@ public abstract class ElectricObject implements Serializable
 		// first see if the name is unique
 		if (already != null)
 		{
-			if (!already.contains(name)) return name;
+			if (!already.contains(TextUtils.canonicString(name))) return name;
 		} else
 		{
 			if (cell.isUniqueName(name, cls, null)) return name;
@@ -857,7 +857,7 @@ public abstract class ElectricObject implements Serializable
 					String newname = name.substring(0, numStart) + nextIndex + name.substring(plusPlusPos);
 					if (already != null)
 					{
-						if (!already.contains(newname)) return newname;
+						if (!already.contains(TextUtils.canonicString(newname))) return newname;
 					} else
 					{
 						if (cell.isUniqueName(newname, cls, null)) return newname;
@@ -880,7 +880,7 @@ public abstract class ElectricObject implements Serializable
 					String newname = name.substring(0, numStart) + nextIndex + name.substring(minusMinusPos);
 					if (already != null)
 					{
-						if (!already.contains(newname)) return newname;
+						if (!already.contains(TextUtils.canonicString(newname))) return newname;
 					} else
 					{
 						if (cell.isUniqueName(newname, cls, null)) return newname;
@@ -971,7 +971,7 @@ public abstract class ElectricObject implements Serializable
 								boolean unique;
 								if (already != null)
 								{
-									unique = !already.contains(an.baseName + newIndex);
+									unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex));
 								} else
 								{
 									unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
@@ -1006,7 +1006,7 @@ public abstract class ElectricObject implements Serializable
 							boolean unique;
 							if (already != null)
 							{
-								unique = !already.contains(an.baseName + newIndex);
+								unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex));
 							} else
 							{
 								unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
@@ -1053,7 +1053,7 @@ public abstract class ElectricObject implements Serializable
 						boolean unique;
 						if (already != null)
 						{
-							unique = !already.contains(an.baseName + newIndex);
+							unique = !already.contains(TextUtils.canonicString(an.baseName + newIndex));
 						} else
 						{
 							unique = cell.isUniqueName(an.baseName + newIndex, cls, null);
