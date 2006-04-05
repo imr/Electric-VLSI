@@ -1195,7 +1195,12 @@ public class VectorDrawing
 							for(int xGrab = xS; xGrab <= xE; xGrab++)
 							{
 								if (xGrab >= greekWid) continue;
-								int value = greekedCell.fadeImageColors[xGrab + yGrab*greekedCell.fadeImageWid];
+                                int index = xGrab + yGrab*greekedCell.fadeImageWid;
+//                                if (greekedCell.fadeImageColors==null)
+//                                    System.out.println("D");
+                                if (greekedCell.fadeImageColors==null || index >= greekedCell.fadeImageColors.length)
+                                    continue;
+								int value = greekedCell.fadeImageColors[index];
 								int red = (value >> 16) & 0xFF;
 								int green = (value >> 8) & 0xFF;
 								int blue = value & 0xFF;
