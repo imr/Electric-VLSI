@@ -186,10 +186,7 @@ public class DebugMenus
                             for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
                             {
                                 Library lib = it.next();
-                                int count = 0;
-                                for (Iterator<Cell> itCell = lib.getCells(); itCell.hasNext(); count++)
-                                    itCell.next();
-                                System.out.println("Library " + lib.getName() + " number = " + count);
+                                System.out.println("Library " + lib.getName() + " number = " + lib.getNumCells());
                             }
                         }});
         gildaMenu.addMenuItem("Flat fill", null,
