@@ -493,6 +493,7 @@ public class MenuBar extends JMenuBar
      */
     protected boolean processKeyBinding(KeyStroke ks, KeyEvent e,
                                         int condition, boolean pressed) {
+        ActivityLogger.logMessage("ProcessKeyBinding " + Integer.toHexString(e.getKeyCode()));
         // ignore key bindings if set
         if (ignoreKeyBindings) return false;
 

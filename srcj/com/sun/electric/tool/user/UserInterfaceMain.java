@@ -51,6 +51,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
@@ -795,6 +796,15 @@ public class UserInterfaceMain extends AbstractUserInterface
 //                database.lock(false);
             dispatchDepth++;
             try {
+                if (e instanceof KeyEvent) {
+                    KeyEvent ke = (KeyEvent)e;
+                    int code = ke.getKeyCode();
+                    char ch = ke.getKeyChar();
+                    ActivityLogger.logMessage("KeyEvent " + ke.getID() + " when=" + ke.getWhen() +
+                            " modifiers=" + Integer.toHexString(ke.getModifiersEx()) +
+                            " code=" + Integer.toHexString(code) + " char=" + Integer.toHexString(ch) +
+                            (' ' < ch && ch < 0x7f ? "(" + ch + ")": ""));
+                }
                 super.dispatchEvent(e);
             }
             catch(Throwable ex) {

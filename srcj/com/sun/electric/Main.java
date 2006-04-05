@@ -125,7 +125,7 @@ public final class Main
 			System.exit(0);
 		}
 
-        ActivityLogger.initialize(true, true, false);
+        ActivityLogger.initialize(true, true, true/*false*/);
 
 		// -debug for debugging
         Job.Mode runMode = Job.Mode.FULL_SCREEN;
