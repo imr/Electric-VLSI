@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/5/06, GVG) Another NullPointerException when making certain layers invisible (Bug #920)
+FIX: This is not a permanent fix, just detecting that index doesn't go over greekedCell.fadeImageColors.length.
+
 BUG: (4/5/06, GVG) Highlighter selects wrong object when dialog windows are open (Bug #917).
 FIX: Error in Highlight2.getInfo(): it changed eobj value.
 
