@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.tool.Job.Mode;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.Job;
 
