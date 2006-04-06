@@ -152,8 +152,7 @@ public class Highlighter implements DatabaseChangeListener {
     /**
 	 * Method to add a text selection to the list of highlighted objects.
 	 * @param cell the Cell in which this area resides.
-	 * @param var the Variable associated with the text (text is then a visual of that variable).
-	 * @param name the Name associated with the text (for the name of Nodes and Arcs).
+	 * @param varKey the Variable.Key associated with the text (text is then a visual of that variable).
 	 * @return the newly created Highlight object.
 	 */
 	public Highlight2 addText(ElectricObject eobj, Cell cell, Variable.Key varKey)
@@ -315,7 +314,7 @@ public class Highlighter implements DatabaseChangeListener {
     /**
      * Add a Highlight
      */
-    private synchronized void addHighlight(Highlight2 h) {
+    public synchronized void addHighlight(Highlight2 h) {
         if (h == null) return;
         highlightList.add(h);
         changed = true;
@@ -557,16 +556,23 @@ public class Highlighter implements DatabaseChangeListener {
             highOffY = this.highOffY;
         }
 
-        for (Highlight2 h : getHighlights()) {
+        List<Highlight2> list = highlightList; //getHighlights();
+        long start = System.currentTimeMillis();
+
+        Color colorH = new Color(User.getColorHighlight());
+        Color colorM = new Color(User.getColorMouseOverHighlight());
+        Stroke stroke = Highlight2.solidLine;
+
+        for (Highlight2 h : list)
+        {
             // only show highlights for the current cell
-            if (h.getCell() == wnd.getCell()) {
-                Color color = new Color(User.getColorHighlight());
-                Stroke stroke = Highlight2.solidLine;
+            if (h.getCell() == wnd.getCell())
+            {
                 boolean setConnected = true;
-                if (type == MOUSEOVER_HIGHLIGHTER) {
-                    color = new Color(51, 255, 255);
-                    stroke = Highlight2.solidLine;
-//                    h.setHighlightConnected(false);
+                Color color = colorH;
+                if (type == MOUSEOVER_HIGHLIGHTER)
+                {
+                    color = colorM;
                     setConnected = false;
                 }
                 h.showHighlight(wnd, g, highOffX, highOffY, (num == 1), color, stroke, setConnected);
@@ -1177,7 +1183,7 @@ public class Highlighter implements DatabaseChangeListener {
 	 * The name of an unexpanded cell instance is always hard-to-select.
 	 * Other objects are set this way by the user (although the cell-center is usually set this way).
 	 */
-	public int findObject(Point2D pt, EditWindow wnd, boolean exclusively,
+	public Highlight2 findObject(Point2D pt, EditWindow wnd, boolean exclusively,
 		boolean another, boolean invert, boolean findPort, boolean findPoint, boolean findSpecial, boolean findText)
 	{
 		// initialize
@@ -1188,6 +1194,7 @@ public class Highlighter implements DatabaseChangeListener {
 		Cell cell = wnd.getCell();
         Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
 		List<Highlight2> underCursor = findAllInArea(this, cell, exclusively, another, findPort, findPoint, findSpecial, findText, bounds, wnd);
+        Highlight2 found = null;
 
 		// if nothing under the cursor, stop now
 		if (underCursor.size() == 0)
@@ -1197,7 +1204,7 @@ public class Highlighter implements DatabaseChangeListener {
 				clear();
 				finished();
 			}
-			return 0;
+			return found;
 		}
 
         // get last selected object. Next selected object should be related
@@ -1218,10 +1225,12 @@ public class Highlighter implements DatabaseChangeListener {
 		// multiple objects under the cursor
 		if (underCursor.size() > 1 && another)
 		{
+            // I don't think you should loop and get getHighlight() every time
+                List<Highlight2> highlightList = getHighlights();
 			for(int j=0; j<getNumHighlights(); j++)
 			{
-                List<Highlight2> highlightList = getHighlights();
 				Highlight2 oldHigh = highlightList.get(j);
+//                List<Highlight2> highlightList = getHighlights();
 				for(int i=0; i<underCursor.size(); i++)
 				{
 					if (oldHigh.sameThing(underCursor.get(i)))
@@ -1236,47 +1245,47 @@ public class Highlighter implements DatabaseChangeListener {
 						}
 						if (i < underCursor.size()-1)
 						{
-							addHighlight(underCursor.get(i+1));
+							found = (underCursor.get(i+1));
 						} else
 						{
-							addHighlight(underCursor.get(0));
+							found = (underCursor.get(0));
 						}
+                        addHighlight(found);
 						finished();
-						return 1;
+						return found;
 					}
 				}
 			}
 		}
 
 		// just use the first in the list
+        found = underCursor.get(0);
 		if (invert)
 		{
-			Highlight2 newHigh = underCursor.get(0);
             List<Highlight2> highlightList = getHighlights();
-			for(int i=0; i<highlightList.size(); i++)
+            for (Highlight2 h : highlightList)
 			{
-				if (newHigh.sameThing(highlightList.get(i)))
+				if (found.sameThing(h))
 				{
-					remove(highlightList.get(i));
+					remove(h);
 					finished();
-					return 1;
+                    System.out.println("check this case");
+					return null; // return 1;
 				}
 			}
-			addHighlight(newHigh);
-			finished();
 		} else
 		{
 			clear();
-			addHighlight(underCursor.get(0));
-			finished();
 		}
+        addHighlight(found);
+        finished();
 
 //		// reevaluate if this is code
 //		if ((curhigh->status&HIGHTYPE) == HIGHTEXT && curhigh->fromvar != NOVARIABLE &&
 //			curhigh->fromvarnoeval != NOVARIABLE &&
 //				curhigh->fromvar != curhigh->fromvarnoeval)
 //					curhigh->fromvar = evalvar(curhigh->fromvarnoeval, 0, 0);
-		return 1;
+		return found;
 	}
 
 //    private void printHighlightList(List<Highlight> highs) {

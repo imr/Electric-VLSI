@@ -4,10 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
-IMP: (4/6/06, GVG) Adding AFG exclusion regions.
+BUG: (4/5/06, GVG) Network highlight does not highlight (Bug #921). It also covers #716.
+FIX: Major changes in Highlighter and Highlight2 classes.
+(1). Making sure mouseOverHighlight contains only 1 element (changes in ClickZoomWireListener.mouseOver, Highlighter.findObject)
+(2). Optimization in Highlighter.showHighlights().
+(3). showInternalHighlight for NodeInst only highlights objects electrically connected to it only if 1 highlight element is drawn.
+The code is not efficient and extremely time consuming. Eg. DrawTime(2415 HighlightEOBJ)=43925 msecs, DrawTime(1445)=10 msecs.
+This might be a temporary solution until code is rewritten
 
-BUG: (4/5/06, GVG) Network highlight does not highlight (Bug #921).
-FIX: Removing dependency on TRIMMEDDISPLAY and make it on currentDepth. It should fix Bug #716.
+IMP: (4/6/06, GVG) Adding AFG exclusion regions.
 
 BUG: (4/5/06, GVG) Another NullPointerException when making certain layers invisible (Bug #920)
 FIX: This is not a permanent fix, just detecting that index doesn't go over greekedCell.fadeImageColors.length.

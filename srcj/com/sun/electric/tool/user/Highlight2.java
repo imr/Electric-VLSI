@@ -933,10 +933,10 @@ class HighlightEOBJ extends Highlight2
 			}
 
             // draw nodeInst outline
-            Poly niPoly = getNodeInstOutline(ni);
-            boolean niOpened = (niPoly.getStyle() == Poly.Type.OPENED);
             if ((offX == 0 && offY == 0) || point < 0)
             {
+                Poly niPoly = getNodeInstOutline(ni);
+                boolean niOpened = (niPoly.getStyle() == Poly.Type.OPENED);
             	Point2D [] points = niPoly.getPoints();
             	drawOutlineFromPoints(wnd, g, points, offX, offY, niOpened, false);
             }
@@ -1008,7 +1008,7 @@ class HighlightEOBJ extends Highlight2
                 // unless specified not to. HighlightConnected is set to false by addNetwork when
                 // it figures out what's connected and adds them manually. Because they are added
                 // in addNetwork, we shouldn't try and add connected objects here.
-                if (highlightConnected) {
+                if (highlightConnected && onlyHighlight) {
                     Netlist netlist = cell.acquireUserNetlist();
 					if (netlist == null) return;
 					NodeInst originalNI = ni;

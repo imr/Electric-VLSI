@@ -25,12 +25,10 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.*;
 
@@ -194,11 +192,12 @@ public class OutlineListener
 
 		// standard click-and-drag: see if cursor is over anything
 		Point2D pt = wnd.screenToDatabase(x, y);
-		int numFound = highlighter.findObject(pt, wnd, true, false, false, false, true, false, false);
+		Highlight2 found = highlighter.findObject(pt, wnd, true, false, false, false, true, false, false);
 		doingMotionDrag = false;
-		if (numFound != 0)
+		if (found != null)
 		{
 			high = highlighter.getOneHighlight();
+            assert (high == found);
 			outlineNode = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
 			if (high != null && outlineNode != null)
 			{

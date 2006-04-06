@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.Color;
@@ -52,7 +53,7 @@ import java.util.Set;
  */
 public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 
-//	private static final boolean TRIMMEDDISPLAY = true;
+	private static final boolean TRIMMEDDISPLAY = false;
     private Cell cell;
     private Netlist netlist;
     private Set<Network> nets;
@@ -145,8 +146,9 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         HashSet<ElectricObject> objs = new HashSet<ElectricObject>();
         
         // all port instances on the networks
-        if (depth == 0)
-//		if (!TRIMMEDDISPLAY)
+        long start = System.currentTimeMillis();
+//        if (depth == 0)
+		if (!TRIMMEDDISPLAY)
 		{
 	        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
 	            NodeInst ni = it.next();
@@ -168,8 +170,8 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
             for(int i=0; i<width; i++) {
                 if (!nets.contains(netlist.getNetwork(ai, i))) continue;
                 objs.add(ai);
-                if (depth == 0)
-//        		if (!TRIMMEDDISPLAY)
+//                if (depth == 0)
+        		if (!TRIMMEDDISPLAY)
         		{
 	                // also highlight end nodes of arc, if they are primitive nodes
 	                PortInst pi = ai.getHeadPortInst();
@@ -188,8 +190,8 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         }
 
         // show all exports on the networks if at the top level
-        if (depth == 0)
-//		if (!TRIMMEDDISPLAY)
+//        if (depth == 0)
+		if (!TRIMMEDDISPLAY)
 		{
 	        for(Iterator<PortProto> pIt = cell.getPorts(); pIt.hasNext(); ) {
 	            Export pp = (Export)pIt.next();
@@ -200,6 +202,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 		        }
 			}
 		}
+        System.out.println("To draw " + objs.size() + " " + TextUtils.getElapsedTime(System.currentTimeMillis()-start));
         return objs;
     }
 
@@ -249,10 +252,11 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
             Poly poly = null;
             if (o instanceof ArcInst) {
                 ArcInst ai = (ArcInst)o;
-                if (currentDepth > 0)
-//				if (TRIMMEDDISPLAY)
-					poly = new Poly(new Point2D.Double[]{ai.getHeadLocation().mutable(), ai.getTailLocation().mutable()}); else
-						poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+//                if (currentDepth > 0)
+				if (TRIMMEDDISPLAY)
+					poly = new Poly(new Point2D.Double[]{ai.getHeadLocation().mutable(), ai.getTailLocation().mutable()});
+                else
+                    poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
             } else if (o instanceof PortInst) {
                 PortInst pi = (PortInst)o;
                 NodeInst ni = pi.getNodeInst();

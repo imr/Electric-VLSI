@@ -323,13 +323,13 @@ public class ClickZoomWireListener
 	                        startObj = h1.getElectricObject();
                             router.startInteractiveRoute(wnd);
                             // look for stuff under the mouse
-                            int numFound = highlighter.findObject(dbClick, wnd, false, false, false, true, false, specialSelect, false);
-                            if (numFound == 0) {
+                            Highlight2 h2 = highlighter.findObject(dbClick, wnd, false, false, false, true, false, specialSelect, false);
+                            if (h2 == null) {
                                 // not over anything, nothing to connect to
                                 endObj = null;
                                 wiringTarget = null;
                             } else {
-                                Highlight2 h2 = highlighter.getHighlights().iterator().next();
+//                                Highlight2 h2 = highlighter.getHighlights().iterator().next();
                                 endObj = h2.getElectricObject();
                             }
                             currentArcWhenWiringPressed = User.getUserTool().getCurrentArcProto();
@@ -441,8 +441,8 @@ public class ClickZoomWireListener
 	                // findObject handles cycling through objects (another)
 	                // and inverting selection (invertSelection)
 	                // and selection special objects (specialSelection)
-	                int numFound = highlighter.findObject(dbClick, wnd, false, another, invertSelection, true, false, specialSelect, true);
-	                if (numFound == 0) {
+	                Highlight2 h = highlighter.findObject(dbClick, wnd, false, another, invertSelection, true, false, specialSelect, true);
+	                if (h == null) {
 	                    // not over anything: drag out a selection rectangle
 	                    wnd.setStartDrag(clickX, clickY);
 	                    wnd.setEndDrag(clickX, clickY);
@@ -516,8 +516,8 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
 	                // see if anything under the pointer
-	                int numFound = highlighter.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
-	                if (numFound == 0) {
+	                Highlight2 h3 = highlighter.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, false);
+	                if (h3 == null) {
 	                    // not over anything, nothing to connect to
 	                    EditWindow.gridAlign(dbMouse);
 	                    endObj = null;
@@ -900,27 +900,46 @@ public class ClickZoomWireListener
             // maintain current selection
         } else {
             // find something that would get selected
-            tempHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
-        }
-        // check if mouse-over highlight needs to change
-        List<Highlight2> mouseOld = mouseOverHighlighter.getHighlights();
-        List<Highlight2> mouseNew = tempHighlighter.getHighlights();
-        boolean changed = false;
-        if (mouseOld.size() == mouseNew.size()) {
-            for (int i=0; i<mouseOld.size(); i++) {
-                Highlight2 h1 = mouseOld.get(i);
-                Highlight2 h2 = mouseNew.get(i);
-                if (!h1.equals(h2)) { changed = true; break; }
+            Highlight2 found = tempHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
+            // Checking if found highlight is not found in existing list and then force the update.
+            if (found != null)
+            {
+                List<Highlight2> mouseOld = mouseOverHighlighter.getHighlights();
+                boolean changed = mouseOld.size() == 0;
+                assert(mouseOld.size() <= 1);
+                for (Highlight2 h : mouseOld)
+                {
+                    if (!h.equals(found)) { changed = true; break; }
+                }
+                if (changed)
+                {
+                    tempHighlighter.clear();
+                    tempHighlighter.addHighlight(found);
+                    // copy state into mouse highlighter, signal change (using finished)
+                    mouseOverHighlighter.copyState(tempHighlighter);
+                    mouseOverHighlighter.finished();
+                    wnd.repaint();
+                }
             }
-        } else
-            changed = true;
-
-        if (changed) {
-            // copy state into mouse highlighter, signal change (using finished)
-            mouseOverHighlighter.copyState(tempHighlighter);
-            mouseOverHighlighter.finished();
-            wnd.repaint();
         }
+//        // check if mouse-over highlight needs to change
+//        List<Highlight2> mouseOld = mouseOverHighlighter.getHighlights();
+//        List<Highlight2> mouseNew = tempHighlighter.getHighlights();
+//        if (mouseOld.size() == mouseNew.size()) {
+//            for (int i=0; i<mouseOld.size(); i++) {
+//                Highlight2 h1 = mouseOld.get(i);
+//                Highlight2 h2 = mouseNew.get(i);
+//                if (!h1.equals(h2)) { changed = true; break; }
+//            }
+//        } else
+//            changed = true;
+//
+//        if (changed) {
+//            // copy state into mouse highlighter, signal change (using finished)
+//            mouseOverHighlighter.copyState(tempHighlighter);
+//            mouseOverHighlighter.finished();
+//            wnd.repaint();
+//        }
         // JFluid results.
         tempHighlighter.delete();  // remove from database
         tempHighlighter = null;
