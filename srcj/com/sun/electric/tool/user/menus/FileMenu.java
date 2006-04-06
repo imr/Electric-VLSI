@@ -1420,10 +1420,14 @@ public class FileMenu {
                             "Error during forced library save, not quiting", "Saving Failed", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                ActivityLogger.finished();
                 System.exit(1);
             }
             if (i == 1) return;
-            if (i == 2) System.exit(1);
+            if (i == 2) {
+                ActivityLogger.finished();
+                System.exit(1);
+            }
         }
         int i = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), new String [] {"Warning! You are about to kill Electric!",
             "Do you really want to force quit?"}, "Force Quit", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
