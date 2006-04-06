@@ -24,13 +24,7 @@
  */
 package com.sun.electric.database.network;
 
-import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.Pref;
@@ -41,11 +35,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.ErrorHighlight;
-import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
