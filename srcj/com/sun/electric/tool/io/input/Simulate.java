@@ -101,40 +101,45 @@ public class Simulate extends Input
 		plotSimulationResults(FileType.ARCHSIMOUT, null, null, null);
 	}
 
-	/**
-	 * Method to read simulation output of a given type.
-	 */
-	public static void plotSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww)
-	{
-		Simulate is = null;
-		if (type == FileType.ARCHSIMOUT)
-		{
-			is = (Simulate)new ArchSimOut();
-		} else if (type == FileType.HSPICEOUT)
-		{
-			is = (Simulate)new HSpiceOut();
-		} else if (type == FileType.PSPICEOUT)
-		{
-			is = (Simulate)new PSpiceOut();
-		} else if (type == FileType.RAWSPICEOUT)
-		{
-			is = (Simulate)new RawSpiceOut();
-		} else if (type == FileType.RAWSSPICEOUT)
-		{
-			is = (Simulate)new SmartSpiceOut();
-		} else if (type == FileType.SPICEOUT)
-		{
-			is = (Simulate)new SpiceOut();
-		} else if (type == FileType.EPIC)
+    private static Simulate getSimulate(FileType type) {
+        Simulate is = null;
+        if (type == FileType.ARCHSIMOUT)
+        {
+            is = (Simulate)new ArchSimOut();
+        } else if (type == FileType.HSPICEOUT)
+        {
+            is = (Simulate)new HSpiceOut();
+        } else if (type == FileType.PSPICEOUT)
+        {
+            is = (Simulate)new PSpiceOut();
+        } else if (type == FileType.RAWSPICEOUT)
+        {
+            is = (Simulate)new RawSpiceOut();
+        } else if (type == FileType.RAWSSPICEOUT)
+        {
+            is = (Simulate)new SmartSpiceOut();
+        } else if (type == FileType.SPICEOUT)
+        {
+            is = (Simulate)new SpiceOut();
+        } else if (type == FileType.EPIC)
         {
             if (Simulation.isSpiceEpicReaderProcess())
                 is = (Simulate)new EpicOutProcess();
             else
                is = (Simulate)new EpicOut();
         } else if (type == FileType.VERILOGOUT)
-		{
-			is = (Simulate)new VerilogOut();
-		}
+        {
+            is = (Simulate)new VerilogOut();
+        }
+        return is;
+    }
+
+	/**
+	 * Method to read simulation output of a given type.
+	 */
+	public static void plotSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww)
+	{
+		Simulate is = getSimulate(type);
 		if (is == null)
 		{
 			System.out.println("Cannot handle " + type.getName() + " files yet");
@@ -169,8 +174,33 @@ public class Simulate extends Input
 				fileURL = TextUtils.makeURLToFile(filePath + fileName);
 			}
 		}
-		new ReadSimulationOutput(type, is, fileURL, cell, ww);
+		(new ReadSimulationOutput(type, is, fileURL, cell, ww)).startJob();
 	}
+
+    public static Stimuli readSimulationResults(FileType type, Cell cell, URL fileURL) {
+        Simulate is = getSimulate(type);
+        if (is == null)
+        {
+            System.out.println("Cannot handle " + type.getName() + " files yet");
+            return null;
+        }
+        if (cell == null) {
+            System.out.println("Error reading simulation results; specified Cell is null");
+            return null;
+        }
+        if (fileURL == null) {
+            System.out.println("Error reading simulation results; specified file is null");
+            return null;
+        }
+        ReadSimulationOutput job = new ReadSimulationOutput(type, is, fileURL, cell, null);
+        try {
+            job.doIt();
+        } catch (JobException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+        return job.sd;
+    }
 
 	/**
 	 * Class to read simulation output in a new thread.
@@ -194,7 +224,6 @@ public class Simulate extends Input
 			this.fileURL = fileURL;
 			this.cell = cell;
 			this.ww = ww;
-			startJob();
 		}
 
 		public boolean doIt() throws JobException
