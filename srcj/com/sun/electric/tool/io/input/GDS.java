@@ -1248,13 +1248,13 @@ public class GDS extends Input
 			{
 				System.out.println("GDS layer " + layerNum + ", type " + layerType + " unknown, using Generic:DRC");
 			}
-			layerNames.put(layerInt, Generic.tech.drc_lay);
+			layerNames.put(layerInt, Generic.tech.drcLay);
 			layerUsed = false;
 			layerNodeProto = null;
 		} else
 		{
 			layerNodeProto = layer.getNonPseudoLayer().getPureLayerNode();
-			if (layer == Generic.tech.drc_lay && IOTool.isGDSInIgnoresUnknownLayers())
+			if (layer == Generic.tech.drcLay && IOTool.isGDSInIgnoresUnknownLayers())
 				layerUsed = false;
             pinNodeProto = Generic.tech.universalPinNode;
 			if (pinLayers.contains(layerInt)) {
@@ -1271,7 +1271,7 @@ public class GDS extends Input
 			if (layerNodeProto == null)
 			{
 				System.out.println("Error: no pure layer node for layer "+layer.getName());
-				layerNames.put(layerInt, Generic.tech.drc_lay);
+				layerNames.put(layerInt, Generic.tech.drcLay);
 				layerUsed = false;
 			}
 		}

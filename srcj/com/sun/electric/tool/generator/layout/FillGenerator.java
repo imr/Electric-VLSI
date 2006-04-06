@@ -43,6 +43,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.extract.LayerCoverageTool;
@@ -1720,7 +1721,7 @@ public class FillGenerator implements Serializable {
         {
             NodeInst ni = itNode.next();
 
-            if (NodeInst.isSpecialGenericNode(ni)) continue; // Can't skip pins
+            if (Generic.isSpecialGenericNode(ni)) continue; // Can't skip pins
 
             // For removal
             if (nodesToRemove.contains(ni))
@@ -2347,6 +2348,31 @@ public class FillGenerator implements Serializable {
                             System.out.println("Skipping export " + p + " in " + ni);
                     }
                     portList.addAll(list);
+                }
+            }
+
+            // searching for exclusion regions. If port is inside these regions, then it will be removed.
+            // Search them in a chunk of ports. It should be faster
+            ObjectQTree tree = new ObjectQTree(topCell.getBounds());
+            List<Rectangle2D> searchBoxes = new ArrayList<Rectangle2D>(); // list of AFG boxes to use.
+
+            for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
+            {
+                NodeInst ni = it.next();
+                NodeProto np = ni.getProto();
+                if (np == Generic.tech.afgNode)
+                    searchBoxes.add(ni.getBounds());
+            }
+            if (searchBoxes.size() > 0)
+            {
+                for (PortInst p : portList)
+                {
+                    tree.add(p, p.getBounds());
+                }
+                for (Rectangle2D rect : searchBoxes)
+                {
+                    Set set = tree.find(rect);
+                    portList.removeAll(set);
                 }
             }
             return portList;

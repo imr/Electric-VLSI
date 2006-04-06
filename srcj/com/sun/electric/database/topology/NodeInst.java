@@ -100,20 +100,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
 
     /**
-	 * Method to detect if this Generic proto is not relevant for some tool calculation and therefore
-	 * could be skip. E.g. cellCenter, drcNodes, essential bounds.
-	 * Similar for layer generation and automatic fill.
-	 * @param ni the NodeInst in question.
-	 * @return true if it is a special node (cell center, etc.)
-	 */
-	public static boolean isSpecialGenericNode(NodeInst ni)
-	{
-		NodeProto np = ni.getProto();
-		return (np == Generic.tech.cellCenterNode || np == Generic.tech.drcNode ||
-		        np == Generic.tech.essentialBoundsNode);
-	}
-
-    /**
 	 * Method to detect if np is not relevant for some tool calculation and therefore
 	 * could be skip. E.g. cellCenter, drcNodes, essential bounds and pins in DRC.
 	 * Similar for layer generation
@@ -123,7 +109,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public static boolean isSpecialNode(NodeInst ni)
 	{
 		NodeProto np = ni.getProto();
-		return (isSpecialGenericNode(ni) || np.getFunction() == PrimitiveNode.Function.PIN ||
+		return (Generic.isSpecialGenericNode(ni) || np.getFunction() == PrimitiveNode.Function.PIN ||
 		        np.getFunction() == PrimitiveNode.Function.CONNECT);
 	}
 

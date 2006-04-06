@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+IMP: (4/6/06, GVG) Adding AFG exclusion regions.
+
 BUG: (4/5/06, GVG) Network highlight does not highlight (Bug #921).
 FIX: Removing dependency on TRIMMEDDISPLAY and make it on currentDepth. It should fix Bug #716.
 

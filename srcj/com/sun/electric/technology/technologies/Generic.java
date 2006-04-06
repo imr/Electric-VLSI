@@ -33,6 +33,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.*;
 
 import java.util.Iterator;
+import java.awt.*;
 
 /**
  * This is the Generic technology.
@@ -40,15 +41,17 @@ import java.util.Iterator;
 public class Generic extends Technology
 {
 	/** the Generic Technology object. */	public static final Generic tech = new Generic();
-	/** the Universal Layer. */				public Layer universal_lay;
-	/** the Glyph Layer. */					public Layer glyph_lay;
-	/** the DRC exclusion Layer. */			public Layer drc_lay;
+	/** the Universal Layer. */				private Layer universalLay;
+	/** the Glyph Layer. */					private Layer glyphLay;
+	/** the DRC exclusion Layer. */			public Layer drcLay;
+	/** the AFG exclusion Layer. */			public Layer afgLay;
 	/** the Universal Pin node. */			public PrimitiveNode universalPinNode;
 	/** the Invisible Pin node. */			public PrimitiveNode invisiblePinNode;
 	/** the Unrouted Pin node. */			public PrimitiveNode unroutedPinNode;
 	/** the Cell-Center node. */			public PrimitiveNode cellCenterNode;
 	/** the Port-definition node. */		public PrimitiveNode portNode;
 	/** the DRC exclusion node. */			public PrimitiveNode drcNode;
+	/** the AFG exclusion node. */			public PrimitiveNode afgNode;
 	/** the Essential-bounds node. */		public PrimitiveNode essentialBoundsNode;
 	/** the Simulation-Probe node. */		public PrimitiveNode simProbeNode;
 	/** the Universal arc. */				public ArcProto universal_arc;
@@ -74,7 +77,7 @@ public class Generic extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** Universal layer */
-		universal_lay = Layer.newInstance(this, "Universal",
+		universalLay = Layer.newInstance(this, "Universal",
 			new EGraphics(false, true, null, 0, 0,0,0,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
@@ -89,13 +92,18 @@ public class Generic extends Technology
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Glyph layer */
-		glyph_lay = Layer.newInstance(this, "Glyph",
+		glyphLay = Layer.newInstance(this, "Glyph",
 			new EGraphics(false, true, null, 0, 0,0,0,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** DRC layer */
-		drc_lay = Layer.newInstance(this, "DRC",
+		drcLay = Layer.newInstance(this, "DRC",
 			new EGraphics(false, true, null, 0, 255,190,6,1.0,true,
+			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+
+        /** AFG layer */
+		afgLay = Layer.newInstance(this, "AFG",
+			new EGraphics(false, true, null, 0, 255,6,190,1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Simulation Probe layer */
@@ -104,11 +112,12 @@ public class Generic extends Technology
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions
-		universal_lay.setFunction(Layer.Function.UNKNOWN);											// Universal
+		universalLay.setFunction(Layer.Function.UNKNOWN);											// Universal
 		invisible_lay.setFunction(Layer.Function.UNKNOWN, Layer.Function.NONELEC);					// Invisible
 		unrouted_lay.setFunction(Layer.Function.UNKNOWN);											// Unrouted
-		glyph_lay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);							// Glyph
-		drc_lay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);							// DRC
+		glyphLay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);							// Glyph
+		drcLay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);							// DRC
+		afgLay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);							// AFG
 		simprobe_lay.setFunction(Layer.Function.ART, Layer.Function.NONELEC);						// Sim probe
 
 		//**************************************** ARCS ****************************************
@@ -116,7 +125,7 @@ public class Generic extends Technology
 		/** Universal arc */
 		universal_arc = ArcProto.newInstance(this, "Universal", 0.0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(universal_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(universalLay, 0, Poly.Type.FILLED)
 		});
 		universal_arc.setFunction(ArcProto.Function.UNKNOWN);
 		universal_arc.setFactoryFixedAngle(true);
@@ -146,7 +155,7 @@ public class Generic extends Technology
 		universalPinNode = PrimitiveNode.newInstance("Universal-Pin", this, 1.0, 1.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(universal_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.NodeLayer(universalLay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
@@ -192,8 +201,8 @@ public class Generic extends Technology
 		cellCenterNode = PrimitiveNode.newInstance("Facet-Center", this, 0.0, 0.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.BIGCROSS, Technology.NodeLayer.POINTS, Technology.TechPoint.makeCenterBox())
+				new Technology.NodeLayer(glyphLay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(glyphLay, 0, Poly.Type.BIGCROSS, Technology.NodeLayer.POINTS, Technology.TechPoint.makeCenterBox())
 			});
 		cellCenterNode.addPrimitivePorts(new PrimitivePort []
 			{
@@ -207,7 +216,7 @@ public class Generic extends Technology
 		portNode = PrimitiveNode.newInstance("Port", this, 6.0, 6.0, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
+				new Technology.NodeLayer(glyphLay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(2))
 			});
 		portNode.addPrimitivePorts(new PrimitivePort []
 			{
@@ -221,7 +230,7 @@ public class Generic extends Technology
 		drcNode = PrimitiveNode.newInstance("DRC-Node", this, 2.0, 2.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(drc_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(drcLay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		drcNode.addPrimitivePorts(new PrimitivePort []
 			{
@@ -231,11 +240,25 @@ public class Generic extends Technology
 		drcNode.setFunction(PrimitiveNode.Function.NODE);
 		drcNode.setHoldsOutline();
 
+        /** AFG Node */
+		afgNode = PrimitiveNode.newInstance("AFG-Node", this, 2.0, 2.0, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(afgLay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+			});
+		afgNode.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, afgNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
+			});
+		afgNode.setFunction(PrimitiveNode.Function.NODE);
+		afgNode.setHoldsOutline();
+
 		/** Essential Bounds Node */
 		essentialBoundsNode = PrimitiveNode.newInstance("Essential-Bounds", this, 0.0, 0.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(glyph_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.NodeLayer(glyphLay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.fromCenter(-1), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.fromCenter(-1))})
@@ -262,8 +285,15 @@ public class Generic extends Technology
 		simProbeNode.setCanBeZeroSize();
 
 		// The pure layer nodes
-		drc_lay.setPureLayerNode(drcNode);
+		drcLay.setPureLayerNode(drcNode);
+        afgLay.setPureLayerNode(afgNode);
 	}
+
+    public static void setBackgroudColor(Color c)
+    {
+		tech.universalLay.getGraphics().setColor(c);
+		tech.glyphLay.getGraphics().setColor(c);
+    }
 
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
 	/**
@@ -344,5 +374,19 @@ public class Generic extends Technology
 	{
 		if (name.equals("Cell-Center")) return(cellCenterNode);
 		return null;
+	}
+
+    /**
+	 * Method to detect if this Generic proto is not relevant for some tool calculation and therefore
+	 * could be skip. E.g. cellCenter, drcNodes, essential bounds.
+	 * Similar for layer generation and automatic fill.
+	 * @param ni the NodeInst in question.
+	 * @return true if it is a special node (cell center, etc.)
+	 */
+	public static boolean isSpecialGenericNode(NodeInst ni)
+	{
+		NodeProto np = ni.getProto();
+		return (np == tech.cellCenterNode || np == tech.drcNode ||
+		        np == tech.essentialBoundsNode || np == tech.afgNode);
 	}
 }

@@ -592,8 +592,7 @@ public class WindowMenu {
 		User.setColorWaveformStimuli(Color.RED.getRGB());
 
 		// change the colors in the "Generic" technology
-		Generic.tech.universal_lay.getGraphics().setColor(Color.BLACK);
-		Generic.tech.glyph_lay.getGraphics().setColor(Color.BLACK);
+        Generic.setBackgroudColor(Color.BLACK);
 
         EditWindow.repaintAllContents();
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -619,8 +618,7 @@ public class WindowMenu {
 		User.setColorWaveformStimuli(Color.RED.getRGB());
 
 		// change the colors in the "Generic" technology
-		Generic.tech.universal_lay.getGraphics().setColor(Color.WHITE);
-		Generic.tech.glyph_lay.getGraphics().setColor(Color.WHITE);
+        Generic.setBackgroudColor(Color.WHITE);
 
 		EditWindow.repaintAllContents();
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -646,8 +644,7 @@ public class WindowMenu {
 		User.setColorWaveformStimuli(Color.RED.getRGB());
 
 		// change the colors in the "Generic" technology
-		Generic.tech.universal_lay.getGraphics().setColor(Color.BLACK);
-		Generic.tech.glyph_lay.getGraphics().setColor(Color.BLACK);
+        Generic.setBackgroudColor(Color.BLACK);
 
         EditWindow.repaintAllContents();
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )

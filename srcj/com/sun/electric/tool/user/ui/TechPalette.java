@@ -500,6 +500,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuItem = new JMenuItem("DRC Exclusion");
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.drcNode));
                 specialMenu.add(menuItem);
+                menuItem = new JMenuItem("AFG Exclusion");
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, Generic.tech.afgNode));
+                specialMenu.add(menuItem);
+
 
                 specialMenu.addSeparator();
 
