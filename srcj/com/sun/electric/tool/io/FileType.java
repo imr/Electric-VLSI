@@ -65,6 +65,7 @@ public class FileType implements Serializable {
 	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = makeFileTypeNumeric("HSpice Output", new String[] {"tr"}, "HSpice Output File (tr0,1,2...)");
 	/** Describes HPGL files. */			public static final FileType HPGL         = makeFileType("HPGL", new String[] {"hpgl2"}, "HPGL File (hpgl2)");
 	/** Describes HTML files. */			public static final FileType HTML         = makeFileType("HTML", new String[] {"html"}, "HTML File (html)");
+	/** Describes HTML files. */			public static final FileType I            = makeFileType("I", new String[] {"i"}, "Estimated Currents File (i)");
 	/** Describes IRSIM decks. */			public static final FileType IRSIM        = makeFileType("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
 	/** Describes IRSIM parameter decks. */	public static final FileType IRSIMPARAM   = makeFileType("IRSIM Parameters", new String[] {"prm"}, "IRSIM Parameter Deck (prm)");
 	/** Describes IRSIM vector decks. */	public static final FileType IRSIMVECTOR  = makeFileType("IRSIM Vectors", new String[] {"cmd"}, "IRSIM Vector Deck (cmd)");
