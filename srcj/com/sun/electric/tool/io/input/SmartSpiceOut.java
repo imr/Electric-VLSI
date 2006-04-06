@@ -148,7 +148,7 @@ public class SmartSpiceOut extends Simulate
 					if (i == 0)
 					{
 						if (!name.equals("time"))
-							System.out.println("Warning: the first variable should be time, is '" + name + "'");
+							System.out.println("Warning: the first variable (the sweep variable) should be time, is '" + name + "'");
 					} else
 					{
 						AnalogSignal as = new AnalogSignal(an);
@@ -226,7 +226,9 @@ public class SmartSpiceOut extends Simulate
 				// read the data
 				for(int j=0; j<rowCount; j++)
 				{
-					double time = dataInputStream.readDouble();
+                    long lval = dataInputStream.readLong();
+                    lval = Long.reverseBytes(lval);
+                    double time = Double.longBitsToDouble(lval);
 					an.setCommonTime(j, time);
 					for(int i=0; i<signalCount; i++)
 					{
@@ -234,7 +236,7 @@ public class SmartSpiceOut extends Simulate
                         if (true) {
                             // swap bytes, for smartspice raw files generated on linux.
                             // with ".options post" (the default) yields this binary format
-                            long lval = dataInputStream.readLong();
+                            lval = dataInputStream.readLong();
                             lval = Long.reverseBytes(lval);
                             value = Double.longBitsToDouble(lval);
                         } else {
