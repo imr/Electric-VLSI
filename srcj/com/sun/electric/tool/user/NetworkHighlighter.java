@@ -36,7 +36,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.Color;
@@ -146,7 +145,6 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         HashSet<ElectricObject> objs = new HashSet<ElectricObject>();
         
         // all port instances on the networks
-        long start = System.currentTimeMillis();
 //        if (depth == 0)
 		if (!TRIMMEDDISPLAY)
 		{
@@ -202,7 +200,6 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 		        }
 			}
 		}
-        System.out.println("To draw " + objs.size() + " " + TextUtils.getElapsedTime(System.currentTimeMillis()-start));
         return objs;
     }
 
