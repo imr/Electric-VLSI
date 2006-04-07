@@ -229,6 +229,7 @@ public class CVS {
 
     public static boolean isDELIB(Library lib) {
         URL libFile = lib.getLibFile();
+        if (libFile == null) return false;
         FileType type = OpenFile.getOpenFileType(libFile.getFile(), FileType.JELIB);
         return (type == FileType.DELIB);
     }
