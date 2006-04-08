@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Client;
 
 import java.awt.Component;
 import java.awt.Frame;
@@ -113,6 +114,10 @@ public class EDialog extends JDialog
 	 * Override it to cancel the dialog.
 	 */
 	protected void escapePressed() {}
+
+    protected void closeDialog() {
+        setVisible(false);
+    }
 
     protected void focusClearOnTextField(JTextComponent textComponent) {
         textComponent.setSelectionStart(0);

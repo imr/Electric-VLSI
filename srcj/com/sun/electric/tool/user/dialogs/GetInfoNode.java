@@ -50,6 +50,7 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -104,6 +105,16 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	 */
 	public static void showDialog()
 	{
+        if (Client.getOperatingSystem() == Client.OS.UNIX) {
+            // JKG 07Apr2006:
+            // On Linux, if a dialog is built, closed using setVisible(false),
+            // and then requested again using setVisible(true), it does
+            // not appear on top. I've tried using toFront(), requestFocus(),
+            // but none of that works.  Instead, I brute force it and
+            // rebuild the dialog from scratch each time.
+            if (theDialog != null) theDialog.dispose();
+            theDialog = null;
+        }
 		if (theDialog == null)
 		{
             JFrame jf;
@@ -115,9 +126,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		}
         theDialog.loadInfo();
 
-        if (!theDialog.isVisible())
+        if (!theDialog.isVisible()) {
             theDialog.pack();
-		theDialog.setVisible(true);
+		    theDialog.setVisible(true);
+        }
 	}
 
     /**
@@ -1692,7 +1704,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         prefs.putBoolean("GetInfoNode-bigger", bigger);
         if (ports.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 0);
         if (attributes.isSelected()) prefs.putInt("GetInfoNode-buttonSelected", 1);
-		setVisible(false);
+        super.closeDialog();
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -42,6 +42,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -176,6 +177,16 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	 */
 	public static void showDialog()
 	{
+        if (Client.getOperatingSystem() == Client.OS.UNIX) {
+            // JKG 07Apr2006:
+            // On Linux, if a dialog is built, closed using setVisible(false),
+            // and then requested again using setVisible(true), it does
+            // not appear on top. I've tried using toFront(), requestFocus(),
+            // but none of that works.  Instead, I brute force it and
+            // rebuild the dialog from scratch each time.
+            if (theDialog != null) theDialog.dispose();
+            theDialog = null;
+        }
 		if (theDialog == null)
 		{
             JFrame jf;
@@ -1321,7 +1332,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
-		setVisible(false);
+        super.closeDialog();
 
 		// clear the list of highlights so that this dialog doesn't trap memory
 		highlightList.clear();

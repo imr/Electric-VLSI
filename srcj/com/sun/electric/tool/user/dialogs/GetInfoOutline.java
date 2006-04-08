@@ -29,6 +29,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -60,6 +61,16 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 
 	public static void showOutlinePropertiesDialog()
 	{
+        if (Client.getOperatingSystem() == Client.OS.UNIX) {
+            // JKG 07Apr2006:
+            // On Linux, if a dialog is built, closed using setVisible(false),
+            // and then requested again using setVisible(true), it does
+            // not appear on top. I've tried using toFront(), requestFocus(),
+            // but none of that works.  Instead, I brute force it and
+            // rebuild the dialog from scratch each time.
+            if (theDialog != null) theDialog.dispose();
+            theDialog = null;
+        }
         if (theDialog == null) {
             if (TopLevel.isMDIMode()) {
                 JFrame jf = TopLevel.getCurrentJFrame();
@@ -467,7 +478,7 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
-		setVisible(false);
+        super.closeDialog();
 	}//GEN-LAST:event_closeDialog
 
 	/**
