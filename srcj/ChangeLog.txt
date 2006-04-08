@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+IMP: (4/8/06, GVG) More changes in AFG including AFG exclusion regions working.
+
 BUG: (4/5/06, GVG) Network highlight does not highlight (Bug #921). It also covers #716.
 FIX: Major changes in Highlighter and Highlight2 classes.
 (1). Making sure mouseOverHighlight contains only 1 element (changes in ClickZoomWireListener.mouseOver, Highlighter.findObject)

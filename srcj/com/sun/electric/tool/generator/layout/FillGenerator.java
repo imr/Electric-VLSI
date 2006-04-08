@@ -26,6 +26,7 @@ package com.sun.electric.tool.generator.layout;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Area;
 import java.util.*;
 import java.io.Serializable;
 
@@ -1174,11 +1175,12 @@ class TiledCell {
      * @param minTileSize
      * @param topCell
      * @param binary
+     * @param area
      * @return
      */
     public Cell makeQTreeCell(Cell master, Cell empty, Library autoLib, int tileOnX, int tileOnY, double minTileSize,
                               boolean isPlanHorizontal, StdCellParams stdCellParam, Cell topCell, boolean binary,
-                              List<Rectangle2D> topBoxList)
+                              List<Rectangle2D> topBoxList, Area area)
     {
         double fillWidth = tileOnX * minTileSize;
         double fillHeight = tileOnY * minTileSize;
@@ -1221,7 +1223,7 @@ class TiledCell {
 
         // refine recursively
         List<Cell> newElems = new ArrayList<Cell>();
-        refine(master, empty, autoLib, topBox, isPlanHorizontal, stdCellParam, newElems, topCell, binary);
+        refine(master, empty, autoLib, topBox, isPlanHorizontal, stdCellParam, newElems, topCell, binary, area);
         assert(newElems.size()==1);
         return newElems.iterator().next();
     }
@@ -1389,10 +1391,11 @@ class TiledCell {
      * @param box  bounding box representing region to refine. (0,0) is the top left corner
      * @param topCell
      * @param binary
+     * @param area
      * @return true if refined elements form std cell
      */
     private boolean refine(Cell master, Cell empty, Library autoLib, Rectangle2D box, boolean isPlanHorizontal, StdCellParams stdCellParam,
-                           List<Cell> newElems, Cell topCell, boolean binary)
+                           List<Cell> newElems, Cell topCell, boolean binary, Area area)
     {
         double masterW = master.getBounds().getWidth();
         double masterH = master.getBounds().getHeight();
@@ -1444,7 +1447,7 @@ class TiledCell {
                 int yPos = i/2;
                 bb = GenMath.getQTreeBox(x, y, widths[xPos], heights[yPos], centerX[xPos], centerY[yPos], i);
                 boxes.add(bb);
-                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary))
+                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         }
@@ -1469,7 +1472,7 @@ class TiledCell {
             {
                 bb = GenMath.getQTreeBox(x, y, widths[i], h, centerX[i], box.getCenterY(), i);
                 boxes.add(bb);
-                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary))
+                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         }
@@ -1493,7 +1496,7 @@ class TiledCell {
             {
                 bb = GenMath.getQTreeBox(x, y, w, heights[i], box.getCenterX(), centerY[i], i*2);
                 boxes.add(bb);
-                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary))
+                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         } else {
@@ -1508,11 +1511,13 @@ class TiledCell {
             AffineTransform fillTransUp = new AffineTransform(1.0, 0.0, 0.0, 1.0,
                     box.getCenterX() - master.getBounds().getCenterX(),
                     box.getCenterY() - master.getBounds().getCenterY());
+            boolean isExcluded = area.intersects(box);
             stdCell = true;
-            if (FillGenerator.detectOverlappingBars(master, fillTransUp, nodesToRemove, arcsToRemove,
+
+            if (isExcluded || FillGenerator.detectOverlappingBars(master, fillTransUp, nodesToRemove, arcsToRemove,
                     topCell, new NodeInst[] {}, drcSpacing))
             {
-                boolean emptyCell = arcsToRemove.size() == master.getNumArcs();
+                boolean emptyCell = isExcluded || arcsToRemove.size() == master.getNumArcs();
                 Cell dummyCell = null;
 
                 if (emptyCell)
@@ -1841,13 +1846,6 @@ public class FillGenerator implements Serializable {
                             PortInst port = itP.next();
                             Network net = netlist.getNetwork(port);
                             // They export the same, power or gnd so no worries about overlapping
-                            if (p != null)
-                            {
-                            boolean old = net.findExportWithSameCharacteristic(p.p.getPortProto()) != null;
-                            boolean newC = net.findExportWithSameCharacteristic(p.e) != null;
-                            if (old != newC)
-                                System.out.println("Old " + old + " new " + newC);
-                            }
                             if (p != null && net.findExportWithSameCharacteristic(p.e) != null)
                             {
                                 found = true;
@@ -1871,13 +1869,6 @@ public class FillGenerator implements Serializable {
                 Network net = netlist.getNetwork(ai, 0);
 
                 // They export the same, power or gnd so no worries about overlapping
-                if (p != null)
-                {
-                boolean old = net.findExportWithSameCharacteristic(p.p.getPortProto()) != null;
-                boolean newC = net.findExportWithSameCharacteristic(p.e) != null;
-                if (old != newC)
-                                System.out.println("Old " + old + " new " + newC);
-                }
                 if (p != null && net.findExportWithSameCharacteristic(p.e) != null)
                     continue; // no match in network type
 
@@ -2050,7 +2041,7 @@ public class FillGenerator implements Serializable {
     }
 
 	private Cell treeMakeAndTileCell(Cell master, boolean isPlanHorizontal, Cell topCell,
-                                     List<Rectangle2D> topBoxList)
+                                     List<Rectangle2D> topBoxList, Area area)
     {
         // Create an empty cell for cases where all nodes/arcs are moved due to collision
         Cell empty = Cell.newInstance(lib, "emtpy"+master.getName()+"{lay}");
@@ -2068,7 +2059,7 @@ public class FillGenerator implements Serializable {
 
         TiledCell t = new TiledCell(stdCell, 6);
         master = t.makeQTreeCell(master, empty, lib, tileOnX, tileOnY, minTileSize, isPlanHorizontal, stdCell,
-                topCell, binary, topBoxList);
+                topCell, binary, topBoxList, area);
         return master;
 	}
 
@@ -2207,7 +2198,7 @@ public class FillGenerator implements Serializable {
      * @return
      */
     private Cell treeMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig, Cell topCell,
-                                  Cell givenMaster, List<Rectangle2D> topBoxList)
+                                  Cell givenMaster, List<Rectangle2D> topBoxList, Area area)
     {
 		boolean metalFlex = true;
         initHierFillParameters(metalFlex);
@@ -2221,7 +2212,7 @@ public class FillGenerator implements Serializable {
 
         if (master == null)
             master = FillCell.makeFillCell(lib, plans, loLayer, hiLayer, capCell, wireLowest, stdCell, metalFlex, true);
-        Cell cell = treeMakeAndTileCell(master, plans[plans.length-1].horizontal, topCell, topBoxList);
+        Cell cell = treeMakeAndTileCell(master, plans[plans.length-1].horizontal, topCell, topBoxList, area);
 
         return cell;
 	}
@@ -2520,8 +2511,17 @@ public class FillGenerator implements Serializable {
 //            Rectangle2D bndd = topCell.getBounds();
             topBoxList.add(topCell.getBounds()); // topBox might change if predefined pitch is included in master cell
 
+            Area area = new Area();
+            for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
+            {
+                NodeInst ni = it.next();
+                NodeProto np = ni.getProto();
+                if (np == Generic.tech.afgNode)
+                    area.add(new Area(ni.getBounds()));
+            }
+
             Cell fillCell = (hierarchy) ?
-                    fillGen.treeMakeFillCell(firstMetal, lastMetal, perimeter, topCell, master, topBoxList) :
+                    fillGen.treeMakeFillCell(firstMetal, lastMetal, perimeter, topCell, master, topBoxList, area) :
                     fillGen.standardMakeFillCell(firstMetal, lastMetal, perimeter, cellsList, true);
 //            fillGen.makeGallery();
 
@@ -2901,9 +2901,6 @@ public class FillGenerator implements Serializable {
                 Network arcNet = fillNetlist.getNetwork(ai, 0);
 
                 // No export with the same characteristic found in this netlist
-//                boolean old = arcNet.findExportWithSameCharacteristic(p.p.getPortProto()) == null;
-//                boolean newC = arcNet.findExportWithSameCharacteristic(p.e) == null;
-//                assert(old == newC);
                 if (arcNet.findExportWithSameCharacteristic(p.e) == null)
                     continue; // no match in network type
 
