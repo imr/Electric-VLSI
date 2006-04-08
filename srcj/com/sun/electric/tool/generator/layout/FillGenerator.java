@@ -219,6 +219,8 @@ interface VddGndStraps {
 	static final PrimitiveNode[] PINS =
 		{null, Tech.m1pin, Tech.m2pin, Tech.m3pin, Tech.m4pin, Tech.m5pin,
 		 Tech.m6pin};
+    // Defined here so sequence with PINS is kept aligned
+    static final PrimitiveNode[] fillContacts = {null, null, Tech.m2m3, Tech.m3m4, Tech.m4m5};
 	/** are metal straps horizontal? */		boolean isHorizontal();
 
 	/** how many Vdd straps? */				int numVdd();
@@ -1787,7 +1789,7 @@ public class FillGenerator implements Serializable {
      * @return
      */
     protected static boolean searchCollision(Cell parent, Rectangle2D nodeBounds, List<Layer.Function> theseLayers,
-                                             PortInst p, NodeInst[] ignores)
+                                             FillGenJob.PortConfig p, NodeInst[] ignores)
     {
         // Not checking if they belong to the same net!. If yes, ignore the collision
         Rectangle2D subBound = new Rectangle2D.Double();
@@ -1797,7 +1799,7 @@ public class FillGenerator implements Serializable {
         {
             Geometric geom = it.next();
 
-            if (p != null && geom == p.getNodeInst())
+            if (p != null && geom == p.p.getNodeInst())
                 continue; // port belongs to this node
 
             boolean ignoreThis = false;
@@ -1831,20 +1833,30 @@ public class FillGenerator implements Serializable {
                         return true;
                 } else
                 {
-                    boolean found = false;
-                    for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
+                    if (p != null)
                     {
-                        PortInst port = itP.next();
-                        Network net = netlist.getNetwork(port);
-                        // They export the same, power or gnd so no worries about overlapping
-                        if (p != null && net.findExportWithSameCharacteristic(p) != null)
+                        boolean found = false;
+                        for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
                         {
-                            found = true;
-                            break;
+                            PortInst port = itP.next();
+                            Network net = netlist.getNetwork(port);
+                            // They export the same, power or gnd so no worries about overlapping
+                            if (p != null)
+                            {
+                            boolean old = net.findExportWithSameCharacteristic(p.p.getPortProto()) != null;
+                            boolean newC = net.findExportWithSameCharacteristic(p.e) != null;
+                            if (old != newC)
+                                System.out.println("Old " + old + " new " + newC);
+                            }
+                            if (p != null && net.findExportWithSameCharacteristic(p.e) != null)
+                            {
+                                found = true;
+                                break;
+                            }
                         }
+                        if (found)
+                            continue; // no match in network type
                     }
-                    if (found)
-                        continue; // no match in network type
 
                     Poly [] subPolyList = parent.getTechnology().getShapeOfNode(ni, null, null, true, true,
                             theseLayers);
@@ -1856,11 +1868,17 @@ public class FillGenerator implements Serializable {
             else
             {
                 ArcInst ai = (ArcInst)geom;
-
                 Network net = netlist.getNetwork(ai, 0);
 
                 // They export the same, power or gnd so no worries about overlapping
-                if (p != null && net.findExportWithSameCharacteristic(p) != null)
+                if (p != null)
+                {
+                boolean old = net.findExportWithSameCharacteristic(p.p.getPortProto()) != null;
+                boolean newC = net.findExportWithSameCharacteristic(p.e) != null;
+                if (old != newC)
+                                System.out.println("Old " + old + " new " + newC);
+                }
+                if (p != null && net.findExportWithSameCharacteristic(p.e) != null)
                     continue; // no match in network type
 
                 Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, theseLayers);
@@ -1908,7 +1926,8 @@ public class FillGenerator implements Serializable {
 	private CapCell capCell, capCellP;
 	private Floorplan[] plans;
     protected double drcSpacing; // to store min distance between wires
-	
+    private PrimitiveNode[] metalPins = null;
+
 	private double reservedToLambda(int layer, double reserved, Units units) {
 		if (units==LAMBDA) return reserved;
 		double nbTracks = reserved;
@@ -2285,7 +2304,7 @@ public class FillGenerator implements Serializable {
          * @param ex
          * @return Non pseudo layer for the given export
          */
-        private Layer getMetalLayerFromExport(PortProto ex)
+        public static Layer getMetalLayerFromExport(PortProto ex)
         {
             PortProto po = ex;
 
@@ -2313,12 +2332,13 @@ public class FillGenerator implements Serializable {
             return null;
         }
 
-        private List<PortInst> searchPortList()
+        private List<PortConfig> searchPortList()
         {
            // Searching common power/gnd connections and skip the ones are in the same network
             // Don't change List by Set otherwise the sequence given by Set is not deterministic and hard to debug
             List<PortInst> portList = new ArrayList<PortInst>();
             Netlist topCellNetlist = topCell.acquireUserNetlist();
+            List<Export> exportList = new ArrayList<Export>();
 
             for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
             {
@@ -2341,6 +2361,7 @@ public class FillGenerator implements Serializable {
                         if (!e.isGround() && !e.isPower())
                             continue;
                         portList.add(e.getOriginalPort());
+                        exportList.add(e);
                     }
                 }
                 else
@@ -2349,6 +2370,7 @@ public class FillGenerator implements Serializable {
                     Netlist netlist = cell.acquireUserNetlist();
                     List<PortInst> list = new ArrayList<PortInst>();
                     List<Network> nets = new ArrayList<Network>();
+                    List<Export> eList = new ArrayList<Export>();
 
                     for (Iterator<PortInst> itP = ni.getPortInsts(); itP.hasNext(); )
                     {
@@ -2382,39 +2404,53 @@ public class FillGenerator implements Serializable {
                         {
                             list.add(p);
                             nets.add(net);
+                            eList.add(ex);
                         }
                         else
                             System.out.println("Skipping export " + p + " in " + ni);
                     }
                     portList.addAll(list);
+                    exportList.addAll(eList);
                 }
             }
 
             // searching for exclusion regions. If port is inside these regions, then it will be removed.
             // Search them in a chunk of ports. It should be faster
-            ObjectQTree tree = new ObjectQTree(topCell.getBounds());
-            List<Rectangle2D> searchBoxes = new ArrayList<Rectangle2D>(); // list of AFG boxes to use.
+//            ObjectQTree tree = new ObjectQTree(topCell.getBounds());
+//            List<Rectangle2D> searchBoxes = new ArrayList<Rectangle2D>(); // list of AFG boxes to use.
+//
+//            for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
+//            {
+//                NodeInst ni = it.next();
+//                NodeProto np = ni.getProto();
+//                if (np == Generic.tech.afgNode)
+//                    searchBoxes.add(ni.getBounds());
+//            }
+//            if (searchBoxes.size() > 0)
+//            {
+//                for (PortInst p : portList)
+//                {
+//                    tree.add(p, p.getBounds());
+//                }
+//                for (Rectangle2D rect : searchBoxes)
+//                {
+//                    Set set = tree.find(rect);
+//                    portList.removeAll(set);
+//                }
+//            }
+            List<PortConfig> plList = new ArrayList<PortConfig>();
 
-            for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
+            assert(portList.size() == exportList.size());
+
+            for (int i = 0; i < exportList.size(); i++)
             {
-                NodeInst ni = it.next();
-                NodeProto np = ni.getProto();
-                if (np == Generic.tech.afgNode)
-                    searchBoxes.add(ni.getBounds());
+                plList.add(new PortConfig(portList.get(i), exportList.get(i)));
             }
-            if (searchBoxes.size() > 0)
-            {
-                for (PortInst p : portList)
-                {
-                    tree.add(p, p.getBounds());
-                }
-                for (Rectangle2D rect : searchBoxes)
-                {
-                    Set set = tree.find(rect);
-                    portList.removeAll(set);
-                }
-            }
-            return portList;
+//            for (PortInst p : portList)
+//            {
+//                plList.add(new PortConfig(p, getMetalLayerFromExport(p.getPortProto())));
+//            }
+            return plList;
         }
 
         private Cell searchPossibleMaster()
@@ -2433,6 +2469,26 @@ public class FillGenerator implements Serializable {
             return null;
         }
 
+        /**
+         * Auxiliar class to hold port and its corresponding layer
+         * so no extra calculation has to be done later.
+         */
+        private static class PortConfig
+        {
+            PortInst p;
+            Export e;
+            Layer l;
+            Poly pPoly; // to speed up the progress because PortInst.getPoly() calls getShape()
+
+            PortConfig(PortInst p, Export e)
+            {
+                this.e = e;
+                this.p = p;
+                this.pPoly = p.getPoly();
+                this.l = FillGenJob.getMetalLayerFromExport(p.getPortProto());
+            }
+        }
+
 		public boolean doIt() throws JobException
 		{
             // logger must be created in server otherwise it won't return the elements.
@@ -2446,11 +2502,11 @@ public class FillGenerator implements Serializable {
             // Creating fills only for layers found in exports
             firstMetal = Integer.MAX_VALUE;
 //            lastMetal = Integer.MIN_VALUE;
-            List<PortInst> portList = searchPortList();
-            for (PortInst p : portList)
+            List<PortConfig> portList = searchPortList();
+
+            for (PortConfig p : portList)
             {
-                Layer layer = getMetalLayerFromExport(p.getPortProto());
-                int index = layer.getIndex() + 1;
+                int index = p.l.getIndex() + 1;
                 if (index < firstMetal) firstMetal = index;
 //                if (lastMetal < index) lastMetal = index;
             }
@@ -2523,41 +2579,39 @@ public class FillGenerator implements Serializable {
             int count = 0;
 
             // First attempt if ports are below a power/ground bars
-            for (PortInst p : portList)
+            for (PortConfig p : portList)
             {
                 count++;
                 Rectangle2D rect = null;
                 // Transformation of the cell instance containing this port
                 AffineTransform trans = null; // null if the port is on the top cell
 
-                if (p.getPortProto() instanceof Export)
+                if (p.p.getPortProto() instanceof Export)
                 {
-                    Export ex = (Export)p.getPortProto();
-                    Cell exportCell = (Cell)p.getNodeInst().getProto();
+                    Export ex = (Export)p.p.getPortProto();
+                    Cell exportCell = (Cell)p.p.getNodeInst().getProto();
                     // Supposed to work only with metal layers
-                    Layer layer = getMetalLayerFromExport(ex);
-                    assert(layer != null);
                     rect = LayerCoverageTool.getGeometryOnNetwork(exportCell, ex.getOriginalPort(),
-                            layer.getNonPseudoLayer());
-                    trans = p.getNodeInst().transformOut();
+                            p.l.getNonPseudoLayer());
+                    trans = p.p.getNodeInst().transformOut();
                 }
                 else // port on pins
-                    rect = (Rectangle2D)p.getNodeInst().getBounds().clone(); // just to be cloned due to changes inside function
+                    rect = (Rectangle2D)p.p.getNodeInst().getBounds().clone(); // just to be cloned due to changes inside function
 
                 // Looking to detect any possible contact based on overlap between this geometry and fill
                 NodeInst added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon, conTransOut);
                 List<PolyBase> polyList = new ArrayList<PolyBase>();
                 List<Geometric> gList = new ArrayList<Geometric>();
-                polyList.add(p.getPoly());
-                gList.add(p.getNodeInst());
+                polyList.add(p.pPoly);
+                gList.add(p.p.getNodeInst());
                 if (added != null)
                 {
-                    log.logWarning(p.describe(false) + " connected", gList, null, null, null, polyList, topCell, 0);
+                    log.logWarning(p.p.describe(false) + " connected", gList, null, null, null, polyList, topCell, 0);
                     continue;
                 }
                 else
                 {
-                    log.logError(p.describe(false) + " not connected", gList, null, null, null, polyList, topCell, 0);
+                    log.logError(p.p.describe(false) + " not connected", gList, null, null, null, polyList, topCell, 0);
                 }
 
 //                // Transformation of the cell instance containing this port
@@ -2810,17 +2864,20 @@ public class FillGenerator implements Serializable {
             }
         }
 
-        private void searchOverlapHierarchically(Cell searchCell, GeometryHandler handler, PortInst p,
+        /**
+         * THIS METHOD ASSUMES contactAreaOrig is horizontal!
+         */
+        private void searchOverlapHierarchically(Cell searchCell, GeometryHandler handler, PortConfig p,
                                                  Rectangle2D contactAreaOrig, AffineTransform downTrans, AffineTransform upTrans)
         {
             Rectangle2D contactArea = (Rectangle2D)contactAreaOrig.clone();
-            double height = contactArea.getHeight();
+            double contactAreaHeight = contactArea.getHeight();
             DBMath.transformRect(contactArea, downTrans);
 
             Netlist fillNetlist = searchCell.acquireUserNetlist();
 
             // Give high priority to lower arcs
-            HashMap<ArcProto, List<ArcInst>> protoMap = new HashMap<ArcProto, List<ArcInst>>();
+            HashMap<Layer, List<ArcInst>> protoMap = new HashMap<Layer, List<ArcInst>>();
 
             for (Iterator<Geometric> it = searchCell.searchIterator(contactArea); it.hasNext(); )
             {
@@ -2844,7 +2901,10 @@ public class FillGenerator implements Serializable {
                 Network arcNet = fillNetlist.getNetwork(ai, 0);
 
                 // No export with the same characteristic found in this netlist
-                if (arcNet.findExportWithSameCharacteristic(p) == null)
+//                boolean old = arcNet.findExportWithSameCharacteristic(p.p.getPortProto()) == null;
+//                boolean newC = arcNet.findExportWithSameCharacteristic(p.e) == null;
+//                assert(old == newC);
+                if (arcNet.findExportWithSameCharacteristic(p.e) == null)
                     continue; // no match in network type
 
                 if (ap != Tech.m3)
@@ -2854,54 +2914,96 @@ public class FillGenerator implements Serializable {
                 }
 
                 // Adding now
-                List<ArcInst> list = protoMap.get(ap);
+                Layer layer = ap.layerIterator().next();
+                List<ArcInst> list = protoMap.get(layer);
                 if (list == null)
                 {
                     list = new ArrayList<ArcInst>();
-                    protoMap.put(ap, list);
+                    protoMap.put(layer, list);
                 }
                 list.add(ai);
             }
 
+            // Assign priority to lower metal bars. eg m3 instead of m4
+            Set<Layer> results = protoMap.keySet();
+            List<Layer> listOfLayers = new ArrayList<Layer>(results.size());
+            listOfLayers.addAll(results);
+            Collections.sort(listOfLayers, Layer.layerSort);
+
             // Now select possible pins
-            for (Map.Entry<ArcProto, List<ArcInst>> e : protoMap.entrySet())
+            for (Layer layer : listOfLayers)
             {
-                for (ArcInst ai : e.getValue())
+                ArcProto ap = findArcProtoFromLayer(layer);
+                boolean horizontalBar = (ap == Tech.m4 || ap == Tech.m6);
+                PrimitiveNode defaultContact = null;
+
+                if (horizontalBar)
+                {
+                    if (ap == Tech.m4)
+                        defaultContact = Tech.m3m4;
+                    else if (ap == Tech.m6)
+                        defaultContact = Tech.m4m5;
+                    else
+                        assert(false);
+                }
+
+                boolean found = false;
+
+                for (ArcInst ai : protoMap.get(layer))
                 {
                     Rectangle2D geomBnd = ai.getBounds();
-                    double width = geomBnd.getWidth();
 
                     // Add only the piece that overlap. If more than 1 arc covers the same area -> only 1 contact
                     // will be added.
-                    Rectangle2D newElem = new Rectangle2D.Double(geomBnd.getX(), contactArea.getY(), width, height);
-                    double newElemMinX = newElem.getMinX();
-                    double newElemMaxX = newElem.getMaxX();
-                    double areaMinX = contactArea.getMinX();
-                    double areaMaxX = contactArea.getMaxX();
+                    Rectangle2D newElem = null;
+                    double usefulBar, newElemMin, newElemMax, areaMin, areaMax, geoMin, geoMax;
+
+                    if (horizontalBar)
+                    {
+                        // search for the contacts m3m4 at least
+                        usefulBar = geomBnd.getHeight();
+                        Rectangle2D pRect = p.pPoly.getBounds2D();
+                        newElem = new Rectangle2D.Double(contactArea.getX(), geomBnd.getY(), defaultContact.getDefWidth(), usefulBar);
+                        newElemMin = newElem.getMinY();
+                        newElemMax = newElem.getMaxY();
+                        areaMin = contactArea.getMinY();
+                        areaMax = contactArea.getMaxY();
+                        geoMin = geomBnd.getMinY();
+                        geoMax = geomBnd.getMaxY();
+                    }
+                    else
+                    {
+                        usefulBar = geomBnd.getWidth();
+                        newElem = new Rectangle2D.Double(geomBnd.getX(), contactArea.getY(), usefulBar, contactAreaHeight);
+                        newElemMin = newElem.getMinX();
+                        newElemMax = newElem.getMaxX();
+                        areaMin = contactArea.getMinX();
+                        areaMax = contactArea.getMaxX();
+                        geoMin = geomBnd.getMinX();
+                        geoMax = geomBnd.getMaxX();
+                    }
 
                     // Don't consider no overlapping areas
-    //                if (newElem.getMaxX() < geomBnd.getMinX() || geomBnd.getMaxX() < newElem.getMaxX())
-                    if (newElemMaxX < contactArea.getMinX() || contactArea.getMaxX() < newElemMinX)
+                    if (newElemMax < areaMin || areaMax < newElemMin)
                         continue;
-                    boolean containMin = newElemMinX <= areaMinX && areaMinX <= newElemMaxX;
-                    boolean containMax = newElemMinX <= areaMaxX && areaMaxX <= newElemMaxX;
+                    boolean containMin = newElemMin <= areaMin && areaMin <= newElemMax;
+                    boolean containMax = newElemMin <= areaMax && areaMax <= newElemMax;
 
                     // Either end is not contained otherwise the contact is fully contained by the arc
                     if (!containMin || !containMax)
                     {
-                        // Getting the intersection along X axis. Along Y it should cover completely
-                        assert(geomBnd.getMinX() == newElemMinX);
-                        assert(geomBnd.getMaxX() == newElemMaxX);
+                        // Getting the intersection along X/Y axis. Along YX it should cover completely
+                        assert(geoMin == newElemMin);
+                        assert(geoMax == newElemMax);
 
-                        double minX = Math.max(geomBnd.getMinX(), areaMinX);
-                        double maxX = Math.min(geomBnd.getMaxX(), areaMaxX);
-                        double overlap = (maxX-minX)/width;
+                        double min = Math.max(geoMin, areaMin);
+                        double max = Math.min(geoMax, areaMax);
+                        double overlap = (max-min)/usefulBar;
                         // Checking if new element is completely inside the contactArea otherwise routeToClosestArc could add
                         // the missing contact
                         // Acepting more than 50% overlap
         //                System.out.println("Overlap " + overlap);
                         if (overlap < 0.5)
-        //                if (newElem.getMinX() < contactArea.getMinX() || newElem.getMaxX() > contactArea.getMaxX())
                         {
                             System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p);
                             continue;
@@ -2910,10 +3012,54 @@ public class FillGenerator implements Serializable {
                     // Transforming geometry up to fillCell coordinates
                     DBMath.transformRect(newElem, upTrans);
                     // Adding element
-                    handler.add(ai.getProto().getLayers()[0].getLayer(), newElem);
+                    handler.add(ai.getProto().layerIterator().next(), newElem);
+                    found = true;
                 }
-                return; // only one set for now
+                if (found)
+                    return; // only one set for now if something overlapping was found
             }
+        }
+
+//    protected static final List<Layer.Function> fillLayers = new ArrayList<Layer.Function>(3);
+
+//    static {
+//	    fillLayers.add(Layer.Function.METAL2);
+//        fillLayers.add(Layer.Function.CONTACT3);
+//        fillLayers.add(Layer.Function.METAL3);
+//    };
+
+        /**
+         * Method to find corresponding metal pin associated to the given layer
+         * @param layer
+         * @return
+         */
+        private static PrimitiveNode findPrimitiveNodeFromLayer(Layer layer)
+        {
+            for (PrimitiveNode pin : VddGndStraps.PINS)
+            {
+                if (pin != null && layer == pin.layerIterator().next().getNonPseudoLayer())
+                {
+                    return pin; // found
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Method to find corresponding metal arc associated to the given layer
+         * @param layer
+         * @return
+         */
+        private static ArcProto findArcProtoFromLayer(Layer layer)
+        {
+            for (ArcProto arc : VddGndStraps.METALS)
+            {
+                if (arc != null && layer == arc.layerIterator().next().getNonPseudoLayer())
+                {
+                    return arc; // found
+                }
+            }
+            return null;
         }
 
         /**
@@ -2927,13 +3073,15 @@ public class FillGenerator implements Serializable {
          * @param fillTransOutToCon
          * @return
          */
-        private NodeInst addAllPossibleContacts(FillGenJobContainer container, PortInst p, Rectangle2D contactArea,
+        private NodeInst addAllPossibleContacts(FillGenJobContainer container, PortConfig p, Rectangle2D contactArea,
                                                 AffineTransform nodeTransOut, AffineTransform fillTransIn, AffineTransform fillTransOutToCon,
                                                 AffineTransform conTransOut)
         {
             // Until this point, contactArea is at the fillCell level
             // Contact area will contain the remaining are to check
-            double height = contactArea.getHeight();
+            double contactAreaHeight = contactArea.getHeight();
+            double contactAreaWidth = contactArea.getWidth();
+
             NodeInst added = null;
             // Transforming rectangle with gnd/power metal into the connection cell
             if (nodeTransOut != null)
@@ -2951,105 +3099,149 @@ public class FillGenerator implements Serializable {
             if (size == 0) return null;
 
             Rectangle2D portInConFill = new Rectangle2D.Double();
-            portInConFill.setRect(p.getPoly().getBounds2D());
+            portInConFill.setRect(p.pPoly.getBounds2D());
             DBMath.transformRect(portInConFill, fillTransIn);
 
             // Creating the corresponding export in connectionNi (projection pin)
             // This should be done only once!
-            NodeInst pinNode = LayoutLib.newNodeInst(Tech.m2pin, portInConFill.getCenterX(), portInConFill.getCenterY(),
-                    Tech.m2pin.getDefWidth(), height, 0, container.connectionCell);
+            PrimitiveNode thePin = findPrimitiveNodeFromLayer(p.l);
+            assert(thePin != null);
+            assert(thePin != Tech.m1pin); // should start from m2
+            NodeInst pinNode = LayoutLib.newNodeInst(thePin, portInConFill.getCenterX(), portInConFill.getCenterY(),
+                    thePin.getDefWidth(), contactAreaHeight, 0, container.connectionCell);
             PortInst pin = pinNode.getOnlyPortInst();
 
-            Collection set = handler.getObjects(results.toArray()[0], false, true);
+            // Loop along all possible connections (different layers)
+            List<Layer> listOfLayers = new ArrayList<Layer>(size);
+            listOfLayers.addAll(results);
+            Collections.sort(listOfLayers, Layer.layerSort);
 
-            for (Iterator it = set.iterator(); it.hasNext(); )
+            for (Layer layer : listOfLayers)
             {
-                // ALGO_SWEEP retrieves only PolyBase
-                PolyBase poly = (PolyBase)it.next();
-                Rectangle2D newElemFill = poly.getBounds2D();
-                double width = newElemFill.getWidth();
+                Collection set = handler.getObjects(layer, false, true);
 
-                // Location of new element in fillCell
-                Rectangle2D newElemConnect = (Rectangle2D)newElemFill.clone();
-                DBMath.transformRect(newElemConnect, fillTransOutToCon);
-
-                // Location of new contact from top cell
-                Rectangle2D newElemTop = (Rectangle2D)newElemConnect.clone();
-                DBMath.transformRect(newElemTop, conTransOut);
-
-                // Search if there is a collision with existing nodes/arcs
-                if (searchCollision(topCell, newElemTop, fillLayers, p,
-                        new NodeInst[] {container.fillNi, container.connectionNi}))
-                    continue;
-
-                // adding contact
-                added = LayoutLib.newNodeInst(Tech.m2m3, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
-                        width, height, 0, container.connectionCell);
-                container.fillContactList.add(added);
-//                 // Creating the export above the contact in the connection cell
-//                Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),
-//                        p.getPortProto().getName());
-//                conM2Export.setCharacteristic(p.getPortProto().getCharacteristic());
-
-                // Connecting the contact export in the top cell
-//                PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
-//                container.fillPortInstList.add(conNiPort);
-//                Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
-//                        new Point2D.Double(newElemTop.getCenterX(), newElemTop.getCenterY()), null, false);
-//                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
-
-                // route new pin instance in connectioNi with new contact
-                Route pinExportRoute = container.router.planRoute(container.connectionCell, pin, added.getOnlyPortInst(),
-                        new Point2D.Double(portInConFill.getCenterX(), portInConFill.getCenterY()), null, false);
-                Router.createRouteNoJob(pinExportRoute, container.connectionCell, true, false);
-
-                // Adding the connection to the fill via the exports.
-                // Looking for closest export in fillCell.
-                PortInst fillNiPort = null;
-                double minDistance = Double.POSITIVE_INFINITY;
-
-                for (Iterator<Export> e = container.fillNi.getExports(); e.hasNext();)
+                // Get connecting metal contact (PrimitiveNode) starting from techPin up to the power/vdd bar found
+                List<Layer.Function> fillLayers = new ArrayList<Layer.Function>();
+                PrimitiveNode topPin = findPrimitiveNodeFromLayer(layer);
+                PrimitiveNode topContact = null;
+                int start = -1;
+                int end = -1;
+                for (int i = 0; i < VddGndStraps.PINS.length; i++)
                 {
-                    Export exp = e.next();
-                    PortInst port = exp.getOriginalPort();
+                    if (start == -1 && VddGndStraps.PINS[i] == thePin)
+                        start = i;
+                    if (end == -1 && VddGndStraps.PINS[i] == topPin)
+                        end = i;
+                }
+                for (int i = start; i <= end; i++)
+                {
+                    fillLayers.add(VddGndStraps.PINS[i].layerIterator().next().getFunction());
+                    if (i < end)
+                        topContact = VddGndStraps.fillContacts[i];
+                }
 
-                    // The port characteristics must be identical
-                    if (port.getPortProto().getCharacteristic() != p.getPortProto().getCharacteristic())
+                assert(topContact != null);
+                boolean horizontalBar = (topPin == Tech.m4pin || topPin == Tech.m6pin);
+
+                for (Iterator it = set.iterator(); it.hasNext(); )
+                {
+                    // ALGO_SWEEP retrieves only PolyBase
+                    PolyBase poly = (PolyBase)it.next();
+                    Rectangle2D newElemFill = poly.getBounds2D();
+                    double newElemFillWidth = newElemFill.getWidth();
+                    double newElemFillHeight = newElemFill.getHeight();
+
+                    // Location of new element in fillCell
+                    Rectangle2D newElemConnect = (Rectangle2D)newElemFill.clone();
+                    DBMath.transformRect(newElemConnect, fillTransOutToCon);
+
+                    // Location of new contact from top cell
+                    Rectangle2D newElemTop = (Rectangle2D)newElemConnect.clone();
+                    DBMath.transformRect(newElemTop, conTransOut);
+
+                    // Get connecting metal contact (PrimitiveNode) starting from techPin up to the power/vdd bar found
+                    // Search if there is a collision with existing nodes/arcs
+                    if (searchCollision(topCell, newElemTop, fillLayers, p,
+                            new NodeInst[] {container.fillNi, container.connectionNi}))
                         continue;
 
-                    Rectangle2D geo = port.getPoly().getBounds2D();
-                    assert(fillGen.evenLayersHorizontal);
-                    if (!DBMath.areEquals(geo.getCenterX(), newElemConnect.getCenterX()))
-                        continue; // only align with this so it could guarantee correct arc (M3)
-                    double deltaX = geo.getCenterX() - newElemConnect.getCenterX();
-                    double deltaY = geo.getCenterY() - newElemConnect.getCenterY();
-                    double dist = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
-                    if (DBMath.isGreaterThan(minDistance, dist))
+                    // adding contact
+                    added = horizontalBar ?
+                            LayoutLib.newNodeInst(topContact, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
+                            contactAreaWidth, newElemFillHeight, 0, container.connectionCell) :
+                            LayoutLib.newNodeInst(topContact, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
+                            newElemFillWidth, contactAreaHeight, 0, container.connectionCell);
+                    container.fillContactList.add(added);
+    //                 // Creating the export above the contact in the connection cell
+    //                Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),
+    //                        p.getPortProto().getName());
+    //                conM2Export.setCharacteristic(p.getPortProto().getCharacteristic());
+
+                    // Connecting the contact export in the top cell
+    //                PortInst conNiPort = container.connectionNi.findPortInstFromProto(conM2Export);
+    //                container.fillPortInstList.add(conNiPort);
+    //                Route conTopExportRoute = container.router.planRoute(topCell, p, conNiPort,
+    //                        new Point2D.Double(newElemTop.getCenterX(), newElemTop.getCenterY()), null, false);
+    //                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+
+                    // route new pin instance in connectioNi with new contact
+                    Route pinExportRoute = container.router.planRoute(container.connectionCell, pin, added.getOnlyPortInst(),
+                            new Point2D.Double(portInConFill.getCenterX(), portInConFill.getCenterY()), null, false);
+                    Router.createRouteNoJob(pinExportRoute, container.connectionCell, true, false);
+
+                    // Adding the connection to the fill via the exports.
+                    // Looking for closest export in fillCell.
+                    PortInst fillNiPort = null;
+                    double minDistance = Double.POSITIVE_INFINITY;
+
+                    for (Iterator<Export> e = container.fillNi.getExports(); e.hasNext();)
                     {
-                        minDistance = dist;
-                        fillNiPort = port;
+                        Export exp = e.next();
+                        PortInst port = exp.getOriginalPort();
+
+                        // The port characteristics must be identical
+                        if (port.getPortProto().getCharacteristic() != p.p.getPortProto().getCharacteristic())
+                            continue;
+
+                        Rectangle2D geo = port.getPoly().getBounds2D();
+                        assert(fillGen.evenLayersHorizontal);
+                        boolean condition = (horizontalBar) ?
+                                DBMath.areEquals(geo.getCenterY(), newElemConnect.getCenterY()) :
+                                DBMath.areEquals(geo.getCenterX(), newElemConnect.getCenterX());
+                        if (!condition)
+                            continue; // only align with this so it could guarantee correct arc (M3)
+                        double deltaX = geo.getCenterX() - newElemConnect.getCenterX();
+                        double deltaY = geo.getCenterY() - newElemConnect.getCenterY();
+                        double dist = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
+                        if (DBMath.isGreaterThan(minDistance, dist))
+                        {
+                            minDistance = dist;
+                            fillNiPort = port;
+                        }
+                    }
+                    if (fillNiPort != null)
+                    {
+                        Rectangle2D r = fillNiPort.getBounds();
+                        Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
+                            new Point2D.Double(r.getCenterX(), r.getCenterY()), null, false);
+                        Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
                     }
                 }
-                if (fillNiPort != null)
-                {
-                    Route exportRoute = container.router.planRoute(container.connectionCell, added.getOnlyPortInst(), fillNiPort,
-                        new Point2D.Double(fillNiPort.getBounds().getCenterX(), fillNiPort.getBounds().getCenterY()), null, false);
-                    Router.createRouteNoJob(exportRoute, container.connectionCell, true, false);
-                }
+
+                // Done at the end so extra connections would not produce collisions.
+                // Routing the new contact to topCell in connectNi instead of top cell
+                // Export connect projected pin in ConnectionCell
+                Export pinExport = Export.newInstance(container.connectionCell, pin, "proj-"+p.p.getPortProto().getName());
+                pinExport.setCharacteristic(p.p.getPortProto().getCharacteristic());
+                // Connect projected pin in ConnectionCell with real port
+                PortInst pinPort = container.connectionNi.findPortInstFromProto(pinExport);
+                Route conTopExportRoute = container.router.planRoute(topCell, p.p, pinPort,
+                        new Point2D.Double(p.pPoly.getBounds2D().getCenterX(), p.pPoly.getBounds2D().getCenterY()), null, false);
+                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+
+                return added;
             }
-
-            // Done at the end so extra connections would not produce collisions.
-            // Routing the new contact to topCell in connectNi instead of top cell
-            // Export connect projected pin in ConnectionCell
-            Export pinExport = Export.newInstance(container.connectionCell, pin, "proj-"+p.getPortProto().getName());
-            pinExport.setCharacteristic(p.getPortProto().getCharacteristic());
-            // Connect projected pin in ConnectionCell with real port
-            PortInst pinPort = container.connectionNi.findPortInstFromProto(pinExport);
-            Route conTopExportRoute = container.router.planRoute(topCell, p, pinPort,
-                    new Point2D.Double(p.getPoly().getBounds2D().getCenterX(), p.getPoly().getBounds2D().getCenterY()), null, false);
-            Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
-
-            return added;
+            return null;
         }
 
         /**
@@ -3122,14 +3314,6 @@ public class FillGenerator implements Serializable {
 //            return null;
 //        }
     }
-
-    protected static final List<Layer.Function> fillLayers = new ArrayList<Layer.Function>(3);
-
-    static {
-	    fillLayers.add(Layer.Function.METAL2);
-        fillLayers.add(Layer.Function.CONTACT3);
-        fillLayers.add(Layer.Function.METAL3);
-    };
 
     public static FillGenJob generateAutoFill(Cell cell, boolean hierarchy, boolean binary, boolean doItNow)
     {

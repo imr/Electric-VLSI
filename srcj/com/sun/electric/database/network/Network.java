@@ -32,6 +32,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.prototype.PortProto;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -253,12 +254,12 @@ public class Network {
         return name;
     }
 
-    public Export findExportWithSameCharacteristic(PortInst p)
+    public Export findExportWithSameCharacteristic(PortProto p)
     {
         for (Iterator<Export> itP = getExports(); itP.hasNext(); )
         {
             Export exp = itP.next();
-            if (exp.getCharacteristic() == p.getPortProto().getCharacteristic())
+            if (exp.getCharacteristic() == p.getCharacteristic())
             {
                 return exp;
             }
