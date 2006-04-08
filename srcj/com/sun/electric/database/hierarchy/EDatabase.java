@@ -289,7 +289,7 @@ public class EDatabase {
     }
         
     private Snapshot doBackup() {    
-        long startTime = System.currentTimeMillis();
+//        long startTime = System.currentTimeMillis();
         LibraryBackup[] libBackups = new LibraryBackup[linkedLibs.size()];
         boolean libsChanged = libBackups.length != snapshot.libBackups.size();
         for (int libIndex = 0; libIndex < libBackups.length; libIndex++) {
@@ -332,8 +332,8 @@ public class EDatabase {
         snapshot = snapshot.with(cellBackups, cellGroups, cellBounds, libBackups);
 //        checkFresh(snapshot);
         snapshotFresh = true;
-        long endTime = System.currentTimeMillis();
-        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
+//        long endTime = System.currentTimeMillis();
+//        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;
     }
 

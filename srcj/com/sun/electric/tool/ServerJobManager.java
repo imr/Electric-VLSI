@@ -426,6 +426,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
     /*private*/ static class UserInterfaceRedirect implements UserInterface
 	{
     	private static void printStackTrace(String methodName) {
+            if (true) return;
             if (!Job.getDebug()) return;
             System.out.println("UserInterface." + methodName + " was called from DatabaseChangesThread");
     		Exception e = new Exception();

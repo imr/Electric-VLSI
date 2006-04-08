@@ -437,7 +437,7 @@ public class DebugMenus
         {
             Menu menu = (Menu)menuBar.getMenu(i);
             printIndented("\n" + menu.getText() + ":", 0);
-            addMenu(menu, 1);
+            addMenu(menuBar, menu, 1);
         }
     }
     private static void printIndented(String str, int depth)
@@ -446,15 +446,23 @@ public class DebugMenus
     	System.out.println(str);
     	
     }
-    private static void addMenu(Menu menu, int depth)
+    private static void addMenu(MenuBar menuBar, Menu menu, int depth)
     {
         for (int i=0; i<menu.getItemCount(); i++)
         {
             JMenuItem menuItem = menu.getItem(i);
             if (menuItem == null) { printIndented("----------", depth); continue; }
-            printIndented(menuItem.getText(), depth);
+            String s = menuItem.getText();
+            if (!(menuItem instanceof JMenu)) {
+                KeyBindings keyBindings = menuBar.getKeyBindings(menuItem);
+                for (Iterator<KeyStrokePair> it = keyBindings.getDefaultKeyStrokePairs(); it.hasNext(); ) {
+                    KeyStrokePair key = it.next();
+                    s += " [" + key + "]";
+                }
+            }
+            printIndented(s, depth);
             if (menuItem instanceof JMenu)
-                addMenu((Menu)menuItem, depth+1);              // recurse
+                addMenu(menuBar, (Menu)menuItem, depth+1);              // recurse
         }
     }
 

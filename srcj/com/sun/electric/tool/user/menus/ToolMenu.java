@@ -300,21 +300,21 @@ public class ToolMenu {
 
 		// mnemonic keys available: ABC EFGHIJKLMNOPQRS UV XYZ
 		MenuBar.Menu verilogWireTypeSubMenu = MenuBar.makeMenu("Set Verilog _Wire");
+		verilogSimulationSubMenu.add(verilogWireTypeSubMenu);
 		verilogWireTypeSubMenu.addMenuItem("_Wire", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(0); }});
 		verilogWireTypeSubMenu.addMenuItem("_Trireg", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(1); }});
 		verilogWireTypeSubMenu.addMenuItem("_Default", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(2); }});
-		verilogSimulationSubMenu.add(verilogWireTypeSubMenu);
 
 		// mnemonic keys available: ABCDEFGHIJKLM OPQRSTUV XYZ
 		MenuBar.Menu transistorStrengthSubMenu = MenuBar.makeMenu("_Transistor Strength");
+		verilogSimulationSubMenu.add(transistorStrengthSubMenu);
 		transistorStrengthSubMenu.addMenuItem("_Weak", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(true); }});
 		transistorStrengthSubMenu.addMenuItem("_Normal", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(false); }});
-		verilogSimulationSubMenu.add(transistorStrengthSubMenu);
 
 		//------------------- Simulation (others)
 
@@ -579,9 +579,9 @@ public class ToolMenu {
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQ STUVWXYZ
 		MenuBar.Menu languagesSubMenu = MenuBar.makeMenu("Lang_uages");
+		toolMenu.add(languagesSubMenu);
 		languagesSubMenu.addMenuItem("_Run Java Bean Shell Script", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
-		toolMenu.add(languagesSubMenu);
 
 	}
 
