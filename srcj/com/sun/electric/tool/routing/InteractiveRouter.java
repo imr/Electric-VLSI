@@ -49,7 +49,6 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -159,7 +158,7 @@ public abstract class InteractiveRouter extends Router {
         // do nothing if startPort can already connect to arc
         if (startPort.getPortProto().connectsTo(arc)) return true;
 
-        Cell cell = startPort.getNodeInst().getParent();
+//        Cell cell = startPort.getNodeInst().getParent();
         if (!started) startInteractiveRoute(wnd);
 
         Point2D startLoc = new Point2D.Double(startPort.getPoly().getCenterX(), startPort.getPoly().getCenterY());
@@ -169,8 +168,8 @@ public abstract class InteractiveRouter extends Router {
         route.add(startRE); route.setStart(startRE);
         //route.setEnd(startRE);
 
-        PrimitiveNode pn = arc.findOverridablePinProto();
-        PortProto pp = pn.getPort(0);
+//        PrimitiveNode pn = arc.findOverridablePinProto();
+//        PortProto pp = pn.getPort(0);
         VerticalRoute vroute = VerticalRoute.newRoute(startPort.getPortProto(), arc);
         if (!vroute.isSpecificationSucceeded()) {
             cancelInteractiveRoute();
