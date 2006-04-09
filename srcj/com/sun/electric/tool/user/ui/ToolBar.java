@@ -95,58 +95,57 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     /**
 	 * Mode is a typesafe enum class that describes the current editing mode (select, zoom, etc).
 	 */
-	public static class CursorMode
+	public static enum CursorMode
 	{
-		private String name;
+        /** Describes ClickZoomWire mode (does everything). */  CLICKZOOMWIRE(cursorClickZoomWireName),
+//		/** Describes Selection mode (click and drag). */		SELECT(cursorSelectName),
+//		/** Describes wiring mode (creating arcs). */			WIRE(cursorWireName),
+		/** Describes Panning mode (move window contents). */	PAN(cursorPanName),
+		/** Describes Zoom mode (scale window contents). */		ZOOM(cursorZoomName),
+		/** Describes Outline edit mode. */						OUTLINE(cursorOutlineName),
+		/** Describes Measure mode. */							MEASURE(cursorMeasureName);
 
-		private CursorMode(String name) { this.name = name; }
-
-		public String toString() { return "CursorMode="+name; }
-        
-        /** Describes ClickZoomWire mode (does everything). */  public static final CursorMode CLICKZOOMWIRE = new CursorMode("clickzoomwire");
-//		/** Describes Selection mode (click and drag). */		public static final CursorMode SELECT = new CursorMode("select");
-//		/** Describes wiring mode (creating arcs). */			public static final CursorMode WIRE = new CursorMode("wire");
-		/** Describes Panning mode (move window contents). */	public static final CursorMode PAN = new CursorMode("pan");
-		/** Describes Zoom mode (scale window contents). */		public static final CursorMode ZOOM = new CursorMode("zoom");
-		/** Describes Outline edit mode. */						public static final CursorMode OUTLINE = new CursorMode("outline");
-		/** Describes Measure mode. */							public static final CursorMode MEASURE = new CursorMode("measure");
+        private final String menuName;
+        private CursorMode(String menuName) { this.menuName = menuName; }
+        public String getMenuName() { return menuName; }
+//        public String toString() { return "CursorMode="+super.toString().toLowerCase(); }
 	}
 
 	/**
 	 * Mode is a typesafe enum class that describes the distance that arrow keys move (full, half, or quarter).
 	 */
-	public static class ArrowDistance
+	public static enum ArrowDistance
 	{
-		private String name;
-		private double amount;
+		/** Describes full grid unit motion. */				FULL(moveFullName, 1.0),
+		/** Describes half grid unit motion. */				HALF(moveHalfName, 0.5),
+		/** Describes quarter grid unit motion. */			QUARTER(moveQuarterName, 0.25);
 
-		private ArrowDistance(String name, double amount)
+		private final String menuName;
+		private final double amount;
+
+		private ArrowDistance(String menuName, double amount)
 		{
-			this.name = name;
+			this.menuName = menuName;
 			this.amount = amount;
 		}
 
-		public double getDistance() { return amount; }
-		public String toString() { return "ArrowDistance="+name; }
-
-		/** Describes full grid unit motion. */				public static final ArrowDistance FULL = new ArrowDistance("full", 1.0);
-		/** Describes half grid unit motion. */				public static final ArrowDistance HALF = new ArrowDistance("half", 0.5);
-		/** Describes quarter grid unit motion. */			public static final ArrowDistance QUARTER = new ArrowDistance("quarter", 0.25);
-	}
+        public String getMenuName() { return menuName; }
+        public double getDistance() { return amount; }
+//		public String toString() { return "ArrowDistance="+super.toString().toLowerCase(); }
+    }
 
 	/**
 	 * SelectMode is a typesafe enum class that describes the current selection modes (objects or area).
 	 */
-	public static class SelectMode
+	public static enum SelectMode
 	{
-		private String name;
-
-		private SelectMode(String name) { this.name = name; }
-
-		public String toString() { return "SelectMode="+name; }
-
-		/** Describes Selection mode (click and drag). */		public static final SelectMode OBJECTS = new SelectMode("objects");
-		/** Describes Selection mode (click and drag). */		public static final SelectMode AREA = new SelectMode("area");
+		/** Describes Selection mode (click and drag). */		OBJECTS(selectObjectsName),
+		/** Describes Selection mode (click and drag). */		AREA(selectAreaName);
+        
+        private final String menuName;
+        private SelectMode(String menuName) { this.menuName = menuName; }
+        public String getMenuName() { return menuName; }
+//        public String toString() { return "SelectMode="+super.toString().toLowerCase(); }
 	}
 
 	private static CursorMode curMode = CursorMode.CLICKZOOMWIRE;
@@ -490,6 +489,26 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		return cursor;
 	}
 
+    public static void editCursorModeCommand(CursorMode cm) {
+        switch (cm) {
+            case CLICKZOOMWIRE:
+                clickZoomWireCommand();
+                break;
+            case PAN:
+                panCommand();
+                break;
+            case ZOOM:
+                zoomCommand();
+                break;
+            case OUTLINE:
+                outlineEditCommand();
+                break;
+            case MEASURE:
+                measureCommand();
+                break;
+        }
+    }
+    
     public static void clickZoomWireCommand()
     {
     	checkLeavingOutlineMode();
@@ -506,11 +525,17 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     {
         // get new state of special select to set icon
         AbstractButton b = (AbstractButton)e.getSource();
-        if (b.isSelected()) {
-            ToolBarButton.setIconForButton(specialSelectName, selectSpecialIconOn);
-        } else {
-            ToolBarButton.setIconForButton(specialSelectName, selectSpecialIconOff);
-        }
+        toggleSelectSpecialCommand(b.isSelected());
+    }
+    
+    /**
+     * Method called to toggle the state of the "select special"
+     * button.
+     */
+    public static void toggleSelectSpecialCommand(boolean b)
+    {
+        // get new state of special select to set icon
+        ToolBarButton.setIconForButton(specialSelectName, b ? selectSpecialIconOn : selectSpecialIconOff);
     }
     
 	/**
@@ -663,6 +688,10 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         User.setAlignmentToGrid(dist);
 	}
 
+    public static void selectModeCommand(SelectMode selectMode) {
+        curSelectMode = selectMode;
+    }
+    
 	/**
 	 * Method called when the "select objects" button is pressed.
 	 */

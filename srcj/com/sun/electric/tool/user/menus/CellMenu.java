@@ -44,14 +44,14 @@ import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.user.dialogs.CellProperties;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewCell;
+import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
+import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
+import static com.sun.electric.tool.user.menus.MenuCommands.SEPARATOR;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -65,139 +65,130 @@ import javax.swing.KeyStroke;
  */
 public class CellMenu {
 
-    protected static void addCellMenu(MenuBar menuBar) {
-		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-
+    static EMenu makeMenu() {
         /****************************** THE CELL MENU ******************************/
 
 		// mnemonic keys available:        H J      Q       YZ
-        MenuBar.Menu cellMenu = MenuBar.makeMenu("_Cell");
-        menuBar.add(cellMenu);
+        return new EMenu("_Cell",
 
-        cellMenu.addMenuItem("Ne_w Cell...", KeyStroke.getKeyStroke('N', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
-        cellMenu.addMenuItem("_Edit Cell...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.editCell); }});
-        cellMenu.addMenuItem("_Place Cell Instance...", KeyStroke.getKeyStroke('N', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.newInstance); }});
-        cellMenu.addMenuItem("_Rename Cell...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.renameCell); }});
-        cellMenu.addMenuItem("Duplic_ate Cell...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.duplicateCell); }});
-        cellMenu.addMenuItem("De_lete Cell...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.deleteCell); }});
+            new EMenuItem("Ne_w Cell...", 'N') { public void run() {
+                newCellCommand(); }},
+            new EMenuItem("_Edit Cell...") { public void run() {
+                cellBrowserCommand(CellBrowser.DoAction.editCell); }},
+            new EMenuItem("_Place Cell Instance...", KeyStroke.getKeyStroke('N', 0)) { public void run() {
+                cellBrowserCommand(CellBrowser.DoAction.newInstance); }},
+            new EMenuItem("_Rename Cell...") { public void run() {
+                cellBrowserCommand(CellBrowser.DoAction.renameCell); }},
+            new EMenuItem("Duplic_ate Cell...") { public void run() {
+                cellBrowserCommand(CellBrowser.DoAction.duplicateCell); }},
+            new EMenuItem("De_lete Cell...") { public void run() {
+                cellBrowserCommand(CellBrowser.DoAction.deleteCell); }},
 
         // mnemonic keys available: AB   FGHIJKL NOPQRSTU WXYZ
-        MenuBar.Menu multiPageSubMenu = MenuBar.makeMenu("_Multi-Page Cells");
-        cellMenu.add(multiPageSubMenu);
-        multiPageSubMenu.addMenuItem("_Make Cell Multi-Page", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { makeMultiPageCell(); }});
-        multiPageSubMenu.addMenuItem("_Create New Page", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { createNewMultiPage(); }});
-        multiPageSubMenu.addMenuItem("_Delete This Page", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { deleteThisMultiPage(); }});
-        multiPageSubMenu.addMenuItem("_Edit Next Page", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { editNextMultiPage(); }});
-        multiPageSubMenu.addMenuItem("Con_vert old-style Multi-Page Schematics", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.convertMultiPageViews(); }});
+            new EMenu("_Multi-Page Cells",
+                new EMenuItem("_Make Cell Multi-Page") { public void run() {
+                    makeMultiPageCell(); }},
+                new EMenuItem("_Create New Page") { public void run() {
+                    createNewMultiPage(); }},
+                new EMenuItem("_Delete This Page") { public void run() {
+                    deleteThisMultiPage(); }},
+                new EMenuItem("_Edit Next Page") { public void run() {
+                editNextMultiPage(); }},
+                new EMenuItem("Con_vert old-style Multi-Page Schematics") { public void run() {
+                ViewChanges.convertMultiPageViews(); }}),
 
-        cellMenu.addSeparator();
+            SEPARATOR,
 
-        cellMenu.addMenuItem("_Cross-Library Copy...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
+            new EMenuItem("_Cross-Library Copy...") { public void run() {
+                crossLibraryCopyCommand(); }},
 
         // mnemonic keys available:  BCDEFGHIJKLMNOPQ STUVWXYZ
-        MenuBar.Menu mergeLibrarySubMenu = MenuBar.makeMenu("Merge Li_braries");
-        cellMenu.add(mergeLibrarySubMenu);
-        mergeLibrarySubMenu.addMenuItem("_Add Exports from Library...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.synchronizeLibrary(); } });
-        mergeLibrarySubMenu.addMenuItem("_Replace Cells from Library...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.replaceFromOtherLibrary(); }});
+            new EMenu("Merge Li_braries",
+                new EMenuItem("_Add Exports from Library...") { public void run() {
+                    ExportChanges.synchronizeLibrary(); }},
+                new EMenuItem("_Replace Cells from Library...") { public void run() {
+                    ExportChanges.replaceFromOtherLibrary(); }}),
 
-        cellMenu.addSeparator();
+            SEPARATOR,
 
         // mnemonic keys available: ABC E GHIJ LMNO QRSTUV XYZ
-        MenuBar.Menu downHierarchySubMenu = MenuBar.makeMenu("_Down Hierarchy");
-        cellMenu.add(downHierarchySubMenu);
-		downHierarchySubMenu.addMenuItem("_Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(false, false); }});
-		downHierarchySubMenu.addMenuItem("Down Hierarchy, Keep _Focus", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(true, false); }});
-		downHierarchySubMenu.addMenuItem("Down Hierarchy, New _Window", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(false, true); }});
-		downHierarchySubMenu.addMenuItem("Down Hierarchy, _Keep Focus, New Window", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(true, true); }});
-		downHierarchySubMenu.addSeparator();
-		downHierarchySubMenu.addMenuItem("Down Hierarchy In _Place", KeyStroke.getKeyStroke('D', 0),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { downHierInPlaceCommand(); }});
+            new EMenu("_Down Hierarchy",
+		        new EMenuItem("_Down Hierarchy", 'D') { public void run() {
+                    downHierCommand(false, false); }},
+		        new EMenuItem("Down Hierarchy, Keep _Focus") { public void run() {
+                    downHierCommand(true, false); }},
+		        new EMenuItem("Down Hierarchy, New _Window") { public void run() {
+                    downHierCommand(false, true); }},
+		        new EMenuItem("Down Hierarchy, _Keep Focus, New Window") { public void run() {
+                    downHierCommand(true, true); }},
+                SEPARATOR,
+		        new EMenuItem("Down Hierarchy In _Place", KeyStroke.getKeyStroke('D', 0)) { public void run() {
+                    downHierInPlaceCommand(); }}),
 
-		cellMenu.addMenuItem("_Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
+		    new EMenuItem("_Up Hierarchy", 'U') { public void run() {
+                upHierCommand(); }},
 
-        cellMenu.addSeparator();
+            SEPARATOR,
 
-        cellMenu.addMenuItem("New _Version of Current Cell", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { newCellVersionCommand(); } });
-        cellMenu.addMenuItem("Duplicate Curre_nt Cell", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateCellCommand(); } });
-        cellMenu.addMenuItem("Delete Unused _Old Versions", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { deleteOldCellVersionsCommand(); } });
+            new EMenuItem("New _Version of Current Cell") { public void run() {
+                newCellVersionCommand(); }},
+            new EMenuItem("Duplicate Curre_nt Cell") { public void run() {
+                duplicateCellCommand(); }},
+            new EMenuItem("Delete Unused _Old Versions") { public void run() {
+                deleteOldCellVersionsCommand(); }},
 
-        cellMenu.addSeparator();
+            SEPARATOR,
 
 		// mnemonic keys available:  BC    H JKLM OPQRST  WXYZ
-        MenuBar.Menu cellInfoSubMenu = MenuBar.makeMenu("Cell In_fo");
-        cellMenu.add(cellInfoSubMenu);
-        cellInfoSubMenu.addMenuItem("_Describe this Cell", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.describeThisCellCommand(); } });
-        cellInfoSubMenu.addMenuItem("_General Cell Lists...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.generalCellListsCommand(); } });
-        cellInfoSubMenu.addSeparator();
-        cellInfoSubMenu.addMenuItem("List _Nodes in this Cell", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
-        cellInfoSubMenu.addMenuItem("List Cell _Instances", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
-        cellInfoSubMenu.addMenuItem("List Cell _Usage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
-        cellInfoSubMenu.addSeparator();
-        cellInfoSubMenu.addMenuItem("Graphically, _Entire Library", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsInLibrary(); }});
-        cellInfoSubMenu.addMenuItem("Graphically, _From Current Cell", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsFromCell(); }});
+            new EMenu("Cell In_fo",
+                new EMenuItem("_Describe this Cell") { public void run() {
+                    CellLists.describeThisCellCommand(); }},
+                new EMenuItem("_General Cell Lists...") { public void run() {
+                    CellLists.generalCellListsCommand(); }},
+                SEPARATOR,
+                new EMenuItem("List _Nodes in this Cell") { public void run() {
+                    CellLists.listNodesInCellCommand(); }},
+                new EMenuItem("List Cell _Instances") { public void run() {
+                    CellLists.listCellInstancesCommand(); }},
+                new EMenuItem("List Cell _Usage") { public void run() {
+                    CellLists.listCellUsageCommand(); }},
+                SEPARATOR,
+                new EMenuItem("Graphically, _Entire Library") { public void run() {
+                    CircuitChanges.graphCellsInLibrary(); }},
+                new EMenuItem("Graphically, _From Current Cell") { public void run() {
+                    CircuitChanges.graphCellsFromCell(); }}),
 
-        cellMenu.addMenuItem("Cell Propertie_s...", null,
-             new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
+            new EMenuItem("Cell Propertie_s...") { public void run() {
+                 cellControlCommand(); }},
 
-        cellMenu.addSeparator();
+            SEPARATOR,
 
 		// mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
-        MenuBar.Menu expandListSubMenu = MenuBar.makeMenu("E_xpand Cell Instances");
-        cellMenu.add(expandListSubMenu);
-        expandListSubMenu.addMenuItem("_One Level Down", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(false, 1); }});
-        expandListSubMenu.addMenuItem("_All the Way", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(false, Integer.MAX_VALUE); }});
-        expandListSubMenu.addMenuItem("_Specified Amount...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(false, -1); }});
+            new EMenu("E_xpand Cell Instances",
+                new EMenuItem("_One Level Down") { public void run() {
+                    CircuitChanges.DoExpandCommands(false, 1); }},
+                new EMenuItem("_All the Way") { public void run() {
+                    CircuitChanges.DoExpandCommands(false, Integer.MAX_VALUE); }},
+                new EMenuItem("_Specified Amount...") { public void run() {
+                    CircuitChanges.DoExpandCommands(false, -1); }}),
 
         // mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
-        MenuBar.Menu unExpandListSubMenu = MenuBar.makeMenu("Unexpand Cell Ins_tances");
-        cellMenu.add(unExpandListSubMenu);
-        unExpandListSubMenu.addMenuItem("_One Level Up", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(true, 1); }});
-        unExpandListSubMenu.addMenuItem("_All the Way", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(true, Integer.MAX_VALUE); }});
-        unExpandListSubMenu.addMenuItem("_Specified Amount...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.DoExpandCommands(true, -1); }});
+            new EMenu("Unexpand Cell Ins_tances",
+                new EMenuItem("_One Level Up") { public void run() {
+                    CircuitChanges.DoExpandCommands(true, 1); }},
+                new EMenuItem("_All the Way") { public void run() {
+                    CircuitChanges.DoExpandCommands(true, Integer.MAX_VALUE); }},
+                new EMenuItem("_Specified Amount...") { public void run() {
+                    CircuitChanges.DoExpandCommands(true, -1); }}),
 
-        cellMenu.addMenuItem("Loo_k Inside Highlighted", KeyStroke.getKeyStroke('P', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { peekCommand(); }});
+            new EMenuItem("Loo_k Inside Highlighted", 'P') { public void run() {
+                peekCommand(); }},
 
-        cellMenu.addSeparator();
-        cellMenu.addMenuItem("Packa_ge Into Cell...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.packageIntoCell(); } });
-        cellMenu.addMenuItem("Extract Cell _Instance", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.extractCells(); } });
+            SEPARATOR,
+            new EMenuItem("Packa_ge Into Cell...") { public void run() {
+                CircuitChanges.packageIntoCell(); }},
+            new EMenuItem("Extract Cell _Instance") { public void run() {
+                CircuitChanges.extractCells(); }});
     }
 
     /**

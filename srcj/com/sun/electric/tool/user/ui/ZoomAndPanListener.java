@@ -283,7 +283,7 @@ public class ZoomAndPanListener
 	/**
 	 * This method implements the command to center the cursor.
 	 */
-	public static void centerCursor(ActionEvent e)
+	public static void centerCursor()
 	{
 		EditWindow wnd = EditWindow.needCurrent();
 		if (wnd == null) return;

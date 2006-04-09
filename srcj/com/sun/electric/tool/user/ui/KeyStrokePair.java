@@ -43,15 +43,15 @@ public class KeyStrokePair {
 
     /** cache of defined KeyStrokePairs */  private static HashMap<KeyStrokePair,KeyStrokePair> cache = new HashMap<KeyStrokePair,KeyStrokePair>();
     /** separator for toString() */         private static final String sep = ", ";
-    /** list of special keyStrokes */       private static List<KeyStroke> specialKeyStrokes = new ArrayList<KeyStroke>();
+    /** list of special keyStrokes */       private static KeyStroke[] specialKeyStrokes = {
+        KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0),
+        KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
+        KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0),
+        KeyStroke.getKeyStroke('>'),
+        KeyStroke.getKeyStroke('<')
+    };
 
     private KeyStrokePair() {}
-
-    /**
-     * Method to collect special key strokes such as "Delete"
-     * @param key the stroke to store
-     */
-    public static void addSpecialStrokePair(KeyStroke key) {specialKeyStrokes.add(key);}
 
     /**
      * Factory method to get a new KeyStrokePair.  KeyStrokePairs are unique,
@@ -152,12 +152,11 @@ public class KeyStrokePair {
         KeyStroke key = KeyStroke.getKeyStroke(str);
         if (key == null) // Doesn't seem to handle properly special keyEvent
         {
-            for (int i = 0; i < specialKeyStrokes.size(); i++)
+            for (KeyStroke k: specialKeyStrokes)
             {
-                KeyStroke tmp = (KeyStroke)specialKeyStrokes.get(i);
-                if (str.equals(getStringFromKeyStroke(tmp)))
+                if (str.equals(getStringFromKeyStroke(k)))
                 {
-                    key = tmp;
+                    key = k;
                     break; // found
                 }
             }

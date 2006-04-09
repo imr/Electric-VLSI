@@ -518,8 +518,17 @@ public class Routing extends Listener
 	 */
 	public static void toggleEnableAutoStitching(ActionEvent e)
 	{
-		AbstractButton b = (AbstractButton)e.getSource();
-		if (b.isSelected())
+		toggleEnableAutoStitching(((AbstractButton)e.getSource()).isSelected());
+	}
+
+	/**
+	 * Method called when the "Enable Auto Stitching" command is issued.
+	 * Toggles the state of automatic auto stitching.
+	 * @param b true to ebable automatic auto stitching.
+	 */
+	public static void toggleEnableAutoStitching(boolean b)
+	{
+		if (b)
 		{
 			setAutoStitchOn(true);
 			System.out.println("Auto-stitching enabled");
@@ -537,8 +546,17 @@ public class Routing extends Listener
 	 */
 	public static void toggleEnableMimicStitching(ActionEvent e)
 	{
-		AbstractButton b = (AbstractButton)e.getSource();
-		if (b.isSelected())
+        toggleEnableMimicStitching(((AbstractButton)e.getSource()).isSelected());
+	}
+
+	/**
+	 * Method called when the "Enable Mimic Stitching" command is issued.
+	 * Toggles the state of automatic mimic stitching.
+	 * @param b to enable automatic mimic stitching.
+	 */
+	public static void toggleEnableMimicStitching(boolean b)
+	{
+		if (b)
 		{
 			setMimicStitchOn(true);
 			System.out.println("Mimic-stitching enabled");

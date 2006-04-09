@@ -25,16 +25,16 @@
 package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.plugins.j3d.View3DWindow;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.plugins.j3d.View3DWindow;
+import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
+import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
+import static com.sun.electric.tool.user.menus.MenuCommands.SEPARATOR;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.lang.reflect.Method;
 
 
@@ -46,20 +46,17 @@ import java.lang.reflect.Method;
 public class J3DMenu {
 
     // It can't be protected static -> reflection doesn't like it
-    public static MenuBar.Menu add3DMenus(MenuBar.Menu menu) {
-
+    public static EMenu makeMenu() {
         /****************************** THE 3D MENU ******************************/
 
-        MenuBar.Menu j3DMenu = MenuBar.makeMenu("_3D Window");
-        menu.add(j3DMenu);
+        return new EMenu("_3D Window",
 
         // mnemonic keys available: AB  EFGHIJKLMNOPQ S U WXYZ
         /** 3D view */
-	    j3DMenu.addMenuItem("_3D View", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(new Boolean(false)); } });
-        j3DMenu.addMenuItem("_Capture Frame/Animate", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e)
-            { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame(), null);} });
+            new EMenuItem("_3D View") { public void run() {
+                create3DViewCommand(new Boolean(false)); }},
+            new EMenuItem("_Capture Frame/Animate") { public void run() {
+                J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame(), null); }},
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
 
@@ -72,10 +69,9 @@ public class J3DMenu {
 //        demoSubMenu.addMenuItem("_Read Data", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame()); } });
 
-        j3DMenu.addSeparator();
-        j3DMenu.addMenuItem("_Test Hardware", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { runHardwareTest(); ;} });
-		return j3DMenu;
+            SEPARATOR,
+            new EMenuItem("_Test Hardware") { public void run() {
+                runHardwareTest(); }});
     }
 
     // ---------------------- THE 3D MENU FUNCTIONS -----------------
