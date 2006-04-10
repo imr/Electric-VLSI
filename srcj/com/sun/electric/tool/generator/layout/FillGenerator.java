@@ -2904,11 +2904,11 @@ public class FillGenerator implements Serializable {
                 if (arcNet.findExportWithSameCharacteristic(p.e) == null)
                     continue; // no match in network type
 
-                if (ap != Tech.m3)
-                {
-                    System.out.println("picking  metal");
-//                    continue; // Only metal 3 arcs
-                }
+//                if (ap != Tech.m3)
+//                {
+//                    System.out.println("picking  metal");
+////                    continue; // Only metal 3 arcs
+//                }
 
                 // Adding now
                 Layer layer = ap.layerIterator().next();
@@ -2957,10 +2957,37 @@ public class FillGenerator implements Serializable {
 
                     if (horizontalBar)
                     {
-                        // search for the contacts m3m4 at least
                         usefulBar = geomBnd.getHeight();
-                        Rectangle2D pRect = p.pPoly.getBounds2D();
-                        newElem = new Rectangle2D.Double(contactArea.getX(), geomBnd.getY(), defaultContact.getDefWidth(), usefulBar);
+                        // search for the contacts m3m4 at least
+                        Network net = fillNetlist.getNetwork(ai, 0);
+                        List<NodeInst> nodes = new ArrayList<NodeInst>();
+
+                        // get contact nodes in the same network
+                        for (Iterator<NodeInst> it = searchCell.getNodes(); it.hasNext(); )
+                        {
+                            NodeInst ni = it.next();
+                            // only contacts
+                            if (ni.getProto().getFunction() != PrimitiveNode.Function.CONTACT) continue;
+                            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+                                PortInst pi = pit.next();
+                                if (fillNetlist.getNetwork(pi) == net)
+                                {
+                                    nodes.add(ni);
+                                    break; // stop the loop here
+                                }
+                            }
+                        }
+                        // No contact on that bar
+//                        if (nodes.size() == 0)
+                            newElem = new Rectangle2D.Double(contactArea.getX(), geomBnd.getY(), defaultContact.getDefWidth(), usefulBar);
+//                        else
+//                        {
+//                            // search for closest distance or I could add all!!
+//                            // Taking the first element for now
+//                            NodeInst ni = nodes.get(0);
+//                            geomBnd = ni.getBounds();
+//                            newElem = new Rectangle2D.Double(geomBnd.getX(), geomBnd.getY(), geomBnd.getWidth(), usefulBar);
+//                        }
                         newElemMin = newElem.getMinY();
                         newElemMax = newElem.getMaxY();
                         areaMin = contactArea.getMinY();
