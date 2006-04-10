@@ -140,8 +140,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * @param nets
      * @return HashSet of ArcInsts, PortInsts and Exports on networs.
      */
-    private static HashSet<ElectricObject> getNetworkObjects(Cell cell, Netlist netlist, Set<Network> nets,
-                                                             int depth) {
+    private static HashSet<ElectricObject> getNetworkObjects(Cell cell, Netlist netlist, Set<Network> nets) {
         HashSet<ElectricObject> objs = new HashSet<ElectricObject>();
         
         // all port instances on the networks
@@ -208,7 +207,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      */
     private void addNetworkObjects() {
         // highlight objects in this cell
-        HashSet<ElectricObject> objs = getNetworkObjects(cell, netlist, nets, currentDepth);
+        HashSet<ElectricObject> objs = getNetworkObjects(cell, netlist, nets);
 
         for (ElectricObject eObj : objs) {
             highlighter.addElectricObject(eObj, cell, false);
@@ -240,7 +239,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         if (localNets.size() == 0) return;
 
         Cell currentCell = info.getCell();
-        HashSet<ElectricObject> objs = getNetworkObjects(currentCell, netlist, localNets, currentDepth);
+        HashSet<ElectricObject> objs = getNetworkObjects(currentCell, netlist, localNets);
 
         // get polys for each object and transform them to root
         AffineTransform trans = info.getTransformToRoot();
