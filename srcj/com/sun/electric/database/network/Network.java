@@ -195,7 +195,27 @@ public class Network {
         }
         return ports.iterator();
     }
-    
+
+    /**
+     * Get iterator over all NodeInsts on Network.
+     */
+    public Iterator<NodeInst> getNodes()
+    {
+        ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
+        for (Iterator<NodeInst> it = getParent().getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
+                PortInst pi = pit.next();
+                if (netlist.getNetwork(pi) == this)
+                {
+                    nodes.add(ni);
+                    break; // stop the loop here
+                }
+            }
+        }
+        return nodes.iterator();
+    }
+
     /** Get iterator over all Exports on Network */
     public Iterator<Export> getExports() {
         ArrayList<Export> exports = new ArrayList<Export>();
