@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.menus.MenuBar.MenuItem;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -256,18 +255,6 @@ public final class MenuCommands
         } catch (Exception e) {
             e.printStackTrace();
             return null;
-        }
-    }
-
-    private static void addExtraMenu(MenuBar menuBar , String plugin)
-    {
-        try {
-            Class menuClass = Class.forName("com.sun.electric.plugins."+plugin);
-            java.lang.reflect.Method addMenu = menuClass.getMethod("addMenu", new Class[] { MenuBar.class });
-            addMenu.invoke(null, new Object [] {menuBar});
-        } catch (Exception e)
-        {
-            e.printStackTrace();
         }
     }
 
