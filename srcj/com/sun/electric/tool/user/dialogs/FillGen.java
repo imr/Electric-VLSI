@@ -39,13 +39,13 @@ import java.awt.*;
  * Unused class to manage fill generators.
  * TODO: RK Decide whether to use this file or discard it.
  */
-public class FillGen extends EDialog {
+public class
+        FillGen extends EDialog {
 
     private JTextField[] vddSpace;
     private JComboBox[] vddUnit;
     private JTextField[] gndSpace;
     private JComboBox[] gndUnit;
-//    private Technology tech;
     private JCheckBox[] tiledCells;
 
     /** Creates new form FillGen */
@@ -53,7 +53,6 @@ public class FillGen extends EDialog {
         super(parent, modal);
         initComponents();
         int numMetals = (tech == null) ? 6 : tech.getNumMetals();
-//        this.tech = tech;
         int size = numMetals - 1;
         vddSpace = new JTextField[size];
         vddUnit = new JComboBox[size];
