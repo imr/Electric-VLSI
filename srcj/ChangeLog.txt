@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+IMP: (4/9/06, GVG) Cleaning extra Comparators.
+
 IMP: (4/9/06, DN) Menu API changed: Tools make generic menus EMenu which are
    used to generate actual JMenus for every window. This is preparation to fix bug #890.
 

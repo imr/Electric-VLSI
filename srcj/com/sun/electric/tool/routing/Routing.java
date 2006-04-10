@@ -40,7 +40,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -48,7 +47,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
 
 import java.awt.event.ActionEvent;

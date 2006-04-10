@@ -90,6 +90,26 @@ import java.util.TreeMap;
 public class Output
 {
     /**
+     * Used in ECAD
+     */
+	static class NetNames
+	{
+		String nodeName;
+		String netName;
+		String portName;
+	}
+
+    static class NetNamesSort implements Comparator<NetNames>
+    {
+        public int compare(NetNames nn1, NetNames nn2)
+        {
+            String name1 = nn1.netName;
+            String name2 = nn2.netName;
+            return name1.compareToIgnoreCase(name2);
+        }
+    }
+
+    /**
      * This is the non-interactive version of exportCellCommand
      * @param cell the Cell to be written.
      * @param context the VarContext of the Cell (its position in the hierarchy above it).
@@ -150,7 +170,7 @@ public class Output
 
 	/**
 	 * Method to write all Libraries in Snapsht into a panic directory.
-     * @param snapshot Snapshot to save.
+     * @param panicSnapshot Snapshot to save.
      * @param panicDir panic directory to save.
      * @return true on error.
 	 */

@@ -240,7 +240,7 @@ public class PostScriptColor
 		}
 
 		// sort by layer height
-		Collections.sort(layerSorts, new LayersByHeight());
+		Collections.sort(layerSorts, new LayersByDepth());
 
 		// load the layer information
 		for(int i=0; i<layerSorts.size(); i++)
@@ -292,7 +292,7 @@ public class PostScriptColor
 	/**
 	 * Comparator class for sorting Layers by their height.
 	 */
-	private static class LayersByHeight implements Comparator<Layer>
+	private static class LayersByDepth implements Comparator<Layer>
 	{
 		/**
 		 * Method to sort LayerSort by their height.

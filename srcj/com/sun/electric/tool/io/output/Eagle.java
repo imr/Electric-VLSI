@@ -29,18 +29,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -68,13 +63,6 @@ public class Eagle extends Output
 	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = Variable.newKey("ATTR_pin");
 
 	private List<NetNames> networks;
-
-	private static class NetNames
-	{
-		String nodeName;
-		String netName;
-		String portName;
-	}
 
 	/**
 	 * Creates a new instance of Eagle netlister.
@@ -152,16 +140,6 @@ public class Eagle extends Output
 
 		if (closeTextOutputStream()) return;
 		System.out.println(filePath + " written");
-	}
-
-	private static class NetNamesSort implements Comparator<NetNames>
-	{
-		public int compare(NetNames nn1, NetNames nn2)
-		{
-			String name1 = nn1.netName;
-			String name2 = nn2.netName;
-			return name1.compareToIgnoreCase(name2);
-		}
 	}
 
 	/** Eagle Netlister */
