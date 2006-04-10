@@ -226,7 +226,7 @@ public class EditMenu {
                             
             new EMenuItem("_Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0)) { public void run() {
                 Array.showArrayDialog(); }},
-            new EMenuItem("C_hange...", KeyStroke.getKeyStroke('C')) { public void run() {
+            new EMenuItem("C_hange...", KeyStroke.getKeyStroke('C', 0)) { public void run() {
                 Change.showChangeDialog(); }},
 
             SEPARATOR,
@@ -428,11 +428,11 @@ public class EditMenu {
                 new EMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<')) { public void run() {
                     showPrevErrorCommand(); }},
                 SEPARATOR,
-                new EMenuItem("Add to Waveform in _New Panel", KeyStroke.getKeyStroke('A')) { public void run() { 
+                new EMenuItem("Add to Waveform in _New Panel", KeyStroke.getKeyStroke('A', 0)) { public void run() { 
                     addToWaveformNewCommand(); }},
-                new EMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O')) { public void run() {
+                new EMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0)) { public void run() {
                     addToWaveformCurrentCommand(); }},
-                new EMenuItem("_Remove from Waveform", KeyStroke.getKeyStroke('R')) { public void run() {
+                new EMenuItem("_Remove from Waveform", KeyStroke.getKeyStroke('R', 0)) { public void run() {
                     removeFromWaveformCommand(); }}));
     }
 
@@ -467,7 +467,7 @@ public class EditMenu {
         private final ToolBar.CursorMode cm;
         
         CursorModeButton(ToolBar.CursorMode cm, char acceleratorChar) {
-            super(cm.getMenuName(), KeyStroke.getKeyStroke(acceleratorChar));
+            super(cm.getMenuName(), KeyStroke.getKeyStroke(acceleratorChar, 0));
             this.cm = cm;
         }
 
@@ -484,7 +484,7 @@ public class EditMenu {
         }
 
         ArrowDistanceButton(ToolBar.ArrowDistance ad, char acceleratorChar) {
-            super(ad.getMenuName(), KeyStroke.getKeyStroke(acceleratorChar));
+            super(ad.getMenuName(), KeyStroke.getKeyStroke(acceleratorChar, 0));
             this.ad = ad;
         }
 

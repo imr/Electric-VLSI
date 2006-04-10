@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/11/06, DN) Keyboard input doesn't work: z - zoom, s - select (Bug #925).
+FIX: In EditMenu.java use KeyStroke.getKeyStroke(ch, 0) instead of KeyStroke.getKeyStroke(ch).
+
 IMP: (4/9/06, GVG) Cleaning extra Comparators.
 
 IMP: (4/9/06, DN) Menu API changed: Tools make generic menus EMenu which are
