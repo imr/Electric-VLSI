@@ -1167,30 +1167,21 @@ class TiledCell {
 	}
 
     /**
-     *
-     * @param master
-     * @param empty
-     * @param tileOnX
-     * @param tileOnY
-     * @param minTileSize
-     * @param topCell
-     * @param binary
-     * @param area
-     * @return
+     *  Method to set up conditions for qTree refinement
      */
-    public Cell makeQTreeCell(Cell master, Cell empty, Library autoLib, int tileOnX, int tileOnY, double minTileSize,
-                              boolean isPlanHorizontal, StdCellParams stdCellParam, Cell topCell, boolean binary,
+    public Cell makeQTreeCell(Cell master, Cell empty, Library autoLib, int tileOnX, int tileOnY, double minTileSizeX,
+                              double minTileSizeY, boolean isPlanHorizontal, StdCellParams stdCellParam, Cell topCell, boolean binary,
                               List<Rectangle2D> topBoxList, Area area)
     {
-        double fillWidth = tileOnX * minTileSize;
-        double fillHeight = tileOnY * minTileSize;
+        double fillWidth = tileOnX * minTileSizeX;
+        double fillHeight = tileOnY * minTileSizeY;
         // in case of binary division, make sure the division is 2^N
         if (binary)
         {
             int powerX = getFillDimension(tileOnX, true);
             int powerY = getFillDimension(tileOnY, true);
-            fillWidth = powerX*minTileSize;
-            fillHeight = powerY*minTileSize;
+            fillWidth = powerX*minTileSizeX;
+            fillHeight = powerY*minTileSizeY;
         }
 
         // topBox its width/height must be multiply of master.getWidth()/Height()
@@ -1215,8 +1206,8 @@ class TiledCell {
                 }
             }
             double newPitch = value + deltaYFromBottom;
-            assert((newPitch-topBox.getMinY()) < minTileSize);
-            topBox = new Rectangle2D.Double(topBox.getMinX(), newPitch-minTileSize, topBox.getWidth(), fillHeight+minTileSize);
+            assert((newPitch-topBox.getMinY()) < minTileSizeY);
+            topBox = new Rectangle2D.Double(topBox.getMinX(), newPitch-minTileSizeY, topBox.getWidth(), fillHeight+minTileSizeY);
         }
         topBoxList.clear(); // remove original value
         topBoxList.add(topBox); // I need information for setting
@@ -1397,16 +1388,22 @@ class TiledCell {
     private boolean refine(Cell master, Cell empty, Library autoLib, Rectangle2D box, boolean isPlanHorizontal, StdCellParams stdCellParam,
                            List<Cell> newElems, Cell topCell, boolean binary, Area area)
     {
-        double masterW = master.getBounds().getWidth();
-        double masterH = master.getBounds().getHeight();
+        Rectangle2D r = master.findEssentialBounds();
+        double masterW = r.getWidth();
+        double masterH = r.getHeight();
         double w = box.getWidth(), wHalf = w/2;
         double h = box.getHeight(), hHalf = h/2;
         double x = box.getX();
         double y = box.getY();
         double refineOnX = w/masterW;
         double refineOnY = h/masterH;
+        // refineOnX and refineOnY must be multiple of masterW/masterH
+        if (DBMath.hasRemainder(w, masterW) || DBMath.hasRemainder(h, masterH))
+            System.out.println("not good refinement");
+
         int cutX = (int)Math.ceil(refineOnX);
         int cutY = (int)Math.ceil(refineOnY);
+        assert(cutX > 0 && cutY > 0);
         int cutXOnLeft = getFillDimension((int)(refineOnX/2), false);
         int cutXOnRight = cutX - cutXOnLeft; // get exact number of cuts
         int cutYOnBottom = getFillDimension((int)(refineOnY/2), false);
@@ -1549,6 +1546,11 @@ class TiledCell {
                     {
                         // Creating empty/dummy Master cell or look for an existing one
                         dummyCell = Cell.copyNodeProto(master, master.getLibrary(), dummyName, true);
+//                        LayoutLib.newNodeInst(Tech.essentialBounds, -masterW/2, -masterH/2,
+//                                              G.DEF_SIZE, G.DEF_SIZE, 180, dummyCell);
+//                        LayoutLib.newNodeInst(Tech.essentialBounds, masterW/2, masterW/2,
+//                                              G.DEF_SIZE, G.DEF_SIZE, 0, dummyCell);
+
                         // Time to delete the elements overlapping with the rest of the top cell
                         for (NodeInst ni : nodesToRemove)
                         {
@@ -1609,6 +1611,11 @@ class TiledCell {
         if (tiledCell == null || !stdCell)
         {
             tiledCell = Cell.newInstance(master.getLibrary(), tileName);
+            LayoutLib.newNodeInst(Tech.essentialBounds, -w/2, -h/2,
+                                  G.DEF_SIZE, G.DEF_SIZE, 180, tiledCell);
+            LayoutLib.newNodeInst(Tech.essentialBounds, w/2, h/2,
+                                  G.DEF_SIZE, G.DEF_SIZE, 0, tiledCell);
+
             NodeInst[][] rows = null;
 
             // if it could use previous std fill cells
@@ -1905,7 +1912,7 @@ public class FillGenerator implements Serializable {
 	private static final double m6SP = 8;
 
 	private double width=Double.NaN, height=Double.NaN;
-    private double targetWidth=Double.NaN, targetHeight=Double.NaN, minTileSize=Double.NaN;
+    private double targetWidth=Double.NaN, targetHeight=Double.NaN, minTileSizeX=Double.NaN, minTileSizeY=Double.NaN;
 	private String libName;
 	private Library lib;
 	private boolean libInitialized;
@@ -1951,8 +1958,8 @@ public class FillGenerator implements Serializable {
                 new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], m6SP,  evenHor)
                 };
             }
-            w = width = minTileSize;
-            h = height = minTileSize;
+            w = width = minTileSizeX;
+            h = height = minTileSizeY;
         }
 		return new Floorplan[] {
 			null,
@@ -2054,11 +2061,11 @@ public class FillGenerator implements Serializable {
 							  cellWidth/2, cellHeight/2,
 							  G.DEF_SIZE, G.DEF_SIZE, 0, empty);
 
-        int tileOnX = (int)Math.ceil(targetWidth/minTileSize);
-        int tileOnY = (int)Math.ceil(targetHeight/minTileSize);
+        int tileOnX = (int)Math.ceil(targetWidth/minTileSizeX);
+        int tileOnY = (int)Math.ceil(targetHeight/minTileSizeY);
 
         TiledCell t = new TiledCell(stdCell, 6);
-        master = t.makeQTreeCell(master, empty, lib, tileOnX, tileOnY, minTileSize, isPlanHorizontal, stdCell,
+        master = t.makeQTreeCell(master, empty, lib, tileOnX, tileOnY, minTileSizeX, minTileSizeY, isPlanHorizontal, stdCell,
                 topCell, binary, topBoxList, area);
         return master;
 	}
@@ -2131,13 +2138,15 @@ public class FillGenerator implements Serializable {
     /** Set target values: the minimum size of title based on user input and DRC rules
      * @param targetW
      * @param targetH
-     * @param s size in lambda
+     * @param sx width in lambda
+     * @param sy height in lambda
      */
-    public void setTargetValues(double targetW, double targetH, double s) {
+    public void setTargetValues(double targetW, double targetH, double sx, double sy) {
 		changeWarning();
         targetWidth = targetW;
         targetHeight = targetH;
-        minTileSize = s;
+        minTileSizeX = sx;
+        minTileSizeY = sy;
     }
 	/** Make even layers horizontal or vertical. Odd layers are orthogonal to
 	 * even layers.
@@ -2212,6 +2221,13 @@ public class FillGenerator implements Serializable {
 
         if (master == null)
             master = FillCell.makeFillCell(lib, plans, loLayer, hiLayer, capCell, wireLowest, stdCell, metalFlex, true);
+        else
+        {
+            // must adjust minSize
+            Rectangle2D r = master.findEssentialBounds(); // must use essential elements to match the edges
+            minTileSizeX = r.getWidth();
+            minTileSizeY = r.getHeight();
+        }
         Cell cell = treeMakeAndTileCell(master, plans[plans.length-1].horizontal, topCell, topBoxList, area);
 
         return cell;
@@ -2255,9 +2271,10 @@ public class FillGenerator implements Serializable {
         private ErrorLogger log;
         private boolean hierarchy;
         private boolean doItNow;
+        private double minOverlap;
 
 		public FillGenJob(Cell cell, FillGenerator gen, ExportConfig perim, int first, int last, int[] cells,
-                          boolean hierarchy, boolean doItNow)
+                          boolean hierarchy, boolean doItNow, double minO)
 		{
 			super("Fill generator job", null, Type.CHANGE, null, null, Priority.USER);
             this.perimeter = perim;
@@ -2268,6 +2285,7 @@ public class FillGenerator implements Serializable {
             this.topCell = cell; // Only if 1 cell is generated.
             this.hierarchy = hierarchy;
             this.doItNow = doItNow;
+            this.minOverlap = minO;
 
             if (doItNow) // call from regressions
             {
@@ -2435,7 +2453,13 @@ public class FillGenerator implements Serializable {
 
             for (int i = 0; i < exportList.size(); i++)
             {
-                plList.add(new PortConfig(portList.get(i), exportList.get(i)));
+                PortInst p = portList.get(i);
+
+                Layer l = FillGenJob.getMetalLayerFromExport(p.getPortProto());
+                if (l != null)
+                    plList.add(new PortConfig(p, exportList.get(i), l));
+                else
+                    System.out.println("F ");
             }
 //            for (PortInst p : portList)
 //            {
@@ -2471,12 +2495,12 @@ public class FillGenerator implements Serializable {
             Layer l;
             Poly pPoly; // to speed up the progress because PortInst.getPoly() calls getShape()
 
-            PortConfig(PortInst p, Export e)
+            PortConfig(PortInst p, Export e, Layer l)
             {
                 this.e = e;
                 this.p = p;
                 this.pPoly = p.getPoly();
-                this.l = FillGenJob.getMetalLayerFromExport(p.getPortProto());
+                this.l = l;
             }
         }
 
@@ -2506,7 +2530,7 @@ public class FillGenerator implements Serializable {
             
             // otherwise pins at edges increase cell sizes and FillRouter.connectCoincident(portInsts)
             // does work
-            G.DEF_SIZE = 0;
+//            G.DEF_SIZE = 0;
             List<Rectangle2D> topBoxList = new ArrayList<Rectangle2D>();
 //            Rectangle2D bndd = topCell.getBounds();
             topBoxList.add(topCell.getBounds()); // topBox might change if predefined pitch is included in master cell
@@ -2589,6 +2613,7 @@ public class FillGenerator implements Serializable {
                 if (p.p.getPortProto() instanceof Export)
                 {
                     Export ex = (Export)p.p.getPortProto();
+                    assert(ex == p.e);
                     Cell exportCell = (Cell)p.p.getNodeInst().getProto();
                     // Supposed to work only with metal layers
                     rect = LayerCoverageTool.getGeometryOnNetwork(exportCell, ex.getOriginalPort(),
@@ -2907,7 +2932,7 @@ public class FillGenerator implements Serializable {
 //                if (ap != Tech.m3)
 //                {
 //                    System.out.println("picking  metal");
-////                    continue; // Only metal 3 arcs
+//                    continue; // Only metal 3 arcs
 //                }
 
                 // Adding now
@@ -2960,34 +2985,37 @@ public class FillGenerator implements Serializable {
                         usefulBar = geomBnd.getHeight();
                         // search for the contacts m3m4 at least
                         Network net = fillNetlist.getNetwork(ai, 0);
-                        List<NodeInst> nodes = new ArrayList<NodeInst>();
+                        List<Rectangle2D> nodes = new ArrayList<Rectangle2D>();
 
                         // get contact nodes in the same network
                         for (Iterator<NodeInst> it = searchCell.getNodes(); it.hasNext(); )
                         {
                             NodeInst ni = it.next();
+                            Rectangle2D r = ni.getBounds();
                             // only contacts
                             if (ni.getProto().getFunction() != PrimitiveNode.Function.CONTACT) continue;
+                            // Only those who overlap
+                            if (!r.intersects(geomBnd)) continue;
                             for (Iterator<PortInst> pit = ni.getPortInsts(); pit.hasNext(); ) {
                                 PortInst pi = pit.next();
+                                // Only those
                                 if (fillNetlist.getNetwork(pi) == net)
                                 {
-                                    nodes.add(ni);
+                                    nodes.add(r);
                                     break; // stop the loop here
                                 }
                             }
                         }
                         // No contact on that bar
-//                        if (nodes.size() == 0)
+                        if (nodes.size() == 0)
                             newElem = new Rectangle2D.Double(contactArea.getX(), geomBnd.getY(), defaultContact.getDefWidth(), usefulBar);
-//                        else
-//                        {
-//                            // search for closest distance or I could add all!!
-//                            // Taking the first element for now
-//                            NodeInst ni = nodes.get(0);
-//                            geomBnd = ni.getBounds();
-//                            newElem = new Rectangle2D.Double(geomBnd.getX(), geomBnd.getY(), geomBnd.getWidth(), usefulBar);
-//                        }
+                        else
+                        {
+                            // search for closest distance or I could add all!!
+                            // Taking the first element for now
+                            geomBnd = (Rectangle2D)nodes.get(0).getBounds().clone();
+                            newElem = new Rectangle2D.Double(geomBnd.getX(), geomBnd.getY(), geomBnd.getWidth(), geomBnd.getHeight());
+                        }
                         newElemMin = newElem.getMinY();
                         newElemMax = newElem.getMaxY();
                         areaMin = contactArea.getMinY();
@@ -3025,9 +3053,7 @@ public class FillGenerator implements Serializable {
                         double overlap = (max-min)/usefulBar;
                         // Checking if new element is completely inside the contactArea otherwise routeToClosestArc could add
                         // the missing contact
-                        // Acepting more than 50% overlap
-        //                System.out.println("Overlap " + overlap);
-                        if (overlap < 0.5)
+                        if (overlap < minOverlap)
                         {
                             System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p);
                             continue;
@@ -3043,14 +3069,6 @@ public class FillGenerator implements Serializable {
                     return; // only one set for now if something overlapping was found
             }
         }
-
-//    protected static final List<Layer.Function> fillLayers = new ArrayList<Layer.Function>(3);
-
-//    static {
-//	    fillLayers.add(Layer.Function.METAL2);
-//        fillLayers.add(Layer.Function.CONTACT3);
-//        fillLayers.add(Layer.Function.METAL3);
-//    };
 
         /**
          * Method to find corresponding metal pin associated to the given layer
@@ -3131,9 +3149,11 @@ public class FillGenerator implements Serializable {
             PrimitiveNode thePin = findPrimitiveNodeFromLayer(p.l);
             assert(thePin != null);
             assert(thePin != Tech.m1pin); // should start from m2
-            NodeInst pinNode = LayoutLib.newNodeInst(thePin, portInConFill.getCenterX(), portInConFill.getCenterY(),
-                    thePin.getDefWidth(), contactAreaHeight, 0, container.connectionCell);
-            PortInst pin = pinNode.getOnlyPortInst();
+            NodeInst pinNode = null;
+            PortInst pin = null;
+//            LayoutLib.newNodeInst(thePin, portInConFill.getCenterX(), portInConFill.getCenterY(),
+//                    thePin.getDefWidth(), contactAreaHeight, 0, container.connectionCell);
+//            PortInst pin = pinNode.getOnlyPortInst();
 
             // Loop along all possible connections (different layers)
             List<Layer> listOfLayers = new ArrayList<Layer>(size);
@@ -3164,6 +3184,8 @@ public class FillGenerator implements Serializable {
                         topContact = VddGndStraps.fillContacts[i];
                 }
 
+//                if (topContact == null)
+//                    System.out.println("Here ");
                 assert(topContact != null);
                 boolean horizontalBar = (topPin == Tech.m4pin || topPin == Tech.m6pin);
 
@@ -3189,12 +3211,26 @@ public class FillGenerator implements Serializable {
                             new NodeInst[] {container.fillNi, container.connectionNi}))
                         continue;
 
-                    // adding contact
-                    added = horizontalBar ?
-                            LayoutLib.newNodeInst(topContact, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
-                            contactAreaWidth, newElemFillHeight, 0, container.connectionCell) :
-                            LayoutLib.newNodeInst(topContact, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
-                            newElemFillWidth, contactAreaHeight, 0, container.connectionCell);
+                    // The first time but only after at least one element can be placed
+                    if (pinNode == null)
+                    {
+                        pinNode = LayoutLib.newNodeInst(thePin, portInConFill.getCenterX(), portInConFill.getCenterY(),
+                                thePin.getDefWidth(), contactAreaHeight, 0, container.connectionCell);
+                        pin = pinNode.getOnlyPortInst();
+                    }
+
+                    if (topContact != null)
+                    {
+                        // adding contact
+                        added = horizontalBar ?
+                                LayoutLib.newNodeInst(topContact, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
+                                newElemFillWidth, newElemFillHeight, 0, container.connectionCell) :
+                                LayoutLib.newNodeInst(topContact, newElemConnect.getCenterX(), newElemConnect.getCenterY(),
+                                newElemFillWidth, contactAreaHeight, 0, container.connectionCell);
+                    }
+                    else // on the same layer as thePin
+                       added = pinNode;
+
                     container.fillContactList.add(added);
     //                 // Creating the export above the contact in the connection cell
     //                Export conM2Export = Export.newInstance(container.connectionCell, added.getOnlyPortInst(),
@@ -3224,6 +3260,11 @@ public class FillGenerator implements Serializable {
                         PortInst port = exp.getOriginalPort();
 
                         // The port characteristics must be identical
+                        boolean newC = port.getPortProto().getCharacteristic() != p.e.getCharacteristic();
+                        boolean oldC = port.getPortProto().getCharacteristic() != p.p.getPortProto().getCharacteristic();
+                        assert(newC == oldC);
+                        if (newC != oldC)
+                            System.out.println("Check this");
                         if (port.getPortProto().getCharacteristic() != p.p.getPortProto().getCharacteristic())
                             continue;
 
@@ -3255,15 +3296,23 @@ public class FillGenerator implements Serializable {
                 // Done at the end so extra connections would not produce collisions.
                 // Routing the new contact to topCell in connectNi instead of top cell
                 // Export connect projected pin in ConnectionCell
-                Export pinExport = Export.newInstance(container.connectionCell, pin, "proj-"+p.p.getPortProto().getName());
-                pinExport.setCharacteristic(p.p.getPortProto().getCharacteristic());
-                // Connect projected pin in ConnectionCell with real port
-                PortInst pinPort = container.connectionNi.findPortInstFromProto(pinExport);
-                Route conTopExportRoute = container.router.planRoute(topCell, p.p, pinPort,
-                        new Point2D.Double(p.pPoly.getBounds2D().getCenterX(), p.pPoly.getBounds2D().getCenterY()), null, false);
-                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+                if (pinNode != null) // at least done for one
+                {
+                    Export pinExport = Export.newInstance(container.connectionCell, pin, "proj-"+p.e.getName());
+                    if (pinExport != null)
+                    {
+                        pinExport.setCharacteristic(p.e.getCharacteristic());
+                        // Connect projected pin in ConnectionCell with real port
+                        PortInst pinPort = container.connectionNi.findPortInstFromProto(pinExport);
+                        Route conTopExportRoute = container.router.planRoute(topCell, p.p, pinPort,
+                                new Point2D.Double(p.pPoly.getBounds2D().getCenterX(), p.pPoly.getBounds2D().getCenterY()), null, false);
+                        Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+                    }
+                    else
+                        System.out.println("DD");
 
-                return added;
+                    return added;
+                }
             }
             return null;
         }
@@ -3350,7 +3399,7 @@ public class FillGenerator implements Serializable {
         double vddReserve = drcSpacingRule*2;
         double gndReserve = drcSpacingRule*3;
         double minSize = vddReserve + gndReserve + 2*drcSpacingRule + 2*gndReserve + 2*vddReserve;
-        fg.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize);
+        fg.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize, minSize);
         fg.setFillCellWidth(bnd.getWidth());
         fg.setFillCellHeight(bnd.getHeight());
         fg.setDRCSpacing(drcSpacingRule);
@@ -3358,7 +3407,7 @@ public class FillGenerator implements Serializable {
         fg.makeEvenLayersHorizontal(true);
         fg.reserveSpaceOnLayer(3, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
         fg.reserveSpaceOnLayer(4, vddReserve, FillGenerator.LAMBDA, gndReserve, FillGenerator.LAMBDA);
-        FillGenJob job = new FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, hierarchy, doItNow);
+        FillGenJob job = new FillGenJob(cell, fg, FillGenerator.PERIMETER, 3, 4, null, hierarchy, doItNow, 0.1);
         return job;
     }
 }
