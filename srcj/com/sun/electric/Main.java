@@ -173,6 +173,8 @@ public final class Main
 
     private static class UserInterfaceDummy extends AbstractUserInterface
 	{
+        private long oldPct;
+        
         /**
          * Method to start progress bar
          */
@@ -194,7 +196,9 @@ public final class Main
          */
         public void setProgressValue(long pct)
         {
+            if (pct == oldPct) return;
             System.out.print(".");
+            oldPct = pct;
         }
 
         /**

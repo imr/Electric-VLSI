@@ -25,11 +25,10 @@
 package com.sun.electric.tool.io.input;
 
 
-import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.tool.io.FileType;
 
 import java.io.*;
-import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -40,11 +39,11 @@ import java.util.List;
  */
 public class DELIB extends JELIB {
     
-    private static String[] revisions =
-    {
-        // revision 1
-        "8.04f"
-    };
+//    private static String[] revisions =
+//    {
+//        // revision 1
+//        "8.04f"
+//    };
 
     private LineNumberReader headerReader;
 
@@ -88,10 +87,21 @@ public class DELIB extends JELIB {
             System.out.println("Error opening file "+cellFD+": "+e.getMessage());
             return;
         }
+        Version savedVersion = version;
+        int savedRevision = revision;
+        char savedEscapeChar = escapeChar;
+        String savedCurLibName = curLibName;
         lineReader = cellReader;
-        readFromFile();
-        lineReader.close();
-        lineReader = headerReader;
+        try {
+            readFromFile(true);
+        } finally {
+            version = savedVersion;
+            revision = savedRevision;
+            escapeChar = savedEscapeChar;
+            curLibName = savedCurLibName;
+            lineReader.close();
+            lineReader = headerReader;
+        }
     }
 
 

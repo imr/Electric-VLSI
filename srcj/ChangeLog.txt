@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/11/06, DN) Batch output is too verbose.
+FIX: In Main.UserInterfaceDummy.setProgressValue compare new procent with previous one.
+
+IMP: (4/11/06, DN) Preparation for new revision of JELIB/DELIB format. It will happen in "8.04l".
+    Versions "i", "j" and "k" can already read new format. They ignore new fields.
+
 BUG: (4/11/06, GVG) Bug in mouseOver highlighter introduced on 4/5/06
 FIX: Highlighter.overHighlighted() returns the unique element overlapping so mouseOver highlighter never grows more than 1.
 

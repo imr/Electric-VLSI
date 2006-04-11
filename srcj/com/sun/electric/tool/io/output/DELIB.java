@@ -28,6 +28,7 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.text.Version;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -103,7 +104,12 @@ public class DELIB extends JELIB {
         HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
         cellBackup.gatherUsages(usedLibs, usedExports);
         gatherLibs(usedLibs, usedExports);
-        super.writeExternalLibraryInfo(cellBackup.d.libId, usedLibs, usedExports);
+        
+         // write short header information (library, version)
+        LibId libId = cellBackup.d.libId;
+        printWriter.println("H" + convertString(snapshot.getLib(libId).d.libName) + "|" + Version.getVersion());
+        
+        super.writeExternalLibraryInfo(libId, usedLibs, usedExports);
 
         // write out the cell into the new file
         super.writeCell(cellBackup);

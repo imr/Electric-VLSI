@@ -75,7 +75,8 @@ import java.util.TreeSet;
  */
 public class JELIB extends Output
 {
-    private Snapshot snapshot;
+    private boolean NEW_REVISION = Version.getVersion().compareTo(Version.parseVersion("8.04l")) >= 0;
+    Snapshot snapshot;
     private Map<LibId,URL> libFiles;
     private HashMap<CellId,String> cellNames = new HashMap<CellId,String>();
     
@@ -122,7 +123,7 @@ public class JELIB extends Output
         }
         gatherLibs(usedLibs, usedExports);
         
-        // write header information (library, version, main cell)
+        // write header information (library, version)
         printWriter.println("# header information:");
         printWriter.print("H" + convertString(libBackup.d.libName) + "|" + Version.getVersion());
         printlnVars(libBackup.d);
@@ -296,6 +297,8 @@ public class JELIB extends Output
         // write the Cell name
         printWriter.println("# Cell " + d.cellName);
         printWriter.print("C" + convertString(d.cellName.toString()));
+        if (NEW_REVISION)
+            printWriter.print("|"); // user CellName
         printWriter.print("|" + convertString(d.tech.getTechName()));
         printWriter.print("|" + d.creationDate);
         printWriter.print("|" + cellBackup.revisionDate);
@@ -409,6 +412,7 @@ public class JELIB extends Output
         // write the exports in this cell
         for (ImmutableExport e: cellBackup.exports) {
             printWriter.print("E" + convertString(e.name.toString()));
+            if (NEW_REVISION) printWriter.print("|"); // export user name
             printWriter.print("|" + describeDescriptor(null, e.nameDescriptor));
             printWriter.print("|" + nodeNames.get(e.originalNodeId) + "|" + getPortName(e.originalPortId));
             printWriter.print("|" + e.characteristic.getShortName());
@@ -464,13 +468,17 @@ public class JELIB extends Output
                 CellId cellId = cellBackup.d.cellId;
                 BitSet exportsUsedInCell = usedExports.get(cellId);
                 ERectangle bounds = snapshot.getCellBounds(cellId);
-                printWriter.println("R" + convertString(cellBackup.d.cellName.toString()) +
-                    "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
-                    "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
-                    "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
-                    "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
-                    "|" + cellBackup.d.creationDate +
-                    "|" + cellBackup.revisionDate);
+                if (NEW_REVISION) {
+                    printWriter.println("R" + convertString(cellBackup.d.cellName.toString()) + "||||");
+                } else {
+                    printWriter.println("R" + convertString(cellBackup.d.cellName.toString()) +
+                            "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
+                            "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
+                            "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
+                            "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
+                            "|" + cellBackup.d.creationDate +
+                            "|" + cellBackup.revisionDate);
+                }
                 cellNames.put(cellId, getFullCellName(cellId));
                 for (ImmutableExport e: cellBackup.exports) {
                     if (!exportsUsedInCell.get(e.exportId.chronIndex)) continue;
@@ -831,7 +839,7 @@ public class JELIB extends Output
 	 * @return the string with the appropriate quote characters.
 	 * If no conversion is necessary, the input string is returned.
 	 */
-	private String convertString(String str)
+	String convertString(String str)
 	{
 		return convertString(str, (char)0, (char)0);
 	}

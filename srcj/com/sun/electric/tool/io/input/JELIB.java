@@ -89,7 +89,9 @@ public class JELIB extends LibraryFiles
 	private static String[] revisions =
 	{
 		// Revision 1
-		"8.01aw"
+		"8.01aw",
+		// Revision 2
+		"8.04l"
 	};
 
     private static int defaultArcFlags;
@@ -113,9 +115,9 @@ public class JELIB extends LibraryFiles
     private HashMap<String,TextDescriptor> parsedDescriptorsF = new HashMap<String,TextDescriptor>();
     private HashMap<String,TextDescriptor> parsedDescriptorsT = new HashMap<String,TextDescriptor>();
 //	private Version version;
-	private int revision;
-	private char escapeChar = '\\';
-	private String curLibName;
+	int revision;
+	char escapeChar = '\\';
+	String curLibName;
 
     private String curExternalLibName = "";
     private String curExternalCellName = "";
@@ -189,7 +191,7 @@ public class JELIB extends LibraryFiles
 		groupLines = new ArrayList<Cell[]>();
 
         // do all the reading
-        readFromFile();
+        readFromFile(false);
 
         // collect the cells by common protoName and by "groupLines" relation
         TransitiveRelation<Object> transitive = new TransitiveRelation<Object>();
@@ -276,7 +278,7 @@ public class JELIB extends LibraryFiles
         return false;
     }
 
-    protected void readFromFile() throws IOException {
+    protected void readFromFile(boolean fromDelib) throws IOException {
 		for(;;)
 		{
 			// get keyword from file
@@ -316,21 +318,21 @@ public class JELIB extends LibraryFiles
 			{
 				// cross-library cell information
 				List<String> pieces = parseLine(line);
-				if (pieces.size() != 5 && pieces.size( ) != 7)
-// 				int numPieces = revision >= 1 ? 7 : 5;
-// 				if (pieces.size() != numPieces)
+//				if (pieces.size() != 5 && pieces.size( ) != 7)
+ 				int numPieces = revision == 1 ? 7 : 5;
+ 				if (pieces.size() != numPieces)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", External cell declaration needs 5 or 7 fields: " + line, -1);
-//						", External cell declaration needs " + numPieces + " fields: " + line, null, -1);
+//						", External cell declaration needs 5 or 7 fields: " + line, -1);
+						", External cell declaration needs " + numPieces + " fields: " + line, -1);
 					continue;
 				}
 				double lowX = TextUtils.atof(pieces.get(1));
 				double highX = TextUtils.atof(pieces.get(2));
 				double lowY = TextUtils.atof(pieces.get(3));
 				double highY = TextUtils.atof(pieces.get(4));
-				if (pieces.size() > 5)
-//				if (revision >= 1)
+//				if (pieces.size() > 5)
+				if (revision == 1)
 				{
 					long cDate = Long.parseLong(pieces.get(5));
 					long rDate = Long.parseLong(pieces.get(6));
@@ -391,9 +393,11 @@ public class JELIB extends LibraryFiles
 						", Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")", null, -1);
 				}
 				Variable[] vars = readVariables(pieces, 2, filePath, lineReader.getLineNumber());
-                realizeVariables(lib, vars);
-
-				lib.setVersion(version);
+                
+                if (!fromDelib) {
+                    realizeVariables(lib, vars);
+                    lib.setVersion(version);
+                }
 				continue;
 			}
 
@@ -570,14 +574,26 @@ public class JELIB extends LibraryFiles
     protected void readCell(String line) throws IOException {
         // grab a cell description
         List<String> pieces = parseLine(line);
-        int numPieces = revision >= 1 ? 5 : 7;
+        int numPieces = revision >= 2 ? 6 : revision == 1 ? 5 : 7;
         if (pieces.size() < numPieces)
         {
             Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
                 ", Cell declaration needs " + numPieces + " fields: " + line, -1);
             return;
         }
-        String name = revision >= 1 ? unQuote(pieces.get(0)) : unQuote(pieces.get(0)) + ";" + pieces.get(2) + "{" + pieces.get(1) + "}";
+        int fieldIndex = 0;
+        String name;
+        if (revision >= 1) {
+            name = unQuote(pieces.get(fieldIndex++));
+            if (revision >= 2) {
+                String userName = unQuote(pieces.get(fieldIndex++));
+            }
+        } else {
+            name = unQuote(pieces.get(fieldIndex++));
+            String viewAbbrev = pieces.get(fieldIndex++);
+            String versionString = pieces.get(fieldIndex++);
+            name = name + ";" + versionString + "{" + viewAbbrev + "}";
+        }
         Cell newCell = Cell.newInstance(lib, name);
         if (newCell == null)
         {
@@ -585,15 +601,15 @@ public class JELIB extends LibraryFiles
                 ", Unable to create cell " + name, -1);
             return;
         }
-        Technology tech = Technology.findTechnology(unQuote(pieces.get(numPieces-4)));
+        Technology tech = Technology.findTechnology(unQuote(pieces.get(fieldIndex++)));
         newCell.setTechnology(tech);
-        long cDate = Long.parseLong(pieces.get(numPieces-3));
-        long rDate = Long.parseLong(pieces.get(numPieces-2));
+        long cDate = Long.parseLong(pieces.get(fieldIndex++));
+        long rDate = Long.parseLong(pieces.get(fieldIndex++));
         newCell.lowLevelSetCreationDate(new Date(cDate));
         newCell.lowLevelSetRevisionDate(new Date(rDate));
 
-        // parse state information in field 6
-        String stateInfo = pieces.get(numPieces-1);
+        // parse state information
+        String stateInfo = pieces.get(fieldIndex++);
         boolean expanded = false, allLocked = false, instLocked = false,
             cellLib = false, techLib = false;
         for(int i=0; i<stateInfo.length(); i++)
@@ -611,7 +627,8 @@ public class JELIB extends LibraryFiles
         if (cellLib) newCell.setInCellLibrary(); else newCell.clearInCellLibrary();
         if (techLib) newCell.setInTechnologyLibrary(); else newCell.clearInTechnologyLibrary();
 
-        // add variables in fields 7 and up
+        // add variables
+        assert fieldIndex == numPieces;
         Variable[] vars = readVariables(pieces, numPieces, filePath, lineReader.getLineNumber());
         realizeVariables(newCell, vars);
 
@@ -933,34 +950,47 @@ public class JELIB extends LibraryFiles
 
 			// parse the export line
 			List<String> pieces = parseLine(cellString);
-			int numPieces = revision >= 1 ? 5 : 7;
+            if (revision >= 2 && pieces.size() == 1) {
+                // Unused ExportId
+                String exportName = unQuote(pieces.get(0));
+                continue;
+            }
+			int numPieces = revision >= 2 ? 6 : revision == 1 ? 5 : 7;
 			if (pieces.size() < numPieces)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
 					", Export needs " + numPieces + " fields, has " + pieces.size() + ": " + cellString, cell, -1);
 				continue;
 			}
-			String exportName = unQuote(pieces.get(0));
-			String nodeName = revision >= 1 ? pieces.get(2) : unQuote(pieces.get(2));
-			String portName = unQuote(pieces.get(3));
+            int fieldIndex = 0;
+			String exportName = unQuote(pieces.get(fieldIndex++));
+            String exportUserName = exportName;
+            if (revision >= 2) {
+                exportUserName = unQuote(pieces.get(fieldIndex++));
+                if (exportUserName.length() == 0) exportUserName = exportName;
+            }
+			// get text descriptor in field 1
+			String textDescriptorInfo = pieces.get(fieldIndex++);
+			String nodeName = revision >= 1 ? pieces.get(fieldIndex++) : unQuote(pieces.get(fieldIndex++));
+			String portName = unQuote(pieces.get(fieldIndex++));
 			Point2D pos = null;
 			if (revision < 1)
 			{
-				double x = TextUtils.atof(pieces.get(4));
-				double y = TextUtils.atof(pieces.get(5));
+				double x = TextUtils.atof(pieces.get(fieldIndex++));
+				double y = TextUtils.atof(pieces.get(fieldIndex++));
 				pos = new Point2D.Double(x, y);
 			}
+    		// parse state information in field 6
+            String userBits = pieces.get(fieldIndex++);
+            assert fieldIndex == numPieces;
+            
 			PortInst pi = figureOutPortInst(cell, portName, nodeName, pos, diskName, cc.fileName, cc.lineNumber + line);
 			if (pi == null) continue;
 
-			// get text descriptor in field 1
-			String textDescriptorInfo = pieces.get(1);
             TextDescriptor nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
-			// parse state information in field 6
+			// parse state information
             boolean alwaysDrawn = false;
             boolean bodyOnly = false;
-    		// parse state information in field 6
-            String userBits = pieces.get(numPieces - 1);
             int slashPos = userBits.indexOf('/');
             if (slashPos >= 0) {
                 String extras = userBits.substring(slashPos);
@@ -985,7 +1015,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
-            // add variables in fields 7 and up
+            // add variables in tail fields
 			Variable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
             realizeVariables(pp, vars);
 		}
