@@ -24,7 +24,6 @@
 
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.tool.io.FileType;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
