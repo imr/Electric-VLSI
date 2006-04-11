@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04i: *********************************
 
+BUG: (4/11/06, GVG) Bug in mouseOver highlighter introduced on 4/5/06
+FIX: Highlighter.overHighlighted() returns the unique element overlapping so mouseOver highlighter never grows more than 1.
+
 BUG: (4/11/06, DN) Keyboard input doesn't work: z - zoom, s - select (Bug #925).
 FIX: In EditMenu.java use KeyStroke.getKeyStroke(ch, 0) instead of KeyStroke.getKeyStroke(ch).
 

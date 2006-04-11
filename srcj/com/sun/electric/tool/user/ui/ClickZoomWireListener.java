@@ -430,7 +430,7 @@ public class ClickZoomWireListener
 	            }
 
 	            // if already over highlighted object, move it
-	            if (!another && !invertSelection && highlighter.overHighlighted(wnd, clickX, clickY)) {
+	            if (!another && !invertSelection && highlighter.overHighlighted(wnd, clickX, clickY) != null) {
 	                highlighter.finished();
                     // over something, user may want to move objects
 	                dbMoveStartX = dbClick.getX();
@@ -895,51 +895,43 @@ public class ClickZoomWireListener
         tempHighlighter.copyState(highlighter);
 
         Point2D screenMouse = wnd.databaseToScreen(dbMouse);
-        if (!another && !invertSelection && tempHighlighter.overHighlighted(wnd,
-                (int)screenMouse.getX(), (int)screenMouse.getY())) {
+        Highlight2 found = null;
+        if (!another && !invertSelection)
             // maintain current selection
-        } else {
+            found = tempHighlighter.overHighlighted(wnd, (int)screenMouse.getX(), (int)screenMouse.getY());
+        if (found == null)
+        {
             // find something that would get selected
-            Highlight2 found = tempHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
-            // Checking if found highlight is not found in existing list and then force the update.
-            if (found != null)
-            {
-                List<Highlight2> mouseOld = mouseOverHighlighter.getHighlights();
-                boolean changed = mouseOld.size() == 0;
-                assert(mouseOld.size() <= 1);
-                for (Highlight2 h : mouseOld)
-                {
-                    if (!h.equals(found)) { changed = true; break; }
-                }
-                if (changed)
-                {
-                    tempHighlighter.clear();
-                    tempHighlighter.addHighlight(found);
-                    // copy state into mouse highlighter, signal change (using finished)
-                    mouseOverHighlighter.copyState(tempHighlighter);
-                    mouseOverHighlighter.finished();
-                    wnd.repaint();
-                }
-            }
+            found = tempHighlighter.findObject(dbMouse, wnd, false, another, invertSelection, true, false, specialSelect, true);
         }
-//        // check if mouse-over highlight needs to change
-//        List<Highlight2> mouseOld = mouseOverHighlighter.getHighlights();
-//        List<Highlight2> mouseNew = tempHighlighter.getHighlights();
-//        if (mouseOld.size() == mouseNew.size()) {
-//            for (int i=0; i<mouseOld.size(); i++) {
-//                Highlight2 h1 = mouseOld.get(i);
-//                Highlight2 h2 = mouseNew.get(i);
-//                if (!h1.equals(h2)) { changed = true; break; }
-//            }
-//        } else
-//            changed = true;
-//
-//        if (changed) {
-//            // copy state into mouse highlighter, signal change (using finished)
-//            mouseOverHighlighter.copyState(tempHighlighter);
-//            mouseOverHighlighter.finished();
-//            wnd.repaint();
-//        }
+        // Checking if found highlight is not found in existing list and then force the update.
+        tempHighlighter.clear();
+        if (found != null)
+            tempHighlighter.addHighlight(found);
+
+        // check if mouse-over highlight needs to change
+        boolean changed = false;
+        List<Highlight2> mouseOld = mouseOverHighlighter.getHighlights();
+//        assert(mouseOld.size() <= 1);
+        List<Highlight2> mouseNew = tempHighlighter.getHighlights();
+//        assert(mouseNew.size() <= 1);
+
+        if (mouseOld.size() == mouseNew.size()) {
+            for (int i=0; i<mouseOld.size(); i++) {
+                Highlight2 h1 = mouseOld.get(i);
+                Highlight2 h2 = mouseNew.get(i);
+                if (!h1.equals(h2)) { changed = true; break; }
+            }
+        } else
+            changed = true;
+
+        if (changed) {
+            // copy state into mouse highlighter, signal change (using finished)
+
+            mouseOverHighlighter.copyState(tempHighlighter);
+            mouseOverHighlighter.finished();
+            wnd.repaint();
+        }
         // JFluid results.
         tempHighlighter.delete();  // remove from database
         tempHighlighter = null;

@@ -1012,15 +1012,15 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param wnd the window being examined.
 	 * @param x the X screen coordinate of the point.
 	 * @param y the Y screen coordinate of the point.
-	 * @return true if the point is over this Highlight.
+	 * @return Highlight2 if the point is over this Highlight.
 	 */
-	public boolean overHighlighted(EditWindow wnd, int x, int y)
+	public Highlight2 overHighlighted(EditWindow wnd, int x, int y)
 	{
 		for(Highlight2 h : getHighlights())
 		{
-            if (h.overHighlighted(wnd, x, y, this)) return true;
+            if (h.overHighlighted(wnd, x, y, this)) return h;
 		}
-		return false;
+		return null;
 	}
 
     /**
@@ -1230,7 +1230,6 @@ public class Highlighter implements DatabaseChangeListener {
 			for(int j=0; j<getNumHighlights(); j++)
 			{
 				Highlight2 oldHigh = highlightList.get(j);
-//                List<Highlight2> highlightList = getHighlights();
 				for(int i=0; i<underCursor.size(); i++)
 				{
 					if (oldHigh.sameThing(underCursor.get(i)))
@@ -1269,8 +1268,7 @@ public class Highlighter implements DatabaseChangeListener {
 				{
 					remove(h);
 					finished();
-                    System.out.println("check this case");
-					return null; // return 1;
+					return found; // return 1;
 				}
 			}
 		} else
@@ -1280,11 +1278,6 @@ public class Highlighter implements DatabaseChangeListener {
         addHighlight(found);
         finished();
 
-//		// reevaluate if this is code
-//		if ((curhigh->status&HIGHTYPE) == HIGHTEXT && curhigh->fromvar != NOVARIABLE &&
-//			curhigh->fromvarnoeval != NOVARIABLE &&
-//				curhigh->fromvar != curhigh->fromvarnoeval)
-//					curhigh->fromvar = evalvar(curhigh->fromvarnoeval, 0, 0);
 		return found;
 	}
 
