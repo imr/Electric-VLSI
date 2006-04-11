@@ -25,6 +25,7 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.ArcProto;
@@ -156,7 +157,13 @@ public class SimpleWirer extends InteractiveRouter {
 
         // this router only draws horizontal and vertical arcs
         // if either X or Y coords are the same, create a single arc
-        if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
+//        boolean newV = DBMath.areEquals(startLoc.getX(), endLoc.getX()) || DBMath.areEquals(startLoc.getY(), endLoc.getY());
+//        boolean oldV = (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY());
+//        if (newV != oldV)
+//            System.out.println("Precision problem in SimpleWireer");
+
+        if (DBMath.areEquals(startLoc.getX(), endLoc.getX()) || DBMath.areEquals(startLoc.getY(), endLoc.getY()))
+        {
             // single arc
             RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null, extendArc);
             route.add(arcRE);
