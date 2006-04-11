@@ -1007,4 +1007,91 @@ public class IOTool extends Tool
      * @param on true if Skill Output flattens the hierarchy.
      */
     public static void setSkillGDSNameLimit(boolean on) { cacheSkillGDSNameLimit.setBoolean(on); }
+
+	/****************************** DAIS OUTPUT PREFERENCES ******************************/
+
+	private static Pref cacheDaisDisplayOnly = Pref.makeBooleanPref("DaisDisplayOnly", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * The default is "false".
+	 * @return true if Dais Input creates real geometry.
+	 */
+	public static boolean isDaisDisplayOnly() { return cacheDaisDisplayOnly.getBoolean(); }
+	/**
+	 * Method to set whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * @param on true if Dais Input creates real geometry.
+	 */
+	public static void setDaisDisplayOnly(boolean on) { cacheDaisDisplayOnly.setBoolean(on); }
+
+	private static Pref cacheDaisReadCellInstances = Pref.makeBooleanPref("DaisReadCellInstances", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * The default is "false".
+	 * @return true if Dais Input creates real geometry.
+	 */
+	public static boolean isDaisReadCellInstances() { return cacheDaisReadCellInstances.getBoolean(); }
+	/**
+	 * Method to set whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * @param on true if Dais Input creates real geometry.
+	 */
+	public static void setDaisReadCellInstances(boolean on) { cacheDaisReadCellInstances.setBoolean(on); }
+
+	private static Pref cacheDaisReadDetailWires = Pref.makeBooleanPref("DaisReadDetailWires", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * The default is "false".
+	 * @return true if Dais Input creates real geometry.
+	 */
+	public static boolean isDaisReadDetailWires() { return cacheDaisReadDetailWires.getBoolean(); }
+	/**
+	 * Method to set whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * @param on true if Dais Input creates real geometry.
+	 */
+	public static void setDaisReadDetailWires(boolean on) { cacheDaisReadDetailWires.setBoolean(on); }
+
+	private static Pref cacheDaisReadGlobalWires = Pref.makeBooleanPref("DaisReadGlobalWires", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * The default is "false".
+	 * @return true if Dais Input creates real geometry.
+	 */
+	public static boolean isDaisReadGlobalWires() { return cacheDaisReadGlobalWires.getBoolean(); }
+	/**
+	 * Method to set whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * @param on true if Dais Input creates real geometry.
+	 */
+	public static void setDaisReadGlobalWires(boolean on) { cacheDaisReadGlobalWires.setBoolean(on); }
+
+	private static Pref cacheDaisReadPowerAndGround = Pref.makeBooleanPref("DaisReadPowerAndGround", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * The default is "false".
+	 * @return true if Dais Input creates real geometry.
+	 */
+	public static boolean isDaisReadPowerAndGround() { return cacheDaisReadPowerAndGround.getBoolean(); }
+	/**
+	 * Method to set whether Dais Input creates real geometry.
+	 * When real geometry is created, it takes more time and memory, but the circuitry can be edited.
+	 * When false, Dais input is read directly into the display system for rapid viewing.
+	 * @param on true if Dais Input creates real geometry.
+	 */
+	public static void setDaisReadPowerAndGround(boolean on) { cacheDaisReadPowerAndGround.setBoolean(on); }
 }

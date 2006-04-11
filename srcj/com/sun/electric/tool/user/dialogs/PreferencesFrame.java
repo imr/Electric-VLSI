@@ -29,6 +29,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.*;
 import com.sun.electric.tool.user.help.ManualViewer;
@@ -223,6 +224,13 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(sut);
 		ioSet.add(new DefaultMutableTreeNode(sut.getName()));
 
+		if (IOTool.hasDais())
+		{
+			DaisTab dat = new DaisTab(parent, modal);
+			optionPanes.add(dat);
+			ioSet.add(new DefaultMutableTreeNode(dat.getName()));
+		}
+
 		if (IOTool.hasSkill())
 		{
 			SkillTab skt = new SkillTab(parent, modal);
@@ -274,6 +282,13 @@ public class PreferencesFrame extends EDialog
 		RoutingTab rot = new RoutingTab(parent, modal);
 		optionPanes.add(rot);
 		toolSet.add(new DefaultMutableTreeNode(rot.getName()));
+
+		if (Routing.hasSunRouter())
+		{
+			SunRouterTab srt = new SunRouterTab(parent, modal);
+			optionPanes.add(srt);
+			toolSet.add(new DefaultMutableTreeNode(srt.getName()));
+		}
 
 		SiliconCompilerTab sct = new SiliconCompilerTab(parent, modal);
 		optionPanes.add(sct);
