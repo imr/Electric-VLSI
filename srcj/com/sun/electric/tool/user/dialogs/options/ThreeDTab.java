@@ -68,7 +68,7 @@ public class ThreeDTab extends PreferencePanel
         {
             try
             {
-                Constructor<Object> instance = plugin.getDeclaredConstructor(new Class[]{java.awt.Frame.class, Boolean.class});
+                Constructor instance = plugin.getDeclaredConstructor(new Class[]{java.awt.Frame.class, Boolean.class});
                 Object panel = instance.newInstance(new Object[] {parent, new Boolean(modal)});
                 tab = (ThreeDTab)panel;
             }
@@ -81,9 +81,6 @@ public class ThreeDTab extends PreferencePanel
             tab = new ThreeDTab(parent, modal);
         return tab;
     }
-
-//	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
-//    /** Set Antialiasing method */                       private static Method set3DClass = null;
 
 	/** Creates new form ThreeDTab */
 	public ThreeDTab(java.awt.Frame parent, boolean modal)

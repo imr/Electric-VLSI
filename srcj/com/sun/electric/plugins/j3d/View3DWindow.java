@@ -428,7 +428,7 @@ public class View3DWindow extends JPanel
 
             TransformGroup viewPlatformTG = viewingPlatform.getViewPlatformTransform();
             try {
-                Constructor<Object> instance = plugin.getDeclaredConstructor(new Class[]{TransformGroup.class, TransformGroup.class});
+                Constructor instance = plugin.getDeclaredConstructor(new Class[]{TransformGroup.class, TransformGroup.class});
                 Object obj = instance.newInstance(new Object[] {axisTG, viewPlatformTG});
                 if (obj != null)
                 {

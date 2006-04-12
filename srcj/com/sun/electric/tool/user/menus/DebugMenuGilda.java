@@ -156,7 +156,7 @@ public class DebugMenuGilda {
         try
         {
             Class fakeJob = Class.forName("com.sun.electric.plugins.tests.FakeTestJob");
-            Constructor<Object> instance = fakeJob.getDeclaredConstructor(new Class[]{Integer.class});
+            Constructor instance = fakeJob.getDeclaredConstructor(new Class[]{Integer.class});
             instance.newInstance(new Object[] {new Integer(1)});
         }
         catch (Exception ex)
@@ -164,28 +164,6 @@ public class DebugMenuGilda {
             ex.printStackTrace();
         };
     }
-
-//	/**
-//	 * Class to test compaction regressions in a new thread.
-//	 */
-//	private static class TestCompactionRegression extends Job
-//	{
-//		protected TestCompactionRegression()
-//		{
-//			super("Test Regression", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-//			startJob();
-//		}
-//
-//		public boolean doIt() throws JobException
-//		{
-//			URL fileURL = TextUtils.makeURLToFile("compactionInput.jelib");
-//			Library lib = LibraryFiles.readLibrary(fileURL, "compactionTests", FileType.JELIB, true);
-//			Cell lay = lib.findNodeProto("CompactionTest1{lay}");
-//			Compaction.compactNow(lay);
-//			new Output.WriteJELIB(lib, "compactionOutput.jelib");			
-//            return true;
-//        }
-//	}
 
 	// ---------------------- Gilda's Stuff MENU -----------------
 

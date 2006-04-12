@@ -155,7 +155,7 @@ public class PreferencesFrame extends EDialog
             try
             {
                 Class testTab = Class.forName("com.sun.electric.plugins.tests.TestTab");
-                Constructor<Object> tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
+                Constructor tab = testTab.getDeclaredConstructor(new Class[]{Frame.class, Boolean.class});
                 PreferencePanel tesT = (PreferencePanel)tab.newInstance(new Object[] {parent, new Boolean(modal)});
                 optionPanes.add(tesT);
                 generalSet.add(new DefaultMutableTreeNode(tesT.getName()));
