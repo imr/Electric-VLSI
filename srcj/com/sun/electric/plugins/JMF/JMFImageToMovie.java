@@ -268,7 +268,7 @@ public class JMFImageToMovie implements ControllerListener, DataSinkListener
         // Parse the arguments.
         int i = 0;
         int width = -1, height = -1, frameRate = 1;
-        Vector inputFiles = new Vector();
+        Vector<String> inputFiles = new Vector<String>();
         String outputURL = null;
 
         while (i < args.length) {
