@@ -283,13 +283,6 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(rot);
 		toolSet.add(new DefaultMutableTreeNode(rot.getName()));
 
-		if (Routing.hasSunRouter())
-		{
-			SunRouterTab srt = new SunRouterTab(parent, modal);
-			optionPanes.add(srt);
-			toolSet.add(new DefaultMutableTreeNode(srt.getName()));
-		}
-
 		SiliconCompilerTab sct = new SiliconCompilerTab(parent, modal);
 		optionPanes.add(sct);
 		toolSet.add(new DefaultMutableTreeNode(sct.getName()));
@@ -301,6 +294,13 @@ public class PreferencesFrame extends EDialog
 		SpiceTab spt = new SpiceTab(parent, modal);
 		optionPanes.add(spt);
 		toolSet.add(new DefaultMutableTreeNode(spt.getName()));
+
+		if (Routing.hasSunRouter())
+		{
+			SunRouterTab srt = new SunRouterTab(parent, modal);
+			optionPanes.add(srt);
+			toolSet.add(new DefaultMutableTreeNode(srt.getName()));
+		}
 
 		VerilogTab vet = new VerilogTab(parent, modal);
 		optionPanes.add(vet);

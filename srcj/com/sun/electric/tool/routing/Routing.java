@@ -991,7 +991,22 @@ public class Routing extends Listener
 		}
 	}
 
-	/****************************** OPTIONS ******************************/
+	/****************************** GENERAL ROUTING OPTIONS ******************************/
+
+	private static Pref cachePreferredRoutingArc = Pref.makeStringPref("PreferredRoutingArc", Routing.tool.prefs, "");
+	/**
+	 * Method to return the name of the arc that should be used as a default by the stitching routers.
+	 * The default is "".
+	 * @return the name of the arc that should be used as a default by the stitching routers.
+	 */
+	public static String getPreferredRoutingArc() { return cachePreferredRoutingArc.getString(); }
+	/**
+	 * Method to set the name of the arc that should be used as a default by the stitching routers.
+	 * @param arcName the name of the arc that should be used as a default by the stitching routers.
+	 */
+	public static void setPreferredRoutingArc(String arcName) { cachePreferredRoutingArc.setString(arcName); }
+
+	/****************************** AUTO-STITCHING OPTIONS ******************************/
 
 	private static Pref cacheAutoStitchOn = Pref.makeBooleanPref("AutoStitchOn", Routing.tool.prefs, false);
 	/**
@@ -1005,6 +1020,8 @@ public class Routing extends Listener
 	 * @param on true if Auto-stitching should be done.
 	 */
 	public static void setAutoStitchOn(boolean on) { cacheAutoStitchOn.setBoolean(on); }
+
+	/****************************** MIMIC-STITCHING OPTIONS ******************************/
 
 	private static Pref cacheMimicStitchOn = Pref.makeBooleanPref("MimicStitchOn", Routing.tool.prefs, false);
 	/**
@@ -1046,7 +1063,6 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching runs interactively.
 	 */
 	public static void setMimicStitchInteractive(boolean on) { cacheMimicStitchInteractive.setBoolean(on); }
-
 
     private static Pref cacheMimicStitchPinsKept = Pref.makeBooleanPref("MimicStitchPinsKept", Routing.tool.prefs, false);
 	/**
@@ -1126,17 +1142,79 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchNoOtherArcsSameDir(boolean on) { cacheMimicStitchNoOtherArcsSameDir.setBoolean(on); }
 
-	private static Pref cachePreferredRoutingArc = Pref.makeStringPref("PreferredRoutingArc", Routing.tool.prefs, "");
-	/**
-	 * Method to return the name of the arc that should be used as a default by the stitching routers.
-	 * The default is "".
-	 * @return the name of the arc that should be used as a default by the stitching routers.
-	 */
-	public static String getPreferredRoutingArc() { return cachePreferredRoutingArc.getString(); }
-	/**
-	 * Method to set the name of the arc that should be used as a default by the stitching routers.
-	 * @param arcName the name of the arc that should be used as a default by the stitching routers.
-	 */
-	public static void setPreferredRoutingArc(String arcName) { cachePreferredRoutingArc.setString(arcName); }
+	/****************************** SUN ROUTER OPTIONS ******************************/
+
+	private static Pref cacheSLRVerboseLevel = Pref.makeIntPref("SunRouterVerboseLevel", Routing.getRoutingTool().prefs, 2);
+	/** verbose level can be 0: silent, 1: quiet, 2: normal 3: verbose */
+	public static int getSunRouterVerboseLevel() { return cacheSLRVerboseLevel.getInt(); }
+	public static void setSunRouterVerboseLevel(int v) { cacheSLRVerboseLevel.setInt(v); }
+
+	private static Pref cacheSLRCostLimit = Pref.makeDoublePref("SunRouterCostLimit", Routing.getRoutingTool().prefs, 10);
+	public static double getSunRouterCostLimit() { return cacheSLRCostLimit.getDouble(); }
+	public static void setSunRouterCostLimit(double r) { cacheSLRCostLimit.setDouble(r); }
+
+	private static Pref cacheSLRCutlineDeviation = Pref.makeDoublePref("SunRouterCutlineDeviation", Routing.getRoutingTool().prefs, 0.1);
+	public static double getSunRouterCutlineDeviation() { return cacheSLRCutlineDeviation.getDouble(); }
+	public static void setSunRouterCutlineDeviation(double r) { cacheSLRCutlineDeviation.setDouble(r); }
+
+	private static Pref cacheSLRDelta = Pref.makeDoublePref("SunRouterDelta", Routing.getRoutingTool().prefs, 1);
+	public static double getSunRouterDelta() { return cacheSLRDelta.getDouble(); }
+	public static void setSunRouterDelta(double r) { cacheSLRDelta.setDouble(r); }
+
+	private static Pref cacheSLRXBitSize = Pref.makeIntPref("SunRouterXBitSize", Routing.getRoutingTool().prefs, 20);
+	public static int getSunRouterXBitSize() { return cacheSLRXBitSize.getInt(); }
+	public static void setSunRouterXBitSize(int r) { cacheSLRXBitSize.setInt(r); }
+
+	private static Pref cacheSLRYBitSize = Pref.makeIntPref("SunRouterYBitSize", Routing.getRoutingTool().prefs, 20);
+	public static int getSunRouterYBitSize() { return cacheSLRYBitSize.getInt(); }
+	public static void setSunRouterYBitSize(int r) { cacheSLRYBitSize.setInt(r); }
+
+	private static Pref cacheSLRXTileSize = Pref.makeIntPref("SunRouterXTileSize", Routing.getRoutingTool().prefs, 40);
+	public static int getSunRouterXTileSize() { return cacheSLRXTileSize.getInt(); }
+	public static void setSunRouterXTileSize(int r) { cacheSLRXTileSize.setInt(r); }
+
+	private static Pref cacheSLRYTileSize = Pref.makeIntPref("SunRouterYTileSize", Routing.getRoutingTool().prefs, 40);
+	public static int getSunRouterYTileSize() { return cacheSLRYTileSize.getInt(); }
+	public static void setSunRouterYTileSize(int r) { cacheSLRYTileSize.setInt(r); }
+
+	private static Pref cacheSLRLayerAssgnCapF = Pref.makeDoublePref("SunRouterLayerAssgnCapF", Routing.getRoutingTool().prefs, 0.9);
+	public static double getSunRouterLayerAssgnCapF() { return cacheSLRLayerAssgnCapF.getDouble(); }
+	public static void setSunRouterLayerAssgnCapF(double r) { cacheSLRLayerAssgnCapF.setDouble(r); }
+
+	private static Pref cacheSLRLengthLongNet = Pref.makeDoublePref("SunRouterLengthLongNet", Routing.getRoutingTool().prefs, 0);
+	public static double getSunRouterLengthLongNet() { return cacheSLRLengthLongNet.getDouble(); }
+	public static void setSunRouterLengthLongNet(double r) { cacheSLRLengthLongNet.setDouble(r); }
+
+	private static Pref cacheSLRLengthMedNet = Pref.makeDoublePref("SunRouterLengthMedNet", Routing.getRoutingTool().prefs, 0);
+	public static double getSunRouterLengthMedNet() { return cacheSLRLengthMedNet.getDouble(); }
+	public static void setSunRouterLengthMedNet(double r) { cacheSLRLengthMedNet.setDouble(r); }
+
+	private static Pref cacheSLRTilesPerPinLongNet = Pref.makeDoublePref("SunRouterTilesPerPinLongNet", Routing.getRoutingTool().prefs, 5);
+	public static double getSunRouterTilesPerPinLongNet() { return cacheSLRTilesPerPinLongNet.getDouble(); }
+	public static void setSunRouterTilesPerPinLongNet(double r) { cacheSLRTilesPerPinLongNet.setDouble(r); }
+
+	private static Pref cacheSLRTilesPerPinMedNet = Pref.makeDoublePref("SunRouterTilesPerPinMedNet", Routing.getRoutingTool().prefs, 3);
+	public static double getSunRouterTilesPerPinMedNet() { return cacheSLRTilesPerPinMedNet.getDouble(); }
+	public static void setSunRouterTilesPerPinMedNet(double r) { cacheSLRTilesPerPinMedNet.setDouble(r); }
+	
+	private static Pref cacheSLROneTileFactor = Pref.makeDoublePref("SunRouterOneTileFactor", Routing.getRoutingTool().prefs, 2.65);
+	public static double getSunRouterOneTileFactor() { return cacheSLROneTileFactor.getDouble(); }
+	public static void setSunRouterOneTileFactor(double r) { cacheSLROneTileFactor.setDouble(r); }
+
+	private static Pref cacheSLROverloadLimit = Pref.makeIntPref("SunRouterOverloadLimit", Routing.getRoutingTool().prefs, 10);
+	public static int getSunRouterOverloadLimit() { return cacheSLROverloadLimit.getInt(); }
+	public static void setSunRouterOverloadLimit(int r) { cacheSLROverloadLimit.setInt(r); }
+
+	private static Pref cacheSLRPinFactor = Pref.makeIntPref("SunRouterPinFactor", Routing.getRoutingTool().prefs, 10);
+	public static int getSunRouterPinFactor() { return cacheSLRPinFactor.getInt(); }
+	public static void setSunRouterPinFactor(int r) { cacheSLRPinFactor.setInt(r); }
+
+	private static Pref cacheSLRUPinDensityF = Pref.makeDoublePref("SunRouterUPinDensityF", Routing.getRoutingTool().prefs, 100);
+	public static double getSunRouterUPinDensityF() { return cacheSLRUPinDensityF.getDouble(); }
+	public static void setSunRouterUPinDensityF(double r) { cacheSLRUPinDensityF.setDouble(r); }
+
+	private static Pref cacheSLRWindow = Pref.makeIntPref("SunRouterWindow", Routing.getRoutingTool().prefs, 30);
+	public static int getSunRouterWindow() { return cacheSLRWindow.getInt(); }
+	public static void setSunRouterWindow(int r) { cacheSLRWindow.setInt(r); }
 
 }

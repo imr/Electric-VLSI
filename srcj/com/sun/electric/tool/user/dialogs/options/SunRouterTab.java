@@ -40,10 +40,6 @@ public class SunRouterTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
-		verbosityCombo.addItem("Silent");
-		verbosityCombo.addItem("Quiet");
-		verbosityCombo.addItem("Original");
-		verbosityCombo.addItem("Verbose");
 	}
 
 	/** return the panel to use for this preferences tab. */
@@ -80,24 +76,24 @@ public class SunRouterTab extends PreferencePanel
 		    windowSize.setEnabled(false);
 		} else
 		{
-//			verbosityCombo.setSelectedIndex(SunRouter.getVerboseLevel());
-//		    costLimit.setText("" + SunRouter.getCostLimit());
-//		    cutLineDeviation.setText("" + SunRouter.getCutlineDeviation());
-//		    delta.setText("" + SunRouter.getDelta());
-//		    horizBitSize.setText("" + SunRouter.getXBitSize());
-//		    horizTileSize.setText("" + SunRouter.getXTileSize());
-//		    layerAssignCapF.setText("" + SunRouter.getLayerAssgnCapF());
-//		    longNetLength.setText("" + SunRouter.getLengthLongNet());
-//		    medNetLength.setText("" + SunRouter.getLengthMedNet());
-//		    oneTileFactor.setText("" + SunRouter.getOneTileFactor());
-//		    overloadLimit.setText("" + SunRouter.getOverloadLimit());
-//		    pinFactor.setText("" + SunRouter.getPinFactor());
-//		    tilesPerLongNet.setText("" + SunRouter.getTilesPerPinLongNet());
-//		    tilesPerMedNet.setText("" + SunRouter.getTilesPerPinMedNet());
-//		    unassignedPinDensityF.setText("" + SunRouter.getUPinDensityF());
-//		    vertBitSize.setText("" + SunRouter.getYBitSize());
-//		    vertTileSize.setText("" + SunRouter.getYTileSize());
-//		    windowSize.setText("" + SunRouter.getWindow());
+			verbosityCombo.setSelectedIndex(Routing.getSunRouterVerboseLevel());
+		    costLimit.setText("" + Routing.getSunRouterCostLimit());
+		    cutLineDeviation.setText("" + Routing.getSunRouterCutlineDeviation());
+		    delta.setText("" + Routing.getSunRouterDelta());
+		    horizBitSize.setText("" + Routing.getSunRouterXBitSize());
+		    horizTileSize.setText("" + Routing.getSunRouterXTileSize());
+		    layerAssignCapF.setText("" + Routing.getSunRouterLayerAssgnCapF());
+		    longNetLength.setText("" + Routing.getSunRouterLengthLongNet());
+		    medNetLength.setText("" + Routing.getSunRouterLengthMedNet());
+		    oneTileFactor.setText("" + Routing.getSunRouterOneTileFactor());
+		    overloadLimit.setText("" + Routing.getSunRouterOverloadLimit());
+		    pinFactor.setText("" + Routing.getSunRouterPinFactor());
+		    tilesPerLongNet.setText("" + Routing.getSunRouterTilesPerPinLongNet());
+		    tilesPerMedNet.setText("" + Routing.getSunRouterTilesPerPinMedNet());
+		    unassignedPinDensityF.setText("" + Routing.getSunRouterUPinDensityF());
+		    vertBitSize.setText("" + Routing.getSunRouterYBitSize());
+		    vertTileSize.setText("" + Routing.getSunRouterYTileSize());
+		    windowSize.setText("" + Routing.getSunRouterWindow());
 		}
 	}
 
@@ -110,63 +106,63 @@ public class SunRouterTab extends PreferencePanel
 		double newDValue;
 		int newIValue;
 
-//		newIValue = verbosityCombo.getSelectedIndex();
-//		if (newIValue != SunRouter.getVerboseLevel())
-//			SunRouter.setVerboseLevel(newIValue);		
-//		newDValue = TextUtils.atof(costLimit.getText());
-//		if (newDValue != SunRouter.getCostLimit())
-//			SunRouter.setCostLimit(newDValue);
-//		newDValue = TextUtils.atof(cutLineDeviation.getText());
-//		if (newDValue != SunRouter.getCutlineDeviation())
-//			SunRouter.setCutlineDeviation(newDValue);
-//		newDValue = TextUtils.atof(delta.getText());
-//		if (newDValue != SunRouter.getDelta())
-//			SunRouter.setDelta(newDValue);
-//		newIValue = TextUtils.atoi(horizBitSize.getText());
-//		if (newIValue != SunRouter.getXBitSize())
-//			SunRouter.setXBitSize(newIValue);
-//		newIValue = TextUtils.atoi(horizTileSize.getText());
-//		if (newIValue != SunRouter.getXTileSize())
-//			SunRouter.setXTileSize(newIValue);
-//		newDValue = TextUtils.atof(layerAssignCapF.getText());
-//		if (newDValue != SunRouter.getLayerAssgnCapF())
-//			SunRouter.setLayerAssgnCapF(newDValue);
-//		newDValue = TextUtils.atof(longNetLength.getText());
-//		if (newDValue != SunRouter.getLengthLongNet())
-//			SunRouter.setLengthLongNet(newDValue);
-//		newDValue = TextUtils.atof(medNetLength.getText());
-//		if (newDValue != SunRouter.getLengthMedNet())
-//			SunRouter.setLengthMedNet(newDValue);
-//		newDValue = TextUtils.atof(oneTileFactor.getText());
-//		if (newDValue != SunRouter.getOneTileFactor())
-//			SunRouter.setOneTileFactor(newDValue);
-//		newDValue = TextUtils.atof(overloadLimit.getText());
-//		if (newDValue != SunRouter.getOneTileFactor())
-//			SunRouter.setOneTileFactor(newDValue);
-//		newIValue = TextUtils.atoi(overloadLimit.getText());
-//		if (newIValue != SunRouter.getOverloadLimit())
-//			SunRouter.setOverloadLimit(newIValue);
-//		newIValue = TextUtils.atoi(pinFactor.getText());
-//		if (newIValue != SunRouter.getPinFactor())
-//			SunRouter.setPinFactor(newIValue);
-//		newDValue = TextUtils.atof(tilesPerLongNet.getText());
-//		if (newDValue != SunRouter.getTilesPerPinLongNet())
-//			SunRouter.setTilesPerPinLongNet(newDValue);
-//		newDValue = TextUtils.atof(tilesPerMedNet.getText());
-//		if (newDValue != SunRouter.getTilesPerPinMedNet())
-//			SunRouter.setTilesPerPinMedNet(newDValue);
-//		newDValue = TextUtils.atof(unassignedPinDensityF.getText());
-//		if (newDValue != SunRouter.getUPinDensityF())
-//			SunRouter.setUPinDensityF(newDValue);
-//		newIValue = TextUtils.atoi(vertBitSize.getText());
-//		if (newIValue != SunRouter.getYBitSize())
-//			SunRouter.setYBitSize(newIValue);
-//		newIValue = TextUtils.atoi(vertTileSize.getText());
-//		if (newIValue != SunRouter.getYTileSize())
-//			SunRouter.setYTileSize(newIValue);
-//		newIValue = TextUtils.atoi(windowSize.getText());
-//		if (newIValue != SunRouter.getWindow())
-//			SunRouter.setWindow(newIValue);
+		newIValue = verbosityCombo.getSelectedIndex();
+		if (newIValue != Routing.getSunRouterVerboseLevel())
+			Routing.setSunRouterVerboseLevel(newIValue);		
+		newDValue = TextUtils.atof(costLimit.getText());
+		if (newDValue != Routing.getSunRouterCostLimit())
+			Routing.setSunRouterCostLimit(newDValue);
+		newDValue = TextUtils.atof(cutLineDeviation.getText());
+		if (newDValue != Routing.getSunRouterCutlineDeviation())
+			Routing.setSunRouterCutlineDeviation(newDValue);
+		newDValue = TextUtils.atof(delta.getText());
+		if (newDValue != Routing.getSunRouterDelta())
+			Routing.setSunRouterDelta(newDValue);
+		newIValue = TextUtils.atoi(horizBitSize.getText());
+		if (newIValue != Routing.getSunRouterXBitSize())
+			Routing.setSunRouterXBitSize(newIValue);
+		newIValue = TextUtils.atoi(horizTileSize.getText());
+		if (newIValue != Routing.getSunRouterXTileSize())
+			Routing.setSunRouterXTileSize(newIValue);
+		newDValue = TextUtils.atof(layerAssignCapF.getText());
+		if (newDValue != Routing.getSunRouterLayerAssgnCapF())
+			Routing.setSunRouterLayerAssgnCapF(newDValue);
+		newDValue = TextUtils.atof(longNetLength.getText());
+		if (newDValue != Routing.getSunRouterLengthLongNet())
+			Routing.setSunRouterLengthLongNet(newDValue);
+		newDValue = TextUtils.atof(medNetLength.getText());
+		if (newDValue != Routing.getSunRouterLengthMedNet())
+			Routing.setSunRouterLengthMedNet(newDValue);
+		newDValue = TextUtils.atof(oneTileFactor.getText());
+		if (newDValue != Routing.getSunRouterOneTileFactor())
+			Routing.setSunRouterOneTileFactor(newDValue);
+		newDValue = TextUtils.atof(overloadLimit.getText());
+		if (newDValue != Routing.getSunRouterOneTileFactor())
+			Routing.setSunRouterOneTileFactor(newDValue);
+		newIValue = TextUtils.atoi(overloadLimit.getText());
+		if (newIValue != Routing.getSunRouterOverloadLimit())
+			Routing.setSunRouterOverloadLimit(newIValue);
+		newIValue = TextUtils.atoi(pinFactor.getText());
+		if (newIValue != Routing.getSunRouterPinFactor())
+			Routing.setSunRouterPinFactor(newIValue);
+		newDValue = TextUtils.atof(tilesPerLongNet.getText());
+		if (newDValue != Routing.getSunRouterTilesPerPinLongNet())
+			Routing.setSunRouterTilesPerPinLongNet(newDValue);
+		newDValue = TextUtils.atof(tilesPerMedNet.getText());
+		if (newDValue != Routing.getSunRouterTilesPerPinMedNet())
+			Routing.setSunRouterTilesPerPinMedNet(newDValue);
+		newDValue = TextUtils.atof(unassignedPinDensityF.getText());
+		if (newDValue != Routing.getSunRouterUPinDensityF())
+			Routing.setSunRouterUPinDensityF(newDValue);
+		newIValue = TextUtils.atoi(vertBitSize.getText());
+		if (newIValue != Routing.getSunRouterYBitSize())
+			Routing.setSunRouterYBitSize(newIValue);
+		newIValue = TextUtils.atoi(vertTileSize.getText());
+		if (newIValue != Routing.getSunRouterYTileSize())
+			Routing.setSunRouterYTileSize(newIValue);
+		newIValue = TextUtils.atoi(windowSize.getText());
+		if (newIValue != Routing.getSunRouterWindow())
+			Routing.setSunRouterWindow(newIValue);
 	}
 
 	/** This method is called from within the constructor to
@@ -175,7 +171,8 @@ public class SunRouterTab extends PreferencePanel
 	 * always regenerated by the Form Editor.
 	 */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         sunRouter = new javax.swing.JPanel();
@@ -224,8 +221,10 @@ public class SunRouterTab extends PreferencePanel
 
         setTitle("IO Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 closeDialog(evt);
             }
         });
@@ -310,7 +309,7 @@ public class SunRouterTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         globalPanel.add(cutLineDeviation, gridBagConstraints);
 
-        verbosityCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        verbosityCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Silent", "Quiet", "Normal", "Verbose" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
