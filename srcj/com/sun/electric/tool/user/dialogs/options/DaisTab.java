@@ -53,7 +53,7 @@ public class DaisTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		if (!IOTool.hasSkill())
+		if (!IOTool.hasDais())
 		{
 			displayOnly.setEnabled(false);
 			readCellInstances.setEnabled(false);

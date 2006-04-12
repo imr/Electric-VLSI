@@ -425,8 +425,9 @@ public class FileMenu {
 	{
 		private URL fileURL;
 		private FileType type;
+		private Library createLib;
 		private Library deleteLib;
-        private Cell showThisCell;
+		private Cell showThisCell;
 
 		public ImportLibrary(URL fileURL, FileType type, Library deleteLib)
 		{
@@ -453,28 +454,32 @@ public class FileMenu {
 					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
 				}
 			}
-    		Library lib = Input.importLibrary(fileURL, type);
-            if (lib == null) return false;
+			createLib = Input.importLibrary(fileURL, type);
+			if (createLib == null) return false;
+
             // new library open: check for default "noname" library and close if empty
             Library noname = Library.findLibrary("noname");
             if (noname != null) {
-                if (!noname.getCells().hasNext()) {
-                    noname.kill("delete");
+            	if (!noname.getCells().hasNext()) {
+                	noname.kill("delete");
                 }
             }
             
 //            Undo.noUndoAllowed();
-            lib.setCurrent();
-            showThisCell =  Job.getUserInterface().getCurrentCell(lib);
- 			fieldVariableChanged("showThisCell");
+            createLib.setCurrent();
+//            showThisCell =  Job.getUserInterface().getCurrentCell(createLib);
+// 			fieldVariableChanged("showThisCell");
 			if (deleteLib != null)
 				deleteLib.kill("replace");
+			fieldVariableChanged("createLib");
 			return true;
 		}
 
-        public void terminateOK()
+		public void terminateOK()
         {
         	doneOpeningLibrary(showThisCell);
+        	showThisCell = Job.getUserInterface().getCurrentCell(createLib);
+        	fieldVariableChanged("showThisCell");
         }
 	}
 

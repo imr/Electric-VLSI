@@ -432,7 +432,7 @@ public class ToolMenu {
 
 		//------------------- Routing
 
-		// mnemonic keys available:  B D FG IJKL  OPQ    V XY 
+		// mnemonic keys available:  B D FG IJK   OPQ    V XY 
             new EMenu("_Routing",
                 new MenuCommands.ECheckBoxButton("Enable _Auto-Stitching") {
                     public boolean isSelected() { return Routing.isAutoStitchOn(); }
@@ -465,7 +465,7 @@ public class ToolMenu {
                     River.riverRoute(); }},
 
                 Routing.hasSunRouter() ? SEPARATOR : null,
-                Routing.hasSunRouter() ? new EMenuItem("Sun Router") { public void run() {
+                Routing.hasSunRouter() ? new EMenuItem("Sun _Lava Router") { public void run() {
 				    Routing.sunRouteCurrentCell(); }} : null,
 
                 SEPARATOR,

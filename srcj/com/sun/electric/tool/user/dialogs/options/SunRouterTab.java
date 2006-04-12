@@ -24,8 +24,6 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.plugins.sunRouter.SunRouter;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.routing.Routing;
 
 import java.awt.Frame;
@@ -42,6 +40,10 @@ public class SunRouterTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+		verbosityCombo.addItem("Silent");
+		verbosityCombo.addItem("Quiet");
+		verbosityCombo.addItem("Original");
+		verbosityCombo.addItem("Verbose");
 	}
 
 	/** return the panel to use for this preferences tab. */
@@ -58,6 +60,7 @@ public class SunRouterTab extends PreferencePanel
 	{
 		if (!Routing.hasSunRouter())
 		{
+			verbosityCombo.setEnabled(false);
 		    costLimit.setEnabled(false);
 		    cutLineDeviation.setEnabled(false);
 		    delta.setEnabled(false);
@@ -77,23 +80,24 @@ public class SunRouterTab extends PreferencePanel
 		    windowSize.setEnabled(false);
 		} else
 		{
-		    costLimit.setText("" + SunRouter.getCostLimit());
-		    cutLineDeviation.setText("" + SunRouter.getCutlineDeviation());
-		    delta.setText("" + SunRouter.getDelta());
-		    horizBitSize.setText("" + SunRouter.getXBitSize());
-		    horizTileSize.setText("" + SunRouter.getXTileSize());
-		    layerAssignCapF.setText("" + SunRouter.getLayerAssgnCapF());
-		    longNetLength.setText("" + SunRouter.getLengthLongNet());
-		    medNetLength.setText("" + SunRouter.getLengthMedNet());
-		    oneTileFactor.setText("" + SunRouter.getOneTileFactor());
-		    overloadLimit.setText("" + SunRouter.getOverloadLimit());
-		    pinFactor.setText("" + SunRouter.getPinFactor());
-		    tilesPerLongNet.setText("" + SunRouter.getTilesPerPinLongNet());
-		    tilesPerMedNet.setText("" + SunRouter.getTilesPerPinMedNet());
-		    unassignedPinDensityF.setText("" + SunRouter.getUPinDensityF());
-		    vertBitSize.setText("" + SunRouter.getYBitSize());
-		    vertTileSize.setText("" + SunRouter.getYTileSize());
-		    windowSize.setText("" + SunRouter.getWindow());
+//			verbosityCombo.setSelectedIndex(SunRouter.getVerboseLevel());
+//		    costLimit.setText("" + SunRouter.getCostLimit());
+//		    cutLineDeviation.setText("" + SunRouter.getCutlineDeviation());
+//		    delta.setText("" + SunRouter.getDelta());
+//		    horizBitSize.setText("" + SunRouter.getXBitSize());
+//		    horizTileSize.setText("" + SunRouter.getXTileSize());
+//		    layerAssignCapF.setText("" + SunRouter.getLayerAssgnCapF());
+//		    longNetLength.setText("" + SunRouter.getLengthLongNet());
+//		    medNetLength.setText("" + SunRouter.getLengthMedNet());
+//		    oneTileFactor.setText("" + SunRouter.getOneTileFactor());
+//		    overloadLimit.setText("" + SunRouter.getOverloadLimit());
+//		    pinFactor.setText("" + SunRouter.getPinFactor());
+//		    tilesPerLongNet.setText("" + SunRouter.getTilesPerPinLongNet());
+//		    tilesPerMedNet.setText("" + SunRouter.getTilesPerPinMedNet());
+//		    unassignedPinDensityF.setText("" + SunRouter.getUPinDensityF());
+//		    vertBitSize.setText("" + SunRouter.getYBitSize());
+//		    vertTileSize.setText("" + SunRouter.getYTileSize());
+//		    windowSize.setText("" + SunRouter.getWindow());
 		}
 	}
 
@@ -106,60 +110,63 @@ public class SunRouterTab extends PreferencePanel
 		double newDValue;
 		int newIValue;
 
-		newDValue = TextUtils.atof(costLimit.getText());
-		if (newDValue != SunRouter.getCostLimit())
-			SunRouter.setCostLimit(newDValue);
-		newDValue = TextUtils.atof(cutLineDeviation.getText());
-		if (newDValue != SunRouter.getCutlineDeviation())
-			SunRouter.setCutlineDeviation(newDValue);
-		newDValue = TextUtils.atof(delta.getText());
-		if (newDValue != SunRouter.getDelta())
-			SunRouter.setDelta(newDValue);
-		newIValue = TextUtils.atoi(horizBitSize.getText());
-		if (newIValue != SunRouter.getXBitSize())
-			SunRouter.setXBitSize(newIValue);
-		newIValue = TextUtils.atoi(horizTileSize.getText());
-		if (newIValue != SunRouter.getXTileSize())
-			SunRouter.setXTileSize(newIValue);
-		newDValue = TextUtils.atof(layerAssignCapF.getText());
-		if (newDValue != SunRouter.getLayerAssgnCapF())
-			SunRouter.setLayerAssgnCapF(newDValue);
-		newDValue = TextUtils.atof(longNetLength.getText());
-		if (newDValue != SunRouter.getLengthLongNet())
-			SunRouter.setLengthLongNet(newDValue);
-		newDValue = TextUtils.atof(medNetLength.getText());
-		if (newDValue != SunRouter.getLengthMedNet())
-			SunRouter.setLengthMedNet(newDValue);
-		newDValue = TextUtils.atof(oneTileFactor.getText());
-		if (newDValue != SunRouter.getOneTileFactor())
-			SunRouter.setOneTileFactor(newDValue);
-		newDValue = TextUtils.atof(overloadLimit.getText());
-		if (newDValue != SunRouter.getOneTileFactor())
-			SunRouter.setOneTileFactor(newDValue);
-		newIValue = TextUtils.atoi(overloadLimit.getText());
-		if (newIValue != SunRouter.getOverloadLimit())
-			SunRouter.setOverloadLimit(newIValue);
-		newIValue = TextUtils.atoi(pinFactor.getText());
-		if (newIValue != SunRouter.getPinFactor())
-			SunRouter.setPinFactor(newIValue);
-		newDValue = TextUtils.atof(tilesPerLongNet.getText());
-		if (newDValue != SunRouter.getTilesPerPinLongNet())
-			SunRouter.setTilesPerPinLongNet(newDValue);
-		newDValue = TextUtils.atof(tilesPerMedNet.getText());
-		if (newDValue != SunRouter.getTilesPerPinMedNet())
-			SunRouter.setTilesPerPinMedNet(newDValue);
-		newDValue = TextUtils.atof(unassignedPinDensityF.getText());
-		if (newDValue != SunRouter.getUPinDensityF())
-			SunRouter.setUPinDensityF(newDValue);
-		newIValue = TextUtils.atoi(vertBitSize.getText());
-		if (newIValue != SunRouter.getYBitSize())
-			SunRouter.setYBitSize(newIValue);
-		newIValue = TextUtils.atoi(vertTileSize.getText());
-		if (newIValue != SunRouter.getYTileSize())
-			SunRouter.setYTileSize(newIValue);
-		newIValue = TextUtils.atoi(windowSize.getText());
-		if (newIValue != SunRouter.getWindow())
-			SunRouter.setWindow(newIValue);
+//		newIValue = verbosityCombo.getSelectedIndex();
+//		if (newIValue != SunRouter.getVerboseLevel())
+//			SunRouter.setVerboseLevel(newIValue);		
+//		newDValue = TextUtils.atof(costLimit.getText());
+//		if (newDValue != SunRouter.getCostLimit())
+//			SunRouter.setCostLimit(newDValue);
+//		newDValue = TextUtils.atof(cutLineDeviation.getText());
+//		if (newDValue != SunRouter.getCutlineDeviation())
+//			SunRouter.setCutlineDeviation(newDValue);
+//		newDValue = TextUtils.atof(delta.getText());
+//		if (newDValue != SunRouter.getDelta())
+//			SunRouter.setDelta(newDValue);
+//		newIValue = TextUtils.atoi(horizBitSize.getText());
+//		if (newIValue != SunRouter.getXBitSize())
+//			SunRouter.setXBitSize(newIValue);
+//		newIValue = TextUtils.atoi(horizTileSize.getText());
+//		if (newIValue != SunRouter.getXTileSize())
+//			SunRouter.setXTileSize(newIValue);
+//		newDValue = TextUtils.atof(layerAssignCapF.getText());
+//		if (newDValue != SunRouter.getLayerAssgnCapF())
+//			SunRouter.setLayerAssgnCapF(newDValue);
+//		newDValue = TextUtils.atof(longNetLength.getText());
+//		if (newDValue != SunRouter.getLengthLongNet())
+//			SunRouter.setLengthLongNet(newDValue);
+//		newDValue = TextUtils.atof(medNetLength.getText());
+//		if (newDValue != SunRouter.getLengthMedNet())
+//			SunRouter.setLengthMedNet(newDValue);
+//		newDValue = TextUtils.atof(oneTileFactor.getText());
+//		if (newDValue != SunRouter.getOneTileFactor())
+//			SunRouter.setOneTileFactor(newDValue);
+//		newDValue = TextUtils.atof(overloadLimit.getText());
+//		if (newDValue != SunRouter.getOneTileFactor())
+//			SunRouter.setOneTileFactor(newDValue);
+//		newIValue = TextUtils.atoi(overloadLimit.getText());
+//		if (newIValue != SunRouter.getOverloadLimit())
+//			SunRouter.setOverloadLimit(newIValue);
+//		newIValue = TextUtils.atoi(pinFactor.getText());
+//		if (newIValue != SunRouter.getPinFactor())
+//			SunRouter.setPinFactor(newIValue);
+//		newDValue = TextUtils.atof(tilesPerLongNet.getText());
+//		if (newDValue != SunRouter.getTilesPerPinLongNet())
+//			SunRouter.setTilesPerPinLongNet(newDValue);
+//		newDValue = TextUtils.atof(tilesPerMedNet.getText());
+//		if (newDValue != SunRouter.getTilesPerPinMedNet())
+//			SunRouter.setTilesPerPinMedNet(newDValue);
+//		newDValue = TextUtils.atof(unassignedPinDensityF.getText());
+//		if (newDValue != SunRouter.getUPinDensityF())
+//			SunRouter.setUPinDensityF(newDValue);
+//		newIValue = TextUtils.atoi(vertBitSize.getText());
+//		if (newIValue != SunRouter.getYBitSize())
+//			SunRouter.setYBitSize(newIValue);
+//		newIValue = TextUtils.atoi(vertTileSize.getText());
+//		if (newIValue != SunRouter.getYTileSize())
+//			SunRouter.setYTileSize(newIValue);
+//		newIValue = TextUtils.atoi(windowSize.getText());
+//		if (newIValue != SunRouter.getWindow())
+//			SunRouter.setWindow(newIValue);
 	}
 
 	/** This method is called from within the constructor to
@@ -183,6 +190,8 @@ public class SunRouterTab extends PreferencePanel
         vertBitSize = new javax.swing.JTextField();
         jLabel13 = new javax.swing.JLabel();
         cutLineDeviation = new javax.swing.JTextField();
+        verbosityCombo = new javax.swing.JComboBox();
+        jLabel18 = new javax.swing.JLabel();
         capacityPanel = new javax.swing.JPanel();
         jLabel11 = new javax.swing.JLabel();
         pinFactor = new javax.swing.JTextField();
@@ -289,7 +298,7 @@ public class SunRouterTab extends PreferencePanel
         jLabel13.setText("Cut line deviation:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         globalPanel.add(jLabel13, gridBagConstraints);
@@ -297,9 +306,25 @@ public class SunRouterTab extends PreferencePanel
         cutLineDeviation.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         globalPanel.add(cutLineDeviation, gridBagConstraints);
+
+        verbosityCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        globalPanel.add(verbosityCombo, gridBagConstraints);
+
+        jLabel18.setText("Verbosity:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        globalPanel.add(jLabel18, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -543,6 +568,7 @@ public class SunRouterTab extends PreferencePanel
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -563,6 +589,7 @@ public class SunRouterTab extends PreferencePanel
     private javax.swing.JTextField tilesPerLongNet;
     private javax.swing.JTextField tilesPerMedNet;
     private javax.swing.JTextField unassignedPinDensityF;
+    private javax.swing.JComboBox verbosityCombo;
     private javax.swing.JTextField vertBitSize;
     private javax.swing.JTextField vertTileSize;
     private javax.swing.JTextField windowSize;
