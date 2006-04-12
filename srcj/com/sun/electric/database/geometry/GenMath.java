@@ -248,6 +248,16 @@ public class GenMath
     public static final AffineTransform MATID = new AffineTransform();
 
     /**
+     * Method to detect if rotation represents a 90 degree rotation in Electric
+     * @param rotation
+     * @return
+     */
+    public static boolean isNinetyDegreeRotation(int rotation)
+    {
+        return rotation == 900 || rotation == 2700;
+    }
+
+    /**
      * Method to return the angle between two points.
      * @param end1 the first point.
      * @param end2 the second point.
