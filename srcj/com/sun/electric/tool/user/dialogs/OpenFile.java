@@ -134,7 +134,7 @@ public class OpenFile
 	 */
 	public static String chooseInputFile(FileType type, String title)
 	{
-		return chooseInputFile(type, title, false);
+		return chooseInputFile(type, title, false, User.getWorkingDirectory());
 	}
 
 	/**
@@ -143,7 +143,7 @@ public class OpenFile
 	 */
 	public static String chooseDirectory(String title)
 	{
-		return chooseInputFile(null, title, true);
+		return chooseInputFile(null, title, true, User.getWorkingDirectory());
 	}
 
 	/**
@@ -152,7 +152,7 @@ public class OpenFile
 	 * @param title dialog title to use; if null uses "Open 'filetype'".
 	 * @param wantDirectory true to request a directory be selected, instead of a file.
 	 */
-	public static String chooseInputFile(FileType type, String title, boolean wantDirectory)
+	public static String chooseInputFile(FileType type, String title, boolean wantDirectory, String initialDir)
 	{
 		if (title == null)
 		{
@@ -173,7 +173,7 @@ public class OpenFile
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
 			dialog.setDialogTitle(title);
-            dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
+            dialog.setCurrentDirectory(new File(initialDir));
 			if (type != null) {
                 if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB ||
                     type == FileType.LIBFILE || type == FileType.LIBRARYFORMATS) {
