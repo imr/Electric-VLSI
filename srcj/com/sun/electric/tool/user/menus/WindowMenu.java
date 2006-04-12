@@ -28,9 +28,9 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.dialogs.SetFocus;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
-import static com.sun.electric.tool.user.menus.MenuCommands.SEPARATOR;
+import com.sun.electric.tool.user.menus.EMenu;
+import com.sun.electric.tool.user.menus.EMenuItem;
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
@@ -59,7 +59,7 @@ import javax.swing.KeyStroke;
  * Class to handle the commands in the "Window" pulldown menu.
  */
 public class WindowMenu {
-    public static KeyStroke getCloseWindowAccelerator() { return KeyStroke.getKeyStroke(KeyEvent.VK_W, MenuCommands.buckyBit); }
+    public static KeyStroke getCloseWindowAccelerator() { return EMenuItem.shortcut(KeyEvent.VK_W); }
 
     static EMenu makeMenu() {
         /****************************** THE WINDOW MENU ******************************/

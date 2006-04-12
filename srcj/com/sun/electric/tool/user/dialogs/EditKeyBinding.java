@@ -25,14 +25,13 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.KeyBindingManager;
-import com.sun.electric.tool.user.menus.MenuBar;
+import com.sun.electric.tool.user.menus.EMenuBar;
+import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
@@ -43,8 +42,8 @@ import javax.swing.ListModel;
  */
 public class EditKeyBinding extends EDialog {
 
-    /** The MenuItem we are adding a key binding to */  private JMenuItem menuItem;
-    /** The MenuBar that item is a part of */           private MenuBar menuBar;
+    /** The MenuItem we are adding a key binding to */  private EMenuItem menuItem;
+    /** The MenuBar that item is a part of */           private EMenuBar menuBar;
     /** Last stroke1 input */                           private KeyStroke key1;
     /** Last stroke2 input */                           private KeyStroke key2;
 
@@ -54,7 +53,7 @@ public class EditKeyBinding extends EDialog {
      * @param modal blocks access to other windows if true
      * @param item the menu item which we are adding a Key Binding to.
      */
-    public EditKeyBinding(JMenuItem item, MenuBar menuBar, java.awt.Frame parent, boolean modal) {
+    public EditKeyBinding(EMenuItem item, EMenuBar menuBar, java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         menuItem = item;
         this.menuBar = menuBar;
@@ -256,9 +255,7 @@ public class EditKeyBinding extends EDialog {
     }//GEN-END:initComponents
 
     private void initDialog() {
-        String description;
-        if (menuItem instanceof MenuBar.MenuItem) description = ((MenuBar.MenuItem)menuItem).getDescription();
-        else description = ((MenuBar.MenuItemInterface)menuItem).getDescription();
+        String description = menuItem.getDescription();
         header.setText("Add Key Binding for:  "+description);
         pack();
     }

@@ -27,8 +27,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.generator.layout.GateRegression;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.Test;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
+import com.sun.electric.tool.user.menus.EMenu;
+import com.sun.electric.tool.user.menus.EMenuItem;
 
 /**
  * Russell's TEST MENU

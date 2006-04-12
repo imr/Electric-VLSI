@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.help;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
@@ -31,13 +30,15 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.menus.EMenu;
+import com.sun.electric.tool.user.menus.EMenuBar;
+import com.sun.electric.tool.user.menus.EMenuItem;
+import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -367,13 +368,12 @@ public class ManualViewer extends EDialog
 
 		// convert menuBar to tree
 		TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-		MenuBar menuBar = top.getTheMenuBar();
-		for (int i=0; i<menuBar.getMenuCount(); i++)
+		EMenuBar menuBar = top.getEMenuBar();
+		for (EMenuItem menu: menuBar.getItems())
 		{
-			Menu menu = (Menu)menuBar.getMenu(i);
 			JMenu helpMenu = new JMenu(menu.getText());
 			helpMenuBar.add(helpMenu);
-			addMenu(menu, helpMenu, menu.getText() + "/");
+			addMenu((EMenu)menu, helpMenu, menu.getText() + "/");
 		}
 		setJMenuBar(helpMenuBar);
 		pack();
@@ -487,12 +487,11 @@ public class ManualViewer extends EDialog
 		if (menuMapCheck != null)
 		{
 			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-			MenuBar menuBar = top.getTheMenuBar();
-			for (int i=0; i<menuBar.getMenuCount(); i++)
+			EMenuBar menuBar = top.getEMenuBar();
+			for (EMenuItem menu: menuBar.getItems())
 			{
-				Menu menu = (Menu)menuBar.getMenu(i);
 //				JMenu helpMenu = new JMenu(menu.getText());
-				checkMenu(menu, menu.getText() + "/", menuMapCheck);
+				checkMenu((EMenu)menu, menu.getText() + "/", menuMapCheck);
 			}
 
 			for(String commandName : menuMapCheck.keySet())
@@ -504,16 +503,15 @@ public class ManualViewer extends EDialog
 		}
 	}
 
-	private void checkMenu(Menu menu, String cumulative, HashMap<String,String> menuMapCheck)
+	private void checkMenu(EMenu menu, String cumulative, HashMap<String,String> menuMapCheck)
 	{
-		for (int i=0; i<menu.getItemCount(); i++)
+		for (EMenuItem menuItem: menu.getItems())
 		{
-			JMenuItem menuItem = menu.getItem(i);
-			if (menuItem == null) continue;
-			if (menuItem instanceof JMenu)
+			if (menuItem == EMenuItem.SEPARATOR) continue;
+			if (menuItem instanceof EMenu)
 			{
-				Menu subMenu = (Menu)menuItem;
-				checkMenu((Menu)menuItem, cumulative + subMenu.getText() + "/", menuMapCheck);
+				EMenu subMenu = (EMenu)menuItem;
+				checkMenu(subMenu, cumulative + subMenu.getText() + "/", menuMapCheck);
 			} else
 			{
 				String commandName = cumulative + menuItem.getText();
@@ -531,22 +529,21 @@ public class ManualViewer extends EDialog
 		}
 	}
 
-	private void addMenu(Menu menu, JMenu helpMenu, String cumulative)
+	private void addMenu(EMenu menu, JMenu helpMenu, String cumulative)
 	{
-		for (int i=0; i<menu.getItemCount(); i++)
+		for (EMenuItem menuItem: menu.getItems())
 		{
-			JMenuItem menuItem = menu.getItem(i);
-			if (menuItem == null)
+			if (menuItem == EMenuItem.SEPARATOR)
 			{
 				helpMenu.addSeparator();
 				continue;
 			}
-			if (menuItem instanceof JMenu)
+			if (menuItem instanceof EMenu)
 			{
-				Menu subMenu = (Menu)menuItem;
+				EMenu subMenu = (EMenu)menuItem;
 				JMenu helpSubMenu = new JMenu(subMenu.getText());
 				helpMenu.add(helpSubMenu);
-				addMenu((Menu)menuItem, helpSubMenu, cumulative + subMenu.getText() + "/");
+				addMenu(subMenu, helpSubMenu, cumulative + subMenu.getText() + "/");
 			} else
 			{
 				JMenuItem helpMenuItem = new JMenuItem(menuItem.getText());

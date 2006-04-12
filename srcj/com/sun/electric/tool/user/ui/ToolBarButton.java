@@ -26,7 +26,7 @@
 
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.tool.user.menus.MenuBar;
+//import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.event.ActionListener;
@@ -107,9 +107,9 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
     public static ToolBarButton newInstance(String text, Icon icon) {
         // new button
         ToolBarButton b = new ToolBarButton(text, icon);
-        b.addActionListener(MenuBar.repeatLastCommandListener);
+ //       b.addActionListener(MenuBar.repeatLastCommandListener);
         b.addActionListener(ToolBarButton.updater);
-        b.addActionListener(MenuBar.MenuBarGroup.getUpdaterFor(""));
+ //       b.addActionListener(MenuBar.MenuBarGroup.getUpdaterFor(""));
         b.addActionListener(buttonLogger);
 
         // add to book-keeping

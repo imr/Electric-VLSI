@@ -40,6 +40,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -51,7 +52,6 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
@@ -84,14 +84,14 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public static enum Mode { MDI, SDI };
 
-	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
-	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
+//	/** Property fired if ability to Undo changes */	public static final String propUndoEnabled = "UndoEnabled";
+//	/** Property fired if ability to Redo changes */	public static final String propRedoEnabled = "RedoEnabled";
     
     static volatile boolean initializationFinished = false;
     
     private static volatile boolean undoEnabled = false;
     private static volatile boolean redoEnabled = false;
-    private static final EventListenerList undoRedoListenerList = new EventListenerList();
+//    private static final EventListenerList undoRedoListenerList = new EventListenerList();
     private static EventListenerList listenerList = new EventListenerList();
     private static Snapshot currentSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
     private static EDatabase database = EDatabase.clientDatabase();
@@ -504,7 +504,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     public void restoreSavedBindings(boolean initialCall)
     {
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-        top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
+        top.getEMenuBar().restoreSavedBindings(false); //trying to cache again
     }
 
     public void finishPrefReconcilation(String libName, List<Pref.Meaning> meaningsToReconcile)
@@ -545,13 +545,14 @@ public class UserInterfaceMain extends AbstractUserInterface
      * @param newRedoEnabled new status of redo button.
      */
     public void showUndoRedoStatus(boolean newUndoEnabled, boolean newRedoEnabled) {
+        PropertyChangeEvent e = null;
         if (undoEnabled != newUndoEnabled) {
-            PropertyChangeEvent e = new PropertyChangeEvent(this, propUndoEnabled, undoEnabled, newUndoEnabled);
+ //           PropertyChangeEvent e = new PropertyChangeEvent(this, propUndoEnabled, undoEnabled, newUndoEnabled);
             undoEnabled = newUndoEnabled;
             SwingUtilities.invokeLater(new PropertyChangeRun(e));
         }
         if (redoEnabled != newRedoEnabled) {
-            PropertyChangeEvent e = new PropertyChangeEvent(this, propRedoEnabled, redoEnabled, newRedoEnabled);
+ //           PropertyChangeEvent e = new PropertyChangeEvent(this, propRedoEnabled, redoEnabled, newRedoEnabled);
             redoEnabled = newRedoEnabled;
             SwingUtilities.invokeLater(new PropertyChangeRun(e));
         }
@@ -583,31 +584,32 @@ public class UserInterfaceMain extends AbstractUserInterface
 	 */
 	public static boolean getRedoEnabled() { return redoEnabled; }
 
-	/** Add a property change listener. This generates Undo and Redo enabled property changes */
-	public static synchronized void addUndoRedoListener(PropertyChangeListener l)
-	{
-        assert SwingUtilities.isEventDispatchThread();
-		undoRedoListenerList.add(PropertyChangeListener.class, l);
-	}
-
-	/** Remove a property change listener. */
-	public static synchronized void removeUndoRedoListener(PropertyChangeListener l)
-	{
-        assert SwingUtilities.isEventDispatchThread();
-		undoRedoListenerList.remove(PropertyChangeListener.class, l);
-	}
+//	/** Add a property change listener. This generates Undo and Redo enabled property changes */
+//	public static synchronized void addUndoRedoListener(PropertyChangeListener l)
+//	{
+//        assert SwingUtilities.isEventDispatchThread();
+//		undoRedoListenerList.add(PropertyChangeListener.class, l);
+//	}
+//
+//	/** Remove a property change listener. */
+//	public static synchronized void removeUndoRedoListener(PropertyChangeListener l)
+//	{
+//        assert SwingUtilities.isEventDispatchThread();
+//		undoRedoListenerList.remove(PropertyChangeListener.class, l);
+//	}
 
     private static void firePropertyChange(PropertyChangeEvent e) {
         assert SwingUtilities.isEventDispatchThread();
-        Object[] listeners;
-        synchronized (UserInterfaceMain.class) {
-            listeners = undoRedoListenerList.getListenerList();
-        }
-        // Process the listeners last to first, notifying those that are interested in this event
-        for (int i = listeners.length-2; i>=0; i-=2) {
-            if (listeners[i] == PropertyChangeListener.class)
-                ((PropertyChangeListener)listeners[i+1]).propertyChange(e);
-        }
+        ToolBar.updateUndoRedoButtons(getUndoEnabled(), getRedoEnabled());
+//        Object[] listeners;
+//        synchronized (UserInterfaceMain.class) {
+//            listeners = undoRedoListenerList.getListenerList();
+//        }
+//        // Process the listeners last to first, notifying those that are interested in this event
+//        for (int i = listeners.length-2; i>=0; i-=2) {
+//            if (listeners[i] == PropertyChangeListener.class)
+//                ((PropertyChangeListener)listeners[i+1]).propertyChange(e);
+//        }
     }
 
 	private static class PropertyChangeRun implements Runnable {

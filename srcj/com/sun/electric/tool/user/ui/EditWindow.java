@@ -3311,8 +3311,8 @@ public class EditWindow extends JPanel
 
     /** List of CellHistory objects */                      private List<CellHistory> cellHistory;
     /** Location in history (points to valid location) */   private int cellHistoryLocation;
-    /** Property name: go back enabled */                   public static final String propGoBackEnabled = "GoBackEnabled";
-    /** Property name: go forward enabled */                public static final String propGoForwardEnabled = "GoForwardEnabled";
+//    /** Property name: go back enabled */                   public static final String propGoBackEnabled = "GoBackEnabled";
+//    /** Property name: go forward enabled */                public static final String propGoForwardEnabled = "GoForwardEnabled";
     /** History limit */                                    private static final int cellHistoryLimit = 20;
 
     /**
@@ -3380,10 +3380,13 @@ public class EditWindow extends JPanel
      * button states.
      */
     public void fireCellHistoryStatus() {
-        if (cellHistoryLocation > 0)
-            getPanel().firePropertyChange(propGoBackEnabled, false, true);
-        if (cellHistoryLocation < (cellHistory.size() - 1))
-            getPanel().firePropertyChange(propGoForwardEnabled, false, true);
+        ToolBar toolBar = wf.getToolBar();
+        if (toolBar == null) return;
+        toolBar.updateCellHistoryStatus(cellHistoryCanGoBack(), cellHistoryCanGoForward());
+//        if (cellHistoryLocation > 0)
+//            getPanel().firePropertyChange(propGoBackEnabled, false, true);
+//        if (cellHistoryLocation < (cellHistory.size() - 1))
+//            getPanel().firePropertyChange(propGoForwardEnabled, false, true);
     }
 
     public CellHistoryState getCellHistory() {
@@ -3409,13 +3412,13 @@ public class EditWindow extends JPanel
             for (int i=cellHistoryLocation+1; i<cellHistory.size(); i++) {
                 cellHistory.remove(i);
             }
-            // disable previously enabled forward button
-            getPanel().firePropertyChange(propGoForwardEnabled, true, false);
+//            // disable previously enabled forward button
+//            getPanel().firePropertyChange(propGoForwardEnabled, true, false);
         }
 
         // if location is 0, adding should enable back button
-        if (cellHistoryLocation == 0)
-            getPanel().firePropertyChange(propGoBackEnabled, false, true);
+//        if (cellHistoryLocation == 0)
+//            getPanel().firePropertyChange(propGoBackEnabled, false, true);
 
         // update history
         cellHistory.add(history);
@@ -3426,6 +3429,7 @@ public class EditWindow extends JPanel
             cellHistory.remove(0);
             cellHistoryLocation--;
         }
+        fireCellHistoryStatus();
     }
 
     /** Records current cell state into history
@@ -3452,25 +3456,25 @@ public class EditWindow extends JPanel
     /** Restores cell state from history record */
     public void setCellByHistory(int location) {
 
-        // fire property changes if back/forward buttons should change state
-        if (cellHistoryLocation == (cellHistory.size()-1)) {
-            // was at end, forward button was disabled
-            if (location < (cellHistory.size()-1))
-                getPanel().firePropertyChange(propGoForwardEnabled, false, true);
-        } else {
-            // not at end, forward button was enabled
-            if (location == (cellHistory.size()-1))
-                getPanel().firePropertyChange(propGoForwardEnabled, true, false);
-        }
-        if (cellHistoryLocation == 0) {
-            // at beginning, back button was disabled
-            if (location > 0)
-                getPanel().firePropertyChange(propGoBackEnabled, false, true);
-        } else {
-            // not at beginning, back button was enabled
-            if (location == 0)
-                getPanel().firePropertyChange(propGoBackEnabled, true, false);
-        }
+//        // fire property changes if back/forward buttons should change state
+//        if (cellHistoryLocation == (cellHistory.size()-1)) {
+//            // was at end, forward button was disabled
+//            if (location < (cellHistory.size()-1))
+//                getPanel().firePropertyChange(propGoForwardEnabled, false, true);
+//        } else {
+//            // not at end, forward button was enabled
+//            if (location == (cellHistory.size()-1))
+//                getPanel().firePropertyChange(propGoForwardEnabled, true, false);
+//        }
+//        if (cellHistoryLocation == 0) {
+//            // at beginning, back button was disabled
+//            if (location > 0)
+//                getPanel().firePropertyChange(propGoBackEnabled, false, true);
+//        } else {
+//            // not at beginning, back button was enabled
+//            if (location == 0)
+//                getPanel().firePropertyChange(propGoBackEnabled, true, false);
+//        }
 
         // get cell history to go to
         CellHistory history = cellHistory.get(location);
@@ -3493,6 +3497,7 @@ public class EditWindow extends JPanel
 
         // point to new location *after* calling setCell, since setCell updates by current location
         cellHistoryLocation = location;
+        fireCellHistoryStatus();
 
         repaintContents(null, false);
     }

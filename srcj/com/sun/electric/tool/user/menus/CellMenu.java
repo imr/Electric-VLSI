@@ -44,10 +44,10 @@ import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.user.dialogs.CellProperties;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
-import static com.sun.electric.tool.user.menus.MenuCommands.SEPARATOR;
+import com.sun.electric.tool.user.menus.EMenuItem;
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -165,8 +165,7 @@ public class CellMenu {
 
 		// mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
             new EMenu("E_xpand Cell Instances",
-                new EMenuItem("_One Level Down") { public void run() {
-                    CircuitChanges.DoExpandCommands(false, 1); }},
+                ToolBar.expandOneLevelCommand, // O
                 new EMenuItem("_All the Way") { public void run() {
                     CircuitChanges.DoExpandCommands(false, Integer.MAX_VALUE); }},
                 new EMenuItem("_Specified Amount...") { public void run() {
@@ -174,8 +173,7 @@ public class CellMenu {
 
         // mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
             new EMenu("Unexpand Cell Ins_tances",
-                new EMenuItem("_One Level Up") { public void run() {
-                    CircuitChanges.DoExpandCommands(true, 1); }},
+                ToolBar.unexpandOneLevelCommand, // O
                 new EMenuItem("_All the Way") { public void run() {
                     CircuitChanges.DoExpandCommands(true, Integer.MAX_VALUE); }},
                 new EMenuItem("_Specified Amount...") { public void run() {

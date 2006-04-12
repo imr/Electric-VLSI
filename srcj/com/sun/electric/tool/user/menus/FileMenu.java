@@ -63,9 +63,9 @@ import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
-import static com.sun.electric.tool.user.menus.MenuCommands.SEPARATOR;
+import com.sun.electric.tool.user.menus.EMenu;
+import com.sun.electric.tool.user.menus.EMenuItem;
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -111,8 +111,6 @@ import javax.swing.SwingUtilities;
 public class FileMenu {
 
     static EMenu makeMenu() {
-		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-
 		/****************************** THE FILE MENU ******************************/
 
 		// mnemonic keys available:    D               T  WXYZ
@@ -120,8 +118,7 @@ public class FileMenu {
 
             new EMenuItem("_New Library...") { public void run() {
                 newLibraryCommand(); }},
-            new EMenuItem("_Open Library...", 'O') { public void run() {
-                openLibraryCommand(); }},
+			ToolBar.openLibraryCommand, // O
 
 		// mnemonic keys available: A    F HIJK  NO QR   VW YZ
             new EMenu("_Import",
@@ -157,8 +154,7 @@ public class FileMenu {
 
             new EMenuItem("_Close Library") { public void run() {
                 closeLibraryCommand(Library.getCurrent()); }},
-            new EMenuItem("Sa_ve Library") { public void run() {
-                if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.DEFAULTLIB, false, true, false); }},
+			ToolBar.saveLibraryCommand, // V
             new EMenuItem("Save Library _As...") { public void run() {
                 if (checkInvariants()) saveAsLibraryCommand(Library.getCurrent()); }},
             new EMenuItem("_Save All Libraries", 'S') { public void run() {
@@ -202,7 +198,7 @@ public class FileMenu {
                     exportCommand(FileType.DXF, false); }},
                 SEPARATOR,
                 new EMenuItem("ELI_B (Version 6)...") {	public void run() {
-                    if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false); }},
+                    saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false); }},
                 new EMenuItem("P_references...") { public void run() { 
                     Job.getUserInterface().exportPrefs(); }}),
 
@@ -260,8 +256,7 @@ public class FileMenu {
 
             SEPARATOR,
 
-            new EMenuItem("P_references...") { public void run() {
-                PreferencesFrame.preferencesCommand(); }},
+			ToolBar.preferencesCommand, // R
             new EMenuItem("Pro_ject Settings...") { public void run() {
                 ProjectSettingsFrame.projectSettingsCommand(); }},
 
@@ -303,7 +298,7 @@ public class FileMenu {
         public void terminateOK()
         {
             EditWindow.repaintAll();
-            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
         }
     }
 
@@ -427,7 +422,7 @@ public class FileMenu {
 		private FileType type;
 		private Library createLib;
 		private Library deleteLib;
-		private Cell showThisCell;
+//		private Cell showThisCell;
 
 		public ImportLibrary(URL fileURL, FileType type, Library deleteLib)
 		{
@@ -466,7 +461,6 @@ public class FileMenu {
             }
             
 //            Undo.noUndoAllowed();
-            createLib.setCurrent();
 //            showThisCell =  Job.getUserInterface().getCurrentCell(createLib);
 // 			fieldVariableChanged("showThisCell");
 			if (deleteLib != null)
@@ -477,9 +471,10 @@ public class FileMenu {
 
 		public void terminateOK()
         {
+            createLib.setCurrent();
+        	Cell showThisCell = Job.getUserInterface().getCurrentCell(createLib);
         	doneOpeningLibrary(showThisCell);
-        	showThisCell = Job.getUserInterface().getCurrentCell(createLib);
-        	fieldVariableChanged("showThisCell");
+//        	fieldVariableChanged("showThisCell");
         }
 	}
 
@@ -591,14 +586,14 @@ public class FileMenu {
                 {
                     wf.setCellWindow(cell);
                     //wf.requestFocus();
-                    TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+                    ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
                     return;
                 }
             }
             WindowFrame.createEditWindow(cell);
 
             // no clean for now.
-            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
         }
     }
 
@@ -692,9 +687,19 @@ public class FileMenu {
             EditWindow.repaintAll();
 
             // Disable save icon if no more libraries are open
-            TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
+            ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
         }
     }
+
+    /**
+     * This method implements the command to save a library.
+     * It is interactive, and pops up a dialog box.
+     * @param lib the Library to save.
+     * @return true if library saved, false otherwise.
+     */
+    public static boolean saveLibraryCommand(Library lib) {
+		return lib != null && saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true, false);
+	}
 
     /**
      * This method implements the command to save a library.
@@ -909,24 +914,24 @@ public class FileMenu {
      */
 	private static boolean checkInvariants()
 	{
-		// check database invariants
-		if (!EDatabase.clientDatabase().checkInvariants())
-		{
-			String [] messages = {
-				"Database invariants are not valid",
-				"You may use \"Force Quit (and Save)\" to save in a panic directory",
-				"Do you really want to write libraries into the working directory?"};
-            Object [] options = {"Continue Writing", "Cancel", "ForceQuit" };
-            int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
-				"Invalid database invariants", JOptionPane.DEFAULT_OPTION,
-				JOptionPane.WARNING_MESSAGE, null, options, options[1]);
-            if (val == 1) return false;
-			if (val == 2)
-			{
-				forceQuit();
-				return false;
-			}
-		}
+// 		// check database invariants
+// 		if (!EDatabase.clientDatabase().checkInvariants())
+// 		{
+// 			String [] messages = {
+// 				"Database invariants are not valid",
+// 				"You may use \"Force Quit (and Save)\" to save in a panic directory",
+// 				"Do you really want to write libraries into the working directory?"};
+//             Object [] options = {"Continue Writing", "Cancel", "ForceQuit" };
+//             int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
+// 				"Invalid database invariants", JOptionPane.DEFAULT_OPTION,
+// 				JOptionPane.WARNING_MESSAGE, null, options, options[1]);
+//             if (val == 1) return false;
+// 			if (val == 2)
+// 			{
+// 				forceQuit();
+// 				return false;
+// 			}
+// 		}
 		return true;
 	}
 

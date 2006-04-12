@@ -25,16 +25,16 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.Client;
+import com.sun.electric.tool.user.menus.EMenuBar;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -52,6 +52,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
@@ -82,7 +83,7 @@ public class TopLevel extends JFrame
 	/** The cursor being displayed. */						private static Cursor cursor;
     /** If the busy cursor is overriding the normal cursor */ private static boolean busyCursorOn = false;
 
-    /** The menu bar */                                     private MenuBar menuBar;
+    /** The menu bar */                                     private EMenuBar.Instance menuBar;
     /** The tool bar */                                     private ToolBar toolBar;
     
 	/**
@@ -101,7 +102,7 @@ public class TopLevel extends JFrame
 
 		// create the menu bar
         try{
-		menuBar = MenuCommands.createMenuBar();
+            menuBar = MenuCommands.menuBar().genInstance();
         } catch (Exception e)
         {
             e.printStackTrace();
@@ -297,7 +298,10 @@ public class TopLevel extends JFrame
     public ToolBar getToolBar() { return toolBar; }
 
     /** Get the Menu Bar. Unfortunately named because getMenuBar() already exists */
-    public MenuBar getTheMenuBar() { return menuBar; }
+    public EMenuBar.Instance getTheMenuBar() { return menuBar; }
+
+    /** Get the Menu Bar. Unfortunately named because getMenuBar() already exists */
+    public EMenuBar getEMenuBar() { return menuBar.getMenuBarGroup(); }
 
     /**
      * Method to return the speed of double-clicks (in milliseconds).
@@ -379,18 +383,31 @@ public class TopLevel extends JFrame
         }
 	}
     
-    public static synchronized Iterator<MenuBar> getMenuBars() {
-        ArrayList<MenuBar> menuBars = new ArrayList<MenuBar>();
+    public static synchronized List<ToolBar> getToolBars() {
+        ArrayList<ToolBar> toolBars = new ArrayList<ToolBar>();
         if (mode == UserInterfaceMain.Mode.MDI) {
-            menuBars.add(topLevel.getTheMenuBar());
+            toolBars.add(topLevel.getToolBar());
         } else {
             for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
                 WindowFrame wf = it.next();
-                menuBars.add(wf.getFrame().getTheMenuBar());
+                toolBars.add(wf.getFrame().getToolBar());
             }
         }
-        return menuBars.iterator();
+        return toolBars;
     }
+
+//    public static synchronized Iterator<MenuBar> getMenuBars() {
+//        ArrayList<MenuBar> menuBars = new ArrayList<MenuBar>();
+//        if (mode == UserInterfaceMain.Mode.MDI) {
+//            menuBars.add(topLevel.getTheMenuBar());
+//        } else {
+//            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+//                WindowFrame wf = it.next();
+//                menuBars.add(wf.getFrame().getTheMenuBar());
+//            }
+//        }
+//        return menuBars.iterator();
+//    }
 
     /**
      * The busy cursor overrides any other cursor.

@@ -112,9 +112,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
-import static com.sun.electric.tool.user.menus.MenuCommands.SEPARATOR;
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -131,7 +129,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
@@ -434,9 +431,12 @@ public class ToolMenu {
 
 		// mnemonic keys available:  B D FG IJK   OPQ    V XY 
             new EMenu("_Routing",
-                new MenuCommands.ECheckBoxButton("Enable _Auto-Stitching") {
+                new EMenuItem.CheckBox("Enable _Auto-Stitching") {
                     public boolean isSelected() { return Routing.isAutoStitchOn(); }
-                    public void setSelected(boolean b) { Routing.toggleEnableAutoStitching(b); }
+                    public void setSelected(boolean b) {
+                        Routing.setAutoStitchOn(b);
+                        System.out.println("Auto-stitching " + (b ? "enabled" : "disabled"));
+                    }
                 },
 		        new EMenuItem("Auto-_Stitch Now") { public void run() {
                     AutoStitch.autoStitch(false, true); }},
@@ -445,9 +445,12 @@ public class ToolMenu {
 
                 SEPARATOR,
 
-                new MenuCommands.ECheckBoxButton("Enable _Mimic-Stitching") {
+                new EMenuItem.CheckBox("Enable _Mimic-Stitching") {
                     public boolean isSelected() { return Routing.isMimicStitchOn(); }
-                    public void setSelected(boolean b) { Routing.toggleEnableMimicStitching(b); }
+                    public void setSelected(boolean b) {
+                        Routing.setMimicStitchOn(b);
+                        System.out.println("Mimic-stitching " + (b ? "enabled" : "disabled"));
+                    }
                 },
 		        new EMenuItem("Mimic-Stitch _Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)) { public void run() {
                     MimicStitch.mimicStitch(true); }},
@@ -544,12 +547,7 @@ public class ToolMenu {
 
     private abstract static class CVSButton extends EMenuItem {
         CVSButton(String label) { super(label); }
-        JMenuItem genMenu(MenuBar menuBar, MenuBar.Menu menu) {
-            JMenuItem menuItem = super.genMenu(menuBar, menu);
-            boolean cvsEnabled = true;
-            menuItem.setEnabled(cvsEnabled);
-            return menuItem;
-        }
+        public boolean isEnabled() { return CVS.isEnabled(); }
     }
     
 	// ---------------------------- Tool Menu Commands ----------------------------

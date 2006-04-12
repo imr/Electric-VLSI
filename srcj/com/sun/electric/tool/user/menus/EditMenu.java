@@ -69,9 +69,8 @@ import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.SpecialProperties;
 import com.sun.electric.tool.user.dialogs.Spread;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
-import static com.sun.electric.tool.user.menus.MenuCommands.SEPARATOR;
+import com.sun.electric.tool.user.menus.EMenuItem;
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
@@ -104,7 +103,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.AbstractButton;
-import javax.swing.ButtonGroup;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
@@ -112,25 +110,6 @@ import javax.swing.KeyStroke;
  * Class to handle the commands in the "Edit" pulldown menu.
  */
 public class EditMenu {
-
-    /**
-     * Method to select proper buttom in EditMenu depending on gridAlignment value
-     * @param ad
-     */
-    public static void setGridAligment(double ad)
-    {
-        for (Iterator<MenuBar> it = TopLevel.getMenuBars(); it.hasNext(); ) {
-            MenuBar menuBar = it.next();
-            setGridAlignment(menuBar, ad);
-        }
-    }
-
-    private static void setGridAlignment(MenuBar menuBar, double ad)
-    {
-        if (ad == 1.0) menuBar.moveFull.setSelected(true); else
-        if (ad == 0.5) menuBar.moveHalf.setSelected(true); else
-        if (ad == 0.25) menuBar.moveQuarter.setSelected(true);
-    }
 
     static EMenu makeMenu() {
 		/****************************** THE EDIT MENU ******************************/
@@ -151,14 +130,12 @@ public class EditMenu {
             SEPARATOR,
 
        // TODO: figure out how to remove this property change listener for correct garbage collection
-            new UndoRedoButton("_Undo", 'Z', false) { public void run() {
-                undoCommand(); }},
-            new UndoRedoButton("Re_do", 'Y', true) { public void run() {
-                redoCommand(); }},
+            ToolBar.undoCommand, // U
+            ToolBar.redoCommand, // D
             new EMenuItem("Sho_w Undo List") { public void run() {
                 showUndoListCommand(); }},
-            new EMenuItem("Repeat Last Action", KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0)) { public void run() {
-                repeatLastCommand(); }},
+            new EMenuItem("Repeat Last Action", KeyStroke.getKeyStroke('&')) { public void run() {
+                EMenuItem.repeatLastCommand(); }},
 
             SEPARATOR,
 
@@ -285,32 +262,8 @@ public class EditMenu {
                     CurveListener.setCurvature(false); }},
                 new EMenuItem("Re_move Curvature") { public void run() {
                     CurveListener.removeCurvature(); }}),
-
-		// mnemonic keys available: ABCD FGHIJKL NOPQR TUVWXYZ
-            new EMenu("M_odes",
-
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-                new EMenu("_Edit",
-                    new CursorModeButton(ToolBar.CursorMode.CLICKZOOMWIRE, 'S'),
-                    new CursorModeButton(ToolBar.CursorMode.PAN, 'P'),
-                    new CursorModeButton(ToolBar.CursorMode.ZOOM, 'Z'),
-                    new CursorModeButton(ToolBar.CursorMode.OUTLINE, 'Y'),
-                    new CursorModeButton(ToolBar.CursorMode.MEASURE, 'M')),
-
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-                new EMenu("_Movement",
-                    new ArrowDistanceButton(ToolBar.ArrowDistance.FULL, 'F'),
-                    new ArrowDistanceButton(ToolBar.ArrowDistance.HALF, 'H'),
-                    new ArrowDistanceButton(ToolBar.ArrowDistance.QUARTER)),
-            
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-                new EMenu("_Select",
-                    new SelectModeButton(ToolBar.SelectMode.AREA),
-                    new SelectModeButton(ToolBar.SelectMode.OBJECTS),
-                    new MenuCommands.ECheckBoxButton(ToolBar.specialSelectName) {
-                        public boolean isSelected() { return false; }
-                        public void setSelected(boolean b) { ToolBar.toggleSelectSpecialCommand(b); }
-                    })),
+                            
+            ToolBar.modesSubMenu, // O                
 
 		// mnemonic keys available: AB  E GH JKLMNOPQRSTUVWXYZ
             new EMenu("Te_xt",
@@ -436,123 +389,16 @@ public class EditMenu {
                     removeFromWaveformCommand(); }}));
     }
 
-    private abstract static class UndoRedoButton extends EMenuItem {
-        private final boolean redo;
-        private UndoRedoButton(String label, char acceleratorChar, boolean redo) {
-            super(label, acceleratorChar);
-            this.redo = redo;
-        }
-        JMenuItem genMenu(MenuBar menuBar, MenuBar.Menu menu) {
-            JMenuItem menuItem = super.genMenu(menuBar, menu);
-            MenuCommands.MenuEnabler enabler;
-            boolean enabled;
-            if (redo) {
-                enabler = new MenuCommands.MenuEnabler((MenuBar.MenuItem)menuItem, UserInterfaceMain.propRedoEnabled);
-                menuBar.redoLis = enabler;
-                TextWindow.addTextRedoListener(enabler);
-                enabled = UserInterfaceMain.getRedoEnabled();
-            } else {
-                enabler = new MenuCommands.MenuEnabler((MenuBar.MenuItem)menuItem, UserInterfaceMain.propUndoEnabled);
-                menuBar.undoLis = enabler;
-                TextWindow.addTextUndoListener(enabler);
-                enabled = UserInterfaceMain.getUndoEnabled();
-            }
-            UserInterfaceMain.addUndoRedoListener(enabler);
-            menuItem.setEnabled(enabled);
-            return menuItem;
-        }
-    }
-    
-    private static class CursorModeButton extends MenuCommands.ERadioButton {
-        private final ToolBar.CursorMode cm;
-        
-        CursorModeButton(ToolBar.CursorMode cm, char acceleratorChar) {
-            super(cm.getMenuName(), KeyStroke.getKeyStroke(acceleratorChar, 0));
-            this.cm = cm;
-        }
-
-        public boolean isSelected() { return ToolBar.getCursorMode() == cm; }
-        public void run() { ToolBar.editCursorModeCommand(cm); }
-    }
-    
-    private static class ArrowDistanceButton extends MenuCommands.ERadioButton {
-        private final ToolBar.ArrowDistance ad;
-        
-        ArrowDistanceButton(ToolBar.ArrowDistance ad) {
-            super(ad.getMenuName());
-            this.ad = ad;
-        }
-
-        ArrowDistanceButton(ToolBar.ArrowDistance ad, char acceleratorChar) {
-            super(ad.getMenuName(), KeyStroke.getKeyStroke(acceleratorChar, 0));
-            this.ad = ad;
-        }
-
-        public JMenuItem genMenu(MenuBar menuBar, MenuBar.Menu menu, ButtonGroup group) {
-            JMenuItem item = super.genMenu(menuBar, menu, group);
-            switch (ad) {
-                case FULL: menuBar.moveFull = item; break;
-                case HALF: menuBar.moveHalf = item; break;
-                case QUARTER: menuBar.moveQuarter = item; break;
-            }
-            return item;
-        } 
-        public boolean isSelected() { return User.getAlignmentToGrid() == ad.getDistance(); }
-        public void run() { ToolBar.arrowDistanceCommand(ad); }
-    }
-    
-    private static class SelectModeButton extends MenuCommands.ERadioButton {
-        private final ToolBar.SelectMode sm;
-        
-        SelectModeButton(ToolBar.SelectMode sm) {
-            super(sm.getMenuName());
-            this.sm = sm;
-        }
-
-        public boolean isSelected() { return ToolBar.SelectMode.OBJECTS == sm; }
-        public void run() { ToolBar.selectModeCommand(sm); }
-    }
-    
-    public static void undoCommand()
-	{
-		// handle undo in text windows specially
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (wf != null && wf.getContent() instanceof TextWindow)
-		{
-			TextWindow tw = (TextWindow)wf.getContent();
-			tw.undo();
-			return;
-		}
-
-		// do database undo
-		Undo.undo();
-	}
-
-    public static void redoCommand()
-	{
-		// handle redo in text windows specially
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (wf != null && wf.getContent() instanceof TextWindow)
-		{
-			TextWindow tw = (TextWindow)wf.getContent();
-			tw.redo();
-			return;
-		}
-
-		// do database redo
-		Undo.redo();
-	}
-
-	/**
-     * Repeat the last Command
-     */
-    public static void repeatLastCommand() {
-        AbstractButton lastActivated = MenuBar.repeatLastCommandListener.getLastActivated();
-        if (lastActivated != null)
-        {
-        	lastActivated.doClick();
-        }
-    }
+//	/**
+//     * Repeat the last Command
+//     */
+//    public static void repeatLastCommand() {
+//        AbstractButton lastActivated = MenuBar.repeatLastCommandListener.getLastActivated();
+//        if (lastActivated != null)
+//        {
+//        	lastActivated.doClick();
+//        }
+//    }
 
 	/**
 	 * This method implements the command to show the Key Bindings Options dialog.
@@ -561,7 +407,7 @@ public class EditMenu {
 	{
         // edit key bindings for current menu
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-		EditKeyBindings dialog = new EditKeyBindings(top.getTheMenuBar(), top, true);
+		EditKeyBindings dialog = new EditKeyBindings(top.getEMenuBar(), top, true);
 		dialog.setVisible(true);
 	}
 
@@ -1170,7 +1016,7 @@ public class EditMenu {
 		highlighter.clear();
 		if (selection != null )
 			highlighter.selectArea(wnd, selection.getMinX(), selection.getMaxX(), selection.getMinY(), selection.getMaxY(), false,
-			ToolBar.getSelectSpecial());
+			ToolBar.isSelectSpecial());
 		highlighter.finished();
 	}
 

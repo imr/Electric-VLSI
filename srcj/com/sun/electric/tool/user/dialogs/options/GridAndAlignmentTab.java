@@ -132,7 +132,7 @@ public class GridAndAlignmentTab extends PreferencePanel
 		currDouble = TextUtils.atof(gridAlignCursor.getText());
 		if (currDouble != User.getAlignmentToGrid())
         {
-            EditMenu.setGridAligment(currDouble);
+//            EditMenu.setGridAligment(currDouble);
             ToolBar.setGridAligment(currDouble);
 			User.setAlignmentToGrid(currDouble);
         }

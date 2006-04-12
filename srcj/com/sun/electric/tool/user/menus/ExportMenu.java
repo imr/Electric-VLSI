@@ -27,9 +27,9 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.tool.user.ExportChanges;
 import com.sun.electric.tool.user.dialogs.ManipulatePorts;
 import com.sun.electric.tool.user.dialogs.NewExport;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
-import static com.sun.electric.tool.user.menus.MenuCommands.SEPARATOR;
+import com.sun.electric.tool.user.menus.EMenu;
+import com.sun.electric.tool.user.menus.EMenuItem;
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 /**

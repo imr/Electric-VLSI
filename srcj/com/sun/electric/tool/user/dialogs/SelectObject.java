@@ -36,9 +36,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.menus.EMenuBar.Instance;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -134,7 +136,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
         if (top != null && top.getTheMenuBar() != null)
         {
-        	KeyBindingManager.KeyMaps km = top.getTheMenuBar().getKeyMaps();
+        	KeyBindingManager.KeyMaps km = top.getEMenuBar().getKeyMaps();
         	InputMap im = km.getInputMap();
         	ActionMap am = km.getActionMap();
     		getRootPane().getInputMap().setParent(im);

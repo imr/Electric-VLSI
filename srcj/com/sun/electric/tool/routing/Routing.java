@@ -509,62 +509,6 @@ public class Routing extends Listener
 	 */
 	public Activity getLastActivity() { return past; }
 
-	/**
-	 * Method called when the "Enable Auto Stitching" command is issued.
-	 * Toggles the state of automatic auto stitching.
-	 * @param e the event with the menu item that issued the command.
-	 */
-	public static void toggleEnableAutoStitching(ActionEvent e)
-	{
-		toggleEnableAutoStitching(((AbstractButton)e.getSource()).isSelected());
-	}
-
-	/**
-	 * Method called when the "Enable Auto Stitching" command is issued.
-	 * Toggles the state of automatic auto stitching.
-	 * @param b true to ebable automatic auto stitching.
-	 */
-	public static void toggleEnableAutoStitching(boolean b)
-	{
-		if (b)
-		{
-			setAutoStitchOn(true);
-			System.out.println("Auto-stitching enabled");
-		} else
-		{
-			setAutoStitchOn(false);
-			System.out.println("Auto-stitching disabled");
-		}
-	}
-
-	/**
-	 * Method called when the "Enable Mimic Stitching" command is issued.
-	 * Toggles the state of automatic mimic stitching.
-	 * @param e the event with the menu item that issued the command.
-	 */
-	public static void toggleEnableMimicStitching(ActionEvent e)
-	{
-        toggleEnableMimicStitching(((AbstractButton)e.getSource()).isSelected());
-	}
-
-	/**
-	 * Method called when the "Enable Mimic Stitching" command is issued.
-	 * Toggles the state of automatic mimic stitching.
-	 * @param b to enable automatic mimic stitching.
-	 */
-	public static void toggleEnableMimicStitching(boolean b)
-	{
-		if (b)
-		{
-			setMimicStitchOn(true);
-			System.out.println("Mimic-stitching enabled");
-		} else
-		{
-			setMimicStitchOn(false);
-			System.out.println("Mimic-stitching disabled");
-		}
-	}
-
 	/****************************** SUN ROUTER INTERFACE ******************************/
 
     private static boolean sunRouterChecked = false;

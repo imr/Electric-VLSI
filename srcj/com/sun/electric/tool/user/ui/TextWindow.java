@@ -34,9 +34,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.MenuBar;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -152,18 +150,20 @@ public class TextWindow
 
 	private void updateUndoRedo()
 	{
-		TopLevel tl = TopLevel.getCurrentJFrame();
-		PropertyChangeEvent un = new PropertyChangeEvent(tl, UserInterfaceMain.propUndoEnabled, null, new Boolean(undo.canUndo()));
-		PropertyChangeEvent re = new PropertyChangeEvent(tl, UserInterfaceMain.propRedoEnabled, null, new Boolean(undo.canRedo()));
-		if (tl != null)
-		{
-			tl.getToolBar().propertyChange(un);
-			tl.getToolBar().propertyChange(re);
-		}
-        for (Iterator<PropertyChangeListener> it = undoListeners.reverseIterator(); it.hasNext(); )
-            it.next().propertyChange(un);
-        for (Iterator<PropertyChangeListener> it = redoListeners.reverseIterator(); it.hasNext(); )
-            it.next().propertyChange(un);
+        // Commented temporarily DN 10-Apr-2006
+        
+//		TopLevel tl = TopLevel.getCurrentJFrame();
+//		PropertyChangeEvent un = new PropertyChangeEvent(tl, UserInterfaceMain.propUndoEnabled, null, new Boolean(undo.canUndo()));
+//		PropertyChangeEvent re = new PropertyChangeEvent(tl, UserInterfaceMain.propRedoEnabled, null, new Boolean(undo.canRedo()));
+//		if (tl != null)
+//		{
+//			tl.getToolBar().propertyChange(un);
+//			tl.getToolBar().propertyChange(re);
+//		}
+//        for (Iterator<PropertyChangeListener> it = undoListeners.reverseIterator(); it.hasNext(); )
+//            it.next().propertyChange(un);
+//        for (Iterator<PropertyChangeListener> it = redoListeners.reverseIterator(); it.hasNext(); )
+//            it.next().propertyChange(un);
 	}
 
 	/**
@@ -231,14 +231,12 @@ public class TextWindow
 		public void focusGained(FocusEvent e)
 		{
 			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-			MenuBar mb = top.getTheMenuBar();
-			mb.setIgnoreTextEditKeys(true);
+			top.getTheMenuBar().setIgnoreTextEditKeys(true);
 		}
 		public void focusLost(FocusEvent e)
 		{
 			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-			MenuBar mb = top.getTheMenuBar();
-			mb.setIgnoreTextEditKeys(false);
+			top.getTheMenuBar().setIgnoreTextEditKeys(false);
 			if (tw.dirty)
 				new SaveCellText(tw);
 		}

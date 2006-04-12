@@ -265,7 +265,7 @@ public class ClickZoomWireListener
 
 	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 	        invertSelection = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
-	        specialSelect = ToolBar.getSelectSpecial();
+	        specialSelect = ToolBar.isSelectSpecial();
 
 	        // ===== right mouse clicks =====
 
@@ -489,7 +489,7 @@ public class ClickZoomWireListener
 	        lastdbMouseY = (int)dbMouse.getY();
 
 	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-	        specialSelect = ToolBar.getSelectSpecial();
+	        specialSelect = ToolBar.isSelectSpecial();
 
 	        // ===== Right mouse drags =====
 
@@ -653,7 +653,7 @@ public class ClickZoomWireListener
 	        int releaseY = evt.getY();
 	        Point2D dbMouse = wnd.screenToDatabase(releaseX, releaseY);
 	        boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
-	        specialSelect = ToolBar.getSelectSpecial();
+	        specialSelect = ToolBar.isSelectSpecial();
 
 	        // ===== Right Mouse Release =====
 
@@ -862,7 +862,7 @@ public class ClickZoomWireListener
             Cell cell = wnd.getCell();
 			if (cell == null) return;
 
-			specialSelect = ToolBar.getSelectSpecial();
+			specialSelect = ToolBar.isSelectSpecial();
             Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
 
 			if (modeLeft == Mode.stickyMove) {

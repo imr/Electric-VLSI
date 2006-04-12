@@ -152,9 +152,9 @@ public class PostScriptColor
 	private double []            psBoundaries = new double[4];
 	private List<PsCell>         allCells;
 	private LayerMap  []         allLayers = new LayerMap[MAXLAYERS];
-	private List<PsBox> []       flattenedBoxes = new ArrayList[MAXLAYERS];
+	private List<ArrayList<PsBox>>flattenedBoxes = new ArrayList<ArrayList<PsBox>>();
 	private PxBoxQuadTree []     quadTrees = new PxBoxQuadTree[MAXLAYERS];
-	private List<PsPoly> []      flattenedPolys = new ArrayList[MAXLAYERS];
+	private List<ArrayList<PsPoly>>flattenedPolys = new ArrayList<ArrayList<PsPoly>>();
 	private int                  numLayers;
 	private int                  totalBoxes = 0;
 	private int                  totalCells = 0;
@@ -623,7 +623,7 @@ public class PostScriptColor
 
 		// otherwise find number of boxes on this layer
 		int numBoxes = 0;
-		for(PsBox g : flattenedBoxes[layer])
+		for(PsBox g : flattenedBoxes.get(layer))
 		{
 			if (g.visible) numBoxes++;
 		}
@@ -647,7 +647,7 @@ public class PostScriptColor
 
 		// then copy the boxes into the tree
 		int i = 0;
-		for(PsBox g : flattenedBoxes[layer])
+		for(PsBox g : flattenedBoxes.get(layer))
 		{
 			if (g.visible)
 			{
@@ -927,7 +927,7 @@ public class PostScriptColor
 						curBox.visible = true;
 						if (t[2] == t[0] && b[2] == b[0] && l[2] == l[0] && r[2] == r[0]) q1.boxes[j].visible = false;
 						if (t[2] == t[1] && b[2] == b[1] && l[2] == l[1] && r[2] == r[1]) q2.boxes[k].visible = false;
-						flattenedBoxes[layerNum].add(curBox);
+						flattenedBoxes.get(layerNum).add(curBox);
 					}
 				}
 			}
@@ -940,8 +940,8 @@ public class PostScriptColor
 		newIdentityMatrix(ident);
 		for (int i=0; i<numLayers; i++)
 		{
-			flattenedPolys[i] = new ArrayList<PsPoly>();
-			flattenedBoxes[i] = new ArrayList<PsBox>();
+			flattenedPolys.add(new ArrayList<PsPoly>());
+			flattenedBoxes.add(new ArrayList<PsBox>());
 		}
 
 		// for now, assume last cell is top level.  Change this to recognize C *** at top of CIF
@@ -959,7 +959,7 @@ public class PostScriptColor
 			if (box.visible)
 			{
 				PsBox newBox = copyBox(box, m);
-				flattenedBoxes[newBox.layer].add(newBox);
+				flattenedBoxes.get(newBox.layer).add(newBox);
 			}
 		}
 
@@ -967,7 +967,7 @@ public class PostScriptColor
 		for(PsPoly poly : topCell.polys)
 		{
 			PsPoly newPoly = copyPoly(poly, m);
-			flattenedPolys[newPoly.layer].add(newPoly);
+			flattenedPolys.get(newPoly.layer).add(newPoly);
 		}
 
 		// recursively traverse subinstances
@@ -1048,8 +1048,8 @@ public class PostScriptColor
 			// skip drawing layers that are white
 			if (allLayers[i].r != 1 || allLayers[i].g != 1 || allLayers[i].b != 1)
 			{
-				List<PsBox> g = flattenedBoxes[i];
-				List<PsPoly> p = flattenedPolys[i];
+				List<PsBox> g = flattenedBoxes.get(i);
+				List<PsPoly> p = flattenedPolys.get(i);
 				if (g.size() > 0 || p.size() > 0)
 				{
 					StringBuffer buf = new StringBuffer();

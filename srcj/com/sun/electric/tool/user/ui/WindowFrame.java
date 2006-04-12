@@ -422,10 +422,10 @@ public class WindowFrame extends Observable
 			internalWindowsEvents = new InternalWindowsEvents(this);
 			jif.addInternalFrameListener(internalWindowsEvents);
 			// add tool bar as listener so it can find out state of cell history in EditWindow
-			jif.addInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
+//			jif.addInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
 			//content.getPanel().addPropertyChangeListener(TopLevel.getTopLevel().getToolBar());
-			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, TopLevel.getCurrentJFrame().getToolBar());
-			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, TopLevel.getCurrentJFrame().getToolBar());
+//			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, TopLevel.getCurrentJFrame().getToolBar());
+//			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, TopLevel.getCurrentJFrame().getToolBar());
 //			frame.jif.moveToFront();
             TopLevel.addToDesktop(jif);
 		} else
@@ -436,8 +436,8 @@ public class WindowFrame extends Observable
 			jf.addWindowFocusListener(windowsEvents);
 			jf.setWindowFrame(this);
 			// add tool bar as listener so it can find out state of cell history in EditWindow
-			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
-			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
+//			content.getPanel().addPropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
+//			content.getPanel().addPropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
 			/*if (!Job.BATCHMODE)*/ jf.setVisible(true);
 		}
 	}
@@ -454,18 +454,18 @@ public class WindowFrame extends Observable
 		if (TopLevel.isMDIMode()) {
 			jif.getContentPane().remove(js);
 			jif.removeInternalFrameListener(internalWindowsEvents);
-			jif.removeInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
+//			jif.removeInternalFrameListener(TopLevel.getCurrentJFrame().getToolBar());
 			// TopLevel.removeFromDesktop(jif);
-			content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
-			content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
+//			content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
+//			content.getPanel().removePropertyChangeListener(TopLevel.getCurrentJFrame().getToolBar());
             TopLevel.removeFromDesktop(jif);
 		} else {
 			jf.getContentPane().remove(js);
 			jf.removeWindowListener(windowsEvents);
 			jf.removeWindowFocusListener(windowsEvents);
 			jf.setWindowFrame(null);
-			content.getPanel().removePropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
-			content.getPanel().removePropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
+//			content.getPanel().removePropertyChangeListener(EditWindow.propGoBackEnabled, ((TopLevel)jf).getToolBar());
+//			content.getPanel().removePropertyChangeListener(EditWindow.propGoForwardEnabled, ((TopLevel)jf).getToolBar());
 		}
 	}
 
@@ -881,6 +881,18 @@ public class WindowFrame extends Observable
         return jf;
     }
     
+	/**
+	 * Method to return the ToolBar associated with this WindowFrame.
+     * In SDI mode this returns this WindowFrame's ToolBar.
+     * In MDI mode there is only one TooolBar, so this method will
+     * return that ToolBar.
+	 * @return the TooolBar associated with this WindowFrame.
+	 */
+    public ToolBar getToolBar() {
+        TopLevel topLevel = getFrame();
+        return topLevel != null ? topLevel.getToolBar() : null;
+    }
+    
     /**
      * Method to return the JInternalFrame associated with this WindowFrame.
      * In SDI mode this returns null.
@@ -1049,7 +1061,7 @@ public class WindowFrame extends Observable
 	/**
 	 * This class handles activation and close events for JInternalFrame objects (used in MDI mode).
 	 */
-	static class InternalWindowsEvents extends InternalFrameAdapter
+	class InternalWindowsEvents extends InternalFrameAdapter
 	{
         /** A weak reference to the WindowFrame */
 		WeakReference<WindowFrame> wf;
@@ -1068,6 +1080,7 @@ public class WindowFrame extends Observable
 		public void internalFrameActivated(InternalFrameEvent evt)
 		{
 			WindowFrame.setCurrentWindowFrame(wf.get());
+            content.fireCellHistoryStatus();                // update tool bar history buttons
 		}
 	}
 

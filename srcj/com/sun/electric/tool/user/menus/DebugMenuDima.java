@@ -41,8 +41,8 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
+import com.sun.electric.tool.user.menus.EMenu;
+import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.LayerDrawing;
 
 import java.awt.geom.Point2D;

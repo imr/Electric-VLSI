@@ -25,17 +25,15 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.user.dialogs.options.PreferencePanel;
-import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.menus.MenuBar.Menu;
+import com.sun.electric.tool.user.menus.EMenu;
+import com.sun.electric.tool.user.menus.EMenuBar;
+import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.event.TreeSelectionListener;
@@ -50,7 +48,7 @@ import javax.swing.tree.TreeSelectionModel;
  */
 public class EditKeyBindings extends PreferencePanel implements TreeSelectionListener {
     
-    /** MenuBar for building dialog tree */                 MenuBar menuBar;
+    /** MenuBarGroup for building dialog tree */            EMenuBar menuBar;
     
     /** class to encapsulate a tree node for displaying key bindings.
      * The toString() method is overridden to show the key binding next to the
@@ -59,20 +57,20 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
      */
     private class KeyBoundTreeNode
     {
-        private JMenuItem menuItem;
+        private EMenuItem menuItem;
 
-        KeyBoundTreeNode(JMenuItem menuItem) {
+        KeyBoundTreeNode(EMenuItem menuItem) {
             this.menuItem = menuItem;
         }
         
-        public JMenuItem getMenuItem() { return menuItem; }
+        public EMenuItem getMenuItem() { return menuItem; }
         
         /** 
          * Convert to String to show on dialog tree
          */
         public String toString() {
             if (menuItem != null) {
-                StringBuffer buf = new StringBuffer(((MenuBar.MenuItemInterface)menuItem).getDescription());
+                StringBuffer buf = new StringBuffer(menuItem.getDescription());
                 KeyBindings bindings = menuBar.getKeyBindings(menuItem);
                 if (bindings == null) return buf.toString();
                 Iterator it = bindings.getKeyStrokePairs();
@@ -85,7 +83,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
     }
 
     /** Creates new form EditKeyBindings */
-    public EditKeyBindings(MenuBar menuBar, java.awt.Frame parent, boolean modal) {
+    public EditKeyBindings(EMenuBar menuBar, java.awt.Frame parent, boolean modal) {
 		super(parent, modal);
         this.menuBar = menuBar;
 
@@ -284,7 +282,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
      */
     private void resetitemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetitemActionPerformed
         // get currently selected node
-        JMenuItem item = getSelectedMenuItem();
+        EMenuItem item = getSelectedMenuItem();
         if (item == null) return;
 
         // reset item to default bindings
@@ -302,7 +300,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
      */
     private void removeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeActionPerformed
         // get currently selected node
-        JMenuItem item = getSelectedMenuItem();
+        EMenuItem item = getSelectedMenuItem();
         if (item == null) {
             JOptionPane.showMessageDialog(this, "Please select a menu item first", "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -316,7 +314,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
         }
 
         // remove it and update view
-        menuBar.removeKeyBinding(((MenuBar.MenuItemInterface)item).getDescription(), pair);
+        menuBar.removeKeyBinding(item.getDescription(), pair);
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload(getSelectedTreeNode());
         updateListBox(item);
@@ -334,7 +332,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
         // update tree view
         DefaultTreeModel model = (DefaultTreeModel)commandsTree.getModel();
         model.reload();
-        JMenuItem item = getSelectedMenuItem();
+        EMenuItem item = getSelectedMenuItem();
         updateListBox(item);
     }//GEN-LAST:event_resetActionPerformed
 
@@ -343,7 +341,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
      * @param evt the event
      */
     private void addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addActionPerformed
-        JMenuItem item = getSelectedMenuItem();
+        EMenuItem item = getSelectedMenuItem();
         if (item == null) return;
         EditKeyBinding dialog = new EditKeyBinding(item, menuBar, TopLevel.getCurrentJFrame(), true);
 		dialog.setVisible(true);
@@ -367,11 +365,10 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
         DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode();
 
         // convert menuBar to tree
-        for (int i=0; i<menuBar.getMenuCount(); i++) {
-            Menu menu = (Menu)menuBar.getMenu(i);
+        for (EMenuItem menu: menuBar.getItems()) {
             DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(new KeyBoundTreeNode(menu));
             rootNode.add(menuNode);
-            addMenu(menuNode, menu);
+            addMenu(menuNode, (EMenu)menu);
         }
         
         commandsTree.setModel(new DefaultTreeModel(rootNode));
@@ -386,13 +383,12 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
     }
     
     /** Adds menu items to parentNode, which represents Menu menu. */
-    private void addMenu(DefaultMutableTreeNode parentNode, Menu menu) {
-        for (int i=0; i<menu.getItemCount(); i++) {
-            JMenuItem menuItem = menu.getItem(i);
+    private void addMenu(DefaultMutableTreeNode parentNode, EMenu menu) {
+        for (EMenuItem menuItem: menu.getItems()) {
             DefaultMutableTreeNode menuItemNode = new DefaultMutableTreeNode(new KeyBoundTreeNode(menuItem));
             parentNode.add(menuItemNode);
-            if (menuItem instanceof JMenu)
-                addMenu(menuItemNode, (Menu)menuItem);              // recurse
+            if (menuItem instanceof EMenu)
+                addMenu(menuItemNode, (EMenu)menuItem);              // recurse
         }
     }
 
@@ -420,7 +416,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
      * Update list box with item's key bindings
      * @param item display key bindings for this item
      */
-    private void updateListBox(JMenuItem item) {
+    private void updateListBox(EMenuItem item) {
         if (item == null) {
             bindingsJList.setListData(new Object [] {});
             return;
@@ -467,13 +463,13 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
      * Get selected menu item in tree view
      * @return the selected menu item, or null if none.
      */
-    private JMenuItem getSelectedMenuItem() {
+    private EMenuItem getSelectedMenuItem() {
         DefaultMutableTreeNode node = getSelectedTreeNode();
         if (node == null) return null;
         Object obj = node.getUserObject();
         if (!(obj instanceof KeyBoundTreeNode)) return null;
         KeyBoundTreeNode treeNode = (KeyBoundTreeNode)obj;
-        JMenuItem item = treeNode.getMenuItem();
+        EMenuItem item = treeNode.getMenuItem();
         return item;
     }
 

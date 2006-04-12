@@ -24,17 +24,13 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.menus.MenuBar.Menu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenu;
-import com.sun.electric.tool.user.menus.MenuCommands.EMenuItem;
+import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.util.Date;
 import java.util.Iterator;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
 
 /**
  * Steve's TEST MENU
@@ -58,12 +54,10 @@ public class DebugMenuSteve {
 		Date now = new Date();
     	System.out.println("Pulldown menus in Electric as of " + TextUtils.formatDate(now));
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-    	MenuBar menuBar = top.getTheMenuBar();
-        for (int i=0; i<menuBar.getMenuCount(); i++)
-        {
-            Menu menu = (Menu)menuBar.getMenu(i);
-            printIndented("\n" + menu.getText() + ":", 0);
-            addMenu(menuBar, menu, 1);
+    	EMenuBar menuBar = top.getEMenuBar();
+        for (EMenuItem menu: menuBar.getItems()) {
+            printIndented("\n" + menu + ":", 0);
+            addMenu(menuBar, (EMenu)menu, 1);
         }
     }
     private static void printIndented(String str, int depth)
@@ -72,14 +66,13 @@ public class DebugMenuSteve {
     	System.out.println(str);
     	
     }
-    private static void addMenu(MenuBar menuBar, Menu menu, int depth)
+    private static void addMenu(EMenuBar menuBar, EMenu menu, int depth)
     {
-        for (int i=0; i<menu.getItemCount(); i++)
+        for (EMenuItem menuItem: menu.getItems())
         {
-            JMenuItem menuItem = menu.getItem(i);
-            if (menuItem == null) { printIndented("----------", depth); continue; }
-            String s = menuItem.getText();
-            if (!(menuItem instanceof JMenu)) {
+            if (menuItem == EMenuItem.SEPARATOR) { printIndented("----------", depth); continue; }
+            String s = menuItem.toString();
+            if (!(menuItem instanceof EMenu)) {
                 KeyBindings keyBindings = menuBar.getKeyBindings(menuItem);
                 for (Iterator<KeyStrokePair> it = keyBindings.getDefaultKeyStrokePairs(); it.hasNext(); ) {
                     KeyStrokePair key = it.next();
@@ -87,8 +80,8 @@ public class DebugMenuSteve {
                 }
             }
             printIndented(s, depth);
-            if (menuItem instanceof JMenu)
-                addMenu(menuBar, (Menu)menuItem, depth+1);              // recurse
+            if (menuItem instanceof EMenu)
+                addMenu(menuBar, (EMenu)menuItem, depth+1);              // recurse
         }
     }
 }
