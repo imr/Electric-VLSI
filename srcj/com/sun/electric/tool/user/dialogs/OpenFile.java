@@ -146,11 +146,22 @@ public class OpenFile
 		return chooseInputFile(null, title, true, User.getWorkingDirectory());
 	}
 
+    /**
+     * Factory method to create a new open dialog box using the default Type.
+     * @param type the type of file to read. Defaults to ANY if null.
+     * @param title dialog title to use; if null uses "Open 'filetype'".
+     * @param wantDirectory true to request a directory be selected, instead of a file.
+     */
+    public static String chooseInputFile(FileType type, String title, boolean wantDirectory) {
+        return chooseInputFile(type, title, wantDirectory, User.getWorkingDirectory());
+    }
+
 	/**
 	 * Factory method to create a new open dialog box using the default Type.
 	 * @param type the type of file to read. Defaults to ANY if null.
 	 * @param title dialog title to use; if null uses "Open 'filetype'".
 	 * @param wantDirectory true to request a directory be selected, instead of a file.
+     * @param initialDir the initial directory
 	 */
 	public static String chooseInputFile(FileType type, String title, boolean wantDirectory, String initialDir)
 	{
@@ -173,7 +184,9 @@ public class OpenFile
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
 			dialog.setDialogTitle(title);
-            dialog.setCurrentDirectory(new File(initialDir));
+            File dir = new File(initialDir);
+            if (!dir.exists() || !dir.isDirectory()) dir = new File(User.getWorkingDirectory());
+            dialog.setCurrentDirectory(dir);
 			if (type != null) {
                 if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.DELIB ||
                     type == FileType.LIBFILE || type == FileType.LIBRARYFORMATS) {
