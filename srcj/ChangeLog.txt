@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.04j: *********************************
+************************* Version 8.04j: ******************** *************
 
 BUG: (4/11/06, GVG) Wiring problems in Schematics (Bug 926). Due to rounding issues,
 startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY() is never true in that particular case.
