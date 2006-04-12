@@ -73,7 +73,10 @@ public class EMenuBar extends EMenu {
         keyBindingManager = new KeyBindingManager(name+"MenuKeyBinding-", prefs);
         // add to hashmap of existing groups
         for (EMenuItem item: items)
-            item.setParent(this, this);
+        {
+            if (item != null)
+                item.setParent(this, this);
+        }
         if (hiddenMenu != null)
             hiddenMenu.setParent(this, this);
     }

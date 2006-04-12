@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/12/06, GVG) Null exception in new MenBar if debug is false (Bug #929)
+FIX: Skip item==null in EMenuBar constructor.
+
 BUG: (4/12/06, DN) Lose keyboard input, when the very first window is closed (#Bug 890).
 FIX: Menu template classes are implemented. They are llisteners of keyboard event.
     No dependency of very first window.
