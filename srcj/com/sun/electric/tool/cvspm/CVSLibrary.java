@@ -76,10 +76,13 @@ public class CVSLibrary {
      * @param lib
      */
     public static void addLibrary(Library lib) {
+        addLibrary(lib, false);
+    }
+    private static void addLibrary(Library lib, boolean added) {
         if (lib.isHidden()) return;
         if (!lib.isFromDisk()) return;
         String libFile = lib.getLibFile().getPath();
-        if (!CVS.isFileInCVS(new File(libFile))) {
+        if (!added && !CVS.isFileInCVS(new File(libFile))) {
             return;
         }
         CVSLibrary cvslib = new CVSLibrary(lib);
@@ -129,6 +132,11 @@ public class CVSLibrary {
      */
     public static void setState(Cell cell, State state) {
         CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
+        if (cvslib == null && state == State.ADDED) {
+            // if state is added, CVSLibrary should be created
+            addLibrary(cell.getLibrary(), true);
+            cvslib = CVSLibraries.get(cell.getLibrary());
+        }
         if (cvslib == null) return;
         if (state == null)
             return;
@@ -142,6 +150,11 @@ public class CVSLibrary {
      */
     public static void setState(Library lib, State state) {
         CVSLibrary cvslib = CVSLibraries.get(lib);
+        if (cvslib == null && state == State.ADDED) {
+            // if state is added, CVSLibrary should be created
+            addLibrary(lib, true);
+            cvslib = CVSLibraries.get(lib);
+        }
         if (cvslib == null) return;
         if (state == null)
             return;
