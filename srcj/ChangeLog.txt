@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/12/06, DN) Lose keyboard input, when the very first window is closed (#Bug 890).
+FIX: Menu template classes are implemented. They are llisteners of keyboard event.
+    No dependency of very first window.
+
 BUG: (4/11/06, GVG) Wiring problems in Schematics (Bug 926). Due to rounding issues,
 startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY() is never true in that particular case.
 FIX: Condition using DBMath.
