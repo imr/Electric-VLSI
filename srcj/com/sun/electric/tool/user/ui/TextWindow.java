@@ -33,7 +33,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.BorderLayout;
@@ -44,7 +43,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -244,8 +242,7 @@ public class TextWindow
 
 	private void textWindowContentChanged()
 	{
-		if (cell != null) cell.getLibrary().setChanged();
-		dirty = true;
+        new ChangedCellText(this);
 	}
 
 	public List<MutableTreeNode> loadExplorerTrees()
@@ -301,6 +298,31 @@ public class TextWindow
 		public void terminateOK()
 		{
 			tw.dirty = false;
+		}
+	}
+
+    private static class ChangedCellText extends Job
+	{
+		private Cell cell;
+		private transient TextWindow tw;
+
+		private ChangedCellText(TextWindow tw)
+		{
+			super("Change Cell Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.tw = tw;
+			this.cell = tw.cell;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+            if (cell != null) cell.getLibrary().setChanged();
+			return true;
+		}
+
+		public void terminateOK()
+		{
+			tw.dirty = true;
 		}
 	}
 

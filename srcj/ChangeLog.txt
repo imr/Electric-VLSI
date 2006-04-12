@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/12/06, GVG) Editing a {doc} view getting database problems (Bug #930)
+FIX: ChangedCellText added in TextWindow.
+
 BUG: (4/12/06, GVG) Null exception in new MenBar if debug is false (Bug #929)
 FIX: Skip item==null in EMenuBar constructor.
 
