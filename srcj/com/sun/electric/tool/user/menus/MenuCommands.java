@@ -28,6 +28,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.PaletteFrame;
+import com.sun.electric.tool.user.ui.TechPalette;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.Job;
 
@@ -115,7 +117,10 @@ public final class MenuCommands
             new EMenuItem("Wire to M9", KeyStroke.getKeyStroke(KeyEvent.VK_9, 0)) { public void run() {
                 ClickZoomWireListener.theOne.wireTo(9); }},
             new EMenuItem("Switch Wiring Target", KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)) { public void run() {
-                ClickZoomWireListener.theOne.switchWiringTarget(); }});
+                ClickZoomWireListener.theOne.switchWiringTarget(); }},
+            new EMenuItem("Place Annotation Text", KeyStroke.getKeyStroke('T', 0)) { public void run() {
+                PaletteFrame.placeInstance("ART_message", null, false); }}
+                );
     }
     
     /**

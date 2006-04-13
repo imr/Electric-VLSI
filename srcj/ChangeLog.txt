@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+IMP: (4/13/06, GVG) Entering text (Bug #935).
+
 BUG: (4/13/06, GVG) Fix for DRC redoing on already checked cells (Bug #931)
 FIX: Inconsisten caching of stored dates if you switch from data on memory to data on disk.
 
