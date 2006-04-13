@@ -1593,6 +1593,7 @@ public class ToolMenu {
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
         Cell cell = wnd.getCell();
+        if (cell == null) return;
         HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
         com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames);
         AssuraDrcErrors.importErrors(fileName, mangledNames);
