@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/13/06, GVG) Fix for DRC redoing on already checked cells (Bug #931)
+FIX: Inconsisten caching of stored dates if you switch from data on memory to data on disk.
+
+BUG: (4/13/06, GVG) Fix for Error logger loading (Bug #933)
+FIX: Inconsistent DTD header after changes in highlight.
+
 BUG (4/13/06, DN): Exception in NetworkManager after cell deletion.
 FIX: In NetworkManager.updateAll use "l" instead if "i" in "some cells deleted" loop, 
 

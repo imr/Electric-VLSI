@@ -644,6 +644,8 @@ public class ErrorLogger implements Serializable
         return removed;
     }
 
+    private static final String THICKLINETOKEN = "ERRORTYPETHICKLINE";
+
      public void save(PrintStream buffWriter)
     {
         // Creating header
@@ -652,10 +654,10 @@ public class ErrorLogger implements Serializable
         buffWriter.println("<!DOCTYPE ErrorLogger");
         buffWriter.println(" [");
         buffWriter.println(" <!ELEMENT ErrorLogger (MessageLog|WarningLog)*>");
-        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|ERRORTYPELINE)* >");
+        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|" + THICKLINETOKEN + ")* >");
         buffWriter.println(" <!ELEMENT WarningLog ANY >");
         buffWriter.println(" <!ELEMENT ERRORTYPEGEOM ANY>");
-        buffWriter.println(" <!ELEMENT ERRORTYPELINE ANY>");
+        buffWriter.println(" <!ELEMENT " + THICKLINETOKEN + " ANY>");
         buffWriter.println("<!ATTLIST ErrorLogger");
         buffWriter.println("    errorSystem CDATA #REQUIRED");
         buffWriter.println(" >");
@@ -671,7 +673,7 @@ public class ErrorLogger implements Serializable
         buffWriter.println("    geomName CDATA #REQUIRED");
         buffWriter.println("    cellName CDATA #REQUIRED");
         buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST ERRORTYPELINE");
+        buffWriter.println(" <!ATTLIST " + THICKLINETOKEN);
         buffWriter.println("    p1 CDATA #REQUIRED");
         buffWriter.println("    p2 CDATA #REQUIRED");
         buffWriter.println("    cellName CDATA #REQUIRED");
@@ -894,7 +896,7 @@ public class ErrorLogger implements Serializable
                 boolean errorLogBody = qName.equals("MessageLog");
                 boolean warnLogBody = qName.equals("WarningLog");
                 boolean geoTypeBody = qName.equals("ERRORTYPEGEOM");
-                boolean lineTypeBody = qName.equals("ERRORTYPELINE");
+                boolean lineTypeBody = qName.equals(THICKLINETOKEN); // it is always a thick line
 
                 if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !lineTypeBody) return;
 
@@ -913,8 +915,9 @@ public class ErrorLogger implements Serializable
                         message = attributes.getValue(i);
                     else if (attributes.getQName(i).startsWith("cell"))
                     {
+                        String origName = attributes.getValue(i);
                         String[] names = TextUtils.parseString(attributes.getValue(i), "{}");
-                        cellName = names[0];
+                        cellName = origName; // names[0];
                         viewName = names[1];
                         // cellName might contain library name
                         names = TextUtils.parseString(cellName, ":");

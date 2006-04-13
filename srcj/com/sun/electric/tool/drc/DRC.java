@@ -711,10 +711,10 @@ public class DRC extends Listener
      */
     private static StoreDRCInfo getCellGoodDRCDateAndBits(Cell cell, boolean fromDisk)
     {
-        StoreDRCInfo data = null;
+        StoreDRCInfo data = storedDRCDate.get(cell);
 
-        if (fromDisk)
-            {
+        if (data == null) // get it from disk and cache it in case of data on memory only
+        {
             int thisByte = 0;
             long lastDRCDateInMilliseconds = 0;
             // disk version
@@ -742,10 +742,11 @@ public class DRC extends Listener
                 thisByte = ((Integer)varBits.getObject()).intValue();
             data = new StoreDRCInfo(lastDRCDateInMilliseconds, thisByte);
         }
-        else
-        {
-            data = storedDRCDate.get(cell);
-        }
+        storedDRCDate.put(cell, data);
+//        else
+//        {
+//            data = storedDRCDate.get(cell);
+//        }
         return data;
     }
 
@@ -1063,9 +1064,8 @@ public class DRC extends Listener
                         new JobException("Cell '" + cell + "' is invalid to clean DRC date");
                     else
                     {
-                        if (inMemory)
-                            storedDRCDate.put(cell, null);
-                        else
+                        storedDRCDate.put(cell, null);
+                        if (!inMemory)
                             cleanDRCDateAndBits(cell);
                     }
                 }
