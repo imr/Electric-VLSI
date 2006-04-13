@@ -391,7 +391,7 @@ public class Layer
 	 * A comparator object for sorting Layers by their name.
 	 * Created once because it is used often.
 	 */
-    public static final LayerSort layerSort = new LayerSort();
+    public static final LayerSort layerSortByName = new LayerSort();
 
 	/**
 	 * Comparator class for sorting Layers by their name.

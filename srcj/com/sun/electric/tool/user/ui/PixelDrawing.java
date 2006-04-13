@@ -1103,7 +1103,7 @@ public class PixelDrawing
 					databaseToScreen(ctrX, ctrY, tempPt1);
 					if (tempPt1.x >= 0 && tempPt1.x < sz.width && tempPt1.y >= 0 && tempPt1.y < sz.height)
 					{
-						drawTinyLayers(prim.layerIterator(), tempPt1.x, tempPt1.y);
+						drawTinyLayers(prim.getLayerIterator(), tempPt1.x, tempPt1.y);
 					}
 					return;
 				}
@@ -1202,7 +1202,7 @@ public class PixelDrawing
 					trans.transform(tailEnd, tailEnd);
 					databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
 					ArcProto prim = ai.getProto();
-					drawTinyArc(prim.layerIterator(), tempPt1, tempPt2);
+					drawTinyArc(prim.getLayerIterator(), tempPt1, tempPt2);
 					return;
 				}
 			}

@@ -3033,8 +3033,8 @@ public class FillGenerator implements Serializable {
                             Collections.sort(layerTmpList, Layer.layerSortByName);
                             theLayer = layerTmpList.get(0);
                             Rectangle2D r = ni.getBounds();
-                            double contactW = ni.getXSizeWithoutOffset();
-                            double contactH = ni.getYSizeWithoutOffset();
+                            double contactW = 0; //ni.getXSizeWithoutOffset();
+                            double contactH = 0; //ni.getYSizeWithoutOffset();
                             r = new Rectangle2D.Double(r.getCenterX()-contactW/2, contactArea.getY(),
                                     contactW, contactAreaHeight);
                             geomBnd = r;

@@ -419,7 +419,7 @@ public class LayerCoverageTool extends Tool
                         double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambdaSqr;
                         // Traversing tree with merged geometry and sorting layers per name first
                         List<Layer> list = new ArrayList<Layer>(tree.getKeySet());
-                        Collections.sort(list, Layer.layerSort);
+                        Collections.sort(list, Layer.layerSortByName);
 
                         for (Layer layer : list)
                         {

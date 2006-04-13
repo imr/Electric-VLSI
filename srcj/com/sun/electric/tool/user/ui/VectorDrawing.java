@@ -1954,12 +1954,12 @@ public class VectorDrawing
     /*------------------------------------------------------*/
     
     public static void showStatistics(Layer layer) {
-        Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSort);
+        Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
         int numCells = 0, numCellLayer = 0;
         int totalNoBox = 0, totalNoPoly = 0, totalNoDisc = 0, totalNoText = 0, totalNoOther = 0;
         for (VectorCellGroup vg: cachedCells.values()) {
             VectorCell vc = vg.getAnyCell();
-            Map<Layer,GenMath.MutableInteger> layerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSort);
+            Map<Layer,GenMath.MutableInteger> layerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
             int noText = 0, noOther = 0;
             for (VectorBase vs: vc.filledShapes) {
                 if (vs instanceof VectorManhattan)

@@ -683,7 +683,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 * Method to return an iterator over the layers in this PrimitiveNode.
 	 * @return an iterator over the layers in this PrimitiveNode.
 	 */
-	public Iterator<Layer> layerIterator()
+	public Iterator<Layer> getLayerIterator()
 	{
 		return new NodeLayerIterator(layers);
 	}

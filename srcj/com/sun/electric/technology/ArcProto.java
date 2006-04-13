@@ -843,7 +843,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 * Method to return an iterator over the layers in this ArcProto.
 	 * @return an iterator over the layers in this ArcProto.
 	 */
-	public Iterator<Layer> layerIterator()
+	public Iterator<Layer> getLayerIterator()
 	{
 		return new LayerIterator(layers);
 	}
