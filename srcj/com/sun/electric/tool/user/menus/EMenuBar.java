@@ -66,6 +66,11 @@ public class EMenuBar extends EMenu {
 //        }
 //    }
     
+    /**
+	 *@param name name of generic menu bar.
+     *@param hiddenMenu menu which items are invoked by shortcuts only.
+     *@param items var-arg menu items. Null arguments are skipped.
+     */
     EMenuBar(String name, EMenu hiddenMenu, EMenu... items) {
         super(name, items);
         this.hiddenMenu = hiddenMenu;
