@@ -160,7 +160,10 @@ public class ErrorLogger implements Serializable
             if (logCellId == null) return;
             Cell logCell = EDatabase.clientDatabase().getCell(logCellId);
             if (logCell == null) return;
-            msg.append("\t<" + className + " message=\"" + message + "\" "
+            // replace those characters that XML defines as special such as ">" and "&"
+            String m = message.replaceAll(">", "&gt;");
+            m = m.replaceAll("<", "&lt;");
+            msg.append("\t<" + className + " message=\"" + m + "\" "
                     + "cellName=\"" + logCell.describe(false) + "\">\n");
             for(ErrorHighlight eh : highlights)
             {
@@ -644,8 +647,6 @@ public class ErrorLogger implements Serializable
         return removed;
     }
 
-    private static final String THICKLINETOKEN = "ERRORTYPETHICKLINE";
-
      public void save(PrintStream buffWriter)
     {
         // Creating header
@@ -654,10 +655,11 @@ public class ErrorLogger implements Serializable
         buffWriter.println("<!DOCTYPE ErrorLogger");
         buffWriter.println(" [");
         buffWriter.println(" <!ELEMENT ErrorLogger (MessageLog|WarningLog)*>");
-        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|" + THICKLINETOKEN + ")* >");
+        buffWriter.println(" <!ELEMENT MessageLog (ERRORTYPEGEOM|ERRORTYPETHICKLINE|ERRORTYPELINE)* >");
         buffWriter.println(" <!ELEMENT WarningLog ANY >");
         buffWriter.println(" <!ELEMENT ERRORTYPEGEOM ANY>");
-        buffWriter.println(" <!ELEMENT " + THICKLINETOKEN + " ANY>");
+        buffWriter.println(" <!ELEMENT ERRORTYPELINE ANY>");
+        buffWriter.println(" <!ELEMENT ERRORTYPETHICKLINE ANY>");
         buffWriter.println("<!ATTLIST ErrorLogger");
         buffWriter.println("    errorSystem CDATA #REQUIRED");
         buffWriter.println(" >");
@@ -673,7 +675,12 @@ public class ErrorLogger implements Serializable
         buffWriter.println("    geomName CDATA #REQUIRED");
         buffWriter.println("    cellName CDATA #REQUIRED");
         buffWriter.println(" >");
-        buffWriter.println(" <!ATTLIST " + THICKLINETOKEN);
+        buffWriter.println(" <!ATTLIST ERRORTYPETHICKLINE");
+        buffWriter.println("    p1 CDATA #REQUIRED");
+        buffWriter.println("    p2 CDATA #REQUIRED");
+        buffWriter.println("    cellName CDATA #REQUIRED");
+        buffWriter.println(" >");
+        buffWriter.println(" <!ATTLIST ERRORTYPELINE");
         buffWriter.println("    p1 CDATA #REQUIRED");
         buffWriter.println("    p2 CDATA #REQUIRED");
         buffWriter.println("    cellName CDATA #REQUIRED");
@@ -896,9 +903,10 @@ public class ErrorLogger implements Serializable
                 boolean errorLogBody = qName.equals("MessageLog");
                 boolean warnLogBody = qName.equals("WarningLog");
                 boolean geoTypeBody = qName.equals("ERRORTYPEGEOM");
-                boolean lineTypeBody = qName.equals(THICKLINETOKEN); // it is always a thick line
+                boolean thickLineTypeBody = qName.equals("ERRORTYPETHICKLINE");
+                boolean thinLineTypeBody = qName.equals("ERRORTYPELINE");
 
-                if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !lineTypeBody) return;
+                if (!loggerBody && !errorLogBody && !warnLogBody && !geoTypeBody && !thinLineTypeBody && !thickLineTypeBody) return;
 
                 String cellName = null, geomName = null, viewName = null, libraryName = null;
                 EPoint p1 = null, p2 = null;
@@ -963,12 +971,10 @@ public class ErrorLogger implements Serializable
                 }
                 if (errorLogBody)
                 {
-//                    int sortLayer = curCell.hashCode();
                 	highlights = new ArrayList<ErrorHighlight>();
                 }
                 else if (warnLogBody)
                 {
-//                    int sortLayer = curCell.hashCode();
                     highlights = new ArrayList<ErrorHighlight>();
                 }
                 else if (geoTypeBody)
@@ -978,9 +984,9 @@ public class ErrorLogger implements Serializable
                         geom = curCell.findArc(geomName);
                     highlights.add(ErrorHighlight.newInstance(null, geom));
                 }
-                else if (lineTypeBody)
+                else if (thinLineTypeBody || thickLineTypeBody)
                 {
-                    highlights.add(new ErrorHighLine(curCell, p1, p2, true));
+                    highlights.add(new ErrorHighLine(curCell, p1, p2, thickLineTypeBody));
                 }
                 else
                     new Error("Invalid attribute in XMLParser");
@@ -988,19 +994,19 @@ public class ErrorLogger implements Serializable
 
             public void fatalError(SAXParseException e)
             {
-                System.out.println("Parser Fatal Error");
+                System.out.println("Parser Fatal Error in " + e.getLineNumber() + " " + e.getPublicId() + " " + e.getSystemId());
                 e.printStackTrace();
             }
 
             public void warning(SAXParseException e)
             {
-                System.out.println("Parser Warning");
+                System.out.println("Parser Warning in " + e.getLineNumber() + " " + e.getPublicId() + " " + e.getSystemId());
                 e.printStackTrace();
             }
 
             public void error(SAXParseException e)
             {
-                System.out.println("Parser Error");
+                System.out.println("Parser Error in " + e.getLineNumber() + " " + e.getPublicId() + " " + e.getSystemId());
                 e.printStackTrace();
             }
         }

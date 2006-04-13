@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/13/06, GVG) ErrorLogger writing invalid characters for XML parser such as ">" and "<". This is related to
+Bug #933.
+FIX: Replacement of special XML characters. Extra changes: avoding crash in reading Assura if cell is null.
+
 IMP: (4/13/06, GVG) Entering text (Bug #935). Implemented by adding a new item under EditMenu -> Text
 so KeyBindings can be used.
 
