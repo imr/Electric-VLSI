@@ -29,11 +29,7 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -1105,11 +1101,35 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public double getXSize() { return protoType instanceof Cell ? protoType.getDefWidth() : d.width; }
 
+    /**
+	 * Method similar to getXSize() to return the X size of this NodeInst without the offset.
+	 * @return the X size of this NodeInst.
+	 */
+	public double getXSizeWithoutOffset()
+    {
+        SizeOffset so = getSizeOffset();
+        if (GenMath.isNinetyDegreeRotation(getAngle()))
+            return getYSize() - so.getLowYOffset() - so.getHighYOffset();
+        return getXSize() - so.getLowXOffset() - so.getHighXOffset();
+    }
+
 	/**
 	 * Method to return the Y size of this NodeInst.
 	 * @return the Y size of this NodeInst.
 	 */
 	public double getYSize() { return protoType instanceof Cell ? protoType.getDefHeight() : d.height; }
+
+    /**
+	 * Method similar to getXSize() to return the X size of this NodeInst without the offset.
+	 * @return the X size of this NodeInst.
+	 */
+	public double getYSizeWithoutOffset()
+    {
+        SizeOffset so = getSizeOffset();
+        if (GenMath.isNinetyDegreeRotation(getAngle()))
+            return getXSize() - so.getLowXOffset() - so.getHighXOffset();
+        return getYSize() - so.getLowYOffset() - so.getHighYOffset();
+    }
 
 	/**
 	 * Method to return whether NodeInst is mirrored about a 

@@ -391,12 +391,12 @@ public class Layer
 	 * A comparator object for sorting Layers by their name.
 	 * Created once because it is used often.
 	 */
-    public static final LayerSort layerSortByName = new LayerSort();
+    public static final LayerSortByName layerSortByName = new LayerSortByName();
 
 	/**
 	 * Comparator class for sorting Layers by their name.
 	 */
-	private static class LayerSort implements Comparator<Layer>
+	private static class LayerSortByName implements Comparator<Layer>
 	{
 		/**
 		 * Method to compare two layers by their name.
@@ -410,14 +410,6 @@ public class Layer
 			String s2 = l2.getName();;
 			return s1.compareToIgnoreCase(s2);
         }
-
-		/**
-		 * Method to sort Layers by their name.
-		 */
-//4*/	public int compare(Object o1, Object o2)
-//4*/	{
-//4*/		return compareStatic((Layer)o1, (Layer)o2);
-//4*/	}
 	}
 
 	private String name;
@@ -428,7 +420,7 @@ public class Layer
 	private int functionExtras;
 	private String cifLayer;
 	private String dxfLayer;
-	private String gdsLayer;
+//	private String gdsLayer;
 	private String skillLayer;
 	private double thickness, distance, areaCoverage;
 	private double resistance, capacitance, edgeCapacitance;
