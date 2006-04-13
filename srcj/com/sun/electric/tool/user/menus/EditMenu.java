@@ -50,7 +50,6 @@ import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.dialogs.Array;
 import com.sun.electric.tool.user.dialogs.ArtworkLook;
 import com.sun.electric.tool.user.dialogs.Attributes;
@@ -69,20 +68,11 @@ import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.SpecialProperties;
 import com.sun.electric.tool.user.dialogs.Spread;
-import com.sun.electric.tool.user.menus.EMenuItem;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
-import com.sun.electric.tool.user.ui.CurveListener;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ErrorLoggerTree;
-import com.sun.electric.tool.user.ui.OutlineListener;
-import com.sun.electric.tool.user.ui.SizeListener;
-import com.sun.electric.tool.user.ui.TextWindow;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Dimension;
@@ -102,8 +92,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.AbstractButton;
-import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 /**
@@ -265,7 +253,7 @@ public class EditMenu {
                             
             ToolBar.modesSubMenu, // O                
 
-		// mnemonic keys available: AB  E GH JKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB  E GH JKLMNOPQRS UVWXYZ
             new EMenu("Te_xt",
                 new EMenuItem("_Find Text...", 'L') { public void run() {
                     FindText.findTextDialog(); }},
@@ -274,7 +262,9 @@ public class EditMenu {
                 new EMenuItem("_Increase All Text Size", '=') { public void run() {
                     changeGlobalTextSize(1.25); }},
                 new EMenuItem("_Decrease All Text Size", '-') { public void run() {
-                    changeGlobalTextSize(0.8); }}),
+                    changeGlobalTextSize(0.8); }},
+                new EMenuItem("Add _Text Annotation", KeyStroke.getKeyStroke('T', 0)) { public void run() {
+                    PaletteFrame.placeInstance("ART_message", null, false); }}),
 
 		// mnemonic keys available: ABCD FGHIJK M O QR TUVWXYZ
             new EMenu("Clea_nup Cell",
