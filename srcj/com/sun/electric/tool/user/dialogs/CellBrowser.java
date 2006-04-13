@@ -549,21 +549,6 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             if (cell == null) return;
 
             PaletteFrame.placeInstance(cell, null, false);
-/*            EventListener oldListener = WindowFrame.getListener();
-            Cursor oldCursor = TopLevel.getCurrentCursor();
-
-            // install listener that will place new node inst
-            EventListener newListener = oldListener;
-            if (newListener != null && newListener instanceof PaletteFrame.PlaceNodeListener)
-            {
-                ((PaletteFrame.PlaceNodeListener)newListener).setParameter(cell);
-            } else
-            {
-                newListener = new PaletteFrame.PlaceNodeListener(cell, oldListener, oldCursor, null);
-                WindowFrame.setListener(newListener);
-            }*/
-            //closeDialog(null);                     // we have performed the action
-
         } else if (action == DoAction.editCell) {
             boolean newWindow = editInNewWindow.isSelected();
 
