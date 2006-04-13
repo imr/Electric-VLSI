@@ -212,15 +212,16 @@ public class TechnologyTab extends ProjSettingsPanel
                 curTech.setPrefFoundry(foundry.name());
                 // Primitives cached must be redrawn
                 // recache display information for all cells that use this
-                for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
-                {
-                    Library lib = (Library)lIt.next();
-                    for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-                    {
-                        Cell cell = (Cell)cIt.next();
-                        if (cell.getTechnology() == curTech) VectorDrawing.cellChanged(cell);
-                    }
-                }
+                User.technologyChanged(curTech);
+//                for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
+//                {
+//                    Library lib = (Library)lIt.next();
+//                    for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+//                    {
+//                        Cell cell = (Cell)cIt.next();
+//                        if (cell.getTechnology() == curTech) VectorDrawing.cellChanged(cell);
+//                    }
+//                }
             }
         }
 

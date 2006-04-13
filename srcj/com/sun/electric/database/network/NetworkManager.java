@@ -210,7 +210,7 @@ public class NetworkManager {
                 int l = oldSnapshot.cellGroups[i];
                 if (l < 0 || l >= newSnapshot.cellGroups.length || newSnapshot.cellGroups[l] != l) continue;
                 if (i < newSnapshot.cellGroups.length && newSnapshot.cellGroups[i] == l) continue;
-                CellId cellId = oldSnapshot.getCell(i).d.cellId;
+                CellId cellId = oldSnapshot.getCell(l).d.cellId;
                 Cell cell = database.getCell(cellId);
                 NetSchem.updateCellGroup(cell.getCellGroup());
             }

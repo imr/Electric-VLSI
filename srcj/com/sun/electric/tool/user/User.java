@@ -71,7 +71,6 @@ public class User extends Listener
 	/** key of Variable holding user who last changed the cell. */		public static final Variable.Key FRAME_LAST_CHANGED_BY = Variable.newKey("USER_drawing_last_changed_by");
 	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = Variable.newKey("USER_drawing_project_name");
 
-    
     private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;
 	private boolean undoRedo;
@@ -515,7 +514,7 @@ public class User extends Listener
 				if (newBackup == null) continue; // What to do with deleted cells ??
                 Cell cell = Cell.inCurrentThread(cellId);
                 markCellForRedrawRecursively(cell, marked);
-                VectorDrawing.cellChanged(cell);
+//                VectorDrawing.cellChanged(cell);
                 PixelDrawing.forceRedraw(cell);
             }
         }
@@ -585,7 +584,7 @@ public class User extends Listener
         markCellForRedrawRecursively(cell, marked);
 		if (cellChanged)
 		{
-			VectorDrawing.cellChanged(cell);
+//			VectorDrawing.cellChanged(cell);
 			PixelDrawing.forceRedraw(cell);
             // recurse up the hierarchy so that all windows showing the cell get redrawn
             for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
@@ -620,6 +619,28 @@ public class User extends Listener
 		}
     }
 
+	/**
+	 * Method called when a technology's parameters change.
+	 * All cells that use the technology must be recached.
+	 * @param tech the technology that changed.
+	 */
+	public static void technologyChanged(Technology tech)
+	{
+        VectorDrawing.technologyChanged(tech);
+        PixelDrawing.clearSubCellCache();
+	}
+
+	/**
+	 * Method called when visible layers have changed.
+	 * Removes all "greeked images" from cached cells.
+	 */
+	public static void layerVisibilityChanged(boolean onlyText) {
+		if (!onlyText)
+			VectorDrawing.layerVisibilityChanged();
+        PixelDrawing.clearSubCellCache();
+		EditWindow.repaintAllContents();
+    }
+    
 	/****************************** MISCELLANEOUS FUNCTIONS ******************************/
 
 	/**

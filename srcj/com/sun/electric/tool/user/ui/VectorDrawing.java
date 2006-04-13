@@ -23,9 +23,11 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -119,16 +121,13 @@ public class VectorDrawing
 	{
 		Layer layer;
 		EGraphics graphics;
-		boolean hideOnLowLevel;
 		float minSize, maxSize;
 
-		VectorBase(Layer layer, EGraphics graphics, boolean hideOnLowLevel)
+		VectorBase(Layer layer, EGraphics graphics)
 		{
 			this.layer = layer;
 			this.graphics = graphics;
-			this.hideOnLowLevel = hideOnLowLevel;
 			minSize = maxSize = -1;
-			hideOnLowLevel = false;
 		}
 
 		void setSize(float size1, float size2)
@@ -146,9 +145,9 @@ public class VectorDrawing
 		float c1X, c1Y, c2X, c2Y;
 		int tinyColor;
 
-		VectorManhattan(float c1X, float c1Y, float c2X, float c2Y, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
+		VectorManhattan(float c1X, float c1Y, float c2X, float c2Y, Layer layer, EGraphics graphics)
 		{
-			super(layer, graphics, hideOnLowLevel);
+			super(layer, graphics);
 			this.c1X = c1X;
 			this.c1Y = c1Y;
 			this.c2X = c2X;
@@ -178,9 +177,9 @@ public class VectorDrawing
 	{
 		Point2D [] points;
 
-		VectorPolygon(Point2D [] points, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
+		VectorPolygon(Point2D [] points, Layer layer, EGraphics graphics)
 		{
-			super(layer, graphics, hideOnLowLevel);
+			super(layer, graphics);
 			this.points = points;
 		}
 	}
@@ -193,9 +192,9 @@ public class VectorDrawing
 		float fX, fY, tX, tY;
 		int texture;
 
-		VectorLine(double fX, double fY, double tX, double tY, int texture, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
+		VectorLine(double fX, double fY, double tX, double tY, int texture, Layer layer, EGraphics graphics)
 		{
-			super(layer, graphics, hideOnLowLevel);
+			super(layer, graphics);
 			this.fX = (float)fX;
 			this.fY = (float)fY;
 			this.tX = (float)tX;
@@ -212,9 +211,9 @@ public class VectorDrawing
 		float cX, cY, eX, eY;
 		int nature;
 
-		VectorCircle(double cX, double cY, double eX, double eY, int nature, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
+		VectorCircle(double cX, double cY, double eX, double eY, int nature, Layer layer, EGraphics graphics)
 		{
-			super(layer, graphics, hideOnLowLevel);
+			super(layer, graphics);
 			this.cX = (float)cX;
 			this.cY = (float)cY;
 			this.eX = (float)eX;
@@ -232,9 +231,9 @@ public class VectorDrawing
 		boolean thick;
 
 		VectorCircleArc(double cX, double cY, double eX1, double eY1, double eX2, double eY2, boolean thick,
-			Layer layer, EGraphics graphics, boolean hideOnLowLevel)
+			Layer layer, EGraphics graphics)
 		{
-			super(layer, graphics, hideOnLowLevel);
+			super(layer, graphics);
 			this.cX = (float)cX;
 			this.cY = (float)cY;
 			this.eX1 = (float)eX1;
@@ -268,9 +267,9 @@ public class VectorDrawing
 		/** valid for port text or export text */		Export e;
 
 		VectorText(Rectangle2D bounds, Poly.Type style, TextDescriptor descript, String str, int textType, NodeInst ni, Export e,
-			boolean hideOnLowLevel, Layer layer, EGraphics graphics)
+			Layer layer, EGraphics graphics)
 		{
-			super(layer, graphics, hideOnLowLevel);
+			super(layer, graphics);
 			this.bounds = bounds;
 			this.style = style;
 			this.descript = descript;
@@ -296,9 +295,9 @@ public class VectorDrawing
 		float x, y;
 		boolean small;
 
-		VectorCross(double x, double y, boolean small, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
+		VectorCross(double x, double y, boolean small, Layer layer, EGraphics graphics)
 		{
-			super(layer, graphics, hideOnLowLevel);
+			super(layer, graphics);
 			this.x = (float)x;
 			this.y = (float)y;
 			this.small = small;
@@ -402,9 +401,12 @@ public class VectorDrawing
 	 */
 	private static class VectorCell
 	{
-		List<VectorBase> filledShapes = new ArrayList<VectorBase>();
-        List<VectorBase> shapes = new ArrayList<VectorBase>();
-		List<VectorSubCell> subCells = new ArrayList<VectorSubCell>();
+		float[] outlinePoints = new float[8];
+        double lX, lY, hX, hY;
+		ArrayList<VectorBase> filledShapes = new ArrayList<VectorBase>();
+        ArrayList<VectorBase> shapes = new ArrayList<VectorBase>();
+        ArrayList<VectorBase> topOnlyShapes = new ArrayList<VectorBase>();
+		ArrayList<VectorSubCell> subCells = new ArrayList<VectorSubCell>();
 		boolean hasFadeColor;
 		int fadeColor;
 		float maxFeatureSize;
@@ -415,12 +417,34 @@ public class VectorDrawing
 		int [] fadeImageColors;
 		int fadeImageWid, fadeImageHei;
 
-		VectorCell()
+		VectorCell(Cell cell, Orientation orient)
 		{
+            initBounds(cell.getBounds(), orient);
+            
 			hasFadeColor = false;
 			maxFeatureSize = 0;
 			fadeImage = false;
 		}
+        
+        private void initBounds(ERectangle bounds, Orientation orient) {
+            double[] points = new double[8];
+            points[0] = points[6] = bounds.getMinX();
+            points[1] = points[3] = bounds.getMinY();
+            points[2] = points[4] = bounds.getMaxX();
+            points[5] = points[7] = bounds.getMaxY();
+            orient.pureRotate().transform(outlinePoints, 0, outlinePoints, 0, 4);
+            lX = lY = Double.MAX_VALUE;
+            hX = hY = Double.MIN_VALUE;
+            for (int i = 0; i < 4; i++) {
+                double x = points[i*2], y = points[i*2 + 1];
+                lX = Math.min(lX, x);
+                lY = Math.min(lY, y);
+                hX = Math.max(hX, x);
+                hY = Math.max(hY, y);
+                outlinePoints[i*2] = (float)x;
+                outlinePoints[i*2+1] = (float)y;
+            }
+        }
 	}
 
 	// ************************************* TOP LEVEL *************************************
@@ -506,7 +530,9 @@ public class VectorDrawing
 		try
 		{
 			VectorCell topVC = drawCell(cell, Orientation.IDENT, context);
+            topVD = this;
 			render(topVC, 0, 0, Orientation.IDENT, context, 0);
+            drawList(0, 0, topVC.topOnlyShapes, 0);
 		} catch (AbortRenderingException e)
 		{
 		}
@@ -551,7 +577,7 @@ public class VectorDrawing
 		EGraphics graphics = null;
 		if (layer != null)
 			graphics = layer.getGraphics();
-		VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics, false);
+		VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics);
 		addToThisCell.add(vm);
 	}
 
@@ -638,11 +664,19 @@ public class VectorDrawing
 	 */
 	class AbortRenderingException extends Exception {}
 
+    static void forceRedraw(Set<CellId> changedCells) {
+        ArrayList<Cell> cachedCellsCopy = new ArrayList(cachedCells.keySet());
+        for (Cell cell: cachedCellsCopy) {
+            if (!changedCells.contains(cell.getId())) continue;
+            cellChanged(cell);
+        }
+    }
+    
 	/**
 	 * Method called when a cell changes: removes any cached displays of that cell
 	 * @param cell the cell that changed
 	 */
-	public static void cellChanged(Cell cell)
+	private static void cellChanged(Cell cell)
 	{
 		if (cell.isLinked())
 		{
@@ -736,8 +770,6 @@ public class VectorDrawing
 	private void render(VectorCell vc, float oX, float oY, Orientation trans, VarContext context, int level)
 		throws AbortRenderingException
 	{
-		if (level == 0) topVD = this;
-
 		// render main list of shapes
 		drawList(oX, oY, vc.filledShapes, level);
 		drawList(oX, oY, vc.shapes, level);
@@ -849,6 +881,16 @@ public class VectorDrawing
 			} else
 			{
 				// now draw with the proper line type
+//                {
+//                    float[] points = vsc.
+//    			double p1x = vsc.outlinePoints[0].getX() + oX;
+//                double p1y = vsc.outlinePoints[0].getY() + oY;
+//        		double p2x = vsc.outlinePoints[1].getX() + oX;
+//                double p2y = vsc.outlinePoints[1].getY() + oY;
+//            	double p3x = vsc.outlinePoints[2].getX() + oX;
+//                double p3y = vsc.outlinePoints[2].getY() + oY;
+//                double p4x = vsc.outlinePoints[3].getX() + oX;
+//                double p4y = vsc.outlinePoints[3].getY() + oY;
 				databaseToScreen(p1x, p1y, tempPt1);   databaseToScreen(p2x, p2y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
 				databaseToScreen(p2x, p2y, tempPt1);   databaseToScreen(p3x, p3y, tempPt2);
@@ -857,6 +899,7 @@ public class VectorDrawing
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
 				databaseToScreen(p1x, p1y, tempPt1);   databaseToScreen(p4x, p4y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+//                }
 
 				// draw the instance name
 				if (User.isTextVisibilityOnInstance() && vsc.ni != null)
@@ -885,7 +928,6 @@ public class VectorDrawing
 		for(VectorBase vb : shapes)
 		{
 			if (stopRendering) throw new AbortRenderingException();
-			if (vb.hideOnLowLevel && level != 0) continue;
 
 			// get visual characteristics of shape
 			Layer layer = vb.layer;
@@ -1433,7 +1475,6 @@ public class VectorDrawing
 	{
 		for(VectorBase vb : vc.filledShapes)
 		{
-			if (vb.hideOnLowLevel) continue;
 			Layer layer = vb.layer;
 			if (layer == null) continue;
 			Layer.Function fun = layer.getFunction();
@@ -1515,7 +1556,7 @@ public class VectorDrawing
 		}
 
 		// make a new cache of the cell
-		vc = new VectorCell();
+		vc = new VectorCell(cell, prevTrans);
 		vcg.addCell(vc, prevTrans);
 		vc.isParameterized = isCellParameterized(cell);
 		Rectangle2D cellBounds = cell.getBounds();
@@ -1613,9 +1654,6 @@ public class VectorDrawing
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
-		boolean hideOnLowLevel = false;
-		if (ni.isVisInside() || np == Generic.tech.cellCenterNode)
-			hideOnLowLevel = true;
 
 		// draw the node
 		if (ni.isCellInstance())
@@ -1651,6 +1689,7 @@ public class VectorDrawing
 			if (prim == Generic.tech.invisiblePinNode) textType = VectorText.TEXTTYPEANNOTATION;
 			Technology tech = prim.getTechnology();
 			Poly [] polys = tech.getShapeOfNode(ni, wnd, context, false, false, null);
+            boolean hideOnLowLevel = ni.isVisInside() || np == Generic.tech.cellCenterNode;
 			boolean pureLayer = (ni.getFunction() == PrimitiveNode.Function.NODE);
 			drawPolys(polys, localTrans, vc, hideOnLowLevel, textType, pureLayer);
 		}
@@ -1666,8 +1705,8 @@ public class VectorDrawing
 			Poly.Type style = descript.getPos().getPolyType();
 			style = Poly.rotateType(style, ni);
 			VectorText vt = new VectorText(poly.getBounds2D(), style, descript, null, VectorText.TEXTTYPEEXPORT, null, e,
-				true, null, null);
-			vc.shapes.add(vt);
+				null, null);
+			vc.topOnlyShapes.add(vt);
 
 			// draw variables on the export
 			int numPolys = e.numDisplayableVariables(true);
@@ -1755,7 +1794,7 @@ public class VectorDrawing
 			}
 			Rectangle rect = new Rectangle(tempPt1);
 			VectorText vt = new VectorText(portPoly.getBounds2D(), style, descript, null, VectorText.TEXTTYPEPORT, ni, pp,
-				false, null, null);
+				null, null);
 			vsc.portShapes.add(vt);
 		}
 	}
@@ -1801,6 +1840,8 @@ public class VectorDrawing
 		if (layer != null)
 			graphics = layer.getGraphics();
 		Poly.Type style = poly.getStyle();
+        ArrayList<VectorBase> filledShapes = hideOnLowLevel ? vc.topOnlyShapes : vc.filledShapes;
+        ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
 		if (style == Poly.Type.FILLED)
 		{
 			Rectangle2D bounds = poly.getBox();
@@ -1811,7 +1852,7 @@ public class VectorDrawing
 				float hX = (float)bounds.getMaxX();
 				float lY = (float)bounds.getMinY();
 				float hY = (float)bounds.getMaxY();
-				VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics, hideOnLowLevel);
+				VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics);
 				if (layer != null)
 				{
 					Layer.Function fun = layer.getFunction();
@@ -1826,35 +1867,34 @@ public class VectorDrawing
 //						this.size = (float)Math.min(ni.getXSize(), ni.getYSize());
 					}
 				}
-				vm.hideOnLowLevel = hideOnLowLevel;
-				vc.filledShapes.add(vm);
+                filledShapes.add(vm);
 				vc.maxFeatureSize = Math.max(vc.maxFeatureSize, vm.minSize);
 				return;
 			}
-			VectorPolygon vp = new VectorPolygon(points, layer, graphics, hideOnLowLevel);
-			vc.filledShapes.add(vp);
+			VectorPolygon vp = new VectorPolygon(points, layer, graphics);
+			filledShapes.add(vp);
 			return;
 		}
 		if (style == Poly.Type.CROSSED)
 		{
 			VectorLine vl1 = new VectorLine(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 0, layer, graphics, hideOnLowLevel);
+				points[1].getX(), points[1].getY(), 0, layer, graphics);
 			VectorLine vl2 = new VectorLine(points[1].getX(), points[1].getY(),
-				points[2].getX(), points[2].getY(), 0, layer, graphics, hideOnLowLevel);
+				points[2].getX(), points[2].getY(), 0, layer, graphics);
 			VectorLine vl3 = new VectorLine(points[2].getX(), points[2].getY(),
-				points[3].getX(), points[3].getY(), 0, layer, graphics, hideOnLowLevel);
+				points[3].getX(), points[3].getY(), 0, layer, graphics);
 			VectorLine vl4 = new VectorLine(points[3].getX(), points[3].getY(),
-				points[0].getX(), points[0].getY(), 0, layer, graphics, hideOnLowLevel);
+				points[0].getX(), points[0].getY(), 0, layer, graphics);
 			VectorLine vl5 = new VectorLine(points[0].getX(), points[0].getY(),
-				points[2].getX(), points[2].getY(), 0, layer, graphics, hideOnLowLevel);
+				points[2].getX(), points[2].getY(), 0, layer, graphics);
 			VectorLine vl6 = new VectorLine(points[1].getX(), points[1].getY(),
-				points[3].getX(), points[3].getY(), 0, layer, graphics, hideOnLowLevel);
-			vc.shapes.add(vl1);
-			vc.shapes.add(vl2);
-			vc.shapes.add(vl3);
-			vc.shapes.add(vl4);
-			vc.shapes.add(vl5);
-			vc.shapes.add(vl6);
+				points[3].getX(), points[3].getY(), 0, layer, graphics);
+			shapes.add(vl1);
+			shapes.add(vl2);
+			shapes.add(vl3);
+			shapes.add(vl4);
+			shapes.add(vl5);
+			shapes.add(vl6);
 			return;
 		}
 		if (style.isText())
@@ -1863,8 +1903,8 @@ public class VectorDrawing
 			TextDescriptor descript = poly.getTextDescriptor();
 			String str = poly.getString();
 			VectorText vt = new VectorText(bounds, style, descript, str, textType, null, null,
-				hideOnLowLevel, layer, graphics);
-			vc.shapes.add(vt);
+				layer, graphics);
+			shapes.add(vt);
 			vc.maxFeatureSize = Math.max(vc.maxFeatureSize, vt.height);
 			return;
 		}
@@ -1881,16 +1921,16 @@ public class VectorDrawing
 				Point2D oldPt = points[j-1];
 				Point2D newPt = points[j];
 				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), lineType, layer, graphics, hideOnLowLevel);
-				vc.shapes.add(vl);
+					newPt.getX(), newPt.getY(), lineType, layer, graphics);
+				shapes.add(vl);
 			}
 			if (style == Poly.Type.CLOSED)
 			{
 				Point2D oldPt = points[points.length-1];
 				Point2D newPt = points[0];
 				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), lineType, layer, graphics, hideOnLowLevel);
-				vc.shapes.add(vl);
+					newPt.getX(), newPt.getY(), lineType, layer, graphics);
+				shapes.add(vl);
 			}
 			return;
 		}
@@ -1901,52 +1941,52 @@ public class VectorDrawing
 				Point2D oldPt = points[j];
 				Point2D newPt = points[j+1];
 				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), 0, layer, graphics, hideOnLowLevel);
-				vc.shapes.add(vl);
+					newPt.getX(), newPt.getY(), 0, layer, graphics);
+				shapes.add(vl);
 			}
 			return;
 		}
 		if (style == Poly.Type.CIRCLE)
 		{
 			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 0, layer, graphics, hideOnLowLevel);
-			vc.shapes.add(vci);
+				points[1].getX(), points[1].getY(), 0, layer, graphics);
+			shapes.add(vci);
 			return;
 		}
 		if (style == Poly.Type.THICKCIRCLE)
 		{
 			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 1, layer, graphics, hideOnLowLevel);
-			vc.shapes.add(vci);
+				points[1].getX(), points[1].getY(), 1, layer, graphics);
+			shapes.add(vci);
 			return;
 		}
 		if (style == Poly.Type.DISC)
 		{
 			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(), points[1].getX(),
-				points[1].getY(), 2, layer, graphics, hideOnLowLevel);
-			vc.filledShapes.add(vci);
+				points[1].getY(), 2, layer, graphics);
+			filledShapes.add(vci);
 			return;
 		}
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
 		{
 			VectorCircleArc vca = new VectorCircleArc(points[0].getX(), points[0].getY(),
 				points[1].getX(), points[1].getY(), points[2].getX(), points[2].getY(),
-				style == Poly.Type.THICKCIRCLEARC, layer, graphics, hideOnLowLevel);
-			vc.shapes.add(vca);
+				style == Poly.Type.THICKCIRCLEARC, layer, graphics);
+			shapes.add(vca);
 			return;
 		}
 		if (style == Poly.Type.CROSS)
 		{
 			// draw the cross
-			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), true, layer, graphics, hideOnLowLevel);
-			vc.shapes.add(vcr);
+			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), true, layer, graphics);
+			shapes.add(vcr);
 			return;
 		}
 		if (style == Poly.Type.BIGCROSS)
 		{
 			// draw the big cross
-			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), false, layer, graphics, hideOnLowLevel);
-			vc.shapes.add(vcr);
+			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), false, layer, graphics);
+			shapes.add(vcr);
 			return;
 		}
 	}
@@ -1956,11 +1996,12 @@ public class VectorDrawing
     public static void showStatistics(Layer layer) {
         Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
         int numCells = 0, numCellLayer = 0;
-        int totalNoBox = 0, totalNoPoly = 0, totalNoDisc = 0, totalNoText = 0, totalNoOther = 0;
+        int totalNoBox = 0, totalNoPoly = 0, totalNoDisc = 0, totalNoShapes = 0, totalNoText = 0, totalNoTopShapes = 0, totalNoTopText = 0;
         for (VectorCellGroup vg: cachedCells.values()) {
             VectorCell vc = vg.getAnyCell();
+            numCells++;
             Map<Layer,GenMath.MutableInteger> layerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
-            int noText = 0, noOther = 0;
+            int noText = 0, noTopText = 0;
             for (VectorBase vs: vc.filledShapes) {
                 if (vs instanceof VectorManhattan)
                     totalNoBox++;
@@ -1971,26 +2012,33 @@ public class VectorDrawing
                 assert vs.layer != null;
                 GenMath.addToBag(layerBag, vs.layer);
             }
-           for (VectorBase vs: vc.shapes) {
+            numCellLayer += layerBag.size();
+            GenMath.addToBag(totalLayerBag, layerBag);
+            for (VectorBase vs: vc.shapes) {
                 if (vs instanceof VectorText)
                     noText++;
-                else
-                    noOther++;
             }
-            GenMath.addToBag(totalLayerBag, layerBag);
-            numCells++;
-            numCellLayer += layerBag.size();
+            totalNoShapes += vc.shapes.size();
             totalNoText += noText;
-            totalNoOther += noOther;
+            for (VectorBase vs: vc.topOnlyShapes) {
+                if (vs instanceof VectorText)
+                    noTopText++;
+            }
+            totalNoTopShapes += vc.topOnlyShapes.size();
+            totalNoTopText += noTopText;
             System.out.print(vg.cell + " " + vg.orientations.size() + " ors " + vc.subCells.size() + " subs " +
-                    vc.filledShapes.size() + " filledShapes " +
-                    noText + ":TEXT " + noOther + ":OTHER");
+                    vc.topOnlyShapes.size() + " topOnlyShapes(" + noTopText + " text) " +
+                    vc.shapes.size() + " shapes(" + noText + " text) " +
+                    vc.filledShapes.size() + " filledShapes ");
             for (Map.Entry<Layer,GenMath.MutableInteger> e: layerBag.entrySet())
                 System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
             System.out.println();
         }
         System.out.println(numCells + " cells " + numCellLayer + " cellLayes");
-        System.out.println(totalNoBox + " boxes " + totalNoPoly + " polys " + totalNoDisc + " discs " + totalNoText + " texts " + totalNoOther + " others");
+        System.out.println("Top shapes " + totalNoTopShapes + " (" + totalNoTopText + " text)");
+        System.out.println("Shapes " + totalNoShapes + " (" + totalNoText + " text)");
+        System.out.print("FilledShapes " + (totalNoBox + totalNoPoly + totalNoDisc) + " (" +
+                totalNoBox + " boxes " + totalNoPoly + " polys " + totalNoDisc + " discs  ");
         for (Map.Entry<Layer,GenMath.MutableInteger> e: totalLayerBag.entrySet())
             System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
         System.out.println();

@@ -512,13 +512,16 @@ public class LayerTab extends JPanel
 				lt.updateLayersTab();
 		}
 
+        
 		if (changed || textVisChanged)
-		{
-			PixelDrawing.clearSubCellCache();
-			EditWindow.repaintAllContents();
-		}
-		if (changed)
-			VectorDrawing.layerVisibilityChanged();
+            User.layerVisibilityChanged(!changed);
+//		if (changed || textVisChanged)
+//		{
+//			PixelDrawing.clearSubCellCache();
+//			EditWindow.repaintAllContents();
+//		}
+//		if (changed)
+//			VectorDrawing.layerVisibilityChanged();
 	}
 
 	/** This method is called from within the constructor to

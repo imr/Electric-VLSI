@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.ui;
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -69,6 +70,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -286,6 +288,7 @@ public class PixelDrawing
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
 	/** list of cell expansions. */							private static HashMap<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
+    /** Set of changed cells. */                            private static final HashSet<CellId> changedCells = new HashSet<CellId>();
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
@@ -486,6 +489,13 @@ public class PixelDrawing
 			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, textGraphics, false);
 		} else
 		{
+            HashSet<CellId> changedCellsCopy;
+            synchronized (changedCells) {
+                changedCellsCopy = new HashSet<CellId>(changedCells);
+                changedCells.clear();
+            }
+            forceRedraw(changedCellsCopy);
+            VectorDrawing.forceRedraw(changedCellsCopy);
 			if (User.isUseOlderDisplayAlgorithm())
 			{
 				// reset cached cell counts
@@ -1566,6 +1576,13 @@ public class PixelDrawing
 
 	public static void forceRedraw(Cell cell)
 	{
+        synchronized (changedCells) {
+            changedCells.add(cell.getId());
+        }
+	}
+
+	private static void forceRedraw(HashSet<CellId> changedCells)
+	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return;
 
@@ -1574,7 +1591,7 @@ public class PixelDrawing
 			keys.add(eck);
 		for(ExpandedCellKey expansionKey : keys)
 		{
-            if (expansionKey.cell == cell)
+            if (changedCells.contains(expansionKey.cell.getId()))
 				expandedCells.remove(expansionKey);
 		}
 	}

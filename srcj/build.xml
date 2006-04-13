@@ -48,6 +48,7 @@
             <!-- you don't include either Java3D plugin if 3D option is out -->
             <!-- this is valid when Java3D is not installed -->
             <exclude name="com/sun/electric/plugins/Java3D/*.*" if="NO3D"/>
+	    <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
         </javac>
     </target>
 
@@ -213,6 +214,7 @@
             <exclude name="com/sun/electric/plugins/tsmc/gates90nm/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
             <exclude name="com/sun/electric/plugins/Java3D/*.*" unless="Java3D"/>
+	    <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>
@@ -254,6 +256,7 @@
             <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
+	    <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>

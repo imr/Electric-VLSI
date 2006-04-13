@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.MoCMOS;
+
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -36,6 +37,7 @@ import java.awt.Transparency;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.ColorModel;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 /**
@@ -53,8 +55,9 @@ public class LayerDrawing {
 	private byte [][] layerBitMap = null;
     
 	public class LayerCell {
-        final ArrayList<Rectangle2D.Float> rects = new ArrayList<Rectangle2D.Float>();
-		final ArrayList<LayerSubCell> subCells = new ArrayList<LayerSubCell>();
+        public final ArrayList<Rectangle2D.Float> rects = new ArrayList<Rectangle2D.Float>();
+		public final ArrayList<LayerSubCell> subCells = new ArrayList<LayerSubCell>();
+        public int dispList;
 
 		LayerCell() {
 		}
@@ -79,8 +82,8 @@ public class LayerDrawing {
 	}
     
     public class LayerSubCell {
-        final LayerCell proto;
-        final float offX, offY;
+        public final LayerCell proto;
+        public final float offX, offY;
         
         LayerSubCell(LayerCell proto, float offX, float offY) {
             this.proto = proto;
@@ -89,6 +92,29 @@ public class LayerDrawing {
         }
     }
     
+    private static boolean joglChecked = false;
+	private static Class layerDrawerClass;
+	private static Method joglShowLayerMethod;
+
+	/**
+	 * Method to tell whether JOGL redisplay is available.
+	 * JOGL is Java extension.
+	 * This method dynamically figures out whether the JOGL module is present by using reflection.
+	 * @return true if the JOGL redisplay is available.
+	 */
+    public static boolean hasJogl() {
+        if (!joglChecked) {
+            joglChecked = true;
+            
+            // find the LayerDrawer class
+            try {
+                layerDrawerClass = Class.forName("com.sun.electric.plugins.jogl.LayerDrawer");
+                joglShowLayerMethod = layerDrawerClass.getMethod("showLayer", new Class[] {LayerDrawing.class, Dimension.class, Double.TYPE, Float.TYPE, Float.TYPE});
+            } catch (Exception e) {}
+        }
+        return joglShowLayerMethod != null;
+    }
+
     /** Creates a new instance of LayerDrawing */
     public LayerDrawing(Layer layer) {
         this.layer = layer;
@@ -105,7 +131,7 @@ public class LayerDrawing {
         offscreen = wnd.getOffscreen();
         offscreen.clearImage(true, null);
         
-		scale = (float)wnd.getScale();
+		scale = wnd.getScale();
         Dimension sz = offscreen.getSize();
 		int szHalfWidth = sz.width / 2;
 		int szHalfHeight = sz.height / 2;
@@ -126,6 +152,13 @@ public class LayerDrawing {
         long compositeTime = System.currentTimeMillis();
         wnd.repaint();
         System.out.println("RenderTime=" + (renderTime-startTime) + " CompositeTime=" + (compositeTime - renderTime));
+        if (hasJogl())
+            try {
+                joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {this, sz, scale, offX, offY});
+            } catch (Exception e) {
+                System.out.println("Unable to run the LayerDrawer input module (" + e.getClass() + ")");
+                e.printStackTrace(System.out);
+            }
     }
     
 	/**

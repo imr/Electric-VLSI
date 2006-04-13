@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG (4/13/06, DN): Exception in NetworkManager after cell deletion.
+FIX: In NetworkManager.updateAll use "l" instead if "i" in "some cells deleted" loop, 
+
+BUG (4/13/06, DN): Concurrent modification in redispaly (Bug #909, #923, #932).
+FIX: PixelDrawing.forceRedraw collects changed cells in a Set.
+    Caches are invalidated later in a Job.
+
 BUG: (4/12/06, GVG) Editing a {doc} view getting database problems (Bug #930)
 FIX: ChangedCellText added in TextWindow.
 
