@@ -220,7 +220,7 @@ interface VddGndStraps {
 	static final PrimitiveNode[] PINS =
 		{null, Tech.m1pin, Tech.m2pin, Tech.m3pin, Tech.m4pin, Tech.m5pin, Tech.m6pin};
     // Defined here so sequence with PINS is kept aligned
-    static final PrimitiveNode[] fillContacts = {null, null, Tech.m2m3, Tech.m3m4, Tech.m4m5};
+    static final PrimitiveNode[] fillContacts = {null, null, Tech.m2m3, Tech.m3m4, Tech.m4m5, Tech.m5m6};
 	/** are metal straps horizontal? */		boolean isHorizontal();
 
 	/** how many Vdd straps? */				int numVdd();
@@ -1184,31 +1184,38 @@ class TiledCell {
         }
 
         // topBox its width/height must be multiply of master.getWidth()/Height()
+        Rectangle2D topEssential = topCell.findEssentialBounds();
         Rectangle2D topBox = new Rectangle2D.Double(topCell.getBounds().getCenterX()-fillWidth/2,
                 topCell.getBounds().getCenterY()-fillHeight/2, fillWidth, fillHeight);
-        Variable pitchVar = topCell.getVar("FILL_PITCH_Y");
-        // This is not going to work if master is not a flat cell
-        if (pitchVar != null)
+        if (topEssential != null) // make correction
         {
-            Object pitchValue = pitchVar.getObject();
-            double value = (pitchValue instanceof Integer) ?
-                    ((Integer)pitchValue).intValue() :
-                    ((Double)pitchValue).doubleValue();
-            double deltaYFromBottom = 0;
-            // getting master Y pitch for GDN
-            for (Iterator<Export> expIt = master.getExports(); expIt.hasNext(); )
-            {
-                Export exp = expIt.next();
-                if (exp.getName().equals("gnd")) // lazy way to detect left bottom gnd bar
-                {
-                    deltaYFromBottom = master.getBounds().getMinY() - exp.getOriginalPort().getNodeInst().getBounds().getCenterY();
-                    break;
-                }
-            }
-            double newPitch = value + deltaYFromBottom;
-            assert((newPitch-topBox.getMinY()) < minTileSizeY);
-            topBox = new Rectangle2D.Double(topBox.getMinX(), newPitch-minTileSizeY, topBox.getWidth(), fillHeight+minTileSizeY);
+            topBox = new Rectangle2D.Double(topEssential.getX(), topEssential.getY(), fillWidth, fillHeight);
         }
+//        Variable pitchVarY = topCell.getVar("FILL_PITCH_Y");
+//        // This is not going to work if master is not a flat cell
+//        if (pitchVarY != null)
+//        {
+//            Object pitchValue = pitchVarY.getObject();
+//            double value = (pitchValue instanceof Integer) ?
+//                    ((Integer)pitchValue).intValue() :
+//                    ((Double)pitchValue).doubleValue();
+//            double deltaYFromBottom = 0;
+//            Rectangle2D essential = master.findEssentialBounds();
+//
+//            // getting master Y pitch for GDN
+//            for (Iterator<Export> expIt = master.getExports(); expIt.hasNext(); )
+//            {
+//                Export exp = expIt.next();
+//                if (exp.getName().equals("gnd")) // lazy way to detect left bottom gnd bar
+//                {
+//                    deltaYFromBottom = master.getBounds().getMinY() - exp.getOriginalPort().getNodeInst().getBounds().getCenterY();
+//                    break;
+//                }
+//            }
+//            double newPitch = value + deltaYFromBottom;
+//            assert((newPitch-topBox.getMinY()) < minTileSizeY);
+//            topBox = new Rectangle2D.Double(topBox.getMinX(), newPitch-minTileSizeY, topBox.getWidth(), fillHeight+minTileSizeY);
+//        }
 
         topBoxList.clear(); // remove original value
         topBoxList.add(topBox); // I need information for setting
@@ -2893,8 +2900,19 @@ public class FillGenerator implements Serializable {
         /**
          * THIS METHOD ASSUMES contactAreaOrig is horizontal!
          */
-        private boolean searchOverlapHierarchically(Cell searchCell, GeometryHandler handler, PortConfig p,
-                                                 Rectangle2D contactAreaOrig, AffineTransform downTrans, AffineTransform upTrans)
+        /**
+         * Method to search for all overlaps with metal bars in the fill
+         * @param searchCell
+         * @param handler structure containing elements that overlap with the given contactAreaOrig
+         * @param closestHandler structure containing elements that are close to the given contactAreaOrig
+         * @param p
+         * @param contactAreaOrig
+         * @param downTrans
+         * @param upTrans
+         * @return
+         */
+        private boolean searchOverlapHierarchically(Cell searchCell, GeometryHandler handler, GeometryHandler closestHandler, PortConfig p,
+                                                    Rectangle2D contactAreaOrig, AffineTransform downTrans, AffineTransform upTrans)
         {
             Rectangle2D contactArea = (Rectangle2D)contactAreaOrig.clone();
             double contactAreaHeight = contactArea.getHeight();
@@ -2917,7 +2935,7 @@ public class FillGenerator implements Serializable {
                     AffineTransform fillIn = ni.transformIn();
                     AffineTransform fillUp = ni.transformOut(upTrans);
                     // In case of being a cell
-                    if (searchOverlapHierarchically((Cell)ni.getProto(), handler, p, contactArea, fillIn, fillUp))
+                    if (searchOverlapHierarchically((Cell)ni.getProto(), handler, closestHandler, p, contactArea, fillIn, fillUp))
                         noItermediateCells = true;
                     continue;
                 }
@@ -2930,11 +2948,11 @@ public class FillGenerator implements Serializable {
                 if (arcNet.findExportWithSameCharacteristic(p.e) == null)
                     continue; // no match in network type
 
-                if (ap != Tech.m3)
-                {
-                    System.out.println("picking  metal");
-                    continue; // Only metal 3 arcs
-                }
+//                if (ap != Tech.m3)
+//                {
+//                    System.out.println("picking  metal");
+//                    continue; // Only metal 3 arcs
+//                }
 
                 // Adding now
                 Layer layer = ap.getLayerIterator().next();
@@ -2956,6 +2974,8 @@ public class FillGenerator implements Serializable {
             List<Layer> layerTmpList = new ArrayList<Layer>();
             listOfLayers.addAll(results);
             Collections.sort(listOfLayers, Layer.layerSortByName);
+            double closestDist = Double.POSITIVE_INFINITY;
+            Rectangle2D closestRect = null;
 
             // Now select possible pins
             for (Layer layer : listOfLayers)
@@ -3018,27 +3038,29 @@ public class FillGenerator implements Serializable {
                             newElem = new Rectangle2D.Double(contactArea.getX(), geomBnd.getY(), defaultContact.getDefWidth(), usefulBar);
                         else
                         {
+                            // better if find a vertical bar by closest distance
+                            continue;
                             // search for closest distance or I could add all!!
                             // Taking the first element for now
-                            NodeInst ni = nodes.get(0);
-                            // Check lower layer of the contact so it won't add unnecessary contacts
-                            PrimitiveNode np = (PrimitiveNode)ni.getProto();
-                            layerTmpList.clear();
-                            for (Iterator<Layer> it = np.getLayerIterator(); it.hasNext(); )
-                            {
-                                Layer l = it.next();
-                                if (l.getFunction().isMetal())
-                                    layerTmpList.add(l);
-                            }
-                            Collections.sort(layerTmpList, Layer.layerSortByName);
-                            theLayer = layerTmpList.get(0);
-                            Rectangle2D r = ni.getBounds();
-                            double contactW = 0; //ni.getXSizeWithoutOffset();
-                            double contactH = 0; //ni.getYSizeWithoutOffset();
-                            r = new Rectangle2D.Double(r.getCenterX()-contactW/2, contactArea.getY(),
-                                    contactW, contactAreaHeight);
-                            geomBnd = r;
-                            newElem = geomBnd;
+//                            NodeInst ni = nodes.get(0);
+//                            // Check lower layer of the contact so it won't add unnecessary contacts
+//                            PrimitiveNode np = (PrimitiveNode)ni.getProto();
+//                            layerTmpList.clear();
+//                            for (Iterator<Layer> it = np.getLayerIterator(); it.hasNext(); )
+//                            {
+//                                Layer l = it.next();
+//                                if (l.getFunction().isMetal())
+//                                    layerTmpList.add(l);
+//                            }
+//                            Collections.sort(layerTmpList, Layer.layerSortByName);
+//                            theLayer = layerTmpList.get(0);
+//                            Rectangle2D r = ni.getBounds();
+//                            double contactW = ni.getXSizeWithoutOffset();
+//                            double contactH = ni.getYSizeWithoutOffset();
+//                            r = new Rectangle2D.Double(r.getCenterX()-contactW/2, contactArea.getY(),
+//                                    contactW, contactAreaHeight);
+//                            geomBnd = r;
+//                            newElem = geomBnd;
                         }
                         newElemMin = newElem.getMinY();
                         newElemMax = newElem.getMaxY();
@@ -3074,12 +3096,19 @@ public class FillGenerator implements Serializable {
 
                         double min = Math.max(geoMin, areaMin);
                         double max = Math.min(geoMax, areaMax);
-                        double overlap = (max-min)/usefulBar;
+                        double diff = max-min;
+                        double overlap = (diff)/usefulBar;
                         // Checking if new element is completely inside the contactArea otherwise routeToClosestArc could add
                         // the missing contact
                         if (overlap < minOverlap)
                         {
                             System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p.p);
+                            double val = Math.abs(diff);
+                            if (closestDist > val) // only in this case the elements are close enough but not touching
+                            {
+                                closestDist = val;
+                                closestRect = newElem;
+                            }
                             continue;
                         }
                     }
@@ -3091,6 +3120,14 @@ public class FillGenerator implements Serializable {
                 }
                 if (found)
                     return true; // only one set for now if something overlapping was found
+
+                if (horizontalBar || closestRect == null) continue;
+                // trying with closest vertical arcs
+                // Transforming geometry up to fillCell coordinates
+                DBMath.transformRect(closestRect, upTrans);
+                // Adding element
+                closestHandler.add(theLayer, closestRect);
+//                return true;
             }
             return false;
         }
@@ -3153,13 +3190,24 @@ public class FillGenerator implements Serializable {
             // Transforming rectangle with gnd/power metal into the connection cell
             if (nodeTransOut != null)
                 DBMath.transformRect(contactArea, nodeTransOut);
-            GeometryHandler handler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
+            GeometryHandler overlapHandler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
+            GeometryHandler closestHandler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
+            GeometryHandler handler;
 
-            searchOverlapHierarchically(container.fillCell, handler, p, contactArea, fillTransIn, GenMath.MATID);
+            searchOverlapHierarchically(container.fillCell, overlapHandler, closestHandler, p, contactArea, fillTransIn, GenMath.MATID);
+            handler = overlapHandler;
             handler.postProcess(false);
+            closestHandler.postProcess(false);
 
-            Set<Layer> results = handler.getKeySet();
-            int size = results.size();
+            Set<Layer> overlapResults = handler.getKeySet();
+            Set<Layer> closestResults = closestHandler.getKeySet();
+
+            List<Layer> listOfLayers = new ArrayList<Layer>(overlapResults.size());
+            listOfLayers.addAll(overlapResults);
+            listOfLayers.addAll(closestResults);
+            Collections.sort(listOfLayers, Layer.layerSortByName);
+
+            int size = listOfLayers.size();
 
 //            assert(size <= 1); // Must contain only m3
 
@@ -3178,14 +3226,16 @@ public class FillGenerator implements Serializable {
             PortInst pin = null;
 
             // Loop along all possible connections (different layers)
-            List<Layer> listOfLayers = new ArrayList<Layer>(size);
-            listOfLayers.addAll(results);
-            Collections.sort(listOfLayers, Layer.layerSortByName);
-
+            // from both GeometricHandler structures.
             for (Layer layer : listOfLayers)
             {
                 Collection set = handler.getObjects(layer, false, true);
 
+                if (set == null || set.size() == 0) // information from closestHandling
+                    set = closestHandler.getObjects(layer, false, true);
+
+                assert (set != null && set.size() > 0);
+                
                 // Get connecting metal contact (PrimitiveNode) starting from techPin up to the power/vdd bar found
                 List<Layer.Function> fillLayers = new ArrayList<Layer.Function>();
                 PrimitiveNode topPin = findPrimitiveNodeFromLayer(layer);
