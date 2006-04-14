@@ -54,6 +54,16 @@ public class EMenu extends EMenuItem {
     }
     
     /**
+     * @param text the menu item's displayed text.  An "_" in the string
+     * indicates the location of the "mnemonic" key for that entry.
+     * @param itemList items list. Null eleements are skipped.
+     * MenuCommands.SEPARATOR elementss are separators.
+     */
+    public EMenu(String text, List<EMenuItem> itemList) {
+        this(text, itemList.toArray(EMenuItem.NULL_ARRAY));
+    }
+    
+    /**
      * Returns unmodifiebale list of menu items.
      * Separators are represented by MeniCommands.SEPARATOR object.
      * @return list of menu items.
