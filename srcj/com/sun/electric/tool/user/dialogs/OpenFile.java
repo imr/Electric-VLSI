@@ -45,6 +45,7 @@ public class OpenFile
 	private static class OpenFileSwing extends JFileChooser
 	{
 		/** True if this is a file save dialog */						private boolean saveDialog;
+        /** True to set new dir as working dir (default is true) */     private boolean setSelectedDirAsWorkingDir;
 
 		/** Private constructor, use factory methods chooseInputFile or
 		 * chooseOutputFile instead.
@@ -91,7 +92,8 @@ public class OpenFile
             }
 
 			setSelectedFile(f);
-			User.setWorkingDirectory(getCurrentDirectory().getPath());
+			if (setSelectedDirAsWorkingDir)
+                User.setWorkingDirectory(getCurrentDirectory().getPath());
 			super.approveSelection();
 		}
 
@@ -134,7 +136,7 @@ public class OpenFile
 	 */
 	public static String chooseInputFile(FileType type, String title)
 	{
-		return chooseInputFile(type, title, false, User.getWorkingDirectory());
+		return chooseInputFile(type, title, false, User.getWorkingDirectory(), true);
 	}
 
 	/**
@@ -143,7 +145,7 @@ public class OpenFile
 	 */
 	public static String chooseDirectory(String title)
 	{
-		return chooseInputFile(null, title, true, User.getWorkingDirectory());
+		return chooseInputFile(null, title, true, User.getWorkingDirectory(), true);
 	}
 
     /**
@@ -153,7 +155,7 @@ public class OpenFile
      * @param wantDirectory true to request a directory be selected, instead of a file.
      */
     public static String chooseInputFile(FileType type, String title, boolean wantDirectory) {
-        return chooseInputFile(type, title, wantDirectory, User.getWorkingDirectory());
+        return chooseInputFile(type, title, wantDirectory, User.getWorkingDirectory(), true);
     }
 
 	/**
@@ -162,8 +164,11 @@ public class OpenFile
 	 * @param title dialog title to use; if null uses "Open 'filetype'".
 	 * @param wantDirectory true to request a directory be selected, instead of a file.
      * @param initialDir the initial directory
+     * @param setSelectedDirAsWorkingDir if the user approves the selection,
+     * set the directory as the current working dir if this is true.
 	 */
-	public static String chooseInputFile(FileType type, String title, boolean wantDirectory, String initialDir)
+	public static String chooseInputFile(FileType type, String title, boolean wantDirectory,
+                                         String initialDir, boolean setSelectedDirAsWorkingDir)
 	{
 		if (title == null)
 		{
@@ -183,6 +188,7 @@ public class OpenFile
 		{
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
+            dialog.setSelectedDirAsWorkingDir = setSelectedDirAsWorkingDir;
 			dialog.setDialogTitle(title);
             File dir = new File(initialDir);
             if (!dir.exists() || !dir.isDirectory()) dir = new File(User.getWorkingDirectory());
