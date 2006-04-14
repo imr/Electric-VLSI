@@ -342,15 +342,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		if (protoType == Generic.tech.cellCenterNode)
 		{
 			// only 1 cell-center is allowed: check for others
-			for(Iterator<NodeInst> it = parent.getNodes(); it.hasNext(); )
-			{
-				NodeInst oNi = it.next();
-				if (oNi.getProto() == Generic.tech.cellCenterNode)
-				{
-					System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
-					return null;
-				}
-			}
+            EPoint oldCenter = parent.findCellCenter();
+            if (oldCenter != null)
+            {
+                System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
+                return null;
+            }
             anchor = EPoint.ORIGIN;
             width = height = 0;
             orient = Orientation.IDENT;

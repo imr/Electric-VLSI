@@ -33,11 +33,7 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
@@ -1554,6 +1550,25 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 		return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
 	}
+
+    /**
+     * Method to return location of the cell center if exists
+     * @return
+     */
+    public EPoint findCellCenter()
+    {
+        for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
+        {
+            NodeInst oNi = it.next();
+            if (oNi.getProto() == Generic.tech.cellCenterNode)
+            {
+                Rectangle2D r = oNi.getBounds();
+                EPoint center = new EPoint(r.getCenterX(), r.getCenterY());
+                return center;
+            }
+        }
+        return null;
+    }
 
 	/**
 	 * Method adjust this cell when the reference point moves.
