@@ -2186,22 +2186,22 @@ public class PixelDrawing
 			EGraphics.Outline o = desc.getOutlined();
 			if (o != EGraphics.Outline.NOPAT)
 			{
-				drawPatLine(lX, lY, lX, hY, layerBitMap, col, o.getPattern(), o.getLen());
-				drawPatLine(lX, hY, hX, hY, layerBitMap, col, o.getPattern(), o.getLen());
-				drawPatLine(hX, hY, hX, lY, layerBitMap, col, o.getPattern(), o.getLen());
-				drawPatLine(hX, lY, lX, lY, layerBitMap, col, o.getPattern(), o.getLen());
+				drawOutline(lX, lY, lX, hY, layerBitMap, col, o.getPattern(), o.getLen());
+				drawOutline(lX, hY, hX, hY, layerBitMap, col, o.getPattern(), o.getLen());
+				drawOutline(hX, hY, hX, lY, layerBitMap, col, o.getPattern(), o.getLen());
+				drawOutline(hX, lY, lX, lY, layerBitMap, col, o.getPattern(), o.getLen());
 				if (o.getThickness() != 1)
 				{
 					for(int i=1; i<o.getThickness(); i++)
 					{
 						if (lX+i < sz.width)
-							drawPatLine(lX+i, lY, lX+i, hY, layerBitMap, col, o.getPattern(), o.getLen());
+							drawOutline(lX+i, lY, lX+i, hY, layerBitMap, col, o.getPattern(), o.getLen());
 						if (hY-i >= 0)
-							drawPatLine(lX, hY-i, hX, hY-i, layerBitMap, col, o.getPattern(), o.getLen());
+							drawOutline(lX, hY-i, hX, hY-i, layerBitMap, col, o.getPattern(), o.getLen());
 						if (hX-i >= 0)
-							drawPatLine(hX-i, hY, hX-i, lY, layerBitMap, col, o.getPattern(), o.getLen());
+							drawOutline(hX-i, hY, hX-i, lY, layerBitMap, col, o.getPattern(), o.getLen());
 						if (lY+i < sz.height)
-							drawPatLine(hX, lY+i, lX, lY+i, layerBitMap, col, o.getPattern(), o.getLen());
+							drawOutline(hX, lY+i, lX, lY+i, layerBitMap, col, o.getPattern(), o.getLen());
 					}
 				}
 			}
@@ -2439,6 +2439,19 @@ public class PixelDrawing
             }
         }
     }
+
+	private void drawOutline(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern, int len)
+	{
+        tempPt3.x = x1;
+        tempPt3.y = y1;
+        tempPt4.x = x2;
+        tempPt4.y = y2;
+        
+		// first clip the line
+		if (GenMath.clipLine(tempPt3, tempPt4, 0, sz.width-1, 0, sz.height-1)) return;
+
+        drawPatLine(tempPt3.x, tempPt3.y, tempPt4.x, tempPt4.y, layerBitMap, col, pattern, len);
+	}
 
 	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern, int len)
 	{
@@ -2937,7 +2950,7 @@ public class PixelDrawing
 					if (last < 0) last = points.length - 1;
 					int fX = points[last].x;   int fY = points[last].y;
 					int tX = points[i].x;      int tY = points[i].y;
-					drawPatLine(fX, fY, tX, tY, layerBitMap, col, o.getPattern(), o.getLen());
+					drawOutline(fX, fY, tX, tY, layerBitMap, col, o.getPattern(), o.getLen());
 					if (o.getThickness() != 1)
 					{
 						int ang = GenMath.figureAngle(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY));
@@ -2947,7 +2960,7 @@ public class PixelDrawing
 						{
 							int dX = (int)(cos*t + 0.5);
 							int dY = (int)(sin*t + 0.5);
-							drawPatLine(fX+dX, fY+dY, tX+dX, tY+dY, layerBitMap, col, o.getPattern(), o.getLen());
+							drawOutline(fX+dX, fY+dY, tX+dX, tY+dY, layerBitMap, col, o.getPattern(), o.getLen());
 						}
 					}
 				}

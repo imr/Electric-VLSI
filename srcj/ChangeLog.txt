@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/14/06, DN) Exception when zooming layout with outlined layers.
+FIX: Add PixelDrawing.drawOutline() with proper clipping.
+
 BUG: (4/13/06, GVG) ErrorLogger writing invalid characters for XML parser such as ">" and "<". This is related to
 Bug #933.
 FIX: Replacement of special XML characters. Extra changes: avoding crash in reading Assura if cell is null.
