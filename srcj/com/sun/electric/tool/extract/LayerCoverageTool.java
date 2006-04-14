@@ -509,8 +509,8 @@ public class LayerCoverageTool extends Tool
             {
                 nodesAdded = new ArrayList<Object>();
                 nodesAdded.addAll(data.getNodesToHighlight());
-                if (!manualStart)
-                    fieldVariableChanged("nodesAdded");
+//                if (!manualStart)
+//                    fieldVariableChanged("nodesAdded");
             }
             return done;
         }
