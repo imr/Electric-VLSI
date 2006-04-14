@@ -38,7 +38,8 @@ import javax.swing.KeyStroke;
  * It generates real menu buttons and tool buttons with shared state.
  */
 public abstract class EMenuItem implements ActionListener {
-    
+
+    public static final EMenuItem[] NULL_ARRAY = {};
     private static final int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
     /**

@@ -665,7 +665,7 @@ public class VectorDrawing
 	class AbortRenderingException extends Exception {}
 
     static void forceRedraw(Set<CellId> changedCells) {
-        ArrayList<Cell> cachedCellsCopy = new ArrayList(cachedCells.keySet());
+        ArrayList<Cell> cachedCellsCopy = new ArrayList<Cell>(cachedCells.keySet());
         for (Cell cell: cachedCellsCopy) {
             if (!changedCells.contains(cell.getId())) continue;
             cellChanged(cell);
