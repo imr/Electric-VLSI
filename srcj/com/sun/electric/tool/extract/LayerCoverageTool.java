@@ -663,7 +663,6 @@ public class LayerCoverageTool extends Tool
 				case IMPLANT:
 					return (func.isSubstrate());
 				case AREA:
-                    if (Job.LOCALDEBUGFLAG) return (true);
 					return (func.isPoly() || func.isMetal());
 				default:
 					return (false);

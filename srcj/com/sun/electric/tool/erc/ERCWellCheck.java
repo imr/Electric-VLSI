@@ -675,8 +675,6 @@ public class ERCWellCheck
 					while (cinfo.getParentInst() != null) {
 						parentNet = cinfo.getNetworkInParent(parentNet);
 						cinfo = cinfo.getParentInfo();
-						if (parentNet == null && Job.LOCALDEBUGFLAG)
-							System.out.println("parentNet null in ERC. Stop loop?");
 					}
 					if (parentNet != null)
 					{

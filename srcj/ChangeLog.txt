@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+IMP: (4/14/06, GVG) Re-arraging debug menus. Consolidated in DevelopersMenus and moved to tests plugin.
+
 BUG: (4/14/06, DN) Exception when zooming layout with outlined layers.
 FIX: Add PixelDrawing.drawOutline() with proper clipping.
 

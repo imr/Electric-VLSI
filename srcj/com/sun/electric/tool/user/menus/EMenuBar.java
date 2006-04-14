@@ -34,9 +34,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.Preferences;
-import javax.swing.AbstractButton;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
 
 /**
@@ -71,7 +69,7 @@ public class EMenuBar extends EMenu {
      *@param hiddenMenu menu which items are invoked by shortcuts only.
      *@param items var-arg menu items. Null arguments are skipped.
      */
-    EMenuBar(String name, EMenu hiddenMenu, EMenu... items) {
+    EMenuBar(String name, EMenu hiddenMenu, List<EMenuItem> items) {
         super(name, items);
         this.hiddenMenu = hiddenMenu;
         prefs = Preferences.userNodeForPackage(EMenuBar.class);

@@ -56,28 +56,45 @@ public final class MenuCommands
 	 */
 	public static EMenuBar menuBar()
 	{
+        List<EMenuItem> itemsList = new ArrayList<EMenuItem>(8);
+
+        itemsList.add(FileMenu.makeMenu());
+        itemsList.add(EditMenu.makeMenu());
+        itemsList.add(CellMenu.makeMenu());
+        itemsList.add(ExportMenu.makeMenu());
+        itemsList.add(ViewMenu.makeMenu());
+        itemsList.add(WindowMenu.makeMenu());
+        itemsList.add(ToolMenu.makeMenu());
+        itemsList.add(makeExtraMenu("menus.SunAsyncMenu"));
+        itemsList.add(HelpMenu.makeMenu());
+        if (Job.getDebug())
+            itemsList.addAll(makeTestMenus());
         if (menuBar == null) {
             menuBar = new EMenuBar("",
-                wiringShortcuts(),    
-                FileMenu.makeMenu(),
-                EditMenu.makeMenu(),
-                CellMenu.makeMenu(),
-                ExportMenu.makeMenu(),
-                ViewMenu.makeMenu(),
-                WindowMenu.makeMenu(),
-                ToolMenu.makeMenu(),
-                makeExtraMenu("menus.SunAsyncMenu"),
-                HelpMenu.makeMenu(),
-                Job.getDebug() ? makeExtraMenu("tests.TestMenu") : null,
-                Job.getDebug() ? DebugMenuSteve.makeMenu() : null,
-                Job.getDebug() ? DebugMenuRussell.makeMenu() : null,
-                Job.getDebug() ? DebugMenuJonG.makeMenu() : null,
-                Job.getDebug() ? DebugMenuGilda.makeMenu() : null,
-                Job.getDebug() ? DebugMenuDima.makeMenu() : null);
+                wiringShortcuts(),
+                    itemsList);
             menuBar.restoreSavedBindings(true);
         }
         return menuBar;
 	}
+
+    private static List<EMenuItem> makeTestMenus()
+    {
+        List<EMenuItem> list = new ArrayList<EMenuItem>(5);
+        list.add(makeExtraMenu("tests.TestMenu"));
+
+        // Adding developers menus. They are accessed by DevelopersMenus
+        try {
+            Class menuClass = Class.forName("com.sun.electric.plugins.tests.DevelopersMenus");
+            java.lang.reflect.Method makeMenus = menuClass.getMethod("makeMenus", new Class[] {});
+            Object menus = makeMenus.invoke(null, new Object [] {});
+            if (menus != null)
+                list.addAll((List<EMenuItem>)menus);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
 
     static EMenu makeExtraMenu(String plugin) {
         try {

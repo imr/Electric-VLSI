@@ -130,7 +130,7 @@ public final class Main
 		// -debug for debugging
         Job.Mode runMode = Job.Mode.FULL_SCREEN;
 		if (hasCommandLineOption(argsList, "-debug")) Job.setDebug(true);
-        if (hasCommandLineOption(argsList, "-gilda")) Job.LOCALDEBUGFLAG = true;
+        if (hasCommandLineOption(argsList, "-extraDebug")) Job.LOCALDEBUGFLAG = true;
         String numThreadsString = getCommandLineOption(argsList, "-threads");
         int numThreads = 0 ;
         if (numThreadsString != null) {
