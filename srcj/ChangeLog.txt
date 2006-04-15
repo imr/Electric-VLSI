@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/14/06,DN) "fieldVariableChanged" doesn't work for Examine Jobs launched from client.
+FIX: Add field to JobsTest.FakeJob. Fix EJob.serializeResult
+
 BUG: (4/14/06, GVG) Exception from Tool->Network->ListGeometryOnNetwork (Bug #939) due to Examine job setting
 fieldVariableChanged variables. This is illegal for jobs running on client.
 FIX: No fieldVariableChanged set.

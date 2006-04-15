@@ -145,8 +145,9 @@ class EJob {
             ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
             out.writeObject(null); // No exception
             out.writeInt(changedFields.size());
+            Job job = jobType == Job.Type.EXAMINE ? clientJob : serverJob;
             for (Field f: changedFields) {
-                Object value = f.get(serverJob);
+                Object value = f.get(job);
                 out.writeUTF(f.getName());
                 out.writeObject(value);
             }
