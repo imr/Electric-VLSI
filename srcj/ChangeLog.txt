@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/15/06, GVG) ErrorLogger XML reader crashing if geom was null (NodeInst or ArcInst)
+FIX: Skipping those cases and printing a message
+
 BUG: (4/14/06, GVG) More fixes for Bug #931. The ones introduced on 4/13/06 were not sufficient.
 FIX: It loads initial DRC variables from disk if values are kept on cache. ValidVersion variable not used
 for now. Later I might clean the code.

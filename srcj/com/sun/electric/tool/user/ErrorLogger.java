@@ -982,7 +982,10 @@ public class ErrorLogger implements Serializable
                     Geometric geom = curCell.findNode(geomName);
                     if (geom == null) // try arc instead
                         geom = curCell.findArc(geomName);
-                    highlights.add(ErrorHighlight.newInstance(null, geom));
+                    if (geom != null)
+                        highlights.add(ErrorHighlight.newInstance(null, geom));
+                    else
+                        System.out.println("Invalid geometry " + geomName + " in " + curCell);
                 }
                 else if (thinLineTypeBody || thickLineTypeBody)
                 {
