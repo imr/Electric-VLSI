@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
@@ -712,8 +713,20 @@ public class DRC extends Listener
     private static StoreDRCInfo getCellGoodDRCDateAndBits(Cell cell, boolean fromDisk)
     {
         StoreDRCInfo data = storedDRCDate.get(cell);
+        boolean firstTime = false;
 
-        if (data == null) // get it from disk and cache it in case of data on memory only
+        if (data == null)
+        {
+            boolean validVersion = true;
+            Version version = cell.getLibrary().getVersion();
+            if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
+            data = new StoreDRCInfo(-1, -1);
+            storedDRCDate.put(cell, data);
+            firstTime = true; // to load Variable date from disk in case of inMemory case.
+            if (!validVersion)
+                return null; // only the first the data is access the version is considered
+        }
+        if (fromDisk || (!fromDisk && firstTime))
         {
             int thisByte = 0;
             long lastDRCDateInMilliseconds = 0;
@@ -740,13 +753,14 @@ public class DRC extends Listener
             }
             else
                 thisByte = ((Integer)varBits.getObject()).intValue();
-            data = new StoreDRCInfo(lastDRCDateInMilliseconds, thisByte);
+            data.bits = thisByte;
+            data.date = lastDRCDateInMilliseconds;
+//            data = new StoreDRCInfo(lastDRCDateInMilliseconds, thisByte);
         }
-        storedDRCDate.put(cell, data);
-//        else
-//        {
-//            data = storedDRCDate.get(cell);
-//        }
+        else
+        {
+            data = storedDRCDate.get(cell);
+        }
         return data;
     }
 
@@ -987,10 +1001,10 @@ public class DRC extends Listener
 
         public boolean doIt()
         {
+                storedDRCDate.clear();
             if (isDatesStoredInMemory())
             {
                 // delete any date stored
-                storedDRCDate.clear();
             }
             else // stored in disk
             {
@@ -1064,8 +1078,14 @@ public class DRC extends Listener
                         new JobException("Cell '" + cell + "' is invalid to clean DRC date");
                     else
                     {
-                        storedDRCDate.put(cell, null);
-                        if (!inMemory)
+                        StoreDRCInfo data = storedDRCDate.get(cell);
+                        assert(data != null);
+                        data.date = -1;
+                        data.bits = -1; // I can't put null because of the version
+                        if (inMemory)
+                            ;
+//                            storedDRCDate.put(cell, null);
+                        else
                             cleanDRCDateAndBits(cell);
                     }
                 }

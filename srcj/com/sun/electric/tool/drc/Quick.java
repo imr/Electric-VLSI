@@ -407,8 +407,8 @@ public class Quick
 
 		// now do the DRC
 		boolean validVersion = true;
-	    Version version = cell.getLibrary().getVersion();
-		if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
+//	    Version version = cell.getLibrary().getVersion();
+//		if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
 		errorLogger = errorLog;
         int logsFound = 0;
         int totalErrors = 0;
@@ -536,8 +536,10 @@ public class Quick
 			if (retval < 0)
 				return retval;
             // if cell is in goodDRCDate it means it changes its date for some reason.
-			if (retval > 0 || goodDRCDate.get(np) != null) allSubCellsStillOK = false;
-//            if (retval > 0) allSubCellsStillOK = false;
+//			if (retval > 0 || goodDRCDate.get(np) != null)
+//                allSubCellsStillOK = false;
+            if (retval > 0)
+                allSubCellsStillOK = false;
 		}
 
 		// prepare to check cell
