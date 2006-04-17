@@ -1081,8 +1081,10 @@ public abstract class LibraryFiles extends Input
 						}
 					} else if (eObj instanceof NodeInst)
 					{
-						System.out.println("Removed extraneous NCC annotations from cell instance " + ((NodeInst)eObj).describe(false));
-						markCellAndLibraryChanged(((NodeInst)eObj).getParent());
+                        NodeInst ni = ((NodeInst)eObj);
+						System.out.println("Removed extraneous NCC annotations from cell instance " +
+                                ni.describe(false) + " in " + ni.getParent());
+						markCellAndLibraryChanged(ni.getParent());
 						continue;
 					}
 				}
