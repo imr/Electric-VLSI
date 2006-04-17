@@ -131,18 +131,18 @@ public class GDS extends Geometry
      * @param context the hierarchical context to the cell.
 	 * @param filePath the disk file to create.
 	 */
-	public static void writeGDSFile(Cell cell, VarContext context, String filePath)
+	public static GDS writeGDSFile(Cell cell, VarContext context, String filePath)
 	{
 		if (cell.getView() != View.LAYOUT)
 		{
 			System.out.println("Can only write GDS for layout cells");
-			return;
+			return null;
 		}
 		GDS out = new GDS();
-		if (out.openBinaryOutputStream(filePath)) return;
+		if (out.openBinaryOutputStream(filePath)) return null;
 		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, context, visitor)) return;
-		if (out.closeBinaryOutputStream()) return;
+		if (out.writeCell(cell, context, visitor)) return null;
+		if (out.closeBinaryOutputStream()) return null;
 		System.out.println(filePath + " written");
 
 		// warn if library name was changed
@@ -151,6 +151,7 @@ public class GDS extends Geometry
 		if (!topCellName.equals(mangledTopCellName))
 			System.out.println("Warning: library name in this file is " + mangledTopCellName +
 				" (special characters were changed)");
+        return out;
 	}
 
 	/** Creates a new instance of GDS */
@@ -641,6 +642,12 @@ public class GDS extends Geometry
 		}
 		return ret.toString();
 	}
+
+    /**
+     * Get the name map. GDS output may mangle cell names
+     * because of all cells occupy the same name space (no libraries).
+     */
+    public HashMap<Cell,String> getCellNames() { return cellNames; }
 
 	/*
 	 * Close the file, pad to make the file match the tape format
