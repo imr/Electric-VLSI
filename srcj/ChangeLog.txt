@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/18/06, GVG) SPICE template for CCVS fixed (reported by Ian).
+
 IMP: (4/18/06, GVG) More changes in DRC dates.
 
 BUG: (4/18/06, GVG) Exception in VectorCellGroup:clean because exports list is null.
