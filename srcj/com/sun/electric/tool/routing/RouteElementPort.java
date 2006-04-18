@@ -163,6 +163,12 @@ public class RouteElementPort extends RouteElement {
      */
     public PortInst getPortInst() { return portInst; }
 
+    /**
+     * Get Connecting Node on RouteElement.
+     * @return the NodeInst, or null on error
+     */
+    public NodeInst getNodeInst() { return nodeInst; }
+
     /** Returns location of newNode, existingPortInst, or deleteNode,
      * or null otherwise */
     public Point2D getLocation() { return location; }
