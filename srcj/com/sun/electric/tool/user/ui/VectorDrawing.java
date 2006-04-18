@@ -371,7 +371,8 @@ public class VectorDrawing
 		void clear()
 		{
 			orientations.clear();
-			exports.clear();
+            if (exports != null)
+			    exports.clear();
 			any = null;
 		}
 

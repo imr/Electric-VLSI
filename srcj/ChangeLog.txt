@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/18/06, GVG) Exception in VectorCellGroup:clean because exports list is null.
+FIX: Put the condition.
+
 BUG: (4/15/06, GVG) ErrorLogger XML reader crashing if geom was null (NodeInst or ArcInst)
 FIX: Skipping those cases and printing a message
 
