@@ -39,7 +39,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -244,6 +243,7 @@ public class Quick
 
         // caching bits
         activeBits = DRC.getActiveBits(tech);
+        System.out.println("Running DRC with " + DRC.explainBits(activeBits));
 
         // caching memory setting
         inMemory = DRC.isDatesStoredInMemory();
@@ -334,9 +334,7 @@ public class Quick
 		//int totalNetworks = 0;
 		networkLists = new HashMap<Network,Integer[]>();
         for (Map.Entry<Cell,CheckProto> e : checkProtos.entrySet())
-//		for(Iterator it = checkProtos.entrySet().iterator(); it.hasNext(); )
 		{
-//			Map.Entry e = (Map.Entry)it.next();
 			Cell libCell = e.getKey();
 			CheckProto subCP = (CheckProto)e.getValue();
 			if (subCP.hierInstanceCount > 0)
@@ -406,9 +404,6 @@ public class Quick
 		accumulateExclusion(cell);
 
 		// now do the DRC
-		boolean validVersion = true;
-//	    Version version = cell.getLibrary().getVersion();
-//		if (version != null) validVersion = version.compareTo(Version.getVersion()) >=0;
 		errorLogger = errorLog;
         int logsFound = 0;
         int totalErrors = 0;
@@ -416,9 +411,7 @@ public class Quick
 		if (count == 0)
 		{
 			// just do full DRC here
-//			errorLogger = ErrorLogger.newInstance("DRC (full)");
-			totalErrors = checkThisCell(cell, 0, bounds, validVersion);
-
+			totalErrors = checkThisCell(cell, 0, bounds);
 			// sort the errors by layer
 			errorLogger.sortLogs();
 		} else
@@ -427,9 +420,6 @@ public class Quick
 			if (validity == null)
 			{
 				// not a quiet DRC, so it must be incremental
-//				if (errorLoggerIncremental == null) errorLoggerIncremental = ErrorLogger.newInstance("DRC (incremental)"/*, true*/);
-//				errorLoggerIncremental.clearLogs(cell);
-//				errorLogger = errorLoggerIncremental;
                 logsFound = errorLogger.getNumLogs();
 			}
 
@@ -464,11 +454,10 @@ public class Quick
      * @param cell
      * @param globalIndex
      * @param bounds
-     * @param validVersion
      * @return positive number if errors are found, zero if no errors are found and check the cell, -1 if job was
      * aborted and -2 if cell is OK with DRC date stored.
      */
-	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds, boolean validVersion)
+	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
 	{
 		// Job aborted or scheduled for abort
 		if (job != null && job.checkAbort()) return -1;
@@ -532,14 +521,17 @@ public class Quick
 			// recursively check the subcell
 			CheckInst ci = checkInsts.get(ni);
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
-			int retval = checkThisCell((Cell)np, localIndex, subBounds, validVersion);
+			int retval = checkThisCell((Cell)np, localIndex, subBounds);
 			if (retval < 0)
 				return retval;
             // if cell is in goodDRCDate it means it changes its date for some reason.
-//			if (retval > 0 || goodDRCDate.get(np) != null)
-//                allSubCellsStillOK = false;
-            if (retval > 0)
+            // This happen when a subcell was reloaded and DRC again. The cell containing
+            // the subcell instance must be re-DRC to make sure changes in subCell don't affect
+            // the parent one.
+			if (retval > 0 || goodDRCDate.get(np) != null)
                 allSubCellsStillOK = false;
+//            if (retval > 0)
+//                allSubCellsStillOK = false;
 		}
 
 		// prepare to check cell
@@ -548,7 +540,7 @@ public class Quick
 
 		// if the cell hasn't changed since the last good check, stop now
         Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits, !inMemory);
-		if (validVersion && allSubCellsStillOK && DRC.isCellDRCDateGood(cell, lastGoodDate))
+		if (allSubCellsStillOK && DRC.isCellDRCDateGood(cell, lastGoodDate))
 		{
             return 0;
 		}
@@ -610,7 +602,9 @@ public class Quick
 		}
 
 		// If message founds, then remove any possible good date
-		if (totalMsgFound > 0 || !allSubCellsStillOK)
+        // !allSubCellsStillOK disconnected on April 18, 2006. totalMsgFound should
+        // dictate if this cell is re-marked.
+		if (totalMsgFound > 0) //  || !allSubCellsStillOK)
 		{
 			cleanDRCDate.put(cell, cell);
 		}
@@ -619,7 +613,7 @@ public class Quick
             // Only mark the cell when it passes with a new version of DRC or didn't have
             // the DRC bit on
             // If lastGoodDate == null, wrong bits stored or no date available.
-            if (!validVersion || lastGoodDate == null)
+            if (lastGoodDate == null)
 			    goodDRCDate.put(cell, new Date());
 		}
 

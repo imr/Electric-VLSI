@@ -822,6 +822,25 @@ public class DRC extends Listener
         cell.delVar(DRC_LAST_GOOD_BIT);
     }
 
+    public static String explainBits(int bits)
+    {
+        boolean on = (bits & DRC_BIT_AREA) != 0;
+        String msg = "area bit ";
+        msg += on ? "on" : "off";
+
+        on = (bits & DRC_BIT_COVERAGE) != 0;
+        msg += ", coverage bit ";
+        msg += on ? "on" : "off";
+
+        if ((bits & DRC_BIT_TSMC_FOUNDRY) != 0)
+            msg += ", TSMC bit";
+        else if ((bits & DRC_BIT_ST_FOUNDRY) != 0)
+            msg += ", ST bit";
+        else if ((bits & DRC_BIT_MOSIS_FOUNDRY) != 0)
+            msg += ", Mosis bit";
+        return msg;
+    }
+
     public static int getActiveBits(Technology tech)
     {
         int bits = 0;
