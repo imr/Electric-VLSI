@@ -102,7 +102,7 @@ public final class MenuCommands
             java.lang.reflect.Method makeMenu = menuClass.getMethod("makeMenu", new Class[] {});
             return (EMenu)makeMenu.invoke(null, new Object [] {});
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             return null;
         }
     }
