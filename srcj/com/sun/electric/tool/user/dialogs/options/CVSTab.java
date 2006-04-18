@@ -87,7 +87,7 @@ public class CVSTab extends PreferencePanel {
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         cvsPanel.setLayout(new java.awt.GridBagLayout());
 
         jLabel1.setText("CVS program: ");
