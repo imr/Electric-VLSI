@@ -32,7 +32,7 @@ Ngeneric:Facet-Center|art@0||0|0|0|0||AV
 NCircle|art@7||0|-0.5|6|6|||ART_color()I10
 NOpened-Polygon|art@9||1|-1|2|2|||ART_color()I10|trace()V[-1/-1,1/1,1/0]
 NOpened-Polygon|art@10||1.5|0|1|0|||ART_color()I10|trace()V[0.5/0,-0.5/0]
-NSpline|art@11||0|0.75|5|1.4375|||ART_color()I10|trace()V[-2.5/-0.75,-1.5/0.75,1.5/0.75,2.5/-0.75]
+NSpline|art@11||0|0.75|5|1.44|||ART_color()I10|trace()V[-2.5/-0.75,-1.5/0.75,1.5/0.75,2.5/-0.75]
 NOpened-Polygon|art@12||-3.75|-0.25|0.5|3.5|||ART_color()I10|trace()V[-0.25/1.75,-0.25/-1.75,0.25/-0.75]
 NOpened-Polygon|art@13||-4.25|-1.5|0.5|1|||ART_color()I10|trace()V[-0.25/0.5,0.25/-0.5]
 NOpened-Polygon|art@14||-2.38|-0.12|0.25|0.25|||ART_color()I10|trace()V[-0.125/0.125,0.125/-0.125]
