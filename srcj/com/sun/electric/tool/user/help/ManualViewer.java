@@ -38,7 +38,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
-import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -257,8 +256,14 @@ public class ManualViewer extends EDialog
         }
 
 		// load the table of contents
-		URL url = ManualViewer.class.getResource("helphtml/toc.txt");
+        String indexName = "helphtml/toc.txt";
+		URL url = ManualViewer.class.getResource(indexName);
 		InputStream stream = TextUtils.getURLStream(url, null);
+        if (stream == null)
+        {
+            System.out.println("Can't open " + indexName + " in " + ManualViewer.class.getPackage());
+            return;
+        }
 		InputStreamReader is = new InputStreamReader(stream);
 		pageSequence = new ArrayList<PageInfo>();
 		DefaultMutableTreeNode [] stack = new DefaultMutableTreeNode[20];
@@ -403,8 +408,14 @@ public class ManualViewer extends EDialog
 		}
 
 		// scan all manual entries for menu associations
-		URL url = ManualViewer.class.getResource("helphtml/toc.txt");
+        String indexName = "helphtml/toc.txt";
+		URL url = ManualViewer.class.getResource(indexName);
 		InputStream stream = TextUtils.getURLStream(url, null);
+        if (stream == null)
+        {
+            System.out.println("Can't open " + indexName + " in " + ManualViewer.class.getPackage());
+            return;
+        }
 		InputStreamReader is = new InputStreamReader(stream);
 		for(;;)
 		{

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+IMP: (4/20/06, GVG) Avoing null exception if Manual index can't be found (no Bugzilla)
+
+IMP: (4/20/06, GVG) Making sure exports on icon are on grid (Bug #937)
+
 BUG: (4/20/06, GVG) Inconsistent cell displayed after undo that deletes that cell (Bug #927)
 FIX: Extra code in UderInterfaceMain.firePropertyChange to clean current cells in WindowFrame if they are not
 longer linked.

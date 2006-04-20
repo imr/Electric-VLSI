@@ -30,11 +30,11 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -186,6 +186,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            double locY = portInst.getPoly().getCenterY();
 	            Rectangle2D iconBounds = icon.getBounds();
 				double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
+                newlocX = DBMath.toNearest(newlocX, User.getDefGridXSpacing());
 				double bodyDX = 1;
 				double distToXEdge = locX - bounds.getMinX();
 				if (locX >= bounds.getCenterX())
@@ -194,6 +195,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 					distToXEdge = bounds.getMaxX() - locX;
 				}
 				double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
+                newlocY = DBMath.toNearest(newlocY, User.getDefGridYSpacing());
 				double bodyDY = 1;
 				double distToYEdge = locY - bounds.getMinY();
 				if (locY >= bounds.getCenterY())
