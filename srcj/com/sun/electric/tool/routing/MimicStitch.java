@@ -990,12 +990,12 @@ public class MimicStitch
 					wnd.addHighlightArea(pointRect, cell);
 				} else
 				{
-					wnd.addHighlightLine(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), cell);
+					wnd.addHighlightLine(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), cell, false);
 				}
 			}
 			for(ArcInst ai : allKills)
 			{
-				wnd.addHighlightLine(ai.getHeadLocation().mutable(), ai.getTailLocation().mutable(), cell);
+				wnd.addHighlightLine(ai.getHeadLocation().mutable(), ai.getTailLocation().mutable(), cell, false);
 			}
 			wnd.finishedHighlighting();
 

@@ -123,7 +123,7 @@ public interface EditWindow_ extends EditWindow0 {
 	public void addElectricObject(ElectricObject ni, Cell cell);
 	public Rectangle2D getHighlightedArea();
 	public void addHighlightArea(Rectangle2D pointRect, Cell cell);
-	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell);
+	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell, boolean thick);
 	public void addHighlightText(ElectricObject eobj, Cell cell, Variable.Key varKey);
 	public ElectricObject getOneElectricObject(Class clz);
 	public void clearHighlighting();

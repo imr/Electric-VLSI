@@ -221,6 +221,21 @@ public class Highlighter implements DatabaseChangeListener {
 	 * @param start the start point of the line to add to the list of highlighted objects.
 	 * @param end the end point of the line to add to the list of highlighted objects.
 	 * @param cell the Cell in which this line resides.
+	 * @param thick true for a thick line.
+	 * @return the newly created Highlight object.
+	 */
+	public Highlight2 addLine(Point2D start, Point2D end, Cell cell, boolean thick)
+	{
+        Highlight2 h1 = new HighlightLine(cell, start, end, null, thick);
+        addHighlight(h1);
+		return h1;
+	}
+
+    /**
+	 * Method to add a line to the list of highlighted objects.
+	 * @param start the start point of the line to add to the list of highlighted objects.
+	 * @param end the end point of the line to add to the list of highlighted objects.
+	 * @param cell the Cell in which this line resides.
 	 * @return the newly created Highlight object.
 	 */
 	public Highlight2 addThickLine(Point2D start, Point2D end, Cell cell)

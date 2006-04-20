@@ -2830,9 +2830,9 @@ public class EditWindow extends JPanel
 		highlighter.addArea(rect, cell);
 	}
 
-	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell)
+	public void addHighlightLine(Point2D pt1, Point2D pt2, Cell cell, boolean thick)
 	{
-		highlighter.addLine(pt1, pt2, cell);
+		highlighter.addLine(pt1, pt2, cell, thick);
 	}
 
 	public void addHighlightText(ElectricObject eObj, Cell cell, Variable.Key varKey)

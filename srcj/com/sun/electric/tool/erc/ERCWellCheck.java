@@ -180,12 +180,12 @@ public class ERCWellCheck
 				wnd.clearHighlighting();
 				if (worstPWellDist > 0)
 				{
-					wnd.addHighlightLine(worstPWellCon, worstPWellEdge, cell);
+					wnd.addHighlightLine(worstPWellCon, worstPWellEdge, cell, false);
 					System.out.println("Farthest distance from a P-Well contact is " + worstPWellDist);
 				}
 				if (worstNWellDist > 0)
 				{
-					wnd.addHighlightLine(worstNWellCon, worstNWellEdge, cell);
+					wnd.addHighlightLine(worstNWellCon, worstNWellEdge, cell, false);
 					System.out.println("Farthest distance from an N-Well contact is " + worstNWellDist);
 				}
 				wnd.finishedHighlighting();
