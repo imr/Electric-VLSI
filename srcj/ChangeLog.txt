@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+BUG: (4/20/06, GVG) print info for selected node doesn't work in LE (Bug #944)
+FIX: Mistake when Highlight2 was introduced.
+
 IMP: (4/20/06, GVG) Snapping to grid (Bug #899). Elements in Clipboard.copyListToCell() get snapped to grid.
 Similar to Bug #937 solution.
 

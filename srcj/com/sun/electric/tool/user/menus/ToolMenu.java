@@ -585,7 +585,7 @@ public class ToolMenu {
 			return;
 		}
 		for (Highlight2 h : highlighter.getHighlights()) {
-			if (h.isHighlightEOBJ()) continue;
+			if (!h.isHighlightEOBJ()) continue;
 
 			ElectricObject eobj = h.getElectricObject();
 			if (eobj instanceof PortInst) {
