@@ -57,7 +57,6 @@ import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -601,6 +600,21 @@ public class UserInterfaceMain extends AbstractUserInterface
     private static void firePropertyChange(PropertyChangeEvent e) {
         assert SwingUtilities.isEventDispatchThread();
         ToolBar.updateUndoRedoButtons(getUndoEnabled(), getRedoEnabled());
+
+        // Check all current WindowFrames and determine if displayed cells are still valid
+        // close windows that reference this cell
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			WindowContent content = wf.getContent();
+			if (content == null) continue;
+            Cell c = content.getCell();
+            if (c != null && !c.isLinked()) // got removed in undo
+            {
+                wf.setCellWindow(null);
+                content.fullRepaint();
+            }
+		}
 //        Object[] listeners;
 //        synchronized (UserInterfaceMain.class) {
 //            listeners = undoRedoListenerList.getListenerList();
