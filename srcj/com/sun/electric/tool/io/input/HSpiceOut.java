@@ -344,8 +344,7 @@ public class HSpiceOut extends Simulate
 		if (icURL != null && TextUtils.URLExists(icURL))
 		{
 			// can't process the DC data
-			System.out.println("ERROR: Cannot read old DC format file: " + fileBase + "." + icExtension +
-				".  Use '.options post' to generate '." + swExtension + "' file.");
+			System.out.println("WARNING: Cannot read old DC format file: " + fileBase + "." + icExtension);
 			return;
 		}
 	}
