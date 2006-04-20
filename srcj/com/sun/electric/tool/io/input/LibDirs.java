@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.tool.user.User;
-
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.filechooser.FileView;
 import javax.swing.*;
