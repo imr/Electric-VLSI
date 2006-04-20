@@ -37,7 +37,6 @@ import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
@@ -705,8 +704,12 @@ public class Clipboard
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
+            double px = ni.getAnchorCenterX()+dX;
+            double py = ni.getAnchorCenterY()+dY;
+            px = DBMath.toNearest(px, User.getAlignmentToGrid());
+            py = DBMath.toNearest(py, User.getAlignmentToGrid());
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
-				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
+				new Point2D.Double(px, py),
 					width, height, toCell, ni.getOrient(), name, ni.getTechSpecific());
 			if (newNi == null)
 			{

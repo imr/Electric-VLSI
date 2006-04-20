@@ -4,12 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04j: *********************************
 
+IMP: (4/20/06, GVG) Snapping to grid (Bug #899). Elements in Clipboard.copyListToCell() get snapped to grid.
+Similar to Bug #937 solution.
+
 IMP: (4/20/06, GVG) Avoing null exception if Manual index can't be found (no Bugzilla)
 
 IMP: (4/20/06, GVG) Making sure exports on icon are on grid (Bug #937)
 
 BUG: (4/20/06, GVG) Inconsistent cell displayed after undo that deletes that cell (Bug #927)
-FIX: Extra code in UderInterfaceMain.firePropertyChange to clean current cells in WindowFrame if they are not
+FIX: Extra code in UserInterfaceMain.firePropertyChange to clean current cells in WindowFrame if they are not
 longer linked.
 
 BUG: (4/18/06, GVG) SPICE template for CCVS fixed (reported by Ian).
