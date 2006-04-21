@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04k: *********************************
+
 ************************* Version 8.04j: *********************************
 
 IMP: (4/21/06, GVG) Better handling of unknown HSPICE versions in Electric (Bug #942)
