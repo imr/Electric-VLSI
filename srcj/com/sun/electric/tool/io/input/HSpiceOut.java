@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -446,6 +445,12 @@ public class HSpiceOut extends Simulate
 		int multiplier = TextUtils.atoi(line.toString(), 0, 10);
 		nodcnt += multiplier * 10000;
 		int numSignals = numnoi + nodcnt - 1;
+
+        if (numSignals <= 0)
+        {
+            System.out.println("Error reading " + fileURL.getFile());
+            return;
+        }
 
 		// get version number (known to work with 9007, 9601)
 		int version = getHSpiceInt();
