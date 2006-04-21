@@ -25,7 +25,6 @@ package com.sun.electric.tool.io;
 
 import javax.swing.filechooser.FileFilter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.io.FilenameFilter;
 import java.io.File;
 import java.io.ObjectStreamException;
