@@ -1196,7 +1196,10 @@ class TiledCell {
 
         // refine recursively
         List<Cell> newElems = new ArrayList<Cell>();
-        refine(master, empty, autoLib, topBox, isPlanHorizontal, stdCellParam, newElems, topCell, binary, area);
+        Rectangle2D essentialBnd = master.findEssentialBounds();
+        if (essentialBnd == null)
+            essentialBnd = master.getBounds();
+        refine(master, essentialBnd, empty, autoLib, topBox, isPlanHorizontal, stdCellParam, newElems, topCell, binary, area);
         assert(newElems.size()==1);
         return newElems.iterator().next();
     }
@@ -1367,12 +1370,12 @@ class TiledCell {
      * @param area
      * @return true if refined elements form std cell
      */
-    private boolean refine(Cell master, Cell empty, Library autoLib, Rectangle2D box, boolean isPlanHorizontal, StdCellParams stdCellParam,
+    private boolean refine(Cell master, Rectangle2D masterBnd, Cell empty, Library autoLib, Rectangle2D box, boolean isPlanHorizontal, StdCellParams stdCellParam,
                            List<Cell> newElems, Cell topCell, boolean binary, Area area)
     {
-        Rectangle2D r = master.findEssentialBounds();
-        double masterW = r.getWidth();
-        double masterH = r.getHeight();
+//        Rectangle2D r = master.findEssentialBounds();
+        double masterW = masterBnd.getWidth();
+        double masterH = masterBnd.getHeight();
         double w = box.getWidth(), wHalf = w/2;
         double h = box.getHeight(), hHalf = h/2;
         double x = box.getX();
@@ -1397,6 +1400,7 @@ class TiledCell {
         List<Rectangle2D> boxes = new ArrayList<Rectangle2D>();
         CutType cut = CutType.NONE;
         Rectangle2D bb = null;
+        List<String> namesList = new ArrayList<String>();
 
         if (cutX > 1 && cutY > 1) // refine on XY
         {
@@ -1426,7 +1430,7 @@ class TiledCell {
                 int yPos = i/2;
                 bb = GenMath.getQTreeBox(x, y, widths[xPos], heights[yPos], centerX[xPos], centerY[yPos], i);
                 boxes.add(bb);
-                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(master, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         }
@@ -1451,7 +1455,7 @@ class TiledCell {
             {
                 bb = GenMath.getQTreeBox(x, y, widths[i], h, centerX[i], box.getCenterY(), i);
                 boxes.add(bb);
-                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(master, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         }
@@ -1475,7 +1479,7 @@ class TiledCell {
             {
                 bb = GenMath.getQTreeBox(x, y, w, heights[i], box.getCenterX(), centerY[i], i*2);
                 boxes.add(bb);
-                if (!refine(master, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(master, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         } else {
@@ -1492,21 +1496,23 @@ class TiledCell {
                     box.getCenterY() - master.getBounds().getCenterY());
             boolean isExcluded = area.intersects(box);
             stdCell = true;
+            Cell c = (isExcluded) ? empty : FillGenerator.detectOverlappingBars(master, master, empty, fillTransUp, nodesToRemove, arcsToRemove,
+                    topCell, new NodeInst[] {}, drcSpacing, 0);
 
-            if (isExcluded || FillGenerator.detectOverlappingBars(master, fillTransUp, nodesToRemove, arcsToRemove,
-                    topCell, new NodeInst[] {}, drcSpacing))
+            if (c == null)
             {
-                boolean emptyCell = isExcluded || arcsToRemove.size() == master.getNumArcs();
+                assert(!isExcluded);
+                boolean isEmptyCell = isExcluded || arcsToRemove.size() == master.getNumArcs();
                 Cell dummyCell = null;
 
-                if (emptyCell)
+                if (isEmptyCell)
                     dummyCell = empty;
                 else
                 {
                     // Replace by dummy cell for now
                     String dummyName = "dummy";
                     // Collect names from nodes and arcs to remove if the cell is not empty
-                    List<String> namesList = new ArrayList<String>();
+                    namesList.clear();
                     for (NodeInst ni : nodesToRemove)
                     {
                         // Not deleting the pins otherwise cells can be connected.
@@ -1537,7 +1543,8 @@ class TiledCell {
                         for (NodeInst ni : nodesToRemove)
                         {
                             NodeInst d = dummyCell.findNode(ni.getName());
-                            d.kill();
+                            if (d != null)
+                                d.kill();
                         }
 
                         for (ArcInst ai : arcsToRemove)
@@ -1547,13 +1554,20 @@ class TiledCell {
                             if (d != null)
                                 d.kill();
                         }
+                        // if cell is now empty
+                        if (dummyCell.getNumArcs() == 0) // now is empty
+                        {
+                            dummyCell.kill();
+                            dummyCell = empty;
+                            isEmptyCell = true;
+                        }
                     }
                 }
                 newElems.add(dummyCell);
-                stdCell = emptyCell;
+                stdCell = isEmptyCell;
             }
             else
-                newElems.add(master);
+                newElems.add(c);
             return stdCell;
         }
 
@@ -1571,11 +1585,15 @@ class TiledCell {
             }
         }
 
-        // Search by names
-        if (!stdCell)
-        {
-            stdCell = stdC;
-        }
+        stdCell = stdC;
+
+//        // Search by names
+//        if (!stdCell)
+//        {
+//            stdCell = stdC;
+//        }
+//
+//        stdC = stdCell;
 
         if (stdCell)
         {
@@ -1588,9 +1606,29 @@ class TiledCell {
             tiledCell = master.getLibrary().findNodeProto(tileName);
         }
         else
+        {
+            // Better to name based on children found
+            namesList.clear();
+            for (Cell c : childrenList)
+            {
+                namesList.add(c.getName());
+            }
+            namesList.add(cut.toString());
+            // you can't sort names otherwise you look order in the qtree
+//            Collections.sort(namesList);
+            int code = namesList.toString().hashCode();
             tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+x+","+y+"){lay}";
+            tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+code+"){lay}";
+            if (code == -1248788423)
+                System.out.println("Here");
+            tiledCell = master.getLibrary().findNodeProto(tileName);
+            if  (tiledCell != null)
+            {
+                stdC = true;
+            }
+        }
 
-        if (tiledCell == null || !stdCell)
+        if (tiledCell == null || !stdC)
         {
             tiledCell = Cell.newInstance(master.getLibrary(), tileName);
             LayoutLib.newNodeInst(Tech.essentialBounds, -w/2, -h/2,
@@ -1682,9 +1720,9 @@ class TiledCell {
  */
 public class FillGenerator implements Serializable {
     
-    public static boolean detectOverlappingBars(Cell cell, AffineTransform fillTransUp,
-                                                HashSet<NodeInst> nodesToRemove, HashSet<ArcInst> arcsToRemove,
-                                                Cell topCell, NodeInst[] ignore, double drcSpacing)
+    public static Cell detectOverlappingBars(Cell cell, Cell master, Cell empty, AffineTransform fillTransUp,
+                                             HashSet<NodeInst> nodesToRemove, HashSet<ArcInst> arcsToRemove,
+                                             Cell topCell, NodeInst[] ignore, double drcSpacing, int level)
     {
         List<Layer.Function> tmp = new ArrayList<Layer.Function>();
 
@@ -1697,9 +1735,23 @@ public class FillGenerator implements Serializable {
 
             tmp.clear();
             NodeProto np = ni.getProto();
+
+            // Only one level of hierarchy otherwise it gets too complicated
             if (ni.isCellInstance())
             {
-                throw new Error("This should not happen");
+                Cell c = (Cell)ni.getProto();
+                AffineTransform subTransUp = ni.transformOut(fillTransUp);
+                HashSet<NodeInst> nodesToRemoveSub = new HashSet<NodeInst>();
+                HashSet<ArcInst> arcsToRemoveSub = new HashSet<ArcInst>();
+                Cell tmpCell = detectOverlappingBars(c, master, empty, subTransUp, nodesToRemoveSub, arcsToRemoveSub,
+                        topCell, ignore, drcSpacing, ++level);
+                if (tmpCell == empty || tmpCell == null)
+                {
+                    // return true. Better to not include this master due to complexity of the subcells.
+                    // not sure what to delete
+                    return empty;
+                }
+                continue;
             }
             PrimitiveNode pn = (PrimitiveNode)np;
             if (pn.getFunction() == PrimitiveNode.Function.PIN) continue; // pins have pseudo layers
@@ -1738,6 +1790,8 @@ public class FillGenerator implements Serializable {
             }
         }
 
+        if (level == 0)
+        {
         Set<ArcProto> names = new HashSet<ArcProto>();
         // Check if there are not contacts or ping that don't have at least one or zero arc per metal
         // If they don't have, then they are floating
@@ -1751,7 +1805,8 @@ public class FillGenerator implements Serializable {
             if (nodesToRemove.contains(ni))
                 continue;
 
-            int minNum = (ni.getProto().getFunction() == PrimitiveNode.Function.PIN)?0:1;
+            int minNum = (ni.getProto().getFunction() == PrimitiveNode.Function.PIN ||
+                    ni.isCellInstance())?0:1;
             // At least should have connections to both layers
             names.clear();
             boolean found = false;
@@ -1770,8 +1825,9 @@ public class FillGenerator implements Serializable {
             if (!found) // element could be deleted
                 nodesToRemove.add(ni);
         }
+        }
 
-        return nodesToRemove.size() > 0 || arcsToRemove.size() > 0;
+        return (nodesToRemove.size() > 0 || arcsToRemove.size() > 0) ? null : master;
     }
     
     /**
@@ -1819,7 +1875,9 @@ public class FillGenerator implements Serializable {
                     // instance found: look inside it for offending geometry
                     AffineTransform rTransI = ni.rotateIn();
                     AffineTransform tTransI = ni.translateIn();
+                    AffineTransform extra = ni.transformIn();
                     rTransI.preConcatenate(tTransI);
+                    assert(extra.equals(rTransI));
                     subBound.setRect(nodeBounds);
                     DBMath.transformRect(subBound, rTransI);
 
@@ -2208,6 +2266,8 @@ public class FillGenerator implements Serializable {
         {
             // must adjust minSize
             Rectangle2D r = master.findEssentialBounds(); // must use essential elements to match the edges
+            if (r == null)
+                r = master.getBounds();
             minTileSizeX = r.getWidth();
             minTileSizeY = r.getHeight();
         }
@@ -2439,10 +2499,9 @@ public class FillGenerator implements Serializable {
                 PortInst p = portList.get(i);
 
                 Layer l = FillGenJob.getMetalLayerFromExport(p.getPortProto());
+                // Checking that pin is on metal port
                 if (l != null)
                     plList.add(new PortConfig(p, exportList.get(i), l));
-                else
-                    System.out.println("F ");
             }
 //            for (PortInst p : portList)
 //            {
@@ -3216,6 +3275,12 @@ public class FillGenerator implements Serializable {
                         start = i;
                     if (end == -1 && VddGndStraps.PINS[i] == topPin)
                         end = i;
+                }
+                if (start > end)
+                {
+                    int tmp = start;
+                    start = end;
+                    end = tmp;
                 }
                 for (int i = start; i <= end; i++)
                 {
