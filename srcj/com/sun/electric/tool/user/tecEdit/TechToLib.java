@@ -41,7 +41,6 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -61,10 +60,12 @@ import javax.swing.JOptionPane;
  */
 public class TechToLib
 {
-//	INTBIG us_teceddrclayers = 0;
-//	CHAR **us_teceddrclayernames = 0;
-//	extern INTBIG           us_teceddrclayers;
-//	extern CHAR           **us_teceddrclayernames;
+    public static String makeLibFromTechnology(Technology tech)
+    {
+		LibFromTechJob job = new LibFromTechJob(tech, true);
+        job.doIt();
+        return job.getLibraryName();
+    }
 
 	/**
 	 * Method to convert the current technology into a library.
@@ -94,7 +95,7 @@ public class TechToLib
 			System.out.println();
 			return;
 		}
-		LibFromTechJob job = new LibFromTechJob(tech);
+		new LibFromTechJob(tech, false);
 	}
 
 	/**
@@ -103,21 +104,30 @@ public class TechToLib
 	private static class LibFromTechJob extends Job
 	{
 		private Technology tech;
+        private String libraryName;
+        private boolean doItNow;
 
-		private LibFromTechJob(Technology tech)
+		private LibFromTechJob(Technology tech, boolean doItNow)
 		{
 			super("Make Technology Library from Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.tech = tech;
-			startJob();
+            this.doItNow = doItNow;
+            if (!doItNow)
+                startJob();
 		}
 
-		public boolean doIt() throws JobException
+        public String getLibraryName() { return libraryName; }
+
+		public boolean doIt()
 		{
 			Library lib = makeLibFromTech(tech);
 			if (lib == null) return false;
 
 			// switch to the library and show a cell
 			lib.setCurrent();
+            if (!doItNow)
+            fieldVariableChanged("libraryName");
+            libraryName = lib.getName();
 			return true;
 		}
 	}
@@ -170,7 +180,7 @@ public class TechToLib
 		{
 			Layer layer = tech.getLayer(i);
 			EGraphics desc = layer.getGraphics();
-			String fName = "layer-" + layer.getName();
+			String fName = "layer-" + layer.getName() + "{lay}";
 
 			// make sure the layer doesn't exist
 			if (lib.findNodeProto(fName) != null)
@@ -192,7 +202,6 @@ public class TechToLib
 
 			// compute foreign file formats
 			li.cif = layer.getCIFLayer();
-//			li.gds = layer.getGDSLayer();
             if (foundry != null)
                 li.gds = foundry.getGDSLayer(layer);
 
@@ -221,7 +230,7 @@ public class TechToLib
 		{
 			ArcProto ap = it.next();
 			if (ap.isNotUsed()) continue;
-			String fName = "arc-" + ap.getName();
+			String fName = "arc-" + ap.getName() + "{lay}";
 
 			// make sure the arc doesn't exist
 			if (lib.findNodeProto(fName) != null)
@@ -357,11 +366,6 @@ public class TechToLib
                 double newXSize = xsc[e] + so.getLowXOffset() + so.getHighXOffset();
                 double newYSize = ysc[e] + so.getLowYOffset() + so.getHighYOffset();
                 oNi.lowLevelModify(oNi.getD().withAnchor(EPoint.snap(pos[e])).withSize(newXSize, newYSize));
-//				double dX = pos[e].getX() - oNi.getAnchorCenterX();
-//				double dY = pos[e].getY() - oNi.getAnchorCenterY();
-//				double dXSize = xsc[e] + so.getLowXOffset() + so.getHighXOffset() - oNi.getXSize();
-//				double dYSize = ysc[e] + so.getLowYOffset() + so.getHighYOffset() - oNi.getYSize();
-//				oNi.lowLevelModify(dX, dY, dXSize, dYSize, 0);
 				Poly [] polys = tech.getShapeOfNode(oNi);
 				int j = polys.length;
 				for(int i=0; i<j; i++)
@@ -388,7 +392,7 @@ public class TechToLib
 					if (first)
 					{
 						first = false;
-						String fName = "node-" + pnp.getName();
+						String fName = "node-" + pnp.getName() + "{lay}";
 
 						// make sure the node doesn't exist
 						if (lib.findNodeProto(fName) != null)
