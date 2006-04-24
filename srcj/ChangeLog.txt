@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
-IMP: Tests plugin refactored. Added DRC tests for primitive nodes using TechEdit
+IMP (4/24/06, GVG): Tests plugin refactored. Added DRC tests for primitive nodes using TechEdit
 functions.
 
 ************************* Version 8.04j: *********************************
