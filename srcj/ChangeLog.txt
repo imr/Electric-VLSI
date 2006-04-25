@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+IMP: (4/25/06, GVG) Aligning metals based on maximum numbers assigned to reserved tracks and spacing values in 
+template fill generator otherwise tracks get misaligned.
+
 IMP: (4/24/06, GVG) Preparing AFG dialog box for release
 
 IMP: (4/24/06, GVG) Tests plugin refactored. Added DRC tests for primitive nodes using TechEdit

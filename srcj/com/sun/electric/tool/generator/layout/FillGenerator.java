@@ -107,18 +107,6 @@ class MetalFloorplanFlex extends MetalFloorplanBase {
         this.vddReserve = vddReserve;
         this.gndReserve = gndReserve;
         minWidth = vddReserve + gndReserve + 2*space + 2*gndWidth + 2*vddWidth;
-//        int divider = 1;
-
-//        if (horizontal)
-//        {
-//            divider = (int)Math.floor(cellHeight/minWidth);
-//            if (divider > 1) cellHeight /= divider;
-//        }
-//        else
-//        {
-//            divider = (int)Math.floor(cellWidth/minWidth);
-//            if (divider > 1) cellWidth /= divider;
-//        }
     }
 }
 
@@ -1955,6 +1943,7 @@ public class FillGenerator implements Serializable {
 	private static final double m6via = 5;
 	private static final double m6sp = 4;
 	private static final double m6SP = 8;
+    private static final double drcRules[] = {m1SP, m1SP, m1SP, m1SP, m1SP, m1SP, m6SP};
 
 	private double width=Double.NaN, height=Double.NaN;
     private double targetWidth=Double.NaN, targetHeight=Double.NaN, minTileSizeX=Double.NaN, minTileSizeY=Double.NaN;
@@ -1965,7 +1954,7 @@ public class FillGenerator implements Serializable {
     private boolean binary; // for qTree approach
     private Cell master;
 	private double[] vddReserved = {0, 0, 0, 0, 0, 0, 0};
-	private double[] gndReserved = {0, 0, 0, 0, 0, 0, 0}; 
+	private double[] gndReserved = {0, 0, 0, 0, 0, 0, 0};
 	private StdCellParams stdCell, stdCellP;
 	private CapCell capCell, capCellP;
 	private Floorplan[] plans;
@@ -1990,6 +1979,39 @@ public class FillGenerator implements Serializable {
 		double[] vddRes = vddReserved;
 		double[] gndRes = gndReserved;
 		boolean evenHor = evenLayersHorizontal;
+        boolean alignedMetals = true;
+        double[] spacing = drcRules;
+
+        if (alignedMetals)
+        {
+            double maxVddRes = 0, maxGndRes = 0, maxSpacing = 0;
+            for (int i = 0; i < vddRes.length; i++)
+            {
+                boolean vddOK = false, gndOK = false;
+                if (vddRes[i] > 0)
+                {
+                    vddOK = true;
+                    if (maxVddRes < vddRes[i]) maxVddRes = vddRes[i];
+                }
+                if (gndRes[i] > 0)
+                {
+                    gndOK = true;
+                    if (maxGndRes < gndRes[i]) maxGndRes = gndRes[i];
+                }
+                if (gndOK || vddOK) // checking max spacing rule
+                {
+                    if (maxSpacing < drcRules[i]) maxSpacing = drcRules[i];
+                }
+            }
+            // correct the values
+            for (int i = 0; i < vddRes.length; i++)
+            {
+                vddRes[i] = maxVddRes;
+                gndRes[i] = maxGndRes;
+                spacing[i] = maxSpacing;
+            }
+        }
+
         if (metalFlex)
         {
             if (!hierFlex)
@@ -1997,11 +2019,11 @@ public class FillGenerator implements Serializable {
                 return new Floorplan[] {
                 null,
                 new CapFloorplan(w, h, 			 	                 !evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[2], gndRes[2], m1SP,  evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[3], gndRes[3], m1SP, !evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[4], gndRes[4], m1SP,  evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[5], gndRes[5], m1SP, !evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], m6SP,  evenHor)
+                new MetalFloorplanFlex(w, h, vddRes[2], gndRes[2], spacing[2],  evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[3], gndRes[3], spacing[3], !evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[4], gndRes[4], spacing[4],  evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[5], gndRes[5], spacing[5], !evenHor),
+                new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], spacing[6],  evenHor)
                 };
             }
             w = width = minTileSizeX;
@@ -2010,11 +2032,11 @@ public class FillGenerator implements Serializable {
 		return new Floorplan[] {
 			null,
 			new CapFloorplan(w, h, 			 	                 !evenHor),
-			new MetalFloorplan(w, h, vddRes[2], gndRes[2], m1SP,  evenHor),
-			new MetalFloorplan(w, h, vddRes[3], gndRes[3], m1SP, !evenHor),
-			new MetalFloorplan(w, h, vddRes[4], gndRes[4], m1SP,  evenHor),
-			new MetalFloorplan(w, h, vddRes[5], gndRes[5], m1SP, !evenHor),
-			new MetalFloorplan(w, h, vddRes[6], gndRes[6], m6SP,  evenHor)
+			new MetalFloorplan(w, h, vddRes[2], gndRes[2], spacing[2],  evenHor),
+			new MetalFloorplan(w, h, vddRes[3], gndRes[3], spacing[3], !evenHor),
+			new MetalFloorplan(w, h, vddRes[4], gndRes[4], spacing[4],  evenHor),
+			new MetalFloorplan(w, h, vddRes[5], gndRes[5], spacing[5], !evenHor),
+			new MetalFloorplan(w, h, vddRes[6], gndRes[6], spacing[6],  evenHor)
 		};
 	}
 
