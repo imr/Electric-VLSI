@@ -2029,6 +2029,8 @@ public class FillGenerator implements Serializable {
 		if (libInitialized) return;
 
 		LayoutLib.error(libName==null, "no library specified. Use setFillLibrary()");
+        LayoutLib.error(width==Double.NaN, "no width specified. Use setFillCellWidth()");
+        LayoutLib.error(height==Double.NaN, "no height specified. Use setFillCellHeight()");
 
 		plans = makeFloorplans(metalFlex, false);
 		if (!metalFlex) printCoverage(plans);
