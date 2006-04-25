@@ -57,6 +57,7 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -78,6 +79,7 @@ import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.FillGenerator;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
@@ -112,6 +114,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.FillGen;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -183,7 +186,7 @@ public class ToolMenu {
 				    Simulation.startSimulation(Simulation.IRSIM_ENGINE, true, null, null); }} : null,
 
                 Simulation.hasIRSIM() ? SEPARATOR : null,
-                        
+
 		        new EMenuItem("_ALS: Simulate Current Cell") { public void run() {
                     Simulation.startSimulation(Simulation.ALS_ENGINE, false, null, null); }},
 
@@ -349,7 +352,7 @@ public class ToolMenu {
                     new SchemNamesToLay.RenameJob(); }},
 		        new EMenuItem("Highlight _Equivalent") { public void run() {
 			        HighlightEquivalent.highlight(); }},
-		
+
                 new EMenu("Add NCC _Annotation to Cell",
 		        	new EMenuItem("Exports Connected by Parent _vdd") { public void run() {
                         NccCellAnnotations.makeNCCAnnotation("exportsConnectedByParent vdd /vdd_[0-9]+/"); }},
@@ -390,7 +393,7 @@ public class ToolMenu {
                     listGeomsAllNetworksCommand(); }},
 
                 SEPARATOR,
-		
+
                 new EMenuItem("E_xtract Current Cell") { public void run() {
                     Connectivity.extractCurCell(false); }},
                 new EMenuItem("Extract Current _Hierarchy") { public void run() {
@@ -429,7 +432,7 @@ public class ToolMenu {
 
 		//------------------- Routing
 
-		// mnemonic keys available:  B D FG IJK   OPQ    V XY 
+		// mnemonic keys available:  B D FG IJK   OPQ    V XY
             new EMenu("_Routing",
                 new EMenuItem.CheckBox("Enable _Auto-Stitching") {
                     public boolean isSelected() { return Routing.isAutoStitchOn(); }
@@ -494,6 +497,8 @@ public class ToolMenu {
                     ROMGenerator.generateROM(); }},
 		        new EMenuItem("MOSIS CMOS P_LA Generator...") { public void run() {
                     PLA.generate(); }},
+                new EMenuItem("Fill (MoCMOS)") { public void run() {
+                    FillGen.openFillGeneratorDialog(MoCMOS.tech); }},
 		        new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
                     new GateLayoutGenerator(Tech.Type.MOCMOS); }},
                 new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
@@ -742,7 +747,7 @@ public class ToolMenu {
 	{
 		if (Library.findLibrary("purpleGeneric180") != null) return;
 		URL url = LibFile.getLibFile("purpleGeneric180.jelib");
-		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
+		new FileMenu.ReadLibrary(url, FileType.JELIB, null);
 	}
 
 	/**
@@ -939,7 +944,7 @@ public class ToolMenu {
             System.out.println("  Going up the hierarchy from " + cell + ":");
             if (findPortsUp(netlist, net, cell, listedExports)) break;
             System.out.println("  Going down the hierarchy from " + cell + ":");
-            if (findPortsDown(netlist, net, cell, listedExports)) break;
+            if (findPortsDown(netlist, net, listedExports)) break;
         }
     }
 
@@ -966,7 +971,7 @@ public class ToolMenu {
             System.out.println("Network " + net.describe(true) + ":");
 
             // find all exports on network "net"
-            if (findPortsDown(netlist, net, cell, new HashSet<Export>())) break;
+            if (findPortsDown(netlist, net, new HashSet<Export>())) break;
         }
     }
 
@@ -1023,7 +1028,7 @@ public class ToolMenu {
      * ports connected to net "net" in cell "cell", and recurse down the hierarchy
      * @return true on error.
      */
-    private static boolean findPortsDown(Netlist netlist, Network net, Cell cell, HashSet<Export> listedExports)
+    private static boolean findPortsDown(Netlist netlist, Network net, HashSet<Export> listedExports)
     {
         // look at every node in the cell
         for(Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); )
@@ -1055,7 +1060,7 @@ public class ToolMenu {
             			return true;
             		}
                     Network subNet = subNetlist.getNetwork(pp, i);
-                    if (findPortsDown(subNetlist, subNet, subCell, listedExports)) return true;
+                    if (findPortsDown(subNetlist, subNet, listedExports)) return true;
                 }
             }
         }
@@ -1087,7 +1092,7 @@ public class ToolMenu {
         if (wnd == null) return;
         Cell cell = wnd.getCell();
         if (cell == null) return;
-        ListGeomsAllNetworksJob job = new ListGeomsAllNetworksJob(cell);
+        new ListGeomsAllNetworksJob(cell);
     }
 
     private static class ListGeomsAllNetworksJob extends Job {
@@ -1235,14 +1240,13 @@ public class ToolMenu {
      */
     public static void addMultiplierCommand()
     {
-        Cell cell = WindowFrame.needCurCell();
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
         NodeInst ni = (NodeInst)highlighter.getOneElectricObject(NodeInst.class);
         if (ni == null) return;
-        AddMultiplier job = new AddMultiplier(ni);
+        new AddMultiplier(ni);
     }
 
     private static class AddMultiplier extends Job
@@ -1259,7 +1263,7 @@ public class ToolMenu {
         public boolean doIt() throws JobException
         {
             TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDispPart(TextDescriptor.DispPos.NAMEVALUE).withOff(-1.5, -1);
-            Variable var = ni.newVar(Simulation.M_FACTOR_KEY, new Double(1.0), td);
+            ni.newVar(Simulation.M_FACTOR_KEY, new Double(1.0), td);
             return true;
         }
     }
@@ -1271,7 +1275,7 @@ public class ToolMenu {
      */
     public static void makeTemplate(Variable.Key templateKey)
     {
-        MakeTemplate job = new MakeTemplate(templateKey);
+        new MakeTemplate(templateKey);
     }
 
     private static class MakeTemplate extends Job
@@ -1440,7 +1444,7 @@ public class ToolMenu {
 			// read standard cell library
 			System.out.println("Reading Standard Cell Library '" + SilComp.SCLIBNAME + "'");
 			URL fileURL = LibFile.getLibFile(SilComp.SCLIBNAME + ".jelib");
-			Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true);
+			LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true);
 //	        Undo.noUndoAllowed();
 			return true;
 		}
@@ -1659,4 +1663,13 @@ public class ToolMenu {
             }
         }
     }
+
+    private static void newAutoFill(boolean hierarchy, boolean binary)
+    {
+        Cell cell = WindowFrame.getCurrentCell();
+        if (cell == null) return;
+
+        FillGenerator.generateAutoFill(cell, hierarchy, binary, false);
+    }
+
 }

@@ -46,7 +46,6 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.extract.LayerCoverageTool;
 import com.sun.electric.tool.routing.*;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -1496,6 +1495,7 @@ class TiledCell {
                     box.getCenterY() - master.getBounds().getCenterY());
             boolean isExcluded = area.intersects(box);
             stdCell = true;
+
             Cell c = (isExcluded) ? empty : FillGenerator.detectOverlappingBars(master, master, empty, fillTransUp, nodesToRemove, arcsToRemove,
                     topCell, new NodeInst[] {}, drcSpacing, 0);
 
@@ -1574,6 +1574,7 @@ class TiledCell {
         Cell tiledCell = null;
         String tileName = null;
         boolean stdC = true;
+        boolean readStdC = true;
         assert(childrenList.size() > 1);
         Cell template = childrenList.get(0);
         for (int i = 1; i < childrenList.size(); i++)
@@ -1581,19 +1582,23 @@ class TiledCell {
             if (template != childrenList.get(i))
             {
                 stdC = false;
+                readStdC = false;
                 break;
             }
         }
 
-        stdCell = stdC;
+        if (readStdC != stdCell)
+            System.out.println("They are not std");
 
-//        // Search by names
-//        if (!stdCell)
-//        {
-//            stdCell = stdC;
-//        }
-//
-//        stdC = stdCell;
+        stdCell = readStdC;
+
+        // Search by names
+        if (!stdCell)
+        {
+            stdCell = stdC;
+        }
+
+        stdC = stdCell;
 
         if (stdCell)
         {
@@ -1619,7 +1624,7 @@ class TiledCell {
             int code = namesList.toString().hashCode();
             tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+x+","+y+"){lay}";
             tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+code+"){lay}";
-            if (code == -1248788423)
+            if (code == -245269839 || code == -562521242 || code == -1661756570)
                 System.out.println("Here");
             tiledCell = master.getLibrary().findNodeProto(tileName);
             if  (tiledCell != null)
@@ -2546,13 +2551,28 @@ public class FillGenerator implements Serializable {
             }
         }
 
-		public boolean doIt() throws JobException
-		{
+        public boolean doIt()
+        {
             // logger must be created in server otherwise it won't return the elements.
             log = ErrorLogger.newInstance("Fill");
             if (!doItNow)
                 fieldVariableChanged("log");
 
+            if (topCell == null)
+                doTemplateFill();
+            else
+                doFillOnCell();
+            return true;
+        }
+
+        public void doTemplateFill()
+        {
+            fillGen.standardMakeFillCell(firstMetal, lastMetal, perimeter, cellsList, false);
+            fillGen.makeGallery();
+        }
+
+		public void doFillOnCell()
+		{
             // Searching for possible master
             Cell master = searchPossibleMaster();
 
@@ -2590,7 +2610,7 @@ public class FillGenerator implements Serializable {
                     fillGen.standardMakeFillCell(firstMetal, lastMetal, perimeter, cellsList, true);
 //            fillGen.makeGallery();
 
-            if (topCell == null || portList == null || portList.size() == 0) return true;
+            if (topCell == null || portList == null || portList.size() == 0) return;
 
             Cell connectionCell = Cell.newInstance(topCell.getLibrary(), topCell.getName()+"fill{lay}");
 
@@ -2767,8 +2787,6 @@ public class FillGenerator implements Serializable {
 //                    }
 //                }
 //            }
-
-            return true;
         }
 
         public void terminateOK()
