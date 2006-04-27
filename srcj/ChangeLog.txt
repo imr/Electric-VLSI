@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
-BUG: (4/26/06, GVG) Get info dialog box remains behind other windows (Bug #949)
+BUG: (4/26/06, GVG) Get info dialog box remains behind other windows (Bug #949). Affecting only MacOSX apparently.
 FIX: Fixing unexpected change done for bug #878.
 
 IMP: (4/25/06, GVG) Aligning metals based on maximum numbers assigned to reserved tracks and spacing values in 
