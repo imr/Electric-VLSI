@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (4/27/06, GVG) Exception in printing due to WindowFrame being null (Bug #953)
+FIX: Detect wf==null in EditWindow.fireCellHistoryStatus() (dirty fix!)
+
 BUG: (4/26/06, GVG) Get info dialog box remains behind other windows (Bug #949). Affecting only MacOSX apparently.
 FIX: Fixing unexpected change done for bug #878.
 

@@ -3380,6 +3380,7 @@ public class EditWindow extends JPanel
      * button states.
      */
     public void fireCellHistoryStatus() {
+        if (wf == null) return; // dirty trick
         ToolBar toolBar = wf.getToolBar();
         if (toolBar == null) return;
         toolBar.updateCellHistoryStatus(cellHistoryCanGoBack(), cellHistoryCanGoForward());
