@@ -709,7 +709,7 @@ public class Clipboard
             px = DBMath.toNearest(px, User.getAlignmentToGrid());
             py = DBMath.toNearest(py, User.getAlignmentToGrid());
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
-				new Point2D.Double(px, py),
+				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
 					width, height, toCell, ni.getOrient(), name, ni.getTechSpecific());
 			if (newNi == null)
 			{
