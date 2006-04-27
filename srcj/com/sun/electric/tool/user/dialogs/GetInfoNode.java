@@ -128,8 +128,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
         if (!theDialog.isVisible()) {
             theDialog.pack();
-		    theDialog.setVisible(true);
         }
+        theDialog.setVisible(true);
 	}
 
     /**
