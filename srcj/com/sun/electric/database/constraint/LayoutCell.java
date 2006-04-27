@@ -774,8 +774,8 @@ class LayoutCell {
 	private void updateArc(ArcInst ai, Point2D headPt, Point2D tailPt, Integer arctyp)
 	{
 		// set the proper arcinst position
-		Point2D oldHeadPt = ai.getHeadLocation();
-		Point2D oldTailPt = ai.getTailLocation();
+//		Point2D oldHeadPt = ai.getHeadLocation();
+//		Point2D oldTailPt = ai.getTailLocation();
 //		double oldHeadX = oldHeadPt.getX();   double oldHeadY = oldHeadPt.getY();
 //		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
 		// now make the change
