@@ -23,10 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -707,9 +704,11 @@ public class Clipboard
             double px = ni.getAnchorCenterX()+dX;
             double py = ni.getAnchorCenterY()+dY;
             px = DBMath.toNearest(px, User.getAlignmentToGrid());
-            py = DBMath.toNearest(py, User.getAlignmentToGrid());
+            py = DBMath.toNearest(py, User.getAlignmentToGrid()); 
+            EPoint point = new EPoint(px, py);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
-				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
+                    point,
+//				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
 					width, height, toCell, ni.getOrient(), name, ni.getTechSpecific());
 			if (newNi == null)
 			{
@@ -774,9 +773,16 @@ public class Clipboard
 						name = newName;
 					}
 				}
+                EPoint headP = new EPoint(ai.getHeadLocation().getX() + dX, ai.getHeadLocation().getY() + dY);
+                EPoint tailP = new EPoint(ai.getTailLocation().getX() + dX, ai.getTailLocation().getY() + dY);
+                headP = headPi.getPoly().getCenter();
+                tailP = tailPi.getPoly().getCenter();
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
-					headPi, tailPi, new Point2D.Double(ai.getHeadLocation().getX() + dX, ai.getHeadLocation().getY() + dY),
-				        new Point2D.Double(ai.getTailLocation().getX() + dX, ai.getTailLocation().getY() + dY), name, ai.getAngle());
+					headPi, tailPi,
+                        headP, tailP,
+//                        new Point2D.Double(ai.getHeadLocation().getX() + dX, ai.getHeadLocation().getY() + dY),
+//				        new Point2D.Double(ai.getTailLocation().getX() + dX, ai.getTailLocation().getY() + dY),
+                        name, ai.getAngle());
 				if (newAr == null)
 				{
 					System.out.println("Cannot create arc");

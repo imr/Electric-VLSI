@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (4/28/06, GVG) Snapping problems in Clipboard.copyListToCell after fixing Bug #899.
+FIX: Getting arc port information based on new node locations. This should fix 947 and 899.
+
 BUG: (4/27/06, GVG) Exception in printing due to WindowFrame being null (Bug #953)
 FIX: Detect wf==null in EditWindow.fireCellHistoryStatus() (dirty fix!)
 
