@@ -3384,10 +3384,6 @@ public class EditWindow extends JPanel
         ToolBar toolBar = wf.getToolBar();
         if (toolBar == null) return;
         toolBar.updateCellHistoryStatus(cellHistoryCanGoBack(), cellHistoryCanGoForward());
-//        if (cellHistoryLocation > 0)
-//            getPanel().firePropertyChange(propGoBackEnabled, false, true);
-//        if (cellHistoryLocation < (cellHistory.size() - 1))
-//            getPanel().firePropertyChange(propGoForwardEnabled, false, true);
     }
 
     public CellHistoryState getCellHistory() {
