@@ -1424,6 +1424,16 @@ public class PolyBase implements Shape, PolyNodeMerge
 		return b.getCenterY();
 	}
 
+    /**
+     * Method to return the center of the bounding box containing this PolyBase
+     * @return
+     */
+    public EPoint getCenter()
+    {
+        Rectangle2D b = getBounds2D();
+        return new EPoint(b.getCenterX(), b.getCenterY());
+    }
+
 	/**
 	 * Method to return the bounds of this Poly.
 	 * @return the bounds of this Poly.
