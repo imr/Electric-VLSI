@@ -2051,8 +2051,8 @@ public class FillGenerator implements Serializable {
 		if (libInitialized) return;
 
 		LayoutLib.error(libName==null, "no library specified. Use setFillLibrary()");
-        LayoutLib.error(width==Double.NaN, "no width specified. Use setFillCellWidth()");
-        LayoutLib.error(height==Double.NaN, "no height specified. Use setFillCellHeight()");
+        LayoutLib.error((width==Double.NaN || width<=0), "no width specified. Use setFillCellWidth()");
+        LayoutLib.error((height==Double.NaN || height<=0), "no height specified. Use setFillCellHeight()");
 
 		plans = makeFloorplans(metalFlex, false);
 		if (!metalFlex) printCoverage(plans);
@@ -2601,18 +2601,18 @@ public class FillGenerator implements Serializable {
             Cell master = searchPossibleMaster();
 
             // Creating fills only for layers found in exports
-            firstMetal = Integer.MAX_VALUE;
+//            firstMetal = Integer.MAX_VALUE;
 //            lastMetal = Integer.MIN_VALUE;
             List<PortConfig> portList = searchPortList();
 
-            for (PortConfig p : portList)
-            {
-                int index = p.l.getIndex() + 1;
-                if (index < firstMetal) firstMetal = index;
-//                if (lastMetal < index) lastMetal = index;
-            }
-            if (firstMetal <= 2) firstMetal = 3;
-            if (lastMetal < firstMetal) lastMetal = firstMetal;
+//            for (PortConfig p : portList)
+//            {
+//                int index = p.l.getIndex() + 1;
+//                if (index < firstMetal) firstMetal = index;
+////                if (lastMetal < index) lastMetal = index;
+//            }
+//            if (firstMetal <= 2) firstMetal = 3;
+//            if (lastMetal < firstMetal) lastMetal = firstMetal;
             
             // otherwise pins at edges increase cell sizes and FillRouter.connectCoincident(portInsts)
             // does work
