@@ -237,9 +237,10 @@ public class LayerCoverageTool extends Tool
         GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false, layer);
         // This assumes that pi.getBounds() alywas gives you a degenerated rectangle (zero area) so
         // only a point should be searchedd.
+        Rectangle2D bnd = pi.getBounds();
 		LayerCoverageJob job = new LayerCoverageJob(true, exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
                 GeometryHandler.GHMode.ALGO_SWEEP, geoms,
-                new Point2D.Double(pi.getBounds().getX(), pi.getBounds().getY()));
+                new Point2D.Double(bnd.getX(), bnd.getY()));
 
         // Must run it now
         try
