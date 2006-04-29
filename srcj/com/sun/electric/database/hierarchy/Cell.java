@@ -1552,22 +1552,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
     /**
-     * Method to return location of the cell center if exists
-     * @return
+     * Method to determine whether this Cell has a cell center in it.
+     * @return true if this Cell has a Cell-center node in it.
      */
-    public EPoint findCellCenter()
+    public boolean alreadyCellCenter()
     {
         for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
         {
-            NodeInst oNi = it.next();
-            if (oNi.getProto() == Generic.tech.cellCenterNode)
-            {
-                Rectangle2D r = oNi.getBounds();
-                EPoint center = new EPoint(r.getCenterX(), r.getCenterY());
-                return center;
-            }
+            NodeInst ni = it.next();
+            if (ni.getProto() == Generic.tech.cellCenterNode) return true;
         }
-        return null;
+        return false;
     }
 
 	/**
@@ -1629,20 +1624,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 //			off.setLocation(off.getX()-cX, off.getY()-cY);
 //			wnd.setOffset(off);
 //		}
-	}
-
-	/**
-	 * Method to determine whether this Cell has a cell center in it.
-	 * @return true if this Cell has a Cell-center node in it.
-	 */
-	public boolean alreadyCellCenter()
-	{
-		for(Iterator<NodeInst> it = getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			if (ni.getProto() == Generic.tech.cellCenterNode) return true;
-		}
-		return false;
 	}
 
 	/**
