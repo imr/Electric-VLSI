@@ -28,8 +28,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.dialogs.SetFocus;
-import com.sun.electric.tool.user.menus.EMenu;
-import com.sun.electric.tool.user.menus.EMenuItem;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
