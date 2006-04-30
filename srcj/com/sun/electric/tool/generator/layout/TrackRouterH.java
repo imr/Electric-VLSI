@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.technology.ArcProto;
 
 
@@ -50,9 +51,10 @@ public class TrackRouterH extends TrackRouter {
 	                    double wireOffset) {
 		error(newPort==null, "can't connect to null port");
 
+        EPoint centerP = newPort.getCenter();
 		// if center isn't set explicitly then infer from first pin
 		if (center==null)
-			center = new Double(LayoutLib.roundCenterY(newPort));
+			center = new Double(centerP.getY()); // LayoutLib.roundCenterY(newPort));
 
 		ArcProto portLyr = Tech.closestLayer(newPort.getPortProto(), layer);
 
@@ -69,7 +71,7 @@ public class TrackRouterH extends TrackRouter {
 		} else {   */
 
 		// place a ViaStack at newPort.X + viaOffset
-		double x = LayoutLib.roundCenterX(newPort) + viaOffset;
+		double x = centerP.getX() /* LayoutLib.roundCenterX(newPort)*/ + viaOffset;
 
 		// 1) If the port layer is the same as the track layer then just
 		// drop down a pin. Don't reuse a pin because the part of the

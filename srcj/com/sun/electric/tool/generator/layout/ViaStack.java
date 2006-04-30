@@ -96,6 +96,6 @@ class ViaStack {
 
 	public PortInst getPort1() {return port1;}
 	public PortInst getPort2() {return port2;}
-	public double getCenterX() {return LayoutLib.roundCenterX(port1);}
-	public double getCenterY() {return LayoutLib.roundCenterY(port1);}
+	public double getCenterX() {return port1.getCenter().getX() /*LayoutLib.roundCenterX(port1)*/;}
+	public double getCenterY() {return port1.getCenter().getY() /*LayoutLib.roundCenterY(port1)*/;}
 }

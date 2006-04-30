@@ -123,7 +123,7 @@ public abstract class EMenuItem implements ActionListener {
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
      * @param acceleratorChar the shortcut char.
-     * @param key the second shortcut key.
+     * @param keyCode the second shortcut key.
      */
     EMenuItem(String text, char acceleratorChar, int keyCode) {
         this(text, shortcut(acceleratorChar), shortcut(keyCode));

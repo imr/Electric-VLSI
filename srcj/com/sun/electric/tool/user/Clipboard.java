@@ -773,10 +773,10 @@ public class Clipboard
 						name = newName;
 					}
 				}
-                EPoint headP = new EPoint(ai.getHeadLocation().getX() + dX, ai.getHeadLocation().getY() + dY);
-                EPoint tailP = new EPoint(ai.getTailLocation().getX() + dX, ai.getTailLocation().getY() + dY);
-                headP = headPi.getPoly().getCenter();
-                tailP = tailPi.getPoly().getCenter();
+//                EPoint headP = new EPoint(ai.getHeadLocation().getX() + dX, ai.getHeadLocation().getY() + dY);
+//                EPoint tailP = new EPoint(ai.getTailLocation().getX() + dX, ai.getTailLocation().getY() + dY);
+                EPoint headP = headPi.getCenter();
+                EPoint tailP = tailPi.getCenter();
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
 					headPi, tailPi,
                         headP, tailP,

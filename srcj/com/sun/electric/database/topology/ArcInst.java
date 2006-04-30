@@ -292,8 +292,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		EPoint headP;
         if (headPt == null)
         {
-            Rectangle2D headBounds = head.getBounds();
-            headP = new EPoint(headBounds.getCenterX(), headBounds.getCenterY());
+//            Rectangle2D headBounds = head.getBounds();
+            headP = head.getCenter(); //new EPoint(headBounds.getCenterX(), headBounds.getCenterY());
         } else
 		{
 			headP = EPoint.snap(headPt);
@@ -301,8 +301,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		EPoint tailP;
         if (tailPt == null)
         {
-            Rectangle2D tailBounds = tail.getBounds();
-            tailP = new EPoint(tailBounds.getCenterX(), tailBounds.getCenterY());
+//            Rectangle2D tailBounds = tail.getBounds();
+            tailP = tail.getCenter(); // new EPoint(tailBounds.getCenterX(), tailBounds.getCenterY());
         } else
 		{
 			tailP = EPoint.snap(tailPt);

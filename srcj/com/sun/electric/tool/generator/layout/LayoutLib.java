@@ -34,6 +34,7 @@ import java.util.List;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -229,16 +230,17 @@ public class LayoutLib {
 	 * error. Compensate for this by always rounding coordinates to a 103-4
 	 * lambda grid when reading and writing the database. */
 	public static double roundCenterX(PortInst pi) {
-		return DBMath.round(pi.getBounds().getCenterX());
+        return pi.getCenter().getX();
+//		return DBMath.round(pi.getBounds().getCenterX()); new way avoids rounding here
 	}
 	public static double roundCenterY(PortInst pi) {
-//		Rectangle2D bounds = pi.getBounds();
-		return DBMath.round(pi.getBounds().getCenterY());
+        return pi.getCenter().getY();
+//		return DBMath.round(pi.getBounds().getCenterY());
 	}
 
     public static Rectangle2D calculateNodeInst(NodeProto np,
-		                               double x, double y,
-									   double width, double height)
+                                                double x, double y,
+                                                double width, double height)
     {
 		if (np instanceof Cell) {
 			width = (width<0 ? -1 : 1) * np.getDefWidth();
@@ -497,10 +499,12 @@ public class LayoutLib {
 	 */
 	public static ArcInst newArcInst(ArcProto ap, double width,
 							         PortInst head, PortInst tail) {
-		double hX = roundCenterX(head);
-		double hY = roundCenterY(head);
-		double tX = roundCenterX(tail);
-		double tY = roundCenterY(tail);
+        EPoint headP = head.getCenter();
+		double hX = headP.getX(); // roundCenterX(head);
+		double hY = headP.getY(); // roundCenterY(head);
+        EPoint tailP = tail.getCenter();
+		double tX = tailP.getX(); // roundCenterX(tail);
+		double tY = tailP.getY(); // roundCenterY(tail);
 		ArcInst ai;
 		if (hX==tX || hY==tY) {
 			// no jog necessary						         	
@@ -512,8 +516,9 @@ public class LayoutLib {
 			                           parent).getOnlyPortInst(); 
 
 			// debug
-			double newX = roundCenterX(pin);
-			double newY = roundCenterY(pin);
+            EPoint pinP = pin.getCenter();
+			double newX = pinP.getX(); // roundCenterX(pin);
+			double newY = pinP.getY(); // roundCenterY(pin);
 			
 			if (newX!=tX || newY!=hY) {
 				Rectangle2D r = head.getBounds();

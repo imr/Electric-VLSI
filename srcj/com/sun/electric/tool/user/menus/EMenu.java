@@ -69,6 +69,8 @@ public class EMenu extends EMenuItem {
      * @return list of menu items.
      */
     public List<EMenuItem> getItems() { return items; }
+
+    public void addMenuItem(EMenuItem m) {items.add(m);}
     
     @Override
     void setParent(EMenuBar menuBar, EMenu parent) {

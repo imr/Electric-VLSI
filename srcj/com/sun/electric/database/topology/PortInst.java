@@ -24,6 +24,7 @@
 package com.sun.electric.database.topology;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
@@ -198,6 +199,11 @@ public class PortInst extends ElectricObject
 	{
 		return getPoly().getBounds2D();
 	}
+
+    public EPoint getCenter()
+    {
+        return getPoly().getCenter();
+    }
 
 	/**
 	 * Method to return the Poly that describes this PortInst.
