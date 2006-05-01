@@ -425,6 +425,7 @@ public class HSpiceOut extends Simulate
 
 		Analysis an = new Analysis(sd, analysisType);
 		startProgressDialog("HSpice " + analysisType.toString() + " analysis", fileURL.getFile());
+        System.out.println("Reading HSpice " + analysisType.toString() + " analysis " + fileURL.getFile()) ;
 
 		// get number of nodes
 		int nodcnt = getHSpiceInt();
