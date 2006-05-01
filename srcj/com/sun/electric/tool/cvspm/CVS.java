@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Exec;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.net.URL;
+import java.net.URI;
 
 /**
  * Created by IntelliJ IDEA.
@@ -129,7 +131,7 @@ public class CVS {
         if (!getRepository().equals("")) specifyRepository = " -d"+getRepository();
         String run = getCVSProgram() + specifyRepository +" "+cmd;
 
-        System.out.println(comment+": cvs "+cmd);
+        System.out.println(comment+": "+run);
         Exec e = new Exec(run, null, new File(workingDir), out, out);
         e.run();
     }
@@ -222,7 +224,7 @@ public class CVS {
         if (isDELIB(cell.getLibrary())) {
             String relativeFile = DELIB.getCellFile(cell.backup());
             URL libFile = cell.getLibrary().getLibFile();
-            return new File(libFile.getFile(), relativeFile);
+            return new File(TextUtils.getFile(libFile), relativeFile);
         }
         return null;
     }
@@ -310,7 +312,8 @@ public class CVS {
     public static boolean assertInCVS(Library lib, String cmd, boolean dialog) {
         File libFile = new File(lib.getLibFile().getPath());
         if (!CVS.isFileInCVS(libFile)) {
-            if (libFile.getPath().indexOf("com/sun/electric/lib/spiceparts") != -1) return false;
+            if (libFile.getPath().matches(".*?com.*?sun.*?electric.*?lib.*?spiceparts.*")) return false;
+            //if (libFile.getPath().indexOf("com/sun/electric/lib/spiceparts") != -1) return false;
             String message = "Library "+lib.getName()+" is not part of CVS repository.\n" +
                         "Use 'CVS Add' to add to current repository.";
             if (dialog) {
@@ -345,6 +348,7 @@ public class CVS {
         return true;
     }
 
+
     /**
      * Get a command directory in which to run a CVS command on the given
      * libraries and cells.  This just picks the parent dir of
@@ -358,7 +362,7 @@ public class CVS {
             for (Library lib : libs) {
                 if (lib.isHidden()) continue;
                 if (!lib.isFromDisk()) continue;
-                File libFile = new File(lib.getLibFile().getPath());
+                File libFile = TextUtils.getFile(lib.getLibFile());
                 return libFile.getParent();
             }
         }
@@ -367,7 +371,7 @@ public class CVS {
                 Library lib = cell.getLibrary();
                 if (lib.isHidden()) continue;
                 if (!lib.isFromDisk()) continue;
-                File libFile = new File(lib.getLibFile().getPath());
+                File libFile = TextUtils.getFile(lib.getLibFile());
                 return libFile.getParent();
             }
         }
@@ -385,7 +389,8 @@ public class CVS {
         StringBuffer libsBuf = new StringBuffer();
         if (libs == null) return libsBuf;
         for (Library lib : libs) {
-            String file = lib.getLibFile().getPath();
+            File libFile = TextUtils.getFile(lib.getLibFile());
+            String file = libFile.getPath();
             if (file.startsWith(useDir)) {
                 file = file.substring(useDir.length()+1, file.length());
             }

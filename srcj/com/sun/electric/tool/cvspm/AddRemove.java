@@ -28,6 +28,7 @@ import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
 
 import java.util.List;
 import java.util.Iterator;
@@ -95,14 +96,25 @@ public class AddRemove {
 
             // mark files as added/removed
             for (Library lib : libs) {
-                for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-                    Cell cell = it.next();
+                if (CVS.isDELIB(lib)) {
+                    for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                        Cell cell = it.next();
+                        if (add) {
+                            if (!CVS.isFileInCVS(CVS.getCellFile(cell)))
+                                CVSLibrary.setState(cell, State.ADDED);
+                        } else {
+                            if (CVS.isFileInCVS(CVS.getCellFile(cell)))
+                                CVSLibrary.setState(cell, State.REMOVED);
+                        }
+                    }
+                } else {
+                    // jelib or elib file
                     if (add) {
-                        if (!CVS.isFileInCVS(CVS.getCellFile(cell)))
-                            CVSLibrary.setState(cell, State.ADDED);
+                        if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath())))
+                            CVSLibrary.setState(lib, State.ADDED);
                     } else {
-                        if (CVS.isFileInCVS(CVS.getCellFile(cell)))
-                            CVSLibrary.setState(cell, State.REMOVED);
+                        if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath())))
+                            CVSLibrary.setState(lib, State.REMOVED);
                     }
                 }
             }
@@ -137,7 +149,7 @@ public class AddRemove {
         }
         private void generate(StringBuffer buf, Library lib, String useDir) {
             // see if library file is in CVS
-            String libfile = lib.getLibFile().getPath();
+            String libfile = TextUtils.getFile(lib.getLibFile()).getPath();
             add(buf, libfile, useDir);
             if (CVS.isDELIB(lib)) {
                 // see if cell directories are in CVS
@@ -150,7 +162,7 @@ public class AddRemove {
             }
         }
         private void generate(StringBuffer buf, Cell cell, String useDir) {
-            String libfile = cell.getLibrary().getLibFile().getPath();
+            String libfile = TextUtils.getFile(cell.getLibrary().getLibFile()).getPath();
             // get cell directory if not already added before
             File celldirFile = new File(libfile, DELIB.getCellSubDir(cell.backup()));
             String celldir = celldirFile.getPath();

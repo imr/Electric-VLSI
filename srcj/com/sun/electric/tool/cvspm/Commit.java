@@ -131,7 +131,7 @@ public class Commit {
         public void terminateOK() {
             // remove editors for lib
             for (Library lib : libsToCommit) {
-                CVSLibrary.clearEditors(lib);
+                CVSLibrary.setEditing(lib, false);
                 CVSLibrary.setState(lib, State.NONE);
             }
             if (cellsToCommit != null) {

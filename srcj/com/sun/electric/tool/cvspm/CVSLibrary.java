@@ -26,6 +26,7 @@ package com.sun.electric.tool.cvspm;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -48,6 +49,7 @@ public class CVSLibrary {
     private State libState;                 // only used for non-DELIB file types
     private Map<Cell,State> cellStates;
     private Map<Cell,Cell> editing;         // list of cells I am editing
+    private boolean libEditing;                 // true if library is being edited (only for JELIB, DELIB)
 
     private static Map<Library,CVSLibrary> CVSLibraries = new HashMap<Library,CVSLibrary>();
 
@@ -56,6 +58,7 @@ public class CVSLibrary {
         String libFile = lib.getLibFile().getPath();
         type = OpenFile.getOpenFileType(libFile, FileType.JELIB);
         libState = State.NONE;
+        libEditing = false;
 
         cellStates = new HashMap<Cell,State>();
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
@@ -249,10 +252,25 @@ public class CVSLibrary {
         return cvslib.editing.containsKey(cell);
     }
 
-    static void clearEditors(Library lib) {
+    public static void setEditing(Library lib, boolean editing) {
         CVSLibrary cvslib = CVSLibraries.get(lib);
         if (cvslib == null) return;
-        cvslib.editing.clear();
+        if (!CVS.isDELIB(lib))
+            cvslib.libEditing = editing;
+        else {
+            if (editing = false)
+                cvslib.editing.clear();
+        }
+    }
+
+    public static boolean isEditing(Library lib) {
+        CVSLibrary cvslib = CVSLibraries.get(lib);
+        if (cvslib == null) return false;
+        if (!CVS.isDELIB(lib))
+            return cvslib.libEditing;
+        else {
+            return !cvslib.editing.isEmpty();
+        }
     }
 
     /**
@@ -262,9 +280,15 @@ public class CVSLibrary {
      */
     public static void savingLibrary(Library lib) {
         if (!CVS.isDELIB(lib)) {
-            File file = new File(lib.getLibFile().getPath());
-            if (!CVS.isFileInCVS(file)) return;
-            Edit.edit(file.getParentFile().getPath(), file.getName());
+            File file = TextUtils.getFile(lib.getLibFile());
+            if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath()))) return;
+            if (!isEditing(lib)) {
+                Edit.edit(file.getName(), file.getParentFile().getPath());
+                setEditing(lib, true);
+            }
+            if (lib.isChanged()) {
+                setState(lib, State.MODIFIED);
+            }
             return;
         }
         // all modifies cells must have edit turned on
@@ -281,12 +305,13 @@ public class CVSLibrary {
             setState(cell, State.MODIFIED);
             if (!isEditing(cell)) {
                 buf.append(DELIB.getCellFile(cell.backup())+" ");
+                setEditing(cell, true);
             }
         }
         if (buf.length() == 0) return;      // nothing to 'edit'
         // turn on edit for files to be modified
         // note that header is never to have edit on or off
-        Edit.edit(buf.toString(), lib.getLibFile().getPath());
+        Edit.edit(buf.toString(), TextUtils.getFile(lib.getLibFile()).getPath());
     }
 
     /**
