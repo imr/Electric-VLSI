@@ -3124,12 +3124,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				// when time is not locked, compute bounds for this panel only
 				Analysis an = sd.findAnalysis(wp.getAnalysisType());
 				Rectangle2D anBounds = an.getBounds();
-				if (anBounds != null)
-					xBounds.setRect(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
+				if (anBounds != null) // calling new Rectangle2D.Double() in case xBounds == null
+                    xBounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
+//					xBounds.setRect(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
 				if (wp.getXAxisSignal() != null)
 				{
 					Rectangle2D sigBounds = wp.getXAxisSignal().getBounds();
-					xBounds.setRect(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
+                    xBounds = new Rectangle2D.Double(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
+//					xBounds.setRect(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
 				}
 			}
 
