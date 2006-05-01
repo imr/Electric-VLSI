@@ -1114,6 +1114,37 @@ public class TextUtils
 		return null;
 	}
 
+    /**
+     * Get the file for the URL. The code
+     * <code>
+     * new File(url.getPath())
+     * </code>
+     * returns an illegal leading slash on windows,
+     * and has forward slashes instead of back slashes.
+     * This method generates the correct File using
+     * <code>
+     * new File(url.toURI())
+     * </code>
+     * <P>
+     * use <code>getPath()</code> on the returned File
+     * to get the correct String file path.
+     * <P>
+     * This should only be needed when running an external process under
+     * windows with command line arguments containing file paths. Otherwise,
+     * the Java IO code does the correct conversion.
+     *
+     * @param url the URL to convert to a File
+     * @return the File.
+     */
+    public static File getFile(URL url) {
+        try {
+            return new File(url.toURI());
+        } catch (java.net.URISyntaxException e) {
+            System.out.println("URL -> File conversion error: "+e.getMessage());
+            return new File(url.getPath());
+        }
+    }
+
 	/**
 	 * Method to return the directory path part of a URL (excluding the file name).
 	 * For example, the URL "file:/users/strubin/gates.elib" has the directory part "/users/strubin/".
