@@ -687,7 +687,7 @@ public class WindowFrame extends Observable
             jf.setCursor(cursor);
         }
         js.setCursor(cursor);
-        content.getPanel().setCursor(cursor);
+        content.setCursor(cursor);
 	}
 
 	public static void removeLibraryReferences(Library lib)

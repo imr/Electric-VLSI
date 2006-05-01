@@ -58,7 +58,6 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.FindText;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
@@ -68,14 +67,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -243,7 +235,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		overall.addComponentListener(wcl);
 
 		// a drop target for the overall waveform window
-		DropTarget dropTarget = new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
+		new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
 
 		// the left half has signal names; the right half has waveforms
 		left = new JPanel();
@@ -839,6 +831,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @return the top-level JPanel for this WaveformWindow.
 	 */
 	public JPanel getPanel() { return overall; }
+
+    public void setCursor(Cursor cursor)
+    {
+        overall.setCursor(cursor);
+        split.setCursor(cursor);
+        right.setCursor(cursor);
+        for (JPanel p : wavePanels)
+        {
+            p.setCursor(cursor);
+        }
+    }
 
 	public void setCell(Cell cell, VarContext context)
 	{

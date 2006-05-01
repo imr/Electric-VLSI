@@ -1787,9 +1787,9 @@ public class Panel extends JPanel
 	public void mouseMoved(MouseEvent evt)
 	{
 		ToolBar.CursorMode mode = ToolBar.getCursorMode();
-		if (mode == ToolBar.CursorMode.ZOOM) mouseMovedZoom(evt); else
-			if (mode == ToolBar.CursorMode.PAN) mouseMovedPan(evt); else
-				mouseMovedSelect(evt);
+		if (mode == ToolBar.CursorMode.ZOOM) mouseMovedZoom(evt);
+        else if (mode == ToolBar.CursorMode.PAN) mouseMovedPan(evt);
+        else mouseMovedSelect(evt);
 	}
 
 	public void mouseDragged(MouseEvent evt)
@@ -1797,9 +1797,9 @@ public class Panel extends JPanel
 		ToolBar.CursorMode mode = ToolBar.getCursorMode();
 		if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
 			mode = ToolBar.CursorMode.ZOOM;
-		if (mode == ToolBar.CursorMode.ZOOM) mouseDraggedZoom(evt); else
-			if (mode == ToolBar.CursorMode.PAN) mouseDraggedPan(evt); else
-				mouseDraggedSelect(evt);
+		if (mode == ToolBar.CursorMode.ZOOM) mouseDraggedZoom(evt);
+        else if (mode == ToolBar.CursorMode.PAN) mouseDraggedPan(evt);
+        else mouseDraggedSelect(evt);
 	}
 
 	/**
@@ -2306,7 +2306,7 @@ public class Panel extends JPanel
 	 */ 
 	public void mouseDraggedZoom(MouseEvent evt)
 	{
-		ZoomAndPanListener.setProperCursor(evt);
+//		ZoomAndPanListener.setProperCursor(evt);
 		if (draggingArea)
 		{
 			dragEndX = evt.getX();
@@ -2317,7 +2317,7 @@ public class Panel extends JPanel
 
 	public void mouseMovedZoom(MouseEvent evt)
 	{
-		ZoomAndPanListener.setProperCursor(evt);
+//		ZoomAndPanListener.setProperCursor(evt);
 	}
 
 	/**

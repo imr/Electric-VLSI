@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (5/1/06, GVG) Zoom when plotting HSPICE has wrong cursor (Bug #948)
+FIX: WindowContext.setCursor() defined so WaveformWindow would be able to set cursor for each individual wavePanels.
+Remove unnecessary calls from wave.Panel to ZoomAndPanListener.setProperCursor(evt)
+
 BUG: (4/28/06, GVG) Snapping problems in Clipboard.copyListToCell after fixing Bug #899.
 FIX: Getting arc port information based on new node locations. This should fix 947 and 899.
 

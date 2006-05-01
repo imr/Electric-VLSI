@@ -35,10 +35,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
@@ -75,8 +72,7 @@ import javax.swing.undo.UndoManager;
 /**
  * This class defines a text window for displaying text cells.
  */
-public class TextWindow
-	implements WindowContent
+public class TextWindow implements WindowContent
 {
 	/** the cell that is in the window */					private Cell cell;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
@@ -111,6 +107,11 @@ public class TextWindow
 		textArea.getDocument().addUndoableEditListener(new MyUndoableEditListener());
 		textArea.addFocusListener(twDocumentListener);
 	}
+
+    public void setCursor(Cursor cursor)
+    {
+        ; // nothing implemented in TextWindow
+    }
 
 	private void setCellFont(Cell cell)
 	{

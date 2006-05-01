@@ -27,9 +27,9 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.dialogs.FindText;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
+import java.awt.*;
 import java.util.List;
 import java.util.Set;
 
@@ -100,6 +100,11 @@ public interface WindowContent
 	public abstract void cellHistoryGoBack();
 	public abstract void cellHistoryGoForward();
 	public abstract void setWindowTitle();
+    /**
+     * Method relevant for waveform windows where the drawing panel is not given by getPanel()
+     * @param cursor
+     */
+    public abstract void setCursor(Cursor cursor);
 
 	/**
 	 * Method to intialize for printing.
