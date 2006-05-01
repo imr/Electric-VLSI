@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (5/1/06, GVG) Print info for selected node doesn't work (Bug #944)
+FIX: More problems found. In LENetlister2.printResults(). comparing NodeInst now.
+
 BUG: (5/1/06, GVG) Zoom when plotting HSPICE has wrong cursor (Bug #948)
 FIX: WindowContext.setCursor() defined so WaveformWindow would be able to set cursor for each individual wavePanels.
 Remove unnecessary calls from wave.Panel to ZoomAndPanListener.setProperCursor(evt)

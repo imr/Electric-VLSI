@@ -682,7 +682,7 @@ public class LENetlister2 extends LENetlister {
         }
         LENodable leno = null;
         for (LENodable aleno : allLENodables) {
-            if (aleno.getNodable() == no) {
+            if (aleno.getNodable().getNodeInst() == no.getNodeInst()) {
                 if (aleno.context.getInstPath(".").equals(context.getInstPath("."))) {
                     leno = aleno;
                     break;
