@@ -346,6 +346,9 @@ public class Output
 				elib.quiet = quiet;
 				if (compatibleWith6) elib.write6Compatible();
 				if (elib.openBinaryOutputStream(properOutputName)) return true;
+                if (CVS.isEnabled()) {
+                    CVSLibrary.savingLibrary(lib);
+                }
 				if (elib.writeLib(lib)) return true;
 				if (elib.closeBinaryOutputStream()) return true;
 			} else
@@ -353,6 +356,9 @@ public class Output
 				JELIB jelib = new JELIB();
 				jelib.quiet = quiet;
 				if (jelib.openTextOutputStream(properOutputName)) return true;
+                if (CVS.isEnabled()) {
+                    CVSLibrary.savingLibrary(lib);
+                }
 				if (jelib.writeLib(lib.getDatabase().backup(), lib.getId(), null)) return true;
 				if (jelib.closeTextOutputStream()) return true;
 			}
