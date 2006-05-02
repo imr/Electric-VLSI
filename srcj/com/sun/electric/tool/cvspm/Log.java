@@ -25,6 +25,8 @@ package com.sun.electric.tool.cvspm;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.CVSLog;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
@@ -51,6 +53,14 @@ import java.io.Serializable;
 public class Log {
 
     public static void showLog(Cell cell) {
+        if (!CVS.isDELIB(cell.getLibrary())) {
+            System.out.println("Cannot show log file for non-DELIB library");
+            return;
+        }
+        if (!CVS.isFileInCVS(CVS.getCellFile(cell))) {
+            System.out.println("Cell "+cell.describe(false)+" is not in CVS");
+            return;
+        }
         List<Cell> cells = new ArrayList<Cell>();
         cells.add(cell);
         String useDir = CVS.getUseDir(null, cells);
@@ -67,34 +77,81 @@ public class Log {
         dialog.setVisible(true);
     }
 
+    public static void showLog(Library lib) {
+        if (CVS.isDELIB(lib)) {
+            return;
+        }
+        if (!CVS.isFileInCVS(TextUtils.getFile(lib.getLibFile()))) {
+            System.out.println("Library "+lib.getName()+" is not in CVS");
+            return;
+        }
+        List<Library> libs = new ArrayList<Library>();
+        libs.add(lib);
+        String useDir = CVS.getUseDir(libs, null);
+
+        StringBuffer libsBuf = CVS.getLibraryFiles(libs, useDir);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        CVS.runCVSCommand("log "+libsBuf, "Show CVS Log", useDir, out);
+        LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+        System.out.println("Show CVS Log complete.");
+        Log log = new Log(lib);
+        log.parseLogOutput(reader);
+
+        CVSLog dialog = new CVSLog(log.entries, "CVS Log for "+lib.getName());
+        dialog.setVisible(true);
+    }
+
     /**
      * Compare the specified version with the local copy
      * @param entry
      */
     public static void compareWithLocal(LogEntry entry) {
-        Cell cell = entry.cell;
+        StringBuffer args;
+        String useDir;
+        if (entry.obj instanceof Cell) {
+            List<Cell> cells = new ArrayList<Cell>();
+            cells.add((Cell)entry.obj);
+            useDir = CVS.getUseDir(null, cells);
+            args = CVS.getCellFiles(cells, useDir);
+        } else if (entry.obj instanceof Library) {
+            List<Library> libs = new ArrayList<Library>();
+            libs.add((Library)entry.obj);
+            useDir = CVS.getUseDir(libs, null);
+            args = CVS.getLibraryFiles(libs, useDir);
+        } else {
+            System.out.println("Cannot compare Electric Object "+entry.obj);
+            return;
+        }
+
         String version = entry.version;
 
-        List<Cell> cells = new ArrayList<Cell>();
-        cells.add(cell);
-        String useDir = CVS.getUseDir(null, cells);
-        StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
-
-        CVS.runCVSCommand("diff -r "+version+" "+cellsBuf, "Compare with Local", useDir, System.out);
+        CVS.runCVSCommand("diff -r "+version+" "+args, "Compare with Local", useDir, System.out);
         System.out.println("Compare with Local complete.");
     }
 
     public static void compare(LogEntry entry1, LogEntry entry2) {
-        Cell cell = entry1.cell;
+        StringBuffer args;
+        String useDir;
+        if (entry1.obj instanceof Cell) {
+            List<Cell> cells = new ArrayList<Cell>();
+            cells.add((Cell)entry1.obj);
+            useDir = CVS.getUseDir(null, cells);
+            args = CVS.getCellFiles(cells, useDir);
+        } else if (entry1.obj instanceof Library) {
+            List<Library> libs = new ArrayList<Library>();
+            libs.add((Library)entry1.obj);
+            useDir = CVS.getUseDir(libs, null);
+            args = CVS.getLibraryFiles(libs, useDir);
+        } else {
+            System.out.println("Cannot compare Electric Object "+entry1.obj);
+            return;
+        }
+
         String version1 = entry1.version;
         String version2 = entry2.version;
 
-        List<Cell> cells = new ArrayList<Cell>();
-        cells.add(cell);
-        String useDir = CVS.getUseDir(null, cells);
-        StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
-
-        CVS.runCVSCommand("diff -r "+version1+" -r "+version2+" "+cellsBuf, "Compare Versions", useDir, System.out);
+        CVS.runCVSCommand("diff -r "+version1+" -r "+version2+" "+args, "Compare Versions", useDir, System.out);
         System.out.println("Compare Versions complete.");
     }
 
@@ -109,62 +166,85 @@ public class Log {
             this.entry = entry;
         }
         public boolean doIt() {
-            Cell cell = entry.cell;
             String version = entry.version;
 
-            List<Cell> cells = new ArrayList<Cell>();
-            cells.add(cell);
-            String useDir = CVS.getUseDir(null, cells);
-            StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
-
-            File cellFile = new File(useDir, cellsBuf.toString().trim());
-            File cellFileBackup = new File(useDir, cellsBuf.toString().trim()+"___version"+version);
-            String cellFilePath = cellFile.getPath();
-            String cellFileBackupPath = cellFileBackup.getPath();
-            if (!cellFile.exists()) {
-                System.out.println("Error: File does not exist: "+cellFile.getPath());
+            StringBuffer args;
+            String useDir;
+            if (entry.obj instanceof Cell) {
+                List<Cell> cells = new ArrayList<Cell>();
+                cells.add((Cell)entry.obj);
+                useDir = CVS.getUseDir(null, cells);
+                args = CVS.getCellFiles(cells, useDir);
+            } else if (entry.obj instanceof Library) {
+                List<Library> libs = new ArrayList<Library>();
+                libs.add((Library)entry.obj);
+                useDir = CVS.getUseDir(libs, null);
+                args = CVS.getLibraryFiles(libs, useDir);
+            } else {
+                System.out.println("Cannot compare Electric Object "+entry.obj);
                 return false;
             }
 
-            CVS.runCVSCommand("update -r "+version+" "+cellsBuf, "Get Version", useDir, System.out);
+            File aFile = new File(useDir, args.toString().trim());
+            File aFileBackup = new File(useDir, args.toString().trim()+"___version"+version);
+            String aFilePath = aFile.getPath();
+            String aFileBackupPath = aFileBackup.getPath();
+            if (!aFile.exists()) {
+                System.out.println("Error: File does not exist: "+aFile.getPath());
+                return false;
+            }
+
+            CVS.runCVSCommand("update -r "+version+" "+args, "Get Version", useDir, System.out);
             // copy old file away
-            if (cellFileBackup.exists()) {
-                if (!cellFileBackup.delete()) {
-                    System.out.println("Error: Could not delete backup file: "+cellFileBackup.getPath());
+            if (aFileBackup.exists()) {
+                if (!aFileBackup.delete()) {
+                    System.out.println("Error: Could not delete backup file: "+aFileBackup.getPath());
                     return false;
                 }
             }
-            if (!cellFile.renameTo(cellFileBackup)) {
-                System.out.println("Error: Could not rename file "+cellFile.getPath()+" to "+cellFileBackup.getPath());
+            if (!aFile.renameTo(aFileBackup)) {
+                System.out.println("Error: Could not rename file "+aFile.getPath()+" to "+aFileBackup.getPath());
                 return false;
             }
             // update with current version, remove sticky tag
-            CVS.runCVSCommand("update -A "+cellsBuf, "Remove Sticky Tag", useDir, System.out);
+            CVS.runCVSCommand("update -A "+args, "Remove Sticky Tag", useDir, System.out);
 
             // delete updated file, and move back old version file
-            File oldCellFile = new File(cellFilePath);
+            File oldCellFile = new File(aFilePath);
             if (!oldCellFile.delete()) {
-                System.out.println("Error: Could not delete file: "+cellFile.getPath());
+                System.out.println("Error: Could not delete file: "+aFile.getPath());
                 return false;
             }
-            if (!cellFileBackup.renameTo(new File(cellFilePath))) {
-                System.out.println("Error: Could not rename file "+cellFileBackup.getPath()+" to "+cellFilePath);
+            if (!aFileBackup.renameTo(new File(aFilePath))) {
+                System.out.println("Error: Could not rename file "+aFileBackup.getPath()+" to "+aFilePath);
                 return false;
             }
             // reload cell
             //LibraryFiles.reloadLibraryCells(cells);
-            LibraryFiles.reloadLibrary(cell.getLibrary());
+            if (entry.obj instanceof Cell)
+                LibraryFiles.reloadLibrary(((Cell)entry.obj).getLibrary());
+            else if (entry.obj instanceof Library)
+                LibraryFiles.reloadLibrary((Library)entry.obj);
 
             System.out.println("Get Version complete.");
             return true;
         }
         public void terminateOK() {
-            Library newLib = Library.findLibrary(entry.cell.getLibrary().getName());
-            if (newLib == null) return;
-            Cell newCell = newLib.findNodeProto(entry.cell.noLibDescribe());
-            if (newCell == null) return;
-            showLog(newCell);
-            CVS.fixStaleCellReferences(entry.cell.getLibrary());
+            if (entry.obj instanceof Cell) {
+                Cell cell = (Cell)entry.obj;
+                Library newLib = Library.findLibrary(cell.getLibrary().getName());
+                if (newLib == null) return;
+                Cell newCell = newLib.findNodeProto(cell.noLibDescribe());
+                if (newCell == null) return;
+                showLog(newCell);
+                CVS.fixStaleCellReferences(cell.getLibrary());
+            } else if (entry.obj instanceof Library) {
+                Library lib = (Library)entry.obj;
+                Library newLib = Library.findLibrary(lib.getName());
+                if (newLib == null) return;
+                showLog(newLib);
+                CVS.fixStaleCellReferences(lib);
+            }
         }
     }
 
@@ -172,11 +252,15 @@ public class Log {
 
     private HashMap<String,String> versionsToTags;
     private List<LogEntry> entries;
-    private Cell cell;
+    private ElectricObject obj;
     private String headVersion;
 
-    private Log(Cell cell) {
-        this.cell = cell;
+    /**
+     * Create a new log for either a Cell or Library
+     * @param obj the library or cell
+     */
+    private Log(ElectricObject obj) {
+        this.obj = obj;
         versionsToTags = new HashMap<String,String>();
         entries = new ArrayList<LogEntry>();
         headVersion = "";
@@ -277,13 +361,13 @@ public class Log {
             line = reader.readLine();
         }
 
-        return new LogEntry(cell, version, branch, date, author, commitMessage.toString(),
+        return new LogEntry(obj, version, branch, date, author, commitMessage.toString(),
                 state, tag, headVersion);
     }
 
 
     public static class LogEntry implements Serializable {
-        public final Cell cell;
+        public final ElectricObject obj;
         public final String version;
         public final String branch;
         public final String date;
@@ -292,7 +376,7 @@ public class Log {
         public final String state;
         public final String tag;
         public final String headVersion;        // current local version
-        private LogEntry(Cell cell,
+        private LogEntry(ElectricObject obj,
                          String version,
                          String branch,
                          String date,
@@ -301,7 +385,7 @@ public class Log {
                          String state,
                          String tag,
                          String headVersion) {
-            this.cell = cell;
+            this.obj = obj;
             this.version = version;
             this.branch = branch;
             this.date = date;

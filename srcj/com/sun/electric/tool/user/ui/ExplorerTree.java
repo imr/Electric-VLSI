@@ -1400,6 +1400,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                         Edit.listEditors((Library)getCurrentlySelectedObject(0)); }});
                     menuItem.setEnabled(enabled);
 
+                    menuItem = new JMenuItem("Show Log");
+                    cvsMenu.add(menuItem);
+                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                        Log.showLog((Library)getCurrentlySelectedObject(0)); }});
+                    menuItem.setEnabled(enabled);
+
                     menuItem = new JMenuItem("Rollback");
                     cvsMenu.add(menuItem);
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {

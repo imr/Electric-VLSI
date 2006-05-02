@@ -202,6 +202,10 @@ public class CVSLibrary {
     static State getState(Cell cell) {
         CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
         if (cvslib == null) return State.UNKNOWN;
+        if (!CVS.isDELIB(cell.getLibrary())) {
+            // return state for library
+            return cvslib.libState;
+        }
         State state = cvslib.cellStates.get(cell);
         if (state == null) return State.UNKNOWN;
         return state;
