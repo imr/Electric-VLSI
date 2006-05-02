@@ -3263,11 +3263,11 @@ public class Technology implements Comparable<Technology>
     }
 
     /**
-	 * Find the Foundry in this technology with a particular name.
+	 * Find the Foundry in this technology with a particular name. Protected so sub classes will use it
 	 * @param name the name of the desired Foundry.
 	 * @return the Foundry with the same name, or null if no Foundry matches.
 	 */
-	private Foundry findFoundry(String name)
+	protected Foundry findFoundry(String name)
 	{
 		if (name == null) return null;
 
