@@ -3146,7 +3146,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //		int warningCount = 0;
 		double width = getXSize();
 		double height = getYSize();
-		String sizeMsg = null;
         if (protoType instanceof Cell) {
             Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
             if (var != null) {
@@ -3158,7 +3157,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 }
                 System.out.println(nccMsg);
                 if (errorLogger != null)
-                    errorLogger.logWarning(sizeMsg, this, parent, null, 1);
+                    errorLogger.logWarning(nccMsg, this, parent, null, 1);
                 errorCount++;
             }
             return errorCount;
@@ -3183,6 +3182,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 return 1;
             }
         }
+		String sizeMsg = null;
         if (getTrace() != null) {
             if (pn.isHoldsOutline()) {
                 Rectangle2D bounds = new Rectangle2D.Double();
