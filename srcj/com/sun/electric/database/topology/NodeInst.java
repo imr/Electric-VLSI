@@ -57,9 +57,11 @@ import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
+import com.sun.java_cup.internal.version;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -3191,6 +3193,19 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     delVar(TRACE);
             }
 		}
+        Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
+        if (var != null) {
+            // cleanup NCC cell annotations which were inheritable
+            String nccMsg ="Removed extraneous NCC annotations from cell instance " + describe(false) + " in " + getParent();
+            if (repair) {
+                delVar(var.getKey());
+                nccMsg += " (REPAIRED)";
+            }
+            System.out.println(nccMsg);
+            if (errorLogger != null)
+                errorLogger.logWarning(sizeMsg, this, parent, null, 1);
+            errorCount++;
+        }
 		if (sizeMsg != null)
 		{
 			sizeMsg = parent + ", " + this +

@@ -58,6 +58,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -4347,6 +4348,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             System.out.println(msg);
             if (errorLogger != null)
                 errorLogger.logError(msg, e, 1);
+            errorCount++;
+        }
+        
+        Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
+        if (var != null && var.isInherit()) {
+            // cleanup NCC cell annotations which were inheritable
+            String nccMsg = "Cleaned up NCC annotations in cell " + describe(false);
+            if (repair) {
+                addVar(var.withInherit(false).withParam(false).withInterior(true));
+                nccMsg += " (REPAIRED)";
+            }
+            System.out.println(nccMsg);
+            if (errorLogger != null)
+                errorLogger.logWarning(nccMsg, this, 1);
             errorCount++;
         }
         

@@ -1013,17 +1013,6 @@ public abstract class LibraryFiles extends Input
             for (int j = 0; j < vars.length; j++) {
                 Variable var = vars[j];
                 if (var == null) continue;
-
-				// cleanup NCC cell annotations which were inheritable
-				if (var.getKey() == NccCellAnnotations.NCC_ANNOTATION_KEY)
-				{
-					if (version.getMajor() == 8 && version.getMinor() <= 3)
-					{
-						System.out.println("Removed NCC annotations from cell instance " + ni.describe(false));
-						continue;
-					}
-				}
-
 	            // convert outline information
 				if (var.getKey() == NodeInst.TRACE && proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() ) {
                     Object value = var.getObject();
@@ -1063,33 +1052,6 @@ public abstract class LibraryFiles extends Input
             Variable var = vars[i];
 			if (var == null || eObj.isDeprecatedVariable(var.getKey())) continue;
             String origVarName = var.getKey().toString();
-
-			// disable parameterization of cell's NCC attributes
-			if (var.getKey() == NccCellAnnotations.NCC_ANNOTATION_KEY)
-			{
-				if (version != null && version.getMajor() == 8 && version.getMinor() <= 3)
-				{
-					if (eObj instanceof Cell)
-					{
-						TextDescriptor td = var.getTextDescriptor();
-						if (td != null && td.isInherit())
-						{
-							td = td.withInherit(false).withParam(false).withInterior(true);
-							var = Variable.newInstance(var.getKey(), var.getObject(), td);
-							System.out.println("Cleaned up NCC annotations in cell " + ((Cell)eObj).describe(false));
-							markCellAndLibraryChanged((Cell)eObj);
-						}
-					} else if (eObj instanceof NodeInst)
-					{
-                        NodeInst ni = ((NodeInst)eObj);
-						System.out.println("Removed extraneous NCC annotations from cell instance " +
-                                ni.describe(false) + " in " + ni.getParent());
-						markCellAndLibraryChanged(ni.getParent());
-						continue;
-					}
-				}
-			}
-
 			// convert old port variables
 			if (eObj instanceof NodeInst && var.getKey().getName().startsWith("ATTRP_")) {
                 // the form is "ATTRP_portName_variableName" with "\" escapes

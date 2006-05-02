@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (5/2/06, DN) No marking library in bold after cleaning up NCC annotations 
+
 BUG: (5/1/06, GVG) Waveform viewer Measurement mode Can't zoom, fit window (Bug #934)
 FIX: Initialization problem related to measurements
 
