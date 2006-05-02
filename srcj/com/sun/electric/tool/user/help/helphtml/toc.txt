@@ -238,6 +238,7 @@ Tools
   Node Extraction                    =chap09-10-02
  Compaction                          =chap09-11
  Silicon Compiler                    =chap09-12
+ CVS Version Control                 =chap09-13
 
 The JELIB File Format
  Introduction                        =chap10-01
