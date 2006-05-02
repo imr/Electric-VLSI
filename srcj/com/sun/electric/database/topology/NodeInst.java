@@ -61,7 +61,6 @@ import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.java_cup.internal.version;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
