@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (5/2/06, GVG) Strange clean up of goodDRCdates in Quick.java (no Bugzilla)
+FIX: Not cleaning the Data list if only errors.
+
 IMP: (5/2/06, DN) Vector cache is moved from VectorDrawing to a new class as a preparation of
     further redisplay changes.
 

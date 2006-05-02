@@ -433,7 +433,9 @@ public class Quick
         }
 
         // -2 if cells and subcells are ok
-		if (totalErrors != 0 && totalErrors != -2) goodDRCDate.clear();
+        // Commentted out on May 2, 2006. Not sure why this condition is valid
+        // If goodDRCDate contains information of DRC clean cells, it destroys that information -> wrong
+//		if (totalErrors != 0 && totalErrors != -2) goodDRCDate.clear();
 
 		// some cells were sucessfully checked: save that information in the database
 	    // some cells don't have valid DRC date anymore and therefore they should be clean
