@@ -57,11 +57,11 @@ import com.sun.electric.technology.technologies.PCB;
 import com.sun.electric.technology.technologies.RCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.nMOS;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.VectorDrawing;
+import com.sun.electric.tool.user.ui.VectorCache;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.Job;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -4069,7 +4069,7 @@ public class Technology implements Comparable<Technology>
 
 		public void technologyChanged(Technology tech)
 		{
-			VectorDrawing.technologyChanged(tech);
+			VectorCache.theCache.technologyChanged(tech);
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();
 			UserInterface ui = Job.getUserInterface();

@@ -495,7 +495,7 @@ public class PixelDrawing
                 changedCells.clear();
             }
             forceRedraw(changedCellsCopy);
-            VectorDrawing.forceRedraw(changedCellsCopy);
+            VectorCache.theCache.forceRedraw(changedCellsCopy);
 			if (User.isUseOlderDisplayAlgorithm())
 			{
 				// reset cached cell counts
@@ -1338,7 +1338,7 @@ public class PixelDrawing
 				}
 				int layerNum = graphics.getTransparentLayer() - 1;
 				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
-				col = graphics.getColor().getRGB() & 0xFFFFFF;
+				col = graphics.getRGB();
 			}
 
 			// set the bit
@@ -1651,7 +1651,7 @@ public class PixelDrawing
 			{
 				// this is the top-level of display: convert patterned opaque to patterns
 				EGraphics desc = layer.getGraphics();
-				int col = desc.getColor().getRGB() & 0xFFFFFF;
+				int col = desc.getRGB();
 				int [] pattern = desc.getPattern();
 
 				// setup pattern for this row
@@ -1990,7 +1990,7 @@ public class PixelDrawing
 	int getTheColor(EGraphics desc, boolean dimmed)
 	{
 		if (nowPrinting == 2) return 0;
-		int col = desc.getColor().getRGB() & 0xFFFFFF;
+		int col = desc.getRGB();
 		if (highlightingLayers)
 		{
 			if (dimmed) col = dimColor(col); else

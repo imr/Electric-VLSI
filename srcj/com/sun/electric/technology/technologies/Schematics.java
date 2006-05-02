@@ -1446,7 +1446,7 @@ public class Schematics extends Technology
 				if (no != null && no instanceof NodeInst)
 				{
 					NodeInst upni = (NodeInst)no;
-					if (upni.getProto() == ni.getParent() && wnd != null && upni.getParent() == wnd.getCell())
+					if (upni.getProto() == ni.getParent() && wnd != null /*&& upni.getParent() == wnd.getCell()*/)
 					{
 						for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
 						{

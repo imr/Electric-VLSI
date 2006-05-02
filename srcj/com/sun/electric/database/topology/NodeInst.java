@@ -3147,7 +3147,22 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		double width = getXSize();
 		double height = getYSize();
 		String sizeMsg = null;
-		if (protoType instanceof Cell) return 0;
+        if (protoType instanceof Cell) {
+            Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
+            if (var != null) {
+                // cleanup NCC cell annotations which were inheritable
+                String nccMsg ="Removed extraneous NCC annotations from cell instance " + describe(false) + " in " + getParent();
+                if (repair) {
+                    delVar(var.getKey());
+                    nccMsg += " (REPAIRED)";
+                }
+                System.out.println(nccMsg);
+                if (errorLogger != null)
+                    errorLogger.logWarning(sizeMsg, this, parent, null, 1);
+                errorCount++;
+            }
+            return errorCount;
+        }
         PrimitiveNode pn = (PrimitiveNode)protoType;
         if (pn.getTechnology().cleanUnusedNodesInLibrary(this, list)) {
             if (errorLogger != null) {
@@ -3193,19 +3208,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     delVar(TRACE);
             }
 		}
-        Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
-        if (var != null) {
-            // cleanup NCC cell annotations which were inheritable
-            String nccMsg ="Removed extraneous NCC annotations from cell instance " + describe(false) + " in " + getParent();
-            if (repair) {
-                delVar(var.getKey());
-                nccMsg += " (REPAIRED)";
-            }
-            System.out.println(nccMsg);
-            if (errorLogger != null)
-                errorLogger.logWarning(sizeMsg, this, parent, null, 1);
-            errorCount++;
-        }
 		if (sizeMsg != null)
 		{
 			sizeMsg = parent + ", " + this +

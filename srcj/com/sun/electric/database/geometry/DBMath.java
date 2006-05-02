@@ -36,7 +36,7 @@ public class DBMath extends GenMath {
 	/**
 	 * Number of grid points per unit
 	 */
-	private static final double GRID = 400;
+	public static final double GRID = 400;
 
     /**
      * epsilon is the largest amount of absolute difference

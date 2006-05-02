@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.MoCMOS;
@@ -70,8 +71,8 @@ public class LayerDrawing {
             for (LayerSubCell sc: subCells)
                 sc.proto.renderPixelDrawing(oX + sc.offX, oY + sc.offY);
             for (Rectangle2D.Float r: rects) {
-				databaseToScreen(r.getMinX() + oX, r.getMinY() + oY, tempPt1);
-				databaseToScreen(r.getMaxX() + oX, r.getMaxY() + oY, tempPt2);
+				gridToScreen(r.getMinX() + oX, r.getMinY() + oY, tempPt1);
+				gridToScreen(r.getMaxX() + oX, r.getMaxY() + oY, tempPt2);
                 int lX = tempPt1.x;
                 int lY = tempPt2.y;
                 int hX = tempPt2.x;
@@ -131,13 +132,13 @@ public class LayerDrawing {
         offscreen = wnd.getOffscreen();
         offscreen.clearImage(true, null);
         
-		scale = wnd.getScale();
+        scale = wnd.getScale()/DBMath.GRID;
         Dimension sz = offscreen.getSize();
 		int szHalfWidth = sz.width / 2;
 		int szHalfHeight = sz.height / 2;
 		Point2D offset = wnd.getOffset();
-		float offX = (float)offset.getX();
-		float offY = (float)offset.getY();
+		float offX = (float)(offset.getX()*DBMath.GRID);
+		float offY = (float)(offset.getY()*DBMath.GRID);
 		factorX = szHalfWidth - offX*scale;
 		factorY = szHalfHeight + offY*scale;
         if (graphics != null) {
@@ -162,12 +163,12 @@ public class LayerDrawing {
     }
     
 	/**
-	 * Method to convert a database coordinate to screen coordinates.
-	 * @param dbX the X coordinate (in database units).
-	 * @param dbY the Y coordinate (in database units).
+	 * Method to convert a database grid coordinate to screen coordinates.
+	 * @param dbX the X coordinate (in database grid units).
+	 * @param dbY the Y coordinate (in database grid units).
 	 * @param result the Point in which to store the screen coordinates.
 	 */
-	public void databaseToScreen(double dbX, double dbY, Point result)
+	public void gridToScreen(double dbX, double dbY, Point result)
 	{
 		double scrX = dbX * scale + factorX;
 		double scrY = factorY - dbY * scale;
@@ -176,7 +177,7 @@ public class LayerDrawing {
 	}
 
     public static void showVectorCache() {
-        VectorDrawing.showStatistics(MoCMOS.tech.getLayer(0));
+        VectorCache.theCache.showStatistics(MoCMOS.tech.getLayer(0));
     }
     
     public static void showGraphics() {

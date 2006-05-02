@@ -23,33 +23,22 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.GenMath.MutableDouble;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 
@@ -61,13 +50,10 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  * Class to do rapid redraw by caching the vector coordinates of all objects.
@@ -77,12 +63,15 @@ public class VectorDrawing
 	private static final boolean TAKE_STATS = false;
 	private static final boolean DEBUGIMAGES = false;
 	private static final int MAXGREEKSIZE = 25;
+    private static final int SCALE_SH = 20;
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the rendering object */								private PixelDrawing offscreen;
 	/** the window scale */									private float scale;
-	/** the window offset */								private float offX, offY;
+	/** the window scale */									private float scale_;
 	/** the window scale and pan factor */					private float factorX, factorY;
+    private int factorX_, factorY_;
+    private int scale_int;
 	/** true if "peeking" and expanding to the bottom */	private boolean fullInstantiate;
 	/** time that rendering started */						private long startTime;
 	/** true if the user has been told of delays */			private boolean takingLongTime;
@@ -95,358 +84,21 @@ public class VectorDrawing
 	/** the threshold of object sizes */					private float maxObjectSize;
 	/** the threshold of text sizes */						private float maxTextSize;
 	/** the maximum cell size above which no greeking */	private float maxCellSize;
+    
 	/** temporary objects (saves allocation) */				private Point tempPt1 = new Point(), tempPt2 = new Point();
 	/** temporary objects (saves allocation) */				private Point tempPt3 = new Point(), tempPt4 = new Point();
 	/** temporary object (saves allocation) */				private Rectangle tempRect = new Rectangle();
 	/** the color of text */								private Color textColor;
-
-	/** list of cell expansions. */							private static HashMap<Cell,VectorCellGroup> cachedCells = new HashMap<Cell,VectorCellGroup>();
-	/** list of polygons to include in cells */				private static HashMap<Cell,List<VectorBase>> addPolyToCell = new HashMap<Cell,List<VectorBase>>();
-	/** list of instances to include in cells */			private static HashMap<Cell,List<VectorSubCell>> addInstToCell = new HashMap<Cell,List<VectorSubCell>>();
+    
 	/** the object that draws the rendered screen */		private static VectorDrawing topVD;
 	/** location for debugging icon displays */				private static int debugXP, debugYP;
 
-	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-
-	/**
-	 * Class which defines the common information for all cached displayable objects
-	 */
-	private static class VectorBase
-	{
-		Layer layer;
-		EGraphics graphics;
-		float minSize, maxSize;
-
-		VectorBase(Layer layer, EGraphics graphics)
-		{
-			this.layer = layer;
-			this.graphics = graphics;
-			minSize = maxSize = -1;
-		}
-
-		void setSize(float size1, float size2)
-		{
-			minSize = Math.min(size1, size2);
-			maxSize = Math.max(size1, size2);
-		}
-	}
-
-	/**
-	 * Class which defines a cached Manhattan rectangle.
-	 */
-	private static class VectorManhattan extends VectorBase
-	{
-		float c1X, c1Y, c2X, c2Y;
-		int tinyColor;
-
-		VectorManhattan(float c1X, float c1Y, float c2X, float c2Y, Layer layer, EGraphics graphics)
-		{
-			super(layer, graphics);
-			this.c1X = c1X;
-			this.c1Y = c1Y;
-			this.c2X = c2X;
-			this.c2Y = c2Y;
-			float dX = Math.abs(c1X - c2X);
-			float dY = Math.abs(c1Y - c2Y);
-			setSize(dX, dY);
-			tinyColor = -1;
-			if (layer != null)
-			{
-				Layer.Function fun = layer.getFunction();
-				if (!fun.isImplant() && !fun.isSubstrate())
-				{
-					if (graphics != null)
-					{
-						tinyColor = graphics.getColor().getRGB() & 0xFFFFFF;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * Class which defines a cached polygon (nonmanhattan).
-	 */
-	private static class VectorPolygon extends VectorBase
-	{
-		Point2D [] points;
-
-		VectorPolygon(Point2D [] points, Layer layer, EGraphics graphics)
-		{
-			super(layer, graphics);
-			this.points = points;
-		}
-	}
-
-	/**
-	 * Class which defines a cached line.
-	 */
-	private static class VectorLine extends VectorBase
-	{
-		float fX, fY, tX, tY;
-		int texture;
-
-		VectorLine(double fX, double fY, double tX, double tY, int texture, Layer layer, EGraphics graphics)
-		{
-			super(layer, graphics);
-			this.fX = (float)fX;
-			this.fY = (float)fY;
-			this.tX = (float)tX;
-			this.tY = (float)tY;
-			this.texture = texture;
-		}
-	}
-
-	/**
-	 * Class which defines a cached circle (filled, opened, or thick).
-	 */
-	private static class VectorCircle extends VectorBase
-	{
-		float cX, cY, eX, eY;
-		int nature;
-
-		VectorCircle(double cX, double cY, double eX, double eY, int nature, Layer layer, EGraphics graphics)
-		{
-			super(layer, graphics);
-			this.cX = (float)cX;
-			this.cY = (float)cY;
-			this.eX = (float)eX;
-			this.eY = (float)eY;
-			this.nature = nature;
-		}
-	}
-
-	/**
-	 * Class which defines a cached arc of a circle (normal or thick).
-	 */
-	private static class VectorCircleArc extends VectorBase
-	{
-		float cX, cY, eX1, eY1, eX2, eY2;
-		boolean thick;
-
-		VectorCircleArc(double cX, double cY, double eX1, double eY1, double eX2, double eY2, boolean thick,
-			Layer layer, EGraphics graphics)
-		{
-			super(layer, graphics);
-			this.cX = (float)cX;
-			this.cY = (float)cY;
-			this.eX1 = (float)eX1;
-			this.eY1 = (float)eY1;
-			this.eX2 = (float)eX2;
-			this.eY2 = (float)eY2;
-			this.thick = thick;
-		}
-	}
-
-	/**
-	 * Class which defines cached text.
-	 */
-	private static class VectorText extends VectorBase
-	{
-		/** text is on a Cell */			static final int TEXTTYPECELL       = 1;
-		/** text is on an Export */			static final int TEXTTYPEEXPORT     = 2;
-		/** text is on a Node */			static final int TEXTTYPENODE       = 3;
-		/** text is on an Arc */			static final int TEXTTYPEARC        = 4;
-		/** text is on an Annotations */	static final int TEXTTYPEANNOTATION = 5;
-		/** text is on an Instances */		static final int TEXTTYPEINSTANCE   = 6;
-		/** text is on an Ports */			static final int TEXTTYPEPORT       = 7;
-
-		/** the text location */						Rectangle2D bounds;
-		/** the text style */							Poly.Type style;
-		/** the descriptor of the text */				TextDescriptor descript;
-		/** the text to draw */							String str;
-		/** the text height (in display units) */		float height;
-		/** the type of text (CELL, EXPORT, etc.) */	int textType;
-		/** valid for port text on a node */			NodeInst ni;
-		/** valid for port text or export text */		Export e;
-
-		VectorText(Rectangle2D bounds, Poly.Type style, TextDescriptor descript, String str, int textType, NodeInst ni, Export e,
-			Layer layer, EGraphics graphics)
-		{
-			super(layer, graphics);
-			this.bounds = bounds;
-			this.style = style;
-			this.descript = descript;
-			this.str = str;
-			this.textType = textType;
-			this.ni = ni;
-			this.e = e;
-
-			height = 1;
-			if (descript != null)
-			{
-				TextDescriptor.Size tds = descript.getSize();
-				if (!tds.isAbsolute()) height = (float)tds.getSize();
-			}
-		}
-	}
-
-	/**
-	 * Class which defines a cached cross (a dot, large or small).
-	 */
-	private static class VectorCross extends VectorBase
-	{
-		float x, y;
-		boolean small;
-
-		VectorCross(double x, double y, boolean small, Layer layer, EGraphics graphics)
-		{
-			super(layer, graphics);
-			this.x = (float)x;
-			this.y = (float)y;
-			this.small = small;
-		}
-	}
-
-	/**
-	 * Class which defines a cached subcell reference.
-	 */
-	private static class VectorSubCell
-	{
-		NodeInst ni;
-		Orientation pureRotate;
-		Cell subCell;
-		float offsetX, offsetY;
-		Point2D [] outlinePoints;
-		float size;
-		List<VectorBase> portShapes;
-
-		VectorSubCell(NodeInst ni, Point2D offset, Point2D [] outlinePoints)
-		{
-			this.ni = ni;
-			if (ni != null)
-			{
-				pureRotate = ni.getOrient();
-				subCell = (Cell)ni.getProto();
-				size = (float)Math.min(ni.getXSize(), ni.getYSize());
-			} else
-			{
-			}
-			if (offset == null) offsetX = offsetY = 0; else
-			{
-				offsetX = (float)offset.getX();
-				offsetY = (float)offset.getY();
-			}
-			this.outlinePoints = outlinePoints;
-			portShapes = new ArrayList<VectorBase>();
-		}
-	}
-
-	/**
-	 * Class which holds the cell caches for a given cell.
-	 * Since each cell is cached many times, once for every orientation on the screen,
-	 * this object can hold many cell caches.
-	 */
-	private static class VectorCellGroup
-	{
-		Cell cell;
-		HashMap<Orientation,VectorCell> orientations = new HashMap<Orientation,VectorCell>();
-		VectorCell any;
-		double sizeX, sizeY;
-		List<VectorCellExport> exports;
-
-		VectorCellGroup(Cell cell)
-		{
-			this.cell = cell;
-			any = null;
-		}
-
-		static VectorCellGroup findCellGroup(Cell cell)
-		{
-			VectorCellGroup vcg = cachedCells.get(cell);
-			if (vcg == null)
-			{
-				vcg = new VectorCellGroup(cell);
-				cachedCells.put(cell, vcg);
-			}
-			return vcg;
-		}
-
-		void clear()
-		{
-			orientations.clear();
-            if (exports != null)
-			    exports.clear();
-			any = null;
-		}
-
-		VectorCell getAnyCell()
-		{
-			return any;
-		}
-
-		void addCell(VectorCell vc, Orientation trans)
-		{
-			orientations.put(trans.canonic(), vc);
-			any = vc;
-		}
-	}
-
-	/**
-	 * Class which defines the exports on a cell (used to tell if they changed)
-	 */
-	private static class VectorCellExport
-	{
-		String exportName;
-		Point2D exportCtr;
-	}
-
-	/**
-	 * Class which defines a cached cell in a single orientation.
-	 */
-	private static class VectorCell
-	{
-		float[] outlinePoints = new float[8];
-        double lX, lY, hX, hY;
-		ArrayList<VectorBase> filledShapes = new ArrayList<VectorBase>();
-        ArrayList<VectorBase> shapes = new ArrayList<VectorBase>();
-        ArrayList<VectorBase> topOnlyShapes = new ArrayList<VectorBase>();
-		ArrayList<VectorSubCell> subCells = new ArrayList<VectorSubCell>();
-		boolean hasFadeColor;
-		int fadeColor;
-		float maxFeatureSize;
-		boolean isParameterized;
-		float cellSize;
-		boolean fadeImage;
-		int fadeOffsetX, fadeOffsetY;
-		int [] fadeImageColors;
-		int fadeImageWid, fadeImageHei;
-
-		VectorCell(Cell cell, Orientation orient)
-		{
-            initBounds(cell.getBounds(), orient);
-            
-			hasFadeColor = false;
-			maxFeatureSize = 0;
-			fadeImage = false;
-		}
-        
-        private void initBounds(ERectangle bounds, Orientation orient) {
-            double[] points = new double[8];
-            points[0] = points[6] = bounds.getMinX();
-            points[1] = points[3] = bounds.getMinY();
-            points[2] = points[4] = bounds.getMaxX();
-            points[5] = points[7] = bounds.getMaxY();
-            orient.pureRotate().transform(outlinePoints, 0, outlinePoints, 0, 4);
-            lX = lY = Double.MAX_VALUE;
-            hX = hY = Double.MIN_VALUE;
-            for (int i = 0; i < 4; i++) {
-                double x = points[i*2], y = points[i*2 + 1];
-                lX = Math.min(lX, x);
-                lY = Math.min(lY, y);
-                hX = Math.max(hX, x);
-                hY = Math.max(hY, y);
-                outlinePoints[i*2] = (float)x;
-                outlinePoints[i*2+1] = (float)y;
-            }
-        }
-	}
 
 	// ************************************* TOP LEVEL *************************************
 
@@ -487,6 +139,7 @@ public class VectorDrawing
 
 		// set size limit
 		scale = (float)wnd.getScale();
+        scale_ = (float)(wnd.getScale()/DBMath.GRID);
 		maxObjectSize = (float)User.getGreekSizeLimit() / scale;
 		maxTextSize = maxObjectSize / (float)User.getGlobalTextScale();
 		Rectangle2D screenBounds = wnd.getDisplayedBounds();
@@ -509,10 +162,11 @@ public class VectorDrawing
 		screenLX = 0;   screenHX = sz.width;
 		screenLY = 0;   screenHY = sz.height;
 		Point2D offset = wnd.getOffset();
-		offX = (float)offset.getX();
-		offY = (float)offset.getY();
-		factorX = szHalfWidth - offX*scale;
-		factorY = szHalfHeight + offY*scale;
+		factorX = (float)(offset.getX()*DBMath.GRID - szHalfWidth/scale_);
+		factorY = (float)(offset.getY()*DBMath.GRID + szHalfHeight/scale_);
+        factorX_ = (int)factorX;
+        factorY_ = (int)factorY;
+        scale_int = (int)(scale_ * (1 << SCALE_SH));
 		if (drawLimitBounds != null)
 		{
 			Rectangle screenLimit = wnd.databaseToScreen(drawLimitBounds);
@@ -530,9 +184,9 @@ public class VectorDrawing
 		stopRendering = false;
 		try
 		{
-			VectorCell topVC = drawCell(cell, Orientation.IDENT, context);
+			VectorCache.VectorCell topVC = drawCell(cell, Orientation.IDENT, context);
             topVD = this;
-			render(topVC, 0, 0, Orientation.IDENT, context, 0);
+			render(topVC, 0, 0, context, 0);
             drawList(0, 0, topVC.topOnlyShapes, 0);
 		} catch (AbortRenderingException e)
 		{
@@ -558,197 +212,12 @@ public class VectorDrawing
 		}
 	}
 
-	/**
-	 * Method to insert a manhattan rectangle into the vector cache for a Cell.
-	 * @param lX the low X of the manhattan rectangle.
-	 * @param lY the low Y of the manhattan rectangle.
-	 * @param hX the high X of the manhattan rectangle.
-	 * @param hY the high Y of the manhattan rectangle.
-	 * @param layer the layer on which to draw the rectangle.
-	 * @param cell the Cell in which to insert the rectangle.
-	 */
-	public static void addBoxToCell(float lX, float lY, float hX, float hY, Layer layer, Cell cell)
-	{
-		List<VectorBase> addToThisCell = addPolyToCell.get(cell);
-		if (addToThisCell == null)
-		{
-			addToThisCell = new ArrayList<VectorBase>();
-			addPolyToCell.put(cell, addToThisCell);
-		}
-		EGraphics graphics = null;
-		if (layer != null)
-			graphics = layer.getGraphics();
-		VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics);
-		addToThisCell.add(vm);
-	}
-
-	/**
-	 * Method to insert a manhattan rectangle into the vector cache for a Cell.
-	 * @param lX the low X of the manhattan rectangle.
-	 * @param lY the low Y of the manhattan rectangle.
-	 * @param hX the high X of the manhattan rectangle.
-	 * @param hY the high Y of the manhattan rectangle.
-	 * @param cell the Cell in which to insert the rectangle.
-	 */
-	public static void addInstanceToCell(float lX, float lY, float hX, float hY, Cell cell)
-	{
-		List<VectorSubCell> addToThisCell = addInstToCell.get(cell);
-		if (addToThisCell == null)
-		{
-			addToThisCell = new ArrayList<VectorSubCell>();
-			addInstToCell.put(cell, addToThisCell);
-		}
-
-		// store the subcell
-		Point2D [] points = new Point2D[4];
-		points[0] = new Point2D.Float(lX, lY);
-		points[1] = new Point2D.Float(lX, hY);
-		points[2] = new Point2D.Float(hX, hY);
-		points[3] = new Point2D.Float(hX, lY);
-		VectorSubCell vsc = new VectorSubCell(null, null, points);
-		addToThisCell.add(vsc);
-	}
-	
-	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
-
-	/**
-	 * Method to tell whether a Cell is parameterized.
-	 * Code is taken from tool.drc.Quick.checkEnumerateProtos
-	 * Could also use the code in tool.io.output.Spice.checkIfParameterized
-	 * @param cell the Cell to examine
-	 * @return true if the cell has parameters
-	 */
-	private boolean isCellParameterized(Cell cell)
-	{
-		for(Iterator<Variable> vIt = cell.getParameters(); vIt.hasNext(); )
-		{
-			Variable var = vIt.next();
-			// this attribute is not a parameter
-			if (var.getKey() == NCCKEY) continue;
-			return true;
-		}
-//		for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
-//		{
-//			Variable var = vIt.next();
-//			if (var.isParam())
-//			{
-//				// this attribute is not a parameter
-//				if (var.getKey() == NCCKEY) continue;
-//				return true;
-//			}
-//		}
-
-		// look for any Java coded stuff (Logical Effort calls)
-		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-			{
-				Variable var = vIt.next();
-				if (var.getCode() != TextDescriptor.Code.NONE) return true;
-			}
-		}
-		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = it.next();
-			for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
-			{
-				Variable var = vIt.next();
-				if (var.getCode() != TextDescriptor.Code.NONE) return true;
-			}
-		}
-		return false;
-	}
 
 	/**
 	 * Class to define a signal to abort rendering.
 	 */
 	class AbortRenderingException extends Exception {}
 
-    static void forceRedraw(Set<CellId> changedCells) {
-        ArrayList<Cell> cachedCellsCopy = new ArrayList<Cell>(cachedCells.keySet());
-        for (Cell cell: cachedCellsCopy) {
-            if (!changedCells.contains(cell.getId())) continue;
-            cellChanged(cell);
-        }
-    }
-    
-	/**
-	 * Method called when a cell changes: removes any cached displays of that cell
-	 * @param cell the cell that changed
-	 */
-	private static void cellChanged(Cell cell)
-	{
-		if (cell.isLinked())
-		{
-			// cell still valid: see if it changed from last cache
-			VectorCellGroup vcg = cachedCells.get(cell);
-			if (vcg != null && vcg.exports != null)
-			{
-				boolean changed = false;
-				Rectangle2D cellBounds = cell.getBounds();
-				if (vcg.sizeX != cellBounds.getWidth() || vcg.sizeY != cellBounds.getHeight()) changed = true; else
-				{
-					Iterator<VectorCellExport> cIt = vcg.exports.iterator();
-					for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
-					{
-						Export e = it.next();
-						if (!cIt.hasNext()) { changed = true;   break; }
-						VectorCellExport vce = cIt.next();
-						if (!vce.exportName.equals(e.getName()))  { changed = true;   break; }
-						Poly poly = e.getOriginalPort().getPoly();
-						if (vce.exportCtr.getX() != poly.getCenterX() ||
-							vce.exportCtr.getY() != poly.getCenterY()) { changed = true;   break; }
-					}
-					if (cIt.hasNext()) changed = true;
-				}
-
-				// queue parent cells for recaching if the bounds or exports changed
-				if (changed)
-				{
-					for(Iterator<CellUsage> it = cell.getUsagesOf(); it.hasNext(); )
-					{
-	                    CellUsage u = it.next();
-						cellChanged(u.getParent());
-					}
-				}
-			}
-		}
-//System.out.println("REMOVING CACHE FOR CELL "+cell);
-		cachedCells.remove(cell);
-	}
-
-	/**
-	 * Method called when a technology's parameters change.
-	 * All cells that use the technology must be recached.
-	 * @param tech the technology that changed.
-	 */
-	public static void technologyChanged(Technology tech)
-	{
-		for(Cell cell : cachedCells.keySet())
-		{
-			if (cell.getTechnology() != tech) continue;
-			VectorCellGroup vcg = cachedCells.get(cell);
-			vcg.clear();
-		}
-	}
-
-	/**
-	 * Method called when visible layers have changed.
-	 * Removes all "greeked images" from cached cells.
-	 */
-	public static void layerVisibilityChanged()
-	{
-		for(Cell cell : cachedCells.keySet())
-		{
-			VectorCellGroup vcg = cachedCells.get(cell);
-			for(VectorCell vc : vcg.orientations.values())
-			{
-				vc.fadeImageColors = null;
-				vc.fadeImage = false;
-			}
-		}
-	}
 
 	/**
 	 * Method to request that the current rendering be aborted because it must be restarted.
@@ -762,13 +231,12 @@ public class VectorDrawing
 	/**
 	 * Method to recursively render a cached cell.
 	 * @param vc the cached cell to render
-	 * @param oX the X offset for rendering the cell (in database coordinates).
-	 * @param oY the Y offset for rendering the cell (in database coordinates).
-	 * @param trans the orientation of the cell (this is not a transformation matrix with offsets, just an Orientation with rotation).
+	 * @param oX the X offset for rendering the cell (in database grid coordinates).
+	 * @param oY the Y offset for rendering the cell (in database grid coordinates).
 	 * @param context the VarContext for this point in the rendering.
 	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
 	 */
-	private void render(VectorCell vc, float oX, float oY, Orientation trans, VarContext context, int level)
+	private void render(VectorCache.VectorCell vc, int oX, int oY, VarContext context, int level)
 		throws AbortRenderingException
 	{
 		// render main list of shapes
@@ -776,39 +244,35 @@ public class VectorDrawing
 		drawList(oX, oY, vc.shapes, level);
 
 		// now render subcells
-		for(VectorSubCell vsc : vc.subCells)
+		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
 			if (stopRendering) throw new AbortRenderingException();
 			subCellCount++;
 
 			// get instance location
-			float p1x = (float)vsc.outlinePoints[0].getX() + oX;
-			float p2x = (float)vsc.outlinePoints[1].getX() + oX;
-			float p3x = (float)vsc.outlinePoints[2].getX() + oX;
-			float p4x = (float)vsc.outlinePoints[3].getX() + oX;
-			float p1y = (float)vsc.outlinePoints[0].getY() + oY;
-			float p2y = (float)vsc.outlinePoints[1].getY() + oY;
-			float p3y = (float)vsc.outlinePoints[2].getY() + oY;
-			float p4y = (float)vsc.outlinePoints[3].getY() + oY;
-			databaseToScreen(p1x, p1y, tempPt1);   databaseToScreen(p2x, p2y, tempPt2);
-			databaseToScreen(p3x, p3y, tempPt3);   databaseToScreen(p4x, p4y, tempPt4);
-			int lX = Math.min(Math.min(tempPt1.x, tempPt2.x), Math.min(tempPt3.x, tempPt4.x));
-			int hX = Math.max(Math.max(tempPt1.x, tempPt2.x), Math.max(tempPt3.x, tempPt4.x));
-			int lY = Math.min(Math.min(tempPt1.y, tempPt2.y), Math.min(tempPt3.y, tempPt4.y));
-			int hY = Math.max(Math.max(tempPt1.y, tempPt2.y), Math.max(tempPt3.y, tempPt4.y));
+            int soX = vsc.offsetX + oX;
+            int soY = vsc.offsetY + oY;
+            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCell.getId(), vc.orient.concatenate(vsc.pureRotate));
+            gridToScreen(subVC.lX + soX, subVC.hY + soY, tempPt1);
+            gridToScreen(subVC.hX + soX, subVC.lY + soY, tempPt2);
+            int lX = tempPt1.x;
+            int lY = tempPt1.y;
+            int hX = tempPt2.x;
+            int hY = tempPt2.y;
 
 			// see if the subcell is clipped
 			if (hX < screenLX || lX >= screenHX) continue;
 			if (hY < screenLY || lY >= screenHY) continue;
 
 			// see if the cell is too tiny to draw
-			if (vsc.size < maxObjectSize && vsc.ni != null)
+			if (subVC.vcg.cellMinSize < maxObjectSize)
 			{
 				Orientation thisOrient = vsc.ni.getOrient();
-				Orientation recurseTrans = trans.concatenate(thisOrient);
+				Orientation recurseTrans = vc.orient.concatenate(thisOrient);
 				VarContext subContext = context.push(vsc.ni);
-				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
-				makeGreekedImage(vsc, subVC);
+				VectorCache.VectorCell subVC_ = drawCell(vsc.subCell, recurseTrans, subContext);
+                assert subVC_ == subVC;
+				makeGreekedImage(subVC);
 
 				int fadeColor = getFadeColor(subVC, subContext);
 				drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
@@ -816,12 +280,7 @@ public class VectorDrawing
 				continue;
 			}
 
-			boolean expanded = false;
-			if (vsc.ni != null)
-			{
-				expanded = vsc.ni.isExpanded();
-				if (fullInstantiate) expanded = true;
-			}
+			boolean expanded = vsc.ni.isExpanded() || fullInstantiate;
 
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
@@ -844,31 +303,21 @@ public class VectorDrawing
 			if (expanded)
 			{
 				Orientation thisOrient = vsc.ni.getOrient();
-				Orientation recurseTrans = trans.concatenate(thisOrient);
+				Orientation recurseTrans = vc.orient.concatenate(thisOrient);
 				VarContext subContext = context.push(vsc.ni);
-				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
+				VectorCache.VectorCell subVC_ = drawCell(vsc.subCell, recurseTrans, subContext);
+                assert subVC_ == subVC;
 
 				// expanded cells may be replaced with greeked versions (not icons)
 				if (vsc.subCell.getView() != View.ICON)
 				{
 					// may also be "tiny" if all features in the cell are tiny
-					if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize && subVC.cellSize < maxCellSize)
-					{
-						boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans, context);
-						if (allTinyInside)
-						{
-							makeGreekedImage(vsc, subVC);
-							int fadeColor = getFadeColor(subVC, context);
-							drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
-							tinySubCellCount++;
-							continue;
-						}
-					}
-
 					// may also be "tiny" if the cell is smaller than the greeked image
-					if (User.isUseCellGreekingImages() && hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE)
+					if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize && subVC.vcg.cellArea < maxCellSize &&
+                            isContentsTiny(vsc.subCell, subVC, recurseTrans, context) ||
+                            User.isUseCellGreekingImages() && hX-lX <= MAXGREEKSIZE && hY-lY <= MAXGREEKSIZE)
 					{
-						makeGreekedImage(vsc, subVC);
+						makeGreekedImage(subVC);
 						int fadeColor = getFadeColor(subVC, context);
 						drawTinyBox(lX, hX, lY, hY, fadeColor, subVC);
 						tinySubCellCount++;
@@ -878,32 +327,30 @@ public class VectorDrawing
 
 				int subLevel = level;
 				if (subLevel == 0) subLevel = 1;
-				render(subVC, vsc.offsetX + oX, vsc.offsetY + oY, recurseTrans, subContext, subLevel);
+				render(subVC, soX, soY, subContext, subLevel);
 			} else
 			{
 				// now draw with the proper line type
-//                {
-//                    float[] points = vsc.
-//    			double p1x = vsc.outlinePoints[0].getX() + oX;
-//                double p1y = vsc.outlinePoints[0].getY() + oY;
-//        		double p2x = vsc.outlinePoints[1].getX() + oX;
-//                double p2y = vsc.outlinePoints[1].getY() + oY;
-//            	double p3x = vsc.outlinePoints[2].getX() + oX;
-//                double p3y = vsc.outlinePoints[2].getY() + oY;
-//                double p4x = vsc.outlinePoints[3].getX() + oX;
-//                double p4y = vsc.outlinePoints[3].getY() + oY;
-				databaseToScreen(p1x, p1y, tempPt1);   databaseToScreen(p2x, p2y, tempPt2);
+                int[] op = subVC.outlinePoints;
+                int p1x = op[0] + soX;
+                int p1y = op[1] + soY;
+                int p2x = op[2] + soX;
+                int p2y = op[3] + soY;
+                int p3x = op[4] + soX;
+                int p3y = op[5] + soY;
+                int p4x = op[6] + soX;
+                int p4y = op[7] + soY;
+                gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
-				databaseToScreen(p2x, p2y, tempPt1);   databaseToScreen(p3x, p3y, tempPt2);
+				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
-				databaseToScreen(p3x, p3y, tempPt1);   databaseToScreen(p4x, p4y, tempPt2);
+				gridToScreen(p3x, p3y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
-				databaseToScreen(p1x, p1y, tempPt1);   databaseToScreen(p4x, p4y, tempPt2);
+				gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
-//                }
 
 				// draw the instance name
-				if (User.isTextVisibilityOnInstance() && vsc.ni != null)
+				if (User.isTextVisibilityOnInstance())
 				{
 					tempRect.setRect(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
@@ -911,23 +358,24 @@ public class VectorDrawing
 					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
 				}
 			}
-			drawList(oX, oY, vsc.portShapes, level);
+			drawPortList(vsc, subVC, soX, soY, vsc.ni.isExpanded());
 		}
 	}
 
 	/**
 	 * Method to draw a list of cached shapes.
-	 * @param oX the X offset to draw the shapes (in display coordinates).
-	 * @param oY the Y offset to draw the shapes (in display coordinates).
+	 * @param oX the X offset to draw the shapes (in database grid coordinates).
+	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
 	 * @param shapes the List of shapes (VectorBase objects).
 	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
 	 */
-	private void drawList(float oX, float oY, List<VectorBase> shapes, int level)
+	private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes, int level)
 		throws AbortRenderingException
 	{
-		// render all shapes
-		for(VectorBase vb : shapes)
-		{
+		// render all shapes in reverse order (because PixelDrawing don't overwrite opaque layers)
+		for (int k = shapes.size() - 1; k >= 0; k--)
+        {
+            VectorCache.VectorBase vb = shapes.get(k);
 			if (stopRendering) throw new AbortRenderingException();
 
 			// get visual characteristics of shape
@@ -945,76 +393,6 @@ public class VectorDrawing
 				if (!layer.isVisible()) continue;
 				dimmed = layer.isDimmed();
 			}
-
-			// handle each shape
-			if (vb instanceof VectorManhattan)
-			{
-				boxCount++;
-				VectorManhattan vm = (VectorManhattan)vb;
-
-				if (vm.minSize < maxObjectSize)
-				{
-					int col = vm.tinyColor;
-					if (col < 0) continue;
-					if (vm.maxSize < maxObjectSize)
-					{
-						// both dimensions tiny: just draw a dot
-						databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
-						int x = tempPt1.x;
-						int y = tempPt1.y;
-						if (x < screenLX || x >= screenHX) continue;
-						if (y < screenLY || y >= screenHY) continue;
-						offscreen.drawPoint(x, y, null, col);
-						tinyBoxCount++;
-					} else
-					{
-						// one dimension tiny: draw a line
-						databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
-						databaseToScreen(vm.c2X+oX, vm.c2Y+oY, tempPt2);
-						int lX, hX, lY, hY;
-						if (tempPt1.x < tempPt2.x) { lX = tempPt1.x;   hX = tempPt2.x; } else
-							{ lX = tempPt2.x;   hX = tempPt1.x; }
-						if (hX < screenLX || lX >= screenHX) continue;
-						if (tempPt1.y < tempPt2.y) { lY = tempPt1.y;   hY = tempPt2.y; } else
-							{ lY = tempPt2.y;   hY = tempPt1.y; }
-						if (hY < screenLY || lY >= screenHY) continue;
-						drawTinyBox(lX, hX, lY, hY, col, null);
-						lineBoxCount++;
-					}
-					continue;
-				}
-
-				// determine coordinates of rectangle on the screen
-				databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
-				databaseToScreen(vm.c2X+oX, vm.c2Y+oY, tempPt2);
-
-				// reject if completely off the screen
-				int lX, hX, lY, hY;
-				if (tempPt1.x < tempPt2.x) { lX = tempPt1.x;   hX = tempPt2.x; } else
-					{ lX = tempPt2.x;   hX = tempPt1.x; }
-				if (hX < screenLX || lX >= screenHX) continue;
-				if (tempPt1.y < tempPt2.y) { lY = tempPt1.y;   hY = tempPt2.y; } else
-					{ lY = tempPt2.y;   hY = tempPt1.y; }
-				if (hY < screenLY || lY >= screenHY) continue;
-
-				// clip to screen
-				if (lX < screenLX) lX = screenLX;
-				if (hX >= screenHX) hX = screenHX-1;
-				if (lY < screenLY) lY = screenLY;
-				if (hY >= screenHY) hY = screenHY-1;
-
-				// draw the box
-				byte [][] layerBitMap = null;
-				EGraphics graphics = vb.graphics;
-				if (graphics != null)
-				{
-					int layerNum = graphics.getTransparentLayer() - 1;
-					if (layerNum < offscreen.numLayerBitMaps) layerBitMap = offscreen.getLayerBitMap(layerNum);
-				}
-				offscreen.drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);
-				continue;
-			}
-
 			byte [][] layerBitMap = null;
 			EGraphics graphics = vb.graphics;
 			if (graphics != null)
@@ -1022,103 +400,193 @@ public class VectorDrawing
 				int layerNum = graphics.getTransparentLayer() - 1;
 				if (layerNum < offscreen.numLayerBitMaps) layerBitMap = offscreen.getLayerBitMap(layerNum);
 			}
-			if (vb instanceof VectorLine)
+
+			// handle each shape
+			if (vb instanceof VectorCache.VectorManhattan)
+			{
+				boxCount++;
+				VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
+                
+                double maxSize = maxObjectSize*DBMath.GRID;
+                int fadeCol = -1;
+				if (layer != null)
+				{
+					Layer.Function fun = layer.getFunction();
+					if (fun.isImplant() || fun.isSubstrate())
+					{
+						// well and substrate layers are made smaller so that they "greek" sooner
+                        if (!vm.pureLayer)
+                            maxSize *= 10;
+					} else if (vm.graphics != null) {
+                        fadeCol = vm.graphics.getRGB();
+                    }
+				}
+                for (int i = 0; i < vm.coords.length; i += 4) {
+                    int c1X = vm.coords[i];
+                    int c1Y = vm.coords[i+1];
+                    int c2X = vm.coords[i+2];
+                    int c2Y = vm.coords[i+3];
+                    long dX = c2X - c1X;
+                    long dY = c2Y - c1Y;
+                    if (dX < maxSize || dY < maxSize)
+                    {
+                        if (fadeCol < 0) continue;
+                        if (dX < maxSize && dY < maxSize)
+                        {
+                            // both dimensions tiny: just draw a dot
+                            gridToScreen(c1X+oX, c1Y+oY, tempPt1);
+                            int x = tempPt1.x;
+                            int y = tempPt1.y;
+                            if (x < screenLX || x >= screenHX) continue;
+                            if (y < screenLY || y >= screenHY) continue;
+                            offscreen.drawPoint(x, y, null, fadeCol);
+                            tinyBoxCount++;
+                        } else
+                        {
+                            // one dimension tiny: draw a line
+                            gridToScreen(c1X+oX, c2Y+oY, tempPt1);
+                            gridToScreen(c2X+oX, c1Y+oY, tempPt2);
+                            assert tempPt1.x <= tempPt2.x && tempPt1.y <= tempPt2.y;
+                            int lX = tempPt1.x;
+                            int hX = tempPt2.x;
+                            int lY = tempPt1.y;
+                            int hY = tempPt2.y;
+                            if (hX < screenLX || lX >= screenHX) continue;
+                            if (hY < screenLY || lY >= screenHY) continue;
+                            drawTinyBox(lX, hX, lY, hY, fadeCol, null);
+                            lineBoxCount++;
+                        }
+                        continue;
+                    }
+
+                    // determine coordinates of rectangle on the screen
+                    gridToScreen(c1X+oX, c2Y+oY, tempPt1);
+                    gridToScreen(c2X+oX, c1Y+oY, tempPt2);
+                    assert tempPt1.x <= tempPt2.x && tempPt1.y <= tempPt2.y;
+                    int lX = tempPt1.x;
+                    int hX = tempPt2.x;
+                    int lY = tempPt1.y;
+                    int hY = tempPt2.y;
+
+                    // reject if completely off the screen
+                    if (hX < screenLX || lX >= screenHX) continue;
+                    if (hY < screenLY || lY >= screenHY) continue;
+
+                    // clip to screen
+                    if (lX < screenLX) lX = screenLX;
+                    if (hX >= screenHX) hX = screenHX-1;
+                    if (lY < screenLY) lY = screenLY;
+                    if (hY >= screenHY) hY = screenHY-1;
+
+                    // draw the box
+                    offscreen.drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);
+                }
+            } else if (vb instanceof VectorCache.VectorLine)
 			{
 				lineCount++;
-				VectorLine vl = (VectorLine)vb;
+				VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
 
 				// determine coordinates of line on the screen
-				databaseToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
-				databaseToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
+				gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
+				gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
 
 				// clip and draw the line
 				offscreen.drawLine(tempPt1, tempPt2, layerBitMap, graphics, vl.texture, dimmed);
-			} else if (vb instanceof VectorPolygon)
+			} else if (vb instanceof VectorCache.VectorPolygon)
 			{
 				polygonCount++;
-				VectorPolygon vp = (VectorPolygon)vb;
+				VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
 				Point [] intPoints = new Point[vp.points.length];
 				for(int i=0; i<vp.points.length; i++)
 				{
 	                intPoints[i] = new Point();
-					databaseToScreen(vp.points[i].getX()+oX, vp.points[i].getY()+oY, intPoints[i]);
+					gridToScreen(vp.points[i].x+oX, vp.points[i].y+oY, intPoints[i]);
 	            }
 				Point [] clippedPoints = GenMath.clipPoly(intPoints, screenLX, screenHX-1, screenLY, screenHY-1);
 				offscreen.drawPolygon(clippedPoints, layerBitMap, graphics, dimmed);
-			} else if (vb instanceof VectorCross)
+			} else if (vb instanceof VectorCache.VectorCross)
 			{
 				crossCount++;
-				VectorCross vcr = (VectorCross)vb;
-				databaseToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
+				VectorCache.VectorCross vcr = (VectorCache.VectorCross)vb;
+				gridToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
 				int size = 5;
 				if (vcr.small) size = 3;
 				offscreen.drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
 				offscreen.drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), null, graphics, 0, dimmed);
-			} else if (vb instanceof VectorText)
+			} else if (vb instanceof VectorCache.VectorText)
 			{
-				VectorText vt = (VectorText)vb;
+				VectorCache.VectorText vt = (VectorCache.VectorText)vb;
 				switch (vt.textType)
 				{
-					case VectorText.TEXTTYPEARC:
+					case VectorCache.VectorText.TEXTTYPEARC:
 						if (!User.isTextVisibilityOnArc()) continue;
 						break;
-					case VectorText.TEXTTYPENODE:
+					case VectorCache.VectorText.TEXTTYPENODE:
 						if (!User.isTextVisibilityOnNode()) continue;
 						break;
-					case VectorText.TEXTTYPECELL:
+					case VectorCache.VectorText.TEXTTYPECELL:
 						if (!User.isTextVisibilityOnCell()) continue;
 						break;
-					case VectorText.TEXTTYPEEXPORT:
+					case VectorCache.VectorText.TEXTTYPEEXPORT:
 						if (!User.isTextVisibilityOnExport()) continue;
 						break;
-					case VectorText.TEXTTYPEANNOTATION:
+					case VectorCache.VectorText.TEXTTYPEANNOTATION:
 						if (!User.isTextVisibilityOnAnnotation()) continue;
 						break;
-					case VectorText.TEXTTYPEINSTANCE:
+					case VectorCache.VectorText.TEXTTYPEINSTANCE:
 						if (!User.isTextVisibilityOnInstance()) continue;
 						break;
-					case VectorText.TEXTTYPEPORT:
+					case VectorCache.VectorText.TEXTTYPEPORT:
 						if (!User.isTextVisibilityOnPort()) continue;
 						break;
 				}
 				if (vt.height < maxTextSize) continue;
 
 				String drawString = vt.str;
-				databaseToScreen(vt.bounds.getMinX()+oX, vt.bounds.getMinY()+oY, tempPt1);
-				databaseToScreen(vt.bounds.getMaxX()+oX, vt.bounds.getMaxY()+oY, tempPt2);
-				int lX, hX, lY, hY;
-				if (tempPt1.x < tempPt2.x) { lX = tempPt1.x;   hX = tempPt2.x; } else
-					{ lX = tempPt2.x;   hX = tempPt1.x; }
-				if (tempPt1.y < tempPt2.y) { lY = tempPt1.y;   hY = tempPt2.y; } else
-					{ lY = tempPt2.y;   hY = tempPt1.y; }
+                int lX = vt.bounds.x;
+                int lY = vt.bounds.y;
+                int hX = lX + vt.bounds.width;
+                int hY = lY + vt.bounds.height;
+				gridToScreen(lX + oX, hY + oY, tempPt1);
+				gridToScreen(hX + oX, lY + oY, tempPt2);
+                lX = tempPt1.x;
+                lY = tempPt1.y;
+                hX = tempPt2.x;
+                hY = tempPt2.y;
+//				int lX, hX, lY, hY;
+//				if (tempPt1.x < tempPt2.x) { lX = tempPt1.x;   hX = tempPt2.x; } else
+//					{ lX = tempPt2.x;   hX = tempPt1.x; }
+//				if (tempPt1.y < tempPt2.y) { lY = tempPt1.y;   hY = tempPt2.y; } else
+//					{ lY = tempPt2.y;   hY = tempPt1.y; }
 
 				// for ports, switch between the different port display methods
-				if (vt.textType == VectorText.TEXTTYPEPORT)
-				{
-					int portDisplayLevel = User.getPortDisplayLevel();
-					Color portColor = vt.e.getBasePort().getPortColor();
-					if (vt.ni.isExpanded()) portColor = textColor;
-					if (portColor != null) portGraphics.setColor(portColor);
-					int cX = (lX + hX) / 2;
-					int cY = (lY + hY) / 2;
-					if (portDisplayLevel == 2)
-					{
-						// draw port as a cross
-						int size = 3;
-						offscreen.drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, portGraphics, 0, false);
-						offscreen.drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, portGraphics, 0, false);
-						crossCount++;
-						continue;
-					}
-
-					// draw port as text
-					if (portDisplayLevel == 1) drawString = vt.e.getShortName(); else
-						drawString = vt.e.getName();
-					graphics = portGraphics;
-					layerBitMap = null;
-					lX = hX = cX;
-					lY = hY = cY;
-				} else if (vt.textType == VectorText.TEXTTYPEEXPORT && vt.e != null)
+//				if (vt.textType == VectorCache.VectorText.TEXTTYPEPORT)
+//				{
+//					int portDisplayLevel = User.getPortDisplayLevel();
+//					Color portColor = vt.e.getBasePort().getPortColor();
+//					if (vt.ni.isExpanded()) portColor = textColor;
+//					if (portColor != null) portGraphics.setColor(portColor);
+//					int cX = (lX + hX) / 2;
+//					int cY = (lY + hY) / 2;
+//					if (portDisplayLevel == 2)
+//					{
+//						// draw port as a cross
+//						int size = 3;
+//						offscreen.drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, portGraphics, 0, false);
+//						offscreen.drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, portGraphics, 0, false);
+//						crossCount++;
+//						continue;
+//					}
+//
+//					// draw port as text
+//					if (portDisplayLevel == 1) drawString = vt.e.getShortName(); else
+//						drawString = vt.e.getName();
+//					graphics = portGraphics;
+//					layerBitMap = null;
+//					lX = hX = cX;
+//					lY = hY = cY;
+//				} else 
+                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null)
 				{
 					int exportDisplayLevel = User.getExportDisplayLevel();
 					if (exportDisplayLevel == 2)
@@ -1143,44 +611,109 @@ public class VectorDrawing
 				textCount++;
 				tempRect.setRect(lX, lY, hX-lX, hY-lY);
 				offscreen.drawText(tempRect, vt.style, vt.descript, drawString, layerBitMap, graphics, dimmed);
-			} else if (vb instanceof VectorCircle)
+			} else if (vb instanceof VectorCache.VectorCircle)
 			{
 				circleCount++;
-				VectorCircle vci = (VectorCircle)vb;
-				databaseToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
-				databaseToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+				VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
+				gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+				gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
 				switch (vci.nature)
 				{
 					case 0: offscreen.drawCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);        break;
 					case 1: offscreen.drawThickCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);   break;
 					case 2: offscreen.drawDisc(tempPt1, tempPt2, layerBitMap, graphics, dimmed);          break;
 				}
-			} else if (vb instanceof VectorCircleArc)
+			} else if (vb instanceof VectorCache.VectorCircleArc)
 			{
 				arcCount++;
-				VectorCircleArc vca = (VectorCircleArc)vb;
-				databaseToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
-				databaseToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
-				databaseToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
+				VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
+				gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
+				gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
+				gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
 				offscreen.drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, layerBitMap, graphics, dimmed);
 			}
 		}
 	}
 
 	/**
-	 * Method to convert a database coordinate to screen coordinates.
-	 * @param dbX the X coordinate (in database units).
-	 * @param dbY the Y coordinate (in database units).
-	 * @param result the Point in which to store the screen coordinates.
+	 * Method to draw a list of cached port shapes.
+	 * @param oX the X offset to draw the shapes (in database grid coordinates).
+	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
+     * @parem true to draw a list on expanded instance
 	 */
-	public void databaseToScreen(double dbX, double dbY, Point result)
+	private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded)
+		throws AbortRenderingException
 	{
-		double scrX = dbX * scale + factorX;
-		double scrY = factorY - dbY * scale;
-		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
-		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+        if (!User.isTextVisibilityOnPort()) return;
+		// render all shapes
+		for(VectorCache.VectorText vt : subVC_.getPortShapes())
+		{
+			if (stopRendering) throw new AbortRenderingException();
+
+			// get visual characteristics of shape
+            assert vt.textType == VectorCache.VectorText.TEXTTYPEPORT;
+            if (vsc.shownPorts.get(vt.e.getId().getChronIndex())) continue;
+			if (vt.height < maxTextSize) continue;
+
+            String drawString = vt.str;
+            int lX = vt.bounds.x;
+            int lY = vt.bounds.y;
+            int hX = lX + vt.bounds.width;
+            int hY = lY + vt.bounds.height;
+            gridToScreen(lX + oX, hY + oY, tempPt1);
+            gridToScreen(hX + oX, lY + oY, tempPt2);
+            lX = tempPt1.x;
+            lY = tempPt1.y;
+            hX = tempPt2.x;
+            hY = tempPt2.y;
+
+			int portDisplayLevel = User.getPortDisplayLevel();
+			Color portColor = vt.e.getBasePort().getPortColor();
+			if (expanded) portColor = textColor;
+			if (portColor != null) portGraphics.setColor(portColor);
+			int cX = (lX + hX) / 2;
+			int cY = (lY + hY) / 2;
+			if (portDisplayLevel == 2)
+			{
+				// draw port as a cross
+				int size = 3;
+				offscreen.drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, portGraphics, 0, false);
+				offscreen.drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, portGraphics, 0, false);
+				crossCount++;
+				continue;
+			}
+
+			// draw port as text
+			if (portDisplayLevel == 1) drawString = vt.e.getShortName(); else
+				drawString = vt.e.getName();
+			lX = hX = cX;
+			lY = hY = cY;
+            
+			textCount++;
+			tempRect.setRect(lX, lY, hX-lX, hY-lY);
+			offscreen.drawText(tempRect, vt.style, vt.descript, drawString, null, portGraphics, false);
+		}
 	}
 
+	/**
+	 * Method to convert a database grid coordinate to screen coordinates.
+	 * @param dbX the X coordinate (in database grid units).
+	 * @param dbY the Y coordinate (in database grid units).
+	 * @param result the Point in which to store the screen coordinates.
+	 */
+	private void gridToScreen(int dbX, int dbY, Point result)
+	{
+        if (false) {
+            result.x = ((dbX - factorX_) * scale_int) >> SCALE_SH;
+            result.y = ((factorY_ - dbY) * scale_int) >> SCALE_SH;
+        } else {
+            double scrX = (dbX - factorX) * scale_;
+            double scrY = (factorY - dbY) * scale_;
+            result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+            result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+        }
+	}
+    
 	/**
 	 * Method to draw a tiny box on the screen in a given color.
 	 * Done when the object is too small to draw in full detail.
@@ -1190,7 +723,7 @@ public class VectorDrawing
 	 * @param hY the high Y coordinate of the box.
 	 * @param col the color to draw.
 	 */
-	private void drawTinyBox(int lX, int hX, int lY, int hY, int col, VectorCell greekedCell)
+	private void drawTinyBox(int lX, int hX, int lY, int hY, int col, VectorCache.VectorCell greekedCell)
 	{
 		if (lX < screenLX) lX = screenLX;
 		if (hX >= screenHX) hX = screenHX-1;
@@ -1314,41 +847,41 @@ public class VectorDrawing
 	 * @param trans the Orientation of the cell.
 	 * @return true if the cell has all tiny contents.
 	 */
-	private boolean isContentsTiny(Cell cell, VectorCell vc, Orientation trans, VarContext context)
+	private boolean isContentsTiny(Cell cell, VectorCache.VectorCell vc, Orientation trans, VarContext context)
 		throws AbortRenderingException
 	{
 		if (vc.maxFeatureSize > maxObjectSize) return false;
 		boolean isAllTiny = true;
-		for(VectorSubCell vsc : vc.subCells)
+		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
 			NodeInst ni = vsc.ni;
-			boolean expanded = ni.isExpanded();
-			if (fullInstantiate) expanded = true;
-			if (expanded)
+            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCell.getId(), vc.orient.concatenate(vsc.pureRotate));
+			if (ni.isExpanded() || fullInstantiate)
 			{
 				Orientation thisOrient = ni.getOrient();
-				Orientation recurseTrans = thisOrient.concatenate(trans);
+				Orientation recurseTrans = trans.concatenate(thisOrient);
 				VarContext subContext = context.push(ni);
-				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
+				VectorCache.VectorCell subVC_ = drawCell(vsc.subCell, recurseTrans, subContext);
+                assert subVC_ == subVC;
 				boolean subCellTiny = isContentsTiny(vsc.subCell, subVC, recurseTrans, subContext);
 				if (!subCellTiny) return false;
 				continue;
 			}
-			if (vsc.size > maxObjectSize) return false;
+			if (subVC.vcg.cellMinSize > maxObjectSize) return false;
 		}
 		return true;
 	}
 
-	private void makeGreekedImage(VectorSubCell vsc, VectorCell subVC)
+	private void makeGreekedImage(VectorCache.VectorCell subVC)
 		throws AbortRenderingException
 	{
 		if (subVC.fadeImage) return;
 		if (!User.isUseCellGreekingImages()) return;
 
 		// determine size and scale of greeked cell image
-		Rectangle2D cellBounds = vsc.subCell.getBounds();
+		Rectangle2D cellBounds = subVC.vcg.bounds;
 		Rectangle2D ownBounds = new Rectangle2D.Double(cellBounds.getMinX(), cellBounds.getMinY(), cellBounds.getWidth(), cellBounds.getHeight());
-		AffineTransform trans = vsc.pureRotate.rotateAbout(0, 0);
+		AffineTransform trans = subVC.orient.rotateAbout(0, 0);
 		GenMath.transformRect(ownBounds, trans);
 		double greekScale = MAXGREEKSIZE / ownBounds.getHeight();
 		if (ownBounds.getWidth() > ownBounds.getHeight())
@@ -1359,7 +892,7 @@ public class VectorDrawing
 		if (greekHei <= 0) greekHei = 1;
 
 		// construct the offscreen buffers for the greeked cell image
-		EditWindow fadeWnd = EditWindow.CreateElectricDoc(vsc.subCell, null, null);
+		EditWindow fadeWnd = EditWindow.CreateElectricDoc(EDatabase.clientDatabase().getCell(subVC.vcg.cellId), null, null);
 		fadeWnd.setScreenSize(new Dimension(greekWid, greekHei));
 		fadeWnd.setScale(greekScale);
 		Point2D cellCtr = new Point2D.Double(ownBounds.getCenterX(), ownBounds.getCenterY());
@@ -1389,16 +922,18 @@ public class VectorDrawing
 		subVD.maxObjectSize = 0;
 		subVD.maxTextSize = 0;
 		subVD.scale = (float)greekScale;
-		subVD.offX = (float)cellCtr.getX();
-		subVD.offY = (float)cellCtr.getY();
-		subVD.factorX = subVD.szHalfWidth - subVD.offX*subVD.scale;
-		subVD.factorY = subVD.szHalfHeight + subVD.offY*subVD.scale;
+        subVD.scale_ = (float)(greekScale/DBMath.GRID);
+		subVD.factorX = (float)(cellCtr.getX()*DBMath.GRID - subVD.szHalfWidth/subVD.scale_);
+		subVD.factorY = (float)(cellCtr.getY()*DBMath.GRID + subVD.szHalfHeight/subVD.scale_);
+        subVD.factorX_ = (int)subVD.factorX;
+        subVD.factorY_ = (int)subVD.factorY;
+        subVD.scale_int = (int)(subVD.scale_ * (1 << SCALE_SH));
 		subVD.fullInstantiate = true;
 		subVD.takingLongTime = true;
 
 		// render the greeked cell
 		subVD.offscreen.clearImage(false, null);
-		subVD.render(subVC, 0, 0, vsc.pureRotate, VarContext.globalContext, -1);
+		subVD.render(subVC, 0, 0, VarContext.globalContext, -1);
 		subVD.offscreen.composite(null);
 
 		// remember the greeked cell image
@@ -1426,7 +961,7 @@ public class VectorDrawing
 	 * @param vc the cached cell.
 	 * @return the fade color (an integer with red/green/blue).
 	 */
-	private int getFadeColor(VectorCell vc, VarContext context)
+	private int getFadeColor(VectorCache.VectorCell vc, VarContext context)
 		throws AbortRenderingException
 	{
 		if (vc.hasFadeColor) return vc.fadeColor;
@@ -1471,10 +1006,10 @@ public class VectorDrawing
 	 * @param vc the cached cell to examine.
 	 * @param layerAreas a HashMap of all layers and the areas they cover.
 	 */
-	private void gatherContents(VectorCell vc, HashMap<Layer,MutableDouble> layerAreas, VarContext context)
+	private void gatherContents(VectorCache.VectorCell vc, HashMap<Layer,MutableDouble> layerAreas, VarContext context)
 		throws AbortRenderingException
 	{
-		for(VectorBase vb : vc.filledShapes)
+		for(VectorCache.VectorBase vb : vc.filledShapes)
 		{
 			Layer layer = vb.layer;
 			if (layer == null) continue;
@@ -1483,21 +1018,23 @@ public class VectorDrawing
 
 			// handle each shape
 			double area = 0;
-			if (vb instanceof VectorManhattan)
+			if (vb instanceof VectorCache.VectorManhattan)
 			{
-				VectorManhattan vm = (VectorManhattan)vb;
-				area = Math.abs((vm.c1X-vm.c2X) * (vm.c1Y-vm.c2Y));
-//			} else if (vb instanceof VectorLine)
-//			{
-//				VectorLine vl = (VectorLine)vb;
-//				area = new Point2D.Double(vl.fX, vl.fY).distance(new Point2D.Double(vl.tX, vl.tY));
-			} else if (vb instanceof VectorPolygon)
+				VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
+                for (int i = 0; i < vm.coords.length; i += 4) {
+                    double c1X = vm.coords[i];
+                    double c1Y = vm.coords[i + 1];
+                    double c2X = vm.coords[i + 2];
+                    double c2Y = vm.coords[i + 3];
+        			area += (c1X-c2X) * (c1Y-c2Y);
+                }
+			} else if (vb instanceof VectorCache.VectorPolygon)
 			{
-				VectorPolygon vp = (VectorPolygon)vb;
+				VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
 				area = GenMath.getAreaOfPoints(vp.points);
-			} else if (vb instanceof VectorCircle)
+			} else if (vb instanceof VectorCache.VectorCircle)
 			{
-				VectorCircle vci = (VectorCircle)vb;
+				VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
 				double radius = new Point2D.Double(vci.cX, vci.cY).distance(new Point2D.Double(vci.eX, vci.eY));
 				area = radius * radius * Math.PI;
 			}
@@ -1511,10 +1048,10 @@ public class VectorDrawing
 			md.setValue(md.doubleValue() + area);
 		}
 
-		for(VectorSubCell vsc : vc.subCells)
+		for(VectorCache.VectorSubCell vsc : vc.subCells)
 		{
-			VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
-			VectorCell subVC = vcg.getAnyCell();
+			VectorCache.VectorCellGroup vcg = VectorCache.theCache.findCellGroup(vsc.subCell.getId());
+			VectorCache.VectorCell subVC = vcg.getAnyCell();
 			VarContext subContext = context.push(vsc.ni);
 			if (subVC == null)
 				subVC = drawCell(vsc.subCell, Orientation.IDENT, subContext);
@@ -1530,19 +1067,9 @@ public class VectorDrawing
 	 * @param prevTrans the orientation of the cell (just a rotation, no offsets here).
 	 * @return a cached cell object for the given Cell.
 	 */
-	private VectorCell drawCell(Cell cell, Orientation prevTrans, VarContext context)
+	private VectorCache.VectorCell drawCell(Cell cell, Orientation prevTrans, VarContext context)
 		throws AbortRenderingException
 	{
-		// see if this cell's vectors are cached
-		VectorCellGroup vcg = VectorCellGroup.findCellGroup(cell);
-		VectorCell vc = vcg.orientations.get(prevTrans.canonic());
-		
-		// if the cell is parameterized, mark it for recaching
-		if (vc != null && vc.isParameterized) vc = null;
-
-		// if the cell is cached, stop now
-		if (vc != null) return vc;
-
 		// caching the cell: check for abort and delay reporting
 		if (stopRendering) throw new AbortRenderingException();
 		if (!takingLongTime)
@@ -1555,526 +1082,8 @@ public class VectorDrawing
 				takingLongTime = true;
 			}
 		}
-
-		// make a new cache of the cell
-		vc = new VectorCell(cell, prevTrans);
-		vcg.addCell(vc, prevTrans);
-		vc.isParameterized = isCellParameterized(cell);
-		Rectangle2D cellBounds = cell.getBounds();
-		vc.cellSize = (float)(cellBounds.getWidth() * cellBounds.getHeight());
-		AffineTransform trans = prevTrans.pureRotate();
-
-		// save size and export centers to detect hierarchical changes later
-		if (vcg.exports == null)
-		{
-			vcg.exports = new ArrayList<VectorCellExport>();
-			vcg.sizeX = cellBounds.getWidth();
-			vcg.sizeY = cellBounds.getHeight();
-			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
-			{
-				Export e = it.next();
-				VectorCellExport vce = new VectorCellExport();
-				vce.exportName = e.getName();
-				Poly poly = e.getOriginalPort().getPoly();
-				vce.exportCtr = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-				vcg.exports.add(vce);
-			}
-		}
-
-//System.out.println("CACHING CELL "+cell +" WITH ORIENTATION "+orientationName);
-		// draw all arcs
-		for(Iterator<ArcInst> arcs = cell.getArcs(); arcs.hasNext(); )
-		{
-			ArcInst ai = arcs.next();
-			drawArc(ai, trans, vc);
-		}
-
-		// draw all nodes
-		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
-		{
-			NodeInst ni = nodes.next();
-			drawNode(ni, trans, context, vc);
-		}
-
-		// for schematics, sort the polygons by layer so that busses are drawn first
-//		if (cell.getView() == View.SCHEMATIC)
-//		{
-//            Collections.sort(vc.shapes, new ShapeByLayer());
-//		}
-
-		// show cell variables
-		int numPolys = cell.numDisplayableVariables(true);
-		Poly [] polys = new Poly[numPolys];
-		cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
-		drawPolys(polys, DBMath.MATID, vc, true, VectorText.TEXTTYPECELL, false);
-
-		// add in anything "snuck" onto the cell
-		List<VectorBase> addThesePolys = addPolyToCell.get(cell);
-		if (addThesePolys != null)
-		{
-			for(VectorBase vb : addThesePolys)
-				vc.filledShapes.add(vb);
-		}
-		List<VectorSubCell> addTheseInsts = addInstToCell.get(cell);
-		if (addTheseInsts != null)
-		{
-			for(VectorSubCell vsc : addTheseInsts)
-				vc.subCells.add(vsc);
-		}
-
-		// icon cells should not get greeked because of their contents
-		if (cell.getView() == View.ICON) vc.maxFeatureSize = 0;
-
-		return vc;
-	}
-
-//	/**
-//	 * Comparator class for sorting VectorBase objects by their layer depth.
-//	 */
-//    public static class ShapeByLayer implements Comparator<VectorBase>
-//    {
-//		/**
-//		 * Method to sort Objects by their string name.
-//		 */
-//    	public int compare(VectorBase vb1, VectorBase vb2)
-//        {
-//			int level1 = 1000, level2 = 1000;
-//			if (vb1.layer != null) level1 = vb1.layer.getFunction().getLevel();
-//			if (vb2.layer != null) level2 = vb2.layer.getFunction().getLevel();
-//            return level1 - level2;
-//        }
-//    }
-
-	/**
-	 * Method to cache a NodeInst.
-	 * @param ni the NodeInst to cache.
-     * @param trans the transformation of the NodeInst to the parent Cell.
-	 * @param vc the cached cell in which to place the NodeInst.
-     */
-	public void drawNode(NodeInst ni, AffineTransform trans, VarContext context, VectorCell vc)
-	{
-		NodeProto np = ni.getProto();
-		AffineTransform localTrans = ni.rotateOut(trans);
-
-		// draw the node
-		if (ni.isCellInstance())
-		{
-			// cell instance
-			Cell subCell = (Cell)np;
-
-			// compute the outline
-			AffineTransform outlineTrans = ni.translateOut(localTrans);
-			Rectangle2D cellBounds = subCell.getBounds();
-			Poly outlinePoly = new Poly(cellBounds);
-			outlinePoly.transform(outlineTrans);
-
-			// record a call to the instance
-			Point2D ctrShift = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
-			localTrans.transform(ctrShift, ctrShift);
-			VectorSubCell vsc = new VectorSubCell(ni, ctrShift, outlinePoly.getPoints());
-			vc.subCells.add(vsc);
-
-			showCellPorts(ni, vc, vsc, localTrans);
-
-			// draw any displayable variables on the instance
-			int numPolys = ni.numDisplayableVariables(true);
-			Poly [] polys = new Poly[numPolys];
-			Rectangle2D rect = ni.getUntransformedBounds();
-			ni.addDisplayableVariables(rect, polys, 0, wnd, true);
-			drawPolys(polys, localTrans, vc, false, VectorText.TEXTTYPENODE, false);
-		} else
-		{
-			// primitive: save it
-			PrimitiveNode prim = (PrimitiveNode)np;
-			int textType = VectorText.TEXTTYPENODE;
-			if (prim == Generic.tech.invisiblePinNode) textType = VectorText.TEXTTYPEANNOTATION;
-			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni, wnd, context, false, false, null);
-            boolean hideOnLowLevel = ni.isVisInside() || np == Generic.tech.cellCenterNode;
-			boolean pureLayer = (ni.getFunction() == PrimitiveNode.Function.NODE);
-			drawPolys(polys, localTrans, vc, hideOnLowLevel, textType, pureLayer);
-		}
-
-		// draw any exports from the node
-		Iterator<Export> it = ni.getExports();
-		while (it.hasNext())
-		{
-			Export e = it.next();
-			Poly poly = e.getNamePoly();
-			Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-			TextDescriptor descript = poly.getTextDescriptor();
-			Poly.Type style = descript.getPos().getPolyType();
-			style = Poly.rotateType(style, ni);
-			VectorText vt = new VectorText(poly.getBounds2D(), style, descript, null, VectorText.TEXTTYPEEXPORT, null, e,
-				null, null);
-			vc.topOnlyShapes.add(vt);
-
-			// draw variables on the export
-			int numPolys = e.numDisplayableVariables(true);
-			if (numPolys > 0)
-			{
-				Poly [] polys = new Poly[numPolys];
-				e.addDisplayableVariables(rect, polys, 0, wnd, true);
-				drawPolys(polys, trans, vc, true, VectorText.TEXTTYPEEXPORT, false);
-//				drawPolys(polys, localTrans, vc, true, VectorText.TEXTTYPEEXPORT, false);
-			}
-		}
-	}
-
-	/**
-	 * Method to cache an ArcInst.
-	 * @param ai the ArcInst to cache.
-     * @param trans the transformation of the ArcInst to the parent cell.
-	 * @param vc the cached cell in which to place the ArcInst.
-     */
-	public void drawArc(ArcInst ai, AffineTransform trans, VectorCell vc)
-	{
-		// if the arc is tiny, just approximate it with a single dot
-		Rectangle2D arcBounds = ai.getBounds();
-
-        // see if the arc is completely clipped from the screen
-        Rectangle2D dbBounds = new Rectangle2D.Double(arcBounds.getX(), arcBounds.getY(), arcBounds.getWidth(), arcBounds.getHeight());
-        Poly p = new Poly(dbBounds);
-        p.transform(trans);
-        dbBounds = p.getBounds2D();
-
-		// draw the arc
-		ArcProto ap = ai.getProto();
-		Technology tech = ap.getTechnology();
-		Poly [] polys = tech.getShapeOfArc(ai, wnd);
-		drawPolys(polys, trans, vc, false, VectorText.TEXTTYPEARC, false);
-	}
-
-	/**
-	 * Method to cache the exports on a NodeInst.
-	 * @param ni the NodeInst with exports
-	 * @param col the color to use.
-	 * @param vc the cached cell in which to place the information.
-	 * @param vsc the cached subcell reference that defines the NodeInst.
-	 * @param localTrans the transformation of the port locations.
-	 */
-	private void showCellPorts(NodeInst ni, VectorCell vc, VectorSubCell vsc, AffineTransform localTrans)
-	{
-		// show the ports that are not further exported or connected
-		int numPorts = ni.getProto().getNumPorts();
-		boolean[] shownPorts = new boolean[numPorts];
-		for(Iterator<Connection> it = ni.getConnections(); it.hasNext();)
-		{
-			Connection con = it.next();
-			PortInst pi = con.getPortInst();
-			shownPorts[pi.getPortIndex()] = true;
-		}
-		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
-		{
-			Export exp = it.next();
-			PortInst pi = exp.getOriginalPort();
-			shownPorts[pi.getPortIndex()] = true;
-		}
-
-		// because "getShapeOfPort" includes the local rotation, it must be undone
-		AffineTransform thisTrans = ni.rotateIn();
-		for(int i = 0; i < numPorts; i++)
-		{
-			if (shownPorts[i]) continue;
-			Export pp = (Export)ni.getProto().getPort(i);
-
-			Poly portPoly = ni.getShapeOfPort(pp);
-			if (portPoly == null) continue;
-
-			// undo local rotation and add total transformation instead
-			portPoly.transform(thisTrans);
-			portPoly.transform(localTrans);
-
-			TextDescriptor descript = portPoly.getTextDescriptor();
-			MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
-			Poly.Type style = Poly.Type.FILLED;
-			if (descript != null)
-			{
-				portDescript.setColorIndex(descript.getColorIndex());
-				style = descript.getPos().getPolyType();
-			}
-			Rectangle rect = new Rectangle(tempPt1);
-			VectorText vt = new VectorText(portPoly.getBounds2D(), style, descript, null, VectorText.TEXTTYPEPORT, ni, pp,
-				null, null);
-			vsc.portShapes.add(vt);
-		}
-	}
-
-	/**
-	 * Method to cache an array of polygons.
-	 * @param polys the array of polygons to cache.
-	 * @param trans the transformation to apply to each polygon.
-	 * @param vc the cached cell in which to place the polygons.
-	 * @param hideOnLowLevel true if the polygons should be marked such that they are not visible on lower levels of hierarchy.
-	 * @param pureLayer true if these polygons come from a pure layer node.
-	 */
-	private void drawPolys(Poly[] polys, AffineTransform trans, VectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer)
-	{
-		if (polys == null) return;
-		for(int i = 0; i < polys.length; i++)
-		{
-			// get the polygon and transform it
-			Poly poly = polys[i];
-			if (poly == null) continue;
-
-			// transform the bounds
-			poly.transform(trans);
-
-			// render the polygon
-			renderPoly(poly, vc, hideOnLowLevel, textType, pureLayer);
-		}
-	}
-
-	/**
-	 * Method to cache a Poly.
-	 * @param poly the polygon to cache.
-	 * @param vc the cached cell in which to place the polygon.
-	 * @param hideOnLowLevel true if the polygon should be marked such that it is not visible on lower levels of hierarchy.
-	 * @param pureLayer true if the polygon comes from a pure layer node.
-	 */
-	private void renderPoly(Poly poly, VectorCell vc, boolean hideOnLowLevel, int textType, boolean pureLayer)
-	{
-		// now draw it
-		Point2D [] points = poly.getPoints();
-		Layer layer = poly.getLayer();
-		EGraphics graphics = null;
-		if (layer != null)
-			graphics = layer.getGraphics();
-		Poly.Type style = poly.getStyle();
-        ArrayList<VectorBase> filledShapes = hideOnLowLevel ? vc.topOnlyShapes : vc.filledShapes;
-        ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;
-		if (style == Poly.Type.FILLED)
-		{
-			Rectangle2D bounds = poly.getBox();
-			if (bounds != null)
-			{
-				// convert coordinates
-				float lX = (float)bounds.getMinX();
-				float hX = (float)bounds.getMaxX();
-				float lY = (float)bounds.getMinY();
-				float hY = (float)bounds.getMaxY();
-				VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics);
-				if (layer != null)
-				{
-					Layer.Function fun = layer.getFunction();
-					if (!pureLayer && (fun.isImplant() || fun.isSubstrate()))
-					{
-						float dX = hX - lX;
-						float dY = hY - lY;
-
-						// well and substrate layers are made smaller so that they "greek" sooner
-						vm.setSize(dX / 10, dY / 10);
-//						vm.setSize(dX / 2, dY / 2);
-//						this.size = (float)Math.min(ni.getXSize(), ni.getYSize());
-					}
-				}
-                filledShapes.add(vm);
-				vc.maxFeatureSize = Math.max(vc.maxFeatureSize, vm.minSize);
-				return;
-			}
-			VectorPolygon vp = new VectorPolygon(points, layer, graphics);
-			filledShapes.add(vp);
-			return;
-		}
-		if (style == Poly.Type.CROSSED)
-		{
-			VectorLine vl1 = new VectorLine(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 0, layer, graphics);
-			VectorLine vl2 = new VectorLine(points[1].getX(), points[1].getY(),
-				points[2].getX(), points[2].getY(), 0, layer, graphics);
-			VectorLine vl3 = new VectorLine(points[2].getX(), points[2].getY(),
-				points[3].getX(), points[3].getY(), 0, layer, graphics);
-			VectorLine vl4 = new VectorLine(points[3].getX(), points[3].getY(),
-				points[0].getX(), points[0].getY(), 0, layer, graphics);
-			VectorLine vl5 = new VectorLine(points[0].getX(), points[0].getY(),
-				points[2].getX(), points[2].getY(), 0, layer, graphics);
-			VectorLine vl6 = new VectorLine(points[1].getX(), points[1].getY(),
-				points[3].getX(), points[3].getY(), 0, layer, graphics);
-			shapes.add(vl1);
-			shapes.add(vl2);
-			shapes.add(vl3);
-			shapes.add(vl4);
-			shapes.add(vl5);
-			shapes.add(vl6);
-			return;
-		}
-		if (style.isText())
-		{
-			Rectangle2D bounds = poly.getBounds2D();
-			TextDescriptor descript = poly.getTextDescriptor();
-			String str = poly.getString();
-			VectorText vt = new VectorText(bounds, style, descript, str, textType, null, null,
-				layer, graphics);
-			shapes.add(vt);
-			vc.maxFeatureSize = Math.max(vc.maxFeatureSize, vt.height);
-			return;
-		}
-		if (style == Poly.Type.CLOSED || style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 ||
-			style == Poly.Type.OPENEDT2 || style == Poly.Type.OPENEDT3)
-		{
-			int lineType = 0;
-			if (style == Poly.Type.OPENEDT1) lineType = 1; else
-			if (style == Poly.Type.OPENEDT2) lineType = 2; else
-			if (style == Poly.Type.OPENEDT3) lineType = 3;
-
-			for(int j=1; j<points.length; j++)
-			{
-				Point2D oldPt = points[j-1];
-				Point2D newPt = points[j];
-				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), lineType, layer, graphics);
-				shapes.add(vl);
-			}
-			if (style == Poly.Type.CLOSED)
-			{
-				Point2D oldPt = points[points.length-1];
-				Point2D newPt = points[0];
-				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), lineType, layer, graphics);
-				shapes.add(vl);
-			}
-			return;
-		}
-		if (style == Poly.Type.VECTORS)
-		{
-			for(int j=0; j<points.length; j+=2)
-			{
-				Point2D oldPt = points[j];
-				Point2D newPt = points[j+1];
-				VectorLine vl = new VectorLine(oldPt.getX(), oldPt.getY(),
-					newPt.getX(), newPt.getY(), 0, layer, graphics);
-				shapes.add(vl);
-			}
-			return;
-		}
-		if (style == Poly.Type.CIRCLE)
-		{
-			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 0, layer, graphics);
-			shapes.add(vci);
-			return;
-		}
-		if (style == Poly.Type.THICKCIRCLE)
-		{
-			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), 1, layer, graphics);
-			shapes.add(vci);
-			return;
-		}
-		if (style == Poly.Type.DISC)
-		{
-			VectorCircle vci = new VectorCircle(points[0].getX(), points[0].getY(), points[1].getX(),
-				points[1].getY(), 2, layer, graphics);
-			filledShapes.add(vci);
-			return;
-		}
-		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
-		{
-			VectorCircleArc vca = new VectorCircleArc(points[0].getX(), points[0].getY(),
-				points[1].getX(), points[1].getY(), points[2].getX(), points[2].getY(),
-				style == Poly.Type.THICKCIRCLEARC, layer, graphics);
-			shapes.add(vca);
-			return;
-		}
-		if (style == Poly.Type.CROSS)
-		{
-			// draw the cross
-			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), true, layer, graphics);
-			shapes.add(vcr);
-			return;
-		}
-		if (style == Poly.Type.BIGCROSS)
-		{
-			// draw the big cross
-			VectorCross vcr = new VectorCross(points[0].getX(), points[0].getY(), false, layer, graphics);
-			shapes.add(vcr);
-			return;
-		}
-	}
-
-    /*------------------------------------------------------*/
-    
-    public static void showStatistics(Layer layer) {
-        Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
-        int numCells = 0, numCellLayer = 0;
-        int totalNoBox = 0, totalNoPoly = 0, totalNoDisc = 0, totalNoShapes = 0, totalNoText = 0, totalNoTopShapes = 0, totalNoTopText = 0;
-        for (VectorCellGroup vg: cachedCells.values()) {
-            VectorCell vc = vg.getAnyCell();
-            numCells++;
-            Map<Layer,GenMath.MutableInteger> layerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
-            int noText = 0, noTopText = 0;
-            for (VectorBase vs: vc.filledShapes) {
-                if (vs instanceof VectorManhattan)
-                    totalNoBox++;
-                else if (vs instanceof VectorPolygon)
-                    totalNoPoly++;
-                else if (vs instanceof VectorCircle)
-                    totalNoDisc++;
-                assert vs.layer != null;
-                GenMath.addToBag(layerBag, vs.layer);
-            }
-            numCellLayer += layerBag.size();
-            GenMath.addToBag(totalLayerBag, layerBag);
-            for (VectorBase vs: vc.shapes) {
-                if (vs instanceof VectorText)
-                    noText++;
-            }
-            totalNoShapes += vc.shapes.size();
-            totalNoText += noText;
-            for (VectorBase vs: vc.topOnlyShapes) {
-                if (vs instanceof VectorText)
-                    noTopText++;
-            }
-            totalNoTopShapes += vc.topOnlyShapes.size();
-            totalNoTopText += noTopText;
-            System.out.print(vg.cell + " " + vg.orientations.size() + " ors " + vc.subCells.size() + " subs " +
-                    vc.topOnlyShapes.size() + " topOnlyShapes(" + noTopText + " text) " +
-                    vc.shapes.size() + " shapes(" + noText + " text) " +
-                    vc.filledShapes.size() + " filledShapes ");
-            for (Map.Entry<Layer,GenMath.MutableInteger> e: layerBag.entrySet())
-                System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
-            System.out.println();
-        }
-        System.out.println(numCells + " cells " + numCellLayer + " cellLayes");
-        System.out.println("Top shapes " + totalNoTopShapes + " (" + totalNoTopText + " text)");
-        System.out.println("Shapes " + totalNoShapes + " (" + totalNoText + " text)");
-        System.out.print("FilledShapes " + (totalNoBox + totalNoPoly + totalNoDisc) + " (" +
-                totalNoBox + " boxes " + totalNoPoly + " polys " + totalNoDisc + " discs  ");
-        for (Map.Entry<Layer,GenMath.MutableInteger> e: totalLayerBag.entrySet())
-            System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
-        System.out.println();
         
-        EditWindow wnd = (EditWindow)Job.getUserInterface().needCurrentEditWindow_();
-        VectorCellGroup topCell = cachedCells.get(wnd.getCell());
-        HashMap<VectorCell,LayerDrawing.LayerCell> layerCells = new HashMap<VectorCell,LayerDrawing.LayerCell>();
-        LayerDrawing ld = new LayerDrawing(layer);
-        ld.topCell = gatherLayer(topCell, Orientation.IDENT, layer, ld, layerCells);
-        System.out.println(layerCells.size() + " layerCells");
-        ld.draw(wnd);
-    }
+        return VectorCache.theCache.drawCell(cell, prevTrans, context, scale);
+	}
     
-    private static LayerDrawing.LayerCell gatherLayer(VectorCellGroup vcg, Orientation or, Layer layer, LayerDrawing ld, HashMap<VectorCell,LayerDrawing.LayerCell> layerCells) {
-        VectorCell vc = vcg.orientations.get(or.canonic());
-        if (vc == null) return null;
-        LayerDrawing.LayerCell lc = layerCells.get(vc);
-        if (lc == null) {
-            lc = ld.newCell();
-            layerCells.put(vc, lc);
-            for (VectorBase vs: vc.filledShapes) {
-                if (vs.layer == layer && vs instanceof VectorManhattan) {
-                    VectorManhattan vm = (VectorManhattan)vs;
-                    lc.rects.add(new Rectangle2D.Float(vm.c1X, vm.c1Y, vm.c2X - vm.c1X, vm.c2Y - vm.c1Y));
-                }
-            }
-            for (VectorSubCell vsc: vc.subCells) {
-                VectorCellGroup subVC = cachedCells.get(vsc.subCell);
-                if (subVC == null) continue;
-				Orientation recurseTrans = or.concatenate(vsc.pureRotate);
-                LayerDrawing.LayerCell proto = gatherLayer(subVC, recurseTrans, layer, ld, layerCells);
-                if (proto == null) continue;
-                lc.addSubCell(proto, vsc.offsetX, vsc.offsetY);
-            }
-        }
-        return lc;
-    }
 }

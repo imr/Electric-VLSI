@@ -628,6 +628,16 @@ public class EGraphics extends Observable
 		return color;
 	}
 
+    /**
+     * Returns the RGB value representing the color associated with this EGraphics.
+     * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
+     * Alpha/opacity component is not returned 
+     * @return the RGB value of the color
+     */
+    public int getRGB() {
+        return (red << 16) | (green << 8) | blue;
+    }
+    
 	/**
 	 * Method to set the color associated with this EGraphics.
 	 * @param color the color to set.

@@ -40,7 +40,7 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.VectorDrawing;
+import com.sun.electric.tool.user.ui.VectorCache;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -626,7 +626,7 @@ public class User extends Listener
 	 */
 	public static void technologyChanged(Technology tech)
 	{
-        VectorDrawing.technologyChanged(tech);
+        VectorCache.theCache.technologyChanged(tech);
         PixelDrawing.clearSubCellCache();
 	}
 
@@ -636,7 +636,7 @@ public class User extends Listener
 	 */
 	public static void layerVisibilityChanged(boolean onlyText) {
 		if (!onlyText)
-			VectorDrawing.layerVisibilityChanged();
+			VectorCache.theCache.layerVisibilityChanged();
         PixelDrawing.clearSubCellCache();
 		EditWindow.repaintAllContents();
     }

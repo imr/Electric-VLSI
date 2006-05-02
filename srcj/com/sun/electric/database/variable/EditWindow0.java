@@ -32,13 +32,6 @@ import java.awt.font.GlyphVector;
  * for calculating a shape of some primitives.
  */
 public interface EditWindow0 {
-    
-	/**
-	 * Method to return the cell that is shown in this window.
-	 * @return the cell that is shown in this window.
-	 */
-	public Cell getCell();
-    
     /**
      * Get the window's VarContext
      * @return the current VarContext
