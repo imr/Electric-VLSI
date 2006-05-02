@@ -55,26 +55,26 @@ public class FillGen extends EDialog {
         cellToFill = Job.getUserInterface().getCurrentCell();
 
         // Putting buttons in group
-        autoFillGroup.add(flatButton);
-        autoFillGroup.add(binaryButton);
-        autoFillGroup.add(intersectionButton);
-        flatButton.setSelected(true);
+        autoFillGroup.add(flatFill);
+        autoFillGroup.add(binaryFill);
+        autoFillGroup.add(adaptiveFill);
+        flatFill.setSelected(true);
         // master
-        masterGroup.add(createMasterButton);
-        masterGroup.add(selectMasterButton);
-        createMasterButton.setSelected(true);
+        masterGroup.add(createButton);
+        masterGroup.add(selectButton);
+        createButton.setSelected(true);
 
         // top group
-        topGroup.add(templateFillButton);
-        topGroup.add(cellFillButton);
+        topGroup.add(templateButton);
+        topGroup.add(cellButton);
         if (cellToFill != null)
-           cellFillButton.setSelected(true);
+           cellButton.setSelected(true);
         else
         {
-            cellFillButton.setEnabled(false); // you can't select it if cell is null.
-            templateFillButtonActionPerformed(null);
-            templateFillButton.setSelected(true);
+            cellButton.setEnabled(false); // you can't select it if cell is null.
+            templateButton.setSelected(true);
         }
+        optionActionPerformed(null);
 
 
         int numMetals = (tech == null) ? 6 : tech.getNumMetals();
@@ -108,11 +108,6 @@ public class FillGen extends EDialog {
             JComboBox combox = new JComboBox();
             vddUnit[i-1] = combox;
             combox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-//            combox.addActionListener(new java.awt.event.ActionListener() {
-//                public void actionPerformed(java.awt.event.ActionEvent evt) {
-//                    jComboBox2ActionPerformed(evt);
-//                }
-//            });
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 2;
             gridBagConstraints.gridy = i;
@@ -175,18 +170,7 @@ public class FillGen extends EDialog {
         masterGroup = new javax.swing.ButtonGroup();
         topGroup = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
-        autoFill = new javax.swing.JPanel();
-        cellFillButton = new javax.swing.JRadioButton();
-        templateFillButton = new javax.swing.JRadioButton();
-        autoFillPanel = new javax.swing.JPanel();
-        optionPanel = new javax.swing.JPanel();
-        flatButton = new javax.swing.JRadioButton();
-        intersectionButton = new javax.swing.JRadioButton();
-        binaryButton = new javax.swing.JRadioButton();
-        masterPanel = new javax.swing.JPanel();
-        createMasterButton = new javax.swing.JRadioButton();
-        selectMasterButton = new javax.swing.JRadioButton();
-        jPanel1 = new javax.swing.JPanel();
+        floorplanPanel = new javax.swing.JPanel();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         metalPanel = new javax.swing.JPanel();
@@ -203,7 +187,10 @@ public class FillGen extends EDialog {
         flatFill = new javax.swing.JRadioButton();
         binaryFill = new javax.swing.JRadioButton();
         adaptiveFill = new javax.swing.JRadioButton();
-        jPanel2 = new javax.swing.JPanel();
+        masterSelPanel = new javax.swing.JPanel();
+        createButton = new javax.swing.JRadioButton();
+        selectButton = new javax.swing.JRadioButton();
+        tilingPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jCheckBox1 = new javax.swing.JCheckBox();
         jCheckBox2 = new javax.swing.JCheckBox();
@@ -234,134 +221,7 @@ public class FillGen extends EDialog {
         jTabbedPane1.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
         jTabbedPane1.setMaximumSize(new java.awt.Dimension(327670, 327670));
         jTabbedPane1.setPreferredSize(new java.awt.Dimension(470, 300));
-        autoFill.setLayout(new java.awt.GridBagLayout());
-
-        cellFillButton.setText("Cell Fill");
-        cellFillButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        cellFillButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        cellFillButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cellFillButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        autoFill.add(cellFillButton, gridBagConstraints);
-
-        templateFillButton.setText("Fill Template");
-        templateFillButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        templateFillButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        templateFillButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                templateFillButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        autoFill.add(templateFillButton, gridBagConstraints);
-
-        autoFillPanel.setLayout(new java.awt.GridBagLayout());
-
-        autoFillPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Cell Fill Data"));
-        optionPanel.setLayout(new java.awt.GridBagLayout());
-
-        flatButton.setText("Flat Fill");
-        flatButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        flatButton.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        flatButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        flatButton.addAncestorListener(new javax.swing.event.AncestorListener() {
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
-                flatButtonAncestorRemoved(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        optionPanel.add(flatButton, gridBagConstraints);
-
-        intersectionButton.setText("Generic Fill");
-        intersectionButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        intersectionButton.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        intersectionButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        optionPanel.add(intersectionButton, gridBagConstraints);
-
-        binaryButton.setText("Binary Fill");
-        binaryButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        binaryButton.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        binaryButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        optionPanel.add(binaryButton, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        autoFillPanel.add(optionPanel, gridBagConstraints);
-
-        masterPanel.setLayout(new java.awt.GridBagLayout());
-
-        createMasterButton.setText("Create Master");
-        createMasterButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        createMasterButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        createMasterButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                createMasterButtonActionPerformed(evt);
-            }
-        });
-        createMasterButton.addHierarchyBoundsListener(new java.awt.event.HierarchyBoundsListener() {
-            public void ancestorMoved(java.awt.event.HierarchyEvent evt) {
-                createMasterButtonAncestorMoved(evt);
-            }
-            public void ancestorResized(java.awt.event.HierarchyEvent evt) {
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        masterPanel.add(createMasterButton, gridBagConstraints);
-
-        selectMasterButton.setText("Select Master");
-        selectMasterButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        selectMasterButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        selectMasterButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                selectMasterButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        masterPanel.add(selectMasterButton, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        autoFillPanel.add(masterPanel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        autoFill.add(autoFillPanel, gridBagConstraints);
-
-        jTabbedPane1.addTab("Auto Fill", autoFill);
-
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        floorplanPanel.setLayout(new java.awt.GridBagLayout());
 
         jLabel7.setText("Vdd reserved space");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -369,7 +229,7 @@ public class FillGen extends EDialog {
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 0);
-        jPanel1.add(jLabel7, gridBagConstraints);
+        floorplanPanel.add(jLabel7, gridBagConstraints);
 
         jLabel8.setText("gnd reserved space");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -377,7 +237,7 @@ public class FillGen extends EDialog {
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 0);
-        jPanel1.add(jLabel8, gridBagConstraints);
+        floorplanPanel.add(jLabel8, gridBagConstraints);
 
         metalPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -387,7 +247,7 @@ public class FillGen extends EDialog {
         gridBagConstraints.gridwidth = 5;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        jPanel1.add(metalPanel, gridBagConstraints);
+        floorplanPanel.add(metalPanel, gridBagConstraints);
 
         templatePanel.setLayout(new java.awt.GridBagLayout());
 
@@ -420,12 +280,6 @@ public class FillGen extends EDialog {
         jTextField2.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
         jTextField2.setText("128");
         jTextField2.setMinimumSize(new java.awt.Dimension(100, 21));
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
@@ -446,19 +300,37 @@ public class FillGen extends EDialog {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 1;
-        jPanel1.add(templatePanel, gridBagConstraints);
+        gridBagConstraints.gridwidth = 4;
+        floorplanPanel.add(templatePanel, gridBagConstraints);
 
         templateButton.setText("Template Fill");
         templateButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         templateButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        templateButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                optionActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 0;
-        jPanel1.add(templateButton, gridBagConstraints);
+        floorplanPanel.add(templateButton, gridBagConstraints);
 
         cellButton.setText("Fill Cell");
         cellButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         cellButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        jPanel1.add(cellButton, new java.awt.GridBagConstraints());
+        cellButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                optionActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        floorplanPanel.add(cellButton, gridBagConstraints);
 
         cellPanel.setLayout(new java.awt.GridBagLayout());
 
@@ -466,6 +338,12 @@ public class FillGen extends EDialog {
         flatFill.setText("Flat Fill");
         flatFill.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         flatFill.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        flatFill.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                generalActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -474,6 +352,12 @@ public class FillGen extends EDialog {
         binaryFill.setText("Binary Fill");
         binaryFill.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         binaryFill.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        binaryFill.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                generalActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
@@ -482,18 +366,61 @@ public class FillGen extends EDialog {
         adaptiveFill.setText("Adaptive Fill");
         adaptiveFill.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         adaptiveFill.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        adaptiveFill.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                generalActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         cellPanel.add(adaptiveFill, gridBagConstraints);
 
+        masterSelPanel.setLayout(new java.awt.GridBagLayout());
+
+        masterSelPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        createButton.setText("Create Master");
+        createButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        createButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        createButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        masterSelPanel.add(createButton, gridBagConstraints);
+
+        selectButton.setText("Given Master");
+        selectButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        selectButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        selectButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                createActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 1;
-        jPanel1.add(cellPanel, gridBagConstraints);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        masterSelPanel.add(selectButton, gridBagConstraints);
 
-        jTabbedPane1.addTab("Floorplan", jPanel1);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
+        cellPanel.add(masterSelPanel, gridBagConstraints);
 
-        jPanel2.setLayout(new java.awt.GridBagLayout());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        floorplanPanel.add(cellPanel, gridBagConstraints);
+
+        jTabbedPane1.addTab("Floorplan", floorplanPanel);
+
+        tilingPanel.setLayout(new java.awt.GridBagLayout());
 
         jLabel2.setFont(new java.awt.Font("MS Sans Serif", 1, 14));
         jLabel2.setText("Which tiled cells to generate");
@@ -502,81 +429,69 @@ public class FillGen extends EDialog {
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 10, 0);
-        jPanel2.add(jLabel2, gridBagConstraints);
+        tilingPanel.add(jLabel2, gridBagConstraints);
 
         jCheckBox1.setText("2 x 2");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        jPanel2.add(jCheckBox1, gridBagConstraints);
+        tilingPanel.add(jCheckBox1, gridBagConstraints);
 
         jCheckBox2.setText("3 x 3");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        jPanel2.add(jCheckBox2, gridBagConstraints);
+        tilingPanel.add(jCheckBox2, gridBagConstraints);
 
         jCheckBox3.setText("4 x 4");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        jPanel2.add(jCheckBox3, gridBagConstraints);
+        tilingPanel.add(jCheckBox3, gridBagConstraints);
 
         jCheckBox4.setText("5 x 5");
-        jCheckBox4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox4ActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        jPanel2.add(jCheckBox4, gridBagConstraints);
+        tilingPanel.add(jCheckBox4, gridBagConstraints);
 
         jCheckBox5.setText("6 x 6");
-        jCheckBox5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox5ActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        jPanel2.add(jCheckBox5, gridBagConstraints);
+        tilingPanel.add(jCheckBox5, gridBagConstraints);
 
         jCheckBox6.setText("7 x 7");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        jPanel2.add(jCheckBox6, gridBagConstraints);
+        tilingPanel.add(jCheckBox6, gridBagConstraints);
 
         jCheckBox7.setText("8 x 8");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        jPanel2.add(jCheckBox7, gridBagConstraints);
+        tilingPanel.add(jCheckBox7, gridBagConstraints);
 
         jCheckBox8.setText("9 x 9");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        jPanel2.add(jCheckBox8, gridBagConstraints);
+        tilingPanel.add(jCheckBox8, gridBagConstraints);
 
         jCheckBox9.setText("10 x 10");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        jPanel2.add(jCheckBox9, gridBagConstraints);
+        tilingPanel.add(jCheckBox9, gridBagConstraints);
 
         jCheckBox10.setText("11 x 11");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        jPanel2.add(jCheckBox10, gridBagConstraints);
+        tilingPanel.add(jCheckBox10, gridBagConstraints);
 
         jCheckBox11.setText("12 x 12");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        jPanel2.add(jCheckBox11, gridBagConstraints);
+        tilingPanel.add(jCheckBox11, gridBagConstraints);
 
         jCheckBox12.setText("13 x 13");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        jPanel2.add(jCheckBox12, gridBagConstraints);
+        tilingPanel.add(jCheckBox12, gridBagConstraints);
 
-        jTabbedPane1.addTab("Tiling", jPanel2);
+        jTabbedPane1.addTab("Tiling", tilingPanel);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridwidth = 2;
@@ -608,6 +523,32 @@ public class FillGen extends EDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void setEnableInMasterData()
+    {
+        boolean value = !flatFill.isSelected() && createButton.isSelected() || templateButton.isSelected();
+        setEnabledInHierarchy(templatePanel, value);
+        setEnabledInHierarchy(metalPanel, value);
+    }
+
+    private void createActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createActionPerformed
+        setEnableInMasterData();
+    }//GEN-LAST:event_createActionPerformed
+
+    private void generalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generalActionPerformed
+        boolean isFlatSelected = flatFill.isSelected();
+        setEnabledInHierarchy(masterSelPanel, !isFlatSelected);
+        setEnableInMasterData();
+    }//GEN-LAST:event_generalActionPerformed
+
+    private void optionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optionActionPerformed
+        boolean isCellSelected = cellButton.isSelected();
+        setEnabledInHierarchy(cellPanel, isCellSelected);
+        // Disable tiling
+        setEnabledInHierarchy(tilingPanel, !isCellSelected);
+        // Calls master select setting
+        generalActionPerformed(null);
+    }//GEN-LAST:event_optionActionPerformed
+
     private static void setEnabledInHierarchy(Container c, boolean value)
     {
         c.setEnabled(value);
@@ -620,32 +561,8 @@ public class FillGen extends EDialog {
         }
     }
 
-    private void cellFillButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cellFillButtonActionPerformed
-        setEnabledInHierarchy(autoFillPanel, true);
-    }//GEN-LAST:event_cellFillButtonActionPerformed
-
-    private void templateFillButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_templateFillButtonActionPerformed
-        setEnabledInHierarchy(autoFillPanel, false);
-    }//GEN-LAST:event_templateFillButtonActionPerformed
-
-    private void createMasterButtonAncestorMoved(java.awt.event.HierarchyEvent evt) {//GEN-FIRST:event_createMasterButtonAncestorMoved
-// TODO add your handling code here:
-    }//GEN-LAST:event_createMasterButtonAncestorMoved
-
-    private void createMasterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createMasterButtonActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_createMasterButtonActionPerformed
-
-    private void flatButtonAncestorRemoved(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_flatButtonAncestorRemoved
-// TODO add your handling code here:
-    }//GEN-LAST:event_flatButtonAncestorRemoved
-
-    private void selectMasterButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectMasterButtonActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_selectMasterButtonActionPerformed
-
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        boolean hierarchy = !flatButton.isSelected();
+        boolean hierarchy = !flatFill.isSelected();
         Technology tech = (cellToFill != null) ? cellToFill.getTechnology() : Technology.getCurrent();
         FillGenerator fg = new FillGenerator(tech);
         fg.setFillLibrary("autoFillLib");
@@ -653,7 +570,7 @@ public class FillGen extends EDialog {
         if (jComboBox1.getModel().getSelectedItem().equals("horizontal"))
             fg.makeEvenLayersHorizontal(true);
 
-        fg.setBinaryMode(binaryButton.isSelected());
+        fg.setBinaryMode(binaryFill.isSelected());
 
         FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
         FillGenerator.Units TRACKS = FillGenerator.TRACKS;
@@ -687,7 +604,7 @@ public class FillGen extends EDialog {
         double height = TextUtils.atof(jTextField2.getText());
 
         // Only when the fill will be with respect to a given cell
-        if (!templateFillButton.isSelected())
+        if (!templateButton.isSelected())
         {
             Rectangle2D bnd = cellToFill.getBounds();
             width = bnd.getWidth();
@@ -719,18 +636,6 @@ public class FillGen extends EDialog {
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         closeDialog();
     }//GEN-LAST:event_cancelButtonActionPerformed
-
-    private void jCheckBox4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox4ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBox4ActionPerformed
-
-    private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox5ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBox5ActionPerformed
-
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField2ActionPerformed
     
     private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
 //        System.out.println("that's all folks");
@@ -751,19 +656,14 @@ public class FillGen extends EDialog {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JRadioButton adaptiveFill;
-    private javax.swing.JPanel autoFill;
     private javax.swing.ButtonGroup autoFillGroup;
-    private javax.swing.JPanel autoFillPanel;
-    private javax.swing.JRadioButton binaryButton;
     private javax.swing.JRadioButton binaryFill;
     private javax.swing.JButton cancelButton;
     private javax.swing.JRadioButton cellButton;
-    private javax.swing.JRadioButton cellFillButton;
     private javax.swing.JPanel cellPanel;
-    private javax.swing.JRadioButton createMasterButton;
-    private javax.swing.JRadioButton flatButton;
+    private javax.swing.JRadioButton createButton;
     private javax.swing.JRadioButton flatFill;
-    private javax.swing.JRadioButton intersectionButton;
+    private javax.swing.JPanel floorplanPanel;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JCheckBox jCheckBox10;
     private javax.swing.JCheckBox jCheckBox11;
@@ -783,21 +683,18 @@ public class FillGen extends EDialog {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.ButtonGroup masterGroup;
-    private javax.swing.JPanel masterPanel;
+    private javax.swing.JPanel masterSelPanel;
     private javax.swing.JPanel metalPanel;
     private javax.swing.JButton okButton;
-    private javax.swing.JPanel optionPanel;
-    private javax.swing.JRadioButton selectMasterButton;
+    private javax.swing.JRadioButton selectButton;
     private javax.swing.JRadioButton templateButton;
-    private javax.swing.JRadioButton templateFillButton;
     private javax.swing.JPanel templatePanel;
+    private javax.swing.JPanel tilingPanel;
     private javax.swing.ButtonGroup topGroup;
     // End of variables declaration//GEN-END:variables
     private java.awt.Color currentColor = java.awt.Color.lightGray;
