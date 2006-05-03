@@ -32,6 +32,7 @@ import java.awt.geom.Rectangle2D;
  * defined by a location (x,&nbsp;y) and dimension (w&nbsp;x&nbsp;h).
  * <p>
  * This class is used in Electric database.
+ * NOTE: This class can't be serializable because of Rectangle2D.Double
  */
 public class ERectangle extends Rectangle2D.Double {
     public static final ERectangle[] NULL_ARRAY = {};
