@@ -56,20 +56,20 @@ public final class MenuCommands
 	 */
 	public static EMenuBar menuBar()
 	{
-        List<EMenuItem> itemsList = new ArrayList<EMenuItem>(8);
-
-        itemsList.add(FileMenu.makeMenu());
-        itemsList.add(EditMenu.makeMenu());
-        itemsList.add(CellMenu.makeMenu());
-        itemsList.add(ExportMenu.makeMenu());
-        itemsList.add(ViewMenu.makeMenu());
-        itemsList.add(WindowMenu.makeMenu());
-        itemsList.add(ToolMenu.makeMenu());
-        itemsList.add(makeExtraMenu("menus.SunAsyncMenu"));
-        itemsList.add(HelpMenu.makeMenu());
-        if (Job.getDebug())
-            itemsList.addAll(makeTestMenus());
         if (menuBar == null) {
+            List<EMenuItem> itemsList = new ArrayList<EMenuItem>(8);
+    
+            itemsList.add(FileMenu.makeMenu());
+            itemsList.add(EditMenu.makeMenu());
+            itemsList.add(CellMenu.makeMenu());
+            itemsList.add(ExportMenu.makeMenu());
+            itemsList.add(ViewMenu.makeMenu());
+            itemsList.add(WindowMenu.makeMenu());
+            itemsList.add(ToolMenu.makeMenu());
+            itemsList.add(makeExtraMenu("menus.SunAsyncMenu"));
+            itemsList.add(HelpMenu.makeMenu());
+            if (Job.getDebug())
+                itemsList.addAll(makeTestMenus());
             menuBar = new EMenuBar("",
                 wiringShortcuts(),
                     itemsList);
