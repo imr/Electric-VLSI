@@ -36,6 +36,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.menus.WindowMenu;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Component;
@@ -122,7 +123,6 @@ public class WindowFrame extends Observable
 	 */
 	public static WindowFrame createEditWindow(final Cell cell)
 	{
-//        assert !Job.BATCHMODE;  // should not reach this code in case of batch jobs.
 		final WindowFrame frame = new WindowFrame();
 		if (cell != null && cell.getView().isTextView())
 		{
@@ -182,6 +182,8 @@ public class WindowFrame extends Observable
         buildWindowStructure(wnd, cell, null);
         setCurrentWindowFrame(this);
         populateJFrame();
+        // Adding into WindowMenu
+        WindowMenu.addDynamicMenu(this);
     }
 
     /*****************************************************************************
@@ -512,6 +514,8 @@ public class WindowFrame extends Observable
 		}
 		content.setCell(cell, VarContext.globalContext);
         currentCellChanged();
+        // Adding into WindowMenu
+        WindowMenu.addDynamicMenu(this);
 	}
 
 	public void moveEditWindow(GraphicsConfiguration gc) {

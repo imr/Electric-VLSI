@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.tool.user.ui.WindowFrame;
+
 import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,8 +72,6 @@ public class EMenu extends EMenuItem {
      */
     public List<EMenuItem> getItems() { return items; }
 
-    public void addMenuItem(EMenuItem m) {items.add(m);}
-
     @Override
     void setParent(EMenuBar menuBar, EMenu parent) {
         this.parent = parent;
@@ -79,14 +79,13 @@ public class EMenu extends EMenuItem {
             item.setParent(menuBar, this);
     }
 
-    protected void storeMenuItem(JMenu item) {;}
-    public JMenu getBuiltJMenu() {return null;}
+    protected void storeMenuItem(JMenu item, WindowFrame frame) {;}
 
     @Override
-    JMenu genMenu() {
+    JMenu genMenu(WindowFrame frame) {
         Instance subMenu = new Instance();
 
-        storeMenuItem(subMenu);
+        storeMenuItem(subMenu, frame);
         return subMenu;
     }
     
@@ -120,7 +119,7 @@ public class EMenu extends EMenuItem {
                     addSeparator();
                     continue;
                 }
-                JMenuItem item = elem.genMenu();
+                JMenuItem item = elem.genMenu(null);
                 add(item);
             }
         }
@@ -141,6 +140,7 @@ public class EMenu extends EMenuItem {
          */
         private void updateMenu() {
             for (int i = 0, n = getMenuComponentCount(); i < n; i++) {
+                if (i >= items.size()) continue; // dynamic menus from now
                 EMenuItem elem = items.get(i);
                 Component c = getMenuComponent(i);
                 if (c instanceof JMenuItem)

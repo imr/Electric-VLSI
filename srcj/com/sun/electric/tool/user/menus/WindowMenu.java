@@ -38,6 +38,7 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.tool.Job;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -51,6 +52,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.Iterator;
+import java.util.HashMap;
 import javax.swing.*;
 
 /**
@@ -58,13 +60,13 @@ import javax.swing.*;
  */
 public class WindowMenu {
     public static KeyStroke getCloseWindowAccelerator() { return EMenuItem.shortcut(KeyEvent.VK_W); }
-    public static WindowEMenu theWindowMenu;
+    public static WindowEMenu theWindowMenu = null;
 
     static EMenu makeMenu() {
         /****************************** THE WINDOW MENU ******************************/
 
 		// mnemonic keys available: A         K     Q  T    Y
-        theWindowMenu = new WindowEMenu("_Window",
+        WindowEMenu menu = new WindowEMenu("_Window",
 
             new EMenuItem("_Fill Window", '9', KeyEvent.VK_NUMPAD9) { public void run() {
                 fullDisplay(); }},
@@ -170,22 +172,42 @@ public class WindowMenu {
 		        new EMenuItem("On _Right") { public void run() {
                     WindowFrame.setSideBarLocation(false); }})
         );
-        return theWindowMenu;
+        theWindowMenu = menu;
+        return menu;
     }
 
+    public static void addDynamicMenu(WindowFrame wf)
+    {
+        if (!Job.LOCALDEBUGFLAG) return;
 
+        JMenu jmenu = WindowEMenu.dynamicItems.get(wf);
+        if (jmenu == null)
+            return; // not done yet with initialization
+        JMenuItem item = WindowEMenu.dynamicMenus.get(jmenu);
+        if (item == null) // doesn't exist yet
+        {
+            // Add the separator first
+            if (WindowEMenu.dynamicMenus.isEmpty())
+                jmenu.addSeparator();
+            item = jmenu.add(wf.getTitle());
+            WindowEMenu.dynamicMenus.put(jmenu, item);
+        }
+        else
+            item.setText(wf.getTitle());
+    }
 
     private static class WindowEMenu extends EMenu {
-        JMenu item; // final Menu in GUI
+        static final HashMap<WindowFrame, JMenu> dynamicItems = new HashMap<WindowFrame, JMenu>(); // final Menu in GUI
+        static final HashMap<JMenu, JMenuItem> dynamicMenus = new HashMap<JMenu, JMenuItem>();
+
         public WindowEMenu(String text, EMenuItem... items) {
             super(text, items);
         }
         public boolean isEnabled() { return true; }
-        protected void storeMenuItem(JMenu item)
+        protected void storeMenuItem(JMenu item, WindowFrame frame)
         {
-            this.item = item;
+            dynamicItems.put(frame, item);
         }
-        public JMenu getBuiltJMenu() {return item;}
     }
 
     public static void fullDisplay()

@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -47,7 +48,7 @@ public abstract class EMenuItem implements ActionListener {
      */
     public static final EMenuItem SEPARATOR = new EMenuItem("---------------") {
         @Override void setParent(EMenuBar menuBar, EMenu parent) {}
-        @Override public JMenuItem genMenu() { throw new UnsupportedOperationException(); }
+        @Override public JMenuItem genMenu(WindowFrame frame) { throw new UnsupportedOperationException(); }
         @Override public void run() { throw new UnsupportedOperationException(); }
     };
 
@@ -185,8 +186,9 @@ public abstract class EMenuItem implements ActionListener {
     /**
      * Generates menu item by this this generic EMenuItem.
      * @return generated instance.
+     * @param frame
      */
-    JMenuItem genMenu() {
+    JMenuItem genMenu(WindowFrame frame) {
         JMenuItem item = createMenuItem();
         initMenuItem(item);
         updateMenuItem(item);

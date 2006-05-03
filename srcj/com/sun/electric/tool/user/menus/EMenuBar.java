@@ -28,6 +28,8 @@ import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.KeyBindingManager.KeyMaps;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
+import com.sun.electric.tool.user.ui.WindowFrame;
+
 import java.awt.event.KeyEvent;
 
 import java.util.HashMap;
@@ -202,8 +204,8 @@ public class EMenuBar extends EMenu {
     	return keyBindingManager.getKeyMaps();
     }
     
-    public Instance genInstance() {
-        return new Instance();
+    public Instance genInstance(WindowFrame frame) {
+        return new Instance(frame);
     }
 
     public class Instance extends JMenuBar {
@@ -216,11 +218,11 @@ public class EMenuBar extends EMenu {
          * serves to maintain consistency of state and key bindings across
          * multiple instances of MenuBars that share the same layout of
          * menu items.
-         * @param name the group name.
+         * @param frame
          */
-        public Instance() {
+        public Instance(WindowFrame frame) {
             for (EMenuItem item: getItems())
-                add(item.genMenu());
+                add(item.genMenu(frame));
         }
         
         public EMenuBar getMenuBarGroup() { return EMenuBar.this; }
