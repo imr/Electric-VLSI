@@ -242,6 +242,8 @@ public class ToolMenu {
                     Simulate.plotSpiceResults(); }},
 		        new EMenuItem("Plot Spice _for This Cell") { public void run() {
                     Simulate.plotSpiceResultsThisCell(); }},
+                new EMenuItem("Refresh Simulation Data") { public void run() {
+                    WaveformWindow.refreshSimulationData(); }},
 		        new EMenuItem("Set Spice _Model...") { public void run() {
                     Simulation.setSpiceModel(); }},
 		        new EMenuItem("Add M_ultiplier") { public void run() {

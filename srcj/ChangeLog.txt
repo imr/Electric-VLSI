@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+IMP/MAN: (5/3/06, GVG) [Bug 961] Ability to refresh simulation data with KeyBinding.
+
 BUG: (5/3/06, GVG) "Easy selection of cell instances" off makes impossible to select primitive nodes with MouseOverHighlighter.
 FIX:  if (!findSpecial && !User.isEasySelectionOfCellInstances()) condition applied only if cell instance is found, not
 longer in phase 0

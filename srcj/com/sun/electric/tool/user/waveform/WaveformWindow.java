@@ -2666,10 +2666,25 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public Stimuli getSimData() { return sd; }
 
+    /**
+     * Method to refresh simulation data by menu in ToolMenu. This would allow to attach a KeyBinding
+     */
+    public static void refreshSimulationData()
+    {
+        WindowFrame current = WindowFrame.getCurrentWindowFrame();
+        WindowContent content = current.getContent();
+        if (!(content instanceof WaveformWindow))
+        {
+            System.out.println("Nothing to refresh in non Waveform window");
+            return; // nothing to do
+        }
+        ((WaveformWindow)content).refreshData();
+    }
+
 	/**
 	 * Method to refresh the simulation data from disk.
 	 */
-	public void refreshData()
+	private void refreshData()
 	{
 		if (se != null)
 		{
