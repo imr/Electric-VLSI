@@ -1469,7 +1469,7 @@ public class Highlighter implements DatabaseChangeListener {
             for(int phase=0; phase<3; phase++)
             {
                 // ignore cells if requested
-                if (phase == 0 && !findSpecial && !User.isEasySelectionOfCellInstances()) continue;
+//                if (phase == 0 && !findSpecial && !User.isEasySelectionOfCellInstances()) continue;
 
                 // examine everything in the area
                 for(Iterator<Geometric> it = cell.searchIterator(searchArea); it.hasNext(); )
@@ -1485,6 +1485,7 @@ public class Highlighter implements DatabaseChangeListener {
                             if (h != null) list.add(h);
                             break;
                         case 1:			// check Cell instances
+                            if (!findSpecial && !User.isEasySelectionOfCellInstances()) break; // ignore cells if requested
                             if (!(geom instanceof NodeInst)) break;
                             if (!((NodeInst)geom).isCellInstance()) break;
                             h = checkOutObject(geom, findPort, findPoint, findSpecial, bounds, wnd, directHitDist, areaMustEnclose);

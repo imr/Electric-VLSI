@@ -4,7 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
-BUG: (5/3/06, GVG) [Bug 960]  New: "package into cell" throws exception (Bug #960)
+BUG: (5/3/06, GVG) "Easy selection of cell instances" off makes impossible to select primitive nodes with MouseOverHighlighter.
+FIX:  if (!findSpecial && !User.isEasySelectionOfCellInstances()) condition applied only if cell instance is found, not
+longer in phase 0
+
+BUG: (5/3/06, GVG) "package into cell" throws exception (Bug #960)
 FIX: We can't use Rectangle2D.Double as field in Job. They can't be serializable. Changed to EPoint+double
 
 BUG: (5/2/06, GVG) Quarter motion button missing in toolbar (Bug #957)
