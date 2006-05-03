@@ -79,7 +79,6 @@ import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.Tech;
-import com.sun.electric.tool.generator.layout.FillGenerator;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
@@ -1664,12 +1663,12 @@ public class ToolMenu {
         }
     }
 
-    private static void newAutoFill(boolean hierarchy, boolean binary)
-    {
-        Cell cell = WindowFrame.getCurrentCell();
-        if (cell == null) return;
-
-        FillGenerator.generateAutoFill(cell, hierarchy, binary, false);
-    }
+//    private static void newAutoFill(boolean hierarchy, boolean binary)
+//    {
+//        Cell cell = WindowFrame.getCurrentCell();
+//        if (cell == null) return;
+//
+//        FillGenerator.generateAutoFill(cell, hierarchy, binary, false);
+//    }
 
 }

@@ -84,11 +84,6 @@ public class EMenuBar extends EMenu {
             hiddenMenu.setParent(this, this);
     }
 
-    public void addMenuItem(String n)
-    {
-        super.addMenuItem(new EMenuItem("Hola") { public void run() { ; }});
-    }
-
     /**
      * Register menu item together with its shortcuts.
      */
