@@ -51,19 +51,20 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.Iterator;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 
 /**
  * Class to handle the commands in the "Window" pulldown menu.
  */
 public class WindowMenu {
     public static KeyStroke getCloseWindowAccelerator() { return EMenuItem.shortcut(KeyEvent.VK_W); }
+    public static WindowEMenu theWindowMenu;
 
     static EMenu makeMenu() {
         /****************************** THE WINDOW MENU ******************************/
 
-		// mnemonic keys available: A         K     Q  T    Y 
-        return new EMenu("_Window",
+		// mnemonic keys available: A         K     Q  T    Y
+        theWindowMenu = new WindowEMenu("_Window",
 
             new EMenuItem("_Fill Window", '9', KeyEvent.VK_NUMPAD9) { public void run() {
                 fullDisplay(); }},
@@ -74,7 +75,7 @@ public class WindowMenu {
             new EMenuItem("Zoom _In", '7', KeyEvent.VK_NUMPAD7) { public void run() {
                 zoomInDisplay(); }},
 
-		// mnemonic keys available: ABCDEF  IJKLMNOPQRSTUV XY 
+		// mnemonic keys available: ABCDEF  IJKLMNOPQRSTUV XY
             new EMenu("Special _Zoom",
                 new EMenuItem("Focus on _Highlighted", 'F', KeyEvent.VK_NUMPAD5) { public void run() {
                     focusOnHighlighted(); }},
@@ -161,13 +162,30 @@ public class WindowMenu {
                     TopLevel.getMessagesWindow().selectFont(); }}),
 
             MenuCommands.makeExtraMenu("j3d.ui.J3DMenu"),
-        
+
 		// mnemonic keys available: ABCDEFGHIJK MNOPQ STUVWXYZ
             new EMenu("Side _Bar",
 		        new EMenuItem("On _Left") { public void run() {
                     WindowFrame.setSideBarLocation(true); }},
 		        new EMenuItem("On _Right") { public void run() {
-                    WindowFrame.setSideBarLocation(false); }}));
+                    WindowFrame.setSideBarLocation(false); }})
+        );
+        return theWindowMenu;
+    }
+
+
+
+    private static class WindowEMenu extends EMenu {
+        JMenu item; // final Menu in GUI
+        public WindowEMenu(String text, EMenuItem... items) {
+            super(text, items);
+        }
+        public boolean isEnabled() { return true; }
+        protected void storeMenuItem(JMenu item)
+        {
+            this.item = item;
+        }
+        public JMenu getBuiltJMenu() {return item;}
     }
 
     public static void fullDisplay()

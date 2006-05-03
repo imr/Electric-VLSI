@@ -71,17 +71,22 @@ public class EMenu extends EMenuItem {
     public List<EMenuItem> getItems() { return items; }
 
     public void addMenuItem(EMenuItem m) {items.add(m);}
-    
+
     @Override
     void setParent(EMenuBar menuBar, EMenu parent) {
         this.parent = parent;
         for (EMenuItem item: items)
             item.setParent(menuBar, this);
     }
-    
+
+    protected void storeMenuItem(JMenu item) {;}
+    public JMenu getBuiltJMenu() {return null;}
+
     @Override
     JMenu genMenu() {
         Instance subMenu = new Instance();
+
+        storeMenuItem(subMenu);
         return subMenu;
     }
     
