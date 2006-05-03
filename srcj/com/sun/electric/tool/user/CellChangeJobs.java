@@ -22,10 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -592,14 +589,17 @@ public class CellChangeJobs
 	public static class PackageCell extends Job
 	{
 		Cell curCell;
-		Rectangle2D bounds;
+        EPoint p1;
+        double width, height;
 		String newCellName;
 
 		public PackageCell(Cell curCell, Rectangle2D bounds, String newCellName)
 		{
 			super("Package Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = curCell;
-			this.bounds = bounds;
+            this.p1 = new EPoint(bounds.getX(), bounds.getY());
+            this.width = bounds.getWidth();
+            this.height = bounds.getHeight();
 			this.newCellName = newCellName;
 			startJob();
 		}
@@ -610,6 +610,7 @@ public class CellChangeJobs
 			Cell cell = Cell.makeInstance(Library.getCurrent(), newCellName);
 			if (cell == null) return false;
 
+            Rectangle2D bounds = new ERectangle(p1.getX(), p1.getY(), width, height);
 			// copy the nodes into the new cell
 			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 			for(Iterator<Geometric> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
