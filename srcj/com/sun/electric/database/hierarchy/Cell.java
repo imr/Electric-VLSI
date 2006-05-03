@@ -4362,7 +4362,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             System.out.println(nccMsg);
             if (errorLogger != null)
                 errorLogger.logWarning(nccMsg, this, 1);
-            errorCount++;
         }
         
 		return errorCount;

@@ -3157,7 +3157,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 System.out.println(nccMsg);
                 if (errorLogger != null)
                     errorLogger.logWarning(nccMsg, this, parent, null, 1);
-                errorCount++;
             }
             return errorCount;
         }
