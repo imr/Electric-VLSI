@@ -127,6 +127,8 @@ public class EMenu extends EMenuItem {
         /**
          * This method overides method from JMenu class to
          * update appearance of menu items.
+         * This is required for subclasses whose visibility depend on User preferences
+         * such as CVS menus.
          */
         @Override
         public void setPopupMenuVisible(boolean b) {
@@ -137,6 +139,7 @@ public class EMenu extends EMenuItem {
         
         /**
          * Updates appearance of this menu instance before popping up.
+         * This is required for KeyBindings.
          */
         private void updateMenu() {
             for (int i = 0, n = getMenuComponentCount(); i < n; i++) {
