@@ -425,7 +425,7 @@ public class HSpiceOut extends Simulate
 
 		Analysis an = new Analysis(sd, analysisType);
 		startProgressDialog("HSpice " + analysisType.toString() + " analysis", fileURL.getFile());
-        System.out.println("Reading HSpice " + analysisType.toString() + " analysis " + fileURL.getFile()) ;
+        System.out.print("\nReading HSpice " + analysisType.toString() + " analysis '" + fileURL.getFile() + "'") ;
 
 		// get number of nodes
 		int nodcnt = getHSpiceInt();
@@ -449,7 +449,9 @@ public class HSpiceOut extends Simulate
 
         if (numSignals <= 0)
         {
-            System.out.println("Error reading " + fileURL.getFile());
+            System.out.println(".... Error reading " + fileURL.getFile());
+            closeInput();
+            stopProgressDialog();
             return;
         }
 
@@ -632,7 +634,7 @@ public class HSpiceOut extends Simulate
 		}
 		if (!line.toString().equals("$&%#"))
 		{
-			System.out.println("HSpice header improperly terminated (got "+line.toString()+")");
+			System.out.println("..... HSpice header improperly terminated (got "+line.toString()+")");
 			closeInput();
 			stopProgressDialog();
 			return;
@@ -717,6 +719,7 @@ public class HSpiceOut extends Simulate
 		}
 		an.setBoundsDirty();
 		stopProgressDialog();
+        System.out.print("... Done");
 	}
 
 	/*
