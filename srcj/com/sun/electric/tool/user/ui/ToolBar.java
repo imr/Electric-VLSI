@@ -87,6 +87,7 @@ public class ToolBar extends JToolBar
             null,
             fullArrowDistanceCommand,
             halfArrowDistanceCommand,
+            quarterArrowDistanceCommand,
     		null,
             selectObjectsCommand,
             selectAreaCommand,
@@ -446,7 +447,10 @@ public class ToolBar extends JToolBar
             this.ad = ad;
         }
 
-        @Override public boolean isSelected() { return User.getAlignmentToGrid() == ad.getDistance(); }
+        @Override public boolean isSelected()
+        {
+            return User.getAlignmentToGrid() == ad.getDistance(); 
+        }
         @Override public void run() { User.setAlignmentToGrid(ad.getDistance()); }
     }
     
