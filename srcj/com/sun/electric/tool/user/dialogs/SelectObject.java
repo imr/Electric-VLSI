@@ -471,7 +471,6 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 	{
 		setVisible(false);
 		dispose();
-        theDialog = null;
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
