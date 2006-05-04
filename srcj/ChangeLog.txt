@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+IMP: (5/4/06, DN) PixelDrawing takes shapes from VectorCache for faster redisplay. 
+
+BUG: (5/4/06, DN) Wrong names of SelectObjects/SelectArea buttons.
+FIX: Swap them in ToolBar.java.
+
 BUG: (5/3/06, SMR) Auto Stitcher crashes wiring a node to an arc (Bug #958)
 FIX: In AutoStitch.compRoutes.compare(), handle sorting arc wirings.
 

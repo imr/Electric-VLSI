@@ -191,7 +191,7 @@ public class PixelDrawing
 	}
 
 	// statistics stuff
-	private static final boolean TAKE_STATS = false;
+	private static final boolean TAKE_STATS = true;
 	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
     private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;
@@ -200,6 +200,8 @@ public class PixelDrawing
     private static long renderTextTime;
     private static long renderPolyTime;
 
+    private static final boolean USE_VECTOR_CACHE = true;
+    
     private static class ExpandedCellKey {
         private Cell cell;
         private Orientation orient;
@@ -232,6 +234,7 @@ public class PixelDrawing
 	{
 		private boolean singleton;
 		private int instanceCount;
+        private boolean tooLarge;
 		private PixelDrawing offscreen;
 
 		ExpandedCellInfo()
@@ -246,6 +249,8 @@ public class PixelDrawing
     /** the scale of the EditWindow */                      private double scale;
     /** the X origin of the cell in display coordinates. */ private double originX;
     /** the Y origin of the cell in display coordinates. */ private double originY;
+    /** the scale of the EditWindow */                      private double scale_;
+	/** the window scale and pan factor */					private float factorX, factorY;
 	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
     
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
@@ -271,13 +276,12 @@ public class PixelDrawing
 	/** the number of bytes per row in offscreen maps */	private int numBytesPerRow;
 	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
 	/** the technology of the window */						private Technology curTech;
+    /** ERasters for layers of current technology. */       private ERaster[] curTechLayers;
 
 	// the patterned opaque bitmaps
-	private static class PatternedOpaqueLayer
-	{
-		private byte [][] bitMap;
-		private byte [] compositeRow;
-	}
+    private static class PatternedOpaqueLayer extends TransparentRaster {
+        PatternedOpaqueLayer(int height, int numBytesPerRow) { layerBitMap = new byte[height][numBytesPerRow]; }
+    }
 	/** the map from layers to Patterned Opaque bitmaps */	private HashMap<Layer,PatternedOpaqueLayer> patternedOpaqueLayers;
 	/** the top-level window being rendered */				private boolean renderedWindow;
 
@@ -293,6 +297,7 @@ public class PixelDrawing
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
+    private static Color textColor;
 	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
@@ -315,6 +320,12 @@ public class PixelDrawing
 	{
 		this.wnd = wnd;
 		this.sz = wnd.getScreenSize();
+        width = sz.width;
+        clipLX = 0;
+        clipHX = sz.width - 1;
+        clipLY = 0;
+        clipHY = sz.height - 1;
+        
 		nowPrinting = 0;
         initOrigin();
 
@@ -338,10 +349,18 @@ public class PixelDrawing
     public PixelDrawing(EditWindow wnd, Rectangle screenBounds) {
         this.wnd = wnd;
         this.scale = wnd.getScale();
+        scale_ = (float)(wnd.getScale()/DBMath.GRID);
         
         this.originX = -screenBounds.x;
         this.originY = screenBounds.y + screenBounds.height;
+        factorX = (float)(-originX/scale_);
+        factorY = (float)(originY/scale_);
         this.sz = new Dimension(screenBounds.width, screenBounds.height);
+        width = sz.width;
+        clipLX = 0;
+        clipHX = sz.width - 1;
+        clipLY = 0;
+        clipHY = sz.height - 1;
         
 		// allocate pointer to the opaque image
 //		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
@@ -362,9 +381,12 @@ public class PixelDrawing
     
     void initOrigin() {
         this.scale = wnd.getScale();
+        scale_ = (float)(wnd.getScale()/DBMath.GRID);
         Point2D offset = wnd.getOffset();
         this.originX = sz.width/2 - offset.getX()*scale;
         this.originY = sz.height/2 + offset.getY()*scale;
+		factorX = (float)(offset.getX()*DBMath.GRID - sz.width/2/scale_);
+		factorY = (float)(offset.getY()*DBMath.GRID + sz.height/2/scale_);
     }
 
     /**
@@ -418,7 +440,7 @@ public class PixelDrawing
 		long initialUsed = 0;
 		if (TAKE_STATS)
 		{
-			Runtime.getRuntime().gc();
+//			Runtime.getRuntime().gc();
 			startTime = System.currentTimeMillis();
 			initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
@@ -441,7 +463,8 @@ public class PixelDrawing
         drawBounds = wnd.getDisplayedBounds();
 
 		// set colors to use
-		textGraphics.setColor(new Color(User.getColorText()));
+        textColor = new Color(User.getColorText());
+		textGraphics.setColor(textColor);
 		gridGraphics.setColor(new Color(User.getColorGrid()));
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
 		
@@ -476,7 +499,16 @@ public class PixelDrawing
 		if (drawLimitBounds != null)
 		{
 			renderBounds = wnd.databaseToScreen(drawLimitBounds);
-		}
+            clipLX = Math.max(renderBounds.x, 0);
+            clipHX = Math.min(renderBounds.x + renderBounds.width, sz.width) - 1;
+            clipLY = Math.max(renderBounds.y, 0);
+            clipHY = Math.min(renderBounds.y + renderBounds.height, sz.height) - 1;
+		} else {
+            clipLX = 0;
+            clipHX = sz.width - 1;
+            clipLY = 0;
+            clipHY = sz.height - 1;
+        }
 		clearImage(true, renderBounds);
 
 		if (cell == null)
@@ -507,7 +539,10 @@ public class PixelDrawing
 				countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
 
 				// now render it all
-				drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd, wnd.getVarContext());
+                if (USE_VECTOR_CACHE)
+    				drawCell_(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
+                else    
+                    drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd, wnd.getVarContext());
 			} else
 			{
 				wnd.vd.render(cell, fullInstantiate, drawLimitBounds, wnd.getVarContext());
@@ -585,7 +620,7 @@ public class PixelDrawing
 		for(Iterator<Map.Entry<Layer,PatternedOpaqueLayer>> it = patternedOpaqueLayers.entrySet().iterator(); it.hasNext(); )
 		{
 			PatternedOpaqueLayer pol = (PatternedOpaqueLayer)it.next();
-			byte [][] layerBitMap = pol.bitMap;
+			byte [][] layerBitMap = pol.layerBitMap;
 			for(int y=0; y<sz.height; y++)
 			{
 				byte [] row = layerBitMap[y];
@@ -921,6 +956,7 @@ public class PixelDrawing
 		if (curTech == null) curTech = techWithLayers;
         if (curTech == null) return;
 
+        curTechLayers = new ERaster[curTech.getNumLayers()];
 		numLayerBitMaps = curTech.getNumTransparentLayers();
 		layerBitMaps = new byte[numLayerBitMaps][][];
 		compositeRows = new byte[numLayerBitMaps][];
@@ -933,7 +969,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform prevTrans, EditWindow topWnd, VarContext context)
+	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient,  AffineTransform prevTrans, EditWindow topWnd, VarContext context)
 	{
 		renderedCells++;
         renderPolyTime = 0;
@@ -990,6 +1026,191 @@ public class PixelDrawing
 	}
 
 	/**
+	 * Method to draw the contents of a cell, transformed through "prevTrans".
+	 */
+	private void drawCell_(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, int oX, int oY, boolean topLevel, VarContext context)
+	{
+		renderedCells++;
+        renderPolyTime = 0;
+        renderTextTime = 0;
+
+        VectorCache.VectorCell vc = VectorCache.theCache.drawCell(cell, orient, context, scale);
+        
+		// draw all subcells
+		for(VectorCache.VectorSubCell vsc : vc.subCells) {
+			totalCells++;
+
+			// get instance location
+            int soX = vsc.offsetX + oX;
+            int soY = vsc.offsetY + oY;
+            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCell.getId(), vc.orient.concatenate(vsc.pureRotate));
+            gridToScreen(subVC.lX + soX, subVC.hY + soY, tempPt1);
+            gridToScreen(subVC.hX + soX, subVC.lY + soY, tempPt2);
+            int lX = tempPt1.x;
+            int lY = tempPt1.y;
+            int hX = tempPt2.x;
+            int hY = tempPt2.y;
+
+			// see if the subcell is clipped
+			if (hX < clipLX || lX > clipHX) continue;
+			if (hY < clipLY || lY > clipHY) continue;
+
+			boolean expanded = vsc.ni.isExpanded() || fullInstantiate;
+
+			// if not expanded, but viewing this cell in-place, expand it
+			if (!expanded)
+			{
+				List<NodeInst> path = wnd.getInPlaceEditNodePath();
+				if (path != null)
+				{
+					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
+					{
+						NodeInst niOnPath = path.get(pathIndex);
+						if (niOnPath.getProto() == vsc.subCell)
+						{
+							expanded = true;
+							break;
+						}
+					}
+				}
+			}
+
+			// two ways to draw a cell instance
+			Cell subCell = (Cell)vsc.ni.getProto();
+			if (expanded)
+			{
+				// show the contents of the cell
+                Orientation subOrient = orient.concatenate(vsc.ni.getOrient());
+                int soX_ = vsc.offsetX + oX;
+                int soY_ = vsc.offsetY + oY;
+				if (!expandedCellCached_(subCell, subOrient, soX_, soY_, context, fullInstantiate))
+				{
+					// just draw it directly
+					cellsRendered++;
+					drawCell_(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(vsc.ni));
+				}
+			} else
+			{
+				// draw the black box of the instance
+                int[] op = subVC.outlinePoints;
+                int p1x = op[0] + soX;
+                int p1y = op[1] + soY;
+                int p2x = op[2] + soX;
+                int p2y = op[3] + soY;
+                int p3x = op[4] + soX;
+                int p3y = op[5] + soY;
+                int p4x = op[6] + soX;
+                int p4y = op[7] + soY;
+                gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
+				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
+				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				gridToScreen(p3x, p3y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
+				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
+				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+
+				// draw the instance name
+				if (canDrawText && User.isTextVisibilityOnInstance())
+				{
+					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
+					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
+					NodeProto np = vsc.ni.getProto();
+					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
+				}
+			}
+			if (canDrawText) drawPortList(vsc, subVC, soX, soY, vsc.ni.isExpanded());
+        }
+
+        // draw primitives
+        drawList(oX, oY, vc.filledShapes);
+        drawList(oX, oY, vc.shapes);
+            
+		// show cell variables if at the top level
+        if (canDrawText && topLevel)
+            drawList(oX, oY, vc.topOnlyShapes);
+
+        if (DEBUGRENDERTIMING) {
+            System.out.println("Total time to render polys: "+TextUtils.getElapsedTime(renderPolyTime));
+            System.out.println("Total time to render text: "+TextUtils.getElapsedTime(renderTextTime));
+        }
+	}
+    
+	/**
+	 * @return true if the cell is properly handled and need no further processing.
+	 * False to render the contents recursively.
+	 */
+	private boolean expandedCellCached_(Cell subCell, Orientation orient, int oX, int oY, VarContext context, boolean fullInstantiate)
+	{
+		// if there is no global for remembering cached cells, do not cache
+		if (expandedCells == null) return false;
+
+		// do not cache icons: they can be redrawn each time
+		if (subCell.isIcon()) return false;
+
+        ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, orient);
+		ExpandedCellInfo expandedCellCount = expandedCells.get(expansionKey);
+		if (expandedCellCount != null && expandedCellCount.offscreen == null)
+		{
+            if (expandedCellCount.tooLarge) return false;
+			// if this combination is not used multiple times, do not cache it
+			if (expandedCellCount.singleton && expandedCellCount.instanceCount < 2)
+			{
+				if (numberToReconcile > 0)
+				{
+					numberToReconcile--;
+					expandedCellCount.singleton = false;
+				} else return false;
+			}
+		}
+
+		if (expandedCellCount == null || expandedCellCount.offscreen == null)
+		{
+            // compute the cell's location on the screen
+            Rectangle2D cellBounds = new Rectangle2D.Double();
+            cellBounds.setRect(subCell.getBounds());
+            Rectangle2D textBounds = subCell.getTextBounds(wnd);
+            if (textBounds != null)
+                cellBounds.add(textBounds);
+            AffineTransform rotTrans = orient.pureRotate();
+            DBMath.transformRect(cellBounds, rotTrans);
+            int lX = (int)Math.floor(cellBounds.getMinX()*scale);
+            int hX = (int)Math.ceil(cellBounds.getMaxX()*scale);
+            int lY = (int)Math.floor(cellBounds.getMinY()*scale);
+            int hY = (int)Math.ceil(cellBounds.getMaxY()*scale);
+            Rectangle screenBounds = new Rectangle(lX, lY, hX - lX, hY - lY);
+
+            if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
+
+			// if this is the first use, create the offscreen buffer
+			if (expandedCellCount == null)
+			{
+				expandedCellCount = new ExpandedCellInfo();
+				expandedCells.put(expansionKey, expandedCellCount);
+			}
+
+			// do not cache if the cell is too large (creates immense offscreen buffers)
+			if (screenBounds.width >= topSz.width/2 && screenBounds.height >= topSz.height/2) {
+                expandedCellCount.tooLarge = true;
+				return false;
+            }
+
+            expandedCellCount.offscreen = new PixelDrawing(wnd, screenBounds);
+			expandedCellCount.offscreen.drawCell_(subCell, null, fullInstantiate, orient, 0, 0, false, context);
+			offscreensCreated++;
+            offscreenPixelsCreated += expandedCellCount.offscreen.total;
+            
+		}
+
+		// copy out of the offscreen buffer into the main buffer
+        gridToScreen(oX, oY, tempPt1);
+		copyBits(expandedCellCount.offscreen, tempPt1.x, tempPt1.y);
+		offscreensUsed++;
+        offscreenPixelsUsed += expandedCellCount.offscreen.total;
+		return true;
+	}
+
+	/**
 	 * Method to draw a NodeInst into the offscreen image.
 	 * @param ni the NodeInst to draw.
      * @param trans the transformation of the NodeInst to the display.
@@ -1012,7 +1233,6 @@ public class PixelDrawing
 		{
 			// cell instance
 			totalCells++;
-//			double objWidth = Math.max(ni.getXSize(), ni.getYSize());
 //			if (objWidth < maxObjectSize)
 //			{
 //				tinyCells++;
@@ -1385,14 +1605,6 @@ public class PixelDrawing
 		// do not cache icons: they can be redrawn each time
 		if (subCell.isIcon()) return false;
 
-		// find this cell-transformation combination in the global list of cached cells
-//		AffineTransform subTrans = origTrans;
-//		if (renderedWindow && wnd.isInPlaceEdit())
-//		{
-//			AffineTransform newTrans = new AffineTransform(subTrans);
-//			subTrans = newTrans;
-//			subTrans.preConcatenate(wnd.getInPlaceTransformIn());
-//		}
         ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, orient);
 		ExpandedCellInfo expandedCellCount = expandedCells.get(expansionKey);
 		if (expandedCellCount != null)
@@ -1417,7 +1629,6 @@ public class PixelDrawing
             if (textBounds != null)
                 cellBounds.add(textBounds);
             AffineTransform rotTrans = orient.pureRotate();
-//            AffineTransform rotTrans = new AffineTransform(subTrans.getScaleX(), subTrans.getShearY(), subTrans.getShearX(), subTrans.getScaleY(), 0, 0);
             DBMath.transformRect(cellBounds, rotTrans);
             int lX = (int)Math.floor(cellBounds.getMinX()*scale);
             int hX = (int)Math.ceil(cellBounds.getMaxX()*scale);
@@ -1440,33 +1651,9 @@ public class PixelDrawing
 
             expandedCellCount.offscreen = new PixelDrawing(wnd, screenBounds);
 			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, rotTrans, topWnd, context);
-//            expandedCellCount.offscreen = renderedCell.getOffscreen();
 			offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
             
-//			// render into the offscreen buffer
-//			EditWindow renderedCell = EditWindow.CreateElectricDoc(subCell, null);
-//			renderedCell.setInPlaceEditNodePath(wnd.getInPlaceEditNodePath());
-//
-//            Undo.removeDatabaseChangeListener(renderedCell);
-//			renderedCell.setScreenSize(new Dimension(screenBounds.width+1, screenBounds.height+1));
-//			renderedCell.setScale(wnd.getScale());
-//			renderedCell.getOffscreen().clearImage(false, null);
-//			Point2D cellCtr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
-//			origTrans.transform(cellCtr, cellCtr);
-//			renderedCell.setOffset(cellCtr);
-//
-//			// render the contents of the expanded cell into its own offscreen cache
-//			renderedCell.getOffscreen().renderedWindow = false;
-//            renderedCell.getOffscreen().initOrigin();
-//			renderedCell.getOffscreen().drawCell(subCell, null, fullInstantiate, origTrans, topWnd, context);
-//            expandedCellCount.offscreen = renderedCell.getOffscreen();
-//
-//			// set wnd reference to null or it will not get garbage collected
-//			expandedCellCount.offscreen.wnd = null;
-//            renderedCell.finished();
-//			offscreensCreated++;
-//            offscreenPixelsCreated += renderedCell.getOffscreen().sz.width * renderedCell.getOffscreen().sz.height;
 		}
 
 		// copy out of the offscreen buffer into the main buffer
@@ -1605,46 +1792,62 @@ public class PixelDrawing
 		Dimension dim = srcOffscreen.sz;
         int cornerX = centerX - (int)srcOffscreen.originX;
         int cornerY = centerY - (int)srcOffscreen.originY;
+        int minSrcX = Math.max(0, clipLX - cornerX);
+        int maxSrcX = Math.min(dim.width - 1, clipHX - cornerX);
+        int minSrcY = Math.max(0, clipLY - cornerY);
+        int maxSrcY = Math.min(dim.height - 1, clipHY - cornerY);
+        if (minSrcX > maxSrcX || minSrcY > maxSrcY) return;
 
         if (Job.getDebug() && numLayerBitMaps != srcOffscreen.numLayerBitMaps)
             System.out.println("Possible mixture of technologies in PixelDrawing.copyBits");
 
 		// copy the opaque and transparent layers
-		for(int srcY=0; srcY<dim.height; srcY++)
-		{
-			int destY = srcY + cornerY;
-			if (destY < 0 || destY >= sz.height) continue;
-			int srcBase = srcY * dim.width;
-			int destBase = destY * sz.width;
-
-			for(int srcX=0; srcX<dim.width; srcX++)
-			{
-				int destX = srcX + cornerX;
-				if (destX < 0 || destX >= sz.width) continue;
-				int srcColor = srcOffscreen.opaqueData[srcBase + srcX];
-				if (srcColor != backgroundValue)
-					opaqueData[destBase + destX] = srcColor;
-				for(int i=0; i<numLayerBitMaps; i++)
-				{
-                    // out of range. Possible mixture of technologies.
-                    if (i >= srcOffscreen.numLayerBitMaps) break;
-					byte [][] srcLayerBitMap = srcOffscreen.layerBitMaps[i];
-					if (srcLayerBitMap == null) continue;
-					byte [] srcRow = srcLayerBitMap[srcY];
-
-					byte [][] destLayerBitMap = getLayerBitMap(i);
-					byte [] destRow = destLayerBitMap[destY];
-					if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
-						destRow[destX>>3] |= (1 << (destX&7));
-				}
-			}
-		}
+        for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+            int destY = srcY + cornerY;
+            assert destY >= clipLY && destY <= clipHY;
+            if (destY < 0 || destY >= sz.height) continue;
+            int srcBase = srcY * dim.width;
+            int destBase = destY * sz.width;
+            
+            for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
+                int destX = srcX + cornerX;
+                assert destX >= clipLX && destX <= clipHX;
+                if (destX < 0 || destX >= sz.width) continue;
+                int srcColor = srcOffscreen.opaqueData[srcBase + srcX];
+                if (srcColor != backgroundValue)
+                    opaqueData[destBase + destX] = srcColor;
+            }
+        }
+        for (int i = 0; i < numLayerBitMaps; i++) {
+            // out of range. Possible mixture of technologies.
+            if (i >= srcOffscreen.numLayerBitMaps) break;
+            byte [][] srcLayerBitMap = srcOffscreen.layerBitMaps[i];
+            if (srcLayerBitMap == null) continue;
+            byte [][] destLayerBitMap = getLayerBitMap(i);
+            
+            for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                int destY = srcY + cornerY;
+                assert destY >= clipLY && destY <= clipHY;
+                if (destY < 0 || destY >= sz.height) continue;
+                byte [] srcRow = srcLayerBitMap[srcY];
+                byte [] destRow = destLayerBitMap[destY];
+                
+                for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
+                    int destX = srcX + cornerX;
+                    assert destX >= clipLX && destX <= clipHX;
+                    if (destX < 0 || destX >= sz.width) continue;
+                    
+                    if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
+                        destRow[destX>>3] |= (1 << (destX&7));
+                }
+            }
+        }
 
 		// copy the patterned opaque layers
 		for(Layer layer : srcOffscreen.patternedOpaqueLayers.keySet())
 		{
 			PatternedOpaqueLayer polSrc = srcOffscreen.patternedOpaqueLayers.get(layer);
-			byte [][] srcLayerBitMap = polSrc.bitMap;
+			byte [][] srcLayerBitMap = polSrc.layerBitMap;
 			if (srcLayerBitMap == null) continue;
 
 			if (renderedWindow)
@@ -1655,17 +1858,19 @@ public class PixelDrawing
 				int [] pattern = desc.getPattern();
 
 				// setup pattern for this row
-				for(int srcY=0; srcY<dim.height; srcY++)
+				for (int srcY = minSrcY; srcY <= maxSrcY; srcY++)
 				{
 					int destY = srcY + cornerY;
+                    assert destY >= clipLY && destY <= clipHY;
 					if (destY < 0 || destY >= sz.height) continue;
 					int destBase = destY * sz.width;
 					int pat = pattern[destY&15];
 					if (pat == 0) continue;
 					byte [] srcRow = srcLayerBitMap[srcY];
-					for(int srcX=0; srcX<dim.width; srcX++)
+					for (int srcX = minSrcX; srcX <= maxSrcX; srcX++)
 					{
 						int destX = srcX + cornerX;
+                        assert destX >= clipLX && destX <= clipHX;
 						if (destX < 0 || destX >= sz.width) continue;
 						if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
 						{
@@ -1680,27 +1885,22 @@ public class PixelDrawing
 				PatternedOpaqueLayer polDest = patternedOpaqueLayers.get(layer);
 				if (polDest == null)
 				{
-					polDest = new PatternedOpaqueLayer();
-					polDest.bitMap = new byte[sz.height][];
-					for(int y=0; y<sz.height; y++)
-					{
-						byte [] row = new byte[numBytesPerRow];
-						for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
-						polDest.bitMap[y] = row;
-					}
+					polDest = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
 					patternedOpaqueLayers.put(layer, polDest);
 				}
-				byte [][] destLayerBitMap = polDest.bitMap;
-				for(int srcY=0; srcY<dim.height; srcY++)
+				byte [][] destLayerBitMap = polDest.layerBitMap;
+				for(int srcY = minSrcY; srcY <= maxSrcY; srcY++)
 				{
 					int destY = srcY + cornerY;
+                    assert destY >= clipLY && destY <= clipHY;
 					if (destY < 0 || destY >= sz.height) continue;
 					int destBase = destY * sz.width;
 					byte [] srcRow = srcLayerBitMap[srcY];
 					byte [] destRow = destLayerBitMap[destY];
-					for(int srcX=0; srcX<dim.width; srcX++)
+					for (int srcX = minSrcX; srcX <= maxSrcX; srcX++)
 					{
 						int destX = srcX + cornerX;
+                        assert destX >= clipLX && destX <= clipHX;
 						if (destX < 0 || destX >= sz.width) continue;
 						if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
 							destRow[destX>>3] |= (1 << (destX&7));
@@ -1711,6 +1911,731 @@ public class PixelDrawing
 	}
 
 	// ************************************* RENDERING POLY SHAPES *************************************
+    
+    /**
+     * A class representing a rectangular array of pixels. References
+     * to pixels outside of the bounding rectangle may result in an
+     * exception being thrown, or may result in references to unintended
+     * elements of the Raster's associated DataBuffer.  It is the user's
+     * responsibility to avoid accessing such pixels.
+     */
+    static interface ERaster {
+        /**
+         * Method to fill a box [lX,hX] x [lY,hY].
+         * Both low and high coordiantes are inclusive.
+         * Filling might be patterned.
+         * @param lX left X coordinate
+         * @param hX right X coordiante
+         * @param lY top Y coordinate
+         * @param hY bottom Y coordiante 
+         */
+        public void fillBox(int lX, int hX, int lY, int hY);
+        
+        /**
+         * Method to fill a horizontal scanline [lX,hX] x [y].
+         * Both low and high coordiantes are inclusive.
+         * Filling might be patterned.
+         * @param y Y coordinate
+         * @param lX left X coordinate
+         * @param hX right X coordiante
+         */
+        public void fillHorLine(int y, int lX, int hX);
+        
+        /**
+         * Method to fill a verticaltal scanline [x] x [lY,hY].
+         * Both low and bigh coordiantes are inclusive.
+         * Filling might be patterned.
+         * @param x X coordinate
+         * @param lY top Y coordinate
+         * @param hY bottom Y coordiante
+         */
+        public void fillVerLine(int x, int lY, int hY);
+        
+        /**
+         * Method to fill a point.
+         * Filling might be patterned.
+         * @param x X coordinate
+         * @param y Y coordinate
+         */
+        public void fillPoint(int x, int y);
+        
+        /**
+         * Method to draw a horizontal line [lX,hX] x [y].
+         * Both low and high coordiantes are inclusive.
+         * Drawing is always solid.
+         * @param y Y coordinate
+         * @param lX left X coordinate
+         * @param hX right X coordiante
+         */
+        public void drawHorLine(int y, int lX, int hX);
+        
+        /**
+         * Method to draw a vertical line [x] x [lY,hY].
+         * Both low and high coordiantes are inclusive.
+         * Drawing is always solid.
+         * @param x X coordinate
+         * @param lY top Y coordinate
+         * @param hY bottom Y coordiante
+         */
+        public void drawVerLine(int x, int lY, int hY);
+        
+        /**
+         * Method to draw a point.
+         * @param x X coordinate
+         * @param y Y coordinate
+         */
+        public void drawPoint(int x, int y);
+        
+        /**
+         * Method to return Electric Outline style for this ERaster.
+         * @return Electric Outline style for this ERaster or null for no outline.
+         */
+        public EGraphics.Outline getOutline();
+    }
+    
+    ERaster getFillRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
+        boolean dimmed = false;
+        if (layer != null) {
+            if (!forceVisible && !layer.isVisible()) return null;
+            graphics = layer.getGraphics();
+            dimmed = layer.isDimmed();
+        }
+        
+		byte [][] layerBitMap = null;
+		int layerNum = graphics.getTransparentLayer() - 1;
+		if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
+
+		// only do this for lower-level (cached cells)
+        if (!renderedWindow) {
+            // for fills, handle patterned opaque layers specially
+            // see if it is opaque
+            if (layerBitMap == null) {
+                // see if it is patterned
+                if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay()) {
+                    PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
+                    if (pol == null) {
+                        pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
+                        patternedOpaqueLayers.put(layer, pol);
+                    }
+                    return pol;
+                }
+            }
+        }
+        
+        ERaster raster;
+		int [] pattern = null;
+        if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
+            pattern = graphics.getPattern();
+        if (layerBitMap != null) {
+            if (pattern == null) {
+                TransparentRaster.current.init(layerBitMap);
+                return TransparentRaster.current;
+            }
+			EGraphics.Outline o = graphics.getOutlined();
+            if (o == EGraphics.Outline.NOPAT)
+                o = null;
+            PatternedTransparentRaster.current.init(layerBitMap, pattern, o);
+            return PatternedTransparentRaster.current;
+        } else {
+    		int col = getTheColor(graphics, dimmed);
+            if (pattern == null) {
+                OpaqueRaster.current.init(opaqueData, sz.width, col);
+                return OpaqueRaster.current;
+            }
+            EGraphics.Outline o = graphics.getOutlined();
+            if (o == EGraphics.Outline.NOPAT)
+                o = null;
+            PatternedOpaqueRaster.current.init(opaqueData, sz.width, col, pattern, o);
+            return PatternedOpaqueRaster.current;
+        }
+    }
+    
+    /**
+     * ERaster for solid opaque layers.
+     */
+    private static class OpaqueRaster implements ERaster {
+        private static OpaqueRaster current = new OpaqueRaster();
+        
+        int[] opaqueData;
+        int width;
+        int col;
+        
+        void init(int[] opaqueData, int width, int col) {
+            this.opaqueData = opaqueData;
+            this.width = width;
+            this.col = col;
+        }
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            int baseIndex = lY*width;
+            for (int y = lY; y <= hY; y++) {
+                for(int x = lX; x <= hX; x++)
+                    opaqueData[baseIndex + x] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            int baseIndex = y*width + lX;
+            for (int x = lX; x <= hX; x++)
+                opaqueData[baseIndex++] = col;
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int baseIndex = lY*width + x;
+            for (int y = lY; y <= hY; y++) {
+                opaqueData[baseIndex] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void fillPoint(int x, int y) {
+            opaqueData[y * width + x] = col;
+        }
+        
+        public void drawHorLine(int y, int lX, int hX) {
+            int baseIndex = y*width + lX;
+            for (int x = lX; x <= hX; x++)
+                opaqueData[baseIndex++] = col;
+        }
+        
+        public void drawVerLine(int x, int lY, int hY) {
+            int baseIndex = lY*width + x;
+            for (int y = lY; y <= hY; y++) {
+                opaqueData[baseIndex] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void drawPoint(int x, int y) {
+            opaqueData[y * width + x] = col;
+        }
+
+        public EGraphics.Outline getOutline() {
+            return null;
+        }
+    }
+
+    /**
+     * ERaster for solid opaque layers with alpha protection against overriding.
+     */
+    private static class OpaqueAlphaRaster extends OpaqueRaster {
+        private static OpaqueAlphaRaster current = new OpaqueAlphaRaster();
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            int baseIndex = lY*width;
+            for (int y = lY; y <= hY; y++) {
+                for(int x = lX; x <= hX; x++) {
+                    int index = baseIndex + x;
+                    int alpha = (opaqueData[index] >> 24) & 0xFF;
+                    if (alpha == 0xFF) opaqueData[index] = col;
+                }
+                baseIndex += width;
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            int baseIndex = y*width + lX;
+            for (int x = lX; x <= hX; x++) {
+                int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
+                if (alpha == 0xFF) opaqueData[baseIndex] = col;
+                baseIndex++;
+            }
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int baseIndex = lY*width + x;
+            for (int y = lY; y <= hY; y++) {
+                int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
+                if (alpha == 0xFF) opaqueData[baseIndex] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void fillPoint(int x, int y) {
+            int baseIndex = y*width + x;
+            int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
+            if (alpha == 0xFF) opaqueData[baseIndex] = col;
+        }
+    }
+
+    /**
+     * ERaster for solid transparent layers.
+     */
+    private static class TransparentRaster implements ERaster {
+        private static TransparentRaster current = new TransparentRaster();
+        
+        byte[][] layerBitMap;
+        
+        private void init(byte[][] layerBitMap) {
+            this.layerBitMap = layerBitMap;
+        }
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            for (int y = lY; y <= hY; y++) {
+                byte [] row = layerBitMap[y];
+                for (int x = lX; x <= hX; x++)
+                    row[x>>3] |= (1 << (x&7));
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            byte [] row = layerBitMap[y];
+            for (int x = lX; x <= hX; x++)
+                row[x>>3] |= (1 << (x&7));
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int addr = x >> 3;
+            byte mask = (byte)(1 << (x&7));
+            for (int y = lY; y <= hY; y++)
+                layerBitMap[y][addr] |= mask;
+        }
+        
+        public void fillPoint(int x, int y) {
+            layerBitMap[y][x >> 3] |= (1 << (x&7));
+        }
+        
+        public void drawHorLine(int y, int lX, int hX) {
+            byte [] row = layerBitMap[y];
+            for (int x = lX; x <= hX; x++)
+                row[x>>3] |= (1 << (x&7));
+        }
+        
+        public void drawVerLine(int x, int lY, int hY) {
+            int addr = x >> 3;
+            byte mask = (byte)(1 << (x&7));
+            for (int y = lY; y <= hY; y++)
+                layerBitMap[y][addr] |= mask;
+        }
+        
+        public void drawPoint(int x, int y) {
+            layerBitMap[y][x >> 3] |= (1 << (x&7));
+        }
+        
+        public EGraphics.Outline getOutline() {
+            return null;
+        }
+    }
+
+    /**
+     * ERaster for patterned opaque layers.
+     */
+    private static class PatternedOpaqueRaster extends OpaqueRaster {
+        private static PatternedOpaqueRaster current = new PatternedOpaqueRaster();
+        
+        int[] pattern;
+        EGraphics.Outline outline;
+        
+        private void init(int[] opaqueData, int width, int col, int[] pattern, EGraphics.Outline outline) {
+            super.init(opaqueData, width, col);
+            this.pattern = pattern;
+            this.outline = outline;
+        }
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            for (int y = lY; y <= hY; y++) {
+                // setup pattern for this row
+                int pat = pattern[y&15];
+                if (pat == 0) continue;
+                
+                int baseIndex = y * width;
+                for (int x = lX; x <= hX; x++) {
+                    if ((pat & (0x8000 >> (x&15))) != 0)
+                        opaqueData[baseIndex + x] = col;
+                }
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            int pat = pattern[y & 15];
+            if (pat == 0) return;
+            int baseIndex = y * width;
+            for (int x = lX; x <= hX; x++) {
+                if ((pat & (1 << (15-(x&15)))) != 0) {
+                    int index = baseIndex + x;
+                    opaqueData[index] = col;
+                }
+            }
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int patMask = 0x8000 >> (x&15);
+            int baseIndex = lY*width + x;
+            for (int y = lY; y <= hY; y++) {
+                if ((pattern[y&15] & patMask) != 0)
+                    opaqueData[baseIndex] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void fillPoint(int x, int y) {
+            int patMask = 0x8000 >> (x&15);
+            if ((pattern[y&15] &  patMask) != 0)
+                opaqueData[y*width + x] = col;
+        }
+        
+        public EGraphics.Outline getOutline() {
+            return outline;
+        }
+    }
+    
+    /**
+     * ERaster for patterned transparent layers.
+     */
+    private static class PatternedTransparentRaster extends TransparentRaster {
+        private static PatternedTransparentRaster current = new PatternedTransparentRaster();
+        
+        int[] pattern;
+        EGraphics.Outline outline;
+        
+        private void init(byte[][] layerBitMap, int[] pattern, EGraphics.Outline outline) {
+            super.init(layerBitMap);
+            this.pattern = pattern;
+            this.outline = outline;
+        }
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            for (int y = lY; y <= hY; y++) {
+                // setup pattern for this row
+                int pat = pattern[y&15];
+                if (pat == 0) continue;
+                
+                byte [] row = layerBitMap[y];
+                for(int x=lX; x<=hX; x++) {
+                    if ((pat & (0x8000 >> (x&15))) != 0)
+                        row[x>>3] |= (1 << (x&7));
+                }
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            int pat = pattern[y & 15];
+            if (pat == 0) return;
+            byte [] row = layerBitMap[y];
+            for (int x = lX; x <= hX; x++) {
+                if ((pat & (1 << (15-(x&15)))) != 0)
+                    row[x>>3] |= (1 << (x&7));
+            }
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int patMask = 0x8000 >> (x&15);
+            int addr = x >> 3;
+            byte mask = (byte)(1 << (x&7));
+            for (int y = lY; y <= hY; y++) {
+                if ((pattern[y&15] & patMask) != 0)
+                    layerBitMap[y][addr] |= mask;
+            }
+        }
+        
+        public void fillPoint(int x, int y) {
+            int patMask = 0x8000 >> (x&15);
+            if ((pattern[y&15] & patMask) != 0)
+                layerBitMap[y][x >> 3] |= (1 << (x&7));
+        }
+        
+        public EGraphics.Outline getOutline() {
+            return outline;
+        }
+    }
+    
+	// ************************************* RENDERING POLY SHAPES *************************************
+
+    private static int boxCount, tinyBoxCount, lineBoxCount, lineCount, polygonCount, crossCount, circleCount, arcCount, textCount;
+    private static Rectangle tempRect = new Rectangle();
+    private void gridToScreen(int dbX, int dbY, Point result) {
+        double scrX = (dbX - factorX) * scale_;
+        double scrY = (factorY - dbY) * scale_;
+        result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+        result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+    }
+    
+	/**
+	 * Method to draw a list of cached shapes.
+	 * @param oX the X offset to draw the shapes (in database grid coordinates).
+	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
+	 * @param shapes the List of shapes (VectorBase objects).
+	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
+	 */
+	private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes)
+//		throws AbortRenderingException
+	{
+		// render all shapes
+		for(VectorCache.VectorBase vb : shapes)
+		{
+//			if (stopRendering) throw new AbortRenderingException();
+			// handle refreshing
+			if (periodicRefresh)
+			{
+				objectCount++;
+				if (objectCount > 1000)
+				{
+					objectCount = 0;
+					long currentTime = System.currentTimeMillis();
+					if (currentTime - lastRefreshTime > 1000)
+					{
+						wnd.repaint();
+					}
+				}
+			}
+
+			// get visual characteristics of shape
+			Layer layer = vb.layer;
+			boolean dimmed = false;
+			if (layer != null)
+			{
+				if (!vb.layer.isVisible()) continue;
+				dimmed = layer.isDimmed();
+			}
+			byte [][] layerBitMap = null;
+			EGraphics graphics = vb.graphics;
+			if (graphics != null)
+			{
+				int layerNum = graphics.getTransparentLayer() - 1;
+				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
+			}
+            
+            // only do this for lower-level (cached cells)
+            if (!renderedWindow) {
+                // for fills, handle patterned opaque layers specially
+                if (vb instanceof VectorCache.VectorManhattan ||
+                        vb instanceof VectorCache.VectorPolygon ||
+                        vb instanceof VectorCache.VectorCircle && ((VectorCache.VectorCircle)vb).nature == 2) {
+                    // see if it is opaque
+                    if (layerBitMap == null) {
+                        // see if it is patterned
+                        if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay()) {
+                            PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
+                            if (pol == null) {
+                                pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
+                                patternedOpaqueLayers.put(layer, pol);
+                            }
+                            layerBitMap = pol.layerBitMap;
+                            graphics = null;
+                        }
+                    }
+                }
+            }
+
+			// handle each shape
+			if (vb instanceof VectorCache.VectorManhattan)
+			{
+				boxCount++;
+				VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
+                ERaster raster = getFillRaster(vm.layer, vm.graphics, false);
+                for (int i = 0; i < vm.coords.length; i += 4) {
+                    int c1X = vm.coords[i];
+                    int c1Y = vm.coords[i+1];
+                    int c2X = vm.coords[i+2];
+                    int c2Y = vm.coords[i+3];
+
+                    // determine coordinates of rectangle on the screen
+                    gridToScreen(c1X+oX, c2Y+oY, tempPt1);
+                    gridToScreen(c2X+oX, c1Y+oY, tempPt2);
+                    int lX = tempPt1.x;
+                    int lY = tempPt1.y;
+                    int hX = tempPt2.x;
+                    int hY = tempPt2.y;
+                    
+                    drawBox(lX, hX, lY, hY, raster);
+
+//                    // reject if completely off the screen
+//                    if (hX < clipLX || lX >= clipHX) continue;
+//                    if (hY < clipLY || lY >= clipHY) continue;
+//
+//                    // clip to screen
+//                    if (lX < clipLX) lX = clipLX;
+//                    if (hX > clipHX) hX = clipHX;
+//                    if (lY < clipLY) lY = clipLY;
+//                    if (hY > clipHY) hY = clipHY;
+//
+//                    // draw the box
+//                    drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);
+                }
+            } else if (vb instanceof VectorCache.VectorLine)
+			{
+				lineCount++;
+				VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
+
+				// determine coordinates of line on the screen
+				gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
+				gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
+
+				// clip and draw the line
+				drawLine(tempPt1, tempPt2, layerBitMap, graphics, vl.texture, dimmed);
+			} else if (vb instanceof VectorCache.VectorPolygon)
+			{
+				polygonCount++;
+				VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
+				Point [] intPoints = new Point[vp.points.length];
+				for(int i=0; i<vp.points.length; i++)
+				{
+	                intPoints[i] = new Point();
+					gridToScreen(vp.points[i].x+oX, vp.points[i].y+oY, intPoints[i]);
+	            }
+				Point [] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
+				drawPolygon(clippedPoints, layerBitMap, graphics, dimmed);
+			} else if (vb instanceof VectorCache.VectorCross)
+			{
+				crossCount++;
+				VectorCache.VectorCross vcr = (VectorCache.VectorCross)vb;
+				gridToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
+				int size = 5;
+				if (vcr.small) size = 3;
+				drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
+				drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), null, graphics, 0, dimmed);
+			} else if (vb instanceof VectorCache.VectorText)
+			{
+                if (!canDrawText) continue;
+				VectorCache.VectorText vt = (VectorCache.VectorText)vb;
+				switch (vt.textType)
+				{
+					case VectorCache.VectorText.TEXTTYPEARC:
+						if (!User.isTextVisibilityOnArc()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPENODE:
+						if (!User.isTextVisibilityOnNode()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPECELL:
+						if (!User.isTextVisibilityOnCell()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPEEXPORT:
+						if (!User.isTextVisibilityOnExport()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPEANNOTATION:
+						if (!User.isTextVisibilityOnAnnotation()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPEINSTANCE:
+						if (!User.isTextVisibilityOnInstance()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPEPORT:
+                        assert false;
+						if (!User.isTextVisibilityOnPort()) continue;
+						break;
+				}
+//				if (vt.height < maxTextSize) continue;
+
+				String drawString = vt.str;
+                int lX = vt.bounds.x;
+                int lY = vt.bounds.y;
+                int hX = lX + vt.bounds.width;
+                int hY = lY + vt.bounds.height;
+				gridToScreen(lX + oX, hY + oY, tempPt1);
+				gridToScreen(hX + oX, lY + oY, tempPt2);
+                lX = tempPt1.x;
+                lY = tempPt1.y;
+                hX = tempPt2.x;
+                hY = tempPt2.y;
+                
+                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null)
+				{
+					int exportDisplayLevel = User.getExportDisplayLevel();
+					if (exportDisplayLevel == 2)
+					{
+						// draw export as a cross
+						int cX = (lX + hX) / 2;
+						int cY = (lY + hY) / 2;
+						int size = 3;
+						drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, textGraphics, 0, false);
+						drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, textGraphics, 0, false);
+						crossCount++;
+						continue;
+					}
+
+					// draw export as text
+					if (exportDisplayLevel == 1) drawString = vt.e.getShortName(); else
+						drawString = vt.e.getName();
+					graphics = textGraphics;
+					layerBitMap = null;
+				}
+
+				textCount++;
+				tempRect.setBounds(lX, lY, hX-lX, hY-lY);
+				drawText(tempRect, vt.style, vt.descript, drawString, layerBitMap, graphics, dimmed);
+			} else if (vb instanceof VectorCache.VectorCircle)
+			{
+				circleCount++;
+				VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
+				gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+				gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+				switch (vci.nature)
+				{
+					case 0: drawCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);        break;
+					case 1: drawThickCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);   break;
+					case 2: drawDisc(tempPt1, tempPt2, layerBitMap, graphics, dimmed);          break;
+				}
+			} else if (vb instanceof VectorCache.VectorCircleArc)
+			{
+				arcCount++;
+				VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
+				gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
+				gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
+				gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
+				drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, layerBitMap, graphics, dimmed);
+			}
+		}
+	}
+
+	/**
+	 * Method to draw a list of cached port shapes.
+	 * @param oX the X offset to draw the shapes (in database grid coordinates).
+	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
+     * @parem true to draw a list on expanded instance
+	 */
+	private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded)
+//		throws AbortRenderingException
+	{
+        if (!User.isTextVisibilityOnPort()) return;
+		// render all shapes
+		for(VectorCache.VectorText vt : subVC_.getPortShapes())
+		{
+//			if (stopRendering) throw new AbortRenderingException();
+
+			// get visual characteristics of shape
+            assert vt.textType == VectorCache.VectorText.TEXTTYPEPORT;
+            if (vsc.shownPorts.get(vt.e.getId().getChronIndex())) continue;
+//			if (vt.height < maxTextSize) continue;
+
+            String drawString = vt.str;
+            int lX = vt.bounds.x;
+            int lY = vt.bounds.y;
+            int hX = lX + vt.bounds.width;
+            int hY = lY + vt.bounds.height;
+            gridToScreen(lX + oX, hY + oY, tempPt1);
+            gridToScreen(hX + oX, lY + oY, tempPt2);
+            lX = tempPt1.x;
+            lY = tempPt1.y;
+            hX = tempPt2.x;
+            hY = tempPt2.y;
+
+			int portDisplayLevel = User.getPortDisplayLevel();
+			Color portColor = vt.e.getBasePort().getPortColor();
+			if (expanded) portColor = textColor;
+			if (portColor != null) portGraphics.setColor(portColor);
+			int cX = (lX + hX) / 2;
+			int cY = (lY + hY) / 2;
+			if (portDisplayLevel == 2)
+			{
+				// draw port as a cross
+				int size = 3;
+				drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, portGraphics, 0, false);
+				drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, portGraphics, 0, false);
+				crossCount++;
+				continue;
+			}
+
+			// draw port as text
+			if (portDisplayLevel == 1) drawString = vt.e.getShortName(); else
+				drawString = vt.e.getName();
+			lX = hX = cX;
+			lY = hY = cY;
+            
+			textCount++;
+			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
+			drawText(tempRect, vt.style, vt.descript, drawString, null, portGraphics, false);
+		}
+	}
 
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
@@ -1817,17 +2742,10 @@ public class PixelDrawing
 						PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
 						if (pol == null)
 						{
-							pol = new PatternedOpaqueLayer();
-							pol.bitMap = new byte[sz.height][];
-							for(int y=0; y<sz.height; y++)
-							{
-								byte [] row = new byte[numBytesPerRow];
-								for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
-								pol.bitMap[y] = row;
-							}
+							pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
 							patternedOpaqueLayers.put(layer, pol);
 						}
-						layerBitMap = pol.bitMap;
+						layerBitMap = pol.layerBitMap;
 						graphics = null;
 					}
 				}
@@ -2208,6 +3126,98 @@ public class PixelDrawing
 		}
 	}
 
+    /**
+     * Method to draw a box on the off-screen buffer.
+     */
+    public void drawBox(int lX, int hX, int lY, int hY, ERaster raster) {
+        if (lX < clipLX) lX = clipLX;
+        if (hX > clipHX) hX = clipHX;
+        if (lY < clipLY) lY = clipLY;
+        if (hY > clipHY) hY = clipHY;
+        if (lX > hX || lY > hY) return;
+        EGraphics.Outline o = raster.getOutline();
+        if (lY == hY) {
+            if (lX == hX) {
+                if (o == null)
+                    raster.fillPoint(lX, lY);
+                else
+                    raster.drawPoint(lX, lY);
+            } else {
+                if (o == null)
+                    raster.fillHorLine(lY, lX, hX);
+                else
+                    raster.drawHorLine(lY, lX, hX);
+            }
+            return;
+        }
+        if (lX == hX) {
+            if (o == null)
+                raster.fillVerLine(lX, lY, hY);
+            else
+                raster.drawVerLine(lX, lY, hY);
+            return;
+        }
+        raster.fillBox(lX, hX, lY, hY);
+        if (o == null) return;
+        if (o.isSolidPattern()) {
+            raster.drawVerLine(lX, lY, hY);
+            raster.drawHorLine(hY, lX, hX);
+            raster.drawVerLine(hX, lY, hY);
+            raster.drawHorLine(lY, lX, hX);
+            if (o.getThickness() != 1) {
+                for(int i=1; i<o.getThickness(); i++) {
+                    if (lX + i <= clipHX)
+                        raster.drawVerLine(lX+i, lY, hY);
+                    if (hY - i >= clipLX)
+                        raster.drawHorLine(hY-i, lX, hX);
+                    if (hX - i >= clipLY)
+                        raster.drawVerLine(hX-i, lY, hY);
+                    if (lY + i <= clipHY)
+                        raster.drawHorLine(lY+i, lX, hX);
+                }
+            }
+        } else {
+            int pattern = o.getPattern();
+            int len = o.getLen();
+            drawVerOutline(lX, lY, hY, pattern, len, raster);
+            drawHorOutline(hY, lX, hX, pattern, len, raster);
+            drawVerOutline(hX, lY, hY, pattern, len, raster);
+            drawHorOutline(lY, lX, hX, pattern, len, raster);
+            if (o.getThickness() != 1) {
+                for(int i=1; i<o.getThickness(); i++) {
+                    if (lX + i <= clipHX)
+                        drawVerOutline(lX+i, lY, hY, pattern, len, raster);
+                    if (hY - i >= clipLX)
+                        drawHorOutline(hY-i, lX, hX, pattern, len, raster);
+                    if (hX - i >= clipLY)
+                        drawVerOutline(hX-i, lY, hY, pattern, len, raster);
+                    if (lY + i <= clipHY)
+                        drawHorOutline(lY+i, lX, hX, pattern, len, raster);
+                }
+            }
+        }
+    }
+    
+    private static void drawHorOutline(int y, int lX, int hX, int pattern, int len, ERaster raster) {
+        int i = 0;
+        for (int x = lX; x <= hX; x++) {
+            if ((pattern & (1 << i)) != 0)
+                raster.drawPoint(x, y);
+            i++;
+            if (i == len) i = 0;
+        }
+    }
+    
+    private static void drawVerOutline(int x, int lY, int hY, int pattern, int len, ERaster raster) {
+        int i = 0;
+        for (int y = lY; y <= hY; y++) {
+            if ((pattern & (1 << i)) != 0)
+                raster.drawPoint(x, y);
+            i++;
+            if (i == len) i = 0;
+        }
+    }
+    
     /**
      * Method to draw a box on the off-screen buffer.
      */
@@ -2983,7 +3993,8 @@ public class PixelDrawing
      */
     public void drawText(String s, Rectangle rect)
     {
-		textGraphics.setColor(new Color(User.getColorText()));
+        textColor = new Color(User.getColorText());
+		textGraphics.setColor(textColor);
         drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, s, null, textGraphics, false);
     }
 

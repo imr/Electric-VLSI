@@ -26,15 +26,18 @@ package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.text.ImmutableArrayList;
 import java.awt.geom.Rectangle2D;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  * The <code>ERectangle</code> immutable class defines a point representing
  * defined by a location (x,&nbsp;y) and dimension (w&nbsp;x&nbsp;h).
  * <p>
  * This class is used in Electric database.
- * NOTE: This class can't be serializable because of Rectangle2D.Double
  */
-public class ERectangle extends Rectangle2D.Double {
+public class ERectangle extends Rectangle2D.Double implements Serializable {
     public static final ERectangle[] NULL_ARRAY = {};
     public static final ImmutableArrayList<ERectangle> EMPTY_LIST = new ImmutableArrayList<ERectangle>(NULL_ARRAY);
     
@@ -52,6 +55,20 @@ public class ERectangle extends Rectangle2D.Double {
 	    super.setRect(x, y, w, h);
 	}
 
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeDouble(x);
+        out.writeDouble(y);
+        out.writeDouble(width);
+        out.writeDouble(height);
+    }
+    
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        x = in.readDouble();
+        y = in.readDouble();
+        width = in.readDouble();
+        height = in.readDouble();
+    }
+ 
 	public void setRect(double x, double y, double w, double h) {
         throw new UnsupportedOperationException();
 	}

@@ -838,8 +838,20 @@ public class VectorCache {
     	public int compare(VectorBase vb1, VectorBase vb2)
         {
 			int level1 = 1000, level2 = 1000;
-			if (vb1.layer != null) level1 = vb1.layer.getFunction().getLevel();
-			if (vb2.layer != null) level2 = vb2.layer.getFunction().getLevel();
+            boolean isContact1 = false;
+            boolean isContact2 = false;
+			if (vb1.layer != null) {
+                Layer.Function fun = vb1.layer.getFunction();
+                level1 = fun.getLevel();
+                isContact1 = fun.isContact();
+            }
+			if (vb2.layer != null) {
+                Layer.Function fun = vb2.layer.getFunction();
+                level2 = fun.getLevel();
+                isContact2 = fun.isContact();
+            }
+            if (isContact1 != isContact2)
+                return isContact1 ? -1 : 1;
             return level1 - level2;
         }
     };

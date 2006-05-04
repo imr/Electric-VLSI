@@ -478,8 +478,8 @@ public class ToolBar extends JToolBar
         curSelectMode = selectMode;
     }
     
-    private static final SelectModeButton selectAreaCommand = new SelectModeButton("Select Objects", "ButtonObjects", SelectMode.AREA);
-    private static final SelectModeButton selectObjectsCommand = new SelectModeButton("Select Area", "ButtonArea", SelectMode.OBJECTS);
+    private static final SelectModeButton selectObjectsCommand = new SelectModeButton("Select Objects", "ButtonObjects", SelectMode.OBJECTS);
+    private static final SelectModeButton selectAreaCommand = new SelectModeButton("Select Area", "ButtonArea", SelectMode.AREA);
     
     public static class SelectModeButton extends EToolBarRadioButton {
         private final SelectMode sm;
@@ -545,8 +545,8 @@ public class ToolBar extends JToolBar
             
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         new EMenu("_Select",
-                    selectAreaCommand,
                     selectObjectsCommand,
+                    selectAreaCommand,
                     toggleSelectSpecialCommand));
 
     // --------------------------- Misc commands ---------------------------------------------------------

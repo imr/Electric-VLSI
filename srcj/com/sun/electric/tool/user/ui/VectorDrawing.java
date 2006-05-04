@@ -352,7 +352,7 @@ public class VectorDrawing
 				// draw the instance name
 				if (User.isTextVisibilityOnInstance())
 				{
-					tempRect.setRect(lX, lY, hX-lX, hY-lY);
+					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
 					NodeProto np = vsc.ni.getProto();
 					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
@@ -378,7 +378,7 @@ public class VectorDrawing
             VectorCache.VectorBase vb = shapes.get(k);
 			if (stopRendering) throw new AbortRenderingException();
 
-			// get visual characteristics of shape
+            // get visual characteristics of shape
 			Layer layer = vb.layer;
 			boolean dimmed = false;
 			if (layer != null)
@@ -420,7 +420,7 @@ public class VectorDrawing
 					} else if (vm.graphics != null) {
                         fadeCol = vm.graphics.getRGB();
                     }
-				}
+                }
                 for (int i = 0; i < vm.coords.length; i += 4) {
                     int c1X = vm.coords[i];
                     int c1Y = vm.coords[i+1];
@@ -467,7 +467,7 @@ public class VectorDrawing
                     int hX = tempPt2.x;
                     int lY = tempPt1.y;
                     int hY = tempPt2.y;
-
+                    
                     // reject if completely off the screen
                     if (hX < screenLX || lX >= screenHX) continue;
                     if (hY < screenLY || lY >= screenHY) continue;
@@ -609,7 +609,7 @@ public class VectorDrawing
 				}
 
 				textCount++;
-				tempRect.setRect(lX, lY, hX-lX, hY-lY);
+				tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 				offscreen.drawText(tempRect, vt.style, vt.descript, drawString, layerBitMap, graphics, dimmed);
 			} else if (vb instanceof VectorCache.VectorCircle)
 			{
@@ -690,7 +690,7 @@ public class VectorDrawing
 			lY = hY = cY;
             
 			textCount++;
-			tempRect.setRect(lX, lY, hX-lX, hY-lY);
+			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 			offscreen.drawText(tempRect, vt.style, vt.descript, drawString, null, portGraphics, false);
 		}
 	}
