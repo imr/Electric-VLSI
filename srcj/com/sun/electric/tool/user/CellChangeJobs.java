@@ -589,17 +589,14 @@ public class CellChangeJobs
 	public static class PackageCell extends Job
 	{
 		Cell curCell;
-        EPoint p1;
-        double width, height;
+        ERectangle bounds;
 		String newCellName;
 
 		public PackageCell(Cell curCell, Rectangle2D bounds, String newCellName)
 		{
 			super("Package Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = curCell;
-            this.p1 = new EPoint(bounds.getX(), bounds.getY());
-            this.width = bounds.getWidth();
-            this.height = bounds.getHeight();
+            this.bounds = new ERectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
 			this.newCellName = newCellName;
 			startJob();
 		}
@@ -610,7 +607,6 @@ public class CellChangeJobs
 			Cell cell = Cell.makeInstance(Library.getCurrent(), newCellName);
 			if (cell == null) return false;
 
-            Rectangle2D bounds = new ERectangle(p1.getX(), p1.getY(), width, height);
 			// copy the nodes into the new cell
 			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 			for(Iterator<Geometric> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
@@ -1321,7 +1317,7 @@ public class CellChangeJobs
 	/**
 	 * Method to return a cell from a ser "existing" with similar name and same view "cell".
      * @param cell a pattern cell
-     * @param exisring a set where to find
+     * @param existing a set where to find
      * @return a cell from a set with proper name and view.
 	 */
 	private static Cell inDestLib(Cell cell, HashSet<Cell> existing)
