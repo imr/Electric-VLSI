@@ -44,7 +44,6 @@ import com.sun.electric.tool.user.dialogs.CellLists;
 import com.sun.electric.tool.user.dialogs.CellProperties;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewCell;
-import com.sun.electric.tool.user.menus.EMenuItem;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ToolBar;
