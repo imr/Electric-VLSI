@@ -50,11 +50,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.ActionMap;
-import javax.swing.DefaultListModel;
-import javax.swing.InputMap;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 
 
 /**
@@ -78,7 +74,12 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
         if (theDialog == null)
         {
             if (updateOnlyIfVisible) return; // it is not previously open
-            theDialog = new SelectObject(TopLevel.getCurrentJFrame(), false);
+            JFrame jf;
+            if (TopLevel.isMDIMode())
+			    jf = TopLevel.getCurrentJFrame();
+            else
+                jf = null;
+            theDialog = new SelectObject(jf, false);
         }
         if (updateOnlyIfVisible && !theDialog.isVisible()) return; // it is not previously visible
 		theDialog.setVisible(true);
@@ -470,6 +471,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 	{
 		setVisible(false);
 		dispose();
+        theDialog = null;
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
