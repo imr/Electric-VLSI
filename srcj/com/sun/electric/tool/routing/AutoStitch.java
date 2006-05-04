@@ -422,9 +422,27 @@ public class AutoStitch
 	{
     	public int compare(Route r1, Route r2)
         {
-    		// get the first route in proper order
+    		// separate nodes from arcs
 			RouteElementPort r1s = r1.getStart();
 			RouteElementPort r1e = r1.getEnd();
+			RouteElementPort r2s = r2.getStart();
+			RouteElementPort r2e = r2.getEnd();
+			boolean r1ToArc = r1s.getPortInst() == null || r1e.getPortInst() == null;
+			boolean r2ToArc = r2s.getPortInst() == null || r2e.getPortInst() == null;
+			if (r1ToArc && !r2ToArc) return 1;
+			if (!r1ToArc && r2ToArc) return -1;
+			if (r1ToArc && r2ToArc)
+			{
+				ArcProto ap1 = null, ap2 = null;
+				if (r1s.getNewArcs().hasNext()) ap1 = ((RouteElementArc)(r1s.getNewArcs().next())).getArcProto();
+				if (r1e.getNewArcs().hasNext()) ap1 = ((RouteElementArc)(r1e.getNewArcs().next())).getArcProto();
+				if (r2s.getNewArcs().hasNext()) ap2 = ((RouteElementArc)(r2s.getNewArcs().next())).getArcProto();
+				if (r2e.getNewArcs().hasNext()) ap2 = ((RouteElementArc)(r2e.getNewArcs().next())).getArcProto();
+				if (ap1 == null || ap2 == null) return 0;
+				return ap1.compareTo(ap2);
+			}
+
+			// get the first route in proper order
 			NodeInst n1s = r1s.getPortInst().getNodeInst();
 			NodeInst n1e = r1e.getPortInst().getNodeInst();
 			if (n1s.compareTo(n1e) < 0)
@@ -434,8 +452,6 @@ public class AutoStitch
 			}
 
 			// get the second route in proper order
-			RouteElementPort r2s = r2.getStart();
-			RouteElementPort r2e = r2.getEnd();
 			NodeInst n2s = r2s.getPortInst().getNodeInst();
 			NodeInst n2e = r2e.getPortInst().getNodeInst();
 			if (n2s.compareTo(n2e) < 0)
@@ -1059,7 +1075,7 @@ public class AutoStitch
 			double aCX = arcBounds.getCenterX();
 			double aCY = arcBounds.getCenterY();
 
-			// compare them against all of the polygons in the node
+			// compare them against all of the polygons in the node  TODO: move this "shapeOfNode()" call outside the arcpoly loop
 			Poly [] nodePolys = shapeOfNode(ni);
 			int nTot = nodePolys.length;
 			for(int j=0; j<nTot; j++)
