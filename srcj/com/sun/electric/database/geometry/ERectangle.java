@@ -52,9 +52,9 @@ public class ERectangle extends Rectangle2D.Double implements Serializable {
      * newly constructed <code>Rectangle2D</code>
      */
     public ERectangle(double x, double y, double w, double h) {
-	    super.setRect(x, y, w, h);
+	    super.setRect(DBMath.round(x), DBMath.round(y), DBMath.round(w), DBMath.round(h));
 	}
-
+    
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeDouble(x);
         out.writeDouble(y);
@@ -69,6 +69,17 @@ public class ERectangle extends Rectangle2D.Double implements Serializable {
         height = in.readDouble();
     }
  
+    /**
+     * Returns <code>EPoint</code> from specified <code>Point2D</code>
+     * snapped to the grid.
+     * @param p specified Point2D
+	 * @return Snapped EPoint
+     */
+    public static ERectangle snap(Rectangle2D r) {
+        if (r instanceof ERectangle) return (ERectangle)r;
+        return new ERectangle(r.getX(), r.getY(), r.getWidth(), r.getHeight());
+    }
+    
 	public void setRect(double x, double y, double w, double h) {
         throw new UnsupportedOperationException();
 	}
