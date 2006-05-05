@@ -572,7 +572,7 @@ public class Highlighter implements DatabaseChangeListener {
         }
 
         List<Highlight2> list = highlightList; //getHighlights();
-        long start = System.currentTimeMillis();
+//        long start = System.currentTimeMillis();
 
         Color colorH = new Color(User.getColorHighlight());
         Color colorM = new Color(User.getColorMouseOverHighlight());
