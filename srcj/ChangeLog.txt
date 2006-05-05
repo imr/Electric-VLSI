@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (5/5/06, DN) Sometimes VectorCache is not updated.
+FIX: In VectorCache.forceRedraw and VectrorCellGroup constuctor.
+
 IMP: (5/5/06, GVG) Working with Netbeans profiler: Many finished() functions added. In
 EMenuBar.Instance, LayerTab.finished(), Stimuli, HSpiceAnalogSignal, Analysis, AnalogSignal, TimedSignal, Signal
 gv = null in Poly

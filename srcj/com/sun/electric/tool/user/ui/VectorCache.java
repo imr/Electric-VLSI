@@ -365,7 +365,7 @@ public class VectorCache {
 		VectorCellGroup(CellId cellId)
 		{
 			this.cellId = cellId;
-            updateBounds(database.backup());
+            init();
             updateExports();
 		}
 
@@ -743,7 +743,7 @@ public class VectorCache {
             VectorCellGroup vcg = cachedCells.get(cellIndex);
             if (vcg == null) continue;
             vcg.updateBounds(snapshot);
-            if (!changedCells.contains(vcg.cellId)) continue;
+            if (!changedCells.contains(vcg.cellId) && vcg.cellBackup == snapshot.getCell(cellIndex)) continue;
             cellChanged(vcg.cellId);
         }
     }
