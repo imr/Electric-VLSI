@@ -294,7 +294,7 @@ public class Spice extends Topology
 			case SPICE_ENGINE_G: preferedEngineTemplateKey = SPICE_GC_TEMPLATE_KEY;   break;
 			case SPICE_ENGINE_S: preferedEngineTemplateKey = SPICE_SM_TEMPLATE_KEY;   break;
             case SPICE_ENGINE_H_ASSURA: preferedEngineTemplateKey = SPICE_A_TEMPLATE_KEY;  assuraHSpice = true; break;
-            case SPICE_ENGINE_H_CALIBRE: preferedEngineTemplateKey = SPICE_H_TEMPLATE_KEY; break;
+            case SPICE_ENGINE_H_CALIBRE: preferedEngineTemplateKey = SPICE_C_TEMPLATE_KEY; assuraHSpice = true; break;
 		}
         if (assuraHSpice || (useCDL && !CDLWRITESEMPTYSUBCKTS) ||
             (!useCDL && !Simulation.isSpiceWriteEmtpySubckts())) {
