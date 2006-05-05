@@ -99,6 +99,10 @@ class NodeEquivalence implements Serializable {
 		
 		return null;
 	}
+	/** Release cached information when you no longer need the Equivalence
+	 * information.	 */
+	void clearCache() { instToNccCtxt = null; }
+
 	/** Regression test. Map from every nodable in design 0 to "NCC 
 	 * equivalent" nodable in design 1. Map from every nodable in design 1 
 	 * to "NCC equivalent" nodable in design 0. 
@@ -131,10 +135,6 @@ class NodeEquivalence implements Serializable {
 		if (numErrors!=0) System.out.print(numErrors+" errors.");
 		pr("\n");
 
-		// Tricky: because instToNccCtxt takes so much space, delete it 
-		// after the regression.
-		instToNccCtxt = null;
-		
 		return numErrors;
 	}
 }

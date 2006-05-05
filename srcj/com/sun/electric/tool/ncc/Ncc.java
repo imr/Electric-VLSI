@@ -90,14 +90,14 @@ public class Ncc {
     	NccResults results = ncc.compare1(new CellContext(cell1, ctxt1), 
     			                          new CellContext(cell2, ctxt2), 
     			                          options, new Aborter(job));
-    	if (options.checkNetEquivalenceMap) {
-    		// Tricky: copyNames only works from change jobs. Thus
-    		// copyNames call is possible from regressions (bean shell)
-    		// because Bean shell runs all jobs as change jobs. 
-    		// I tried to create a SchemNamesToLay.RenameJob() but
-    		// the bean shell exited before RenameJob() finished.
-    		SchemNamesToLay.copyNames(results);
-    	}
+//    	if (options.checkNetEquivalenceMap) {
+//    		// Tricky: copyNames only works from change jobs. Thus
+//    		// copyNames call is possible from regressions (bean shell)
+//    		// because Bean shell runs all jobs as change jobs. 
+//    		// I tried to create a SchemNamesToLay.RenameJob() but
+//    		// the bean shell exited before RenameJob() finished.
+//    		SchemNamesToLay.copyNames(results);
+//    	}
     	return results;
     }
 }

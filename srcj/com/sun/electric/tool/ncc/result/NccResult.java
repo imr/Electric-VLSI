@@ -142,7 +142,7 @@ public class NccResult implements Serializable {
 	
 	/** return object that maps between Nodes and Networks in the two designs */
 	public Equivalence getEquivalence() {return equivalence;}
-
+	
 	public String summary(boolean checkSizes) {
 		String s;
 		if (exportMatch) {

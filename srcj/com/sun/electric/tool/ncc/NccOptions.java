@@ -65,7 +65,7 @@ public class NccOptions implements Serializable {
 	public int maxEquivRecMembersToPrint = 10;
 	
 	/** Perform a regression test of the net equivalence map. */
-	public boolean checkNetEquivalenceMap = false;
+	//public boolean checkNetEquivalenceMap = false;
 	
 	/** This is false only for old regressions */
 	public boolean oneNamePerPort = true;

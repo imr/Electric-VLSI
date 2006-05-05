@@ -139,6 +139,9 @@ public class NccJob extends Job {
 		options.maxMatchedEquivRecsToPrint = NccPreferences.getMaxMatchedClasses();
 		options.maxEquivRecMembersToPrint = NccPreferences.getMaxClassMembers();
 		
+		// for testing old regressions only!
+		//options.oneNamePerPort = false;
+		
 		return options;
 	}
 	

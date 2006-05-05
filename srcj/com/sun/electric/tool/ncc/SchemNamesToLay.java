@@ -26,6 +26,25 @@ import com.sun.electric.tool.user.User;
 
 /** Copy schematic names to layout */
 public class SchemNamesToLay {
+    static final long serialVersionUID = 0;
+    private String header;
+
+	private int numArcRenames, numNodeRenames, 
+    	numArcManRenames, numNodeManRenames, numNameConflicts;
+	
+	public static class RenameResult {
+		public final int numArcRenames, numNodeRenames, 
+		    numArcManRenames, numNodeManRenames, numNameConflicts;
+		RenameResult(int numArcRenames, int numNodeRenames,
+				 	 int numArcManRenames, int numNodeManRenames,
+				 	 int numNameConflicts) {
+			this.numArcRenames = numArcRenames;
+			this.numNodeRenames = numNodeRenames;
+			this.numArcManRenames = numArcManRenames;
+			this.numNodeManRenames = numNodeManRenames;
+			this.numNameConflicts = numNameConflicts;
+		}
+	}
     public static class RenameJob extends Job {
         static final long serialVersionUID = 0;
 
@@ -54,9 +73,6 @@ public class SchemNamesToLay {
         }
     }
     
-    static final long serialVersionUID = 0;
-    private String header;
-
     /** "For" class is an experiment. It allows me to use the compact "for" 
 	 * syntax when I have an iterators rather than an Iterable. */
 	private static class For<T> implements Iterable<T> {
@@ -130,6 +146,7 @@ public class SchemNamesToLay {
     			printHeader();
     			prln("    Schematic and layout each have a Network named: "+schNm+
 				     " but those networks don't match topologically.");
+    			numNameConflicts++;
     		}
     	}
     	return prefNameConflict;
@@ -199,6 +216,7 @@ public class SchemNamesToLay {
     			printHeader();
     			prln("    The layout Network named: "+layName+
     				 " should, instead, be named: "+schName);
+    			numArcManRenames++;
     			continue;
     		}
     		
@@ -210,6 +228,7 @@ public class SchemNamesToLay {
     		printHeader();
     		prln("    Renaming arc from: "+ai.getName()+" to: "+schName);
     		arcAndNms.add(new ArcAndName(ai, schName));
+    		numArcRenames++;
     	}
 		return arcAndNms;
     }
@@ -230,6 +249,7 @@ public class SchemNamesToLay {
     		printHeader();
     		prln("    Schematic and layout each have a Nodable named: "+schNm+
 				 " but those Nodables don't match topologically.");
+    		numNameConflicts++;
     		return true;
     	}
     	return false;
@@ -297,7 +317,8 @@ public class SchemNamesToLay {
     		if (!isAutoGenName(layName)) {
     			printHeader();
     			prln("    The layout NodeInst named: "+layName+
-    					" should, instead, be named: "+schName);
+    				 " should, instead, be named: "+schName);
+    			numNodeManRenames++;
     			continue;
     		}
     		
@@ -305,6 +326,7 @@ public class SchemNamesToLay {
     		prln("    Renaming NodeInst from: "+layNodeInst.getName()+" to: "+
     			 schName);
     		nodeAndNms.add(new NodeAndName(layNodeInst, schName));
+    		numNodeRenames++;
     	}
     	return nodeAndNms;
     }
@@ -354,10 +376,14 @@ public class SchemNamesToLay {
     	}
     	prln("Done");
     }
-    
+	RenameResult getResult() {
+		return new RenameResult(numArcRenames, numNodeRenames, numArcManRenames, 
+				                numNodeManRenames, numNameConflicts);
+	}
     
     // --------------------------- public method -----------------------------
-    public static void copyNames(NccResults r) {
-    	new SchemNamesToLay(r);
+    public static RenameResult copyNames(NccResults r) {
+    	SchemNamesToLay sntl = new SchemNamesToLay(r);
+    	return sntl.getResult();
     }
 }

@@ -129,6 +129,10 @@ class NetEquivalence implements Serializable {
 		
 		return null;
 	}
+	/** Release cached information when you no longer need the Equivalence
+	 * information.	 */
+	void clearCache() { instToNetNccCtxt = null; }
+	
 	/** Regression test. Map from every net in design 0 to "NCC equivalent"
 	 * net in design 1. Map from every net in design 1 to "NCC equivalent"
 	 * net in design 0. 
@@ -161,10 +165,6 @@ class NetEquivalence implements Serializable {
 		if (numErrors!=0) System.out.print(numErrors+" errors.");
 		pr("\n");
 
-		// Tricky: because instToNetNccCtxt takes so much space, delete it 
-		// after the regression.
-		instToNetNccCtxt = null;
-		
 		return numErrors;
 	}
 }

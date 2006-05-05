@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+IMP: (5/5/06, RK) NCC regression. Move contents of bean shell scripts into Java.
+
 BUG: (5/5/06, DN) Sometimes VectorCache is not updated.
 FIX: In VectorCache.forceRedraw and VectrorCellGroup constuctor.
 

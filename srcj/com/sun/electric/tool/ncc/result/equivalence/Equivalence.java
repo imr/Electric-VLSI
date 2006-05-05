@@ -31,7 +31,15 @@ public class Equivalence implements Serializable {
 	public int regressionTest(Cell cell0, Cell cell1) {
 		prln("  Equivalence regression for: "+cell0.describe(false)+
 			 " and "+cell1.describe(false));
-		return netEquiv.regressionTest() +
-			   nodeEquiv.regressionTest();
+		int numErrors = netEquiv.regressionTest() +
+			            nodeEquiv.regressionTest();
+		clearCache();
+		return numErrors;
+	}
+	/** To reduce storage requirements, release cached information when you
+	 * are done using this Equivalence table. */
+	public void clearCache() {
+		netEquiv.clearCache();
+		nodeEquiv.clearCache();
 	}
 }

@@ -39,7 +39,7 @@ public class NccResults implements Iterable<NccResult>, Serializable {
 	
 	/** Normally we save the results from all comparisons. However we don't 
 	 * want to do this when checking every Cell flat (FLAT_EACH_CELL) */
-	public void abandonPriorResults() {results.clear();}
+	public void abandonPriorResults() {/*results.clear();*/}
 	
 	/** @return data for the NCC GUI */
     public List<NccGuiInfo> getAllComparisonMismatches() {
