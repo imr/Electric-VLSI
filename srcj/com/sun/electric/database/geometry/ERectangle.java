@@ -44,7 +44,7 @@ public class ERectangle extends Rectangle2D.Double implements Serializable {
     /**
      * Constructs and initializes a <code>ERectangle</code>
      * from the specified double coordinates.
-     * @param x,&nbsp;y the coordinates of the upper left corner
+     * @param x;&nbsp;y the coordinates of the upper left corner
      * of the newly constructed <code>Rectangle2D</code>
      * @param w the width of the
      * newly constructed <code>Rectangle2D</code>
