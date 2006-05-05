@@ -31,13 +31,13 @@ import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.KeyEvent;
+import java.awt.event.ActionListener;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.Preferences;
-import javax.swing.JMenuBar;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 
 /**
  * EMenuBar is a menu bar template. It associates several menu bars together.
@@ -282,33 +282,35 @@ public class EMenuBar extends EMenu {
          * can be reclaimed.
          */
         public void finished() {
-//            // all menus
-//            for (int i=0; i<getMenuCount(); i++) {
-//                JMenu menu = getMenu(i);
-//                if (menu == null) continue;
-//                disposeofMenu(menu);
-//            }
+            // all menus
+            for (int i=0; i<getMenuCount(); i++) {
+                JMenu menu = getMenu(i);
+                if (menu == null) continue;
+                disposeofMenu(menu);
+            }
+            removeAll();
         }
-        
-//        private void disposeofMenu(JMenu menu) {
-//            for (int j=0; j<menu.getItemCount(); j++) {
-//                JMenuItem item = menu.getItem(j);
-//                if (item == null) continue;
-//                if (item instanceof JMenu) {
-//                    disposeofMenu((JMenu)item);
-//                } else {
-//                    disposeofMenuItem(item);
-//                }
-//            }
-//        }
-//        
-//        private void disposeofMenuItem(JMenuItem item) {
-//            // remove all listeners (which contain references to item)
-//            ActionListener [] listeners = item.getActionListeners();
-//            for (int k = 0; k < listeners.length; k++) {
-//                ActionListener listener = listeners[k];
-//                item.removeActionListener(listener);
-//            }
-//        }
+
+        private void disposeofMenu(JMenu menu) {
+            for (int j=0; j<menu.getItemCount(); j++) {
+                JMenuItem item = menu.getItem(j);
+                if (item == null) continue;
+                if (item instanceof JMenu) {
+                    disposeofMenu((JMenu)item);
+                } else {
+                    disposeofMenuItem(item);
+                }
+            }
+            menu.removeAll();
+        }
+
+        private void disposeofMenuItem(JMenuItem item) {
+            // remove all listeners (which contain references to item)
+            ActionListener [] listeners = item.getActionListeners();
+            for (int k = 0; k < listeners.length; k++) {
+                ActionListener listener = listeners[k];
+                item.removeActionListener(listener);
+            }
+        }
     }
 }

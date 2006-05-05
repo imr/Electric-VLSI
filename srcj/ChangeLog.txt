@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+IMP: (5/5/06, GVG) Working with JProfile: EMenuBar.Instance.finished() function added.
+
 BUG: (5/4/06, DN) Deserialization of equal TestDescriptors returned different objects.
 FIX: Implement TextDescriptor.readResolve to resolve unique TestDescriptor.
       Make TextDescriptor.Code an enumeration.
