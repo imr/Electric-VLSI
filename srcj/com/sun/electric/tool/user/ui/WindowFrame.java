@@ -55,22 +55,9 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EventListener;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Observable;
+import java.util.*;
 
-import javax.swing.InputMap;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JInternalFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.InternalFrameAdapter;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.tree.MutableTreeNode;
@@ -94,6 +81,7 @@ public class WindowFrame extends Observable
 	/** the layers tab */								private LayerTab layersTab;
     /** true if this window is finished */              private boolean finished = false;
     /** the index of this window */						private int index;
+    /** the dynamic menu to hold WindowMenus */			private JMenu dynamicMenu;
 
     /** the unique index number of all windows */		private static int windowIndexCounter = 0;
 	/** the offset of each new windows from the last */	private static int windowOffset = 0;
@@ -116,7 +104,14 @@ public class WindowFrame extends Observable
 		index = windowIndexCounter++;
 	}
 
-	/**
+    /**
+     * Method to set the dynamic menu where
+     * @param menu
+     */
+    public void setDynamicMenu(JMenu menu) {dynamicMenu = menu;}
+    public JMenu getDynamicMenu() { return dynamicMenu; }
+
+    /**
 	 * Method to create a new circuit-editing window on the screen that displays a Cell.
 	 * @param cell the cell to display.
 	 * @return the WindowFrame that shows the Cell.
@@ -710,7 +705,6 @@ public class WindowFrame extends Observable
     /**
      * Method to request focus on this window
      */
-/*
     public void requestFocus() {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(new Runnable() {
@@ -734,12 +728,11 @@ public class WindowFrame extends Observable
         }
     }
 
-    private boolean isFocusOwner() {
-        if (jif != null) return jif.isSelected();
-        if (jf != null) return jf.isFocusOwner();
-        return false;
-    }
-*/
+//    private boolean isFocusOwner() {
+//        if (jif != null) return jif.isSelected();
+//        if (jf != null) return jf.isFocusOwner();
+//        return false;
+//    }
 
 	/**
 	 * Method to set the current WindowFrame.
@@ -834,6 +827,7 @@ public class WindowFrame extends Observable
         // tell EditWindow it's finished
         content.finished();
 		explorerTab.setModel(null);
+        WindowMenu.deleteDynamicMenu(this);
 
         if (!TopLevel.isMDIMode()) {
             // if SDI mode, TopLevel enclosing frame is closing, dispose of it
