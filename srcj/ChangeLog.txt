@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (5/4/06, GVG) Problems with ModifyNodeProperties job (no Bugzilla)
+FIX: TextDescriptor.Code serializable
+
 IMP: (5/4/06, DN) PixelDrawing takes shapes from VectorCache for faster redisplay. 
 
 BUG: (5/4/06, DN) Wrong names of SelectObjects/SelectArea buttons.

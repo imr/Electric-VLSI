@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 /**
  * This class describes how variable text appears.
@@ -681,7 +680,7 @@ abstract class AbstractTextDescriptor implements Serializable
      * The type of Code that determines how this Variable's
      * value should be evaluated. If NONE, no evaluation is done.
      */
-    public static class Code {
+    public static class Code implements Serializable {
         private final String name;
         private final int cFlags;
         private static final ArrayList<Code> allCodes = new ArrayList<Code>();
