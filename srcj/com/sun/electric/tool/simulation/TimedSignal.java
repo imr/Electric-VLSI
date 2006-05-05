@@ -42,6 +42,11 @@ public class TimedSignal extends Signal
 		time = null;
 	}
 
+    public void finished()
+    {
+        time = null;
+    }
+
 	/**
 	 * Method to build a time vector for this TimedSignal.
 	 * TimedSignals can have their own time information, or they can use a "common time" array

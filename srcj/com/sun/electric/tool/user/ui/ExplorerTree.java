@@ -115,7 +115,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		/** the icon for a cell checked-out to others */	private ImageIcon locked;
 		/** the icon for a cell checked-out to you */		private ImageIcon unlocked;
 	}
-	private static ImageIcon iconLibrary = null;
+	private static ImageIcon iconLibrary = null, iconLibraryNormal = null, iconLibraryChecked = null;
 	private static ImageIcon iconGroup = null;
 	private static ImageIcon iconJobs = null;
 	private static ImageIcon iconLibraries = null;
@@ -422,11 +422,15 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (lib == Library.getCurrent() && Library.getNumLibraries() > 1)
 			{
 				nodeName += " [Current]";
-				iconLibrary = Resources.getResource(getClass(), "IconLibraryCheck.gif");
+                if (iconLibraryChecked == null)
+				    iconLibraryChecked = Resources.getResource(getClass(), "IconLibraryCheck.gif");
+                iconLibrary = iconLibraryChecked;
 			}
 			else
 			{
-				iconLibrary = Resources.getResource(getClass(), "IconLibrary.gif");
+                if (iconLibraryNormal == null)
+				    iconLibraryNormal = Resources.getResource(getClass(), "IconLibrary.gif");
+                iconLibrary = iconLibraryNormal;
 			}
 			return nodeName;
 		}
@@ -563,8 +567,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (nodeInfo instanceof Library)
 			{
 				Library lib = (Library)nodeInfo;
-				if (iconLibrary == null)
-					iconLibrary = Resources.getResource(getClass(), "IconLibrary.gif");
+				if (iconLibraryNormal == null)
+					iconLibraryNormal = Resources.getResource(getClass(), "IconLibrary.gif");
+                if (iconLibrary == null)
+                    iconLibrary = iconLibraryNormal;
 				if (lib.isChanged()) setFont(boldFont);
                 if (CVS.isEnabled()) setForeground(CVSLibrary.getColor(lib));
 				setIcon(iconLibrary);

@@ -72,7 +72,15 @@ public class HSpiceOut extends Simulate
         HSpiceAnalogSignal(Analysis an)
         {
             super(an);
-        } 
+        }
+
+        /**
+         * Free allocated resources before closing.
+         */
+        public void finished()
+        {
+            sigData = null; // making memory available for GC
+        }
 
         /**
          * Method to return the value of this signal at a given event index.

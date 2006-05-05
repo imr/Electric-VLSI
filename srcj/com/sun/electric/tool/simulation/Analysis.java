@@ -97,6 +97,14 @@ public class Analysis
      */
     public void finished()
     {
+        for (Signal s : signals)
+            s.finished();
+        signals.clear();
+        for (Signal s : allBussedSignals)
+            s.finished();
+        if (sweeps != null) sweeps.clear();
+        if (sweepCommonTime != null) sweepCommonTime.clear();
+        signalNames.clear();
     }
     
 	/**

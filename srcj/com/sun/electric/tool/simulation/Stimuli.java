@@ -82,6 +82,10 @@ public class Stimuli
     {
         for (Analysis an: analysisList)
             an.finished();
+        controlPointMap.clear();
+        for (Analysis an: analyses.values())
+            an.finished();
+        analyses.clear();
     }
     
     public void addAnalysis(Analysis an)

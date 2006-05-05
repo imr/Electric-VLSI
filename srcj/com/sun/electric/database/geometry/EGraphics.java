@@ -357,38 +357,39 @@ public class EGraphics extends Observable
 		this.layer = layer;
 		Technology tech = layer.getTechnology();
 		if (tech == null) return;
+        String layerTechMsg = layer.getName() + "In" + tech.getTechName();
 
-		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layer.getName() + "In" + tech.getTechName(),
+		Pref usePatternDisplayPref = Pref.makeBooleanPref("UsePatternDisplayFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), displayPatterned);
 		displayPatterned = usePatternDisplayPref.getBoolean();
 		usePatternDisplayMap.put(layer, usePatternDisplayPref);
 
-		Pref usePatternPrinterPref = Pref.makeBooleanPref("UsePatternPrinterFor" + layer.getName() + "In" + tech.getTechName(),
+		Pref usePatternPrinterPref = Pref.makeBooleanPref("UsePatternPrinterFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), printPatterned);
 		printPatterned = usePatternPrinterPref.getBoolean();
 		usePatternPrinterMap.put(layer, usePatternPrinterPref);
 
 		// read any previous outline information and apply it
-		Pref oldOutlinePatternDisplayPref = Pref.makeBooleanPref("OutlinePatternDisplayFor" + layer.getName() + "In" + tech.getTechName(),
+		Pref oldOutlinePatternDisplayPref = Pref.makeBooleanPref("OutlinePatternDisplayFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), false);
 		if (oldOutlinePatternDisplayPref.getBoolean()) patternOutline = Outline.PAT_S;
 
-		Pref outlinePatternPref = Pref.makeIntPref("OutlinePatternFor" + layer.getName() + "In" + tech.getTechName(),
+		Pref outlinePatternPref = Pref.makeIntPref("OutlinePatternFor" + layerTechMsg,
 				Technology.getTechnologyPreferences(), patternOutline.index);
 		patternOutline = Outline.findOutline(outlinePatternPref.getInt());
 		outlinePatternMap.put(layer, outlinePatternPref);
 
-		Pref transparentLayerPref = Pref.makeIntPref("TransparentLayerFor" + layer.getName() + "In" + tech.getTechName(),
+		Pref transparentLayerPref = Pref.makeIntPref("TransparentLayerFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), transparentLayer);
 		transparentLayer = transparentLayerPref.getInt();
 		transparentLayerMap.put(layer, transparentLayerPref);
 
-		Pref opacityPref = Pref.makeDoublePref("OpacityFor" + layer.getName() + "In" + tech.getTechName(),
+		Pref opacityPref = Pref.makeDoublePref("OpacityFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), opacity);
 		opacity = opacityPref.getDouble();
 		opacityMap.put(layer, opacityPref);
 		
-		Pref colorPref = Pref.makeIntPref("ColorFor" + layer.getName() + "In" + tech.getTechName(),
+		Pref colorPref = Pref.makeIntPref("ColorFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), (red<<16) | (green << 8) | blue);
 		int color = colorPref.getInt();
 		red = (color >> 16) & 0xFF;
@@ -397,7 +398,7 @@ public class EGraphics extends Observable
 		colorMap.put(layer, colorPref);
 
 		String pat = makePatString(pattern);
-		Pref patternPref = Pref.makeStringPref("PatternFor" + layer.getName() + "In" + tech.getTechName(),
+		Pref patternPref = Pref.makeStringPref("PatternFor" + layerTechMsg,
 			Technology.getTechnologyPreferences(), pat);
 		pat = patternPref.getString();
 		parsePatString(pat, pattern);

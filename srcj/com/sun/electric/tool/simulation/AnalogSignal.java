@@ -41,6 +41,11 @@ public class AnalogSignal extends TimedSignal
 		super(an);
 	}
 
+    public void finished()
+    {
+        values = null;
+    }
+
 	/**
 	 * Method to initialize this as a basic simulation signal with a specified number of events.
 	 * Allocates an array to hold those events.

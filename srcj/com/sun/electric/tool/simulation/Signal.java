@@ -25,7 +25,6 @@ package com.sun.electric.tool.simulation;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -44,7 +43,7 @@ public class Signal
 
 	/**
 	 * Constructor for a simulation signal.
-	 * @param sd the Simulation Data object in which this signal will reside.
+	 * @param an the Simulation Data object in which this signal will reside.
 	 */
 	protected Signal(Analysis an)
 	{
@@ -53,6 +52,14 @@ public class Signal
 		busCount = 0;
 		if (an != null) an.addSignal(this);
 	}
+
+    public void finished()
+    {
+        System.out.println("Signal finish");
+        for (Signal s : bussedSignals)
+            s.finished();
+        bussedSignals.clear();
+    }
 
 	/**
 	 * Method to return the Analysis in which this signal resides.
