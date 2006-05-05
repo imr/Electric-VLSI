@@ -108,6 +108,16 @@ public class LayerTab extends JPanel
 		technology.addActionListener(new WindowFrame.CurTechControlListener(wf));
 	}
 
+    /**
+     * Free allocated resources before closing.
+     */
+    public void finished()
+    {
+        // making memory available for GC
+        layersInList.clear(); layersInList = null;
+        highlighted.clear(); highlighted = null;
+    }
+
 	/**
 	 * Method to update the technology popup selector in the Layers tab.
 	 * Called at initialization or when a new technology has been created.
