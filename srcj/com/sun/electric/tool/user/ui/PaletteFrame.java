@@ -298,9 +298,11 @@ public class PaletteFrame implements MouseListener
 
 			// zoom the window to fit the placed node (if appropriate)
 			EditWindow wnd = EditWindow.getCurrent();
-			wnd.requestFocus();
 			if (wnd != null)
+            {
+			    wnd.requestFocus();
 				wnd.zoomWindowToFitCellInstance(np);
+            }
 
 			return (PlaceNodeListener)newListener;
 		}
