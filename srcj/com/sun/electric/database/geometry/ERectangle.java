@@ -70,10 +70,10 @@ public class ERectangle extends Rectangle2D.Double implements Serializable {
     }
  
     /**
-     * Returns <code>EPoint</code> from specified <code>Point2D</code>
+     * Returns <code>ERectangle</code> from specified <code>Rectangle2D</code>
      * snapped to the grid.
-     * @param p specified Point2D
-	 * @return Snapped EPoint
+     * @param r specified ERectangle
+	 * @return Snapped ERectangle
      */
     public static ERectangle snap(Rectangle2D r) {
         if (r instanceof ERectangle) return (ERectangle)r;
