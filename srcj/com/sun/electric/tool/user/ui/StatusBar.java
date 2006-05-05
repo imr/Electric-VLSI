@@ -141,31 +141,6 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         return frame.getContent().getHighlighter();
     }
 
-//	public static void setShowCoordinates(boolean show)
-//	{
-//		User.setShowCursorCoordinates(show);
-//		if (TopLevel.isMDIMode())
-//		{
-//			StatusBar sb = TopLevel.getCurrentJFrame().getStatusBar();
-//			if (show) sb.addField(sb.fieldCoords, 3); else
-//			{
-//				sb.remove(sb.fieldCoords);
-//			}
-//		} else
-//		{
-//			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-//			{
-//				WindowFrame wf = it.next();
-//				StatusBar sb = wf.getFrame().getStatusBar();
-//				if (show) sb.addField(sb.fieldCoords, 3); else
-//				{
-//					sb.remove(sb.fieldCoords);
-//				}
-//			}
-//		}
-//		updateStatusBar();
-//	}
-
 	public static void setCoordinates(String coords, WindowFrame wf)
 	{
 		StatusBar sb = null;
@@ -289,13 +264,10 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         Rectangle rectSel = fieldSelected.getBounds();
         Rectangle rectSize = fieldSize.getBounds();
         boolean visibleSize = (rectSel.getMinX() + a) < rectSize.getMinX();
-//        if (!visibleSize) fieldSize.setText("");
         fieldSize.setVisible(visibleSize);
         Rectangle rectTech = fieldTech.getBounds();
         boolean visibleTech = (rectSel.getMinX() + a) < (rectTech.getMinX());
-//        boolean visibleTech = (rectSel.getMinX() + a) < (rectSize.getMaxX() + rectTech.getMinX());
         fieldTech.setVisible(visibleTech);
-//        if (!visibleTech) fieldTech.setText("");
 
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);
@@ -303,7 +275,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         // if too many chars to display in space provided, truncate.
         if (hierCoords != null) {
             int width = fieldHierCoords.getFontMetrics(fieldHierCoords.getFont()).stringWidth(hierCoords);
-            int widgetW = fieldHierCoords.getWidth(); //fieldHierCoords.getParent().getWidth()
+            int widgetW = fieldHierCoords.getWidth();
             if (width > widgetW)
             {
                 int chars = (int)(hierCoords.length() * widgetW / width);
