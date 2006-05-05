@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import java.io.ObjectStreamException;
 import java.util.HashMap;
 
 /**
@@ -70,9 +71,18 @@ public class TextDescriptor extends AbstractTextDescriptor
         this.code = descriptor.getCode();
 	}
     
+    private Object readResolve() throws ObjectStreamException {
+        return getUniqueTextDescriptor(this);
+    }
+    
     public static TextDescriptor newTextDescriptor(AbstractTextDescriptor td)
     {
         if (td instanceof TextDescriptor) return (TextDescriptor)td;
+        return getUniqueTextDescriptor(td);
+    }
+  
+    private static TextDescriptor getUniqueTextDescriptor(AbstractTextDescriptor td)
+    {
         TextDescriptor cacheTd = (TextDescriptor)allDescriptors.get(td);
         if (cacheTd != null) return cacheTd;
         TextDescriptor itd = new TextDescriptor(td);

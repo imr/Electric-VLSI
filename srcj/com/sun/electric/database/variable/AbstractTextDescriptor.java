@@ -25,6 +25,7 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 
@@ -431,11 +432,13 @@ abstract class AbstractTextDescriptor implements Serializable
 		 * Method to tell whether this Size is the same as another.
 		 * @return true if they are equal.
 		 */
-		public boolean equals(Size other)
+		public boolean equals(Object that)
 		{
-			if (this.absolute != other.absolute) return false;
-			if (!DBMath.doublesEqual(this.size, other.size)) return false;
-			return true;
+            if (that instanceof Size) {
+                Size other = (Size)that;
+                return this.absolute == other.absolute && DBMath.doublesEqual(this.size, other.size);
+            }
+			return false;
 		}
 
 		/**
@@ -680,15 +683,18 @@ abstract class AbstractTextDescriptor implements Serializable
      * The type of Code that determines how this Variable's
      * value should be evaluated. If NONE, no evaluation is done.
      */
-    public static class Code implements Serializable {
+    public static enum Code {
+        /** Indicator that code is in Java. */	JAVA("Java", VJAVA),
+		/** Indicator that code is in Lisp. */	LISP("Lisp (not avail.)", VLISP),
+		/** Indicator that code is in TCL. */	TCL("TCL (not avail.)", VTCL),
+		/** Indicator that this is not code. */	NONE("Not Code", 0);
+        
         private final String name;
         private final int cFlags;
-        private static final ArrayList<Code> allCodes = new ArrayList<Code>();
 
         private Code(String name, int cFlags) {
             this.name = name;
             this.cFlags = cFlags;
-            allCodes.add(this);
         }
 
 		/**
@@ -707,7 +713,7 @@ abstract class AbstractTextDescriptor implements Serializable
         /**
          * Method to get an iterator over all Code types.
          */
-        public static Iterator<Code> getCodes() { return Collections.unmodifiableList(allCodes).iterator(); }
+        public static Iterator<Code> getCodes() { return ArrayIterator.iterator(Code.class.getEnumConstants()); }
 
 		/**
 		 * Method to convert a bits value to a Code object.
@@ -724,11 +730,6 @@ abstract class AbstractTextDescriptor implements Serializable
                 default: return NONE;
             }
         }
-        
-        /** Indicator that code is in Java. */	public static final Code JAVA = new Code("Java", VJAVA);
-		/** Indicator that code is in Lisp. */	public static final Code LISP = new Code("Lisp (not avail.)", VLISP);
-		/** Indicator that code is in TCL. */	public static final Code TCL = new Code("TCL (not avail.)", VTCL);
-		/** Indicator that this is not code. */	public static final Code NONE = new Code("Not Code", 0);
     }
 
 	/**

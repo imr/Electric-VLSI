@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (5/4/06, DN) Deserialization of equal TestDescriptors returned different objects.
+FIX: Implement TextDescriptor.readResolve to resolve unique TestDescriptor.
+      Make TextDescriptor.Code an enumeration.
+
 BUG: (5/4/06, GVG) Problems with ModifyNodeProperties job (no Bugzilla)
 FIX: TextDescriptor.Code serializable
 
