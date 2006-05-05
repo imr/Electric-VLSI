@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
@@ -308,6 +307,7 @@ public class Poly extends PolyBase {
 			new Point2D.Double(cX+width, cY+height),
 			new Point2D.Double(cX, cY+height)};
 		this.bounds = null;
+        gv = null;  // for GC and glyphBounds
 		return false;
 	}
 
