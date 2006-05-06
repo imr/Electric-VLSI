@@ -459,19 +459,19 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param writer where to write.
      */
     void write(SnapshotWriter writer) throws IOException {
-        writer.out.writeInt(arcId);
+        writer.writeArcId(arcId);
         writer.writeArcProto(protoType);
         writer.writeNameKey(name);
         writer.writeTextDescriptor(nameDescriptor);
-        writer.out.writeInt(tailNodeId);
+        writer.writeNodeId(tailNodeId);
         writer.writePortProtoId(tailPortId);
         writer.writePoint(tailLocation);
-        writer.out.writeInt(headNodeId);
+        writer.writeNodeId(headNodeId);
         writer.writePortProtoId(headPortId);
         writer.writePoint(headLocation);
-        writer.out.writeDouble(width);
-        writer.out.writeShort(angle);
-        writer.out.writeInt(flags);
+        writer.writeCoord(width);
+        writer.writeShort(angle);
+        writer.writeInt(flags);
         super.write(writer);
     }
     
@@ -480,20 +480,20 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param reader where to read.
      */
     static ImmutableArcInst read(SnapshotReader reader) throws IOException {
-        int arcId = reader.in.readInt();
+        int arcId = reader.readNodeId();
         ArcProto protoType = reader.readArcProto();
         Name name = reader.readNameKey();
         TextDescriptor nameDescriptor = reader.readTextDescriptor();
-        int tailNodeId = reader.in.readInt();
+        int tailNodeId = reader.readNodeId();
         PortProtoId tailPortId = reader.readPortProtoId();
         EPoint tailLocation = reader.readPoint();
-        int headNodeId = reader.in.readInt();
+        int headNodeId = reader.readNodeId();
         PortProtoId headPortId = reader.readPortProtoId();
         EPoint headLocation = reader.readPoint();
-        double width = reader.in.readDouble();
-        short angle = reader.in.readShort();
-        int flags = reader.in.readInt();
-        boolean hasVars = reader.in.readBoolean();
+        double width = reader.readCoord();
+        short angle = reader.readShort();
+        int flags = reader.readInt();
+        boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, width,

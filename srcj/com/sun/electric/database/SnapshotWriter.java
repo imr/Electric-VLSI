@@ -45,7 +45,8 @@ import java.util.HashMap;
  */
 public class SnapshotWriter {
     
-    public DataOutputStream out;
+    private final DataOutputStream out;
+    int[] exportCounts = {};
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
     private HashMap<Tool,Integer> tools = new HashMap<Tool,Integer>();
@@ -57,6 +58,91 @@ public class SnapshotWriter {
     /** Creates a new instance of SnapshotWriter */
     public SnapshotWriter(DataOutputStream out) {
         this.out = out;
+    }
+
+    void setCellCount(int cellCount) {
+        if (cellCount == exportCounts.length) return;
+        int[] newExportCounts = new int[cellCount];
+        System.arraycopy(exportCounts, 0, newExportCounts, 0, exportCounts.length);
+        exportCounts = newExportCounts;
+    }
+    
+    /** Flushes this SnapshotWriter */
+    public void flush() throws IOException {
+        out.flush();
+    }
+    
+    /**
+     * Writes boolean.
+     * @param v boolean to write.
+     */
+    public void writeBoolean(boolean v) throws IOException {
+        out.writeBoolean(v);
+    }
+    
+    /**
+     * Writes byte.
+     * @param v byte to write.
+     */
+    public void writeByte(byte v) throws IOException {
+        out.writeByte(v);
+    }
+    
+    /**
+     * Writes short.
+     * @param v short to write.
+     */
+    public void writeShort(short v) throws IOException {
+        out.writeShort(v);
+    }
+    
+    /**
+     * Writes integer.
+     * @param v integer to write.
+     */
+    public void writeInt(int v) throws IOException {
+        out.writeInt(v);
+    }
+    
+    /**
+     * Writes long.
+     * @param v long to write.
+     */
+    public void writeLong(long v) throws IOException {
+        out.writeLong(v);
+    }
+    
+    /**
+     * Writes float.
+     * @param v float to write.
+     */
+    public void writeFloat(float v) throws IOException {
+        out.writeFloat(v);
+    }
+
+    /**
+     * Writes double.
+     * @param v double to write.
+     */
+    public void writeDouble(double v) throws IOException {
+        out.writeDouble(v);
+    }
+
+    /**
+     * Writes bytes.
+     * @param v bytes to write.
+     */
+    public void writeBytes(byte[] v) throws IOException {
+        out.writeInt(v.length);
+        out.write(v);
+    }
+    
+    /**
+     * Writes string.
+     * @param s string to write.
+     */
+    public void writeString(String s) throws IOException {
+        out.writeUTF(s);
     }
 
     /**
@@ -191,6 +277,22 @@ public class SnapshotWriter {
         out.writeInt(portProtoId.getChronIndex());
     }
     
+   /**
+     * Writes node id.
+     * @param nodeId node id to write.
+     */
+    public void writeNodeId(int nodeId) throws IOException {
+        out.writeInt(nodeId);
+    }
+
+   /**
+     * Writes arc id.
+     * @param arcId arc id to write.
+     */
+    public void writeArcId(int arcId) throws IOException {
+        out.writeInt(arcId);
+    }
+
     /**
      * Writes Name key.
      * @param nameKey name key to write.
@@ -219,11 +321,19 @@ public class SnapshotWriter {
     }
     
     /**
+     * Writes coordiante.
+     * @param v cooridnate.
+     */
+    public void writeCoord(double v) throws IOException {
+        out.writeDouble(v);
+    }
+    
+    /**
      * Writes EPoint.
      * @param p EPoint.
      */
     public void writePoint(EPoint p) throws IOException {
-        out.writeDouble(p.getX());
-        out.writeDouble(p.getY());
+        writeCoord(p.getX());
+        writeCoord(p.getY());
     }
 }

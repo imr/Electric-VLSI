@@ -79,7 +79,7 @@ public class StreamClient extends Client {
             try {
                 if (reader != null)
                     reader.start();
-                writer.out.writeInt(Job.PROTOCOL_VERSION);
+                writer.writeInt(Job.PROTOCOL_VERSION);
                 writeSnapshot(initialSnapshot, false);
                 initialSnapshot = null;
                 for (;;) {
@@ -92,7 +92,7 @@ public class StreamClient extends Client {
                         lock.unlock();
                     }
                     lastEvent.dispatchOnStreamClient(StreamClient.this);
-                    writer.out.flush();
+                    writer.flush();
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace(System.out);
@@ -123,7 +123,7 @@ public class StreamClient extends Client {
         }
     }
     void writeSnapshot(Snapshot newSnapshot, boolean undoRedo) throws IOException {
-        writer.out.writeByte(1);
+        writer.writeByte((byte)1);
         newSnapshot.writeDiffs(writer, currentSnapshot);
         currentSnapshot = newSnapshot;
     }
@@ -137,30 +137,26 @@ public class StreamClient extends Client {
             case RUNNING:
             case SERVER_DONE:
 //                if (ejob.client == StreamClient.this) {
-                writer.out.writeByte(2);
-                writer.out.writeInt(ejob.jobId);
-                writer.out.writeUTF(ejob.jobName);
-                writer.out.writeUTF(newState.toString());
-                writer.out.writeLong(timeStamp);
+                writer.writeByte((byte)2);
+                writer.writeInt(ejob.jobId);
+                writer.writeString(ejob.jobName);
+                writer.writeString(newState.toString());
+                writer.writeLong(timeStamp);
                 if (newState == EJob.State.WAITING) {
-                    writer.out.writeBoolean(ejob.serializedJob != null);
-                    if (ejob.serializedJob != null) {
-                        writer.out.writeInt(ejob.serializedJob.length);
-                        writer.out.write(ejob.serializedJob);
-                    }
+                    writer.writeBoolean(ejob.serializedJob != null);
+                    if (ejob.serializedJob != null)
+                        writer.writeBytes(ejob.serializedJob);
                 }
-                if (newState == EJob.State.SERVER_DONE) {
-                    writer.out.writeInt(ejob.serializedResult.length);
-                    writer.out.write(ejob.serializedResult);
-                }
+                if (newState == EJob.State.SERVER_DONE)
+                    writer.writeBytes(ejob.serializedResult);
 //                }
                 break;
         }
     }
     
     void writeString(String s) throws IOException {
-        writer.out.writeByte(3);
-        writer.out.writeUTF(s);
+        writer.writeByte((byte)3);
+        writer.writeString(s);
     }
     
     private class ClientReader extends Thread {

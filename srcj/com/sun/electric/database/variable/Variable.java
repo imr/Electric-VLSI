@@ -380,13 +380,13 @@ public class Variable implements Serializable
     public void write(SnapshotWriter writer) throws IOException {
         writer.writeVariableKey(key);
         writer.writeTextDescriptor(descriptor);
-        writer.out.writeByte(type);
+        writer.writeByte(type);
         if (isArray()) {
             int length = getLength();
-            writer.out.writeInt(length);
+            writer.writeInt(length);
             for (int i = 0; i < length; i++) {
                 Object obj = getObject(i);
-                writer.out.writeBoolean(obj != null);
+                writer.writeBoolean(obj != null);
                 if (obj != null)
                     writeObj(writer, obj);
             }
@@ -407,28 +407,28 @@ public class Variable implements Serializable
                 writer.writePortProtoId((ExportId)obj);
                 break;
             case STRING:
-                writer.out.writeUTF((String)obj);
+                writer.writeString((String)obj);
                 break;
             case DOUBLE:
-                writer.out.writeDouble(((Double)obj).doubleValue());
+                writer.writeDouble(((Double)obj).doubleValue());
                 break;
             case FLOAT:
-                writer.out.writeFloat(((Float)obj).floatValue());
+                writer.writeFloat(((Float)obj).floatValue());
                 break;
             case LONG:
-                writer.out.writeLong(((Long)obj).longValue());
+                writer.writeLong(((Long)obj).longValue());
                 break;
             case INTEGER:
-                writer.out.writeInt(((Integer)obj).intValue());
+                writer.writeInt(((Integer)obj).intValue());
                 break;
             case SHORT:
-                writer.out.writeShort(((Short)obj).shortValue());
+                writer.writeShort(((Short)obj).shortValue());
                 break;
             case BYTE:
-                writer.out.writeByte(((Byte)obj).byteValue());
+                writer.writeByte(((Byte)obj).byteValue());
                 break;
             case BOOLEAN:
-                writer.out.writeBoolean(((Boolean)obj).booleanValue());
+                writer.writeBoolean(((Boolean)obj).booleanValue());
                 break;
             case EPOINT:
                 writer.writePoint((EPoint)obj);
@@ -455,10 +455,10 @@ public class Variable implements Serializable
     public static Variable read(SnapshotReader reader) throws IOException {
         Variable.Key varKey = reader.readVariableKey();
         TextDescriptor td = reader.readTextDescriptor();
-        int type = reader.in.readByte();
+        int type = reader.readByte();
         Object value;
         if ((type & ARRAY) != 0) {
-            int length = reader.in.readInt();
+            int length = reader.readInt();
             type &= ~ARRAY;
             Object[] array;
             switch (type) {
@@ -482,7 +482,7 @@ public class Variable implements Serializable
                 
             }
             for (int i = 0; i < length; i++) {
-                boolean hasElem = reader.in.readBoolean();
+                boolean hasElem = reader.readBoolean();
                 if (hasElem)
                     array[i] = readObj(reader, type);
             }
@@ -502,21 +502,21 @@ public class Variable implements Serializable
             case EXPORT:
                 return (ExportId)reader.readPortProtoId();
             case STRING:
-                return reader.in.readUTF();
+                return reader.readString();
             case DOUBLE:
-                return Double.valueOf(reader.in.readDouble());
+                return Double.valueOf(reader.readDouble());
             case FLOAT:
-                return Float.valueOf(reader.in.readFloat());
+                return Float.valueOf(reader.readFloat());
             case LONG:
-                return Long.valueOf(reader.in.readLong());
+                return Long.valueOf(reader.readLong());
             case INTEGER:
-                return Integer.valueOf(reader.in.readInt());
+                return Integer.valueOf(reader.readInt());
             case SHORT:
-                return Short.valueOf(reader.in.readShort());
+                return Short.valueOf(reader.readShort());
             case BYTE:
-                return Byte.valueOf(reader.in.readByte());
+                return Byte.valueOf(reader.readByte());
             case BOOLEAN:
-                return Boolean.valueOf(reader.in.readBoolean());
+                return Boolean.valueOf(reader.readBoolean());
             case EPOINT:
                 return reader.readPoint();
             case TOOL:

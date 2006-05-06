@@ -24,6 +24,12 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.text.Name;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import junit.framework.*;
 
 /**
@@ -83,10 +89,10 @@ public class IdManagerTest extends TestCase {
         System.out.println("getLibId");
         
         assertSame(libId1, idManager.getLibId(1));
-        LibId libId4 = idManager.getLibId(4);
-        assertLibId(4, libId4);
+        LibId libId2 = idManager.newLibId();
+        LibId libId3 = idManager.newLibId();
+        LibId libId4 = idManager.newLibId();
         LibId libId5 = idManager.newLibId();
-        assertLibId(5, libId5);
         assertSame(libId1, idManager.getLibId(1));
         assertSame(libId4, idManager.getLibId(4));
         assertSame(libId5, idManager.getLibId(5));
@@ -116,10 +122,10 @@ public class IdManagerTest extends TestCase {
         System.out.println("getCellId");
         
         assertSame(cellId1, idManager.getCellId(1));
-        CellId cellId4 = idManager.getCellId(4);
-        assertCellId(4, cellId4);
+        CellId cellId2 = idManager.newCellId();
+        CellId cellId3 = idManager.newCellId();
+        CellId cellId4 = idManager.newCellId();
         CellId cellId5 = idManager.newCellId();
-        assertCellId(5, cellId5);
         assertSame(cellId1, idManager.getCellId(1));
         assertSame(cellId4, idManager.getCellId(4));
         assertSame(cellId5, idManager.getCellId(5));
@@ -161,4 +167,68 @@ public class IdManagerTest extends TestCase {
 //        System.out.println(snapshotId + " ids in " + (stopTime - startTime) + " msec");
     }
         
+    /**
+     * Test of writeDiffs and readDiff method, of class com.sun.electric.database.IdManager.
+     */
+    public void testReadWrite() {
+        try {
+            Name nameA = Name.findName("A");
+            idManager.getCellId(1).newExportId(nameA);
+            
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(byteStream));
+            idManager.writeDiffs(writer);
+            writer.flush();
+            byte[] diffs1 = byteStream.toByteArray();
+            byteStream.reset();
+            
+            IdManager mirrorIdManager = new IdManager();
+            
+            // First update of mirrorIdManager
+            SnapshotReader reader1 = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(diffs1)), mirrorIdManager);
+            mirrorIdManager.readDiffs(reader1);
+            
+            // Check mirrorIdManager after first update
+            assertTrue( mirrorIdManager.getLibId(0) != null );
+            assertTrue( mirrorIdManager.getLibId(1) != null );
+            CellId cellId0 = mirrorIdManager.getCellId(0);
+            assertEquals( 0, cellId0.numExportIds() );
+            CellId cellId1 = mirrorIdManager.getCellId(1);
+            assertEquals( 1, cellId1.numExportIds() );
+            assertSame( nameA, cellId1.getPortId(0).name );
+            
+            // Add new staff to database
+            assertEquals( 2, idManager.newLibId().libIndex );
+            assertEquals( 3, idManager.newLibId().libIndex );
+            assertEquals( 2, idManager.newCellId().cellIndex );
+            Name nameB = Name.findName("B");
+            idManager.getCellId(1).newExportId(nameB);
+            Name nameC = Name.findName("C");
+            idManager.getCellId(2).newExportId(nameC);
+            
+            // Second update of mirrirIdManager
+            idManager.writeDiffs(writer);
+            writer.flush();
+            byte[] diffs2 = byteStream.toByteArray();
+            SnapshotReader reader2 = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(diffs2)), mirrorIdManager);
+            mirrorIdManager.readDiffs(reader2);
+            
+            assertTrue( mirrorIdManager.getLibId(0) != null );
+            assertTrue( mirrorIdManager.getLibId(1) != null );
+            assertTrue( mirrorIdManager.getLibId(2) != null );
+            assertTrue( mirrorIdManager.getLibId(3) != null );
+            assertSame( cellId0, mirrorIdManager.getCellId(0) );
+            assertEquals( 0, cellId0.numExportIds() );
+            assertSame( cellId1, mirrorIdManager.getCellId(1) );
+            assertEquals( 2, cellId1.numExportIds() );
+            assertSame( nameA, cellId1.getPortId(0).name );
+            assertSame( nameB, cellId1.getPortId(1).name );
+            CellId cellId2 = mirrorIdManager.getCellId(2);
+            assertEquals( 1, cellId2.numExportIds() );
+            assertSame( nameC, cellId2.getPortId(0).name );
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
+        
+    }
 }

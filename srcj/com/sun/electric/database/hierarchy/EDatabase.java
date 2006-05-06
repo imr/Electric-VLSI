@@ -57,25 +57,29 @@ public class EDatabase {
     private static final Logger logger = Logger.getLogger("com.sun.electric.database");
     private static final String CLASS_NAME = EDatabase.class.getName();
     
-    public static EDatabase theDatabase = new EDatabase();
+    public static EDatabase theDatabase = new EDatabase(new IdManager());
     public static EDatabase serverDatabase() { return theDatabase; }
     public static EDatabase clientDatabase() { return theDatabase; }
     
-    /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager = new IdManager();
+    /** IdManager which keeps Ids of objects in this database.*/private final IdManager idManager;
 	/** list of linked libraries indexed by libId. */           private final ArrayList<Library> linkedLibs = new ArrayList<Library>();
 	/** map of libraries sorted by name */                      final TreeMap<String,Library> libraries = new TreeMap<String,Library>(TextUtils.STRING_NUMBER_ORDER);
 	/** static list of all linked cells indexed by CellId. */	final ArrayList<Cell> linkedCells = new ArrayList<Cell>();
-    /** Last snapshot */                                        private Snapshot snapshot = getInitialSnapshot();
+    /** Last snapshot */                                        private Snapshot snapshot;
     /** True if database matches snapshot. */                   private boolean snapshotFresh;
 	/** Flag set when database invariants failed. */            private boolean invariantsFailed;
     
-    /** Network manager for this database. */                   private final NetworkManager networkManager = new NetworkManager(this);
+    /** Network manager for this database. */                   private final NetworkManager networkManager;
     /** Thread which locked database for writing. */            private volatile Thread writingThread;
     /** True if writing thread can changing. */                 private boolean canChanging;
     /** True if writing thread can undoing. */                  private boolean canUndoing;
     
     /** Creates a new instance of EDatabase */
-    private EDatabase() {}
+    public EDatabase(IdManager idManager) {
+        this.idManager = idManager;
+        snapshot = getInitialSnapshot();
+        networkManager = new NetworkManager(this);
+    }
     
     public IdManager getIdManager() { return idManager; }
     

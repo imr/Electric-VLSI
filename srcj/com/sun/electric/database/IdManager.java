@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.text.Name;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -61,8 +63,6 @@ public class IdManager {
      */
     public LibId getLibId(int libIndex) {
         synchronized(libIds) {
-           while (libIndex >= libIds.size())
-               newLibIdInternal();
            return libIds.get(libIndex);
         }
     }
@@ -90,9 +90,7 @@ public class IdManager {
      * @return CellId with given index.
      */
     public CellId getCellId(int cellIndex) {
-        synchronized(cellIds) {
-           while (cellIndex >= cellIds.size())
-               newCellIdInternal();
+        synchronized (cellIds) {
            return cellIds.get(cellIndex);
         }
     }
@@ -107,6 +105,58 @@ public class IdManager {
     public Snapshot getInitialSnapshot() { return initialSnapshot; }
     
     int newSnapshotId() { return snapshotCount.incrementAndGet(); }
+    
+    void writeDiffs(SnapshotWriter writer) throws IOException {
+        int libIdsCount;
+        CellId[] cellIdsArray;
+        synchronized (libIds) {
+            libIdsCount = libIds.size();
+        }
+        synchronized (cellIds) {
+            cellIdsArray = cellIds.toArray(CellId.NULL_ARRAY);
+        }
+        writer.writeInt(libIdsCount);
+        writer.writeInt(cellIdsArray.length);
+        writer.setCellCount(cellIdsArray.length);
+        for (int cellIndex = 0; cellIndex < cellIdsArray.length; cellIndex++) {
+            CellId cellId = cellIdsArray[cellIndex];
+            ExportId[] exportIds = cellId.getExportIds();
+            int exportCount = writer.exportCounts[cellIndex];
+            if (exportIds.length != exportCount) {
+                writer.writeInt(cellIndex);
+                int numNewExportIds = exportIds.length - exportCount;
+                assert numNewExportIds > 0;
+                writer.writeInt(numNewExportIds);
+                for (int i = 0; i < numNewExportIds; i++)
+                    writer.writeString(exportIds[exportCount + i].name.toString());
+                writer.exportCounts[cellIndex] = exportIds.length;
+            }
+        }
+        writer.writeInt(-1);
+    }
+    
+    void readDiffs(SnapshotReader reader) throws IOException {
+        int libIdsCount = reader.readInt();
+        synchronized (libIds) {
+           while (libIdsCount > libIds.size())
+               newLibIdInternal();
+        }
+        int cellIdsCount = reader.readInt();
+        synchronized (cellIds) {
+           while (cellIdsCount > cellIds.size())
+               newCellIdInternal();
+        }
+        for (;;) {
+            int cellIndex = reader.readInt();
+            if (cellIndex == -1) break;
+            CellId cellId = getCellId(cellIndex);
+            int numNewExportIds = reader.readInt();
+            Name[] newExportIds = new Name[numNewExportIds];
+            for (int i = 0; i < newExportIds.length; i++)
+                newExportIds[i] = Name.findName(reader.readString());
+            cellId.newExportIds(newExportIds);
+        }
+    }
     
 	/**
 	 * Method to check invariants in all Libraries.

@@ -26,6 +26,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.Name;
 import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
@@ -48,19 +49,27 @@ public final class ExportId implements PortProtoId, Serializable
     /** chronological index of this PortProtoId in parent. */
     public final int chronIndex;
     
+    /** representation of ExportId in disk files.
+     * This name isn't chaged when Export is renamed.
+     */
+    public final transient Name name;
+    
     /**
      * ExportId constructor.
      */
-    ExportId(CellId parentId, int chronIndex) {
+    ExportId(CellId parentId, int chronIndex, Name name) {
         this.parentId = parentId;
         this.chronIndex = chronIndex;
+        this.name = name;
     }
     
     /*
      * Resolve method for deserialization.
      */
     private Object readResolve() throws ObjectStreamException {
-        return parentId.getExportIdByChronIndex(chronIndex);
+        ExportId exportId = parentId.getPortId(chronIndex);
+        if (exportId == null) throw new InvalidObjectException("ExportId");
+        return exportId;
     }
     
 	/**
@@ -92,12 +101,6 @@ public final class ExportId implements PortProtoId, Serializable
 	 * @return a printable version of this ExportId.
 	 */
     public String toString() {
-        String s = "ExportId#" + parentId.cellIndex + "." + chronIndex;
-        Cell cell = Cell.inCurrentThread(parentId);
-        if (cell != null) {
-            Export e = cell.getExportChron(chronIndex);
-            if (e != null) s += "(" + cell.libDescribe() + ":" + e.getName() + ")";
-        }
-        return s;
+        return name.toString();
     }
 }

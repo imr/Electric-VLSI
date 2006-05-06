@@ -67,7 +67,7 @@ public class SnapshotTest extends TestCase {
         Snapshot instance = initialSnapshot;
         try {
             initialSnapshot.writeDiffs(writer, initialSnapshot);
-            writer.out.close();
+            writer.flush();
             emptyDiffEmpty = out.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
@@ -163,7 +163,8 @@ public class SnapshotTest extends TestCase {
     public void testGetCell() {
         System.out.println("getCell");
         
-        CellId cellId = idManager.getCellId(0);
+        CellId cellId = idManager.newCellId();
+        assertEquals(0, cellId.cellIndex);
         Snapshot instance = initialSnapshot;
         
         CellBackup expResult = null;
@@ -177,7 +178,8 @@ public class SnapshotTest extends TestCase {
     public void testGetCellBounds() {
         System.out.println("getCellBounds");
         
-        CellId cellId = idManager.getCellId(0);
+        CellId cellId = idManager.newCellId();
+        assertEquals(0, cellId.cellIndex);
         Snapshot instance = initialSnapshot;
         
         ERectangle expResult = null;
@@ -191,7 +193,8 @@ public class SnapshotTest extends TestCase {
     public void testGetLib() {
         System.out.println("getLib");
         
-        LibId libId = idManager.getLibId(0);
+        LibId libId = idManager.newLibId();
+        assertEquals(0, libId.libIndex);
         Snapshot instance = initialSnapshot;
         
         LibraryBackup expResult = null;

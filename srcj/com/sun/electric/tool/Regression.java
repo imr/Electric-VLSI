@@ -70,7 +70,7 @@ public class Regression {
             }
             reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), database.getIdManager());
             DataOutputStream clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            int protocolVersion = reader.in.readInt();
+            int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {
                 System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
                 System.exit(1);
@@ -89,34 +89,30 @@ public class Regression {
             Technology.initAllTechnologies();
             
             for (;;) {
-                byte tag = reader.in.readByte();
+                byte tag = reader.readByte();
                 switch (tag) {
                     case 1:
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
 //                        System.out.println("Snapshot received");
                         break;
                     case 2:
-                        Integer jobId = Integer.valueOf(reader.in.readInt());
-                        String jobName = reader.in.readUTF();
-                        EJob.State newState = EJob.State.valueOf(reader.in.readUTF());
-                        long timeStamp = reader.in.readLong();
+                        Integer jobId = Integer.valueOf(reader.readInt());
+                        String jobName = reader.readString();
+                        EJob.State newState = EJob.State.valueOf(reader.readString());
+                        long timeStamp = reader.readLong();
                         if (newState == EJob.State.WAITING) {
-                            boolean hasSerializedJob = reader.in.readBoolean();
+                            boolean hasSerializedJob = reader.readBoolean();
                             if (hasSerializedJob) {
-                                int length = reader.in.readInt();
-                                byte[] serializedJob = new byte[length];
-                                reader.in.readFully(serializedJob);
+                                byte[] serializedJob = reader.readBytes();
                             }
                         }
                         if (newState == EJob.State.SERVER_DONE) {
-                            int len = reader.in.readInt();
-                            byte[] bytes = new byte[len];
-                            reader.in.readFully(bytes);
+                            reader.readBytes();
                         }
 //                        System.out.println("Job " + jobId + " terminated " + bytes.length);
                         break;
                     case 3:
-                        String str = reader.in.readUTF();
+                        String str = reader.readString();
                         System.out.print("#" + str);
                         break;
                     default:

@@ -186,7 +186,7 @@ public abstract class ImmutableElectricObject {
      */
     void write(SnapshotWriter writer) throws IOException {
         boolean hasVars = vars.length > 0;
-        writer.out.writeBoolean(hasVars);
+        writer.writeBoolean(hasVars);
         if (hasVars)
             writeVars(writer);
     }
@@ -196,7 +196,7 @@ public abstract class ImmutableElectricObject {
      * @param writer where to write.
      */
     void writeVars(SnapshotWriter writer) throws IOException {
-        writer.out.writeInt(vars.length);
+        writer.writeInt(vars.length);
         for (int i = 0; i < vars.length; i++)
             vars[i].write(writer);
     }
@@ -206,7 +206,7 @@ public abstract class ImmutableElectricObject {
      * @param reader where to read.
      */
     static Variable[] readVars(SnapshotReader reader) throws IOException {
-        int length = reader.in.readInt();
+        int length = reader.readInt();
         if (length == 0) return Variable.NULL_ARRAY;
         Variable[] vars = new Variable[length];
         for (int i = 0; i < length; i++)

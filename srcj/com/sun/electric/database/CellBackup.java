@@ -282,16 +282,16 @@ public class CellBackup {
      */
     void write(SnapshotWriter writer) throws IOException {
         d.write(writer);
-        writer.out.writeLong(revisionDate);
-        writer.out.writeByte(modified);
-        writer.out.writeBoolean(isMainSchematics);
-        writer.out.writeInt(nodes.size());
+        writer.writeLong(revisionDate);
+        writer.writeByte(modified);
+        writer.writeBoolean(isMainSchematics);
+        writer.writeInt(nodes.size());
         for (ImmutableNodeInst n: nodes)
             n.write(writer);
-        writer.out.writeInt(arcs.size());
+        writer.writeInt(arcs.size());
         for (ImmutableArcInst a: arcs)
             a.write(writer);
-        writer.out.writeInt(exports.size());
+        writer.writeInt(exports.size());
         for (ImmutableExport e: exports)
             e.write(writer);
     }
@@ -302,22 +302,22 @@ public class CellBackup {
      */
     static CellBackup read(SnapshotReader reader) throws IOException {
         ImmutableCell d = ImmutableCell.read(reader);
-        long revisionDate = reader.in.readLong();
-        byte modified = reader.in.readByte();
-        boolean isMainSchematics = reader.in.readBoolean();
+        long revisionDate = reader.readLong();
+        byte modified = reader.readByte();
+        boolean isMainSchematics = reader.readBoolean();
         CellBackup backup = new CellBackup(d.withoutVariables());
         
-        int nodesLength = reader.in.readInt();
+        int nodesLength = reader.readInt();
         ImmutableNodeInst[] nodes = new ImmutableNodeInst[nodesLength];
         for (int i = 0; i < nodesLength; i++)
             nodes[i] = ImmutableNodeInst.read(reader);
         
-        int arcsLength = reader.in.readInt();
+        int arcsLength = reader.readInt();
         ImmutableArcInst[] arcs = new ImmutableArcInst[arcsLength];
         for (int i = 0; i < arcsLength; i++)
             arcs[i] = ImmutableArcInst.read(reader);
         
-        int exportsLength = reader.in.readInt();
+        int exportsLength = reader.readInt();
         ImmutableExport[] exports = new ImmutableExport[exportsLength];
         for (int i = 0; i < exportsLength; i++)
             exports[i] = ImmutableExport.read(reader);

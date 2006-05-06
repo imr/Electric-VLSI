@@ -83,7 +83,7 @@ class ClientJobManager extends JobManager {
             Socket socket = new Socket((String)null, port);
             reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), EDatabase.clientDatabase().getIdManager());
             clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            int protocolVersion = reader.in.readInt();
+            int protocolVersion = reader.readInt();
             if (protocolVersion != Job.PROTOCOL_VERSION) {
                 System.out.println("Client's protocol version " + Job.PROTOCOL_VERSION + " is incompatible with Server's protocol version " + protocolVersion);
                 System.exit(1);
@@ -114,7 +114,7 @@ class ClientJobManager extends JobManager {
         for (;;) {
             try {
                 logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readTag");
-                byte tag = reader.in.readByte();
+                byte tag = reader.readByte();
                 switch (tag) {
                     case 1:
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot begin {0}", Integer.valueOf(clientFifo.numPut));
@@ -125,29 +125,25 @@ class ClientJobManager extends JobManager {
                         break;
                     case 2:
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
-                        Integer jobId = Integer.valueOf(reader.in.readInt());
-                        String jobName = reader.in.readUTF();
-                        EJob.State newState = EJob.State.valueOf(reader.in.readUTF());
-                        long timeStamp = reader.in.readLong();
+                        Integer jobId = Integer.valueOf(reader.readInt());
+                        String jobName = reader.readString();
+                        EJob.State newState = EJob.State.valueOf(reader.readString());
+                        long timeStamp = reader.readLong();
                         if (newState == EJob.State.WAITING) {
-                            boolean hasSerializedJob = reader.in.readBoolean();
+                            boolean hasSerializedJob = reader.readBoolean();
                             if (hasSerializedJob) {
-                                int length = reader.in.readInt();
-                                byte[] serializedJob = new byte[length];
-                                reader.in.readFully(serializedJob);
+                                byte[] serializedJob = reader.readBytes();
                             }
                         }
                         if (newState == EJob.State.SERVER_DONE) {
-                            int len = reader.in.readInt();
-                            byte[] bytes = new byte[len];
-                            reader.in.readFully(bytes);
+                            byte[] bytes = reader.readBytes();
                             clientFifo.put(jobId, bytes);
                         }
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", jobId);
                         break;
                     case 3:
                         logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr begin");
-                        String str = reader.in.readUTF();
+                        String str = reader.readString();
                         logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr end {0}", str);
                         clientFifo.put(str, null);
                         break;

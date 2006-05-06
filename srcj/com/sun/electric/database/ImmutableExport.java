@@ -217,11 +217,11 @@ public class ImmutableExport extends ImmutableElectricObject {
         writer.writePortProtoId(exportId);
         writer.writeNameKey(name);
         writer.writeTextDescriptor(nameDescriptor);
-        writer.out.writeInt(originalNodeId);
+        writer.writeNodeId(originalNodeId);
         writer.writePortProtoId(originalPortId);
-        writer.out.writeBoolean(alwaysDrawn);
-        writer.out.writeBoolean(bodyOnly);
-        writer.out.writeInt(characteristic.getBits());
+        writer.writeBoolean(alwaysDrawn);
+        writer.writeBoolean(bodyOnly);
+        writer.writeInt(characteristic.getBits());
         super.write(writer);
     }
     
@@ -233,13 +233,13 @@ public class ImmutableExport extends ImmutableElectricObject {
         ExportId exportId = (ExportId)reader.readPortProtoId();
         Name name = reader.readNameKey();
         TextDescriptor nameDescriptor = reader.readTextDescriptor();
-        int originalNodeId = reader.in.readInt();
+        int originalNodeId = reader.readNodeId();
         PortProtoId originalPortId = reader.readPortProtoId();
-        boolean alwaysDrawn = reader.in.readBoolean();
-        boolean bodyOnly = reader.in.readBoolean();
-        int bits = reader.in.readInt();
+        boolean alwaysDrawn = reader.readBoolean();
+        boolean bodyOnly = reader.readBoolean();
+        int bits = reader.readInt();
         PortCharacteristic characteristic = PortCharacteristic.findCharacteristic(bits);
-        boolean hasVars = reader.in.readBoolean();
+        boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableExport(exportId, name, nameDescriptor,
                 originalNodeId, originalPortId, alwaysDrawn, bodyOnly, characteristic, vars);

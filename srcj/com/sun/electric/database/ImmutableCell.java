@@ -184,14 +184,14 @@ public class ImmutableCell extends ImmutableElectricObject {
     void write(SnapshotWriter writer) throws IOException {
         writer.writeNodeProtoId(cellId);
         writer.writeLibId(libId);
-        writer.out.writeBoolean(cellName != null);
+        writer.writeBoolean(cellName != null);
         if (cellName != null)
-            writer.out.writeUTF(cellName.toString());
-        writer.out.writeLong(creationDate);
-        writer.out.writeBoolean(tech != null);
+            writer.writeString(cellName.toString());
+        writer.writeLong(creationDate);
+        writer.writeBoolean(tech != null);
         if (tech != null)
             writer.writeTechnology(tech);
-        writer.out.writeInt(flags);
+        writer.writeInt(flags);
         super.write(writer);
     }
     
@@ -203,16 +203,16 @@ public class ImmutableCell extends ImmutableElectricObject {
         CellId cellId = (CellId)reader.readNodeProtoId();
         LibId libId = reader.readLibId();
         CellName cellName = null;
-        boolean hasCellName = reader.in.readBoolean();
+        boolean hasCellName = reader.readBoolean();
         if (hasCellName) {
-            String cellNameString = reader.in.readUTF();
+            String cellNameString = reader.readString();
             cellName = CellName.parseName(cellNameString);
         }
-        long creationDate = reader.in.readLong();
-        boolean hasTech = reader.in.readBoolean();
+        long creationDate = reader.readLong();
+        boolean hasTech = reader.readBoolean();
         Technology tech = hasTech ? reader.readTechnology() : null;
-        int flags = reader.in.readInt();
-        boolean hasVars = reader.in.readBoolean();
+        int flags = reader.readInt();
+        boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableCell(cellId, libId, cellName, creationDate, tech, flags, vars);
     }

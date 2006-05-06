@@ -256,8 +256,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 			return null;
 		}
 
-        ExportId exportId = parent.getD().cellId.newExportId();
 		Name nameKey = Name.findName(name);
+        ExportId exportId = parent.getD().cellId.newExportId(nameKey);
         if (nameTextDescriptor == null) nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
         ImmutableExport d = ImmutableExport.newInstance(exportId, nameKey, nameTextDescriptor,
                 ni.getD().nodeId, subpp.getId(), alwaysDrawn, bodyOnly, characteristic);

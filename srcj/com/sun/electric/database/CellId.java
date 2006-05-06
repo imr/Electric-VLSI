@@ -27,7 +27,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProtoId;
-import com.sun.electric.tool.Job;
+import com.sun.electric.database.text.Name;
 import java.io.InvalidObjectException;
 
 import java.io.ObjectStreamException;
@@ -39,6 +39,9 @@ import java.io.Serializable;
  * This class is thread-safe except inCurrentThread method in 1.5, but not thread-safe in 1.4  .
  */
 public final class CellId implements NodeProtoId, Serializable {
+    /** Empty ExportId array for initialization. */
+    public static final CellId[] NULL_ARRAY = {};
+    
     /** IdManager which owns this LibId. */
     public final IdManager idManager;
     /** Unique index of this cell in the database. */
@@ -167,7 +170,7 @@ public final class CellId implements NodeProtoId, Serializable {
     /**
      * Returns ExportId in this parent cell with specified chronological index.
      * @param chronIndex chronological index of ExportId.
-     * @return ExportId whith specified chronological index.
+     * @return ExportId with specified chronological index.
      * @throws ArrayIndexOutOfBoundsException if no such ExportId.
      */
     public ExportId getPortId(int chronIndex) {
@@ -175,24 +178,40 @@ public final class CellId implements NodeProtoId, Serializable {
         return exportIds[chronIndex];
     }
     
-    ExportId getExportIdByChronIndex(int chronIndex) {
-        while (chronIndex >= numExportIds())
-            newExportId();
-        return getPortId(chronIndex);
-    }
+    /**
+     * Package private method to snap array of ExportIds.
+     * synchronized because exportIds is volatile and its entries are final.
+     * @return array of ExportIds.
+     */
+    ExportId[] getExportIds() { return exportIds; }
     
     /**
      * Creates new exportId unique for this parent CellId.
      * @return new exportId.
      */
-     public synchronized ExportId newExportId() {
+     public synchronized ExportId newExportId(Name suggestedName) {
         ExportId[] oldExportIds = exportIds;
         ExportId[] newExportIds = new ExportId[oldExportIds.length + 1];
         System.arraycopy(oldExportIds, 0, newExportIds, 0, oldExportIds.length);
-        ExportId e = new ExportId(this, oldExportIds.length);
+        ExportId e = new ExportId(this, oldExportIds.length, suggestedName);
         newExportIds[oldExportIds.length] = e;
         exportIds = newExportIds;
         return e;
+    }
+    
+    /**
+     * Creates new exportId to increase number of exportIds to specified amount.
+     * @param numExportIds new number of exportIds.
+     */
+    synchronized void newExportIds(Name[] diskNames) {
+        ExportId[] oldExportIds = exportIds;
+        ExportId[] newExportIds = new ExportId[oldExportIds.length + diskNames.length];
+        System.arraycopy(oldExportIds, 0, newExportIds, 0, oldExportIds.length);
+        for (int i = 0; i < diskNames.length; i++) {
+            int chronIndex = oldExportIds.length + i;
+            newExportIds[chronIndex] = new ExportId(this, oldExportIds.length, diskNames[i]);
+        }
+        exportIds = newExportIds;
     }
     
     /**

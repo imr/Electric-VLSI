@@ -139,10 +139,10 @@ public class ImmutableLibrary extends ImmutableElectricObject {
      */
     void write(SnapshotWriter writer) throws IOException {
         writer.writeLibId(libId);
-        writer.out.writeUTF(libName);
-        writer.out.writeUTF(libFile != null ? libFile.toString() : "");
-        writer.out.writeUTF(version != null ? version.toString() : "");
-        writer.out.writeInt(flags);
+        writer.writeString(libName);
+        writer.writeString(libFile != null ? libFile.toString() : "");
+        writer.writeString(version != null ? version.toString() : "");
+        writer.writeInt(flags);
         super.write(writer);
     }
     
@@ -152,13 +152,13 @@ public class ImmutableLibrary extends ImmutableElectricObject {
      */
     static ImmutableLibrary read(SnapshotReader reader) throws IOException {
         LibId libId = reader.readLibId();
-        String libName = reader.in.readUTF();
-        String libFileString = reader.in.readUTF();
+        String libName = reader.readString();
+        String libFileString = reader.readString();
         URL libFile = libFileString.length() > 0 ? new URL(libFileString) : null;
-        String versionString = reader.in.readUTF();
+        String versionString = reader.readString();
         Version version = versionString.length() > 0 ? Version.parseVersion(versionString) : null;
-        int flags = reader.in.readInt();
-        boolean hasVars = reader.in.readBoolean();
+        int flags = reader.readInt();
+        boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableLibrary(libId, libName, libFile, version, flags, vars);
     }

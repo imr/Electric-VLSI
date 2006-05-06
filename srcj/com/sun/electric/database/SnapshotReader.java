@@ -46,7 +46,7 @@ import java.util.ArrayList;
  */
 public class SnapshotReader {
     
-    public DataInputStream in;
+    private final DataInputStream in;
     private final IdManager idManager;
     private final ArrayList<Variable.Key> varKeys = new ArrayList<Variable.Key>();
     private final ArrayList<TextDescriptor> textDescriptors = new ArrayList<TextDescriptor>();
@@ -61,6 +61,81 @@ public class SnapshotReader {
         if (in == null || idManager == null) throw new NullPointerException();
         this.in = in;
         this.idManager = idManager;
+    }
+
+    /**
+     * Reads boolean.
+     * @return boolean.
+     */
+    public boolean readBoolean() throws IOException {
+        return in.readBoolean();
+    }
+
+    /**
+     * Reads byte.
+     * @return byte.
+     */
+    public byte readByte() throws IOException {
+        return in.readByte();
+    }
+
+    /**
+     * Reads short.
+     * @return short.
+     */
+    public short readShort() throws IOException {
+        return in.readShort();
+    }
+
+    /**
+     * Reads integer.
+     * @return integer.
+     */
+    public int readInt() throws IOException {
+        return in.readInt();
+    }
+
+    /**
+     * Reads long.
+     * @return long.
+     */
+    public long readLong() throws IOException {
+        return in.readLong();
+    }
+
+    /**
+     * Reads float.
+     * @return float.
+     */
+    public float readFloat() throws IOException {
+        return in.readFloat();
+    }
+
+    /**
+     * Reads double.
+     * @return double.
+     */
+    public double readDouble() throws IOException {
+        return in.readDouble();
+    }
+
+     /**
+     * Reads bytes.
+     * @return bytes.
+     */
+    public byte[] readBytes() throws IOException {
+        int length = in.readInt();
+        byte[] bytes = new byte[length];
+        in.readFully(bytes);
+        return bytes;
+    }
+    
+     /**
+     * Reads string.
+     * @return string.
+     */
+    public String readString() throws IOException {
+        return in.readUTF();
     }
 
     /**
@@ -184,13 +259,29 @@ public class SnapshotReader {
         int chronIndex = in.readInt();
         if (nodeProtoId instanceof CellId) {
             CellId cellId = (CellId)nodeProtoId;
-            return cellId.getExportIdByChronIndex(chronIndex);
+            return cellId.getPortId(chronIndex);
         } else {
             PrimitiveNode pn = (PrimitiveNode)nodeProtoId;
             return (PrimitivePort)pn.getPort(chronIndex);
         }
     }
     
+   /**
+     * Reads node id.
+     * @return node id.
+     */
+    public int readNodeId() throws IOException {
+        return in.readInt();
+    }
+
+   /**
+     * Reads arc id.
+     * @return arc id.
+     */
+    public int readArcId() throws IOException {
+        return in.readInt();
+    }
+
     /**
      * Reads Name key.
      * @return name key.
@@ -217,12 +308,20 @@ public class SnapshotReader {
     }
     
     /**
+     * Reads double coordiante.
+     * @return coordinate.
+     */
+    public double readCoord() throws IOException {
+        return in.readDouble();
+    }
+    
+    /**
      * Reads EPoint.
      * @return EPoint.
      */
     public EPoint readPoint() throws IOException {
-        double x = in.readDouble();
-        double y = in.readDouble();
+        double x = readCoord();
+        double y = readCoord();
         return x != 0 || y != 0 ? new EPoint(x, y) : EPoint.ORIGIN;
     }
 }

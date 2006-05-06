@@ -76,8 +76,8 @@ public class LibraryBackup {
      */
     void write(SnapshotWriter writer) throws IOException {
         d.write(writer);
-        writer.out.writeBoolean(modified);
-        writer.out.writeInt(referencedLibs.length);
+        writer.writeBoolean(modified);
+        writer.writeInt(referencedLibs.length);
         for (int i = 0; i < referencedLibs.length; i++)
             writer.writeLibId(referencedLibs[i]);
     }
@@ -88,8 +88,8 @@ public class LibraryBackup {
      */
     static LibraryBackup read(SnapshotReader reader) throws IOException {
         ImmutableLibrary d = ImmutableLibrary.read(reader);
-        boolean modified = reader.in.readBoolean();
-        int refsLength = reader.in.readInt();
+        boolean modified = reader.readBoolean();
+        int refsLength = reader.readInt();
         LibId[] refs = new LibId[refsLength];
         for (int i = 0; i < refsLength; i++)
             refs[i] = reader.readLibId();
