@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+BUG: (5/5/06, GVG) Search and Replace text exception (Bug #963)
+FIX: Code optimized and exception is caught and handled gracefully. Only one exception generated due to pattern.
+
 IMP: (5/5/06, RK) NCC regression. Move contents of bean shell scripts into Java.
 
 BUG: (5/5/06, DN) Sometimes VectorCache is not updated.

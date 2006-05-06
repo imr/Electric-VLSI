@@ -1860,13 +1860,29 @@ public class EditWindow extends JPanel
 	/** the currently reported string */				private StringsInCell currentStringInCell;
 	/** the currently reported string index */			private int currentFindPosition;
 
+        private static Pattern getPattern(String search, boolean caseSensitive)
+        {
+            int flags = caseSensitive ? 0 : Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
+            Pattern p = null;
+
+            try
+            {
+                p = Pattern.compile(search, flags);
+            }
+            catch (Exception e)
+            {
+                System.out.println("Error in regular expression '" + search + "'");
+                System.out.println(e.getMessage());
+            }
+            return p;
+        }
+
         private void searchTextNodes(Cell cell, String search, boolean caseSensitive,
-                                     boolean regExp, Set whatToSearch)
+                                     boolean regExp, Set whatToSearch, Pattern pattern)
         {
             boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
             TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.NODE_NAME);
             TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.NODE_VAR);
-
             for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
             {
                 NodeInst ni = it.next();
@@ -1875,18 +1891,18 @@ public class EditWindow extends JPanel
                     Name name = ni.getNameKey();
                     if (doTemp || !name.isTempname())
                     {
-                        findAllMatches(ni, NodeInst.NODE_NAME, 0, name.toString(), search, caseSensitive, regExp);
+                        findAllMatches(ni, NodeInst.NODE_NAME, 0, name.toString(), search, caseSensitive, regExp, pattern);
                     }
                 }
                 if (whatVar!=null)
                 {
-                    addVariableTextToList(ni, search, caseSensitive,regExp);
+                    addVariableTextToList(ni, search, caseSensitive,regExp, pattern);
                 }
             }
         }
 
         private void searchTextArcs(Cell cell, String search, boolean caseSensitive,
-                                    boolean regExp, Set whatToSearch)
+                                    boolean regExp, Set whatToSearch, Pattern pattern)
         {
             boolean doTemp = whatToSearch.contains(TextUtils.WhatToSearch.TEMP_NAMES);
             TextUtils.WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.ARC_NAME);
@@ -1900,17 +1916,17 @@ public class EditWindow extends JPanel
                     if (doTemp || !name.isTempname())
                     {
                         findAllMatches(ai, ArcInst.ARC_NAME, 0, name.toString(),
-                                search, caseSensitive, regExp);
+                                search, caseSensitive, regExp, pattern);
                     }
                 }
                 if (whatVar!=null) {
-                    addVariableTextToList(ai, search, caseSensitive, regExp);
+                    addVariableTextToList(ai, search, caseSensitive, regExp, pattern);
                 }
             }
         }
 
         private void searchTextExports(Cell cell, String search, boolean caseSensitive,
-                                       boolean regExp, Set whatToSearch)
+                                       boolean regExp, Set whatToSearch, Pattern pattern)
         {
             WhatToSearch what = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_NAME);
             TextUtils.WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.EXPORT_VAR);
@@ -1919,15 +1935,15 @@ public class EditWindow extends JPanel
                 Export pp = it.next();
                 if (what!=null) {
                     Name name = pp.getNameKey();
-                    findAllMatches(pp, Export.EXPORT_NAME, 0, name.toString(), search, caseSensitive, regExp);
+                    findAllMatches(pp, Export.EXPORT_NAME, 0, name.toString(), search, caseSensitive, regExp, pattern);
                 }
                 if (whatVar!=null) {
-                    addVariableTextToList(pp, search, caseSensitive, regExp);
+                    addVariableTextToList(pp, search, caseSensitive, regExp, pattern);
                 }
             }
         }
         private void searchTextCellVars(Cell cell, String search, boolean caseSensitive,
-                                        boolean regExp, Set whatToSearch)
+                                        boolean regExp, Set whatToSearch, Pattern pattern)
         {
             WhatToSearch whatVar = get(whatToSearch, TextUtils.WhatToSearch.CELL_VAR);
             if (whatVar!=null) {
@@ -1936,7 +1952,7 @@ public class EditWindow extends JPanel
                     Variable var = it.next();
                     if (!var.isDisplay()) continue;
                     findAllMatches(null, var.getKey(), -1, var.getPureValue(-1),
-                            search, caseSensitive, regExp);
+                            search, caseSensitive, regExp, pattern);
                 }
             }
         }
@@ -2074,10 +2090,19 @@ public class EditWindow extends JPanel
                 System.out.println("No current Cell");
                 return;
             }
-            searchTextNodes(cell, search, caseSensitive, regExp, whatToSearch);
-            searchTextArcs(cell, search, caseSensitive, regExp, whatToSearch);
-            searchTextExports(cell, search, caseSensitive, regExp, whatToSearch);
-            searchTextCellVars(cell, search, caseSensitive, regExp, whatToSearch);
+
+            Pattern pattern = null;
+
+            if (regExp)
+            {
+                pattern = getPattern(search, caseSensitive);
+                if (pattern == null) return; // errror
+            }
+
+            searchTextNodes(cell, search, caseSensitive, regExp, whatToSearch, pattern);
+            searchTextArcs(cell, search, caseSensitive, regExp, whatToSearch, pattern);
+            searchTextExports(cell, search, caseSensitive, regExp, whatToSearch, pattern);
+            searchTextCellVars(cell, search, caseSensitive, regExp, whatToSearch, pattern);
             if (foundInCell.size()==0) System.out.println("Nothing found");
             currentFindPosition = -1;
             currentStringInCell = null;
@@ -2139,12 +2164,12 @@ public class EditWindow extends JPanel
                                       int lineInVariable,
                                       String theLine,
                                       String search, boolean caseSensitive,
-                                      boolean regExp)
+                                      boolean regExp, Pattern p)
         {
-            int flags =
-                caseSensitive ? 0 : Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
-            Pattern p = regExp ? Pattern.compile(search, flags) : null;
-            Matcher m = regExp ? p.matcher(theLine) : null;
+//            int flags =
+//                caseSensitive ? 0 : Pattern.CASE_INSENSITIVE+Pattern.UNICODE_CASE;
+            Matcher m = (p != null) ? p.matcher(theLine) : null; // p != null -> regExp
+
             for(int startPos = 0; ; )
             {
                 int endPos;
@@ -2173,7 +2198,7 @@ public class EditWindow extends JPanel
          */
         private void addVariableTextToList(ElectricObject eObj,
                                            String search, boolean caseSensitive,
-                                           boolean regExp)
+                                           boolean regExp, Pattern p)
         {
             for(Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
             {
@@ -2183,14 +2208,14 @@ public class EditWindow extends JPanel
                 if (obj instanceof String)
                 {
                     findAllMatches(eObj, var.getKey(), -1, (String)obj,
-                                   search, caseSensitive, regExp);
+                                   search, caseSensitive, regExp, p);
                 } else if (obj instanceof String[])
                 {
                     String [] strings = (String [])obj;
                     for(int i=0; i<strings.length; i++)
                     {
                         findAllMatches(eObj, var.getKey(), i, strings[i],
-                                       search, caseSensitive, regExp);
+                                       search, caseSensitive, regExp, p);
                     }
                 }
             }
