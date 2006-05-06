@@ -755,10 +755,10 @@ public class VectorCache {
 	private void cellChanged(CellId cellId)
 	{
 		VectorCellGroup vcg = null;
+        if (cellId.cellIndex < cachedCells.size())
+            vcg = cachedCells.get(cellId.cellIndex);
         Cell cell = database.getCell(cellId);
-        if (cell.getCellIndex() < cachedCells.size())
-            vcg = cachedCells.get(cell.getCellIndex());
-		if (cell.isLinked())
+		if (cell != null)
 		{
 			// cell still valid: see if it changed from last cache
 			if (vcg != null)

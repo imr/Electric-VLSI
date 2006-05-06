@@ -1215,16 +1215,23 @@ public class JELIB extends LibraryFiles
 //					pi = null;
 //			}
 //		}
-		if (pi != null || !ni.isCellInstance()) return pi;
+		if (pi != null) return pi;
 
 		// see if this is a dummy cell
-		Cell subCell = (Cell)ni.getProto();
-		Variable var = subCell.getVar(IO_TRUE_LIBRARY);
+        Variable var = null;
+        Cell subCell = null;
+        if (ni.isCellInstance()) {
+            subCell = (Cell)ni.getProto();
+            var = subCell.getVar(IO_TRUE_LIBRARY);
+            if (pos == null)
+                pos = externalExports.get(subCell.getCellName().toString() + ":" + portName);
+		}
+        if (pos == null)
+            pos = EPoint.ORIGIN;
 		if (var == null)
 		{
 			// not a dummy cell: create a pin at the top level
-			NodeInst portNI = null;
-			if (pos != null) portNI = NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, cell);
+			NodeInst portNI = NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, cell);
 			if (portNI == null)
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1232,16 +1239,11 @@ public class JELIB extends LibraryFiles
 				return null;
 			}
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Arc end and port discrepancy at ("+pos.getX()+","+pos.getY()+"), port "+portName+" on node "+nodeName+" in " + cell, portNI, cell, null, -1);
+				", Port "+portName+" on "+ni.getProto() + " renamed or deleted, still used on node "+nodeName+" in " + cell, portNI, cell, null, -1);
 			return portNI.getOnlyPortInst();
 		}
 
 		// a dummy cell: create a dummy export on it to fit this
-		if (pos == null)
-		{
-			pos = externalExports.get(subCell.getCellName().toString() + ":" + portName);
-			if (pos == null) return null;
-		}
 		String name = portName;
 		if (name.length() == 0) name = "X";
 // 		AffineTransform unRot = ni.rotateIn();

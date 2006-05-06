@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+IMP: (5/6/06, DN) Better diagnostic in JELIB reader in case of renamed/deleted export.
+
+BUG: (5/6/06, DN) Null pointer exception closing library - redisplay error (Bug #967)
+FIX: In VectorCache.cellChanged use cellId instead of cell.
+
 BUG: (5/5/06, GVG) Search and Replace text exception (Bug #963)
 FIX: Code optimized and exception is caught and handled gracefully. Only one exception generated due to pattern.
 
