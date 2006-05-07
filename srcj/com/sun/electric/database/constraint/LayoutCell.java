@@ -128,10 +128,17 @@ class LayoutCell {
             cell.addVar(Layout.goodDRCDate);
             cell.addVar(Layout.goodDRCBit);
         }
-        if (!justWritten && cell.backup() != oldBackup) {
-            cell.madeRevision(Layout.revisionDate, Layout.userName);
-            assert cell.isModified(true);
-            cell.getLibrary().setChanged();
+        if (!justWritten) {
+            CellBackup newBackup = cell.backup();
+            if (newBackup != oldBackup) {
+                if (oldBackup == null || newBackup.d != oldBackup.d || newBackup.isMainSchematics != oldBackup.isMainSchematics ||
+                        newBackup.revisionDate != oldBackup.revisionDate ||
+                        newBackup.nodes != oldBackup.nodes || newBackup.arcs != oldBackup.arcs || newBackup.exports != oldBackup.exports) {
+                    cell.madeRevision(Layout.revisionDate, Layout.userName);
+                    assert cell.isModified(true);
+                }
+                cell.getLibrary().setChanged();
+            }
         }
         cell.getBounds();
         

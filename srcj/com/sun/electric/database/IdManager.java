@@ -128,7 +128,7 @@ public class IdManager {
                 assert numNewExportIds > 0;
                 writer.writeInt(numNewExportIds);
                 for (int i = 0; i < numNewExportIds; i++)
-                    writer.writeString(exportIds[exportCount + i].name.toString());
+                    writer.writeString(exportIds[exportCount + i].externalId);
                 writer.exportCounts[cellIndex] = exportIds.length;
             }
         }
@@ -151,9 +151,9 @@ public class IdManager {
             if (cellIndex == -1) break;
             CellId cellId = getCellId(cellIndex);
             int numNewExportIds = reader.readInt();
-            Name[] newExportIds = new Name[numNewExportIds];
+            String[] newExportIds = new String[numNewExportIds];
             for (int i = 0; i < newExportIds.length; i++)
-                newExportIds[i] = Name.findName(reader.readString());
+                newExportIds[i] = reader.readString();
             cellId.newExportIds(newExportIds);
         }
     }

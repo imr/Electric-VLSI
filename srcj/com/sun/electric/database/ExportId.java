@@ -22,11 +22,12 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProtoId;
-import com.sun.electric.database.text.Name;
+
 import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
@@ -52,15 +53,15 @@ public final class ExportId implements PortProtoId, Serializable
     /** representation of ExportId in disk files.
      * This name isn't chaged when Export is renamed.
      */
-    public final transient Name name;
+    public final transient String externalId;
     
     /**
      * ExportId constructor.
      */
-    ExportId(CellId parentId, int chronIndex, Name name) {
+    ExportId(CellId parentId, int chronIndex, String externalId) {
         this.parentId = parentId;
         this.chronIndex = chronIndex;
-        this.name = name;
+        this.externalId = externalId;
     }
     
     /*
@@ -96,11 +97,13 @@ public final class ExportId implements PortProtoId, Serializable
         return cell.getExportChron(chronIndex);
     }
 
-    /**
-	 * Returns a printable version of this ExportId.
-	 * @return a printable version of this ExportId.
-	 */
+    @Override
+    public int hashCode() {
+        return externalId.hashCode();
+    }
+
+    @Override
     public String toString() {
-        return name.toString();
+        return externalId;
     }
 }

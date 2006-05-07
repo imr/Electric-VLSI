@@ -10,7 +10,7 @@ package com.sun.electric.database;
 import junit.framework.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.text.Name;
+
 import java.util.Arrays;
 
 /**
@@ -26,7 +26,7 @@ public class CellIdTest extends TestCase {
     CellUsage u0_2;
     CellUsage u0_1;
     CellUsage u1_2;
-    Name nameA = Name.findName("A");
+    String nameA = "A";
     ExportId e1_A;
     
     public CellIdTest(String testName) {
@@ -106,6 +106,45 @@ public class CellIdTest extends TestCase {
     }
 
     /**
+     * Test of findExportId method, of class com.sun.electric.database.CellId.
+     */
+    public void testFindExportId() {
+        System.out.println("findExportId");
+        
+        String name = nameA;
+        CellId instance = cellId1;
+        
+        ExportId expResult = e1_A;
+        ExportId result = instance.findExportId(name);
+        assertEquals(expResult, result);
+        
+        assertNull( instance.findExportId("B") );
+        assertEquals( 1, cellId1.numExportIds() );
+    }
+    
+//    /**
+//     * Test of findExportId method, of class com.sun.electric.database.CellId.
+//     */
+//    public void testConcurrentFindExportId() {
+//        System.out.println("findExportId concurrently");
+//        
+//        Thread writer = new Thread() {
+//            public void run() {
+//                for (;;) {
+//                    cellId1.newExportId(nameA);
+//                }
+//            }
+//        };
+//        
+//        writer.start();
+//        
+//        Name nameB = Name.findName("B");
+//        for (;;) {
+//            assertNull( cellId1.findExportId(nameB) );
+//        }
+//    }
+    
+    /**
      * Test of numExportIds method, of class com.sun.electric.database.CellId.
      */
     public void testNumExportIds() {
@@ -151,12 +190,12 @@ public class CellIdTest extends TestCase {
     public void testNewExportId() {
         System.out.println("newExportId");
         
-        Name suggestedName = Name.findName("B");
+        String suggestedName = "B";
         CellId instance = cellId1;
         
         ExportId result = instance.newExportId(suggestedName);
         assertSame(cellId1, result.parentId);
-        assertSame(suggestedName, result.name);
+        assertSame(suggestedName, result.externalId);
         assertEquals(1, result.chronIndex);
         
         assertEquals(2, cellId1.numExportIds());
@@ -165,20 +204,51 @@ public class CellIdTest extends TestCase {
     }
 
     /**
+     * Test of newExportId method, of class com.sun.electric.database.CellId.
+     */
+    public void testDuplicateExporId() {
+        System.out.println("duplicateExportId");
+        
+        String suggestedName = "bus[1:2]";
+        CellId instance = cellId1;
+        
+        ExportId result = instance.newExportId(suggestedName);
+        ExportId result1 = instance.newExportId(suggestedName);
+        assertSame(cellId1, result.parentId);
+        assertEquals(1, result.chronIndex);
+        assertSame(suggestedName, result.externalId);
+        assertNotSame(suggestedName, result1.externalId);
+    }
+
+    /**
      * Test of newExportIds method, of class com.sun.electric.database.CellId.
      */
     public void testNewExportIds() {
         System.out.println("newExportIds");
         
-        Name[] diskNames = { Name.findName("C"), Name.findName("B")};
-        cellId1.newExportIds(diskNames);
+        String[] externalIds = { "C", "B"};
+        cellId1.newExportIds(externalIds);
         
         assertEquals( 3, cellId1.numExportIds() );
         assertSame(e1_A, cellId1.getPortId(0));
         ExportId e1_C = cellId1.getPortId(1);
         ExportId e1_B = cellId1.getPortId(2);
-        assertSame(diskNames[0], e1_C.name );
-        assertSame(diskNames[1], e1_B.name );
+        assertSame(externalIds[0], e1_C.externalId );
+        assertSame(externalIds[1], e1_B.externalId );
+    }
+
+    /**
+     * Test of newExportIds method, of class com.sun.electric.database.CellId.
+     */
+    public void testDuplicateExportIds() {
+        System.out.println("newExportIds");
+        
+        String[] externalIds = { "C", "C" };
+        try {
+            cellId1.newExportIds(externalIds);
+            fail("IllegallArgumentExceptio expected");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     /**
@@ -229,12 +299,9 @@ public class CellIdTest extends TestCase {
         
         CellId instance = cellId0;
         
-        String expResult = "";
+        String expResult = "CellId#0";
         String result = instance.toString();
         assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     /**
@@ -247,5 +314,4 @@ public class CellIdTest extends TestCase {
         
         instance.check();
     }
-    
 }

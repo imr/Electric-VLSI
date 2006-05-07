@@ -547,7 +547,7 @@ public class ReadableDump extends LibraryFiles
             boolean alwaysDrawn = Export.alwaysDrawnFromElib(userBits);
             boolean bodyOnly = Export.bodyOnlyFromElib(userBits);
             PortCharacteristic characteristic = Export.portCharacteristicFromElib(userBits);
-            Export pp = Export.newInstance(cell, el.exportName[j], exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic);
+            Export pp = Export.newInstance(cell, el.exportName[j], null, exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic);
 			el.exportList[j] = pp;
             if (pp == null) continue;
             realizeVariables(pp, el.exportVars[j]);

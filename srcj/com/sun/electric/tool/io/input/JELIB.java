@@ -953,6 +953,7 @@ public class JELIB extends LibraryFiles
             if (revision >= 2 && pieces.size() == 1) {
                 // Unused ExportId
                 String exportName = unQuote(pieces.get(0));
+                cell.getId().newExportId(exportName);
                 continue;
             }
 			int numPieces = revision >= 2 ? 6 : revision == 1 ? 5 : 7;
@@ -964,10 +965,10 @@ public class JELIB extends LibraryFiles
 			}
             int fieldIndex = 0;
 			String exportName = unQuote(pieces.get(fieldIndex++));
-            String exportUserName = exportName;
+            String exportUserName = null;
             if (revision >= 2) {
                 exportUserName = unQuote(pieces.get(fieldIndex++));
-                if (exportUserName.length() == 0) exportUserName = exportName;
+                if (exportUserName.length() == 0) exportUserName = null;
             }
 			// get text descriptor in field 1
 			String textDescriptorInfo = pieces.get(fieldIndex++);
@@ -1007,7 +1008,7 @@ public class JELIB extends LibraryFiles
             if (ch == null) ch = PortCharacteristic.UNKNOWN;
             
 			// create the export
-			Export pp = Export.newInstance(cell, exportName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch);
+			Export pp = Export.newInstance(cell, exportName, exportUserName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch);
 			if (pp == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -1187,16 +1188,30 @@ public class JELIB extends LibraryFiles
 		{
 			if (ni.getNumPortInsts() > 0)
 				pi = ni.getPortInst(0);
-		} else
+		} else if (ni.isCellInstance())
 		{
+            if (revision >= 2) {
+                Cell subCell = (Cell)ni.getProto();
+                ExportId exportId = subCell.getId().findExportId(portName);
+                if (exportId != null) {
+                    Export e = subCell.getExportChron(exportId.chronIndex);
+                    if (e != null)
+                        pi = ni.findPortInstFromProto(e);
+                }
+            } else {
+                pi = ni.findPortInst(portName);
+            }
+		} else
+        {
 			pi = ni.findPortInst(portName);
-			if (pi == null && !ni.isCellInstance())
+			if (pi == null)
 			{
 				PrimitiveNode primNode = (PrimitiveNode)ni.getProto();
 				PrimitivePort primPort = primNode.getTechnology().convertOldPortName(portName, primNode);
 				if (primPort != null) pi = ni.findPortInstFromProto(primPort);
 			}
-		}
+            
+        }
 
 		// primitives use the name match
 //		if (!ni.isCellInstance()) return pi;
@@ -1818,7 +1833,14 @@ public class JELIB extends LibraryFiles
 				String exportName = piece.substring(secondColonPos+1);
 				commaPos = exportName.indexOf(',');
 				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
-				Export pp = cell.findExport(exportName);
+                Export pp = null;
+                if (revision >= 2) {
+                    ExportId exportId = cell.getId().findExportId(exportName);
+                    if (exportId != null)
+                        pp = cell.getExportChron(exportId.chronIndex);
+                } else {
+                    pp = cell.findExport(exportName);
+                }
 				if (pp == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown Export: " + piece, -1);

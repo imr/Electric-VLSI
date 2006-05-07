@@ -172,7 +172,7 @@ public class IdManagerTest extends TestCase {
      */
     public void testReadWrite() {
         try {
-            Name nameA = Name.findName("A");
+            String nameA = "A";
             idManager.getCellId(1).newExportId(nameA);
             
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -195,15 +195,15 @@ public class IdManagerTest extends TestCase {
             assertEquals( 0, cellId0.numExportIds() );
             CellId cellId1 = mirrorIdManager.getCellId(1);
             assertEquals( 1, cellId1.numExportIds() );
-            assertSame( nameA, cellId1.getPortId(0).name );
+            assertEquals( nameA, cellId1.getPortId(0).externalId );
             
             // Add new staff to database
             assertEquals( 2, idManager.newLibId().libIndex );
             assertEquals( 3, idManager.newLibId().libIndex );
             assertEquals( 2, idManager.newCellId().cellIndex );
-            Name nameB = Name.findName("B");
+            String nameB = "B";
             idManager.getCellId(1).newExportId(nameB);
-            Name nameC = Name.findName("C");
+            String nameC = "C";
             idManager.getCellId(2).newExportId(nameC);
             
             // Second update of mirrirIdManager
@@ -221,11 +221,11 @@ public class IdManagerTest extends TestCase {
             assertEquals( 0, cellId0.numExportIds() );
             assertSame( cellId1, mirrorIdManager.getCellId(1) );
             assertEquals( 2, cellId1.numExportIds() );
-            assertSame( nameA, cellId1.getPortId(0).name );
-            assertSame( nameB, cellId1.getPortId(1).name );
+            assertEquals( nameA, cellId1.getPortId(0).externalId );
+            assertEquals( nameB, cellId1.getPortId(1).externalId );
             CellId cellId2 = mirrorIdManager.getCellId(2);
             assertEquals( 1, cellId2.numExportIds() );
-            assertSame( nameC, cellId2.getPortId(0).name );
+            assertEquals( nameC, cellId2.getPortId(0).externalId );
         } catch (IOException e) {
             fail(e.getMessage());
         }

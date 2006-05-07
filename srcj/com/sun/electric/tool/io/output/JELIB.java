@@ -411,8 +411,13 @@ public class JELIB extends Output
 
         // write the exports in this cell
         for (ImmutableExport e: cellBackup.exports) {
-            printWriter.print("E" + convertString(e.name.toString()));
-            if (NEW_REVISION) printWriter.print("|"); // export user name
+            if (NEW_REVISION) {
+                printWriter.print("E" + convertString(e.exportId.externalId) + "|");
+                if (!e.name.toString().equals(e.exportId.externalId))
+                    printWriter.print(convertString(e.name.toString()));
+            } else {
+                printWriter.print("E" + convertString(e.name.toString()));
+            }
             printWriter.print("|" + describeDescriptor(null, e.nameDescriptor));
             printWriter.print("|" + nodeNames.get(e.originalNodeId) + "|" + getPortName(e.originalPortId));
             printWriter.print("|" + e.characteristic.getShortName());
@@ -482,7 +487,7 @@ public class JELIB extends Output
                 cellNames.put(cellId, getFullCellName(cellId));
                 for (ImmutableExport e: cellBackup.exports) {
                     if (!exportsUsedInCell.get(e.exportId.chronIndex)) continue;
-                    printWriter.println("F" + convertString(e.name.toString()) + "||");
+                    printWriter.println("F" + convertString(NEW_REVISION ? e.exportId.externalId : e.name.toString()) + "||");
 
 //                    Export export = cellId.inCurrentThread().getPort(e.exportId);
 //
@@ -651,7 +656,7 @@ public class JELIB extends Output
                         ImmutableExport e = protoBackup.exports.get(portIndex);
                         ImmutablePortInst pid = nid.getPortInst(e.exportId);
                         if (pid.getNumVariables() == 0) continue;
-                        printVars(e.name.toString(), pid);
+                        printVars(NEW_REVISION ? e.exportId.externalId : e.name.toString(), pid);
                     }
                 } else {
                     PrimitiveNode pn = (PrimitiveNode)nid.protoId;
@@ -771,7 +776,7 @@ public class JELIB extends Output
         CellBackup cellBackup = snapshot.getCell(exportId.parentId);
 //        if (cellBackup.exports.size() <= 1) return "";
         ImmutableExport e = cellBackup.getExport(exportId);
-        return e.name.toString();
+        return convertString(NEW_REVISION ? exportId.externalId : e.name.toString());
     }
     
 	private String getFullCellName(CellId cellId) {

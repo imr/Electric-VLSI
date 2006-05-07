@@ -836,7 +836,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
         // add again to the library and to possibly to new cell group
 		lowLevelLinkCellName(true);
-        notifyRename();
+        notifyRename(true);
 	}
     
 	/**
@@ -864,17 +864,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
         // add again to the library and to possibly to new cell group
 		lowLevelLinkCellName(true);
-        notifyRename();
+        notifyRename(true);
 	}
     
     /**
      * Signal parent cell about renaming or moving of this subcell.
+     * @param major major rename (cell or library)
      */
-    void notifyRename() {
+    void notifyRename(boolean major) {
         for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
             CellUsage u = it.next();
             Cell parent = u.parentId.inDatabase(getDatabase());
-            parent.setModified(false);
+            if (major || !parent.getLibrary().withExportIds()) 
+                parent.setModified(false);
         }
     }
 

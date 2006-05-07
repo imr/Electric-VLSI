@@ -1226,7 +1226,7 @@ public class ELIB extends LibraryFiles
             boolean alwaysDrawn = Export.alwaysDrawnFromElib(exportUserbits[i]);
             boolean bodyOnly = Export.bodyOnlyFromElib(exportUserbits[i]);
             PortCharacteristic characteristic = Export.portCharacteristicFromElib(exportUserbits[i]);
-            Export pp = Export.newInstance(cell, exportName, exportNameDescriptors[i], pi, alwaysDrawn, bodyOnly, characteristic);
+            Export pp = Export.newInstance(cell, exportName, null, exportNameDescriptors[i], pi, alwaysDrawn, bodyOnly, characteristic);
             exportList[i] = pp;
             if (pp == null) continue;
 			realizeVariables(pp, exportVariables[i]);

@@ -172,7 +172,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             alwaysDrawn = e.isAlwaysDrawn();
             bodyOnly = e.isBodyOnly();
         }
-		Export pp = newInstance(parent, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, originalProto.getCharacteristic());
+		Export pp = newInstance(parent, protoName, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, originalProto.getCharacteristic());
 
 		if (createOnIcon)
 		{
@@ -230,7 +230,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	/**
 	 * Factory method to create an Export
 	 * @param parent the Cell in which this Export resides.
-	 * @param name the name of this Export.
+     * @param id external id of this Export
+	 * @param name the user name of this Export. if null then the same as id.
 	 * It may not have unprintable characters, spaces, or tabs in it.
      * @param nameTextDescriptor text descriptor of this Export
 	 * @param originalPort the PortInst that is being exported.
@@ -239,7 +240,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param characteristic PortCharacteristic of this Export.
 	 * @return created Export or null on error.
 	 */
-    public static Export newInstance(Cell parent, String name, TextDescriptor nameTextDescriptor, PortInst originalPort,
+    public static Export newInstance(Cell parent, String id, String name, TextDescriptor nameTextDescriptor, PortInst originalPort,
             boolean alwaysDrawn, boolean bodyOnly, PortCharacteristic characteristic)
     {
 		// initialize this object
@@ -256,8 +257,15 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 			return null;
 		}
 
-		Name nameKey = Name.findName(name);
-        ExportId exportId = parent.getD().cellId.newExportId(nameKey);
+        Name nameKey;
+        if (name == null || id.equals(name)) {
+            nameKey = Name.findName(id);
+            assert id.equals(nameKey.toString());
+            id = nameKey.toString();
+        } else {
+            nameKey = Name.findName(name);
+        }
+        ExportId exportId = parent.getD().cellId.newExportId(id);
         if (nameTextDescriptor == null) nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
         ImmutableExport d = ImmutableExport.newInstance(exportId, nameKey, nameTextDescriptor,
                 ni.getD().nodeId, subpp.getId(), alwaysDrawn, bodyOnly, characteristic);
@@ -329,7 +337,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		Name oldName = getNameKey();
         parent.moveExport(portIndex, newName);
 		setD(d.withName(newNameKey), true);
-        parent.notifyRename();
+        parent.notifyRename(false);
 
         // rename associated export in icon, if any
         Cell iconCell = cell.iconView();
