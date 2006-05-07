@@ -233,7 +233,14 @@ public abstract class EMenuItem implements ActionListener {
      * @return true is this generic EMenuItem is enabled.
      */
     public boolean isEnabled() { return true; }
-    
+
+    /**
+     * Returns visisble state of this generic EMenuItem
+     * @return true in most of the cases except for those EMenuItem holding
+     * the dynmaic Window submenus
+     */
+    public boolean isVisible() { return true; }
+
     /**
      * Returns selection state of this generic EMenuItem.
      * Override in subclasses.

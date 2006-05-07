@@ -119,6 +119,7 @@ public class EMenu extends EMenuItem {
                     addSeparator();
                     continue;
                 }
+                if (!elem.isVisible()) continue;
                 JMenuItem item = elem.genMenu(null);
                 add(item);
             }

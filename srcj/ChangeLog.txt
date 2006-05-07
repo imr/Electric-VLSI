@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04k: *********************************
 
+IMP: (5/6/06, GVG) Window Cycle changes
+
 IMP: (5/6/06, DN) Better diagnostic in JELIB reader in case of renamed/deleted export.
 
 BUG: (5/6/06, DN) Null pointer exception closing library - redisplay error (Bug #967)
