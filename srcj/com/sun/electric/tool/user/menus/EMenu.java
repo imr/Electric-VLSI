@@ -37,7 +37,8 @@ import javax.swing.JMenuItem;
  * Generic Electric menu.
  */
 public class EMenu extends EMenuItem {
-    private final List<EMenuItem> items;
+    /** static menu items */                                                private final List<EMenuItem> items;
+    /** dynamic list of menu items which are appended to the end of menu */ private List<EMenuItem> dynamicItems;
     
     /**
      * @param text the menu item's displayed text.  An "_" in the string
@@ -72,6 +73,15 @@ public class EMenu extends EMenuItem {
      */
     public List<EMenuItem> getItems() { return items; }
 
+    /**
+     * Returns unmodifiebale list of menu items.
+     * Separators are represented by MeniCommands.SEPARATOR object.
+     * @return list of menu items.
+     */
+    public void setDynamicItems(List<EMenuItem> dynamicItems) {
+        this.dynamicItems = dynamicItems;
+    }
+
     @Override
     void setParent(EMenuBar menuBar, EMenu parent) {
         this.parent = parent;
@@ -83,8 +93,7 @@ public class EMenu extends EMenuItem {
 
     @Override
     JMenu genMenu(WindowFrame frame) {
-        Instance subMenu = new Instance();
-
+        JMenu subMenu = (JMenu)super.genMenu(frame);
         storeMenuItem(subMenu, frame);
         return subMenu;
     }
@@ -93,6 +102,11 @@ public class EMenu extends EMenuItem {
         Instance subMenu = new Instance();
         menuBar.add(subMenu);
         return subMenu;
+    }
+    
+    @Override
+    protected JMenuItem createMenuItem() {
+        return new Instance();
     }
     
     @Override
@@ -110,10 +124,10 @@ public class EMenu extends EMenuItem {
     {
         private Instance() {
             initMenuItem(this);
-            genMenuElems();
+            genMenuElems(items);
         }
 
-        private void genMenuElems() {
+        private void genMenuElems(List<EMenuItem> items) {
             for (EMenuItem elem: items) {
                 if (elem == EMenuItem.SEPARATOR) {
                     addSeparator();
@@ -133,9 +147,21 @@ public class EMenu extends EMenuItem {
          */
         @Override
         public void setPopupMenuVisible(boolean b) {
-            if (b)
+            if (b) {
+                clearDynamicItems();
                 updateMenu();
+                if (dynamicItems != null)
+                    genMenuElems(dynamicItems);
+            }
             super.setPopupMenuVisible(b);
+            if (!b)
+                clearDynamicItems();
+        }
+        
+        private void clearDynamicItems() {
+            if (dynamicItems == null) return;
+            while (getComponentCount() > items.size())
+                remove(items.size());
         }
         
         /**

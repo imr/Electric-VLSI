@@ -526,17 +526,20 @@ public class ToolMenu {
 
         // ------------------ CVS
             new EMenu("CVS",
-                new CVSButton("Commit All Libraries") { public void run() {
+                new EMenuItem("Commit All Libraries") { public void run() {
                     Commit.commitAllLibraries(); }},
-                new CVSButton("Update All Libraries") { public void run() {
+                new EMenuItem("Update All Libraries") { public void run() {
                     Update.updateAllLibraries(Update.UPDATE); }},
-                new CVSButton("Get Status All Libraries") { public void run() {
+                new EMenuItem("Get Status All Libraries") { public void run() {
                     Update.updateAllLibraries(Update.STATUS); }},
-                new CVSButton("List Editors All Libraries") { public void run() {
+                new EMenuItem("List Editors All Libraries") { public void run() {
                     Edit.listEditorsAllLibraries(); }},
                 SEPARATOR,
-                new CVSButton("Checkout From Repository") { public void run() {
-                    CVS.checkoutFromRepository(); }}),
+                new EMenuItem("Checkout From Repository") { public void run() {
+                    CVS.checkoutFromRepository(); }})
+                {
+                    public boolean isEnabled() { return CVS.isEnabled(); }
+                },
 
         //------------------- Others
 
@@ -551,11 +554,6 @@ public class ToolMenu {
                     javaBshScriptCommand(); }}));
 	}
 
-    private abstract static class CVSButton extends EMenuItem {
-        CVSButton(String label) { super(label); }
-        public boolean isEnabled() { return CVS.isEnabled(); }
-    }
-    
 	// ---------------------------- Tool Menu Commands ----------------------------
 
 	// Logical Effort Tool
