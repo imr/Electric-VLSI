@@ -236,16 +236,26 @@ public class WindowMenu {
                 WindowFrame w = WindowFrame.getWindows().next();
                 theMenu = w.getDynamicMenu();
             }
+            int first = -1, found = -1;
             for (int i = 0; i < theMenu.getItemCount(); i++)
             {
                 JMenuItem item = theMenu.getItem(i);
                 if (!(item instanceof WindowJMenuItem)) continue;
                 WindowJMenuItem menu = (WindowJMenuItem)item;
+                if (first == -1) first = i;
                 if (menu.getAccelerator() == windowAccelerator)
                 {
                     focusThisWindowFrame(menu);
+                    found = i;
+                    menu.setAccelerator(null);
                     break;
                 }
+            }
+            if (found != -1)
+            {
+                int next = (found < theMenu.getItemCount() - 1) ? found+1 : first;
+                JMenuItem item = theMenu.getItem(next);
+                item.setAccelerator(windowAccelerator);
             }
         }
     }
