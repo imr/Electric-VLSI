@@ -196,6 +196,7 @@ public class WindowMenu {
         private static void replaceKeyStroke(JMenu theMenu, KeyStroke oldKeyStroke,
                                              KeyStroke newKeyStroke)
         {
+            if (theMenu == null) return;
             for (int i = 0; i < theMenu.getItemCount(); i++)
             {
                 JMenuItem item = theMenu.getItem(i);
