@@ -526,14 +526,14 @@ public class ToolMenu {
 
         // ------------------ CVS
             new EMenu("CVS",
-                new EMenuItem("Commit All Libraries") { public void run() {
+                new EMenuItem("Commit All Open Libraries") { public void run() {
                     Commit.commitAllLibraries(); }},
-                new EMenuItem("Update All Libraries") { public void run() {
-                    Update.updateAllLibraries(Update.UPDATE); }},
-                new EMenuItem("Get Status All Libraries") { public void run() {
-                    Update.updateAllLibraries(Update.STATUS); }},
-                new EMenuItem("List Editors All Libraries") { public void run() {
-                    Edit.listEditorsAllLibraries(); }},
+                new EMenuItem("Update Project Libraries") { public void run() {
+                    Update.updateProject(Update.UPDATE); }},
+                new EMenuItem("Get Status Project Libraries") { public void run() {
+                    Update.updateProject(Update.STATUS); }},
+                new EMenuItem("List Editors Project Libraries") { public void run() {
+                    Edit.listEditorsProject(); }},
                 SEPARATOR,
                 new EMenuItem("Checkout From Repository") { public void run() {
                     CVS.checkoutFromRepository(); }})

@@ -59,7 +59,7 @@ public class CVSTab extends PreferencePanel {
                 for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
                     CVSLibrary.addLibrary(it.next());
                 }
-                Update.updateAllLibraries(Update.STATUS);
+                Update.updateProject(Update.STATUS);
             } else {
                 for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
                     CVSLibrary.removeLibrary(it.next());

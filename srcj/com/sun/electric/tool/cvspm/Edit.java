@@ -83,7 +83,7 @@ public class Edit {
 
     // ---------------------- Get Editors ----------------------------
 
-    public static void listEditorsAllLibraries() {
+    public static void listEditorsProject() {
         List<Library> allLibs = new ArrayList<Library>();
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = it.next();
@@ -92,25 +92,26 @@ public class Edit {
             if (!CVS.assertInCVS(lib, "List CVS Editors", false)) continue;
             allLibs.add(lib);
         }
-        (new ListEditorsJob(allLibs, null)).startJob();
+        (new ListEditorsJob(allLibs, null, true)).startJob();
     }
 
     public static void listEditors(Library lib) {
         List<Library> libs = new ArrayList<Library>();
         libs.add(lib);
-        (new ListEditorsJob(libs, null)).startJob();
+        (new ListEditorsJob(libs, null, false)).startJob();
     }
 
     public static void listEditors(Cell cell) {
         List<Cell> cells = new ArrayList<Cell>();
         cells.add(cell);
-        (new ListEditorsJob(null, cells)).startJob();
+        (new ListEditorsJob(null, cells, false)).startJob();
     }
 
     public static class ListEditorsJob extends Job {
         private List<Library> libs;
         private List<Cell> cells;
-        public ListEditorsJob(List<Library> libs, List<Cell> cells) {
+        private boolean forProject;
+        public ListEditorsJob(List<Library> libs, List<Cell> cells, boolean forProject) {
             super("List CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
             this.cells = cells;
@@ -125,6 +126,7 @@ public class Edit {
             String args = libsBuf + " " + cellsBuf;
             if (args.trim().equals("")) return true;
 
+            if (forProject) args = "";
             CVS.runCVSCommand("editors "+args, "List CVS Editors", useDir, System.out);
             System.out.println("List CVS Editors complete.");
             return true;

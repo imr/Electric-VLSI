@@ -54,20 +54,28 @@ public class Update {
      * Update all libraries.
      * @param type the type of update to do
      */
-    public static void updateAllLibraries(int type) {
+    public static void updateProject(int type) {
         boolean dialog = true;
         if (type == STATUS) dialog = false;
 
         List<Library> allLibs = new ArrayList<Library>();
+        List<Library> unsavedLibs = new ArrayList<Library>();
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isFromDisk()) continue;
             if (!CVS.assertInCVS(lib, getMessage(type), dialog)) continue;
-            if (type != STATUS && !CVS.assertNotModified(lib, getMessage(type), dialog)) continue;
+            if (type != STATUS && !CVS.assertNotModified(lib, getMessage(type), dialog)) {
+                unsavedLibs.add(lib);
+                continue;
+            }
             allLibs.add(lib);
         }
-        (new UpdateJob(null, allLibs, type)).startJob();
+        if (unsavedLibs.size() != 0) {
+            return;
+        }
+
+        (new UpdateJob(null, allLibs, type, true)).startJob();
     }
 
     /**
@@ -84,7 +92,7 @@ public class Update {
 
         List<Library> libsToUpdate = new ArrayList<Library>();
         libsToUpdate.add(lib);
-        (new UpdateJob(null, libsToUpdate, type)).startJob();
+        (new UpdateJob(null, libsToUpdate, type, false)).startJob();
     }
 
     /**
@@ -101,7 +109,7 @@ public class Update {
 
         List<Cell> cellsToUpdate = new ArrayList<Cell>();
         cellsToUpdate.add(cell);
-        (new UpdateJob(cellsToUpdate, null, type)).startJob();
+        (new UpdateJob(cellsToUpdate, null, type, false)).startJob();
     }
 
     private static class UpdateJob extends Job {
@@ -109,17 +117,19 @@ public class Update {
         private List<Library> librariesToUpdate;
         private int type;
         private List<Library> libsToReload;
+        private boolean updateProject;                // update whole project
         /**
          * Update cells and/or libraries.
          * @param cellsToUpdate
          * @param librariesToUpdate
          */
         private UpdateJob(List<Cell> cellsToUpdate, List<Library> librariesToUpdate,
-                          int type) {
+                          int type, boolean updateProject) {
             super("CVS Update Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cellsToUpdate = cellsToUpdate;
             this.librariesToUpdate = librariesToUpdate;
             this.type = type;
+            this.updateProject = updateProject;
             if (this.cellsToUpdate == null) this.cellsToUpdate = new ArrayList<Cell>();
             if (this.librariesToUpdate == null) this.librariesToUpdate = new ArrayList<Library>();
         }
@@ -130,6 +140,7 @@ public class Update {
             String updateFiles = libs.toString() + " " + cells.toString();
             if (updateFiles.trim().equals("")) return true;
 
+            if (updateProject && (type == UPDATE || type == STATUS)) updateFiles = "";
             StatusResult result = update(updateFiles, useDir, type);
             commentStatusResult(result, type);
 
