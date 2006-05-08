@@ -53,6 +53,7 @@ import javax.swing.*;
  */
 public class WindowMenu {
     public static KeyStroke getCloseWindowAccelerator() { return EMenuItem.shortcut(KeyEvent.VK_W); }
+    public static EMenu thisWindowMenu = null;
     private static JMenu theDynamicMenu = null; // mdi
 
     static EMenu makeMenu() {
@@ -165,11 +166,35 @@ public class WindowMenu {
 		        new EMenuItem("On _Right") { public void run() {
                     WindowFrame.setSideBarLocation(false); }}),
 
-            SEPARATOR,
+            SEPARATOR
 
-            new WindowEMenuItem("Window Cycle", windowAccelerator)
+            ,new WindowEMenuItem("Window Cycle", windowAccelerator)
         );
+        thisWindowMenu = menu;
         return menu;
+    }
+
+    public static void addDynamicMenus(WindowFrame w)
+    {
+        List<EMenuItem> list = new ArrayList<EMenuItem>();
+        EMenuItem m = new DynamicEMenuItem(w, "Cycle Window");
+        list.add(m);
+        thisWindowMenu.setDynamicItems(list);
+    }
+
+    private static class DynamicEMenuItem extends EMenuItem
+    {
+        WindowFrame window;
+        public DynamicEMenuItem(WindowFrame w, String text)
+        {
+            super(text);
+            window = w;
+        }
+
+        public void run()
+        {
+            window.requestFocus();
+        }
     }
 
     static final HashMap<WindowFrame, List<WindowJMenuItem>> dynamicJItems = new HashMap<WindowFrame, List<WindowJMenuItem>>(); // final Menu in GUI
@@ -245,7 +270,7 @@ public class WindowMenu {
                 if (first == -1) first = i;
                 if (menu.getAccelerator() == windowAccelerator)
                 {
-                    focusThisWindowFrame(menu);
+                    menu.window.requestFocus();
                     found = i;
                     menu.setAccelerator(null);
                     break;
@@ -256,20 +281,6 @@ public class WindowMenu {
                 int next = (found < theMenu.getItemCount() - 1) ? found+1 : first;
                 JMenuItem item = theMenu.getItem(next);
                 item.setAccelerator(windowAccelerator);
-            }
-        }
-    }
-
-    private static void focusThisWindowFrame(JMenuItem m)
-    {
-        String name = m.getText();
-        for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-            WindowFrame w = it.next();
-            if (w.getTitle().equals(name))
-            {
-                w.requestFocus();
-                return; // found
             }
         }
     }
@@ -290,8 +301,10 @@ public class WindowMenu {
                 final WindowJMenuItem menu = new WindowJMenuItem(wf);
                 menu.setAccelerator(windowAccelerator);
                 menu.addActionListener(new java.awt.event.ActionListener() {
-                    public void actionPerformed(java.awt.event.ActionEvent evt) {
-                        focusThisWindowFrame((JMenuItem)evt.getSource());
+                    public void actionPerformed(java.awt.event.ActionEvent evt)
+                    {
+                        WindowJMenuItem m = (WindowJMenuItem)evt.getSource();
+                        m.window.requestFocus();
                 }});
                 menus.add(menu);
                 theDynamicMenu.add(menu);
@@ -304,8 +317,10 @@ public class WindowMenu {
                     final WindowJMenuItem menu = new WindowJMenuItem(wf);
                     menu.setAccelerator(windowAccelerator);
                     menu.addActionListener(new java.awt.event.ActionListener() {
-                        public void actionPerformed(java.awt.event.ActionEvent evt) {
-                            focusThisWindowFrame((JMenuItem)evt.getSource());
+                        public void actionPerformed(java.awt.event.ActionEvent evt)
+                        {
+                            WindowJMenuItem m = (WindowJMenuItem)evt.getSource();
+                            m.window.requestFocus();
                     }});
                     menus.add(menu);
                     w.getDynamicMenu().add(menu);
