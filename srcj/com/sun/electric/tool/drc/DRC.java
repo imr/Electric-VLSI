@@ -869,7 +869,7 @@ public class DRC extends Listener
 
     /****************************** OPTIONS ******************************/
 
-	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", tool.prefs, true);
+	private static Pref cacheIncrementalDRCOn = Pref.makeBooleanPref("IncrementalDRCOn", tool.prefs, false);
 	/**
 	 * Method to tell whether DRC should be done incrementally.
 	 * The default is "true".
