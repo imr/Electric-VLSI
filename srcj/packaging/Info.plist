@@ -27,7 +27,7 @@
 	<key>CFBundleIconFile</key>
 	<string>electric.icns</string>
 	<key>CFBundleInfoDictionaryVersion</key>
-	<string>8.04k</string>
+	<string>8.04l</string>
 	<key>CFBundleName</key>
 	<string>Electric</string>
 	<key>CFBundlePackageType</key>
@@ -52,7 +52,7 @@
 			<string>true</string>
 		</dict>
 		<key>VMOptions</key>
-		<string>-Xms16m -Xmx1000m</string>
+		<string>-Xms16m -Xmx1200m</string>
 	</dict>
 </dict>
 </plist>
