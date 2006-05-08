@@ -1058,7 +1058,13 @@ public class DRC extends Listener
 			this.cleanDRCDate = cleanDRCDate;
             this.newVariables = newVariables;
             this.activeBits = bits;
-			startJob();
+            // Only works for layout with in memory dates -> no need of adding the job into the queue
+            if (isDatesStoredInMemory() && (newVariables == null || newVariables.isEmpty()))
+            {
+                try {doIt();} catch (Exception e) {e.printStackTrace();};
+            }
+            else // put it into the queue
+			    startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -1069,12 +1075,11 @@ public class DRC extends Listener
             if (goodDRCDate != null)
             {
                 for (Map.Entry<Cell,Date> e : goodDRCDate.entrySet())
-//                for(Iterator<Cell> it = goodDRCDate.keySet().iterator(); it.hasNext(); )
                 {
-                    Cell cell = e.getKey(); //.next();
+                    Cell cell = e.getKey();
 
                     if (!cell.isLinked())
-                        new JobException("Cell '" + cell + "' is invalid to update DRC date");
+                        throw new JobException("Cell '" + cell + "' is invalid to update DRC date");
                     else
                     {
                         if (inMemory)
@@ -1090,9 +1095,7 @@ public class DRC extends Listener
             if (cleanDRCDate != null)
             {
                 for (Cell cell : cleanDRCDate.keySet())
-//                for(Iterator<Cell> it = cleanDRCDate.keySet().iterator(); it.hasNext(); )
                 {
-//                    Cell cell = e.getKey(); //it.next();
                     if (!cell.isLinked())
                         new JobException("Cell '" + cell + "' is invalid to clean DRC date");
                     else
@@ -1101,10 +1104,7 @@ public class DRC extends Listener
                         assert(data != null);
                         data.date = -1;
                         data.bits = -1; // I can't put null because of the version
-                        if (inMemory)
-                            ;
-//                            storedDRCDate.put(cell, null);
-                        else
+                        if (!inMemory)
                             cleanDRCDateAndBits(cell);
                     }
                 }
@@ -1115,10 +1115,8 @@ public class DRC extends Listener
             {
                 assert(!inMemory);
                 for (Map.Entry<Geometric,List<Variable>> e : newVariables.entrySet())
-//                for (NodeInst ni : newVariables.keySet())
                 {
                     Geometric ni = e.getKey();
-//                    List<Variable> list = newVariables.get(ni);
                     for (Variable var : e.getValue())
                         ni.addVar(var);
                 }
