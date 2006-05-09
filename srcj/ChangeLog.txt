@@ -2,6 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04m: *********************************
+
+IMP: (5/9/06, RK) NCC Regressions print out system properties so I can figure out what version of jvm was used to run the regressions
+
+IMP: (5/9/06, RK) Print out execution times for Assura LVS
+
 ************************* Version 8.04k-8.04l: *********************************
 
 BUG: (5/9/06, DN) No accelerator nor dimmed status updates on MacOSX (Bug #968).
@@ -10,10 +16,6 @@ FIX: Reimplement EMenu classes to generate standard JMenu.
 IMP: (5/8/06, GVG) DRC InMemory data doesn't require UpdateDataJob
 
 NOTE: It is versio 8.04l since May 8, 2006
-
-IMP: (5/9/06, RK) NCC Regressions print out system properties so I can figure out what version of jvm was used to run the regressions
-
-IMP: (5/9/06, RK) Print out execution times for Assura LVS
 
 IMP: (5/7/06, DN) Exports in memory database have both creation name (id) and user name.
     Disk files will have id only since 8.04l. Library reader can read future files, but
