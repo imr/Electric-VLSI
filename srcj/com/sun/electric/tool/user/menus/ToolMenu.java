@@ -538,8 +538,15 @@ public class ToolMenu {
                 new EMenuItem("Checkout From Repository") { public void run() {
                     CVS.checkoutFromRepository(); }})
                 {
+                    @Override
                     public boolean isEnabled() { return CVS.isEnabled(); }
-                },
+                    
+                    @Override
+                    protected void registerItem() {
+                        super.registerItem();
+                        registerUpdatable();
+                    }
+                 },
 
         //------------------- Others
 

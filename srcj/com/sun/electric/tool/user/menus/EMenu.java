@@ -23,22 +23,19 @@
  */
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.awt.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
 /**
  * Generic Electric menu.
  */
 public class EMenu extends EMenuItem {
-    /** static menu items */                                                private final List<EMenuItem> items;
-    /** dynamic list of menu items which are appended to the end of menu */ private List<EMenuItem> dynamicItems;
+    /** static menu items */                                                final List<EMenuItem> items;
     
     /**
      * @param text the menu item's displayed text.  An "_" in the string
@@ -74,39 +71,49 @@ public class EMenu extends EMenuItem {
     public List<EMenuItem> getItems() { return items; }
 
     /**
-     * Returns unmodifiebale list of menu items.
-     * Separators are represented by MeniCommands.SEPARATOR object.
-     * @return list of menu items.
      */
-    public void setDynamicItems(List<EMenuItem> dynamicItems) {
-        this.dynamicItems = dynamicItems;
+    public void setDynamicItems(List<? extends EMenuItem> dynamicItems) {
+        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars()) {
+            JMenu menu = (JMenu)menuBarInstance.findMenuItem(path);
+            while (menu.getMenuComponentCount() > items.size())
+                menu.remove(items.size());
+            genMenuElems(menu, dynamicItems);
+        }
     }
 
     @Override
-    void setParent(EMenuBar menuBar, EMenu parent) {
-        this.parent = parent;
-        for (EMenuItem item: items)
-            item.setParent(menuBar, this);
+    void registerTree(EMenuBar menuBar, int[] parentPath, int indexInParent) {
+        super.registerTree(menuBar, parentPath, indexInParent);
+        for (int index = 0; index < items.size(); index++) {
+            EMenuItem item = items.get(index);
+            item.registerTree(menuBar, path, index);
+        }
     }
-
-    protected void storeMenuItem(JMenu item, WindowFrame frame) {;}
+    
+    @Override
+    protected void registerItem() {}
 
     @Override
     JMenu genMenu(WindowFrame frame) {
         JMenu subMenu = (JMenu)super.genMenu(frame);
-        storeMenuItem(subMenu, frame);
-        return subMenu;
-    }
-    
-    JMenuItem genMenu(JMenuBar menuBar) {
-        Instance subMenu = new Instance();
-        menuBar.add(subMenu);
+        genMenuElems(subMenu, items);
         return subMenu;
     }
     
     @Override
     protected JMenuItem createMenuItem() {
-        return new Instance();
+        return new JMenu();
+    }
+    
+    private void genMenuElems(JMenu menu, List<? extends EMenuItem> items) {
+        for (EMenuItem elem: items) {
+            if (elem == EMenuItem.SEPARATOR) {
+                menu.addSeparator();
+                continue;
+            }
+            JMenuItem item = elem.genMenu(null);
+            menu.add(item);
+        }
     }
     
     @Override
@@ -117,66 +124,4 @@ public class EMenu extends EMenuItem {
     @Override
     public void run() { throw new UnsupportedOperationException(); }
     
-    /**
-     * Inner class to define an instance of generic menu.
-     */
-    private class Instance extends JMenu
-    {
-        private Instance() {
-            initMenuItem(this);
-            genMenuElems(items);
-        }
-
-        private void genMenuElems(List<EMenuItem> items) {
-            for (EMenuItem elem: items) {
-                if (elem == EMenuItem.SEPARATOR) {
-                    addSeparator();
-                    continue;
-                }
-                if (!elem.isVisible()) continue;
-                JMenuItem item = elem.genMenu(null);
-                add(item);
-            }
-        }
-
-        /**
-         * This method overides method from JMenu class to
-         * update appearance of menu items.
-         * This is required for subclasses whose visibility depend on User preferences
-         * such as CVS menus.
-         */
-        @Override
-        public void setPopupMenuVisible(boolean b) {
-            if (b) {
-                clearDynamicItems();
-                updateMenu();
-                if (dynamicItems != null)
-                    genMenuElems(dynamicItems);
-            }
-            super.setPopupMenuVisible(b);
-            if (!b)
-                clearDynamicItems();
-        }
-        
-        private void clearDynamicItems() {
-            if (dynamicItems == null) return;
-            while (getComponentCount() > items.size())
-                remove(items.size());
-        }
-        
-        /**
-         * Updates appearance of this menu instance before popping up.
-         * This is required for KeyBindings.
-         */
-        private void updateMenu() {
-            for (int i = 0, n = getMenuComponentCount(); i < n; i++) {
-                if (i >= items.size()) continue; // dynamic menus from now
-                EMenuItem elem = items.get(i);
-                Component c = getMenuComponent(i);
-                if (c instanceof JMenuItem)
-                    elem.updateMenuItem((JMenuItem)c);
-            }
-        }
-    }
 }
-

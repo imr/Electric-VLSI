@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -144,11 +145,15 @@ public class RoutingTab extends PreferencePanel
 	public void term()
 	{
 		boolean curMimic = routMimicStitcher.isSelected();
-		if (curMimic != Routing.isMimicStitchOn())
+		if (curMimic != Routing.isMimicStitchOn()) {
 			Routing.setMimicStitchOn(curMimic);
+            MenuCommands.menuBar().updateAllButtons();
+        }
 		boolean curAuto = routAutoStitcher.isSelected();
-		if (curAuto != Routing.isAutoStitchOn())
+		if (curAuto != Routing.isAutoStitchOn()) {
 			Routing.setAutoStitchOn(curAuto);
+            MenuCommands.menuBar().updateAllButtons();
+        }
 
 		ArcProto ap = null;
 		if (routOverrideArc.isSelected())

@@ -39,6 +39,7 @@ import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.menus.MenuCommands;
 
 import java.awt.Component;
 import java.awt.Cursor;
@@ -183,6 +184,12 @@ public class ToolBar extends JToolBar
         void updateToolBarButton(AbstractButton item) {
             item.setEnabled(isEnabled());
             item.setSelected(isSelected());
+        }
+        
+        @Override
+        protected void registerItem() {
+            super.registerItem();
+            registerUpdatable();
         }
         
         @Override
@@ -703,7 +710,7 @@ public class ToolBar extends JToolBar
     // ----------------------------------------------------------------------------
 
     /**
-     * Update associated ToolBarButtons on all toolbars
+     * Update associated ToolBarButtons on all toolbars und updatable menu items on all menubars
      */
     public static void updateToolBarButtons() {
         for (ToolBar toolBar: TopLevel.getToolBars()) {
@@ -716,6 +723,7 @@ public class ToolBar extends JToolBar
                 }
             }
         }
+        MenuCommands.menuBar().updateAllButtons();
     }
     
     /**

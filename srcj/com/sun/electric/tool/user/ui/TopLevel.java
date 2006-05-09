@@ -396,18 +396,18 @@ public class TopLevel extends JFrame
         return toolBars;
     }
 
-//    public static synchronized Iterator<MenuBar> getMenuBars() {
-//        ArrayList<MenuBar> menuBars = new ArrayList<MenuBar>();
-//        if (mode == UserInterfaceMain.Mode.MDI) {
-//            menuBars.add(topLevel.getTheMenuBar());
-//        } else {
-//            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
-//                WindowFrame wf = it.next();
-//                menuBars.add(wf.getFrame().getTheMenuBar());
-//            }
-//        }
-//        return menuBars.iterator();
-//    }
+    public static synchronized List<EMenuBar.Instance> getMenuBars() {
+        ArrayList<EMenuBar.Instance> menuBars = new ArrayList<EMenuBar.Instance>();
+        if (mode == UserInterfaceMain.Mode.MDI) {
+            menuBars.add(topLevel.getTheMenuBar());
+        } else {
+            for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+                WindowFrame wf = it.next();
+                menuBars.add(wf.getFrame().getTheMenuBar());
+            }
+        }
+        return menuBars;
+    }
 
     /**
      * The busy cursor overrides any other cursor.

@@ -132,7 +132,10 @@ public final class MenuCommands
             new EMenuItem("Wire to M9", KeyStroke.getKeyStroke(KeyEvent.VK_9, 0)) { public void run() {
                 ClickZoomWireListener.theOne.wireTo(9); }},
             new EMenuItem("Switch Wiring Target", KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)) { public void run() {
-                ClickZoomWireListener.theOne.switchWiringTarget(); }}
+                ClickZoomWireListener.theOne.switchWiringTarget(); }},
+                        
+            new EMenuItem("Window Cycle", KeyStroke.getKeyStroke('Q', 0)) { public void run() {
+                WindowFrame.getWindows().next().requestFocus(); }}
                 );
     }
     

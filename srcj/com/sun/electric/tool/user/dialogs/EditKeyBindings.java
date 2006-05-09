@@ -69,7 +69,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
          * Convert to String to show on dialog tree
          */
         public String toString() {
-            if (menuItem != null) {
+            if (menuItem != EMenuItem.SEPARATOR) {
                 StringBuffer buf = new StringBuffer(menuItem.getDescription());
                 KeyBindings bindings = menuBar.getKeyBindings(menuItem);
                 if (bindings == null) return buf.toString();

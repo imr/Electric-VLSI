@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,6 +53,7 @@ public class EMenuBar extends EMenu {
     /** All menu items created, stores as ArrayLists in HashMap */  HashMap<String,EMenuItem> menuItems = new HashMap<String,EMenuItem>();
     /** Key Binding Manager for menu items */                       public final KeyBindingManager keyBindingManager;
     /** Hidden menu */                                              private final EMenu hiddenMenu;
+    /** Updatable items. */                                         private final ArrayList<EMenuItem> updatableItems = new ArrayList<EMenuItem>();  
     
 //    /** Factory method to create/get a group */
 //    public static EMenuBar newInstance(String name, EMenu hiddenMenu, EMenu... items) {
@@ -77,19 +79,42 @@ public class EMenuBar extends EMenu {
         prefs = Preferences.userNodeForPackage(EMenuBar.class);
         keyBindingManager = new KeyBindingManager(name+"MenuKeyBinding-", prefs);
         // add to hashmap of existing groups
+        this.path = new int[0];
+        int indexInParent = 0;
         for (EMenuItem item: items)
         {
             if (item != null)
-                item.setParent(this, this);
+                item.registerTree(this, path, indexInParent++);
         }
         if (hiddenMenu != null)
-            hiddenMenu.setParent(this, this);
+            hiddenMenu.registerTree(this, path, -1);
     }
 
-    /**
-     * Register menu item together with its shortcuts.
+    /** Get a string description of the menu item.
+     * Takes the form <p>
+     * Menu | SubMenu | SubMenu | item
+     * <p>
+     * @param path a path to EMenuItem
+     * @return a string of the description.
      */
-    void registerItem(EMenuItem menuItem) {
+    public String getDescription(int[] path) {
+        StringBuilder sb = new StringBuilder();
+        int topIndex = path[0];
+        EMenuItem item = topIndex >= 0 ? items.get(topIndex) : hiddenMenu;
+        sb.append(item.getText());
+        for (int i = 1; i < path.length; i++) {
+            EMenu menu = (EMenu)item;
+            item = menu.items.get(path[i]);
+            sb.append(" | ");
+            sb.append(item.getText());
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Register key binding of menu item.
+     */
+    void registerKeyBindings(EMenuItem menuItem) {
         String key = menuItem.getDescription();
         menuItems.put(key, menuItem);
         
@@ -100,6 +125,21 @@ public class EMenuBar extends EMenu {
         // The generic menu item is an action listener for instance menu items.
         keyBindingManager.addActionListener(key, menuItem);
     } 
+    
+    /**
+     * Register updatable menu item.
+     */
+    void registerUpdatable(EMenuItem menuItem) {
+        updatableItems.add(menuItem);
+    }
+        
+    /**
+     * Update updatable buttons of this menu.
+     */
+    public void updateAllButtons() {
+        for (EMenuItem item: updatableItems)
+            item.updateJMenuItems();
+    }
     
     /**
      * Get the key bindings for the menu item.
@@ -273,6 +313,23 @@ public class EMenuBar extends EMenu {
         public void setIgnoreTextEditKeys(boolean b) { ignoreTextEditKeys = b; }
         
         public boolean getIgnoreTextEditKeys() { return ignoreTextEditKeys; }
+        
+       /** Get a string description of the menu item.
+         * Takes the form <p>
+         * Menu | SubMenu | SubMenu | item
+         * <p>
+         * @param path a path to EMenuItem
+         * @return a string of the description.
+         */
+        JMenuItem findMenuItem(int[] path) {
+            int topIndex = path[0];
+            JMenuItem item = topIndex >= 0 ? (JMenuItem)getComponent(topIndex) : null;
+            for (int i = 1; i < path.length; i++) {
+                JMenu menu = (JMenu)item;
+                item = (JMenuItem)menu.getMenuComponent(path[i]);
+            }
+            return item;
+        }
         
         // ------------------------------ Clean Up Methods ----------------------------
         

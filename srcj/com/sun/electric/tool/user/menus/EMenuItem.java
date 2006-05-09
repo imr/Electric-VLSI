@@ -25,11 +25,13 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
@@ -47,7 +49,7 @@ public abstract class EMenuItem implements ActionListener {
      * A constant to represent separator in menus.
      */
     public static final EMenuItem SEPARATOR = new EMenuItem("---------------") {
-        @Override void setParent(EMenuBar menuBar, EMenu parent) {}
+        @Override void registerTree(EMenuBar menuBar, int[] parentPath, int indexInParent) {}
         @Override public JMenuItem genMenu(WindowFrame frame) { throw new UnsupportedOperationException(); }
         @Override public void run() { throw new UnsupportedOperationException(); }
     };
@@ -77,9 +79,13 @@ public abstract class EMenuItem implements ActionListener {
      */
     private KeyStroke accelerator2;
     /**
-     * Parent EMenu for this EMenuItem.
+     * Top EMenuBar for this EMenuItem.
      */
-    EMenu parent;
+    EMenuBar menuBar;
+    /**
+     * A path from EMenuBar to this menu item.
+     */
+    int [] path;
     
     /**
      * @param text the menu item's displayed text.  An "_" in the string
@@ -155,7 +161,13 @@ public abstract class EMenuItem implements ActionListener {
     
     KeyStroke getAccelerator() { return accelerator; }
     KeyStroke getAccelerator2() { return accelerator2; }
-    void setAccelerator(KeyStroke accelerator) { this.accelerator = accelerator; }
+    
+    void setAccelerator(KeyStroke accelerator) {
+        if (this.accelerator == accelerator) return;
+        this.accelerator = accelerator;
+        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
+            menuBarInstance.findMenuItem(path).setAccelerator(accelerator);
+    }
     
     
     public String toString() { return text; }
@@ -166,23 +178,38 @@ public abstract class EMenuItem implements ActionListener {
      * <p>
      * @return a string of the description.
      */
-    public String getDescription() {
-        String s = getText();
-        for (EMenu p = parent; p != null && !(p instanceof EMenuBar); p = p.parent)
-            s = p.getText() + " | " + s;
-        return s;
-    }
+    public String getDescription() { return menuBar.getDescription(path); }
     
     /**
      * Register menu item tree in EMenuBar.
      * @param menuBar EMenuBar where to register.
-     * @param parent parent EMenu of 
+     * @param parentPath path to parent 
+     * @param indexInParent index of this menu item in parent
      */
-    void setParent(EMenuBar menuBar, EMenu parent) {
-        this.parent = parent;
-        menuBar.registerItem(this);
+    void registerTree(EMenuBar menuBar, int[] parentPath, int indexInParent) {
+        if (this.menuBar != null || path != null)
+            throw new IllegalStateException("EMenuItem " + this + " referenced twice");
+        this.menuBar = menuBar;
+        path = new int[parentPath.length + 1];
+        System.arraycopy(parentPath, 0, path, 0, parentPath.length);
+        path[parentPath.length] = indexInParent;
+        registerItem();
     }
-
+    
+    /**
+     * Register this menu item in EMenuBar.
+     */
+    protected void registerItem() {
+        menuBar.registerKeyBindings(this);
+    }
+    
+    /**
+     * Register this item as updatable ( dimmed items or chec box/radio buttons
+     */
+    protected void registerUpdatable() {
+        menuBar.registerUpdatable(this);
+    }
+    
     /**
      * Generates menu item by this this generic EMenuItem.
      * @return generated instance.
@@ -190,22 +217,20 @@ public abstract class EMenuItem implements ActionListener {
      */
     JMenuItem genMenu(WindowFrame frame) {
         JMenuItem item = createMenuItem();
-        initMenuItem(item);
-        updateMenuItem(item);
-        return item;
-    }
-    
-    /**
-     * Init create instance of menu item.
-     */
-    void initMenuItem(JMenuItem item) {
         item.setText(text);
         if (mnemonicsPos >= 0) {
             item.setMnemonic(text.charAt(mnemonicsPos));
             item.setDisplayedMnemonicIndex(mnemonicsPos);
         }
+        if (accelerator != null)
+            item.setAccelerator(accelerator);
+        
         // add action listeners so when user selects menu, actions will occur
         item.addActionListener(this);
+        
+        // init updatable status
+        updateMenuItem(item);
+        return item;
     }
     
     /**
@@ -222,7 +247,6 @@ public abstract class EMenuItem implements ActionListener {
      * @param item item to update.
      */
     protected void updateMenuItem(JMenuItem item) {
-        item.setAccelerator(accelerator);
         item.setEnabled(isEnabled());
         item.setSelected(isSelected());
     }
@@ -233,13 +257,6 @@ public abstract class EMenuItem implements ActionListener {
      * @return true is this generic EMenuItem is enabled.
      */
     public boolean isEnabled() { return true; }
-
-    /**
-     * Returns visisble state of this generic EMenuItem
-     * @return true in most of the cases except for those EMenuItem holding
-     * the dynmaic Window submenus
-     */
-    public boolean isVisible() { return true; }
 
     /**
      * Returns selection state of this generic EMenuItem.
@@ -270,15 +287,32 @@ public abstract class EMenuItem implements ActionListener {
      * Updates GUI buttons after change of state of generic button.
      * Override in subclasses.
      */
-    protected void updateButtons() {} 
+    protected void updateButtons() {
+        menuBar.updateAllButtons();
+    }
+    
+     /**
+     * Updates GUI menu buttons after change of state of generic button.
+     */
+    void updateJMenuItems() {
+        for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars())
+            updateMenuItem(menuBarInstance.findMenuItem(path));
+    }
 
     /**
      * A subclass of EMenuItem to represent toggle button.
      */
     public abstract static class CheckBox extends EMenuItem {
+         
         public CheckBox(String text) { super(text); }
         @Override public void run() { setSelected(!isSelected()); }
         public abstract void setSelected(boolean b);
         @Override protected JMenuItem createMenuItem() { return new JCheckBoxMenuItem(); }
+        
+        @Override
+        protected void registerItem() {
+            super.registerItem();
+            registerUpdatable();
+        }
     }
 }

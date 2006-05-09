@@ -784,6 +784,7 @@ public class WindowFrame extends Observable
 
 			if (content != null) content.setWindowTitle();
 		}
+        WindowMenu.setDynamicMenus();
 	}
 
 	public void setWindowSize(Rectangle frameRect)
