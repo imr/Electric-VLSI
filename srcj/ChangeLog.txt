@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+IMP: (5/9/06, GVG) Catching any type of exception while flusing preferences such as java.lang.SecurityException.
+This tends to crash regressions if they can't save preferences.
+
 IMP: (5/9/06, RK) NCC Regressions print out system properties so I can figure out what version of jvm was used to run the regressions
 
 IMP: (5/9/06, RK) Print out execution times for Assura LVS
