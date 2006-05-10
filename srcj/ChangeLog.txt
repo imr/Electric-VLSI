@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/10/06, DN) Exception in EMenuItem.getDescription (Bug #973)
+FIX: For toolbar buttons which are not registered in menu, getDescrioption returns text.
+
 BUG: (5/10/06, DN) -mdi crashing (Bug #972)
 FIX: In TopLevel.getMenuBars check for topLevel == null.
 

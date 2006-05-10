@@ -178,7 +178,7 @@ public abstract class EMenuItem implements ActionListener {
      * <p>
      * @return a string of the description.
      */
-    public String getDescription() { return menuBar.getDescription(path); }
+    public String getDescription() { return path != null ? menuBar.getDescription(path) : text; }
     
     /**
      * Register menu item tree in EMenuBar.
