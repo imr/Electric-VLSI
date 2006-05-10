@@ -399,7 +399,8 @@ public class TopLevel extends JFrame
     public static synchronized List<EMenuBar.Instance> getMenuBars() {
         ArrayList<EMenuBar.Instance> menuBars = new ArrayList<EMenuBar.Instance>();
         if (mode == UserInterfaceMain.Mode.MDI) {
-            menuBars.add(topLevel.getTheMenuBar());
+            if (topLevel != null)
+                menuBars.add(topLevel.getTheMenuBar());
         } else {
             for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
                 WindowFrame wf = it.next();
