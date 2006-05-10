@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+************************* Version 8.04k-8.04l: *********************************
+
 BUG: (5/10/06, DN) Exception in EMenuItem.getDescription (Bug #973)
 FIX: For toolbar buttons which are not registered in menu, getDescrioption returns text.
 
@@ -16,8 +18,6 @@ This tends to crash regressions if they can't save preferences.
 IMP: (5/9/06, RK) NCC Regressions print out system properties so I can figure out what version of jvm was used to run the regressions
 
 IMP: (5/9/06, RK) Print out execution times for Assura LVS
-
-************************* Version 8.04k-8.04l: *********************************
 
 BUG: (5/9/06, DN) No accelerator nor dimmed status updates on MacOSX (Bug #968).
 FIX: Reimplement EMenu classes to generate standard JMenu.
