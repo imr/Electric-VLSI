@@ -331,7 +331,7 @@ public class MimicStitch
 
 			// flag if the sizes differ
 			if (widHead != mimicWidHead || heiHead != mimicHeiHead) pa.situation |= LIKELYDIFFNODESIZE;
-			if (widTail != mimicWidHead || heiTail != mimicHeiHead) pa.situation |= LIKELYDIFFNODESIZE;
+			if (widTail != mimicWidTail || heiTail != mimicHeiTail) pa.situation |= LIKELYDIFFNODESIZE;
 
 			// the same! queue it for deletion
 			arcKills.add(pa);
@@ -354,7 +354,7 @@ public class MimicStitch
 	{
 		private ArcInst ai1, ai2;
 		private int end1, end2;
-		private Connection conn1, conn2;
+//		private Connection conn1, conn2;
 		private double oWidth;
 		private ArcProto oProto;
 		private double prefX, prefY;
