@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import java.util.*;
 import java.io.File;
 import java.awt.Color;
+import java.net.URL;
 
 /**
  * Created by IntelliJ IDEA.
@@ -307,6 +308,16 @@ public class CVSLibrary {
      * @param lib
      */
     public static void savingLibrary(Library lib) {
+        // When doing "save as", library type may change. Update library type here
+        URL libFile = lib.getLibFile();
+        if (libFile != null) {
+            FileType type = OpenFile.getOpenFileType(libFile.getFile(), FileType.JELIB);
+            CVSLibrary cvslib = CVSLibraries.get(lib);
+            if (cvslib != null) {
+                cvslib.type = type;
+            }
+        }
+
         if (!CVS.isDELIB(lib)) {
             File file = TextUtils.getFile(lib.getLibFile());
             if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath()))) return;
