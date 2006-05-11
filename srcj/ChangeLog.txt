@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/11/06, GVG) ClassCastException in KeyBindingManager:inputMap (Bug 981)
+FIX: There were some wrong casts to List<String> instead of Set<String> in KeyBindingManager.java
+
 ************************* Version 8.04k-8.04l: *********************************
 
 BUG: (5/10/06, DN) Exception in EMenuItem.getDescription (Bug #973)

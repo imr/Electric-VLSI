@@ -37,7 +37,6 @@ import java.util.prefs.Preferences;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 
 /**
@@ -411,11 +410,11 @@ public class KeyBindingManager {
         // if prefix stroke exists, remove one prefixAction key string
         // (may be more than one if more than one binding has prefixStroke as it's prefix)
         if (k.getPrefixStroke() != null) {
-            List<String> list = (List<String>)inputMap.get(k.getPrefixStroke());
-            if (list != null) {
-                for (String str : list) {
+            Set<String> set = inputMap.get(k.getPrefixStroke());
+            if (set != null) {
+                for (String str : set) {
                     if (str.equals(PrefixAction.actionDesc)) {
-                        list.remove(str);
+                        set.remove(str);
                         break;
                     }
                 }
@@ -425,7 +424,7 @@ public class KeyBindingManager {
         }
         // remove stroke
         if (inputMapToUse != null) {
-            Set set = inputMapToUse.get(k.getStroke());
+            Set<String> set = inputMapToUse.get(k.getStroke());
             if (set != null) set.remove(actionDesc);
         }
         // remove action
@@ -620,7 +619,7 @@ public class KeyBindingManager {
                         if (prefixMap != null) {
                             for (Iterator<Set<String>> it2 = prefixMap.values().iterator(); it2.hasNext(); ) {
                                 // all existing prefixStroke,stroke combos conflict, so add them all
-                                List<String> prefixList = (List<String>)it2.next(); // this is a set of strings
+                                Set<String> prefixList = it2.next(); // this is a set of strings
                                 conflictsStrings.addAll(prefixList);
                             }
                         }
