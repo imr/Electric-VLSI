@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: NCC. Insert print statements to help debug Bugzilla# 969, 977
+
 BUG: NullPointerException on delete area (Bug #982)
 FIX: ERectangle instead of Rectangle2D
 

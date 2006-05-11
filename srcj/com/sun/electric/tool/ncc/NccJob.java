@@ -147,6 +147,8 @@ public class NccJob extends Job {
 	
 	// Some day we may run this on server
     public boolean doIt() {
+    	System.out.println("NCC: Beginning of NccJob:doIt()");
+    	
 		if (cellCtxts==null) {
 			// null results means couldn't run NCC
 			results = null;
@@ -196,7 +198,8 @@ public class NccJob extends Job {
 		
 		// abandon results from last run in order to reclaim storage
 		results = null;
-
+		
+		System.out.println("NCC: Just before startJob");
 		startJob();
 	}
 }
