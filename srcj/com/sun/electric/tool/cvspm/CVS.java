@@ -460,6 +460,11 @@ public class CVS {
     public static void fixStaleCellReferences(List<Library> libs) {
         if (libs == null) return;
         for (Library lib : libs) {
+            State state = CVSLibrary.getState(lib);
+            if (state == State.CONFLICT) {
+                Job.getUserInterface().showErrorMessage("Conflicts updating Library "+lib.getName()+", not reloading library", "CVS Update had Conflicts");
+                continue;
+            }
             fixStaleCellReferences(lib);
         }
     }

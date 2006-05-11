@@ -1378,6 +1378,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                     menu.addSeparator();
 
                     boolean enabled = CVSLibrary.isInCVS((Library)getCurrentlySelectedObject(0));
+                    boolean isDELIB = CVS.isDELIB((Library)getCurrentlySelectedObject(0));
 
                     JMenu cvsMenu = new JMenu("CVS");
                     menu.add(cvsMenu);
@@ -1423,6 +1424,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                     menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
                         AddRemove.add((Library)getCurrentlySelectedObject(0)); }});
                     menuItem.setEnabled(!enabled);
+
+                    if (CVSLibrary.hasUnknownCells((Library)getCurrentlySelectedObject(0))) {
+                        menuItem = new JMenuItem("Add Cells not in CVS");
+                        cvsMenu.add(menuItem);
+                        menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                            AddRemove.add((Library)getCurrentlySelectedObject(0)); }});
+                    }
 
 /*                    menuItem = new JMenuItem("Remove from CVS");
                     cvsMenu.add(menuItem);

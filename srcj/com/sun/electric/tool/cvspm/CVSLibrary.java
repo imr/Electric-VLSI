@@ -127,6 +127,25 @@ public class CVSLibrary {
         return true;
     }
 
+    /**
+     * Only for DELIBs, check if there are any cells in
+     * library that have state "UNKNOWN", and need to be added to CVS.
+     * @param lib
+     * @return
+     */
+    public static boolean hasUnknownCells(Library lib) {
+        CVSLibrary cvslib = CVSLibraries.get(lib);
+        if (cvslib == null) return false;
+        if (cvslib.type != FileType.DELIB) return false;
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+            Cell cell = it.next();
+            State state = cvslib.cellStates.get(cell);
+            if (state == null) return true;
+            if (state == State.UNKNOWN) return true;
+        }
+        return false;
+    }
+
     // --------------------- State recording ---------------------
 
     /**
