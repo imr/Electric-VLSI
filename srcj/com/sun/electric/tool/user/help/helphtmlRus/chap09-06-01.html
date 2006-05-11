@@ -1,0 +1,24 @@
+<!-- HEADER 9-6-1: Introduction to Routing -->
+
+<!-- COMMAND Tool/Routing/Unroute -->
+<!-- COMMAND Tool/Routing/Get Unrouted Wire -->
+<!-- COMMAND Tool/Routing/Copy Routing Topology -->
+<!-- COMMAND Tool/Routing/Paste Routing Topology -->
+
+Инструмент разводки включает несколько подсистем создания маршрутов.
+Трассировщик использует два набора рисунков для соединения соседних ячеек.
+maze-router осуществляет единичную разводку.
+river-router также доступен и позволяет осуществлять много полосную параллельную разводку.
+<P>
+Некоторые из этих маршрутов используют "Unrouted Arc", "тонкие дуги", которые могут подсодинятся к двум компанентам.
+Создание "rats nests" этих дуг формеруют графическое описание для далнейшего использования их трассировщиками.
+Создание "Unrouted Arc" осуществляется с помощью Generic Technology
+(подробнее <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
+Для создание используйте команду <B>Get Unrouted Wire</B> из меню  <B>Tool / Routing</B>.
+<P>
+В итоге, команды <B>Copy Routing Topology</B> и <B>Paste Routing Topology</B>
+используются для создания unrouted arcs в ячейки (the "pasted" cell), где 
+компаненты связаны с ячейкой (the "copied" cell). Далее команда <B>Paste Routing Topology</B>
+сопоставляет полученное.
+
+<!-- TRAILER -->

@@ -40,6 +40,7 @@ import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -103,6 +104,7 @@ public class ManualViewer extends EDialog
 		boolean newAtLevel;
 	};
 
+	private String htmlDirectory;
     private JScrollPane rightHalf;
     private JEditorPane editorPane;
 	private JSplitPane splitPane;
@@ -125,7 +127,20 @@ public class ManualViewer extends EDialog
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null);
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, "helphtml");
+//			theManual.loadPointers();
+		}
+		theManual.setVisible(true);
+	}
+
+	/**
+	 * Method to display the user's manual.
+	 */
+	public static void userManualRussianCommand()
+	{
+		if (theManual == null)
+		{
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, "helphtmlRus");
 //			theManual.loadPointers();
 		}
 		theManual.setVisible(true);
@@ -140,7 +155,7 @@ public class ManualViewer extends EDialog
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), preference);
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), preference, "helphtml");
 //			theManual.loadPointers();
 		} else
 		{
@@ -240,9 +255,10 @@ public class ManualViewer extends EDialog
      * Create a new user's manual dialog.
      * @param parent
      */
-    private ManualViewer(Frame parent, String preference)
+    private ManualViewer(Frame parent, String preference, String htmlDir)
     {
         super(parent, false);
+        htmlDirectory = htmlDir;
         setTitle("User's Manual");
         init();
 
@@ -256,7 +272,7 @@ public class ManualViewer extends EDialog
         }
 
 		// load the table of contents
-        String indexName = "helphtml/toc.txt";
+        String indexName = htmlDirectory + "/toc.txt";
 		URL url = ManualViewer.class.getResource(indexName);
 		InputStream stream = TextUtils.getURLStream(url, null);
         if (stream == null)
@@ -322,7 +338,7 @@ public class ManualViewer extends EDialog
 				pi.fullChapterNumber += sectionNumbers[indent];
 				pi.level = indent;
 				pi.newAtLevel = newAtLevel;
-				pi.url = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
+				pi.url = ManualViewer.class.getResource(htmlDirectory + "/" + fileName + ".html");
 				if (pi.url == null)
                     System.out.println("NULL URL to "+fileName);
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Integer(pageSequence.size()));
@@ -408,7 +424,7 @@ public class ManualViewer extends EDialog
 		}
 
 		// scan all manual entries for menu associations
-        String indexName = "helphtml/toc.txt";
+        String indexName = htmlDirectory + "/toc.txt";
 		URL url = ManualViewer.class.getResource(indexName);
 		InputStream stream = TextUtils.getURLStream(url, null);
         if (stream == null)
@@ -433,7 +449,7 @@ public class ManualViewer extends EDialog
 			if (titleEnd < 0) continue;
 			String fileName = line.substring(titleEnd+1).trim();
 
-			URL pageURL = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
+			URL pageURL = ManualViewer.class.getResource(htmlDirectory + "/" + fileName + ".html");
 			if (pageURL == null)
 			{
 				System.out.println("NULL URL to "+fileName);
@@ -1324,6 +1340,9 @@ public class ManualViewer extends EDialog
 		editorPane.setEditable(false);
 		editorPane.setContentType("text/html");
 		editorPane.addHyperlinkListener(new Hyperactive(this));
+//		editorPane.setContentType("text/html; charset=UTF-8");
+//		Font font = new Font("Lucida Sans", Font.PLAIN, 24);
+//		editorPane.setFont(font);
 		rightHalf = new JScrollPane(editorPane);
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		rightHalf.setPreferredSize(new Dimension(screenSize.width/2, screenSize.height*3/4));

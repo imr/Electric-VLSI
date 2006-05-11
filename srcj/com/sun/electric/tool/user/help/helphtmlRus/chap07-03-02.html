@@ -1,0 +1,39 @@
+circuit<!-- HEADER 7-3-2: CIF Control -->
+
+<!-- COMMAND File/Import/CIF (Caltech Intermediate Format)... -->
+<!-- COMMAND File/Export/CIF (Caltech Intermediate Format)... -->
+<!-- PREFERENCE I/O/CIF -->
+
+CIF (Caltech Intermediate Format) 
+используется в качестве средства обмена между системами проектирования и кремниевыми заводами.
+Информация о чтении и записи CIF, содержится в 
+<A HREF="chap03-09-02.html#chap03-09-02">Разделе 3-9-2</A> и
+<A HREF="chap03-09-03.html#chap03-09-03">Разделе 3-9-3</A>.
+Настройки CIF управляются с панели "CIF" 
+(в меню <B>File / Preferences...</B>, раздел "I/O", панель "CIF").
+<P>
+<TABLE><TR><TD>
+Это диалоговое окно управляет преобразованием слоев Electric в слои файла CIF и наоборот.
+Нажав мышью на слой Electric, можно напечатать новое имя слоя CIF.
+
+</TD><TD><CENTER><IMG SRC="fig07-10.png" ALT="Рис. 7.10"></CENTER></TD></TR></TABLE>
+<P>
+По умолчанию, выход CIF записывает всю иерархию, относящуюся к текущей ячейке. 
+
+Если же выбрать опцию "Output Mimics Display", то
+можно увидеть, что в CIF файле неразвернутые клетки будут представлены в виде абриса.
+Эта ососбенность полезна, если выход CIF предполагается печатать.
+<P>
+Другая опция - сливать или нет элементы топологии, находящиеся вплотную. Полезно из-за избыточности, возникающейся при соединении дуг и узлов.
+По умолчанию слияния не происходит. Это увеличивает размер фалов, но конструкции при этом проще и файлы генерируются быстрее.
+Если же выбрать опцию "Output Merges Boxes", то
+можно увидеть, что все соседние области одного и того же слоя сливаются в один сложный многоугольник. Это требует больше вычислений, и на выходе получается файл меньшего размера с более сложными конструкциями.
+<P>
+Another option is whether or not to instantiate the circuit in the CIF. By default, the currently displayed cell becomes the top level of the CIF file, and is instantiated at the end of the CIF. This causes the CIF file to display the current cell. If the CIF file is to be used as a library, with no current cell, then uncheck the "Output Instantiates Top Level" checkbox, and there will be no invocation of the current cell.
+<P>
+При чтении CIF файлов, полагается, что "wire" имеют закругленную геометрическую форму на концах и углах.
+Если отметить чекбокс "Input Squares Wires", CIF ввод полагает, что концы "wire" квадратны ии расширены на половину своей ширины.
+<P>
+Заметьте, что минимальное разрешение формата CIF составляет 10 нм. Поскольку ничего меньше этого размера не может быть точно представлено, вывод CIF меньших геометрий будет приводить к ошибкам.
+
+<!-- TRAILER -->

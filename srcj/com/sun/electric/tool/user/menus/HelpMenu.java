@@ -64,6 +64,9 @@ public class HelpMenu {
 		    new EMenuItem("_User's Manual...") { public void run() {
                 ManualViewer.userManualCommand(); }},
 
+            Job.getDebug() ? new EMenuItem("_User's Manual (Russian)...") { public void run() {
+                ManualViewer.userManualRussianCommand(); }} : null,
+
         // mnemonic keys available: ABCDEFGHIJKL NOPQRSTUVWXYZ
             new EMenu("_Samples",
                 new EMenuItem("_Load Library") { public void run() {
