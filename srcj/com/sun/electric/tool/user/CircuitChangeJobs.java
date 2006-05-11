@@ -23,11 +23,7 @@
  */
 package com.sun.electric.tool.user;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -1189,13 +1185,13 @@ public class CircuitChangeJobs
 	public static class DeleteSelectedGeometry extends Job
 	{
         private Cell cell;
-        private Rectangle2D bounds;
+        private ERectangle bounds;
 
         public DeleteSelectedGeometry(Cell cell, Rectangle2D bounds)
 		{
 			super("Delete selected geometry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
-            this.bounds = bounds;
+            this.bounds = ERectangle.snap(bounds);
 			startJob();
 		}
 
