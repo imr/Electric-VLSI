@@ -199,7 +199,7 @@ public class NccJob extends Job {
 		// abandon results from last run in order to reclaim storage
 		results = null;
 		
-		System.out.println("NCC: Just before startJob");
+		System.out.println("NCC: Just before calling startJob()");
 		startJob();
 	}
 }
