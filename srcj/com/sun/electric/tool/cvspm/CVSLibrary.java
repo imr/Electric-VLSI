@@ -123,6 +123,7 @@ public class CVSLibrary {
         if (cvslib.type != FileType.DELIB) return false;
         State state = cvslib.cellStates.get(cell);
         if (state == null) return false;
+        if (state == State.UNKNOWN) return false;
         return true;
     }
 
@@ -167,6 +168,10 @@ public class CVSLibrary {
         }
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell cell = it.next();
+            State currentState = cvslib.cellStates.get(cell);
+            // When cell is not in CVS and doing commit of library,
+            // do not set state of unknown cells to NONE
+            if (currentState == State.UNKNOWN) continue;
             cvslib.cellStates.put(cell, state);
         }
     }
