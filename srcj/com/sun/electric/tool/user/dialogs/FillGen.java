@@ -24,8 +24,12 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.generator.layout.FillGenerator;
+import com.sun.electric.tool.generator.layout.FillGeneratorTool;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.hierarchy.Cell;
 
@@ -39,13 +43,22 @@ import java.awt.geom.Rectangle2D;
  * Unused class to manage fill generators.
  */
 public class FillGen extends EDialog {
-
-    private JTextField[] vddSpace;
-    private JComboBox[] vddUnit;
-    private JTextField[] gndSpace;
-    private JComboBox[] gndUnit;
     private JCheckBox[] tiledCells;
+    private List<FillGenButton> metalOptions = new ArrayList<FillGenButton>();
     private Cell cellToFill;
+
+    private static class FillGenButton extends JRadioButton
+    {
+        JTextField vddSpace, vddWidth, gndSpace, gndWidth;
+        JComboBox vddUnit, vddWUnit, gndUnit, gndWUnit;
+        int metal;
+
+        FillGenButton(int metal)
+        {
+            super("Metal " + metal);
+            this.metal = metal;
+        }
+    }
 
     /** Creates new form FillGen */
     public FillGen(Technology tech, java.awt.Frame parent, boolean modal) {
@@ -74,70 +87,125 @@ public class FillGen extends EDialog {
             cellButton.setEnabled(false); // you can't select it if cell is null.
             templateButton.setSelected(true);
         }
-        optionActionPerformed(null);
-
 
         int numMetals = (tech == null) ? 6 : tech.getNumMetals();
-        int size = numMetals - 1;
-        vddSpace = new JTextField[size];
-        vddUnit = new JComboBox[size];
-        gndSpace = new JTextField[size];
-        gndUnit = new JComboBox[size];
+        String[] units = new String[] { "lambda", "tracks" };
 
         for (int i = 1; i < numMetals; i++)
         {
-            JLabel label = new javax.swing.JLabel();
+            int metal = i+1;
+            Layer metalLayer = tech.findLayer("Metal-"+(i+1)); // @TODO not very elegant
+            DRCTemplate rule = DRC.getSpacingRule(metalLayer, null, metalLayer, null, false, -1, 0, 0);
 
-            label.setText("Metal " + (i+1));
+            FillGenButton button = new FillGenButton(metal);
+            metalOptions.add(button);
             GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 0;
             gridBagConstraints.gridy = i;
-            metalPanel.add(label, gridBagConstraints);
+            gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+            metalPanel.add(button, gridBagConstraints);
+            button.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    metalOptionActionPerformed(evt);
+                }
+            });
+            button.setSelected(false);
 
+            // vdd space
             JTextField text = new JTextField();
-            vddSpace[i-1] = text;
-            text.setColumns(8);
+            button.vddSpace = text;
+            text.setColumns(4);
             text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-            text.setText("-1");
-            text.setMinimumSize(new java.awt.Dimension(100, 21));
+            text.setText(Double.toString(rule.value1));
+            text.setMinimumSize(new java.awt.Dimension(40, 21));
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 1;
             gridBagConstraints.gridy = i;
             metalPanel.add(text, gridBagConstraints);
 
+            // vdd space unit
             JComboBox combox = new JComboBox();
-            vddUnit[i-1] = combox;
-            combox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
+            button.vddUnit = combox;
+            combox.setModel(new javax.swing.DefaultComboBoxModel(units));
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 2;
             gridBagConstraints.gridy = i;
             metalPanel.add(combox, gridBagConstraints);
 
+            // Gnd space
             text = new JTextField();
-            gndSpace[i-1] = text;
-            text.setColumns(8);
+            button.gndSpace = text;
+            text.setColumns(4);
             text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-            text.setText("0");
-            text.setMinimumSize(new java.awt.Dimension(100, 21));
+            text.setText(Double.toString(rule.value1));
+            text.setMinimumSize(new java.awt.Dimension(40, 21));
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 3;
             gridBagConstraints.gridy = i;
             gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
             metalPanel.add(text, gridBagConstraints);
 
+            // Gnd space unit
             combox = new JComboBox();
-            gndUnit[i-1] = combox;
-            combox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-//            combox.addActionListener(new java.awt.event.ActionListener() {
-//                public void actionPerformed(java.awt.event.ActionEvent evt) {
-//                    jComboBox2ActionPerformed(evt);
-//                }
-//            });
+            button.gndUnit = combox;
+            combox.setModel(new javax.swing.DefaultComboBoxModel(units));
             gridBagConstraints = new java.awt.GridBagConstraints();
             gridBagConstraints.gridx = 4;
             gridBagConstraints.gridy = i;
             metalPanel.add(combox, gridBagConstraints);
+
+            // Min size rule
+            rule = DRC.getMinValue(metalLayer, DRCTemplate.DRCRuleType.MINWID);
+
+            // vdd width
+            text = new JTextField();
+            button.vddWidth = text;
+            text.setColumns(4);
+            text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
+            text.setText(Double.toString(rule.value1));
+            text.setMinimumSize(new java.awt.Dimension(40, 21));
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 5;
+            gridBagConstraints.gridy = i;
+            gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+            metalPanel.add(text, gridBagConstraints);
+
+            // vdd width unit
+            combox = new JComboBox();
+            button.vddWUnit = combox;
+            combox.setModel(new javax.swing.DefaultComboBoxModel(units));
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 6;
+            gridBagConstraints.gridy = i;
+            metalPanel.add(combox, gridBagConstraints);
+
+            // Gnd width
+            text = new JTextField();
+            button.gndWidth = text;
+            text.setColumns(4);
+            text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
+            text.setText(Double.toString(rule.value1));
+            text.setMinimumSize(new java.awt.Dimension(40, 21));
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 7;
+            gridBagConstraints.gridy = i;
+            gridBagConstraints.insets = new java.awt.Insets(0, 5, 0, 0);
+            metalPanel.add(text, gridBagConstraints);
+
+            // Gnd width unit
+            combox = new JComboBox();
+            button.gndWUnit = combox;
+            combox.setModel(new javax.swing.DefaultComboBoxModel(units));
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 8;
+            gridBagConstraints.gridy = i;
+            metalPanel.add(combox, gridBagConstraints);
+
+            // setting default values
+//            setMetalOption(button);
         }
+
+        optionActionPerformed(null);
 
         // Loading tiles information
         tiledCells = new JCheckBox[12];
@@ -171,16 +239,20 @@ public class FillGen extends EDialog {
         topGroup = new javax.swing.ButtonGroup();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         floorplanPanel = new javax.swing.JPanel();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
         metalPanel = new javax.swing.JPanel();
+        vddSpaceLabel = new javax.swing.JLabel();
+        vddWidthLabel = new javax.swing.JLabel();
+        gndSpaceLabel = new javax.swing.JLabel();
+        gndWidthLabel = new javax.swing.JLabel();
         templatePanel = new javax.swing.JPanel();
+        masterDimPanel = new javax.swing.JPanel();
+        jTextField2 = new javax.swing.JTextField();
+        jTextField1 = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        otherMasterPanel = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
         jComboBox1 = new javax.swing.JComboBox();
-        jTextField1 = new javax.swing.JTextField();
-        jTextField2 = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
         templateButton = new javax.swing.JRadioButton();
         cellButton = new javax.swing.JRadioButton();
         cellPanel = new javax.swing.JPanel();
@@ -190,6 +262,7 @@ public class FillGen extends EDialog {
         masterSelPanel = new javax.swing.JPanel();
         createButton = new javax.swing.JRadioButton();
         selectButton = new javax.swing.JRadioButton();
+        metalWidthOption = new javax.swing.JCheckBox();
         tilingPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jCheckBox1 = new javax.swing.JCheckBox();
@@ -220,61 +293,53 @@ public class FillGen extends EDialog {
 
         jTabbedPane1.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
         jTabbedPane1.setMaximumSize(new java.awt.Dimension(327670, 327670));
-        jTabbedPane1.setPreferredSize(new java.awt.Dimension(470, 300));
         floorplanPanel.setLayout(new java.awt.GridBagLayout());
 
-        jLabel7.setText("Vdd reserved space");
+        floorplanPanel.setMinimumSize(new java.awt.Dimension(550, 300));
+        floorplanPanel.setPreferredSize(new java.awt.Dimension(550, 300));
+        metalPanel.setLayout(new java.awt.GridBagLayout());
+
+        metalPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Reserved Space"));
+        vddSpaceLabel.setText("Vdd Space");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 0);
-        floorplanPanel.add(jLabel7, gridBagConstraints);
+        metalPanel.add(vddSpaceLabel, gridBagConstraints);
 
-        jLabel8.setText("gnd reserved space");
+        vddWidthLabel.setText("Vdd Width");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 5;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        metalPanel.add(vddWidthLabel, gridBagConstraints);
+
+        gndSpaceLabel.setText("Gnd Space");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 0);
-        floorplanPanel.add(jLabel8, gridBagConstraints);
+        metalPanel.add(gndSpaceLabel, gridBagConstraints);
 
-        metalPanel.setLayout(new java.awt.GridBagLayout());
+        gndWidthLabel.setText("Gnd Width");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 7;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        metalPanel.add(gndWidthLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.gridwidth = 10;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         floorplanPanel.add(metalPanel, gridBagConstraints);
 
         templatePanel.setLayout(new java.awt.GridBagLayout());
 
         templatePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Master Cell"));
-        jLabel6.setText("Even layer orientation");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        templatePanel.add(jLabel6, gridBagConstraints);
-
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "horizontal", "vertical" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        templatePanel.add(jComboBox1, gridBagConstraints);
-
-        jTextField1.setColumns(8);
-        jTextField1.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField1.setText("245");
-        jTextField1.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        templatePanel.add(jTextField1, gridBagConstraints);
+        masterDimPanel.setLayout(new java.awt.GridBagLayout());
 
         jTextField2.setColumns(8);
         jTextField2.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
@@ -282,21 +347,62 @@ public class FillGen extends EDialog {
         jTextField2.setMinimumSize(new java.awt.Dimension(100, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        templatePanel.add(jTextField2, gridBagConstraints);
+        masterDimPanel.add(jTextField2, gridBagConstraints);
 
-        jLabel5.setText("Height (lambda)");
+        jTextField1.setColumns(8);
+        jTextField1.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
+        jTextField1.setText("245");
+        jTextField1.setMinimumSize(new java.awt.Dimension(100, 21));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        templatePanel.add(jLabel5, gridBagConstraints);
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        masterDimPanel.add(jTextField1, gridBagConstraints);
 
         jLabel3.setText("Width (lambda)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        masterDimPanel.add(jLabel3, gridBagConstraints);
+
+        jLabel5.setText("Height (lambda)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        templatePanel.add(jLabel3, gridBagConstraints);
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        masterDimPanel.add(jLabel5, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        templatePanel.add(masterDimPanel, gridBagConstraints);
+
+        otherMasterPanel.setLayout(new java.awt.GridBagLayout());
+
+        jLabel6.setText("Even layer orientation");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        otherMasterPanel.add(jLabel6, gridBagConstraints);
+
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "horiz", "vert" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        otherMasterPanel.add(jComboBox1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        templatePanel.add(otherMasterPanel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 1;
@@ -365,7 +471,7 @@ public class FillGen extends EDialog {
 
         adaptiveFill.setText("Adaptive Fill");
         adaptiveFill.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        adaptiveFill.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        adaptiveFill.setMargin(new java.awt.Insets(0, 0, 0, 5));
         adaptiveFill.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 generalActionPerformed(evt);
@@ -410,7 +516,19 @@ public class FillGen extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         cellPanel.add(masterSelPanel, gridBagConstraints);
+
+        metalWidthOption.setText("Set metal widths");
+        metalWidthOption.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        metalWidthOption.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        metalWidthOption.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                metalWidthOptionActionPerformed(evt);
+            }
+        });
+
+        cellPanel.add(metalWidthOption, new java.awt.GridBagConstraints());
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
@@ -523,11 +641,44 @@ public class FillGen extends EDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void metalOptionActionPerformed(java.awt.event.ActionEvent evt)
+    {
+        FillGenButton b = (FillGenButton)evt.getSource();
+        setMetalOption(b);
+    }
+
+    private void setMetalOption(FillGenButton b)
+    {
+        boolean option = b.isSelected();
+        b.vddSpace.setEnabled(option);
+        b.vddUnit.setEnabled(option);
+        b.gndSpace.setEnabled(option);
+        b.gndUnit.setEnabled(option);
+        boolean value = flatFill.isSelected() && metalWidthOption.isSelected() && option && !templateButton.isSelected();
+        b.vddWidth.setEnabled(value);
+        b.vddWUnit.setEnabled(value);
+        b.gndWidth.setEnabled(value);
+        b.gndWUnit.setEnabled(value);
+    }
+
+    private void metalWidthOptionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_metalWidthOptionActionPerformed
+//        boolean value = metalWidthOption.isSelected();
+
+        for (FillGenButton b : metalOptions)
+        {
+            setMetalOption(b);
+        }
+    }//GEN-LAST:event_metalWidthOptionActionPerformed
+
     private void setEnableInMasterData()
     {
         boolean value = !flatFill.isSelected() && createButton.isSelected() || templateButton.isSelected();
-        setEnabledInHierarchy(templatePanel, value);
+        setEnabledInHierarchy(masterDimPanel, value);
+
+        value = value || flatFill.isSelected();
         setEnabledInHierarchy(metalPanel, value);
+        metalWidthOptionActionPerformed(null);
+        setEnabledInHierarchy(otherMasterPanel, value);
     }
 
     private void createActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createActionPerformed
@@ -562,43 +713,37 @@ public class FillGen extends EDialog {
     }
 
     private void okButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_okButtonActionPerformed
-        boolean hierarchy = !flatFill.isSelected();
         Technology tech = (cellToFill != null) ? cellToFill.getTechnology() : Technology.getCurrent();
-        FillGenerator fg = new FillGenerator(tech);
-        fg.setFillLibrary("autoFillLib");
-
-        if (jComboBox1.getModel().getSelectedItem().equals("horizontal"))
-            fg.makeEvenLayersHorizontal(true);
-
-        fg.setBinaryMode(binaryFill.isSelected());
+        boolean hierarchy = (!flatFill.isSelected());
+        boolean useMaster = hierarchy && selectButton.isSelected();
+        boolean even = (jComboBox1.getModel().getSelectedItem().equals("horizontal"));
+        double drcSpacingRule = 6;               //@TODO this value should be calculated!!!
 
         FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
         FillGenerator.Units TRACKS = FillGenerator.TRACKS;
-        int firstMetal = -1, lastMetal = -1;
 
+        int firstMetal = -1, lastMetal = -1;
         double vddReserve = 0, gndReserve = 0;
 
-        for (int i = 0; i < vddSpace.length; i++)
+        for (FillGenButton b : metalOptions)
         {
-            int vddS = TextUtils.atoi(vddSpace[i].getText());
-            int gndS = TextUtils.atoi(gndSpace[i].getText());
-            FillGenerator.Units vddU = TRACKS;
-            if (vddUnit[i].getModel().getSelectedItem().equals("lambda"))
-                vddU = LAMBDA;
-            FillGenerator.Units gndU = TRACKS;
-            if (gndUnit[i].getModel().getSelectedItem().equals("lambda"))
-                gndU = LAMBDA;
-            if (vddS > -1 && gndS > -1)
+            if (!b.isSelected()) continue;
+            int vddS = TextUtils.atoi(b.vddSpace.getText());
+            int gndS = TextUtils.atoi(b.gndSpace.getText());
+//            if (vddS > -1 && gndS > -1)
             {
-                if (firstMetal == -1) firstMetal = i+2;
-                lastMetal = i+2;
-                fg.reserveSpaceOnLayer(i+2, vddS, vddU, gndS, gndU);
-                if (vddS > vddReserve) vddReserve = vddS;
+                if (firstMetal == -1) firstMetal = b.metal;
+                lastMetal = b.metal;
+                if (vddS > vddReserve) vddReserve = vddS;  //@@TODO we don't check that units are identical
                 if (gndS > gndReserve) gndReserve = gndS;
             }
         }
-        double drcSpacingRule = 6;               //@TODO this value should be calculated!!!
-        fg.setDRCSpacing(drcSpacingRule);
+
+        if (!useMaster && vddReserve == 0 && gndReserve == 0) // nothing reserve
+        {
+            System.out.println("Nothing reserve");
+            return;
+        }
 
         double width = TextUtils.atof(jTextField1.getText());
         double height = TextUtils.atof(jTextField2.getText());
@@ -609,11 +754,7 @@ public class FillGen extends EDialog {
             Rectangle2D bnd = cellToFill.getBounds();
             width = bnd.getWidth();
             height = bnd.getHeight();
-            double minSize = vddReserve + gndReserve + 2*drcSpacingRule + 2*gndReserve + 2*vddReserve;
-            fg.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize, minSize);
         }
-        fg.setFillCellWidth(width);
-        fg.setFillCellHeight(height);
 
         List<Integer> items = new ArrayList<Integer>(12);
 
@@ -629,7 +770,51 @@ public class FillGen extends EDialog {
             for (int i = 0; i < items.size(); i++)
                 cells[i] = items.get(i).intValue();
         }
-        new FillGenerator.FillGenJob(cellToFill, fg, FillGenerator.PERIMETER, firstMetal, lastMetal, cells, hierarchy, false, 0.1);
+
+        FillGenerator.FillGeneratorConfig config = new FillGenerator.FillGeneratorConfig(tech, "autoFillLib",
+                    FillGenerator.PERIMETER, firstMetal, lastMetal, width, height,
+                    even, cells, hierarchy, 0.1, drcSpacingRule, binaryFill.isSelected(), useMaster);
+
+        if (!templateButton.isSelected())
+        {
+            Rectangle2D bnd = cellToFill.getBounds();
+            double minSize = vddReserve + gndReserve + 2*drcSpacingRule + 2*gndReserve + 2*vddReserve;
+            config.setTargetValues(bnd.getWidth(), bnd.getHeight(), minSize, minSize);
+        }
+
+        boolean metalW = metalWidthOption.isSelected();
+        for (FillGenButton b : metalOptions)
+        {
+            if (!b.isSelected()) continue;
+            int vddVal = TextUtils.atoi(b.vddSpace.getText());
+            int gndVal = TextUtils.atoi(b.gndSpace.getText());
+            FillGenerator.Units vddU = TRACKS;
+            if (b.vddUnit.getModel().getSelectedItem().equals("lambda"))
+                vddU = LAMBDA;
+            FillGenerator.Units gndU = TRACKS;
+            if (b.gndUnit.getModel().getSelectedItem().equals("lambda"))
+                gndU = LAMBDA;
+//            if (vddVal > -1 && gndVal > -1)
+            FillGenerator.FillGeneratorConfig.ReserveConfig c = config.reserveSpaceOnLayer(tech, b.metal, vddVal, vddU, gndVal, gndU);
+
+            // Width values
+            if (metalW)
+            {
+                vddU = TRACKS;
+                if (b.vddUnit.getModel().getSelectedItem().equals("lambda"))
+                    vddU = LAMBDA;
+                gndU = TRACKS;
+                if (b.gndUnit.getModel().getSelectedItem().equals("lambda"))
+                    gndU = LAMBDA;
+                vddVal = TextUtils.atoi(b.vddWidth.getText());
+                gndVal = TextUtils.atoi(b.gndWidth.getText());
+
+                c.reserveWidthOnLayer(vddVal, vddU, gndVal, gndU);
+            }
+        }
+
+        new FillGeneratorTool.FillGenJob(cellToFill, config, false);
+
         setVisible(false);;
     }//GEN-LAST:event_okButtonActionPerformed
 
@@ -664,6 +849,8 @@ public class FillGen extends EDialog {
     private javax.swing.JRadioButton createButton;
     private javax.swing.JRadioButton flatFill;
     private javax.swing.JPanel floorplanPanel;
+    private javax.swing.JLabel gndSpaceLabel;
+    private javax.swing.JLabel gndWidthLabel;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JCheckBox jCheckBox10;
     private javax.swing.JCheckBox jCheckBox11;
@@ -681,21 +868,24 @@ public class FillGen extends EDialog {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
+    private javax.swing.JPanel masterDimPanel;
     private javax.swing.ButtonGroup masterGroup;
     private javax.swing.JPanel masterSelPanel;
     private javax.swing.JPanel metalPanel;
+    private javax.swing.JCheckBox metalWidthOption;
     private javax.swing.JButton okButton;
+    private javax.swing.JPanel otherMasterPanel;
     private javax.swing.JRadioButton selectButton;
     private javax.swing.JRadioButton templateButton;
     private javax.swing.JPanel templatePanel;
     private javax.swing.JPanel tilingPanel;
     private javax.swing.ButtonGroup topGroup;
+    private javax.swing.JLabel vddSpaceLabel;
+    private javax.swing.JLabel vddWidthLabel;
     // End of variables declaration//GEN-END:variables
     private java.awt.Color currentColor = java.awt.Color.lightGray;
 }

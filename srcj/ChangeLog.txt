@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+IMP/MAN: (5/11/06, GVG) NT-N-transistor in TSMC180
+
 BUG: NCC. Insert print statements to help debug Bugzilla# 969, 977
 
-BUG: NullPointerException on delete area (Bug #982)
+BUG: (5/11/06, GVG) NullPointerException on delete area (Bug #982)
 FIX: ERectangle instead of Rectangle2D
 
 BUG: (5/11/06, GVG) ClassCastException in KeyBindingManager:inputMap (Bug 981)
