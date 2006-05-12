@@ -180,10 +180,10 @@ public class Update {
      * @return
      */
     private static StatusResult update(String file, String dir, int type) {
-        String command = "-q update -P ";
+        String command = "-q update -d -P ";
         String message = "Running CVS Update";
         if (type == STATUS) {
-            command = "-nq update ";
+            command = "-nq update -d";
             message = "Running CVS Status";
         }
         if (type == ROLLBACK) {
