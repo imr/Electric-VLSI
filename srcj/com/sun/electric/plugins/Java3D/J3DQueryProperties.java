@@ -37,8 +37,8 @@
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  *
- * $Revision: 1.2 $
- * $Date: 2005/11/14 22:15:22 $
+ * $Revision: 1.3 $
+ * $Date: 2006/02/01 19:53:42 $
  * $State: Exp $
  */
 package com.sun.electric.plugins.Java3D;
@@ -53,58 +53,63 @@ import java.awt.GraphicsConfiguration;
  * Included by Gilda Garreton
  */
 public class J3DQueryProperties {
-    private static void printProps(Map<String,String> map, String[] propList) {
-        // Create an alphabetical list of keys
-        List<String> keyList = new ArrayList<String>(map.keySet());
-        Collections.sort(keyList);
-        Iterator<String> it;
+    private static void printProps(Map map, String[] propList) {
+        try{
+            // Create an alphabetical list of keys
+            List<String> keyList = new ArrayList<String>(map.keySet());
+            Collections.sort(keyList);
+            Iterator<String> it;
 
-        // Collection used to remember the properties we've already
-        // printed, so we don't print them twice
-        HashSet<String> hs = new HashSet<String>();
+            // Collection used to remember the properties we've already
+            // printed, so we don't print them twice
+            HashSet<String> hs = new HashSet<String>();
 
-        // Print out the values for the caller-specified properties
-        String key;
-        for (int i = 0; i < propList.length; i++) {
-            int len = propList[i].length();
-            int idxWild = propList[i].indexOf('*');
-            if (idxWild < 0) {
-                key = propList[i];
-                if (!hs.contains(key)) {
-                    System.out.println(key + " = " + map.get(key));
-                    hs.add(key);
-                }
-            }
-            else if (idxWild == len-1) {
-                String pattern = propList[i].substring(0, len-1);
-                it = keyList.iterator();
-                while (it.hasNext()) {
-                    key = it.next();
-                    if (key.startsWith(pattern) && !hs.contains(key)) {
+            // Print out the values for the caller-specified properties
+            String key;
+            for (int i = 0; i < propList.length; i++) {
+                int len = propList[i].length();
+                int idxWild = propList[i].indexOf('*');
+                if (idxWild < 0) {
+                    key = propList[i];
+                    if (!hs.contains(key)) {
                         System.out.println(key + " = " + map.get(key));
                         hs.add(key);
                     }
                 }
+                else if (idxWild == len-1) {
+                    String pattern = propList[i].substring(0, len-1);
+                    it = keyList.iterator();
+                    while (it.hasNext()) {
+                        key = it.next();
+                        if (key.startsWith(pattern) && !hs.contains(key)) {
+                            System.out.println(key + " = " + map.get(key));
+                            hs.add(key);
+                        }
+                    }
+                }
+                else {
+                    System.out.println(propList[i] +
+                                       " = ERROR: KEY WITH EMBEDDED WILD CARD IGNORED");
+                }
             }
-            else {
-                System.out.println(propList[i] +
-                                   " = ERROR: KEY WITH EMBEDDED WILD CARD IGNORED");
+
+            // Print out the values for those properties not already printed
+            it = keyList.iterator();
+            while (it.hasNext()) {
+                key = it.next();
+                if (!hs.contains(key)) {
+                    System.out.println(key + " = " + map.get(key));
+                }
             }
         }
-
-        // Print out the values for those properties not already printed
-        it = keyList.iterator();
-        while (it.hasNext()) {
-            key = it.next();
-            if (!hs.contains(key)) {
-                System.out.println(key + " = " + map.get(key));
-            }
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
-
     }
 
     public static void queryHardwareAcceleration() {
-        Map<String,String> vuMap = VirtualUniverse.getProperties();
+        Map vuMap = VirtualUniverse.getProperties();
         final String[] vuPropList = {
             "j3d.version",
             "j3d.vendor",
@@ -129,7 +134,7 @@ public class J3DQueryProperties {
             GraphicsEnvironment.getLocalGraphicsEnvironment().
                 getDefaultScreenDevice().getBestConfiguration(template);
 
-        Map<String,String> c3dMap = new Canvas3D(config).queryProperties();
+        Map c3dMap = new Canvas3D(config).queryProperties();
         final String[] c3dPropList = {
             "native.*",
             "doubleBufferAvailable",
