@@ -33,6 +33,7 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
+import com.sun.electric.tool.Job;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
 import java.lang.reflect.Method;
@@ -118,6 +119,7 @@ public class J3DMenu {
             Method queryClass = app3DClass.getDeclaredMethod("queryHardwareAcceleration", new Class[] {});
             queryClass.invoke(queryClass, new Object[]{});
         } catch (Exception e) {
+            if (Job.getDebug()) e.printStackTrace();
             System.out.println("Cannot call 3D plugin method queryHardwareAcceleration: ");
         }
     }
