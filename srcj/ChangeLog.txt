@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG/MAN: 5/12/06, GVG) Problems with text size <1 (Bug #986).
+FIX: Consistent setting of min and max values in TexInfoPanel.java by adding Size.TXTMINPOINTS and Size.TXTMINQGRID.
+
 IMP/MAN: (5/12/06, DN) In EidtKeyBindings dialog edit hidden submenu as "Shortcuts" submenu.
 
 BUG: (5/12/06, DN) Exception when define accelerator for submenu.

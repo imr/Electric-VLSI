@@ -121,9 +121,11 @@ public class TextInfoPanel extends javax.swing.JPanel
         initialInvisibleOutsideCell = false;
         invisibleOutsideCell.setSelected(initialInvisibleOutsideCell);
         // size
+        unitsButton.setText("Units (min " + TextDescriptor.Size.TXTMINQGRID + ", max " + TextDescriptor.Size.TXTMAXQGRID + ")");
         initialSize = TextDescriptor.Size.newRelSize(1.0);
         unitsButton.setSelected(true);
         unitsSize.setText("1.0");
+        pointsButton.setText("Points (min " + TextDescriptor.Size.TXTMINPOINTS + ", max " + TextDescriptor.Size.TXTMAXPOINTS + ")");
         // position
         initialPos = TextDescriptor.Position.CENT;
         textAnchor.setSelectedItem(initialPos);
@@ -301,6 +303,10 @@ public class TextInfoPanel extends javax.swing.JPanel
             if (wnd != null)
             {
                 double unitSize = wnd.getTextUnitSize((int)initialSize.getSize());
+                if (unitSize > TextDescriptor.Size.TXTMAXQGRID)
+                    unitSize = TextDescriptor.Size.TXTMAXQGRID;
+                else if (unitSize < TextDescriptor.Size.TXTMINQGRID)
+                    unitSize = TextDescriptor.Size.TXTMINQGRID;
                 unitsSize.setText(TextUtils.formatDouble(unitSize));
             }
         } else
@@ -311,7 +317,11 @@ public class TextInfoPanel extends javax.swing.JPanel
             if (wnd != null)
             {
                 double pointSize = wnd.getTextScreenSize(initialSize.getSize());
-                pointsSize.setText(TextUtils.formatDouble(pointSize));
+                if (pointSize > TextDescriptor.Size.TXTMAXPOINTS)
+                    pointSize = TextDescriptor.Size.TXTMAXPOINTS;
+                else if (pointSize < TextDescriptor.Size.TXTMINPOINTS)
+                    pointSize = TextDescriptor.Size.TXTMINPOINTS;
+                pointsSize.setText(String.valueOf((int)pointSize));
             }
         }
 
@@ -446,7 +456,14 @@ public class TextInfoPanel extends javax.swing.JPanel
             newSize = TextDescriptor.Size.newRelSize(size);
         }
         // default size
-        if (newSize == null) newSize = TextDescriptor.Size.newRelSize(1.0);
+        if (newSize == null)
+        {
+            // if values given in pointsSize or unitsSize are invalid
+            String value = (pointsButton.isSelected())? pointsSize.getText() : unitsSize.getText();
+            pointsSize.setText(String.valueOf(TextDescriptor.Size.TXTMAXPOINTS));
+            System.out.println("Error: given size value of " + value + " is out of range. Setting default value.");
+            newSize = TextDescriptor.Size.newRelSize(1.0);
+        }
         if (!newSize.equals(initialSize)) changed = true;
 
         // handle changes to the offset

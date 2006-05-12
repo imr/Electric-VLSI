@@ -365,7 +365,9 @@ abstract class AbstractTextDescriptor implements Serializable
 	 */
 	public static class Size
 	{
+        /** The minimu size of text (in points). */		public static final int    TXTMINPOINTS =  1;
 		/** The maximum size of text (in points). */		public static final int    TXTMAXPOINTS =  63;
+        /** The minimu size of text (in grid units). */	public static final double TXTMINQGRID  = 0.25;
 		/** The maximum size of text (in grid units). */	public static final double TXTMAXQGRID  = 127.75;
 		/*private*/ static final int TXTQGRIDSH =          6;		
 
@@ -400,7 +402,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 */
 		public static Size newAbsSize(int size)
 		{
-			if (size <= 0 || size > TXTMAXPOINTS) return null;
+			if (size < TXTMINPOINTS || size > TXTMAXPOINTS) return null;
 			return new Size(size, true);
 		}
 
@@ -412,7 +414,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		 */
 		public static Size newRelSize(double size)
 		{
-			if (size <= 0 || size > TXTMAXQGRID) return null;
+			if (size < TXTMINQGRID || size > TXTMAXQGRID) return null;
 			return new Size(size, false);
 		}
 

@@ -225,7 +225,11 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	public void setAbsSize(int s)
 	{
 		Size size = Size.newAbsSize(s);
-		if (size == null) return;
+		if (size == null)
+        {
+            System.out.println("Invalid absolute size of " + s);
+            return;
+        }
 		setField(VTSIZE, VTSIZESH, size.getBits());
 	}
 
@@ -237,7 +241,11 @@ public class MutableTextDescriptor extends AbstractTextDescriptor
 	public void setRelSize(double s)
 	{
 		Size size = Size.newRelSize(s);
-		if (size == null) return;
+		if (size == null)
+        {
+            System.out.println("Invalid relative size of " + s);
+            return;
+        }
 		setField(VTSIZE, VTSIZESH, size.getBits());
 	}
 
