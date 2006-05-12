@@ -283,7 +283,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
     private void resetitemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetitemActionPerformed
         // get currently selected node
         EMenuItem item = getSelectedMenuItem();
-        if (item == null) return;
+        if (item == null || item == EMenuItem.SEPARATOR || item instanceof EMenu) return;
 
         // reset item to default bindings
         menuBar.resetKeyBindings(item);
@@ -301,7 +301,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
     private void removeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeActionPerformed
         // get currently selected node
         EMenuItem item = getSelectedMenuItem();
-        if (item == null) {
+        if (item == null || item == EMenuItem.SEPARATOR || item instanceof EMenu) {
             JOptionPane.showMessageDialog(this, "Please select a menu item first", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -342,7 +342,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
      */
     private void addActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addActionPerformed
         EMenuItem item = getSelectedMenuItem();
-        if (item == null) return;
+        if (item == null || item == EMenuItem.SEPARATOR || item instanceof EMenu) return;
         EditKeyBinding dialog = new EditKeyBinding(item, menuBar, TopLevel.getCurrentJFrame(), true);
 		dialog.setVisible(true);
 
@@ -369,6 +369,12 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
             DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(new KeyBoundTreeNode(menu));
             rootNode.add(menuNode);
             addMenu(menuNode, (EMenu)menu);
+        }
+        EMenu hiddenMenu = menuBar.getHiddenMenu();
+        if(hiddenMenu != null) {
+            DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(new KeyBoundTreeNode(hiddenMenu));
+            rootNode.add(menuNode);
+            addMenu(menuNode, hiddenMenu);
         }
         
         commandsTree.setModel(new DefaultTreeModel(rootNode));

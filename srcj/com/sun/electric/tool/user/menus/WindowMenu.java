@@ -53,7 +53,8 @@ import javax.swing.*;
  */
 public class WindowMenu {
     public static KeyStroke getCloseWindowAccelerator() { return EMenuItem.shortcut(KeyEvent.VK_W); }
-    public static EMenu thisWindowMenu = null;
+    private static EMenu thisWindowMenu = null;
+    private static EMenuItem hiddenWindowCycleMenuItem = null;
 //    private static JMenu theDynamicMenu = null; // mdi
 
     static EMenu makeMenu() {
@@ -175,6 +176,14 @@ public class WindowMenu {
         return menu;
     }
 
+    static EMenuItem getHiddenWindowCycleMenuItem() {
+        if (hiddenWindowCycleMenuItem == null) {
+            hiddenWindowCycleMenuItem = new EMenuItem("Window Cycle", KeyStroke.getKeyStroke('Q', 0)) { public void run() {
+                WindowFrame.getWindows().next().requestFocus(); }};
+        }
+        return hiddenWindowCycleMenuItem;
+    }
+    
     public static void addDynamicMenu(WindowFrame wf) {
         setDynamicMenus();
     }
@@ -186,7 +195,7 @@ public class WindowMenu {
     public static void setDynamicMenus()
     {
         List<DynamicEMenuItem> list = new ArrayList<DynamicEMenuItem>();
-        KeyStroke accelerator = KeyStroke.getKeyStroke('Q', 0);
+        KeyStroke accelerator = getHiddenWindowCycleMenuItem().getAccelerator();
         for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext();) {
             WindowFrame wf = it.next();
             list.add(new DynamicEMenuItem(wf, accelerator));

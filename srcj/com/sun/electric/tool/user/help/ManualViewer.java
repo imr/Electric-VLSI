@@ -40,7 +40,6 @@ import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
 
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -58,6 +57,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -642,7 +642,13 @@ public class ManualViewer extends EDialog
         if (pi.url == null) return; // error reading the html file
         
 		InputStream stream = TextUtils.getURLStream(pi.url, null);
-		InputStreamReader is = new InputStreamReader(stream);
+        InputStreamReader is;
+        try {
+            is = new InputStreamReader(stream, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            System.out.println("UTF-8 is UnsupportedEncodingException");
+            return;
+        }
 		StringBuffer sb = new StringBuffer();
 
 		// emit header HTML

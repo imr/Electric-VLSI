@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+IMP/MAN: (5/12/06, DN) In EidtKeyBindings dialog edit hidden submenu as "Shortcuts" submenu.
+
+BUG: (5/12/06, DN) Exception when define accelerator for submenu.
+FIX: In EditKeyBindings forbid editing accelerators of separators and submenus.
+
+BUG: (5/12/06, DN) Russian manual is not properly displayed.
+FIX: In ManualViewer.loadPage add explicitly name of encoding: "UTF-8".
+
 IMP/MAN: (5/11/06, GVG) NT-N-transistor in TSMC180
 
 BUG: NCC. Insert print statements to help debug Bugzilla# 969, 977

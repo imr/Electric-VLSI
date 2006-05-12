@@ -90,6 +90,13 @@ public class EMenuBar extends EMenu {
             hiddenMenu.registerTree(this, path, -1);
     }
 
+    /**
+     * Returns hidden menu whcih items are invoked by shortcuts only.
+     */
+    public EMenu getHiddenMenu() {
+        return hiddenMenu;
+    }
+    
     /** Get a string description of the menu item.
      * Takes the form <p>
      * Menu | SubMenu | SubMenu | item
@@ -323,7 +330,8 @@ public class EMenuBar extends EMenu {
          */
         JMenuItem findMenuItem(int[] path) {
             int topIndex = path[0];
-            JMenuItem item = topIndex >= 0 ? (JMenuItem)getComponent(topIndex) : null;
+            if (topIndex < 0) return null;
+            JMenuItem item = (JMenuItem)getComponent(topIndex);
             for (int i = 1; i < path.length; i++) {
                 JMenu menu = (JMenu)item;
                 item = (JMenuItem)menu.getMenuComponent(path[i]);

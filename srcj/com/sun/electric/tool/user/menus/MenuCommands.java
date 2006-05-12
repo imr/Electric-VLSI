@@ -110,7 +110,8 @@ public final class MenuCommands
         /********************************* Hidden Menus *******************************/
 
     private static EMenu wiringShortcuts() {
-        return new EMenu("Circuit Editing",
+        return new EMenu("Shortcuts",
+//        return new EMenu("Circuit Editing",
             new EMenuItem("Wire to Poly", KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)) { public void run() {
                 ClickZoomWireListener.theOne.wireTo(0); }},
             new EMenuItem("Wire to M1", KeyStroke.getKeyStroke(KeyEvent.VK_1, 0)) { public void run() {
@@ -133,10 +134,8 @@ public final class MenuCommands
                 ClickZoomWireListener.theOne.wireTo(9); }},
             new EMenuItem("Switch Wiring Target", KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)) { public void run() {
                 ClickZoomWireListener.theOne.switchWiringTarget(); }},
-                        
-            new EMenuItem("Window Cycle", KeyStroke.getKeyStroke('Q', 0)) { public void run() {
-                WindowFrame.getWindows().next().requestFocus(); }}
-                );
+            EMenuItem.SEPARATOR,
+            WindowMenu.getHiddenWindowCycleMenuItem());            
     }
     
     /**
