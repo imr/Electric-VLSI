@@ -62,6 +62,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class reads files in GDS files.
@@ -260,15 +261,28 @@ public class GDS extends Input
 
 		private static void term() { allInstances = null; }
 
-		private static void makeCellInstances(Cell cell)
+		private static void makeCellInstances(Cell cell, Set<Cell> builtCells)
 		{
 			List<MakeInstance> instancesInCell = allInstances.get(cell);
 			if (instancesInCell == null) return;
+			boolean countOff = false;
+			if (Job.getDebug())
+			{
+				int size = instancesInCell.size();
+				System.out.println("    Building cell "+cell.describe(false) +
+					" with " + size + " instances");
+				if (size >= 100000) countOff = true;
+			}
+			int count = 0;
 			for(MakeInstance mi : instancesInCell)
 			{
+				if (countOff && (count++ % 500) == 0)
+					System.out.println("        Made " + count + " so far...");
 				if (mi.instantiated) continue;
+				mi.instantiated = true;
 				Cell subCell = mi.subCell;
-				makeCellInstances(subCell);
+				if (builtCells.contains(subCell)) continue;
+				makeCellInstances(subCell, builtCells);
 
 				// make the instance
 				Rectangle2D bounds = mi.subCell.getBounds();
@@ -287,15 +301,16 @@ public class GDS extends Input
 				if (ni == null) return;
 				if (IOTool.isGDSInExpandsCells())
 					ni.setExpanded();
-				mi.instantiated = true;
 			}
+			builtCells.add(cell);
 		}
 
 		private static void buildInstances()
 		{
+			Set<Cell> builtCells = new HashSet<Cell>();
 			for(Cell cell : allInstances.keySet())
 			{
-				makeCellInstances(cell);
+				makeCellInstances(cell, builtCells);
 			}
 		}
 	}
@@ -815,11 +830,6 @@ public class GDS extends Input
 				{
 					NodeInst ni = NodeInst.makeInstance(layerNodeProto, ctr, sX, sY, theCell);
 					if (ni == null) handleError("Failed to create RECTANGLE");
-//if (ctr.getX() < 59 && ctr.getY() > 4112 && layerNodeProto.getName().equals("Metal-3-Node"))
-//{
-//	System.out.println("Made M3 node at ("+ctr.getX()+","+ctr.getY()+")");
-//	System.out.println("  Y runs from "+theVertices[1].getY()+" to "+theVertices[0].getY());
-//}
 				}
 			}
 			return;
