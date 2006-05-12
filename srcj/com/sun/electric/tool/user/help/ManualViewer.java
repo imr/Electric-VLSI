@@ -23,21 +23,21 @@
  */
 package com.sun.electric.tool.user.help;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.ActivityLogger;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuBar;
 import com.sun.electric.tool.user.menus.EMenuItem;
+import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -58,12 +58,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.lang.reflect.Method;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -80,6 +82,7 @@ import javax.swing.JTree;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -128,7 +131,6 @@ public class ManualViewer extends EDialog
 		if (theManual == null)
 		{
 			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, "helphtml");
-//			theManual.loadPointers();
 		}
 		theManual.setVisible(true);
 	}
@@ -141,7 +143,6 @@ public class ManualViewer extends EDialog
 		if (theManual == null)
 		{
 			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, "helphtmlRus");
-//			theManual.loadPointers();
 		}
 		theManual.setVisible(true);
 	}
@@ -156,7 +157,6 @@ public class ManualViewer extends EDialog
 		if (theManual == null)
 		{
 			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), preference, "helphtml");
-//			theManual.loadPointers();
 		} else
 		{
 			if (preference != null)
@@ -1149,6 +1149,7 @@ public class ManualViewer extends EDialog
 			world.loadPage(world.currentIndex);
 		}
 	}
+
 	private static class Hyperactive implements HyperlinkListener
 	{
 		private ManualViewer dialog;
@@ -1343,12 +1344,9 @@ public class ManualViewer extends EDialog
 
 		// set up scroll pane for manual (on the right)
 		editorPane = new JEditorPane();
-		editorPane.setEditable(false);
-		editorPane.setContentType("text/html");
+		editorPane.setEditorKit(new HTMLEditorKit());
 		editorPane.addHyperlinkListener(new Hyperactive(this));
-//		editorPane.setContentType("text/html; charset=UTF-8");
-//		Font font = new Font("Lucida Sans", Font.PLAIN, 24);
-//		editorPane.setFont(font);
+		editorPane.setEditable(false);
 		rightHalf = new JScrollPane(editorPane);
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		rightHalf.setPreferredSize(new Dimension(screenSize.width/2, screenSize.height*3/4));
