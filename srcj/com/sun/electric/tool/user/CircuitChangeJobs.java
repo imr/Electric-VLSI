@@ -1720,6 +1720,7 @@ public class CircuitChangeJobs
         public ShortenArcs(Cell cell, List<ArcInst> selected)
 		{
 			super("Shorten selected arcs", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
 			this.selected = selected;
             startJob();
 		}
