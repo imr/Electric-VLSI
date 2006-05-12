@@ -1,6 +1,6 @@
 /* -*- tab-width: 4 -*-
  *
- * E lectric(tm) VLSI Design System
+ * Electric(tm) VLSI Design System
  *
  * File: ManualViewer.java
  *
