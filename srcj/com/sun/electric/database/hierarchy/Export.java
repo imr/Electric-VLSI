@@ -48,6 +48,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 
@@ -172,7 +173,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             alwaysDrawn = e.isAlwaysDrawn();
             bodyOnly = e.isBodyOnly();
         }
-		Export pp = newInstance(parent, protoName, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, originalProto.getCharacteristic());
+		Export pp = newInstance(parent, protoName, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, originalProto.getCharacteristic(), null);
 
 		if (createOnIcon)
 		{
@@ -238,10 +239,11 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param alwaysDrawn true if this Export is always drawn.
      * @param bodyOnly true to exclude this Export from icon.
      * @param characteristic PortCharacteristic of this Export.
+     * @param errorLogger error logger to report errors.
 	 * @return created Export or null on error.
 	 */
     public static Export newInstance(Cell parent, String id, String name, TextDescriptor nameTextDescriptor, PortInst originalPort,
-            boolean alwaysDrawn, boolean bodyOnly, PortCharacteristic characteristic)
+            boolean alwaysDrawn, boolean bodyOnly, PortCharacteristic characteristic, ErrorLogger errorLogger)
     {
 		// initialize this object
 		if (originalPort == null || !originalPort.isLinked())
@@ -265,6 +267,21 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         } else {
             nameKey = Name.findName(name);
         }
+        String errorMsg = null;
+        if (ImmutableExport.validExportName(nameKey.toString()) == null) {
+            errorMsg = parent + " has bad export name " + nameKey + " ";
+            String newName = repairExportName(parent, nameKey.toString());
+            if (newName == null)
+                newName = repairExportName(parent, "X");
+            if (newName == null) {
+                errorMsg += " removed ";
+                System.out.println(errorMsg);
+                errorLogger.logError(errorMsg, parent, 1);
+                return null;
+            }
+            nameKey = Name.findName(newName);
+            errorMsg += " renamed to " + nameKey;
+        }
         ExportId exportId = parent.getD().cellId.newExportId(id);
         if (nameTextDescriptor == null) nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
         ImmutableExport d = ImmutableExport.newInstance(exportId, nameKey, nameTextDescriptor,
@@ -272,6 +289,11 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         Export e = new Export(d, parent);
         assert e.originalPort == originalPort;
 		if (e.lowLevelLink()) return null;
+        if (errorMsg != null) {
+            System.out.println(errorMsg);
+            if (errorLogger != null)
+            errorLogger.logError(errorMsg, e, 1);
+        }
         
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().newObject(e);
@@ -747,6 +769,63 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		}
 		return name;
 	}
+
+    /**
+     * Repairs export name  true if string is a valid Export name with cirtain width.
+     * @param name string to test.
+     * @param busWidth cirtain width.
+     * @return true if string is a valid Export name with cirtain width.
+     */
+    private static String repairExportName(Cell parent, String name) {
+        String newName = null;
+        int oldBusWidth = Name.findName(name).busWidth();
+        int openIndex = name.indexOf('[');
+        if (openIndex >= 0) {
+            int afterOpenIndex = openIndex + 1;
+            while (afterOpenIndex < name.length() && name.charAt(afterOpenIndex) == '[')
+                afterOpenIndex++;
+            int closeIndex = name.lastIndexOf(']');
+            if (closeIndex < 0) {
+                int lastOpenIndex = name.lastIndexOf('[');
+                if (lastOpenIndex > afterOpenIndex)
+                    closeIndex = lastOpenIndex;
+            }
+            if (afterOpenIndex < closeIndex)
+                newName = name.substring(0, openIndex) + name.substring(closeIndex + 1) +
+                        "[" + name.substring(afterOpenIndex, closeIndex) + "]";
+        }
+        if (validExportName(newName, oldBusWidth)) {
+            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class);
+            if (validExportName(newName, oldBusWidth))
+                return newName;
+        }
+        
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            if (ch == '[' || ch == ']' || ch == ':' || ch == ',' || ch == '@')
+                ch = 'X';
+            sb.append(ch);
+        }
+        newName = sb.toString();
+        if (validExportName(newName, oldBusWidth)) {
+            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class);
+            if (validExportName(newName, oldBusWidth))
+                return newName;
+        }
+        return null;
+    }
+    
+    /**
+     * Returns true if string is a valid Export name with cirtain width.
+     * @param name string to test.
+     * @param busWidth cirtain width.
+     * @return true if string is a valid Export name with cirtain width.
+     */
+    private static boolean validExportName(String name, int busWidth) {
+        Name nameKey = ImmutableExport.validExportName(name);
+        return nameKey != null && nameKey.busWidth() == busWidth;
+    }
 
     /**
      * Compares Exports by their Cells and names.

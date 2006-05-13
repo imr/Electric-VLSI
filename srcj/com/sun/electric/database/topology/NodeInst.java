@@ -318,44 +318,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                                        int flags, int techBits, TextDescriptor protoDescriptor)
 	{
         if (protoType == null) return null;
-//        if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isNotUsed())
-//        {
-////            System.out.println("Cannot create node instance of " + protoType + " in " + parent +
-////					" because prototype is unused");
-////            return null;
-//        }
         if (parent == null) return null;
         
-		if (protoType instanceof Cell)
-		{
-            Cell subCell = (Cell)protoType;
-            if (Cell.isInstantiationRecursive(subCell, parent))
-			{
-				System.out.println("Cannot create instance of " + protoType + " in " + parent +
-					" because it is recursive");
-				return null;
-			}
-            subCell.getTechnology();
-            width = height = 0;
-		}
-
 		EPoint anchor = EPoint.snap(center);
-		if (protoType == Generic.tech.cellCenterNode)
-		{
-			// only 1 cell-center is allowed: check for others
-            if (parent.alreadyCellCenter())
-            {
-                System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
-                return null;
-            }
-            anchor = EPoint.ORIGIN;
-            width = height = 0;
-            orient = Orientation.IDENT;
-		}
-
-        Name nameKey = name != null ? Name.findName(name) : null;
-		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, NodeInst.class, null)) || checkNameKey(nameKey, parent))
-		{
+        
+        Name nameKey;
+        if (name != null) {
+            nameKey = Name.findName(name);
+        } else {
             Name baseName;
             if (protoType instanceof Cell) {
                 baseName = ((Cell)protoType).getBasename();
@@ -364,8 +334,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 baseName = np.getTechnology().getPrimitiveFunction(np, techBits).getBasename();
             }
             nameKey = parent.getNodeAutoname(baseName);
-		}
-        assert !parent.hasTempNodeName(nameKey);
+        }
         CellId parentId = (CellId)parent.getId();
         
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getNodeTextDescriptor();
@@ -373,6 +342,50 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(parentId.newNodeId(), protoType.getId(), nameKey, nameDescriptor,
                 orient, anchor, width, height, flags, techBits, protoDescriptor);
+
+        return newInstance(parent, d);
+	}
+    
+	/**
+	 * Method to create a NodeInst by ImmutableNodeInst.
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param d ImmutableNodeInst of new NodeInst
+     * @return the newly created NodeInst, or null on error.
+	 */
+    public static NodeInst newInstance(Cell parent, ImmutableNodeInst d)
+	{
+        Cell subCell = null;
+		if (d.protoId instanceof CellId)
+		{
+            subCell = parent.getDatabase().getCell((CellId)d.protoId);
+            if (Cell.isInstantiationRecursive(subCell, parent))
+			{
+				System.out.println("Cannot create instance of " + subCell + " in " + parent +
+					" because it is recursive");
+				return null;
+			}
+            subCell.getTechnology();
+		}
+
+        if (d.protoId == Generic.tech.cellCenterNode && parent.alreadyCellCenter()) {
+            System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
+            return null;
+        }
+
+        Name nameKey = d.name;
+		if (nameKey.isTempname() && (!parent.isUniqueName(nameKey, NodeInst.class, null)) || checkNameKey(nameKey, parent))
+		{
+            Name baseName;
+            if (subCell != null) {
+                baseName = subCell.getBasename();
+            } else {
+                PrimitiveNode np = (PrimitiveNode)d.protoId;
+                baseName = np.getTechnology().getPrimitiveFunction(np, d.techBits).getBasename();
+            }
+            nameKey = parent.getNodeAutoname(baseName);
+		}
+        assert !parent.hasTempNodeName(nameKey);
+        CellId parentId = (CellId)parent.getId();
         
 		NodeInst ni = new NodeInst(d, parent);
 
@@ -381,11 +394,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().newObject(ni);
-		if (protoType == Generic.tech.cellCenterNode)
-    		parent.adjustReferencePoint(center.getX(), center.getY());
-        if (protoType == Schematics.tech.globalNode) {
-            System.out.println("Global-signal " + ni + " in " + parent + " has characteristic " + PortCharacteristic.findCharacteristic(ni.getTechSpecific()));
-        }
+		if (d.protoId == Generic.tech.cellCenterNode)
+    		parent.adjustReferencePoint(d.anchor.getX(), d.anchor.getY());
 		return ni;
 	}
     

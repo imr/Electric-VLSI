@@ -4333,26 +4333,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
              }
             nodeNames.add(ni.getNameKey());
 		}
-        Export[] exportsCopy = (Export[])exports.clone();
-        for(Export e: exportsCopy) {
-            if (ImmutableExport.validExportName(e.getName()) != null) continue;
-            String msg = this + " has bad export name " + e.getName() + " ";
-            if (repair) {
-                String newName = repairExportName(e.getName());
-                if (newName != null) {
-                    newName = ElectricObject.uniqueObjectName(newName, this, PortProto.class);
-                    if (newName != null && Name.findName(newName).isValid()) {
-                        e.rename(newName);
-                        msg += " renamed to " + e.getName();
-                    }
-                }
-            }
-            System.out.println(msg);
-            if (errorLogger != null)
-                errorLogger.logError(msg, e, 1);
-            errorCount++;
-        }
-        
         Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
         if (var != null && var.isInherit()) {
             // cleanup NCC cell annotations which were inheritable
@@ -4369,57 +4349,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		return errorCount;
 	}
     
-    private String repairExportName(String name) {
-        String newName = null;
-        int oldBusWidth = Name.findName(name).busWidth();
-        int openIndex = name.indexOf('[');
-        if (openIndex >= 0) {
-            int afterOpenIndex = openIndex + 1;
-            while (afterOpenIndex < name.length() && name.charAt(afterOpenIndex) == '[')
-                afterOpenIndex++;
-            int closeIndex = name.lastIndexOf(']');
-            if (closeIndex < 0) {
-                int lastOpenIndex = name.lastIndexOf('[');
-                if (lastOpenIndex > afterOpenIndex)
-                    closeIndex = lastOpenIndex;
-            }
-            if (afterOpenIndex < closeIndex)
-                newName = name.substring(0, openIndex) + name.substring(closeIndex + 1) +
-                        "[" + name.substring(afterOpenIndex, closeIndex) + "]";
-        }
-        if (validExportName(newName, oldBusWidth)) {
-            newName = ElectricObject.uniqueObjectName(newName, this, PortProto.class);
-            if (validExportName(newName, oldBusWidth))
-                return newName;
-        }
-        
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < name.length(); i++) {
-            char ch = name.charAt(i);
-            if (ch == '[' || ch == ']' || ch == ':' || ch == ',' || ch == '@')
-                ch = 'X';
-            sb.append(ch);
-        }
-        newName = sb.toString();
-        if (validExportName(newName, oldBusWidth)) {
-            newName = ElectricObject.uniqueObjectName(newName, this, PortProto.class);
-            if (validExportName(newName, oldBusWidth))
-                return newName;
-        }
-        return null;
-    }
-    
-    /**
-     * Returns true if string is a valid Export name with cirtain width.
-     * @param name string to test.
-     * @param busWidth cirtain width.
-     * @return true if string is a valid Export name with cirtain width.
-     */
-    public static boolean validExportName(String name, int busWidth) {
-        Name nameKey = ImmutableExport.validExportName(name);
-        return nameKey != null && nameKey.busWidth() == busWidth;
-    }
-
     /**
      * Method to check invariants in this Cell.
      * @exception AssertionError if invariants are not valid

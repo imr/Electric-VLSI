@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/13/06, DN) GDS import fails to complete (Bug #987).
+     Database has slow NodeInst sorting, because it tries to save memory.
+FIX: Sort NodeIns in GDS reader before supplying to database.
+
+BUG: (5/13/06, DN) Bad behaviour with empty export name and temporary export name (Bug #993, Bug #1003).
+FIX: Make valid export name a database invariant. ExportIds are taken as is, ExportNames are repaired in Export.newInstance.
+
 BUG: (5/12/06, GVG) Shorten selected arc causes Exception (see log shorten-selected electric) (Bug #1001).
 FIX: cell not setup in ShortenArcs job.
 

@@ -967,8 +967,9 @@ public class JELIB extends LibraryFiles
 			String exportName = unQuote(pieces.get(fieldIndex++));
             String exportUserName = null;
             if (revision >= 2) {
-                exportUserName = unQuote(pieces.get(fieldIndex++));
-                if (exportUserName.length() == 0) exportUserName = null;
+                String s = pieces.get(fieldIndex++);
+                if (s.length() != 0)
+                    exportUserName = unQuote(s);
             }
 			// get text descriptor in field 1
 			String textDescriptorInfo = pieces.get(fieldIndex++);
@@ -1008,7 +1009,7 @@ public class JELIB extends LibraryFiles
             if (ch == null) ch = PortCharacteristic.UNKNOWN;
             
 			// create the export
-			Export pp = Export.newInstance(cell, exportName, exportUserName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch);
+			Export pp = Export.newInstance(cell, exportName, exportUserName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch, errorLogger);
 			if (pp == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
