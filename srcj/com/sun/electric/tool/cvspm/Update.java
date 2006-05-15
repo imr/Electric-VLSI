@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -158,6 +159,28 @@ public class Update {
             String useDir = CVS.getUseDir(librariesToUpdate, cellsToUpdate);
             StringBuffer libs = CVS.getLibraryFiles(librariesToUpdate, useDir);
             StringBuffer cells = CVS.getCellFiles(cellsToUpdate, useDir);
+/*
+            if (!updateProject && (type != ROLLBACK)) {
+                // optimization: for DELIBs, check header first.  If that
+                // requires an update, then check cells
+                List<Library> delibs = new ArrayList<Library>();
+                List<Library> nondelibs = new ArrayList<Library>();
+                for (Library lib : librariesToUpdate) {
+                    if (CVS.isDELIB(lib)) delibs.add(lib);
+                    else nondelibs.add(lib);
+                }
+                StringBuffer headerFiles = CVS.getDELIBHeaderFiles(delibs, useDir);
+                String arg = headerFiles.toString().trim();
+                if (!arg.equals("")) {
+                    StatusResult result = update(arg, useDir, type);
+                    // check for updated libraries
+                    List<Library> delibsToUpdate = result.getLibrariesWithState();
+                    nondelibs.addAll(delibsToUpdate);
+                    // libs of nondelibs and libs to run update on
+                    libs = CVS.getLibraryFiles(nondelibs, useDir);
+                }
+            }
+*/
             String updateFiles = libs.toString() + " " + cells.toString();
             if (updateFiles.trim().equals("")) return true;
 
@@ -310,6 +333,18 @@ public class Update {
                 if (lib == null) continue;
                 CVSLibrary.setState(lib, state);
             }
+/*
+            if (filename.toLowerCase().endsWith(DELIB.getHeaderFile())) {
+                // delib header file, add delib library
+                File header = new File(filename);
+                File delib = header.getParentFile();
+                String endfile = delib.getName();
+                Library lib = Library.findLibrary(endfile);
+                if (lib == null) continue;
+                result.addDELIBLibrary(state, lib);
+                continue;
+            }
+*/
             Cell cell = CVS.getCellFromPath(filename);
             if (cell != null) {
                 result.addCell(state, cell);
@@ -356,9 +391,11 @@ public class Update {
 
     public static class StatusResult {
         private Map<State,List<Cell>> cells;
+        private Map<State,List<Library>> delibs;
 
         private StatusResult() {
             cells = new HashMap<State,List<Cell>>();
+            delibs = new HashMap<State,List<Library>>();
         }
         private void addCell(State state, Cell cell) {
             List<Cell> statecells = cells.get(state);
@@ -373,6 +410,27 @@ public class Update {
             if (statecells == null)
                 statecells = new ArrayList<Cell>();
             return statecells;
+        }
+        public void addDELIBLibrary(State state, Library lib) {
+            List<Library> statelibs = delibs.get(state);
+            if (statelibs == null) {
+                statelibs = new ArrayList<Library>();
+                delibs.put(state, statelibs);
+            }
+            statelibs.add(lib);
+        }
+        public List<Library> getLibraries(State state) {
+            List<Library> statelibs = delibs.get(state);
+            if (statelibs == null)
+                statelibs = new ArrayList<Library>();
+            return statelibs;
+        }
+        public List<Library> getLibrariesWithState() {
+            List<Library> libs = new ArrayList<Library>();
+            for (List<Library> statelibs : delibs.values()) {
+                libs.addAll(statelibs);
+            }
+            return libs;
         }
     }
 

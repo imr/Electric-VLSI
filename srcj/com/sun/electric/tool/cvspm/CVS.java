@@ -400,6 +400,28 @@ public class CVS {
     }
 
     /**
+     * Get a String of header filenames for any DELIB libraries, to pass as the
+     * 'files' argument to a CVS command.  Any files in 'useDir' will
+     * be relative names, otherwise they will be absolute file names.
+     * @param libs
+     * @return
+     */
+    static StringBuffer getDELIBHeaderFiles(List<Library> libs, String useDir) {
+        StringBuffer libsBuf = new StringBuffer();
+        if (libs == null) return libsBuf;
+        for (Library lib : libs) {
+            if (!isDELIB(lib)) continue;
+            File libFile = TextUtils.getFile(lib.getLibFile());
+            String file = libFile.getPath();
+            if (file.startsWith(useDir)) {
+                file = file.substring(useDir.length()+1, file.length());
+            }
+            libsBuf.append(file+File.separator+DELIB.getHeaderFile()+" ");
+        }
+        return libsBuf;
+    }
+
+    /**
      * Get a String of filenames for the associated cells, to pass as the
      * 'files' argument to a CVS command.  Any files in 'useDir' will
      * be relative names, otherwise they will be absolute file names.
