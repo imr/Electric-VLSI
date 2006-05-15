@@ -144,7 +144,7 @@ public class DELIB extends JELIB {
                 return true;
             }
         }
-        headerFile = filePath + File.separator + "header";
+        headerFile = filePath + File.separator + getHeaderFile();
         // open new printWriter for cell
         try {
             printWriter = new PrintWriter(new BufferedWriter(new FileWriter(headerFile)));
@@ -180,5 +180,13 @@ public class DELIB extends JELIB {
         View view = cellBackup.d.cellName.getView();
         //if (version > 1) cellName = cellName + "_" + version;
         return dir + File.separator + cellName + "." + view.getAbbreviation();
+    }
+
+    /**
+     * Get relative path to header file from .delib directory
+     * @return
+     */
+    public static final String getHeaderFile() {
+        return "header";
     }
 }
