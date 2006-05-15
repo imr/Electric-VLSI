@@ -326,9 +326,6 @@ public class WindowFrame extends Observable
 			windowList.add(this);
 		}
 
-        // Add it as dynamic menu
-//        WindowMenu.addDynamicMenus(this);
-
 		return sz;
 	}
 
