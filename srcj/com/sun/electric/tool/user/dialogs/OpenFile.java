@@ -179,8 +179,8 @@ public class OpenFile
 
 		boolean useSwing = true;
         // MacOS Open Dialog doesn't work when directories must be available for selection
-		if (!wantDirectory && Client.isOSMac())
-			useSwing = false;
+//		if (!wantDirectory && Client.isOSMac())
+//			useSwing = false;
 
 //		if (location == null) location = new Point(100, 50);
 //		System.out.println("Put it at "+location);

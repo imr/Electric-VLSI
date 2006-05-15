@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/15/06, GVG) DELIB files can't be open with OpenDialog on Mac (#996)
+FIX: Temporary fix: using Swing dialog even for MacOSX.
+
 BUG: (5/13/06, DN) GDS import fails to complete (Bug #987).
      Database has slow NodeInst sorting, because it tries to save memory.
 FIX: Sort NodeIns in GDS reader before supplying to database.
