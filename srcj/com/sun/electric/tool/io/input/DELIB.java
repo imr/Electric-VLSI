@@ -77,7 +77,7 @@ public class DELIB extends JELIB {
 
         // get the file location; remove 'C' at start
         String cellFile = line.substring(1, line.length());
-        File cellFD = new File(filePath + File.separator + cellFile);
+        File cellFD = new File(filePath, cellFile);
         LineNumberReader cellReader;
         try {
             FileInputStream fin = new FileInputStream(cellFD);
