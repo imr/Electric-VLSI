@@ -1288,15 +1288,6 @@ public class FileMenu {
 			}
 
             // warn about this library
-//            String how = "significantly";
-//            String toolTipMessage = "Major changes include creation, deletion, or modification of circuit\n" +
-//                    "elements including variable and export renaming.";
-//            if (!lib.isChangedMajor())
-//            {
-//                how = "insignificantly";
-//                toolTipMessage = "Minor changes include DRC dates, expanded flag.";
-//            }
-
             String theAction = "Save before quitting?";
             if (action == 1) theAction = "Save before closing?"; else
                 if (action == 2) theAction = "Save before replacing?";
@@ -1305,10 +1296,6 @@ public class FileMenu {
                 "Library '" + lib.getName() + "' has changed.  " + theAction,
                 "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
                 null, options, options[0], null);
-//            int ret = showFileMenuOptionDialog(TopLevel.getCurrentJFrame(),
-//                "Library '" + lib.getName() + "' has changed " + how + ".  " + theAction,
-//                "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-//                null, options, options[0], toolTipMessage);
             if (ret == 0)
             {
                 // save the library
