@@ -341,7 +341,9 @@ public abstract class LibraryFiles extends Input
         URL libFile = lib.getLibFile();
         lib.setName("___old___"+name);
         lib.setHidden();                // hide the old library
+        startProgressDialog("library", name);
         Library newLib = readLibrary(libFile, name, type, true, null);
+        stopProgressDialog();
 
         // replace all old cells with new cells
         Cell.setAllowCircularLibraryDependences(true);
@@ -391,7 +393,9 @@ public abstract class LibraryFiles extends Input
 
         String name = lib.getName();
         URL libFile = lib.getLibFile();
+        startProgressDialog("library", name);
         Library newLib = readLibrary(libFile, "___reloaded___"+name, type, true, null);
+        stopProgressDialog();
         newLib.setHidden();
 
         // replace all old cells with new cells
