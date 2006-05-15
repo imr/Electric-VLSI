@@ -528,6 +528,13 @@ public class ToolMenu {
             new EMenu("CVS",
                 new EMenuItem("Commit All Open Libraries") { public void run() {
                     Commit.commitAllLibraries(); }},
+                new EMenuItem("Update Open Libraries") { public void run() {
+                    Update.updateOpenLibraries(Update.UPDATE); }},
+                new EMenuItem("Get Status Open Libraries") { public void run() {
+                    Update.updateOpenLibraries(Update.STATUS); }},
+                new EMenuItem("List Editors Open Libraries") { public void run() {
+                    Edit.listEditorsOpenLibraries(); }},
+                SEPARATOR,
                 new EMenuItem("Update Project Libraries") { public void run() {
                     Update.updateProject(Update.UPDATE); }},
                 new EMenuItem("Get Status Project Libraries") { public void run() {

@@ -79,6 +79,27 @@ public class Update {
     }
 
     /**
+     * Update all open libraries.
+     * @param type the type of update to do
+     */
+    public static void updateOpenLibraries(int type) {
+        boolean dialog = true;
+        if (type == STATUS) dialog = false;
+
+        List<Library> allLibs = new ArrayList<Library>();
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = it.next();
+            if (lib.isHidden()) continue;
+            if (!lib.isFromDisk()) continue;
+            if (!CVS.assertInCVS(lib, getMessage(type), dialog)) continue;
+            if (type != STATUS && !CVS.assertNotModified(lib, getMessage(type), dialog)) continue;
+            allLibs.add(lib);
+        }
+
+        (new UpdateJob(null, allLibs, type, false)).startJob();
+    }
+
+    /**
      * Update all Cells from a library.
      * @param lib
      * @param type the type of update to do
@@ -183,7 +204,7 @@ public class Update {
         String command = "-q update -d -P ";
         String message = "Running CVS Update";
         if (type == STATUS) {
-            command = "-nq update -d";
+            command = "-nq update -d ";
             message = "Running CVS Status";
         }
         if (type == ROLLBACK) {

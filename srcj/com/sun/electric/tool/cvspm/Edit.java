@@ -95,6 +95,18 @@ public class Edit {
         (new ListEditorsJob(allLibs, null, true)).startJob();
     }
 
+    public static void listEditorsOpenLibraries() {
+        List<Library> allLibs = new ArrayList<Library>();
+        for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = it.next();
+            if (lib.isHidden()) continue;
+            if (!lib.isFromDisk()) continue;
+            if (!CVS.assertInCVS(lib, "List CVS Editors", false)) continue;
+            allLibs.add(lib);
+        }
+        (new ListEditorsJob(allLibs, null, false)).startJob();
+    }
+
     public static void listEditors(Library lib) {
         List<Library> libs = new ArrayList<Library>();
         libs.add(lib);
@@ -115,6 +127,7 @@ public class Edit {
             super("List CVS Editors", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
             this.cells = cells;
+            this.forProject = forProject;
             if (this.libs == null) this.libs = new ArrayList<Library>();
             if (this.cells == null) this.cells = new ArrayList<Cell>();
         }
