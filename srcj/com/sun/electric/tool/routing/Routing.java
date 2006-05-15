@@ -28,6 +28,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
@@ -1160,5 +1161,88 @@ public class Routing extends Listener
 	private static Pref cacheSLRWindow = Pref.makeIntPref("SunRouterWindow", Routing.getRoutingTool().prefs, 30);
 	public static int getSunRouterWindow() { return cacheSLRWindow.getInt(); }
 	public static void setSunRouterWindow(int r) { cacheSLRWindow.setInt(r); }
+
+	
+	
+
+	private static Pref cacheWireOffset = Pref.makeIntPref("SunRouterWireOffset", Routing.getRoutingTool().prefs, 0);
+	public static int getSunRouterWireOffset() { return cacheWireOffset.getInt(); }
+	public static void setSunRouterWireOffset(int r) { cacheWireOffset.setInt(r); }
+
+	private static Pref cacheWireModulo = Pref.makeIntPref("SunRouterWireModulo", Routing.getRoutingTool().prefs, -1);
+	public static int getSunRouterWireModulo() { return cacheWireModulo.getInt(); }
+	public static void setSunRouterWireModulo(int r) { cacheWireModulo.setInt(r); }
+
+	private static Pref cacheWireBlockageFactor = Pref.makeDoublePref("SunRouterWireBlockageFactor", Routing.getRoutingTool().prefs, 0);
+	public static double getSunRouterWireBlockageFactor() { return cacheWireBlockageFactor.getDouble(); }
+	public static void setSunRouterWireBlockageFactor(double r) { cacheWireBlockageFactor.setDouble(r); }
+
+	private static Pref cacheRipUpMaximum = Pref.makeIntPref("SunRouterRipUpMaximum", Routing.getRoutingTool().prefs, 3);
+	public static int getSunRouterRipUpMaximum() { return cacheRipUpMaximum.getInt(); }
+	public static void setSunRouterRipUpMaximum(int r) { cacheRipUpMaximum.setInt(r); }
+
+	private static Pref cacheRipUpPenalty = Pref.makeIntPref("SunRouterRipUpPenalty", Routing.getRoutingTool().prefs, 10);
+	public static int getSunRouterRipUpPenalty() { return cacheRipUpPenalty.getInt(); }
+	public static void setSunRouterRipUpPenalty(int r) { cacheRipUpPenalty.setInt(r); }
+
+	private static Pref cacheRipUpExpansion = Pref.makeIntPref("SunRouterRipUpExpansion", Routing.getRoutingTool().prefs, 10);
+	public static int getSunRouterRipUpExpansion() { return cacheRipUpExpansion.getInt(); }
+	public static void setSunRouterRipUpExpansion(int r) { cacheRipUpExpansion.setInt(r); }
+
+	private static Pref cacheZRipUpExpansion = Pref.makeIntPref("SunRouterZRipUpExpansion", Routing.getRoutingTool().prefs, 2);
+	public static int getSunRouterZRipUpExpansion() { return cacheZRipUpExpansion.getInt(); }
+	public static void setSunRouterZRipUpExpansion(int r) { cacheZRipUpExpansion.setInt(r); }
+
+	private static Pref cacheRipUpSearches = Pref.makeIntPref("SunRouterRipUpSearches", Routing.getRoutingTool().prefs, 1);
+	public static int getSunRouterRipUpSearches() { return cacheRipUpSearches.getInt(); }
+	public static void setSunRouterRipUpSearches(int r) { cacheRipUpSearches.setInt(r); }
+
+	private static Pref cacheGlobalPathExpansion = Pref.makeIntPref("SunRouterGlobalPathExpansion", Routing.getRoutingTool().prefs, 5);
+	public static int getSunRouterGlobalPathExpansion() { return cacheGlobalPathExpansion.getInt(); }
+	public static void setSunRouterGlobalPathExpansion(int r) { cacheGlobalPathExpansion.setInt(r); }
+
+	private static Pref cacheSourceAccessExpansion = Pref.makeIntPref("SunRouterSourceAccessExpansion", Routing.getRoutingTool().prefs, 10);
+	public static int getSunRouterSourceAccessExpansion() { return cacheSourceAccessExpansion.getInt(); }
+	public static void setSunRouterSourceAccessExpansion(int r) { cacheSourceAccessExpansion.setInt(r); }
+
+	private static Pref cacheSinkAccessExpansion = Pref.makeIntPref("SunRouterSinkAccessExpansion", Routing.getRoutingTool().prefs, 10);
+	public static int getSunRouterSinkAccessExpansion() { return cacheSinkAccessExpansion.getInt(); }
+	public static void setSunRouterSinkAccessExpansion(int r) { cacheSinkAccessExpansion.setInt(r); }
+
+	private static Pref cacheDenseViaAreaSize = Pref.makeIntPref("SunRouterDenseViaAreaSize", Routing.getRoutingTool().prefs, 60);
+	public static int getSunRouterDenseViaAreaSize() { return cacheDenseViaAreaSize.getInt(); }
+	public static void setSunRouterDenseViaAreaSize(int r) { cacheDenseViaAreaSize.setInt(r); }
+
+	private static Pref cacheRetryExpandRouting = Pref.makeIntPref("SunRouterRetryExpandRouting", Routing.getRoutingTool().prefs, 50);
+	public static int getSunRouterRetryExpandRouting() { return cacheRetryExpandRouting.getInt(); }
+	public static void setSunRouterRetryExpandRouting(int r) { cacheRetryExpandRouting.setInt(r); }
+
+	private static Pref cacheRetryDenseViaAreaSize = Pref.makeIntPref("SunRouterRetryDenseViaAreaSize", Routing.getRoutingTool().prefs, 100);
+	public static int getSunRouterRetryDenseViaAreaSize() { return cacheRetryDenseViaAreaSize.getInt(); }
+	public static void setSunRouterRetryDenseViaAreaSize(int r) { cacheRetryDenseViaAreaSize.setInt(r); }
+
+	private static Pref cachePathSearchControl = Pref.makeIntPref("SunRouterPathSearchControl", Routing.getRoutingTool().prefs, 10000);
+	public static int getSunRouterPathSearchControl() { return cachePathSearchControl.getInt(); }
+	public static void setSunRouterPathSearchControl(int r) { cachePathSearchControl.setInt(r); }
+
+	private static Pref cacheSparseViaModulo = Pref.makeIntPref("SunRouterSparseViaModulo", Routing.getRoutingTool().prefs, 31);
+	public static int getSunRouterSparseViaModulo() { return cacheSparseViaModulo.getInt(); }
+	public static void setSunRouterSparseViaModulo(int r) { cacheSparseViaModulo.setInt(r); }
+
+	private static Pref cacheLowPathSearchCost = Pref.makeIntPref("SunRouterLowPathSearchCost", Routing.getRoutingTool().prefs, 5);
+	public static int getSunRouterLowPathSearchCost() { return cacheLowPathSearchCost.getInt(); }
+	public static void setSunRouterLowPathSearchCost(int r) { cacheLowPathSearchCost.setInt(r); }
+
+	private static Pref cacheMediumPathSearchCost = Pref.makeIntPref("SunRouterMediumPathSearchCost", Routing.getRoutingTool().prefs, 20);
+	public static int getSunRouterMediumPathSearchCost() { return cacheMediumPathSearchCost.getInt(); }
+	public static void setSunRouterMediumPathSearchCost(int r) { cacheMediumPathSearchCost.setInt(r); }
+
+	private static Pref cacheHighPathSearchCost = Pref.makeIntPref("SunRouterHighPathSearchCost", Routing.getRoutingTool().prefs, 100);
+	public static int getSunRouterHighPathSearchCost() { return cacheHighPathSearchCost.getInt(); }
+	public static void setSunRouterHighPathSearchCost(int r) { cacheHighPathSearchCost.setInt(r); }
+
+	private static Pref cacheTakenPathSearchCost = Pref.makeIntPref("SunRouterTakenPathSearchCost", Routing.getRoutingTool().prefs, 10000);
+	public static int getSunRouterTakenPathSearchCost() { return cacheTakenPathSearchCost.getInt(); }
+	public static void setSunRouterTakenPathSearchCost(int r) { cacheTakenPathSearchCost.setInt(r); }
 
 }
