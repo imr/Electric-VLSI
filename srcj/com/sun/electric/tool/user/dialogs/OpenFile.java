@@ -332,11 +332,13 @@ public class OpenFile
 	 */
 	public static FileType getOpenFileType(String libName, FileType def)
 	{
+        File libFile = new File(libName);
+        libName = libFile.getName();
         // remove trailing file separator if file is a directory (as it is with .delib)
         if (libName.endsWith(File.separator)) {
             libName = libName.substring(0, libName.length()-1);
         }
-        
+
 		if (libName.endsWith(".elib"))
 			return com.sun.electric.tool.io.FileType.ELIB;
 		else if (libName.endsWith(".jelib"))
