@@ -321,6 +321,7 @@ public class CVSLibrary {
         if (!CVS.isDELIB(lib)) {
             File file = TextUtils.getFile(lib.getLibFile());
             if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath()))) return;
+            if (getState(lib) == State.ADDED) return;       // not actually in cvs yet
             if (!isEditing(lib)) {
                 Edit.edit(file.getName(), file.getParentFile().getPath());
                 setEditing(lib, true);
@@ -334,6 +335,7 @@ public class CVSLibrary {
         List<Cell> modifiedCells = new ArrayList<Cell>();
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell cell = it.next();
+            if (getState(cell) == State.ADDED) continue;        // not actually in cvs yet
             if (cell.isModified(true)) modifiedCells.add(cell);
         }
         // turn on edit for cells that are not being edited

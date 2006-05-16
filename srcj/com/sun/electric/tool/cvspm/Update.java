@@ -159,30 +159,34 @@ public class Update {
             String useDir = CVS.getUseDir(librariesToUpdate, cellsToUpdate);
             StringBuffer libs = CVS.getLibraryFiles(librariesToUpdate, useDir);
             StringBuffer cells = CVS.getCellFiles(cellsToUpdate, useDir);
-/*
+
             if (!updateProject && (type != ROLLBACK)) {
                 // optimization: for DELIBs, check header first.  If that
                 // requires an update, then check cells
-                List<Library> delibs = new ArrayList<Library>();
-                List<Library> nondelibs = new ArrayList<Library>();
-                for (Library lib : librariesToUpdate) {
-                    if (CVS.isDELIB(lib)) delibs.add(lib);
-                    else nondelibs.add(lib);
-                }
-                StringBuffer headerFiles = CVS.getDELIBHeaderFiles(delibs, useDir);
-                String arg = headerFiles.toString().trim();
+                List<Library> checkedDelibs = new ArrayList<Library>();
+                StringBuffer lastModifiedFiles = CVS.getDELIBLastModifiedFiles(librariesToUpdate, useDir, checkedDelibs);
+                String arg = lastModifiedFiles.toString().trim();
                 if (!arg.equals("")) {
+                    // remove libs that can be checked, they will be added again if
+                    // cvs says the lastModified file has been changed in the repository
+                    for (Library lib : checkedDelibs) librariesToUpdate.remove(lib);
+
                     StatusResult result = update(arg, useDir, type);
                     // check for updated libraries
-                    List<Library> delibsToUpdate = result.getLibrariesWithState();
-                    nondelibs.addAll(delibsToUpdate);
+                    List<Library> delibsToUpdate = new ArrayList<Library>();
+                    delibsToUpdate.addAll(result.getLastModifiedFileLibs(State.UPDATE));
+                    delibsToUpdate.addAll(result.getLastModifiedFileLibs(State.CONFLICT));
+                    librariesToUpdate.addAll(delibsToUpdate);
                     // libs of nondelibs and libs to run update on
-                    libs = CVS.getLibraryFiles(nondelibs, useDir);
+                    libs = CVS.getLibraryFiles(librariesToUpdate, useDir);
                 }
             }
-*/
+
             String updateFiles = libs.toString() + " " + cells.toString();
-            if (updateFiles.trim().equals("")) return true;
+            if (updateFiles.trim().equals("")) {
+                System.out.println(getMessage(type)+" complete.");
+                return true;
+            }
 
             if (updateProject && (type == UPDATE || type == STATUS)) updateFiles = "";
             StatusResult result = update(updateFiles, useDir, type);
@@ -333,18 +337,17 @@ public class Update {
                 if (lib == null) continue;
                 CVSLibrary.setState(lib, state);
             }
-/*
-            if (filename.toLowerCase().endsWith(DELIB.getHeaderFile())) {
+            if (filename.endsWith(DELIB.getLastModifiedFile())) {
                 // delib header file, add delib library
                 File header = new File(filename);
                 File delib = header.getParentFile();
                 String endfile = delib.getName();
+                if (endfile.endsWith(".delib")) endfile = endfile.substring(0, endfile.length()-6);
                 Library lib = Library.findLibrary(endfile);
                 if (lib == null) continue;
-                result.addDELIBLibrary(state, lib);
+                result.addLastModifiedFile(state, lib);
                 continue;
             }
-*/
             Cell cell = CVS.getCellFromPath(filename);
             if (cell != null) {
                 result.addCell(state, cell);
@@ -391,11 +394,11 @@ public class Update {
 
     public static class StatusResult {
         private Map<State,List<Cell>> cells;
-        private Map<State,List<Library>> delibs;
+        private Map<State,List<Library>> lastModifiedFiles;
 
         private StatusResult() {
             cells = new HashMap<State,List<Cell>>();
-            delibs = new HashMap<State,List<Library>>();
+            lastModifiedFiles = new HashMap<State,List<Library>>();
         }
         private void addCell(State state, Cell cell) {
             List<Cell> statecells = cells.get(state);
@@ -411,26 +414,19 @@ public class Update {
                 statecells = new ArrayList<Cell>();
             return statecells;
         }
-        public void addDELIBLibrary(State state, Library lib) {
-            List<Library> statelibs = delibs.get(state);
+        public void addLastModifiedFile(State state, Library associatedLib) {
+            List<Library> statelibs = lastModifiedFiles.get(state);
             if (statelibs == null) {
                 statelibs = new ArrayList<Library>();
-                delibs.put(state, statelibs);
+                lastModifiedFiles.put(state, statelibs);
             }
-            statelibs.add(lib);
+            statelibs.add(associatedLib);
         }
-        public List<Library> getLibraries(State state) {
-            List<Library> statelibs = delibs.get(state);
+        public List<Library> getLastModifiedFileLibs(State state) {
+            List<Library> statelibs = lastModifiedFiles.get(state);
             if (statelibs == null)
                 statelibs = new ArrayList<Library>();
             return statelibs;
-        }
-        public List<Library> getLibrariesWithState() {
-            List<Library> libs = new ArrayList<Library>();
-            for (List<Library> statelibs : delibs.values()) {
-                libs.addAll(statelibs);
-            }
-            return libs;
         }
     }
 

@@ -121,8 +121,12 @@ public class Commit {
             String useDir = CVS.getUseDir(libsToCommit, cellsToCommit);
             StringBuffer libs = CVS.getLibraryFiles(libsToCommit, useDir);
             StringBuffer cells = CVS.getCellFiles(cellsToCommit, useDir);
-            String commitFiles = libs + " " + cells;
-            if (commitFiles.trim().equals("")) return true;
+            StringBuffer lastModifiedFiles = CVS.getDELIBLastModifiedFiles(libsToCommit, cellsToCommit, useDir);
+            String commitFiles = libs + " " + lastModifiedFiles + " " + cells;
+            if (commitFiles.trim().equals("")) {
+                System.out.println("Nothing to commit");
+                return true;
+            }
 
             CVS.runCVSCommandWithQuotes("-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);
             System.out.println("Commit complete");

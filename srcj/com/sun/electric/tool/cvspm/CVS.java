@@ -400,25 +400,47 @@ public class CVS {
     }
 
     /**
-     * Get a String of header filenames for any DELIB libraries, to pass as the
+     * Get a String of lastModified filenames for any DELIB libraries, to pass as the
      * 'files' argument to a CVS command.  Any files in 'useDir' will
      * be relative names, otherwise they will be absolute file names.
      * @param libs
+     * @param useDir
+     * @param checkedDelibs list of libraries for which this method returned
+     * lastModified files in StringBuffer
      * @return
      */
-    static StringBuffer getDELIBHeaderFiles(List<Library> libs, String useDir) {
+    static StringBuffer getDELIBLastModifiedFiles(List<Library> libs, String useDir, List<Library> checkedDelibs) {
         StringBuffer libsBuf = new StringBuffer();
         if (libs == null) return libsBuf;
+        checkedDelibs.clear();
         for (Library lib : libs) {
             if (!isDELIB(lib)) continue;
             File libFile = TextUtils.getFile(lib.getLibFile());
             String file = libFile.getPath();
+            File lastModified = new File(file, DELIB.getLastModifiedFile());
+            if (!lastModified.exists()) continue;       // skip if file does not exist
             if (file.startsWith(useDir)) {
                 file = file.substring(useDir.length()+1, file.length());
             }
-            libsBuf.append(file+File.separator+DELIB.getHeaderFile()+" ");
+            libsBuf.append(file+File.separator+DELIB.getLastModifiedFile()+" ");
+            checkedDelibs.add(lib);
         }
         return libsBuf;
+    }
+
+    static StringBuffer getDELIBLastModifiedFiles(List<Library> libs, List<Cell> cells, String useDir) {
+        StringBuffer lastModifiedFilesBuf;
+        ArrayList<Library> delibs = new ArrayList<Library>();
+
+        if (cells != null) {
+            for (Cell cell : cells) {
+                Library lib = cell.getLibrary();
+                if (!libs.contains(lib)) libs.add(lib);
+            }
+        }
+        // get headers for delibs with lastModified files
+        lastModifiedFilesBuf = getDELIBLastModifiedFiles(libs, useDir, delibs);
+        return lastModifiedFilesBuf;
     }
 
     /**

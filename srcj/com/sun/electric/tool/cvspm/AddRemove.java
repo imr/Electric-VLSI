@@ -55,6 +55,12 @@ public class AddRemove {
 
     public static void add(Cell cell) {
         if (!CVS.assertNotModified(cell, "Add", true)) return;
+        if (!CVSLibrary.isInCVS(cell.getLibrary())) {
+            Job.getUserInterface().showErrorMessage("Library "+cell.getLibrary().getName()+
+                    " must be added to cvs before cell "+cell.describe(false)+" can be added.",
+                    "Error adding Cell to CVS");
+            return;
+        }
 
         List<Cell> cells = new ArrayList<Cell>();
         cells.add(cell);
@@ -157,8 +163,11 @@ public class AddRemove {
                     generate(buf, it.next(), useDir);
                 }
                 // add header file
-                File headerFile = new File(libfile, "header");
+                File headerFile = new File(libfile, DELIB.getHeaderFile());
                 add(buf, headerFile.getPath(), useDir);
+                // add lastModified file
+                File lastModifiedFile = new File(libfile, DELIB.getLastModifiedFile());
+                add(buf, lastModifiedFile.getPath(), useDir);
             }
         }
         private void generate(StringBuffer buf, Cell cell, String useDir) {

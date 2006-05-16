@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Version;
 
@@ -37,6 +38,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Date;
+import java.net.URL;
 
 /**
  * Created by IntelliJ IDEA.
@@ -53,6 +57,23 @@ public class DELIB extends JELIB {
 
     private String headerFile;
     private HashMap<String,Integer> cellFileMap;
+
+    protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles) {
+        boolean b = super.writeLib(snapshot, libId, libFiles);
+        // write lastModified file for cvs update optimziations
+        File lastModifiedFile = new File(filePath, getLastModifiedFile());
+        if (!b) {
+            try {
+                PrintWriter writer;
+                writer = new PrintWriter(new BufferedWriter(new FileWriter(lastModifiedFile, false)));
+                writer.println(System.currentTimeMillis());
+                writer.close();
+            } catch (IOException e) {
+                System.out.println("Error opening "+lastModifiedFile+": "+e.getMessage());
+            }
+        }
+        return b;
+    }
 
     /**
      * Write a cell. Instead of writing it to the jelib file,
@@ -188,5 +209,9 @@ public class DELIB extends JELIB {
      */
     public static final String getHeaderFile() {
         return "header";
+    }
+
+    public static final String getLastModifiedFile() {
+        return "lastModified";
     }
 }
