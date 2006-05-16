@@ -1246,7 +1246,6 @@ public class Panel extends JPanel
 						{
 							localGraphics.drawLine(vertAxisPos-10, y, vertAxisPos, y);
 						}
-//						String yValue = prettyPrint(value, ss.getRangeScale(), ss.getStepScale());
 						String yValue = TextUtils.convertToEngineeringNotation(value, null);
 						if (polys != null)
 						{
@@ -1688,33 +1687,6 @@ public class Panel extends JPanel
 		}
 		return false;
 	}
-
-//	private static String prettyPrint(double v, int i1, int i2)
-//	{
-//		double d = 1.0;
-//		if (i2 > 0)
-//			for(int i = 0; i < i2; i++) d *= 10.0;
-//		if (i2 < 0)
-//			for(int i = 0; i > i2; i--) d /= 10.0;
-//
-//		if (Math.abs(v)*100.0 < d) return "0";
-//
-//		if (i1 <= 4 && i1 >= 0 && i2 >= 0)
-//		{
-//			String s = TextUtils.formatDouble(v, 1);
-//			return s;
-//		}
-//		if (i1 <= 4 && i1 >= -2 && i2 < 0)
-//		{
-//			String s = TextUtils.formatDouble(v, -i2);
-//			return s;
-//		}
-//
-//		int p = i1 - 12 - 1;
-//		if (p <= 0) p = 1;
-//		String s = TextUtils.formatDouble(v/d, p);
-//		return s + "e" + i2;
-//	}
 
 	// ************************************* SIGNAL SELECTION *************************************
 

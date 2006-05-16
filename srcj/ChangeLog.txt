@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/16/06, SMR) Waveform window draws numbers badly and creates
+     new panels that may not align with others (Bug #1004).
+FIX: Improved new panel creation code and "convertToEngineeringNotation"
+
 IMP: (5/16/06, SMR) GDS input now handles invalid node names.  Also mangles
      duplicate export names so that indices don't change (Bug #988).
 

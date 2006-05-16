@@ -942,6 +942,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		double highValue = bounds.getMaxY();
 		double lowXValue = bounds.getMinX();
 		double highXValue = bounds.getMaxX();
+		int vertAxisPos = -1;
 		if (xAxisLocked)
 		{
 			if (wavePanels.size() > 0)
@@ -949,6 +950,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Panel aPanel = wavePanels.get(0);
 				lowXValue = aPanel.getMinXAxis();
 				highXValue = aPanel.getMaxXAxis();
+				vertAxisPos = aPanel.getVertAxisPos();
 			}
 		}
 
@@ -975,6 +977,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		panel.setXAxisRange(lowXValue, highXValue);
 		if (analysisType != null)
 			panel.setYAxisRange(lowValue, highValue);
+		if (vertAxisPos > 0) panel.setVertAxisPos(vertAxisPos);
 
 		// show and return the panel
 		panel.makeSelectedPanel();
