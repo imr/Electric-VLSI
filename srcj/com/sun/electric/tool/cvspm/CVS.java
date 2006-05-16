@@ -125,8 +125,9 @@ public class CVS {
      * @param out where the result of the command gets printed. May be
      * a ByteArrayOutputStream for storing it, or just System.out for
      * printing it.
+     * @return the exit value
      */
-    public static void runCVSCommand(String cmd, String comment, String workingDir, OutputStream out) {
+    public static int runCVSCommand(String cmd, String comment, String workingDir, OutputStream out) {
         String specifyRepository = "";
         if (!getRepository().equals("")) specifyRepository = " -d"+getRepository();
         String run = getCVSProgram() + specifyRepository +" "+cmd;
@@ -134,6 +135,7 @@ public class CVS {
         System.out.println(comment+": "+run);
         Exec e = new Exec(run, null, new File(workingDir), out, out);
         e.run();
+        return e.getExitVal();
     }
 
     /**
@@ -149,8 +151,9 @@ public class CVS {
      * @param out where the result of the command gets printed. May be
      * a ByteArrayOutputStream for storing it, or just System.out for
      * printing it.
+     * @return the exit value
      */
-    static void runCVSCommandWithQuotes(String cmd, String comment, String workingDir, OutputStream out) {
+    static int runCVSCommandWithQuotes(String cmd, String comment, String workingDir, OutputStream out) {
         String specifyRepository = "";
         if (!getRepository().equals("")) specifyRepository = " -d "+getRepository();
 
@@ -181,6 +184,7 @@ public class CVS {
         System.out.println(comment+": "+cmd);
         Exec e = new Exec(exec, null, new File(workingDir), out, out);
         e.run();
+        return e.getExitVal();
     }
 
     /**

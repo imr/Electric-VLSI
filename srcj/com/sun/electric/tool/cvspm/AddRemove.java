@@ -87,18 +87,41 @@ public class AddRemove {
         private List<Library> libs;
         private List<Cell> cells;
         private boolean add;
+        private int exitVal;
         private HashMap<String,Integer> addedCellDirs;
         private AddRemoveJob(List<Library> libs, List<Cell> cells, boolean add) {
             super("CVS Add/Remove", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.libs = libs;
             this.cells = cells;
             this.add = add;
+            exitVal = -1;
             if (this.libs == null) this.libs = new ArrayList<Library>();
             if (this.cells == null) this.cells = new ArrayList<Cell>();
             addedCellDirs = new HashMap<String,Integer>();
         }
         public boolean doIt() {
             String useDir = CVS.getUseDir(libs, cells);
+
+            // unfortunately add/remove are not recursive, so we have
+            // to specify directories as well as files to add/remove
+            StringBuffer buf = new StringBuffer();
+            for (Library lib : libs) {
+                generate(buf, lib, useDir);
+            }
+            for (Cell cell : cells) {
+                generate(buf, cell, useDir);
+            }
+
+            String addRemoveFiles = buf.toString();
+            if (addRemoveFiles.trim().equals("")) return true;
+            String command = add ? "add" : "remove";
+            String message = "Running CVS " + (add ? "Add" : "Remove");
+            exitVal = CVS.runCVSCommand("-q "+command+" "+addRemoveFiles, message,
+                    useDir, System.out);
+            fieldVariableChanged("exitVal");
+            if (exitVal != 0) return true;
+
+            System.out.println("CVS "+command+" complete");
 
             // mark files as added/removed
             for (Library lib : libs) {
@@ -134,23 +157,6 @@ public class AddRemove {
                 }
             }
 
-            // unfortunately add/remove are not recursive, so we have
-            // to specify directories as well as files to add/remove
-            StringBuffer buf = new StringBuffer();
-            for (Library lib : libs) {
-                generate(buf, lib, useDir);
-            }
-            for (Cell cell : cells) {
-                generate(buf, cell, useDir);
-            }
-
-            String addRemoveFiles = buf.toString();
-            if (addRemoveFiles.trim().equals("")) return true;
-            String command = add ? "add" : "remove";
-            String message = "Running CVS " + (add ? "Add" : "Remove");
-            CVS.runCVSCommand("-q "+command+" "+addRemoveFiles, message,
-                    useDir, System.out);
-            System.out.println("CVS "+command+" complete");
             return true;
         }
         private void generate(StringBuffer buf, Library lib, String useDir) {
@@ -200,6 +206,12 @@ public class AddRemove {
                         }
                     }
                 }
+            }
+        }
+        public void terminateOK() {
+            if (exitVal != 0) {
+                Job.getUserInterface().showErrorMessage("CVS "+(add?"Add":"Remove")+
+                        " Failed!  Please see messages window","CVS "+(add?"Add":"Remove")+" Failed!");
             }
         }
     }

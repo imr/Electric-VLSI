@@ -140,6 +140,7 @@ public class Update {
         private int type;
         private List<Library> libsToReload;
         private boolean updateProject;                // update whole project
+        private int exitVal;
         /**
          * Update cells and/or libraries.
          * @param cellsToUpdate
@@ -152,6 +153,7 @@ public class Update {
             this.librariesToUpdate = librariesToUpdate;
             this.type = type;
             this.updateProject = updateProject;
+            exitVal = -1;
             if (this.cellsToUpdate == null) this.cellsToUpdate = new ArrayList<Cell>();
             if (this.librariesToUpdate == null) this.librariesToUpdate = new ArrayList<Library>();
         }
@@ -160,6 +162,10 @@ public class Update {
             StringBuffer libs = CVS.getLibraryFiles(librariesToUpdate, useDir);
             StringBuffer cells = CVS.getCellFiles(cellsToUpdate, useDir);
 
+            // disable this for now, since users with older versions
+            // of electric will not commit new lastModified file,
+            // and then users of new electric will not get updated files
+            /*
             if (!updateProject && (type != ROLLBACK)) {
                 // optimization: for DELIBs, check header first.  If that
                 // requires an update, then check cells
@@ -181,6 +187,7 @@ public class Update {
                     libs = CVS.getLibraryFiles(librariesToUpdate, useDir);
                 }
             }
+            */
 
             String updateFiles = libs.toString() + " " + cells.toString();
             if (updateFiles.trim().equals("")) {
@@ -191,6 +198,11 @@ public class Update {
             if (updateProject && (type == UPDATE || type == STATUS)) updateFiles = "";
             StatusResult result = update(updateFiles, useDir, type);
             commentStatusResult(result, type);
+            exitVal = result.getExitVal();
+            if (exitVal != 0) {
+                fieldVariableChanged("exitVal");
+                return true;
+            }
 
             // reload libs if needed
             libsToReload = new ArrayList<Library>();
@@ -217,6 +229,11 @@ public class Update {
             return true;
         }
         public void terminateOK() {
+            if (exitVal != 0) {
+                Job.getUserInterface().showErrorMessage("CVS "+getMessage(type)+
+                        " Failed!  Please see messages window","CVS "+getMessage(type)+" Failed!");
+                return;
+            }
             CVS.fixStaleCellReferences(libsToReload);
         }
     }
@@ -240,10 +257,10 @@ public class Update {
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CVS.runCVSCommand(command+file, message,
+        int exitVal = CVS.runCVSCommand(command+file, message,
                     dir, out);
         LineNumberReader result = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
-        return parseOutput(result);
+        return parseOutput(result, exitVal);
     }
 
     private static String getMessage(int type) {
@@ -308,8 +325,8 @@ public class Update {
      * @param reader
      * @return
      */
-    private static StatusResult parseOutput(LineNumberReader reader) {
-        StatusResult result = new StatusResult();
+    private static StatusResult parseOutput(LineNumberReader reader, int exitVal) {
+        StatusResult result = new StatusResult(exitVal);
         for (;;) {
             String line;
             try {
@@ -395,10 +412,12 @@ public class Update {
     public static class StatusResult {
         private Map<State,List<Cell>> cells;
         private Map<State,List<Library>> lastModifiedFiles;
+        private int exitVal;
 
-        private StatusResult() {
+        private StatusResult(int exitVal) {
             cells = new HashMap<State,List<Cell>>();
             lastModifiedFiles = new HashMap<State,List<Library>>();
+            this.exitVal = exitVal;
         }
         private void addCell(State state, Cell cell) {
             List<Cell> statecells = cells.get(state);
@@ -428,6 +447,7 @@ public class Update {
                 statelibs = new ArrayList<Library>();
             return statelibs;
         }
+        public int getExitVal() { return exitVal; }
     }
 
 }

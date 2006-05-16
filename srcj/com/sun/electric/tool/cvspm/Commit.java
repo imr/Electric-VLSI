@@ -102,6 +102,7 @@ public class Commit {
         private String message;
         private List<Library> libsToCommit;
         private List<Cell> cellsToCommit;
+        private int exitVal;
         /**
          * Commit cells and/or libraries.
          * @param message the commit log message
@@ -113,6 +114,7 @@ public class Commit {
             this.message = message;
             this.libsToCommit = libsToCommit;
             this.cellsToCommit = cellsToCommit;
+            exitVal = -1;
             if (this.libsToCommit == null) this.libsToCommit = new ArrayList<Library>();
             if (this.cellsToCommit == null) this.cellsToCommit = new ArrayList<Cell>();
         }
@@ -128,11 +130,17 @@ public class Commit {
                 return true;
             }
 
-            CVS.runCVSCommandWithQuotes("-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);
+            exitVal = CVS.runCVSCommandWithQuotes("-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);
             System.out.println("Commit complete");
+            fieldVariableChanged("exitVal");
             return true;
         }
         public void terminateOK() {
+            if (exitVal != 0) {
+                Job.getUserInterface().showErrorMessage("CVS Commit Failed!  Please see messages window (exit status "+exitVal+")", "CVS Commit Failed!");
+                return;
+            }
+
             // remove editors for lib
             for (Library lib : libsToCommit) {
                 CVSLibrary.setEditing(lib, false);
