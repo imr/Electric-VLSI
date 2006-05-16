@@ -1131,7 +1131,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         new CreateAttribute(varName, getVariableObject(val), selectedObject);
         // Spawn a Job to set the new Variable's text options
         // because the var has not been created yet, set the futureVarName for the panel
-        textPanel.applyChanges();
+        textPanel.applyChanges(true);
         // same for text attributes panel
         attrPanel.applyChanges();
 

@@ -883,7 +883,7 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
         if (cti.shownText == null) return;
 
         // tell sub-panels to update if they have changed
-        textPanel.applyChanges();
+        textPanel.applyChanges(true);
         attrPanel.applyChanges();
 
         boolean changed = false;

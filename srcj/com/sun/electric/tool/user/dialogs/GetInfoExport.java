@@ -554,7 +554,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         }
 
         // possibly generate job to change export text options
-        textPanel.applyChanges();
+        textPanel.applyChanges(true);
 
         initialName = newName;
         initialBodyOnly = newBodyOnly;

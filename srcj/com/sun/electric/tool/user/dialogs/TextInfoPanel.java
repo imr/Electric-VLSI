@@ -431,14 +431,15 @@ public class TextInfoPanel extends javax.swing.JPanel
 	{
 		if (!updateChangesInstantly) return;
 		if (loading) return;
-		applyChanges();
+		applyChanges(false);
 	}
 
 	/**
      * Apply any changes the user made to the Text options.
      * @return true if any changes made to database, false if no changes made.
+     * @param adjustErrors
      */
-    public synchronized boolean applyChanges() {
+    public synchronized boolean applyChanges(boolean adjustErrors) {
 
         if (varKey == null) return false;
 
@@ -448,11 +449,15 @@ public class TextInfoPanel extends javax.swing.JPanel
         TextDescriptor.Size newSize = null;
         if (pointsButton.isSelected())
         {
-            int size = TextUtils.atoi(pointsSize.getText());
+            String s = pointsSize.getText();
+            if (s.equals("")) return false; // removing all data from field
+            int size = TextUtils.atoi(s);
             newSize = TextDescriptor.Size.newAbsSize(size);
         } else
         {
-            double size = TextUtils.atof(unitsSize.getText());
+            String s = unitsSize.getText();
+            if (s.equals("")) return false; // removing all data from field
+            double size = TextUtils.atof(s);
             newSize = TextDescriptor.Size.newRelSize(size);
         }
         // default size
@@ -460,7 +465,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         {
             // if values given in pointsSize or unitsSize are invalid
             String value = (pointsButton.isSelected())? pointsSize.getText() : unitsSize.getText();
-            pointsSize.setText(String.valueOf(TextDescriptor.Size.TXTMAXPOINTS));
+            if (adjustErrors)
+                pointsSize.setText(String.valueOf(TextDescriptor.Size.TXTMAXPOINTS));
             System.out.println("Error: given size value of " + value + " is out of range. Setting default value.");
             newSize = TextDescriptor.Size.newRelSize(1.0);
         }
