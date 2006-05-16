@@ -43,6 +43,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.*;
@@ -267,7 +268,7 @@ public class GDS extends Input
 			if (Job.getDebug())
 			{
 				int size = insts.size();
-				System.out.println("    Building cell "+this.cell.describe(false) +
+				System.out.println("Building cell " + this.cell.describe(false) +
 					" with " + size + " instances");
 				if (size >= 100000) countOff = true;
 			}
@@ -276,8 +277,8 @@ public class GDS extends Input
 			int count = 0;
 			for(MakeInstance mi : insts)
 			{
-				if (countOff && (count++ % 500) == 0)
-					System.out.println("        Made " + count + " so far...");
+				if (countOff && (++count % 2000) == 0)
+					System.out.println("        Made " + count + " instances");
                 if (mi.proto instanceof Cell) {
                     Cell subCell = (Cell)mi.proto;
                     CellBuilder cellBuilder = allBuilders.get(subCell);
@@ -350,14 +351,35 @@ public class GDS extends Input
         }
         
         private void instantiate(Cell parent) {
-            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, nodeName.toString(), 0);
+        	String name = nodeName.toString();
+            if (name != null && parent.findNode(name) != null) name = null;
+            if (name != null)
+            {
+            	String error = Name.checkName(name);
+            	if (error != null)
+            	{
+            		System.out.println("  Warning: Node name '" + name + "' in cell " + parent.describe(false) +
+            			" is bad (" + error + ")...ignoring the name");
+            		name = null;
+            	}
+            }
+            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name, 0);
             if (ni == null) return;
             if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
                 ni.setExpanded();
             if (points != null)
                 ni.newVar(NodeInst.TRACE, points);
             if (exportName != null)
+            {
+        		if (parent.findExport(exportName) != null)
+        		{
+                    String newName = ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true);
+                    System.out.println("  Warning: Multiple exports called '" + exportName + "' in cell " +
+                    	parent.describe(false) + " (renamed to " + newName + ")");
+                    exportName = newName;
+        		}
                 Export.newInstance(parent, ni.getPortInst(0), exportName);
+            }
         }
 	}
 

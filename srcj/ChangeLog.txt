@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+IMP: (5/16/06, SMR) GDS input now handles invalid node names.  Also mangles
+     duplicate export names so that indices don't change (Bug #988).
+
 BUG: (5/16/06, DN) Exception in VectorDrawing (Bug #1002).
 FIX: In VectorCache invalidate cache in EThread.
 
