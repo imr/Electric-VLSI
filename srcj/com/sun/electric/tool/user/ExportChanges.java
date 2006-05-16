@@ -743,7 +743,7 @@ public final class ExportChanges
             }
 
             // get unique name here so Export.newInstance doesn't print message
-            protoName = ElectricObject.uniqueObjectName(protoName, cell, PortProto.class, already, nextPlainIndex);
+            protoName = ElectricObject.uniqueObjectName(protoName, cell, PortProto.class, already, nextPlainIndex, false);
 
             // create export
             Export newPp = Export.newInstance(cell, pi, protoName);

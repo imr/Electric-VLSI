@@ -150,7 +150,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		if (parent.findExport(protoName) != null)
 		{
             String oldName = protoName;
-            protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class);
+            protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class, false);
             if (protoName == null) {
                 System.out.println(parent + " already has an export named " + oldName + ", export was not created");
                 return null;
@@ -341,7 +341,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		if (!getName().equalsIgnoreCase(newName) || getName().equals(newName))
 		{
 			// not changing case
-	        String dupName = ElectricObject.uniqueObjectName(newName, cell, PortProto.class);
+	        String dupName = ElectricObject.uniqueObjectName(newName, cell, PortProto.class, false);
 	        if (!dupName.equals(newName))
 	        {
 	            System.out.println(cell + " already has an export named " + newName +
@@ -795,7 +795,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                         "[" + name.substring(afterOpenIndex, closeIndex) + "]";
         }
         if (validExportName(newName, oldBusWidth)) {
-            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class);
+            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false);
             if (validExportName(newName, oldBusWidth))
                 return newName;
         }
@@ -809,7 +809,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         }
         newName = sb.toString();
         if (validExportName(newName, oldBusWidth)) {
-            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class);
+            newName = ElectricObject.uniqueObjectName(newName, parent, PortProto.class, false);
             if (validExportName(newName, oldBusWidth))
                 return newName;
         }

@@ -532,7 +532,7 @@ public class Array extends EDialog
 						Name nodeNameKey = ni.getNameKey();
 						if (!nodeNameKey.isTempname())
 						{
-							newNi.setName(ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class));
+							newNi.setName(ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false));
 							newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 						}
 					}
@@ -594,7 +594,7 @@ public class Array extends EDialog
 						{
 							String newName = ai.getName();
 							if (arcsAutoIncrement)
-								newName = ElectricObject.uniqueObjectName(newName, cell, ArcInst.class);
+								newName = ElectricObject.uniqueObjectName(newName, cell, ArcInst.class, false);
 							newAi.setName(newName);
 							newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
 						}

@@ -4322,7 +4322,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (nodeNames.contains(ni.getNameKey())) {
                 String msg = this + " has duplicate node name " + ni.getName();
                 if (repair) {
-                    String newName = ElectricObject.uniqueObjectName(ni.getName(), this, NodeInst.class);
+                    String newName = ElectricObject.uniqueObjectName(ni.getName(), this, NodeInst.class, false);
                     if (newName != null && !ni.setName(newName))
                         msg += " renamed to " + newName;
                 }

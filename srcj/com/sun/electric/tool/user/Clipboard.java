@@ -700,7 +700,7 @@ public class Clipboard
 			double height = ni.getYSize();
 			String name = null;
 			if (ni.isUsernamed())
-				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
+				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class, false);
             double px = ni.getAnchorCenterX()+dX;
             double py = ni.getAnchorCenterY()+dY;
             px = DBMath.toNearest(px, User.getAlignmentToGrid());
@@ -767,7 +767,7 @@ public class Clipboard
 						String newName = newArcNames.get(name);
 						if (newName == null)
 						{
-							newName = ElectricObject.uniqueObjectName(name, toCell, ArcInst.class);
+							newName = ElectricObject.uniqueObjectName(name, toCell, ArcInst.class, false);
 							newArcNames.put(name, newName);
 						}
 						name = newName;

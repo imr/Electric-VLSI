@@ -791,12 +791,14 @@ public abstract class ElectricObject implements Serializable
 	 * @param name the original name that is not unique.
 	 * @param cell the Cell in which this name resides.
 	 * @param cls the class of the object on which this name resides.
+	 * @param leaveIndexValues true to leave the index values untouches
+	 * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
 	 * @return a unique name for that class in that Cell.
 	 */
-	public static String uniqueObjectName(String name, Cell cell, Class cls) {
+	public static String uniqueObjectName(String name, Cell cell, Class cls, boolean leaveIndexValues) {
 		String newName = name;
 		for (int i = 0; !cell.isUniqueName(newName, cls, null); i++) {
-			newName = uniqueObjectNameLow(newName, cell, cls, null, null);
+			newName = uniqueObjectNameLow(newName, cell, cls, null, null, leaveIndexValues);
 			if (i > 100) {
 				System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
 				return null;
@@ -811,16 +813,18 @@ public abstract class ElectricObject implements Serializable
 	 * @param cell the Cell in which this name resides.
 	 * @param cls the class of the object on which this name resides.
 	 * @param already a Set of names already in use (lower case).
+	 * @param leaveIndexValues true to leave the index values untouches
+	 * (i.e. "m[17]" will become "m_1[17]" instead of "m[18]").
 	 * @return a unique name for that class in that Cell.
 	 */
 	public static String uniqueObjectName(String name, Cell cell, Class cls,
-		Set already, HashMap<String,GenMath.MutableInteger> nextPlainIndex)
+		Set already, HashMap<String,GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues)
 	{
 		String newName = name;
 		String lcName = TextUtils.canonicString(newName);
 		for (int i = 0; already.contains(lcName); i++)
 		{
-			newName = uniqueObjectNameLow(newName, cell, cls, already, nextPlainIndex);
+			newName = uniqueObjectNameLow(newName, cell, cls, already, nextPlainIndex, leaveIndexValues);
 			if (i > 100)
 			{
 				System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
@@ -832,7 +836,7 @@ public abstract class ElectricObject implements Serializable
 	}
 
 	private static String uniqueObjectNameLow(String name, Cell cell, Class cls,
-		Set already, HashMap<String,GenMath.MutableInteger> nextPlainIndex)
+		Set already, HashMap<String,GenMath.MutableInteger> nextPlainIndex, boolean leaveIndexValues)
 	{
 		// first see if the name is unique
 		if (already != null)
@@ -925,7 +929,7 @@ public abstract class ElectricObject implements Serializable
 			// adjust the index part if possible
 			boolean indexAdjusted = false;
 			String index = an.indexPart;
-			if (index != null)
+			if (index != null && !leaveIndexValues)
 			{
 				int possibleEnd = 0;
 				int nameLen = index.length();

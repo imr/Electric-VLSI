@@ -738,7 +738,7 @@ public class CellChangeJobs
 //			newAngle = newAngle % 3600;   if (newAngle < 0) newAngle += 3600;
 			String name = null;
 			if (ni.isUsernamed())
-				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class);
+				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false);
             Orientation orient = topno.getOrient().concatenate(ni.getOrient());
 			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), cell, orient, name, 0);
 //			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
@@ -785,7 +785,7 @@ public class CellChangeJobs
 
 			String name = null;
 			if (ai.isUsernamed())
-				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class);
+				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
 			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, piTail, ptHead, ptTail, name);
 			if (newAi == null) return;
 			newAi.copyPropertiesFrom(ai);
@@ -805,7 +805,7 @@ public class CellChangeJobs
 			double wid = ai.getWidth();
 			String name = null;
 			if (ai.isUsernamed())
-				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class);
+				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
 			PortInst [] pis = new PortInst[2];
 			Point2D [] pts = new Point2D[2];
 			for(int i=0; i<2; i++)
@@ -867,7 +867,7 @@ public class CellChangeJobs
 				if (alreadyDone) continue;
 
 				// copy the port
-				String portName = ElectricObject.uniqueObjectName(pp.getName(), cell, PortProto.class);
+				String portName = ElectricObject.uniqueObjectName(pp.getName(), cell, PortProto.class, false);
 				Export newPp = Export.newInstance(cell, pi, portName);
 				if (newPp != null)
 				{
