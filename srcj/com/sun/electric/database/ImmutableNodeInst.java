@@ -196,7 +196,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (nodeId < 0) throw new IllegalArgumentException("nodeId");
 		if (protoId == null) throw new NullPointerException("protoId");
 		if (name == null) throw new NullPointerException("name");
-        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
+        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus())
+        	throw new IllegalArgumentException("bad name: "+name);
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
