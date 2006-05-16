@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/16/06, DN) Regression failed after export rename.
+FIX: In Jelib reader always search exports by exportId.
+
 BUG: (5/16/06, SMR) Including/Excluding multiple sweeps doesn't update explorer
      window (Bug #774).
 FIX: In ExplorerTree.setSweepAction(), added call to updateUI().

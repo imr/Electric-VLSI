@@ -23,14 +23,17 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -42,6 +45,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
@@ -53,7 +57,6 @@ import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -1058,6 +1061,7 @@ public abstract class LibraryFiles extends Input
             String origVarName = var.getKey().toString();
 			// convert old port variables
 			if (eObj instanceof NodeInst && var.getKey().getName().startsWith("ATTRP_")) {
+                NodeInst ni = (NodeInst)eObj;
                 // the form is "ATTRP_portName_variableName" with "\" escapes
                 StringBuffer portName = new StringBuffer();
                 String varName = null;
@@ -1077,7 +1081,8 @@ public abstract class LibraryFiles extends Input
                 }
                 if (varName != null) {
                     String thePortName = portName.toString();
-                    PortInst pi = ((NodeInst)eObj).findPortInst(thePortName);
+                    PortProto pp = findPortProto(ni.getProto(), thePortName);
+                    PortInst pi = pp != null ? ni.findPortInstFromProto(pp) : null;
                     if (pi != null) {
                         pi.newVar(Variable.newKey(varName), var.getObject(), var.getTextDescriptor());
                         continue;
@@ -1086,6 +1091,23 @@ public abstract class LibraryFiles extends Input
             }
             eObj.addVar(var);
         }
+    }
+    
+    static PortProto findPortProto(NodeProto np, String portId) {
+        PortProto pp = null;
+        if (np instanceof Cell) {
+            Cell cell = (Cell)np;
+            ExportId exportId = cell.getId().findExportId(portId);
+            if (exportId != null)
+                return cell.getExportChron(exportId.chronIndex);
+        } else {
+            pp = np.findPortProto(portId);
+            if (pp == null) {
+                PrimitiveNode primNode = (PrimitiveNode)np;
+                pp = primNode.getTechnology().convertOldPortName(portId, primNode);
+            }
+        }
+        return pp;
     }
     
 	/**

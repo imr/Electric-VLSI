@@ -39,6 +39,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -1189,29 +1190,10 @@ public class JELIB extends LibraryFiles
 		{
 			if (ni.getNumPortInsts() > 0)
 				pi = ni.getPortInst(0);
-		} else if (ni.isCellInstance())
-		{
-            if (revision >= 2) {
-                Cell subCell = (Cell)ni.getProto();
-                ExportId exportId = subCell.getId().findExportId(portName);
-                if (exportId != null) {
-                    Export e = subCell.getExportChron(exportId.chronIndex);
-                    if (e != null)
-                        pi = ni.findPortInstFromProto(e);
-                }
-            } else {
-                pi = ni.findPortInst(portName);
-            }
-		} else
-        {
-			pi = ni.findPortInst(portName);
-			if (pi == null)
-			{
-				PrimitiveNode primNode = (PrimitiveNode)ni.getProto();
-				PrimitivePort primPort = primNode.getTechnology().convertOldPortName(portName, primNode);
-				if (primPort != null) pi = ni.findPortInstFromProto(primPort);
-			}
-            
+		} else {
+            PortProto pp = findPortProto(ni.getProto(), portName);
+            if (pp != null)
+                pi = ni.findPortInstFromProto(pp);
         }
 
 		// primitives use the name match
@@ -1834,14 +1816,7 @@ public class JELIB extends LibraryFiles
 				String exportName = piece.substring(secondColonPos+1);
 				commaPos = exportName.indexOf(',');
 				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
-                Export pp = null;
-                if (revision >= 2) {
-                    ExportId exportId = cell.getId().findExportId(exportName);
-                    if (exportId != null)
-                        pp = cell.getExportChron(exportId.chronIndex);
-                } else {
-                    pp = cell.findExport(exportName);
-                }
+                Export pp = (Export)findPortProto(cell, exportName);
 				if (pp == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown Export: " + piece, -1);
