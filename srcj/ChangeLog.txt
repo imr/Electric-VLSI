@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/16/06, DN) Exception in VectorDrawing (Bug #1002).
+FIX: In VectorCache invalidate cache in EThread.
+
+BUG: (5/16/06, DN) IRSIM command launches createWindow in EThread.
+FIX: Runs Analyzer.startIrsim in GUI thread instead of Job.
+
+BUG: (5/16/06, DN) Regression failed because of duplicate temporary name.
+FIX: In NodeInst.newInstance(Cell,ImmutableNodeInst) update d.name on duplicate names.
+
 BUG: (5/15/06, GVG) DELIB files can't be open with OpenDialog on Mac (#996)
 FIX: Temporary fix: using Swing dialog even for MacOSX.
 

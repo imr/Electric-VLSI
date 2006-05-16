@@ -383,8 +383,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                 baseName = np.getTechnology().getPrimitiveFunction(np, d.techBits).getBasename();
             }
             nameKey = parent.getNodeAutoname(baseName);
+            d = d.withName(nameKey);
 		}
-        assert !parent.hasTempNodeName(nameKey);
+        assert !parent.hasTempNodeName(d.name);
         CellId parentId = (CellId)parent.getId();
         
 		NodeInst ni = new NodeInst(d, parent);

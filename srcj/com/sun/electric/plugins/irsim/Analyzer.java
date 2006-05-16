@@ -195,7 +195,8 @@ public class Analyzer extends Engine
 		theAnalyzer.cell = cell;
 		theAnalyzer.context = context;
 		theAnalyzer.fileName = fileName;
-		new StartIRSIM(theAnalyzer);
+        startIrsim(theAnalyzer);
+//		new StartIRSIM(theAnalyzer);
 	}
 
 	private static class StartIRSIM extends Job
@@ -211,32 +212,35 @@ public class Analyzer extends Engine
 
 		public boolean doIt() throws JobException
 		{
-			synchronized(analyzer)
-			{
-				System.out.println("IRSIM, version " + simVersion);
-
-				// now initialize the simulator
-				Sim sim = analyzer.theSim;
-				analyzer.initRSim();
-
-				// Load network
-				if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
-					System.out.println("Loading netlist for file " + analyzer.fileName + "...");
-				analyzer.loadCircuit();
-				Stimuli sd = analyzer.analysis.getStimuli();
-	 			Simulation.showSimulationData(sd, null);
-
-	 			// make a waveform window
-	 			analyzer.ww = sd.getWaveformWindow();
-				analyzer.ww.setSimEngine(analyzer);
-				analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
-				analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-				analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
-				analyzer.init();
-			}
+            startIrsim(analyzer);
 			return true;
 		}
 	}
+    
+    private static void startIrsim(Analyzer analyzer) {
+        synchronized(analyzer) {
+            System.out.println("IRSIM, version " + simVersion);
+            
+            // now initialize the simulator
+            Sim sim = analyzer.theSim;
+            analyzer.initRSim();
+            
+            // Load network
+            if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
+                System.out.println("Loading netlist for file " + analyzer.fileName + "...");
+            analyzer.loadCircuit();
+            Stimuli sd = analyzer.analysis.getStimuli();
+            Simulation.showSimulationData(sd, null);
+            
+            // make a waveform window
+            analyzer.ww = sd.getWaveformWindow();
+            analyzer.ww.setSimEngine(analyzer);
+            analyzer.ww.setDefaultHorizontalRange(0.0, DEFIRSIMTIMERANGE);
+            analyzer.ww.setMainXPositionCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+            analyzer.ww.setExtensionXPositionCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+            analyzer.init();
+        }
+    }
 
 	private void init()
 	{

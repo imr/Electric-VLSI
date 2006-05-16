@@ -626,7 +626,7 @@ public class User extends Listener
 	 */
 	public static void technologyChanged(Technology tech)
 	{
-        VectorCache.theCache.technologyChanged(tech);
+        VectorCache.theCache.clearCache();
         PixelDrawing.clearSubCellCache();
 	}
 
@@ -636,7 +636,7 @@ public class User extends Listener
 	 */
 	public static void layerVisibilityChanged(boolean onlyText) {
 		if (!onlyText)
-			VectorCache.theCache.layerVisibilityChanged();
+			VectorCache.theCache.clearFadeImages();
         PixelDrawing.clearSubCellCache();
 		EditWindow.repaintAllContents();
     }

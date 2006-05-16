@@ -90,6 +90,8 @@ public class VectorCache {
     /** List of VectorManhattanBiilders for pure ndoes. */  private final ArrayList<VectorManhattanBuilder>pureBoxBuilders = new ArrayList<VectorManhattanBuilder>();
     /** Current VarContext. */                              private VarContext varContext;
     /** Current scale. */                                   private double curScale;
+    /** True to clear fade images. */                       private boolean clearFadeImages;
+    /** True to clear cache. */                             private boolean clearCache;
     
 	/** temporary objects (saves allocation) */				private final Point tempPt1 = new Point();
 	/** zero rectangle */									private final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -738,10 +740,25 @@ public class VectorCache {
     }
     
     void forceRedraw(Set<CellId> changedCells) {
+        boolean clearCache, clearFadeImages;
+        synchronized (this) {
+            clearCache = this.clearCache;
+            this.clearCache = false;
+            clearFadeImages = this.clearFadeImages;
+            this.clearFadeImages = false;
+        }
         Snapshot snapshot = database.backup();
         for (int cellIndex = 0, size = cachedCells.size(); cellIndex < size; cellIndex++) {
             VectorCellGroup vcg = cachedCells.get(cellIndex);
             if (vcg == null) continue;
+            if (clearCache)
+                vcg.clear();
+            if (clearFadeImages) {
+                for(VectorCell vc : vcg.orientations.values()) {
+                    vc.fadeImageColors = null;
+                    vc.fadeImage = false;
+                }
+            }
             vcg.updateBounds(snapshot);
             if (!changedCells.contains(vcg.cellId) && vcg.cellBackup == snapshot.getCell(cellIndex)) continue;
             cellChanged(vcg.cellId);
@@ -781,36 +798,19 @@ public class VectorCache {
 	}
 
 	/**
-	 * Method called when a technology's parameters change.
-	 * All cells that use the technology must be recached.
-	 * @param tech the technology that changed.
+	 * Method called when it is necessary to clear cache.
 	 */
-	public void technologyChanged(Technology tech)
-	{
-		for(VectorCellGroup vcg: cachedCells)
-		{
-            if (vcg == null) continue;
-			if (vcg.cellBackup == null || vcg.cellBackup.d.tech != tech) continue;
-			vcg.clear();
-		}
-	}
-
+	public synchronized void clearCache() {
+        clearCache = true;
+    }
+    
 	/**
 	 * Method called when visible layers have changed.
 	 * Removes all "greeked images" from cached cells.
 	 */
-	public void layerVisibilityChanged()
-	{
-		for(VectorCellGroup vcg: cachedCells)
-		{
-            if (vcg == null) continue;
-			for(VectorCell vc : vcg.orientations.values())
-			{
-				vc.fadeImageColors = null;
-				vc.fadeImage = false;
-			}
-		}
-	}
+	public synchronized void clearFadeImages() {
+        clearFadeImages = true;
+    }
     
     private static int databaseToGrid(double x) {
         double xg = x*DBMath.GRID;

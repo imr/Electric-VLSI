@@ -4069,7 +4069,7 @@ public class Technology implements Comparable<Technology>
 
 		public void technologyChanged(Technology tech)
 		{
-			VectorCache.theCache.technologyChanged(tech);
+			User.technologyChanged(tech);
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 			if (wf != null) wf.loadComponentMenuForTechnology();
 			UserInterface ui = Job.getUserInterface();
