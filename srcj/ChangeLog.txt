@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/16/06, SMR) Including/Excluding multiple sweeps doesn't update explorer
+     window (Bug #774).
+FIX: In ExplorerTree.setSweepAction(), added call to updateUI().
+
 BUG: (5/16/06, SMR) Waveform window draws numbers badly and creates
      new panels that may not align with others (Bug #1004).
 FIX: Improved new panel creation code and "convertToEngineeringNotation"

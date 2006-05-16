@@ -1760,6 +1760,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (ss == null) continue;
 				ss.setIncluded(include);
 			}
+			updateUI();
 		}
 
 		private void highlightSweepAction()
