@@ -137,6 +137,7 @@ public class Exec extends Thread {
     //private ExecProcessReader outReader;
     //private ExecProcessReader errReader;
     private Process p = null;
+    private int exitVal;
     private final ArrayList<FinishedListener> finishedListeners;    // list of listeners waiting for process to finish
 
     /**
@@ -161,6 +162,7 @@ public class Exec extends Thread {
         this.errStreamRedir = errStreamRedir;
         this.processWriter = null;
         this.finishedListeners = new ArrayList<FinishedListener>();
+        this.exitVal = -1;
         setName(command);
     }
 
@@ -182,6 +184,7 @@ public class Exec extends Thread {
         this.errStreamRedir = errStreamRedir;
         this.processWriter = null;
         this.finishedListeners = new ArrayList<FinishedListener>();
+        this.exitVal = -1;
         setName(exec[0]);
     }
 
@@ -215,7 +218,7 @@ public class Exec extends Thread {
             }
 
             // wait for exit status
-            int exitVal = p.waitFor();
+            exitVal = p.waitFor();
 
             // also wait for redir threads to die, if doing redir
             if (outStreamRedir != null) outReader.join();
@@ -298,4 +301,6 @@ public class Exec extends Thread {
             p.destroy();
         }
     }
+
+    public int getExitVal() { return exitVal; }
 }

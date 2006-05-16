@@ -199,8 +199,8 @@ public class Update {
             StatusResult result = update(updateFiles, useDir, type);
             commentStatusResult(result, type);
             exitVal = result.getExitVal();
+            fieldVariableChanged("exitVal");
             if (exitVal != 0) {
-                fieldVariableChanged("exitVal");
                 return true;
             }
 
