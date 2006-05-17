@@ -1516,7 +1516,8 @@ class TiledCell {
                     int code = namesList.toString().hashCode();
 
                     dummyName +=code+"{lay}";
-                    dummyCell = master.getLibrary().findNodeProto(dummyName);
+                    // Place dummy cells in same location as the empty cells. It should be in "autoFillLib"
+                    dummyCell = empty.getLibrary().findNodeProto(dummyName);// master.getLibrary().findNodeProto(dummyName);
 
                     if (dummyCell == null)
                     {
@@ -2084,9 +2085,11 @@ public class FillGenerator {
 		stdCellP = new StdCellParams(null, Tech.getTechnology());
 		stdCellP.setVddExportName("power");
 		stdCellP.setVddExportRole(PortCharacteristic.IN);
-		capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell);
-		capCellP = new CapCell(lib, (CapFloorplan) plans[1], stdCellP);
-
+        if (!metalFlex) // don't do transistors
+        {
+            capCell = new CapCell(lib, (CapFloorplan) plans[1], stdCell);
+            capCellP = new CapCell(lib, (CapFloorplan) plans[1], stdCellP);
+        }
 		libInitialized = true;
 	}
 
@@ -2220,15 +2223,17 @@ public class FillGenerator {
 		boolean metalFlex = true;
         initFillParameters(metalFlex, true);
 
-		LayoutLib.error(loLayer<1, "loLayer must be >=1");
-		LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
-		LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
-		boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
 
         master = givenMaster;
 
         if (master == null)
+        {
+            LayoutLib.error(loLayer<1, "loLayer must be >=1");
+            LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
+            LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
+            boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
             master = FillCell.makeFillCell(lib, plans, loLayer, hiLayer, capCell, wireLowest, stdCell, metalFlex, true);
+        }
         else
         {
             // must adjust minSize

@@ -76,7 +76,7 @@ public class FillGeneratorTool extends Tool {
             this.fillGenConfig = gen;
             this.topCell = cell; // Only if 1 cell is generated.
             this.doItNow = doItNow;
-
+                                                  assert(fillGenConfig.evenLayersHorizontal);
             if (doItNow) // call from regressions
             {
                 try

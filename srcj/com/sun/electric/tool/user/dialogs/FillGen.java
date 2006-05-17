@@ -716,7 +716,7 @@ public class FillGen extends EDialog {
         Technology tech = (cellToFill != null) ? cellToFill.getTechnology() : Technology.getCurrent();
         boolean hierarchy = (!flatFill.isSelected());
         boolean useMaster = hierarchy && selectButton.isSelected();
-        boolean even = (jComboBox1.getModel().getSelectedItem().equals("horizontal"));
+        boolean even = (jComboBox1.getModel().getSelectedItem().equals("horiz"));
         double drcSpacingRule = 6;               //@TODO this value should be calculated!!!
 
         FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
