@@ -2329,8 +2329,13 @@ public class CircuitChangeJobs
 
                 // verify that the two arcs have the same slope
                 if ((delta[1].getX()*delta[0].getY()) != (delta[0].getX()*delta[1].getY())) return null;
+
                 // verify that the angle between two arcs is obtuse
-                if (delta[0].getX()*delta[1].getX() + delta[0].getY()*delta[1].getY() >= 0) return null;
+                boolean zeroLength = false;
+                if (delta[0].getX() == 0 && delta[0].getY() == 0) zeroLength = true;
+                if (delta[1].getX() == 0 && delta[1].getY() == 0) zeroLength = true;
+                if (!zeroLength && delta[0].getX()*delta[1].getX() + delta[0].getY()*delta[1].getY() >= 0) return null;
+
                 if (orig[0].getX() != orig[1].getX() || orig[0].getY() != orig[1].getY())
                 {
                     // did not connect at the same location: be sure that angle is consistent

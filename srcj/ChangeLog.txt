@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+Bug: (5/17/06, SMR) Cleanup pins doesn't remove zero-length arcs (Bug #1023).
+FIX: In CircuitChangeJobs.Reconnect.reconnectArcs, make better check for obtuse angles.
+
 BUG: (5/16/06, DN) Regression failed after export rename.
 FIX: In Jelib reader always search exports by exportId.
 
