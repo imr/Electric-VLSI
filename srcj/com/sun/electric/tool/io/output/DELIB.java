@@ -81,6 +81,7 @@ public class DELIB extends JELIB {
      * @param cellBackup
      */
     void writeCell(CellBackup cellBackup) {
+/*
         String cellDir = getCellSubDir(cellBackup);
         File cellFD = new File(filePath + File.separator + cellDir);
         if (cellFD.exists()) {
@@ -98,6 +99,7 @@ public class DELIB extends JELIB {
                 return;
             }
         }
+*/
 
         // create cell file in directory
         String cellFile = getCellFile(cellBackup);
@@ -195,12 +197,17 @@ public class DELIB extends JELIB {
      * @return
      */
     public static String getCellFile(CellBackup cellBackup) {
+        String cellName = cellBackup.d.cellName.getName();
+        View view = cellBackup.d.cellName.getView();
+        return cellName + "." + view.getAbbreviation();
+/*
         String dir = getCellSubDir(cellBackup);
         String cellName = cellBackup.d.cellName.getName();
         //int version = cellBackup.d.cellName.getVersion();
         View view = cellBackup.d.cellName.getView();
         //if (version > 1) cellName = cellName + "_" + version;
         return dir + File.separator + cellName + "." + view.getAbbreviation();
+*/
     }
 
     /**
