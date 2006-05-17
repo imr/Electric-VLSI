@@ -85,6 +85,10 @@ public class DELIB extends JELIB {
      * @param cellBackup
      */
     void writeCell(CellBackup cellBackup) {
+        // don't bother writing if not modified
+        if (cellBackup.modified < 0)
+            return;
+
         if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             // new way, no subdir
         } else {
