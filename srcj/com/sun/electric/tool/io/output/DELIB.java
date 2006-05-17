@@ -29,6 +29,8 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Version;
 
 import java.io.BufferedWriter;
@@ -81,6 +83,7 @@ public class DELIB extends JELIB {
      * @param cellBackup
      */
     void writeCell(CellBackup cellBackup) {
+/*
         String cellDir = getCellSubDir(cellBackup);
         File cellFD = new File(filePath + File.separator + cellDir);
         if (cellFD.exists()) {
@@ -98,6 +101,7 @@ public class DELIB extends JELIB {
                 return;
             }
         }
+*/
 
         // create cell file in directory
         String cellFile = getCellFile(cellBackup);
@@ -184,7 +188,10 @@ public class DELIB extends JELIB {
      * @return
      */
     public static String getCellSubDir(CellBackup cellBackup) {
-        return cellBackup.d.cellName.getName();
+        if (Version.getVersion().compareTo(Version.parseVersion("8.04m")) > 0) {
+            return "";
+        } else
+            return cellBackup.d.cellName.getName();
     }
 
     /**
@@ -194,13 +201,37 @@ public class DELIB extends JELIB {
      * @param cellBackup
      * @return
      */
-    public static String getCellFile(CellBackup cellBackup) {
-        String dir = getCellSubDir(cellBackup);
+    private static String getCellFile(CellBackup cellBackup) {
+        // versions 8.04n and above write files to .delib dir
         String cellName = cellBackup.d.cellName.getName();
-        //int version = cellBackup.d.cellName.getVersion();
         View view = cellBackup.d.cellName.getView();
-        //if (version > 1) cellName = cellName + "_" + version;
-        return dir + File.separator + cellName + "." + view.getAbbreviation();
+        return cellName + "." + view.getAbbreviation();
+    }
+
+    /**
+     * Method used by other tools to find out relative path for cell.
+     * This is the path, relative to the .delib directory
+     * path, of the file for the specified cell.  Note it is a relative path,
+     * not an absolute path. Ex: LEsettings.sch or LEsettings/LEsettings.sch
+     * @param cell
+     * @return
+     */
+    public static String getCellFile(Cell cell) {
+        Library lib = cell.getLibrary();
+        if (lib.getVersion() == null) return getCellFile(cell.backup());
+        if (lib.getVersion().compareTo(Version.parseVersion("8.04m")) > 0) {
+            // library version is greater than 8.04m
+            return getCellFile(cell.backup());
+        } else {
+            // in version 8.04m and earlier, cell files were in subdirs
+            CellBackup cellBackup = cell.backup();
+            String dir = getCellSubDir(cellBackup);
+            String cellName = cellBackup.d.cellName.getName();
+            //int version = cellBackup.d.cellName.getVersion();
+            View view = cellBackup.d.cellName.getView();
+            //if (version > 1) cellName = cellName + "_" + version;
+            return dir + File.separator + cellName + "." + view.getAbbreviation();
+        }
     }
 
     /**
