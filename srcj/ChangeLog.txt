@@ -4,7 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
-Bug: (5/17/06, SMR) Cleanup pins doesn't remove zero-length arcs (Bug #1023).
+BUG: (5/17/06, SMR) Bus pins don't select well (Bug #1012).
+FIX: In ImmutableNodeInst.computeBounds(), ask the schematics technology
+     for the bus pin's size.  One might be tempted to remove the "WipeOn1or2"
+     factor from bus pins.  But then, they are always too large, and users
+     complain that bus pins at the edges of icons cause the icons to grow.
+
+BUG: (5/17/06, SMR) Cleanup pins doesn't remove zero-length arcs (Bug #1023).
 FIX: In CircuitChangeJobs.Reconnect.reconnectArcs, make better check for obtuse angles.
 
 BUG: (5/16/06, DN) Regression failed after export rename.

@@ -34,11 +34,16 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -656,9 +661,20 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		}
 
 		// special case for pins that become steiner points
-		if (pn.isWipeOn1or2() && real.getNumExports() == 0)
+		if (pn.isWipeOn1or2())
 		{
-			if (real.pinUseCount())
+			// schematic bus pins are so complex that only the technology knows their true size
+			if (real.getProto() == Schematics.tech.busPinNode)
+			{
+				Poly [] polys = Schematics.tech.getShapeOfNode(real, null, null, false, false, null, null);
+				if (polys.length > 0)
+				{
+					Rectangle2D bounds = polys[0].getBounds2D();
+					dstBounds.setRect(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+					return;
+				}
+			}
+			if (real.getNumExports() == 0 && real.pinUseCount())
 			{
 				dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
                 return;
