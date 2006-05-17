@@ -59,6 +59,8 @@ public class DELIB extends JELIB {
 
     private String headerFile;
     private HashMap<String,Integer> cellFileMap;
+    // last version to use subdirs to hold cells, instead of putting them all in delib dir.
+    private static final String lastSubdirVersion = "8.04m";
 
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles) {
         boolean b = super.writeLib(snapshot, libId, libFiles);
@@ -83,25 +85,28 @@ public class DELIB extends JELIB {
      * @param cellBackup
      */
     void writeCell(CellBackup cellBackup) {
-/*
-        String cellDir = getCellSubDir(cellBackup);
-        File cellFD = new File(filePath + File.separator + cellDir);
-        if (cellFD.exists()) {
-            if (!cellFD.isDirectory()) {
-                System.out.println("Error, file "+cellFD+" is not a directory, moving it to "+cellDir+".old");
-                if (!cellFD.renameTo(new File(cellDir+".old"))) {
-                    System.out.println("Error, unable to rename file "+cellFD+" to "+cellDir+".old, skipping cell "+cellBackup.d.cellName);
+        if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
+            // new way, no subdir
+        } else {
+            // old way, subdir
+            String cellDir = getCellSubDir(cellBackup);
+            File cellFD = new File(filePath + File.separator + cellDir);
+            if (cellFD.exists()) {
+                if (!cellFD.isDirectory()) {
+                    System.out.println("Error, file "+cellFD+" is not a directory, moving it to "+cellDir+".old");
+                    if (!cellFD.renameTo(new File(cellDir+".old"))) {
+                        System.out.println("Error, unable to rename file "+cellFD+" to "+cellDir+".old, skipping cell "+cellBackup.d.cellName);
+                        return;
+                    }
+                }
+            } else {
+                // create the directory
+                if (!cellFD.mkdir()) {
+                    System.out.println("Failed to make directory: "+cellFD+", skipping cell "+cellBackup.d.cellName);
                     return;
                 }
             }
-        } else {
-            // create the directory
-            if (!cellFD.mkdir()) {
-                System.out.println("Failed to make directory: "+cellFD+", skipping cell "+cellBackup.d.cellName);
-                return;
-            }
         }
-*/
 
         // create cell file in directory
         String cellFile = getCellFile(cellBackup);
@@ -188,7 +193,7 @@ public class DELIB extends JELIB {
      * @return
      */
     public static String getCellSubDir(CellBackup cellBackup) {
-        if (Version.getVersion().compareTo(Version.parseVersion("8.04m")) > 0) {
+        if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             return "";
         } else
             return cellBackup.d.cellName.getName();
@@ -202,10 +207,19 @@ public class DELIB extends JELIB {
      * @return
      */
     private static String getCellFile(CellBackup cellBackup) {
-        // versions 8.04n and above write files to .delib dir
-        String cellName = cellBackup.d.cellName.getName();
-        View view = cellBackup.d.cellName.getView();
-        return cellName + "." + view.getAbbreviation();
+        if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
+            // versions 8.04n and above write files to .delib dir
+            String cellName = cellBackup.d.cellName.getName();
+            View view = cellBackup.d.cellName.getView();
+            return cellName + "." + view.getAbbreviation();
+        } else {
+            String dir = getCellSubDir(cellBackup);
+            String cellName = cellBackup.d.cellName.getName();
+            //int version = cellBackup.d.cellName.getVersion();
+            View view = cellBackup.d.cellName.getView();
+            //if (version > 1) cellName = cellName + "_" + version;
+            return dir + File.separator + cellName + "." + view.getAbbreviation();
+        }
     }
 
     /**
@@ -219,7 +233,7 @@ public class DELIB extends JELIB {
     public static String getCellFile(Cell cell) {
         Library lib = cell.getLibrary();
         if (lib.getVersion() == null) return getCellFile(cell.backup());
-        if (lib.getVersion().compareTo(Version.parseVersion("8.04m")) > 0) {
+        if (lib.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             // library version is greater than 8.04m
             return getCellFile(cell.backup());
         } else {
