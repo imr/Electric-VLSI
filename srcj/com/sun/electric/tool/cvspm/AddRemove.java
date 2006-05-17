@@ -182,7 +182,8 @@ public class AddRemove {
             File celldirFile = new File(libfile, DELIB.getCellSubDir(cell.backup()));
             String celldir = celldirFile.getPath();
             if (!addedCellDirs.containsKey(celldir)) {
-                add(buf, celldir, useDir);
+                if (celldirFile.exists())
+                    add(buf, celldir, useDir);
                 addedCellDirs.put(celldir, null);
             }
             // check cell files
@@ -211,7 +212,7 @@ public class AddRemove {
         public void terminateOK() {
             if (exitVal != 0) {
                 Job.getUserInterface().showErrorMessage("CVS "+(add?"Add":"Remove")+
-                        " Failed!  Please see messages window","CVS "+(add?"Add":"Remove")+" Failed!");
+                        " Failed!  Please see messages window (exit status "+exitVal+")","CVS "+(add?"Add":"Remove")+" Failed!");
             }
         }
     }
