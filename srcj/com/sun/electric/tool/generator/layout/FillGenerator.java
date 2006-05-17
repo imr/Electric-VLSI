@@ -1576,8 +1576,8 @@ class TiledCell {
             }
         }
 
-        if (readStdC != stdCell)
-            System.out.println("They are not std");
+//        if (readStdC != stdCell)
+//            System.out.println("They are not std");
 
         stdCell = readStdC;
 
@@ -1624,7 +1624,7 @@ class TiledCell {
 
         if (tiledCell == null || !stdC)
         {
-            tiledCell = Cell.newInstance(master.getLibrary(), tileName);
+            tiledCell = Cell.newInstance(empty.getLibrary(), tileName);
             LayoutLib.newNodeInst(Tech.essentialBounds, -w/2, -h/2,
                                   G.DEF_SIZE, G.DEF_SIZE, 180, tiledCell);
             LayoutLib.newNodeInst(Tech.essentialBounds, w/2, h/2,
@@ -1755,7 +1755,8 @@ public class FillGenerator {
                 tmp.add(tlayer.getLayer().getFunction());
             }
             Rectangle2D rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
-            if (searchCollision(topCell, rect, tmp, null, ignore))
+            assert(ignore.length == 0);
+            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}))
             {
                 // Direct on last top fill cell
                 nodesToRemove.add(ni);
@@ -1775,7 +1776,8 @@ public class FillGenerator {
             tmp.add(ai.getProto().getLayers()[0].getLayer().getNonPseudoLayer().getFunction());
             // Searching box must reflect DRC constrains
             Rectangle2D rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
-            if (searchCollision(topCell, rect, tmp, null, ignore))
+            assert(ignore.length == 0);
+            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}))
             {
                 arcsToRemove.add(ai);
                 // Remove exports and pins as well
@@ -1833,11 +1835,19 @@ public class FillGenerator {
      * @return
      */
     protected static boolean searchCollision(Cell parent, Rectangle2D nodeBounds, List<Layer.Function> theseLayers,
-                                             PortConfig p, NodeInst[] ignores)
+                                             PortConfig p, Object[] ignores)
     {
         // Not checking if they belong to the same net!. If yes, ignore the collision
         Rectangle2D subBound = new Rectangle2D.Double();
         Netlist netlist = parent.acquireUserNetlist();
+
+        for (int i = 0; i < ignores.length; i++)
+            {
+                if (parent == ignores[i])
+                {
+                    return false;
+                }
+            }
 
         for(Iterator<Geometric> it = parent.searchIterator(nodeBounds); it.hasNext(); )
         {
