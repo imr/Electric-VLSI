@@ -28,6 +28,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Client;
 
 import java.awt.geom.Point2D;
 import java.io.BufferedOutputStream;
@@ -36,7 +37,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -65,7 +65,9 @@ public class ActivityLogger {
         ActivityLogger.logJobs = logJobs;
         ActivityLogger.logTimeStamps = useTimeStamps;
 
-        outputFile = System.getProperty("user.dir") + File.separator + outputFile;
+        outputFile = (Client.isOSMac()) ?
+                System.getProperty("user.home") + File.separator + outputFile :
+                System.getProperty("user.dir") + File.separator + outputFile;
         try {
             FileOutputStream fos = new FileOutputStream(outputFile, false);
             BufferedOutputStream bout = new BufferedOutputStream(fos);
