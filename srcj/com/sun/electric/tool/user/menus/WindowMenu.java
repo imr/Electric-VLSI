@@ -789,12 +789,8 @@ public class WindowMenu {
 		// change the colors in the "Generic" technology
         Generic.setBackgroudColor(Color.BLACK);
 
-        EditWindow.repaintAllContents();
-        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-        	WindowFrame wf = it.next();
-        	wf.loadComponentMenuForTechnology();
-        }
+        // redraw
+        redrawNewColors();
     }
 
     /**
@@ -815,12 +811,8 @@ public class WindowMenu {
 		// change the colors in the "Generic" technology
         Generic.setBackgroudColor(Color.WHITE);
 
-		EditWindow.repaintAllContents();
-        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-        {
-        	WindowFrame wf = it.next();
-        	wf.loadComponentMenuForTechnology();
-        }
+        // redraw
+        redrawNewColors();
     }
 
     /**
@@ -841,7 +833,18 @@ public class WindowMenu {
 		// change the colors in the "Generic" technology
         Generic.setBackgroudColor(Color.BLACK);
 
-        EditWindow.repaintAllContents();
+        // redraw
+        redrawNewColors();
+    }
+
+    private static void redrawNewColors()
+    {
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			WindowContent content = wf.getContent();
+			content.fullRepaint();
+		}
         for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
         {
         	WindowFrame wf = it.next();

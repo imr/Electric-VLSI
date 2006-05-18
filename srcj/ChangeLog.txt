@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/18/06, SMR) Changing color schemes doesn't affect waveform windows (Bug #1036).
+FIX: In WindowMenu.whiteBackgroundCommand() and others, do fullRepaint.
+
 BUG: (5/18/06, SMR) Left-aligned exports select badly on rotated nodes (Bug #964).
 FIX: In Highlighter.findAllInArea(), must transform before calling setExactTextBounds.
 
