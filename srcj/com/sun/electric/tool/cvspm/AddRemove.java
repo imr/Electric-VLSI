@@ -195,7 +195,7 @@ public class AddRemove {
                 exitVal = 0;
                 return true;
             }
-            String command = add ? "add" : "remove";
+            String command = add ? "add" : "remove -f";
             String message = "Running CVS " + (add ? "Add" : "Remove");
             exitVal = CVS.runCVSCommand("-q "+command+" "+addRemoveFiles, message,
                     useDir, System.out);
@@ -263,14 +263,6 @@ public class AddRemove {
                     file = file.substring(useDir.length()+1, file.length());
                 }
                 buf.append(file+" ");
-                if (!add) {
-                    // need to delete local file first
-                    if (!FD.isDirectory()) {
-                        if (!FD.delete()) {
-                            System.out.println("Error: could not delete file to removed: "+FD.getPath());
-                        }
-                    }
-                }
             }
         }
         public void terminateOK() {
