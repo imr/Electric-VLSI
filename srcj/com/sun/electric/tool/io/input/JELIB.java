@@ -208,6 +208,17 @@ public class JELIB extends LibraryFiles
                 protoNames.put(protoName, protoName);
             }
             transitive.theseAreRelated(cell, protoName);
+            
+            // consider groupName fields
+            String groupName = allCells.get(cell).groupName;
+            if (groupName == null) continue;
+            protoName = protoNames.get(groupName);
+            if (protoName == null)
+            {
+                protoName = cell.getName();
+                protoNames.put(protoName, protoName);
+            }
+            transitive.theseAreRelated(cell, protoName);
         }
         for (Cell[] groupLine : groupLines)
         {
