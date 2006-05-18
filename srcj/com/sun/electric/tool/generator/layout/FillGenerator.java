@@ -1597,7 +1597,7 @@ class TiledCell {
             else if (childrenList.get(0) == empty)
                 rootName = empty.getName();
             tileName = rootName+"_"+w+"x"+h+"{lay}";
-            tiledCell = master.getLibrary().findNodeProto(tileName);
+            tiledCell = empty.getLibrary().findNodeProto(tileName);
         }
         else
         {
@@ -1611,11 +1611,9 @@ class TiledCell {
             // you can't sort names otherwise you look order in the qtree
 //            Collections.sort(namesList);
             int code = namesList.toString().hashCode();
-            tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+x+","+y+"){lay}";
+//            tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+x+","+y+"){lay}";
             tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+code+"){lay}";
-            if (code == -245269839 || code == -562521242 || code == -1661756570)
-                System.out.println("Here");
-            tiledCell = master.getLibrary().findNodeProto(tileName);
+            tiledCell = empty.getLibrary().findNodeProto(tileName);
             if  (tiledCell != null)
             {
                 stdC = true;
@@ -1737,12 +1735,18 @@ public class FillGenerator {
                 AffineTransform subTransUp = ni.transformOut(fillTransUp);
                 HashSet<NodeInst> nodesToRemoveSub = new HashSet<NodeInst>();
                 HashSet<ArcInst> arcsToRemoveSub = new HashSet<ArcInst>();
+                int copy = level;
+
                 Cell tmpCell = detectOverlappingBars(c, master, empty, subTransUp, nodesToRemoveSub, arcsToRemoveSub,
                         topCell, ignore, drcSpacing, ++level);
                 if (tmpCell == empty || tmpCell == null)
                 {
                     // return true. Better to not include this master due to complexity of the subcells.
                     // not sure what to delete
+                    nodesToRemoveSub.clear();
+                    arcsToRemoveSub.clear();
+                   tmpCell = detectOverlappingBars(c, master, empty, subTransUp, nodesToRemoveSub, arcsToRemoveSub,
+                        topCell, ignore, drcSpacing, ++copy);
                     return empty;
                 }
                 continue;
@@ -1759,6 +1763,8 @@ public class FillGenerator {
             if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}))
             {
                 // Direct on last top fill cell
+                rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
+                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni});
                 nodesToRemove.add(ni);
                 for (Iterator<Connection> itC = ni.getConnections(); itC.hasNext();)
                 {
