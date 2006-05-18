@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Network;
