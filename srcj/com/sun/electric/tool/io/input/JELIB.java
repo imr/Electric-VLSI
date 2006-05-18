@@ -77,6 +77,7 @@ public class JELIB extends LibraryFiles
 	{
 		boolean filledIn;
 		int lineNumber;
+        String groupName;
 		List<String> cellStrings;
 		String fileName;
 
@@ -584,10 +585,13 @@ public class JELIB extends LibraryFiles
         }
         int fieldIndex = 0;
         String name;
+        String groupName = null;
         if (revision >= 1) {
             name = unQuote(pieces.get(fieldIndex++));
             if (revision >= 2) {
-                String userName = unQuote(pieces.get(fieldIndex++));
+                String s = pieces.get(fieldIndex++);
+                if (s.length() > 0)
+                    groupName = unQuote(s);
             }
         } else {
             name = unQuote(pieces.get(fieldIndex++));
@@ -637,6 +641,7 @@ public class JELIB extends LibraryFiles
         CellContents cc = new CellContents();
         cc.fileName = filePath;
         cc.lineNumber = lineReader.getLineNumber() + 1;
+        cc.groupName = groupName;
         for(;;)
         {
             String nextLine = lineReader.readLine();

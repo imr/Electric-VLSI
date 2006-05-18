@@ -26,6 +26,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.database.text.TextUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -253,6 +254,36 @@ public class Snapshot {
         return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null; 
     }
     
+    /**
+     * Returns group name of cell with specified CellId.
+     * Name of cell group is a base name of main schematics cell if any.
+     * Otherwise it is a shortest base name among cells in the group.
+     * If cell with the cellId is absent in this Snapshot, returns null.
+     * @param cellId cellId of a cell.
+     * @return name of cell group or null.
+     *
+     */
+    public String getCellGroupName(CellId cellId) {
+        int groupIndex = cellId.cellIndex < cellGroups.length ? cellGroups[cellId.cellIndex] : -1;
+        if (groupIndex < 0) return null;
+        String bestName = null;
+        for (CellBackup cellBackup: cellBackups) {
+            if (cellBackup == null) continue;
+            if (cellGroups[cellBackup.d.cellId.cellIndex] != groupIndex) continue;
+            String name = cellBackup.d.cellName.getName();
+            if (cellBackup.isMainSchematics) return name;
+            if (bestName == null) {
+                bestName = name;
+                continue;
+            }
+            if (name.length() > bestName.length()) continue;
+            if (name.length() < bestName.length() || TextUtils.STRING_NUMBER_ORDER.compare(name, bestName) < 0)
+                bestName = name;
+        }
+        assert bestName != null;
+        return bestName;
+    }
+
     public ERectangle getCellBounds(CellId cellId) { return getCellBounds(cellId.cellIndex); }
     
     public ERectangle getCellBounds(int cellIndex) {

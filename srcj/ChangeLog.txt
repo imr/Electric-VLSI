@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+IMP/MAN: (5/18/06, DN) JELIB/DELIB writer puts cellGroupName into "C" line.
+   Name of cell group is base name of a main schematics if any,
+   otherwise shortest base name
+
 BUG: (5/18/06, DN) Client/server mode doesn't work.
 FIX: Repair ClientJobManager.
 

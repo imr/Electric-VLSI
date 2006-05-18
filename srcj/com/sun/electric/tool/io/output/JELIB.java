@@ -296,7 +296,10 @@ public class JELIB extends Output
         // write the Cell name
         printWriter.println("# Cell " + d.cellName);
         printWriter.print("C" + convertString(d.cellName.toString()));
-        printWriter.print("|"); // user CellName
+        printWriter.print("|");
+        String cellGroupName = snapshot.getCellGroupName(d.cellId);
+        if (!cellGroupName.equals(d.cellName.getName()))
+            printWriter.print(convertString(cellGroupName));
         printWriter.print("|" + convertString(d.tech.getTechName()));
         printWriter.print("|" + d.creationDate);
         printWriter.print("|" + cellBackup.revisionDate);
@@ -423,7 +426,7 @@ public class JELIB extends Output
         // write the end-of-cell marker
         printWriter.println("X");
     }
-
+    
     void writeExternalLibraryInfo(LibId thisLib, BitSet usedLibs, HashMap<CellId,BitSet> usedExports) {
         // write external library information
         boolean libraryHeaderPrinted = false;

@@ -278,60 +278,74 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			// if the name is cached, return that
 			if (groupName != null) return groupName;
 
-			// first see if this is the only cell in the group (allowing for old versions)
-			Cell onlyCell = null;
-			for(Iterator<Cell> it = getCells(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				if (onlyCell == null) onlyCell = cell.getNewestVersion(); else
-				{
-					if (cell.getNewestVersion() != onlyCell)
-					{
-						onlyCell = null;
-						break;
-					}
-				}
-			}
-			if (onlyCell != null) return groupName = onlyCell.describe(false);
-
-			// name the group according to all of the different base names
-			Set<String> groupNames = new TreeSet<String>();
-			int widestName = 0;
-			for(Iterator<Cell> it = getCells(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				String cellName = cell.getName();
-				if (cellName.length() > widestName) widestName = cellName.length();
-				groupNames.add(cellName);
-			}
-
-			// if there is only 1 base name, use it
-			if (groupNames.size() == 1) return groupName = groupNames.iterator().next();
-
-			// look for common root to the names
-			for(int i=widestName; i>widestName/2; i--)
-			{
-				String lastName = null;
-				boolean allSame = true;
-				for(String oneName : groupNames)
-				{
-					if (lastName != null)
-					{
-						if (oneName.length() < i || lastName.length() < i || !lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
-					}
-					lastName = oneName;
-				}
-				if (allSame)
-					return groupName = lastName.substring(0, i) + "*";
-			}
-
-			// just list all of the different base names
-			for(String oneName : groupNames)
-			{
-				if (groupName == null) groupName = oneName; else
-					groupName += "," + oneName;
-			}
-			return groupName;
+            // first see the name of mainSchematics
+            if (getMainSchematics() != null)
+                return groupName = getMainSchematics().getName();
+            
+            // base name of minimal lenght
+            Iterator<Cell> it = getCells();
+            String bestName = it.next().getName();
+            while (it.hasNext()) {
+                String name = it.next().getName();
+                if (name.length() < bestName.length())
+                    bestName = name;
+            }
+            return groupName = bestName;
+            
+//			// first see if this is the only cell in the group (allowing for old versions)
+//			Cell onlyCell = null;
+//			for(Iterator<Cell> it = getCells(); it.hasNext(); )
+//			{
+//				Cell cell = it.next();
+//				if (onlyCell == null) onlyCell = cell.getNewestVersion(); else
+//				{
+//					if (cell.getNewestVersion() != onlyCell)
+//					{
+//						onlyCell = null;
+//						break;
+//					}
+//				}
+//			}
+//			if (onlyCell != null) return groupName = onlyCell.describe(false);
+//
+//			// name the group according to all of the different base names
+//			Set<String> groupNames = new TreeSet<String>();
+//			int widestName = 0;
+//			for(Iterator<Cell> it = getCells(); it.hasNext(); )
+//			{
+//				Cell cell = it.next();
+//				String cellName = cell.getName();
+//				if (cellName.length() > widestName) widestName = cellName.length();
+//				groupNames.add(cellName);
+//			}
+//
+//			// if there is only 1 base name, use it
+//			if (groupNames.size() == 1) return groupName = groupNames.iterator().next();
+//
+//			// look for common root to the names
+//			for(int i=widestName; i>widestName/2; i--)
+//			{
+//				String lastName = null;
+//				boolean allSame = true;
+//				for(String oneName : groupNames)
+//				{
+//					if (lastName != null)
+//					{
+//						if (oneName.length() < i || lastName.length() < i || !lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
+//					}
+//					lastName = oneName;
+//				}
+//				if (allSame)
+//					return groupName = lastName.substring(0, i) + "*";
+//			}
+//
+//			// just list all of the different base names
+//			for(String oneName : groupNames)
+//			{
+//				if (groupName == null) groupName = oneName; else
+//					groupName += "," + oneName;
+//			}
+//			return groupName;
 		}
 
         public EDatabase getDatabase() { return lib.getDatabase(); }
