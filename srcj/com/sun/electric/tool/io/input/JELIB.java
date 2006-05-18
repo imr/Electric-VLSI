@@ -925,7 +925,7 @@ public class JELIB extends LibraryFiles
 			// create the node
             Orientation orient = Orientation.fromJava(angle, flipX, flipY);
 			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, nameTextDescriptor,
-                    new EPoint(x, y), wid, hei, orient, flags, techBits, protoTextDescriptor);
+                    new EPoint(x, y), wid, hei, orient, flags, techBits, protoTextDescriptor, Input.errorLogger);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +

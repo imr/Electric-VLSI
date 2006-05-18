@@ -119,9 +119,9 @@ public abstract class Client {
     }
     
     static class EJobEvent extends ServerEvent {
-        private final EJob ejob;
+        final EJob ejob;
         private final EJob.State newState;
-        private final long timeStamp;
+        final long timeStamp;
         
         private EJobEvent(EJob ejob, EJob.State newState) {
             this.ejob = ejob;
@@ -129,8 +129,14 @@ public abstract class Client {
             timeStamp = System.currentTimeMillis();
         }
         
+        EJobEvent(EJob ejob, EJob.State newState, long timeStamp) {
+            this.ejob = ejob;
+            this.newState = newState;
+            this.timeStamp = timeStamp;
+        }
+        
         public void run() {
-            if (newState == EJob.State.SERVER_DONE && ejob.client == Job.getExtendedUserInterface()) {
+            if (newState == EJob.State.SERVER_DONE) {
                 boolean undoRedo = ejob.jobType == Job.Type.UNDO;
                 if (!ejob.isExamine()) {
                     int restoredHighlights = Undo.endChanges(ejob.oldSnapshot, ejob.getJob().tool, ejob.jobName, ejob.newSnapshot);
@@ -138,36 +144,38 @@ public abstract class Client {
                     Job.getExtendedUserInterface().restoreHighlights(restoredHighlights);
                 }
                 
-                Throwable jobException = null;
-                if (ejob.startedByServer)
-                    jobException = ejob.deserializeToClient();
-                if (jobException != null) {
-                    System.out.println("Error deserializing " + ejob.jobName);
-                    ActivityLogger.logException(jobException);
-                    return;
-                }
-                jobException = ejob.deserializeResult();
-                
-                Job job = ejob.clientJob;
-                if (job == null) {
-                    ActivityLogger.logException(jobException);
-                    return;
-                }
-                try {
-                    job.terminateIt(jobException);
-                } catch (Throwable e) {
-                    System.out.println("Exception executing terminateIt");
-                    e.printStackTrace(System.out);
-                }
-                job.endTime = System.currentTimeMillis();
-                job.finished = true;                        // is this redundant with Thread.isAlive()?
-                
-                // say something if it took more than a minute by default
-                if (job.reportExecution || (job.endTime - job.startTime) >= Job.MIN_NUM_SECONDS) {
+                if (ejob.client == Job.getExtendedUserInterface()) {
+                    Throwable jobException = null;
+                    if (ejob.startedByServer)
+                        jobException = ejob.deserializeToClient();
+                    if (jobException != null) {
+                        System.out.println("Error deserializing " + ejob.jobName);
+                        ActivityLogger.logException(jobException);
+                        return;
+                    }
+                    jobException = ejob.deserializeResult();
                     
-                    if (User.isBeepAfterLongJobs())
-                        Job.getExtendedUserInterface().beep();
-                    System.out.println(job.getInfo());
+                    Job job = ejob.clientJob;
+                    if (job == null) {
+                        ActivityLogger.logException(jobException);
+                        return;
+                    }
+                    try {
+                        job.terminateIt(jobException);
+                    } catch (Throwable e) {
+                        System.out.println("Exception executing terminateIt");
+                        e.printStackTrace(System.out);
+                    }
+                    job.endTime = System.currentTimeMillis();
+                    job.finished = true;                        // is this redundant with Thread.isAlive()?
+                    
+                    // say something if it took more than a minute by default
+                    if (job.reportExecution || (job.endTime - job.startTime) >= Job.MIN_NUM_SECONDS) {
+                        
+                        if (User.isBeepAfterLongJobs())
+                            Job.getExtendedUserInterface().beep();
+                        System.out.println(job.getInfo());
+                    }
                 }
             }
         }
@@ -181,7 +189,7 @@ public abstract class Client {
         private final Client client;
         private final String s;
         
-        private PrintEvent(Client client, String s) {
+        PrintEvent(Client client, String s) {
             this.client = client;
             this.s = s;
         }

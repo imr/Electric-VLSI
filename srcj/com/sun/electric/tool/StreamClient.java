@@ -140,6 +140,7 @@ public class StreamClient extends Client {
                 writer.writeByte((byte)2);
                 writer.writeInt(ejob.jobId);
                 writer.writeString(ejob.jobName);
+                writer.writeString(ejob.jobType.toString());
                 writer.writeString(newState.toString());
                 writer.writeLong(timeStamp);
                 if (newState == EJob.State.WAITING) {

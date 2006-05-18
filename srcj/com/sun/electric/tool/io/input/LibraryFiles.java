@@ -1012,7 +1012,7 @@ public abstract class LibraryFiles extends Input
         int flags = ImmutableNodeInst.flagsFromElib(nil.userBits[nodeIndex]);
         int techBits = ImmutableNodeInst.techSpecificFromElib(nil.userBits[nodeIndex]);
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], nil.nameTextDescriptor[nodeIndex],
-                center, width, height, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex]);
+                center, width, height, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex], Input.errorLogger);
         nil.theNode[nodeIndex] = ni;
         if (ni == null) return;
         Variable[] vars = nil.vars[nodeIndex];

@@ -98,6 +98,7 @@ public class Regression {
                     case 2:
                         Integer jobId = Integer.valueOf(reader.readInt());
                         String jobName = reader.readString();
+                        Job.Type jobType = Job.Type.valueOf(reader.readString());
                         EJob.State newState = EJob.State.valueOf(reader.readString());
                         long timeStamp = reader.readLong();
                         if (newState == EJob.State.WAITING) {

@@ -25,10 +25,7 @@ package com.sun.electric.tool;
 
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.SnapshotReader;
-import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.JobTree;
@@ -42,6 +39,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -77,7 +75,9 @@ class ClientJobManager extends JobManager {
     public void runLoop() {
         logger.entering(CLASS_NAME, "clinetLoop", port);
         SnapshotReader reader = null;
-        Snapshot currentSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
+        Snapshot oldSnapshot = EDatabase.clientDatabase().getInitialSnapshot();
+        Snapshot currentSnapshot = EDatabase.clientDatabase().backup();
+        assert currentSnapshot == oldSnapshot;
         try {
             System.out.println("Attempting to connect to port " + port + " ...");
             Socket socket = new Socket((String)null, port);
@@ -118,34 +118,39 @@ class ClientJobManager extends JobManager {
                 switch (tag) {
                     case 1:
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot begin {0}", Integer.valueOf(clientFifo.numPut));
-                        Snapshot newSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
+                        currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot end");
-                        clientFifo.put(newSnapshot, null);
-                        currentSnapshot = newSnapshot;
                         break;
                     case 2:
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));
                         Integer jobId = Integer.valueOf(reader.readInt());
                         String jobName = reader.readString();
-                        EJob.State newState = EJob.State.valueOf(reader.readString());
+                        Job.Type jobType = Job.Type.valueOf(reader.readString());
+                        EJob ejob = new EJob(null/*StreamClient connection*/, jobId.intValue(), jobType, jobName, null/*byte[] bytes*/);
+                        ejob.state = EJob.State.valueOf(reader.readString());
+                        ejob.oldSnapshot = oldSnapshot;
+                        ejob.newSnapshot = currentSnapshot;
+                        oldSnapshot = currentSnapshot;
                         long timeStamp = reader.readLong();
-                        if (newState == EJob.State.WAITING) {
+                        Client.EJobEvent ejobEvent = new Client.EJobEvent(ejob, ejob.state, timeStamp);
+                        if (ejob.state == EJob.State.WAITING) {
                             boolean hasSerializedJob = reader.readBoolean();
                             if (hasSerializedJob) {
-                                byte[] serializedJob = reader.readBytes();
+                                ejob.serializedJob = reader.readBytes();
                             }
                         }
-                        if (newState == EJob.State.SERVER_DONE) {
-                            byte[] bytes = reader.readBytes();
-                            clientFifo.put(jobId, bytes);
+                        if (ejob.state == EJob.State.SERVER_DONE) {
+                            ejob.serializedResult = reader.readBytes();
                         }
+                        clientFifo.put(ejobEvent);
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult end {0}", jobId);
                         break;
                     case 3:
                         logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr begin");
                         String str = reader.readString();
+                        Client.PrintEvent printEvent = new Client.PrintEvent(null, str);
                         logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readStr end {0}", str);
-                        clientFifo.put(str, null);
+                        clientFifo.put(printEvent);
                         break;
                     default:
                         logger.logp(Level.SEVERE, CLASS_NAME, "clientLoop", "bad tag {0}", Byte.valueOf(tag));
@@ -243,17 +248,17 @@ class ClientJobManager extends JobManager {
     
     private class FIFO {
         private final String CLASS_NAME = ClientJobManager.CLASS_NAME + ".FIFO";
-        private final ArrayList<Object> queueF = new ArrayList<Object>();
-        private final ArrayList<Object> queueT = new ArrayList<Object>();
+        private final ArrayList<Client.ServerEvent> queueF = new ArrayList<Client.ServerEvent>();
+        private final ArrayList<Client.ServerEvent> queueT = new ArrayList<Client.ServerEvent>();
         private boolean getC = false;
         private int getIndex = 0;
         private int numGet;
         private int numPut;
         
-        private synchronized void put(Object o, Object o1) {
+        private synchronized void put(Client.ServerEvent o) {
             logger.logp(Level.FINEST, CLASS_NAME, "put", "ENTRY");
-            ArrayList<Object> thisQ;
-            ArrayList<Object> thatQ;
+            ArrayList<Client.ServerEvent> thisQ;
+            ArrayList<Client.ServerEvent> thatQ;
             if (getC) {
                 thisQ = queueT;
                 thatQ = queueF;
@@ -264,10 +269,6 @@ class ClientJobManager extends JobManager {
             boolean empty = numGet == numPut;
             thatQ.add(o);
             numPut++;
-            if (o1 != null) {
-                thatQ.add(o1);
-                numPut++;
-            }
             if (empty) {
                 logger.logp(Level.FINEST, CLASS_NAME, "put", "invokeLater(clientInvoke)");
                 SwingUtilities.invokeLater(clientInvoke);
@@ -275,11 +276,11 @@ class ClientJobManager extends JobManager {
             logger.logp(Level.FINEST, CLASS_NAME, "put", "RETURN");
         }
         
-        private synchronized Object get() {
+        private synchronized Client.ServerEvent get() {
             logger.logp(Level.FINEST, CLASS_NAME, "get", "ENTRY");
             if (numGet == numPut) return null;
-            ArrayList<Object> thisQ;
-            ArrayList<Object> thatQ;
+            ArrayList<Client.ServerEvent> thisQ;
+            ArrayList<Client.ServerEvent> thatQ;
             if (getC) {
                 thisQ = queueT;
                 thatQ = queueF;
@@ -287,7 +288,7 @@ class ClientJobManager extends JobManager {
                 thisQ = queueF;
                 thatQ = queueT;
             }
-            Object o = null;
+            Client.ServerEvent o = null;
             if (getIndex < thisQ.size()) {
                 o = thisQ.set(getIndex++, null);
             } else {
@@ -327,18 +328,33 @@ class ClientJobManager extends JobManager {
                     JobTree.update(jobs);
               }
                 int numGet = clientFifo.numGet;
-                Object o = clientFifo.get();
+                Client.ServerEvent o = clientFifo.get();
                 if (o == null) break;
-                if (o instanceof Snapshot) {
-                    Snapshot newSnapshot = (Snapshot)o;
-                    logger.logp(Level.FINER, CLASS_NAME, "run", "snapshot begin {0}", Integer.valueOf(numGet));
-                    (new SnapshotDatabaseChangeRun(clientSnapshot, newSnapshot)).run();
-                    clientSnapshot = newSnapshot;
-                    logger.logp(Level.FINER, CLASS_NAME, "run", "snapshot end");
-                } else if (o instanceof Integer) {
-                    int jobId = ((Integer)o).intValue();
+                if (o instanceof Client.EJobEvent) {
+                    Client.EJobEvent ejobEvent = (Client.EJobEvent)o;
+                    EJob ejob_ = ejobEvent.ejob;
+                    if (false) {
+                        System.out.print("Job " + ejob_.jobId + " " + ejob_.jobName + " " + ejob_.jobType + " " + ejob_.state +
+                                " old=" + ejob_.oldSnapshot.snapshotId + " new=" + ejob_.newSnapshot.snapshotId +
+                                " t=" + ejobEvent.timeStamp + "(" + (System.currentTimeMillis() - ejobEvent.timeStamp) + ")");
+                        if (ejob_.serializedJob != null)
+                            System.out.print(" ser=" + ejob_.serializedJob.length);
+                        if (ejob_.serializedResult != null)
+                            System.out.print(" res=" + ejob_.serializedResult.length);
+                        System.out.println();
+                    }
+                    int jobId = ejob_.jobId;
                     logger.logp(Level.FINER, CLASS_NAME, "run", "result begin {0}", Integer.valueOf(numGet));
-                    byte[] bytes = (byte[])clientFifo.get();
+                    if (ejob_.newSnapshot != clientSnapshot) {
+                        (new SnapshotDatabaseChangeRun(clientSnapshot, ejob_.newSnapshot)).run();
+                        clientSnapshot = ejob_.newSnapshot;
+                    }
+                    if (Job.currentUI != null) {
+                        Job.getExtendedUserInterface().showSnapshot(ejobEvent.ejob.newSnapshot, ejobEvent.ejob.jobType == Job.Type.UNDO);
+//                        Job.currentUI.addEvent(o);
+                        continue;
+                    }
+                    if (ejob_.state != EJob.State.SERVER_DONE) continue;
                     EJob ejob = null;
                     for (EJob ej: startedJobs) {
                         if (ej.jobId == jobId) {
@@ -348,8 +364,9 @@ class ClientJobManager extends JobManager {
                     }
                     if (ejob == null) {
                         System.out.println("Can't find EJob " + jobId);
+                        continue;
                     }
-                    ejob.serializedResult = bytes;
+                    ejob.serializedResult = ejob.serializedResult;
                     Job job = ejob.getJob();
                     if (job != null) {
                         Job.runTerminate(ejob);
@@ -363,9 +380,10 @@ class ClientJobManager extends JobManager {
                         logger.logp(Level.WARNING, CLASS_NAME, "run", "result of unknown job {0}", o);
                         System.out.println("Job " + jobId + " was not found in startedJobs");
                     }
-                } else if (o instanceof String) {
+                } else if (o instanceof Client.PrintEvent) {
                     logger.logp(Level.FINEST, CLASS_NAME, "run", "string begin");
-                    System.out.print((String)o);
+                    if (Job.currentUI != null)
+                        Job.currentUI.addEvent(o);
                     logger.logp(Level.FINEST, CLASS_NAME, "run", "string end {0}", o);
                 }
             }
@@ -416,11 +434,22 @@ class ClientJobManager extends JobManager {
             this.newSnapshot = newSnapshot;
         }
         public void run() {
-            EDatabase.clientDatabase().checkFresh(oldSnapshot);
-            EDatabase.clientDatabase().undo(newSnapshot);
+            EDatabase database = EDatabase.clientDatabase();
+            database.lock(true);
+            try {
+                database.checkFresh(oldSnapshot);
+                database.lowLevelSetCanUndoing(true);
+                database.getNetworkManager().startBatch();
+                database.undo(newSnapshot);
+                database.getNetworkManager().endBatch();
+                database.lowLevelSetCanUndoing(false);
+//            EDatabase.clientDatabase().undo(newSnapshot);
 //            NetworkTool.updateAll(oldSnapshot, newSnapshot);
-            DatabaseChangeEvent event = new DatabaseChangeEvent(oldSnapshot, newSnapshot);
+//            DatabaseChangeEvent event = new DatabaseChangeEvent(oldSnapshot, newSnapshot);
 //            UserInterfaceMain.fireDatabaseChangeEvent(event);
+            } finally {
+                database.unlock();
+            }
         }
 	}
 }
