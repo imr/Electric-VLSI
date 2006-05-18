@@ -1382,8 +1382,11 @@ public class Highlighter implements DatabaseChangeListener {
                     {
                         Poly poly = polys[i];
                         if (poly == null) continue;
-                        if (poly.setExactTextBounds(wnd, ni)) continue;
+
+                        // "transform" used to follow "setExactTextBounds"
                         poly.transform(trans);
+                        if (poly.setExactTextBounds(wnd, ni)) continue;
+//						poly.transform(trans);
 
                         // ignore areaMustEnclose if bounds is size 0,0
                         if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
