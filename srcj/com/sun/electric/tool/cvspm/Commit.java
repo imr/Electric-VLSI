@@ -166,12 +166,18 @@ public class Commit {
             // remove editors for lib
             for (Library lib : libsToCommit) {
                 CVSLibrary.setEditing(lib, false);
-                CVSLibrary.setState(lib, State.NONE);
+                if (CVSLibrary.getState(lib) == State.REMOVED)
+                    CVSLibrary.setState(lib, State.UNKNOWN);
+                else
+                    CVSLibrary.setState(lib, State.NONE);
             }
             if (cellsToCommit != null) {
                 for (Cell cell : cellsToCommit) {
                     CVSLibrary.setEditing(cell, false);
-                    CVSLibrary.setState(cell, State.NONE);
+                    if (CVSLibrary.getState(cell) == State.REMOVED)
+                        CVSLibrary.setState(cell, State.UNKNOWN);
+                    else
+                        CVSLibrary.setState(cell, State.NONE);
                 }
             }
         }
