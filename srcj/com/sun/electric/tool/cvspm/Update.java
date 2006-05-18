@@ -56,27 +56,15 @@ public class Update {
      * @param type the type of update to do
      */
     public static void updateProject(int type) {
-        boolean dialog = true;
-        if (type == STATUS) dialog = false;
-
         List<Library> allLibs = new ArrayList<Library>();
-        List<Library> unsavedLibs = new ArrayList<Library>();
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isFromDisk()) continue;
-            if (!CVS.assertInCVS(lib, getMessage(type), dialog)) continue;
-            if (type != STATUS && !CVS.assertNotModified(lib, getMessage(type), dialog)) {
-                unsavedLibs.add(lib);
-                continue;
-            }
+            if (lib.getName().equals("spiceparts")) continue;
             allLibs.add(lib);
         }
-        if (unsavedLibs.size() != 0) {
-            return;
-        }
-
-        (new UpdateJob(null, allLibs, type, true)).startJob();
+        update(allLibs, null, type, true);
     }
 
     /**
@@ -84,20 +72,15 @@ public class Update {
      * @param type the type of update to do
      */
     public static void updateOpenLibraries(int type) {
-        boolean dialog = true;
-        if (type == STATUS) dialog = false;
-
         List<Library> allLibs = new ArrayList<Library>();
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isFromDisk()) continue;
-            if (!CVS.assertInCVS(lib, getMessage(type), dialog)) continue;
-            if (type != STATUS && !CVS.assertNotModified(lib, getMessage(type), dialog)) continue;
+            if (lib.getName().equals("spiceparts")) continue;
             allLibs.add(lib);
         }
-
-        (new UpdateJob(null, allLibs, type, false)).startJob();
+        update(allLibs, null, type, false);
     }
 
     /**
@@ -106,15 +89,9 @@ public class Update {
      * @param type the type of update to do
      */
     public static void updateLibrary(Library lib, int type) {
-        boolean dialog = true;
-        if (type == STATUS) dialog = false;
-
-        if (!CVS.assertInCVS(lib, getMessage(type), dialog)) return;
-        if (type == UPDATE && !CVS.assertNotModified(lib, getMessage(type), dialog)) return;
-
         List<Library> libsToUpdate = new ArrayList<Library>();
         libsToUpdate.add(lib);
-        (new UpdateJob(null, libsToUpdate, type, false)).startJob();
+        update(libsToUpdate, null, type, false);
     }
 
     /**
@@ -123,15 +100,57 @@ public class Update {
      * @param type the type of update to do
      */
     public static void updateCell(Cell cell, int type) {
-        boolean dialog = true;
-        if (type == STATUS) dialog = false;
-
-        if (!CVS.assertInCVS(cell, getMessage(type), dialog)) return;
-        if (type != STATUS && !CVS.assertNotModified(cell, getMessage(type), dialog)) return;
-
         List<Cell> cellsToUpdate = new ArrayList<Cell>();
         cellsToUpdate.add(cell);
-        (new UpdateJob(cellsToUpdate, null, type, false)).startJob();
+        update(null, cellsToUpdate, type, false);
+    }
+
+    /**
+     * Run Update/Status/Rollback on the libraries and cells
+     * @param libs
+     * @param cells
+     * @param type
+     * @param updateProject
+     */
+    public static void update(List<Library> libs, List<Cell> cells, int type, boolean updateProject) {
+        if (libs == null) libs = new ArrayList<Library>();
+        if (cells == null) cells = new ArrayList<Cell>();
+
+        // make sure cells are part of a DELIB
+        CVSLibrary.LibsCells bad = CVSLibrary.notFromDELIB(cells);
+        if (type == STATUS) {
+            // remove offending cells
+            for (Cell cell : bad.cells) cells.remove(cell);
+        } else if (bad.cells.size() > 0) {
+            CVS.showError("Error: the following Cells are not part of a DELIB library and cannot be acted upon individually",
+                    "CVS "+getMessage(type)+" Error", bad.libs, bad.cells);
+            return;
+        }
+
+        // make sure the selecetd objecs are in cvs
+        bad = CVSLibrary.getNotInCVS(libs, cells);
+        // for STATUS, remove libraries not in cvs
+        if (type == STATUS) {
+            for (Library lib : bad.libs) libs.remove(lib);
+            for (Cell cell : bad.cells) cells.remove(cell);
+        } else if (bad.libs.size() > 0 || bad.cells.size() > 0) {
+            // if any of them not in cvs, issue error and abort
+            CVS.showError("Error: the following Libraries or Cells are not in CVS",
+                    "CVS "+getMessage(type)+" Error", bad.libs, bad.cells);
+            return;
+        }
+        // for update or rollback, make sure they are also not modified
+        if (type == UPDATE || type == ROLLBACK) {
+            bad = CVSLibrary.getModified(libs, cells);
+            if (bad.libs.size() > 0 || bad.cells.size() > 0) {
+                CVS.showError("Error: the following Libraries or Cells must be saved first",
+                        "CVS "+getMessage(type)+" Error", bad.libs, bad.cells);
+                return;
+            }
+        }
+        // optimize a little, remove cells from cells list if cell's lib in libs list
+        CVSLibrary.LibsCells good = CVSLibrary.consolidate(libs, cells);
+        (new UpdateJob(good.cells, good.libs, type, updateProject)).startJob();
     }
 
     private static class UpdateJob extends Job {
@@ -148,7 +167,7 @@ public class Update {
          */
         private UpdateJob(List<Cell> cellsToUpdate, List<Library> librariesToUpdate,
                           int type, boolean updateProject) {
-            super("CVS Update Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("CVS Update Library", User.getUserTool(), ((type==STATUS)?Job.Type.EXAMINE:Job.Type.CHANGE), null, null, Job.Priority.USER);
             this.cellsToUpdate = cellsToUpdate;
             this.librariesToUpdate = librariesToUpdate;
             this.type = type;
@@ -190,8 +209,9 @@ public class Update {
             */
 
             String updateFiles = libs.toString() + " " + cells.toString();
-            if (updateFiles.trim().equals("")) {
-                System.out.println(getMessage(type)+" complete.");
+            if (updateFiles.trim().equals("") && !updateProject) {
+                exitVal = 0;
+                System.out.println("Nothing to "+getMessage(type));
                 return true;
             }
 
@@ -248,7 +268,7 @@ public class Update {
         String command = "-q update -d -P ";
         String message = "Running CVS Update";
         if (type == STATUS) {
-            command = "-nq update -d ";
+            command = "-nq update -d -P ";
             message = "Running CVS Status";
         }
         if (type == ROLLBACK) {

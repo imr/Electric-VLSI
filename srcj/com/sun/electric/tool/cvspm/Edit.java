@@ -89,7 +89,6 @@ public class Edit {
             Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isFromDisk()) continue;
-            if (!CVS.assertInCVS(lib, "List CVS Editors", false)) continue;
             allLibs.add(lib);
         }
         (new ListEditorsJob(allLibs, null, true)).startJob();
@@ -101,22 +100,25 @@ public class Edit {
             Library lib = it.next();
             if (lib.isHidden()) continue;
             if (!lib.isFromDisk()) continue;
-            if (!CVS.assertInCVS(lib, "List CVS Editors", false)) continue;
             allLibs.add(lib);
         }
-        (new ListEditorsJob(allLibs, null, false)).startJob();
+        listEditors(allLibs, null);
     }
 
     public static void listEditors(Library lib) {
         List<Library> libs = new ArrayList<Library>();
         libs.add(lib);
-        (new ListEditorsJob(libs, null, false)).startJob();
+        listEditors(libs, null);
     }
 
     public static void listEditors(Cell cell) {
         List<Cell> cells = new ArrayList<Cell>();
         cells.add(cell);
-        (new ListEditorsJob(null, cells, false)).startJob();
+        listEditors(null, cells);
+    }
+
+    public static void listEditors(List<Library> libs, List<Cell> cells) {
+        (new ListEditorsJob(libs, cells, false)).startJob();        
     }
 
     public static class ListEditorsJob extends Job {

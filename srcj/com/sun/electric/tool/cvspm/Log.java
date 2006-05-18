@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.dialogs.CVSLog;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.tool.io.output.DELIB;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -78,9 +79,6 @@ public class Log {
     }
 
     public static void showLog(Library lib) {
-        if (CVS.isDELIB(lib)) {
-            return;
-        }
         if (!CVS.isFileInCVS(TextUtils.getFile(lib.getLibFile()))) {
             System.out.println("Library "+lib.getName()+" is not in CVS");
             return;
@@ -89,7 +87,19 @@ public class Log {
         libs.add(lib);
         String useDir = CVS.getUseDir(libs, null);
 
-        StringBuffer libsBuf = CVS.getLibraryFiles(libs, useDir);
+        StringBuffer libsBuf;
+        if (CVS.isDELIB(lib)) {
+            // show log for header file
+            libsBuf = new StringBuffer();
+            File libFile = TextUtils.getFile(lib.getLibFile());
+            String file = libFile.getPath();
+            if (file.startsWith(useDir)) {
+                file = file.substring(useDir.length()+1, file.length());
+            }
+            libsBuf.append(file+File.separator+DELIB.getHeaderFile()+" ");
+        } else {
+            libsBuf = CVS.getLibraryFiles(libs, useDir);
+        }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         CVS.runCVSCommand("log "+libsBuf, "Show CVS Log", useDir, out);

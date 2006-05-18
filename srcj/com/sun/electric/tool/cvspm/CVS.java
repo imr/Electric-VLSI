@@ -226,7 +226,7 @@ public class CVS {
      */
     public static File getCellFile(Cell cell) {
         if (isDELIB(cell.getLibrary())) {
-            String relativeFile = DELIB.getCellFile(cell.backup());
+            String relativeFile = DELIB.getCellFile(cell);
             URL libFile = cell.getLibrary().getLibFile();
             return new File(TextUtils.getFile(libFile), relativeFile);
         }
@@ -271,21 +271,36 @@ public class CVS {
     }
 
     /**
-     * Used by commands that require the library to be in sync with the disk.
+     * This checks the CVS Entries file to see if the library is in cvs (jelib/elib),
+     * or if the library dir + header file is in cvs (delib).
      * @param lib
-     * @param dialog true to pop up a dialog to tell the user, false to not do so.
-     * @return true if not modified, false if modified
+     * @return true if the library is in cvs, false otherwise.
      */
-    public static boolean assertNotModified(Library lib, String cmd, boolean dialog) {
-        if (lib.isChanged()) {
-            if (dialog) {
-                Job.getUserInterface().showErrorMessage("Library "+lib.getName()+" must be saved to run CVS "+cmd, "CVS "+cmd);
-            } else {
-                System.out.println("Library "+lib.getName()+" must be saved to run CVS "+cmd);
-            }
-            return false;
+    public static boolean isInCVS(Library lib) {
+        String libfilestr = TextUtils.getFile(lib.getLibFile()).getPath();
+        File libFile = new File(libfilestr);
+        if (isDELIB(lib)) {
+            // check both lib dir and header file
+            File header = new File(libFile, DELIB.getHeaderFile());
+            if (!isFileInCVS(libFile) || !isFileInCVS(header)) return false;
+        } else {
+            if (!isFileInCVS(libFile)) return false;
         }
         return true;
+    }
+
+    /**
+     * This checks the CVS Entries file to see if the cell is in cvs.
+     * If the cell belongs to a delib, it checks the cell file. Otherwise,
+     * it checks the library file for jelib/elibs.
+     * @param cell
+     * @return true if the cell is in cvs, false otherwise
+     */
+    public static boolean isInCVS(Cell cell) {
+        if (!isDELIB(cell.getLibrary())) return isInCVS(cell.getLibrary());
+        // delibs have separate cell files
+        File cellFile = getCellFile(cell);
+        return isFileInCVS(cellFile);
     }
 
     /**
@@ -350,6 +365,22 @@ public class CVS {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Issue an error message
+     * @param message
+     * @param title
+     * @param badLibs
+     * @param badCells
+     */
+    public static void showError(String message, String title,
+                                  List<Library> badLibs, List<Cell> badCells) {
+        StringBuffer msg = new StringBuffer();
+        msg.append(message);
+        for (Library lib : badLibs) msg.append("\n"+lib.getName());
+        for (Cell cell : badCells) msg.append("\n"+cell.noLibDescribe());
+        Job.getUserInterface().showErrorMessage(msg.toString(), title);
     }
 
 
@@ -445,6 +476,31 @@ public class CVS {
         // get headers for delibs with lastModified files
         lastModifiedFilesBuf = getDELIBLastModifiedFiles(libs, useDir, delibs);
         return lastModifiedFilesBuf;
+    }
+
+    /**
+     * Get header files for any cells that are in a delib, but
+     * whose delibs are not being committed.
+     * @param libs
+     * @param cells
+     * @param useDir
+     * @return
+     */
+    static StringBuffer getHeaderFiles(List<Library> libs, List<Cell> cells, String useDir) {
+        if (libs == null) libs = new ArrayList<Library>();
+        if (cells == null) cells = new ArrayList<Cell>();
+        StringBuffer buf = new StringBuffer();
+        for (Cell cell : cells) {
+            if (libs.contains(cell.getLibrary())) continue;
+            if (!isDELIB(cell.getLibrary())) continue;
+            File libFile = TextUtils.getFile(cell.getLibrary().getLibFile());
+            String file = libFile.getPath();
+            if (file.startsWith(useDir)) {
+                file = file.substring(useDir.length()+1, file.length());
+            }
+            buf.append(file+File.separator+DELIB.getHeaderFile()+" ");
+        }
+        return buf;
     }
 
     /**

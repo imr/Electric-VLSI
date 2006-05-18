@@ -30,6 +30,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.Job;
 
 import java.util.*;
 import java.io.File;
@@ -101,31 +102,88 @@ public class CVSLibrary {
         CVSLibraries.remove(lib);
     }
 
-    /**
-     * See if library is part of CVS repository
-     * @param lib
-     * @return true if it is part of a CVS repository,
-     * false otherwise
-     */
-    public static boolean isInCVS(Library lib) {
-        CVSLibrary cvslib = CVSLibraries.get(lib);
-        if (cvslib == null) return false;
-        return true;
+    protected static class LibsCells {
+        public List<Library> libs = new ArrayList<Library>();
+        public List<Cell> cells = new ArrayList<Cell>();
     }
 
     /**
-     * See if cell is part of CVS repository (DELIB).
-     * @param cell
+     * Check the specified libraries and cells are in cvs.
+     * Return any libs and cells that are not in cvs
+     * @param libs
+     * @param cells
      * @return
      */
-    public static boolean isInCVS(Cell cell) {
-        CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
-        if (cvslib == null) return false;
-        if (cvslib.type != FileType.DELIB) return false;
-        State state = cvslib.cellStates.get(cell);
-        if (state == null) return false;
-        if (state == State.UNKNOWN) return false;
-        return true;
+    public static LibsCells getNotInCVS(List<Library> libs, List<Cell> cells) {
+        if (libs == null) libs = new ArrayList<Library>();
+        if (cells == null) cells = new ArrayList<Cell>();
+
+        LibsCells bad = new LibsCells();
+        for (Library lib : libs) {
+            if (!CVS.isInCVS(lib)) bad.libs.add(lib);
+        }
+        for (Cell cell : cells) {
+            if (!CVS.isInCVS(cell)) bad.cells.add(cell);
+        }
+        return bad;
+    }
+
+    public static LibsCells getInCVS(List<Library> libs, List<Cell> cells) {
+        if (libs == null) libs = new ArrayList<Library>();
+        if (cells == null) cells = new ArrayList<Cell>();
+
+        LibsCells bad = new LibsCells();
+        for (Library lib : libs) {
+            if (CVS.isInCVS(lib)) bad.libs.add(lib);
+        }
+        for (Cell cell : cells) {
+            if (CVS.isInCVS(cell)) bad.cells.add(cell);
+        }
+        return bad;
+    }
+
+    public static LibsCells getModified(List<Library> libs, List<Cell> cells) {
+        if (libs == null) libs = new ArrayList<Library>();
+        if (cells == null) cells = new ArrayList<Cell>();
+
+        LibsCells bad = new LibsCells();
+        for (Library lib : libs) {
+            if (lib.isChanged()) bad.libs.add(lib);
+        }
+        for (Cell cell : cells) {
+            if (cell.isModified(true)) bad.cells.add(cell);
+        }
+        return bad;
+    }
+
+    /**
+     * Remove cells from cell list if they are part of any library in libs list.
+     * Return the consolidated list of libs and cells.
+     * @param libs
+     * @param cells
+     * @return
+     */
+    public static LibsCells consolidate(List<Library> libs, List<Cell> cells) {
+        LibsCells consolidated = new LibsCells();
+        consolidated.libs.addAll(libs);
+        for (Cell cell : cells) {
+            if (!libs.contains(cell.getLibrary())) consolidated.cells.add(cell);
+        }
+        return consolidated;
+    }
+
+    /**
+     * Get cells from passed in list of cells that are not from DELIB libraries.
+     * @param cells
+     * @return
+     */
+    public static LibsCells notFromDELIB(List<Cell> cells) {
+        if (cells == null) cells = new ArrayList<Cell>();
+        LibsCells bad = new LibsCells();
+        for (Cell cell : cells) {
+            if (!CVS.isDELIB(cell.getLibrary())) bad.cells.add(cell);
+        }
+        return bad;
     }
 
     /**
@@ -206,7 +264,7 @@ public class CVSLibrary {
         return getColor(getState(cell));
     }
 
-    static State getState(Library lib) {
+    public static State getState(Library lib) {
         CVSLibrary cvslib = CVSLibraries.get(lib);
         if (cvslib == null) return State.UNKNOWN;
         if (cvslib.type != FileType.DELIB) {
@@ -224,7 +282,7 @@ public class CVSLibrary {
         return State.UNKNOWN;
     }
 
-    static State getState(Cell cell) {
+    public static State getState(Cell cell) {
         CVSLibrary cvslib = CVSLibraries.get(cell.getLibrary());
         if (cvslib == null) return State.UNKNOWN;
         if (!CVS.isDELIB(cell.getLibrary())) {
@@ -345,7 +403,7 @@ public class CVSLibrary {
             // make sure state of cell is 'modified'
             setState(cell, State.MODIFIED);
             if (!isEditing(cell)) {
-                buf.append(DELIB.getCellFile(cell.backup())+" ");
+                buf.append(DELIB.getCellFile(cell)+" ");
                 setEditing(cell, true);
             }
         }

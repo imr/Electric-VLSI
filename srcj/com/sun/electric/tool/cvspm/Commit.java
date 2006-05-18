@@ -45,10 +45,15 @@ import java.util.Iterator;
 public class Commit {
 
     public static void commitAllLibraries() {
+        List<Library> libs = new ArrayList<Library>();
         for (Iterator<Library> it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = it.next();
-            commit(lib);
+            if (lib.isHidden()) continue;
+            if (!lib.isFromDisk()) continue;
+            if (lib.getName().equals("spiceparts")) continue;
+            libs.add(lib);
         }
+        commit(libs, null);
     }
 
     /**
@@ -56,22 +61,9 @@ public class Commit {
      * @param lib
      */
     public static void commit(Library lib) {
-        if (!CVS.assertInCVS(lib, "Commit", true)) return;
-        if (!CVS.assertNotModified(lib, "Commit", true)) return;
-
-        String lastCommitMessage = CVS.getCVSLastCommitMessage();
-        String commitMessage = JOptionPane.showInputDialog(
-                TopLevel.getCurrentJFrame(),
-                "Commit message for Library "+lib.getName()+":",
-                lastCommitMessage
-        );
-        if (commitMessage == null) return;  // user cancelled
-        if (!commitMessage.equals(lastCommitMessage))
-            CVS.setCVSLastCommitMessage(commitMessage);
-
-        List<Library> libsCommitted = new ArrayList<Library>();
-        libsCommitted.add(lib);
-        (new CommitJob(commitMessage, libsCommitted, null)).startJob();
+        List<Library> libs = new ArrayList<Library>();
+        libs.add(lib);
+        commit(libs, null);
     }
 
     /**
@@ -80,22 +72,50 @@ public class Commit {
      * @param cell
      */
     public static void commit(Cell cell) {
-        if (!CVS.assertInCVS(cell, "Commit", true)) return;
-        if (!CVS.assertNotModified(cell, "Commit", true)) return;
+        List<Cell> cellsCommitted = new ArrayList<Cell>();
+        cellsCommitted.add(cell);
+        commit(null, cellsCommitted);
+    }
 
+    public static void commit(List<Library> libs, List<Cell> cells) {
+        if (libs == null) libs = new ArrayList<Library>();
+        if (cells == null) cells = new ArrayList<Cell>();
+
+        // make sure cells are part of a DELIB
+        CVSLibrary.LibsCells bad = CVSLibrary.notFromDELIB(cells);
+        if (bad.cells.size() > 0) {
+            CVS.showError("Error: the following Cells are not part of a DELIB library and cannot be acted upon individually",
+                    "CVS Commit Error", bad.libs, bad.cells);
+            return;
+        }
+        bad = CVSLibrary.getNotInCVS(libs, cells);
+        if (bad.libs.size() > 0 || bad.cells.size() > 0) {
+            CVS.showError("Error: the following Libraries and Cells are not in CVS",
+                    "CVS Commit error", bad.libs, bad.cells);
+            return;
+        }
+        bad = CVSLibrary.getModified(libs, cells);
+        if (bad.libs.size() > 0 || bad.cells.size() > 0) {
+            CVS.showError("Error: the following Libraries and Cells must be saved first",
+                    "CVS Commit error", bad.libs, bad.cells);
+            return;
+        }
+
+        // optimize a little, remove cells from cells list if cell's lib in libs list
+        CVSLibrary.LibsCells good = CVSLibrary.consolidate(libs, cells);
+
+        // get commit message
         String lastCommitMessage = CVS.getCVSLastCommitMessage();
         String commitMessage = JOptionPane.showInputDialog(
                 TopLevel.getCurrentJFrame(),
-                "Commit message for Cell "+cell.libDescribe()+":",
+                "Commit message: ",
                 lastCommitMessage
         );
         if (commitMessage == null) return;  // user cancelled
         if (!commitMessage.equals(lastCommitMessage))
             CVS.setCVSLastCommitMessage(commitMessage);
 
-        List<Cell> cellsCommitted = new ArrayList<Cell>();
-        cellsCommitted.add(cell);
-        (new CommitJob(commitMessage, null, cellsCommitted)).startJob();
+        (new CommitJob(commitMessage, good.libs, good.cells)).startJob();
     }
 
     private static class CommitJob extends Job {
@@ -123,10 +143,12 @@ public class Commit {
             String useDir = CVS.getUseDir(libsToCommit, cellsToCommit);
             StringBuffer libs = CVS.getLibraryFiles(libsToCommit, useDir);
             StringBuffer cells = CVS.getCellFiles(cellsToCommit, useDir);
-            StringBuffer lastModifiedFiles = CVS.getDELIBLastModifiedFiles(libsToCommit, cellsToCommit, useDir);
-            String commitFiles = libs + " " + lastModifiedFiles + " " + cells;
+            //StringBuffer lastModifiedFiles = CVS.getDELIBLastModifiedFiles(libsToCommit, cellsToCommit, useDir);
+            StringBuffer headerFiles = CVS.getHeaderFiles(libsToCommit, cellsToCommit, useDir);
+            String commitFiles = libs + " " + headerFiles + " " + cells;
             if (commitFiles.trim().equals("")) {
                 System.out.println("Nothing to commit");
+                exitVal = 0;
                 return true;
             }
 
