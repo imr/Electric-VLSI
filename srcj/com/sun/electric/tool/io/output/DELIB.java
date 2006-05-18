@@ -38,10 +38,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Date;
+import java.util.BitSet;
+import java.util.List;
+import java.util.ArrayList;
 import java.net.URL;
 
 /**
@@ -59,15 +60,16 @@ public class DELIB extends JELIB {
 
     private String headerFile;
     private HashMap<String,Integer> cellFileMap;
+    private List<String> deletedCellFiles = new ArrayList<String>();
     // last version to use subdirs to hold cells, instead of putting them all in delib dir.
     private static final String lastSubdirVersion = "8.04m";
     public static final char PLATFORM_INDEPENDENT_FILE_SEPARATOR = '/';
 
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles) {
         boolean b = super.writeLib(snapshot, libId, libFiles);
-        // write lastModified file for cvs update optimziations
-        File lastModifiedFile = new File(filePath, getLastModifiedFile());
         if (!b) {
+            // write lastModified file for cvs update optimziations
+            File lastModifiedFile = new File(filePath, getLastModifiedFile());
             try {
                 PrintWriter writer;
                 writer = new PrintWriter(new BufferedWriter(new FileWriter(lastModifiedFile, false)));
@@ -76,8 +78,41 @@ public class DELIB extends JELIB {
             } catch (IOException e) {
                 System.out.println("Error opening "+lastModifiedFile+": "+e.getMessage());
             }
+
+            // rename cell files that are no longer in the library
+            File delibDir = new File(filePath);
+            deletedCellFiles.clear();
+            if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
+                for (File file : delibDir.listFiles()) {
+                    checkIfDeleted(file);
+                }
+            } else {
+                for (File subdir : delibDir.listFiles()) {
+                    if (subdir.isDirectory()) {
+                        for (File file : subdir.listFiles())
+                            checkIfDeleted(file);
+                    }
+                }
+            }
         }
         return b;
+    }
+
+    private void checkIfDeleted(File cellFile) {
+        if (cellFileMap.containsKey(cellFile.getAbsolutePath())) return;
+        String name = cellFile.getName();
+        int dot = name.lastIndexOf('.');
+        if (dot == -1) return;
+        //String cellName = name.substring(0, dot);
+        View view = View.findView(name.substring(dot+1));
+        if (view == null) return;
+
+        System.out.println("Renaming unlinked (deleted) cell file "+name+" to "+name+".deleted");
+        deletedCellFiles.add(cellFile.getAbsolutePath());
+        File deletedFileName = new File(cellFile.getAbsolutePath()+".deleted");
+        if (!cellFile.renameTo(deletedFileName)) {
+            System.out.println("  Error: Unable to rename unlinked cell file "+name+" to "+name+".deleted!");
+        }
     }
 
     /**
@@ -114,6 +149,12 @@ public class DELIB extends JELIB {
         String cellFileAbs = filePath + File.separator + cellFile;
         // save old printWriter
         boolean append = false;
+        // keep track of files that would have been written, even if they aren't,
+        // so that the deletion code won't delete them later (as if they are deleted cells)
+        if (cellFileMap.containsKey(cellFileAbs))
+            append = true;
+        cellFileMap.put(cellFileAbs, null);
+
         if (cellBackup.modified >= 0) {
 
             // set current print writer to cell file
@@ -122,9 +163,6 @@ public class DELIB extends JELIB {
             try {
                 // check to see if this a version of a cell we've already written,
                 // if so, append to the same file
-                if (cellFileMap.containsKey(cellFileAbs))
-                    append = true;
-                cellFileMap.put(cellFileAbs, null);
 
                 printWriter = new PrintWriter(new BufferedWriter(new FileWriter(cellFileAbs, append)));
             } catch (IOException e) {
@@ -191,6 +229,8 @@ public class DELIB extends JELIB {
         }
         return false;
     }
+
+    public List<String> getDeletedCellFiles() { return deletedCellFiles; }
 
     /**
      * Cell subdirectory name. This is the directory inside the
