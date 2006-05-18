@@ -61,6 +61,7 @@ public class DELIB extends JELIB {
     private HashMap<String,Integer> cellFileMap;
     // last version to use subdirs to hold cells, instead of putting them all in delib dir.
     private static final String lastSubdirVersion = "8.04m";
+    public static final String PLATFORM_INDEPENDENT_FILE_SEPARATOR = "/";
 
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles) {
         boolean b = super.writeLib(snapshot, libId, libFiles);
@@ -151,6 +152,7 @@ public class DELIB extends JELIB {
         printWriter.close();
         // set the print writer back
         printWriter = headerWriter;
+        cellFile = cellFile.replaceAll(File.separator, PLATFORM_INDEPENDENT_FILE_SEPARATOR);
         if (!append) printWriter.println("C"+cellFile);
     }
 
