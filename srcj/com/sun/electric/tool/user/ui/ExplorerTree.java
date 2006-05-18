@@ -1897,6 +1897,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
                 cvsAddRemove(false); }});
             menuItem.setEnabled(!states.contains(State.UNKNOWN));
+
+            menuItem = new JMenuItem("Undo CVS Add or Remove");
+            cvsMenu.add(menuItem);
+            menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                cvsUndoAddRemove(); }});
+            menuItem.setEnabled((states.size() == 1 && (states.contains(State.ADDED) || states.contains(State.REMOVED))) ||
+                                (states.size() == 2 && (states.contains(State.ADDED) && states.contains(State.REMOVED))));
         }
 
         private void cvsUpdate(int type) {
@@ -1931,7 +1938,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
         private void cvsAddRemove(boolean add) {
             List<Library> libs = getCurrentlySelectedLibraries();
             List<Cell> cells = getCurrentlySelectedCells();
-            AddRemove.addremove(libs, cells, add);
+            AddRemove.addremove(libs, cells, add, false);
+        }
+
+        private void cvsUndoAddRemove() {
+            List<Library> libs = getCurrentlySelectedLibraries();
+            List<Cell> cells = getCurrentlySelectedCells();
+            AddRemove.addremove(libs, cells, false, true);
         }
 	}
 }

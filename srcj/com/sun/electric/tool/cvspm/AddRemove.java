@@ -29,12 +29,13 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.ElectricObject;
 
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.io.File;
+import java.io.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -48,25 +49,25 @@ public class AddRemove {
     public static void add(Library lib) {
         List<Library> libs = new ArrayList<Library>();
         libs.add(lib);
-        addremove(libs, null, true);
+        addremove(libs, null, true, false);
     }
 
     public static void add(Cell cell) {
         List<Cell> cells = new ArrayList<Cell>();
         cells.add(cell);
-        addremove(null, cells, true);
+        addremove(null, cells, true, false);
     }
 
     public static void remove(Library lib) {
         List<Library> libs = new ArrayList<Library>();
         libs.add(lib);
-        addremove(libs, null, false);
+        addremove(libs, null, false, false);
     }
 
     public static void remove(Cell cell) {
         List<Cell> cells = new ArrayList<Cell>();
         cells.add(cell);
-        addremove(null, cells, false);
+        addremove(null, cells, false, false);
     }
 
     /**
@@ -74,8 +75,9 @@ public class AddRemove {
      * @param libs
      * @param cells
      * @param add true to add to cvs, false to remove from cvs
+     * @param undo true to undo add/remove (boolean add ignored in this case).
      */
-    public static void addremove(List<Library> libs, List<Cell> cells, boolean add) {
+    public static void addremove(List<Library> libs, List<Cell> cells, boolean add, boolean undo) {
         if (libs == null) libs = new ArrayList<Library>();
         if (cells == null) cells = new ArrayList<Cell>();
 
@@ -92,36 +94,41 @@ public class AddRemove {
                     "CVS "+(add?"Add":"Remove")+" Error", bad.libs, bad.cells);
             return;
         }
-        if (add) {
-            bad = CVSLibrary.getInCVS(libs, cells);
-            // all libs and cells must not be in cvs
-            if (bad.libs.size() > 0 || bad.cells.size() > 0) {
-                CVS.showError("Error: Some libraries or cells are already in CVS:",
-                        "CVS Add Error", bad.libs, bad.cells);
-                return;
-            }
-        } else {
-            bad = CVSLibrary.getNotInCVS(libs, cells);
-            // all libs and cells must be in cvs
-            if (bad.libs.size() > 0 || bad.cells.size() > 0) {
-                CVS.showError("Error: Some libraries or cells are not in CVS:",
-                        "CVS Remove Error", bad.libs, bad.cells);
-                return;
-            }
-        }
+
         // optimize a little, remove cells from cells list if cell's lib in libs list
         CVSLibrary.LibsCells good = CVSLibrary.consolidate(libs, cells);
 
-        // issue final warning for Remove
-        if (!add) {
-            StringBuffer list = new StringBuffer("Warning! CVS Remove will delete disk files for these Libraries and Cells!!!");
-            for (Library lib : good.libs) list.append("\n  "+lib.getName());
-            for (Cell cell : good.cells) list.append("\n  "+cell.libDescribe());
-            if (!Job.getUserInterface().confirmMessage(list.toString()))
-                return;
-        }
+        if (!undo) {
+            if (add) {
+                bad = CVSLibrary.getInCVS(libs, cells);
+                // all libs and cells must not be in cvs
+                if (bad.libs.size() > 0 || bad.cells.size() > 0) {
+                    CVS.showError("Error: Some libraries or cells are already in CVS:",
+                            "CVS Add Error", bad.libs, bad.cells);
+                    return;
+                }
+            } else {
+                bad = CVSLibrary.getNotInCVS(libs, cells);
+                // all libs and cells must be in cvs
+                if (bad.libs.size() > 0 || bad.cells.size() > 0) {
+                    CVS.showError("Error: Some libraries or cells are not in CVS:",
+                            "CVS Remove Error", bad.libs, bad.cells);
+                    return;
+                }
+            }
+            // issue final warning for Remove
+            if (!add) {
+                StringBuffer list = new StringBuffer("Warning! CVS Remove will delete disk files for these Libraries and Cells!!!");
+                for (Library lib : good.libs) list.append("\n  "+lib.getName());
+                for (Cell cell : good.cells) list.append("\n  "+cell.libDescribe());
+                if (!Job.getUserInterface().confirmMessage(list.toString()))
+                    return;
+            }
 
-        (new AddRemoveJob(good.libs, good.cells, add)).startJob();
+            (new AddRemoveJob(good.libs, good.cells, add)).startJob();
+        } else {
+            (new UndoAddRemoveJob(good.libs, good.cells)).startJob();
+        }
     }
 
     public static class AddRemoveJob extends Job {
@@ -270,6 +277,107 @@ public class AddRemove {
                 Job.getUserInterface().showErrorMessage("CVS "+(add?"Add":"Remove")+
                         " Failed!  Please see messages window (exit status "+exitVal+")","CVS "+(add?"Add":"Remove")+" Failed!");
             }
+        }
+    }
+
+    public static class UndoAddRemoveJob extends Job {
+        private List<Library> libs;
+        private List<Cell> cells;
+        HashMap<File,ElectricObject> filesToUndo;
+        private UndoAddRemoveJob(List<Library> libs, List<Cell> cells) {
+            super("CVS Undo Add/Remove", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.libs = libs;
+            this.cells = cells;
+            if (this.libs == null) this.libs = new ArrayList<Library>();
+            if (this.cells == null) this.cells = new ArrayList<Cell>();
+        }
+        public boolean doIt() {
+            StringBuffer buf = new StringBuffer();
+            for (Library lib : libs) {
+                undo(lib);
+            }
+            for (Cell cell : cells) {
+                undo(cell);
+            }
+            System.out.println("Undo CVS Add/Remove complete");
+            return true;
+        }
+        private void undo(Library lib) {
+            // see if library file is in CVS
+            String libfile = TextUtils.getFile(lib.getLibFile()).getPath();
+            if (!CVS.isDELIB(lib)) {
+                if (undo(new File(libfile))) {
+                    CVSLibrary.setState(lib, State.UNKNOWN);
+                }
+            } else {
+                for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                    undo(it.next());
+                }
+                // undo header file
+                File headerFile = new File(libfile, DELIB.getHeaderFile());
+                undo(headerFile);
+                // undo lastModified file
+                File lastModifiedFile = new File(libfile, DELIB.getLastModifiedFile());
+                undo(lastModifiedFile);
+            }
+        }
+        private void undo(Cell cell) {
+            if (!CVS.isDELIB(cell.getLibrary())) return;
+            String libfile = TextUtils.getFile(cell.getLibrary().getLibFile()).getPath();
+            // get cell directory if not already added before
+            // check cell files
+            File cellFile = new File(libfile, DELIB.getCellFile(cell));
+            if (undo(cellFile)) {
+                CVSLibrary.setState(cell, State.UNKNOWN);
+            }
+        }
+        /**
+         * Return true if succeeded, false otherwise
+         * @param FD
+         * @return
+         */
+        private boolean undo(File FD) {
+            if (FD.isDirectory()) return false;
+            File parent = FD.getParentFile();
+            File CVSDIR = new File(parent, "CVS");
+            if (!CVSDIR.exists()) return false;
+            File entries = new File(CVSDIR, "Entries");
+            if (!entries.exists()) return false;
+            File entriestemp = new File(CVSDIR, "Entries.temp");
+            String filename = FD.getName();
+            boolean removed = false;
+            try {
+                LineNumberReader reader = new LineNumberReader(new FileReader(entries));
+                PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(entriestemp, false)));
+                for (;;) {
+                    String line = reader.readLine();
+                    if (line == null) break;
+                    if (line.equals("")) continue;
+                    String parts[] = line.split("/");
+                    boolean skip = false;
+                    if (parts.length >= 2 && parts[1].equals(filename)) {
+                        // make sure it is scheduled for add/remove
+                        if (parts.length >= 4 && parts[2].equals("0")) {
+                            // scheduled for add, remove entry
+                            skip = true;
+                            removed = true;
+                        }
+                        if (parts.length >= 3 && parts[2].startsWith("-")) {
+                            // schedule to remove, remove entry
+                            skip = true;
+                            removed = true;
+                        }
+                    }
+                    if (!skip) pw.println(line);
+                }
+                // replace original with modified
+                if (!entriestemp.renameTo(entries)) {
+                    System.out.println("Unable to move "+entriestemp+" to "+entries+", cannot undo add/remove of "+filename);
+                    return false;
+                }
+            } catch (IOException e) {
+            }
+            return removed;
         }
     }
 }
