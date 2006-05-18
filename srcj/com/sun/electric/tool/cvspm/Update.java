@@ -129,10 +129,16 @@ public class Update {
 
         // make sure the selecetd objecs are in cvs
         bad = CVSLibrary.getNotInCVS(libs, cells);
-        // for STATUS, remove libraries not in cvs
+        // for STATUS, remove libraries not in cvs, and also set their state unknown
         if (type == STATUS) {
-            for (Library lib : bad.libs) libs.remove(lib);
-            for (Cell cell : bad.cells) cells.remove(cell);
+            for (Library lib : bad.libs) {
+                libs.remove(lib);
+                CVSLibrary.setState(lib, State.UNKNOWN);
+            }
+            for (Cell cell : bad.cells) {
+                cells.remove(cell);
+                CVSLibrary.setState(cell, State.UNKNOWN);
+            }
         } else if (bad.libs.size() > 0 || bad.cells.size() > 0) {
             // if any of them not in cvs, issue error and abort
             CVS.showError("Error: the following Libraries or Cells are not in CVS",
