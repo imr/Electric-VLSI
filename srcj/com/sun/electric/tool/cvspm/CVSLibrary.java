@@ -372,7 +372,11 @@ public class CVSLibrary {
             FileType type = OpenFile.getOpenFileType(libFile.getFile(), FileType.JELIB);
             CVSLibrary cvslib = CVSLibraries.get(lib);
             if (cvslib != null) {
-                cvslib.type = type;
+                if (cvslib.type != type) {
+                    // remove and re-add
+                    removeLibrary(lib);
+                    addLibrary(lib);
+                }
             }
         }
 
@@ -411,6 +415,45 @@ public class CVSLibrary {
         // turn on edit for files to be modified
         // note that header is never to have edit on or off
         Edit.edit(buf.toString(), TextUtils.getFile(lib.getLibFile()).getPath());
+    }
+
+    /**
+     * Hook for after a DELIB library was saved. This will do a CVS remove
+     * on any cells files that have been deleted (renamed).
+     * Note that this method is currently called only after a DELIB has been
+     * written, not after any other type of library.
+     * @param lib
+     * @param deletedCellFiles
+     */
+    public static void savedLibrary(Library lib, List<String> deletedCellFiles) {
+        if (!CVS.isDELIB(lib)) return;
+        List<Library> libs = new ArrayList<Library>();
+        libs.add(lib);
+        String useDir = CVS.getUseDir(libs, null);
+        StringBuffer buf = new StringBuffer();
+        for (String s : deletedCellFiles) {
+            File file = new File(s);
+            if (CVS.isFileInCVS(file) && !file.exists()) {
+                // original file should have been renamed to .deleted,
+                // issue remove on deleted file
+                if (s.startsWith(useDir))
+                    buf.append(s.substring(useDir.length()+1)+" ");
+                else
+                    buf.append(s+" ");
+            }
+        }
+        String arg = buf.toString();
+        if (arg.trim().equals("")) return;
+        //System.out.println("Removing deleted cells from CVS");
+        int exitVal = CVS.runCVSCommand("-q remove "+arg, "Removing deleted cells from CVS",
+                useDir, System.out);
+        if (exitVal != 0) {
+            System.out.println("  Error running CVS remove command (exit status "+exitVal+")");
+            return;
+        }
+        // since the file has been deleted and marked for removal, future updates
+        // will not recreate the file.  However, a final commit is required to fully remove it,
+        // but this is not really necessary.
     }
 
     /**
