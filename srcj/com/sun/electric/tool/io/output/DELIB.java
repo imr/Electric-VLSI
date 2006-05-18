@@ -61,7 +61,7 @@ public class DELIB extends JELIB {
     private HashMap<String,Integer> cellFileMap;
     // last version to use subdirs to hold cells, instead of putting them all in delib dir.
     private static final String lastSubdirVersion = "8.04m";
-    public static final String PLATFORM_INDEPENDENT_FILE_SEPARATOR = "/";
+    public static final char PLATFORM_INDEPENDENT_FILE_SEPARATOR = '/';
 
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles) {
         boolean b = super.writeLib(snapshot, libId, libFiles);
@@ -86,10 +86,6 @@ public class DELIB extends JELIB {
      * @param cellBackup
      */
     void writeCell(CellBackup cellBackup) {
-        // don't bother writing if not modified
-        if (cellBackup.modified < 0)
-            return;
-
         if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             // new way, no subdir
         } else {
@@ -117,42 +113,46 @@ public class DELIB extends JELIB {
         String cellFile = getCellFile(cellBackup);
         String cellFileAbs = filePath + File.separator + cellFile;
         // save old printWriter
-        PrintWriter headerWriter = printWriter;
-        // set current print writer to cell file
         boolean append = false;
-        try {
-            // check to see if this a version of a cell we've already written,
-            // if so, append to the same file
-            if (cellFileMap.containsKey(cellFileAbs))
-                append = true;
-            cellFileMap.put(cellFileAbs, null);
+        if (cellBackup.modified >= 0) {
 
-            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(cellFileAbs, append)));
-        } catch (IOException e) {
-            System.out.println("Error opening "+cellFileAbs+", skipping cell: "+e.getMessage());
+            // set current print writer to cell file
+            PrintWriter headerWriter = printWriter;
+
+            try {
+                // check to see if this a version of a cell we've already written,
+                // if so, append to the same file
+                if (cellFileMap.containsKey(cellFileAbs))
+                    append = true;
+                cellFileMap.put(cellFileAbs, null);
+
+                printWriter = new PrintWriter(new BufferedWriter(new FileWriter(cellFileAbs, append)));
+            } catch (IOException e) {
+                System.out.println("Error opening "+cellFileAbs+", skipping cell: "+e.getMessage());
+                printWriter = headerWriter;
+                return;
+            }
+
+            // write out external references for this cell
+            BitSet usedLibs = new BitSet();
+            HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
+            cellBackup.gatherUsages(usedLibs, usedExports);
+            gatherLibs(usedLibs, usedExports);
+
+             // write short header information (library, version)
+            LibId libId = cellBackup.d.libId;
+            printWriter.println("H" + convertString(snapshot.getLib(libId).d.libName) + "|" + Version.getVersion());
+
+            super.writeExternalLibraryInfo(libId, usedLibs, usedExports);
+
+            // write out the cell into the new file
+            super.writeCell(cellBackup);
+
+            printWriter.close();
+            // set the print writer back
             printWriter = headerWriter;
-            return;
         }
-
-        // write out external references for this cell
-        BitSet usedLibs = new BitSet();
-        HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
-        cellBackup.gatherUsages(usedLibs, usedExports);
-        gatherLibs(usedLibs, usedExports);
-        
-         // write short header information (library, version)
-        LibId libId = cellBackup.d.libId;
-        printWriter.println("H" + convertString(snapshot.getLib(libId).d.libName) + "|" + Version.getVersion());
-        
-        super.writeExternalLibraryInfo(libId, usedLibs, usedExports);
-
-        // write out the cell into the new file
-        super.writeCell(cellBackup);
-
-        printWriter.close();
-        // set the print writer back
-        printWriter = headerWriter;
-        cellFile = cellFile.replaceAll(File.separator, PLATFORM_INDEPENDENT_FILE_SEPARATOR);
+        cellFile = cellFile.replace(File.separatorChar, PLATFORM_INDEPENDENT_FILE_SEPARATOR);
         if (!append) printWriter.println("C"+cellFile);
     }
 
