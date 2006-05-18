@@ -322,10 +322,18 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         
 		EPoint anchor = EPoint.snap(center);
         
-        Name nameKey;
+        Name nameKey = null;
         if (name != null) {
             nameKey = Name.findName(name);
-        } else {
+            if (checkNameKey(nameKey, parent)) {
+                nameKey = null;
+            } else if (parent.findNode(name) != null) {
+                if (!nameKey.isTempname())
+                    System.out.println(parent + " already has NodeInst with name \""+name+"\"");
+                nameKey = null;
+            }
+        }
+        if (nameKey == null) {
             Name baseName;
             if (protoType instanceof Cell) {
                 baseName = ((Cell)protoType).getBasename();
@@ -354,10 +362,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
     public static NodeInst newInstance(Cell parent, ImmutableNodeInst d)
 	{
-        Cell subCell = null;
 		if (d.protoId instanceof CellId)
 		{
-            subCell = parent.getDatabase().getCell((CellId)d.protoId);
+            Cell subCell = parent.getDatabase().getCell((CellId)d.protoId);
             if (Cell.isInstantiationRecursive(subCell, parent))
 			{
 				System.out.println("Cannot create instance of " + subCell + " in " + parent +
@@ -372,21 +379,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             return null;
         }
 
-        Name nameKey = d.name;
-		if (nameKey.isTempname() && (!parent.isUniqueName(nameKey, NodeInst.class, null)) || checkNameKey(nameKey, parent))
+		if (parent.findNode(d.name.toString()) != null)
 		{
-            Name baseName;
-            if (subCell != null) {
-                baseName = subCell.getBasename();
-            } else {
-                PrimitiveNode np = (PrimitiveNode)d.protoId;
-                baseName = np.getTechnology().getPrimitiveFunction(np, d.techBits).getBasename();
-            }
-            nameKey = parent.getNodeAutoname(baseName);
-            d = d.withName(nameKey);
+            System.out.println(parent + " already has NodeInst with name \""+d.name+"\"");
+            return null;
 		}
-        assert !parent.hasTempNodeName(d.name);
-        CellId parentId = (CellId)parent.getId();
         
 		NodeInst ni = new NodeInst(d, parent);
 
@@ -2620,11 +2617,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			key = parent.getNodeAutoname(getBasename());
 		}
 		if (checkNameKey(key, parent)) return true;
-		if (parent.hasTempNodeName(key) && !name.equalsIgnoreCase(getName()))
-		{
-			System.out.println(parent + " already has NodeInst with temporary name \""+name+"\"");
-			return true;
-		}
+
         ImmutableNodeInst oldD = d;
         lowLevelModify(d.withName(key));
         Constraints.getCurrent().modifyNodeInst(this, oldD);

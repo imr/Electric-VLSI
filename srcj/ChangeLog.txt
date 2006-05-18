@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/17/06, DN) Nodable names must be unique (Bug #850).
+FIX: Uniqueness of NodeInst names is database invariant.
+     However, uniqueness of NodeProxies is not implemented yet.
+
+BUG: (5/17/06, DN) Regression failed after export rename.
+FIX: In library readers (Jelib, Elib, ReadbaleDump) always search exports by exportId.
+
 BUG: (5/17/06, SMR) Bus pins don't select well (Bug #1012).
 FIX: In ImmutableNodeInst.computeBounds(), ask the schematics technology
      for the bus pin's size.  One might be tempted to remove the "WipeOn1or2"

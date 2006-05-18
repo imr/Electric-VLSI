@@ -988,7 +988,8 @@ public class ELIB extends LibraryFiles
 					if (obj instanceof Cell)
 					{
 						otherCell = (Cell)obj;
-						pp = otherCell.findExport(exportNameList[j]);
+						pp = (Export)findPortProto(otherCell, exportNameList[j]);
+//						pp = otherCell.findExport(exportNameList[j]);
 						if (pp != null)
 						{
 							exportList[j] = pp;

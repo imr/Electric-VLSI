@@ -28,6 +28,7 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.technologies.Generic;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -138,6 +139,22 @@ public class CellBackup {
             UsageCollector uc = new UsageCollector(d, nodes, arcs, exports);
             usedLibs = uc.getLibUsages(this.usedLibs);
             cellUsages = uc.getCellUsages(cellId, this.cellUsages);
+        }
+        
+        if (nodes != this.nodes && !nodes.isEmpty()) {
+            boolean hasCellCenter = false;
+            ImmutableNodeInst prevN = null;
+            for (int i = 0; i < nodes.size(); i++) {
+                ImmutableNodeInst n = nodes.get(i);
+                if (n.protoId == Generic.tech.cellCenterNode) {
+                    if (hasCellCenter)
+                        throw new IllegalArgumentException("Duplicate cell center");
+                    hasCellCenter = true;
+                }
+                if (prevN != null && TextUtils.STRING_NUMBER_ORDER.compare(prevN.name.toString(), n.name.toString()) >= 0)
+                    throw new IllegalArgumentException("nodes order");
+                prevN = n;
+            }
         }
         
         int[] exportIndex = this.exportIndex;
@@ -338,24 +355,23 @@ public class CellBackup {
         assert -1 <= modified && modified <= 1;
         CellId cellId = d.cellId;
         int[] checkCellUsages = getInstCounts();
+        boolean hasCellCenter = false;
         ArrayList<ImmutableNodeInst> nodesById = new ArrayList<ImmutableNodeInst>();
         ImmutableNodeInst prevN = null;
         for (ImmutableNodeInst n: nodes) {
             n.check();
+            if (n.protoId == Generic.tech.cellCenterNode) {
+                assert !hasCellCenter;
+                hasCellCenter = true;
+            }
             checkVars(n);
             for (ImmutablePortInst pid: n.ports)
                 checkVars(pid);
             while (n.nodeId >= nodesById.size()) nodesById.add(null);
             ImmutableNodeInst oldNode = nodesById.set(n.nodeId, n);
             assert oldNode == null;
-			if (prevN != null) {
-				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevN.name.toString(), n.name.toString());
-				assert cmp <= 0;
-				if (cmp == 0) {
-                    assert !n.name.isTempname();
-					assert prevN.nodeId < n.nodeId;
-                }
-			}
+			if (prevN != null)
+				assert TextUtils.STRING_NUMBER_ORDER.compare(prevN.name.toString(), n.name.toString()) < 0;
             prevN = n;
             if (n.protoId instanceof CellId) {
                 CellId subCellId = (CellId)n.protoId;

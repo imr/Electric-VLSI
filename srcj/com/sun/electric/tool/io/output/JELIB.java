@@ -75,7 +75,6 @@ import java.util.TreeSet;
  */
 public class JELIB extends Output
 {
-    private boolean NEW_REVISION = Version.getVersion().compareTo(Version.parseVersion("8.04l")) >= 0;
     Snapshot snapshot;
     private Map<LibId,URL> libFiles;
     private HashMap<CellId,String> cellNames = new HashMap<CellId,String>();
@@ -297,8 +296,7 @@ public class JELIB extends Output
         // write the Cell name
         printWriter.println("# Cell " + d.cellName);
         printWriter.print("C" + convertString(d.cellName.toString()));
-        if (NEW_REVISION)
-            printWriter.print("|"); // user CellName
+        printWriter.print("|"); // user CellName
         printWriter.print("|" + convertString(d.tech.getTechName()));
         printWriter.print("|" + d.creationDate);
         printWriter.print("|" + cellBackup.revisionDate);
@@ -411,13 +409,9 @@ public class JELIB extends Output
 
         // write the exports in this cell
         for (ImmutableExport e: cellBackup.exports) {
-            if (NEW_REVISION) {
-                printWriter.print("E" + convertString(e.exportId.externalId) + "|");
-                if (!e.name.toString().equals(e.exportId.externalId))
-                    printWriter.print(convertString(e.name.toString()));
-            } else {
-                printWriter.print("E" + convertString(e.name.toString()));
-            }
+            printWriter.print("E" + convertString(e.exportId.externalId) + "|");
+            if (!e.name.toString().equals(e.exportId.externalId))
+                printWriter.print(convertString(e.name.toString()));
             printWriter.print("|" + describeDescriptor(null, e.nameDescriptor));
             printWriter.print("|" + nodeNames.get(e.originalNodeId) + "|" + getPortName(e.originalPortId));
             printWriter.print("|" + e.characteristic.getShortName());
@@ -473,28 +467,11 @@ public class JELIB extends Output
                 CellId cellId = cellBackup.d.cellId;
                 BitSet exportsUsedInCell = usedExports.get(cellId);
                 ERectangle bounds = snapshot.getCellBounds(cellId);
-                if (NEW_REVISION) {
-                    printWriter.println("R" + convertString(cellBackup.d.cellName.toString()) + "||||");
-                } else {
-                    printWriter.println("R" + convertString(cellBackup.d.cellName.toString()) +
-                            "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinX()),0) +
-                            "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxX()),0) +
-                            "|" + TextUtils.formatDouble(DBMath.round(bounds.getMinY()),0) +
-                            "|" + TextUtils.formatDouble(DBMath.round(bounds.getMaxY()),0) +
-                            "|" + cellBackup.d.creationDate +
-                            "|" + cellBackup.revisionDate);
-                }
+                printWriter.println("R" + convertString(cellBackup.d.cellName.toString()) + "||||");
                 cellNames.put(cellId, getFullCellName(cellId));
                 for (ImmutableExport e: cellBackup.exports) {
                     if (!exportsUsedInCell.get(e.exportId.chronIndex)) continue;
-                    printWriter.println("F" + convertString(NEW_REVISION ? e.exportId.externalId : e.name.toString()) + "||");
-
-//                    Export export = cellId.inCurrentThread().getPort(e.exportId);
-//
-//                    Poly poly = export.getOriginalPort().getPoly();
-//                    printWriter.println("F" + convertString(e.name.toString()) +
-//                        "|" + TextUtils.formatDouble(DBMath.round(poly.getCenterX()), 0) +
-//                        "|" + TextUtils.formatDouble(DBMath.round(poly.getCenterY()), 0));
+                    printWriter.println("F" + convertString(e.exportId.externalId) + "||");
                 }
             }
         }
@@ -656,7 +633,7 @@ public class JELIB extends Output
                         ImmutableExport e = protoBackup.exports.get(portIndex);
                         ImmutablePortInst pid = nid.getPortInst(e.exportId);
                         if (pid.getNumVariables() == 0) continue;
-                        printVars(NEW_REVISION ? e.exportId.externalId : e.name.toString(), pid);
+                        printVars(e.exportId.externalId, pid);
                     }
                 } else {
                     PrimitiveNode pn = (PrimitiveNode)nid.protoId;
@@ -776,7 +753,7 @@ public class JELIB extends Output
         CellBackup cellBackup = snapshot.getCell(exportId.parentId);
 //        if (cellBackup.exports.size() <= 1) return "";
         ImmutableExport e = cellBackup.getExport(exportId);
-        return convertString(NEW_REVISION ? exportId.externalId : e.name.toString());
+        return convertString(exportId.externalId);
     }
     
 	private String getFullCellName(CellId cellId) {

@@ -564,7 +564,8 @@ public class ReadableDump extends LibraryFiles
 	private PortInst findProperPortInst(NodeInst ni, String portName)
 	{
 		NodeProto np = ni.getProto();
-		PortProto pp = np.findPortProto(portName);
+		PortProto pp = findPortProto(np, portName);
+//		PortProto pp = np.findPortProto(portName);
 
 		// convert special port names
 		if (pp == null && !ni.isCellInstance())

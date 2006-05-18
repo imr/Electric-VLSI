@@ -294,8 +294,17 @@ public class GDS extends Input
 
         private void nameInstances() {
             HashMap<String,GenMath.MutableInteger> maxSuffixes = new HashMap<String,GenMath.MutableInteger>();
+            HashSet<String> userNames = new HashSet<String>();
             for (MakeInstance mi: insts) {
-                if (mi.nodeName != null) continue;
+                if (mi.nodeName != null) {
+                    if (!validGdsNodeName(mi.nodeName)) {
+                        System.out.println("  Warning: Node name '" + mi.nodeName + "' in cell " + cell.describe(false) +
+                                " is bad (" + Name.checkName(mi.nodeName.toString()) + ")...ignoring the name");
+                    } else if (!userNames.contains(mi.nodeName.toString())) {
+                        userNames.add(mi.nodeName.toString());
+                        continue;
+                    }
+                }
                 Name baseName;
                 if (mi.proto instanceof Cell) {
                     baseName = ((Cell)mi.proto).getBasename();
@@ -314,6 +323,10 @@ public class GDS extends Input
             }
         }
         
+        private boolean validGdsNodeName(Name name) {
+            return name.isValid() && !name.hasEmptySubnames() && !name.isBus() || !name.isTempname();
+        }
+         
 		private static void buildInstances()
 		{
 			Set<Cell> builtCells = new HashSet<Cell>();
@@ -352,18 +365,22 @@ public class GDS extends Input
         
         private void instantiate(Cell parent) {
         	String name = nodeName.toString();
-            if (name != null && parent.findNode(name) != null) name = null;
-            if (name != null)
-            {
-            	String error = Name.checkName(name);
-            	if (error != null)
-            	{
-            		System.out.println("  Warning: Node name '" + name + "' in cell " + parent.describe(false) +
-            			" is bad (" + error + ")...ignoring the name");
-            		name = null;
-            	}
+//            if (name != null && parent.findNode(name) != null) name = null;
+//            if (name != null)
+//            {
+//            	String error = Name.checkName(name);
+//            	if (error != null)
+//            	{
+//            		System.out.println("  Warning: Node name '" + name + "' in cell " + parent.describe(false) +
+//            			" is bad (" + error + ")...ignoring the name");
+//            		name = null;
+//            	}
+//            }
+            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, nodeName.toString(), 0);
+            if (ni.getNameKey() != nodeName) {
+                System.out.println("GDS name " + name + " renamed to " + ni.getName());
+                
             }
-            NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, name, 0);
             if (ni == null) return;
             if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
                 ni.setExpanded();
