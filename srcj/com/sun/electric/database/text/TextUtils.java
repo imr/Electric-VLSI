@@ -1344,7 +1344,7 @@ public class TextUtils
 			URLConnection con = url.openConnection();
 			con.connect();
 			if (con.getContentLength() < 0) return false;
-		} catch (IOException e)
+		} catch (Exception e)
 		{
 			if (errorMsg != null)
 				errorMsg.append("Error: cannot open " + e.getMessage() + "\n");
