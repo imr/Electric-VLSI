@@ -108,17 +108,6 @@ public class DELIB extends JELIB {
 
         boolean b = super.writeLib(snapshot, libId, libFiles);
         if (!b) {
-            // write lastModified file for cvs update optimziations
-            File lastModifiedFile = new File(filePath, getLastModifiedFile());
-            try {
-                PrintWriter writer;
-                writer = new PrintWriter(new BufferedWriter(new FileWriter(lastModifiedFile, false)));
-                writer.println(System.currentTimeMillis());
-                writer.close();
-            } catch (IOException e) {
-                System.out.println("Error opening "+lastModifiedFile+": "+e.getMessage());
-            }
-
             // rename cell files that are no longer in the library
             deletedCellFiles.clear();
             if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
@@ -363,9 +352,5 @@ public class DELIB extends JELIB {
      */
     public static final String getHeaderFile() {
         return "header";
-    }
-
-    public static final String getLastModifiedFile() {
-        return "lastModified";
     }
 }

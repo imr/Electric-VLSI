@@ -31,6 +31,7 @@ import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.DELIB;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import javax.swing.JOptionPane;
 import java.io.*;
@@ -48,6 +49,7 @@ public class Update {
     public static final int UPDATE = 0;
     public static final int STATUS = 1;
     public static final int ROLLBACK = 2;
+    public static final int ROLLFORWARD = 3;
 
     // ------------------ Update/Status ---------------------
 
@@ -146,7 +148,7 @@ public class Update {
             return;
         }
         // for update or rollback, make sure they are also not modified
-        if (type == UPDATE || type == ROLLBACK) {
+        if (type == UPDATE || type == ROLLBACK || type == ROLLFORWARD) {
             bad = CVSLibrary.getModified(libs, cells);
             if (bad.libs.size() > 0 || bad.cells.size() > 0) {
                 String [] choices = new String [] { "Continue Anyway", "Cancel" };
@@ -191,32 +193,13 @@ public class Update {
             StringBuffer libs = CVS.getLibraryFiles(librariesToUpdate, useDir);
             StringBuffer cells = CVS.getCellFiles(cellsToUpdate, useDir);
 
-            // disable this for now, since users with older versions
+            // disable lastModified for now, since users with older versions
             // of electric will not commit new lastModified file,
             // and then users of new electric will not get updated files
-            /*
-            if (!updateProject && (type != ROLLBACK)) {
-                // optimization: for DELIBs, check header first.  If that
-                // requires an update, then check cells
-                List<Library> checkedDelibs = new ArrayList<Library>();
-                StringBuffer lastModifiedFiles = CVS.getDELIBLastModifiedFiles(librariesToUpdate, useDir, checkedDelibs);
-                String arg = lastModifiedFiles.toString().trim();
-                if (!arg.equals("")) {
-                    // remove libs that can be checked, they will be added again if
-                    // cvs says the lastModified file has been changed in the repository
-                    for (Library lib : checkedDelibs) librariesToUpdate.remove(lib);
-
-                    StatusResult result = update(arg, useDir, type);
-                    // check for updated libraries
-                    List<Library> delibsToUpdate = new ArrayList<Library>();
-                    delibsToUpdate.addAll(result.getLastModifiedFileLibs(State.UPDATE));
-                    delibsToUpdate.addAll(result.getLastModifiedFileLibs(State.CONFLICT));
-                    librariesToUpdate.addAll(delibsToUpdate);
-                    // libs of nondelibs and libs to run update on
-                    libs = CVS.getLibraryFiles(librariesToUpdate, useDir);
-                }
-            }
-            */
+            //
+            // Also, last modified won't work, because user can commit cell A,
+            // then commit cell B, then rollback cell A.  Electric can't tell
+            // whether or not to also rollback lastModified file
 
             String updateFiles = libs.toString() + " " + cells.toString();
             if (updateFiles.trim().equals("") && !updateProject) {
@@ -231,7 +214,7 @@ public class Update {
             commentStatusResult(result, type);
             exitVal = result.getExitVal();
             if (inJob) fieldVariableChanged("exitVal");
-            if (exitVal != 0) {
+            if (exitVal != 0 && exitVal != 1) {
                 return true;
             }
 
@@ -263,11 +246,12 @@ public class Update {
             return true;
         }
         public void terminateOK() {
-            if (exitVal != 0) {
+            if (exitVal != 0 && exitVal != 1) {
                 Job.getUserInterface().showErrorMessage("CVS "+getMessage(type)+
                         " Failed (exit status "+exitVal+")!  Please see messages window","CVS "+getMessage(type)+" Failed!");
                 return;
             }
+            WindowFrame.wantToRedoLibraryTree();
             CVS.fixStaleCellReferences(libsToReload);
         }
     }
@@ -307,7 +291,8 @@ public class Update {
         switch(type) {
             case 0: return "Update";
             case 1: return "Status";
-            case 2: return "Rollback";
+            case 2: return "Roll Back";
+            case 3: return "Roll Forward";
         }
         return "";
     }
@@ -378,7 +363,7 @@ public class Update {
             if (line == null) break;
             if (line.equals("")) continue;
 
-            String parts[] = line.split("\\s");
+            String parts[] = line.split("\\s+");
             if (parts.length != 2) continue;
             State state = State.getState(parts[0]);
             if (state == null) continue;
@@ -394,20 +379,11 @@ public class Update {
                 if (lib == null) continue;
                 CVSLibrary.setState(lib, state);
             }
-            if (filename.endsWith(DELIB.getLastModifiedFile())) {
-                // delib header file, add delib library
-                File header = new File(filename);
-                File delib = header.getParentFile();
-                String endfile = delib.getName();
-                if (endfile.endsWith(".delib")) endfile = endfile.substring(0, endfile.length()-6);
-                Library lib = Library.findLibrary(endfile);
-                if (lib == null) continue;
-                result.addLastModifiedFile(state, lib);
-                continue;
-            }
             Cell cell = CVS.getCellFromPath(filename);
             if (cell != null) {
                 result.addCell(state, cell);
+            } else {
+                result.addUnknownFile(state, filename);
             }
         }
         return result;
@@ -432,8 +408,16 @@ public class Update {
             System.out.println("Modified\t"+cell.libDescribe());
             allFilesUpToDate = false;
         }
+        for (String file : result.getUnknownFiles(State.MODIFIED)) {
+            System.out.println("Modified\t"+file);
+            allFilesUpToDate = false;
+        }
         for (Cell cell : result.getCells(State.CONFLICT)) {
             System.out.println("Conflicts\t"+cell.libDescribe());
+            allFilesUpToDate = false;
+        }
+        for (String file : result.getUnknownFiles(State.CONFLICT)) {
+            System.out.println("Conflicts\t"+file);
             allFilesUpToDate = false;
         }
         for (Cell cell : result.getCells(State.UPDATE)) {
@@ -441,6 +425,13 @@ public class Update {
                 System.out.println("NeedsUpdate\t"+cell.libDescribe());
             if (type == UPDATE)
                 System.out.println("Updated\t"+cell.libDescribe());
+            allFilesUpToDate = false;
+        }
+        for (String file : result.getUnknownFiles(State.UPDATE)) {
+            if (type == STATUS)
+                System.out.println("NeedsUpdate\t"+file);
+            if (type == UPDATE)
+                System.out.println("Updated\t"+file);
             allFilesUpToDate = false;
         }
         if (type == STATUS) {
@@ -451,12 +442,12 @@ public class Update {
 
     public static class StatusResult {
         private Map<State,List<Cell>> cells;
-        private Map<State,List<Library>> lastModifiedFiles;
+        private Map<State,List<String>> unknownFiles;
         private int exitVal;
 
         private StatusResult(int exitVal) {
             cells = new HashMap<State,List<Cell>>();
-            lastModifiedFiles = new HashMap<State,List<Library>>();
+            unknownFiles = new HashMap<State,List<String>>();
             this.exitVal = exitVal;
         }
         private void addCell(State state, Cell cell) {
@@ -473,19 +464,19 @@ public class Update {
                 statecells = new ArrayList<Cell>();
             return statecells;
         }
-        public void addLastModifiedFile(State state, Library associatedLib) {
-            List<Library> statelibs = lastModifiedFiles.get(state);
-            if (statelibs == null) {
-                statelibs = new ArrayList<Library>();
-                lastModifiedFiles.put(state, statelibs);
+        public void addUnknownFile(State state, String file) {
+            List<String> list = unknownFiles.get(state);
+            if (list == null) {
+                list = new ArrayList<String>();
+                unknownFiles.put(state, list);
             }
-            statelibs.add(associatedLib);
+            list.add(file);
         }
-        public List<Library> getLastModifiedFileLibs(State state) {
-            List<Library> statelibs = lastModifiedFiles.get(state);
-            if (statelibs == null)
-                statelibs = new ArrayList<Library>();
-            return statelibs;
+        public List<String> getUnknownFiles(State state) {
+            List<String> list = unknownFiles.get(state);
+            if (list == null)
+                list = new ArrayList<String>();
+            return list;
         }
         public int getExitVal() { return exitVal; }
     }

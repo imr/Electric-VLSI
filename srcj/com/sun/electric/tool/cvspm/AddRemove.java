@@ -236,10 +236,6 @@ public class AddRemove {
                 // add header file
                 File headerFile = new File(libfile, DELIB.getHeaderFile());
                 add(buf, headerFile.getPath(), useDir);
-                // add lastModified file
-                File lastModifiedFile = new File(libfile, DELIB.getLastModifiedFile());
-                if (lastModifiedFile.exists())
-                    add(buf, lastModifiedFile.getPath(), useDir);
             }
         }
         private void generate(StringBuffer buf, Cell cell, String useDir) {
@@ -319,9 +315,6 @@ public class AddRemove {
                 // undo header file
                 File headerFile = new File(libfile, DELIB.getHeaderFile());
                 undo(headerFile);
-                // undo lastModified file
-                File lastModifiedFile = new File(libfile, DELIB.getLastModifiedFile());
-                undo(lastModifiedFile);
             }
         }
         private void undo(Cell cell) {
