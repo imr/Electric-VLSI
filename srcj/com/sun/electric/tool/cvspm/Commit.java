@@ -101,7 +101,6 @@ public class Commit {
                     "CVS Commit Warning!",
                     bad.libs, bad.cells, choices, choices[1]);
             if (choice == 1) return;
-            return;
         }
 
         // optimize a little, remove cells from cells list if cell's lib in libs list
