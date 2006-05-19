@@ -1902,8 +1902,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             cvsMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
                 cvsUndoAddRemove(); }});
-            menuItem.setEnabled((states.size() == 1 && (states.contains(State.ADDED) || states.contains(State.REMOVED))) ||
-                                (states.size() == 2 && (states.contains(State.ADDED) && states.contains(State.REMOVED))));
+            menuItem.setEnabled(false);
+            //menuItem.setEnabled((states.size() == 1 && (states.contains(State.ADDED) || states.contains(State.REMOVED))) ||
+            //                    (states.size() == 2 && (states.contains(State.ADDED) && states.contains(State.REMOVED))));
         }
 
         private void cvsUpdate(int type) {
