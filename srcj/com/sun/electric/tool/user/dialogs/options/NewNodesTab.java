@@ -197,9 +197,11 @@ public class NewNodesTab extends PreferencePanel
 				if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
 				{
 					SizeOffset so = np.getProtoSizeOffset();
-					pni.wid += so.getLowXOffset() + so.getHighXOffset();
-					pni.hei += so.getLowYOffset() + so.getHighYOffset();
-					np.setDefSize(pni.wid, pni.hei);
+                    double wid = pni.wid + so.getLowXOffset() + so.getHighXOffset();
+                    double hei = pni.hei + so.getLowYOffset() + so.getHighYOffset();
+//					pni.wid += so.getLowXOffset() + so.getHighXOffset();
+//					pni.hei += so.getLowYOffset() + so.getHighYOffset();
+					np.setDefSize(wid, hei);
 				}
 			}
 		}
