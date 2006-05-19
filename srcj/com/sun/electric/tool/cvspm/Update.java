@@ -258,7 +258,7 @@ public class Update {
         public void terminateOK() {
             if (exitVal != 0) {
                 Job.getUserInterface().showErrorMessage("CVS "+getMessage(type)+
-                        " Failed!  Please see messages window","CVS "+getMessage(type)+" Failed!");
+                        " Failed (exit status "+exitVal+")!  Please see messages window","CVS "+getMessage(type)+" Failed!");
                 return;
             }
             CVS.fixStaleCellReferences(libsToReload);
