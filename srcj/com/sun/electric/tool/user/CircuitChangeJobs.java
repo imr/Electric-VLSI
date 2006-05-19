@@ -53,9 +53,11 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -3104,6 +3106,13 @@ public class CircuitChangeJobs
                 if (ext.equals("txt")) continue;
 
                 lib.setChanged();
+                if (OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB) {
+                    // set all cells as changed as well
+                    for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
+                        it2.next().madeRevision(System.currentTimeMillis(), null);
+                    }
+                }
+
             }
             System.out.println("All libraries now need to be saved");
             return true;
