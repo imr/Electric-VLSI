@@ -811,6 +811,7 @@ public class FileMenu {
             	success = performTask();
             } catch (Exception e)
             {
+                e.printStackTrace(System.out);
             	throw new JobException("Exception caught when saving files: " +
                     e.getMessage() + "Please check your disk libraries");
             }

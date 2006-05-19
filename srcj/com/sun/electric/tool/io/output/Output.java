@@ -360,7 +360,7 @@ public class Output
             if (delib.writeLib(lib.getDatabase().backup(), lib.getId(), null)) return true;
             if (delib.closeTextOutputStream()) return true;
             if (CVS.isEnabled()) {
-                CVSLibrary.savedLibrary(lib, delib.getDeletedCellFiles());
+                CVSLibrary.savedLibrary(lib, delib.getDeletedCellFiles(), delib.getWrittenCellFiles());
             }
 		} else
 		{

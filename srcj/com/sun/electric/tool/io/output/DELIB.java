@@ -288,6 +288,13 @@ public class DELIB extends JELIB {
 
     public List<String> getDeletedCellFiles() { return deletedCellFiles; }
 
+    public List<String> getWrittenCellFiles() {
+        List<String> files = new ArrayList<String>();
+        for (String s : cellFileMap.keySet())
+            files.add(s);
+        return files;
+    }
+
     /**
      * Cell subdirectory name. This is the directory inside the
      * .delib directory containing the Cell files for the specified cell.

@@ -454,6 +454,7 @@ public class CVS {
      * lastModified files in StringBuffer
      * @return
      */
+/*
     static StringBuffer getDELIBLastModifiedFiles(List<Library> libs, String useDir, List<Library> checkedDelibs) {
         StringBuffer libsBuf = new StringBuffer();
         if (libs == null) return libsBuf;
@@ -476,16 +477,44 @@ public class CVS {
     static StringBuffer getDELIBLastModifiedFiles(List<Library> libs, List<Cell> cells, String useDir) {
         StringBuffer lastModifiedFilesBuf;
         ArrayList<Library> delibs = new ArrayList<Library>();
+        ArrayList<Library> checkLibs = new ArrayList<Library>();
+        checkLibs.addAll(libs);
 
         if (cells != null) {
             for (Cell cell : cells) {
                 Library lib = cell.getLibrary();
-                if (!libs.contains(lib)) libs.add(lib);
+                if (!checkLibs.contains(lib)) checkLibs.add(lib);
             }
         }
         // get headers for delibs with lastModified files
-        lastModifiedFilesBuf = getDELIBLastModifiedFiles(libs, useDir, delibs);
+        lastModifiedFilesBuf = getDELIBLastModifiedFiles(checkLibs, useDir, delibs);
         return lastModifiedFilesBuf;
+    }
+*/
+
+    /**
+     * Get list of lastModified for any cells that are in a delib, but whose
+     * delibs are not being committed.
+     * @param libs
+     * @param cells
+     * @param useDir
+     * @return
+     */
+    static StringBuffer getLastModifiedFilesForCommit(List<Library> libs, List<Cell> cells, String useDir) {
+        if (libs == null) libs = new ArrayList<Library>();
+        if (cells == null) cells = new ArrayList<Cell>();
+        StringBuffer buf = new StringBuffer();
+        for (Cell cell : cells) {
+            if (libs.contains(cell.getLibrary())) continue;
+            if (!isDELIB(cell.getLibrary())) continue;
+            File libFile = TextUtils.getFile(cell.getLibrary().getLibFile());
+            String file = libFile.getPath();
+            if (file.startsWith(useDir)) {
+                file = file.substring(useDir.length()+1, file.length());
+            }
+            buf.append(file+File.separator+DELIB.getLastModifiedFile()+" ");
+        }
+        return buf;
     }
 
     /**
@@ -496,7 +525,7 @@ public class CVS {
      * @param useDir
      * @return
      */
-    static StringBuffer getHeaderFiles(List<Library> libs, List<Cell> cells, String useDir) {
+    static StringBuffer getHeaderFilesForCommit(List<Library> libs, List<Cell> cells, String useDir) {
         if (libs == null) libs = new ArrayList<Library>();
         if (cells == null) cells = new ArrayList<Cell>();
         StringBuffer buf = new StringBuffer();

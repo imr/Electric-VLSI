@@ -425,35 +425,75 @@ public class CVSLibrary {
      * @param lib
      * @param deletedCellFiles
      */
-    public static void savedLibrary(Library lib, List<String> deletedCellFiles) {
-        if (!CVS.isDELIB(lib)) return;
+    public static void savedLibrary(Library lib, List<String> deletedCellFiles, List<String> writtenCellFiles) {
         List<Library> libs = new ArrayList<Library>();
         libs.add(lib);
         String useDir = CVS.getUseDir(libs, null);
-        StringBuffer buf = new StringBuffer();
-        for (String s : deletedCellFiles) {
-            File file = new File(s);
-            if (CVS.isFileInCVS(file) && !file.exists()) {
-                // original file should have been renamed to .deleted,
-                // issue remove on deleted file
-                if (s.startsWith(useDir))
-                    buf.append(s.substring(useDir.length()+1)+" ");
-                else
-                    buf.append(s+" ");
+        if (CVS.isInCVS(lib) && CVS.isDELIB(lib)) {
+            StringBuffer buf = new StringBuffer();
+            for (String s : deletedCellFiles) {
+                File file = new File(s);
+                if (CVS.isFileInCVS(file) && !file.exists()) {
+                    // original file should have been renamed to .deleted,
+                    // issue remove on deleted file
+                    if (s.startsWith(useDir))
+                        buf.append(s.substring(useDir.length()+1)+" ");
+                    else
+                        buf.append(s+" ");
+                }
+            }
+            String arg = buf.toString();
+            if (!arg.trim().equals("")) {
+                //System.out.println("Removing deleted cells from CVS");
+                int exitVal = CVS.runCVSCommand("-q remove "+arg, "Removing deleted cells from CVS",
+                        useDir, System.out);
+                if (exitVal != 0) {
+                    System.out.println("  Error running CVS remove command (exit status "+exitVal+")");
+                    return;
+                }
+                // run the commit, because if it is left in "remove" state, a new cell of the
+                // same name cannot be added and committed.
+                exitVal = CVS.runCVSCommandWithQuotes("-q commit -m \"Automatic commit of removed cell file by Electric\" "+arg,
+                        "Committing removed files to CVS", useDir, System.out);
+                // since the file has been deleted and marked for removal, future updates
+                // will not recreate the file.  However, a final commit is required to fully remove it,
+                // but this is not really necessary.
+            }
+
+            // add any new cell files to cvs, if library is in cvs
+            buf = new StringBuffer();
+            for (String s : writtenCellFiles) {
+                File file = new File(s);
+                File parent = file.getParentFile();
+                if (!CVS.isFileInCVS(parent) && parent.exists()) {
+                    // for old style delib with cell file subdirs
+                    if (parent.getAbsolutePath().startsWith(useDir))
+                        buf.append(parent.getAbsolutePath().substring(useDir.length()+1)+" ");
+                    else
+                        buf.append(parent.getAbsolutePath()+" ");
+                }
+
+                if (!CVS.isFileInCVS(file) && file.exists()) {
+                    if (s.startsWith(useDir))
+                        buf.append(s.substring(useDir.length()+1)+" ");
+                    else
+                        buf.append(s+" ");
+                }
+            }
+            arg = buf.toString();
+            if (!arg.trim().equals("")) {
+                int exitVal = CVS.runCVSCommand("-q add "+buf.toString(), "Adding new cells to CVS",
+                        useDir, System.out);
+                if (exitVal != 0) {
+                    System.out.println("  Error running CVS add command (exit status "+exitVal+")");
+                    return;
+                }
             }
         }
-        String arg = buf.toString();
-        if (arg.trim().equals("")) return;
-        //System.out.println("Removing deleted cells from CVS");
-        int exitVal = CVS.runCVSCommand("-q remove "+arg, "Removing deleted cells from CVS",
-                useDir, System.out);
-        if (exitVal != 0) {
-            System.out.println("  Error running CVS remove command (exit status "+exitVal+")");
-            return;
-        }
-        // since the file has been deleted and marked for removal, future updates
-        // will not recreate the file.  However, a final commit is required to fully remove it,
-        // but this is not really necessary.
+
+        // run update on the library to see if there are now any conflicts, and
+        // recolor added cells
+        Update.statusNoJob(libs, null, false);
     }
 
     /**

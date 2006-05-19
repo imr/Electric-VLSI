@@ -168,6 +168,7 @@ public class Update {
         private List<Library> libsToReload;
         private boolean updateProject;                // update whole project
         private int exitVal;
+        private boolean inJob;
         /**
          * Update cells and/or libraries.
          * @param cellsToUpdate
@@ -181,6 +182,7 @@ public class Update {
             this.type = type;
             this.updateProject = updateProject;
             exitVal = -1;
+            inJob = true;
             if (this.cellsToUpdate == null) this.cellsToUpdate = new ArrayList<Cell>();
             if (this.librariesToUpdate == null) this.librariesToUpdate = new ArrayList<Library>();
         }
@@ -219,7 +221,7 @@ public class Update {
             String updateFiles = libs.toString() + " " + cells.toString();
             if (updateFiles.trim().equals("") && !updateProject) {
                 exitVal = 0;
-                fieldVariableChanged("exitVal");
+                if (inJob) fieldVariableChanged("exitVal");
                 System.out.println("Nothing to "+getMessage(type));
                 return true;
             }
@@ -228,7 +230,7 @@ public class Update {
             StatusResult result = update(updateFiles, useDir, type);
             commentStatusResult(result, type);
             exitVal = result.getExitVal();
-            fieldVariableChanged("exitVal");
+            if (inJob) fieldVariableChanged("exitVal");
             if (exitVal != 0) {
                 return true;
             }
@@ -257,7 +259,7 @@ public class Update {
             // update states
             updateStates(result);
             System.out.println(getMessage(type)+" complete.");
-            fieldVariableChanged("libsToReload");
+            if (inJob) fieldVariableChanged("libsToReload");
             return true;
         }
         public void terminateOK() {
@@ -268,6 +270,12 @@ public class Update {
             }
             CVS.fixStaleCellReferences(libsToReload);
         }
+    }
+
+    static void statusNoJob(List<Library> libs, List<Cell> cells, boolean updateProject) {
+        UpdateJob job = new UpdateJob(cells, libs, STATUS, updateProject);
+        job.inJob = false;
+        job.doIt();
     }
 
     /**

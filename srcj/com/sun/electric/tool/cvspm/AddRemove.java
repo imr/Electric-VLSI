@@ -95,26 +95,29 @@ public class AddRemove {
             return;
         }
 
+        // delib cells must have library added first
+        List<Library> assertLibsInCVS = new ArrayList<Library>();
+        for (Cell cell : cells) {
+            Library lib = cell.getLibrary();
+            if (libs.contains(lib)) continue;
+            assertLibsInCVS.add(lib);
+        }
+        bad = CVSLibrary.getNotInCVS(assertLibsInCVS, null);
+        if (bad.libs.size() > 0) {
+            CVS.showError("Error: cannot add DELIB cells if cell's DELIB library is not in cvs",
+                    "CVS "+(add?"Add":"Remove")+" Error", bad.libs, bad.cells);
+            return;
+        }
+
+
         // optimize a little, remove cells from cells list if cell's lib in libs list
         CVSLibrary.LibsCells good = CVSLibrary.consolidate(libs, cells);
 
         if (!undo) {
             if (add) {
-                bad = CVSLibrary.getInCVS(libs, cells);
-                // all libs and cells must not be in cvs
-                if (bad.libs.size() > 0 || bad.cells.size() > 0) {
-                    CVS.showError("Error: Some libraries or cells are already in CVS:",
-                            "CVS Add Error", bad.libs, bad.cells);
-                    return;
-                }
+                good = CVSLibrary.getNotInCVS(libs, cells);
             } else {
-                bad = CVSLibrary.getNotInCVS(libs, cells);
-                // all libs and cells must be in cvs
-                if (bad.libs.size() > 0 || bad.cells.size() > 0) {
-                    CVS.showError("Error: Some libraries or cells are not in CVS:",
-                            "CVS Remove Error", bad.libs, bad.cells);
-                    return;
-                }
+                good = CVSLibrary.getInCVS(libs, cells);
             }
             // issue final warning for Remove
             if (!add) {
