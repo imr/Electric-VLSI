@@ -26,6 +26,7 @@ package com.sun.electric.tool.io.input;
 
 
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.io.FileType;
 
 import java.io.*;
@@ -78,8 +79,38 @@ public class DELIB extends JELIB {
         // get the file location; remove 'C' at start
         String cellFile = line.substring(1, line.length());
 
+        // New header file as of version 8.04n, no cell refs, searches delib dir for cell files
+        if (version.compareTo(Version.parseVersion(com.sun.electric.tool.io.output.DELIB.newHeaderVersion)) >= 0) {
+            if (cellFile.equals(com.sun.electric.tool.io.output.DELIB.SEARCH_FOR_CELL_FILES)) {
+                File delibDir = new File(filePath);
+                if (delibDir.exists() && delibDir.isDirectory()) {
+                    for (File file : delibDir.listFiles()) {
+                        if (file.isDirectory()) continue;
+                        String name = file.getName();
+                        int dot = name.lastIndexOf('.');
+                        if (dot < 0) continue;
+                        View view = View.findView(name.substring(dot+1));
+                        if (view == null) continue;
+                        try {
+                            readFile(file);
+                        } catch (Exception e) {
+                            if (e instanceof IOException) throw (IOException)e;
+                            // some other exception, probably invalid cell file
+                            Input.errorLogger.logError("Exception reading file "+file, -1);
+                        }
+                    }
+                }
+            }
+            return;
+        }
+
         cellFile = cellFile.replace(com.sun.electric.tool.io.output.DELIB.PLATFORM_INDEPENDENT_FILE_SEPARATOR, File.separatorChar);
         File cellFD = new File(filePath, cellFile);
+        readFile(cellFD);
+    }
+
+    private void readFile(File cellFD) throws IOException {
+
         LineNumberReader cellReader;
         try {
             FileInputStream fin = new FileInputStream(cellFD);
@@ -94,6 +125,7 @@ public class DELIB extends JELIB {
         char savedEscapeChar = escapeChar;
         String savedCurLibName = curLibName;
         lineReader = cellReader;
+        curReadFile = cellFD.getAbsolutePath();
         try {
             readFromFile(true);
         } finally {
@@ -103,6 +135,7 @@ public class DELIB extends JELIB {
             curLibName = savedCurLibName;
             lineReader.close();
             lineReader = headerReader;
+            curReadFile = filePath;
         }
     }
 

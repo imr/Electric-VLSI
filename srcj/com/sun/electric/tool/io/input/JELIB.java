@@ -120,6 +120,7 @@ public class JELIB extends LibraryFiles
 	int revision;
 	char escapeChar = '\\';
 	String curLibName;
+    String curReadFile;
 
     private String curExternalLibName = "";
     private String curExternalCellName = "";
@@ -191,6 +192,7 @@ public class JELIB extends LibraryFiles
 		externalCells = new HashMap<String,Rectangle2D>();
 		externalExports = new HashMap<String,Point2D.Double>();
 		groupLines = new ArrayList<Cell[]>();
+        curReadFile = filePath;
 
         // do all the reading
         readFromFile(false);
@@ -315,7 +317,7 @@ public class JELIB extends LibraryFiles
 				List<String> pieces = parseLine(line);
 				if (pieces.size() != 2)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", External library declaration needs 2 fields: " + line, -1);
 					continue;
 				}
@@ -335,7 +337,7 @@ public class JELIB extends LibraryFiles
  				int numPieces = revision == 1 ? 7 : 5;
  				if (pieces.size() != numPieces)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 //						", External cell declaration needs 5 or 7 fields: " + line, -1);
 						", External cell declaration needs " + numPieces + " fields: " + line, -1);
 					continue;
@@ -362,7 +364,7 @@ public class JELIB extends LibraryFiles
 				List<String> pieces = parseLine(line);
 				if (pieces.size() != 3)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", External export declaration needs 3 fields: " + line, -1);
 					continue;
 				}
@@ -379,14 +381,14 @@ public class JELIB extends LibraryFiles
 				List<String> pieces = parseLine(line);
 				if (pieces.size() < 2)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Library declaration needs 2 fields: " + line, -1);
 					continue;
 				}
 				version = Version.parseVersion(pieces.get(1));
 				if (version == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Badly formed version: " + pieces.get(1), -1);
 					continue;
 				}
@@ -402,7 +404,7 @@ public class JELIB extends LibraryFiles
 				curLibName = unQuote(pieces.get(0));
 				if (version.compareTo(Version.getVersion()) > 0)
 				{
-					Input.errorLogger.logWarning(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logWarning(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")", null, -1);
 				}
 				Variable[] vars = readVariables(pieces, 2, filePath, lineReader.getLineNumber());
@@ -422,7 +424,7 @@ public class JELIB extends LibraryFiles
 				Tool tool = Tool.findTool(toolName);
 				if (tool == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Cannot identify tool " + toolName, -1);
 					continue;
 				}
@@ -447,7 +449,7 @@ public class JELIB extends LibraryFiles
 					view = View.newInstance(viewName, viewAbbr);
 					if (view == null)
 					{
-						Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+						Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 							", Cannot create view " + viewName, -1);
 						continue;
 					}
@@ -466,7 +468,7 @@ public class JELIB extends LibraryFiles
 				curTech = Technology.findTechnology(techName);
 				if (curTech == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Cannot identify technology " + techName, -1);
 					continue;
 				}
@@ -487,14 +489,14 @@ public class JELIB extends LibraryFiles
 				String primName = unQuote(pieces.get(0));
 				if (curTech == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Primitive node " + primName + " has no technology before it", -1);
 					continue;
 				}
 				curPrim = findPrimitiveNode(curTech, primName);
 				if (curPrim == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Cannot identify primitive node " + primName, -1);
 					continue;
 				}
@@ -511,7 +513,7 @@ public class JELIB extends LibraryFiles
 				String primPortName = unQuote(pieces.get(0));
 				if (curPrim == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Primitive port " + primPortName + " has no primitive node before it", -1);
 					continue;
 				}
@@ -520,7 +522,7 @@ public class JELIB extends LibraryFiles
 				if (pp == null) pp = curTech.convertOldPortName(primPortName, curPrim);
 				if (pp == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Cannot identify primitive port " + primPortName, -1);
 					continue;
 				}
@@ -537,14 +539,14 @@ public class JELIB extends LibraryFiles
 				String arcName = unQuote(pieces.get(0));
 				if (curTech == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Primitive arc " + arcName + " has no technology before it", -1);
 					continue;
 				}
 				ArcProto ap = curTech.findArcProto(arcName);
 				if (ap == null)
 				{
-					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 						", Cannot identify primitive arc " + arcName, -1);
 					continue;
 				}
@@ -569,7 +571,7 @@ public class JELIB extends LibraryFiles
 					Cell cell = lib.findNodeProto(cellName);
 					if (cell == null)
 					{
-						Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+						Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 							", Cannot find cell " + cellName, -1);
 						break;
 					}
@@ -579,7 +581,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
-			Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
+			Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
 				", Unrecognized line: " + line, -1);
 		}
 	}

@@ -79,6 +79,15 @@ public class DELIB extends JELIB {
     public static final char PLATFORM_INDEPENDENT_FILE_SEPARATOR = '/';
 
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles) {
+        // sanity check: make sure we are not writing inside another delib file, this is bad for cvs
+        // and just bad and confusing in general
+        File delibDir = new File(filePath);
+        File parent = delibDir.getParentFile();
+        if (parent.getName().endsWith(".delib")) {
+            System.out.println("Error: Cannot write "+snapshot.getLib(libId).d.libName+" inside of another DELIB directory");
+            return true;
+        }
+
         // decide what files should be written
         for (CellBackup cellBackup : snapshot.cellBackups) {
             if (cellBackup == null || cellBackup.d.libId != libId) continue;
@@ -109,7 +118,6 @@ public class DELIB extends JELIB {
             }
 
             // rename cell files that are no longer in the library
-            File delibDir = new File(filePath);
             deletedCellFiles.clear();
             if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
                 for (File file : delibDir.listFiles()) {
@@ -141,7 +149,7 @@ public class DELIB extends JELIB {
         View view = View.findView(name.substring(dot+1));
         if (view == null) return;
 
-        System.out.println("Renaming unlinked (deleted) cell file "+name+" to "+name+".deleted");
+        System.out.println("Renaming unlinked (possibly deleted) cell file "+name+" to "+name+".deleted");
         deletedCellFiles.add(cellFile.getAbsolutePath());
         File deletedFileName = new File(cellFile.getAbsolutePath()+".deleted");
         if (!cellFile.renameTo(deletedFileName)) {
@@ -233,6 +241,14 @@ public class DELIB extends JELIB {
     }
 
     void writeExternalLibraryInfo(LibId libId,  BitSet usedLibs, HashMap<CellId,BitSet> usedExports) {
+    }
+
+    void writeCellGroup(JELIB.CellGroup group) {
+        if (Version.getVersion().compareTo(Version.parseVersion(newHeaderVersion)) >= 0) {
+            // no group info in header
+        } else {
+            super.writeCellGroup(group);
+        }
     }
 
     /**

@@ -221,23 +221,14 @@ public class JELIB extends Output
         // write cells
         for (CellBackup cellBackup: sortedCells.values()) {
             writeCell(cellBackup);
-            printWriter.println();
+            //printWriter.println();
         }
-            
+        printWriter.println();
+
         // write groups in alphabetical order
         printWriter.println("# Groups:");
         for (CellGroup group: sortedGroups) {
-            printWriter.print("G");
-            
-            // if there is a main schematic cell, write that first
-            if (group.mainSchematics != null)
-                printWriter.print(convertString(group.mainSchematics.toString()));
-            
-            for(CellName cellName: group.cellNames) {
-                if (cellName.equals(group.mainSchematics)) continue;
-                printWriter.print("|" + cellName);
-            }
-            printWriter.println();
+            writeCellGroup(group);
         }
         
 //		LinkedHashSet<Cell.CellGroup> groups = new LinkedHashSet<Cell.CellGroup>();
@@ -282,14 +273,28 @@ public class JELIB extends Output
 //      }
     }
 
-    private static class CellGroup {
+    static class CellGroup {
         TreeSet<CellName> cellNames = new TreeSet<CellName>();
         CellName mainSchematics;
     }
-    
+
+    void writeCellGroup(CellGroup group) {
+        printWriter.print("G");
+
+        // if there is a main schematic cell, write that first
+        if (group.mainSchematics != null)
+            printWriter.print(convertString(group.mainSchematics.toString()));
+
+        for(CellName cellName: group.cellNames) {
+            if (cellName.equals(group.mainSchematics)) continue;
+            printWriter.print("|" + cellName);
+        }
+        printWriter.println();
+    }
+
     /**
      * Method to write a cell to the output file
-     * @param cell the cell to write
+     * @param cellBackup the cell to write
      */
     void writeCell(CellBackup cellBackup) {
         ImmutableCell d = cellBackup.d;
@@ -479,7 +484,7 @@ public class JELIB extends Output
             }
         }
     }
-    
+
     void gatherLibs(BitSet usedLibs, Map<CellId,BitSet> usedExports) {
         for (CellId cellId: usedExports.keySet())
             usedLibs.set(snapshot.getCell(cellId).d.libId.libIndex);
