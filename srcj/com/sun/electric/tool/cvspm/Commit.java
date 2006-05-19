@@ -143,9 +143,9 @@ public class Commit {
             String useDir = CVS.getUseDir(libsToCommit, cellsToCommit);
             StringBuffer libs = CVS.getLibraryFiles(libsToCommit, useDir);
             StringBuffer cells = CVS.getCellFiles(cellsToCommit, useDir);
-            //StringBuffer lastModifiedFiles = CVS.getDELIBLastModifiedFiles(libsToCommit, cellsToCommit, useDir);
+            StringBuffer lastModifiedFiles = CVS.getDELIBLastModifiedFiles(libsToCommit, cellsToCommit, useDir);
             StringBuffer headerFiles = CVS.getHeaderFiles(libsToCommit, cellsToCommit, useDir);
-            String commitFiles = libs + " " + headerFiles + " " + cells;
+            String commitFiles = libs + " " + headerFiles + " " + lastModifiedFiles + " " + cells;
             if (commitFiles.trim().equals("")) {
                 System.out.println("Nothing to commit");
                 exitVal = 0;
