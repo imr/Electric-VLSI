@@ -217,6 +217,7 @@ public class Update {
             String updateFiles = libs.toString() + " " + cells.toString();
             if (updateFiles.trim().equals("") && !updateProject) {
                 exitVal = 0;
+                fieldVariableChanged("exitVal");
                 System.out.println("Nothing to "+getMessage(type));
                 return true;
             }
