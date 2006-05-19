@@ -96,8 +96,11 @@ public class Commit {
         }
         bad = CVSLibrary.getModified(libs, cells);
         if (bad.libs.size() > 0 || bad.cells.size() > 0) {
-            CVS.showError("Error: the following Libraries and Cells must be saved first",
-                    "CVS Commit error", bad.libs, bad.cells);
+            String [] choices = new String [] { "Continue Anyway", "Cancel" };
+            int choice = CVS.askForChoice("Warning: Unsaved changes will not be committed!  For:",
+                    "CVS Commit Warning!",
+                    bad.libs, bad.cells, choices, choices[1]);
+            if (choice == 1) return;
             return;
         }
 

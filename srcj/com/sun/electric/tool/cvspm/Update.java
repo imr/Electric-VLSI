@@ -149,9 +149,11 @@ public class Update {
         if (type == UPDATE || type == ROLLBACK) {
             bad = CVSLibrary.getModified(libs, cells);
             if (bad.libs.size() > 0 || bad.cells.size() > 0) {
-                CVS.showError("Error: the following Libraries or Cells must be saved first",
-                        "CVS "+getMessage(type)+" Error", bad.libs, bad.cells);
-                return;
+                String [] choices = new String [] { "Continue Anyway", "Cancel" };
+                int choice = CVS.askForChoice("Warning: Unsaved changes may be lost!  For:",
+                        "CVS "+getMessage(type)+" Warning!",
+                        bad.libs, bad.cells, choices, choices[1]);
+                if (choice == 1) return;
             }
         }
         // optimize a little, remove cells from cells list if cell's lib in libs list

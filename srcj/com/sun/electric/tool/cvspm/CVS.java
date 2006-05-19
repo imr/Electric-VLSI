@@ -378,9 +378,19 @@ public class CVS {
                                   List<Library> badLibs, List<Cell> badCells) {
         StringBuffer msg = new StringBuffer();
         msg.append(message);
-        for (Library lib : badLibs) msg.append("\n"+lib.getName());
-        for (Cell cell : badCells) msg.append("\n"+cell.noLibDescribe());
+        for (Library lib : badLibs) msg.append("\n  Library "+lib.getName());
+        for (Cell cell : badCells) msg.append("\n  Cell "+cell.noLibDescribe());
         Job.getUserInterface().showErrorMessage(msg.toString(), title);
+    }
+
+    public static int askForChoice(String message, String title,
+                                  List<Library> badLibs, List<Cell> badCells,
+                                  String [] choices, String defaultChoice) {
+        StringBuffer msg = new StringBuffer();
+        msg.append(message);
+        for (Library lib : badLibs) msg.append("\n  Library "+lib.getName());
+        for (Cell cell : badCells) msg.append("\n  Cell "+cell.noLibDescribe());
+        return Job.getUserInterface().askForChoice(msg.toString(), title, choices, defaultChoice);
     }
 
 
