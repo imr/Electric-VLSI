@@ -81,6 +81,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -624,6 +625,7 @@ public class FileMenu {
 
     public static void closeLibraryCommand(Library lib)
     {
+        if (lib == null) return;
 	    Set<Cell> found = Library.findReferenceInCell(lib);
 
 		// if all references are from the clipboard, request that the clipboard be cleared, too
@@ -708,6 +710,24 @@ public class FileMenu {
      */
     public static boolean saveLibraryCommand(Library lib, FileType type, boolean compatibleWith6, boolean forceToType, boolean saveAs)
     {
+        // scan for Dummy Cells, warn user that they still exist
+        List<String> dummyCells = new ArrayList<String>();
+        dummyCells.add("WARNING: "+lib+" contains the following Dummy cells:");
+        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+            Cell c = it.next();
+            if (c.getVar(LibraryFiles.IO_DUMMY_OBJECT) != null) {
+                dummyCells.add("   "+c.noLibDescribe());
+            }
+        }
+        if (dummyCells.size() > 1) {
+            dummyCells.add("Do you really want to write this library?");
+            String [] options = {"Continue Writing", "Cancel" };
+            String message = dummyCells.toString();
+            int val = Job.getUserInterface().askForChoice(message,
+                    "Dummy Cells Found in "+lib, options, options[1]);
+            if (val == 1) return false;
+        }
+
         String [] extensions = type.getExtensions();
         String extension = extensions[0];
         String fileName = null;

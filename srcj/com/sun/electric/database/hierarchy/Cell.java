@@ -69,6 +69,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -445,8 +446,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private static class CellKey extends EObjectInputStream.Key {
         CellId cellId;
         
-        private CellKey(Cell cell) {
-            assert cell.isLinked();
+        private CellKey(Cell cell) throws NotSerializableException {
+            if (!cell.isLinked())
+                throw new NotSerializableException(cell.toString());
             cellId = cell.getId();
         }
         

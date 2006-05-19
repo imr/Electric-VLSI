@@ -218,7 +218,7 @@ public class Pref
 	private   Object      cachedObj;
 	private   Object      factoryObj;
 
-	private static List<Pref> allPrefs = new ArrayList<Pref>();
+	private static final List<Pref> allPrefs = new ArrayList<Pref>();
 	private static boolean doFlushing = true;
     private static PrefChangeBatch changes = null;
 	private static Set<Preferences> queueForFlushing;
@@ -233,7 +233,9 @@ public class Pref
 //            throw new IllegalStateException("no more preferences");
         this.name = name;
         this.prefs = prefs;
-        allPrefs.add(this);
+        synchronized (allPrefs) {
+            allPrefs.add(this);
+        }
     }
     
 	/**
@@ -245,7 +247,9 @@ public class Pref
 //            throw new IllegalStateException("no more preferences");
         this.name = name;
         this.prefs = group.prefs;
-        allPrefs.add(this);
+        synchronized (allPrefs) {
+            allPrefs.add(this);
+        }
     }
     
     /**
@@ -273,32 +277,32 @@ public class Pref
 
 			// reset all preferences to factory values
 			delayPrefFlushing();
-			for(Pref pref : allPrefs)
-			{
-				switch (pref.type)
-				{
-					case BOOLEAN:
-						if (pref.getBoolean() != pref.getBooleanFactoryValue())
-							pref.setBoolean(pref.getBooleanFactoryValue());
-						break;
-					case INTEGER:
-						if (pref.getInt() != pref.getIntFactoryValue())
-							pref.setInt(pref.getIntFactoryValue());
-						break;
-					case LONG:
-						if (pref.getLong() != pref.getLongFactoryValue())
-							pref.setLong(pref.getLongFactoryValue());
-						break;
-					case DOUBLE:
-						if (pref.getDouble() != pref.getDoubleFactoryValue())
-							pref.setDouble(pref.getDoubleFactoryValue());
-						break;
-					case STRING:
-						if (!pref.getString().equals(pref.getStringFactoryValue()))
-							pref.setString(pref.getStringFactoryValue());
-						break;
-				}
-			}
+            synchronized (allPrefs) {
+                for(Pref pref : allPrefs) {
+                    switch (pref.type) {
+                        case BOOLEAN:
+                            if (pref.getBoolean() != pref.getBooleanFactoryValue())
+                                pref.setBoolean(pref.getBooleanFactoryValue());
+                            break;
+                        case INTEGER:
+                            if (pref.getInt() != pref.getIntFactoryValue())
+                                pref.setInt(pref.getIntFactoryValue());
+                            break;
+                        case LONG:
+                            if (pref.getLong() != pref.getLongFactoryValue())
+                                pref.setLong(pref.getLongFactoryValue());
+                            break;
+                        case DOUBLE:
+                            if (pref.getDouble() != pref.getDoubleFactoryValue())
+                                pref.setDouble(pref.getDoubleFactoryValue());
+                            break;
+                        case STRING:
+                            if (!pref.getString().equals(pref.getStringFactoryValue()))
+                                pref.setString(pref.getStringFactoryValue());
+                            break;
+                    }
+                }
+            }
 			resumePrefFlushing();
 
 			// import preferences
@@ -306,28 +310,28 @@ public class Pref
 			inputStream.close();
 
 			// recache all prefs
-			for(Pref pref : allPrefs)
-			{
-				switch (pref.type)
-				{
-					case BOOLEAN:
-						boolean curBoolean = pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue());
-						pref.cachedObj = new Integer(curBoolean ? 1 : 0);
-						break;
-					case INTEGER:
-						pref.cachedObj = new Integer(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
-						break;
-					case LONG:
-						pref.cachedObj = new Long(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
-						break;
-					case DOUBLE:
-						pref.cachedObj = new Double(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
-						break;
-					case STRING:
-						pref.cachedObj = pref.prefs.get(pref.name, pref.getStringFactoryValue());
-						break;
-				}
-			}
+            synchronized (allPrefs) {
+                for(Pref pref : allPrefs) {
+                    switch (pref.type) {
+                        case BOOLEAN:
+                            boolean curBoolean = pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue());
+                            pref.cachedObj = new Integer(curBoolean ? 1 : 0);
+                            break;
+                        case INTEGER:
+                            pref.cachedObj = new Integer(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
+                            break;
+                        case LONG:
+                            pref.cachedObj = new Long(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
+                            break;
+                        case DOUBLE:
+                            pref.cachedObj = new Double(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
+                            break;
+                        case STRING:
+                            pref.cachedObj = pref.prefs.get(pref.name, pref.getStringFactoryValue());
+                            break;
+                    }
+                }
+            }
 
 			// recache technology color information
             Technology.cacheTransparentLayerColors();
@@ -925,15 +929,15 @@ public class Pref
             if (m.eObj == eObj) return m;
         }
 */
-		for(Pref pref : allPrefs)
-		{
-			if (pref.meaning == null) continue;
-			if (pref.meaning.ownerObj != ownerObj) continue;
-			if (pref.name.equals(name))
-			{
-				return pref.meaning;
-			}
-		}
+        synchronized (allPrefs) {
+            for(Pref pref : allPrefs) {
+                if (pref.meaning == null) continue;
+                if (pref.meaning.ownerObj != ownerObj) continue;
+                if (pref.name.equals(name)) {
+                    return pref.meaning;
+                }
+            }
+        }
 		return null;
 	}
 
@@ -946,16 +950,17 @@ public class Pref
 	public static List<Pref> getMeaningVariables(Object ownerObj)
 	{
 		ArrayList<Pref> prefs = new ArrayList<Pref>();
-		for(Pref pref : allPrefs)
-		{
-			if (pref.meaning == null) continue;
-            if (!pref.meaning.isValidOption()) continue;
-			if (ownerObj != null && pref.meaning.ownerObj != ownerObj) continue;
-			if (pref.cachedObj.equals(pref.factoryObj)) continue;
+        synchronized (allPrefs) {
+            for(Pref pref : allPrefs) {
+                if (pref.meaning == null) continue;
+                if (!pref.meaning.isValidOption()) continue;
+                if (ownerObj != null && pref.meaning.ownerObj != ownerObj) continue;
+                if (pref.cachedObj.equals(pref.factoryObj)) continue;
 //System.out.println("Saving meaning variable "+pref.name+" on " + pref.meaning.ownerObj);
 //System.out.println("   Current value="+pref.cachedObj+" factory value=" + pref.factoryObj);
-			prefs.add(pref);
-		}
+                prefs.add(pref);
+            }
+        }
 		Collections.sort(prefs, new TextUtils.PrefsByName());
 		return prefs;
 	}
@@ -988,11 +993,12 @@ public class Pref
 	 */
 	public static void reconcileMeaningVariables(String libName, Map<Object,Map<String,Object>> meaningVariables)
 	{
-        for(Pref pref : allPrefs)
-		{
-			if (pref.meaning == null) continue;
-			pref.meaning.marked = false;
-		}
+        synchronized (allPrefs) {
+            for(Pref pref : allPrefs) {
+                if (pref.meaning == null) continue;
+                pref.meaning.marked = false;
+            }
+        }
 		List<Meaning> meaningsToReconcile = new ArrayList<Meaning>();
         for (Object obj: meaningVariables.keySet()) {
             Map<String,Object> meanings = meaningVariables.get(obj);
@@ -1008,19 +1014,20 @@ public class Pref
                 meaningsToReconcile.add(meaning);
             }
 		}
-		for(Pref pref : allPrefs)
-		{
-			if (pref.meaning == null) continue;
-			if (pref.meaning.marked) continue;
-
-			// this one is not mentioned in the library: make sure it is at factory defaults
-			if (DBMath.objectsReallyEqual(pref.cachedObj, pref.factoryObj)) continue;
-
+        synchronized (allPrefs) {
+            for(Pref pref : allPrefs) {
+                if (pref.meaning == null) continue;
+                if (pref.meaning.marked) continue;
+                
+                // this one is not mentioned in the library: make sure it is at factory defaults
+                if (DBMath.objectsReallyEqual(pref.cachedObj, pref.factoryObj)) continue;
+                
 //System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
-			pref.meaning.setDesiredValue(pref.factoryObj);
-			if (!pref.meaning.isValidOption()) continue;
-			meaningsToReconcile.add(pref.meaning);
-		}
+                pref.meaning.setDesiredValue(pref.factoryObj);
+                if (!pref.meaning.isValidOption()) continue;
+                meaningsToReconcile.add(pref.meaning);
+            }
+        }
 
 		if (meaningsToReconcile.size() == 0) return;
 
@@ -1076,8 +1083,10 @@ public class Pref
     
     public static void printAllPrefs() {
         TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
-        for (Pref pref: allPrefs)
-            sortedPrefs.put(pref.prefs.absolutePath() + "/" + pref.name, pref);
+        synchronized (allPrefs) {
+            for (Pref pref: allPrefs)
+                sortedPrefs.put(pref.prefs.absolutePath() + "/" + pref.name, pref);
+        }
         Preferences rootNode = Preferences.userRoot().node("com/sun/electric");
         numStrings = lenStrings = 0;
         try {

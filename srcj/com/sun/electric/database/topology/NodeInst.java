@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
@@ -66,6 +65,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -168,8 +168,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         Cell cell;
         int nodeId;
         
-        private NodeInstKey(NodeInst ni) {
-            assert ni.isLinked();
+        private NodeInstKey(NodeInst ni) throws NotSerializableException {
+            if (!ni.isLinked())
+                throw new NotSerializableException(ni.toString());
             cell = ni.getParent();
             nodeId = ni.getD().nodeId;
         }

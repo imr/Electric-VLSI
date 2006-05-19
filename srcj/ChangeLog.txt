@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+IMP: (5/19/06, DN) Database assertion error on reload of library (Bug #1018).
+FIX: In Update.UpdateJob.doIt fill libsToReload by reloaded libraries.
+     Better diagnostics of non-serializable objects.
+
+BUG: (5/19/06, DN) Pref.allPrefs list happens to contain nulls (Bug #1039).
+FIX: Synchronize access to this Pre.allPrefs .
+
+BUG: (5/19/06, DN) Can't write out library with dummy cells (Bug #1034).
+FIX: Move askForChoice from io.output.Output to FileMenu.saveLibraryCommand.
+
 BUG: (5/18/06, SMR) Changing color schemes doesn't affect waveform windows (Bug #1036).
 FIX: In WindowMenu.whiteBackgroundCommand() and others, do fullRepaint.
 

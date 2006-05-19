@@ -58,7 +58,6 @@ import com.sun.electric.tool.cvspm.CVS;
 import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
@@ -73,7 +72,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -228,24 +226,6 @@ public class Output
 	 */
 	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6, boolean quiet)
 	{
-        // scan for Dummy Cells, warn user that they still exist
-        List<String> dummyCells = new ArrayList<String>();
-        dummyCells.add("WARNING: "+lib+" contains the following Dummy cells:");
-        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
-            Cell c = it.next();
-            if (c.getVar(LibraryFiles.IO_DUMMY_OBJECT) != null) {
-                dummyCells.add("   "+c.noLibDescribe());
-            }
-        }
-        if (dummyCells.size() > 1) {
-            dummyCells.add("Do you really want to write this library?");
-            String [] options = {"Continue Writing", "Cancel" };
-            String message = dummyCells.toString();
-            int val = Job.getUserInterface().askForChoice(message,
-                    "Dummy Cells Found in "+lib, options, options[1]);
-            if (val == 1) return true;
-        }
-
 		// make sure that all "meaning" options are attached to the database
 //		Pref.installMeaningVariables();
 
@@ -390,7 +370,7 @@ public class Output
 		// clean up and return
         lib.setFromDisk();
 		if (!quiet) System.out.println(properOutputName + " written");
-        // Update the version in library read in memomy
+        // Update the version in library read in memory
         lib.setVersion(Version.getVersion());
         // if using CVS, update state
 /*

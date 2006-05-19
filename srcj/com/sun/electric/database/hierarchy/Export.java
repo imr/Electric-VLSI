@@ -56,6 +56,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.Iterator;
 
@@ -108,8 +109,9 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     private static class ExportKey extends EObjectInputStream.Key {
         ExportId exportId;
         
-        private ExportKey(Export export) {
-            assert export.isLinked();
+        private ExportKey(Export export) throws NotSerializableException {
+            if (!export.isLinked())
+                throw new NotSerializableException(export.toString());
             exportId = export.getId();
         }
         

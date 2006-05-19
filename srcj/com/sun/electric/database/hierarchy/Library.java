@@ -39,8 +39,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import java.io.InvalidObjectException;
+import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
-import java.io.Serializable;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -180,8 +180,9 @@ public class Library extends ElectricObject implements Comparable<Library>
     private static class LibraryKey extends EObjectInputStream.Key {
         LibId libId;
         
-        private LibraryKey(Library lib) {
-            assert lib.isLinked();
+        private LibraryKey(Library lib) throws NotSerializableException {
+            if (!lib.isLinked())
+                throw new NotSerializableException(lib.toString());
             libId = lib.getId();
         }
         

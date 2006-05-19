@@ -166,18 +166,20 @@ class EJob {
             out.writeInt(changedFields.size());
             Job job = jobType == Job.Type.EXAMINE ? clientJob : serverJob;
             for (Field f: changedFields) {
+                String fieldName = f.getName();
                 Object value = f.get(job);
-                out.writeUTF(f.getName());
-                out.writeObject(value);
+                out.writeUTF(fieldName);
+                try {
+                    out.writeObject(value);
+                } catch (NotSerializableException e) {
+                    System.out.println("ERROR: Job '" + jobName + "' cannot serialize returned field " +
+                            fieldName + " = " + value + " : " + e.getMessage());
+                    throw e;
+                }
             }
             out.close();
             serializedResult = byteStream.toByteArray();
         } catch (Throwable e) {
-        	if (e instanceof NotSerializableException)
-        	{
-        		NotSerializableException nse = (NotSerializableException)e;
-        		System.out.println("ERROR: Job '" + jobName + "' cannot serialize returned object: " + nse.getMessage());
-        	}
             Job.logger.logp(Level.WARNING, getClass().getName(), "serializeResult", "failure", e);
             serializeExceptionResult(e, database);
         }

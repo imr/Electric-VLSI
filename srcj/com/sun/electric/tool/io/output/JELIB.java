@@ -197,7 +197,7 @@ public class JELIB extends Output
 // 				printWriter.println("W" + convertString(ap.getName()));
 // 			}
         }
-        printWriter.println();
+//        printWriter.println();
         
         // gather groups
         ArrayList<CellGroup> chronGroups = new ArrayList<CellGroup>();
@@ -299,6 +299,7 @@ public class JELIB extends Output
     void writeCell(CellBackup cellBackup) {
         ImmutableCell d = cellBackup.d;
         // write the Cell name
+        printWriter.println();
         printWriter.println("# Cell " + d.cellName);
         printWriter.print("C" + convertString(d.cellName.toString()));
         printWriter.print("|");

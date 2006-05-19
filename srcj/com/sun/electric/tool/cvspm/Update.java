@@ -239,8 +239,11 @@ public class Update {
                     if (!libsToReload.contains(lib))
                         libsToReload.add(lib);
                 }
-                for (Library lib : libsToReload) {
+                for (int i = 0; i < libsToReload.size(); i++) {
+                    Library lib = libsToReload.get(i);
+                    String libName = lib.getName();
                     LibraryFiles.reloadLibrary(lib);
+                    libsToReload.set(i, Library.findLibrary(libName));
                 }
             }
             if (type == ROLLBACK) {
