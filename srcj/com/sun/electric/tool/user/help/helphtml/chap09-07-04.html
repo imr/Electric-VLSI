@@ -199,13 +199,31 @@ it is used only inside special libraries such as the "red" library. Most
 designers simply instantiate resistors from those special libraries.
 </p>
 
+<h3>forceWireMatch <i>&lt;wireName&gt;</i> </h3> 
+<p>
+Force the Wire in the schematic named wireName to match the Wire in
+the layout named wireName
+</p>
+<p>
+The <i>forceWireMatch</i> annotation is useful when local partitioning
+fails to detect a mismatch but hash code partitioning does. In that case
+<i>forceWireMatch</i> can be used to tell NCC that certain Wires were
+intended to match. With luck, a strategically placed <i>forceWireMatch</i>
+can cause NCC to display fewer hash code mismatches and help the user
+narrow in on the actual error.
+</p>
+<p>
+After the user has fixed the problem he should try to 
+remove all <i>forceWireMatch</i> annotations. 
+</p>
+
 <h3>blackBox <i>&lt;comment&gt;</i> </h3> 
 <p>
 Don't compare the Cells in this Cell group; just
 assume they are topologically equivalent.
 </p>
 <p>
-The <i>blackBox</i> is useful when a particular arrangement of layout 
+The <i>blackBox</i> annotation is useful when a particular arrangement of layout 
 geometry implemements a construct that Electric doesn't
 understand. For example, we have used this construct to handle
 resistors and parasitic bipolar transistors in the layout.

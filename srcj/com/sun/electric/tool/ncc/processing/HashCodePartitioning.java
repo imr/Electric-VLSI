@@ -41,7 +41,7 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class HashCodePartitioning {
 	NccGlobals globals;
-
+	
 	private LeafList hashFrontierParts(){
 		if (globals.getParts()==null)  return new LeafList();
 		globals.status2("----- hash all Parts on frontier");
@@ -172,6 +172,7 @@ public class HashCodePartitioning {
 	private void doWork() {
 		if (done()) return;
 		Date d1 = new Date();
+		
 		hashFrontier();
 		Date d2 = new Date();
 		globals.status1("  Hashing frontier took: "+NccUtils.hourMinSec(d1, d2));

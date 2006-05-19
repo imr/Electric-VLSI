@@ -23,8 +23,11 @@
 */
 
 package com.sun.electric.tool.ncc.processing;
+import java.util.Set;
+
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.strategy.StratPartPopularity;
 import com.sun.electric.tool.ncc.strategy.StratPartType;
 
@@ -56,11 +59,11 @@ public class LocalPartitioning {
 
     private LocalPartitioning(NccGlobals globals) {this.globals = globals;}
     
-    private void doYourJob2() {
+    private void doYourJob2(Set<Wire> forcedMatchWires) {
         globals.status2("Begin partitioning based on local characteristics \n");
 
 		partitionPartsUsingLocalInformation();
-		NewLocalPartitionWires.doYourJob(globals);
+		NewLocalPartitionWires.doYourJob(forcedMatchWires, globals);
 
 		/* Count EquivRecords after Local Partitioning */
 		/*
@@ -79,8 +82,8 @@ public class LocalPartitioning {
     }
 	
 	// ------------------------ public method ---------------------------------
-	public static void doYourJob(NccGlobals globals) {
+	public static void doYourJob(Set<Wire> forcedMatchWires, NccGlobals globals) {
 		LocalPartitioning jsl = new LocalPartitioning(globals);
-		jsl.doYourJob2();
+		jsl.doYourJob2(forcedMatchWires);
 	}
 }

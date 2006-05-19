@@ -140,6 +140,8 @@ public class NccCellAnnotations {
 	private String transistorType;
 	/** Cell annotation describing type of contained resistor */
 	private String resistorType;
+	/** List of names of Wires to force matches between schematic and layout*/
+	private List<String> forceWireMatches = new ArrayList<String>();
 	
 	private void processExportsConnAnnot(NamePatternLexer lex) {
 		List<NamePattern> connected = new ArrayList<NamePattern>();
@@ -246,6 +248,23 @@ public class NccCellAnnotations {
 			return;
 		}
 	}
+	private void processForceWireMatch(NamePatternLexer lex) {
+		NamePattern wireNamePat = lex.nextPattern();
+		if (wireNamePat==null) {
+			prErr("Bad forceWireMatch annotation: missing Wire name");
+			return;
+		}
+		String wireName = wireNamePat.getName();
+		if (wireName==null) {
+			prErr("Bad forceWireMatch annotation: wire name may not be a regular expression");
+			return;
+		}
+		forceWireMatches.add(wireName);
+		NamePattern namePat2 = lex.nextPattern();
+		if (namePat2!=null) {
+			prErr("Bad forceWireMatch annotation: only one wire name allowed");
+		}
+	}
 
 	private void doAnnotation(String note) {
 		annotText.add(note); // for prErr()
@@ -271,6 +290,8 @@ public class NccCellAnnotations {
 			processTransistorType(lex);
 		} else if (key.stringEquals("resistorType")) {
 			processResistorType(lex);
+		} else if (key.stringEquals("forceWireMatch")) {
+			processForceWireMatch(lex);
 		} else {
 			prErr("Unrecognized NCC annotation.");
 		}
@@ -318,6 +339,12 @@ public class NccCellAnnotations {
 				if (nccVar == null) return true;
 			} else {
 				Object oldObj = nccVar.getObject();
+				if (oldObj instanceof String) {
+					/* Groan! Menu command always creates NCC attributes as arrays of strings.
+					 * However, if user edits a single line NCC attribute then dialog box
+					 * converts it back into a String.  Be prepared to convert it back into an array*/
+					oldObj = new String[] {(String)oldObj};
+				}
 				LayoutLib.error(!(oldObj instanceof String[]), "NCC annotation not String[]");
 				String[] oldVal = (String[]) oldObj;
 				TextDescriptor td = nccVar.getTextDescriptor();
@@ -402,4 +429,6 @@ public class NccCellAnnotations {
 	/** @return the resistor type if Cell has a resistorType annotation.
 	 * Otherwise return null. */
 	public String getResistorType() {return resistorType;}
+	/** @return the names of Wires for which we should force matches */
+	public List<String> getForceWireMatches() {return forceWireMatches;}
 }

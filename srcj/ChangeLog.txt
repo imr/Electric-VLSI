@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+FIX: (5/19/06, RK) NCC: command to insert NCC annotations throws exception (Bugzilla# 1038)
+
+IMP: (5/19/06, RK) NCC: I added a forceWireMatch annotation. This helps the user debug hash code violations. I updated the documentation as well. (Bugzilla# 713)
+
 BUG: (5/19/06, DN) CrossLibMove doesn't mark changed the old library (Bug #1020).
 FIX: In Library.removeCell() add setChanged().
 

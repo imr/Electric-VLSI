@@ -33,13 +33,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
+import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.processing.ExportChecker;
+import com.sun.electric.tool.ncc.processing.ForceMatch;
 import com.sun.electric.tool.ncc.processing.HashCodePartitioning;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
@@ -151,8 +154,11 @@ public class NccEngine {
 			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 
 			printWireComponentCounts();
+			
+			// Don't repartition Wires that we explicitly forced to match!!!
+			Set<Wire> forcedWires = ForceMatch.doYourJob(globals);
 
-			LocalPartitioning.doYourJob(globals);
+			LocalPartitioning.doYourJob(forcedWires, globals);
 
 			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 

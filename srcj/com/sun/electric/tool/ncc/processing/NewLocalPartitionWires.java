@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -45,7 +46,6 @@ import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.PinType;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.strategy.Strategy;
-import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /**
@@ -223,20 +223,30 @@ public class NewLocalPartitionWires {
 	
 	private static class LocalPartitionWires extends Strategy {
 		private Map<Wire,Signature> wireToSignature;
+		private Set<Wire> forcedMatchWires;
 
-		private LocalPartitionWires(Map<Wire,Signature> wireToSignature, NccGlobals globals) {
+		private LocalPartitionWires(Map<Wire,Signature> wireToSignature,
+				                    Set<Wire> forcedMatchWires, NccGlobals globals) {
 			super(globals);
 			this.wireToSignature = wireToSignature;
+			this.forcedMatchWires = forcedMatchWires;
 		}
 		
 		public Integer doFor(NetObject o) {
 			Wire w = (Wire) o;
-			Signature s = wireToSignature.get(w);
-			return s.getID();
+			if (forcedMatchWires.contains(w)) {
+				// don't repartition Wires that were forced to match
+				return 0;
+			} else {
+				Signature s = wireToSignature.get(w);
+				// add 1000 to avoid collision with 0 which means "don't partition"
+				return 1000 + s.getID();
+			}
 		}
 		
-		public static void doYourJob(Map<Wire,Signature> wireToSignature, NccGlobals globs) {
-			(new LocalPartitionWires(wireToSignature, globs))
+		public static void doYourJob(Map<Wire,Signature> wireToSignature,
+				                     Set<Wire> forcedMatchWires, NccGlobals globs) {
+			(new LocalPartitionWires(wireToSignature, forcedMatchWires, globs))
 				.doFor(globs.getWires());
 		}
 	}
@@ -247,11 +257,13 @@ public class NewLocalPartitionWires {
 		// Pass signature from doFor(NetObject) to doFor(EquivRecord)
 		private Signature lastSignature;
 		
+		@Override
 		public LeafList doFor(EquivRecord er) {
 			LeafList l = super.doFor(er);
 			if (er.isLeaf()) er.setWireSignature(lastSignature);
 			return l;
 		}
+		@Override
 		public Integer doFor(NetObject no) {
 			lastSignature = wireToSignature.get(no); 
 			return Strategy.CODE_NO_CHANGE;
@@ -268,21 +280,21 @@ public class NewLocalPartitionWires {
 
 	private NewLocalPartitionWires(NccGlobals globs) {globals=globs;}
 	
-	private void doYourJob() {
+	private void doYourJob(Set<Wire> forcedMatchWires) {
 		EquivRecord wires = globals.getWires();
 		if (wires==null) return; // don't blow up if no Wires
 		
 		Map<Wire,Signature> wireToSignature = ComputeSignatures.doYourJob(globals);
 		cannonizeSignatures(wireToSignature);
 		
-		LocalPartitionWires.doYourJob(wireToSignature, globals);
+		LocalPartitionWires.doYourJob(wireToSignature, forcedMatchWires, globals);
 		
 		SignPartitions.doYourJob(wireToSignature, globals);
 	}
 
 	// ------------------------ public method ---------------------------------
-	public static void doYourJob(NccGlobals globs) {
+	public static void doYourJob(Set<Wire> forcedMatchWires, NccGlobals globs) {
 		NewLocalPartitionWires lpw = new NewLocalPartitionWires(globs);
-		lpw.doYourJob();
+		lpw.doYourJob(forcedMatchWires);
 	}
 }
