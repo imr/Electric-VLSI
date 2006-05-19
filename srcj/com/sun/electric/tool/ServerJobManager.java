@@ -528,7 +528,13 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
             printStackTrace("repaintAllEditWindows");
             Job.currentUI.repaintAllEditWindows();
         }
-        
+
+        public void loadComponentMenuForTechnology()
+        {
+            printStackTrace("loadComponentMenuForTechnology");
+            Job.currentUI.loadComponentMenuForTechnology();
+        }
+
         public void adjustReferencePoint(Cell cell, double cX, double cY) {
 //            System.out.println("UserInterface.adjustReferencePoint was called from DatabaseChangesThread");
         };

@@ -43,7 +43,7 @@
 		<key>ClassPath</key>
 		<string>$JAVAROOT/electric.jar</string>
 		<key>JVMVersion</key>
-		<string>1.4+</string>
+		<string>1.5+</string>
 		<key>MainClass</key>
 		<string>com.sun.electric.Launcher</string>
 		<key>Properties</key>

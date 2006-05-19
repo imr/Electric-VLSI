@@ -60,8 +60,6 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.VectorCache;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -762,7 +760,8 @@ public class Technology implements Comparable<Technology>
 			if (size == null) continue;
 			double width = np.getDefWidth();
 			double height = np.getDefHeight();
-			if (size.getX() > width || size.getY() > height) np.setDefSize(size.getX(), size.getY());
+			if (size.getX() > width || size.getY() > height)
+                np.setDefSize(size.getX(), size.getY());
 		}
 	}
 
@@ -3843,7 +3842,7 @@ public class Technology implements Comparable<Technology>
 		//SizeOffset so = nty.getProtoSizeOffset();
 		double xindent = (nty.getDefWidth() - wid) / 2;
 		double yindent = (nty.getDefHeight() - hei) / 2;
-		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));
+		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));  // bug 1040
 
 		int index = 0;
 		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
@@ -4070,9 +4069,10 @@ public class Technology implements Comparable<Technology>
 		public void technologyChanged(Technology tech)
 		{
 			User.technologyChanged(tech);
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
 			UserInterface ui = Job.getUserInterface();
+//			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+//			if (wf != null) wf.loadComponentMenuForTechnology();
+            ui.loadComponentMenuForTechnology();
 			ui.repaintAllEditWindows();
 		}
 

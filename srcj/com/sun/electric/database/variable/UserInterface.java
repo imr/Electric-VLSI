@@ -85,6 +85,12 @@ public interface UserInterface
 	 */
 	public void repaintAllEditWindows();
 
+    /**
+     * Method to request the refresh of palette and layers tabs
+     * according to the new technology selected
+     */
+    public void loadComponentMenuForTechnology();
+
 	/**
 	 * Method to align a database coordinate with the current grid.
 	 * @param pt the database coordinate.  It's value is adjusted.

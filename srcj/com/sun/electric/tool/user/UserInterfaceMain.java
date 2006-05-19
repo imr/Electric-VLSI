@@ -261,6 +261,12 @@ public class UserInterfaceMain extends AbstractUserInterface
 
 	public void repaintAllEditWindows() { EditWindow.repaintAllContents(); }
 
+    public void loadComponentMenuForTechnology()
+    {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+        if (wf != null) wf.loadComponentMenuForTechnology();
+    }
+
 	public void alignToGrid(Point2D pt) { EditWindow.gridAlign(pt); }
 
 	public int getDefaultTextSize() { return EditWindow.getDefaultFontSize(); }
