@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+IMP: (5/19/06, RK) NCC: First cut at GUI User Guide. (Very Ugly) (Bugzilla# 1035)
+
+FIX: (5/19/06, RK) NCC: clarify "can't build netlist" error (Bugzilla# 1035)
+
 FIX: (5/19/06, RK) NCC: command to insert NCC annotations throws exception (Bugzilla# 1038)
 
 IMP: (5/19/06, RK) NCC: I added a forceWireMatch annotation. This helps the user debug hash code violations. I updated the documentation as well. (Bugzilla# 713)

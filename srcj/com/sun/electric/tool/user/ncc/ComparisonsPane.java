@@ -580,10 +580,10 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             html.setLength(0);
             html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
             if (summary.cantBuildNetlist[ndx]) {
-            	html.append(" Can't build netlist!<br>" +
-            			    "  Problems are listed in tree pane (left most pane). ");
-            	curCellText.append(" Can't build netlist!" + LSEP +
-            			           "  Problems are listed in tree pane (left most pane). ");
+            	html.append(/*" Can't build netlist!<br>" +*/
+            			    "  See problems listed<br>in tree pane.<br>(left most pane). ");
+            	curCellText.append(/*" Can't build netlist!" + LSEP + */
+            			           "  See problems listed"+LSEP+"in tree pane."+LSEP+"(left most pane). ");
             } else {
             	html.append(summary.numParts[ndx] + " Parts<br>"
             				+ summary.numWires[ndx] + " Wires<br>"

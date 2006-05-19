@@ -1,0 +1,540 @@
+<!-- HEADER 9-7-5: NCC GUI User Guide -->
+<H1 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+1 Introduction</H1>
+<P STYLE="margin-top: 0.04in; margin-bottom: 0.08in">When
+a designer runs NCC, and NCC finds mismatches, the NCC graphical
+display window pops up displaying the mismatches. The display varies
+from platform to platform. Figure 1 shows a typical display with some
+essential features. 
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.16in; margin-bottom: 0.08in"><FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m4ad55bac.png" NAME="Graphic1" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.16in"><FONT SIZE=2>Figure
+1: The NCC graphical window</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">The
+left side of the window is a tree providing an overview of the kinds
+of mismatches that NCC found. The right side has information
+corresponding to the currently selected tree node(s). 
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">Each
+top-level tree node corresponds to a comparison of two cells. In
+Figure 1, the label on  the  top-level  node  indicates that  the
+comparison  that failed  was between  the Cells</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><FONT FACE="Arial, sans-serif">E_pads{sch}</FONT>
+and <FONT FACE="Arial, sans-serif">E_pads{lay}</FONT> in the library
+<FONT FACE="Arial, sans-serif">heater</FONT>. If the two Cells have
+different names or are from different libraries, then their names are
+shown individually. For example, &quot;<FONT FACE="Arial, sans-serif">libraryA:gateA{sch}
+&amp; libraryB:gateB{sch}</FONT>&quot;. The number in square
+brackets at the right end of the Cell names, in our example &quot;<FONT FACE="Arial, sans-serif">[14]</FONT>&quot;,
+is the number of mismatches.</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><FONT FACE="Thorndale, serif">In
+general, if you see a tree node with a number in square brackets,
+then this number is the total number of mismatches grouped under this
+node.</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">Selecting
+a top-level tree node displays the number of Parts, Wires, and Ports
+in the compared Cells in the right part of the window (Figure 1). For
+all other nodes, the right side of the window displays a list of
+component names arranged in different ways, as described in
+subsequent sections. Some components are highlightable, in which case
+their names are printed as blue, red, or green hyperlinks. 
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">A
+top-level node has one or more subnodes. Subnodes can have the
+following types: Exports, Parts, Wires, Parts (hash code), Wires
+(hash code), Sizes, Export Assertions, Export/Global Network
+Conflicts, Export/Global Characteristics Conflicts, and Unrecognized
+Parts. 
+</P>
+<H1 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+2 Exports 
+</H1>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">The
+Exports node is always a leaf node with the name &quot;<FONT FACE="Arial, sans-serif">Exports
+[X]</FONT>&quot;, where <FONT FACE="Arial, sans-serif">X</FONT> is
+the number of Export mismatches in this comparison (Figure 1).
+Selecting an Exports node displays a table on the right side of the
+NCC graphical window (Figure 2). The table has two columns &ndash;
+one per compared Cell. The header contains Cell names. Each row
+corresponds to a mismatch. A table cell has zero or more <I>Export
+lists</I>. An Export list is a list of all the Exports found on a
+Network and is displayed as a list of Export names surrounded by
+curly brackets <FONT FACE="Arial, sans-serif">{ }</FONT>. Each Export
+list is a single hyperlink which highlights  all the Exports in the
+list. 
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">Multiple
+Export lists in a table cell occur when a single Network in one
+design (e.g. The schematic) has one or more Exports that match
+multiple Exports attached to more than one Network in the other
+design (e.g. the layout). For example, the mismatch on the third row
+from the top in Figure 2 has layout Exports (the second column)
+attached to a single Network  matching  schematic Exports (the first
+column) attached to two Networks. 
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.16in; margin-bottom: 0.04in"><FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m5294be1d.png" NAME="Graphic3" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.12in; margin-bottom: 0in"><FONT SIZE=2>Figure
+2: The Exports table</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0in">An
+empty table cell means one design has Exports that match no Exports
+with the same names in the other design. For example, the mismatch in
+the top row in Figure 2 has the layout Export <FONT FACE="Arial, sans-serif">E_core_sclk</FONT>
+matching no Exports in the schematic.</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">Some
+Exports are <I>implied</I>. For example, if a schematic Cell uses a
+global ground, but does not contain an Export for that ground, then
+NCC will automatically insert an <SPAN STYLE="font-style: normal">implied</SPAN><I>
+</I><SPAN STYLE="font-style: normal">Export for ground</SPAN>. This
+is done because most often the corresponding layout Cell has a ground
+Export, and we want the schematic and layout Cells to match. Implied
+Exports are not hyperlinked and have &quot; <FONT FACE="Arial, sans-serif">:
+implied</FONT>&quot; added to their names (Figure 3). 
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">When
+NCC does not find any topological mismatches, it attempts to suggest
+possible matches for Exports that failed to match by name. Such
+<I>suggestions</I> are printed in green. The first row of the table
+in Figure 3 indicates that the <FONT FACE="Arial, sans-serif">outO[1][T]</FONT>
+Export in the layout topologically matches the <FONT FACE="Arial, sans-serif">outO[T]</FONT>
+Export in the schematic, even though they have different names. The
+second row indicates that the <FONT FACE="Arial, sans-serif">outE[1][F]</FONT>
+Export in the layout topologically matches the <FONT FACE="Arial, sans-serif">net@4[1]</FONT>
+Wire in the schematic, even though the <FONT FACE="Arial, sans-serif">net@4[1]</FONT>
+Wire has no Exports. Note that a Wire name is not an Export list and
+is not surrounded by curly brackets.</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in"><FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_11c7100a.png" NAME="Graphic6" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in"><FONT SIZE=2>Figure
+3: Implied exports are marked by &quot;implied&quot;. Suggestions
+are printed in green.</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><FONT FACE="Thorndale, serif"><FONT SIZE=3>Exports
+that match by name, but are not on equivalent Networks, have red
+hyperlinks. Such Exports  might have  suggested matches  as well, 
+which are printed in green. In the first row of the table in Figure
+4, the <FONT FACE="Arial, sans-serif">jtag[1]</FONT> Export in the
+schematic does not topologically match the <FONT FACE="Arial, sans-serif">jtag[1]</FONT>
+Export in the layout, but does match the <FONT FACE="Arial, sans-serif">jtag[8]</FONT>
+Export in the layout.</FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in"><FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m466b2564.png" NAME="Graphic5" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><FONT SIZE=2>Figure
+4:  Exports that match by name, but are not on equivalent networks
+have red hyperlinks</FONT></P>
+<H1 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+3 Parts, Wires, Parts (hash code), and Wires (hash code)</H1>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal">NCC
+finds mismatches by applying two partitioning techniques in sequence.
+First it uses </SPAN><I>Local Partitioning</I> [sml2005-0288] and
+then it uses <I>Hash Code Partitioning</I>. If Local Partitioning
+finds mismatches, then NCC reports only those. The mismatches in
+Local Partitioning of parts and wires are grouped under nodes with
+names &quot;</FONT><FONT FACE="Arial, sans-serif">Parts [X]</FONT><FONT FACE="Thorndale, serif">&quot;
+and &quot;</FONT><FONT FACE="Arial, sans-serif">Wires [X]</FONT><FONT FACE="Thorndale, serif">&quot;,
+where </FONT><FONT FACE="Arial, sans-serif">X</FONT><FONT FACE="Thorndale, serif">
+is the number of mismatched Local Partitioning classes (Figure 5).
+Each class node represents a class of Parts or Wires sharing the same
+local characteristics. </FONT></SPAN>
+</P>
+<H2 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+3.1 Parts</H2>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">Parts are partitioned into equivalence
+classes based upon their type and the number of Wires attached to
+them. Figure 5 shows a list of two Part classes. </FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_7419cd73.png" NAME="Graphic11" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.04in; margin-bottom: 0.2in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 5: Displaying a
+Part class</FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-top: 0.04in; margin-bottom: 0in; font-weight: medium">
+<FONT FACE="Thorndale, serif">The tree node corresponding to the
+first class is selected and has the name </FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.08in; font-weight: medium">&quot;<FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">#1
+[36]: pads180nm_100um:PAD_dgnd</FONT></SPAN>&quot;, which has the
+following meaning:</FONT></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0>
+	<COL WIDTH=74*>
+	<COL WIDTH=182*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=29%>
+			<P ALIGN=CENTER STYLE="font-weight: medium"><FONT FACE="Arial, sans-serif">#1</FONT></P>
+		</TD>
+		<TD WIDTH=71%>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Thorndale, serif">The
+			sequence number of this class</FONT></P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=29%>
+			<P ALIGN=CENTER STYLE="font-weight: medium"><FONT FACE="Arial, sans-serif">[36]</FONT></P>
+		</TD>
+		<TD WIDTH=71%>
+			<P  STYLE="margin-bottom: 0in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif">The
+			number of mismatched Parts in one of the two cells, whichever is
+			bigger. In our example, the schematic cell has 1 mismatched Part
+			in this class and the layout has 36 mismatched Parts in this
+			class. The maximum of 1 and 36 is 36 and, therefore, the tree node
+			has </FONT><FONT FACE="Arial, sans-serif">[36]</FONT><FONT FACE="Thorndale, serif">
+			in its name.</FONT></SPAN></P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=29%>
+			<P ALIGN=CENTER STYLE="font-style: normal; font-weight: medium"><FONT FACE="Arial, sans-serif">pads180nm_100um</FONT></P>
+		</TD>
+		<TD WIDTH=71%>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0in; font-style: normal; font-weight: medium">
+			<FONT FACE="Thorndale, serif">Part library</FONT></P>
+			<P ALIGN=LEFT STYLE="font-style: normal; font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=29%>
+			<P ALIGN=CENTER STYLE="font-style: normal; font-weight: medium"><FONT FACE="Arial, sans-serif">PAD_dgnd</FONT></P>
+		</TD>
+		<TD WIDTH=71%>
+			<P ALIGN=LEFT STYLE="font-style: normal; font-weight: medium"><FONT FACE="Thorndale, serif">Part
+			type</FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P  STYLE="margin-top: 0.12in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">In the example above, Part types were
+enough to partition Parts into classes. In many other cases, like the
+one in Figure 6, types are not enough and the number of different
+Wires attached to a Part is employed as an additional partitioning
+criterion. </FONT>
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=3>When a Part class node is
+selected, the right half of the window displays a two-column table.
+Each column corresponds to one of the compared Cells and has a list
+of that Cell's Parts  which belong  to the selected Part class.
+Matched Parts are printed in green; the two</FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.12in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_456280c3.png" NAME="Graphic16" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.12in; margin-bottom: 0.12in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 6: The number of
+attached Wires as a Part class characteristic</FONT></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=3>Parts on the same line
+match each other. Mismatched Parts are printed in red in no
+particular order.</FONT></FONT></P>
+<H2 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+3.2 Wires</H2>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">NCC partitions Wires into equivalence
+classes based upon the number of different Port types attached to
+them. Examples of Port types include an NMOS <FONT FACE="Arial, sans-serif">gate</FONT>
+Port, a PMOS <FONT FACE="Arial, sans-serif">diffusion</FONT> Port,
+and a NAND <FONT FACE="Arial, sans-serif">output</FONT> Port. <SPAN STYLE="font-style: normal">Port
+type counts are represented as a list of leaf nodes under the Wire
+class node. Since zero-value counts at the beginning of the list tend
+to be numerous and are rarely used by designers, they are further
+grouped under a &quot;<FONT FACE="Arial, sans-serif">0's</FONT>&quot;
+node. </SPAN></FONT>
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal">For
+example, in Figure 7, the second wire class is expanded and we can
+see its four characteristics, the first three of which are &quot;zero&quot;.
+The first characteristic has a leaf node called
+&quot;<FONT FACE="Arial, sans-serif">pads180nm_150um:PAD_raw
+welltapL ports</FONT>&quot;, which means that Wires in this class
+are </SPAN><I>not</I><SPAN STYLE="font-style: normal"> attached to
+the Port <FONT FACE="Arial, sans-serif">welltapL</FONT> of the Part
+<FONT FACE="Arial, sans-serif">PAD_raw </FONT>from the library
+<FONT FACE="Arial, sans-serif">pads180nm_150um</FONT>.</SPAN></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif">The fourth characteristic is &quot;<FONT FACE="Arial, sans-serif">1
+= number of pads180nm_150um:PAD_raw padRaw ports</FONT>&quot;. The
+name suggests that all Wires in this class are connected to the
+<FONT FACE="Arial, sans-serif">padRaw</FONT> Ports of 3 instances of
+Parts with type <FONT FACE="Arial, sans-serif">PAD_raw</FONT> from
+library <FONT FACE="Arial, sans-serif">pads180nm_150um</FONT>.</FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_5bdd6fb7.png" NAME="Graphic4" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 7: Wire class nodes</FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.12in; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m53628191.png" NAME="Graphic7" BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 8: Displaying a
+Wire class</FONT></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif">When a Wire class node is selected, the
+right half of the window displays a two-column table (Figure 8). Each
+column corresponds to one of the compared Cells and has a list of
+that Cell's Wires which belong to the selected Wire class. Matched
+Wires are printed in green, the two Wires on the same line match each
+other. Mismatched Wires are printed in red in no particular order.</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal">The
+tree node names contain the first mismatched Wires from both lists.
+<BR>For example, in Figure 8 the second Wire class has the node name
+<BR></SPAN>&quot;</FONT><SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">#2
+: { E_eq_Vo<SPAN STYLE="background: transparent"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">,</FONT></SPAN></SPAN>...}
+ { W_core_eqVo,... }  [10]</FONT></SPAN><FONT FACE="Thorndale, serif">&quot;,
+which has the following meaning:</FONT></SPAN></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0>
+	<COL WIDTH=66*>
+	<COL WIDTH=190*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=26%>
+			<P ALIGN=CENTER STYLE="font-weight: medium"><FONT FACE="Arial, sans-serif">#2</FONT></P>
+		</TD>
+		<TD WIDTH=74%>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Thorndale, serif">The
+			sequence number of this class.</FONT></P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=26%>
+			<P ALIGN=CENTER STYLE="margin-top: 0.04in"><SPAN STYLE="font-weight: medium"><SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">{
+			E_eq_Vo<SPAN STYLE="background: transparent"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">,</FONT></SPAN></SPAN>...}</FONT></SPAN></SPAN></P>
+		</TD>
+		<TD WIDTH=74%>
+			<P  STYLE="margin-bottom: 0in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif">T<SPAN STYLE="font-style: normal">he
+			first mismatched Wire in the first Cell's list is called</SPAN>
+			</FONT><SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">E_eq_Vo.</FONT></SPAN></SPAN>
+			The ellipsis after the name <SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif">suggest
+			that there is more than one Wire in the list.</FONT></SPAN></P>
+			<P  STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=26%>
+			<P ALIGN=CENTER STYLE="margin-top: 0.04in; font-style: normal; font-weight: medium">
+			<FONT FACE="Arial, sans-serif">{ W_core_eqVo,... }</FONT></P>
+		</TD>
+		<TD WIDTH=74%>
+			<P  STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Thorndale, serif">T<SPAN STYLE="font-style: normal">he
+			first mismatched Wire in the second Cell's list is called</SPAN>
+			<SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">W_core_eqVo.</FONT></SPAN>
+			</FONT>
+			</P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=26%>
+			<P ALIGN=CENTER STYLE="font-weight: medium"><FONT FACE="Arial, sans-serif">[10]</FONT></P>
+		</TD>
+		<TD WIDTH=74%>
+			<P  STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Thorndale, serif">The
+			number of mismatched Wires in one of the two cells, whichever is
+			bigger. In our example, the schematic Cell has 10 mismatched Wires
+			in this class, and the layout has 2 mismatched Wires in this
+			class. The maximum of 10 and 2 is 10, and therefore, the tree node
+			has <FONT FACE="Arial, sans-serif">[10]</FONT> in its name.</FONT></P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<H2 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+<I>3.3 Hash Code Partitioning</I></H2>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal">	If
+Local Partitioning fails to find a mismatch, then NCC reports
+mismatches found by </SPAN><I>Hash Code Partitioning</I><SPAN STYLE="font-style: normal">
+under the nodes labeled &quot;<FONT FACE="Arial, sans-serif">Parts
+(hash code)</FONT>&quot; and &quot;<FONT FACE="Arial, sans-serif">Wires
+(hash code)</FONT>&quot;. Unlike their local partitioning
+counterparts, Hash Code Partitioning classes do not have any
+characteristics. </SPAN></FONT>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.16in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m7cf39045.png" NAME="Graphic10" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 9: Up to five
+equivalence classes can be selected simultaneously</FONT></FONT></P>
+<H2 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+3.4 Selecting Multiple Classes	</H2>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">It is possible to select more than one
+class by holding the C<I>ontrol</I> (C<I>ommand</I> on Macintosh) or
+the S<I>hift</I> key during selection. In this case, the right side
+will have multiple rows, one row per class. Figure 9 shows what is
+displayed when the three Wire classes in Figure 8 are selected. Up to
+five classes can be displayed at once. Rows are arranged in the order
+in which the classes are selected. </FONT>
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">Selecting one or more subnodes of a
+class node is equivalent to selecting the class node itself. This
+means that no class appears twice in the table on the right. If some
+node of a type different from Parts, Wires, Parts (hash code), or
+Wires (hash code) is selected as well, then it has a higher display
+priority and its contents are displayed instead. For example, if an
+Exports node was selected with the three Wire class nodes, then the
+Export table would be displayed on the right.</FONT></P>
+<H1 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+4 Sizes</H1>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">Both length and width mismatches in
+transistor and resistor sizes are collected under &quot;<FONT FACE="Arial, sans-serif">Sizes
+[<SPAN STYLE="font-style: normal">X</SPAN>]</FONT>&quot; node, where
+<FONT FACE="Arial, sans-serif">X</FONT> is the total number of size
+mismatches. Resistor size mismatches are reported here, because
+Polysilicon resistors in both schematics and layout have lengths and
+widths.</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<BR><BR>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_511b883a.png" NAME="Graphic2" BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.16in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 10: The size
+mismatches table is sorted in the descending order of the relative
+error</FONT></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">On the right side of the window,
+mismatches are arranged into a table sorted in the descending order
+of the relative error (Figure 10). Each mismatch occupies one row and
+has four columns. The first column contains the relative error of the
+mismatch. The second and third columns have widths and lengths of the
+corresponding parts in two cells. The mismatched value is printed in
+red. The last column has hyperlinked part names. </FONT>
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">If a transistor has both a length and a
+width mismatch, then these mismatches are displayed in separate rows
+(e.g. the first and the second rows in Figure 10). </FONT>
+</P>
+<H1 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+5 Export Assertions</H1>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">It is very common for a layout Cell, <FONT FACE="Arial, sans-serif">A</FONT>,
+to have multiple ground Wires that are connected by <FONT FACE="Arial, sans-serif">A</FONT>'s
+parent Cell, <FONT FACE="Arial, sans-serif">B</FONT>. For example,
+Cell <FONT FACE="Arial, sans-serif">A</FONT> may have a Wire with the
+Export <FONT FACE="Arial, sans-serif">gnd</FONT> and a different Wire
+with the Export <FONT FACE="Arial, sans-serif">gnd_1</FONT>. When
+Cell <FONT FACE="Arial, sans-serif">B</FONT> instantiates <FONT FACE="Arial, sans-serif">A</FONT>,
+Cell <FONT FACE="Arial, sans-serif">B</FONT> connects <FONT FACE="Arial, sans-serif">A</FONT>'s
+Exports <FONT FACE="Arial, sans-serif">gnd</FONT> and <FONT FACE="Arial, sans-serif">gnd_1</FONT>.
+However, <FONT FACE="Arial, sans-serif">A</FONT>'s schematic
+typically has only one combined <FONT FACE="Arial, sans-serif">gnd</FONT>
+Wire. When NCC compares <FONT FACE="Arial, sans-serif">A</FONT>'s
+schematic and layout, it finds that the ground Wires mismatch. As a
+solution, the designer adds the following NCC annotation into <FONT FACE="Arial, sans-serif">A</FONT>'s
+layout cell:</FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium; line-height: 150%">
+<FONT FACE="Arial, sans-serif">exportsConnectedByParent gnd gnd_1</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">This annotation constitutes a promise
+that whenever <FONT FACE="Arial, sans-serif">A</FONT> is
+instantiated, its Exports <FONT FACE="Arial, sans-serif">gnd</FONT>
+and <FONT FACE="Arial, sans-serif">gnd_1</FONT> will be connected.
+Then, when NCC compares A's schematic and layout, it assumes that the
+promise has been kept and the comparison passes. However, when NCC
+compares <FONT FACE="Arial, sans-serif">B</FONT>'s schematic and
+layout, it checks to see if the designer is keeping the promise. If
+the promise is not kept, and no new promise to connect Exports in the
+next parent is given, then NCC reports an Export assertion error in
+the &quot;<FONT FACE="Arial, sans-serif">Export Assertions</FONT>&quot;
+leaf node.</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">When an &quot;<FONT FACE="Arial, sans-serif">Export
+Assertions</FONT>&quot; node is selected, it displays a table with
+two columns and one or more rows (Figure 11). Each row corresponds to
+a broken promise. The first column has Cell names. The second column
+lists Exports that the designer promised would be connected, but
+which remained disconnected. The Exports are organized into two or
+more Export lists. Each Export list is a comma-separated list of
+Exports enclosed in curly brackets <FONT FACE="Arial, sans-serif">{
+}</FONT>. Exports in the same list are connected. Exports in
+different lists are disconnected. The designer promised that all
+Exports in all lists would be connected. All exports are individually
+highlightable. </FONT>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m4c8aedfe.png" NAME="Graphic8" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 11: The Export
+Assertions table</FONT></FONT></P>
+<H1 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+6 Export/Global Network and Characteristics Conflicts</H1>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">In an Export/Global Network conflict, a
+Cell has both an Export and a global signal with the same name, but
+their Networks are topologically different (Figure 12). Both the
+global Network Export and the Cell Export are highlightable.</FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m5bfcbcb9.png" NAME="Graphic13" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 12: The
+Export/Global Network Conflicts table</FONT></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">In an Export/Global Characteristics
+conflict, one Cell also has both an Export and a global signal with
+the same name, but their characteristics differ (Figure 13). The Cell
+Export can be highlighted by clicking on its characteristics.</FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_68bc5d15.png" NAME="Graphic14" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.16in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 13: The
+Export/Global Characteristics Conflicts table</FONT></FONT></P>
+<H1 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+7 Unrecognized Parts</H1>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">This node has a list of Parts
+(transistors and resistors) with unrecognized types        (Figure
+14). Each Part can be highlighted by clicking on its type.</FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m2a8d8bb7.png" NAME="Graphic9" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 14: The
+Unrecognized Parts table</FONT></FONT></P>
+<H1 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+8 Advanced Features</H1>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">The total number of mismatched Cell
+comparisons is displayed in square brackets on the top of the tree.
+Only comparisons that did not pass NCC tests are counted and
+displayed. Each failed comparison corresponds to one top-level tree
+node. By default, NCC halts after the first failed comparison and,
+therefore, the tree contains just one failed comparison (Figures
+1,5-9,12-14). If the user configures her NCC preferences to continue
+even after finding mismatched Cells, then NCC compares all Cells and
+displays all that mismatch. When multiple Cells have mismatches, the
+left pane will display more than one top-level node as in Figure 15. </FONT>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_mc5e6691.png" NAME="Graphic15" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 15: A tree with
+multiple comparisons</FONT></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=3>Right-clicking on a tree
+node or a table cell pops up a menu with an option to copy the node
+name or the cell text to the system clipboard (Figure 16).</FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-weight: medium">
+     
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_6c09822f.png" NAME="Graphic12" ALIGN=BOTTOM BORDER=1></FONT>
+       
+<FONT COLOR="#000000"><IMG SRC="NccGuiUserGuide_html_m31446237.png" NAME="Graphic17" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 16: Right-click
+menus</FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><FONT FACE="Albany, sans-serif"><FONT SIZE=4 STYLE="font-size: 16pt"><B>References</B></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif">[sml2005-0288]
+	R. Kao,</FONT></SPAN> &quot;<B>Local Partitioning in Java-NCC</B>&quot;,
+25 May 2005</P>
+<P ALIGN=LEFT STYLE="margin-top: 0.04in; margin-bottom: 0.08in">[sml2005-rk09]	R.
+Kao, <SPAN STYLE="font-weight: medium">&quot;</SPAN><B>Improvements
+to Local Partitioning</B><SPAN STYLE="font-weight: medium">&quot;</SPAN>,
+16 June 2005</P>
+<P ALIGN=LEFT STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><BR><BR>
+</P>
+</BODY>
+</HTML>
