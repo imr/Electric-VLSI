@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/19/06, DN) CrossLibMove doesn't mark changed the old library (Bug #1020).
+FIX: In Library.removeCell() add setChanged().
+
 IMP: (5/19/06, DN) Database assertion error on reload of library (Bug #1018).
 FIX: In Update.UpdateJob.doIt fill libsToReload by reloaded libraries.
      Better diagnostics of non-serializable objects.

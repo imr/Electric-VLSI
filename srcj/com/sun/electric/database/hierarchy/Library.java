@@ -340,6 +340,7 @@ public class Library extends ElectricObject implements Comparable<Library>
             c.newestVersion = null;
             updateNewestVersions();
 		}
+        setChanged();
 	}
     
     /**
