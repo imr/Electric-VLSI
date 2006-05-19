@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
