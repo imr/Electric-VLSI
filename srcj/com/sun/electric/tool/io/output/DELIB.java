@@ -54,30 +54,28 @@ import java.net.URL;
  */
 public class DELIB extends JELIB {
 
-    private HashMap<String,Integer> cellFileMap;
-    private HashMap<String,Boolean> cellFilesToWrite;
+    private HashMap<String,CellFileState> cellFileMap;
     private List<String> deletedCellFiles;
+    private String headerFile;
+    private boolean wroteSearchForCells;
 
     DELIB() {
         // keep list of all associated cell files
-        cellFileMap = new HashMap<String,Integer>();
-
-        // Key: cell file name. Value: Whether to append or not
-        // The cell file map serves two purposes:
-        // 1) Before writing cells, this map is populated with file names
-        // for modified cells. Only these files should be written.
-        // 2) Before writing cells, all Booleans are false. The first
-        // write to the file will be a truncate, after which the boolean is set true.
-        // All subsequent writes will be appends.
-        cellFilesToWrite = new HashMap<String,Boolean>();
-
+        cellFileMap = new HashMap<String,CellFileState>();
         // list of cell files deleted (renamed) because they no longer exist in the library
         deletedCellFiles = new ArrayList<String>();
+        wroteSearchForCells = false;
     }
 
-    private String headerFile;
+    private static class CellFileState {
+        public boolean modified = false;
+        public boolean appendFile = false;
+    }
+
     // last version to use subdirs to hold cells, instead of putting them all in delib dir.
     private static final String lastSubdirVersion = "8.04m";
+    public static final String newHeaderVersion = "8.04n";
+    public static final String SEARCH_FOR_CELL_FILES = "____SEARCH_FOR_CELL_FILES____";
     public static final char PLATFORM_INDEPENDENT_FILE_SEPARATOR = '/';
 
     protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles) {
@@ -86,9 +84,15 @@ public class DELIB extends JELIB {
             if (cellBackup == null || cellBackup.d.libId != libId) continue;
             String cellFile = getCellFile(cellBackup);
             String file = filePath + File.separator + cellFile;
-            cellFileMap.put(file, null);                // keep list of all cell files so they won't be deleted
-            if (cellBackup.modified < 0) continue;
-            cellFilesToWrite.put(file, new Boolean(false)); // log modified cell's cell files
+            // different cells are in different files, with the exception of
+            // different versions of the same cell, which map to the same file name
+            CellFileState state = cellFileMap.get(file);
+            if (state == null) {
+                state = new CellFileState();
+                cellFileMap.put(file, state);
+            }
+            // if any versions are modified, mark the file to be modified
+            if (cellBackup.modified >= 0) state.modified = true;
         }
 
         boolean b = super.writeLib(snapshot, libId, libFiles);
@@ -123,6 +127,11 @@ public class DELIB extends JELIB {
         return b;
     }
 
+    /**
+     * Rename (backup) any files for cells that have been deleted. This will prevent them
+     * being found by version 8.04n and greater, which searches the delib dir for cell files.
+     * @param cellFile
+     */
     private void checkIfDeleted(File cellFile) {
         if (cellFileMap.containsKey(cellFile.getAbsolutePath())) return;
         String name = cellFile.getName();
@@ -173,21 +182,15 @@ public class DELIB extends JELIB {
         String cellFile = getCellFile(cellBackup);
         String cellFileAbs = filePath + File.separator + cellFile;
         // save old printWriter
-        Boolean writeBoolean = cellFilesToWrite.get(cellFileAbs);
-        boolean append = false;
+        CellFileState state = cellFileMap.get(cellFileAbs);
+        boolean append = state.appendFile;
 
         // if append is null, do not write this file.
-        if (writeBoolean != null) {
+        if (state.modified) {
 
             // set current print writer to cell file
             PrintWriter headerWriter = printWriter;
-            append = writeBoolean.booleanValue();
-            cellFilesToWrite.put(cellFileAbs, new Boolean(true));  // append any other versions
-
             try {
-                // check to see if this a version of a cell we've already written,
-                // if so, append to the same file
-
                 printWriter = new PrintWriter(new BufferedWriter(new FileWriter(cellFileAbs, append)));
             } catch (IOException e) {
                 System.out.println("Error opening "+cellFileAbs+", skipping cell: "+e.getMessage());
@@ -214,8 +217,19 @@ public class DELIB extends JELIB {
             // set the print writer back
             printWriter = headerWriter;
         }
-        cellFile = cellFile.replace(File.separatorChar, PLATFORM_INDEPENDENT_FILE_SEPARATOR);
-        if (!append) printWriter.println("C"+cellFile);
+
+        if (!append) state.appendFile = true;       // next time around file will be appended
+
+        if (Version.getVersion().compareTo(Version.parseVersion(newHeaderVersion)) >= 0) {
+            if (!wroteSearchForCells) {
+                printWriter.println("C"+SEARCH_FOR_CELL_FILES);
+                wroteSearchForCells = true;
+            }
+        } else {
+            // versions older than 8.04n write "C" references in header file
+            cellFile = cellFile.replace(File.separatorChar, PLATFORM_INDEPENDENT_FILE_SEPARATOR);
+            if (!append) printWriter.println("C"+cellFile);
+        }
     }
 
     void writeExternalLibraryInfo(LibId libId,  BitSet usedLibs, HashMap<CellId,BitSet> usedExports) {
