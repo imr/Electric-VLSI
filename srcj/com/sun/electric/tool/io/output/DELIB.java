@@ -100,8 +100,10 @@ public class DELIB extends JELIB {
                 state = new CellFileState();
                 cellFileMap.put(file, state);
             }
-            // if any versions are modified, mark the file to be modified
-            if (cellBackup.modified >= 0) state.modified = true;
+            // if any versions are modified or do not exist on disk like they should,
+            // mark the file to be modified
+            File fd = new File(file);
+            if (cellBackup.modified >= 0 || !fd.exists()) state.modified = true;
         }
 
         boolean b = super.writeLib(snapshot, libId, libFiles);
