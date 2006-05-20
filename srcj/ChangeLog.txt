@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (5/19/06,DN) VarContext is not serializable whne it contains killed export (Bug #969).
+FIX: Remove "VarContext.pi" field. Maintain "EditWindow.selectedPorts" stack.
+
 IMP: (5/19/06, RK) NCC: First cut at GUI User Guide. (Very Ugly) (Bugzilla# 1035)
 
 FIX: (5/19/06, RK) NCC: clarify "can't build netlist" error (Bugzilla# 1035)

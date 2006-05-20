@@ -116,7 +116,6 @@ public class VarContext implements Serializable
 	
 	private final VarContext prev;
     private final Nodable ni;
-    private final PortInst pi;
     private transient ValueCache cache;
 
     // ------------------------ private methods -------------------------------
@@ -125,15 +124,13 @@ public class VarContext implements Serializable
 	{
 		this.ni = null;
         this.prev = this;
-        this.pi = null;
         this.cache = null;
 	}
 
-    private VarContext(Nodable ni, VarContext prev, PortInst pi, boolean caching)
+    private VarContext(Nodable ni, VarContext prev, boolean caching)
 	{
 		this.ni = ni;
 		this.prev = prev;
-        this.pi = pi;
         this.cache = caching ? new ValueCache() : null;
 	}
 
@@ -231,7 +228,7 @@ public class VarContext implements Serializable
 	 */
 	public VarContext push(Nodable ni)
 	{
-		return new VarContext(ni, this, null, false);
+		return new VarContext(ni, this, false);
 	}
 	
 	/**
@@ -248,19 +245,8 @@ public class VarContext implements Serializable
 	 * use the non-caching VarContext. 
 	 */
 	public VarContext pushCaching(Nodable ni) {
-		return new VarContext(ni, this, null, true);
+		return new VarContext(ni, this, true);
 	}
-
-    /**
-     * get a new VarContext that consists of the current VarContext with
-     * the given PortInst pushed onto the stack.  This is really only
-     * needed for Highlighting purposes. You can still get the NodeInst
-     * from getNodable().
-     */
-    public VarContext push(PortInst pi)
-    {
-        return new VarContext(pi.getNodeInst(), this, pi, false);
-    }
 
 	/**
 	 * get the VarContext that existed before you called push on it.
@@ -286,7 +272,7 @@ public class VarContext implements Serializable
      */
     public PortInst getPortInst()
     {
-        return pi;
+        return null;
     }
 
     /**
@@ -323,28 +309,19 @@ public class VarContext implements Serializable
      * @return a new VarContext
      */
     public VarContext removeParentContext(int levels) {
-        Stack<PortInst> ports = new Stack<PortInst>();
         Stack<Nodable> nodes = new Stack<Nodable>();
         VarContext acontext = this;
         while (acontext != VarContext.globalContext) {
-            ports.push(acontext.getPortInst());
             nodes.push(acontext.getNodable());
             acontext = acontext.pop();
         }
-        for (int i=0; i<levels; i++) {
-            ports.pop();
+        for (int i=0; i<levels; i++)
             nodes.pop();
-        }
         acontext = VarContext.globalContext;
-        int size = ports.size();
+        int size = nodes.size();
         for (int i=0; i<size; i++) {
-            PortInst pi = (PortInst)ports.pop();
             Nodable no = (Nodable)nodes.pop();
-            if (pi != null) {
-                acontext = acontext.push(pi);
-            } else {
-                acontext = acontext.push(no);
-            }
+            acontext = acontext.push(no);
         }
         return acontext;
     }

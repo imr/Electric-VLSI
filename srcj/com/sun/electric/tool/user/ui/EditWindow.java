@@ -153,6 +153,7 @@ public class EditWindow extends JPanel
 	/** list of in-place text objects on this window */		private List<GetInfoText.EditInPlaceListener> inPlaceTextObjects = new ArrayList<GetInfoText.EditInPlaceListener>();
 
 	/** Cell's VarContext */                                private VarContext cellVarContext;
+    /** Stack of selected PortInsts */                      private PortInst[] selectedPorts;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the offscreen data for rendering */					private PixelDrawing offscreen = null;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
@@ -949,13 +950,13 @@ public class EditWindow extends JPanel
 		// However, when navigating through history, don't want to record new
 		// history objects.
         if (context == null) context = VarContext.globalContext;
-		setCell(cell, context, true, true, false);
+		setCell(cell, context, new PortInst[context.getNumLevels()], true, true, false);
 	}
 
 	/**
 	 * Method to set the cell that is shown in the window to "cell".
 	 */
-	private void setCell(Cell cell, VarContext context, boolean addToHistory, boolean fillTheScreen, boolean inPlace)
+	private void setCell(Cell cell, VarContext context, PortInst[] selectedPorts, boolean addToHistory, boolean fillTheScreen, boolean inPlace)
 	{
 		// record current history before switching to new cell
 		saveCurrentCellHistoryState();
@@ -967,7 +968,7 @@ public class EditWindow extends JPanel
 		this.cell = cell;
 		inPlaceDisplay = inPlace;
 		this.pageNumber = 0;
-		this.cellVarContext = context;
+		setVarContext(context, selectedPorts);
         if (cell != null) {
             Library lib = cell.getLibrary();
             Job.getUserInterface().setCurrentCell(lib, cell);
@@ -2969,8 +2970,25 @@ public class EditWindow extends JPanel
      * Set the window's VarContext
      * @param context the new VarContext.
      */
-    public void setVarContext(VarContext context) { cellVarContext = context; }
+    private void setVarContext(VarContext context, PortInst[] selectedPorts) {
+        assert selectedPorts.length == context.getNumLevels();
+        cellVarContext = context;
+        this.selectedPorts = selectedPorts;
+    }
 
+    private PortInst[] pushSelectedPorts(PortInst pi) {
+        PortInst[] newSelectedPorts = new PortInst[selectedPorts.length + 1];
+        System.arraycopy(selectedPorts, 0, newSelectedPorts, 0, selectedPorts.length);
+        newSelectedPorts[selectedPorts.length] = pi;
+        return newSelectedPorts;
+    } 
+    
+    private PortInst[] popSelectedPorts() {
+        PortInst[] newSelectedPorts = new PortInst[selectedPorts.length - 1];
+        System.arraycopy(selectedPorts, 0, newSelectedPorts, 0, newSelectedPorts.length);
+        return newSelectedPorts;
+    }
+    
     /** 
      * Push into an instance (go down the hierarchy)
      * @param keepFocus true to keep the zoom and scale in the new window.
@@ -3093,13 +3111,10 @@ public class EditWindow extends JPanel
 
         if (desiredNO != null)
         {
-			newWND.setCell(schCell, cellVarContext.push(desiredNO), true, redisplay, inPlace);
+			newWND.setCell(schCell, cellVarContext.push(desiredNO), pushSelectedPorts(null), true, redisplay, inPlace);
         } else
         {
-	        if (pi != null)
-				newWND.setCell(schCell, cellVarContext.push(pi), true, redisplay, inPlace);
-	        else
-				newWND.setCell(schCell, cellVarContext.push(ni), true, redisplay, inPlace);
+            newWND.setCell(schCell, cellVarContext.push(ni), pushSelectedPorts(pi), true, redisplay, inPlace);
         }
 		if (keepFocus)
 		{
@@ -3216,16 +3231,16 @@ public class EditWindow extends JPanel
 						break;
 					}
 				}
-                PortInst pi = cellVarContext.getPortInst();
+                PortInst pi = selectedPorts[selectedPorts.length - 1];
 				if (foundHistory != null)
 				{
-					setCell(parent, context, true, false, inPlaceDisplay);
+					setCell(parent, context, popSelectedPorts(), true, false, inPlaceDisplay);
 					setOffset(foundHistory.offset);
 					setScale(foundHistory.scale);
 			        repaintContents(null, false);
 				} else
 				{
-					setCell(parent, context, true, true, inPlaceDisplay);
+					setCell(parent, context, popSelectedPorts(), true, true, inPlaceDisplay);
 				}
 				PixelDrawing.clearSubCellCache();
 
@@ -3347,6 +3362,7 @@ public class EditWindow extends JPanel
     {
         /** cell */                     private Cell cell;
         /** context */                  private VarContext context;
+        /** stack of selected ports */  private PortInst[] selectedPorts;
         /** offset */                   private Point2D offset;
         /** scale */                    private double scale;
         /** highlights */               private List<Highlight2> highlights;
@@ -3426,6 +3442,7 @@ public class EditWindow extends JPanel
         CellHistory history = new CellHistory();
         history.cell = cell;
         history.context = context;
+        history.selectedPorts = selectedPorts;
 
         // when user has moved back through history, and then edits a new cell,
         // get rid of forward history
@@ -3505,13 +3522,14 @@ public class EditWindow extends JPanel
         if (history.cell == null || !history.cell.isLinked()) {
             history.cell = null;
             history.context = VarContext.globalContext;
+            history.selectedPorts = new PortInst[0];
             history.offset = new Point2D.Double(0,0);
             history.highlights = new ArrayList<Highlight2>();
             history.highlightOffset = new Point2D.Double(0,0);
         }
 
         // update current cell
-        setCell(history.cell, history.context, false, true, false);
+        setCell(history.cell, history.context, history.selectedPorts, false, true, false);
         setOffset(history.offset);
         setScale(history.scale);
         highlighter.setHighlightList(history.highlights);
@@ -3742,7 +3760,7 @@ public class EditWindow extends JPanel
     public void databaseChanged(DatabaseChangeEvent e) {
         // if cell was deleted, set cell to null
         if ((cell != null) && !cell.isLinked()) {
-            setCell(null, VarContext.globalContext, false, true, false);
+            setCell(null, VarContext.globalContext, new PortInst[0], false, true, false);
             cellHistoryGoBack();
         }
     }
