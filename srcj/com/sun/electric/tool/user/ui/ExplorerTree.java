@@ -1868,12 +1868,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             boolean showLog = false;
             if (libs.size() == 1 && cells.size() == 0) {
                 menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                    showLog(0); }});
+                    showLog(1); }});
                 showLog = true;
             }
             if (libs.size() == 0 && cells.size() == 1) {
                 menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                    showLog(1); }});
+                    showLog(0); }});
                 showLog = true;
             }
             menuItem.setEnabled(showLog && !states.contains(State.UNKNOWN));
@@ -1901,7 +1901,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             }
 
             if (false) {
-                //  TODO: figure out how to make this work
+                //  TODO: figure out how to make this work? not sure if it's needed
                 menuItem = new JMenuItem("Undo CVS Add or Remove");
                 cvsMenu.add(menuItem);
                 menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
@@ -1910,6 +1910,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                 menuItem.setEnabled((states.size() == 1 && (states.contains(State.ADDED) || states.contains(State.REMOVED))) ||
                                     (states.size() == 2 && (states.contains(State.ADDED) && states.contains(State.REMOVED))));
             }
+
+            menuItem = new JMenuItem("Rollforward");
+            cvsMenu.add(menuItem);
+            menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                cvsUpdate(Update.ROLLFORWARD); }});
+            menuItem.setEnabled(states.size() == 1 && states.contains(State.CONFLICT));
         }
 
         private void cvsUpdate(int type) {

@@ -26,6 +26,7 @@ package com.sun.electric.tool.cvspm;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.DELIB;
@@ -147,8 +148,12 @@ public class Update {
                     "CVS "+getMessage(type)+" Error", bad.libs, bad.cells);
             return;
         }
+
+        // optimize a little, remove cells from cells list if cell's lib in libs list
+        CVSLibrary.LibsCells good = CVSLibrary.consolidate(libs, cells);
+
         // for update or rollback, make sure they are also not modified
-        if (type == UPDATE || type == ROLLBACK || type == ROLLFORWARD) {
+        if (type == UPDATE) {
             bad = CVSLibrary.getModified(libs, cells);
             if (bad.libs.size() > 0 || bad.cells.size() > 0) {
                 String [] choices = new String [] { "Continue Anyway", "Cancel" };
@@ -158,8 +163,15 @@ public class Update {
                 if (choice == 1) return;
             }
         }
-        // optimize a little, remove cells from cells list if cell's lib in libs list
-        CVSLibrary.LibsCells good = CVSLibrary.consolidate(libs, cells);
+        // issue final warning for rollback
+        if (type == ROLLBACK) {
+            String [] choices = new String [] { "Continue Anyway", "Cancel" };
+            int choice = CVS.askForChoice("Warning: Saved and Unsaved changes will be lost!  For:",
+                    "CVS "+getMessage(type)+" Warning!",
+                    good.libs, good.cells, choices, choices[1]);
+            if (choice == 1) return;
+        }
+
         (new UpdateJob(good.cells, good.libs, type, updateProject)).startJob();
     }
 
@@ -201,6 +213,36 @@ public class Update {
             // then commit cell B, then rollback cell A.  Electric can't tell
             // whether or not to also rollback lastModified file
 
+            List<File> backupFiles = new ArrayList<File>();
+            if (type == ROLLFORWARD) {
+                // build list of files to back up
+                for (Library lib : librariesToUpdate) {
+                    File libFile = TextUtils.getFile(lib.getLibFile());
+                    if (CVS.isDELIB(lib)) {
+                        // add all cell files and header file
+                        for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
+                            backupFiles.add(CVS.getCellFile(it.next()));
+                        }
+                        backupFiles.add(new File(libFile, DELIB.getHeaderFile()));
+                    } else {
+                        backupFiles.add(libFile);
+                    }
+                }
+                for (Cell cell : cellsToUpdate) {
+                    backupFiles.add(CVS.getCellFile(cell));
+                }
+                // move all the files out of the way
+                for (File f : backupFiles) {
+                    File newf = new File(f.getAbsolutePath()+".ecvstemp");
+                    if (!f.exists()) continue;
+                    if (!f.renameTo(newf)) {
+                        System.out.println("Could not rename file "+f+" to "+newf);
+                    } else {
+                        System.out.println("Renamed "+f+" to "+newf);
+                    }
+                }
+            }
+
             String updateFiles = libs.toString() + " " + cells.toString();
             if (updateFiles.trim().equals("") && !updateProject) {
                 exitVal = 0;
@@ -213,6 +255,23 @@ public class Update {
             StatusResult result = update(updateFiles, useDir, type);
             commentStatusResult(result, type);
             exitVal = result.getExitVal();
+
+            if (type == ROLLFORWARD) {
+                // even if update failed, restore user's files
+                for (File f : backupFiles) {
+                    File newf = new File(f.getAbsolutePath()+".ecvstemp");
+                    if (newf.exists())
+                        if (!newf.renameTo(f)) {
+                            System.out.println("Error: unabled to rename "+newf+" to "+f);
+                        } else {
+                            System.out.println("Renamed "+newf+" to "+f);
+                        }
+                }
+                // reload status
+                result = update(updateFiles, useDir, STATUS);
+                commentStatusResult(result, type);
+            }
+
             if (inJob) fieldVariableChanged("exitVal");
             if (exitVal != 0 && exitVal != 1) {
                 return true;
@@ -220,7 +279,7 @@ public class Update {
 
             // reload libs if needed
             libsToReload = new ArrayList<Library>();
-            if (type != STATUS) {
+            if (type != STATUS && type != ROLLFORWARD) {
                 for (Cell cell : result.getCells(State.UPDATE)) {
                     Library lib = cell.getLibrary();
                     if (!libsToReload.contains(lib))

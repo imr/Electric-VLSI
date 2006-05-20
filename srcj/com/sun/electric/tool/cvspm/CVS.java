@@ -240,11 +240,20 @@ public class CVS {
         return (type == FileType.DELIB);
     }
 
+
+
     /**
      * Returns true if this file has is being maintained from a
      * CVS respository, returns false otherwise.
      */
     public static boolean isFileInCVS(File fd) {
+        return isFileInCVS(fd, false, false);
+    }
+    /**
+     * Returns true if this file has is being maintained from a
+     * CVS respository, returns false otherwise.
+     */
+    public static boolean isFileInCVS(File fd, boolean assertScheduledForAdd, boolean assertScheduledForRemove) {
         // get directory file is in
         if (fd == null) return false;
         File parent = fd.getParentFile();
@@ -262,7 +271,22 @@ public class CVS {
                 if (line == null) break;
                 if (line.equals("")) continue;
                 String parts[] = line.split("/");
-                if (parts.length >= 2 && parts[1].equals(filename)) return true;
+                if (parts.length >= 2 && parts[1].equals(filename)) {
+                    // see if scheduled for add
+                    if (assertScheduledForAdd) {
+                        if (parts.length >= 3 && parts[2].equals("0"))
+                            return true;
+                        else
+                            return false;
+                    }
+                    if (assertScheduledForRemove) {
+                        if (parts.length >= 3 && parts[2].startsWith("-"))
+                            return true;
+                        else
+                            return false;
+                    }
+                    return true;
+                }
             }
 
         } catch (IOException e) {
