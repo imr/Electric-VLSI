@@ -68,13 +68,19 @@ public class Log {
         StringBuffer cellsBuf = CVS.getCellFiles(cells, useDir);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CVS.runCVSCommand("log "+cellsBuf, "Show CVS Log", useDir, out);
+        CVS.runCVSCommand("status "+cellsBuf, "Show CVS Status", useDir, out);
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+        String workingVersion = getWorkingRevision(reader);
+
+        out = new ByteArrayOutputStream();
+        CVS.runCVSCommand("log "+cellsBuf, "Show CVS Log", useDir, out);
+        reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
         System.out.println("Show CVS Log complete.");
         Log log = new Log(cell);
         log.parseLogOutput(reader);
 
-        CVSLog dialog = new CVSLog(log.entries, "CVS Log for "+cell.libDescribe());
+
+        CVSLog dialog = new CVSLog(log.entries, "CVS Log for "+cell.libDescribe(), workingVersion);
         dialog.setVisible(true);
     }
 
@@ -102,13 +108,18 @@ public class Log {
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CVS.runCVSCommand("log "+libsBuf, "Show CVS Log", useDir, out);
+        CVS.runCVSCommand("status "+libsBuf, "Show CVS Status", useDir, out);
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
+        String workingVersion = getWorkingRevision(reader);
+
+        out = new ByteArrayOutputStream();
+        CVS.runCVSCommand("log "+libsBuf, "Show CVS Log", useDir, out);
+        reader = new LineNumberReader(new InputStreamReader(new ByteArrayInputStream(out.toByteArray())));
         System.out.println("Show CVS Log complete.");
         Log log = new Log(lib);
         log.parseLogOutput(reader);
 
-        CVSLog dialog = new CVSLog(log.entries, "CVS Log for "+lib.getName());
+        CVSLog dialog = new CVSLog(log.entries, "CVS Log for "+lib.getName(), workingVersion);
         dialog.setVisible(true);
     }
 
@@ -385,7 +396,7 @@ public class Log {
         public final String commitMessage;
         public final String state;
         public final String tag;
-        public final String headVersion;        // current local version
+        public final String headVersion;        // latest available version in cvs
         private LogEntry(ElectricObject obj,
                          String version,
                          String branch,
@@ -414,5 +425,26 @@ public class Log {
                     state + "\t" +
                     tag);
         }
+    }
+
+    // get the working revision from a cvs status output
+    private static String getWorkingRevision(LineNumberReader reader) {
+        try {
+            for (;;) {
+                String line = reader.readLine();
+                if (line == null) return "";
+                if (line.equals("")) continue;
+                line = line.trim();
+                if (line.startsWith("Working revision:")) {
+                    String parts[] = line.trim().split("\t");
+                    if (parts.length >= 2) {
+                        return parts[1].trim();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+        return "";
     }
 }

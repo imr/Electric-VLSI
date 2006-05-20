@@ -40,14 +40,16 @@ import java.awt.Component;
  * @author  gainsley
  */
 public class CVSLog extends EDialog implements MouseListener {
-    
+
     /** Creates new form CVSLog */
-    public CVSLog(List<Log.LogEntry> entries, String title) {
+    public CVSLog(List<Log.LogEntry> entries, String title, String workingVersion) {
         super(null, false);
         initComponents();
         // set up table
         setTitle(title);
-        jTable1.setModel(new LogTableModel(entries));
+        LogTableModel model = new LogTableModel(entries);
+        model.workingVersion = workingVersion;
+        jTable1.setModel(model);
         pack();
         jTable1.addMouseListener(this);
     }
@@ -136,6 +138,7 @@ public class CVSLog extends EDialog implements MouseListener {
 
         private static final String [] colHeaders = { "Version", "Branch", "Date", "Author", "Commit Message", "State", "Tag" };
 
+        private String workingVersion = "";
         private List<Log.LogEntry> entries;
         private LogTableModel(List<Log.LogEntry> entries) {
             this.entries = entries;
@@ -153,15 +156,13 @@ public class CVSLog extends EDialog implements MouseListener {
         public Object getValueAt(int rowIndex, int columnIndex) {
             Log.LogEntry entry = entries.get(rowIndex);
             switch(columnIndex) {
-/*
                 case 0: {
-                    if (entry.version.equals(entry.headVersion))
+                    if (entry.version.equals(workingVersion))
                         return entry.version+" (current)";
                     else
                         return entry.version;
                 }
-*/
-                case 0: return entry.version;
+                //case 0: return entry.version;
                 case 1: return entry.branch;
                 case 2: return entry.date;
                 case 3: return entry.author;
