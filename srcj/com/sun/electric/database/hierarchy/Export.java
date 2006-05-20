@@ -361,7 +361,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		Name oldName = getNameKey();
         parent.moveExport(portIndex, newName);
 		setD(d.withName(newNameKey), true);
-        parent.notifyRename(false);
+ //       parent.notifyRename(false);
 
         // rename associated export in icon, if any
         Cell iconCell = cell.iconView();

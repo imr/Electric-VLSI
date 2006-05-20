@@ -70,7 +70,6 @@ public class DatabaseChangeEvent {
      */
     public boolean cellTreeChanged() {
         if (!newSnapshot.getChangedLibraries(oldSnapshot).isEmpty()) return true;
-        if (newSnapshot.cellGroups != oldSnapshot.cellGroups) return true;
         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
             CellBackup oldBackup = oldSnapshot.getCell(cellId);
             CellBackup newBackup = newSnapshot.getCell(cellId);
@@ -80,6 +79,7 @@ public class DatabaseChangeEvent {
             ImmutableCell newD = newBackup.d;
             if (oldD.libId != newD.libId) return true;
             if (oldD.cellName != newD.cellName) return true;
+            if (oldD.groupName != newD.groupName) return true;
             if (oldD.getVar(Cell.MULTIPAGE_COUNT_KEY) != newD.getVar(Cell.MULTIPAGE_COUNT_KEY)) return true;
         }
         return false;

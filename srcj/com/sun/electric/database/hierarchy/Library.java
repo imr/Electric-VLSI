@@ -930,7 +930,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         assert isLinked();
         database.unfreshSnapshot();
         for (Cell cell: cells.values())
-            cell.notifyRename(true);
+            cell.notifyRename();
 		return false;
 	}
 
@@ -1174,12 +1174,4 @@ public class Library extends ElectricObject implements Comparable<Library>
 	{
 		setD(d.withVersion(version));
 	}
-    
-    /**
-     * Returns true if disk library can tolerate export rename in subcells.
-     * @return false for now
-     */
-    boolean withExportIds() {
-        return false;
-    }
 }

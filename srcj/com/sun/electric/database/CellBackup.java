@@ -47,7 +47,7 @@ public class CellBackup {
 
     /** Cell persistent data. */                                    public final ImmutableCell d;
 	/** The date this ImmutableCell was last modified. */           public final long revisionDate;
-    /** "Modified" flag of the Cell. */                             public final byte modified;
+    /** "Modified" flag of the Cell. */                             public final boolean modified;
 	/** This Cell is mainSchematics in its group. */				public final boolean isMainSchematics;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
@@ -61,7 +61,7 @@ public class CellBackup {
     /** Bitmap of deleted exports. */                               final BitSet deletedExports;
 
     /** Creates a new instance of CellBackup */
-    private CellBackup(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics,
+    private CellBackup(ImmutableCell d, long revisionDate, boolean modified, boolean isMainSchematics,
             ImmutableArrayList<ImmutableNodeInst> nodes,
             ImmutableArrayList<ImmutableArcInst> arcs,
             ImmutableArrayList<ImmutableExport> exports,
@@ -84,7 +84,7 @@ public class CellBackup {
     
     /** Creates a new instance of CellBackup */
     public CellBackup(ImmutableCell d) {
-        this(d, 0, (byte)-1, false,
+        this(d, 0, false, false,
                 ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
                 EMPTY_BITSET, NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
         if (d.cellName == null)
@@ -93,22 +93,23 @@ public class CellBackup {
             throw new IllegalArgumentException("cellVersion");
         if (d.tech == null)
             throw new NullPointerException("tech");
-        if (modified < -1 || 1 < modified)
-            throw new IllegalArgumentException("modified");
     }
     
     /**
      * Creates a new instance of CellBackup which differs from this CellBackup.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
-     * @param cellBackups list indexed by cellIndex of new CellBackups.
-     * @param cellGroups array indexed by cellIndex of cellGroups numbers.
-     * @param cellBounds list indexed by cellIndex of cell bounds.
-     * @param libBackups list indexed by cellIndex of LibraryBackups.
+     * @param d new persistent data of a cell.
+     * @param revisionDate new revision date.
+     * @param modified new modified flag
+     * @param isMainSchematics new main schematics flag
+     * @param nodesArray new array of nodes
+     * @param arcsArray new array of arcs
+     * @param exportsArray new array of exports
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public CellBackup with(ImmutableCell d, long revisionDate, byte modified, boolean isMainSchematics,
+    public CellBackup with(ImmutableCell d, long revisionDate, boolean modified, boolean isMainSchematics,
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
         ImmutableArrayList<ImmutableNodeInst> nodes = copyArray(nodesArray, this.nodes);
         ImmutableArrayList<ImmutableArcInst> arcs = copyArray(arcsArray, this.arcs);
@@ -130,8 +131,6 @@ public class CellBackup {
             if (cellId != this.d.cellId)
                 throw new IllegalArgumentException("cellId");
         }
-        if (modified < -1 || 1 < modified)
-            throw new IllegalArgumentException("modified");
         
         BitSet usedLibs = this.usedLibs;
         CellUsageInfo[] cellUsages = this.cellUsages;
@@ -300,7 +299,7 @@ public class CellBackup {
     void write(SnapshotWriter writer) throws IOException {
         d.write(writer);
         writer.writeLong(revisionDate);
-        writer.writeByte(modified);
+        writer.writeBoolean(modified);
         writer.writeBoolean(isMainSchematics);
         writer.writeInt(nodes.size());
         for (ImmutableNodeInst n: nodes)
@@ -320,7 +319,7 @@ public class CellBackup {
     static CellBackup read(SnapshotReader reader) throws IOException {
         ImmutableCell d = ImmutableCell.read(reader);
         long revisionDate = reader.readLong();
-        byte modified = reader.readByte();
+        boolean modified = reader.readBoolean();
         boolean isMainSchematics = reader.readBoolean();
         CellBackup backup = new CellBackup(d.withoutVariables());
         
@@ -352,7 +351,6 @@ public class CellBackup {
         checkVars(d);
         assert d.cellName.getVersion() > 0;
         assert d.tech != null;
-        assert -1 <= modified && modified <= 1;
         CellId cellId = d.cellId;
         int[] checkCellUsages = getInstCounts();
         boolean hasCellCenter = false;

@@ -124,21 +124,17 @@ class LayoutCell {
         }
         cell.getTechnology();
         boolean justWritten = Layout.librariesWritten.contains(cell.getLibrary().getId());
-        if (Layout.goodDRCCells != null && Layout.goodDRCCells.contains(cell)) {
-            cell.addVar(Layout.goodDRCDate);
-            cell.addVar(Layout.goodDRCBit);
-        }
         if (!justWritten) {
             CellBackup newBackup = cell.backup();
             if (newBackup != oldBackup) {
-                if (oldBackup == null || newBackup.d != oldBackup.d || newBackup.isMainSchematics != oldBackup.isMainSchematics ||
-                        newBackup.revisionDate != oldBackup.revisionDate ||
-                        newBackup.nodes != oldBackup.nodes || newBackup.arcs != oldBackup.arcs || newBackup.exports != oldBackup.exports) {
-                    cell.madeRevision(Layout.revisionDate, Layout.userName);
-                    assert cell.isModified(true);
-                }
+                cell.madeRevision(Layout.revisionDate, Layout.userName);
+                assert cell.isModified(true);
                 cell.getLibrary().setChanged();
             }
+        }
+        if (Layout.goodDRCCells != null && Layout.goodDRCCells.contains(cell)) {
+            cell.addVar(Layout.goodDRCDate);
+            cell.addVar(Layout.goodDRCBit);
         }
         cell.getBounds();
         

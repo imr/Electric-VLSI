@@ -340,7 +340,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty = BOUNDS_RECOMPUTE;
 	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
 	/** The date this ImmutableCell was last modified. */           private long revisionDate;
-    /** "Modified" flag of the Cell. */                             private byte modified = -1;
+    /** "Modified" flag of the Cell. */                             private boolean modified;
 	/** The temporary integer value. */								private int tempInt;
     /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
     /** Last backup of this Cell */                                 CellBackup backup;
@@ -771,7 +771,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
         // add again to the library and to possibly to new cell group
 		lowLevelLinkCellName(true);
-        notifyRename(true);
+        notifyRename();
 	}
     
 	/**
@@ -799,19 +799,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
         // add again to the library and to possibly to new cell group
 		lowLevelLinkCellName(true);
-        notifyRename(true);
+        notifyRename();
 	}
     
     /**
      * Signal parent cell about renaming or moving of this subcell.
-     * @param major major rename (cell or library)
      */
-    void notifyRename(boolean major) {
+    void notifyRename() {
         for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
             CellUsage u = it.next();
             Cell parent = u.parentId.inDatabase(getDatabase());
-            if (major || !parent.getLibrary().withExportIds()) 
-                parent.setModified(false);
+            parent.setModified();
         }
     }
 
@@ -3783,11 +3781,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * Change system is not informed about this.
 	 */
 	public void madeRevision(long revisionDate, String userName) {
-        setModified(true);
+        setModified();
         this.revisionDate = revisionDate;
         if (userName == null) return;
         Variable var = getVar(User.FRAME_DESIGNER_NAME);
-        if (var != null && var.getObject().equals(userName)) {
+        if (var == null || !var.getObject().equals(userName)) {
             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
             var = Variable.newInstance(User.FRAME_DESIGNER_NAME, userName, td);
             d = getD().withVariable(var);
@@ -3969,13 +3967,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to set if cell has been modified since last save to disk. No need to call checkChanging().
      * -1 means no changes, 0 minor changes and 1 major changes
 	 */
-	private void setModified(boolean majorChange)
+	private void setModified()
     {
         checkChanging();
-        byte newModified = (byte)Math.max(modified, majorChange ? 1 : 0);
-        if (newModified != modified)
+        if (!modified)
             unfreshBackup();
-        modified = newModified;
+        modified = true;
 //        lib.setChanged();
     }
 
@@ -3985,9 +3982,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	void clearModified() {
         checkChanging();
-        if (modified != -1)
+        if (modified)
             unfreshBackup();
-        modified = -1;
+        modified = false;
     }
 
 	/**
@@ -3996,9 +3993,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public boolean isModified(boolean majorChange)
     {
-        if (majorChange) return modified == 1;
-        // only minor change
-        return modified == 0;
+        return modified;
+//        if (majorChange) return modified == 1;
+//        // only minor change
+//        return modified == 0;
     }
 
     /**
