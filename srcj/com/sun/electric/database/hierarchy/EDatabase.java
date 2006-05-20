@@ -545,23 +545,18 @@ public class EDatabase {
     
     private void recoverCellGroups() {
         ArrayList<TreeSet<Cell>> groups = new ArrayList<TreeSet<Cell>>();
-        ArrayList<Cell> mainSchematics = new ArrayList<Cell>();
         for (int cellIndex = 0; cellIndex < snapshot.cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = snapshot.cellBackups.get(cellIndex);
             int cellGroupIndex = snapshot.cellGroups[cellIndex];
             if (cellBackup == null) continue;
-            if (cellGroupIndex == groups.size()) {
+            if (cellGroupIndex == groups.size())
                 groups.add(new TreeSet<Cell>());
-                mainSchematics.add(null);
-            }
             Cell cell = getCell(cellIndex);
             assert cell != null;
             groups.get(cellGroupIndex).add(cell);
-            if (cellBackup.isMainSchematics)
-                mainSchematics.set(cellGroupIndex, cell);
         }
         for (int i = 0; i < groups.size(); i++)
-            new Cell.CellGroup(groups.get(i), mainSchematics.get(i));
+            new Cell.CellGroup(groups.get(i));
     }
     
 	/**

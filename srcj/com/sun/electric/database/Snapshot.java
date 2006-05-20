@@ -254,35 +254,35 @@ public class Snapshot {
         return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null; 
     }
     
-    /**
-     * Returns group name of cell with specified CellId.
-     * Name of cell group is a base name of main schematics cell if any.
-     * Otherwise it is a shortest base name among cells in the group.
-     * If cell with the cellId is absent in this Snapshot, returns null.
-     * @param cellId cellId of a cell.
-     * @return name of cell group or null.
-     *
-     */
-    public String getCellGroupName(CellId cellId) {
-        int groupIndex = cellId.cellIndex < cellGroups.length ? cellGroups[cellId.cellIndex] : -1;
-        if (groupIndex < 0) return null;
-        String bestName = null;
-        for (CellBackup cellBackup: cellBackups) {
-            if (cellBackup == null) continue;
-            if (cellGroups[cellBackup.d.cellId.cellIndex] != groupIndex) continue;
-            String name = cellBackup.d.cellName.getName();
-            if (cellBackup.isMainSchematics) return name;
-            if (bestName == null) {
-                bestName = name;
-                continue;
-            }
-            if (name.length() > bestName.length()) continue;
-            if (name.length() < bestName.length() || TextUtils.STRING_NUMBER_ORDER.compare(name, bestName) < 0)
-                bestName = name;
-        }
-        assert bestName != null;
-        return bestName;
-    }
+//    /**
+//     * Returns group name of cell with specified CellId.
+//     * Name of cell group is a base name of main schematics cell if any.
+//     * Otherwise it is a shortest base name among cells in the group.
+//     * If cell with the cellId is absent in this Snapshot, returns null.
+//     * @param cellId cellId of a cell.
+//     * @return name of cell group or null.
+//     *
+//     */
+//    public String getCellGroupName(CellId cellId) {
+//        int groupIndex = cellId.cellIndex < cellGroups.length ? cellGroups[cellId.cellIndex] : -1;
+//        if (groupIndex < 0) return null;
+//        String bestName = null;
+//        for (CellBackup cellBackup: cellBackups) {
+//            if (cellBackup == null) continue;
+//            if (cellGroups[cellBackup.d.cellId.cellIndex] != groupIndex) continue;
+//            String name = cellBackup.d.cellName.getName();
+//            if (cellBackup.isMainSchematics) return name;
+//            if (bestName == null) {
+//                bestName = name;
+//                continue;
+//            }
+//            if (name.length() > bestName.length()) continue;
+//            if (name.length() < bestName.length() || TextUtils.STRING_NUMBER_ORDER.compare(name, bestName) < 0)
+//                bestName = name;
+//        }
+//        assert bestName != null;
+//        return bestName;
+//    }
 
     public ERectangle getCellBounds(CellId cellId) { return getCellBounds(cellId.cellIndex); }
     
@@ -535,6 +535,7 @@ public class Snapshot {
         if (cellBackups.size() != cellGroups.length)
             throw new IllegalArgumentException("cellGroups.length");
         ArrayList<LibId> groupLibs = new ArrayList<LibId>();
+        ArrayList<CellName> groupNames = new ArrayList<CellName>();
         BitSet mainSchematicsFoundInGroup = new BitSet();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
@@ -552,10 +553,15 @@ public class Snapshot {
             if (libId != libBackups.get(libIndex).d.libId)
                 throw new IllegalArgumentException("LibId in ImmutableCell");
             int cellGroup = cellGroups[cellIndex];
-            if (cellGroup == groupLibs.size())
+            if (cellGroup == groupLibs.size()) {
                 groupLibs.add(libId);
-            else if (groupLibs.get(cellGroup) != libId)
-                throw new IllegalArgumentException("cellGroups mix of libraries");
+                groupNames.add(d.groupName);
+            } else {
+                if (groupLibs.get(cellGroup) != libId)
+                    throw new IllegalArgumentException("cellGroups mix of libraries");
+                if (!groupNames.get(cellGroup).equals(d.groupName))
+                    throw new IllegalArgumentException("cellGroup names are not consistent");
+            }
             HashMap<String,Integer> cellNameToGroupInLibrary = protoNameToGroup.get(libId.libIndex);
             String protoName = d.cellName.getName();
             Integer gn = cellNameToGroupInLibrary.get(protoName);

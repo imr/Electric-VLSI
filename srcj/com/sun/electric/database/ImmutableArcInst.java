@@ -213,7 +213,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	/** width of this ImmutableArcInst. */                          public final double width;
     /** length of this ImmutableArcInst. */                         public final double length;
     /** Angle if this ImmutableArcInst (in tenth-degrees). */       public final short angle;
-	/** Flag bits for this ImmutableArcInst. */                     public final int flags;
  
 	/**
      * The private constructor of ImmutableArcInst. Use the factory "newInstance" instead.
@@ -237,7 +236,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
             double width, double length, short angle, int flags, Variable[] vars) {
-        super(vars);
+        super(vars, flags);
         this.arcId = arcId;
         this.protoType = protoType;
         this.name = name;
@@ -251,7 +250,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         this.width = width;
         this.length = length;
         this.angle = angle;
-        this.flags = flags;
 //        check();
     }
 

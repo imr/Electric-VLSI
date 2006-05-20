@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: Snapshot.java
+ * File: IdManagerTest.java
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -24,19 +24,22 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.text.Name;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import junit.framework.*;
+
+import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  *
- * @author dn146861
  */
-public class IdManagerTest extends TestCase {
+public class IdManagerTest {
     
     private IdManager idManager;
     private Snapshot initialSnapshot;
@@ -45,11 +48,7 @@ public class IdManagerTest extends TestCase {
     private CellId cellId0;
     private CellId cellId1;
     
-    public IdManagerTest(String testName) {
-        super(testName);
-    }
-
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         idManager = new IdManager();
         initialSnapshot = idManager.getInitialSnapshot();
         libId0 = idManager.newLibId();
@@ -58,22 +57,21 @@ public class IdManagerTest extends TestCase {
         cellId1 = idManager.newCellId();
     }
 
-    protected void tearDown() throws Exception {
+    @After public void tearDown() throws Exception {
         idManager = null;
         initialSnapshot = null;
         libId0 = libId1 = null;
         cellId0 = cellId1 = null;
     }
 
-    public static Test suite() {
-        TestSuite suite = new TestSuite(IdManagerTest.class);
-        return suite;
+    public static junit.framework.Test suite() {
+        return new junit.framework.JUnit4TestAdapter(IdManagerTest.class);
     }
 
     /**
      * Test of newLibId method, of class com.sun.electric.database.IdManager.
      */
-    public void testNewLibId() {
+    @Test public void testNewLibId() {
         System.out.println("newLibId");
         
         assertLibId(0, libId0);
@@ -85,7 +83,7 @@ public class IdManagerTest extends TestCase {
     /**
      * Test of getLibId method, of class com.sun.electric.database.IdManager.
      */
-    public void testGetLibId() {
+    @Test public void testGetLibId() {
         System.out.println("getLibId");
         
         assertSame(libId1, idManager.getLibId(1));
@@ -106,7 +104,7 @@ public class IdManagerTest extends TestCase {
     /**
      * Test of newCellId method, of class com.sun.electric.database.IdManager.
      */
-    public void testNewCellId() {
+    @Test public void testNewCellId() {
         System.out.println("newCellId");
         
         assertCellId(0, cellId0);
@@ -118,7 +116,7 @@ public class IdManagerTest extends TestCase {
     /**
      * Test of getCellId method, of class com.sun.electric.database.IdManager.
      */
-    public void testGetCellId() {
+    @Test public void testGetCellId() {
         System.out.println("getCellId");
         
         assertSame(cellId1, idManager.getCellId(1));
@@ -139,7 +137,7 @@ public class IdManagerTest extends TestCase {
     /**
      * Test of getInitialSnapshot method, of class com.sun.electric.database.IdManager.
      */
-    public void testGetInitialSnapshot() {
+    @Test public void testGetInitialSnapshot() {
         System.out.println("getInitialSnapshot");
         
         assertSame(idManager, initialSnapshot.idManager);
@@ -155,7 +153,7 @@ public class IdManagerTest extends TestCase {
     /**
      * Test of newSnapshotId method, of class com.sun.electric.database.IdManager.
      */
-    public void testNewSnapshotId() {
+    @Test public void testNewSnapshotId() {
         System.out.println("newSnapshotId");
         assertEquals(1, idManager.newSnapshotId());
         assertEquals(2, idManager.newSnapshotId());
@@ -170,7 +168,7 @@ public class IdManagerTest extends TestCase {
     /**
      * Test of writeDiffs and readDiff method, of class com.sun.electric.database.IdManager.
      */
-    public void testReadWrite() {
+    @Test public void testReadWrite() {
         try {
             String nameA = "A";
             idManager.getCellId(1).newExportId(nameA);
@@ -229,6 +227,5 @@ public class IdManagerTest extends TestCase {
         } catch (IOException e) {
             fail(e.getMessage());
         }
-        
     }
 }

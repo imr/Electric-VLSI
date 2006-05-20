@@ -1,10 +1,26 @@
-/*
- * ERectangleTest.java
- * JUnit based test
+/* -*- tab-width: 4 -*-
  *
- * Created on May 4, 2006, 9:26 AM
+ * Electric(tm) VLSI Design System
+ *
+ * File: ERectangleTest.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.database.geometry;
 
 import java.io.ByteArrayInputStream;
@@ -12,37 +28,30 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import junit.framework.*;
+
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  *
- * @author dn146861
  */
-public class ERectangleTest extends TestCase {
+public class ERectangleTest {
     
     ERectangle rect;
     
-    public ERectangleTest(String testName) {
-        super(testName);
-    }
-
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         rect = new ERectangle(100, 100, 10, 20);
     }
 
-    protected void tearDown() throws Exception {
-    }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite(ERectangleTest.class);
-        
-        return suite;
+    public static junit.framework.Test suite() {
+        return new junit.framework.JUnit4TestAdapter(ERectangleTest.class);
     }
 
     /**
      * Test of setRect method, of class com.sun.electric.database.geometry.ERectangle.
      */
-    public void testSerialization() {
+    @Test public void testSerialization() {
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(byteStream);
@@ -62,5 +71,4 @@ public class ERectangleTest extends TestCase {
         }
         
     }
-    
 }

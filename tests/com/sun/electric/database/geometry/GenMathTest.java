@@ -1,13 +1,28 @@
-/*
- * GenMathTest.java
- * JUnit based test
+/* -*- tab-width: 4 -*-
  *
- * Created on July 3, 2005, 11:24 AM
+ * Electric(tm) VLSI Design System
+ *
+ * File: GenMathTest.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.database.geometry;
 
-import junit.framework.*;
 import java.awt.Point;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -15,20 +30,16 @@ import java.awt.geom.AffineTransform;
 import java.util.Iterator;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+
 /**
  *
- * @author dn146861
  */
-public class GenMathTest extends TestCase {
+public class GenMathTest {
     
-    public GenMathTest(String testName) {
-        super(testName);
-    }
-
-    protected void setUp() throws Exception {
-    }
-
-    protected void tearDown() throws Exception {
+    public static junit.framework.Test suite() {
+        return new junit.framework.JUnit4TestAdapter(GenMathTest.class);
     }
 
 //    public static class MutableIntegerTest extends TestCase {
@@ -432,7 +443,7 @@ public class GenMathTest extends TestCase {
     /**
      * Test of primeSince method, of class com.sun.electric.database.geometry.GenMath.
      */
-    public void testPrimeSince() {
+    @Test public void testPrimeSince() {
         System.out.println("testPrimeSince");
         
         int prime = GenMath.primeSince(Integer.MIN_VALUE);

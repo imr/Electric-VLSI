@@ -123,7 +123,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         private final Library lib;
 		private TreeSet<Cell> cells;
 		private Cell mainSchematic;
-		private String groupName = null;
+		private CellName groupName;
 
 		// ------------------------- public methods -----------------------------
 
@@ -139,11 +139,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         /**
          * Constructor for Undo.
          */
-        CellGroup(TreeSet<Cell> cells, Cell mainSchematic) {
+        CellGroup(TreeSet<Cell> cells) {
             lib = cells.first().getLibrary();
             this.cells = cells;
-            this.mainSchematic = mainSchematic;
-            if (mainSchematic != null) assert mainSchematic.getLibrary() == lib;
+            setMainSchematics(true);
             for (Cell cell: cells) {
                 assert cell.getLibrary() == lib;
                 cell.cellGroup = this;
@@ -161,11 +160,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			{
                 if (!cells.contains(cell))
 				    cells.add(cell);
+                setMainSchematics(false);
 			}
 			cell.cellGroup = this;
-			if (mainSchematic != null)
-				setMainSchematics(mainSchematic.getNewestVersion());
-			groupName = null;
 		}
 
 		/**
@@ -178,12 +175,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			synchronized (cells)
 			{
 				cells.remove(f);
-				if (f == mainSchematic) {
-                    f.unfreshBackup();
-					mainSchematic = null;
-                }
+                setMainSchematics(false);
 			}
-			groupName = null;
+            f.cellGroup = null;
 		}
 
 		/**
@@ -220,44 +214,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		public Cell getMainSchematics()
 		{
-			if (mainSchematic != null) return mainSchematic;
-
-			// not set: see if it is obvious
-			for (Iterator<Cell> it = getCells(); it.hasNext();)
-			{
-				Cell c = it.next();
-				if (c.isSchematic())
-				{
-                    // it is the latest version
-                    setMainSchematics(c);
-                    return mainSchematic;
-                }
-			}
-			return null;
+			return mainSchematic;
 		}
-		/**
-		 * Method to set the main schematics Cell in ths CellGroup.
-		 * The main schematic is the one that is shown when descending into an icon.
-		 * Other schematic views may exist in the group, but they are "alternates".
-		 * @param cell the new main schematics Cell in this CellGroup.
-		 */
-		public void setMainSchematics(Cell cell)
-		{
-            lib.checkChanging();
-            if (mainSchematic == cell) return;
-//			if (getMainSchematics() == cell) return;
-			if (!(cell.isSchematic() && cell.getNewestVersion() == cell))
-			{
-				System.out.println("Cell " + cell + ": cannot be main schematics");
-				return;
-			}
-            if (mainSchematic != null)
-                mainSchematic.unfreshBackup();
-			mainSchematic = cell;
-            cell.unfreshBackup();
-//			Undo.modifyCellGroup(cell, this); // Notify network tool
-		}
-
+        
         /**
          * Method to tell whether this CellGroup contains a specified Cell.
          * @param cell the Cell in question.
@@ -274,80 +233,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         /**
          * Returns a string representing the name of the cell group
 		 */
-		public String getName()
-		{
-			// if the name is cached, return that
-			if (groupName != null) return groupName;
-
-            // first see the name of mainSchematics
-            if (getMainSchematics() != null)
-                return groupName = getMainSchematics().getName();
-            
-            // base name of minimal lenght
-            Iterator<Cell> it = getCells();
-            String bestName = it.next().getName();
-            while (it.hasNext()) {
-                String name = it.next().getName();
-                if (name.length() < bestName.length())
-                    bestName = name;
-            }
-            return groupName = bestName;
-            
-//			// first see if this is the only cell in the group (allowing for old versions)
-//			Cell onlyCell = null;
-//			for(Iterator<Cell> it = getCells(); it.hasNext(); )
-//			{
-//				Cell cell = it.next();
-//				if (onlyCell == null) onlyCell = cell.getNewestVersion(); else
-//				{
-//					if (cell.getNewestVersion() != onlyCell)
-//					{
-//						onlyCell = null;
-//						break;
-//					}
-//				}
-//			}
-//			if (onlyCell != null) return groupName = onlyCell.describe(false);
-//
-//			// name the group according to all of the different base names
-//			Set<String> groupNames = new TreeSet<String>();
-//			int widestName = 0;
-//			for(Iterator<Cell> it = getCells(); it.hasNext(); )
-//			{
-//				Cell cell = it.next();
-//				String cellName = cell.getName();
-//				if (cellName.length() > widestName) widestName = cellName.length();
-//				groupNames.add(cellName);
-//			}
-//
-//			// if there is only 1 base name, use it
-//			if (groupNames.size() == 1) return groupName = groupNames.iterator().next();
-//
-//			// look for common root to the names
-//			for(int i=widestName; i>widestName/2; i--)
-//			{
-//				String lastName = null;
-//				boolean allSame = true;
-//				for(String oneName : groupNames)
-//				{
-//					if (lastName != null)
-//					{
-//						if (oneName.length() < i || lastName.length() < i || !lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
-//					}
-//					lastName = oneName;
-//				}
-//				if (allSame)
-//					return groupName = lastName.substring(0, i) + "*";
-//			}
-//
-//			// just list all of the different base names
-//			for(String oneName : groupNames)
-//			{
-//				if (groupName == null) groupName = oneName; else
-//					groupName += "," + oneName;
-//			}
-//			return groupName;
-		}
+		public String getName() { return groupName.getName(); }
 
         public EDatabase getDatabase() { return lib.getDatabase(); }
         
@@ -361,12 +247,46 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			{
 				assert lib.cells.get(cell.getCellName()) == cell;
 				assert cell.cellGroup == this;
+                assert cell.d.groupName.equals(groupName);
 			}
 			if (mainSchematic != null)
 			{
 				assert containsCell(mainSchematic);
 				assert mainSchematic.getNewestVersion() == mainSchematic;
 			}
+		}
+		/**
+		 * Method to set the main schematics Cell in ths CellGroup.
+		 * The main schematic is the one that is shown when descending into an icon.
+		 * Other schematic views may exist in the group, but they are "alternates".
+         * Only one schematic view should be in cell group.
+         * If many schematic views exists then main schematics is the newest version of first in alpahabetical order schematic cell.
+		 */
+		private void setMainSchematics(boolean undo)
+		{
+			// not set: see if it is obvious
+            String bestName = null;
+            Cell mainSchematic = null;
+			for (Cell cell: cells) {
+				if (cell.isSchematic()) {
+                    mainSchematic = cell;
+                    bestName = cell.getName();
+                    break;
+                }
+                String name = cell.getName();
+                if (bestName == null || name.length() < bestName.length())
+                    bestName = name;
+			}
+            this.mainSchematic = mainSchematic;
+            groupName = CellName.parseName(bestName + "{sch}");
+			for (Cell cell: cells) {
+                if (undo) {
+                    cell.d.groupName.equals(groupName);
+                    assert cell.backup().isMainSchematics == (cell == mainSchematic);
+                } else {
+                    cell.setD(cell.d.withGroupName(groupName));
+                }
+            }
 		}
 	}
 

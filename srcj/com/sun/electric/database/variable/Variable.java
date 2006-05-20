@@ -868,9 +868,10 @@ public class Variable implements Serializable
 
     public int hashCode() { return key.hashCode(); }
     
-    public boolean equals(Variable that) {
-        if (this == that) return true;
-        if (that == null) return false;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Variable)) return false;
+        Variable that = (Variable)o;
         if (this.key != that.key || !this.descriptor.equals(that.descriptor)) return false;
         if (this.type != that.type) return false;
         if ((this.type & ARRAY) == 0) return this.value.equals(that.value);

@@ -36,7 +36,7 @@ public class ImmutablePortInst extends ImmutableElectricObject {
     
     /** Creates a new instance of ImmutablePortInst */
     private ImmutablePortInst(Variable[] vars) {
-        super(vars);
+        super(vars, 0);
 //        check();
     }
     

@@ -4,7 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
-BUG: (5/19/06,DN) VarContext is not serializable whne it contains killed export (Bug #969).
+BUG: (5/20/06, DN) CellName.compareTo is inconsistent with CellName.equals .
+FIX: Make CellName.equals case-sensitive.
+
+BUG: (5/20/06, DN) [Bug 1041]  New: exception when deleting cell (Bug #1041).
+FIX: Set mainSchematics in EThread. Check cell.isLinked() in ExplorerTree.convertValueToText.
+
+BUG: (5/19/06, DN) VarContext is not serializable whne it contains killed export (Bug #969).
 FIX: Remove "VarContext.pi" field. Maintain "EditWindow.selectedPorts" stack.
 
 IMP: (5/19/06, RK) NCC: First cut at GUI User Guide. (Very Ugly) (Bugzilla# 1035)

@@ -1,23 +1,42 @@
-/*
- * CellIdTest.java
- * JUnit based test
+/* -*- tab-width: 4 -*-
  *
- * Created on May 6, 2006, 7:56 PM
+ * Electric(tm) VLSI Design System
+ *
+ * File: CellIdTest.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.database;
 
-import junit.framework.*;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 
 import java.util.Arrays;
 
+import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Test;
+
 /**
  *
- * @author dn146861
  */
-public class CellIdTest extends TestCase {
+public class CellIdTest {
     
     IdManager idManager;
     CellId cellId0;
@@ -29,11 +48,7 @@ public class CellIdTest extends TestCase {
     String nameA = "A";
     ExportId e1_A;
     
-    public CellIdTest(String testName) {
-        super(testName);
-    }
-
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         idManager = new IdManager();
         cellId0 = idManager.newCellId();
         cellId1 = idManager.newCellId();
@@ -44,19 +59,14 @@ public class CellIdTest extends TestCase {
         e1_A = cellId1.newExportId(nameA);
     }
 
-    protected void tearDown() throws Exception {
-    }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite(CellIdTest.class);
-        
-        return suite;
+    public static junit.framework.Test suite() {
+        return new junit.framework.JUnit4TestAdapter(CellIdTest.class);
     }
 
     /**
      * Test of numUsagesIn method, of class com.sun.electric.database.CellId.
      */
-    public void testNumUsagesIn() {
+    @Test public void testNumUsagesIn() {
         System.out.println("numUsagesIn");
         
         int expResult = 2;
@@ -67,7 +77,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of getUsageIn method, of class com.sun.electric.database.CellId.
      */
-    public void testGetUsageIn() {
+    @Test public void testGetUsageIn() {
         System.out.println("getUsageIn");
         
         int i = 0;
@@ -81,7 +91,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of numUsagesOf method, of class com.sun.electric.database.CellId.
      */
-    public void testNumUsagesOf() {
+    @Test public void testNumUsagesOf() {
         System.out.println("numUsagesOf");
         
         CellId instance = cellId2;
@@ -94,7 +104,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of getUsageOf method, of class com.sun.electric.database.CellId.
      */
-    public void testGetUsageOf() {
+    @Test public void testGetUsageOf() {
         System.out.println("getUsageOf");
         
         int i = 1;
@@ -108,7 +118,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of findExportId method, of class com.sun.electric.database.CellId.
      */
-    public void testFindExportId() {
+    @Test public void testFindExportId() {
         System.out.println("findExportId");
         
         String name = nameA;
@@ -147,7 +157,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of numExportIds method, of class com.sun.electric.database.CellId.
      */
-    public void testNumExportIds() {
+    @Test public void testNumExportIds() {
         System.out.println("numExportIds");
         
         CellId instance = cellId1;
@@ -160,7 +170,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of getPortId method, of class com.sun.electric.database.CellId.
      */
-    public void testGetPortId() {
+    @Test public void testGetPortId() {
         System.out.println("getPortId");
         
         int chronIndex = 0;
@@ -174,7 +184,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of getExportIds method, of class com.sun.electric.database.CellId.
      */
-    public void testGetExportIds() {
+    @Test public void testGetExportIds() {
         System.out.println("getExportIds");
         
         CellId instance = cellId1;
@@ -187,7 +197,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of newExportId method, of class com.sun.electric.database.CellId.
      */
-    public void testNewExportId() {
+    @Test public void testNewExportId() {
         System.out.println("newExportId");
         
         String suggestedName = "B";
@@ -206,7 +216,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of newExportId method, of class com.sun.electric.database.CellId.
      */
-    public void testDuplicateExporId() {
+    @Test public void testDuplicateExporId() {
         System.out.println("duplicateExportId");
         
         String suggestedName = "bus[1:2]";
@@ -223,7 +233,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of newExportIds method, of class com.sun.electric.database.CellId.
      */
-    public void testNewExportIds() {
+    @Test public void testNewExportIds() {
         System.out.println("newExportIds");
         
         String[] externalIds = { "C", "B"};
@@ -240,21 +250,17 @@ public class CellIdTest extends TestCase {
     /**
      * Test of newExportIds method, of class com.sun.electric.database.CellId.
      */
-    public void testDuplicateExportIds() {
+    @Test(expected = IllegalArgumentException.class) public void testDuplicateExportIds() {
         System.out.println("newExportIds");
         
         String[] externalIds = { "C", "C" };
-        try {
-            cellId1.newExportIds(externalIds);
-            fail("IllegallArgumentExceptio expected");
-        } catch (IllegalArgumentException e) {
-        }
+        cellId1.newExportIds(externalIds);
     }
 
     /**
      * Test of newNodeId method, of class com.sun.electric.database.CellId.
      */
-    public void testNewNodeId() {
+    @Test public void testNewNodeId() {
         System.out.println("newNodeId");
         
         CellId instance = cellId2;
@@ -267,7 +273,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of newArcId method, of class com.sun.electric.database.CellId.
      */
-    public void testNewArcId() {
+    @Test public void testNewArcId() {
         System.out.println("newArcId");
         
         CellId instance = cellId1;
@@ -280,7 +286,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of inDatabase method, of class com.sun.electric.database.CellId.
      */
-    public void testInDatabase() {
+    @Test public void testInDatabase() {
         System.out.println("inDatabase");
         
         EDatabase database = new EDatabase(idManager);
@@ -294,7 +300,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of toString method, of class com.sun.electric.database.CellId.
      */
-    public void testToString() {
+    @Test public void testToString() {
         System.out.println("toString");
         
         CellId instance = cellId0;
@@ -307,7 +313,7 @@ public class CellIdTest extends TestCase {
     /**
      * Test of check method, of class com.sun.electric.database.CellId.
      */
-    public void testCheck() {
+    @Test public void testCheck() {
         System.out.println("check");
         
         CellId instance = cellId1;

@@ -38,22 +38,22 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import junit.framework.*;
+
+import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * This module tests Snapshots.
  */
-public class SnapshotTest extends TestCase {
+public class SnapshotTest {
     
     private static byte[] emptyDiffEmpty;
     private IdManager idManager;
     private Snapshot initialSnapshot;
     
-    public SnapshotTest(String testName) {
-        super(testName);
-    }
-
-    protected void setUp() throws Exception {
+    @Before public void setUp() throws Exception {
         idManager = new IdManager();
         initialSnapshot = idManager.getInitialSnapshot();
         
@@ -74,26 +74,19 @@ public class SnapshotTest extends TestCase {
         }
     }
 
-    protected void tearDown() throws Exception {
+    @After public void tearDown() throws Exception {
         idManager = null;
         initialSnapshot = null;
     }
 
-    public static void main(String[] args) {}
-    
-    public static Test suite() {
-        TestSuite suite = new TestSuite(SnapshotTest.class);
-        return suite;
+    public static junit.framework.Test suite() {
+        return new junit.framework.JUnit4TestAdapter(SnapshotTest.class);
     }
 
-    public void testInit() {
-        System.out.println("init");
-    }
-    
     /**
      * Test of with method, of class com.sun.electric.database.Snapshot.
      */
-    public void testWith() {
+    @Test public void testWith() {
         System.out.println("with");
         
         LibId libId = idManager.newLibId();
@@ -132,7 +125,7 @@ public class SnapshotTest extends TestCase {
     /**
      * Test of getChangedLibraries method, of class com.sun.electric.database.Snapshot.
      */
-    public void testGetChangedLibraries() {
+    @Test public void testGetChangedLibraries() {
         System.out.println("getChangedLibraries");
         
         Snapshot oldSnapshot = initialSnapshot;
@@ -146,7 +139,7 @@ public class SnapshotTest extends TestCase {
     /**
      * Test of getChangedCells method, of class com.sun.electric.database.Snapshot.
      */
-    public void testGetChangedCells() {
+    @Test public void testGetChangedCells() {
         System.out.println("getChangedCells");
         
         Snapshot oldSnapshot = initialSnapshot;
@@ -160,7 +153,7 @@ public class SnapshotTest extends TestCase {
     /**
      * Test of getCell method, of class com.sun.electric.database.Snapshot.
      */
-    public void testGetCell() {
+    @Test public void testGetCell() {
         System.out.println("getCell");
         
         CellId cellId = idManager.newCellId();
@@ -175,7 +168,7 @@ public class SnapshotTest extends TestCase {
     /**
      * Test of getCellBounds method, of class com.sun.electric.database.Snapshot.
      */
-    public void testGetCellBounds() {
+    @Test public void testGetCellBounds() {
         System.out.println("getCellBounds");
         
         CellId cellId = idManager.newCellId();
@@ -190,7 +183,7 @@ public class SnapshotTest extends TestCase {
     /**
      * Test of getLib method, of class com.sun.electric.database.Snapshot.
      */
-    public void testGetLib() {
+    @Test public void testGetLib() {
         System.out.println("getLib");
         
         LibId libId = idManager.newLibId();
@@ -205,7 +198,7 @@ public class SnapshotTest extends TestCase {
     /**
      * Test of writeDiffs method, of class com.sun.electric.database.Snapshot.
      */
-    public void testWriteDiffs() throws Exception {
+    @Test public void testWriteDiffs() throws Exception {
         System.out.println("writeDiffs");
         
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -220,7 +213,7 @@ public class SnapshotTest extends TestCase {
     /**
      * Test of readSnapshot method, of class com.sun.electric.database.Snapshot.
      */
-    public void testReadSnapshot() throws Exception {
+    @Test public void testReadSnapshot() throws Exception {
         System.out.println("readSnapshot");
         
         SnapshotReader reader = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(emptyDiffEmpty)), idManager);
@@ -234,7 +227,7 @@ public class SnapshotTest extends TestCase {
     /**
      * Test of check method, of class com.sun.electric.database.Snapshot.
      */
-    public void testCheck() {
+    @Test public void testCheck() {
         System.out.println("check");
         
         Snapshot instance = initialSnapshot;

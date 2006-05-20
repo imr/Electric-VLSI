@@ -1,13 +1,28 @@
-/*
- * OrientationTest.java
- * JUnit based test
+/* -*- tab-width: 4 -*-
  *
- * Created on August 10, 2005, 12:24 PM
+ * Electric(tm) VLSI Design System
+ *
+ * File: OrientationTest.java
+ *
+ * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.database.geometry;
 
-import junit.framework.*;
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
 import com.sun.electric.tool.io.FileType;
@@ -16,32 +31,23 @@ import java.awt.geom.Rectangle2D;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
+import static org.junit.Assert.*;
+import org.junit.Test;
+
 /**
  *
  * @author dn146861
  */
-public class OrientationTest extends TestCase {
+public class OrientationTest {
     
-    public OrientationTest(String testName) {
-        super(testName);
-    }
-
-    protected void setUp() throws Exception {
-    }
-
-    protected void tearDown() throws Exception {
-    }
-
-    public static Test suite() {
-        TestSuite suite = new TestSuite(OrientationTest.class);
-        
-        return suite;
+    public static junit.framework.Test suite() {
+        return new junit.framework.JUnit4TestAdapter(OrientationTest.class);
     }
 
     /**
      * Test of fromJava method, of class com.sun.electric.database.geometry.Orientation.
      */
-    public void testFromJava() {
+    @Test public void testFromJava() {
         System.out.println("testFromJava");
         
         for (int iX = 0; iX <= 1; iX++) {
@@ -66,7 +72,7 @@ public class OrientationTest extends TestCase {
                     AffineTransform af = AffineTransform.getScaleInstance(mirrorX ? -1 : 1, mirrorY ? -1 : 1);
                     af.rotate(iA * Math.PI / 1800.0);
 //                    System.out.println("angle=" + iA + " mX=" + mirrorX + " mY=" + mirrorY);
-                    assertEquals(af, or.pureRotate(), Math.ulp(1));
+                    assertTransformsEquals(af, or.pureRotate(), Math.ulp(1));
                 }
             }
         }
@@ -75,7 +81,7 @@ public class OrientationTest extends TestCase {
     /**
      * Test of fromC method, of class com.sun.electric.database.geometry.Orientation.
      */
-    public void testFromC() {
+    @Test public void testFromC() {
         System.out.println("testFromC");
         
         for (int iT = 0; iT <= 1; iT++) {
@@ -98,7 +104,7 @@ public class OrientationTest extends TestCase {
     /**
      * Test of concatenate method, of class com.sun.electric.database.geometry.Orientation.
      */
-    public void testConcatenate() {
+    @Test public void testConcatenate() {
         System.out.println("testConcatenate");
         
         Orientation[] or = makeConcatTests();
@@ -117,7 +123,7 @@ public class OrientationTest extends TestCase {
 //                System.out.println("orJ=" + orJ + " afJ=" + afJ);
 //                System.out.println("orC=" + orC + " afC=" + orC.trans);
 //                System.out.println("" + afC);
-                assertEquals(afC, orC.pureRotate(), Math.ulp(1));
+                assertTransformsEquals(afC, orC.pureRotate(), Math.ulp(1));
             }
         }
     }
@@ -157,7 +163,7 @@ public class OrientationTest extends TestCase {
         return or;
     }
     
-    private void assertEquals(AffineTransform expected, AffineTransform actual, double delta) {
+    private void assertTransformsEquals(AffineTransform expected, AffineTransform actual, double delta) {
 //        System.out.println("expected=" + expected);
 //        System.out.println("actual=" + actual);
         double[] expectedM = new double[6];
@@ -221,7 +227,7 @@ public class OrientationTest extends TestCase {
     /**
      * Test of toJelibString method, of class com.sun.electric.database.geometry.Orientation.
      */
-    public void testToJelibString() {
+    @Test public void testToJelibString() {
         System.out.println("testToJelibString");
 
         assertEquals("", Orientation.fromJava(0, false, false).toJelibString());
@@ -245,7 +251,7 @@ public class OrientationTest extends TestCase {
     /**
      * Test of toString method, of class com.sun.electric.database.geometry.Orientation.
      */
-    public void testToString() {
+    @Test public void testToString() {
         System.out.println("testToString");
         
         assertEquals("", Orientation.fromJava(0, false, false).toString());

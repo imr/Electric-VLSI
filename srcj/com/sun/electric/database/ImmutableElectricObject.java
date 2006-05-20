@@ -37,14 +37,18 @@ public abstract class ImmutableElectricObject {
     
     /** array of variables sorted by their keys. */
     private final Variable[] vars;
+	/** flags of this IimmutableElectricObject. */
+    public final int flags;
     
 	/**
 	 * The package-private constructor of ImmutableElectricObject.
      * Use the factory "newInstance" instead.
      * @param vars array of Variables sorted by their keys.
+     * @param flags flags of this IimmutableElectricObject.
 	 */
-    ImmutableElectricObject(Variable[] vars) {
+    ImmutableElectricObject(Variable[] vars, int flags) {
         this.vars = vars;
+        this.flags = flags;
     }
 
 	/**
@@ -77,7 +81,6 @@ public abstract class ImmutableElectricObject {
 	 * @throws NullPointerException if key is null
 	 */
     Variable[] arrayWithoutVariable(Variable.Key key) {
-        if (key == null) throw new NullPointerException("key");
         int varIndex = searchVar(key);
         if (varIndex < 0) return vars;
         if (vars.length == 1 && varIndex == 0) return Variable.NULL_ARRAY;
@@ -91,6 +94,7 @@ public abstract class ImmutableElectricObject {
 	 * Method to return the Variable on this ImmuatbleElectricObject with a given key.
 	 * @param key the key of the Variable.
 	 * @return the Variable with that key, or null if there is no such Variable.
+	 * @throws NullPointerException if key is null
 	 */
 	public Variable getVar(Variable.Key key)
 	{
@@ -144,8 +148,12 @@ public abstract class ImmutableElectricObject {
      *	       elements in the list are less than the specified name.  Note
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the Variable is found.
+	 * @throws NullPointerException if key is null
      */
-	public int searchVar(Variable.Key key) { return searchVar(vars, key); }
+	public int searchVar(Variable.Key key) {
+        if (key == null) throw new NullPointerException("key");
+        return searchVar(vars, key);
+    }
 
     /**
      * Searches the ordered array of variables for the specified variable key using the binary
@@ -161,7 +169,7 @@ public abstract class ImmutableElectricObject {
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the Variable is found.
      */
-	public static int searchVar(Variable[] vars, Variable.Key key)
+	private static int searchVar(Variable[] vars, Variable.Key key)
 	{
         int low = 0;
         int high = vars.length-1;

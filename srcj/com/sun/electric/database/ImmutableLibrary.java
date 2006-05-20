@@ -37,7 +37,6 @@ public class ImmutableLibrary extends ImmutableElectricObject {
 	/** name of this ImmutableLibrary  */                               public final String libName;
 	/** file location of this ImmutableLibrary */                       public final URL libFile;
 	/** version of Electric which wrote the ImmutableLibrary. */		public final Version version;
-    /** flags of ImmutableLibrary. */                                   public final int flags;
     
 	/**
 	 * The private constructor of ImmutableLibrary. Use the factory "newInstance" instead.
@@ -49,12 +48,11 @@ public class ImmutableLibrary extends ImmutableElectricObject {
      * @param vars array of Variables of this ImmutableLibrary
 	 */
      private ImmutableLibrary(LibId libId, String libName, URL libFile, Version version, int flags, Variable[] vars) {
-        super(vars);
+        super(vars, flags);
         this.libId = libId;
         this.libName = libName;
         this.libFile = libFile;
         this.version = version;
-        this.flags = flags;
 //        check();
     }
 

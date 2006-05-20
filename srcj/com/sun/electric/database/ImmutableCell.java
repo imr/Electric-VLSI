@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -36,31 +37,32 @@ public class ImmutableCell extends ImmutableElectricObject {
 	/** CellId of this ImmutableCell. */                        public final CellId cellId;
 	/** The library this ImmutableCell belongs to. */			public final LibId libId;
 	/** The CellName of this ImmutableCell. */					public final CellName cellName;
+    /** The group name of this ImmutableCell. */                public final CellName groupName;
 	/** The date this ImmutableCell was created. */				public final long creationDate;
 	/** This ImmutableCell's Technology. */						public final Technology tech;
-	/** ImmutableCell's flags. */								public final int flags;
     
 	/**
 	 * The private constructor of ImmutableCell. Use the factory "newInstance" instead.
      * @param cellId id of this ImmutableCell.
      * @param libId library of this ImmutableCell.
      * @param cellName cell name of this ImmutableCell.
+     * @param groupName group name of this ImmutableCell.
      * @param creationDate the date this ImmutableCell was created.
      * @param revisionDate the date this ImmutableCell was last modified.
      * @param tech the technology of this ImmutableCell.
      * @param flags flags of this ImmutableCell.
      * @param vars array of Variables of this ImmutableCell
 	 */
-     private ImmutableCell(CellId cellId, LibId libId, CellName cellName,
+     private ImmutableCell(CellId cellId, LibId libId, CellName cellName, CellName groupName,
              long creationDate, Technology tech, int flags, Variable[] vars) {
-        super(vars);
+        super(vars, flags);
         this.cellId = cellId;
         this.libId = libId;
         this.cellName = cellName;
+        this.groupName = groupName;
         this.creationDate = creationDate;
         this.tech = tech;
-        this.flags = flags;
-//        check();
+        check();
     }
 
 	/**
@@ -76,7 +78,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         if (cellId == null) throw new NullPointerException("cellId");
         if (libId == null) throw new NullPointerException("libId");
 //        if (cellName == null) throw new NullPointerException("cellName");
-		return new ImmutableCell(cellId, libId, cellName, creationDate, null, 0, Variable.NULL_ARRAY);
+		return new ImmutableCell(cellId, libId, cellName, null, creationDate, null, 0, Variable.NULL_ARRAY);
     }
 
 	/**
@@ -88,7 +90,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	public ImmutableCell withLibrary(LibId libId) {
         if (this.libId == libId) return this;
         if (libId == null) throw new NullPointerException("libId");
-		return new ImmutableCell(this.cellId, libId, this.cellName,
+		return new ImmutableCell(this.cellId, libId, this.cellName, this.groupName,
                 this.creationDate, this.tech, this.flags, getVars());
 	}
 
@@ -100,7 +102,22 @@ public class ImmutableCell extends ImmutableElectricObject {
 	public ImmutableCell withCellName(CellName cellName) {
         if (this.cellName == cellName) return this;
         if (this.cellName != null && this.cellName.equals(cellName)) return this;
-		return new ImmutableCell(this.cellId, this.libId, cellName,
+		return new ImmutableCell(this.cellId, this.libId, cellName, this.groupName,
+                this.creationDate, this.tech, this.flags, getVars());
+	}
+
+	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by group name.
+	 * @param groupName new group name.
+	 * @return ImmutableCell which differs from this ImmutableCell by cell name.
+     * @throws IllegalArgumentException if groupName is not schematic view and zero version.
+	 */
+	public ImmutableCell withGroupName(CellName groupName) {
+        if (this.groupName == groupName) return this;
+        if (this.groupName != null && this.groupName.equals(groupName)) return this;
+        if (groupName != null && (groupName.getVersion() != 0 || groupName.getView() != View.SCHEMATIC))
+            throw new IllegalArgumentException(groupName.toString());
+        return new ImmutableCell(this.cellId, this.libId, this.cellName, groupName,
                 this.creationDate, this.tech, this.flags, getVars());
 	}
 
@@ -111,7 +128,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
 	public ImmutableCell withCreationDate(long creationDate) {
         if (this.creationDate == creationDate) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName,
+		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
                 creationDate, this.tech, this.flags, getVars());
 	}
 
@@ -122,7 +139,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
 	public ImmutableCell withTech(Technology tech) {
         if (this.tech == tech) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName,
+		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
                 this.creationDate, tech, this.flags, getVars());
 	}
 
@@ -133,7 +150,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
 	public ImmutableCell withFlags(int flags) {
         if (this.flags == flags) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName,
+		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
                 this.creationDate, this.tech, flags, getVars());
 	}
 
@@ -148,7 +165,7 @@ public class ImmutableCell extends ImmutableElectricObject {
     public ImmutableCell withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var);
         if (this.getVars() == vars) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName,
+		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
                 this.creationDate, this.tech, this.flags, vars);
     }
     
@@ -162,7 +179,7 @@ public class ImmutableCell extends ImmutableElectricObject {
     public ImmutableCell withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName,
+		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
                 this.creationDate, this.tech, this.flags, vars);
     }
     
@@ -173,7 +190,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
     public ImmutableCell withoutVariables() {
         if (this.getNumVariables() == 0) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName,
+		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
                 this.creationDate, this.tech, this.flags, Variable.NULL_ARRAY);
     }
     
@@ -187,6 +204,9 @@ public class ImmutableCell extends ImmutableElectricObject {
         writer.writeBoolean(cellName != null);
         if (cellName != null)
             writer.writeString(cellName.toString());
+        writer.writeBoolean(groupName != null);
+        if (groupName != null)
+            writer.writeString(groupName.toString());
         writer.writeLong(creationDate);
         writer.writeBoolean(tech != null);
         if (tech != null)
@@ -208,13 +228,19 @@ public class ImmutableCell extends ImmutableElectricObject {
             String cellNameString = reader.readString();
             cellName = CellName.parseName(cellNameString);
         }
+        CellName groupName = null;
+        boolean hasGroupName = reader.readBoolean();
+        if (hasGroupName) {
+            String groupNameString = reader.readString();
+            groupName = CellName.parseName(groupNameString);
+        }
         long creationDate = reader.readLong();
         boolean hasTech = reader.readBoolean();
         Technology tech = hasTech ? reader.readTechnology() : null;
         int flags = reader.readInt();
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        return new ImmutableCell(cellId, libId, cellName, creationDate, tech, flags, vars);
+        return new ImmutableCell(cellId, libId, cellName, groupName, creationDate, tech, flags, vars);
     }
     
     /**
@@ -233,7 +259,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         if (this == o) return true;
         if (!(o instanceof ImmutableCell)) return false;
         ImmutableCell that = (ImmutableCell)o;
-        return this.cellId == that.cellId && this.libId == that.libId && this.cellName == that.cellName &&
+        return this.cellId == that.cellId && this.libId == that.libId && this.cellName == that.cellName && this.groupName == that.groupName &&
                 this.creationDate == that.creationDate && this.tech == that.tech && this.flags == that.flags;
     }
     
@@ -247,5 +273,9 @@ public class ImmutableCell extends ImmutableElectricObject {
         assert libId != null;
         if (cellName != null)
             cellName.check();
+        if (groupName != null) {
+            assert groupName.getVersion() == 0;
+            assert groupName.getView() == View.SCHEMATIC;
+        }
 	}
 }

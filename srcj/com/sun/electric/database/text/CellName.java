@@ -98,7 +98,7 @@ public class CellName implements Comparable<CellName>
     public boolean equals(Object obj) {
 		if (obj instanceof CellName) {
 			CellName n = (CellName)obj;
-			return hash == n.hash && name.equalsIgnoreCase(n.name) && view == n.view && version == n.version;
+			return hash == n.hash && name.equals(n.name) && view == n.view && version == n.version;
 		}
 		return false;
     }
@@ -116,7 +116,7 @@ public class CellName implements Comparable<CellName>
     public boolean equalsIgnoreVersion(Object obj) {
 		if (obj instanceof CellName) {
 			CellName n = (CellName)obj;
-			return name.equalsIgnoreCase(n.name) && view == n.view;
+			return name.equals(n.name) && view == n.view;
 		}
 		return false;
     }

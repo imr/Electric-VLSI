@@ -303,7 +303,7 @@ public class JELIB extends Output
         printWriter.println("# Cell " + d.cellName);
         printWriter.print("C" + convertString(d.cellName.toString()));
         printWriter.print("|");
-        String cellGroupName = snapshot.getCellGroupName(d.cellId);
+        String cellGroupName = d.groupName.getName();
         if (!cellGroupName.equals(d.cellName.getName()))
             printWriter.print(convertString(cellGroupName));
         printWriter.print("|" + convertString(d.tech.getTechName()));

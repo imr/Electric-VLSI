@@ -424,7 +424,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		if (nodeInfo instanceof Cell)
 		{
 			Cell cell = (Cell)nodeInfo;
-			if (cell.isSchematic())
+			if (cell.isLinked() && cell.isSchematic())
 			{
 				Cell.CellGroup group = cell.getCellGroup();
 				Cell mainSchematic = group.getMainSchematics();
@@ -1253,13 +1253,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
                 menu.addSeparator();
 
-				if (cell.isSchematic() && cell.getNewestVersion() == cell &&
-					cell.getCellGroup().getMainSchematics() != cell)
-				{
-					menuItem = new JMenuItem("Make This the Main Schematic");
-					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeCellMainSchematic(); }});
-				}
+//				if (cell.isSchematic() && cell.getNewestVersion() == cell &&
+//					cell.getCellGroup().getMainSchematics() != cell)
+//				{
+//					menuItem = new JMenuItem("Make This the Main Schematic");
+//					menu.add(menuItem);
+//					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { makeCellMainSchematic(); }});
+//				}
 
                 menuItem = new JMenuItem("Change Cell Group...");
                 menu.add(menuItem);
@@ -1775,12 +1775,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			}
 		}
 
-		private void makeCellMainSchematic()
-		{
-            Cell cell = (Cell)getCurrentlySelectedObject(0);
-            if (cell == null) return;
-            cell.getCellGroup().setMainSchematics(cell);
-		}
+//		private void makeCellMainSchematic()
+//		{
+//            Cell cell = (Cell)getCurrentlySelectedObject(0);
+//            if (cell == null) return;
+//            cell.getCellGroup().setMainSchematics(cell);
+//		}
 
         private void changeCellGroupAction() {
             Cell cell = (Cell)getCurrentlySelectedObject(0);

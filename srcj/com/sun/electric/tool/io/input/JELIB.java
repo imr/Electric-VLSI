@@ -251,14 +251,14 @@ public class JELIB extends LibraryFiles
             }
         }
 
-        // set main schematic cells
-        for (Cell[] groupLine : groupLines)
-        {
-            Cell firstCell = groupLine[0];
-            if (firstCell == null) continue;
-            if (firstCell.isSchematic() && firstCell.getNewestVersion() == firstCell)
-                firstCell.getCellGroup().setMainSchematics(firstCell);
-        }
+//        // set main schematic cells
+//        for (Cell[] groupLine : groupLines)
+//        {
+//            Cell firstCell = groupLine[0];
+//            if (firstCell == null) continue;
+//            if (firstCell.isSchematic() && firstCell.getNewestVersion() == firstCell)
+//                firstCell.getCellGroup().setMainSchematics(firstCell);
+//        }
 
         // sensibility check: shouldn't all cells with the same root name be in the same group?
         HashMap<String,Cell.CellGroup> cellGroups = new HashMap<String,Cell.CellGroup>();

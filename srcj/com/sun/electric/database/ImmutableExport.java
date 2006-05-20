@@ -64,7 +64,7 @@ public class ImmutableExport extends ImmutableElectricObject {
      ImmutableExport(ExportId exportId, Name name, TextDescriptor nameDescriptor,
              int originalNodeId, PortProtoId originalPortId,
              boolean alwaysDrawn, boolean bodyOnly, PortCharacteristic characteristic, Variable[] vars) {
-        super(vars);
+        super(vars, 0);
         this.exportId = exportId;
         this.name = name;
         this.nameDescriptor = nameDescriptor;

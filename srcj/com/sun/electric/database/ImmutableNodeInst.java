@@ -139,7 +139,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	/** Orientation of this ImmutableNodeInst. */                   public final Orientation orient;
 	/** anchor coordinate of this ImmutableNodeInst. */				public final EPoint anchor;
 	/** size of this ImmutableNodeInst . */                         public final double width, height;
-	/** Flag bits for this ImmutableNodeInst. */                    public final int flags;
     /** Tech specifiic bits for this ImmutableNodeInsts. */         public final byte techBits;
 	/** Text descriptor of prototype name. */                       public final TextDescriptor protoDescriptor;
     /** Variables on PortInsts. */                                  final ImmutablePortInst[] ports;
@@ -162,7 +161,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      ImmutableNodeInst(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
             int flags, byte techBits, TextDescriptor protoDescriptor, Variable[] vars, ImmutablePortInst[] ports) {
-        super(vars);
+        super(vars, flags);
         this.nodeId = nodeId;
         this.protoId = protoId;
         this.name = name;
@@ -171,7 +170,6 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.anchor = anchor;
         this.width = width;
         this.height = height;
-        this.flags = flags;
         this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
         this.ports = ports;
