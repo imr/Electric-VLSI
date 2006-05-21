@@ -337,7 +337,7 @@ public class DELIB extends JELIB {
         } else {
             // in version 8.04m and earlier, cell files were in subdirs
             CellBackup cellBackup = cell.backup();
-            String dir = getCellSubDir(cellBackup);
+            String dir = cellBackup.d.cellName.getName();
             String cellName = cellBackup.d.cellName.getName();
             //int version = cellBackup.d.cellName.getVersion();
             View view = cellBackup.d.cellName.getView();
