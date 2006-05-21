@@ -493,7 +493,9 @@ public class CVSLibrary {
 
         // run update on the library to see if there are now any conflicts, and
         // recolor added cells
-        Update.statusNoJob(libs, null, false);
+        if (CVS.isInCVS(lib)) {
+            Update.statusNoJob(libs, null, false);
+        }
     }
 
     /**
