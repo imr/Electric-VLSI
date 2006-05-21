@@ -23,11 +23,10 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.database.CellId;
-import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.GenMath;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -46,7 +45,7 @@ import java.util.List;
  */
 public class Name implements Comparable<Name>
 {
-	/** the original name */	private final String ns;
+    /** the original name */	private final String ns;
 	/** the canonic name */     private final String canonicString;
 	/** list of subnames */		private Name[] subnames;
 	/** basename */				private final Name basename;
@@ -63,7 +62,8 @@ public class Name implements Comparable<Name>
 	 */
 	public static final Name findName(String ns) {
         if (ns == null) return null;
-        return findTrimmedName(trim(ns)); }
+        return findTrimmedName(trim(ns));
+    }
 
 	/**
 	 * Method to check whether or not string is a valid name.
@@ -83,6 +83,45 @@ public class Name implements Comparable<Name>
 		}
 	}
 
+    /**
+     * Print statistics about Names.
+     */
+    public static void printStatistics() {
+        int validNames = 0;
+        int userNames = 0;
+        int busCount = 0;
+        int busWidth = 0;
+        int lowerCase = 0;
+        long length = 0;
+        HashSet<String> canonic = new HashSet<String>();
+        for (Name n: allNames) {
+            if (n == null) continue;
+            length += n.toString().length();
+            if (n.isValid())
+                validNames++;
+            if (!n.isTempname())
+                userNames++;
+            if (n.subnames != null) {
+                busCount++;
+                busWidth += n.subnames.length;
+            }
+            if (n.toString() == n.canonicString())
+                lowerCase++;
+            else
+                canonic.add(n.canonicString());
+        }
+        for (Name n: allNames) {
+            if (n == null) continue;
+            canonic.remove(n.toString());
+        }
+        long canonicLength = 0;
+        for (String s: canonic)
+            canonicLength += s.length();
+        System.out.println(allNamesCount + " Names " + length + " chars. " + validNames + " valid " + userNames + " usernames " +
+                busCount + " buses with " + busWidth + " elements. " +
+                lowerCase + " lowercase " + canonic.size() + " canonic strings with " + canonicLength + " chars.");
+    }
+    
 	/**
 	 * Returns a printable version of this Name.
 	 * @return a printable version of this Name.
@@ -275,6 +314,8 @@ public class Name implements Comparable<Name>
                 if (allNamesCount*2 <= hash.length - 3) {
                     // create a new CellUsage, if enough space in the hash
                     Name n = new Name(ns);
+                    if (hash != allNames || hash[i] != null)
+                        return findTrimmedName(ns);
                     hash[i] = n;
                     allNamesCount++;
                     return n;
@@ -339,11 +380,11 @@ public class Name implements Comparable<Name>
 	 */
 	private Name(String s)
 	{
-		ns = s.intern();
+        ns = s.intern();
         int suffix = -1;
         Name base = null;
-		String canonic = TextUtils.canonicString(ns);
-		canonicString = canonic == ns ? ns : canonic.intern();
+        String canonic = TextUtils.canonicString(ns);
+        canonicString = canonic == ns ? ns : canonic.intern();
 		try
 		{
 			flags = checkNameThrow(ns);

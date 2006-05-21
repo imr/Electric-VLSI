@@ -515,7 +515,7 @@ class NetCell
 		netNameCount = 0;
 		for (Iterator<Export> it = cell.getExports(); it.hasNext();) {
 			Export e = it.next();
-			addNetNames(e.getNameKey());
+			addNetNames(e.getNameKey(), e, null);
 		}
 		exportedNetNameCount = netNameCount;
 		for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
@@ -528,7 +528,7 @@ class NetCell
                 networkManager.logError(msg, NetworkTool.errorSortNetworks);
             }
 			if (ai.isUsernamed())
-				addNetNames(ai.getNameKey());
+				addNetNames(ai.getNameKey(), null, ai);
 		}
 		for (Iterator<NetName> it = netNames.values().iterator(); it.hasNext(); ) {
 			NetName nn = it.next();
@@ -541,13 +541,13 @@ class NetCell
 			System.out.println("Error netNameCount in NetCell.initNetnames");
 	}
 
-	void addNetNames(Name name) {
+	void addNetNames(Name name, Export e, ArcInst ai) {
 		if (name.isBus())
 			System.out.println("Network: Layout " + cell + " has bus port/arc " + name);
-		addNetName(name);
+		addNetName(name, e, ai);
 	}
 
-	void addNetName(Name name) {
+	void addNetName(Name name, Export e, ArcInst ai) {
 		NetName nn = netNames.get(name.canonicString());
 		if (nn == null) {
 			nn = new NetName();
@@ -556,7 +556,15 @@ class NetCell
 		if (nn.index < 0) {
 			nn.name = name;
 			nn.index = netNameCount++;
-		}
+		} else if (!name.toString().equals(nn.name.toString())) {
+            String msg = cell + " has network with similar names: \"" + name + "\" and \"" + nn.name + "\"";
+            System.out.println("Network : " + msg);
+            if (e != null)
+                networkManager.pushHighlight(e);
+            if (ai != null)
+                networkManager.pushHighlight(ai);
+            networkManager.logWarning(msg, NetworkTool.errorSortNodes);
+        }
 	}
 
 	private void internalConnections()

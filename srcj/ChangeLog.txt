@@ -5,7 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.04m: *********************************
 
 BUG: (06/19/05, DN) Invariant "Names are unique" is not always true.
-FIX: In Name.findTrimmedName don't overidy busy entry in hash array.
+FIX: In Name.findTrimmedName don't override busy entry in hash array.
 
 IMP: (06/19/05, DN) Warning in NetCell.addNetName about possible change to
      CaseSensitive network name matching in future versions.
@@ -17,7 +17,7 @@ FIX: Don't use "italic" more. "modified" flag, revision date and last desiner ar
 BUG: (5/20/06, DN) CellName.compareTo is inconsistent with CellName.equals .
 FIX: Make CellName.equals case-sensitive.
 
-BUG: (5/20/06, DN) [Bug 1041]  New: exception when deleting cell (Bug #1041).
+BUG: (5/20/06, DN) Exception when deleting cell (Bug #1041).
 FIX: Set mainSchematics in EThread. Check cell.isLinked() in ExplorerTree.convertValueToText.
 
 BUG: (5/19/06, DN) VarContext is not serializable whne it contains killed export (Bug #969).

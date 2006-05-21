@@ -48,6 +48,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * The Variable immutable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -102,6 +103,25 @@ public class Variable implements Serializable
          * @return a printable version of this Key.
          */
         public String toString() { return name; }
+        
+        /**
+         * Print statistics about Variable Keys.
+         */
+        public static void printStatistics() {
+            long keyLength = 0;
+            for (Key key: varKeys.values())
+                keyLength += key.getName().length();
+            int canonicCount = 0;
+            long canonicLength = 0;
+            for (String canonic: varCanonicKeys.keySet()) {
+                Key key = varCanonicKeys.get(canonic);
+                if (key != null && key.getName() == canonic) continue;
+                canonicCount++;
+                canonicLength += canonic.length();
+            }
+            System.out.println(varKeys.size() + " variable keys with " + keyLength + " chars." +
+                    " Canonic " + varCanonicKeys.size() + " entries " + canonicCount + " strings with " + canonicLength + " chars.");
+        }
 	}
 
 	/** a list of all variable keys */						private static final HashMap<String,Key> varKeys = new HashMap<String,Key>();

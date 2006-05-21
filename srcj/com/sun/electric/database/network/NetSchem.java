@@ -959,9 +959,9 @@ class NetSchem extends NetCell {
         networkManager.logError(msg, NetworkTool.errorSortNetworks);
     }
 
-	void addNetNames(Name name) {
+	void addNetNames(Name name, Export e, ArcInst ai) {
  		for (int i = 0; i < name.busWidth(); i++)
- 			addNetName(name.subname(i));
+ 			addNetName(name.subname(i), e, ai);
 	}
 
 	private void localConnections() {
