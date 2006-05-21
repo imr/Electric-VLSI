@@ -4070,8 +4070,6 @@ public class Technology implements Comparable<Technology>
 		{
 			User.technologyChanged(tech);
 			UserInterface ui = Job.getUserInterface();
-//			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-//			if (wf != null) wf.loadComponentMenuForTechnology();
             ui.loadComponentMenuForTechnology();
 			ui.repaintAllEditWindows();
 		}
