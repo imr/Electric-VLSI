@@ -1886,19 +1886,17 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
                 cvsUpdate(Update.ROLLBACK); }});
             menuItem.setEnabled(!states.contains(State.UNKNOWN));
 
-            if (libs.size() > 0) {
-                menuItem = new JMenuItem("Add to CVS");
-                cvsMenu.add(menuItem);
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                    cvsAddRemove(true); }});
-                menuItem.setEnabled(states.contains(State.UNKNOWN));
+            menuItem = new JMenuItem("Add to CVS");
+            cvsMenu.add(menuItem);
+            menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                cvsAddRemove(true); }});
+            menuItem.setEnabled(states.contains(State.UNKNOWN));
 
-                menuItem = new JMenuItem("Remove from CVS");
-                cvsMenu.add(menuItem);
-                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                    cvsAddRemove(false); }});
-                menuItem.setEnabled(!states.contains(State.UNKNOWN));
-            }
+            menuItem = new JMenuItem("Remove from CVS");
+            cvsMenu.add(menuItem);
+            menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                cvsAddRemove(false); }});
+            menuItem.setEnabled(!states.contains(State.UNKNOWN));
 
             if (false) {
                 //  TODO: figure out how to make this work? not sure if it's needed

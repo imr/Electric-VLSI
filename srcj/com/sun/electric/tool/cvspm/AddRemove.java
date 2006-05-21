@@ -114,11 +114,15 @@ public class AddRemove {
         CVSLibrary.LibsCells good = CVSLibrary.consolidate(libs, cells);
 
         if (!undo) {
+            // when job generates files to add/remove, it will do the check to see if they are in
+            // cvs or not. Don't do it here because we may specify lib to add unadded cells.
+/*
             if (add) {
                 good = CVSLibrary.getNotInCVS(libs, cells);
             } else {
                 good = CVSLibrary.getInCVS(libs, cells);
             }
+*/
             // issue final warning for Remove
             if (!add) {
                 StringBuffer list = new StringBuffer("Warning! CVS Remove will delete disk files for these Libraries and Cells!!!");
