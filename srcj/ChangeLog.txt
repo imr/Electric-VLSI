@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04m: *********************************
 
+BUG: (06/19/05, DN) Invariant "Names are unique" is not always true.
+FIX: In Name.findTrimmedName don't overidy busy entry in hash array.
+
+IMP: (06/19/05, DN) Warning in NetCell.addNetName about possible change to
+     CaseSensitive network name matching in future versions.
+
 BUG: (5/20/06) Changes are not "bolden" (Bug #1032).
 FIX: Don't use "italic" more. "modified" flag, revision date and last desiner are set
     after all changes except DRC variable.
