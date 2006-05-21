@@ -3783,13 +3783,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public void madeRevision(long revisionDate, String userName) {
         setModified();
         this.revisionDate = revisionDate;
-        if (userName == null) return;
-        Variable var = getVar(User.FRAME_DESIGNER_NAME);
-        if (var == null || !var.getObject().equals(userName)) {
-            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
-            var = Variable.newInstance(User.FRAME_DESIGNER_NAME, userName, td);
-            d = getD().withVariable(var);
-        }
+//         if (userName == null) return;
+//         Variable var = getVar(User.FRAME_DESIGNER_NAME);
+//         if (var == null || !var.getObject().equals(userName)) {
+//             TextDescriptor td = TextDescriptor.getCellTextDescriptor().withDisplay(false);
+//             var = Variable.newInstance(User.FRAME_DESIGNER_NAME, userName, td);
+//             d = getD().withVariable(var);
+//         }
         unfreshBackup();
         // Don't send to Undo system
 	}
