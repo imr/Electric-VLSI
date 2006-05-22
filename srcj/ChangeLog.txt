@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
-BUG: (06/20/06, GVG) No calling of TechPref.sideEffect while reading cacheObj values from XML. No Bugzilla
+BUG: (06/21/06, GVG) No calling of TechPref.sideEffect while reading cacheObj values from XML (Bug #1043).
 Noticed by loading XMl for TSMC.
 FIX: cacheObj must be changed by calling Pref.setDouble/setInt/setString functions.
 
