@@ -2,7 +2,13 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.04m: *********************************
+************************* Version 8.04o: *********************************
+
+BUG: (06/20/06, GVG) No calling of TechPref.sideEffect while reading cacheObj values from XML. No Bugzilla
+Noticed by loading XMl for TSMC.
+FIX: cacheObj must be changed by calling Pref.setDouble/setInt/setString functions.
+
+************************* Version 8.04m-8.04n: *********************************
 
 BUG: (06/19/05, DN) Invariant "Names are unique" is not always true.
 FIX: In Name.findTrimmedName don't override busy entry in hash array.

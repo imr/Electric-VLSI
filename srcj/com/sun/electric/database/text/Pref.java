@@ -29,10 +29,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -314,20 +311,25 @@ public class Pref
                 for(Pref pref : allPrefs) {
                     switch (pref.type) {
                         case BOOLEAN:
-                            boolean curBoolean = pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue());
-                            pref.cachedObj = new Integer(curBoolean ? 1 : 0);
+//                            boolean curBoolean = pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue());
+//                            pref.cachedObj = new Integer(curBoolean ? 1 : 0);
+                            pref.setBoolean(pref.prefs.getBoolean(pref.name, pref.getBooleanFactoryValue()));
                             break;
                         case INTEGER:
-                            pref.cachedObj = new Integer(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
+                            pref.setInt(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
+//                            pref.cachedObj = new Integer(pref.prefs.getInt(pref.name, pref.getIntFactoryValue()));
                             break;
                         case LONG:
-                            pref.cachedObj = new Long(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
+                            pref.setLong(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
+//                            pref.cachedObj = new Long(pref.prefs.getLong(pref.name, pref.getLongFactoryValue()));
                             break;
                         case DOUBLE:
-                            pref.cachedObj = new Double(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
+//                            pref.cachedObj = new Double(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
+                            pref.setDouble(pref.prefs.getDouble(pref.name, pref.getDoubleFactoryValue()));
                             break;
                         case STRING:
-                            pref.cachedObj = pref.prefs.get(pref.name, pref.getStringFactoryValue());
+                            pref.setString(pref.prefs.get(pref.name, pref.getStringFactoryValue()));
+//                            pref.cachedObj = pref.prefs.get(pref.name, pref.getStringFactoryValue());
                             break;
                     }
                 }
@@ -351,6 +353,35 @@ public class Pref
 		System.out.println("...preferences imported from " + fileURL.getFile());
 	}
 
+    /**
+     * Extended class of FileOutputStream to insert extra line breaks to make XML files
+     * more readable
+     */
+    private static class PrivateFileOutputStream extends FileOutputStream
+    {
+        public PrivateFileOutputStream(String s) throws FileNotFoundException
+        {
+            super(s);
+        }
+        public void write(byte[] bytes) throws IOException
+        {
+            new Error("Not implemented in PrivateFileOutputStream");
+            super.write(bytes);
+        }
+        public void write(byte[] bytes, int i, int i1) throws IOException
+        {
+            String sa = new String(bytes, i, i1);
+            sa = sa.replaceAll("<node", "\n<node");
+            super.write(sa.getBytes());
+//            super.write(bytes, i, i1);
+        }
+        public void write(int i) throws IOException
+        {
+            new Error("Not implemented in PrivateFileOutputStream");
+            super.write(i);
+        }
+    }
+
 	/**
 	 * Method to export the preferences to an XML file. This function is public due to the regressions.
 	 * @param fileName the file to write.
@@ -362,16 +393,14 @@ public class Pref
         // save preferences there
         try
 		{
-			FileOutputStream outputStream = new FileOutputStream(fileName);
+			FileOutputStream outputStream = new PrivateFileOutputStream(fileName);
 			Preferences root = Preferences.userNodeForPackage(Main.class);
 			root.exportSubtree(outputStream);
 			outputStream.close();
-		} catch (BackingStoreException e)
+		} catch (Exception e)
 		{
-			System.out.println("Error writing file");
-			return;
-		} catch (IOException e)
-		{
+            if (Job.getDebug())
+                e.printStackTrace();
 			System.out.println("Error writing file");
 			return;
 		}
@@ -750,7 +779,7 @@ public class Pref
 	 * it is necessary to gather them on the client, and send
 	 * the changes to the server for actual change.
 	 * This method runs on the server.
-	 * @param batch the collection of preference changes.
+	 * @param obj the collection of preference changes.
 	 */
 	public static void implementPrefChanges(PrefChangeBatch obj)
 	{
@@ -1081,7 +1110,8 @@ public class Pref
     private static int numValueStrings = 0;
     private static int lenValueStrings = 0;
     
-    public static void printAllPrefs() {
+    public static void printAllPrefs(PrintStream out) {
+        numValueStrings = lenValueStrings = 0;
         TreeMap<String,Pref> sortedPrefs = new TreeMap<String,Pref>();
         synchronized (allPrefs) {
             for (Pref pref: allPrefs)
@@ -1090,18 +1120,18 @@ public class Pref
         Preferences rootNode = Preferences.userRoot().node("com/sun/electric");
         numStrings = lenStrings = 0;
         try {
-            gatherPrefs(0, rootNode, null);
+            gatherPrefs(out, 0, rootNode, null);
         } catch (BackingStoreException e) {
             e.printStackTrace();
         }
-        System.out.println(lenStrings + " chars in " + numStrings + " strings");
-        System.out.println(lenValueStrings + " chars in " + numValueStrings + " value strings");
+        out.println(lenStrings + " chars in " + numStrings + " strings");
+        out.println(lenValueStrings + " chars in " + numValueStrings + " value strings");
         int  i = 0;
         for (Pref pref: sortedPrefs.values())
-            System.out.println((i++) + pref.prefs.absolutePath() + " " + pref.name + " " + pref.cachedObj + " " + (pref.meaning != null));
+            out.println((i++) + pref.prefs.absolutePath() + " " + pref.name + " " + pref.cachedObj + " " + (pref.meaning != null));
     }
 
-    private static void gatherPrefs(int level, Preferences topNode, List<String> ks) throws BackingStoreException {
+    private static void gatherPrefs(PrintStream out, int level, Preferences topNode, List<String> ks) throws BackingStoreException {
         for (int i = 0; i < level; i++) System.out.print("  ");
         String[] keys = topNode.keys();
         for (int i = 0; i < keys.length; i++) {
@@ -1111,7 +1141,7 @@ public class Pref
             numValueStrings++;
             lenValueStrings += value.length();
         }
-        System.out.println(topNode.name() + " " + keys.length);
+        out.println(topNode.name() + " " + keys.length);
         if (topNode.absolutePath().equals("/com/sun/electric/database/hierarchy")) return;
         String[] children = topNode.childrenNames();
         for (int i = 0; i < children.length; i++) {
@@ -1119,7 +1149,7 @@ public class Pref
             numStrings++;
             lenStrings += children[i].length();
             Preferences childNode = topNode.node(childName);
-            gatherPrefs(level + 1, childNode, ks);
+            gatherPrefs(out, level + 1, childNode, ks);
         }
     }
 
