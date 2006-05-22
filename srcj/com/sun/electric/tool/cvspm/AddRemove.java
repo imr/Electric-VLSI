@@ -248,7 +248,7 @@ public class AddRemove {
             // get cell directory if not already added before
             File celldirFile = new File(libfile, DELIB.getCellSubDir(cell.backup()));
             String celldir = celldirFile.getPath();
-            if (!addedCellDirs.containsKey(celldir)) {
+            if (!addedCellDirs.containsKey(celldir) && !libfile.equals(celldir)) {
                 if (celldirFile.exists())
                     add(buf, celldir, useDir);
                 addedCellDirs.put(celldir, null);
@@ -266,8 +266,8 @@ public class AddRemove {
         }
         private void add(StringBuffer buf, String file, String useDir) {
             File FD = new File(file);
-            if ((add && !CVS.isFileInCVS(FD)) ||
-                (!add && CVS.isFileInCVS(FD))) {
+            if ((add && !CVS.isFileInCVS(FD, false, false)) ||
+                (!add && CVS.isFileInCVS(FD, false, false))) {
 
                 if (file.startsWith(useDir)) {
                     file = file.substring(useDir.length()+1, file.length());
@@ -310,7 +310,11 @@ public class AddRemove {
             String libfile = TextUtils.getFile(lib.getLibFile()).getPath();
             if (!CVS.isDELIB(lib)) {
                 if (undo(new File(libfile))) {
-                    CVSLibrary.setState(lib, State.UNKNOWN);
+                    State state = CVSLibrary.getState(lib);
+                    if (state == State.ADDED)
+                        CVSLibrary.setState(lib, State.UNKNOWN);
+                    if (state == State.REMOVED)
+                        CVSLibrary.setState(lib, State.NONE);
                 }
             } else {
                 for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
@@ -328,7 +332,11 @@ public class AddRemove {
             // check cell files
             File cellFile = new File(libfile, DELIB.getCellFile(cell));
             if (undo(cellFile)) {
-                CVSLibrary.setState(cell, State.UNKNOWN);
+                State state = CVSLibrary.getState(cell);
+                if (state == State.ADDED)
+                    CVSLibrary.setState(cell, State.UNKNOWN);
+                if (state == State.REMOVED)
+                    CVSLibrary.setState(cell, State.NONE);
             }
         }
         /**
@@ -345,7 +353,7 @@ public class AddRemove {
             if (!entries.exists()) return false;
             File entriestemp = new File(CVSDIR, "Entries.temp");
             String filename = FD.getName();
-            boolean removed = false;
+            boolean success = false;
             try {
                 LineNumberReader reader = new LineNumberReader(new FileReader(entries));
                 PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(entriestemp, false)));
@@ -357,19 +365,21 @@ public class AddRemove {
                     boolean skip = false;
                     if (parts.length >= 2 && parts[1].equals(filename)) {
                         // make sure it is scheduled for add/remove
-                        if (parts.length >= 4 && parts[2].equals("0")) {
+                        if (parts.length >= 3 && parts[2].equals("0")) {
                             // scheduled for add, remove entry
                             skip = true;
-                            removed = true;
+                            success = true;
                         }
                         if (parts.length >= 3 && parts[2].startsWith("-")) {
                             // schedule to remove, remove entry
-                            skip = true;
-                            removed = true;
+                            line = line.replaceAll("/"+parts[2]+"/", "/"+parts[2].substring(1)+"/");
+                            success = true;
                         }
                     }
                     if (!skip) pw.println(line);
                 }
+                reader.close();
+                pw.close();
                 // replace original with modified
                 if (!entriestemp.renameTo(entries)) {
                     System.out.println("Unable to move "+entriestemp+" to "+entries+", cannot undo add/remove of "+filename);
@@ -377,7 +387,7 @@ public class AddRemove {
                 }
             } catch (IOException e) {
             }
-            return removed;
+            return success;
         }
     }
 }

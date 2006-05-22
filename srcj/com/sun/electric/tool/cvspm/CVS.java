@@ -263,8 +263,10 @@ public class CVS {
         if (!entries.exists()) return false;
         // make sure file is mentioned in Entries file
         String filename = fd.getName();
+        boolean found = false;
+        FileReader fr = null;
         try {
-            FileReader fr = new FileReader(entries);
+            fr = new FileReader(entries);
             LineNumberReader reader = new LineNumberReader(fr);
             for (;;) {
                 String line = reader.readLine();
@@ -274,24 +276,29 @@ public class CVS {
                 if (parts.length >= 2 && parts[1].equals(filename)) {
                     // see if scheduled for add
                     if (assertScheduledForAdd) {
-                        if (parts.length >= 3 && parts[2].equals("0"))
-                            return true;
-                        else
-                            return false;
+                        if (parts.length >= 3 && parts[2].equals("0")) {
+                            found = true;
+                            break;
+                        } else {
+                            break;
+                        }
                     }
                     if (assertScheduledForRemove) {
-                        if (parts.length >= 3 && parts[2].startsWith("-"))
-                            return true;
-                        else
-                            return false;
+                        if (parts.length >= 3 && parts[2].startsWith("-")) {
+                            found = true;
+                            break;
+                        } else {
+                            break;
+                        }
                     }
-                    return true;
+                    found = true;
+                    break;
                 }
             }
-
+            fr.close();
         } catch (IOException e) {
         }
-        return false;
+        return found;
     }
 
     /**
@@ -523,6 +530,11 @@ public class CVS {
      */
     static Cell getCellFromPath(String path) {
         int delibExt = path.toLowerCase().indexOf(".delib"+File.separator);
+        if (delibExt ==- 1) {
+            // try the unix file separator, since even on windows, the
+            // cvs command returns file paths with the unxi separator
+            delibExt = path.toLowerCase().indexOf(".delib/");
+        }
         if (delibExt == -1) return null;
 
         // get the library

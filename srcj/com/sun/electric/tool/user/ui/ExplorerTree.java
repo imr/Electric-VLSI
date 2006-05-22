@@ -1890,16 +1890,17 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             cvsMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
                 cvsAddRemove(true); }});
-            menuItem.setEnabled(states.contains(State.UNKNOWN));
+            menuItem.setEnabled(states.contains(State.UNKNOWN) || states.contains(State.REMOVED));
 
-            menuItem = new JMenuItem("Remove from CVS");
-            cvsMenu.add(menuItem);
-            menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
-                cvsAddRemove(false); }});
-            menuItem.setEnabled(!states.contains(State.UNKNOWN));
+            if (libs.size() > 0 && cells.size() == 0) {
+                menuItem = new JMenuItem("Remove from CVS");
+                cvsMenu.add(menuItem);
+                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
+                    cvsAddRemove(false); }});
+                menuItem.setEnabled(!states.contains(State.UNKNOWN));
+            }
 
-            if (false) {
-                //  TODO: figure out how to make this work? not sure if it's needed
+            if (true) {
                 menuItem = new JMenuItem("Undo CVS Add or Remove");
                 cvsMenu.add(menuItem);
                 menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
