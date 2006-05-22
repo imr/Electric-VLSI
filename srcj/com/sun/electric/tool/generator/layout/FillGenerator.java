@@ -1076,9 +1076,11 @@ class FillRouter {
 	}
 }
 class TiledCell {
-	private static final int VERT_EXTERIOR = 0;
-	private static final int HORI_EXTERIOR = 1;
-	private static final int INTERIOR = 2;
+    private enum Orientation{
+        VERT_EXTERIOR,  // to check if exports on top or bottom must be exported
+	    HORI_EXTERIOR,
+        INTERIOR;
+    }
 
 	private int vddNum, gndNum;
 	private final String vddNm, gndNm;
@@ -1228,21 +1230,21 @@ class TiledCell {
 		}
 		return ports;
 	}
-	private static int orientation(Rectangle2D bounds, PortInst pi) {
+	private static Orientation orientation(Rectangle2D bounds, PortInst pi) {
         EPoint center = pi.getCenter();
-		double portX = center.getX(); // LayoutLib.roundCenterX(pi);
-		double portY = center.getY(); // .roundCenterY(pi);
+		double portX = center.getX();
+		double portY = center.getY();
 		double minX = bounds.getMinX();
 		double maxX = bounds.getMaxX();
 		double minY = bounds.getMinY();
 		double maxY = bounds.getMaxY();
-		if (DBMath.areEquals(portX,minX) || DBMath.areEquals(portX,maxX)) return VERT_EXTERIOR;
-		if (DBMath.areEquals(portY,minY) || DBMath.areEquals(portY,maxY)) return HORI_EXTERIOR;
-		return INTERIOR;
+		if (DBMath.areEquals(portX,minX) || DBMath.areEquals(portX,maxX)) return Orientation.VERT_EXTERIOR;
+		if (DBMath.areEquals(portY,minY) || DBMath.areEquals(portY,maxY)) return Orientation.HORI_EXTERIOR;
+		return Orientation.INTERIOR;
 	}
 	/** return a list of all PortInsts of ni that aren't connected to 
 	 * something. */
-	private static ArrayList<PortInst> getUnconnectedPortInsts(int orientation, NodeInst ni) {
+	private static ArrayList<PortInst> getUnconnectedPortInsts(List<Orientation> orientationList, NodeInst ni) {
 		Rectangle2D bounds = ni.findEssentialBounds();
         if (bounds == null)
             bounds = ni.getBounds();
@@ -1250,8 +1252,11 @@ class TiledCell {
 		for (Iterator<PortInst> it=ni.getPortInsts(); it.hasNext();) {
 			PortInst pi = it.next();
 			Iterator conns = pi.getConnections();
-			if (!conns.hasNext() && orientation(bounds,pi)==orientation) {
-				ports.add(pi);
+			if (!conns.hasNext())
+            {
+                Orientation or = orientation(bounds,pi);
+                if (orientationList.contains(or))
+				    ports.add(pi);
 			}
 		}
 		return ports;
@@ -1277,6 +1282,8 @@ class TiledCell {
 	}
 	/** export all PortInsts of all NodeInsts in insts that aren't connected
 	 * to something */
+    private static final Orientation[] horizontalPlan = {Orientation.VERT_EXTERIOR, Orientation.HORI_EXTERIOR, Orientation.INTERIOR};
+    private static final Orientation[] verticalPlan = {Orientation.HORI_EXTERIOR, Orientation.VERT_EXTERIOR, Orientation.INTERIOR};
 	private void exportUnconnectedPortInsts(NodeInst[][] rows, boolean isPlanHorizontal,
                                             Cell tiled, StdCellParams stdCell) {
 		// Subtle!  If top layer is horizontal then begin numbering exports on 
@@ -1284,27 +1291,31 @@ class TiledCell {
 		// fill56_2x2 have matching port names on the vertical edges.
 		// Always number interior exports last so they never interfere with
 		// perimeter exports.
-		int[] orientations;
-        if (isPlanHorizontal) {
-			orientations = new int[] {
-				VERT_EXTERIOR,
-				HORI_EXTERIOR,
-				INTERIOR
-			};
-		} else {
-			orientations = new int[] {
-				HORI_EXTERIOR,
-				VERT_EXTERIOR,
-				INTERIOR
-			};
-		}
-		for (int o=0; o<3; o++) {
-			int orientation = orientations[o];
-			for (int row=0; row<rows.length; row++) {
-				for (int col=0; col<rows[row].length; col++) {
-					if (orientation!=INTERIOR || row==col) {
-						List<PortInst> ports = 
-							getUnconnectedPortInsts(orientation, rows[row][col]);
+		Orientation[] orientations = (isPlanHorizontal) ? horizontalPlan : verticalPlan;
+        List<Orientation> list = new ArrayList<Orientation>();
+
+		for (int o=0; o<3; o++)
+        {
+            int numRows = rows.length;
+            list.clear();
+            list.add(orientations[o]);
+			Orientation orientation = orientations[o];
+			for (int row=0; row<numRows; row++)
+            {
+                int numCols = rows[row].length;
+				for (int col=0; col<numCols; col++)
+                {
+                    boolean forceHExport = (numRows > 1 && rows[(row+1)%2][col].getName().startsWith("empty"));
+                    boolean forceVExport = (numCols > 1 && rows[row][(col+1)%2].getName().startsWith("empty"));
+                    boolean forceExport = (orientation == Orientation.HORI_EXTERIOR) ? forceHExport : forceVExport;
+
+                    if (forceExport)
+                    {
+                        list.add(Orientation.INTERIOR);
+                    }
+
+					if (orientation!=Orientation.INTERIOR || row==col) {
+						List<PortInst> ports = getUnconnectedPortInsts(list, rows[row][col]);
 						exportPortInsts(ports, tiled, stdCell);
 					} 
 				}
@@ -2144,7 +2155,7 @@ public class FillGenerator {
                                      List<Rectangle2D> topBoxList, Area area, double drcSpacingRule, boolean binary)
     {
         // Create an empty cell for cases where all nodes/arcs are moved due to collision
-        Cell empty = Cell.newInstance(lib, "emtpy"+master.getName()+"{lay}");
+        Cell empty = Cell.newInstance(lib, "empty"+master.getName()+"{lay}");
         double cellWidth = master.getBounds().getWidth();
         double cellHeight = master.getBounds().getHeight();
 		LayoutLib.newNodeInst(Tech.essentialBounds,

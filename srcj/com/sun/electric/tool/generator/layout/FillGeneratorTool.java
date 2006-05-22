@@ -324,18 +324,18 @@ public class FillGeneratorTool extends Tool {
             List<Rectangle2D> topBoxList = new ArrayList<Rectangle2D>();
             topBoxList.add(topCell.getBounds()); // topBox might change if predefined pitch is included in master cell
 
-            Area area = new Area();
+            Area exclusionArea = new Area();
             for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
             {
                 NodeInst ni = it.next();
                 NodeProto np = ni.getProto();
                 if (np == Generic.tech.afgNode)
-                    area.add(new Area(ni.getBounds()));
+                    exclusionArea.add(new Area(ni.getBounds()));
             }
 
             Cell fillCell = (fillGenConfig.hierarchy) ?
                     fillGen.treeMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
-                            topCell, master, topBoxList, area, fillGenConfig.drcSpacingRule, fillGenConfig.binary) :
+                            topCell, master, topBoxList, exclusionArea, fillGenConfig.drcSpacingRule, fillGenConfig.binary) :
                     fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
                             fillGenConfig.cellTiles, true);
 
@@ -370,8 +370,9 @@ public class FillGeneratorTool extends Tool {
             AffineTransform fillTransIn = fillNi.transformIn(conNi.transformIn());
 
             InteractiveRouter router  = new SimpleWirer();
+            boolean rotated = (master != null && master.getVar("ROTATED_MASTER") != null);
             FillGenJobContainer container = new FillGenJobContainer(router, fillCell, fillNi, connectionCell, conNi,
-                    fillGenConfig.drcSpacingRule);
+                    fillGenConfig.drcSpacingRule, rotated);
 
             // Checking if any arc in FillCell collides with rest of the cells
             if (!fillGenConfig.hierarchy)
@@ -411,7 +412,8 @@ public class FillGeneratorTool extends Tool {
 
                 // Looking to detect any possible contact based on overlap between this geometry and fill
                 Rectangle2D backupRect = (Rectangle2D)rect.clone();
-                NodeInst added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon, conTransOut);
+                NodeInst added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon,
+                        conTransOut, exclusionArea);
                 List<PolyBase> polyList = new ArrayList<PolyBase>();
                 List<Geometric> gList = new ArrayList<Geometric>();
                 polyList.add(p.pPoly);
@@ -428,10 +430,14 @@ public class FillGeneratorTool extends Tool {
 
                 // Trying the closest arc
                 rect = backupRect;
+                rect = p.pPoly.getBounds2D();
                 double searchWidth = fillGen.master.getBounds().getWidth();
                 rect = new Rectangle2D.Double(rect.getX()-searchWidth/2, rect.getY(), rect.getWidth()+searchWidth/2,
-                        rect.getHeight());
-                added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon, conTransOut);
+                        backupRect.getHeight());
+                added = addAllPossibleContacts(container, p, rect,
+                        null, //trans,
+                        fillTransIn, fillTransOutToCon,
+                        conTransOut, null);
 
                 if (added != null)
                 {
@@ -657,8 +663,10 @@ public class FillGeneratorTool extends Tool {
             List<PortInst> fillPortInstList;
             List<NodeInst> fillContactList;
             double drcSpacing;
+            boolean rotated; // tmp fix
 
-            FillGenJobContainer(InteractiveRouter r, Cell fC, NodeInst fNi, Cell cC, NodeInst cNi, double drcSpacing)
+            FillGenJobContainer(InteractiveRouter r, Cell fC, NodeInst fNi, Cell cC, NodeInst cNi, double drcSpacing,
+                                boolean rotated)
             {
                 this.router = r;
                 this.fillCell = fC;
@@ -668,6 +676,7 @@ public class FillGeneratorTool extends Tool {
                 this.fillPortInstList = new ArrayList<PortInst>();
                 this.fillContactList = new ArrayList<NodeInst>();
                 this.drcSpacing = drcSpacing;
+                this.rotated = rotated;
             }
         }
 
@@ -677,6 +686,7 @@ public class FillGeneratorTool extends Tool {
         /**
          * Method to search for all overlaps with metal bars in the fill
          * @param searchCell
+         * @param rotated true if original fill cell is rotated. This should be a temporary fix.
          * @param handler structure containing elements that overlap with the given contactAreaOrig
          * @param closestHandler structure containing elements that are close to the given contactAreaOrig
          * @param p
@@ -685,13 +695,16 @@ public class FillGeneratorTool extends Tool {
          * @param upTrans
          * @return
          */
-        private boolean searchOverlapHierarchically(Cell searchCell, GeometryHandler handler, GeometryHandler closestHandler, FillGenerator.PortConfig p,
-                                                    Rectangle2D contactAreaOrig, AffineTransform downTrans, AffineTransform upTrans)
+        private boolean searchOverlapHierarchically(Cell searchCell, boolean rotated,
+                                                    GeometryHandler handler, GeometryHandler closestHandler,
+                                                    FillGenerator.PortConfig p, Rectangle2D contactAreaOrig,
+                                                    AffineTransform downTrans, AffineTransform upTrans)
         {
             Rectangle2D contactArea = (Rectangle2D)contactAreaOrig.clone();
-            double contactAreaHeight = contactArea.getHeight();
             DBMath.transformRect(contactArea, downTrans);
             Netlist fillNetlist = searchCell.acquireUserNetlist();
+            double contactAreaHeight = contactArea.getHeight();
+            double contactAreaWidth = contactArea.getWidth();
             // Give high priority to lower arcs
             HashMap<Layer, List<ArcInst>> protoMap = new HashMap<Layer, List<ArcInst>>();
             boolean noIntermediateCells = false;
@@ -709,7 +722,8 @@ public class FillGeneratorTool extends Tool {
                     AffineTransform fillIn = ni.transformIn();
                     AffineTransform fillUp = ni.transformOut(upTrans);
                     // In case of being a cell
-                    if (searchOverlapHierarchically((Cell)ni.getProto(), handler, closestHandler, p, contactArea, fillIn, fillUp))
+                    if (searchOverlapHierarchically((Cell)ni.getProto(), rotated,
+                            handler, closestHandler, p, contactArea, fillIn, fillUp))
                         noIntermediateCells = true;
                     continue;
                 }
@@ -722,6 +736,9 @@ public class FillGeneratorTool extends Tool {
                 if (arcNet.findExportWithSameCharacteristic(p.e) == null)
                     continue; // no match in network type
 
+                if (ap == Tech.m2 || ap == Tech.m1 || !ap.getFunction().isMetal())
+                    continue;
+                
 //                if (ap != Tech.m3)
 //                {
 //                    System.out.println("picking  metal");
@@ -750,18 +767,28 @@ public class FillGeneratorTool extends Tool {
             double closestDist = Double.POSITIVE_INFINITY;
             Rectangle2D closestRect = null;
 
+            // Give priority to port layer (p.l)
+            int index = listOfLayers.indexOf(p.l);
+            if (index > -1)
+            {
+                Layer first = listOfLayers.get(0);
+                listOfLayers.set(0, p.l);
+                listOfLayers.set(index, first);
+            }
+
             // Now select possible pins
             for (Layer layer : listOfLayers)
             {
                 ArcProto ap = findArcProtoFromLayer(layer);
-                boolean horizontalBar = (ap == Tech.m4 || ap == Tech.m6);
+                boolean horizontalBar = (rotated) ? (ap == Tech.m3 || ap == Tech.m5) : (ap == Tech.m4 || ap == Tech.m6);
                 PrimitiveNode defaultContact = null;
 
                 if (horizontalBar)
                 {
-                    if (ap == Tech.m4)
+//                    continue;
+                    if ((!rotated && ap == Tech.m4) || (rotated && ap == Tech.m3))
                         defaultContact = Tech.m3m4;
-                    else if (ap == Tech.m6)
+                    else if ((!rotated && ap == Tech.m6) || (rotated && ap == Tech.m5))
                         defaultContact = Tech.m4m5;
                     else
                         assert(false);
@@ -782,6 +809,7 @@ public class FillGeneratorTool extends Tool {
 
                     if (horizontalBar)
                     {
+                        if (layer != p.l) continue; // only when they match in layer so the same contacts can be used
                         usefulBar = geomBnd.getHeight();
                         // search for the contacts m3m4 at least
                         Network net = fillNetlist.getNetwork(ai, 0);
@@ -812,12 +840,12 @@ public class FillGeneratorTool extends Tool {
                         else
                         {
                             // better if find a vertical bar by closest distance
-                            continue;
+//                            continue;
                             // search for closest distance or I could add all!!
                             // Taking the first element for now
-//                            NodeInst ni = nodes.get(0);
-//                            // Check lower layer of the contact so it won't add unnecessary contacts
-//                            PrimitiveNode np = (PrimitiveNode)ni.getProto();
+                            NodeInst ni = nodes.get(0);
+                            // Check lower layer of the contact so it won't add unnecessary contacts
+                            PrimitiveNode np = (PrimitiveNode)ni.getProto();
 //                            layerTmpList.clear();
 //                            for (Iterator<Layer> it = np.getLayerIterator(); it.hasNext(); )
 //                            {
@@ -827,13 +855,13 @@ public class FillGeneratorTool extends Tool {
 //                            }
 //                            Collections.sort(layerTmpList, Layer.layerSortByName);
 //                            theLayer = layerTmpList.get(0);
-//                            Rectangle2D r = ni.getBounds();
-//                            double contactW = ni.getXSizeWithoutOffset();
-//                            double contactH = ni.getYSizeWithoutOffset();
-//                            r = new Rectangle2D.Double(r.getCenterX()-contactW/2, contactArea.getY(),
-//                                    contactW, contactAreaHeight);
-//                            geomBnd = r;
-//                            newElem = geomBnd;
+                            Rectangle2D r = ni.getBounds();
+                            double contactW = ni.getXSizeWithoutOffset();
+                            double contactH = ni.getYSizeWithoutOffset();
+                            r = new Rectangle2D.Double(r.getCenterX()-contactW/2, contactArea.getY(),
+                                    contactW, contactAreaHeight);
+                            geomBnd = r;
+                            newElem = geomBnd;
                         }
                         newElemMin = newElem.getMinY();
                         newElemMax = newElem.getMaxY();
@@ -844,14 +872,28 @@ public class FillGeneratorTool extends Tool {
                     }
                     else
                     {
-                        usefulBar = geomBnd.getWidth();
-                        newElem = new Rectangle2D.Double(geomBnd.getX(), contactArea.getY(), usefulBar, contactAreaHeight);
-                        newElemMin = newElem.getMinX();
-                        newElemMax = newElem.getMaxX();
-                        areaMin = contactArea.getMinX();
-                        areaMax = contactArea.getMaxX();
-                        geoMin = geomBnd.getMinX();
-                        geoMax = geomBnd.getMaxX();
+                        if (rotated)
+                        {
+                            usefulBar = geomBnd.getHeight();
+                            newElem = new Rectangle2D.Double(contactArea.getX(), geomBnd.getY(), contactAreaWidth, usefulBar);
+                            newElemMin = newElem.getMinY();
+                            newElemMax = newElem.getMaxY();
+                            areaMin = contactArea.getMinY();
+                            areaMax = contactArea.getMaxY();
+                            geoMin = geomBnd.getMinY();
+                            geoMax = geomBnd.getMaxY();
+                        }
+                        else
+                        {
+                            usefulBar = geomBnd.getWidth();
+                            newElem = new Rectangle2D.Double(geomBnd.getX(), contactArea.getY(), usefulBar, contactAreaHeight);
+                            newElemMin = newElem.getMinX();
+                            newElemMax = newElem.getMaxX();
+                            areaMin = contactArea.getMinX();
+                            areaMax = contactArea.getMaxX();
+                            geoMin = geomBnd.getMinX();
+                            geoMax = geomBnd.getMaxX();
+                        }
                     }
 
                     // Don't consider no overlapping areas
@@ -952,7 +994,7 @@ public class FillGeneratorTool extends Tool {
          */
         private NodeInst addAllPossibleContacts(FillGenJobContainer container, FillGenerator.PortConfig p, Rectangle2D contactArea,
                                                 AffineTransform nodeTransOut, AffineTransform fillTransIn, AffineTransform fillTransOutToCon,
-                                                AffineTransform conTransOut)
+                                                AffineTransform conTransOut, Area exclusionArea)
         {
             // Until this point, contactArea is at the fillCell level
             // Contact area will contain the remaining are to check
@@ -962,11 +1004,15 @@ public class FillGeneratorTool extends Tool {
             // Transforming rectangle with gnd/power metal into the connection cell
             if (nodeTransOut != null)
                 DBMath.transformRect(contactArea, nodeTransOut);
+            if (exclusionArea != null && exclusionArea.intersects(contactArea))
+                return null; // can't connect here.
+
             GeometryHandler overlapHandler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
             GeometryHandler closestHandler = GeometryHandler.createGeometryHandler(GeometryHandler.GHMode.ALGO_SWEEP, 1);
             GeometryHandler handler;
 
-            searchOverlapHierarchically(container.fillCell, overlapHandler, closestHandler, p, contactArea, fillTransIn, GenMath.MATID);
+            searchOverlapHierarchically(container.fillCell, container.rotated, overlapHandler, closestHandler, p,
+                    contactArea, fillTransIn, GenMath.MATID);
             handler = overlapHandler;
             handler.postProcess(false);
             closestHandler.postProcess(false);
@@ -1001,6 +1047,7 @@ public class FillGeneratorTool extends Tool {
             // from both GeometricHandler structures.
             for (Layer layer : listOfLayers)
             {
+                if (!layer.getFunction().isMetal()) continue;  // in case of active arcs!
                 Collection set = handler.getObjects(layer, false, true);
 
                 if (set == null || set.size() == 0) // information from closestHandling
@@ -1034,8 +1081,8 @@ public class FillGeneratorTool extends Tool {
                         topContact = VddGndStraps.fillContacts[i];
                 }
 
-                assert(topContact != null);
-                boolean horizontalBar = (topPin == Tech.m4pin || topPin == Tech.m6pin);
+//                assert(topContact != null);
+                boolean horizontalBar = (container.rotated) ? (topPin == Tech.m3pin || topPin == Tech.m5pin) : (topPin == Tech.m4pin || topPin == Tech.m6pin);
 
                 for (Iterator it = set.iterator(); it.hasNext(); )
                 {
@@ -1111,13 +1158,19 @@ public class FillGeneratorTool extends Tool {
 
                         Rectangle2D geo = port.getPoly().getBounds2D();
                         assert(fillGenConfig.evenLayersHorizontal);
-                        boolean condition = (horizontalBar) ?
-                                DBMath.areEquals(geo.getCenterY(), newElemConnect.getCenterY()) :
-                                DBMath.areEquals(geo.getCenterX(), newElemConnect.getCenterX());
-                        if (!condition)
-                            continue; // only align with this so it could guarantee correct arc (M3)
                         double deltaX = geo.getCenterX() - newElemConnect.getCenterX();
                         double deltaY = geo.getCenterY() - newElemConnect.getCenterY();
+
+                        boolean condition = (horizontalBar) ?
+                                DBMath.isInBetween(geo.getCenterY(), newElemConnect.getMinY(), newElemConnect.getMaxY()) :
+                                DBMath.isInBetween(geo.getCenterX(), newElemConnect.getMinX(), newElemConnect.getMaxX());
+                        boolean cond = (horizontalBar) ?
+                                DBMath.areEquals(deltaY, 0) :
+                                DBMath.areEquals(deltaX, 0);
+                        if (cond != condition)
+                            System.out.println("Here");
+                        if (!condition)
+                            continue; // only align with this so it could guarantee correct arc (M3)
                         double dist = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
                         if (DBMath.isGreaterThan(minDistance, dist))
                         {
