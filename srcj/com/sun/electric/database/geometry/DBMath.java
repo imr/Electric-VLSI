@@ -100,12 +100,32 @@ public class DBMath extends GenMath {
         return false;
     }
 
+    /**
+     * Method to determine if x value is between two given values including
+     * the boundary.
+     * @param x
+     * @param a
+     * @param b
+     * @return
+     */
+    public static boolean isInBetween(double x, double a, double b)
+    {
+        if (isGreaterThan(a, b))
+        {
+            double c = a;
+            a = b; b = c;
+        }
+        boolean tooSmall = isGreaterThan(a, x);
+        boolean tooBig = isGreaterThan(x, b);
+        return !tooSmall && !tooBig;
+    }
+
 	/**
 	 * Method to determine if first value is greater than second but counting for
 	 * rounding error
 	 * @param a the first number.
 	 * @param b the second number.
-	 * @return true if first number is greater.
+	 * @return true if first number is greater than the second number.
 	 */
 	public static boolean isGreaterThan(double a, double b) {
 		double actual = round(a - b);
