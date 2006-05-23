@@ -698,6 +698,7 @@ public class Panel extends JPanel
 		Analysis an = sd.findAnalysis(analysisType);
 		if (an == null) return;
 		Rectangle2D anBounds = an.getBounds();
+        if (anBounds == null) return; // no signals
 		smallestXValue = anBounds.getWidth() / 1000;
 		smallestYValue = anBounds.getHeight() / 1000;
 	}
