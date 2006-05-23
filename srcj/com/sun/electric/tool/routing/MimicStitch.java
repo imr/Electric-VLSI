@@ -1108,7 +1108,7 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			new MimicWireJob(allRoutes, allKills, true);
+			new MimicWireJob(allRoutes, allKills, false);
 			count += allRoutes.size() + allKills.size();
 			presentNextSituation(count, situations.length, possibleArcs, cell, prefX, prefY);
 
@@ -1134,7 +1134,7 @@ public class MimicStitch
 			wnd.restoreHighlightList(saveHighlights);
 			wnd.finishedHighlighting();
 
-			MimicWireJob job = new MimicWireJob(allRoutes, allKills, true);
+			new MimicWireJob(allRoutes, allKills, false);
 			count += allRoutes.size() + allKills.size();
 			presentNextSituation(count, nextSituationNumber, possibleArcs, cell, prefX, prefY);
 
