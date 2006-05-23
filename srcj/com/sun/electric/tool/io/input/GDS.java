@@ -272,7 +272,7 @@ public class GDS extends Input
 					" with " + size + " instances");
 				if (size >= 100000) countOff = true;
 			}
-            nameInstances();
+            nameInstances(countOff);
            	Collections.sort(insts);
 			int count = 0;
 			for(MakeInstance mi : insts)
@@ -292,10 +292,14 @@ public class GDS extends Input
 			builtCells.add(this.cell);
 		}
 
-        private void nameInstances() {
+        private void nameInstances(boolean countOff) {
             HashMap<String,GenMath.MutableInteger> maxSuffixes = new HashMap<String,GenMath.MutableInteger>();
             HashSet<String> userNames = new HashSet<String>();
-            for (MakeInstance mi: insts) {
+            int count = 0;
+            for (MakeInstance mi: insts)
+            {
+				if (countOff && ((++count % 2000) == 0))
+					System.out.println("        Named " + count + " instances");
                 if (mi.nodeName != null) {
                     if (!validGdsNodeName(mi.nodeName)) {
                         System.out.println("  Warning: Node name '" + mi.nodeName + "' in cell " + cell.describe(false) +

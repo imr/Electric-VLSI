@@ -162,9 +162,16 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             assert(parent.findExport(protoName) == null);
 		}
         Name protoNameKey = ImmutableExport.validExportName(protoName);
-        if (protoNameKey == null) {
-            System.out.println("Bad export name " + protoName + " : " + Name.checkName(protoName));
-            return null;
+        if (protoNameKey == null)
+        {
+        	// hack: try removing offending characters
+        	protoName = protoName.replace(':', '_');
+            protoNameKey = ImmutableExport.validExportName(protoName);
+            if (protoNameKey == null)
+            {
+	            System.out.println("Bad export name " + protoName + " : " + Name.checkName(protoName));
+	            return null;
+            }
         }
         PortProto originalProto = portInst.getPortProto();
         boolean alwaysDrawn = false;
