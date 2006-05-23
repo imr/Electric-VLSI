@@ -29,7 +29,12 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -393,6 +398,21 @@ public class Pref
         // save preferences there
         try
 		{
+//			ByteArrayOutputStream bs = new ByteArrayOutputStream();
+//			Preferences root = Preferences.userNodeForPackage(Main.class);
+//			root.exportSubtree(bs);
+//			ByteArrayInputStream bis = new ByteArrayInputStream(bs.toByteArray());
+//			StreamSource source = new StreamSource(bis);
+//
+//        	TransformerFactory factory = TransformerFactory.newInstance();
+//        	factory.setAttribute("indent-number", 4);
+//        	Transformer transformer = factory.newTransformer();
+//			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+//			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//			File file = new File(fileName);
+//			StreamResult result = new StreamResult(file);
+//			transformer.transform(source, result);
+
 			FileOutputStream outputStream = new PrivateFileOutputStream(fileName);
 			Preferences root = Preferences.userNodeForPackage(Main.class);
 			root.exportSubtree(outputStream);
