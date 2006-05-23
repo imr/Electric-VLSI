@@ -273,11 +273,11 @@ public class GDS extends Input
 				if (size >= 100000) countOff = true;
 			}
             nameInstances();
-            Collections.sort(insts);
+           	Collections.sort(insts);
 			int count = 0;
 			for(MakeInstance mi : insts)
 			{
-				if (countOff && (++count % 2000) == 0)
+				if (countOff && ((++count % 1000) == 0))
 					System.out.println("        Made " + count + " instances");
                 if (mi.proto instanceof Cell) {
                     Cell subCell = (Cell)mi.proto;
