@@ -4,8 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/23/06, SMR) Waveform measurement doesn't display small numbers (Bug #1004).
+FIX: In Panel.repaintOffscreenImage(), use convertToEngineeringNotation.
+
 BUG: (5/23/06, GVG) Exception in Waveform viewer due to non-existing DC signals (Bug #1053)
-FIX:
+FIX: Test for null values.
 
 BUG: (5/23/06, DN) Null Pointer Exception in mimic unstitch (Bug #1047).
 FIX: Check if end of deleted arc killed too.

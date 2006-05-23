@@ -1031,7 +1031,7 @@ public class Panel extends JPanel
 				if (analysisType != null)
 				{
 					// show the low value
-					String lowValueString = TextUtils.formatDouble(highValue);
+					String lowValueString = TextUtils.convertToEngineeringNotation(highValue, null);
 					gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), lowValueString);
 					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
@@ -1044,7 +1044,7 @@ public class Panel extends JPanel
 					offscreenGraphics.drawLine(xP, lowY-1, xP-4, lowY-5);
 
 					// show the high value
-					String highValueString = TextUtils.formatDouble(lowValue);
+					String highValueString = TextUtils.convertToEngineeringNotation(lowValue, null);
 					gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), highValueString);
 					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
@@ -1056,7 +1056,7 @@ public class Panel extends JPanel
 					offscreenGraphics.drawLine(xP, highY+1, xP-4, highY+5);
 
 					// show the value difference
-					String valueDiffString = TextUtils.formatDouble(highValue - lowValue);
+					String valueDiffString = TextUtils.convertToEngineeringNotation(highValue - lowValue, null);
 					gv = waveWindow.getFont().createGlyphVector(waveWindow.getFontRenderContext(), valueDiffString);
 					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
