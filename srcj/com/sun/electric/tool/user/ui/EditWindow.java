@@ -2614,7 +2614,7 @@ public class EditWindow extends JPanel
 	public void setScale(double scale)
 	{
         if (scale <= 0)
-            throw new IllegalArgumentException("Negativ EditWindow scale");
+            throw new IllegalArgumentException("Negative window scale");
 		if (wf != null)
 		{
 			synchronized (redrawThese)

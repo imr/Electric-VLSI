@@ -105,8 +105,8 @@ public class ZoomAndPanListener
  		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
-             if (wnd == null) return;
-             Highlighter highlighter = wnd.getHighlighter();
+			if (wnd == null) return;
+			Highlighter highlighter = wnd.getHighlighter();
 
 			double scale = wnd.getScale();
 			if (mode == ToolBar.CursorMode.ZOOM)
@@ -117,9 +117,13 @@ public class ZoomAndPanListener
 				// if dragging the right mouse, zoom smoothly
 				if (ClickZoomWireListener.isRightMouse(evt))
 				{
-					double dY = (newY - lastY) / 20.0;
-					if (dY < 0) scale = scale - scale * dY; else
-						scale = scale - scale * dY;
+					// use hand motion to zoom; cap to maximum of 20 pixels per tick
+					int deltaY = newY - lastY;
+					if (deltaY >= 20) deltaY = 19; else
+						if (deltaY <= -10) deltaY = -19;
+					double dY = deltaY / 20.0;
+					if (dY < 0) scale = scale - scale * dY;
+						else scale = scale - scale * dY;
 					wnd.setScale(scale);
                     wnd.getSavedFocusBrowser().updateCurrentFocus();
 					wnd.repaintContents(null, false);

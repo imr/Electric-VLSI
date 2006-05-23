@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/23/06, SMR) Smooth zooming can crash (Bug #1054)
+FIX: In ZoomAndPanListener.mouseDragged(), prevent negative scale.
+
 BUG: (5/23/06, SMR) Mimic stitching doesn't show all cases when running interactively (Bug #1048).
 FIX: In MimicStitch.MimicDialog, run new dialogs without redisplay.
 
