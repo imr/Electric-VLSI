@@ -26,6 +26,7 @@ package com.sun.electric.database.text;
 import com.sun.electric.database.geometry.GenMath;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -45,6 +46,8 @@ import java.util.List;
  */
 public class Name implements Comparable<Name>
 {
+    /** True to keep strings in PermGen heap */     private static final boolean INTERN = true;
+
     /** the original name */	private final String ns;
 	/** the canonic name */     private final String canonicString;
 	/** list of subnames */		private Name[] subnames;
@@ -54,6 +57,7 @@ public class Name implements Comparable<Name>
 	
 	/** Hash of Names */        private static volatile Name[] allNames = new Name[1];
     /** count of allocated Names */private static int allNamesCount = 0;
+    /** Hash of canonic names. */private static final HashMap<String,Name> canonicNames = new HashMap<String,Name>();
 
 	/**
 	 * Method to return the name object for this string.
@@ -62,8 +66,8 @@ public class Name implements Comparable<Name>
 	 */
 	public static final Name findName(String ns) {
         if (ns == null) return null;
-        return findTrimmedName(trim(ns));
-    }
+        String ts = trim(ns);
+        return newTrimmedName(ts, ts == ns); }
 
 	/**
 	 * Method to check whether or not string is a valid name.
@@ -276,9 +280,21 @@ public class Name implements Comparable<Name>
 	/**
 	 * Returns the name object for this string, assuming that is is trimmed.
 	 * @param ns given trimmed string
+     * @param clone true to clone on reallocation
 	 * @return the name object for the string.
 	 */
-	private static Name findTrimmedName(String ns)
+	private static Name newTrimmedName(String ns, boolean clone) {
+        return findTrimmedName(ns, true, clone);
+    }
+    
+	/**
+	 * Returns the name object for this string, assuming that is is trimmed.
+	 * @param ns given trimmed string
+     * @param create true to allocate new name if not found
+     * @param clone true to clone on reallocation
+	 * @return the name object for the string.
+	 */
+	private static Name findTrimmedName(String ns, boolean create, boolean clone)
 	{
         // The allNames array is created in "rehash" method inside synchronized block.
         // "rehash" fills some entris leaving null in others.
@@ -311,11 +327,17 @@ public class Name implements Comparable<Name>
             if (hash == allNames && allNames[i] == null) {
                 // There we no rehash during our search and the last null entry is really null.
                 // So we can safely use results of unsynchronized search.
+                if (!create) return null;
+                
                 if (allNamesCount*2 <= hash.length - 3) {
                     // create a new CellUsage, if enough space in the hash
+                    if (!INTERN && clone) {
+                        ns = new String(ns);
+                        clone = false;
+                    }
                     Name n = new Name(ns);
                     if (hash != allNames || hash[i] != null)
-                        return findTrimmedName(ns);
+                        return newTrimmedName(ns, false);
                     hash[i] = n;
                     allNamesCount++;
                     return n;
@@ -324,7 +346,7 @@ public class Name implements Comparable<Name>
                 rehash();
             }
             // retry in synchronized mode.
-            return findTrimmedName(ns);
+            return findTrimmedName(ns, create, clone);
         }
     }
     
@@ -380,11 +402,34 @@ public class Name implements Comparable<Name>
 	 */
 	private Name(String s)
 	{
-        ns = s.intern();
+        String canonic;
+        if (INTERN) {
+            s = s.intern();
+            canonic = TextUtils.canonicString(s);
+            if (canonic != s)
+                canonic = canonic.intern();
+        } else {
+            canonic = TextUtils.canonicString(s);
+            if (canonic == s) {
+                Name canonicName = canonicNames.get(s);
+                if (canonicName != null) {
+                    canonic = s = canonicName.canonicString;
+                    canonicNames.remove(canonic);
+                }
+            } else {
+                Name canonicName = findTrimmedName(canonic, false, false);
+                if (canonicName == null)
+                    canonicName = canonicNames.get(s);
+                if (canonicName != null)
+                    canonic = canonicName.canonicString;
+                else
+                    canonicNames.put(canonic, this);
+            }
+        }
+        ns = s;
+        canonicString = canonic;
         int suffix = -1;
         Name base = null;
-        String canonic = TextUtils.canonicString(ns);
-        canonicString = canonic == ns ? ns : canonic.intern();
 		try
 		{
 			flags = checkNameThrow(ns);
@@ -401,7 +446,7 @@ public class Name implements Comparable<Name>
                 base = this;
                 suffix = 0;
 			} else {
-				base = findTrimmedName(ns.substring(0,l)+'0');
+				base = newTrimmedName(ns.substring(0,l)+'0', false);
 				suffix = Integer.parseInt(ns.substring(l));
 			}
 		}
@@ -441,7 +486,7 @@ public class Name implements Comparable<Name>
 				}
 				end++;
 			}
-			Name nm = findTrimmedName(ns.substring(beg,end));
+			Name nm = newTrimmedName(ns.substring(beg,end), true);
 			for (int j = 0; j < nm.busWidth(); j++)
 				subs.add(nm.subname(j));
 			beg = end + 1;
@@ -462,7 +507,7 @@ public class Name implements Comparable<Name>
 			int colon = ns.indexOf(':', beg);
 			if (colon < 0 || colon >= end)
 			{
-				Name nm = findTrimmedName("["+ns.substring(beg,end)+"]");
+				Name nm = newTrimmedName("["+ns.substring(beg,end)+"]", false);
 				subs.add(nm);
 			} else
 			{
@@ -471,11 +516,11 @@ public class Name implements Comparable<Name>
 				if (ind1 < ind2)
 				{
 					for (int i = ind1; i <= ind2; i++)
-						subs.add(findTrimmedName("["+i+"]"));
+						subs.add(newTrimmedName("["+i+"]", false));
 				} else
 				{
 					for (int i = ind1; i >= ind2; i--)
-						subs.add(findTrimmedName("["+i+"]"));
+						subs.add(newTrimmedName("["+i+"]", false));
 				}
 			}
 			beg = end+1;
@@ -514,8 +559,8 @@ public class Name implements Comparable<Name>
 			System.out.println("HEY! string is '"+ns+"' but want index "+split);
 			return;
 		}
-		Name baseName = findTrimmedName(ns.substring(0,split));
-		Name indexList = findTrimmedName(ns.substring(split));
+		Name baseName = newTrimmedName(ns.substring(0,split), true);
+		Name indexList = newTrimmedName(ns.substring(split),true);
 		subnames = new Name[baseName.busWidth()*indexList.busWidth()];
 		for (int i = 0; i < baseName.busWidth(); i++)
 		{
@@ -523,7 +568,7 @@ public class Name implements Comparable<Name>
 			for (int j = 0; j < indexList.busWidth(); j++)
 			{
 				String is = indexList.subname(j).toString();
-				subnames[i*indexList.busWidth()+j] = findTrimmedName(bs+is);
+				subnames[i*indexList.busWidth()+j] = newTrimmedName(bs+is, false);
 			}
 		}
 		if (baseName.hasDuplicates() || indexList.hasDuplicates())

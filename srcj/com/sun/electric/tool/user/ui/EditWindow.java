@@ -43,6 +43,7 @@ import com.sun.electric.database.text.TextUtils.WhatToSearch;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -78,6 +79,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -204,6 +206,148 @@ public class EditWindow extends JPanel
 		double scale;
 		int requestType;
 	}
+
+    static class EditWindowProxy implements EditWindow0 {
+        private EditWindow wnd;
+        
+        EditWindowProxy(EditWindow wnd) {
+            this.wnd = wnd;
+        }
+        
+        /**
+         * Get the window's VarContext
+         * @return the current VarContext
+         */
+        public VarContext getVarContext() { return wnd.getVarContext(); }
+        
+        /**
+         * Method to return the scale factor for this window.
+         * @return the scale factor for this window.
+         */
+        public double getScale() { return wnd.getScale(); }
+        
+        /**
+         * Method to find the size in points (actual screen units) for text of a given database size in this EditWindow0.
+         * The scale of this EditWindow0 is used to determine the acutal screen size.
+         * @param dbSize the size of the text in database grid-units.
+         * @return the screen size (in points) of the text.
+         */
+        public double getTextScreenSize(double dbSize) { return wnd.getTextScreenSize(dbSize); }
+        
+        /**
+         * Method to find the size in database units for text of a given point size in this EditWindow0.
+         * The scale of this EditWindow0 is used to determine the acutal unit size.
+         * @param pointSize the size of the text in points.
+         * @return the database size (in grid units) of the text.
+         */
+        public double getTextUnitSize(double pointSize) { return wnd.getTextUnitSize(pointSize); }
+        
+        /**
+         * Method to get the height of text given a TextDescriptor in this EditWindow0.
+         * @param descript the TextDescriptor.
+         * @return the height of the text.
+         */
+        public double getFontHeight(TextDescriptor descript) { return wnd.getFontHeight(descript); }
+        
+        /**
+         * Method to get a Font to use for a given TextDescriptor in this EditWindow0.
+         * @param descript the TextDescriptor.
+         * @return the Font to use (returns null if the text is too small to display).
+         */
+        public Font getFont(TextDescriptor descript) { return wnd.getFont(descript); }
+        
+        /**
+         * Method to convert a string and descriptor to a GlyphVector.
+         * @param text the string to convert.
+         * @param font the Font to use.
+         * @return a GlyphVector describing the text.
+         */
+        public GlyphVector getGlyphs(String text, Font font) { return wnd.getGlyphs(text, font); }
+        
+        /**
+         * Method to return the offset factor for this window.
+         * @return the offset factor for this window.
+         */
+        public Point2D getOffset() { return wnd.getOffset(); }
+
+        /**
+         * Method to return the cell that is shown in this window.
+         * @return the cell that is shown in this window.
+         */
+        public Cell getCell() { return wnd.getCell(); }
+        
+        /**
+         * Method to tell whether this EditWindow is displaying a cell "in-place".
+         * In-place display implies that the user has descended into a lower-level
+         * cell while requesting that the upper-level remain displayed.
+         * @return true if this EditWindow is displaying a cell "in-place".
+         */
+        public boolean isInPlaceEdit() { return wnd.isInPlaceEdit(); }
+        
+        /**
+         * Method to return the top-level cell for "in-place" display.
+         * In-place display implies that the user has descended into a lower-level
+         * cell while requesting that the upper-level remain displayed.
+         * The top-level cell is the original cell that is remaining displayed.
+         * @return the top-level cell for "in-place" display.
+         */
+        public Cell getInPlaceEditTopCell() { return wnd.getInPlaceEditTopCell(); }
+
+        /**
+         * Method to return a List of NodeInsts to the cell being in-place edited.
+         * In-place display implies that the user has descended into a lower-level
+         * cell while requesting that the upper-level remain displayed.
+         * @return a List of NodeInsts to the cell being in-place edited.
+         */
+        public List<NodeInst> getInPlaceEditNodePath() { return wnd.getInPlaceEditNodePath(); }
+        
+        public Rectangle2D getDisplayedBounds() { return wnd.getDisplayedBounds(); }
+
+        /**
+         * Method to return a rectangle in database coordinates that covers the viewable extent of this window.
+         * @return a rectangle that describes the viewable extent of this window (database coordinates).
+         */
+        public Rectangle2D displayableBounds() { return wnd.displayableBounds(); }
+    
+        /**
+         * Method to convert a database coordinate to screen coordinates.
+         * @param dbX the X coordinate (in database units).
+         * @param dbY the Y coordinate (in database units).
+         * @return the coordinate on the screen.
+         */
+        public Point databaseToScreen(double dbX, double dbY) { return wnd.databaseToScreen(dbX, dbY); }
+        
+        /**
+         * Method to convert a database rectangle to screen coordinates.
+         * @param db the rectangle (in database units).
+         * @return the rectangle on the screen.
+         */
+        public Rectangle databaseToScreen(Rectangle2D db) { return wnd.databaseToScreen(db); }
+        
+        /**
+         * Method to return the state of grid display in this window.
+         * @return true if the grid is displayed in this window.
+         */
+        public boolean isGrid() { return wnd.isGrid(); }
+        
+        /**
+         * Method to return the distance between grid dots in the X direction.
+         * @return the distance between grid dots in the X direction.
+         */
+        public double getGridXSpacing() { return wnd.getGridXSpacing(); }
+        
+        /**
+         * Method to return the distance between grid dots in the Y direction.
+         * @return the distance between grid dots in the Y direction.
+         */
+        public double getGridYSpacing() { return wnd.getGridYSpacing(); }
+
+    	public void repaint() { wnd.repaint(); } 
+        
+        public EditWindow getEditWindow() { return wnd; }
+        
+        public VectorDrawing getVectorDrawing() { return wnd.vd; }
+    }
 
 	// ************************************* CONSTRUCTION *************************************
 
@@ -1116,12 +1260,26 @@ public class EditWindow extends JPanel
 	 * Composites the image (taken from the PixelDrawing object)
 	 * with the grid, highlight, and any dragging rectangle.
 	 */
-	public void paintComponent(Graphics g)
+	public void paintComponent(Graphics graphics)
 	{
 		// to enable keys to be received
 		if (wf == null) return;
 //		if (wf == WindowFrame.getCurrentWindowFrame())
 //			requestFocusInWindow();
+        
+        Graphics2D g = (Graphics2D)graphics;
+        if (cell == null) {
+            g.setColor(new Color(User.getColorBackground()));
+            Dimension sz = getSize();
+            g.fillRect(0, 0, sz.width, sz.height);
+            String msg = "No cell in this window";
+            Font f = new Font(User.getDefaultFont(), Font.BOLD, 18);
+            g.setFont(f);
+            g.setColor(new Color(User.getColorText()));
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.drawString("No cell in this window", (sz.width - g.getFontMetrics(f).stringWidth(msg))/2, sz.height/2);
+            return;
+        }
         
         logger.entering(CLASS_NAME, "paintComponent", this);
 
@@ -1153,97 +1311,92 @@ public class EditWindow extends JPanel
 		}
         logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
 
-		// overlay other things if there is a valid cell
-		if (cell != null)
-		{
-			// add in grid if requested
-//			if (showGrid) drawGrid(g);
+		// add in grid if requested
+//		if (showGrid) drawGrid(g);
 
-			// add cross-probed level display
-			showCrossProbeLevels(g);
+		// add cross-probed level display
+		showCrossProbeLevels(g);
 
-            if (Job.getDebug()) {
-				// add in highlighting
-	            if (Job.acquireExamineLock(false)) {
-	                try {
-	                    // add in the frame if present
-	                    drawCellFrame(g);
+        if (Job.getDebug()) {
+            // add in highlighting
+	        if (Job.acquireExamineLock(false)) {
+	            try {
+	                // add in the frame if present
+	                drawCellFrame(g);
 
-	                    //long start = System.currentTimeMillis();
-	                    rulerHighlighter.showHighlights(this, g);
-	                    mouseOverHighlighter.showHighlights(this, g);
-	                    highlighter.showHighlights(this, g);
-	                    //long end = System.currentTimeMillis();
-	                    //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
-	                    Job.releaseExamineLock();
-	                } catch (Error e) {
-	                    Job.releaseExamineLock();
-	                    throw e;
-	                }
-	            } else {
-	            	// repaint
-/*
-	                TimerTask redrawTask = new TimerTask() {
-	                    public void run() { repaint(); }
-	                };
-	                Timer timer = new Timer();
-	                timer.schedule(redrawTask, 1000);
-*/
+	                //long start = System.currentTimeMillis();
+	                rulerHighlighter.showHighlights(this, g);
+	                mouseOverHighlighter.showHighlights(this, g);
+	                highlighter.showHighlights(this, g);
+	                //long end = System.currentTimeMillis();
+	                //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
+	                Job.releaseExamineLock();
+	            } catch (Error e) {
+	                Job.releaseExamineLock();
+	                throw e;
 	            }
-            } else {
-                // unsafe
-                try {
-                    // add in the frame if present
-                    drawCellFrame(g);
+	        } else {
+	          	// repaint
+/*
+	            TimerTask redrawTask = new TimerTask() {
+	                public void run() { repaint(); }
+	            };
+	            Timer timer = new Timer();
+	            timer.schedule(redrawTask, 1000);
+*/
+	        }
+        } else {
+            // unsafe
+            try {
+                // add in the frame if present
+                drawCellFrame(g);
 
-                    //long start = System.currentTimeMillis();
-                    rulerHighlighter.showHighlights(this, g);
-                    mouseOverHighlighter.showHighlights(this, g);
-                    highlighter.showHighlights(this, g);
-                    //long end = System.currentTimeMillis();
-                    //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
-                } catch (Exception e) {
-                }
+                //long start = System.currentTimeMillis();
+                rulerHighlighter.showHighlights(this, g);
+                mouseOverHighlighter.showHighlights(this, g);
+                highlighter.showHighlights(this, g);
+                //long end = System.currentTimeMillis();
+                //System.out.println("drawing highlights took "+TextUtils.getElapsedTime(end-start));
+            } catch (Exception e) {
             }
+        }
 
-			// add in drag area
-			if (doingAreaDrag) showDragBox(g);
+		// add in drag area
+		if (doingAreaDrag) showDragBox(g);
 
-			// add in popup cloud
-			if (showPopupCloud) drawPopupCloud((Graphics2D)g);
+		// add in popup cloud
+		if (showPopupCloud) drawPopupCloud((Graphics2D)g);
 
-			// add in shadow if doing in-place editing
-			if (inPlaceDisplay)
-			{
-				Graphics2D g2 = (Graphics2D)g;
-				Rectangle2D bounds = cell.getBounds();
-				Point i1 = databaseToScreen(bounds.getMinX(), bounds.getMinY());
-				Point i2 = databaseToScreen(bounds.getMinX(), bounds.getMaxY());
-				Point i3 = databaseToScreen(bounds.getMaxX(), bounds.getMaxY());
-				Point i4 = databaseToScreen(bounds.getMaxX(), bounds.getMinY());
+		// add in shadow if doing in-place editing
+		if (inPlaceDisplay)
+		{
+			Rectangle2D bounds = cell.getBounds();
+			Point i1 = databaseToScreen(bounds.getMinX(), bounds.getMinY());
+			Point i2 = databaseToScreen(bounds.getMinX(), bounds.getMaxY());
+			Point i3 = databaseToScreen(bounds.getMaxX(), bounds.getMaxY());
+			Point i4 = databaseToScreen(bounds.getMaxX(), bounds.getMinY());
 
-				// shade everything else except for the cell being edited
-				Polygon innerPoly = new Polygon();
-				innerPoly.addPoint(i1.x, i1.y);
-				innerPoly.addPoint(i2.x, i2.y);
-				innerPoly.addPoint(i3.x, i3.y);
-				innerPoly.addPoint(i4.x, i4.y);
-				Area outerArea = new Area(new Rectangle(0, 0, sz.width, sz.height));
-				Area innerArea = new Area(innerPoly);
-				outerArea.subtract(innerArea);
-				g.setColor(new Color(128, 128, 128, 128));
-				g2.fill(outerArea);
+			// shade everything else except for the cell being edited
+			Polygon innerPoly = new Polygon();
+			innerPoly.addPoint(i1.x, i1.y);
+			innerPoly.addPoint(i2.x, i2.y);
+			innerPoly.addPoint(i3.x, i3.y);
+			innerPoly.addPoint(i4.x, i4.y);
+			Area outerArea = new Area(new Rectangle(0, 0, sz.width, sz.height));
+			Area innerArea = new Area(innerPoly);
+			outerArea.subtract(innerArea);
+			g.setColor(new Color(128, 128, 128, 128));
+			g.fill(outerArea);
 
-				// draw a red box around the cell being edited
-				g2.setStroke(inPlaceMarker);
-				g.setColor(Color.RED);
-				g.drawLine(i1.x, i1.y, i2.x, i2.y);
-				g.drawLine(i2.x, i2.y, i3.x, i3.y);
-				g.drawLine(i3.x, i3.y, i4.x, i4.y);
-				g.drawLine(i4.x, i4.y, i1.x, i1.y);
-			}
-            logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "overlays are drawn");
+			// draw a red box around the cell being edited
+			g.setStroke(inPlaceMarker);
+			g.setColor(Color.RED);
+			g.drawLine(i1.x, i1.y, i2.x, i2.y);
+			g.drawLine(i2.x, i2.y, i3.x, i3.y);
+			g.drawLine(i3.x, i3.y, i4.x, i4.y);
+			g.drawLine(i4.x, i4.y, i1.x, i1.y);
 		}
+        logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "overlays are drawn");
 
 		// draw any components that are on top (such as in-line text edits)
 //		for(GetInfoText.EditInPlaceListener tl : inPlaceTextObjects)
@@ -1354,6 +1507,10 @@ public class EditWindow extends JPanel
 		// start rendering thread
 		if (wf == null) return;
 		if (offscreen == null) return;
+        if (cell == null) {
+            repaint();
+            return;
+        }
 
         logger.entering(CLASS_NAME, "repaintContents", bounds);
 		// do the redraw in a separate thread
@@ -1361,19 +1518,10 @@ public class EditWindow extends JPanel
 		{
 			if (runningNow != null)
 			{
-				if (runningNow == this)
-				{
-					if (!User.isUseOlderDisplayAlgorithm())
-					{
-						runningNow.vd.abortRendering();
-						if (!redrawThese.contains(this))
-							redrawThese.add(this);
-					}
-				} else
-				{
-					if (!redrawThese.contains(this))
-						redrawThese.add(this);
-				}
+				if (runningNow == this && !User.isUseOlderDisplayAlgorithm())
+					vd.abortRendering();
+                if (!redrawThese.contains(this))
+                    redrawThese.add(this);
                 logger.exiting(CLASS_NAME, "repaintContents");
 				return;
 			}

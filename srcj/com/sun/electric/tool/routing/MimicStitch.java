@@ -251,8 +251,10 @@ public class MimicStitch
 		// determine length of deleted arc
 		ImmutableArcInst mimicAi = activity.deletedArc;
         Cell cell = Cell.inCurrentThread(activity.deletedArcParent);
+        if (cell == null) return; // cell killed
 		NodeInst mimicNiHead = cell.getNodeById(mimicAi.headNodeId);
 		NodeInst mimicNiTail = cell.getNodeById(mimicAi.tailNodeId);
+        if (mimicNiHead == null || mimicNiTail == null) return; // arc end killed
 		ArcProto typ = mimicAi.protoType;
 		Point2D pt0 = mimicAi.headLocation;
 		Point2D pt1 = mimicAi.tailLocation;

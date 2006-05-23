@@ -51,21 +51,6 @@ public interface Nodable
 	public boolean isCellInstance();
 
 	/**
-	 * Method to return the number of actual NodeProtos which
-	 * produced this Nodable.
-	 * @return number of actual NodeProtos.
-	 */
-	public int getNumActualProtos();
-
-	/**
-	 * Method to return the i-th actual NodeProtos which produced
-	 * this Nodable.
-	 * @param i specified index of actual NodeProto.
-	 * @return actual NodeProto.
-	 */
-	public NodeProto getActualProto(int i);
-
-	/**
 	 * Method to return the Cell that contains this Nodable.
 	 * @return the Cell that contains this Nodable.
 	 */

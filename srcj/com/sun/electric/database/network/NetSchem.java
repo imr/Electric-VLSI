@@ -72,51 +72,16 @@ class NetSchem extends NetCell {
 		}
 	}
 
-	private static class MultiProxy {
-		NodeInst nodeInst;
-		int arrayIndex;
-
-		MultiProxy(NodeInst nodeInst, int arrayIndex) {
-			this.nodeInst = nodeInst;
-			this.arrayIndex = arrayIndex;
-		}
-	}
-
 	private class Proxy implements Nodable {
 		NodeInst nodeInst;
 		int arrayIndex;
 		int nodeOffset;
-		MultiProxy[] shared;
 
 		Proxy(NodeInst nodeInst, int arrayIndex) {
 			this.nodeInst = nodeInst;
 			this.arrayIndex = arrayIndex;
 		}
 	
-		private final boolean isShared() { return shared != null; }
-
-		private boolean hasMulti(Cell iconCell) {
-			if (shared == null)
-				return nodeInst.getProto() == iconCell;
-			for (int i = 0; i < shared.length; i++) {
-				if (shared[i].nodeInst.getProto() == iconCell)
-					return true;
-			}
-			return false;
-		}
-
-		private void addMulti(NodeInst nodeInst, int arrayIndex) {
-			if (shared == null) {
-				shared = new MultiProxy[2];
-				shared[0] = new MultiProxy(this.nodeInst, this.arrayIndex);
-			} else {
-				MultiProxy[] newShared = new MultiProxy[shared.length + 1];
-				for (int i = 0; i < shared.length; i++) newShared[i] = shared[i];
-				shared = newShared;
-			}
-			shared[shared.length - 1] = new MultiProxy(nodeInst, arrayIndex);
-		}
-
 		/**
 		 * Method to return the prototype of this Nodable.
 		 * @return the prototype of this Nodable.
@@ -131,24 +96,6 @@ class NetSchem extends NetCell {
 		 * @return true becaue NetSchem objects are always cell instances.
 		 */
 		public boolean isCellInstance() { return true; }
-
-		/**
-		 * Method to return the number of actual NodeProtos which
-		 * produced this Nodable.
-		 * @return number of actual NodeProtos.
-		 */
-		public int getNumActualProtos() { return shared == null ? 1 : shared.length; }
-
-		/**
-		 * Method to return the i-th actual NodeProto which produced
-		 * this Nodable.
-		 * @param i specified index of actual NodeProto.
-		 * @return actual NodeProt.
-		 */
-		public NodeProto getActualProto(int i) {
-			if (shared == null && i == 0) return nodeInst.getProto();
-			return shared[i].nodeInst.getProto();
-		}
 
 		/**
 		 * Method to return the Cell that contains this Nodable.
@@ -173,25 +120,7 @@ class NetSchem extends NetCell {
          * @param key the key of the Variable.
          * @return the Variable with that key, or null if there is no such Variable.
 		 */
-		public Variable getVar(Variable.Key key) {
-			if (shared == null)
-				return nodeInst.getVar(key);
-			Variable var = null;
-			for (int i = 0; i < shared.length; i++) {
-				Variable v = shared[i].nodeInst.getVar(key);
-				if (v == null) continue;
-				if (var == null) {
-					var = v;
-				} else if (!v.getObject().equals(var.getObject())) {
-					String msg = "Network: " + cell + " has multipart icon <" + getName() +
-						"> with ambigouos definition of variable " + key.getName();
-                    System.out.println(msg);
-                    networkManager.pushHighlight(shared[i].nodeInst);
-                    networkManager.logError(msg, NetworkTool.errorSortNodes);
-				}
-			}
-			return var;
-		}
+		public Variable getVar(Variable.Key key) { return nodeInst.getVar(key); }
 
         /**
          * Method to return the Variable on this ElectricObject with the given key
@@ -201,26 +130,7 @@ class NetSchem extends NetCell {
          * @return the Variable with that key, that may exist either on this object
          * or the default owner.  Returns null if none found.
          */
-        public Variable getParameter(Variable.Key key)
-        {
-            if (shared == null)
-                return nodeInst.getParameter(key);
-            Variable var = null;
-            for (int i = 0; i < shared.length; i++) {
-                Variable v = shared[i].nodeInst.getParameter(key);
-                if (v == null) continue;
-                if (var == null) {
-                    var = v;
-                } else if (!v.getObject().equals(var.getObject())) {
-                    String msg = "Network: " + cell + " has multipart icon <" + getName() +
-                        "> with ambigouos definition of parameter " + key;
-                    System.out.println(msg);
-                    networkManager.pushHighlight(shared[i].nodeInst);
-                    networkManager.logError(msg, NetworkTool.errorSortNodes);
-                }
-            }
-            return var;
-        }
+        public Variable getParameter(Variable.Key key) { return nodeInst.getParameter(key); }
 
         /**
          * Method to create a Variable on this ElectricObject with the specified values.
@@ -228,13 +138,7 @@ class NetSchem extends NetCell {
          * @param value the object to store in the Variable.
          * @return the Variable that has been created.
          */
-        public Variable newVar(String name, Object value) {
-            if (shared == null)
-                return nodeInst.newVar(name, value);
-            // just create new var on first of shared nodeInsts
-            Variable v = shared[0].nodeInst.newVar(name, value);
-            return v;
-        }
+        public Variable newVar(String name, Object value) { return nodeInst.newVar(name, value); }
 
         /**
          * Method to create a Variable on this ElectricObject with the specified values.
@@ -242,32 +146,13 @@ class NetSchem extends NetCell {
          * @param value the object to store in the Variable.
          * @return the Variable that has been created.
          */
-        public Variable newVar(Variable.Key key, Object value) {
-            if (shared == null)
-                return nodeInst.newVar(key, value);
-            // just create new var on first of shared nodeInsts
-            Variable v = shared[0].nodeInst.newVar(key, value);
-            return v;
-        }
+        public Variable newVar(Variable.Key key, Object value) { return nodeInst.newVar(key, value); }
 
         /**
          * Method to delete a Variable from this ElectricObject.
          * @param key the key of the Variable to delete.
          */
-        public void delVar(Variable.Key key) {
-            if (shared == null)
-                nodeInst.delVar(key);
-            else {
-                // find which one has var on it
-                for (int i=0; i < shared.length; i++) {
-                    if (shared[i].nodeInst.getVar(key) != null) {
-                        shared[i].nodeInst.delVar(key);
-                        return;
-                    }
-                }
-                // if none had var on them, nothing is done (conforms to ElectricObject.setVar())
-            }
-        }
+        public void delVar(Variable.Key key) { nodeInst.delVar(key); }
 
         /**
          * This method can be overridden by extending objects.
@@ -277,58 +162,20 @@ class NetSchem extends NetCell {
          * default values of the variables can then be found.
          * @return the object that holds the default variables and values.
          */
-        public Cell getVarDefaultOwner() {
-            //ActivityLogger.logMessage("getVarDefaultOwner called for "+this);
-            return nodeInst.getVarDefaultOwner();
-        }
+        public Cell getVarDefaultOwner() { return nodeInst.getVarDefaultOwner(); }
 
 		/**
 		 * Method to return an iterator over all Variables on this Nodable.
 		 * @return an iterator over all Variables on this Nodable.
 		 */
-		public Iterator<Variable> getVariables()
-		{
-			if (shared == null)
-				return nodeInst.getVariables();
-			List<Variable> allVariables = new ArrayList<Variable>();
-			for (int i = 0; i < shared.length; i++)
-			{
-				for(Iterator<Variable> it = shared[i].nodeInst.getVariables(); it.hasNext(); )
-					allVariables.add(it.next());
-			}
-			return allVariables.iterator();
-		}
+		public Iterator<Variable> getVariables() { return nodeInst.getVariables(); }
 
         /**
          * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.
          * This may also include any parameters on the defaultVarOwner object that are not on this object.
          * @return an Iterator over all Variables on this ElectricObject.
          */
-        public Iterator<Variable> getParameters() {
-            if (shared == null)
-                return nodeInst.getParameters();
-            HashMap<Variable.Key,Variable> allParameters = new HashMap<Variable.Key,Variable>();
-            for (int i = 0; i < shared.length; i++)
-            {
-                for(Iterator<Variable> it = shared[i].nodeInst.getParameters(); it.hasNext(); ) {
-                    Variable v = it.next();
-                    Variable var = allParameters.get(v.getKey());
-                    if (var == null) {
-                        allParameters.put(v.getKey(), v);
-                        continue;
-                    }
-                    // if same value, just ignore second param
-                    if (var.getObject().equals(v.getObject())) continue;
-                    // print error, conflicting values
-                    String msg = "Network: " + cell + " has multipart icon <" + getName() +
-                        "> with ambigouos definition of variable " + v.getKey().getName();
-                    System.out.println(msg);
-                    networkManager.pushHighlight(shared[i].nodeInst);
-                    networkManager.logError(msg, NetworkTool.errorSortNodes);
-                }
-            }
-            return allParameters.values().iterator();
-        }
+        public Iterator<Variable> getParameters() { return nodeInst.getParameters(); }
 
 		/**
 		 * Returns a printable version of this Nodable.
@@ -411,7 +258,7 @@ class NetSchem extends NetCell {
 				networkManager.logError(msg, NetworkTool.errorSortPorts);
 			}
 		}
-		if (!cell.isMultiPartIcon() && c != null && numPorts != c.getNumPorts()) {
+		if (c != null && numPorts != c.getNumPorts()) {
 			for (int i = 0; i < c.getNumPorts(); i++) {
 				Export e = (Export)c.getPort(i);
 				if (e.getEquivalentPort(cell) == null) {
@@ -463,12 +310,7 @@ class NetSchem extends NetCell {
 		for (int i = 0; i < nodeProxies.length; i++) {
 			Proxy proxy = nodeProxies[i];
 			if (proxy == null) continue;
-			if (proxy.isShared()) continue;
 			nodables.add(proxy);
-		}
-		for (Proxy proxy : name2proxy.values()) {
-			if (proxy.isShared())
-				nodables.add(proxy);
 		}
 		return nodables.iterator();
 	}
@@ -734,6 +576,7 @@ class NetSchem extends NetCell {
 		}
 		if (nodeProxies == null || nodeProxies.length != nodeProxiesOffset)
 			nodeProxies = new Proxy[nodeProxiesOffset];
+        Arrays.fill(nodeProxies, null);
 		name2proxy.clear();
 		proxyExcludeGlobals = null;
 		for (int n = 0; n < numNodes; n++) {
@@ -743,60 +586,39 @@ class NetSchem extends NetCell {
 			if (proxyOffset >= 0) continue;
 			Cell iconCell = (Cell)ni.getProto();
 			NetSchem netSchem = networkManager.getNetCell(iconCell).getSchem();
-			if (ni.isIconOfParent()) netSchem = null;
-			Set<Global> gs = null; // exclude set of globals
-			if (netSchem != null && nodeInstExcludeGlobal != null)
-				gs = nodeInstExcludeGlobal.get(ni);
-			for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
-				Proxy proxy = null;
-				if (netSchem != null) {
-					Name name = ni.getNameKey().subname(i);
-					if (!name.isTempname()) {
-						Proxy namedProxy = name2proxy.get(name);
-						if (namedProxy != null) {
-							Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
-							if (namedProxy.hasMulti(iconCell)) {
-								String msg = "Network: " + cell + " has instances of " + iconCell +
-									" with same name <" + name + ">";
-                                System.out.println(msg);
-                                networkManager.pushHighlight(ni);
-                                networkManager.logError(msg, NetworkTool.errorSortNodes);
-							} else if (!iconCell.isMultiPartIcon() || !namedIconCell.isMultiPartIcon() ||
-								networkManager.getNetCell(namedIconCell).getSchem() != netSchem) {
-								String msg = "Network: " + cell + " has instances of " + iconCell + " and " +
-									namedIconCell + " with same name <" + name + ">";
-                                System.out.println(msg);
-                                networkManager.pushHighlight(ni);
-                                networkManager.pushHighlight(namedProxy.nodeInst);
-                                networkManager.logError(msg, NetworkTool.errorSortNodes);
-							} else {
-								proxy = namedProxy;
-								proxy.addMulti(ni, i);
-								System.out.println("Info: " + cell + " has instances of multipart icon " + name);
-							}
-						}
-					}
-					if (proxy == null) {
-						proxy = new Proxy(ni, i);
-						if (!name.isTempname())
-							name2proxy.put(name, proxy);
-						if (NetworkTool.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPortsF.length);
-						proxy.nodeOffset = mapOffset;
-						mapOffset += netSchem.equivPortsF.length;
-					}
-					if (gs != null) {
-						if (proxyExcludeGlobals == null)
-							proxyExcludeGlobals = new HashMap<Proxy,Set<Global>>();
-						Set<Global> gs0 = proxyExcludeGlobals.get(proxy);
-						if (gs0 != null) {
-							gs = new HashSet<Global>(gs);
-							gs.addAll(gs0);
-						}
-						proxyExcludeGlobals.put(proxy, gs);
-					}
-				}
-				nodeProxies[~proxyOffset + i] = proxy;
-			}
+			if (netSchem == null || ni.isIconOfParent()) continue;
+			Set<Global> gs = nodeInstExcludeGlobal != null ? nodeInstExcludeGlobal.get(ni) : null; // exclude set of globals
+            for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
+                Proxy proxy = new Proxy(ni, i);
+                Name name = ni.getNameKey().subname(i);
+                if (!name.isTempname()) {
+                    Proxy namedProxy = name2proxy.get(name);
+                    if (namedProxy != null) {
+                        Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
+                        String msg = "Network: " + cell + " has instances " + ni + " and " +
+                                namedProxy.nodeInst + " with same name <" + name + ">";
+                        System.out.println(msg);
+                        networkManager.pushHighlight(ni);
+                        networkManager.pushHighlight(namedProxy.nodeInst);
+                        networkManager.logError(msg, NetworkTool.errorSortNodes);
+                    }
+                    name2proxy.put(name, proxy);
+                }
+                if (NetworkTool.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPortsF.length);
+                proxy.nodeOffset = mapOffset;
+                mapOffset += netSchem.equivPortsF.length;
+                if (gs != null) {
+                    if (proxyExcludeGlobals == null)
+                        proxyExcludeGlobals = new HashMap<Proxy,Set<Global>>();
+                    Set<Global> gs0 = proxyExcludeGlobals.get(proxy);
+                    if (gs0 != null) {
+                        gs = new HashSet<Global>(gs);
+                        gs.addAll(gs0);
+                    }
+                    proxyExcludeGlobals.put(proxy, gs);
+                }
+                nodeProxies[~proxyOffset + i] = proxy;
+            }
 		}
 		netNamesOffset = mapOffset;
 		if (NetworkTool.debug) System.out.println("netNamesOffset="+netNamesOffset);
@@ -959,6 +781,7 @@ class NetSchem extends NetCell {
         networkManager.logError(msg, NetworkTool.errorSortNetworks);
     }
 
+	@Override
 	void addNetNames(Name name, Export e, ArcInst ai) {
  		for (int i = 0; i < name.busWidth(); i++)
  			addNetName(name.subname(i), e, ai);

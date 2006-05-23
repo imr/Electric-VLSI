@@ -3604,12 +3604,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
-	 * Method to tell if this Cell is icon cell which is a part of multi-part icon.
-	 * @return true if this Cell is part of multi-part icon.
-	 */
-	public boolean isMultiPartIcon() { return false; }
-
-	/**
 	 * Method to return true if this Cell is a schematic Cell.
 	 * @return true if this Cell is a schematic Cell.
 	 */

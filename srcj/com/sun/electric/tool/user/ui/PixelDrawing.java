@@ -44,6 +44,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.user.UserInterfaceMain;
 
@@ -243,8 +244,8 @@ public class PixelDrawing
 			offscreen = null;
 		}
 	}
-
-	/** the EditWindow being drawn */						private EditWindow wnd;
+    
+	/** the EditWindow being drawn */						private EditWindow.EditWindowProxy wnd;
 	/** the size of the EditWindow */						private Dimension sz;
     /** the scale of the EditWindow */                      private double scale;
     /** the X origin of the cell in display coordinates. */ private double originX;
@@ -318,7 +319,7 @@ public class PixelDrawing
 	 */
 	public PixelDrawing(EditWindow wnd)
 	{
-		this.wnd = wnd;
+		this.wnd = new EditWindow.EditWindowProxy(wnd);
 		this.sz = wnd.getScreenSize();
         width = sz.width;
         clipLX = 0;
@@ -347,7 +348,7 @@ public class PixelDrawing
 	}
     
     public PixelDrawing(EditWindow wnd, Rectangle screenBounds) {
-        this.wnd = wnd;
+        this.wnd = new EditWindow.EditWindowProxy(wnd);
         this.scale = wnd.getScale();
         scale_ = (float)(wnd.getScale()/DBMath.GRID);
         
@@ -511,42 +512,31 @@ public class PixelDrawing
         }
 		clearImage(true, renderBounds);
 
-		if (cell == null)
+        HashSet<CellId> changedCellsCopy;
+        synchronized (changedCells) {
+            changedCellsCopy = new HashSet<CellId>(changedCells);
+            changedCells.clear();
+        }
+        forceRedraw(changedCellsCopy);
+        VectorCache.theCache.forceRedraw(changedCellsCopy);
+		if (User.isUseOlderDisplayAlgorithm())
 		{
-			if (noCellTextDescriptor == null)
-			{
-				noCellTextDescriptor = TextDescriptor.EMPTY.withAbsSize(18).withBold(true);
-			}
-			Rectangle rect = new Rectangle(sz);
-			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, textGraphics, false);
+			// reset cached cell counts
+			numberToReconcile = SINGLETONSTOADD;
+			for(ExpandedCellInfo count : expandedCells.values())
+				count.instanceCount = 0;
+
+			// determine which cells should be cached (must have at least 2 instances)
+			countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
+
+			// now render it all
+            if (USE_VECTOR_CACHE)
+                drawCell_(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
+            else    
+                drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd, wnd.getVarContext());
 		} else
 		{
-            HashSet<CellId> changedCellsCopy;
-            synchronized (changedCells) {
-                changedCellsCopy = new HashSet<CellId>(changedCells);
-                changedCells.clear();
-            }
-            forceRedraw(changedCellsCopy);
-            VectorCache.theCache.forceRedraw(changedCellsCopy);
-			if (User.isUseOlderDisplayAlgorithm())
-			{
-				// reset cached cell counts
-				numberToReconcile = SINGLETONSTOADD;
-				for(ExpandedCellInfo count : expandedCells.values())
-					count.instanceCount = 0;
-
-				// determine which cells should be cached (must have at least 2 instances)
-				countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
-
-				// now render it all
-                if (USE_VECTOR_CACHE)
-    				drawCell_(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
-                else    
-                    drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd, wnd.getVarContext());
-			} else
-			{
-				wnd.vd.render(cell, fullInstantiate, drawLimitBounds, wnd.getVarContext());
-			}
+			wnd.getVectorDrawing().render(cell, fullInstantiate, drawLimitBounds, wnd.getVarContext());
 		}
 
 		// merge transparent image into opaque one
@@ -969,7 +959,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient,  AffineTransform prevTrans, EditWindow topWnd, VarContext context)
+	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient,  AffineTransform prevTrans, EditWindow.EditWindowProxy topWnd, VarContext context)
 	{
 		renderedCells++;
         renderPolyTime = 0;
@@ -1195,7 +1185,7 @@ public class PixelDrawing
 				return false;
             }
 
-            expandedCellCount.offscreen = new PixelDrawing(wnd, screenBounds);
+            expandedCellCount.offscreen = new PixelDrawing(wnd.getEditWindow(), screenBounds);
 			expandedCellCount.offscreen.drawCell_(subCell, null, fullInstantiate, orient, 0, 0, false, context);
 			offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
@@ -1220,7 +1210,7 @@ public class PixelDrawing
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
 	 * @param context the VarContext to this node in the hierarchy.
      */
-	public void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, EditWindow topWnd, Rectangle2D drawLimitBounds, boolean fullInstantiate, boolean forceVisible, VarContext context)
+	public void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, EditWindow.EditWindowProxy topWnd, Rectangle2D drawLimitBounds, boolean fullInstantiate, boolean forceVisible, VarContext context)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -1338,7 +1328,7 @@ public class PixelDrawing
 					return;
 				}
 
-				EditWindow nodeWnd = wnd;
+				EditWindow.EditWindowProxy nodeWnd = wnd;
 				if (!canDrawText || !User.isTextVisibilityOnNode()) nodeWnd = null;
 				if (prim == Generic.tech.invisiblePinNode)
 				{
@@ -1448,7 +1438,7 @@ public class PixelDrawing
 		// draw the arc
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
-		EditWindow arcWnd = wnd;
+		EditWindow.EditWindowProxy arcWnd = wnd;
 		if (!canDrawText || !User.isTextVisibilityOnArc()) arcWnd = null;
 		Poly [] polys = tech.getShapeOfArc(ai, arcWnd);
 		drawPolys(polys, trans, forceVisible);
@@ -1597,7 +1587,7 @@ public class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, Orientation orient, AffineTransform origTrans, EditWindow topWnd, VarContext context, Rectangle2D drawLimitBounds, boolean fullInstantiate)
+	private boolean expandedCellCached(Cell subCell, Orientation orient, AffineTransform origTrans, EditWindow.EditWindowProxy topWnd, VarContext context, Rectangle2D drawLimitBounds, boolean fullInstantiate)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -1649,7 +1639,7 @@ public class PixelDrawing
 				expandedCells.put(expansionKey, expandedCellCount);
 			}
 
-            expandedCellCount.offscreen = new PixelDrawing(wnd, screenBounds);
+            expandedCellCount.offscreen = new PixelDrawing(wnd.getEditWindow(), screenBounds);
 			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, rotTrans, topWnd, context);
 			offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
@@ -3993,6 +3983,8 @@ public class PixelDrawing
      */
     public void drawText(String s, Rectangle rect)
     {
+        if (noCellTextDescriptor == null)
+            noCellTextDescriptor = TextDescriptor.EMPTY.withAbsSize(18).withBold(true);
         textColor = new Color(User.getColorText());
 		textGraphics.setColor(textColor);
         drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, s, null, textGraphics, false);

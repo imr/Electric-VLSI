@@ -2867,21 +2867,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public boolean isCellInstance() { return protoType instanceof Cell; }
 
-	/**
-	 * Method to return the number of actual NodeProtos which
-	 * produced this Nodable.
-	 * @return number of actual NodeProtos.
-	 */
-	public int getNumActualProtos() { return 1; }
-
-	/**
-	 * Method to return the i-th actual NodeProto which produced
-	 * this Nodable.
-	 * @param i specified index of actual NodeProto.
-	 * @return actual NodeProt.
-	 */
-	public NodeProto getActualProto(int i) { return (i == 0 ? protoType : null); }
-
     // JKG: trying this out
     /**
      * Implements Nodable.contains(NodeInst ni).
