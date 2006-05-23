@@ -2474,12 +2474,16 @@ public class Spice extends Topology
 				{
 					multiLinePrint(true, "* Trailer cards are described in this file:\n");
 					addIncludeFile(filePart);
+                    System.out.println("Spice Trailer Card '" + fileName + "' is included");
 				}
+                else
+                    System.out.println("Spice Trailer Card '" + fileName + "' cannot be loaded");
 			} else
 			{
 				// normal trailer file specified
 				multiLinePrint(true, "* Trailer cards are described in this file:\n");
 				addIncludeFile(trailerFile);
+                System.out.println("Spice Trailer Card '" + trailerFile + "' is included");
 			}
 		}
 	}
