@@ -1579,12 +1579,12 @@ public class EditWindow extends JPanel
 				System.out.println("GOT ConcurrentModificationException during redisplay!");
             	ActivityLogger.logException(e);
 				wnd.repaintContents(bounds, fullInstantiate);
+            } finally {
+                
+                synchronized(redrawThese) {
+                    runningNow = null;
+                }
             }
-
-			synchronized(redrawThese)
-			{
-				runningNow = null;
-			}
 			wnd.repaint();
             logger.exiting(RENDER_JOB_CLASS_NAME, "doIt");
 			return true;
@@ -2613,6 +2613,8 @@ public class EditWindow extends JPanel
 	 */
 	public void setScale(double scale)
 	{
+        if (scale <= 0)
+            throw new IllegalArgumentException("Negativ EditWindow scale");
 		if (wf != null)
 		{
 			synchronized (redrawThese)

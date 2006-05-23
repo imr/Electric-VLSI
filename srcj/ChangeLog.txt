@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/23/06, DN) Electric doesn't display anything after the language assertion error (Bug #1054).
+FIX: EditWindow.setScale throws IllegalArgumentException when scal is negative.
+     RenderJob.doIt clears "runningNow" in finally block.
+
 IMP: (5/23/06, GVG) Extra messages for Spice netlister export (Bug #1046, tail file appending).
 
 BUG: (5/23/06, SMR) Waveform measurement doesn't display small numbers (Bug #1004).
