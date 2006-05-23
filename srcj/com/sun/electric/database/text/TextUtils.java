@@ -488,7 +488,7 @@ public class TextUtils
     {
 		// when adding new ranges, change values at start of "convertToEngineeringNotation"
 //		new ConversionRange("y", 24, 1.0E26),		// yocto
-//		new ConversionRange("z", 21, 1.0E23),		// zepto
+		new ConversionRange("z", 21, 1.0E23),		// zepto
 		new ConversionRange("a", 18, 1.0E20),		// atto
 		new ConversionRange("f", 15, 1.0E17),		// femto
 		new ConversionRange("p", 12, 1.0E14),		// pico
@@ -510,9 +510,9 @@ public class TextUtils
 		if (unitPostfix == null) unitPostfix = "";
 
 		// change these values when adding new ranges to "allRanges"
-		if (Math.abs(time) < 1e-25) return "0" + unitPostfix;
+		if (Math.abs(time) < 1e-28) return "0" + unitPostfix;
 		if (time >= 1000.0) return negative + TextUtils.formatDouble(time) + unitPostfix;
-		if (time < 1.0E-21) return negative + TextUtils.formatDouble(time) + unitPostfix;
+		if (time < 1.0E-24) return negative + TextUtils.formatDouble(time) + unitPostfix;
 
 		// get proper time unit to use
 		String secType = null;
