@@ -611,8 +611,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			double lowTime = dataBounds.getMinX();
 			double highTime = dataBounds.getMaxX();
-			double lowValue = dataBounds.getMinY();
-			double highValue = dataBounds.getMaxY();
+//			double lowValue = dataBounds.getMinY();
+//			double highValue = dataBounds.getMaxY();
 			double timeRange = highTime - lowTime;
 			setMainXPositionCursor(timeRange*0.2 + lowTime);
 			setExtensionXPositionCursor(timeRange*0.8 + lowTime);
