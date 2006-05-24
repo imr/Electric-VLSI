@@ -27,11 +27,11 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.KeyStrokePair;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
@@ -158,7 +158,15 @@ public abstract class EMenuItem implements ActionListener {
      * Returns hort text description of this EMenuElement.
      */
     public String getText() { return text; }
-    
+
+    public String getToolTipText()
+    {
+        String s = text;
+        if (getAccelerator() != null)
+            s += "(" + KeyStrokePair.keyStrokeToString(accelerator) + ")";
+        return s;
+    }
+
     KeyStroke getAccelerator() { return accelerator; }
     KeyStroke getAccelerator2() { return accelerator2; }
     

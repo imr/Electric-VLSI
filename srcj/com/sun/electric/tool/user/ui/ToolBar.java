@@ -164,7 +164,7 @@ public class ToolBar extends JToolBar
          */
         AbstractButton genToolBarButton() {
             AbstractButton b = createToolBarButton();
-            b.setToolTipText(getText());
+            b.setToolTipText(getToolTipText());
             b.setIcon(defaultIcon);
             b.addActionListener(this);
             updateToolBarButton(b);
