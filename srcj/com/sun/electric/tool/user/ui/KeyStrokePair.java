@@ -26,8 +26,6 @@ package com.sun.electric.tool.user.ui;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
 
 import javax.swing.KeyStroke;
 
