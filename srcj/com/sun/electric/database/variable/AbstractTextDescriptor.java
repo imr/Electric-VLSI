@@ -28,6 +28,9 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
+import java.awt.Font;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -369,6 +372,7 @@ abstract class AbstractTextDescriptor implements Serializable
 		/** The maximum size of text (in points). */		public static final int    TXTMAXPOINTS =  63;
         /** The minimu size of text (in grid units). */	public static final double TXTMINQGRID  = 0.25;
 		/** The maximum size of text (in grid units). */	public static final double TXTMAXQGRID  = 127.75;
+        /** Default font size. */                           private static final int DEFAULT_FONT_SIZE = 14;
 		/*private*/ static final int TXTQGRIDSH =          6;		
 
 		private final boolean absolute;
@@ -1005,9 +1009,11 @@ abstract class AbstractTextDescriptor implements Serializable
 		if (textSize == 0) return Size.newRelSize(1);
 		if (textSize <= Size.TXTMAXPOINTS) return Size.newAbsSize(textSize);
 		int sizeValue = textSize>>Size.TXTQGRIDSH;
-		double size = sizeValue / 4.0;
+		double size = sizeValue * 0.25;
 		return Size.newRelSize(size);
 	}
+
+	public static int getDefaultFontSize() { return Size.DEFAULT_FONT_SIZE; }
 
 	/**
 	 * Method to find the true size in points for this TextDescriptor in a given EditWindow0.
@@ -1018,25 +1024,22 @@ abstract class AbstractTextDescriptor implements Serializable
 	 */
 	public double getTrueSize(EditWindow0 wnd)
 	{
-		double scale = 14;
-		Size s = getSize();
-		if (s != null)
-		{
-			// absolute font sizes are easy
-			if (s.isAbsolute()) scale = s.getSize(); else
-			{	
-				// relative font: get size in grid units
-				if (wnd != null)
-				{
-					double height = s.getSize();
-			
-					// convert to screen units
-					scale = wnd.getTextScreenSize(height);
-				}
-			}
-		}
-		scale *= User.getGlobalTextScale();
-		return scale;
+		double trueSize = Size.DEFAULT_FONT_SIZE;
+        
+		int textSize = getField(VTSIZE, VTSIZESH);
+		if (textSize == 0) {
+            // relative 1
+            if (wnd != null)
+                trueSize = wnd.getScale();
+        } else if (textSize <= Size.TXTMAXPOINTS) {
+            // absolute
+            trueSize = textSize;
+        } else {
+            // relative
+            if (wnd != null)
+                trueSize = (textSize>>Size.TXTQGRIDSH) * 0.25 * wnd.getScale();
+        }
+		return trueSize*User.getGlobalTextScale();
 	}
 
 	/**
@@ -1044,6 +1047,53 @@ abstract class AbstractTextDescriptor implements Serializable
 	 * @return the text font of the TextDescriptor.
 	 */
 	public int getFace() { return getField(VTFACE, VTFACESH); }
+
+	/**
+	 * Method to get a Font to use for this TextDescriptor in a given EditWindow.
+	 * @param wnd the EditWindow0 in which drawing will occur.
+     * @param minimalTextSize Return null for texts smaller than this
+     * @return the Font to use (returns null if the text is too small to display).
+	 */
+    public Font getFont(EditWindow0 wnd, int minimalTextSize) {
+        int fontStyle = Font.PLAIN;
+        String fontName = User.getDefaultFont();
+        int size = (int)getTrueSize(wnd);
+        if (size <= 0) size = 1;
+        if (size < minimalTextSize) return null;
+        
+        if (isItalic()) fontStyle |= Font.ITALIC;
+        if (isBold()) fontStyle |= Font.BOLD;
+        int fontIndex = getFace();
+        if (fontIndex != 0) {
+            TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
+            if (af != null) fontName = af.getName();
+        }
+        Font font = new Font(fontName, fontStyle, size);
+        return font;
+    }
+
+	/**
+	 * Method to get a default Font to use.
+	 * @return the Font to use (returns null if the text is too small to display).
+	 */
+	public static Font getDefaultFont()
+	{
+		return new Font(User.getDefaultFont(), Font.PLAIN, TextDescriptor.getDefaultFontSize());
+	}
+
+	/**
+	 * Method to convert a string and descriptor to a GlyphVector.
+	 * @param text the string to convert.
+	 * @param font the Font to use.
+	 * @return a GlyphVector describing the text.
+	 */
+	public static GlyphVector getGlyphs(String text, Font font)
+	{
+		// make a glyph vector for the desired text
+		FontRenderContext frc = new FontRenderContext(null, false, false);
+		GlyphVector gv = font.createGlyphVector(frc, text);
+		return gv;
+	}
 
 	/**
 	 * Method to return the text rotation of the TextDescriptor.

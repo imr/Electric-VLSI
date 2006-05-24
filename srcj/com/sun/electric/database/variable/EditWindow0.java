@@ -23,10 +23,6 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.hierarchy.Cell;
-import java.awt.Font;
-import java.awt.font.GlyphVector;
-
 /**
  * This interface gives a limited access to EditWindow necessary
  * for calculating a shape of some primitives.
@@ -43,42 +39,4 @@ public interface EditWindow0 {
 	 * @return the scale factor for this window.
 	 */
 	public double getScale();
-
-	/**
-	 * Method to find the size in points (actual screen units) for text of a given database size in this EditWindow0.
-	 * The scale of this EditWindow0 is used to determine the acutal screen size.
-	 * @param dbSize the size of the text in database grid-units.
-	 * @return the screen size (in points) of the text.
-	 */
-	public double getTextScreenSize(double dbSize);
-    
-	/**
-	 * Method to find the size in database units for text of a given point size in this EditWindow0.
-	 * The scale of this EditWindow0 is used to determine the acutal unit size.
-	 * @param pointSize the size of the text in points.
-	 * @return the database size (in grid units) of the text.
-	 */
-	public double getTextUnitSize(double pointSize);
-
-	/**
-	 * Method to get the height of text given a TextDescriptor in this EditWindow0.
-	 * @param descript the TextDescriptor.
-	 * @return the height of the text.
-	 */
-	public double getFontHeight(TextDescriptor descript);
-
-	/**
-	 * Method to get a Font to use for a given TextDescriptor in this EditWindow0.
-	 * @param descript the TextDescriptor.
-	 * @return the Font to use (returns null if the text is too small to display).
-	 */
-	public Font getFont(TextDescriptor descript);
-    
-	/**
-	 * Method to convert a string and descriptor to a GlyphVector.
-	 * @param text the string to convert.
-	 * @param font the Font to use.
-	 * @return a GlyphVector describing the text.
-	 */
-	public GlyphVector getGlyphs(String text, Font font);
 }

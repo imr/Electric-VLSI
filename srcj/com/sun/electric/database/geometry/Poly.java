@@ -241,13 +241,13 @@ public class Poly extends PolyBase {
 
 		Type style = getStyle();
 		style = rotateType(style, eObj);
-		Font font = wnd.getFont(descript);
+		Font font = descript != null ? descript.getFont(wnd, 0) : TextDescriptor.getDefaultFont();
 		if (font == null)
 		{
 			UserInterface ui = Job.getUserInterface();
 			double size = ui.getDefaultTextSize();
 			if (descript != null) size = descript.getTrueSize(wnd);
-			size = wnd.getTextUnitSize(size);
+			size = size/wnd.getScale();
 			if (size <= 0) size = 1;
 			double cX = getBounds2D().getCenterX();
 			double cY = getBounds2D().getCenterY();
@@ -268,7 +268,7 @@ public class Poly extends PolyBase {
 		double hX = bounds.getMaxX();
 		double lY = bounds.getMinY();
 		double hY = bounds.getMaxY();
-		GlyphVector gv = wnd.getGlyphs(theString, font);
+		GlyphVector gv = TextDescriptor.getGlyphs(theString, font);
 		Rectangle2D glyphBounds = gv.getVisualBounds();
 
 		// adjust to place text in the center

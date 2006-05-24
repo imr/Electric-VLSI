@@ -227,44 +227,6 @@ public class EditWindow extends JPanel
         public double getScale() { return wnd.getScale(); }
         
         /**
-         * Method to find the size in points (actual screen units) for text of a given database size in this EditWindow0.
-         * The scale of this EditWindow0 is used to determine the acutal screen size.
-         * @param dbSize the size of the text in database grid-units.
-         * @return the screen size (in points) of the text.
-         */
-        public double getTextScreenSize(double dbSize) { return wnd.getTextScreenSize(dbSize); }
-        
-        /**
-         * Method to find the size in database units for text of a given point size in this EditWindow0.
-         * The scale of this EditWindow0 is used to determine the acutal unit size.
-         * @param pointSize the size of the text in points.
-         * @return the database size (in grid units) of the text.
-         */
-        public double getTextUnitSize(double pointSize) { return wnd.getTextUnitSize(pointSize); }
-        
-        /**
-         * Method to get the height of text given a TextDescriptor in this EditWindow0.
-         * @param descript the TextDescriptor.
-         * @return the height of the text.
-         */
-        public double getFontHeight(TextDescriptor descript) { return wnd.getFontHeight(descript); }
-        
-        /**
-         * Method to get a Font to use for a given TextDescriptor in this EditWindow0.
-         * @param descript the TextDescriptor.
-         * @return the Font to use (returns null if the text is too small to display).
-         */
-        public Font getFont(TextDescriptor descript) { return wnd.getFont(descript); }
-        
-        /**
-         * Method to convert a string and descriptor to a GlyphVector.
-         * @param text the string to convert.
-         * @param font the Font to use.
-         * @return a GlyphVector describing the text.
-         */
-        public GlyphVector getGlyphs(String text, Font font) { return wnd.getGlyphs(text, font); }
-        
-        /**
          * Method to return the offset factor for this window.
          * @return the offset factor for this window.
          */
@@ -3850,7 +3812,7 @@ public class EditWindow extends JPanel
 		return dbSize * scale;
 	}
 
-	public static int getDefaultFontSize() { return 14; }
+	public static int getDefaultFontSize() { return TextDescriptor.getDefaultFontSize(); }
 
 	/**
 	 * Method to get a Font to use for a given TextDescriptor in this EditWindow.
@@ -3859,25 +3821,7 @@ public class EditWindow extends JPanel
 	 */
 	public Font getFont(TextDescriptor descript)
 	{
-		int size = getDefaultFontSize();
-		int fontStyle = Font.PLAIN;
-		String fontName = User.getDefaultFont();
-		if (descript != null)
-		{
-			size = (int)descript.getTrueSize(this);
-			if (size <= 0) size = 1;
-			if (descript.isItalic()) fontStyle |= Font.ITALIC;
-			if (descript.isBold()) fontStyle |= Font.BOLD;
-			int fontIndex = descript.getFace();
-			if (fontIndex != 0)
-			{
-				TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontIndex);
-				if (af != null) fontName = af.getName();
-			}
-		}
-		if (size < PixelDrawing.MINIMUMTEXTSIZE) return null;
-		Font font = new Font(fontName, fontStyle, size);
-		return font;
+        return descript != null ? descript.getFont(this, PixelDrawing.MINIMUMTEXTSIZE) : TextDescriptor.getDefaultFont();
 	}
 
 	/**
@@ -3902,9 +3846,7 @@ public class EditWindow extends JPanel
 	public GlyphVector getGlyphs(String text, Font font)
 	{
 		// make a glyph vector for the desired text
-		FontRenderContext frc = new FontRenderContext(null, false, false);
-		GlyphVector gv = font.createGlyphVector(frc, text);
-		return gv;
+        return TextDescriptor.getGlyphs(text, font);
 	}
 
     public void databaseChanged(DatabaseChangeEvent e) {

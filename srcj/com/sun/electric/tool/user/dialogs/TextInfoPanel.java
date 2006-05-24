@@ -302,7 +302,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             unitsSize.setText("");
             if (wnd != null)
             {
-                double unitSize = wnd.getTextUnitSize((int)initialSize.getSize());
+                double unitSize = initialSize.getSize() / wnd.getScale();
                 if (unitSize > TextDescriptor.Size.TXTMAXQGRID)
                     unitSize = TextDescriptor.Size.TXTMAXQGRID;
                 else if (unitSize < TextDescriptor.Size.TXTMINQGRID)
@@ -316,7 +316,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             pointsSize.setText("");
             if (wnd != null)
             {
-                double pointSize = wnd.getTextScreenSize(initialSize.getSize());
+                double pointSize = initialSize.getSize()*wnd.getScale();
                 if (pointSize > TextDescriptor.Size.TXTMAXPOINTS)
                     pointSize = TextDescriptor.Size.TXTMAXPOINTS;
                 else if (pointSize < TextDescriptor.Size.TXTMINPOINTS)

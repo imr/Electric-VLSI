@@ -57,10 +57,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.font.GlyphVector;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -102,21 +100,6 @@ public class VectorCache {
         public VarContext getVarContext() { return varContext; }
         
         public double getScale() { return curScale; }
-        
-        public double getFontHeight(TextDescriptor descript) {
-            double size = EditWindow.getDefaultFontSize();
-            if (descript != null)
-                size = descript.getTrueSize(this);
-            return size;
-        }
-        
-        public double getTextScreenSize(double dbSize) {
-    		return dbSize * curScale;
-        }
-        
-        public double getTextUnitSize(double pointSize) { throw new UnsupportedOperationException(); }
-        public Font getFont(TextDescriptor descript) { throw new UnsupportedOperationException(); }
-        public GlyphVector getGlyphs(String text, Font font) { throw new UnsupportedOperationException(); }
     };
 
 	/**

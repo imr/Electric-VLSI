@@ -454,7 +454,7 @@ public abstract class ElectricObject implements Serializable
 		double scale = 1;
 		if (wnd != null)
 		{
-			fontHeight = wnd.getFontHeight(td);
+			fontHeight = td.getTrueSize(wnd);
 			scale = wnd.getScale();
 		}
 		fontHeight *= User.getGlobalTextScale();
