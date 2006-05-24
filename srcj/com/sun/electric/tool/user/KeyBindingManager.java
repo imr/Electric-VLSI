@@ -158,6 +158,135 @@ public class KeyBindingManager {
         }*/
     }
 
+    private static class KeyBindingColumn
+    {
+        int hits = 0; // how many key bindings use this modifier
+        int maxLength = 0;
+        String name;
+
+        KeyBindingColumn(String n)
+        {
+            name = n;
+        }
+
+        public String toString() { return name; }
+
+        public String getHeader()
+        {
+            String n = name;
+            for (int l = name.length(); l < maxLength; l++)
+                n += " ";
+            return n + " | ";
+        }
+
+        public String getColumn(Object value)
+        {
+            String column = "";
+            int fillStart = 0;
+
+            if (value != null)
+            {
+                String n = value.toString();
+                fillStart = n.length();
+                column += n;
+            }
+            // filling
+            for (int l = fillStart; l < maxLength; l++)
+                column +=" ";
+            return column + " | ";
+        }
+
+        public void addHit(Set<String> set)
+        {
+            hits++;
+            int len = set.toString().length();
+            if (len > maxLength)
+                maxLength = len;
+        }
+
+        public boolean equals(Object obj)
+        {
+            String key = obj.toString();
+            boolean found = key.equals(name);
+            return found;
+        }
+    }
+
+    private static class KeyBindingColumnSort implements Comparator<KeyBindingColumn>
+    {
+		public int compare(KeyBindingColumn s1, KeyBindingColumn s2)
+        {
+			int bb1 = s1.hits;
+			int bb2 = s2.hits;
+            if (bb1 < bb2) return 1;    // sorting from max to min
+            else if (bb1 > bb2) return -1;
+            return (0); // identical
+        }
+    }
+
+    /** Method to print existing KeyStrokes in std output for help
+     */
+    public void printKeyBindings()
+    {
+        Map<String,HashMap<String,Set<String>>> set = new HashMap<String,HashMap<String,Set<String>>>();
+        List<String> keyList = new ArrayList<String>(); // has to be a list so it could be sorted.
+        List<KeyBindingColumn> columnList = new ArrayList<KeyBindingColumn>(); // has to be a list so it could be sorted.
+        KeyBindingColumn row = new KeyBindingColumn("Keys");
+        Set<String> tmpSet = new HashSet<String>();
+        columnList.add(row); // inserting the first row with key names as column
+
+        for (Map.Entry<KeyStroke,Set<String>> map : inputMap.entrySet())
+        {
+            KeyStroke keyS = map.getKey();
+            String key = KeyStrokePair.getStringFromKeyStroke(keyS);
+            HashMap<String,Set<String>> m = set.get(key);
+            if (m == null)
+            {
+                m = new HashMap<String,Set<String>>();
+                set.put(key, m);
+                keyList.add(key);
+                tmpSet.clear();
+                tmpSet.add(key);
+                row.addHit(tmpSet);
+            }
+            String modifier = KeyEvent.getKeyModifiersText(keyS.getModifiers());
+            KeyBindingColumn newCol = new KeyBindingColumn(modifier);
+            int index = columnList.indexOf(newCol);
+            KeyBindingColumn col = (index > -1) ? columnList.get(index) : null;
+            if (col == null)
+            {
+                col = newCol;
+                columnList.add(col);
+            }
+            col.addHit(map.getValue());
+            m.put(modifier, map.getValue());
+        }
+        Collections.sort(keyList);
+        Collections.sort(columnList, new KeyBindingColumnSort());
+
+        // Header
+        String headerLine = "\n";
+        for (KeyBindingColumn column : columnList)
+        {
+            String header = column.getHeader();
+            System.out.print(header);
+            for (int i = 0; i < header.length(); i++)
+                headerLine += "-";
+        }
+        System.out.println(headerLine);
+
+        for (String key : keyList)
+        {
+//            System.out.print(key);
+            for (KeyBindingColumn column : columnList)
+            {
+                Object value = (column == row) ? key : (Object)set.get(key).get(column.name);
+                System.out.print(column.getColumn(value));
+            }
+            System.out.println();
+        }
+    }
+
     // ---------------------------- Prefix Action Class -----------------------------
 
     /**

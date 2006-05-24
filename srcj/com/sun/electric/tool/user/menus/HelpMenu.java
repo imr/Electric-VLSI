@@ -29,8 +29,6 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.help.ManualViewer;
-import com.sun.electric.tool.user.menus.EMenu;
-import com.sun.electric.tool.user.menus.EMenuItem;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.Client;
@@ -67,6 +65,9 @@ public class HelpMenu {
             Job.getDebug() ? new EMenuItem("_User's Manual (Russian)...") { public void run() {
                 ManualViewer.userManualRussianCommand(); }} : null,
 
+            new EMenuItem("List User _Preferences...") { public void run() {
+                MenuCommands.menuBar().keyBindingManager.printKeyBindings();; }},
+
         // mnemonic keys available: ABCDEFGHIJKL NOPQRSTUVWXYZ
             new EMenu("_Samples",
                 new EMenuItem("_Load Library") { public void run() {
@@ -77,7 +78,7 @@ public class HelpMenu {
                     ManualViewer.animate3DSample(); }}),
 
 		// mnemonic keys available: ABCDEFGHIJKL NO QRSTUVWXYZ
-            new EMenu("Load _Built-in Libraries",
+            new EMenu("_Load _Built-in Libraries",
                 new EMenuItem("_MOSIS CMOS Pads") { public void run() {
                     loadBuiltInLibraryCommand("pads4u"); }},
                 new EMenuItem("MI_PS Cells") { public void run() {
