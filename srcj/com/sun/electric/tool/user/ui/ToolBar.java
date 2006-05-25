@@ -40,6 +40,7 @@ import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.Client;
 
 import java.awt.Component;
 import java.awt.Cursor;
@@ -205,7 +206,12 @@ public class ToolBar extends JToolBar
     private abstract static class EToolBarRadioButton extends EToolBarButton {
         EToolBarRadioButton(String text, KeyStroke accelerator, String iconName) { super(text, accelerator, iconName); }
         EToolBarRadioButton(String text, char acceleratorChar, String iconName) { super(text, acceleratorChar, iconName); }
-        @Override protected JRadioButtonMenuItem createMenuItem() { return new JRadioButtonMenuItem(); }
+        @Override protected JMenuItem createMenuItem()
+        {
+            if (Client.isOSMac())
+                return new JMenuItem();
+            return new JRadioButtonMenuItem();
+        }
         @Override JToggleButton createToolBarButton() { return new JToggleButton(); }
     }
     

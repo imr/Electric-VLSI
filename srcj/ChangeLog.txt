@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+IMP/MAN: (5/25/06, GVG) Workaround for KeyBindings in EToolBarRadioButton for MacOSX (Bug #1056).
+Problem: JRadioButtonMenuItem doesn't handle accelerators well. In case of Command-S and S in two different
+functions, JRadioButtonMenuItem assumes are identical and a conflict is generated. Temporary workaround:
+Switch from JRadioButtonMenuItem to JMenuItem for EToolBarRadioButton on MacOSX. Thus the accelerators will
+be displayed and user can use toolbar icons to know what is selected.
+
 IMP: (5/24/06, RK) Improvements to NCC GUI user manual
 
 IMP/MAN: (5/24/06, GVG) List User Preferences in HelpMenu.
