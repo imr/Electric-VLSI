@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+IMP: (5/24/06, RK) Improvements to NCC GUI user manual
+
 IMP/MAN: (5/24/06, GVG) List User Preferences in HelpMenu.
 
 IMP/MAN: (5/23/06, GVG) Accelerators in ToolTip text of ToolBar buttons.

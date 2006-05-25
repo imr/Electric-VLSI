@@ -1,0 +1,258 @@
+<!-- HEADER 9-7-5-3: NCC GUI: Parts and Wires -->
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal">NCC
+finds mismatches by applying two partitioning techniques in sequence.
+First it uses </SPAN><I>Local Partitioning</I> [sml2005-0288] and
+then it uses <I>Hash Code Partitioning</I>. If Local Partitioning
+finds mismatches, then NCC reports only those. The mismatches in
+Local Partitioning of parts and wires are grouped under nodes with
+names &quot;</FONT><FONT FACE="Arial, sans-serif">Parts [X]</FONT><FONT FACE="Thorndale, serif">&quot;
+and &quot;</FONT><FONT FACE="Arial, sans-serif">Wires [X]</FONT><FONT FACE="Thorndale, serif">&quot;,
+where </FONT><FONT FACE="Arial, sans-serif">X</FONT><FONT FACE="Thorndale, serif">
+is the number of mismatched Local Partitioning classes (Figure 5).
+Each class node represents a class of Parts or Wires sharing the same
+local characteristics. </FONT></SPAN>
+</P>
+<H2 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+3.1 Parts</H2>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">Parts are partitioned into equivalence
+classes based upon their type and the number of Wires attached to
+them. Figure 5 shows a list of two Part classes. </FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="fig09-46.png" NAME="Graphic11" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.04in; margin-bottom: 0.2in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 5: Displaying a
+Part class</FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-top: 0.04in; margin-bottom: 0in; font-weight: medium">
+<FONT FACE="Thorndale, serif">The tree node corresponding to the
+first class is selected and has the name </FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.08in; font-weight: medium">&quot;<FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">#1
+[36]: pads180nm_100um:PAD_dgnd</FONT></SPAN>&quot;, which has the
+following meaning:</FONT></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0>
+	<COL WIDTH=74*>
+	<COL WIDTH=182*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=29%>
+			<P ALIGN=CENTER STYLE="font-weight: medium"><FONT FACE="Arial, sans-serif">#1</FONT></P>
+		</TD>
+		<TD WIDTH=71%>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Thorndale, serif">The
+			sequence number of this class</FONT></P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=29%>
+			<P ALIGN=CENTER STYLE="font-weight: medium"><FONT FACE="Arial, sans-serif">[36]</FONT></P>
+		</TD>
+		<TD WIDTH=71%>
+			<P  STYLE="margin-bottom: 0in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif">The
+			number of mismatched Parts in one of the two cells, whichever is
+			bigger. In our example, the schematic cell has 1 mismatched Part
+			in this class and the layout has 36 mismatched Parts in this
+			class. The maximum of 1 and 36 is 36 and, therefore, the tree node
+			has </FONT><FONT FACE="Arial, sans-serif">[36]</FONT><FONT FACE="Thorndale, serif">
+			in its name.</FONT></SPAN></P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=29%>
+			<P ALIGN=CENTER STYLE="font-style: normal; font-weight: medium"><FONT FACE="Arial, sans-serif">pads180nm_100um</FONT></P>
+		</TD>
+		<TD WIDTH=71%>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0in; font-style: normal; font-weight: medium">
+			<FONT FACE="Thorndale, serif">Part library</FONT></P>
+			<P ALIGN=LEFT STYLE="font-style: normal; font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=29%>
+			<P ALIGN=CENTER STYLE="font-style: normal; font-weight: medium"><FONT FACE="Arial, sans-serif">PAD_dgnd</FONT></P>
+		</TD>
+		<TD WIDTH=71%>
+			<P ALIGN=LEFT STYLE="font-style: normal; font-weight: medium"><FONT FACE="Thorndale, serif">Part
+			type</FONT></P>
+		</TD>
+	</TR>
+</TABLE>
+<P  STYLE="margin-top: 0.12in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">In the example above, Part types were
+enough to partition Parts into classes. In many other cases, like the
+one in Figure 6, types are not enough and the number of different
+Wires attached to a Part is employed as an additional partitioning
+criterion. </FONT>
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=3>When a Part class node is
+selected, the right half of the window displays a two-column table.
+Each column corresponds to one of the compared Cells and has a list
+of that Cell's Parts  which belong  to the selected Part class.
+Matched Parts are printed in green; the two</FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.12in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="fig09-47.png" NAME="Graphic16" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.12in; margin-bottom: 0.12in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 6: The number of
+attached Wires as a Part class characteristic</FONT></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=3>Parts on the same line
+match each other. Mismatched Parts are printed in red in no
+particular order.</FONT></FONT></P>
+<H2 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+3.2 Wires</H2>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">NCC partitions Wires into equivalence
+classes based upon the number of different Port types attached to
+them. Examples of Port types include an NMOS <FONT FACE="Arial, sans-serif">gate</FONT>
+Port, a PMOS <FONT FACE="Arial, sans-serif">diffusion</FONT> Port,
+and a NAND <FONT FACE="Arial, sans-serif">output</FONT> Port. <SPAN STYLE="font-style: normal">Port
+type counts are represented as a list of leaf nodes under the Wire
+class node. Since zero-value counts at the beginning of the list tend
+to be numerous and are rarely used by designers, they are further
+grouped under a &quot;<FONT FACE="Arial, sans-serif">0's</FONT>&quot;
+node. </SPAN></FONT>
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal">For
+example, in Figure 7, the second wire class is expanded and we can
+see its four characteristics, the first three of which are &quot;zero&quot;.
+The first characteristic has a leaf node called
+&quot;<FONT FACE="Arial, sans-serif">pads180nm_150um:PAD_raw
+welltapL ports</FONT>&quot;, which means that Wires in this class
+are </SPAN><I>not</I><SPAN STYLE="font-style: normal"> attached to
+the Port <FONT FACE="Arial, sans-serif">welltapL</FONT> of the Part
+<FONT FACE="Arial, sans-serif">PAD_raw </FONT>from the library
+<FONT FACE="Arial, sans-serif">pads180nm_150um</FONT>.</SPAN></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif">The fourth characteristic is &quot;<FONT FACE="Arial, sans-serif">1
+= number of pads180nm_150um:PAD_raw padRaw ports</FONT>&quot;. The
+name suggests that all Wires in this class are connected to the
+<FONT FACE="Arial, sans-serif">padRaw</FONT> Ports of 3 instances of
+Parts with type <FONT FACE="Arial, sans-serif">PAD_raw</FONT> from
+library <FONT FACE="Arial, sans-serif">pads180nm_150um</FONT>.</FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="fig09-41.png" NAME="Graphic4" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 7: Wire class nodes</FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.12in; font-style: normal; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="fig09-48.png" NAME="Graphic7" BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 8: Displaying a
+Wire class</FONT></FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-style: normal; font-weight: medium">
+<FONT FACE="Thorndale, serif">When a Wire class node is selected, the
+right half of the window displays a two-column table (Figure 8). Each
+column corresponds to one of the compared Cells and has a list of
+that Cell's Wires which belong to the selected Wire class. Matched
+Wires are printed in green, the two Wires on the same line match each
+other. Mismatched Wires are printed in red in no particular order.</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal">The
+tree node names contain the first mismatched Wires from both lists.
+<BR>For example, in Figure 8 the second Wire class has the node name
+<BR></SPAN>&quot;</FONT><SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">#2
+: { E_eq_Vo<SPAN STYLE="background: transparent"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">,</FONT></SPAN></SPAN>...}
+ { W_core_eqVo,... }  [10]</FONT></SPAN><FONT FACE="Thorndale, serif">&quot;,
+which has the following meaning:</FONT></SPAN></P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=0 CELLSPACING=0>
+	<COL WIDTH=66*>
+	<COL WIDTH=190*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=26%>
+			<P ALIGN=CENTER STYLE="font-weight: medium"><FONT FACE="Arial, sans-serif">#2</FONT></P>
+		</TD>
+		<TD WIDTH=74%>
+			<P ALIGN=LEFT STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Thorndale, serif">The
+			sequence number of this class.</FONT></P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=26%>
+			<P ALIGN=CENTER STYLE="margin-top: 0.04in"><SPAN STYLE="font-weight: medium"><SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">{
+			E_eq_Vo<SPAN STYLE="background: transparent"><SPAN STYLE="text-decoration: none"><FONT COLOR="#000000">,</FONT></SPAN></SPAN>...}</FONT></SPAN></SPAN></P>
+		</TD>
+		<TD WIDTH=74%>
+			<P  STYLE="margin-bottom: 0in"><SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif">T<SPAN STYLE="font-style: normal">he
+			first mismatched Wire in the first Cell's list is called</SPAN>
+			</FONT><SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">E_eq_Vo.</FONT></SPAN></SPAN>
+			The ellipsis after the name <SPAN STYLE="font-weight: medium"><FONT FACE="Thorndale, serif">suggest
+			that there is more than one Wire in the list.</FONT></SPAN></P>
+			<P  STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=26%>
+			<P ALIGN=CENTER STYLE="margin-top: 0.04in; font-style: normal; font-weight: medium">
+			<FONT FACE="Arial, sans-serif">{ W_core_eqVo,... }</FONT></P>
+		</TD>
+		<TD WIDTH=74%>
+			<P  STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Thorndale, serif">T<SPAN STYLE="font-style: normal">he
+			first mismatched Wire in the second Cell's list is called</SPAN>
+			<SPAN STYLE="font-style: normal"><FONT FACE="Arial, sans-serif">W_core_eqVo.</FONT></SPAN>
+			</FONT>
+			</P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=26%>
+			<P ALIGN=CENTER STYLE="font-weight: medium"><FONT FACE="Arial, sans-serif">[10]</FONT></P>
+		</TD>
+		<TD WIDTH=74%>
+			<P  STYLE="margin-bottom: 0in; font-weight: medium"><FONT FACE="Thorndale, serif">The
+			number of mismatched Wires in one of the two cells, whichever is
+			bigger. In our example, the schematic Cell has 10 mismatched Wires
+			in this class, and the layout has 2 mismatched Wires in this
+			class. The maximum of 10 and 2 is 10, and therefore, the tree node
+			has <FONT FACE="Arial, sans-serif">[10]</FONT> in its name.</FONT></P>
+			<P ALIGN=LEFT STYLE="font-weight: medium"><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<H2 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+<I>3.3 Hash Code Partitioning</I></H2>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><SPAN STYLE="font-style: normal">	If
+Local Partitioning fails to find a mismatch, then NCC reports
+mismatches found by </SPAN><I>Hash Code Partitioning</I><SPAN STYLE="font-style: normal">
+under the nodes labeled &quot;<FONT FACE="Arial, sans-serif">Parts
+(hash code)</FONT>&quot; and &quot;<FONT FACE="Arial, sans-serif">Wires
+(hash code)</FONT>&quot;. Unlike their local partitioning
+counterparts, Hash Code Partitioning classes do not have any
+characteristics. </SPAN></FONT>
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.16in; margin-bottom: 0.08in; font-weight: medium">
+<FONT COLOR="#000000"><IMG SRC="fig09-49.png" NAME="Graphic10" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-weight: medium">
+<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 9: Up to five
+equivalence classes can be selected simultaneously</FONT></FONT></P>
+<H2 CLASS="western" STYLE="margin-top: 0.04in; margin-bottom: 0.08in">
+3.4 Selecting Multiple Classes	</H2>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">It is possible to select more than one
+class by holding the C<I>ontrol</I> (C<I>ommand</I> on Macintosh) or
+the S<I>hift</I> key during selection. In this case, the right side
+will have multiple rows, one row per class. Figure 9 shows what is
+displayed when the three Wire classes in Figure 8 are selected. Up to
+five classes can be displayed at once. Rows are arranged in the order
+in which the classes are selected. </FONT>
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
+<FONT FACE="Thorndale, serif">Selecting one or more subnodes of a
+class node is equivalent to selecting the class node itself. This
+means that no class appears twice in the table on the right. If some
+node of a type different from Parts, Wires, Parts (hash code), or
+Wires (hash code) is selected as well, then it has a higher display
+priority and its contents are displayed instead. For example, if an
+Exports node was selected with the three Wire class nodes, then the
+Export table would be displayed on the right.</FONT></P>

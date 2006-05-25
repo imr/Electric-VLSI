@@ -1,0 +1,46 @@
+<!-- HEADER 9-7-5-1: NCC GUI: Introduction -->
+<P STYLE="margin-top: 0.04in; margin-bottom: 0.08in">When
+a designer runs NCC, and NCC finds mismatches, the NCC graphical
+display window pops up displaying the mismatches. The display varies
+from platform to platform. Figure 1 shows a typical display with some
+essential features. 
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.16in; margin-bottom: 0.08in"><FONT COLOR="#000000"><IMG SRC="fig09-42.png" NAME="Graphic1" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.16in"><FONT SIZE=2>Figure
+1: The NCC graphical window</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">The
+left side of the window is a tree providing an overview of the kinds
+of mismatches that NCC found. The right side has information
+corresponding to the currently selected tree node(s). 
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">Each
+top-level tree node corresponds to a comparison of two cells. In
+Figure 1, the label on  the  top-level  node  indicates that  the
+comparison  that failed  was between  the Cells</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><FONT FACE="Arial, sans-serif">E_pads{sch}</FONT>
+and <FONT FACE="Arial, sans-serif">E_pads{lay}</FONT> in the library
+<FONT FACE="Arial, sans-serif">heater</FONT>. If the two Cells have
+different names or are from different libraries, then their names are
+shown individually. For example, &quot;<FONT FACE="Arial, sans-serif">libraryA:gateA{sch}
+&amp; libraryB:gateB{sch}</FONT>&quot;. The number in square
+brackets at the right end of the Cell names, in our example &quot;<FONT FACE="Arial, sans-serif">[14]</FONT>&quot;,
+is the number of mismatches.</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><FONT FACE="Thorndale, serif">In
+general, if you see a tree node with a number in square brackets,
+then this number is the total number of mismatches grouped under this
+node.</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">Selecting
+a top-level tree node displays the number of Parts, Wires, and Ports
+in the compared Cells in the right part of the window (Figure 1). For
+all other nodes, the right side of the window displays a list of
+component names arranged in different ways, as described in
+subsequent sections. Some components are highlightable, in which case
+their names are printed as blue, red, or green hyperlinks. 
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">A
+top-level node has one or more subnodes. Subnodes can have the
+following types: Exports, Parts, Wires, Parts (hash code), Wires
+(hash code), Sizes, Export Assertions, Export/Global Network
+Conflicts, Export/Global Characteristics Conflicts, and Unrecognized
+Parts. 
+</P>

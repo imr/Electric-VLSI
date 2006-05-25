@@ -1,0 +1,70 @@
+<!-- HEADER 9-7-5-2: NCC GUI: Exports -->
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">The
+Exports node is always a leaf node with the name &quot;<FONT FACE="Arial, sans-serif">Exports
+[X]</FONT>&quot;, where <FONT FACE="Arial, sans-serif">X</FONT> is
+the number of Export mismatches in this comparison (Figure 1).
+Selecting an Exports node displays a table on the right side of the
+NCC graphical window (Figure 2). The table has two columns &ndash;
+one per compared Cell. The header contains Cell names. Each row
+corresponds to a mismatch. A table cell has zero or more <I>Export
+lists</I>. An Export list is a list of all the Exports found on a
+Network and is displayed as a list of Export names surrounded by
+curly brackets <FONT FACE="Arial, sans-serif">{ }</FONT>. Each Export
+list is a single hyperlink which highlights  all the Exports in the
+list. 
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">Multiple
+Export lists in a table cell occur when a single Network in one
+design (e.g. The schematic) has one or more Exports that match
+multiple Exports attached to more than one Network in the other
+design (e.g. the layout). For example, the mismatch on the third row
+from the top in Figure 2 has layout Exports (the second column)
+attached to a single Network  matching  schematic Exports (the first
+column) attached to two Networks. 
+</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.16in; margin-bottom: 0.04in"><FONT COLOR="#000000"><IMG SRC="fig09-43.png" NAME="Graphic3" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.12in; margin-bottom: 0in"><FONT SIZE=2>Figure
+2: The Exports table</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0in">An
+empty table cell means one design has Exports that match no Exports
+with the same names in the other design. For example, the mismatch in
+the top row in Figure 2 has the layout Export <FONT FACE="Arial, sans-serif">E_core_sclk</FONT>
+matching no Exports in the schematic.</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">Some
+Exports are <I>implied</I>. For example, if a schematic Cell uses a
+global ground, but does not contain an Export for that ground, then
+NCC will automatically insert an <SPAN STYLE="font-style: normal">implied</SPAN><I>
+</I><SPAN STYLE="font-style: normal">Export for ground</SPAN>. This
+is done because most often the corresponding layout Cell has a ground
+Export, and we want the schematic and layout Cells to match. Implied
+Exports are not hyperlinked and have &quot; <FONT FACE="Arial, sans-serif">:
+implied</FONT>&quot; added to their names (Figure 3). 
+</P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in">When
+NCC does not find any topological mismatches, it attempts to suggest
+possible matches for Exports that failed to match by name. Such
+<I>suggestions</I> are printed in green. The first row of the table
+in Figure 3 indicates that the <FONT FACE="Arial, sans-serif">outO[1][T]</FONT>
+Export in the layout topologically matches the <FONT FACE="Arial, sans-serif">outO[T]</FONT>
+Export in the schematic, even though they have different names. The
+second row indicates that the <FONT FACE="Arial, sans-serif">outE[1][F]</FONT>
+Export in the layout topologically matches the <FONT FACE="Arial, sans-serif">net@4[1]</FONT>
+Wire in the schematic, even though the <FONT FACE="Arial, sans-serif">net@4[1]</FONT>
+Wire has no Exports. Note that a Wire name is not an Export list and
+is not surrounded by curly brackets.</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in"><FONT COLOR="#000000"><IMG SRC="fig09-44.png" NAME="Graphic6" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in"><FONT SIZE=2>Figure
+3: Implied exports are marked by &quot;implied&quot;. Suggestions
+are printed in green.</FONT></P>
+<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in"><FONT FACE="Thorndale, serif"><FONT SIZE=3>Exports
+that match by name, but are not on equivalent Networks, have red
+hyperlinks. Such Exports  might have  suggested matches  as well, 
+which are printed in green. In the first row of the table in Figure
+4, the <FONT FACE="Arial, sans-serif">jtag[1]</FONT> Export in the
+schematic does not topologically match the <FONT FACE="Arial, sans-serif">jtag[1]</FONT>
+Export in the layout, but does match the <FONT FACE="Arial, sans-serif">jtag[8]</FONT>
+Export in the layout.</FONT></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.2in; margin-bottom: 0.08in"><FONT COLOR="#000000"><IMG SRC="fig09-45.png" NAME="Graphic5" ALIGN=BOTTOM BORDER=1></FONT></P>
+<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0in"><FONT SIZE=2>Figure
+4:  Exports that match by name, but are not on equivalent networks
+have red hyperlinks</FONT></P>
