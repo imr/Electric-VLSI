@@ -102,7 +102,7 @@ public class KeyStrokePair {
             return keyStrokeToString(prefixStroke)+ sep + keyStrokeToString(stroke);
     }
 
-    private static String getStringFromKeyStroke(KeyStroke key)
+    public static String getStringFromKeyStroke(KeyStroke key)
     {
       String id = "";
         if (key.getKeyCode() == KeyEvent.VK_UNDEFINED ) // not recognized? like >
