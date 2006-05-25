@@ -41,11 +41,20 @@ more Export lists. Each Export list is a comma-separated list of
 Exports enclosed in curly brackets <FONT FACE="Arial, sans-serif">{
 }</FONT>. Exports in the same list are connected. Exports in
 different lists are disconnected. The designer promised that all
-Exports in all lists would be connected. All exports are individually
-highlightable. </FONT>
+Exports in all lists would be connected. </FONT>
 </P>
 <P ALIGN=CENTER STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
 <FONT COLOR="#000000"><IMG SRC="fig09-51.png" NAME="Graphic8" ALIGN=BOTTOM BORDER=1></FONT></P>
 <P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-weight: medium">
 <FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 11: The Export
 Assertions table</FONT></FONT></P>
+<p>
+All exports are individually highlightable. For example, if the designer clicks on the "vdd" 
+Export then NCC will open up a window for Cell "rectifier{lay}" and highlight the net connected
+to the Export "vdd". 
+</p>
+<p>
+Tip: If it the design includes multiple instances of Cell "rectifier{lay}" then
+the designer can find out which particular instance failed to keep the promise by typing control-U
+which will pop up a level in the hierarchy.
+</p>
