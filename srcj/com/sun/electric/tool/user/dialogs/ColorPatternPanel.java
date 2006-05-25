@@ -177,7 +177,7 @@ public class ColorPatternPanel extends JPanel
 	/**
 	 * Create a Panel for editing color and pattern information.
 	 */
-	public ColorPatternPanel(boolean showPrinter)
+	public ColorPatternPanel(boolean showPrinter, boolean showFactoryReset)
 	{
 		initComponents();
 
@@ -235,6 +235,20 @@ public class ColorPatternPanel extends JPanel
 		gbc.gridwidth = 2;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		color.add(colorPreviewPanel, gbc);
+
+		if (showFactoryReset)
+		{
+			JButton factoryReset = new JButton("Factory Reset All Layers");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 3;
+			gbc.gridwidth = 2;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			color.add(factoryReset, gbc);
+			factoryReset.addActionListener(new ActionListener()
+			{
+	            public void actionPerformed(ActionEvent evt) { factoryResetActionPerformed(); }
+	        });
+		}
 
 		if (showPrinter)
 		{
@@ -476,6 +490,10 @@ public class ColorPatternPanel extends JPanel
 		colorPreviewPanel.repaint();
 	}
 
+	public void factoryResetActionPerformed()
+	{
+	}
+
 	/**
 	 * Class to handle special changes to color information.
 	 */
@@ -566,6 +584,7 @@ public class ColorPatternPanel extends JPanel
 			if (lInfo == null || lInfo.justColor) return;
 			int xIndex = evt.getX() / PATSIZE;
 			int yIndex = evt.getY() / PATSIZE;
+			if (xIndex < 0 || yIndex < 0 || xIndex >= 16 || yIndex >= 16) return;
 			int curWord = lInfo.pattern[yIndex];
 			if ((curWord & (1<<(15-xIndex))) != 0)
 			{

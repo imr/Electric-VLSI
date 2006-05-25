@@ -3359,6 +3359,16 @@ public class Technology implements Comparable<Technology>
         }
 	}
 
+	public Color [] getFactoryColorMap()
+	{
+        if (transparentLayers <= 0) return null;
+        Color [] layers = new Color[transparentLayers];
+        for(int i=0; i<transparentLayers; i++)
+            layers[i] = new Color(transparentColorPrefs[i].getIntFactoryValue());
+		Color [] map = getColorMap(layers);
+		return map;
+	}
+
 	/**
 	 * Returns the number of transparent layers in this technology.
 	 * Informs the display system of the number of overlapping or transparent layers
@@ -3414,7 +3424,12 @@ public class Technology implements Comparable<Technology>
 				    pref.setInt(layers[i].getRGB());
 			}
 		}
+		Color [] map = getColorMap(layers);
+		setColorMap(map);
+	}
 
+	private Color [] getColorMap(Color [] layers)
+	{
 		int numEntries = 1 << transparentLayers;
 		Color [] map = new Color[numEntries];
 		for(int i=0; i<numEntries; i++)
@@ -3456,7 +3471,7 @@ public class Technology implements Comparable<Technology>
 			}
 			map[i] = new Color(r, g, b);
 		}
-		setColorMap(map);
+		return map;
 	}
 
 	/**

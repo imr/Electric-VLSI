@@ -26,24 +26,25 @@ package com.sun.electric.tool.user.dialogs.options;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.lang.reflect.Method;
 
-import javax.swing.*;
+import javax.swing.JPanel;
 
 /**
  * Class to handle the "Colors and Layers" tab of the Preferences dialog.
@@ -53,16 +54,60 @@ public class LayersTab extends PreferencePanel
 	private HashMap<Layer,ColorPatternPanel.Info> layerMap;
 	private HashMap<String,ColorPatternPanel.Info> transAndSpecialMap;
 	private HashMap<Technology,Color []> colorMapMap;
-	private ColorPatternPanel colorAndPatternPanel;
+	private MyColorPatternPanel colorAndPatternPanel;
+
+	private static class MyColorPatternPanel extends ColorPatternPanel
+	{
+		private LayersTab lt;
+
+		public MyColorPatternPanel(LayersTab lt, boolean showPrinter, boolean showFactoryReset)
+		{
+			super(showPrinter, showFactoryReset);
+			this.lt = lt;
+		}
+
+		public void factoryResetActionPerformed()
+		{
+			lt.factoryResetAll();
+		}
+	}
+
+	private void factoryResetAll()
+	{
+		for(Layer layer : layerMap.keySet())
+		{
+			ColorPatternPanel.Info cpi = layerMap.get(layer);
+			cpi.useStippleDisplay = cpi.graphics.isFactoryPatternedOnDisplay();
+			cpi.useStipplePrinter = cpi.graphics.isFactoryPatternedOnPrinter();
+			cpi.outlinePatternDisplay = cpi.graphics.getFactoryOutlined();
+			cpi.transparentLayer = cpi.graphics.getFactoryTransparentLayer();
+			cpi.pattern = cpi.graphics.getFactoryPattern();
+			cpi.opacity = cpi.graphics.getFactoryOpacity();
+			int factoryColor = cpi.graphics.getFactoryColor();
+			cpi.red = (factoryColor>>16) & 0xFF;
+			cpi.green = (factoryColor>>8) & 0xFF;
+			cpi.blue = factoryColor & 0xFF;
+		}
+		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = it.next();
+			Color [] map = new Color[tech.getNumTransparentLayers()];
+			Color [] fullMap = tech.getFactoryColorMap();
+			for(int i=0; i<map.length; i++)
+				map[i] = fullMap[1<<i];
+			colorMapMap.put(tech, map);
+		}
+		setTechnology();
+	}
 
 	/** Creates new form LayerTab */
-	public LayersTab(java.awt.Frame parent, boolean modal)
+	public LayersTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
 
 		// make the color/pattern panel
-		colorAndPatternPanel = new ColorPatternPanel(true);
+		colorAndPatternPanel = new MyColorPatternPanel(this, true, true);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;      gbc.gridy = 1;
 		gbc.weightx = 1;    gbc.weighty = 1;
@@ -385,8 +430,7 @@ public class LayersTab extends PreferencePanel
         getContentPane().add(layers, new java.awt.GridBagConstraints());
 
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog

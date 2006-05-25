@@ -470,6 +470,22 @@ public class EGraphics extends Observable
 	public boolean isPatternedOnDisplay() { return displayPatterned; }
 
 	/**
+	 * Method describes how this EGraphics appears on a display by factory default.
+	 * This EGraphics can be drawn as a solid fill or as a pattern.
+	 * @return true to draw this EGraphics patterned on a display by factory default.
+	 * False to draw this EGraphics as a solid fill on a display by factory default.
+	 */
+	public boolean isFactoryPatternedOnDisplay()
+	{
+		if (layer != null)
+		{
+			Pref pref = usePatternDisplayMap.get(layer);
+			return pref.getBooleanFactoryValue();
+		}
+		return false;
+	}
+
+	/**
 	 * Method to set how this EGraphics appears on a display.
 	 * This EGraphics can be drawn as a solid fill or as a pattern.
 	 * @param p true to draw this EGraphics patterned on a display.
@@ -493,6 +509,22 @@ public class EGraphics extends Observable
 	 * False to draw this EGraphics as a solid fill on a printer.
 	 */
 	public boolean isPatternedOnPrinter() { return printPatterned; }
+
+	/**
+	 * Method describes how this EGraphics appears on a printer by factory default.
+	 * This EGraphics can be drawn as a solid fill or as a pattern.
+	 * @return true to draw this EGraphics patterned on a printer by factory default.
+	 * False to draw this EGraphics as a solid fill on a printer by factory default.
+	 */
+	public boolean isFactoryPatternedOnPrinter()
+	{
+		if (layer != null)
+		{
+			Pref pref = usePatternPrinterMap.get(layer);
+			return pref.getBooleanFactoryValue();
+		}
+		return false;
+	}
 
 	/**
 	 * Method to set how this EGraphics appears on a printer.
@@ -519,6 +551,18 @@ public class EGraphics extends Observable
 	public Outline getOutlined() { return patternOutline; }
 
 	/**
+	 * Method describes the type of outline pattern by factory default.
+	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
+	 * @return the type of outline pattern by factory default.
+	 */
+	public Outline getFactoryOutlined()
+	{
+		if (layer == null) return null;
+		Pref pref = outlinePatternMap.get(layer);
+		return Outline.findOutline(pref.getIntFactoryValue());
+	}
+
+	/**
 	 * Method to set whether this pattern has an outline around it.
 	 * When the EGraphics is drawn as a pattern, the outline can be defined more clearly by drawing a line around the edge.
 	 * @param o the outline pattern.
@@ -542,6 +586,18 @@ public class EGraphics extends Observable
 	 * Instead, use the "getColor()" method to get its solid color.
 	 */
 	public int getTransparentLayer() { return transparentLayer; }
+
+	/**
+	 * Method to return the transparent layer number by factory default.
+	 * @return the transparent layer number by factory default.
+	 * A value of zero means that this EGraphics is not drawn transparently.
+	 */
+	public int getFactoryTransparentLayer()
+	{
+		if (layer == null) return 0;
+		Pref pref = transparentLayerMap.get(layer);
+		return pref.getIntFactoryValue();
+	}
 
 	/**
 	 * Method to set the transparent layer number associated with this EGraphics.
@@ -572,6 +628,20 @@ public class EGraphics extends Observable
 	public int [] getPattern() { return pattern; }
 
 	/**
+	 * Method to return the stipple pattern by factory default.
+	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
+	 * @return the stipple pattern by factory default.
+	 */
+	public int [] getFactoryPattern()
+	{
+		if (layer == null) return null;
+		Pref pref = patternMap.get(layer);
+		int [] retPat = new int[16];
+		parsePatString(pref.getStringFactoryValue(), retPat);
+		return retPat;
+	}
+
+	/**
 	 * Method to set the stipple pattern of this EGraphics.
 	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
 	 * @param pattern the stipple pattern of this EGraphics.
@@ -593,6 +663,18 @@ public class EGraphics extends Observable
 	 * @return the opacity of this EGraphics.
 	 */
 	public double getOpacity() { return opacity; }
+
+	/**
+	 * Method to return the opacity by factory default.
+	 * Opacity runs from 0 (transparent) to 1 (opaque).
+	 * @return the opacity by factory default.
+	 */
+	public double getFactoryOpacity()
+	{
+		if (layer == null) return 0;
+		Pref pref = opacityMap.get(layer);
+		return pref.getDoubleFactoryValue();
+	}
 
 	/**
 	 * Method to set the opacity of this EGraphics.
@@ -629,6 +711,19 @@ public class EGraphics extends Observable
 		return color;
 	}
 
+	/**
+	 * Method to get the RGB value representing the color by factory default.
+     * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
+     * Alpha/opacity component is not returned 
+	 * @return the RGB value representing the color by factory default.
+	 */
+	public int getFactoryColor()
+	{
+		if (layer == null) return 0;
+		Pref pref = colorMap.get(layer);
+		return pref.getIntFactoryValue();
+	}
+
     /**
      * Returns the RGB value representing the color associated with this EGraphics.
      * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
@@ -654,7 +749,8 @@ public class EGraphics extends Observable
 			Pref pref = colorMap.get(layer);
 			if (pref != null) pref.setInt((red << 16) | (green << 8) | blue);
 		}
-        // update any color used in 3D view if available
+
+		// update any color used in 3D view if available
         Object obj3D = get3DAppearance();
 
         if (obj3D != null)
