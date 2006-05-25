@@ -184,6 +184,7 @@ public class ToolBar extends JToolBar
         void updateToolBarButton(AbstractButton item) {
             item.setEnabled(isEnabled());
             item.setSelected(isSelected());
+            item.setToolTipText(getToolTipText());
         }
         
         @Override
