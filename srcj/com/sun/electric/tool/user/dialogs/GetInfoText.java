@@ -44,6 +44,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
 import java.awt.font.GlyphVector;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -63,6 +64,7 @@ import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 import javax.swing.JEditorPane;
@@ -807,39 +809,37 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 
         if (multipleLines) {
             // multiline text, change to text area
-            theText = new javax.swing.JTextArea();
+            theText = new JTextArea();
             String[] text = currentText.split("\\n");
             int size = 1;
             if (text.length > size) size = text.length;
-            ((javax.swing.JTextArea)theText).setRows(size);
-            ((javax.swing.JTextArea)theText).setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
+            ((JTextArea)theText).setRows(size);
+            ((JTextArea)theText).setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 
             // add listener to increase the number of rows if needed
             theText.addKeyListener(new KeyListener() {
                 public void keyPressed(KeyEvent e) {}
                 public void keyTyped(KeyEvent e) {}
                 public void keyReleased(KeyEvent e) {
-                    javax.swing.JTextArea area = (javax.swing.JTextArea)theText;
+                    JTextArea area = (JTextArea)theText;
                     area.setRows(area.getLineCount());
                     pack();
                 }
             });
-
         } else {
-            theText = new javax.swing.JTextField();
-            javax.swing.JTextField field = (javax.swing.JTextField)theText;
+            theText = new JTextField();
+            JTextField field = (JTextField)theText;
             if (currentText.matches(".*?\\n.*")) {
                 currentText = currentText.substring(0, currentText.indexOf('\n'));
             }
         }
         theText.setText(currentText);
 
-        java.awt.GridBagConstraints gridBagConstraints;
-        gridBagConstraints = new java.awt.GridBagConstraints();
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -854,8 +854,8 @@ getContentPane().add(buttonsPanel, gridBagConstraints);
 
         // getText from JTextArea returns one line. I want the
         // new line characters to be in there.
-        if (c instanceof javax.swing.JTextArea) {
-            javax.swing.JTextArea area = (javax.swing.JTextArea)c;
+        if (c instanceof JTextArea) {
+        	JTextArea area = (JTextArea)c;
 
             StringBuffer text = new StringBuffer();
             boolean first = true;
