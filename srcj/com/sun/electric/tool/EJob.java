@@ -96,37 +96,21 @@ class EJob {
     }   
     
     Throwable serialize(EDatabase database) {
-    	StringBuffer trace = new StringBuffer();
         try {
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        	trace.append("NCC debug: byteStream created\n");
-        	if (database==null) trace.append("NCC debug: database is null!\n");
             ObjectOutputStream out = new EObjectOutputStream(byteStream, database);
-            trace.append("NCC debug: out created\n");
-            if (clientJob==null) trace.append("NCC debug: clientJob is null!\n");
             out.writeObject(clientJob);
-            trace.append("NCC debug: writeObject succeeded\n");
             out.flush();
-            trace.append("NCC debug: out flushed\n");
             serializedJob = byteStream.toByteArray();
-            trace.append("NCC debug: byteStream.toByteArray succeeded\n");
             return null;
         } catch (Throwable e) {
 //        	if (e instanceof NotSerializableException)
         	{
 //        		NotSerializableException nse = (NotSerializableException)e;
         		System.out.println("ERROR: Job '" + jobName + "' cannot serialize parameter: " + e.getMessage());
-        		System.out.println("NCC debug: begin print trace:\n");
-        		System.out.println(trace.toString());
-        		System.out.println("NCC debug: end print trace:\n");
-        		
-        		if (e==null) {
-        			System.out.println("NCC debug: Throwable e is null!");
-        		} else {
-        			System.out.println("NCC debug: begin print Throwable, e, stack trace:\n");
-        			e.printStackTrace();
-        			System.out.println("NCC debug: end print trace:\n");
-        		}
+        		System.out.println("------------- Begin serialize() Exception stack trace --------------\n");
+    			e.printStackTrace();
+        		System.out.println("------------- End serialize() Exception stack trace ----------------\n");
         	}
             return e;
         }

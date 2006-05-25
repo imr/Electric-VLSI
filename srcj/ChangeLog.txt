@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+IMP: (5/25/06, RK) NCC: Remove  print statements I put in for debugging Bugzilla# 969.
+
 IMP/MAN: (5/25/06, GVG) Workaround for KeyBindings in EToolBarRadioButton for MacOSX (Bug #1056).
 Problem: JRadioButtonMenuItem doesn't handle accelerators well. In case of Command-S and S in two different
 functions, JRadioButtonMenuItem assumes are identical and a conflict is generated. Temporary workaround:
