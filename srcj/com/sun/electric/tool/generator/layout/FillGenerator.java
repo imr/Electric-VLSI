@@ -746,11 +746,8 @@ class CapLayer implements VddGndStraps {
 		return capCellInst.findPortInst(vddName+"_"+n);
 	}
 	public double getVddCenter(int n) {
-//		PortInst pi = getVdd(n, 0);
         EPoint center = getVdd(n, 0).getCenter();
 		return plan.horizontal ? center.getY() : center.getX();
-//                LayoutLib.roundCenterY(pi) :
-//			                     LayoutLib.roundCenterX(pi);
 	}
 	public double getVddWidth(int n) {return capCell.getVddWidth();}
 	public int numGnd() {return capCell.numGnd();}
@@ -758,11 +755,8 @@ class CapLayer implements VddGndStraps {
 		return capCellInst.findPortInst(gndName+"_"+n);
 	}
 	public double getGndCenter(int n) {
-//		PortInst pi = getGnd(n, 0);
         EPoint center = getGnd(n, 0).getCenter();
 		return plan.horizontal ? center.getY() : center.getX();
-//		return plan.horizontal ? LayoutLib.roundCenterY(pi) :
-//			                     LayoutLib.roundCenterX(pi);
 	}
 	public double getGndWidth(int n) {return capCell.getGndWidth();}
 
@@ -1309,10 +1303,10 @@ class TiledCell {
                     boolean forceVExport = (numCols > 1 && rows[row][(col+1)%2].getName().startsWith("empty"));
                     boolean forceExport = (orientation == Orientation.HORI_EXTERIOR) ? forceHExport : forceVExport;
 
-                    if (forceExport)
-                    {
-                        list.add(Orientation.INTERIOR);
-                    }
+//                    if (forceExport)
+//                    {
+//                        list.add(Orientation.INTERIOR);
+//                    }
 
 					if (orientation!=Orientation.INTERIOR || row==col) {
 						List<PortInst> ports = getUnconnectedPortInsts(list, rows[row][col]);
@@ -1371,7 +1365,6 @@ class TiledCell {
     private boolean refine(Cell master, Rectangle2D masterBnd, Cell empty, Library autoLib, Rectangle2D box, boolean isPlanHorizontal, StdCellParams stdCellParam,
                            List<Cell> newElems, Cell topCell, boolean binary, Area area)
     {
-//        Rectangle2D r = master.findEssentialBounds();
         double masterW = masterBnd.getWidth();
         double masterH = masterBnd.getHeight();
         double w = box.getWidth(), wHalf = w/2;
@@ -1746,7 +1739,6 @@ public class FillGenerator {
                 AffineTransform subTransUp = ni.transformOut(fillTransUp);
                 HashSet<NodeInst> nodesToRemoveSub = new HashSet<NodeInst>();
                 HashSet<ArcInst> arcsToRemoveSub = new HashSet<ArcInst>();
-                int copy = level;
 
                 Cell tmpCell = detectOverlappingBars(c, master, empty, subTransUp, nodesToRemoveSub, arcsToRemoveSub,
                         topCell, ignore, drcSpacing, ++level);
@@ -1756,8 +1748,6 @@ public class FillGenerator {
                     // not sure what to delete
                     nodesToRemoveSub.clear();
                     arcsToRemoveSub.clear();
-                   tmpCell = detectOverlappingBars(c, master, empty, subTransUp, nodesToRemoveSub, arcsToRemoveSub,
-                        topCell, ignore, drcSpacing, ++copy);
                     return empty;
                 }
                 continue;
@@ -1771,11 +1761,11 @@ public class FillGenerator {
             }
             Rectangle2D rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
             assert(ignore.length == 0);
-            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}))
+            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master))
             {
                 // Direct on last top fill cell
-                rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
-                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni});
+//                rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
+//                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master);
                 nodesToRemove.add(ni);
                 for (Iterator<Connection> itC = ni.getConnections(); itC.hasNext();)
                 {
@@ -1794,9 +1784,11 @@ public class FillGenerator {
             // Searching box must reflect DRC constrains
             Rectangle2D rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
             assert(ignore.length == 0);
-            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}))
+            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master))
             {
                 arcsToRemove.add(ai);
+//                rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
+//                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master);
                 // Remove exports and pins as well
 //                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
 //                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
@@ -1805,66 +1797,92 @@ public class FillGenerator {
 
         if (level == 0)
         {
-        Set<ArcProto> names = new HashSet<ArcProto>();
-        // Check if there are not contacts or ping that don't have at least one or zero arc per metal
-        // If they don't have, then they are floating
-        for (Iterator<NodeInst> itNode = cell.getNodes(); itNode.hasNext(); )
-        {
-            NodeInst ni = itNode.next();
-
-            if (Generic.isSpecialGenericNode(ni)) continue; // Can't skip pins
-
-            // For removal
-            if (nodesToRemove.contains(ni))
-                continue;
-
-            int minNum = (ni.getProto().getFunction() == PrimitiveNode.Function.PIN ||
-                    ni.isCellInstance())?0:1;
-            // At least should have connections to both layers
-            names.clear();
-            boolean found = false;
-            for (Iterator<Connection> itC = ni.getConnections(); itC.hasNext();)
+            Set<ArcProto> names = new HashSet<ArcProto>();
+            // Check if there are not contacts or ping that don't have at least one or zero arc per metal
+            // If they don't have, then they are floating
+            for (Iterator<NodeInst> itNode = cell.getNodes(); itNode.hasNext(); )
             {
-                Connection c = itC.next();
-                ArcInst ai = c.getArc();
-                if (arcsToRemove.contains(ai)) continue; // marked for deletion
-                names.add(ai.getProto());
-                if (names.size() > minNum) // found at least two different arcs
+                NodeInst ni = itNode.next();
+
+                if (Generic.isSpecialGenericNode(ni)) continue; // Can't skip pins
+
+                // For removal
+                if (nodesToRemove.contains(ni))
+                    continue;
+
+                int minNum = (ni.getProto().getFunction() == PrimitiveNode.Function.PIN ||
+                        ni.isCellInstance())?0:1;
+                // At least should have connections to both layers
+                names.clear();
+                boolean found = false;
+                for (Iterator<Connection> itC = ni.getConnections(); itC.hasNext();)
                 {
-                    found = true;
-                    break;
+                    Connection c = itC.next();
+                    ArcInst ai = c.getArc();
+                    if (arcsToRemove.contains(ai)) continue; // marked for deletion
+                    names.add(ai.getProto());
+                    if (names.size() > minNum) // found at least two different arcs
+                    {
+                        found = true;
+                        break;
+                    }
                 }
+                if (!found) // element could be deleted
+                    nodesToRemove.add(ni);
             }
-            if (!found) // element could be deleted
-                nodesToRemove.add(ni);
-        }
         }
 
         return (nodesToRemove.size() > 0 || arcsToRemove.size() > 0) ? null : master;
     }
-    
+
+    /**
+     * Method to check if a subCell used in another cell is also part of the master cell. This avoids
+     * conflicts while detecting collisions.
+     * @param master
+     * @param cell
+     * @return
+     */
+    private static boolean searchSubCellInMasterCell(Cell master, Cell cell)
+    {
+        // checking if parent is already part of the fill master
+        for (Iterator<NodeInst> itNi = master.getNodes(); itNi.hasNext();)
+        {
+            NodeInst ni = itNi.next();
+            if (ni.isCellInstance())
+            {
+                Cell thisCell = (Cell)ni.getProto();
+                if (thisCell == cell)
+                    return true; // found in master
+            }
+        }
+        return false;
+    }
+
     /**
      * Method to determine if new contact will overlap with other metals in the configuration
      * @param parent
      * @param nodeBounds
      * @param p
      * @param ignores NodeInst instances to ignore
+     * @param master
      * @return
      */
     protected static boolean searchCollision(Cell parent, Rectangle2D nodeBounds, List<Layer.Function> theseLayers,
-                                             PortConfig p, Object[] ignores)
+                                             PortConfig p, Object[] ignores, Cell master)
     {
         // Not checking if they belong to the same net!. If yes, ignore the collision
         Rectangle2D subBound = new Rectangle2D.Double();
         Netlist netlist = parent.acquireUserNetlist();
 
         for (int i = 0; i < ignores.length; i++)
+        {
+            if (parent == ignores[i])
             {
-                if (parent == ignores[i])
-                {
-                    return false;
-                }
+                return false;
             }
+        }
+        if (master != null && searchSubCellInMasterCell(master, parent))
+            return false;
 
         for(Iterator<Geometric> it = parent.searchIterator(nodeBounds); it.hasNext(); )
         {
@@ -1902,7 +1920,7 @@ public class FillGenerator {
                     subBound.setRect(nodeBounds);
                     DBMath.transformRect(subBound, rTransI);
 
-                    if (searchCollision((Cell)ni.getProto(), subBound, theseLayers, p, ignores))
+                    if (searchCollision((Cell)ni.getProto(), subBound, theseLayers, p, ignores, master))
                         return true;
                 } else
                 {

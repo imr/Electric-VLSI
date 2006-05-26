@@ -71,20 +71,35 @@ public class FillGen extends EDialog {
         autoFillGroup.add(flatFill);
         autoFillGroup.add(binaryFill);
         autoFillGroup.add(adaptiveFill);
-        flatFill.setSelected(true);
+        FillGeneratorTool.FillCellMode mode = FillGeneratorTool.getFillCellMode();
+        switch (mode)
+        {
+            case FLAT:
+                flatFill.setSelected(true);
+                break;
+            case BINARY:
+                binaryFill.setSelected(true);
+                break;
+            case ADAPTIVE:
+                adaptiveFill.setSelected(true);
+                break;
+            default:
+                System.out.println("Error in FillGen: getting cell filling mode");
+        }
         // master
         masterGroup.add(createButton);
         masterGroup.add(selectButton);
-        createButton.setSelected(true);
+        boolean createMaster = FillGeneratorTool.isFillCellCreateMasterOn();
+        createButton.setSelected(createMaster);
+        selectButton.setSelected(!createMaster);
 
         // top group
         topGroup.add(templateButton);
         topGroup.add(cellButton);
-        if (cellToFill != null)
-           cellButton.setSelected(true);
-        else
+        cellButton.setSelected(FillGeneratorTool.isFillCell());
+        if (cellToFill == null)
         {
-            cellButton.setEnabled(false); // you can't select it if cell is null.
+            // you can't select it if cell is null.
             templateButton.setSelected(true);
         }
 
@@ -815,6 +830,16 @@ public class FillGen extends EDialog {
 
         new FillGeneratorTool.FillGenJob(cellToFill, config, false);
 
+        // Store preferences
+        FillGeneratorTool.FillCellMode mode = FillGeneratorTool.FillCellMode.NONE;
+        if (flatFill.isSelected())
+            mode = FillGeneratorTool.FillCellMode.FLAT;
+        else if (binaryFill.isSelected())
+            mode = FillGeneratorTool.FillCellMode.BINARY;
+        else if (adaptiveFill.isSelected())
+            mode = FillGeneratorTool.FillCellMode.ADAPTIVE;
+        FillGeneratorTool.setFillCellMode(mode);
+        FillGeneratorTool.setFillCellCreateMasterOn(createButton.isSelected());
         setVisible(false);;
     }//GEN-LAST:event_okButtonActionPerformed
 

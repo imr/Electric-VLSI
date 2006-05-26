@@ -52,14 +52,57 @@ public class FillGeneratorTool extends Tool {
     /**
      * Method to tell whether FillGenerator will fill a given cell instead of create fill templates.
      * The default is "true".
-     * @return true if DRC FillGenerator should fill a given cell instead of create fill templates.
+     * @return true if FillGenerator should fill a given cell instead of create fill templates.
      */
     public static boolean isFillCell() { return cacheFillCell.getBoolean(); }
     /**
-     * Method to set whether DRC dates should be stored in memory or not.
-     * @param on true if DRC dates should be stored in memory or not.
+     * Method to set whether FillGenerator will fill a given cell instead of create fill templates.
+     * @param on true if FillGenerator should fill a given cell instead of create fill templates.
      */
     public static void setFillCell(boolean on) { cacheFillCell.setBoolean(on); }
+
+    public enum FillCellMode
+    {
+        NONE(-1),
+        FLAT(0),
+        BINARY(1),
+        ADAPTIVE(2);
+        private final int mode;
+        FillCellMode(int m) { mode = m; }
+        static FillCellMode find(int mode)
+        {
+            for (FillCellMode m : FillCellMode.values())
+            {
+                if (m.mode == mode) return m;
+            }
+            return NONE;
+        }
+    };
+    private static Pref cacheFillCellMode = Pref.makeIntPref("FillCellMode", tool.prefs, FillCellMode.FLAT.mode);
+    /**
+     * Method to retrieve mode when a given cell must filled.
+     * The default is FLAT.
+     * @return value representing the algorithm to use for filling a given cell.
+     */
+    public static FillCellMode getFillCellMode() { return FillCellMode.find(cacheFillCellMode.getInt()); }
+    /**
+     * Method to set mode when a given cell must filled.
+     * @param mode value representing the algorithm to use for filling a given cell.
+     */
+    public static void setFillCellMode(FillCellMode mode) { cacheFillCellMode.setInt(mode.mode); }
+
+    private static Pref cacheFillCellCreateMaster = Pref.makeBooleanPref("FillCellCreateMaster", tool.prefs, true);
+    /**
+     * Method to tell whether FillGenerator will generate a master cell or use a given one.
+     * The default is "true".
+     * @return true if FillGenerator should generate a master cell instead of use a given one.
+     */
+    public static boolean isFillCellCreateMasterOn() { return cacheFillCellCreateMaster.getBoolean(); }
+    /**
+     * Method to set whether FillGenerator will generate a master cell or use a given one.
+     * @param on true if FillGenerator should generate a master cell instead of use a given one.
+     */
+    public static void setFillCellCreateMasterOn(boolean on) { cacheFillCellCreateMaster.setBoolean(on); }
 
     /****************************** JOB ******************************/
 
@@ -571,7 +614,7 @@ public class FillGeneratorTool extends Tool {
                 }
                 Rectangle2D rect = FillGenerator.getSearchRectangle(ni.getBounds(), fillTransUp, container.drcSpacing);
                 if (FillGenerator.searchCollision(topCell, rect, tmp, null,
-                        new NodeInst[] {container.fillNi, container.connectionNi}))
+                        new NodeInst[] {container.fillNi, container.connectionNi}, null))
                 {
                     // Direct on last top fill cell
                     if (cell == container.fillCell)
@@ -590,7 +633,7 @@ public class FillGeneratorTool extends Tool {
                 // Searching box must reflect DRC constrains
                 Rectangle2D rect = FillGenerator.getSearchRectangle(ai.getBounds(), fillTransUp, container.drcSpacing);
                 if (FillGenerator.searchCollision(topCell, rect, tmp, null,
-                        new NodeInst[] {container.fillNi, container.connectionNi}))
+                        new NodeInst[] {container.fillNi, container.connectionNi}, null))
                 {
                     if (cell == container.fillCell)
                     {
@@ -1103,7 +1146,7 @@ public class FillGeneratorTool extends Tool {
                     // Get connecting metal contact (PrimitiveNode) starting from techPin up to the power/vdd bar found
                     // Search if there is a collision with existing nodes/arcs
                     if (FillGenerator.searchCollision(topCell, newElemTop, fillLayers, p,
-                            new NodeInst[] {container.fillNi, container.connectionNi}))
+                            new NodeInst[] {container.fillNi, container.connectionNi}, null))
                         continue;
 
                     // The first time but only after at least one element can be placed
