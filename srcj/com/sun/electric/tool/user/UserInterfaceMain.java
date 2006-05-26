@@ -671,7 +671,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 	{
 		private Snapshot newSnapshot;
         private boolean undoRedo;
-		private DatabaseChangeRun(Snapshot newSnapshot, boolean undRedo) {
+		private DatabaseChangeRun(Snapshot newSnapshot, boolean undoRedo) {
             this.newSnapshot = newSnapshot;
             this.undoRedo = undoRedo;
         }
@@ -679,7 +679,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             DatabaseChangeEvent event = new DatabaseChangeEvent(currentSnapshot, newSnapshot);
             for(Iterator<Listener> it = Tool.getListeners(); it.hasNext(); ) {
                 Listener listener = it.next();
-                listener.endBatch(currentSnapshot, newSnapshot, false);
+                listener.endBatch(currentSnapshot, newSnapshot, undoRedo);
             }
             currentSnapshot = newSnapshot;
             fireDatabaseChangeEvent(event);
