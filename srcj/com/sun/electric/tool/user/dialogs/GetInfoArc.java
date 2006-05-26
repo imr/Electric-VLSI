@@ -296,7 +296,10 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			slidable.setEnabled(true);
 			directionality.setEnabled(true);
 			extension.setEnabled(true);
-			negation.setEnabled(true);
+			if (ai.getHeadPortInst().getPortProto().getBasePort().isNegatable() ||
+				ai.getTailPortInst().getPortProto().getBasePort().isNegatable())
+					negation.setEnabled(true); else
+						negation.setEnabled(false);
 			headSee.setEnabled(true);
 			tailSee.setEnabled(true);
 			apply.setEnabled(true);
@@ -1229,10 +1232,22 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			{
 				switch (newNegated.intValue())
 				{
-					case 0: ai.setHeadNegated(false);    ai.setTailNegated(false);    break;
-					case 1: ai.setHeadNegated(true);     ai.setTailNegated(false);    break;
-					case 2: ai.setHeadNegated(false);    ai.setTailNegated(true);     break;
-					case 3: ai.setHeadNegated(true);     ai.setTailNegated(true);     break;
+					case 0:
+						ai.setHeadNegated(false);
+						ai.setTailNegated(false);
+						break;
+					case 1:
+						if (ai.getHeadPortInst().getPortProto().getBasePort().isNegatable()) ai.setHeadNegated(true);
+						ai.setTailNegated(false);
+						break;
+					case 2:
+						ai.setHeadNegated(false);
+						if (ai.getTailPortInst().getPortProto().getBasePort().isNegatable()) ai.setTailNegated(true);
+						break;
+					case 3:
+						if (ai.getHeadPortInst().getPortProto().getBasePort().isNegatable()) ai.setHeadNegated(true);
+						if (ai.getTailPortInst().getPortProto().getBasePort().isNegatable()) ai.setTailNegated(true);
+						break;
 				}
 				changed = true;
 			}

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/26/06, SMR) Arc Preferences dialog lets you set negation where inappropriate.
+FIX: In GetInfoArc.ChangeArc.doIt(), set negation only where allowed.
+     Also disable the negation popup if both ends are disallowed.
+
 BUG: (5/26/06, SMR) Typing a numeric key to change pin levels destroys
      the export name (Bug #1064).
 FIX: In InteractiveRouter.MakeVerticalRouteJob.doIt(), only delete the pin
