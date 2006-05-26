@@ -197,20 +197,20 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            Rectangle2D iconBounds = icon.getBounds();
 				double newlocX = (locX - bounds.getMinX()) / bounds.getWidth() * iconBounds.getWidth() + iconBounds.getMinX();
                 newlocX = DBMath.toNearest(newlocX, User.getAlignmentToGrid());
-				double bodyDX = 1;
+				double bodyDX = User.getIconGenLeadLength();
 				double distToXEdge = locX - bounds.getMinX();
 				if (locX >= bounds.getCenterX())
 				{
-					bodyDX = -1;
+					bodyDX = -bodyDX;
 					distToXEdge = bounds.getMaxX() - locX;
 				}
 				double newlocY = (locY - bounds.getMinY()) / bounds.getHeight() * iconBounds.getHeight() + iconBounds.getMinY();
                 newlocY = DBMath.toNearest(newlocY, User.getAlignmentToGrid());
-				double bodyDY = 1;
+				double bodyDY = User.getIconGenLeadLength();
 				double distToYEdge = locY - bounds.getMinY();
 				if (locY >= bounds.getCenterY())
 				{
-					bodyDY = -1;
+					bodyDY = -bodyDY;
 					distToYEdge = bounds.getMaxY() - locY;
 				}
 				if (distToXEdge > distToYEdge) bodyDX = 0; else bodyDY = 0;

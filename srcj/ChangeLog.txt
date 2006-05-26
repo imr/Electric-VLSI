@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+IMP: (5/26/06, SMR) When adding an export to a schematic, new icon export
+     uses standard lead lengths. (Bug #902).
+
 IMP/MAN: (5/26/06, SMR) Added new context-menu item in explorer tree:
      Cell Groups can be duplicated, copying everything in the group (Bug #894).
 
