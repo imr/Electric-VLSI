@@ -727,7 +727,7 @@ public class HSpiceOut extends Simulate
 		}
 		an.setBoundsDirty();
 		stopProgressDialog();
-        System.out.print("... Done");
+        System.out.println("... Done");
 	}
 
 	/*
