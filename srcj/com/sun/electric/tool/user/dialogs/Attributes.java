@@ -455,9 +455,12 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // try to find variable
         Variable.Key varKey = Variable.newKey(varName);
-        if (selectedObject.getVar(varKey) != null) {
+        if (selectedObject.getVar(varKey) != null)
+        {
             // make sure var is selected
-            showSelectedAttribute(varKey);
+            if (varKey != null)
+            list.setSelectedValue(varKey, true);
+//            showSelectedAttribute(varKey);
         } else {
             // no such var, remove selection and enable new buttons
             newButton.setEnabled(true);
@@ -526,7 +529,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
     /**
      * Method to display the aspects of the currently selected Variable in the dialog.
-     * @param selectThis if non-null, select this variable first, and then update dialog.
+     * @param selectThisKey if non-null, select this variable first, and then update dialog.
      */
     void showSelectedAttribute(Variable.Key selectThisKey)
     {

@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
-BUG: (/5/25/06, GVG) [Bug 1065]  New: NullPointerException on toggle head and tail (Bug #1065)
+IMP: (5/25/06, GVG) Cursor in Name field in Attributes dialog can be moved to the middle of the word.
+Done by not calling showSelectedAttribute(varKey).
+
+BUG: (5/25/06, GVG) [Bug 1065]  New: NullPointerException on toggle head and tail (Bug #1065)
 FIX: Indeed, the exception is in Toggle Port Negation. Exception was due to Highlight2 not serializable.
 Code changed so list of ElectricObjects is used in the doIt() method.
 
