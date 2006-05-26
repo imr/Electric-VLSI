@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/26/06, SMR) "Change" of arcs that includes "nodes with arcs" fails (Bug #1031).
+FIX: In Change.replaceAllArcs(), corrected head/tail reversal, maintain node names.
+
 IMP: (5/25/06, GVG) Cursor in Name field in Attributes dialog can be moved to the middle of the word.
 Done by not calling showSelectedAttribute(varKey).
 

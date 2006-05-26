@@ -969,15 +969,15 @@ public class Change extends EDialog implements HighlightListener
 			double xS = pin.getDefWidth();
 			double yS = pin.getDefHeight();
 			List<NodeInst> dupPins = new ArrayList<NodeInst>();
-			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			for(Geometric geom : geomMarked)
 			{
-				NodeInst ni = it.next();
-				if (!geomMarked.contains(ni)) continue;
-				dupPins.add(ni);
+				if (geom instanceof NodeInst)
+					dupPins.add((NodeInst)geom);
 			}
 			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 			for(NodeInst ni : dupPins)
 			{
+				// TODO this used to provide the node name (ni.getName()) in the 2nd to last argument
 				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, Orientation.IDENT, null, 0);
 				if (newNi == null) return;
 				geomMarked.remove(newNi);
@@ -996,14 +996,10 @@ public class Change extends EDialog implements HighlightListener
 			}
 
 			// now create new arcs to replace the old ones
-			List<ArcInst> dupArcs = new ArrayList<ArcInst>();
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+			for(Geometric geom : geomMarked)
 			{
-				ArcInst ai = it.next();
-				if (geomMarked.contains(ai)) dupArcs.add(ai);
-			}
-			for(ArcInst ai : dupArcs)
-			{
+				if (!(geom instanceof ArcInst)) continue;
+				ArcInst ai = (ArcInst)geom;
 				NodeInst ni0 = ai.getHeadPortInst().getNodeInst();
 				PortInst pi0 = null;
 				NodeInst newNi0 = newNodes.get(ni0);
@@ -1014,7 +1010,7 @@ public class Change extends EDialog implements HighlightListener
 				} else
 				{
 					// need contacts to get to the right level
-					pi0 = makeContactStack(ai, 0, ap);
+					pi0 = makeContactStack(ai, ArcInst.HEADEND, ap);
 					if (pi0 == null) return;
 				}
 				NodeInst ni1 = ai.getTailPortInst().getNodeInst();
@@ -1027,7 +1023,7 @@ public class Change extends EDialog implements HighlightListener
 				} else
 				{
 					// need contacts to get to the right level
-					pi1 = makeContactStack(ai, 1, ap);
+					pi1 = makeContactStack(ai, ArcInst.TAILEND, ap);
 					if (pi1 == null) return;
 				}
 
@@ -1041,28 +1037,38 @@ public class Change extends EDialog implements HighlightListener
 			}
 
 			// now remove the previous arcs and nodes
-			List<ArcInst> killArcs = new ArrayList<ArcInst>();
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+			for(Geometric geom : geomMarked)
 			{
-				ArcInst ai = it.next();
-				if (geomMarked.contains(ai)) killArcs.add(ai);
-			}
-			for(ArcInst ai : killArcs)
-			{
-				ai.kill();
+				if (geom instanceof ArcInst)
+				{
+					ArcInst ai = (ArcInst)geom;
+					ai.kill();
+				}
 			}
 
-			List<NodeInst> killNodes = new ArrayList<NodeInst>();
-			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			// delete old pins and copy their names to the new ones
+			for(NodeInst ni : dupPins)
 			{
-				NodeInst ni = it.next();
-				if (geomMarked.contains(ni)) killNodes.add(ni);
-			}
-			for(NodeInst ni : killNodes)
-			{
+				NodeInst newNi = newNodes.get(ni);
 				if (ni.getNumExports() == 0)
+				{
+					String niName = ni.getName();
 					ni.kill();
+					newNi.setName(niName);
+				}
 			}
+
+//			List<NodeInst> killNodes = new ArrayList<NodeInst>();
+//			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+//			{
+//				NodeInst ni = it.next();
+//				if (geomMarked.contains(ni)) killNodes.add(ni);
+//			}
+//			for(NodeInst ni : killNodes)
+//			{
+//				if (ni.getNumExports() == 0)
+//					ni.kill();
+//			}
 		}
 
 		NodeProto [] contactStack = new NodeProto[100];
