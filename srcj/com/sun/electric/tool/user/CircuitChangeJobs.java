@@ -832,14 +832,19 @@ public class CircuitChangeJobs
 	public static class ToggleNegationJob extends Job
 	{
 		private Cell cell;
-        private List<Highlight2> highlighted;
+        private List<ElectricObject> highlighted; // Can't use Highlight2 since it is not serializable
         private int numSet;
 
         public ToggleNegationJob(Cell cell, List<Highlight2> highlighted)
 		{
 			super("Toggle negation", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
-            this.highlighted = highlighted;
+            this.highlighted = new ArrayList<ElectricObject>();
+            for(Highlight2 h : highlighted)
+            {
+                if (!h.isHighlightEOBJ()) continue;
+                this.highlighted.add(h.getElectricObject());
+            }
 			startJob();
 		}
 
@@ -849,10 +854,8 @@ public class CircuitChangeJobs
 			if (cantEdit(cell, null, true) != 0) return false;
 
 			numSet = 0;
-			for(Highlight2 h : highlighted)
+			for(ElectricObject eobj : highlighted)
 			{
-				if (!h.isHighlightEOBJ()) continue;
-				ElectricObject eobj = h.getElectricObject();
 				if (eobj instanceof PortInst)
 				{
 					PortInst pi = (PortInst)eobj;
