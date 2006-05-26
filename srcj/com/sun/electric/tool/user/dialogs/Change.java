@@ -978,7 +978,7 @@ public class Change extends EDialog implements HighlightListener
 			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
 			for(NodeInst ni : dupPins)
 			{
-				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, Orientation.IDENT, ni.getName(), 0);
+				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, Orientation.IDENT, null, 0);
 				if (newNi == null) return;
 				geomMarked.remove(newNi);
 				newNodes.put(ni, newNi);
