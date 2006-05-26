@@ -27,6 +27,7 @@ import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
+import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.strategy.StratPartPopularity;
 import com.sun.electric.tool.ncc.strategy.StratPartType;
@@ -41,16 +42,16 @@ import com.sun.electric.tool.ncc.strategy.StratPartType;
 public class LocalPartitioning {
     NccGlobals globals;
     /** return a Set of all the types of Pins we might encounter */
-	private void partitionPartsUsingLocalInformation() {
+	private void partitionPartsUsingLocalInformation(Set<Part> forcedMatchParts) {
 		globals.status2("Partition Parts using local information");
 		if (globals.getParts()==null) return;
-		LeafList offspring = StratPartType.doYourJob(globals);
+		LeafList offspring = StratPartType.doYourJob(forcedMatchParts, globals);
 		if (offspring.size()!=0) {
 			//StratCheck.doYourJob(globals.getRoot(), globals);
 			//StratCount.doYourJob(globals.getRoot(), globals);
 		}
 		
-		offspring = StratPartPopularity.doYourJob(globals);
+		offspring = StratPartPopularity.doYourJob(forcedMatchParts, globals);
 		if (offspring.size()!=0) {
 			//StratCheck.doYourJob(globals.getRoot(), globals);
 			//StratCount.doYourJob(globals.getRoot(), globals);
@@ -59,10 +60,10 @@ public class LocalPartitioning {
 
     private LocalPartitioning(NccGlobals globals) {this.globals = globals;}
     
-    private void doYourJob2(Set<Wire> forcedMatchWires) {
+    private void doYourJob2(Set<Part> forcedMatchParts, Set<Wire> forcedMatchWires) {
         globals.status2("Begin partitioning based on local characteristics \n");
 
-		partitionPartsUsingLocalInformation();
+		partitionPartsUsingLocalInformation(forcedMatchParts);
 		NewLocalPartitionWires.doYourJob(forcedMatchWires, globals);
 
 		/* Count EquivRecords after Local Partitioning */
@@ -82,8 +83,10 @@ public class LocalPartitioning {
     }
 	
 	// ------------------------ public method ---------------------------------
-	public static void doYourJob(Set<Wire> forcedMatchWires, NccGlobals globals) {
+	public static void doYourJob(Set<Part> forcedMatchParts,
+			                     Set<Wire> forcedMatchWires, 
+			                     NccGlobals globals) {
 		LocalPartitioning jsl = new LocalPartitioning(globals);
-		jsl.doYourJob2(forcedMatchWires);
+		jsl.doYourJob2(forcedMatchParts, forcedMatchWires);
 	}
 }

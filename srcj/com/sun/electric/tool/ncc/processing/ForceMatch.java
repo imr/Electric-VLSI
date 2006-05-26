@@ -9,205 +9,180 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
-import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
 
 public class ForceMatch {
 	private static class PartitionEquivRecord extends Strategy {
-		private Map<Wire, Integer> wireToIndex;
+		private Map<NetObject, Integer> netObjToIndex;
 		
 		@Override
 		public Integer doFor(NetObject n) {
-			Integer index = wireToIndex.get(n);
+			Integer index = netObjToIndex.get(n);
 			// add 1000 to index to avoid collision with 0 which means "no change"
 			return index==null ? 0 : (1000+index.intValue());
 		}
 		
-		public PartitionEquivRecord(EquivRecord er, Map<Wire, Integer> wireToIndex, NccGlobals globals) {
+		public PartitionEquivRecord(EquivRecord er, 
+				                    Map<NetObject, Integer> netObjToIndex, 
+				                    NccGlobals globals) {
 			super(globals);
-			this.wireToIndex = wireToIndex;
+			this.netObjToIndex = netObjToIndex;
 			doFor(er);
 		}
 	}
 	private NccGlobals globals;
-	/*
-	private Wire findWireInRootCell(String wireName, Iterator<EquivRecord> erIt, int desNdx) {
-		Cell rootCell = globals.getRootCells()[desNdx];
-		while (erIt.hasNext()) {
-			EquivRecord er = erIt.next();
-			Iterator<Circuit> ci = er.getCircuits();
-			Circuit ckt = ci.next();
-			for (int i=0; i<desNdx; i++) ckt = ci.next();
-			for (Iterator<NetObject> ni = ckt.getNetObjs(); ni.hasNext();) {
-				Wire w = (Wire) ni.next();
-				WireNameProxy prox = w.getNameProxy();
-				if (prox.leafCell()==rootCell && prox.getNet().hasName(wireName)) {
-					return w;
-				}
-			}
-		}
-		return null;
-	}
 	
-	private Wire findWireInRootCell(String wireName, int desNdx) {
-		LeafEquivRecords ler = globals.getWireLeafEquivRecs();
-		Wire w = findWireInRootCell(wireName, ler.getNotMatched(), desNdx);
-		if (w!=null) return w;
-		w = findWireInRootCell(wireName, ler.getMatched(), desNdx);
-		return w;
-	}
-	
-	private EquivRecord getCommonEquivRec(Set<Wire> wires) {
-		EquivRecord er = null;
-		for (Wire w : wires) {
-			if (er==null) {
-				er = w.getParent().getParent();
-			} else {
-				if (w.getParent().getParent()!=er) return null;
-			}
-		}
-		return er;
-	}
-	
-	private void forceWireMatch(String wireName, Cell[] cells) {
-		int numDesigns = cells.length;
-		globals.pr("  Forcing match of Wires named: \""+wireName+"\" in Cells: ");
-		for (int i=0; i<numDesigns; i++) 
-			globals.pr(cells[i].describe(true)  +" ");
-		globals.prln("");
-
-		Set<Wire> wires = new HashSet<Wire>();
-		for (int i=0; i<numDesigns; i++) {
-			Wire w = findWireInRootCell(wireName, i);
-			if (w==null) {
-				globals.prln("    Couldn't find Wire named: \""+wireName+"\" in Cell: "+cells[i].describe(true));
-				return;
-			}
-			wires.add(w);
-		}
-		EquivRecord er = getCommonEquivRec(wires);
-		if (er==null) {
-			globals.prln("    Couldn't force match because Wires already mismatched by local partitioning");
-			return;
-		}
-		if (er.isMatched()) {
-			globals.prln("    Wires already matched by local partitioning");
-			return;
-		}
-		new PartitionEquivRecord(er, wires, globals);
-		
-	}
-	*/
-	private List<String> getNamesOfWiresToForceMatch() {
+	private void getNamesOfPartsAndWiresToForceMatch(List<String> partNames, 
+			                                         List<String> wireNames) {
 		// eliminate duplicates in case of user error
-		Set<String> forceNames = new HashSet<String>();
+		Set<String> forcePartNames = new HashSet<String>();
+		Set<String> forceWireNames = new HashSet<String>();
 
 		Cell[] cells = globals.getRootCells();
 		for (int i=0; i<cells.length; i++) {
 			Cell c = cells[i];
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
 			if (ann==null) continue;
-			forceNames.addAll(ann.getForceWireMatches());
+			forcePartNames.addAll(ann.getForcePartMatches());
+			forceWireNames.addAll(ann.getForceWireMatches());
 		}
-		List<String> forceNameList = new ArrayList<String>();
-		forceNameList.addAll(forceNames);
-		return forceNameList;
+		partNames.addAll(forcePartNames);
+		wireNames.addAll(forceWireNames);
 	}
 	
-	private int indexOfMatchingName(List<String> forceNames, Network net) {
+	private boolean nameMatches(String name, NetObject nObj) {
+		if (nObj instanceof Wire) {
+			return ((Wire)nObj).getNameProxy().getNet().hasName(name); 
+		} else {
+			globals.error(!(nObj instanceof Part), "not Part or Wire");
+			return ((Part)nObj).getNameProxy().leafName().equals(name);
+		}
+	}
+	private int indexOfMatchingName(List<String> forceNames, NetObject nObj) {
 		for (int i=0; i<forceNames.size(); i++) {
-			if (net.hasName(forceNames.get(i))) return i;
+			if (nameMatches(forceNames.get(i), nObj)) return i;
 		}
 		return -1;
 	}
-	/** Make sure that for each name we have one Wire for each root Cell.
+	/** Make sure that for each name we have one NetObject for each root Cell.
 	 * Print messages saying we're forcing matches.
 	 * Print messages if we can't find names. 
-	 * Clear Wires if name match is incomplete.
+	 * clear Netobject if name match is incomplete.
 	 * @param forceNames
-	 * @param forceWires */
-	private Map<Wire, Integer> buildForceWireMap(List<String> forceNames, Wire[][] forceWires) {
-		Map<Wire, Integer> wireToNdx = new HashMap<Wire, Integer>();
+	 * @param forceNetObjs NetObject[cktIndex][nameIndex] */
+	private Map<NetObject, Integer> buildForceNetObjMap(List<String> forceNames, 
+			                                            NetObject[][] forceNetObjs,
+			                                            String netObjType) {
+		Map<NetObject, Integer> netObjToNdx = new HashMap<NetObject, Integer>();
 		
 		for (int nameNdx=0; nameNdx<forceNames.size(); nameNdx++) {
 			String forceName = forceNames.get(nameNdx);
-			boolean haveAllWires = true;
+			boolean haveNetObjForEachRootCell = true;
 			Cell[] rootCells = globals.getRootCells();
-			for (int desNdx=0; desNdx<forceWires.length; desNdx++) {
-				if (forceWires[desNdx][nameNdx]==null) {
-					globals.prln("  forceMatch: Can't find Wire named: "+forceName+
+			for (int desNdx=0; desNdx<forceNetObjs.length; desNdx++) {
+				if (forceNetObjs[desNdx][nameNdx]==null) {
+					globals.prln("  forceMatch: Can't find "+netObjType+
+							     " named: "+forceName+
 							     " in Cell: "+rootCells[desNdx].describe(false));
-					haveAllWires = false;
+					haveNetObjForEachRootCell = false;
 				}
 			}
-			if (haveAllWires) {
-				globals.pr("  Forcing match of Wires named: "+forceName+" in Cells: ");
+			if (haveNetObjForEachRootCell) {
+				globals.pr("  Forcing match of "+netObjType+
+						   " named: "+forceName+" in Cells: ");
 				for (int desNdx=0; desNdx<rootCells.length; desNdx++) {
 					globals.pr(rootCells[desNdx].describe(false)+" ");
 				}
 				globals.prln("");
-				for (int desNdx=0; desNdx<forceWires.length; desNdx++) {
-					wireToNdx.put(forceWires[desNdx][nameNdx], nameNdx);
+				for (int desNdx=0; desNdx<forceNetObjs.length; desNdx++) {
+					netObjToNdx.put(forceNetObjs[desNdx][nameNdx], nameNdx);
 				}
 			}
 		}
 		
-		return wireToNdx;
+		return netObjToNdx;
 	}
 	
-	/** @return Wire[circuitIndex][nameIndex] */
-	private Wire[][] findWiresToForceMatch(List<String> forceNames) {
-		Wire[][] forceWires = new Wire[globals.getRootCells().length][];
+	private Cell getParentCell(NetObject nObj) {
+		if (nObj instanceof Wire) {
+			return ((Wire)nObj).getNameProxy().leafCell();
+		} else {
+			globals.error(!(nObj instanceof Part), "not a Part or a Wire?");
+			return ((Part)nObj).getNameProxy().leafCell();
+		}
+	}
+	/** @return NetObject[circuitIndex][nameIndex] */
+	private NetObject[][] findNetObjsToForceMatch(EquivRecord equivRec,
+			                                      List<String> forceNames) {
+		NetObject[][] forceNetObjs = new NetObject[globals.getRootCells().length][];
 		                               
 		Cell[] rootCells = globals.getRootCells();
-		EquivRecord wires = globals.getWires();
 		int cktNdx = 0;
-		for (Iterator<Circuit> cit=wires.getCircuits(); cit.hasNext(); cktNdx++) {
+		for (Iterator<Circuit> cit=equivRec.getCircuits(); cit.hasNext(); cktNdx++) {
 			Circuit ckt = cit.next();
 			Cell rootCell = rootCells[cktNdx];
-			forceWires[cktNdx] = new Wire[forceNames.size()];
+			forceNetObjs[cktNdx] = new NetObject[forceNames.size()];
 			for (Iterator<NetObject> nit=ckt.getNetObjs(); nit.hasNext();) {
-				Wire wire = (Wire) nit.next();
-				Network net = wire.getNameProxy().getNet();
-				if (net.getParent()==rootCell) {
-					int ndx = indexOfMatchingName(forceNames, net);
+				NetObject nObj = nit.next();
+				if (getParentCell(nObj)==rootCell) {
+					int ndx = indexOfMatchingName(forceNames, nObj);
 					if (ndx!=-1) {
-						forceWires[cktNdx][ndx] = wire;
+						forceNetObjs[cktNdx][ndx] = nObj;
 					}
 				}
 			}
 		}
-		return forceWires;
+		return forceNetObjs;
 	}
 	
-	private Set<Wire> forceMatches() {
-		// Cells with no Parts and no Exports have no Wires
-		if (globals.getWires()==null) return new HashSet<Wire>();;
-		
-		List<String> forceNames = getNamesOfWiresToForceMatch();
-		Wire[][] forceWires = findWiresToForceMatch(forceNames);
-		Map<Wire, Integer> wireToIndex = buildForceWireMap(forceNames, forceWires);
-		new PartitionEquivRecord(globals.getWires(), wireToIndex, globals);
-		return wireToIndex.keySet();
+	private void forceWireMatches(Set<Part> forcedMatchParts, 
+			                      Set<Wire> forcedMatchWires) {
+		List<String> forcePartNames = new ArrayList<String>(); 
+		List<String> forceWireNames = new ArrayList<String>(); 
+		getNamesOfPartsAndWiresToForceMatch(forcePartNames, forceWireNames);
+
+		// Cells may have no Parts. Cells with no Parts and no Exports have no Wires
+		if (globals.getWires()!=null) {
+			NetObject[][] forceWires = 
+				findNetObjsToForceMatch(globals.getWires(), forceWireNames);
+			Map<NetObject, Integer> wireToIndex = 
+				buildForceNetObjMap(forceWireNames, forceWires, "Wire");
+			new PartitionEquivRecord(globals.getWires(), wireToIndex, globals);
+			for (NetObject nObj : wireToIndex.keySet()) 
+				forcedMatchWires.add((Wire)nObj);
+		}
+		if (globals.getParts()!=null) {
+			NetObject[][] forceParts = 
+				findNetObjsToForceMatch(globals.getParts(), forcePartNames);
+			Map<NetObject, Integer> partToIndex = 
+				buildForceNetObjMap(forcePartNames, forceParts, "Part");
+			new PartitionEquivRecord(globals.getParts(), partToIndex, globals);
+			for (NetObject nObj : partToIndex.keySet())
+				forcedMatchParts.add((Part)nObj);
+		}
 	}
 	
-	private ForceMatch(NccGlobals g) {globals = g;}
-	
+	private ForceMatch(Set<Part> forcedMatchParts, 
+			           Set<Wire> forcedMatchWires, NccGlobals g) {
+		globals = g;
+		forceWireMatches(forcedMatchParts, forcedMatchWires);
+	}
+
 	/** Must be called before any other partitioning occurs. It assumes that
-	 * all the Wires are in a single, root partition.
-	 * @param g Ncc Globals
-	 * @return set of Wires that were forced to match */
-	public static Set<Wire> doYourJob(NccGlobals g) {
-		ForceMatch fm = new ForceMatch(g);
-		return fm.forceMatches();
+	 * all the Wires are in a single, root partition; and that all Parts are
+	 * in a single, root partition.
+	 * @param forcedMatchParts Parts that were matched
+	 * @param forcedMatchWire Wires that were matched
+	 * @param g Ncc Globals */
+	public static void doYourJob(Set<Part> forcedMatchParts, 
+			                     Set<Wire> forcedMatchWires, NccGlobals g) {
+		new ForceMatch(forcedMatchParts, forcedMatchWires, g);
 	}
-	
 }

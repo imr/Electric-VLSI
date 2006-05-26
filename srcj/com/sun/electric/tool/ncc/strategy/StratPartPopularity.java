@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.ncc.strategy;
 import java.util.Iterator;
+import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
@@ -33,7 +34,12 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 /* StratPartPopularity partitions Part equivalence classes
  * based upon how many unique Wires are connected. */
 public class StratPartPopularity extends Strategy {
-    private StratPartPopularity(NccGlobals globals) {super(globals);}
+	private Set<Part> forcedMatchParts;
+    private StratPartPopularity(Set<Part> forcedMatchParts,
+    		                    NccGlobals globals) {
+    	super(globals);
+    	this.forcedMatchParts = forcedMatchParts;
+    }
 
 	private LeafList doYourJob2() {
         EquivRecord parts = globals.getParts();
@@ -62,16 +68,19 @@ public class StratPartPopularity extends Strategy {
 			globals.status2(offspringStats(offspring));
         }
     }
-
+    @Override
     public Integer doFor(NetObject n){
     	error(!(n instanceof Part), "StratPartPopularity expects only Parts");
 		Part p = (Part) n;
-		return new Integer(p.numDistinctWires());
+		// Do not repartition EquivRecords containing Parts that the designer
+		// explicitly forced to match.
+		return forcedMatchParts.contains(p) ? 0 : (1000+p.numDistinctWires());
     }
 
 	// ------------------------- intended inteface ----------------------------
-	public static LeafList doYourJob(NccGlobals globals){
-		StratPartPopularity pow = new StratPartPopularity(globals);
+	public static LeafList doYourJob(Set<Part> forcedMatchParts, 
+			                         NccGlobals globals){
+		StratPartPopularity pow = new StratPartPopularity(forcedMatchParts, globals);
 		return pow.doYourJob2();
 	}
 }

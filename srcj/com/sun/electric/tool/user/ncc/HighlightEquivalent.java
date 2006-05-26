@@ -137,8 +137,8 @@ public class HighlightEquivalent {
 		List<Nodable> nodables = new ArrayList<Nodable>();
 		Cell c = ni.getParent();
 		// Search for all Nodables associated with a bussed NodeInst
-		for (Iterator<Nodable> it=c.getNetlist(true).getNodables(); it.hasNext();) {
-			Nodable no = (Nodable) it.next();
+		for (Iterator<Nodable> it=c.getNetlist(false).getNodables(); it.hasNext();) {
+			Nodable no = it.next();
 			if (no.getNodeInst()==ni) nodables.add(no);
 		}
 		return nodables;

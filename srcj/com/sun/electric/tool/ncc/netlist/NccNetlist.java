@@ -80,7 +80,7 @@ public class NccNetlist {
 	private boolean userAbort;
 
 	// ---------------------------- public methods ---------------------------
-	public NccNetlist(Cell root, VarContext context, Netlist netlist, 
+	public NccNetlist(Cell root, VarContext context, 
 					  HierarchyInfo hierInfo, boolean blackBox, 
 					  NccGlobals globals) {
 		this.globals = globals;

@@ -142,6 +142,8 @@ public class NccCellAnnotations {
 	private String resistorType;
 	/** List of names of Wires to force matches between schematic and layout*/
 	private List<String> forceWireMatches = new ArrayList<String>();
+	/** List of names of Wires to force matches between schematic and layout*/
+	private List<String> forcePartMatches = new ArrayList<String>();
 	
 	private void processExportsConnAnnot(NamePatternLexer lex) {
 		List<NamePattern> connected = new ArrayList<NamePattern>();
@@ -256,13 +258,31 @@ public class NccCellAnnotations {
 		}
 		String wireName = wireNamePat.getName();
 		if (wireName==null) {
-			prErr("Bad forceWireMatch annotation: wire name may not be a regular expression");
+			prErr("Bad forceWireMatch annotation: Wire name may not be a regular expression");
 			return;
 		}
 		forceWireMatches.add(wireName);
 		NamePattern namePat2 = lex.nextPattern();
 		if (namePat2!=null) {
-			prErr("Bad forceWireMatch annotation: only one wire name allowed");
+			prErr("Bad forceWireMatch annotation: only one Wire name allowed");
+		}
+	}
+
+	private void processForcePartMatch(NamePatternLexer lex) {
+		NamePattern partNamePat = lex.nextPattern();
+		if (partNamePat==null) {
+			prErr("Bad forcePartMatch annotation: missing Part name");
+			return;
+		}
+		String partName = partNamePat.getName();
+		if (partName==null) {
+			prErr("Bad forcePartMatch annotation: Part name may not be a regular expression");
+			return;
+		}
+		forcePartMatches.add(partName);
+		NamePattern namePat2 = lex.nextPattern();
+		if (namePat2!=null) {
+			prErr("Bad forcePartMatch annotation: only one Part name allowed");
 		}
 	}
 
@@ -292,6 +312,8 @@ public class NccCellAnnotations {
 			processResistorType(lex);
 		} else if (key.stringEquals("forceWireMatch")) {
 			processForceWireMatch(lex);
+		} else if (key.stringEquals("forcePartMatch")) {
+			processForcePartMatch(lex);
 		} else {
 			prErr("Unrecognized NCC annotation.");
 		}
@@ -431,4 +453,6 @@ public class NccCellAnnotations {
 	public String getResistorType() {return resistorType;}
 	/** @return the names of Wires for which we should force matches */
 	public List<String> getForceWireMatches() {return forceWireMatches;}
+	/** @return the names of Wires for which we should force matches */
+	public List<String> getForcePartMatches() {return forcePartMatches;}
 }

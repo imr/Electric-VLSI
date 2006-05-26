@@ -31,6 +31,7 @@
 package com.sun.electric.tool.ncc;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
+import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.processing.ExportChecker;
 import com.sun.electric.tool.ncc.processing.ForceMatch;
@@ -62,23 +64,18 @@ public class NccEngine {
 	// return null if user aborts
 	private List<NccNetlist> buildNccNetlists(List<Cell> cells, 
 			                                  List<VarContext> contexts, 
-			                                  List<Netlist> netlists, 
 			                                  boolean blackBox, 
 			                                  HierarchyInfo hierInfo) {
-		globals.error(cells.size()!=contexts.size() || 
-					  contexts.size()!=netlists.size(),
-					  "number of cells, contexts, and netlists must be the same");										
+		globals.error(cells.size()!=contexts.size(),
+					  "number of cells, and contexts must be the same");										
 		List<NccNetlist> nccLists = new ArrayList<NccNetlist>();
 		Iterator<Cell> itCell;
 		Iterator<VarContext> itCon;
-		Iterator<Netlist> itNet;
 		for (itCell=cells.iterator(),
-			 itCon=contexts.iterator(),
-			 itNet=netlists.iterator(); itCell.hasNext();) {
+			 itCon=contexts.iterator(); itCell.hasNext();) {
 			Cell cell = itCell.next();
 			VarContext context = itCon.next();
-			Netlist netlist = itNet.next();
-			NccNetlist nccList = new NccNetlist(cell, context, netlist, 
+			NccNetlist nccList = new NccNetlist(cell, context,
 			                                    hierInfo, blackBox, globals);
 			if (nccList.userAbort()) return null;
 			nccLists.add(nccList);
@@ -155,10 +152,14 @@ public class NccEngine {
 
 			printWireComponentCounts();
 			
-			// Don't repartition Wires that we explicitly forced to match!!!
-			Set<Wire> forcedWires = ForceMatch.doYourJob(globals);
+			// We need to keep track of forcedParts and forcedWires because we 
+			// mustn't repartition EquivRecords containing Parts and Wires that 
+			// we explicitly forced to match!!!
+			Set<Part> forcedParts = new HashSet<Part>();
+			Set<Wire> forcedWires = new HashSet<Wire>();
+			ForceMatch.doYourJob(forcedParts, forcedWires, globals);
 
-			LocalPartitioning.doYourJob(forcedWires, globals);
+			LocalPartitioning.doYourJob(forcedParts, forcedWires, globals);
 
 			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 
@@ -212,7 +213,7 @@ public class NccEngine {
 	}
 
 	private NccResult areEquivalent(List<Cell> cells, List<VarContext> contexts, 
-					  		        List<Netlist> netlists, HierarchyInfo hierInfo,
+					  		        HierarchyInfo hierInfo,
 					  		        boolean blackBox, 
 					  		        NccOptions options, Aborter aborter) {
 		globals = new NccGlobals(options, aborter);
@@ -224,7 +225,7 @@ public class NccEngine {
 		// except for their Exports.
 		Date before = new Date();
 		List<NccNetlist> nccNetlists = 
-			buildNccNetlists(cells, contexts, netlists, blackBox, hierInfo);
+			buildNccNetlists(cells, contexts, blackBox, hierInfo);
 		Date after = new Date();
 		globals.status1("  NCC net list construction took "+NccUtils.hourMinSec(before, after)+".");
 
@@ -251,19 +252,16 @@ public class NccEngine {
 		ArrayList<VarContext> contexts = new ArrayList<VarContext>();
 		contexts.add(context1);
 		contexts.add(context2);
-		ArrayList<Netlist> netlists = new ArrayList<Netlist>();
-		netlists.add(cell1.getNetlist(true));
-		netlists.add(cell2.getNetlist(true));
 				
-		return compareMany(cells, contexts, netlists, hierInfo, blackBox, 
+		return compareMany(cells, contexts, hierInfo, blackBox, 
 		                   options, aborter);
 	}
-	private static NccResult compareMany(List<Cell> cells, List<VarContext> contexts, List<Netlist> netlists,
+	private static NccResult compareMany(List<Cell> cells, List<VarContext> contexts,
 									     HierarchyInfo hierCompInfo,
 									     boolean blackBox, 
 									     NccOptions options, Aborter aborter) {
 		NccEngine ncc = new NccEngine();
-		return ncc.areEquivalent(cells, contexts, netlists, hierCompInfo, 
+		return ncc.areEquivalent(cells, contexts, hierCompInfo, 
 								 blackBox, options, aborter);
 	}
 	// -------------------------- public methods ------------------------------
@@ -282,10 +280,10 @@ public class NccEngine {
 	 * use the Cell's current netlist. 
 	 * @param options NCC options
 	 */
-	public static NccResult compare(List<Cell> cells, List<VarContext> contexts, List<Netlist> netlists,
+	public static NccResult compare(List<Cell> cells, List<VarContext> contexts,
 	                                HierarchyInfo hierCompInfo, 
 	                                NccOptions options, Aborter aborter) {
-		return compareMany(cells, contexts, netlists, hierCompInfo, false, 
+		return compareMany(cells, contexts, hierCompInfo, false, 
 		                   options, aborter);
 	}
 	/** compare two Cells */

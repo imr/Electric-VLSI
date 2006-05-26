@@ -94,7 +94,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 			Cell c = it.next();
 			Set<Cell> usedOnce = new HashSet<Cell>();
 			// For each child Cell of c: child 
-			for (Iterator<Nodable> ni=c.getNetlist(true).getNodables(); ni.hasNext();) {
+			for (Iterator<Nodable> ni=c.getNetlist(false).getNodables(); ni.hasNext();) {
 				NodeProto np = ni.next().getProto();
 				if (!(np instanceof Cell)) continue;
 				Cell child = (Cell) np;

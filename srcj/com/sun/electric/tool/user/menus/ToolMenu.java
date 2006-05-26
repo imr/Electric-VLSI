@@ -371,6 +371,8 @@ public class ToolMenu {
                         NccCellAnnotations.makeNCCAnnotation("transistorType <typeName>"); }},
 		        	new EMenuItem("_Resistor Type") { public void run() {
                         NccCellAnnotations.makeNCCAnnotation("resistorType <typeName>"); }},
+       		        new EMenuItem("Force _Part Match") { public void run() {
+                            NccCellAnnotations.makeNCCAnnotation("forcePartMatch <Part name shared by schematic and layout>"); }},
     		        new EMenuItem("Force _Wire Match") { public void run() {
                             NccCellAnnotations.makeNCCAnnotation("forceWireMatch <Wire name shared by schematic and layout>"); }},
 		        	new EMenuItem("_Black Box") { public void run() {

@@ -25,6 +25,7 @@ package com.sun.electric.tool.ncc.strategy;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
@@ -36,8 +37,12 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
  * based upon the Part's type. */
 public class StratPartType extends Strategy {
 	private Map<Integer,String> typeCodeToTypeName = new HashMap<Integer,String>();
+	private Set<Part> forcedMatchParts;
 	
-    private StratPartType(NccGlobals globals) {super(globals);}
+    private StratPartType(Set<Part> forcedMatchParts, NccGlobals globals) {
+    	super(globals);
+    	this.forcedMatchParts = forcedMatchParts;
+    }
 
 	private LeafList doYourJob2() {
         EquivRecord parts = globals.getParts();
@@ -68,25 +73,30 @@ public class StratPartType extends Strategy {
         }
     }
     
+    @Override
     public Integer doFor(NetObject n){
     	error(!(n instanceof Part), "StratPartType expects only Parts");
 		Part p = (Part) n;
-		Integer typeCode = new Integer(p.typeCode());
-		String typeName = p.typeString();
+		// don't repartition EquivRecords that designer explicitly forced
+		// to match
+		int typeCode = forcedMatchParts.contains(p) ? 0 : (p.typeCode()+1000);
 		
-		String oldTypeName = typeCodeToTypeName.get(typeCode);
-		if (oldTypeName!=null) {
-			globals.error(!typeName.equals(oldTypeName), 
-						  "type code maps to multiple type names");
-		} else {
-			typeCodeToTypeName.put(typeCode, typeName);
+		if (typeCode!=0) {
+			String typeName = p.typeString();
+			String oldTypeName = typeCodeToTypeName.get(typeCode);
+			if (oldTypeName!=null) {
+				globals.error(typeCode!=0 && !typeName.equals(oldTypeName), 
+							  "type code maps to multiple type names");
+			} else {
+				typeCodeToTypeName.put(typeCode, typeName);
+			}
 		}
 		return typeCode;
     }
 
 	// ------------------------- intended inteface ----------------------------
-	public static LeafList doYourJob(NccGlobals globals){
-		StratPartType pow = new StratPartType(globals);
+	public static LeafList doYourJob(Set<Part> forcedMatchParts, NccGlobals globals){
+		StratPartType pow = new StratPartType(forcedMatchParts, globals);
 		return pow.doYourJob2();
 	}
 }

@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+FIX: (5/26/06, RK) NCC: fix for regression failure 060526_0000
+
+FIX: (5/26/06, RK) NCC: "Copy schematic names to layout" didn't copy names of both nets connected by polysilicon resistor (Bugzilla# 1069)
+
+IMP: (5/26/06, RK) NCC: new annotation: forcePartMatch.
+
 IMP: (5/26/06, SMR) When adding an export to a schematic, new icon export
      uses standard lead lengths. (Bug #902).
 

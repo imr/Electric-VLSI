@@ -115,13 +115,14 @@ public class SchemNamesToLay {
         int layNdx = schNdx==0 ? 1 : 0;
         Cell schCell = rootCells[schNdx];
         Cell layCell = rootCells[layNdx];
+        
         VarContext schContext = result.getRootContexts()[schNdx];
         copySchematicNamesToLayout(schCell, layCell, schContext, equivs);
     }
     
     private Map<String, Network> namesToNetworks(Cell c) {
     	Map<String, Network> nmsToNets = new HashMap<String, Network>();
-    	Netlist nets = c.getNetlist(true);
+    	Netlist nets = c.getNetlist(false);
     	for (Network net : new For<Network>(nets.getNetworks())) {
     		for (String nm : new For<String>(net.getNames())) {
     			nmsToNets.put(nm, net);
@@ -167,6 +168,20 @@ public class SchemNamesToLay {
     	ArcAndName(ArcInst a, String n) {arc=a; name=n;}
     }
     
+//    public static void dumpNetlist(Netlist netlist) {
+//    	System.out.println("Begin dumping networks for Cell");
+//    	for (Iterator<Network> nIt=netlist.getNetworks(); nIt.hasNext();) {
+//    		Network net = nIt.next();
+//    		System.out.print("    Network names: ");
+//    		for (Iterator<String> nmIt=net.getNames(); nmIt.hasNext();) {
+//    			System.out.print(nmIt.next()+" ");
+//    		}
+//    		System.out.println();
+//    		
+//    	}
+//    	System.out.println("End dumping networks for Cell");
+//    }
+    
     private List<ArcAndName> buildArcNameList(Cell schCell, Cell layCell,
             						          VarContext schCtxt,
                                               Equivalence equivs) {
@@ -174,7 +189,8 @@ public class SchemNamesToLay {
 
     	List<ArcAndName> arcAndNms = new ArrayList<ArcAndName>();
 
-    	Netlist nets = schCell.getNetlist(true);
+    	Netlist nets = schCell.getNetlist(false);
+    	
     	for (Network schNet : new For<Network>(nets.getNetworks())) {
     		NetNameProxy layProx = equivs.findEquivalentNet(schCtxt, schNet);
 
