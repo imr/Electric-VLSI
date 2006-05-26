@@ -440,13 +440,15 @@ public class CellMenu {
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
-        duplicateCell(curCell);
+        duplicateCell(curCell, false);
     }
     
-    public static void duplicateCell(Cell cell)
+    public static void duplicateCell(Cell cell, boolean allInGroup)
     {
+    	String prompt = "Name of duplicated cell";
+    	if (allInGroup) prompt += " group";
         String newName = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
-        	"Name of duplicated cell", cell.getName() + "NEW");
+        	prompt, cell.getName() + "NEW");
         if (newName == null) return;
         Cell already = cell.getLibrary().findNodeProto(newName);
 		if (already != null && already.getView() == cell.getView())
@@ -456,7 +458,7 @@ public class CellMenu {
 				JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] {"Yes", "Cancel"}, "Yes");
 			if (response != 0) return;
 		}
-        new CellChangeJobs.DuplicateCell(cell, newName);
+        new CellChangeJobs.DuplicateCell(cell, newName, allInGroup);
     }
 
     /**

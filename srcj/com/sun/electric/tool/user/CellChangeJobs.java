@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class for Jobs that make changes to the cells.
@@ -935,58 +936,72 @@ public class CellChangeJobs
 	{
 		private Cell cell;
 		private String newName;
+		private boolean entireGroup;
 		private Cell dupCell;
 
-		public DuplicateCell(Cell cell, String newName)
+		public DuplicateCell(Cell cell, String newName, boolean entireGroup)
 		{
 			super("Duplicate " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
+			this.entireGroup = entireGroup;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
+        	Map<Cell,Cell> newCells = new HashMap<Cell,Cell>();
 			String newCellName = newName + "{" + cell.getView().getAbbreviation() + "}";
 			dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newCellName, false);
 			if (dupCell == null) {
                 System.out.println("Could not duplicate "+cell);
                 return false;
             }
+            newCells.put(cell, dupCell);
 			fieldVariableChanged("dupCell");
 
-            System.out.println("Duplicated cell "+cell+". New cell is "+dupCell+".");
+            System.out.println("Duplicated cell "+cell+".  New cell is "+dupCell+".");
 
-            // if icon of cell is present, duplicate that as well, and replace old icon with new icon in new cell
-            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-            {
-                NodeInst ni = it.next();
-                if (ni.getProtoEquivalent() == cell)
+        	// examine all other cells in the group
+        	Cell.CellGroup group = cell.getCellGroup();
+        	for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
+        	{
+        		Cell otherCell = it.next();
+        		if (otherCell == cell) continue;
+        		if (!entireGroup && otherCell.getView() != View.ICON) continue;
+                Cell copyCell = Cell.copyNodeProto(otherCell, otherCell.getLibrary(),
+                	newName + "{" + otherCell.getView().getAbbreviation() + "}", false);
+                if (copyCell == null)
                 {
-                    // this is the icon, duplicate it as well
-                    Cell icon = (Cell)ni.getProto();
-                    Cell dupIcon = Cell.copyNodeProto(icon, icon.getLibrary(), newName + "{" + icon.getView().getAbbreviation() + "}", false);
-                    if (dupIcon == null)
-                    {
-                        System.out.println("Could not duplicate icon "+icon);
-                        break;
-                    }
-                    System.out.println("  Also duplicated icon view, cell "+icon+". New cell is "+dupIcon+".");
-
-                    // replace old icon(s) in duplicated cell
-                    for (Iterator<NodeInst> it2 = dupCell.getNodes(); it2.hasNext(); )
-                    {
-                        NodeInst ni2 = it2.next();
-                        if (ni2.getProto() == icon)
-                        {
-                            NodeInst newNi2 = ni2.replace(dupIcon, true, true);
-                            // replace name on old self-icon
-                            newNi2.setName(null);
-                        }
-                    }
+                    System.out.println("Could not duplicate cell "+otherCell);
                     break;
                 }
-            }
+                newCells.put(otherCell, copyCell);
+                System.out.println("  Also duplicated cell "+otherCell+".  New cell is "+copyCell+".");
+        	}
+
+            // if icon of cell is present, replace old icon with new icon in new schematics cell
+        	for(Cell oldCell : newCells.keySet())
+        	{
+        		Cell newCell = newCells.get(oldCell);
+        		if (newCell.getView() != View.SCHEMATIC) continue;
+        		List<NodeInst> replaceThese = new ArrayList<NodeInst>();
+                for (Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+                {
+                    NodeInst ni = it.next();
+                    Cell replaceCell = newCells.get(ni.getProto());
+                    if (replaceCell != null) replaceThese.add(ni);
+                }
+                for(NodeInst ni : replaceThese)
+                {
+                    // replace old icon(s) in duplicated cell
+                    Cell replaceCell = newCells.get(ni.getProto());
+                    NodeInst newNi2 = ni.replace(replaceCell, true, true);
+
+//                  // replace name on old self-icon
+//                  newNi2.setName(null);
+                }
+        	}
 			return true;
 		}
 

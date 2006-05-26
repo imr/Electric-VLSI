@@ -605,7 +605,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         } else if (action == DoAction.duplicateCell) {
             Cell cell = getSelectedCell();
             if (cell == null) return;
-            CellMenu.duplicateCell(cell);
+            CellMenu.duplicateCell(cell, false);
             closeDialog(null);                     // we have performed the action
             updateCellList();
         } else if (action == DoAction.selectCell)

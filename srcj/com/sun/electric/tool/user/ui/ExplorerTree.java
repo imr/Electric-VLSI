@@ -1391,9 +1391,15 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { newCellAction(); } });
 
+				menu.addSeparator();
+
 				menuItem = new JMenuItem("Rename Cells in Group");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { renameGroupAction(); } });
+
+				menuItem = new JMenuItem("Duplicate Cells in Group");
+				menu.add(menuItem);
+				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateGroupAction(); } });
 
                 if (CVS.isEnabled()) {
                     menu.addSeparator();
@@ -1627,6 +1633,23 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			CircuitChanges.renameCellGroupInJob(cellGroup, response);
 		}
 
+		private void duplicateGroupAction()
+		{
+			Cell.CellGroup cellGroup = (Cell.CellGroup)getCurrentlySelectedObject(0);
+			Cell cell = null;
+			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = it.next();
+				if (cellGroup.containsCell(wf.getContent().getCell()))
+				{
+					cell = wf.getContent().getCell();
+					break;
+				}
+			}
+			if (cell == null) cell = cellGroup.getCells().next();
+            CellMenu.duplicateCell(cell, true);
+		}
+
 		private void editCellAction(boolean newWindow)
 		{
 			Cell cell = null;
@@ -1730,7 +1753,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		private void duplicateCellAction()
 		{
 			Cell cell = (Cell)getCurrentlySelectedObject(0);
-            CellMenu.duplicateCell(cell);
+            CellMenu.duplicateCell(cell, false);
 		}
 
 		private void deleteCellAction()
