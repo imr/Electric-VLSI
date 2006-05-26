@@ -316,8 +316,6 @@ public class Analysis
 			Signal sSig = (Signal)it.next();
 
 			String signalName = sSig.getFullName();
-            if (signalName.startsWith("clk_path_test.net@2"))
-                System.out.println("S " + signalName);
 			if (netName.equalsIgnoreCase(signalName)) return sSig;
 
 			// if the signal name has underscores, see if all alphabetic characters match

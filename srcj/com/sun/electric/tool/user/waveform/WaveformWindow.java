@@ -2209,19 +2209,35 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Network net : nets)
 		{
 			String netName = getSpiceNetName(context, net);
+			boolean foundSig = false;
 			for(Iterator<Analysis> aIt = sd.getAnalyses(); aIt.hasNext(); )
 			{
 				Analysis an = aIt.next();
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
 				if (sSig == null)
-				{
-					String netNamePatched = netName.replace('@', '_');
-					sSig = an.findSignalForNetworkQuickly(netNamePatched);
-				}
-	            if (sSig == null) {
+					sSig = an.findSignalForNetworkQuickly(netName.replace('@', '_'));
+	            if (sSig == null)
 	                sSig = an.findSignalForNetwork(netName);
-	            }
-				if (sSig != null) found.add(sSig);
+				if (sSig != null)
+				{
+					found.add(sSig);
+					foundSig = true;
+				}
+			}
+			if (!foundSig)
+			{
+				// try prepending the cell name
+				netName = net.getParent().getName() + "." + netName;
+				for(Iterator<Analysis> aIt = sd.getAnalyses(); aIt.hasNext(); )
+				{
+					Analysis an = aIt.next();
+					Signal sSig = an.findSignalForNetworkQuickly(netName);
+					if (sSig == null)
+						sSig = an.findSignalForNetworkQuickly(netName.replace('@', '_'));
+		            if (sSig == null)
+		                sSig = an.findSignalForNetwork(netName);
+					if (sSig != null) found.add(sSig);
+				}
 			}
 		}
 		return found;
@@ -2344,6 +2360,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							break;
 						}
 
+						// try the name without a redundant prefix
+						String cellName = cell.getName();
+						if (desired.startsWith(cellName))
+						{
+							desired = desired.substring(cellName.length()+1);
+							net = findNetwork(netlist, desired);
+							if (net != null)
+							{
+								// found network
+								while (!upNodables.isEmpty())
+								{
+									Nodable no = (Nodable)upNodables.pop();
+									net = HierarchyEnumerator.getNetworkInChild(net, no);
+									if (net == null) break;
+								}
+								if (net != null)
+									hl.addNetwork(net, cell);
+								break;
+							}
+						}
+						
 						// see if this name is really a current source
 						if (desired.startsWith("I(v"))
 						{
