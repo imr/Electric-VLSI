@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
-IMP: (5/26/06, SMR) Added command "Window / Special Pan / Match Other Window
+IMP/MAN: (5/26/06, SMR) Added command "Window / Special Pan / Match Other Window
      in X, Y, and Scale" to do all window matching at once (Bug #808).
 
 BUG: (5/26/06, SMR) Undoing mimic stitching may trigger new stitching (Bug #1055).

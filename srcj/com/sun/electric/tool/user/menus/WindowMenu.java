@@ -95,7 +95,7 @@ public class WindowMenu {
             new EMenuItem("Pan _Down", '2', KeyEvent.VK_NUMPAD2) { public void run() {
                 ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), 1); }},
 
-		// mnemonic keys available: AB DEFGHIJKLMNOPQR TUVW  Z
+		// mnemonic keys available:  B DEFGHIJKLMNOPQR TUVW  Z
             new EMenu("Special _Pan",
                 new EMenuItem("Center _Selection") { public void run() {
                     ZoomAndPanListener.centerSelection(); }},
@@ -104,7 +104,9 @@ public class WindowMenu {
                 new EMenuItem("Match Other Window in _X") { public void run() {
                     matchOtherWindowCommand(1); }},
                 new EMenuItem("Match Other Window in _Y") { public void run() {
-                    matchOtherWindowCommand(2); }}),
+                    matchOtherWindowCommand(2); }},
+                new EMenuItem("Match Other Window in X, Y, _and Scale") { public void run() {
+                    matchOtherWindowCommand(3); }}),
 
         //    new EMenuItem("Saved Views...") { public void run() {
         //        SavedViews.showSavedViewsDialog(); }},
@@ -471,7 +473,7 @@ public class WindowMenu {
     /**
      * Method to adjust the current window so that it matches that of the "other" window.
      * For this to work, there must be exactly one other window shown.
-     * @param how 0 to match scale; 1 to match in X; 2 to match in Y.
+     * @param how 0 to match scale; 1 to match in X; 2 to match in Y; 3 to match all.
      */
     public static void matchOtherWindowCommand(int how)
     {
@@ -505,6 +507,10 @@ public class WindowMenu {
         		break;
         	case 2:
         		wnd.setOffset(new Point2D.Double(wnd.getOffset().getX(), other.getOffset().getY()));
+        		break;
+        	case 3:
+        		wnd.setScale(other.getScale());
+        		wnd.setOffset(new Point2D.Double(other.getOffset().getX(), other.getOffset().getY()));
         		break;
         }
         wnd.repaintContents(null, false);
