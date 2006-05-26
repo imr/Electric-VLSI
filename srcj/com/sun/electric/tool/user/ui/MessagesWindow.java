@@ -151,6 +151,50 @@ public class MessagesWindow
 		}
 	}
 
+	public Component getComponent()
+	{
+		return jf;
+	}
+
+    public boolean isFocusOwner()
+    {
+		if (TopLevel.isMDIMode())
+		{
+	        return ((JInternalFrame)jf).isSelected();
+		} else
+		{
+	        return jf.isFocusOwner();
+		}
+    }
+
+    /**
+     * Method to request focus on this window
+     */
+    public void requestFocus() {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() { requestFocusUnsafe(); }
+            });
+            return;
+        }
+        requestFocusUnsafe();
+    }
+
+    private void requestFocusUnsafe()
+    {
+		if (TopLevel.isMDIMode())
+		{
+			((JInternalFrame)jf).toFront();
+            try {
+            	((JInternalFrame)jf).setSelected(true);
+            } catch (java.beans.PropertyVetoException e) {}
+        } else
+        {
+        	((JFrame)jf).toFront();
+            jf.requestFocus();
+        }
+    }
+
 	public Rectangle getMessagesLocation()
 	{
 		return jf.getBounds();

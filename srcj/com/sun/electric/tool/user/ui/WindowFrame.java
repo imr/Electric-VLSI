@@ -440,6 +440,16 @@ public class WindowFrame extends Observable
 		}
 	}
 
+	public Component getComponent()
+	{
+		if (TopLevel.isMDIMode())
+		{
+			return jif;
+		} else
+		{
+			return jf;
+		}
+	}
 	/**
 	 * Depopulate the JFrame.  Currently this is only used in SDI mode when
 	 * moving a WindowFrame from one display to another.  A new JFrame on the
@@ -729,11 +739,12 @@ public class WindowFrame extends Observable
         }
     }
 
-//    private boolean isFocusOwner() {
-//        if (jif != null) return jif.isSelected();
-//        if (jf != null) return jf.isFocusOwner();
-//        return false;
-//    }
+    public boolean isFocusOwner()
+    {
+        if (jif != null) return jif.isSelected();
+        if (jf != null) return jf.isFocusOwner();
+        return false;
+    }
 
 	/**
 	 * Method to set the current WindowFrame.

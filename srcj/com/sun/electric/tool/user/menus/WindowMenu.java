@@ -134,6 +134,9 @@ public class WindowMenu {
             new EMenuItem("Clos_e Window", getCloseWindowAccelerator()) { public void run() {
                 closeWindowCommand(); }},
 
+//            new EMenuItem("Select Next Window") { public void run() {
+//                nextWindowCommand(); }},
+
             !TopLevel.isMDIMode() ? SEPARATOR : null,
             !TopLevel.isMDIMode() && getAllGraphicsDevices().length >= 2 ? new EMenuItem("Move to Ot_her Display") { public void run() {
                 moveToOtherDisplayCommand(); }} : null,
@@ -698,6 +701,41 @@ public class WindowMenu {
 	{
 		WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
 		curWF.finished();
+	}
+
+	private static void nextWindowCommand()
+	{
+		Object cur = null;
+		List<Object> frames = new ArrayList<Object>();
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			if (wf.isFocusOwner()) cur = wf;
+			frames.add(wf);
+		}
+		MessagesWindow mw = TopLevel.getMessagesWindow();
+		if (mw.isFocusOwner()) cur = mw;
+		frames.add(mw);
+
+		// find current frame in the list
+		int found = -1;
+		for(int i=0; i<frames.size(); i++)
+		{
+			if (cur == frames.get(i))
+			{
+				found = i;
+				break;
+			}
+		}
+		if (found >= 0)
+		{
+			found++;
+			if (found >= frames.size()) found = 0;
+			Object newCur = frames.get(found);
+			if (newCur instanceof WindowFrame)
+				((WindowFrame)newCur).requestFocus(); else
+					((MessagesWindow)newCur).requestFocus();
+		}
 	}
 
 	private static Rectangle [] getWindowAreas()
