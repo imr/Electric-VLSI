@@ -896,9 +896,10 @@ public class Panel extends JPanel
 	 */
 	public void paint(Graphics g)
 	{
+        // requestFocus moved to mousePressed().
 		// to enable keys to be received
-		if (waveWindow.getWindowFrame() == WindowFrame.getCurrentWindowFrame())
-			requestFocus();
+		//if (waveWindow.getWindowFrame() == WindowFrame.getCurrentWindowFrame())
+		//	requestFocus();
 
 		sz = getSize();
 		szValid = true;
