@@ -703,8 +703,8 @@ public class Clipboard
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class, false);
             double px = ni.getAnchorCenterX()+dX;
             double py = ni.getAnchorCenterY()+dY;
-            px = DBMath.toNearest(px, User.getAlignmentToGrid());
-            py = DBMath.toNearest(py, User.getAlignmentToGrid()); 
+//            px = DBMath.toNearest(px, User.getAlignmentToGrid());
+//            py = DBMath.toNearest(py, User.getAlignmentToGrid());
             EPoint point = new EPoint(px, py);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
                     point,
