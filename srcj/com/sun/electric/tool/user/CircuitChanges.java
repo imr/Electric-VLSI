@@ -1105,7 +1105,9 @@ public class CircuitChanges
         	highlighted.remove(cellCenterHighlight);
         }
         List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
-        new CircuitChangeJobs.ManyMove(cell, highlightedEObjs, highlightedText, dX, dY);
+        
+		if (!highlightedEObjs.isEmpty() || !highlightedText.isEmpty())
+            new CircuitChangeJobs.ManyMove(cell, highlightedEObjs, highlightedText, dX, dY);
 	}
 
 	/****************************** CHANGE CELL EXPANSION ******************************/
