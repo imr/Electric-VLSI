@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/30/06, SMR) Renaming a cell group that has heterogenous cell names
+     fails (Bug #1073).
+FIX: In CellChangeJobs.RenameCellGroup.doIt(), detect groups with different-
+     named cells, and force them to the same group.
+
 IMP/MAN: (5/30/06, SMR) New command: "Tool / Network / Show All Networks"
      shows every network in a different color (Bug #943).
 

@@ -140,12 +140,35 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
+			// see if all cells in the group have the same name
+			boolean allSameName = true;
+			String lastName = null;
+			for(Iterator<Cell> it = cellInGroup.getCellGroup().getCells(); it.hasNext(); )
+			{
+				String cellName = it.next().getName();
+				if (lastName != null && !lastName.equals(cellName))
+				{
+					allSameName = false;
+					break;
+				}
+				lastName = cellName;
+			}
+
 			ArrayList<Cell> cells = new ArrayList<Cell>();
 			for(Iterator<Cell> it = cellInGroup.getCellGroup().getCells(); it.hasNext(); )
 				cells.add(it.next());
+			Cell.CellGroup newGroup = null;
 			for(Cell cell : cells)
 			{
-				cell.rename(newName);
+				if (allSameName)
+				{
+					cell.rename(newName);
+				} else
+				{
+					cell.rename(newName+cell.getName());
+		            if (newGroup != null) cell.setCellGroup(newGroup);
+		            newGroup = cell.getCellGroup();
+				}
 			}
 			return true;
 		}
