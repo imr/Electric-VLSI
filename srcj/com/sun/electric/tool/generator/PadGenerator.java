@@ -145,6 +145,7 @@ public class PadGenerator
 	private HashMap<String,ArrayAlign> alignments;  // how to align adjacent instances
 	private HashMap<String,PadExports> exports;     // which ports to export
 	private List<Object> orderedCommands;           // list of orderedCommands to do
+    private boolean coreAllOnOneSide = false;
 
     private static class ArrayAlign {
         int lineno;
@@ -254,6 +255,9 @@ public class PadGenerator
                                 continue;
                             } else if (keyWord.equals("place")) {
                                 if (!processPlace(str)) return null;
+                                continue;
+                            } else if (keyWord.equals("coreExportsAllOnOneSideOfIcon")) {
+                                coreAllOnOneSide = true;
                                 continue;
                             }
                             System.out.println("Line " + lineno + ": unknown keyword'" + keyWord + "'");
@@ -957,6 +961,25 @@ public class PadGenerator
     		boolean drawLeads = User.isIconGenDrawLeads();
     		int exportStyle = User.getIconGenExportStyle();
     		int exportLocation = User.getIconGenExportLocation();
+
+            if (coreAllOnOneSide) {
+                List<Export> padTemp = new ArrayList<Export>();
+                List<Export> coreTemp = new ArrayList<Export>();
+                for (Export pp : padPorts) {
+                    if (pp.getName().startsWith("core_"))
+                        coreTemp.add(pp);
+                    else
+                        padTemp.add(pp);
+                }
+                for (Export pp : corePorts) {
+                    if (pp.getName().startsWith("core_"))
+                        coreTemp.add(pp);
+                    else
+                        padTemp.add(pp);
+                }
+                padPorts = padTemp;
+                corePorts = coreTemp;
+            }
 
             // place pins around the Black Box
             int total = 0;
