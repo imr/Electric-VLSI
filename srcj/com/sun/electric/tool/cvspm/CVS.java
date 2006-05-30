@@ -547,7 +547,7 @@ public class CVS {
         // get cell file
         File file = new File(path);
         String cellFile = file.getName();
-        int ext = cellFile.indexOf('.');
+        int ext = cellFile.lastIndexOf('.');
         if (ext == -1) return null;
         String cellName = cellFile.substring(0, ext);
         String view = cellFile.substring(ext+1);
