@@ -978,7 +978,7 @@ public class Analyzer extends Engine
 							SimVector afterSV = new SimVector();
 							afterSV.command = VECTORS;
 							afterSV.parameters = new String[1];
-							afterSV.value = curTime + stepSze - insertTime / cmdFileUnits;
+							afterSV.value = (curTime + stepSze - insertTime) / cmdFileUnits;
 							afterSV.parameters[0] = TextUtils.formatDouble(afterSV.value);
 							afterSV.next = sv.next;
 							sv.next = afterSV;

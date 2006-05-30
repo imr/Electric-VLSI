@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/30/06, SMR) IRSIM stimuli can get out of order.
+FIX: In Analyser.newVector(), change the line
+		afterSV.value = curTime + stepSze - insertTime / cmdFileUnits;
+     to be:
+		afterSV.value = (curTime + stepSze - insertTime) / cmdFileUnits;
+
 BUG: (5/30/06, SMR) Waveform window crashes when too many panels (Bug #1071)
 FIX: Fixed default panel sizes.  Also fixed other bugs in waveform window.
 
