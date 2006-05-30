@@ -311,6 +311,21 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                for (int j = 0; j < menuY; j++)
 	                {
 	                    Object item = (paletteMatrix[j] == null) ? null : paletteMatrix[j][i];
+	                    if (item instanceof NodeInst)
+	                    {
+	                    	item = rotateTransistor((NodeInst)item);
+	                    } else if (item instanceof List)
+	                    {
+	                    	List nodes = (List)item;
+	                    	for(int k=0; k<nodes.size(); k++)
+	                    	{
+	                    		Object o = nodes.get(k);
+	                    		if (o instanceof NodeInst)
+	                    		{
+	                    			nodes.set(k, rotateTransistor((NodeInst)o));
+	                    		}
+	                    	}
+	                    }
                         item = getInUsed(item);
 	                    inPalette.add(item);
 	                }
@@ -325,10 +340,20 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         if (ysize < entrySize) entrySize = ysize;
         size.setSize(entrySize*menuX+1, entrySize*menuY+1);
 		User.getUserTool().setCurrentArcProto(tech.getArcs().next());
-        //repaint();
+
         synchronized(this) { paletteImageStale = true; }
 
         return size;
+    }
+
+    private NodeInst rotateTransistor(NodeInst ni)
+    {
+    	int rot = 0;
+    	if (User.isRotateLayoutTransistors()) rot = 900;
+    	PrimitiveNode.Function fun = ni.getFunction();
+    	if (fun.isTransistor())
+	        ni = Technology.makeNodeInst(ni.getProto(), fun, rot, false, null, 0);
+    	return ni;
     }
 
     /**

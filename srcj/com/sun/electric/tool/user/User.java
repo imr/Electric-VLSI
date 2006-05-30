@@ -1906,6 +1906,18 @@ public class User extends Listener
 	 */
 	public static void setJobVerboseMode(boolean on) { cacheJobVerboseMode.setBoolean(on); }
 
+    private static Pref cacheRotateLayoutTransistors = Pref.makeBooleanPref("RotateLayoutTransistors", tool.prefs, false);
+	/**
+	 * Method to tell if layout transistors are rotated 90 degrees in the menu (and initial placement).
+	 * The default is "false".
+	 * @return true if layout transistors are rotated 90 degrees in the menu (and initial placement).
+	 */
+	public static boolean isRotateLayoutTransistors() { return cacheRotateLayoutTransistors.getBoolean(); }
+	/**
+	 * Method to set whether layout transistors are rotated 90 degrees in the menu (and initial placement).
+	 * @param on true if layout transistors are rotated 90 degrees in the menu (and initial placement).
+	 */
+	public static void setRotateLayoutTransistors(boolean on) { cacheRotateLayoutTransistors.setBoolean(on); }
 
 	private static Pref cacheSideBarOnRight = Pref.makeBooleanPref("SideBarOnRight", tool.prefs, false);
 	/**

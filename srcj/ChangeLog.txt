@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+IMP/MAN: (5/30/06, SMR) New "Technology" preference allows layout transistors
+     to be rotated 90 degrees (Bug #369).
+
 BUG: (5/30/06, SMR) IRSIM stimuli can get out of order.
 FIX: In Analyser.newVector(), change the line
 		afterSV.value = curTime + stepSze - insertTime / cmdFileUnits;
