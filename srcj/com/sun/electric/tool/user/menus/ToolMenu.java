@@ -25,7 +25,9 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -122,7 +124,9 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
+import java.awt.Color;
 import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -380,7 +384,7 @@ public class ToolMenu {
 
 		//------------------- Network
 
-		// mnemonic keys available: A  D F  IJK M O Q S   W YZ
+		// mnemonic keys available:    D F  IJK M O Q S   W YZ
             new EMenu("Net_work",
 		        new EMenuItem("Show _Network", 'K') { public void run() {
                     showNetworkCommand(); }},
@@ -394,6 +398,8 @@ public class ToolMenu {
                     listExportsBelowNetworkCommand(); }},
 		        new EMenuItem("List _Geometry on Network") { public void run() {
                     listGeometryOnNetworkCommand(GeometryHandler.GHMode.ALGO_SWEEP); }},
+		        new EMenuItem("Show _All Networks") { public void run() {
+                    showAllNetworksCommand(); }},
                 new EMenuItem("List _Total Wire Lengths on All Networks") { public void run() {
                     listGeomsAllNetworksCommand(); }},
 
@@ -1103,6 +1109,136 @@ public class ToolMenu {
 	    else
             LayerCoverageTool.listGeometryOnNetworks(cell, nets, true, mode);
     }
+
+    private static final double SQSIZE = 0.4;
+
+    /**
+     * Method to highlight every network in the current cell
+     * using a different color
+     */
+    private static void showAllNetworksCommand()
+    {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Cell cell = wnd.getCell();
+        if (cell == null) return;
+        wnd.clearHighlighting();
+        Netlist nl = cell.acquireUserNetlist();
+        int colors = nl.getNumNetworks();
+        Color [] netColors = makeUniqueColors(colors);
+        int index = 0;
+		Highlighter h = wnd.getHighlighter();
+        for(Iterator<Network> it = nl.getNetworks(); it.hasNext(); )
+        {
+        	Network net = it.next();
+        	Iterator<ArcInst> aIt = net.getArcs();
+        	if (!aIt.hasNext()) continue;
+        	Color col = netColors[index++];
+        	for( ; aIt.hasNext(); )
+        	{
+        		ArcInst ai = aIt.next();
+                Point2D [] points = new Point2D[2];
+        		points[0] = ai.getHeadLocation();
+        		points[1] = ai.getTailLocation();
+        		Poly poly = new Poly(points);
+        		poly.setStyle(Poly.Type.OPENED);
+        		h.addPoly(poly, cell, col);
+        		if (ai.getHeadPortInst().getNodeInst().isCellInstance())
+        		{
+                    points = new Point2D[4];
+            		EPoint ctr = ai.getHeadLocation();
+            		points[0] = new EPoint(ctr.getX()-SQSIZE, ctr.getY()-SQSIZE);
+            		points[1] = new EPoint(ctr.getX()-SQSIZE, ctr.getY()+SQSIZE);
+            		points[2] = new EPoint(ctr.getX()+SQSIZE, ctr.getY()+SQSIZE);
+            		points[3] = new EPoint(ctr.getX()+SQSIZE, ctr.getY()-SQSIZE);
+            		poly = new Poly(points);
+            		poly.setStyle(Poly.Type.CLOSED);
+            		h.addPoly(poly, cell, col);
+        		}
+        		if (ai.getTailPortInst().getNodeInst().isCellInstance())
+        		{
+                    points = new Point2D[4];
+            		EPoint ctr = ai.getTailLocation();
+            		points[0] = new EPoint(ctr.getX()-SQSIZE, ctr.getY()-SQSIZE);
+            		points[1] = new EPoint(ctr.getX()-SQSIZE, ctr.getY()+SQSIZE);
+            		points[2] = new EPoint(ctr.getX()+SQSIZE, ctr.getY()+SQSIZE);
+            		points[3] = new EPoint(ctr.getX()+SQSIZE, ctr.getY()-SQSIZE);
+            		poly = new Poly(points);
+            		poly.setStyle(Poly.Type.CLOSED);
+            		h.addPoly(poly, cell, col);
+        		}
+        	}
+        }
+        wnd.finishedHighlighting();
+    }
+
+    /**
+     * Method to generate unique colors.
+     * Uses this pattern
+	 *	R: 100 110    111 202 202 112    11 23 23    11 24 24
+	 *	G: 010 101    202 111 022 121    23 11 32    24 11 42
+	 *	B: 001 011    022 022 111 211    32 32 11    42 42 11
+	 * Where:
+	 *  0=off
+	 *	1=the main color
+	 *	2=halfway between 1 and 0
+	 *	3=halfway between 1 and 2
+	 *	4=halfway between 2 and 0
+     * @param numColors the number of colors to generate
+     * @return an array of colors.
+     */
+	private static Color [] makeUniqueColors(int numColors)
+	{
+		int numRuns = (numColors+29) / 30;
+		Color [] colors = new Color[numColors];
+		int index = 0;
+		for(int i=0; i<numRuns; i++)
+		{
+			int c1 = 255 - 255/numRuns*i;
+			int c2 = c1 / 2;
+			int c3 = c2 / 2;
+			int c4 = (c1 + c2) / 2;
+
+			// combinations of color 1
+			if (index < numColors) colors[index++] = new Color(c1,  0,  0);
+			if (index < numColors) colors[index++] = new Color( 0, c1,  0);
+			if (index < numColors) colors[index++] = new Color( 0,  0, c1);
+
+			if (index < numColors) colors[index++] = new Color(c1, c1,  0);
+			if (index < numColors) colors[index++] = new Color( 0, c1, c1);
+			if (index < numColors) colors[index++] = new Color(c1,  0, c1);
+
+			// combinations of the colors 1 and 2
+			if (index < numColors) colors[index++] = new Color(c1, c2,  0);
+			if (index < numColors) colors[index++] = new Color(c1,  0, c2);
+			if (index < numColors) colors[index++] = new Color(c1, c2, c2);
+
+			if (index < numColors) colors[index++] = new Color(c2, c1,  0);
+			if (index < numColors) colors[index++] = new Color( 0, c1, c2);
+			if (index < numColors) colors[index++] = new Color(c2, c1, c2);
+
+			if (index < numColors) colors[index++] = new Color(c2,  0, c1);
+			if (index < numColors) colors[index++] = new Color( 0, c2, c1);
+			if (index < numColors) colors[index++] = new Color(c2, c2, c1);
+
+			// combinations of colors 1, 2, and 3
+			if (index < numColors) colors[index++] = new Color(c1, c2, c3);
+			if (index < numColors) colors[index++] = new Color(c1, c3, c2);
+			if (index < numColors) colors[index++] = new Color(c2, c1, c3);
+			if (index < numColors) colors[index++] = new Color(c3, c1, c2);
+			if (index < numColors) colors[index++] = new Color(c2, c3, c1);
+			if (index < numColors) colors[index++] = new Color(c3, c2, c1);
+
+			// combinations of colors 1, 2, and 4
+			if (index < numColors) colors[index++] = new Color(c1, c2, c4);
+			if (index < numColors) colors[index++] = new Color(c1, c4, c2);
+			if (index < numColors) colors[index++] = new Color(c2, c1, c4);
+			if (index < numColors) colors[index++] = new Color(c4, c1, c2);
+			if (index < numColors) colors[index++] = new Color(c2, c4, c1);
+			if (index < numColors) colors[index++] = new Color(c4, c2, c1);
+		}
+		return colors;
+	}
 
     public static void listGeomsAllNetworksCommand() {
         EditWindow wnd = EditWindow.needCurrent();
