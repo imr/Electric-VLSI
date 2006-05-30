@@ -32,15 +32,22 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import java.awt.Color;
 
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.util.Iterator;
@@ -361,7 +368,7 @@ public class LayoutText extends EDialog
 		for(int i=0; i<strings.length; i++)
 		{
 			String str = strings[i];
-			Raster ras = PixelDrawing.renderText(str, lastFont, lastSize, lastItalic, lastBold, lastUnderline, -1, -1);
+			Raster ras = renderText(str, lastFont, lastSize, lastItalic, lastBold, lastUnderline);
 			if (ras == null) return;
 			DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
 			byte [] samples = dbb.getData();
@@ -373,6 +380,60 @@ public class LayoutText extends EDialog
 
 		closeDialog(null);
 	}//GEN-LAST:event_ok
+
+	/**
+	 * Method to convert text to an array of pixels.
+	 * This is used for text rendering, as well as for creating "layout text" which is placed as geometry in the circuit.
+	 * @param msg the string of text to be converted.
+	 * @param fontName the name of the font to use.
+	 * @param tSize the size of the font to use.
+	 * @param italic true to make the text italic.
+	 * @param bold true to make the text bold.
+	 * @param underline true to underline the text.
+	 * @return a Raster with the text bits.
+	 */
+	private static Raster renderText(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline)
+	{
+        int fontStyle = Font.PLAIN;
+        if (italic) fontStyle |= Font.ITALIC;
+        if (bold) fontStyle |= Font.BOLD;
+        Font font = new Font(fontName, fontStyle, tSize);
+        if (font == null) {
+            System.out.println("Could not find font "+font+" to render text: "+msg);
+            return null;
+        }
+        
+        // convert the text to a GlyphVector
+        FontRenderContext frc = new FontRenderContext(null, true, true);
+        GlyphVector gv = font.createGlyphVector(frc, msg);
+        LineMetrics lm = font.getLineMetrics(msg, frc);
+        
+        // figure bounding box of text
+        Rectangle2D rasRect = gv.getLogicalBounds();
+        int width = (int)rasRect.getWidth();
+        int height = (int)(lm.getHeight()+0.5);
+        if (width <= 0 || height <= 0) return null;
+        fontStyle = font.getStyle();
+        
+        if (underline) height++;
+        Rectangle2D rasBounds = new Rectangle2D.Double(0, (float)lm.getAscent()-lm.getLeading(), width, height);
+        
+		// if the new image is larger than what is saved, must rebuild
+			// create a new text buffer
+			BufferedImage textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
+			Graphics2D g2 = textImage.createGraphics();
+
+		// now render it
+		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+		g2.setColor(new Color(255,255,255));
+		g2.drawGlyphVector(gv, (float)-rasBounds.getX(), (float)(lm.getAscent()-lm.getLeading()));
+		if (underline)
+			g2.drawLine(0, height-1, width-1, height-1);
+
+		// return the bits
+		return textImage.getData();
+    }
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog

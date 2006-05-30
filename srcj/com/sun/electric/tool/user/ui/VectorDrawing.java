@@ -58,14 +58,13 @@ import java.util.Set;
 /**
  * Class to do rapid redraw by caching the vector coordinates of all objects.
  */
-public class VectorDrawing
+class VectorDrawing
 {
 	private static final boolean TAKE_STATS = false;
 	private static final boolean DEBUGIMAGES = false;
 	private static final int MAXGREEKSIZE = 25;
     private static final int SCALE_SH = 20;
 
-	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the rendering object */								private PixelDrawing offscreen;
 	/** the window scale */									private float scale;
 	/** the window scale */									private float scale_;
@@ -73,6 +72,7 @@ public class VectorDrawing
     private int factorX_, factorY_;
     private int scale_int;
 	/** true if "peeking" and expanding to the bottom */	private boolean fullInstantiate;
+	/** A List of NodeInsts to the cell being in-place edited. */private List<NodeInst> inPlaceNodePath;
 	/** time that rendering started */						private long startTime;
 	/** true if the user has been told of delays */			private boolean takingLongTime;
 	/** true to stop rendering */							private boolean stopRendering;
@@ -106,18 +106,21 @@ public class VectorDrawing
 	 * Constructor creates a VectorDrawing object for a given EditWindow.
 	 * @param wnd the EditWindow associated with this VectorDrawing.
 	 */
-	public VectorDrawing(EditWindow wnd)
+	public VectorDrawing()
 	{
-		this.wnd = wnd;
 	}
 
 	/**
 	 * Main entry point for drawing a cell.
+     * @param offscreen offscreen buffer
+     * @param scale edit window scale
+     * @param offset the offset factor for this window
 	 * @param cell the cell to draw
 	 * @param fullInstantiate true to draw all the way to the bottom of the hierarchy.
-	 * @param drawLimitBounds the area in the cell to display (null to show all).
+     * @param inPlaceNodePath a List of NodeInsts to the cell being in-place edited
+	 * @param screenLimit the area in the cell to display (null to show all).
 	 */
-	public void render(Cell cell, boolean fullInstantiate, Rectangle2D drawLimitBounds, VarContext context)
+	public void render(PixelDrawing offscreen, double scale, Point2D offset, Cell cell, boolean fullInstantiate, List<NodeInst> inPlaceNodePath, Rectangle screenLimit, VarContext context)
 	{
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColorText()));
@@ -125,7 +128,7 @@ public class VectorDrawing
 		textColor = new Color(User.getColorText() & 0xFFFFFF);
 
 		// see if any layers are being highlighted/dimmed
-		offscreen = wnd.getOffscreen();
+		this.offscreen = offscreen;
 		offscreen.highlightingLayers = false;
 		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
@@ -138,12 +141,12 @@ public class VectorDrawing
 		}
 
 		// set size limit
-		scale = (float)wnd.getScale();
-        scale_ = (float)(wnd.getScale()/DBMath.GRID);
-		maxObjectSize = (float)User.getGreekSizeLimit() / scale;
+		Dimension sz = offscreen.getSize();
+		this.scale = (float)scale;
+        scale_ = (float)(scale/DBMath.GRID);
+		maxObjectSize = (float)User.getGreekSizeLimit() / this.scale;
 		maxTextSize = maxObjectSize / (float)User.getGlobalTextScale();
-		Rectangle2D screenBounds = wnd.getDisplayedBounds();
-		double screenArea = screenBounds.getWidth() * screenBounds.getHeight();
+		double screenArea = sz.getWidth()/scale * sz.getHeight()/scale;
 		maxCellSize = (float)(User.getGreekCellSizeLimit() * screenArea);
 
 		// statistics
@@ -156,20 +159,18 @@ public class VectorDrawing
 
 		// draw recursively
 		this.fullInstantiate = fullInstantiate;
-		Dimension sz = offscreen.getSize();
+		this.inPlaceNodePath = inPlaceNodePath;
 		szHalfWidth = sz.width / 2;
 		szHalfHeight = sz.height / 2;
 		screenLX = 0;   screenHX = sz.width;
 		screenLY = 0;   screenHY = sz.height;
-		Point2D offset = wnd.getOffset();
 		factorX = (float)(offset.getX()*DBMath.GRID - szHalfWidth/scale_);
 		factorY = (float)(offset.getY()*DBMath.GRID + szHalfHeight/scale_);
         factorX_ = (int)factorX;
         factorY_ = (int)factorY;
         scale_int = (int)(scale_ * (1 << SCALE_SH));
-		if (drawLimitBounds != null)
+		if (screenLimit != null)
 		{
-			Rectangle screenLimit = wnd.databaseToScreen(drawLimitBounds);
 			screenLX = screenLimit.x;
 			if (screenLX < 0) screenLX = 0;
 			screenHX = screenLimit.x + screenLimit.width;
@@ -285,12 +286,11 @@ public class VectorDrawing
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
 			{
-				List<NodeInst> path = wnd.getInPlaceEditNodePath();
-				if (path != null)
+				if (inPlaceNodePath != null)
 				{
-					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
+					for(int pathIndex=0; pathIndex<inPlaceNodePath.size(); pathIndex++)
 					{
-						NodeInst niOnPath = path.get(pathIndex);
+						NodeInst niOnPath = inPlaceNodePath.get(pathIndex);
 						if (niOnPath.getProto() == vsc.subCell)
 						{
 							expanded = true;
@@ -886,18 +886,20 @@ public class VectorDrawing
 		double greekScale = MAXGREEKSIZE / ownBounds.getHeight();
 		if (ownBounds.getWidth() > ownBounds.getHeight())
 			greekScale = MAXGREEKSIZE / ownBounds.getWidth();
-		int greekWid = (int)(ownBounds.getWidth()*greekScale + 0.5);
-		if (greekWid <= 0) greekWid = 1;
-		int greekHei = (int)(ownBounds.getHeight()*greekScale + 0.5);
-		if (greekHei <= 0) greekHei = 1;
+        int lX = (int)Math.floor(cellBounds.getMinX()*greekScale);
+        int hX = (int)Math.ceil(cellBounds.getMaxX()*greekScale);
+        int lY = (int)Math.floor(cellBounds.getMinY()*greekScale);
+        int hY = (int)Math.ceil(cellBounds.getMaxY()*greekScale);
+        if (hX <= lX) hX = lX + 1;
+        int greekWid = hX - lX;
+        if (hY <= lY) hY = lY + 1;
+        int greekHei = hY - lY;
+        Rectangle screenBounds = new Rectangle(lX, lY, greekWid, greekHei);
 
 		// construct the offscreen buffers for the greeked cell image
-		EditWindow fadeWnd = EditWindow.CreateElectricDoc(EDatabase.clientDatabase().getCell(subVC.vcg.cellId), null, null);
-		fadeWnd.setScreenSize(new Dimension(greekWid, greekHei));
-		fadeWnd.setScale(greekScale);
+        PixelDrawing offscreen = new PixelDrawing(greekScale, screenBounds);
 		Point2D cellCtr = new Point2D.Double(ownBounds.getCenterX(), ownBounds.getCenterY());
-		fadeWnd.setOffset(cellCtr);
-		VectorDrawing subVD = new VectorDrawing(fadeWnd);
+		VectorDrawing subVD = new VectorDrawing();
 
 		subVC.fadeOffsetX = debugXP;
 		subVC.fadeOffsetY = debugYP;
@@ -914,7 +916,7 @@ public class VectorDrawing
 //System.out.println("Making greek for "+vsc.subCell+" "+greekWid+"x"+greekHei);
 
 		// set rendering information for the greeked cell image
-		subVD.offscreen = fadeWnd.getOffscreen();
+		subVD.offscreen = offscreen;
 		subVD.screenLX = 0;   subVD.screenHX = greekWid;
 		subVD.screenLY = 0;   subVD.screenHY = greekHei;
 		subVD.szHalfWidth = greekWid / 2;
@@ -932,25 +934,24 @@ public class VectorDrawing
 		subVD.takingLongTime = true;
 
 		// render the greeked cell
-		subVD.offscreen.clearImage(false, null);
+		subVD.offscreen.clearImage(null);
 		subVD.render(subVC, 0, 0, VarContext.globalContext, -1);
 		subVD.offscreen.composite(null);
 
 		// remember the greeked cell image
-		BufferedImage img = subVD.offscreen.getBufferedImage();
-		subVC.fadeImageWid = img.getWidth();
-		subVC.fadeImageHei = img.getHeight();
+        int[] img = offscreen.getOpaqueData();
+		subVC.fadeImageWid = greekWid;
+		subVC.fadeImageHei = greekHei;
 		subVC.fadeImageColors = new int[subVC.fadeImageWid * subVC.fadeImageHei];
 		int i = 0;
 		for(int y=0; y<subVC.fadeImageHei; y++)
 		{
 			for(int x=0; x<subVC.fadeImageWid; x++)
 			{
-				int value = img.getRGB(x, y);
+				int value = img[i];
 				subVC.fadeImageColors[i++] = value & 0xFFFFFF;
 			}
 		}
-		subVD.wnd.finished();
 		subVC.fadeImage = true;
 	}
 

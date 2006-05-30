@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -75,7 +76,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
@@ -143,7 +143,7 @@ public class EditWindow extends JPanel
 	/** the window offset */								private double offx = 0, offy = 0;
 	/** the window bounds in database units */				private Rectangle2D databaseBounds;
 	/** the size of the window (in pixels) */				private Dimension sz;
-	/** the display cache for this window */				public VectorDrawing vd;
+	/** the display cache for this window */				private Drawing drawing;
 	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
 	/** the cell that is in the window */					private Cell cell;
 	/** the page number (for multipage schematics) */		private int pageNumber;
@@ -157,7 +157,6 @@ public class EditWindow extends JPanel
 	/** Cell's VarContext */                                private VarContext cellVarContext;
     /** Stack of selected PortInsts */                      private PortInst[] selectedPorts;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
-	/** the offscreen data for rendering */					private PixelDrawing offscreen = null;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
 
 	/** the bottom scrollbar on the edit window. */			private JScrollBar bottomScrollBar;
@@ -207,110 +206,24 @@ public class EditWindow extends JPanel
 		int requestType;
 	}
 
-    static class EditWindowProxy implements EditWindow0 {
-        private EditWindow wnd;
+    abstract static class Drawing {
+        final EditWindow wnd;
         
-        EditWindowProxy(EditWindow wnd) {
+        Drawing(EditWindow wnd) {
             this.wnd = wnd;
         }
         
-        /**
-         * Get the window's VarContext
-         * @return the current VarContext
-         */
-        public VarContext getVarContext() { return wnd.getVarContext(); }
+        abstract void setScreenSize(Dimension sz);
         
-        /**
-         * Method to return the scale factor for this window.
-         * @return the scale factor for this window.
-         */
-        public double getScale() { return wnd.getScale(); }
+        abstract boolean paintComponent(Graphics g, Dimension sz);
         
-        /**
-         * Method to return the offset factor for this window.
-         * @return the offset factor for this window.
-         */
-        public Point2D getOffset() { return wnd.getOffset(); }
-
-        /**
-         * Method to return the cell that is shown in this window.
-         * @return the cell that is shown in this window.
-         */
-        public Cell getCell() { return wnd.getCell(); }
+        abstract void render(boolean fullInstantiate, Rectangle2D bounds);
         
-        /**
-         * Method to tell whether this EditWindow is displaying a cell "in-place".
-         * In-place display implies that the user has descended into a lower-level
-         * cell while requesting that the upper-level remain displayed.
-         * @return true if this EditWindow is displaying a cell "in-place".
-         */
-        public boolean isInPlaceEdit() { return wnd.isInPlaceEdit(); }
-        
-        /**
-         * Method to return the top-level cell for "in-place" display.
-         * In-place display implies that the user has descended into a lower-level
-         * cell while requesting that the upper-level remain displayed.
-         * The top-level cell is the original cell that is remaining displayed.
-         * @return the top-level cell for "in-place" display.
-         */
-        public Cell getInPlaceEditTopCell() { return wnd.getInPlaceEditTopCell(); }
-
-        /**
-         * Method to return a List of NodeInsts to the cell being in-place edited.
-         * In-place display implies that the user has descended into a lower-level
-         * cell while requesting that the upper-level remain displayed.
-         * @return a List of NodeInsts to the cell being in-place edited.
-         */
-        public List<NodeInst> getInPlaceEditNodePath() { return wnd.getInPlaceEditNodePath(); }
-        
-        public Rectangle2D getDisplayedBounds() { return wnd.getDisplayedBounds(); }
-
-        /**
-         * Method to return a rectangle in database coordinates that covers the viewable extent of this window.
-         * @return a rectangle that describes the viewable extent of this window (database coordinates).
-         */
-        public Rectangle2D displayableBounds() { return wnd.displayableBounds(); }
-    
-        /**
-         * Method to convert a database coordinate to screen coordinates.
-         * @param dbX the X coordinate (in database units).
-         * @param dbY the Y coordinate (in database units).
-         * @return the coordinate on the screen.
-         */
-        public Point databaseToScreen(double dbX, double dbY) { return wnd.databaseToScreen(dbX, dbY); }
-        
-        /**
-         * Method to convert a database rectangle to screen coordinates.
-         * @param db the rectangle (in database units).
-         * @return the rectangle on the screen.
-         */
-        public Rectangle databaseToScreen(Rectangle2D db) { return wnd.databaseToScreen(db); }
-        
-        /**
-         * Method to return the state of grid display in this window.
-         * @return true if the grid is displayed in this window.
-         */
-        public boolean isGrid() { return wnd.isGrid(); }
-        
-        /**
-         * Method to return the distance between grid dots in the X direction.
-         * @return the distance between grid dots in the X direction.
-         */
-        public double getGridXSpacing() { return wnd.getGridXSpacing(); }
-        
-        /**
-         * Method to return the distance between grid dots in the Y direction.
-         * @return the distance between grid dots in the Y direction.
-         */
-        public double getGridYSpacing() { return wnd.getGridYSpacing(); }
-
-    	public void repaint() { wnd.repaint(); } 
-        
-        public EditWindow getEditWindow() { return wnd; }
-        
-        public VectorDrawing getVectorDrawing() { return wnd.vd; }
+        void abortRendering() {}
     }
-
+    
+    private static final boolean USE_VECTOR_CACHE = false;
+    
 	// ************************************* CONSTRUCTION *************************************
 
     // constructor
@@ -319,7 +232,7 @@ public class EditWindow extends JPanel
         this.cell = cell;
         this.pageNumber = 0;
         this.wf = wf;
-		vd = new VectorDrawing(this);
+		drawing = USE_VECTOR_CACHE ? new PixelDrawing_.Drawing(this) : new PixelDrawing.Drawing(this);
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 		inPlaceDisplay = false;
@@ -1136,13 +1049,6 @@ public class EditWindow extends JPanel
 		return null;
 	}
 
-	/**
-	 * Method to return the PixelDrawing object that represents the offscreen image
-	 * of the Cell in this EditWindow.
-	 * @return the offscreen object for this window.
-	 */
-	public PixelDrawing getOffscreen() { return offscreen; }
-
 	public List<MutableTreeNode> loadExplorerTrees()
 	{
         return wf.loadDefaultExplorerTree();
@@ -1245,32 +1151,10 @@ public class EditWindow extends JPanel
         
         logger.entering(CLASS_NAME, "paintComponent", this);
 
-		if (offscreen == null || !getSize().equals(sz))
-		{
-            logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "Rebuild with size {0}", sz);
-			Dimension newSize = getSize();
-			setScreenSize(newSize);
-			repaintContents(null, false);
-			g.setColor(new Color(User.getColorBackground()));
-			g.fillRect(0, 0, newSize.width, newSize.height);
-            logger.exiting(CLASS_NAME, "paintComponent");
-			return;
-		}
-
-		// stop now if rendering and the repaint came too soon
-//		if (runningNow != null)
-//		{
-//System.out.println("SCREEN FLASH!!!!!!!!!!!!!!!");
-//			return;
-//		}
-//		intermediateRefresh = false;
-
-		// show the image
-		BufferedImage img = offscreen.getBufferedImage();
-//		synchronized(img) // Do not need synchronization here
-		{
-			g.drawImage(img, 0, 0, this);
-		}
+        if (!drawing.paintComponent(g, sz)) {
+             logger.exiting(CLASS_NAME, "paintComponent", "resize and repaint");
+           return;
+        }
         logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
 
 		// add in grid if requested
@@ -1383,7 +1267,7 @@ public class EditWindow extends JPanel
 					runningNow = redrawThese.get(0);
 					redrawThese.remove(0);
                     logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "restart RenderJob");
-					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null, false);
+					RenderJob nextJob = new RenderJob(runningNow, null, false);
                     logger.exiting(CLASS_NAME, "paintComponent");
 					return;
 				}
@@ -1468,7 +1352,7 @@ public class EditWindow extends JPanel
 	{
 		// start rendering thread
 		if (wf == null) return;
-		if (offscreen == null) return;
+//		if (drawing.offscreen == null) return;
         if (cell == null) {
             repaint();
             return;
@@ -1480,8 +1364,8 @@ public class EditWindow extends JPanel
 		{
 			if (runningNow != null)
 			{
-				if (runningNow == this && !User.isUseOlderDisplayAlgorithm())
-					vd.abortRendering();
+				if (runningNow == this)
+					drawing.abortRendering();
                 if (!redrawThese.contains(this))
                     redrawThese.add(this);
                 logger.exiting(CLASS_NAME, "repaintContents");
@@ -1490,7 +1374,7 @@ public class EditWindow extends JPanel
 			handleWindowChangeRequests(this);
 			runningNow = this;
 		}
-		RenderJob renderJob = new RenderJob(this, offscreen, bounds, fullInstantiate);
+		RenderJob renderJob = new RenderJob(this, bounds, fullInstantiate);
 
         // do the redraw in the main thread
         setScrollPosition();                        // redraw scroll bars
@@ -1504,15 +1388,13 @@ public class EditWindow extends JPanel
 	private static class RenderJob extends Job
 	{
 		private EditWindow wnd;
-		private PixelDrawing offscreen;
 		private Rectangle2D bounds;
 		private boolean fullInstantiate;
 
-		protected RenderJob(EditWindow wnd, PixelDrawing offscreen, Rectangle2D bounds, boolean fullInstantiate)
+		protected RenderJob(EditWindow wnd, Rectangle2D bounds, boolean fullInstantiate)
 		{
 			super("Display", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
-			this.offscreen = offscreen;
 			this.bounds = bounds;
 			this.fullInstantiate = fullInstantiate;
 			startJob();
@@ -1535,7 +1417,7 @@ public class EditWindow extends JPanel
 			// do the hard work of re-rendering the image
             try
             {
-				offscreen.drawImage(fullInstantiate, bounds);
+				wnd.drawing.render(fullInstantiate, bounds);
             } catch (java.util.ConcurrentModificationException e)
             {
 				System.out.println("GOT ConcurrentModificationException during redisplay!");
@@ -1551,45 +1433,6 @@ public class EditWindow extends JPanel
             logger.exiting(RENDER_JOB_CLASS_NAME, "doIt");
 			return true;
 		}
-	}
-
-	/**
-	 * Special "hook" to render a single node.
-	 * This is used by the PaletteWindow to draw nodes that aren't really in the database.
-	 */
-	public Image renderNode(NodeInst ni, double scale, boolean forceVisible)
-	{
-		offscreen.clearImage(false, null);
-		setScale(scale);
-        offscreen.initOrigin();
-		offscreen.drawNode(ni, Orientation.IDENT, DBMath.MATID, null, null, false, forceVisible, null);
-		return offscreen.composite(null);
-	}
-
-	/**
-	 * Special "hook" to render a single arc.
-	 * This is used by the PaletteWindow to draw arcs that aren't really in the database.
-	 */
-	public Image renderArc(ArcInst ai, double scale, boolean forceVisible)
-	{
-		offscreen.clearImage(false, null);
-		setScale(scale);
-        offscreen.initOrigin();
-		offscreen.drawArc(ai, DBMath.MATID, forceVisible);
-		return offscreen.composite(null);
-	}
-
-    /**
-	 * Special "hook" to render text.
-	 * This is used by the PaletteWindow to draw arcs that aren't really in the database.
-	 */
-	public Image renderText(String txt, double scale, Rectangle rect)
-	{
-		offscreen.clearImage(false, null);
-		setScale(scale);
-        offscreen.initOrigin();
-		offscreen.drawText(txt, rect);
-		return offscreen.composite(null);
 	}
 
 	// ************************************* SIMULATION CROSSPROBE LEVEL DISPLAY *************************************
@@ -2559,7 +2402,7 @@ public class EditWindow extends JPanel
 		this.sz = sz;
 		szHalfWidth = sz.width / 2;
 		szHalfHeight = sz.height / 2;
-		offscreen = new PixelDrawing(this);
+		drawing.setScreenSize(getScreenSize());
         logger.exiting(CLASS_NAME, "setScreenSize");
 	}
 
@@ -2624,7 +2467,7 @@ public class EditWindow extends JPanel
 					wnd.sz = zap.sz;
 					wnd.szHalfWidth = wnd.sz.width / 2;
 					wnd.szHalfHeight = wnd.sz.height / 2;
-					wnd.offscreen = new PixelDrawing(wnd);
+					wnd.drawing.setScreenSize(wnd.getScreenSize());
 					break;
 			}
 		}
@@ -2740,6 +2583,7 @@ public class EditWindow extends JPanel
      */
     private void setScrollPositionUnsafe()
     {
+        if (bottomScrollBar == null || rightScrollBar == null) return;
         bottomScrollBar.setEnabled(cell != null);
         rightScrollBar.setEnabled(cell != null);
 
@@ -3234,7 +3078,7 @@ public class EditWindow extends JPanel
 			newWND.setOffset(new Point2D.Double(offx - ni.getAnchorCenterX(), offy - ni.getAnchorCenterY()));
 		}
         if (!redisplay) fullRepaint();
-		PixelDrawing.clearSubCellCache();
+		clearSubCellCache();
 
         // if highlighted was a port inst, then highlight the corresponding export
         if (pi != null)
@@ -3354,7 +3198,7 @@ public class EditWindow extends JPanel
 				{
 					setCell(parent, context, popSelectedPorts(), true, true, inPlaceDisplay);
 				}
-				PixelDrawing.clearSubCellCache();
+				clearSubCellCache();
 
 				// highlight node we came from
 				if (selectedExport != null)
@@ -3458,6 +3302,22 @@ public class EditWindow extends JPanel
             ActivityLogger.logException(e);
 		}
     }
+
+	/**
+	 * Method to clear the cache of expanded subcells.
+	 * This is used by layer visibility which, when changed, causes everything to be redrawn.
+	 */
+	public static void clearSubCellCache()
+	{
+        PixelDrawing.clearSubCellCache();
+        PixelDrawing_.clearSubCellCache();
+	}
+
+	public static void forceRedraw(Cell cell)
+	{
+        PixelDrawing.forceRedraw(cell);
+        PixelDrawing_.forceRedraw(cell);
+	}
 
     // ************************** Cell History Traversal  *************************************
 
@@ -3915,12 +3775,9 @@ public class EditWindow extends JPanel
 		if (img == null)
 		{
 			// change window size
-			EditWindow w = EditWindow.CreateElectricDoc(null, null, null);
 			int iw = (int)ep.getPageFormat().getImageableWidth() * scaleFactor;
 			int ih = (int)ep.getPageFormat().getImageableHeight() * scaleFactor;
-			w.setScreenSize(new Dimension(iw, ih));
-			w.setCell(getCell(), getVarContext());
-			PixelDrawing offscreen = w.getOffscreen();
+			PixelDrawing offscreen = new PixelDrawing(new Dimension(iw, ih));
 
 			// prepare for printing
 			PrinterJob pj = ep.getPrintJob();
@@ -3929,17 +3786,27 @@ public class EditWindow extends JPanel
 			if (cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);
 			offscreen.setBackgroundColor(Color.WHITE);
-			int oldBackgroundColor = User.getColorBackground();
-			User.setColorBackground(0xFFFFFF);
+//			int oldBackgroundColor = User.getColorBackground();
+//			User.setColorBackground(0xFFFFFF);
 
 			// draw int
-			offscreen.drawImage(false, null);
+            Rectangle2D cellBounds = getBoundsInWindow();
+    		double width = cellBounds.getWidth();
+        	double height = cellBounds.getHeight();
+            if (width == 0) width = 2;
+            if (height == 0) height = 2;
+            double scalex = sz.width/width * 0.9;
+            double scaley = sz.height/height * 0.9;
+            double scale = Math.min(scalex, scaley);
+    		EPoint offset = new EPoint(cellBounds.getCenterX(), cellBounds.getCenterY());
+    
+			offscreen.printImage(scale, offset, getCell(), getVarContext());
 			img = offscreen.getBufferedImage();
 			ep.setBufferedImage(img);
 
-			// restore display state
-			offscreen.setPrintingMode(0);
-			User.setColorBackground(oldBackgroundColor);
+//			// restore display state
+//			offscreen.setPrintingMode(0);
+//			User.setColorBackground(oldBackgroundColor);
 		}
 
 		// copy the image to the page if graphics is not null

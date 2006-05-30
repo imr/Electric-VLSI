@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: PixelDrawing.java
+ * File: PixelDrawing_.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -40,9 +40,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Orientation;
@@ -180,7 +178,7 @@ import java.util.Map;
  * </UL>
  * 
  */
-class PixelDrawing
+class PixelDrawing_
 {
 	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE =   5;
 	/** Text larger than this is granular. */						public static final int MAXIMUMTEXTSIZE = 100;
@@ -197,6 +195,7 @@ class PixelDrawing
 	private static final boolean TAKE_STATS = true;
 	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
+    private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;
 
     private static final boolean DEBUGRENDERTIMING = false;
     private static long renderTextTime;
@@ -235,7 +234,7 @@ class PixelDrawing
 		private boolean singleton;
 		private int instanceCount;
         private boolean tooLarge;
-		private PixelDrawing offscreen;
+		private PixelDrawing_ offscreen;
 
 		ExpandedCellInfo()
 		{
@@ -249,6 +248,8 @@ class PixelDrawing
     /** the VarContext of the EditWindow */                 private VarContext varContext;
     /** the X origin of the cell in display coordinates. */ private double originX;
     /** the Y origin of the cell in display coordinates. */ private double originY;
+    /** the scale of the EditWindow */                      private double scale_;
+	/** the window scale and pan factor */					private float factorX, factorY;
 	/** 0: color display, 1: color printing, 2: B&W printing */	private int nowPrinting;
     
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
@@ -278,8 +279,7 @@ class PixelDrawing
     /** ERasters for layers of current technology. */       private ERaster[] curTechLayers;
 
 	// the patterned opaque bitmaps
-    private static class PatternedOpaqueLayer {
-        private byte[][] layerBitMap;
+    private static class PatternedOpaqueLayer extends TransparentRaster {
         PatternedOpaqueLayer(int height, int numBytesPerRow) { layerBitMap = new byte[height][numBytesPerRow]; }
     }
 	/** the map from layers to Patterned Opaque bitmaps */	private HashMap<Layer,PatternedOpaqueLayer> patternedOpaqueLayers = new HashMap<Layer,PatternedOpaqueLayer>();
@@ -309,6 +309,7 @@ class PixelDrawing
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
     private int clipLX, clipHX, clipLY, clipHY;
+    private final int width;
     
     private final EditWindow0 dummyWnd = new EditWindow0() {
         public VarContext getVarContext() { return varContext; }
@@ -317,15 +318,14 @@ class PixelDrawing
     };
 
     static class Drawing extends EditWindow.Drawing {
-        private final VectorDrawing vd = new VectorDrawing();
-        private PixelDrawing offscreen;
+        private PixelDrawing_ offscreen;
         
         Drawing(EditWindow wnd) {
             super(wnd);
         }
         
         void setScreenSize(Dimension sz) {
-            offscreen = new PixelDrawing(sz);
+            offscreen = new PixelDrawing_(sz);
         }
         
         boolean paintComponent(Graphics g, Dimension sz) {
@@ -351,11 +351,6 @@ class PixelDrawing
             if (offscreen == null) return;
             offscreen.drawImage(this, fullInstantiate, bounds);
         }
-        
-        void abortRendering() {
-            if (!User.isUseOlderDisplayAlgorithm())
-                vd.abortRendering();
-        }
     }
     
     // ************************************* TOP LEVEL *************************************
@@ -364,9 +359,10 @@ class PixelDrawing
 	 * Constructor creates an offscreen PixelDrawing object.
 	 * @param sz the size of an offscreen PixelDrawinf object.
 	 */
-	public PixelDrawing(Dimension sz)
+	public PixelDrawing_(Dimension sz)
 	{
 		this.sz = new Dimension(sz);
+        width = sz.width;
         clipLX = 0;
         clipHX = sz.width - 1;
         clipLY = 0;
@@ -382,12 +378,16 @@ class PixelDrawing
 		renderedWindow = true;
 	}
     
-    public PixelDrawing(double scale, Rectangle screenBounds) {
+    public PixelDrawing_(double scale, Rectangle screenBounds) {
         this.scale = scale;
+        scale_ = (float)(scale/DBMath.GRID);
         
         this.originX = -screenBounds.x;
         this.originY = screenBounds.y + screenBounds.height;
+        factorX = (float)(-originX/scale_);
+        factorY = (float)(originY/scale_);
         this.sz = new Dimension(screenBounds.width, screenBounds.height);
+        width = sz.width;
         clipLX = 0;
         clipHX = sz.width - 1;
         clipLY = 0;
@@ -405,8 +405,11 @@ class PixelDrawing
     
     void initOrigin(double scale, Point2D offset) {
         this.scale = scale;
+        scale_ = (float)(scale/DBMath.GRID);
         this.originX = sz.width/2 - offset.getX()*scale;
         this.originY = sz.height/2 + offset.getY()*scale;
+		factorX = (float)(offset.getX()*DBMath.GRID - sz.width/2/scale_);
+		factorY = (float)(offset.getY()*DBMath.GRID + sz.height/2/scale_);
     }
 
     void initDrawing(double scale) {
@@ -476,6 +479,7 @@ class PixelDrawing
 			initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
 			offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
+            boxes = crosses = solidLines = patLines = thickLines = polygons = texts = circles = thickCircles = discs = circleArcs = points = thickPoints = 0;
 		}
 
 		if (fullInstantiate != lastFullInstantiate)
@@ -555,22 +559,16 @@ class PixelDrawing
         }
         forceRedraw(changedCellsCopy);
         VectorCache.theCache.forceRedraw(changedCellsCopy);
-		if (User.isUseOlderDisplayAlgorithm())
-		{
-			// reset cached cell counts
-			numberToReconcile = SINGLETONSTOADD;
-			for(ExpandedCellInfo count : expandedCells.values())
-				count.instanceCount = 0;
-
-			// determine which cells should be cached (must have at least 2 instances)
-			countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
-
-			// now render it all
-            drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd.getCell(), wnd.getVarContext());
-		} else
-		{
-			drawing.vd.render(this, scale, wnd.getOffset(), cell, fullInstantiate, inPlaceNodePath, renderBounds, wnd.getVarContext());
-		}
+        // reset cached cell counts
+        numberToReconcile = SINGLETONSTOADD;
+        for(ExpandedCellInfo count : expandedCells.values())
+            count.instanceCount = 0;
+        
+        // determine which cells should be cached (must have at least 2 instances)
+        countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
+        
+        // now render it all
+        drawCell_(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
 
 		// merge transparent image into opaque one
 		synchronized(img)
@@ -593,87 +591,22 @@ class PixelDrawing
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
 				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
 				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines");
+//            System.out.print("    " + (boxes+crosses+solidLines+patLines+thickLines+polygons+texts+circles+thickCircles+discs+circleArcs+points+thickPoints)+" rendered: ");
+//            if (boxes != 0) System.out.print(boxes+" boxes ");
+//            if (crosses != 0) System.out.print(crosses+" crosses ");
+//            if (solidLines != 0) System.out.print(solidLines+" solidLines ");
+//            if (patLines != 0) System.out.print(patLines+" patLines ");
+//            if (thickLines != 0) System.out.print(thickLines+" thickLines ");
+//            if (polygons != 0) System.out.print(polygons+" polygons ");
+//            if (texts != 0) System.out.print(texts+" texts ");
+//            if (circles != 0) System.out.print(circles+" circles ");
+//            if (thickCircles != 0) System.out.print(thickCircles+" thickCircles ");
+//            if (discs != 0) System.out.print(discs+" discs ");
+//            if (circleArcs != 0) System.out.print(circleArcs+" circleArcs ");
+//            if (points != 0) System.out.print(points+" points ");
+//            if (thickPoints != 0) System.out.print(thickPoints+" thickPoints ");
+//            System.out.println();
 		}
-	}
-
-	/**
-	 * This is the entry point for rendering.
-	 * It displays a cell in this offscreen window.
-	 * The rendered Image can then be obtained with "getImage()".
-	 */
-	public void printImage(double scale, Point2D offset, Cell cell, VarContext varContext)
-	{
-        clearSubCellCache();
-        lastFullInstantiate = false;
-        expandedScale = this.scale = scale; 
-
-		// set colors to use
-        textColor = new Color(User.getColorText());
-		textGraphics.setColor(textColor);
-		gridGraphics.setColor(new Color(User.getColorGrid()));
-		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
-		
-        initOrigin(scale, offset);
- 		canDrawText = expandedScale > 1;
-		maxObjectSize = 2 / expandedScale;
-		halfMaxObjectSize = maxObjectSize / 2;
-
-		// remember the true window size (since recursive calls may cache individual cells that are smaller)
-		topSz = sz;
-
-		// see if any layers are being highlighted/dimmed
-		highlightingLayers = false;
-		for(Iterator<Layer> it = Technology.getCurrent().getLayers(); it.hasNext(); )
-		{
-			Layer layer = it.next();
-			if (layer.isDimmed())
-			{
-				highlightingLayers = true;
-				break;
-			}
-		}
-
-		// initialize rendering into the offscreen image
-        clipLX = 0;
-        clipHX = sz.width - 1;
-        clipLY = 0;
-        clipHY = sz.height - 1;
-		clearImage(null);
-
-        HashSet<CellId> changedCellsCopy;
-        synchronized (changedCells) {
-            changedCellsCopy = new HashSet<CellId>(changedCells);
-            changedCells.clear();
-        }
-        forceRedraw(changedCellsCopy);
-        VectorCache.theCache.forceRedraw(changedCellsCopy);
-		if (User.isUseOlderDisplayAlgorithm())
-		{
-			// reset cached cell counts
-			numberToReconcile = SINGLETONSTOADD;
-			for(ExpandedCellInfo count : expandedCells.values())
-				count.instanceCount = 0;
-
-			// determine which cells should be cached (must have at least 2 instances)
-			countCell(cell, null, false, Orientation.IDENT, DBMath.MATID);
-
-			// now render it all
-            drawCell(cell, null, false, Orientation.IDENT, DBMath.MATID, cell, varContext);
-		} else
-		{
-            VectorDrawing vd = new VectorDrawing();
-			vd.render(this, scale, offset, cell, false, null, null, varContext);
-		}
-
-		// merge transparent image into opaque one
-		synchronized(img)
-		{
-			// if a grid is requested, overlay it
-//			if (cell != null && wnd.isGrid()) drawGrid(wnd);
-
-			// combine transparent and opaque colors into a final image
-			composite(null);
-		};
 	}
 
 	// ************************************* INTERMEDIATE CONTROL LEVEL *************************************
@@ -1063,111 +996,34 @@ class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient,  AffineTransform prevTrans, Cell topCell, VarContext context)
+	private void drawCell_(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, int oX, int oY, boolean topLevel, VarContext context)
 	{
 		renderedCells++;
         renderPolyTime = 0;
         renderTextTime = 0;
 
-        // draw all arcs
-		for(Iterator<ArcInst> arcs = cell.getArcs(); arcs.hasNext(); )
-		{
-			ArcInst ai = arcs.next();
-
-			// if limiting drawing, reject when out of area
-			if (drawLimitBounds != null)
-			{
-				Rectangle2D curBounds = ai.getBounds();
-				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
-				GenMath.transformRect(bounds, prevTrans);
-				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) continue;
-			}
-			drawArc(ai, prevTrans, false);
-		}
-
-		// draw all nodes
-		for(Iterator<NodeInst> nodes = cell.getNodes(); nodes.hasNext(); )
-		{
-			NodeInst ni = nodes.next();
-
-			// if limiting drawing, reject when out of area
-			if (drawLimitBounds != null)
-			{
-				Rectangle2D curBounds = ni.getBounds();
-				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
-				GenMath.transformRect(bounds, prevTrans);
-				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) continue;
-			}
-			drawNode(ni, orient, prevTrans, topCell, drawLimitBounds, fullInstantiate, false, context);
-		}
-
-		// show cell variables if at the top level
-		boolean topLevel = true;
-		if (topCell != null) topLevel = (cell == topCell);
-		if (canDrawText && topLevel && User.isTextVisibilityOnCell())
-		{
-			// show displayable variables on the instance
-			int numPolys = cell.numDisplayableVariables(true);
-			Poly [] polys = new Poly[numPolys];
-			cell.addDisplayableVariables(CENTERRECT, polys, 0, dummyWnd, true);
-			drawPolys(polys, prevTrans, false);
-		}
-
-        if (DEBUGRENDERTIMING) {
-            System.out.println("Total time to render polys: "+TextUtils.getElapsedTime(renderPolyTime));
-            System.out.println("Total time to render text: "+TextUtils.getElapsedTime(renderTextTime));
-        }
-	}
-
-	/**
-	 * Method to draw a NodeInst into the offscreen image.
-	 * @param ni the NodeInst to draw.
-     * @param trans the transformation of the NodeInst to the display.
-     * @param topCell the Cell at the top-level of display.
-     * @param drawLimitBounds bounds in which to draw.
-     * @param fullInstantiate true to draw to the bottom of the hierarchy ("peek" mode).
-     * @param forceVisible true if layer visibility information should be ignored and force the drawing
-	 * @param context the VarContext to this node in the hierarchy.
-     */
-	public void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, Cell topCell, Rectangle2D drawLimitBounds, boolean fullInstantiate, boolean forceVisible, VarContext context)
-	{
-		NodeProto np = ni.getProto();
-		AffineTransform localTrans = ni.rotateOut(trans);
-
-		boolean topLevel = true;
-		if (topCell != null) topLevel = (ni.getParent() == topCell);
-
-		// draw the node
-		if (ni.isCellInstance())
-		{
-			// cell instance
+        VectorCache.VectorCell vc = VectorCache.theCache.drawCell(cell, orient, context, scale);
+        
+		// draw all subcells
+		for(VectorCache.VectorSubCell vsc : vc.subCells) {
 			totalCells++;
-//			if (objWidth < maxObjectSize)
-//			{
-//				tinyCells++;
-//				return;
-//			}
 
-			// see if it is on the screen
-			Cell subCell = (Cell)np;
-            Orientation subOrient = orient.concatenate(ni.getOrient());
-			AffineTransform subTrans = ni.translateOut(localTrans);
-       		Rectangle2D cellBounds = subCell.getBounds();
-			Poly poly = new Poly(cellBounds);
-			poly.transform(subTrans);
-//			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
-			cellBounds = poly.getBounds2D();
-			Rectangle screenBounds = databaseToScreen(cellBounds);
-			if (screenBounds.width <= 0 || screenBounds.height <= 0)
-			{
-				tinyCells++;
-				return;
-			}
-			if (screenBounds.x >= sz.width || screenBounds.x+screenBounds.width <= 0) return;
-			if (screenBounds.y >= sz.height || screenBounds.y+screenBounds.height <= 0) return;
+			// get instance location
+            int soX = vsc.offsetX + oX;
+            int soY = vsc.offsetY + oY;
+            VectorCache.VectorCell subVC = VectorCache.theCache.findVectorCell(vsc.subCell.getId(), vc.orient.concatenate(vsc.pureRotate));
+            gridToScreen(subVC.lX + soX, subVC.hY + soY, tempPt1);
+            gridToScreen(subVC.hX + soX, subVC.lY + soY, tempPt2);
+            int lX = tempPt1.x;
+            int lY = tempPt1.y;
+            int hX = tempPt2.x;
+            int hY = tempPt2.y;
 
-			boolean expanded = ni.isExpanded();
-			if (fullInstantiate) expanded = true;
+			// see if the subcell is clipped
+			if (hX < clipLX || lX > clipHX) continue;
+			if (hY < clipLY || lY > clipHY) continue;
+
+			boolean expanded = vsc.ni.isExpanded() || fullInstantiate;
 
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
@@ -1177,7 +1033,7 @@ class PixelDrawing
 					for(int pathIndex=0; pathIndex<inPlaceNodePath.size(); pathIndex++)
 					{
 						NodeInst niOnPath = inPlaceNodePath.get(pathIndex);
-						if (niOnPath.getProto() == subCell)
+						if (niOnPath.getProto() == vsc.subCell)
 						{
 							expanded = true;
 							break;
@@ -1187,124 +1043,138 @@ class PixelDrawing
 			}
 
 			// two ways to draw a cell instance
+			Cell subCell = (Cell)vsc.ni.getProto();
 			if (expanded)
 			{
 				// show the contents of the cell
-				if (!expandedCellCached(subCell, subOrient, subTrans, topCell, context, drawLimitBounds, fullInstantiate))
+                Orientation subOrient = orient.concatenate(vsc.ni.getOrient());
+                int soX_ = vsc.offsetX + oX;
+                int soY_ = vsc.offsetY + oY;
+				if (!expandedCellCached_(subCell, subOrient, soX_, soY_, context, fullInstantiate))
 				{
 					// just draw it directly
 					cellsRendered++;
-					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, subTrans, topCell, context.push(ni));
+					drawCell_(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(vsc.ni));
 				}
-				if (canDrawText) showCellPorts(ni, trans, Color.BLACK);
 			} else
 			{
 				// draw the black box of the instance
-				drawUnexpandedCell(ni, poly);
-				if (canDrawText) showCellPorts(ni, trans, null);
-			}
+                int[] op = subVC.outlinePoints;
+                int p1x = op[0] + soX;
+                int p1y = op[1] + soY;
+                int p2x = op[2] + soX;
+                int p2y = op[3] + soY;
+                int p3x = op[4] + soX;
+                int p3y = op[5] + soY;
+                int p4x = op[6] + soX;
+                int p4y = op[7] + soY;
+                gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
+				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
+				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				gridToScreen(p3x, p3y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
+				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
+				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
 
-			// draw any displayable variables on the instance
-			if (canDrawText && User.isTextVisibilityOnNode())
-			{
-				int numPolys = ni.numDisplayableVariables(true);
-				Poly [] polys = new Poly[numPolys];
-				Rectangle2D rect = ni.getUntransformedBounds();
-				ni.addDisplayableVariables(rect, polys, 0, dummyWnd, true);
-				drawPolys(polys, localTrans, false);
+				// draw the instance name
+				if (canDrawText && User.isTextVisibilityOnInstance())
+				{
+					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
+					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
+					NodeProto np = vsc.ni.getProto();
+					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
+				}
 			}
-		} else
+			if (canDrawText) drawPortList(vsc, subVC, soX, soY, vsc.ni.isExpanded());
+        }
+
+        // draw primitives
+        drawList(oX, oY, vc.filledShapes);
+        drawList(oX, oY, vc.shapes);
+            
+		// show cell variables if at the top level
+        if (canDrawText && topLevel)
+            drawList(oX, oY, vc.topOnlyShapes);
+
+        if (DEBUGRENDERTIMING) {
+            System.out.println("Total time to render polys: "+TextUtils.getElapsedTime(renderPolyTime));
+            System.out.println("Total time to render text: "+TextUtils.getElapsedTime(renderTextTime));
+        }
+	}
+    
+	/**
+	 * @return true if the cell is properly handled and need no further processing.
+	 * False to render the contents recursively.
+	 */
+	private boolean expandedCellCached_(Cell subCell, Orientation orient, int oX, int oY, VarContext context, boolean fullInstantiate)
+	{
+		// if there is no global for remembering cached cells, do not cache
+		if (expandedCells == null) return false;
+
+		// do not cache icons: they can be redrawn each time
+		if (subCell.isIcon()) return false;
+
+        ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, orient);
+		ExpandedCellInfo expandedCellCount = expandedCells.get(expansionKey);
+		if (expandedCellCount != null && expandedCellCount.offscreen == null)
 		{
-			// primitive: see if it can be drawn
-			if (topLevel || (!ni.isVisInside() && np != Generic.tech.cellCenterNode))
+            if (expandedCellCount.tooLarge) return false;
+			// if this combination is not used multiple times, do not cache it
+			if (expandedCellCount.singleton && expandedCellCount.instanceCount < 2)
 			{
-				// see if the node is completely clipped from the screen
-				Point2D ctr = ni.getTrueCenter();
-				trans.transform(ctr, ctr);
-				double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
-				double ctrX = ctr.getX();
-				double ctrY = ctr.getY();
-                if (renderedWindow && drawBounds != null) {
-                    Rectangle2D databaseBounds = drawBounds;
-//                    Rectangle2D databaseBounds = wnd.getDisplayedBounds();
-                    if (ctrX + halfWidth < databaseBounds.getMinX()) return;
-                    if (ctrX - halfWidth > databaseBounds.getMaxX()) return;
-                    if (ctrY + halfWidth < databaseBounds.getMinY()) return;
-                    if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
-                }
-	
-				PrimitiveNode prim = (PrimitiveNode)np;
-				totalPrims++;
-				if (!prim.isCanBeZeroSize() && halfWidth < halfMaxObjectSize && !forceVisible)
+				if (numberToReconcile > 0)
 				{
-					// draw a tiny primitive by setting a single dot from each layer
-					tinyPrims++;
-					databaseToScreen(ctrX, ctrY, tempPt1);
-					if (tempPt1.x >= 0 && tempPt1.x < sz.width && tempPt1.y >= 0 && tempPt1.y < sz.height)
-					{
-						drawTinyLayers(prim.getLayerIterator(), tempPt1.x, tempPt1.y);
-					}
-					return;
-				}
-
-				EditWindow0 nodeWnd = dummyWnd;
-				if (!canDrawText || !User.isTextVisibilityOnNode()) nodeWnd = null;
-				if (prim == Generic.tech.invisiblePinNode)
-				{
-					if (!User.isTextVisibilityOnAnnotation()) nodeWnd = null;
-				}
-				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, nodeWnd, context, false, false, null);
-				drawPolys(polys, localTrans, forceVisible);
+					numberToReconcile--;
+					expandedCellCount.singleton = false;
+				} else return false;
 			}
 		}
 
-		// draw any exports from the node
-		if (canDrawText && topLevel && User.isTextVisibilityOnExport())
+		if (expandedCellCount == null || expandedCellCount.offscreen == null)
 		{
-			int exportDisplayLevel = User.getExportDisplayLevel();
-			Iterator<Export> it = ni.getExports();
-			while (it.hasNext())
-			{
-				Export e = it.next();
-				Poly poly = e.getNamePoly();
-                poly.transform(trans);
-//				if (topWnd != null && topWnd.isInPlaceEdit())
-//					poly.transform(topWnd.getInPlaceTransformOut());
-				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-				if (exportDisplayLevel == 2)
-				{
-					// draw port as a cross
-					drawCross(poly, textGraphics, false);
-				} else
-				{
-					// draw port as text
-					TextDescriptor descript = poly.getTextDescriptor();
-					Poly.Type type = descript.getPos().getPolyType();
-					String portName = e.getName();
-					if (exportDisplayLevel == 1)
-					{
-						// use shorter port name
-						portName = e.getShortName();
-					}
-//					if (topWnd != null && topWnd.isInPlaceEdit())
-//						poly.transform(topWnd.getInPlaceTransformOut());
-					databaseToScreen(poly.getCenterX(), poly.getCenterY(), tempPt1);
-					Rectangle textRect = new Rectangle(tempPt1);
-					type = Poly.rotateType(type, ni);
-					drawText(textRect, type, descript, portName, null, textGraphics, false);
-				}
+            // compute the cell's location on the screen
+            Rectangle2D cellBounds = new Rectangle2D.Double();
+            cellBounds.setRect(subCell.getBounds());
+            Rectangle2D textBounds = subCell.getTextBounds(dummyWnd);
+            if (textBounds != null)
+                cellBounds.add(textBounds);
+            AffineTransform rotTrans = orient.pureRotate();
+            DBMath.transformRect(cellBounds, rotTrans);
+            int lX = (int)Math.floor(cellBounds.getMinX()*scale);
+            int hX = (int)Math.ceil(cellBounds.getMaxX()*scale);
+            int lY = (int)Math.floor(cellBounds.getMinY()*scale);
+            int hY = (int)Math.ceil(cellBounds.getMaxY()*scale);
+            Rectangle screenBounds = new Rectangle(lX, lY, hX - lX, hY - lY);
 
-				// draw variables on the export
-				int numPolys = e.numDisplayableVariables(true);
-				if (numPolys > 0)
-				{
-					Poly [] polys = new Poly[numPolys];
-					e.addDisplayableVariables(rect, polys, 0, dummyWnd, true);
-					drawPolys(polys, localTrans, false);
-				}
+            if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
+
+			// if this is the first use, create the offscreen buffer
+			if (expandedCellCount == null)
+			{
+				expandedCellCount = new ExpandedCellInfo();
+				expandedCells.put(expansionKey, expandedCellCount);
 			}
+
+			// do not cache if the cell is too large (creates immense offscreen buffers)
+			if (screenBounds.width >= topSz.width/2 && screenBounds.height >= topSz.height/2) {
+                expandedCellCount.tooLarge = true;
+				return false;
+            }
+
+            expandedCellCount.offscreen = new PixelDrawing_(scale, screenBounds);
+			expandedCellCount.offscreen.drawCell_(subCell, null, fullInstantiate, orient, 0, 0, false, context);
+			offscreensCreated++;
+            offscreenPixelsCreated += expandedCellCount.offscreen.total;
+            
 		}
+
+		// copy out of the offscreen buffer into the main buffer
+        gridToScreen(oX, oY, tempPt1);
+		copyBits(expandedCellCount.offscreen, tempPt1.x, tempPt1.y);
+		offscreensUsed++;
+        offscreenPixelsUsed += expandedCellCount.offscreen.total;
+		return true;
 	}
 
 	/**
@@ -1503,77 +1373,6 @@ class PixelDrawing
 	// ************************************* CELL CACHING *************************************
 
 	/**
-	 * @return true if the cell is properly handled and need no further processing.
-	 * False to render the contents recursively.
-	 */
-	private boolean expandedCellCached(Cell subCell, Orientation orient, AffineTransform origTrans, Cell topCell, VarContext context, Rectangle2D drawLimitBounds, boolean fullInstantiate)
-	{
-		// if there is no global for remembering cached cells, do not cache
-		if (expandedCells == null) return false;
-
-		// do not cache icons: they can be redrawn each time
-		if (subCell.isIcon()) return false;
-
-        ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, orient);
-		ExpandedCellInfo expandedCellCount = expandedCells.get(expansionKey);
-		if (expandedCellCount != null)
-		{
-			// if this combination is not used multiple times, do not cache it
-			if (expandedCellCount.singleton && expandedCellCount.instanceCount < 2 && expandedCellCount.offscreen == null)
-			{
-				if (numberToReconcile > 0)
-				{
-					numberToReconcile--;
-					expandedCellCount.singleton = false;
-				} else return false;
-			}
-		}
-
-		if (expandedCellCount == null || expandedCellCount.offscreen == null)
-		{
-            // compute the cell's location on the screen
-            Rectangle2D cellBounds = new Rectangle2D.Double();
-            cellBounds.setRect(subCell.getBounds());
-            Rectangle2D textBounds = subCell.getTextBounds(dummyWnd);
-            if (textBounds != null)
-                cellBounds.add(textBounds);
-            AffineTransform rotTrans = orient.pureRotate();
-            DBMath.transformRect(cellBounds, rotTrans);
-            int lX = (int)Math.floor(cellBounds.getMinX()*scale);
-            int hX = (int)Math.ceil(cellBounds.getMaxX()*scale);
-            int lY = (int)Math.floor(cellBounds.getMinY()*scale);
-            int hY = (int)Math.ceil(cellBounds.getMaxY()*scale);
-            Rectangle screenBounds = new Rectangle(lX, lY, hX - lX, hY - lY);
-
-            if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
-
-			// do not cache if the cell is too large (creates immense offscreen buffers)
-			if (screenBounds.width >= topSz.width/2 && screenBounds.height >= topSz.height/2)
-				return false;
-
-			// if this is the first use, create the offscreen buffer
-			if (expandedCellCount == null)
-			{
-				expandedCellCount = new ExpandedCellInfo();
-				expandedCells.put(expansionKey, expandedCellCount);
-			}
-
-            expandedCellCount.offscreen = new PixelDrawing(scale, screenBounds);
-			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, rotTrans, topCell, context);
-			offscreensCreated++;
-            offscreenPixelsCreated += expandedCellCount.offscreen.total;
-            
-		}
-
-		// copy out of the offscreen buffer into the main buffer
-        databaseToScreen(origTrans.getTranslateX(), origTrans.getTranslateY(), tempPt1);
-		copyBits(expandedCellCount.offscreen, tempPt1.x, tempPt1.y);
-		offscreensUsed++;
-        offscreenPixelsUsed += expandedCellCount.offscreen.total;
-		return true;
-	}
-
-	/**
 	 * Recursive method to count the number of times that a cell-transformation is used
 	 */
 	private void countCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform prevTrans)
@@ -1694,7 +1493,7 @@ class PixelDrawing
 	/**
 	 * Method to copy the offscreen bits for a cell into the offscreen bits for the entire screen.
 	 */
-	private void copyBits(PixelDrawing srcOffscreen, int centerX, int centerY)
+	private void copyBits(PixelDrawing_ srcOffscreen, int centerX, int centerY)
 	{
 		if (srcOffscreen == null) return;
 		Dimension dim = srcOffscreen.sz;
@@ -1901,8 +1700,637 @@ class PixelDrawing
         public EGraphics.Outline getOutline();
     }
     
+    ERaster getFillRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
+        boolean dimmed = false;
+        if (layer != null) {
+            if (!forceVisible && !layer.isVisible()) return null;
+            graphics = layer.getGraphics();
+            dimmed = layer.isDimmed();
+        }
+        
+		byte [][] layerBitMap = null;
+		int layerNum = graphics.getTransparentLayer() - 1;
+		if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
+
+		// only do this for lower-level (cached cells)
+        if (!renderedWindow) {
+            // for fills, handle patterned opaque layers specially
+            // see if it is opaque
+            if (layerBitMap == null) {
+                // see if it is patterned
+                if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay()) {
+                    PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
+                    if (pol == null) {
+                        pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
+                        patternedOpaqueLayers.put(layer, pol);
+                    }
+                    return pol;
+                }
+            }
+        }
+        
+        ERaster raster;
+		int [] pattern = null;
+        if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
+            pattern = graphics.getPattern();
+        if (layerBitMap != null) {
+            if (pattern == null) {
+                TransparentRaster.current.init(layerBitMap);
+                return TransparentRaster.current;
+            }
+			EGraphics.Outline o = graphics.getOutlined();
+            if (o == EGraphics.Outline.NOPAT)
+                o = null;
+            PatternedTransparentRaster.current.init(layerBitMap, pattern, o);
+            return PatternedTransparentRaster.current;
+        } else {
+    		int col = getTheColor(graphics, dimmed);
+            if (pattern == null) {
+                OpaqueRaster.current.init(opaqueData, sz.width, col);
+                return OpaqueRaster.current;
+            }
+            EGraphics.Outline o = graphics.getOutlined();
+            if (o == EGraphics.Outline.NOPAT)
+                o = null;
+            PatternedOpaqueRaster.current.init(opaqueData, sz.width, col, pattern, o);
+            return PatternedOpaqueRaster.current;
+        }
+    }
+    
+    /**
+     * ERaster for solid opaque layers.
+     */
+    private static class OpaqueRaster implements ERaster {
+        private static OpaqueRaster current = new OpaqueRaster();
+        
+        int[] opaqueData;
+        int width;
+        int col;
+        
+        void init(int[] opaqueData, int width, int col) {
+            this.opaqueData = opaqueData;
+            this.width = width;
+            this.col = col;
+        }
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            int baseIndex = lY*width;
+            for (int y = lY; y <= hY; y++) {
+                for(int x = lX; x <= hX; x++)
+                    opaqueData[baseIndex + x] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            int baseIndex = y*width + lX;
+            for (int x = lX; x <= hX; x++)
+                opaqueData[baseIndex++] = col;
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int baseIndex = lY*width + x;
+            for (int y = lY; y <= hY; y++) {
+                opaqueData[baseIndex] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void fillPoint(int x, int y) {
+            opaqueData[y * width + x] = col;
+        }
+        
+        public void drawHorLine(int y, int lX, int hX) {
+            int baseIndex = y*width + lX;
+            for (int x = lX; x <= hX; x++)
+                opaqueData[baseIndex++] = col;
+        }
+        
+        public void drawVerLine(int x, int lY, int hY) {
+            int baseIndex = lY*width + x;
+            for (int y = lY; y <= hY; y++) {
+                opaqueData[baseIndex] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void drawPoint(int x, int y) {
+            opaqueData[y * width + x] = col;
+        }
+
+        public EGraphics.Outline getOutline() {
+            return null;
+        }
+    }
+
+    /**
+     * ERaster for solid opaque layers with alpha protection against overriding.
+     */
+    private static class OpaqueAlphaRaster extends OpaqueRaster {
+        private static OpaqueAlphaRaster current = new OpaqueAlphaRaster();
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            int baseIndex = lY*width;
+            for (int y = lY; y <= hY; y++) {
+                for(int x = lX; x <= hX; x++) {
+                    int index = baseIndex + x;
+                    int alpha = (opaqueData[index] >> 24) & 0xFF;
+                    if (alpha == 0xFF) opaqueData[index] = col;
+                }
+                baseIndex += width;
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            int baseIndex = y*width + lX;
+            for (int x = lX; x <= hX; x++) {
+                int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
+                if (alpha == 0xFF) opaqueData[baseIndex] = col;
+                baseIndex++;
+            }
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int baseIndex = lY*width + x;
+            for (int y = lY; y <= hY; y++) {
+                int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
+                if (alpha == 0xFF) opaqueData[baseIndex] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void fillPoint(int x, int y) {
+            int baseIndex = y*width + x;
+            int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
+            if (alpha == 0xFF) opaqueData[baseIndex] = col;
+        }
+    }
+
+    /**
+     * ERaster for solid transparent layers.
+     */
+    private static class TransparentRaster implements ERaster {
+        private static TransparentRaster current = new TransparentRaster();
+        
+        byte[][] layerBitMap;
+        
+        private void init(byte[][] layerBitMap) {
+            this.layerBitMap = layerBitMap;
+        }
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            for (int y = lY; y <= hY; y++) {
+                byte [] row = layerBitMap[y];
+                for (int x = lX; x <= hX; x++)
+                    row[x>>3] |= (1 << (x&7));
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            byte [] row = layerBitMap[y];
+            for (int x = lX; x <= hX; x++)
+                row[x>>3] |= (1 << (x&7));
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int addr = x >> 3;
+            byte mask = (byte)(1 << (x&7));
+            for (int y = lY; y <= hY; y++)
+                layerBitMap[y][addr] |= mask;
+        }
+        
+        public void fillPoint(int x, int y) {
+            layerBitMap[y][x >> 3] |= (1 << (x&7));
+        }
+        
+        public void drawHorLine(int y, int lX, int hX) {
+            byte [] row = layerBitMap[y];
+            for (int x = lX; x <= hX; x++)
+                row[x>>3] |= (1 << (x&7));
+        }
+        
+        public void drawVerLine(int x, int lY, int hY) {
+            int addr = x >> 3;
+            byte mask = (byte)(1 << (x&7));
+            for (int y = lY; y <= hY; y++)
+                layerBitMap[y][addr] |= mask;
+        }
+        
+        public void drawPoint(int x, int y) {
+            layerBitMap[y][x >> 3] |= (1 << (x&7));
+        }
+        
+        public EGraphics.Outline getOutline() {
+            return null;
+        }
+    }
+
+    /**
+     * ERaster for patterned opaque layers.
+     */
+    private static class PatternedOpaqueRaster extends OpaqueRaster {
+        private static PatternedOpaqueRaster current = new PatternedOpaqueRaster();
+        
+        int[] pattern;
+        EGraphics.Outline outline;
+        
+        private void init(int[] opaqueData, int width, int col, int[] pattern, EGraphics.Outline outline) {
+            super.init(opaqueData, width, col);
+            this.pattern = pattern;
+            this.outline = outline;
+        }
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            for (int y = lY; y <= hY; y++) {
+                // setup pattern for this row
+                int pat = pattern[y&15];
+                if (pat == 0) continue;
+                
+                int baseIndex = y * width;
+                for (int x = lX; x <= hX; x++) {
+                    if ((pat & (0x8000 >> (x&15))) != 0)
+                        opaqueData[baseIndex + x] = col;
+                }
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            int pat = pattern[y & 15];
+            if (pat == 0) return;
+            int baseIndex = y * width;
+            for (int x = lX; x <= hX; x++) {
+                if ((pat & (1 << (15-(x&15)))) != 0) {
+                    int index = baseIndex + x;
+                    opaqueData[index] = col;
+                }
+            }
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int patMask = 0x8000 >> (x&15);
+            int baseIndex = lY*width + x;
+            for (int y = lY; y <= hY; y++) {
+                if ((pattern[y&15] & patMask) != 0)
+                    opaqueData[baseIndex] = col;
+                baseIndex += width;
+            }
+        }
+        
+        public void fillPoint(int x, int y) {
+            int patMask = 0x8000 >> (x&15);
+            if ((pattern[y&15] &  patMask) != 0)
+                opaqueData[y*width + x] = col;
+        }
+        
+        public EGraphics.Outline getOutline() {
+            return outline;
+        }
+    }
+    
+    /**
+     * ERaster for patterned transparent layers.
+     */
+    private static class PatternedTransparentRaster extends TransparentRaster {
+        private static PatternedTransparentRaster current = new PatternedTransparentRaster();
+        
+        int[] pattern;
+        EGraphics.Outline outline;
+        
+        private void init(byte[][] layerBitMap, int[] pattern, EGraphics.Outline outline) {
+            super.init(layerBitMap);
+            this.pattern = pattern;
+            this.outline = outline;
+        }
+        
+        public void fillBox(int lX, int hX, int lY, int hY) {
+            for (int y = lY; y <= hY; y++) {
+                // setup pattern for this row
+                int pat = pattern[y&15];
+                if (pat == 0) continue;
+                
+                byte [] row = layerBitMap[y];
+                for(int x=lX; x<=hX; x++) {
+                    if ((pat & (0x8000 >> (x&15))) != 0)
+                        row[x>>3] |= (1 << (x&7));
+                }
+            }
+        }
+        
+        public void fillHorLine(int y, int lX, int hX) {
+            int pat = pattern[y & 15];
+            if (pat == 0) return;
+            byte [] row = layerBitMap[y];
+            for (int x = lX; x <= hX; x++) {
+                if ((pat & (1 << (15-(x&15)))) != 0)
+                    row[x>>3] |= (1 << (x&7));
+            }
+        }
+        
+        public void fillVerLine(int x, int lY, int hY) {
+            int patMask = 0x8000 >> (x&15);
+            int addr = x >> 3;
+            byte mask = (byte)(1 << (x&7));
+            for (int y = lY; y <= hY; y++) {
+                if ((pattern[y&15] & patMask) != 0)
+                    layerBitMap[y][addr] |= mask;
+            }
+        }
+        
+        public void fillPoint(int x, int y) {
+            int patMask = 0x8000 >> (x&15);
+            if ((pattern[y&15] & patMask) != 0)
+                layerBitMap[y][x >> 3] |= (1 << (x&7));
+        }
+        
+        public EGraphics.Outline getOutline() {
+            return outline;
+        }
+    }
     
 	// ************************************* RENDERING POLY SHAPES *************************************
+
+    private static int boxCount, tinyBoxCount, lineBoxCount, lineCount, polygonCount, crossCount, circleCount, arcCount, textCount;
+    private static Rectangle tempRect = new Rectangle();
+    private void gridToScreen(int dbX, int dbY, Point result) {
+        double scrX = (dbX - factorX) * scale_;
+        double scrY = (factorY - dbY) * scale_;
+        result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+        result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+    }
+    
+	/**
+	 * Method to draw a list of cached shapes.
+	 * @param oX the X offset to draw the shapes (in database grid coordinates).
+	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
+	 * @param shapes the List of shapes (VectorBase objects).
+	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
+	 */
+	private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes)
+//		throws AbortRenderingException
+	{
+		// render all shapes
+		for(VectorCache.VectorBase vb : shapes)
+		{
+//			if (stopRendering) throw new AbortRenderingException();
+			// handle refreshing
+			periodicRefresh();
+
+			// get visual characteristics of shape
+			Layer layer = vb.layer;
+			boolean dimmed = false;
+			if (layer != null)
+			{
+				if (!vb.layer.isVisible()) continue;
+				dimmed = layer.isDimmed();
+			}
+			byte [][] layerBitMap = null;
+			EGraphics graphics = vb.graphics;
+			if (graphics != null)
+			{
+				int layerNum = graphics.getTransparentLayer() - 1;
+				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
+			}
+            
+            // only do this for lower-level (cached cells)
+            if (!renderedWindow) {
+                // for fills, handle patterned opaque layers specially
+                if (vb instanceof VectorCache.VectorManhattan ||
+                        vb instanceof VectorCache.VectorPolygon ||
+                        vb instanceof VectorCache.VectorCircle && ((VectorCache.VectorCircle)vb).nature == 2) {
+                    // see if it is opaque
+                    if (layerBitMap == null) {
+                        // see if it is patterned
+                        if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay()) {
+                            PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
+                            if (pol == null) {
+                                pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
+                                patternedOpaqueLayers.put(layer, pol);
+                            }
+                            layerBitMap = pol.layerBitMap;
+                            graphics = null;
+                        }
+                    }
+                }
+            }
+
+			// handle each shape
+			if (vb instanceof VectorCache.VectorManhattan)
+			{
+				boxCount++;
+				VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
+                ERaster raster = getFillRaster(vm.layer, vm.graphics, false);
+                for (int i = 0; i < vm.coords.length; i += 4) {
+                    int c1X = vm.coords[i];
+                    int c1Y = vm.coords[i+1];
+                    int c2X = vm.coords[i+2];
+                    int c2Y = vm.coords[i+3];
+
+                    // determine coordinates of rectangle on the screen
+                    gridToScreen(c1X+oX, c2Y+oY, tempPt1);
+                    gridToScreen(c2X+oX, c1Y+oY, tempPt2);
+                    int lX = tempPt1.x;
+                    int lY = tempPt1.y;
+                    int hX = tempPt2.x;
+                    int hY = tempPt2.y;
+                    
+                    drawBox(lX, hX, lY, hY, raster);
+
+//                    // reject if completely off the screen
+//                    if (hX < clipLX || lX >= clipHX) continue;
+//                    if (hY < clipLY || lY >= clipHY) continue;
+//
+//                    // clip to screen
+//                    if (lX < clipLX) lX = clipLX;
+//                    if (hX > clipHX) hX = clipHX;
+//                    if (lY < clipLY) lY = clipLY;
+//                    if (hY > clipHY) hY = clipHY;
+//
+//                    // draw the box
+//                    drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);
+                }
+            } else if (vb instanceof VectorCache.VectorLine)
+			{
+				lineCount++;
+				VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
+
+				// determine coordinates of line on the screen
+				gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
+				gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
+
+				// clip and draw the line
+				drawLine(tempPt1, tempPt2, layerBitMap, graphics, vl.texture, dimmed);
+			} else if (vb instanceof VectorCache.VectorPolygon)
+			{
+				polygonCount++;
+				VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
+				Point [] intPoints = new Point[vp.points.length];
+				for(int i=0; i<vp.points.length; i++)
+				{
+	                intPoints[i] = new Point();
+					gridToScreen(vp.points[i].x+oX, vp.points[i].y+oY, intPoints[i]);
+	            }
+				Point [] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
+				drawPolygon(clippedPoints, layerBitMap, graphics, dimmed);
+			} else if (vb instanceof VectorCache.VectorCross)
+			{
+				crossCount++;
+				VectorCache.VectorCross vcr = (VectorCache.VectorCross)vb;
+				gridToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
+				int size = 5;
+				if (vcr.small) size = 3;
+				drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
+				drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), null, graphics, 0, dimmed);
+			} else if (vb instanceof VectorCache.VectorText)
+			{
+                if (!canDrawText) continue;
+				VectorCache.VectorText vt = (VectorCache.VectorText)vb;
+				switch (vt.textType)
+				{
+					case VectorCache.VectorText.TEXTTYPEARC:
+						if (!User.isTextVisibilityOnArc()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPENODE:
+						if (!User.isTextVisibilityOnNode()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPECELL:
+						if (!User.isTextVisibilityOnCell()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPEEXPORT:
+						if (!User.isTextVisibilityOnExport()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPEANNOTATION:
+						if (!User.isTextVisibilityOnAnnotation()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPEINSTANCE:
+						if (!User.isTextVisibilityOnInstance()) continue;
+						break;
+					case VectorCache.VectorText.TEXTTYPEPORT:
+                        assert false;
+						if (!User.isTextVisibilityOnPort()) continue;
+						break;
+				}
+//				if (vt.height < maxTextSize) continue;
+
+				String drawString = vt.str;
+                int lX = vt.bounds.x;
+                int lY = vt.bounds.y;
+                int hX = lX + vt.bounds.width;
+                int hY = lY + vt.bounds.height;
+				gridToScreen(lX + oX, hY + oY, tempPt1);
+				gridToScreen(hX + oX, lY + oY, tempPt2);
+                lX = tempPt1.x;
+                lY = tempPt1.y;
+                hX = tempPt2.x;
+                hY = tempPt2.y;
+                
+                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null)
+				{
+					int exportDisplayLevel = User.getExportDisplayLevel();
+					if (exportDisplayLevel == 2)
+					{
+						// draw export as a cross
+						int cX = (lX + hX) / 2;
+						int cY = (lY + hY) / 2;
+						int size = 3;
+						drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, textGraphics, 0, false);
+						drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, textGraphics, 0, false);
+						crossCount++;
+						continue;
+					}
+
+					// draw export as text
+					if (exportDisplayLevel == 1) drawString = vt.e.getShortName(); else
+						drawString = vt.e.getName();
+					graphics = textGraphics;
+					layerBitMap = null;
+				}
+
+				textCount++;
+				tempRect.setBounds(lX, lY, hX-lX, hY-lY);
+				drawText(tempRect, vt.style, vt.descript, drawString, layerBitMap, graphics, dimmed);
+			} else if (vb instanceof VectorCache.VectorCircle)
+			{
+				circleCount++;
+				VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
+				gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+				gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+				switch (vci.nature)
+				{
+					case 0: drawCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);        break;
+					case 1: drawThickCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);   break;
+					case 2: drawDisc(tempPt1, tempPt2, layerBitMap, graphics, dimmed);          break;
+				}
+			} else if (vb instanceof VectorCache.VectorCircleArc)
+			{
+				arcCount++;
+				VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
+				gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
+				gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
+				gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
+				drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, layerBitMap, graphics, dimmed);
+			}
+		}
+	}
+
+	/**
+	 * Method to draw a list of cached port shapes.
+	 * @param oX the X offset to draw the shapes (in database grid coordinates).
+	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
+     * @parem true to draw a list on expanded instance
+	 */
+	private void drawPortList(VectorCache.VectorSubCell vsc, VectorCache.VectorCell subVC_, int oX, int oY, boolean expanded)
+//		throws AbortRenderingException
+	{
+        if (!User.isTextVisibilityOnPort()) return;
+		// render all shapes
+		for(VectorCache.VectorText vt : subVC_.getPortShapes())
+		{
+//			if (stopRendering) throw new AbortRenderingException();
+
+			// get visual characteristics of shape
+            assert vt.textType == VectorCache.VectorText.TEXTTYPEPORT;
+            if (vsc.shownPorts.get(vt.e.getId().getChronIndex())) continue;
+//			if (vt.height < maxTextSize) continue;
+
+            String drawString = vt.str;
+            int lX = vt.bounds.x;
+            int lY = vt.bounds.y;
+            int hX = lX + vt.bounds.width;
+            int hY = lY + vt.bounds.height;
+            gridToScreen(lX + oX, hY + oY, tempPt1);
+            gridToScreen(hX + oX, lY + oY, tempPt2);
+            lX = tempPt1.x;
+            lY = tempPt1.y;
+            hX = tempPt2.x;
+            hY = tempPt2.y;
+
+			int portDisplayLevel = User.getPortDisplayLevel();
+			Color portColor = vt.e.getBasePort().getPortColor();
+			if (expanded) portColor = textColor;
+			if (portColor != null) portGraphics.setColor(portColor);
+			int cX = (lX + hX) / 2;
+			int cY = (lY + hY) / 2;
+			if (portDisplayLevel == 2)
+			{
+				// draw port as a cross
+				int size = 3;
+				drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, portGraphics, 0, false);
+				drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, portGraphics, 0, false);
+				crossCount++;
+				continue;
+			}
+
+			// draw port as text
+			if (portDisplayLevel == 1) drawString = vt.e.getShortName(); else
+				drawString = vt.e.getName();
+			lX = hX = cX;
+			lY = hY = cY;
+            
+			textCount++;
+			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
+			drawText(tempRect, vt.style, vt.descript, drawString, null, portGraphics, false);
+		}
+	}
 
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
@@ -2381,6 +2809,127 @@ class PixelDrawing
 		}
 	}
 
+    /**
+     * Method to draw a box on the off-screen buffer.
+     */
+    public void drawBox(int lX, int hX, int lY, int hY, ERaster raster) {
+        if (lX < clipLX) lX = clipLX;
+        if (hX > clipHX) hX = clipHX;
+        if (lY < clipLY) lY = clipLY;
+        if (hY > clipHY) hY = clipHY;
+        if (lX > hX || lY > hY) return;
+        EGraphics.Outline o = raster.getOutline();
+        if (lY == hY) {
+            if (lX == hX) {
+                if (o == null)
+                    raster.fillPoint(lX, lY);
+                else
+                    raster.drawPoint(lX, lY);
+            } else {
+                if (o == null)
+                    raster.fillHorLine(lY, lX, hX);
+                else
+                    raster.drawHorLine(lY, lX, hX);
+            }
+            return;
+        }
+        if (lX == hX) {
+            if (o == null)
+                raster.fillVerLine(lX, lY, hY);
+            else
+                raster.drawVerLine(lX, lY, hY);
+            return;
+        }
+        raster.fillBox(lX, hX, lY, hY);
+        if (o == null) return;
+        if (o.isSolidPattern()) {
+            raster.drawVerLine(lX, lY, hY);
+            raster.drawHorLine(hY, lX, hX);
+            raster.drawVerLine(hX, lY, hY);
+            raster.drawHorLine(lY, lX, hX);
+            if (o.getThickness() != 1) {
+                for(int i=1; i<o.getThickness(); i++) {
+                    if (lX + i <= clipHX)
+                        raster.drawVerLine(lX+i, lY, hY);
+                    if (hY - i >= clipLX)
+                        raster.drawHorLine(hY-i, lX, hX);
+                    if (hX - i >= clipLY)
+                        raster.drawVerLine(hX-i, lY, hY);
+                    if (lY + i <= clipHY)
+                        raster.drawHorLine(lY+i, lX, hX);
+                }
+            }
+        } else {
+            int pattern = o.getPattern();
+            int len = o.getLen();
+            drawVerOutline(lX, lY, hY, pattern, len, raster);
+            drawHorOutline(hY, lX, hX, pattern, len, raster);
+            drawVerOutline(hX, lY, hY, pattern, len, raster);
+            drawHorOutline(lY, lX, hX, pattern, len, raster);
+            if (o.getThickness() != 1) {
+                for(int i=1; i<o.getThickness(); i++) {
+                    if (lX + i <= clipHX)
+                        drawVerOutline(lX+i, lY, hY, pattern, len, raster);
+                    if (hY - i >= clipLX)
+                        drawHorOutline(hY-i, lX, hX, pattern, len, raster);
+                    if (hX - i >= clipLY)
+                        drawVerOutline(hX-i, lY, hY, pattern, len, raster);
+                    if (lY + i <= clipHY)
+                        drawHorOutline(lY+i, lX, hX, pattern, len, raster);
+                }
+            }
+        }
+    }
+    
+    private static void drawHorOutline(int y, int lX, int hX, int pattern, int len, ERaster raster) {
+        int i = 0;
+        for (int x = lX; x <= hX; x++) {
+            if ((pattern & (1 << i)) != 0)
+                raster.drawPoint(x, y);
+            i++;
+            if (i == len) i = 0;
+        }
+    }
+    
+    private static void drawVerOutline(int x, int lY, int hY, int pattern, int len, ERaster raster) {
+        int i = 0;
+        for (int y = lY; y <= hY; y++) {
+            if ((pattern & (1 << i)) != 0)
+                raster.drawPoint(x, y);
+            i++;
+            if (i == len) i = 0;
+        }
+    }
+    
+    /**
+     * Method to draw a box on the off-screen buffer.
+     */
+    private void drawBox(int lX, int hX, int lY, int hY, byte[] layerBitMap, byte layerBitMask) {
+        boxes++;
+        int dx = hX - lX;
+        int dy = hY - lY;
+        int baseIndex = lY * width + lX;
+        if (dx >= dy) {
+            int baseIncr = width - (dx + 1);
+            for (int i = dy; i >= 0; i--) {
+                for (int j = dx; j >= 0; j--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    baseIndex += 1;
+                }
+                baseIndex += baseIncr;
+            }
+        } else {
+            int baseIncr = 1 - (dy + 1) * width;
+            for (int i = dx; i >= 0; i--) {
+                for (int j = dy; j >= 0; j--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    baseIndex += width;
+                }
+                baseIndex += baseIncr;
+            }
+        }
+    }
+
 	// ************************************* LINE DRAWING *************************************
 
 	/**
@@ -2404,6 +2953,24 @@ class PixelDrawing
 		}
 	}
 
+	/**
+	 * Method to draw a line on the off-screen buffer.
+	 */
+	private void drawLine(Point pt1, Point pt2, byte[] layerBitMap, byte layerBitMask, int texture)
+	{
+		// first clip the line
+		if (GenMath.clipLine(pt1, pt2, clipLX, clipHX, clipLY, clipHY)) return;
+
+		// now draw with the proper line type
+		switch (texture)
+		{
+			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);          break;
+			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0x88, 8);   break;
+			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0xE7, 8);   break;
+			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);          break;
+		}
+	}
+
 	private void drawCross(Poly poly, EGraphics graphics, boolean dimmed)
 	{
 		Point2D [] points = poly.getPoints();
@@ -2412,6 +2979,24 @@ class PixelDrawing
 		drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
 		drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), null, graphics, 0, dimmed);
 	}
+
+    private void drawCross(Poly poly, byte[] layerBitMap, byte layerBitMask) {
+        crosses++;
+        Point2D [] points = poly.getPoints();
+        Point center = tempPt1;
+        databaseToScreen(points[0].getX(), points[0].getY(), center);
+        int size = 3;
+        if (clipLY <= center.y && center.y <= clipHY) {
+            int baseIndex = center.y * width;
+            for (int x = Math.max(clipLX, center.x - size), xend = Math.min(clipLY, center.x + size); x <= xend; x++)
+                layerBitMap[baseIndex + x] |= layerBitMask;
+        }
+        if (clipLX <= center.x && center.x <= clipHX) {
+            int baseIndex = center.y;
+            for (int y = Math.max(clipLY, center.y - size), yend = Math.min(clipHY, center.y + size); y <= yend; y++)
+                layerBitMap[y * width + baseIndex] |= layerBitMask;
+        }
+    }
 
 	private void drawSolidLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col)
 	{
@@ -2478,6 +3063,75 @@ class PixelDrawing
 			}
 		}
 	}
+
+    private void drawSolidLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
+        solidLines++;
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2-x1);
+        int dy = Math.abs(y2-y1);
+        if (dx >= dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, yend;
+            if (x1 <= x2) {
+                x = x1;   y = y1;   yend = y2;
+            } else {
+                x = x2;   y = y2;   yend = y1;
+            }
+            int baseIndex = y * width + x;
+            if (dy == 0) {
+                // draw horizontal line
+                for (int i = dx; i >= 0; i--)
+                    layerBitMap[baseIndex++] |= layerBitMask;
+            } else {
+                // draw line that increments along X
+                int baseIncr = yend >= y ? 1 + width : 1 - width;
+                for (int i = dx; i >= 0; i--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    if (d < 0) {
+                        d += incr1;
+                        baseIndex += 1;
+                    } else {
+                        d += incr2;
+                        baseIndex += baseIncr;
+                    }
+                }
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend;
+            if (y1 <= y2) {
+                x = x1;   y = y1;   xend = x2;
+            } else {
+                x = x2;   y = y2;   xend = x1;
+            }
+            int baseIndex = y * width + x;
+            if (dx == 0) {
+                // draw vertical line
+                for (int i = dy; i >= 0; i--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    baseIndex += width;
+                }
+            } else {
+                int baseIncr = xend >= x ? width + 1 : width - 1;
+                for (int i = dy; i >= 0; i--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    if (d < 0) {
+                        d += incr1;
+                        baseIndex += width;
+                    } else {
+                        d += incr2;
+                        baseIndex += baseIncr;
+                    }
+                }
+            }
+        }
+    }
 
 	private void drawOutline(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern, int len)
 	{
@@ -2567,6 +3221,80 @@ class PixelDrawing
 		}
 	}
 
+    private void drawPatLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask, int pattern, int len) {
+        patLines++;
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2-x1);
+        int dy = Math.abs(y2-y1);
+        if (dx >= dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, yend;
+            if (x1 <= x2) {
+                x = x1;   y = y1;   yend = y2;
+            } else {
+                x = x2;   y = y2;   yend = y1;
+            }
+            int baseIndex = y * width + x;
+            if (dy == 0) {
+                // draw horizontal line
+                for (int i = 0; i <= dx; i++) {
+                    if ((pattern & (1 << (i&7))) != 0)
+                        layerBitMap[baseIndex++] |= layerBitMask;
+                }
+            } else {
+                // draw line that increments along X
+                int baseIncr = yend >= y ? 1 + width : 1 - width;
+                for (int i = 0; i <= dx; i++) {
+                    if ((pattern & (1 << (i&7))) != 0)
+                        layerBitMap[baseIndex] |= layerBitMask;
+                    if (d < 0) {
+                        d += incr1;
+                        baseIndex += 1;
+                    } else {
+                        d += incr2;
+                        baseIndex += baseIncr;
+                    }
+                }
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend;
+            if (y1 <= y2) {
+                x = x1;   y = y1;   xend = x2;
+            } else {
+                x = x2;   y = y2;   xend = x1;
+            }
+            int baseIndex = y * width + x;
+            if (dx == 0) {
+                // draw vertical line
+                for (int i = 0; i <= dy; i++) {
+                    if ((pattern & (1 << (i&7))) != 0)
+                        layerBitMap[baseIndex] |= layerBitMask;
+                    baseIndex += width;
+                }
+            } else {
+                int baseIncr = xend >= x ? width + 1 : width - 1;
+                for (int i = 0; i <= dy; i++) {
+                    if ((pattern & (1 << (i&7))) != 0)
+                        layerBitMap[baseIndex] |= layerBitMask;
+                    if (d < 0) {
+                        d += incr1;
+                        baseIndex += width;
+                    } else {
+                        d += incr2;
+                        baseIndex += baseIncr;
+                    }
+                }
+            }
+        }
+    }
+
 	private void drawThickLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col)
 	{
 		// initialize the Bresenham algorithm
@@ -2630,6 +3358,75 @@ class PixelDrawing
 			}
 		}
 	}
+
+    private void drawThickLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
+        thickLines++;
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2-x1);
+        int dy = Math.abs(y2-y1);
+        if (dx >= dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, xend, yend;
+            if (x1 <= x2) {
+                x = x1;   y = y1;   xend = x2;  yend = y2;
+            } else {
+                x = x2;   y = y2;   xend = x1;  yend = y1;
+            }
+            if (dy == 0) {
+                // draw horizontal line
+                drawBox(x, xend, Math.max(clipLY, y - 1), Math.min(clipHY, y + 1), layerBitMap, layerBitMask);
+                if (x > clipLX)
+                    drawPoint(x - 1, y, layerBitMap, layerBitMask);
+                if (xend < clipHX)
+                    drawPoint(xend + 1, y, layerBitMap, layerBitMask);
+            } else {
+                // draw line that increments along X
+                int yIncr = yend >= y ? 1 : -1;
+                for (int i = 0; i <= dx; i++) {
+                    drawThickPoint(x + i, y, layerBitMap, layerBitMask);
+                    if (d < 0) {
+                        d += incr1;
+                    } else {
+                        d += incr2;
+                        y += yIncr;
+                    }
+                }
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend, yend;
+            if (y1 <= y2) {
+                x = x1;   y = y1;   xend = x2;  yend = y2;
+            } else {
+                x = x2;   y = y2;   xend = x1;  yend = x1;
+            }
+            if (dx == 0) {
+                // draw vertical line
+                drawBox(Math.max(clipLX, x - 1), Math.min(clipHX, x + 1), y, yend, layerBitMap, layerBitMask);
+                if (y > clipLY)
+                    drawPoint(x, y - 1, layerBitMap, layerBitMask);
+                if (yend < clipHY)
+                    drawPoint(x, yend + 1, layerBitMap, layerBitMask);
+            } else {
+                int xIncr = xend >= x ? 1 : - 1;
+                for (int i = 0; i <= dy; i++) {
+                    drawThickPoint(x, y + i, layerBitMap, layerBitMask);
+                    if (d < 0) {
+                        d += incr1;
+                    } else {
+                        d += incr2;
+                        x += xIncr;
+                    }
+                }
+            }
+        }
+    }
 
 	// ************************************* POLYGON DRAWING *************************************
 
@@ -2864,6 +3661,13 @@ class PixelDrawing
 		}
 	}
 
+    /**
+     * Method to draw a polygon on the off-screen buffer.
+     */
+    private void drawPolygon(Point[] points, byte[] layerBitMap, byte layerBitMask) {
+        polygons++;
+    }
+   
 	// ************************************* TEXT DRAWING *************************************
 
     /**
@@ -3178,6 +3982,13 @@ class PixelDrawing
 				break;
 		}
 	}
+
+    /**
+	 * Method to draw a text on the off-screen buffer
+	 */
+	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte[] layerBitMap, byte layerBitMask) {
+        texts++;
+    }
 
 	private int alphaBlend(int color, int backgroundColor, int alpha)
 	{
@@ -3530,6 +4341,13 @@ class PixelDrawing
 	}
 
 	/**
+	 * Method to draw a circle on the off-screen buffer
+	 */
+	private void drawCircle(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
+        circles++;
+    }
+    
+	/**
 	 * Method to draw a thick circle on the off-screen buffer
 	 */
 	void drawThickCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
@@ -3596,6 +4414,13 @@ class PixelDrawing
 		}
 	}
 
+	/**
+	 * Method to draw a thick circle on the off-screen buffer
+	 */
+	private void drawThickCircle(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
+        thickCircles++;
+    }
+    
 	// ************************************* DISC DRAWING *************************************
 
 	/**
@@ -3711,6 +4536,13 @@ class PixelDrawing
 		}
 	}
 
+	/**
+	 * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
+	 */
+	private void drawDisc(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
+        discs++;
+    }
+    
 	// ************************************* ARC DRAWING *************************************
 
 	private boolean [] arcOctTable = new boolean[9];
@@ -3939,6 +4771,14 @@ class PixelDrawing
 	private int MODM(int x) { return (x<1) ? x+8 : x; }
 	private int MODP(int x) { return (x>8) ? x-8 : x; }
 
+	/**
+	 * draws an arc centered at (centerx, centery), clockwise,
+	 * passing by (x1,y1) and (x2,y2)
+	 */
+	private void drawCircleArc(Point center, Point p1, Point p2, boolean thick, byte[] layerBitMap, byte layerBitMask) {
+        circleArcs++;
+    }
+    
 	// ************************************* RENDERING SUPPORT *************************************
 
 	void drawPoint(int x, int y, byte [][] layerBitMap, int col)
@@ -3952,6 +4792,11 @@ class PixelDrawing
 		}
 	}
 
+    private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
+        points++;
+        layerBitMap[y * width + x] |= layerBitMask;
+    }
+    
 	private void drawThickPoint(int x, int y, byte [][] layerBitMap, int col)
 	{
 		if (layerBitMap == null)
@@ -3980,6 +4825,20 @@ class PixelDrawing
 		}
 	}
 
+    private void drawThickPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
+        thickPoints++;
+        int baseIndex = y * sz.width + x;
+        layerBitMap[baseIndex] |= layerBitMask;
+        if (x > clipLX)
+            layerBitMap[baseIndex - 1] |= layerBitMask;
+        if (x < clipHX)
+            layerBitMap[baseIndex + 1] |= layerBitMask;
+        if (y > clipLY)
+            layerBitMap[baseIndex - width] |= layerBitMask;
+        if (y < sz.height-1)
+            layerBitMap[baseIndex + width] |= layerBitMask;
+    }
+    
 	/**
 	 * Method to convert a database coordinate to screen coordinates.
 	 * @param dbX the X coordinate (in database units).
@@ -4012,4 +4871,5 @@ class PixelDrawing
 		if (screenHY < screenLY) { int swap = screenHY;   screenHY = screenLY; screenLY = swap; }
 		return new Rectangle(screenLX, screenLY, screenHX-screenLX+1, screenHY-screenLY+1);
 	}
+
 }

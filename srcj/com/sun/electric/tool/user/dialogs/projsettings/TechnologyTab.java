@@ -23,15 +23,12 @@
  */
 package com.sun.electric.tool.user.dialogs.projsettings;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.VectorDrawing;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;

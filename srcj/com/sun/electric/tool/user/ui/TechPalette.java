@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -897,9 +899,10 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             // draw the menu entries
             // create an EditWindow for rendering nodes and arcs
             // ?if (wnd != null) wnd.finished();
-            EditWindow wnd = EditWindow.CreateElectricDoc(null, null, null);
-            UserInterfaceMain.removeDatabaseChangeListener(wnd.getHighlighter());
-            wnd.setScreenSize(new Dimension(entrySize, entrySize));
+//            EditWindow wnd = EditWindow.CreateElectricDoc(null, null, null);
+//            UserInterfaceMain.removeDatabaseChangeListener(wnd.getHighlighter());
+//            wnd.setScreenSize(new Dimension(entrySize, entrySize));
+            PixelDrawing offscreen = new PixelDrawing(new Dimension(entrySize, entrySize));
 
             Graphics2D g = (Graphics2D)image.getGraphics();
             g.setBackground(new Color(User.getColorBackground()));
@@ -925,7 +928,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         drawArrow = list.size() > 1;
                     }
 
-                    Image img = drawMenuEntry(wnd, toDraw);
+                    Image img = drawMenuEntry(offscreen, toDraw);
 
                     // put the Image in the proper place
                     int imgX = x * (entrySize+1)+1;
@@ -1007,7 +1010,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             g.fillPolygon(arrowX, arrowY, 3);
         }
 
-        Image drawNodeInMenu(EditWindow wnd, NodeInst ni)
+        Image drawNodeInMenu(PixelDrawing offscreen, NodeInst ni)
         {
             // determine scale for rendering
             PrimitiveNode np = (PrimitiveNode)ni.getProto();
@@ -1039,25 +1042,28 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             double scalex = entrySize/largest * 0.8;
             double scaley = entrySize/largest * 0.8;
             double scale = Math.min(scalex, scaley);
-            return wnd.renderNode(ni, scale, true);
+            
+    		offscreen.initDrawing(scale);
+        	offscreen.drawNode(ni, Orientation.IDENT, DBMath.MATID, null, null, false, true, null);
+            return offscreen.composite(null);
         }
 
         private final static double menuArcLength = 8;
 
-        Image drawMenuEntry(EditWindow wnd, Object entry)
+        Image drawMenuEntry(PixelDrawing offscreen, Object entry)
         {
             // setup graphics for rendering (start at bottom and work up)
             if (entry instanceof NodeInst)
             {
                 NodeInst ni = (NodeInst)entry;
-                return drawNodeInMenu(wnd, ni);
+                return drawNodeInMenu(offscreen, ni);
             }
             if (entry instanceof NodeProto)
             {
                 // rendering a node: create the temporary node
                 NodeProto np = (NodeProto)entry;
                 NodeInst ni = NodeInst.makeDummyInstance(np);
-                return drawNodeInMenu(wnd, ni);
+                return drawNodeInMenu(offscreen, ni);
             }
             if (entry instanceof ArcProto)
             {
@@ -1079,11 +1085,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 double scalex = entrySize/largest * 0.8;
                 double scaley = entrySize/largest * 0.8;
                 double scale = Math.min(scalex, scaley);
-                return wnd.renderArc(ai, scale, true);
+        		offscreen.initDrawing(scale);
+                offscreen.drawArc(ai, DBMath.MATID, true);
+                return offscreen.composite(null);
             }
             if (entry instanceof String)
             {
-                return wnd.renderText((String)entry, 0.8, entryRect);
+        		offscreen.initDrawing(0.8);
+                offscreen.drawText((String)entry, entryRect);
+                return offscreen.composite(null);
             }
             return null;
         }

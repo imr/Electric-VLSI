@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+IMP: (5/30/06, DN) Refactoring of redisplay code. Class PixelDrawing_ for new redisplay code. 
+
 IMP: (5/30/06, DN) Client Electric connects to a server machine specified in command-line "-client <serverMachineName>".
 
 FIX: (5/26/06, RK) NCC: fix for regression failure 060526_0000

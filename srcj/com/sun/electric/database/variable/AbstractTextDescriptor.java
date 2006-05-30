@@ -987,15 +987,15 @@ abstract class AbstractTextDescriptor implements Serializable
 		return Position.getPositionAt(pos);
 	}
 
-//	/**
-//	 * Returns true if this ImmutableTextDescriptor describes absolute text.
-//	 * Text may be either absolute text (in points) or relative text (in quarter units).
-//	 * @return true if this ImmutableTextDescriptor describes absolute text.
-//	 */
-//	public boolean isAbsoluteSize() {
-//		int textSize = getField(VTSIZE, VTSIZESH);
-//        return textSize > 0 || textSize <= Size.TXTMAXPOINTS;
-//	}
+	/**
+	 * Returns true if this ImmutableTextDescriptor describes absolute text.
+	 * Text may be either absolute text (in points) or relative text (in quarter units).
+	 * @return true if this ImmutableTextDescriptor describes absolute text.
+	 */
+	public boolean isAbsoluteSize() {
+		int textSize = getField(VTSIZE, VTSIZESH);
+        return textSize > 0 && textSize <= Size.TXTMAXPOINTS;
+	}
 
 	/**
 	 * Method to return the text size of the text in this TextDescriptor.
@@ -1024,20 +1024,33 @@ abstract class AbstractTextDescriptor implements Serializable
 	 */
 	public double getTrueSize(EditWindow0 wnd)
 	{
-		double trueSize = Size.DEFAULT_FONT_SIZE;
-        
+        if (wnd != null)
+            return getTrueSize(wnd.getScale());
+		int textSize = getField(VTSIZE, VTSIZESH);
+        double trueSize = textSize > 0 && textSize <= Size.TXTMAXPOINTS ? textSize : Size.DEFAULT_FONT_SIZE;
+		return trueSize*User.getGlobalTextScale();
+	}
+
+	/**
+	 * Method to find the true size in points for this TextDescriptor in a given scale.
+	 * If the TextDescriptor is already Absolute (in points) nothing needs to be done.
+	 * Otherwise, the scale is used to determine the acutal point size.
+	 * @param scale scale to draw.
+	 * @return the point size of the text described by this TextDescriptor.
+	 */
+	public double getTrueSize(double scale)
+	{
+		double trueSize;
 		int textSize = getField(VTSIZE, VTSIZESH);
 		if (textSize == 0) {
             // relative 1
-            if (wnd != null)
-                trueSize = wnd.getScale();
+            trueSize = scale;
         } else if (textSize <= Size.TXTMAXPOINTS) {
             // absolute
             trueSize = textSize;
         } else {
             // relative
-            if (wnd != null)
-                trueSize = (textSize>>Size.TXTQGRIDSH) * 0.25 * wnd.getScale();
+            trueSize = (textSize>>Size.TXTQGRIDSH) * 0.25 * scale;
         }
 		return trueSize*User.getGlobalTextScale();
 	}

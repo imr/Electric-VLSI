@@ -127,39 +127,39 @@ public class LayerDrawing {
     public LayerCell newCell() { return new LayerCell(); }
     
     public void draw(EditWindow wnd) {
-        GraphicsConfiguration gc = wnd.getGraphicsConfiguration();
-        System.out.println("Graphics configuration " + gc);
-        offscreen = wnd.getOffscreen();
-        offscreen.clearImage(true, null);
-        
-        scale = wnd.getScale()/DBMath.GRID;
-        Dimension sz = offscreen.getSize();
-		int szHalfWidth = sz.width / 2;
-		int szHalfHeight = sz.height / 2;
-		Point2D offset = wnd.getOffset();
-		float offX = (float)(offset.getX()*DBMath.GRID);
-		float offY = (float)(offset.getY()*DBMath.GRID);
-		factorX = szHalfWidth - offX*scale;
-		factorY = szHalfHeight + offY*scale;
-        if (graphics != null) {
-            int layerNum = graphics.getTransparentLayer() - 1;
-            if (layerNum < offscreen.numLayerBitMaps) layerBitMap = offscreen.getLayerBitMap(layerNum);
-        }
-
-        long startTime = System.currentTimeMillis();
-        topCell.renderPixelDrawing(0, 0);
-        long renderTime = System.currentTimeMillis();
-		offscreen.composite(null);
-        long compositeTime = System.currentTimeMillis();
-        wnd.repaint();
-        System.out.println("RenderTime=" + (renderTime-startTime) + " CompositeTime=" + (compositeTime - renderTime));
-        if (hasJogl())
-            try {
-                joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {this, sz, scale, offX, offY});
-            } catch (Exception e) {
-                System.out.println("Unable to run the LayerDrawer input module (" + e.getClass() + ")");
-                e.printStackTrace(System.out);
-            }
+//        GraphicsConfiguration gc = wnd.getGraphicsConfiguration();
+//        System.out.println("Graphics configuration " + gc);
+//        offscreen = wnd.getOffscreen();
+//        offscreen.clearImage(null);
+//        
+//        scale = wnd.getScale()/DBMath.GRID;
+//        Dimension sz = offscreen.getSize();
+//		int szHalfWidth = sz.width / 2;
+//		int szHalfHeight = sz.height / 2;
+//		Point2D offset = wnd.getOffset();
+//		float offX = (float)(offset.getX()*DBMath.GRID);
+//		float offY = (float)(offset.getY()*DBMath.GRID);
+//		factorX = szHalfWidth - offX*scale;
+//		factorY = szHalfHeight + offY*scale;
+//        if (graphics != null) {
+//            int layerNum = graphics.getTransparentLayer() - 1;
+//            if (layerNum < offscreen.numLayerBitMaps) layerBitMap = offscreen.getLayerBitMap(layerNum);
+//        }
+//
+//        long startTime = System.currentTimeMillis();
+//        topCell.renderPixelDrawing(0, 0);
+//        long renderTime = System.currentTimeMillis();
+//		offscreen.composite(null);
+//        long compositeTime = System.currentTimeMillis();
+//        wnd.repaint();
+//        System.out.println("RenderTime=" + (renderTime-startTime) + " CompositeTime=" + (compositeTime - renderTime));
+//        if (hasJogl())
+//            try {
+//                joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {this, sz, scale, offX, offY});
+//            } catch (Exception e) {
+//                System.out.println("Unable to run the LayerDrawer input module (" + e.getClass() + ")");
+//                e.printStackTrace(System.out);
+//            }
     }
     
 	/**

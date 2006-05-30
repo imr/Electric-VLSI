@@ -38,7 +38,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.VectorCache;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -515,7 +514,7 @@ public class User extends Listener
                 Cell cell = Cell.inCurrentThread(cellId);
                 markCellForRedrawRecursively(cell, marked);
 //                VectorDrawing.cellChanged(cell);
-                PixelDrawing.forceRedraw(cell);
+                EditWindow.forceRedraw(cell);
             }
         }
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
@@ -585,7 +584,7 @@ public class User extends Listener
 		if (cellChanged)
 		{
 //			VectorDrawing.cellChanged(cell);
-			PixelDrawing.forceRedraw(cell);
+			EditWindow.forceRedraw(cell);
             // recurse up the hierarchy so that all windows showing the cell get redrawn
             for(Iterator<NodeInst> it = cell.getInstancesOf(); it.hasNext(); ) {
                 NodeInst ni = it.next();
@@ -627,7 +626,7 @@ public class User extends Listener
 	public static void technologyChanged(Technology tech)
 	{
         VectorCache.theCache.clearCache();
-        PixelDrawing.clearSubCellCache();
+        EditWindow.clearSubCellCache();
 	}
 
 	/**
@@ -637,7 +636,7 @@ public class User extends Listener
 	public static void layerVisibilityChanged(boolean onlyText) {
 		if (!onlyText)
 			VectorCache.theCache.clearFadeImages();
-        PixelDrawing.clearSubCellCache();
+        EditWindow.clearSubCellCache();
 		EditWindow.repaintAllContents();
     }
     
@@ -1370,16 +1369,16 @@ public class User extends Listener
 		cacheColorBackground.setInt(c);
         Color color = new Color(c);
 
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			if (wf.getContent() instanceof EditWindow)
-			{
-				EditWindow wnd = (EditWindow)wf.getContent();
-				PixelDrawing offscreen = wnd.getOffscreen();
-				offscreen.setBackgroundColor(color);
-			}
-		}
+//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+//		{
+//			WindowFrame wf = it.next();
+//			if (wf.getContent() instanceof EditWindow)
+//			{
+//				EditWindow wnd = (EditWindow)wf.getContent();
+//				PixelDrawing offscreen = wnd.getOffscreen();
+//				offscreen.setBackgroundColor(color);
+//			}
+//		}
 
         // 3D case. Uses observer/observable pattern so doesn't make sense to call every single 3D ViewWindow
         // and update
