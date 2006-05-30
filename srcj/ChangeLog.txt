@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/30/06, SMR) Waveform window crashes when too many panels (Bug #1071)
+FIX: Fixed default panel sizes.  Also fixed other bugs in waveform window.
+
 IMP: (5/30/06, DN) Refactoring of redisplay code. Class PixelDrawing_ for new redisplay code. 
 
 IMP: (5/30/06, DN) Client Electric connects to a server machine specified in command-line "-client <serverMachineName>".

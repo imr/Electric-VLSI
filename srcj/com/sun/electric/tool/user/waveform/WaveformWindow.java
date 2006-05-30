@@ -126,6 +126,8 @@ import javax.swing.tree.TreePath;
  */
 public class WaveformWindow implements WindowContent, PropertyChangeListener
 {
+	/** minimum height of an Analog panel */				private static final int MINANALOGPANELSIZE = 30;
+	/** minimum height of a Digital panel */				private static final int MINDIGITALPANELSIZE = 20;
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
@@ -960,16 +962,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			if (sd.getNumAnalyses() > 0)
 				analysisType = sd.getAnalyses().next().getAnalysisType();
-			if (xAxisLocked)
+			if (xAxisLocked && xAxisSignalAll != null)
 			{
-				if (xAxisSignalAll != null)
-				{
-					AnalogSignal as = (AnalogSignal)xAxisSignalAll;
-					analysisType = as.getAnalysis().getAnalysisType();
-				}
+				AnalogSignal as = (AnalogSignal)xAxisSignalAll;
+				analysisType = as.getAnalysis().getAnalysisType();
 			}
 		}
-	
+
 		// create the new panel
 		Panel panel = new Panel(this, analysisType);
 
@@ -1137,8 +1136,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void growPanels(double scale)
 	{
+		int origDigitalPanelSize = panelSizeDigital;
 		panelSizeDigital = (int)(panelSizeDigital * scale);
+		if (panelSizeDigital < MINDIGITALPANELSIZE) panelSizeDigital = MINDIGITALPANELSIZE;
+		int origAnalogPanelSize = panelSizeAnalog;
 		panelSizeAnalog = (int)(panelSizeAnalog * scale);
+		if (panelSizeAnalog < MINANALOGPANELSIZE) panelSizeAnalog = MINANALOGPANELSIZE;
+
+		// if minimum doesn't apply to this display, stop now
+		if (sd.isAnalog())
+		{
+			if (origAnalogPanelSize == panelSizeAnalog) return;
+		} else
+		{
+			if (origDigitalPanelSize == panelSizeDigital) return;
+		}
+
+		// resize the panels
 		for(Panel wp : wavePanels)
 		{
 			Dimension sz = wp.getSize();
@@ -1147,13 +1161,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			wp.setMinimumSize(sz);
 			wp.setPreferredSize(sz);
 
-			if (wp.getSignalButtonsPane() != null)
-			{
-				sz = wp.getSignalButtonsPane().getSize();
-				sz.height = (int)(sz.height * scale);
-				wp.getSignalButtonsPane().setPreferredSize(sz);
-				wp.getSignalButtonsPane().setSize(sz.width, sz.height);
-			} else
+//			if (wp.getSignalButtonsPane() != null)
+//			{
+//				sz = wp.getSignalButtonsPane().getSize();
+//				sz.height = (int)(sz.height * scale);
+//				wp.getSignalButtonsPane().setPreferredSize(sz);
+//				wp.getSignalButtonsPane().setSize(sz.width, sz.height);
+//			} else
 			{
 				sz = wp.getLeftHalf().getSize();
 				sz.height = (int)(sz.height * scale);
@@ -1161,6 +1175,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				wp.getLeftHalf().setMinimumSize(sz);
 				wp.getLeftHalf().setSize(sz.width, sz.height);
 			}
+			sz = wp.getRightHalf().getSize();
+			sz.height = (int)(sz.height * scale);
+			wp.getRightHalf().setPreferredSize(sz);
+			wp.getRightHalf().setMinimumSize(sz);
+			wp.getRightHalf().setSize(sz.width, sz.height);
 		}
 		overall.validate();
 		redrawAllPanels();
@@ -1757,6 +1776,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					wp.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
 					wp.makeSelectedPanel();
 					newPanel = false;
+				}
+				if (!xAxisLocked)
+				{
+					Rectangle2D rangeBounds = sSig.getBounds();
+					wp.setXAxisRange(rangeBounds.getMinX(), rangeBounds.getMaxX());
 				}
 			}
 
@@ -3164,7 +3188,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// if there is an overriding signal on the X axis, use its bounds
-		if (xAxisSignalAll != null)
+		if (xAxisLocked && xAxisSignalAll != null)
 		{
 			Rectangle2D sigBounds = xAxisSignalAll.getBounds();
 			xBounds.setRect(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());

@@ -179,6 +179,11 @@ public class Panel extends JPanel
 		// setup this panel window
 		int height = waveWindow.getPanelSizeDigital();
 		if (analysisType != null) height = waveWindow.getPanelSizeAnalog();
+		if (waveWindow.getNumPanels() > 0)
+		{
+			Panel firstPanel = waveWindow.getPanels().next();
+			height = firstPanel.getSize().height;
+		}
 		sz = new Dimension(50, height);
 		szValid = false;
 		setSize(sz.width, sz.height);
@@ -196,6 +201,7 @@ public class Panel extends JPanel
 		// the left side with signal names
 		leftHalf = new WaveformWindow.OnePanel(this, waveWindow);
 		leftHalf.setLayout(new GridBagLayout());
+		leftHalf.setPreferredSize(new Dimension(100, height));
 
 		// a drop target for the signal panel
 		DropTarget dropTargetLeft = new DropTarget(leftHalf, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
@@ -353,7 +359,6 @@ public class Panel extends JPanel
 			signalButtons = new JPanel();
 			signalButtons.setLayout(new BoxLayout(signalButtons, BoxLayout.Y_AXIS));
 			signalButtonsPane = new JScrollPane(signalButtons);
-			signalButtonsPane.setPreferredSize(new Dimension(100, height));
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 3;
 			gbc.gridwidth = 5;   gbc.gridheight = 1;
@@ -366,6 +371,7 @@ public class Panel extends JPanel
 		// the right side with signal traces
 		rightHalf = new JPanel();
 		rightHalf.setLayout(new GridBagLayout());
+		rightHalf.setPreferredSize(new Dimension(100, height));
 
 		// a drop target for the signal panel
 		DropTarget dropTargetRight = new DropTarget(this, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
@@ -1283,6 +1289,7 @@ public class Panel extends JPanel
 		int hei = sz.height;
 		Signal xSignal = xAxisSignal;
 		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
+//		if (waveWindow.isXAxisLocked()) xSignal = null; // waveWindow.getXAxisSignalAll();
         double[] result = new double[3];
 
         int linePointMode = waveWindow.getLinePointMode();
@@ -1333,7 +1340,8 @@ public class Panel extends JPanel
                         int highY = convertYDataToScreen(result[2]);
 						if (xSignal != null)
 						{
-							((AnalogSignal)xSignal).getEvent(s, i, result);
+							AnalogSignal oSig = (AnalogSignal)xSignal;
+							oSig.getEvent(s, i, result);
 							x = convertXDataToScreen(result[1]);
 						}
                         if (i != 0)
@@ -2104,7 +2112,7 @@ public class Panel extends JPanel
 					{
 						Panel wp = it.next();
 						Point oPt = wp.getLocationOnScreen();
-						Dimension sz = wp.getSize();
+//						Dimension sz = wp.getSize();
 						if (globalPt.x < oPt.x) continue;
 						if (globalPt.x > oPt.x + sz.width) continue;
 						if (globalPt.y < oPt.y) continue;
