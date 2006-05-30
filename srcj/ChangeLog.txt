@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+BUG: (5/30/06, GVG) Include/Exclude options not working when more than 1 signal included a sweep (Bug #1077)
+FIX: The code to retrieve the correct sweep of a given AnalogSignal was incorrect. Extra code and refactorization
+to guarantee the correct index is retrieved from the Explorer. Disable direct access to Analysis.sweeps and WaveformWindow.sweepSignals
+lists.
+
 IMP: (5/30/06, SMR) Added drop shadow to highlighted text (Bug #747).
 
 BUG: (5/30/06, SMR) Renaming a cell group that has heterogenous cell names

@@ -45,8 +45,9 @@ public class SweepSignal
 		this.ww = ww;
 		this.an = an;
 		included = true;
-		sweepIndex = ww.getSweepSignals().size();
-		ww.getSweepSignals().add(this);
+        sweepIndex = ww.addSweep(this);
+//		sweepIndex = ww.getSweepSignals().size();
+//		ww.getSweepSignals().add(this);
 	}
 
 	public String toString()
@@ -68,6 +69,8 @@ public class SweepSignal
 			wp.repaintWithRulers();
 		}
 	}
+
+    public Object getObject() { return obj; }
 
 	public boolean isIncluded() { return included; }
 

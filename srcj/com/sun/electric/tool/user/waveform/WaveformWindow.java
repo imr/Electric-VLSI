@@ -1282,15 +1282,45 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private void addSweepsForAnalysis(Analysis an)
 	{
-		List<Object> sweeps = an.getSweepList();
-		if (sweeps == null) return;
-		for(Object obj : sweeps)
-		{
-			SweepSignal ss = new SweepSignal(obj, this, an);
-		}
+        int maxNum = an.getNumSweeps();
+        for (int i = 0; i < maxNum; i++)
+        {
+            Object obj = an.getSweep(i);
+			new SweepSignal(obj, this, an);
+        }
 	}
 
-	public List<SweepSignal> getSweepSignals() { return sweepSignals; }
+    public int addSweep(SweepSignal ss)
+    {
+		if (sweepSignals.add(ss))
+            return sweepSignals.size()-1;
+        return -1;
+    }
+
+    public void setIncludeInAllSweeps(boolean include)
+    {
+        for(SweepSignal ss : sweepSignals)
+        {
+            ss.setIncluded(include);
+        }
+    }
+//	public List<SweepSignal> getSweepSignals() { return sweepSignals; }
+
+    /**
+     * Method to check whether this particular sweep is included.
+     * Notice that sweepSignals.length doesn't
+     * @return
+     */
+    public boolean isSweepSignalIncluded(Analysis an, int index)
+    {
+        Object sweep = an.getSweep(index);
+        for (SweepSignal ss : sweepSignals)
+        {
+            if (ss.getObject() == sweep)
+                return ss.isIncluded();
+        }
+        return true; // in case no sweep, always true
+    }
 
 	public int getHighlightedSweep() { return highlightedSweep; }
 

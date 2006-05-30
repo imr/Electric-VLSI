@@ -42,7 +42,6 @@ import com.sun.electric.tool.user.dialogs.WaveformZoom;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 
 import java.awt.BasicStroke;
@@ -1324,12 +1323,19 @@ public class Panel extends JPanel
 			{
 				// draw analog trace
 				AnalogSignal as = (AnalogSignal)ws.getSignal();
+                Analysis an = as.getAnalysis();
                 for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
 				{
-                    SweepSignal ss = null;
-                    if (s < waveWindow.getSweepSignals().size())
-                        ss = waveWindow.getSweepSignals().get(s);
-                    if (ss != null && !ss.isIncluded()) continue;
+//                    SweepSignal ss = null;
+//                    if (s < waveWindow.getSweepSignals().size())
+//                        ss = waveWindow.getSweepSignals().get(s);
+//                    Object sweep = an.getSweep(s);
+//                    SweepSignal ss = waveWindow.getSweepSignalObject(an, s);
+//                    if (ss != null && !ss.isIncluded())
+//                        continue;
+                    boolean included = waveWindow.isSweepSignalIncluded(an, s);
+                    if (!included)
+                        continue;
 					int lastX = 0, lastLY = 0, lastHY = 0;
 					int numEvents = as.getNumEvents(s);
 					for(int i=0; i<numEvents; i++)
@@ -1939,12 +1945,18 @@ public class Panel extends JPanel
 			// draw analog trace
 			AnalogSignal as = (AnalogSignal)ws.getSignal();
             double[] result = new double[3];
+            Analysis an = as.getAnalysis();
+
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
-                SweepSignal ss = null;
-                if (s < waveWindow.getSweepSignals().size())
-                    ss = waveWindow.getSweepSignals().get(s);
-                if (ss != null && !ss.isIncluded()) continue;
+                boolean included = waveWindow.isSweepSignalIncluded(an, s);
+                if (!included)
+                    continue;
+//                SweepSignal ss = null;
+//                if (s < waveWindow.getSweepSignals().size())
+//                    ss = waveWindow.getSweepSignals().get(s);
+//                SweepSignal ss = waveWindow.getSweepSignalObject(an, s);
+//                if (ss != null && !ss.isIncluded()) continue;
 				int numEvents = as.getNumEvents(s);
 				for(int i=0; i<numEvents; i++)
 				{
@@ -1972,12 +1984,17 @@ public class Panel extends JPanel
 			AnalogSignal as = (AnalogSignal)ws.getSignal();
             double[] result = new double[3];
             double[] lastResult = new double[3];
+            Analysis an = as.getAnalysis();
+
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
-                SweepSignal ss = null;
-                if (s < waveWindow.getSweepSignals().size())
-                    ss = waveWindow.getSweepSignals().get(s);
-                if (ss != null && !ss.isIncluded()) continue;
+                boolean included = waveWindow.isSweepSignalIncluded(an, s);
+                if (!included)
+                    continue;
+//                SweepSignal ss = null;
+//                if (s < waveWindow.getSweepSignals().size())
+//                    ss = waveWindow.getSweepSignals().get(s);
+//                if (ss != null && !ss.isIncluded()) continue;
 				int numEvents = as.getNumEvents(s);
                 as.getEvent(s, 0, lastResult);
 				Point2D lastPt = new Point2D.Double(convertXDataToScreen(lastResult[0]), convertYDataToScreen((lastResult[1] + lastResult[2]) / 2));

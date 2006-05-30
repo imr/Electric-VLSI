@@ -240,11 +240,18 @@ public class Analysis
 	}
 
 	/**
-	 * Method to return the list of sweep information in this simulation data.
-	 * @return a list of sweep information in this simulation data.
+	 * Method to return the number of sweep objects in this simulation data.
+	 * @return number of sweep objects in this simulation data.
 	 * If there is no sweep information, the list is empty.
 	 */
-	public List<Object> getSweepList() { return sweeps; }
+	public int getNumSweeps() { return (sweeps != null) ? sweeps.size() : 0; }
+
+    /**
+     * Method to return sweep object in position i
+     * @param i
+     * @return
+     */
+    public Object getSweep(int i) { return sweeps.get(i); }
 
 	/**
 	 * Method to compute the time and value bounds of this simulation data.
