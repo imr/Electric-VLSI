@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04o: *********************************
 
+IMP: (5/30/06, SMR) Added drop shadow to highlighted text (Bug #747).
+
 BUG: (5/30/06, SMR) Renaming a cell group that has heterogenous cell names
      fails (Bug #1073).
 FIX: In CellChangeJobs.RenameCellGroup.doIt(), detect groups with different-

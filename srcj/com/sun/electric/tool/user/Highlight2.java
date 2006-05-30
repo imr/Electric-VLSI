@@ -647,6 +647,10 @@ class HighlightMessage extends Highlight2
                                       boolean onlyHighlight, boolean setConnected)
     {
         Point location = wnd.databaseToScreen(loc.getX(), loc.getY());
+        Color oldColor = g.getColor();
+        g.setColor(new Color(255-oldColor.getRed(), 255-oldColor.getGreen(), 255-oldColor.getBlue()));
+        g.drawString(msg, location.x+1, location.y+1);
+        g.setColor(oldColor);
         g.drawString(msg, location.x, location.y);
     }
 
