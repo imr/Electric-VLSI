@@ -99,7 +99,7 @@ public class AddRemove {
         List<Library> assertLibsInCVS = new ArrayList<Library>();
         for (Cell cell : cells) {
             Library lib = cell.getLibrary();
-            if (libs.contains(lib)) continue;
+            if (libs.contains(lib) || assertLibsInCVS.contains(lib)) continue;
             assertLibsInCVS.add(lib);
         }
         bad = CVSLibrary.getNotInCVS(assertLibsInCVS, null);
