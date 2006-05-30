@@ -119,7 +119,7 @@ public final class Main
 	        System.out.println("\t-batch: running in batch mode.");
 //	        System.out.println("\t-pulldowns: list all pulldown menus in Electric"); moved to DebugMenus DN
             System.out.println("\t-server: dump trace of snapshots");
-            System.out.println("\t-client: replay trace of snapshots");
+            System.out.println("\t-client <machine name>: replay trace of snapshots");
 	        System.out.println("\t-help: this message");
 
 			System.exit(0);
@@ -146,7 +146,8 @@ public final class Main
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.SERVER);
             runMode = Job.Mode.SERVER;
         }
-        if (hasCommandLineOption(argsList, "-client")) {
+        String serverMachineName = getCommandLineOption(argsList, "-client");
+        if (serverMachineName != null) {
             if (runMode != Job.Mode.FULL_SCREEN)
                 System.out.println("Conflicting thread modes: " + runMode + " and " + Job.Mode.CLIENT);
             runMode = Job.Mode.CLIENT;
@@ -168,7 +169,7 @@ public final class Main
 		// initialize database
         EDatabase.serverDatabase();
 		InitDatabase job = new InitDatabase(argsList);
-        Job.initJobManager(numThreads, job, mode);
+        Job.initJobManager(numThreads, job, mode, serverMachineName);
 	}
 
     private static class UserInterfaceDummy extends AbstractUserInterface

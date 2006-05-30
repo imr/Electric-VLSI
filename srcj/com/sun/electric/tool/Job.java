@@ -165,7 +165,7 @@ public abstract class Job implements Serializable {
         currentUI = userInterface;
     }
    
-    public static void initJobManager(int numThreads, Job initDatabaseJob, Object mode) {
+    public static void initJobManager(int numThreads, Job initDatabaseJob, Object mode, String serverMachineName) {
         switch (threadMode) {
             case FULL_SCREEN:
                 if (User.isUseClientServer())
@@ -184,7 +184,7 @@ public abstract class Job implements Serializable {
                 break;
             case CLIENT:
                 logger.finer("setThreadMode");
-                jobManager = new ClientJobManager(socketPort);
+                jobManager = new ClientJobManager(serverMachineName, socketPort);
                 // unreachable
                 break;
         }

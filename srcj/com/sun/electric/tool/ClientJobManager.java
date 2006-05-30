@@ -51,6 +51,7 @@ import javax.swing.SwingUtilities;
 class ClientJobManager extends JobManager {
     private static final String CLASS_NAME = Job.class.getName();
     private static final Logger logger = Logger.getLogger("com.sun.electric.tool.job");
+    private final String serverMachineName;
     private final int port;
     
     /** stream for cleint to send Jobs. */      private static DataOutputStream clientOutputStream;
@@ -59,7 +60,8 @@ class ClientJobManager extends JobManager {
     private static Job clientJob;
     
     /** Creates a new instance of ClientJobManager */
-    public ClientJobManager(int serverPort) {
+    public ClientJobManager(String serverMachineName, int serverPort) {
+        this.serverMachineName = serverMachineName;
         port = serverPort;
     }
  
@@ -80,7 +82,7 @@ class ClientJobManager extends JobManager {
         assert currentSnapshot == oldSnapshot;
         try {
             System.out.println("Attempting to connect to port " + port + " ...");
-            Socket socket = new Socket((String)null, port);
+            Socket socket = new Socket(serverMachineName, port);
             reader = new SnapshotReader(new DataInputStream(new BufferedInputStream(socket.getInputStream())), EDatabase.clientDatabase().getIdManager());
             clientOutputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             int protocolVersion = reader.readInt();
