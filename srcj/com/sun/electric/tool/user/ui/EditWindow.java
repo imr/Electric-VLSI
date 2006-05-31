@@ -44,7 +44,6 @@ import com.sun.electric.database.text.TextUtils.WhatToSearch;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -110,6 +109,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -119,7 +119,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.io.Serializable;
 
 import javax.print.attribute.standard.ColorSupported;
 import javax.swing.JMenuItem;
@@ -147,12 +146,13 @@ public class EditWindow extends JPanel
 	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
 	/** the cell that is in the window */					private Cell cell;
 	/** the page number (for multipage schematics) */		private int pageNumber;
-	/** true if doing in-place display */					private boolean inPlaceDisplay;
-	/** transform from screen to cell (in-place only) */	private AffineTransform intoCell;
-	/** transform from cell to screen (in-place only) */	private AffineTransform outofCell;
-	/** top-level cell being displayed (in-place only) */	private Cell topLevelCell;
-	/** path to cell being edited (in-place only) */		private List<NodeInst> inPlaceDescent;
-	/** list of in-place text objects on this window */		private List<GetInfoText.EditInPlaceListener> inPlaceTextObjects = new ArrayList<GetInfoText.EditInPlaceListener>();
+	/** list of edit-in-place text in this window */		private List<GetInfoText.EditInPlaceListener> inPlaceTextObjects = new ArrayList<GetInfoText.EditInPlaceListener>();
+
+	/** true if doing down-in-place display */				private boolean inPlaceDisplay;
+	/** transform from screen to cell (down-in-place only) */	private AffineTransform intoCell;
+	/** transform from cell to screen (down-in-place only) */	private AffineTransform outofCell;
+	/** top-level cell being displayed (down-in-place only) */	private Cell topLevelCell;
+	/** path to cell being edited (down-in-place only) */	private List<NodeInst> inPlaceDescent;
 
 	/** Cell's VarContext */                                private VarContext cellVarContext;
     /** Stack of selected PortInsts */                      private PortInst[] selectedPorts;
@@ -966,16 +966,16 @@ public class EditWindow extends JPanel
 	public void setCell(Cell cell, VarContext context)
 	{
 		// by default record history and fillscreen
-		// However, when navigating through history, don't want to record new
-		// history objects.
+		// However, when navigating through history, don't want to record new history objects.
         if (context == null) context = VarContext.globalContext;
-		setCell(cell, context, new PortInst[context.getNumLevels()], true, true, false);
+		setCell(cell, context, new PortInst[context.getNumLevels()], true, true, false, null, null, null, null);
 	}
 
 	/**
 	 * Method to set the cell that is shown in the window to "cell".
 	 */
-	private void setCell(Cell cell, VarContext context, PortInst[] selectedPorts, boolean addToHistory, boolean fillTheScreen, boolean inPlace)
+	private void setCell(Cell cell, VarContext context, PortInst[] selectedPorts, boolean addToHistory, boolean fillTheScreen,
+		boolean inPlace, AffineTransform into, AffineTransform outof, Cell tlCell, List<NodeInst> descent)
 	{
 		// record current history before switching to new cell
 		saveCurrentCellHistoryState();
@@ -986,14 +986,16 @@ public class EditWindow extends JPanel
 		// set new values
 		this.cell = cell;
 		inPlaceDisplay = inPlace;
+		intoCell = into;
+		outofCell = outof;
+		topLevelCell = tlCell;
+		inPlaceDescent = descent;
 		this.pageNumber = 0;
 		setVarContext(context, selectedPorts);
         if (cell != null) {
             Library lib = cell.getLibrary();
             Job.getUserInterface().setCurrentCell(lib, cell);
         }
-		//Library curLib = Library.getCurrent();
-		//curLib.setCurCell(cell);
 
         // add new highlighters from the window
 		installHighlighters();
@@ -2668,7 +2670,6 @@ public class EditWindow extends JPanel
         if (ignoreScrollChange) return;
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
-//		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
         double oY = dbPt.getY();
 
 		double val = (double)value/(double)scrollRangeMult;
@@ -2681,7 +2682,6 @@ public class EditWindow extends JPanel
         //double delta = newoffx - offx;
         //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(newoffx, oY);
-//        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
 		getSavedFocusBrowser().updateCurrentFocus();
         repaintContents(null, false);
@@ -2693,7 +2693,6 @@ public class EditWindow extends JPanel
         if (ignoreScrollChange) return;
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
-//		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
 		double oX = dbPt.getX();
 
         double val = (double)value/(double)scrollRangeMult;
@@ -2707,7 +2706,6 @@ public class EditWindow extends JPanel
         //double delta = newoffy - offy;
         //if (Math.abs(delta) < Math.abs(ignoreDelta)) return;
         Point2D offset = new Point2D.Double(oX, newoffy);
-//        if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
 		getSavedFocusBrowser().updateCurrentFocus();
         repaintContents(null, false);
@@ -2989,28 +2987,31 @@ public class EditWindow extends JPanel
 
         // handle in-place display
 		if (cell != schCell) inPlace = false;
+		AffineTransform into = null, outof = null;
+		Cell tlCell = null;
+		List<NodeInst> descent = null;
 		if (inPlace)
 		{
 			AffineTransform transIn = ni.rotateIn(ni.translateIn());
 			AffineTransform transOut = ni.translateOut(ni.rotateOut());
+      		descent = new ArrayList<NodeInst>();
 			if (inPlaceDisplay)
 			{
 	    		// already doing in-place display: continue the transformation
-	    		outofCell.concatenate(transOut);
-	    		intoCell.preConcatenate(transIn);
+				outof = new AffineTransform(outofCell);
+				outof.concatenate(transOut);
+				into = new AffineTransform(intoCell);
+				into.preConcatenate(transIn);
+	    		for(NodeInst n : inPlaceDescent) descent.add(n);
+	      		tlCell = topLevelCell;
 	    	} else
 	    	{
 	    		// first in-place display: setup transformation
-	      		outofCell = transOut;
-	      		intoCell = transIn;
-	       		topLevelCell = this.cell;
-	       		inPlaceDescent = new ArrayList<NodeInst>();
+	    		outof = transOut;
+	      		into = transIn;
+	      		tlCell = this.cell;
 	       	}
-	   		inPlaceDescent.add(ni);
-	    	inPlaceDisplay = true;
-	    } else
-	    {
-	    	inPlaceDisplay = false;
+			descent.add(ni);
 	    }
 
 		// for stacked NodeInsts, must choose which one
@@ -3054,7 +3055,7 @@ public class EditWindow extends JPanel
 	
         // do the descent
         boolean redisplay = true;
-        if (inPlaceDisplay) redisplay = false;
+        if (inPlace) redisplay = false;
 		if (keepFocus) redisplay = false;
 		EditWindow newWND = this;
 		if (newWindow)
@@ -3067,10 +3068,12 @@ public class EditWindow extends JPanel
 
         if (desiredNO != null)
         {
-			newWND.setCell(schCell, cellVarContext.push(desiredNO), pushSelectedPorts(null), true, redisplay, inPlace);
+			newWND.setCell(schCell, cellVarContext.push(desiredNO), pushSelectedPorts(null), true, redisplay,
+				inPlace, into, outof, tlCell, descent);
         } else
         {
-            newWND.setCell(schCell, cellVarContext.push(ni), pushSelectedPorts(pi), true, redisplay, inPlace);
+            newWND.setCell(schCell, cellVarContext.push(ni), pushSelectedPorts(pi), true, redisplay,
+            	inPlace, into, outof, tlCell, descent);
         }
 		if (keepFocus)
 		{
@@ -3153,29 +3156,35 @@ public class EditWindow extends JPanel
 			if (no != null)
 			{
 		        Cell parent = no.getParent();
+		        boolean inPlace = inPlaceDisplay;
+		        AffineTransform into = intoCell;
+		        AffineTransform outof = outofCell;
+		        Cell tlCell = topLevelCell;
+		        List<NodeInst> descent = null;
 		        if (inPlaceDisplay)
 		        {
 		        	int inPlaceDepth = inPlaceDescent.size() - 1;
 		        	if (inPlaceDepth == 0)
 		        	{
-		        		inPlaceDisplay = false;
-		        		inPlaceDescent = null;
+		        		inPlace = false;
 		        	} else
 		        	{
-		        		inPlaceDescent.remove(inPlaceDepth);
-		        		intoCell = new AffineTransform();
-		        		outofCell = new AffineTransform();
+		        		descent = new ArrayList<NodeInst>();
+		        		into = new AffineTransform();
+		        		outof = new AffineTransform();
 		        		for(int i=0; i<inPlaceDepth; i++)
 		        		{
 		        			NodeInst ni = inPlaceDescent.get(i);
-	        	    		outofCell.concatenate(ni.translateOut(ni.rotateOut()));
-	        	    		intoCell.preConcatenate(ni.rotateIn(ni.translateIn()));
+		        			descent.add(ni);
+		        			outof.concatenate(ni.translateOut(ni.rotateOut()));
+		        			into.preConcatenate(ni.rotateIn(ni.translateIn()));
 		        		}
 		        	}
 		        }
 
 				VarContext context = cellVarContext.pop();
 				CellHistory foundHistory = null;
+
 				// see if this was in history, if so, restore offset and scale
 				// search backwards to get most recent entry
 				// search history **before** calling setCell, otherwise we find
@@ -3190,13 +3199,16 @@ public class EditWindow extends JPanel
                 PortInst pi = selectedPorts[selectedPorts.length - 1];
 				if (foundHistory != null)
 				{
-					setCell(parent, context, popSelectedPorts(), true, false, inPlaceDisplay);
+					setCell(parent, context, popSelectedPorts(), true, false,
+						foundHistory.inPlaceDisplay, foundHistory.intoCell, foundHistory.outofCell,
+						foundHistory.topLevelCell, foundHistory.inPlaceDescent);
 					setOffset(foundHistory.offset);
 					setScale(foundHistory.scale);
 			        repaintContents(null, false);
 				} else
 				{
-					setCell(parent, context, popSelectedPorts(), true, true, inPlaceDisplay);
+					setCell(parent, context, popSelectedPorts(), true, true,
+						inPlace, into, outof, tlCell, descent);
 				}
 				clearSubCellCache();
 
@@ -3323,8 +3335,6 @@ public class EditWindow extends JPanel
 
     /** List of CellHistory objects */                      private List<CellHistory> cellHistory;
     /** Location in history (points to valid location) */   private int cellHistoryLocation;
-//    /** Property name: go back enabled */                   public static final String propGoBackEnabled = "GoBackEnabled";
-//    /** Property name: go forward enabled */                public static final String propGoForwardEnabled = "GoForwardEnabled";
     /** History limit */                                    private static final int cellHistoryLimit = 20;
 
     /**
@@ -3339,7 +3349,13 @@ public class EditWindow extends JPanel
         /** scale */                    private double scale;
         /** highlights */               private List<Highlight2> highlights;
         /** highlight offset*/          private Point2D highlightOffset;
-        public Cell getCell() { return cell; }
+    	/** true if doing down-in-place display */					private boolean inPlaceDisplay;
+    	/** transform from screen to cell (down-in-place only) */	private AffineTransform intoCell;
+    	/** transform from cell to screen (down-in-place only) */	private AffineTransform outofCell;
+    	/** top-level cell being displayed (down-in-place only) */	private Cell topLevelCell;
+    	/** path to cell being edited (down-in-place only) */		private List<NodeInst> inPlaceDescent;
+
+    	public Cell getCell() { return cell; }
         public VarContext getContext() { return context; }
     }
 
@@ -3403,12 +3419,13 @@ public class EditWindow extends JPanel
         return new CellHistoryState(cellHistory, cellHistoryLocation);
     }
 
-    /** Adds to cellHistory record list
+    /**
+     * Adds to cellHistory record list
      * Should only be called via non-history traversing modifications
      * to history. (such as Edit->New Cell).
      */
-    private void addToHistory(Cell cell, VarContext context) {
-
+    private void addToHistory(Cell cell, VarContext context)
+    {
         if (cell == null) return;
 
         CellHistory history = new CellHistory();
@@ -3416,20 +3433,24 @@ public class EditWindow extends JPanel
         history.context = context;
         history.selectedPorts = selectedPorts;
 
+        // also save the "down in place" state
+        history.inPlaceDisplay = inPlaceDisplay;
+        if (inPlaceDisplay)
+        {
+	        history.intoCell = new AffineTransform(intoCell);
+	        history.outofCell = new AffineTransform(outofCell);
+	        history.topLevelCell = topLevelCell;
+	        history.inPlaceDescent = new ArrayList<NodeInst>();
+	        for(NodeInst n : inPlaceDescent) history.inPlaceDescent.add(n);
+        }
+
         // when user has moved back through history, and then edits a new cell,
         // get rid of forward history
         if (cellHistoryLocation < (cellHistory.size() - 1)) {
             // inserting into middle of history: get rid of history forward of this
-            for (int i=cellHistoryLocation+1; i<cellHistory.size(); i++) {
-                cellHistory.remove(i);
-            }
-//            // disable previously enabled forward button
-//            getPanel().firePropertyChange(propGoForwardEnabled, true, false);
+        	for(int i=cellHistory.size()-1; i>cellHistoryLocation; i--)
+        		cellHistory.remove(i);
         }
-
-        // if location is 0, adding should enable back button
-//        if (cellHistoryLocation == 0)
-//            getPanel().firePropertyChange(propGoBackEnabled, false, true);
 
         // update history
         cellHistory.add(history);
@@ -3443,7 +3464,8 @@ public class EditWindow extends JPanel
         fireCellHistoryStatus();
     }
 
-    /** Records current cell state into history
+    /**
+     * Records current cell state into history
      * Assumes record pointed to by cellHistoryLocation is
      * history record for the current cell/context.
      */
@@ -3457,6 +3479,18 @@ public class EditWindow extends JPanel
         current.scale = scale;
         current.highlights = new ArrayList<Highlight2>();
         current.highlights.clear();
+
+        // also save the "down in place" state
+        current.inPlaceDisplay = inPlaceDisplay;
+        if (inPlaceDisplay)
+        {
+        	current.intoCell = new AffineTransform(intoCell);
+        	current.outofCell = new AffineTransform(outofCell);
+        	current.topLevelCell = topLevelCell;
+        	current.inPlaceDescent = new ArrayList<NodeInst>();
+	        for(NodeInst n : inPlaceDescent) current.inPlaceDescent.add(n);
+        }
+
         for (Highlight2 h : highlighter.getHighlights()) {
             if (h.getCell() == cell)
                 current.highlights.add(h);
@@ -3465,28 +3499,8 @@ public class EditWindow extends JPanel
     }
 
     /** Restores cell state from history record */
-    public void setCellByHistory(int location) {
-
-//        // fire property changes if back/forward buttons should change state
-//        if (cellHistoryLocation == (cellHistory.size()-1)) {
-//            // was at end, forward button was disabled
-//            if (location < (cellHistory.size()-1))
-//                getPanel().firePropertyChange(propGoForwardEnabled, false, true);
-//        } else {
-//            // not at end, forward button was enabled
-//            if (location == (cellHistory.size()-1))
-//                getPanel().firePropertyChange(propGoForwardEnabled, true, false);
-//        }
-//        if (cellHistoryLocation == 0) {
-//            // at beginning, back button was disabled
-//            if (location > 0)
-//                getPanel().firePropertyChange(propGoBackEnabled, false, true);
-//        } else {
-//            // not at beginning, back button was enabled
-//            if (location == 0)
-//                getPanel().firePropertyChange(propGoBackEnabled, true, false);
-//        }
-
+    public void setCellByHistory(int location)
+    {
         // get cell history to go to
         CellHistory history = cellHistory.get(location);
 
@@ -3498,10 +3512,12 @@ public class EditWindow extends JPanel
             history.offset = new Point2D.Double(0,0);
             history.highlights = new ArrayList<Highlight2>();
             history.highlightOffset = new Point2D.Double(0,0);
+            history.inPlaceDisplay = false;
         }
 
         // update current cell
-        setCell(history.cell, history.context, history.selectedPorts, false, true, false);
+        setCell(history.cell, history.context, history.selectedPorts, false, true,
+        	history.inPlaceDisplay, history.intoCell, history.outofCell, history.topLevelCell, history.inPlaceDescent);
         setOffset(history.offset);
         setScale(history.scale);
         highlighter.setHighlightList(history.highlights);
@@ -3712,7 +3728,8 @@ public class EditWindow extends JPanel
     public void databaseChanged(DatabaseChangeEvent e) {
         // if cell was deleted, set cell to null
         if ((cell != null) && !cell.isLinked()) {
-            setCell(null, VarContext.globalContext, new PortInst[0], false, true, false);
+            setCell(null, VarContext.globalContext, new PortInst[0], false, true,
+            	false, null, null, null, null);
             cellHistoryGoBack();
         }
     }
