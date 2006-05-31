@@ -159,7 +159,8 @@ public class NccEngine {
 			Set<Wire> forcedWires = new HashSet<Wire>();
 			ForceMatch.doYourJob(forcedParts, forcedWires, globals);
 
-			LocalPartitioning.doYourJob(forcedParts, forcedWires, globals);
+			LocalPartitionResult localRes =
+				LocalPartitioning.doYourJob(forcedParts, forcedWires, globals);
 
 			if (globals.userWantsToAbort()) return NccResult.newUserAbortResult();
 
@@ -168,7 +169,7 @@ public class NccEngine {
 			// mismatched!
 			globals.initLeafLists();
 
-			LocalPartitionResult localRes = new LocalPartitionResult(globals);
+			
 
 			Date d3 = new Date();
 			globals.status1("  Local partitioning took "+ 

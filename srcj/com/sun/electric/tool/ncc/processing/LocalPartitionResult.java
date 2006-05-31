@@ -11,19 +11,20 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class LocalPartitionResult {
     private NccGlobals globals;
-    private List<EquivRecord> saveBadPartRecs, saveBadWireRecs;
+    private List<EquivRecord> saveBadPartRecs = new ArrayList<EquivRecord>();
+    private List<EquivRecord> saveBadWireRecs = new ArrayList<EquivRecord>();
     private List<EquivRecReport> badPartReps, badWireReps;
 
     private void prln(String s) {System.out.println(s);}
 	 
-    private List<EquivRecord> getNotBalanced(Iterator<EquivRecord> it) {
-    	List<EquivRecord> notBalanced = new ArrayList<EquivRecord>();
-    	while (it.hasNext()) {
-    		EquivRecord er = it.next();
-        	if (!er.isBalanced())  notBalanced.add(er);
-    	}
-    	return notBalanced;
-    }
+//    private List<EquivRecord> getNotBalanced(Iterator<EquivRecord> it) {
+//    	List<EquivRecord> notBalanced = new ArrayList<EquivRecord>();
+//    	while (it.hasNext()) {
+//    		EquivRecord er = it.next();
+//        	if (!er.isBalanced())  notBalanced.add(er);
+//    	}
+//    	return notBalanced;
+//    }
 
     private void printCircuitContents(List<NetObjReport> notMatched, 
     		                          List<NetObjReport> matched, 
@@ -78,12 +79,23 @@ public class LocalPartitionResult {
     }
 
     // --------------------------- public methods -----------------------------
-	public LocalPartitionResult(NccGlobals globals) {
-    	this.globals = globals;
-    	saveBadPartRecs = 
-		    getNotBalanced(globals.getPartLeafEquivRecs().getNotMatched());
-		saveBadWireRecs = 
-		    getNotBalanced(globals.getWireLeafEquivRecs().getNotMatched());
+//	public LocalPartitionResult(NccGlobals globals) {
+//    	this.globals = globals;
+//    	saveBadPartRecs = 
+//		    getNotBalanced(globals.getPartLeafEquivRecs().getNotMatched());
+//		saveBadWireRecs = 
+//		    getNotBalanced(globals.getWireLeafEquivRecs().getNotMatched());
+//	}
+	public LocalPartitionResult(List<EquivRecord> notMatchedParts,
+			                    List<EquivRecord> notMatchedWires,
+			                    NccGlobals globals) {
+		this.globals = globals;
+		for (EquivRecord er : notMatchedParts) {
+			if (!er.isBalanced()) saveBadPartRecs.add(er);
+		}
+		for (EquivRecord er : notMatchedWires) {
+			if (!er.isBalanced()) saveBadWireRecs.add(er);
+		}
 	}
 
 	/** @return true if no mismatches detected by Local Partitioning */

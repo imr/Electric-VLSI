@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04p: *********************************
 
+BUG: (5/31/06, RK) NCC: repair implementation of forced matching (Bugzilla# 713)
+
 IMP: (5/31/06, SMR) "Select Object" now scrolls through the list as search
      text is typed. (Bug #965)
 
