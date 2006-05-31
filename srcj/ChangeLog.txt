@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04p: *********************************
 
+BUG: (5/31/06, RK) NCC: print correct Wire counts in Part local partitioning mismatch diagnostics (Bugzilla# 1080)
+
 BUG: (5/31/06, SMR) "Back" and "Forward" buttons don't handle "down in place"
      editing (Bug #1060).
 FIX: In EditWindow, handle down-in-place data with other factors.

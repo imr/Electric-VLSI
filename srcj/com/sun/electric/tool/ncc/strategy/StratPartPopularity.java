@@ -34,6 +34,10 @@ import com.sun.electric.tool.ncc.trees.EquivRecord;
 /* StratPartPopularity partitions Part equivalence classes
  * based upon how many unique Wires are connected. */
 public class StratPartPopularity extends Strategy {
+	// Offset hash codes by COUNT_OFFSET so I can use the value 0 to
+	// mean "no_change".
+	private static final int COUNT_OFFSET = 1000;
+	
 	private Set<Part> forcedMatchParts;
     private StratPartPopularity(Set<Part> forcedMatchParts,
     		                    NccGlobals globals) {
@@ -54,7 +58,7 @@ public class StratPartPopularity extends Strategy {
 		for (Iterator<EquivRecord> it=offspring.iterator(); it.hasNext();) {
 			EquivRecord r = it.next();
 			int value = r.getValue();
-			String reason = "part has "+value+" different Wires attached";
+			String reason = "part has "+(value-COUNT_OFFSET)+" different Wires attached";
 			globals.status2(reason);
 			r.setPartitionReason(reason);
 		}
@@ -74,7 +78,7 @@ public class StratPartPopularity extends Strategy {
 		Part p = (Part) n;
 		// Do not repartition EquivRecords containing Parts that the designer
 		// explicitly forced to match.
-		return forcedMatchParts.contains(p) ? 0 : (1000+p.numDistinctWires());
+		return forcedMatchParts.contains(p) ? 0 : (COUNT_OFFSET+p.numDistinctWires());
     }
 
 	// ------------------------- intended inteface ----------------------------
