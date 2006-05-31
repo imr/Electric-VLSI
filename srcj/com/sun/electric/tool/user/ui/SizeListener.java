@@ -349,9 +349,9 @@ public class SizeListener
 
 	public void mouseMoved(MouseEvent evt)
 	{
-//		farthestPoint = null;
-//		showHighlight(evt, (EditWindow)evt.getSource());
-//		farthestPoint = null;
+		farthestPoint = null;
+		showHighlight(evt, (EditWindow)evt.getSource());
+		farthestPoint = null;
 	}
 
 	public void mouseDragged(MouseEvent evt)
