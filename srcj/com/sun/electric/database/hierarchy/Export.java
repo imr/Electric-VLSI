@@ -149,18 +149,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	public static Export newInstance(Cell parent, PortInst portInst, String protoName, boolean createOnIcon)
 	{
         if (protoName == null) return null;
-		if (parent.findExport(protoName) != null)
-		{
-            String oldName = protoName;
-            protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class, false);
-            if (protoName == null) {
-                System.out.println(parent + " already has an export named " + oldName + ", export was not created");
-                return null;
-            }
-			System.out.println(parent + " already has an export named " + oldName +
-                    ", making new export named "+protoName);
-            assert(parent.findExport(protoName) == null);
-		}
+
         Name protoNameKey = ImmutableExport.validExportName(protoName);
         if (protoNameKey == null)
         {
@@ -173,6 +162,19 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	            return null;
             }
         }
+
+        if (parent.findExport(protoName) != null)
+		{
+            String oldName = protoName;
+            protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class, false);
+            if (protoName == null) {
+                System.out.println(parent + " already has an export named " + oldName + ", export was not created");
+                return null;
+            }
+			System.out.println(parent + " already has an export named " + oldName +
+                    ", making new export named "+protoName);
+            assert(parent.findExport(protoName) == null);
+		}
         PortProto originalProto = portInst.getPortProto();
         boolean alwaysDrawn = false;
         boolean bodyOnly = false;
