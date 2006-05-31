@@ -3689,19 +3689,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 				// add this signal in a new panel
 				panel = ww.makeNewPanel();
-				boolean isAnalog = false;
-				if (sSig instanceof AnalogSignal) isAnalog = true;
-				if (isAnalog)
-				{
-					AnalogSignal as = (AnalogSignal)sSig;
-					Rectangle2D rangeBounds = as.getBounds();
-					double lowValue = rangeBounds.getMinY();
-					double highValue = rangeBounds.getMaxY();
-					double range = highValue - lowValue;
-					if (range == 0) range = 2;
-					double rangeExtra = range / 10;
-					panel.setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
-				}
+				panel.fitToSignal(sSig);
 				WaveSignal wsig = new WaveSignal(panel, sSig);
 			}
 			ww.overall.validate();

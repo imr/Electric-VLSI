@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.waveform;
+import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.User;
 
@@ -31,6 +32,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -186,6 +188,11 @@ public class WaveSignal
 		panel.getSignalButtons().validate();
 		panel.getSignalButtons().repaint();
 		if (panel.getSignalButtonsPane() != null) panel.getSignalButtonsPane().validate();
+		if (sigNo == 0)
+		{
+			// first signal in the panel: resize to fit the data
+			panel.fitToSignal(sSig);
+		}
 		panel.repaintContents();
 		return wsig;
 	}

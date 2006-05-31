@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04p: *********************************
 
+IMP: (5/31/06, SMR) Adding an analog signal to an existing panel scales
+     the panel in Y (Bug #1079).
+
 ************************* Version 8.04o: *********************************
 
 BUG: (5/31/06, SMR) GDS input may crash (Bug #1081).

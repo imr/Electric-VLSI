@@ -732,6 +732,25 @@ public class Panel extends JPanel
 	public double getMaxXAxis() { return maxXPosition; }
 
 	/**
+	 * Method to make this Panel show a signal fully.
+	 * @param sSig the signal to show (must be analog)
+	 */
+	public void fitToSignal(Signal sSig)
+	{
+		if (sSig instanceof AnalogSignal)
+		{
+			AnalogSignal as = (AnalogSignal)sSig;
+			Rectangle2D rangeBounds = as.getBounds();
+			double lowValue = rangeBounds.getMinY();
+			double highValue = rangeBounds.getMaxY();
+			double range = highValue - lowValue;
+			if (range == 0) range = 2;
+			double rangeExtra = range / 10;
+			setYAxisRange(lowValue - rangeExtra, highValue + rangeExtra);
+		}
+	}
+
+	/**
 	 * Method to set the Y axis range in this panel.
 	 * @param low the low Y axis value.
 	 * @param high the high Y axis value.
