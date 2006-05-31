@@ -251,7 +251,11 @@ public class Analysis
      * @param i
      * @return
      */
-    public Object getSweep(int i) { return sweeps.get(i); }
+    public Object getSweep(int i)
+    {
+        if (sweeps.size() == 0) return null;
+        return sweeps.get(i);
+    }
 
 	/**
 	 * Method to compute the time and value bounds of this simulation data.
