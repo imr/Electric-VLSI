@@ -113,6 +113,7 @@ class ClientJobManager extends JobManager {
             }
         });
         
+        boolean firstSnapshot = false;
         for (;;) {
             try {
                 logger.logp(Level.FINEST, CLASS_NAME, "clientLoop", "readTag");
@@ -122,6 +123,13 @@ class ClientJobManager extends JobManager {
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot begin {0}", Integer.valueOf(clientFifo.numPut));
                         currentSnapshot = Snapshot.readSnapshot(reader, currentSnapshot);
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readSnapshot end");
+                        if (!firstSnapshot) {
+                            SwingUtilities.invokeLater(new SnapshotDatabaseChangeRun(clientSnapshot, currentSnapshot));
+                            if (Job.currentUI != null)
+                                Job.getExtendedUserInterface().showSnapshot(currentSnapshot, true);
+                            clientSnapshot = currentSnapshot;
+                            firstSnapshot = true;
+                        }
                         break;
                     case 2:
                         logger.logp(Level.FINER, CLASS_NAME, "clientLoop", "readResult begin {0}", Integer.valueOf(clientFifo.numPut));

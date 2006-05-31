@@ -280,6 +280,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
                 }
                break;
             case SERVER_DONE:
+                currentSnapshot = ejob.newSnapshot;
                 boolean removed;
                 if (oldState == EJob.State.WAITING) {
                     removed = waitingJobs.remove(ejob);
