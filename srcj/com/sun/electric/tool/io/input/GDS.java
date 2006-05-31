@@ -46,7 +46,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -369,23 +373,11 @@ public class GDS extends Input
         
         private void instantiate(Cell parent) {
         	String name = nodeName.toString();
-//            if (name != null && parent.findNode(name) != null) name = null;
-//            if (name != null)
-//            {
-//            	String error = Name.checkName(name);
-//            	if (error != null)
-//            	{
-//            		System.out.println("  Warning: Node name '" + name + "' in cell " + parent.describe(false) +
-//            			" is bad (" + error + ")...ignoring the name");
-//            		name = null;
-//            	}
-//            }
             NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, nodeName.toString(), 0);
+            if (ni == null) return;
             if (ni.getNameKey() != nodeName) {
                 System.out.println("GDS name " + name + " renamed to " + ni.getName());
-                
             }
-            if (ni == null) return;
             if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
                 ni.setExpanded();
             if (points != null)
@@ -447,7 +439,6 @@ public class GDS extends Input
 		{
 			Layer layer = it.next();
             String gdsName = foundry.getGDSLayer(layer);
-//			String gdsName = layer.getGDSLayer();
 			if (gdsName != null && gdsName.length() > 0)
 			{
 				GDSLayers gdsl = GDSLayers.parseLayerString(gdsName);
@@ -628,7 +619,7 @@ public class GDS extends Input
     				{
         				box = poly.getBounds2D();
     					Point2D ctr = new EPoint(box.getCenterX(), box.getCenterY());
-//    					NodeInst ni = NodeInst.makeInstance(pnp, ctr, box.getWidth(), box.getHeight(), theCell);
+
     					// store the trace information
     					Point2D [] pPoints = poly.getPoints();
     					EPoint [] points = new EPoint[pPoints.length];
@@ -638,12 +629,10 @@ public class GDS extends Input
     					}
 
     					// store the trace information
-//    					ni.newVar(NodeInst.TRACE, points);
                         theCell.makeInstance(pnp, ctr, Orientation.IDENT, box.getWidth(), box.getHeight(), points);
     				} else
     				{
     					Point2D ctr = new EPoint(box.getCenterX(), box.getCenterY());
-//   					NodeInst ni = NodeInst.makeInstance(pnp, ctr, box.getWidth(), box.getHeight(), theCell);
                         theCell.makeInstance(pnp, ctr, Orientation.IDENT, box.getWidth(), box.getHeight(), null);
     				}
     			}
@@ -772,7 +761,6 @@ public class GDS extends Input
 						(ir == (nRows-1) && ic == (nCols-1)))
 				{
 					Point2D loc = new Point2D.Double(ptX, ptY);
-//					new MakeInstance(theCell, (Cell)theNodeProto, loc, mX, mY, angle);
 					theCell.makeInstance((Cell)theNodeProto, loc, Orientation.fromJava(angle, mX, mY), 0, 0, null);
 				}
 
@@ -789,7 +777,6 @@ public class GDS extends Input
 	{
         Orientation orient = Orientation.fromC(angle, trans);
         AffineTransform xform = orient.pureRotate();
-//		AffineTransform xform = NodeInst.pureRotate(angle, trans);
 		xform.transform(delta, delta);
 	}
 
@@ -861,7 +848,6 @@ public class GDS extends Input
 			mY = true;
 			angle = (angle + 900) % 3600;
 		}
-//		new MakeInstance(theCell, (Cell)theNodeProto, loc, false, mY, angle);
 		theCell.makeInstance((Cell)theNodeProto, loc, Orientation.fromJava(angle, false, mY), 0, 0, null);
 	}
 
@@ -922,8 +908,6 @@ public class GDS extends Input
 					merge.addPolygon(layers[0].getLayer(), new Poly(ctr.getX(), ctr.getY(), sX, sY));
 				} else
 				{
-//                    NodeInst ni = NodeInst.makeInstance(layerNodeProto, ctr, sX, sY, theCell);
-//                    if (ni == null) handleError("Failed to create RECTANGLE");
                     theCell.makeInstance(layerNodeProto, ctr, Orientation.IDENT, sX, sY, null);
 				}
 			}
@@ -953,10 +937,6 @@ public class GDS extends Input
 					if (hy < theVertices[i].getY()) hy = theVertices[i].getY();
 				}
 
-				// now create the node
-//				NodeInst ni = NodeInst.makeInstance(layerNodeProto, new Point2D.Double((lx+hx)/2, (ly+hy)/2), hx-lx, hy-ly, theCell);
-//				if (ni == null) handleError("Failed to create POLYGON");
-
 				// store the trace information
 				double cx = (hx + lx) / 2;
 				double cy = (hy + ly) / 2;
@@ -966,8 +946,7 @@ public class GDS extends Input
 					points[i] = new EPoint(theVertices[i].getX() - cx, theVertices[i].getY() - cy);
 				}
 
-				// store the trace information
-//				ni.newVar(NodeInst.TRACE, points);
+				// now create the node
                 theCell.makeInstance(layerNodeProto, new EPoint((lx+hx)/2, (ly+hy)/2), Orientation.IDENT, hx-lx, hy-ly, points);
 			}
 
@@ -1093,9 +1072,6 @@ public class GDS extends Input
 						Rectangle2D polyBox = poly.getBox();
 						if (polyBox != null)
 						{
-//							NodeInst ni = NodeInst.makeInstance(layerNodeProto, new Point2D.Double(polyBox.getCenterX(), polyBox.getCenterY()),
-//								polyBox.getWidth(), polyBox.getHeight(), theCell);
-//							if (ni == null) handleError("Failed to create outline");
                             theCell.makeInstance(layerNodeProto, new EPoint(polyBox.getCenterX(), polyBox.getCenterY()), Orientation.IDENT,
                                     polyBox.getWidth(), polyBox.getHeight(), null);
 						} else
@@ -1103,9 +1079,6 @@ public class GDS extends Input
 							polyBox = poly.getBounds2D();
 							double cx = polyBox.getCenterX();
 							double cy = polyBox.getCenterY();
-//							NodeInst ni = NodeInst.makeInstance(layerNodeProto, new Point2D.Double(cx, cy),
-//								polyBox.getWidth(), polyBox.getHeight(), theCell);
-//							if (ni == null) handleError("Failed to create outline");
 
 							// store the trace information
 							Point2D [] polyPoints = poly.getPoints();
@@ -1116,7 +1089,6 @@ public class GDS extends Input
 							}
 
 							// store the trace information
-//							ni.newVar(NodeInst.TRACE, points);
                             theCell.makeInstance(layerNodeProto, new EPoint(cx, cy), Orientation.IDENT, polyBox.getWidth(), polyBox.getHeight(), points);
 						}
 					}
@@ -1162,9 +1134,8 @@ public class GDS extends Input
 		{
 		} else
 		{
-//			NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0], 0, 0, theCell);
-//			if (ni == null) handleError("Failed to create NODE");
-            theCell.makeInstance(layerNodeProto, theVertices[0], Orientation.IDENT, 0, 0, null);
+            theCell.makeInstance(layerNodeProto, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
+            	Orientation.IDENT, 0, 0, null);
 		}
 	}
 
@@ -1255,15 +1226,11 @@ public class GDS extends Input
 		if (layerIsPin)
 		{
 			NodeProto np = pinNodeProto;
-//			NodeInst ni = NodeInst.makeInstance(np, theVertices[0], np.getDefWidth(), np.getDefHeight(), theCell);
-//			if (ni == null) handleError("Could not create pin marker");
-//			if (ni.getNumPortInsts() > 0)
-//			{
-//				PortInst pi = ni.getPortInst(0);
-//				Export.newInstance(theCell, pi, charstring);
-//			}
             if (np.getNumPorts() > 0)
-                theCell.makeExport(np, theVertices[0], Orientation.IDENT, np.getDefWidth(), np.getDefHeight(), charstring);
+            {
+                theCell.makeExport(np, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
+                	Orientation.IDENT, np.getDefWidth(), np.getDefHeight(), charstring);
+            }
 			return;
 		}
 
@@ -1275,13 +1242,9 @@ public class GDS extends Input
 
 		// create a holding node
         Orientation orient = Orientation.fromAngle(angle);
-//		NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0],
-//			0, 0, theCell, orient, charstring, 0);
-//		if (ni == null) handleError("Could not create text marker");
 
 		// set the text size and orientation
 		MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-//		MutableTextDescriptor td = ni.getMutableTextDescriptor(NodeInst.NODE_NAME);
 		double size = scale;
 		if (size <= 0) size = 2;
 		if (size > TextDescriptor.Size.TXTMAXQGRID) size = TextDescriptor.Size.TXTMAXQGRID;
@@ -1317,8 +1280,8 @@ public class GDS extends Input
 					default: td.setPos(TextDescriptor.Position.CENT);  break;
 				}
 		}
-//		ni.setTextDescriptor(NodeInst.NODE_NAME, TextDescriptor.newTextDescriptor(td));
-        theCell.makeText(layerNodeProto, theVertices[0], charstring, TextDescriptor.newTextDescriptor(td));
+        theCell.makeText(layerNodeProto, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
+        	charstring, TextDescriptor.newTextDescriptor(td));
 	}
 
 	/**
@@ -1341,9 +1304,8 @@ public class GDS extends Input
 			{
 			} else
 			{
-//				NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0], 0, 0, theCell);
-//				if (ni == null) handleError("Failed to create box");
-                theCell.makeInstance(layerNodeProto, theVertices[0], Orientation.IDENT, 0, 0, null);
+                theCell.makeInstance(layerNodeProto, new Point2D.Double(theVertices[0].getX(), theVertices[0].getY()),
+                	Orientation.IDENT, 0, 0, null);
 			}
 		}
 	}
