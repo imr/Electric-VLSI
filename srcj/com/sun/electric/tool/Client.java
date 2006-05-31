@@ -198,7 +198,7 @@ public abstract class Client {
         }
         
         void dispatchOnStreamClient(StreamClient client) throws IOException {
-            if (client == this.client) // What about protocol logs ?
+//            if (client == this.client) // What about protocol logs ?
                 client.writeString(s);
         }
     }
