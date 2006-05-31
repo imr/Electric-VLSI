@@ -39,7 +39,6 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -61,7 +60,6 @@ import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.EventListener;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JButton;
