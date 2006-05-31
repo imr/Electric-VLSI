@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04p: *********************************
+
 ************************* Version 8.04o: *********************************
 
 BUG: (5/30/06, GVG) Size interactively does not show preview highlight (Bug #1075).
