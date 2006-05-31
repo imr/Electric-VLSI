@@ -36,7 +36,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.UserInterfaceMain;
-import com.sun.electric.tool.user.menus.EMenuBar.Instance;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -44,13 +43,23 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.swing.*;
+
+import javax.swing.ActionMap;
+import javax.swing.DefaultListModel;
+import javax.swing.InputMap;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 
 /**
@@ -106,9 +115,9 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		list = new JList(model);
 		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		objectPane.setViewportView(list);
-		list.addMouseListener(new java.awt.event.MouseAdapter()
+		list.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(java.awt.event.MouseEvent evt) { listClicked(); }
+			public void mouseClicked(MouseEvent evt) { listClicked(); }
 		});
 
 		done.addActionListener(new ActionListener()
@@ -132,6 +141,8 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		{
 			public void actionPerformed(ActionEvent evt) { buttonClicked(null); }
 		});
+
+		searchText.getDocument().addDocumentListener(new SelecdtObjectDocumentListener(this));
 
 		// special case for this dialog: allow Electric quick-keys to pass-through
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
@@ -299,6 +310,39 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		{
 			model.addElement(s);
 		}
+	}
+
+	private void searchTextChanged()
+	{
+		String currentSearchText = searchText.getText();
+		if (currentSearchText.length() == 0) return;
+		for(int i=0; i<model.size(); i++)
+		{
+			String s = (String)model.get(i);
+			if (s.startsWith(currentSearchText))
+			{
+				list.setSelectedIndex(i);
+				list.ensureIndexIsVisible(i);
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Class to handle changes to the search text field.
+	 */
+	private static class SelecdtObjectDocumentListener implements DocumentListener
+	{
+		SelectObject dialog;
+
+		SelecdtObjectDocumentListener(SelectObject dialog)
+		{
+			this.dialog = dialog;
+		}
+
+		public void changedUpdate(DocumentEvent e) { dialog.searchTextChanged(); }
+		public void insertUpdate(DocumentEvent e) { dialog.searchTextChanged(); }
+		public void removeUpdate(DocumentEvent e) { dialog.searchTextChanged(); }
 	}
 
 	/** This method is called from within the constructor to
