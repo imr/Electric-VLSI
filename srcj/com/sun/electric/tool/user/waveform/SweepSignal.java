@@ -59,14 +59,17 @@ public class SweepSignal
 		return name;
 	}
 
-	public void setIncluded(boolean included)
+	public void setIncluded(boolean included, boolean update)
 	{
 		if (this.included == included) return;
 		this.included = included;
-		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
+		if (update)
 		{
-			Panel wp = (Panel)it.next();
-			wp.repaintWithRulers();
+			for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				wp.repaintWithRulers();
+			}
 		}
 	}
 

@@ -1299,9 +1299,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
     public void setIncludeInAllSweeps(boolean include)
     {
-        for(SweepSignal ss : sweepSignals)
-        {
-            ss.setIncluded(include);
+    	for(int i=0; i<sweepSignals.size(); i++)
+    	{
+    		SweepSignal ss = sweepSignals.get(i);
+    		boolean update = (i == sweepSignals.size()-1);
+            ss.setIncluded(include, update);
         }
     }
 //	public List<SweepSignal> getSweepSignals() { return sweepSignals; }

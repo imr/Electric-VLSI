@@ -833,7 +833,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					{
 						SweepSignal ss = (SweepSignal)getCurrentlySelectedObject(i);
 						if (ss == null) return;
-						ss.setIncluded(!ss.isIncluded());
+						ss.setIncluded(!ss.isIncluded(), true);
 						didSomething = true;
 					}
 				}
@@ -1714,7 +1714,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			{
 				SweepSignal ss = (SweepSignal)getCurrentlySelectedObject(i);
 				if (ss == null) continue;
-				ss.setIncluded(include);
+				boolean update = (i == numCurrentlySelectedObjects()-1);
+				ss.setIncluded(include, update);
 			}
 			updateUI();
 		}
