@@ -197,10 +197,6 @@ class PixelDrawing_
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
     private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;
 
-    private static final boolean DEBUGRENDERTIMING = false;
-    private static long renderTextTime;
-    private static long renderPolyTime;
-
     private static class ExpandedCellKey {
         private Cell cell;
         private Orientation orient;
@@ -296,12 +292,9 @@ class PixelDrawing_
     /** Set of changed cells. */                            private static final HashSet<CellId> changedCells = new HashSet<CellId>();
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
-	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     private static Color textColor;
 	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
@@ -470,7 +463,7 @@ class PixelDrawing_
 	 */
 	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds)
 	{
-		long startTime = 0;
+		long startTime = 0, clearTime = 0, countTime = 0, drawTime = 0;
 		long initialUsed = 0;
 		if (TAKE_STATS)
 		{
@@ -501,7 +494,6 @@ class PixelDrawing_
 		// set colors to use
         textColor = new Color(User.getColorText());
 		textGraphics.setColor(textColor);
-		gridGraphics.setColor(new Color(User.getColorGrid()));
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
 		
 		// initialize the cache of expanded cell displays
@@ -563,12 +555,15 @@ class PixelDrawing_
         numberToReconcile = SINGLETONSTOADD;
         for(ExpandedCellInfo count : expandedCells.values())
             count.instanceCount = 0;
+        if (TAKE_STATS) clearTime = System.currentTimeMillis();
         
         // determine which cells should be cached (must have at least 2 instances)
         countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
+        if (TAKE_STATS) countTime = System.currentTimeMillis();
         
         // now render it all
         drawCell_(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
+        if (TAKE_STATS) drawTime = System.currentTimeMillis();
 
 		// merge transparent image into opaque one
 		synchronized(img)
@@ -580,12 +575,13 @@ class PixelDrawing_
 			composite(renderBounds);
 		};
 
-		if (TAKE_STATS && User.isUseOlderDisplayAlgorithm())
+		if (TAKE_STATS)
 		{
 			long endTime = System.currentTimeMillis();
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			long memConsumed = curUsed - initialUsed;
-			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime)+
+			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime) +
+                "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (drawTime-countTime) + "+" + (endTime - drawTime) + ")"+
 				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) cached cells, created "+
 				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
@@ -922,7 +918,15 @@ class PixelDrawing_
 					int boxHX = x+2;   if (boxHX >= sz.width) boxHX = sz.width-1;
 					int boxLY = y-2;   if (boxLY < 0) boxLY = 0;
 					int boxHY = y+2;   if (boxHY >= sz.height) boxHY = sz.height-1;
-					drawBox(boxLX, boxHX, boxLY, boxHY, null, gridGraphics, false);
+                    
+                    // draw box  in opaque area
+                    for(int yg=boxLY; yg<=boxHY; yg++) {
+                        int baseIndex = yg * sz.width;
+                        for(int xg=boxLX; xg<=boxHX; xg++)
+                            opaqueData[baseIndex + xg] = col;
+                        baseIndex += sz.width;
+                    }
+                    
 					if (x > 1) opaqueData[y * sz.width + (x-2)] = col;
 					if (x < sz.width-2) opaqueData[y * sz.width + (x+2)] = col;
 					if (y > 1) opaqueData[(y-2) * sz.width + x] = col;
@@ -948,10 +952,18 @@ class PixelDrawing_
 		if (User.isGridAxesShown())
 		{
 			Point xy = wnd.databaseToScreen(0, 0);
-			if (xy.x >= 0 && xy.x < sz.width)
-				drawSolidLine(xy.x, 0, xy.x, sz.height-1, null, col);
-			if (xy.y >= 0 && xy.y < sz.height)
-				drawSolidLine(0, xy.y, sz.width-1, xy.y, null, col);
+			if (xy.x >= 0 && xy.x < sz.width) {
+                int baseIndex = xy.x;
+                for (int y = 0; y < sz.height; y++) {
+                    opaqueData[baseIndex] = col;
+                    baseIndex += sz.width;
+                }
+            }
+			if (xy.y >= 0 && xy.y < sz.height) {
+                int baseIndex = xy.y * sz.width;
+                for (int x = 0; x < sz.width; x++)
+                    opaqueData[baseIndex + x] = col;
+            }
 		}
 	}
 
@@ -999,8 +1011,6 @@ class PixelDrawing_
 	private void drawCell_(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, int oX, int oY, boolean topLevel, VarContext context)
 	{
 		renderedCells++;
-        renderPolyTime = 0;
-        renderTextTime = 0;
 
         VectorCache.VectorCell vc = VectorCache.theCache.drawCell(cell, orient, context, scale);
         
@@ -1069,13 +1079,15 @@ class PixelDrawing_
                 int p4x = op[6] + soX;
                 int p4y = op[7] + soY;
                 gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
-				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+                OpaqueRaster.current.init(opaqueData, sz.width, instanceGraphics.getRGB() & 0xffffff);
+                ERaster instanceRaster = OpaqueRaster.current;
+				drawLine(tempPt1, tempPt2, 0, instanceRaster);
 				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
-				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				drawLine(tempPt1, tempPt2, 0, instanceRaster);
 				gridToScreen(p3x, p3y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
-				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				drawLine(tempPt1, tempPt2, 0, instanceRaster);
 				gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p4x, p4y, tempPt2);
-				drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
+				drawLine(tempPt1, tempPt2, 0, instanceRaster);
 
 				// draw the instance name
 				if (canDrawText && User.isTextVisibilityOnInstance())
@@ -1083,7 +1095,7 @@ class PixelDrawing_
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
 					NodeProto np = vsc.ni.getProto();
-					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
+					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textGraphics, false);
 				}
 			}
 			if (canDrawText) drawPortList(vsc, subVC, soX, soY, vsc.ni.isExpanded());
@@ -1096,11 +1108,6 @@ class PixelDrawing_
 		// show cell variables if at the top level
         if (canDrawText && topLevel)
             drawList(oX, oY, vc.topOnlyShapes);
-
-        if (DEBUGRENDERTIMING) {
-            System.out.println("Total time to render polys: "+TextUtils.getElapsedTime(renderPolyTime));
-            System.out.println("Total time to render text: "+TextUtils.getElapsedTime(renderTextTime));
-        }
 	}
     
 	/**
@@ -1175,199 +1182,6 @@ class PixelDrawing_
 		offscreensUsed++;
         offscreenPixelsUsed += expandedCellCount.offscreen.total;
 		return true;
-	}
-
-	/**
-	 * Method to render an ArcInst into the offscreen image.
-	 * @param ai the ArcInst to draw.
-     * @param trans the transformation of the ArcInst to the display.
-     * @param forceVisible true to ignore layer visibility and draw all layers.
-     */
-	public void drawArc(ArcInst ai, AffineTransform trans, boolean forceVisible)
-	{
-		// if the arc is tiny, just approximate it with a single dot
-		Rectangle2D arcBounds = ai.getBounds();
-        double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
-		totalArcs++;
-		if (!forceVisible)
-		{
-			if (arcSize < maxObjectSize)
-			{
-				tinyArcs++;
-				return;
-			}
-			if (ai.getWidth() > 0)
-			{
-				arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
-				if (arcSize < maxObjectSize)
-				{
-					linedArcs++;
-	
-					// draw a tiny arc by setting a single dot from each layer
-					Point2D headEnd = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
-					trans.transform(headEnd, headEnd);
-					databaseToScreen(headEnd.getX(), headEnd.getY(), tempPt1);
-					Point2D tailEnd = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());
-					trans.transform(tailEnd, tailEnd);
-					databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
-					ArcProto prim = ai.getProto();
-					drawTinyArc(prim.getLayerIterator(), tempPt1, tempPt2);
-					return;
-				}
-			}
-		}
-
-        // see if the arc is completely clipped from the screen
-        Rectangle2D dbBounds = new Rectangle2D.Double(arcBounds.getX(), arcBounds.getY(), arcBounds.getWidth(), arcBounds.getHeight());
-        Poly p = new Poly(dbBounds);
-        p.transform(trans);
-        dbBounds = p.getBounds2D();
-        if (drawBounds != null && !GenMath.rectsIntersect(drawBounds, dbBounds)) return;
-
-		// draw the arc
-		ArcProto ap = ai.getProto();
-		Technology tech = ap.getTechnology();
-		EditWindow0 arcWnd = dummyWnd;
-		if (!canDrawText || !User.isTextVisibilityOnArc()) arcWnd = null;
-		Poly [] polys = tech.getShapeOfArc(ai, arcWnd);
-		drawPolys(polys, trans, forceVisible);
-	}
-
-	private void showCellPorts(NodeInst ni, AffineTransform trans, Color col)
-	{
-		// show the ports that are not further exported or connected
-		int numPorts = ni.getProto().getNumPorts();
-		boolean[] shownPorts = new boolean[numPorts];
-		for(Iterator<Connection> it = ni.getConnections(); it.hasNext();)
-		{
-			Connection con = it.next();
-			PortInst pi = con.getPortInst();
-			shownPorts[pi.getPortIndex()] = true;
-		}
-		for(Iterator<Export> it = ni.getExports(); it.hasNext();)
-		{
-			Export exp = it.next();
-			PortInst pi = exp.getOriginalPort();
-			shownPorts[pi.getPortIndex()] = true;
-		}
-		int portDisplayLevel = User.getPortDisplayLevel();
-		for(int i = 0; i < numPorts; i++)
-		{
-			if (shownPorts[i]) continue;
-			Export pp = (Export)ni.getProto().getPort(i);
-
-			Poly portPoly = ni.getShapeOfPort(pp);
-			if (portPoly == null) continue;
-			portPoly.transform(trans);
-			Color portColor = col;
-			if (portColor == null) portColor = pp.getBasePort().getPortColor();
-			portGraphics.setColor(portColor);
-			if (portDisplayLevel == 2)
-			{
-				// draw port as a cross
-				drawCross(portPoly, portGraphics, false);
-			} else
-			{
-				// draw port as text
-				if (User.isTextVisibilityOnPort())
-				{
-					// combine all features of port text with color of the port
-					TextDescriptor descript = portPoly.getTextDescriptor();
-					TextDescriptor portDescript = pp.getTextDescriptor(Export.EXPORT_NAME).withColorIndex(descript.getColorIndex());
-					Poly.Type type = descript.getPos().getPolyType();
-					String portName = pp.getName();
-					if (portDisplayLevel == 1)
-					{
-						// use shorter port name
-						portName = pp.getShortName();
-					}
-					databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY(), tempPt1);
-					Rectangle rect = new Rectangle(tempPt1);
-					drawText(rect, type, portDescript, portName, null, portGraphics, false);
-				}
-			}
-		}
-	}
-
-	private void drawUnexpandedCell(NodeInst ni, Poly poly)
-	{
-		// draw the instance outline
-		Point2D [] points = poly.getPoints();
-		for(int i=0; i<points.length; i++)
-		{
-			int lastI = i - 1;
-			if (lastI < 0) lastI = points.length - 1;
-			Point2D lastPt = points[lastI];
-			Point2D thisPt = points[i];
-			databaseToScreen(lastPt.getX(), lastPt.getY(), tempPt1);
-			databaseToScreen(thisPt.getX(), thisPt.getY(), tempPt2);
-			drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
-		}
-
-		// draw the instance name
-		if (canDrawText && User.isTextVisibilityOnInstance())
-		{
-			Rectangle2D bounds = poly.getBounds2D();
-			Rectangle rect = databaseToScreen(bounds);
-			TextDescriptor descript = ni.getTextDescriptor(NodeInst.NODE_PROTO);
-			NodeProto np = ni.getProto();
-			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
-		}
-	}
-
-	private void drawTinyLayers(Iterator<Layer> layerIterator, int x, int y)
-	{
-		for(Iterator<Layer> it = layerIterator; it.hasNext(); )
-		{
-			Layer layer = it.next();
-			if (layer == null) continue;
-			byte [][] layerBitMap = null;
-			int col = 0;
-			EGraphics graphics = layer.getGraphics();
-			if (graphics != null)
-			{
-				if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
-				{
-					int [] pattern = graphics.getPattern();
-					if (pattern != null)
-					{
-						int pat = pattern[y&15];
-						if (pat == 0 || (pat & (0x8000 >> (x&15))) == 0) continue;
-					}
-				}
-				int layerNum = graphics.getTransparentLayer() - 1;
-				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
-				col = graphics.getRGB();
-			}
-
-			// set the bit
-			if (layerBitMap == null)
-			{
-				int index = y * sz.width + x;
-				int alpha = (opaqueData[index] >> 24) & 0xFF;
-				if (alpha == 0xFF) opaqueData[index] = col;
-			} else
-			{
-				layerBitMap[y][x>>3] |= (1 << (x&7));
-			}
-		}
-	}
-
-	private void drawTinyArc(Iterator<Layer> layerIterator, Point head, Point tail)
-	{
-		for(Iterator<Layer> it = layerIterator; it.hasNext(); )
-		{
-			Layer layer = it.next();
-			if (layer == null) continue;
-			EGraphics graphics = layer.getGraphics();
-			byte [][] layerBitMap = null;
-			if (graphics != null)
-			{
-				int layerNum = graphics.getTransparentLayer() - 1;
-				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
-			}
-			drawLine(head, tail, layerBitMap, graphics, 0, layer.isDimmed());
-		}
 	}
 
 	// ************************************* CELL CACHING *************************************
@@ -1757,6 +1571,30 @@ class PixelDrawing_
         }
     }
     
+    ERaster getDrawRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
+        boolean dimmed = false;
+        if (layer != null) {
+            if (!forceVisible && !layer.isVisible()) return null;
+            graphics = layer.getGraphics();
+            dimmed = layer.isDimmed();
+        }
+        
+		byte [][] layerBitMap = null;
+        assert graphics != null;
+		int layerNum = graphics.getTransparentLayer() - 1;
+		if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
+
+        ERaster raster;
+        if (layerBitMap != null) {
+            TransparentRaster.current.init(layerBitMap);
+            return TransparentRaster.current;
+        } else {
+    		int col = getTheColor(graphics, dimmed);
+            OpaqueRaster.current.init(opaqueData, sz.width, col);
+            return OpaqueRaster.current;
+        }
+    }
+    
     /**
      * ERaster for solid opaque layers.
      */
@@ -2049,7 +1887,7 @@ class PixelDrawing_
     
 	// ************************************* RENDERING POLY SHAPES *************************************
 
-    private static int boxCount, tinyBoxCount, lineBoxCount, lineCount, polygonCount, crossCount, circleCount, arcCount, textCount;
+    private static int boxCount, tinyBoxCount, lineBoxCount, lineCount, polygonCount, crossCount, circleCount, discCount, arcCount, textCount;
     private static Rectangle tempRect = new Rectangle();
     private void gridToScreen(int dbX, int dbY, Point result) {
         double scrX = (dbX - factorX) * scale_;
@@ -2074,201 +1912,151 @@ class PixelDrawing_
 //			if (stopRendering) throw new AbortRenderingException();
 			// handle refreshing
 			periodicRefresh();
-
-			// get visual characteristics of shape
-			Layer layer = vb.layer;
-			boolean dimmed = false;
-			if (layer != null)
-			{
-				if (!vb.layer.isVisible()) continue;
-				dimmed = layer.isDimmed();
-			}
-			byte [][] layerBitMap = null;
-			EGraphics graphics = vb.graphics;
-			if (graphics != null)
-			{
-				int layerNum = graphics.getTransparentLayer() - 1;
-				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
-			}
             
-            // only do this for lower-level (cached cells)
-            if (!renderedWindow) {
-                // for fills, handle patterned opaque layers specially
-                if (vb instanceof VectorCache.VectorManhattan ||
-                        vb instanceof VectorCache.VectorPolygon ||
-                        vb instanceof VectorCache.VectorCircle && ((VectorCache.VectorCircle)vb).nature == 2) {
-                    // see if it is opaque
-                    if (layerBitMap == null) {
-                        // see if it is patterned
-                        if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay()) {
-                            PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
-                            if (pol == null) {
-                                pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
-                                patternedOpaqueLayers.put(layer, pol);
-                            }
-                            layerBitMap = pol.layerBitMap;
-                            graphics = null;
-                        }
+            if (vb.isFilled()) {
+                ERaster raster = getFillRaster(vb.layer, vb.graphics, false);
+                if (raster == null) continue;
+                
+                // handle each shape
+                if (vb instanceof VectorCache.VectorManhattan) {
+                    boxCount++;
+                    VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
+                    for (int i = 0; i < vm.coords.length; i += 4) {
+                        int c1X = vm.coords[i];
+                        int c1Y = vm.coords[i+1];
+                        int c2X = vm.coords[i+2];
+                        int c2Y = vm.coords[i+3];
+                        
+                        // determine coordinates of rectangle on the screen
+                        gridToScreen(c1X+oX, c2Y+oY, tempPt1);
+                        gridToScreen(c2X+oX, c1Y+oY, tempPt2);
+                        int lX = tempPt1.x;
+                        int lY = tempPt1.y;
+                        int hX = tempPt2.x;
+                        int hY = tempPt2.y;
+                        
+                        drawBox(lX, hX, lY, hY, raster);
                     }
+                } else if (vb instanceof VectorCache.VectorPolygon) {
+                    polygonCount++;
+                    VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
+                    Point [] intPoints = new Point[vp.points.length];
+                    for(int i=0; i<vp.points.length; i++) {
+                        intPoints[i] = new Point();
+                        gridToScreen(vp.points[i].x+oX, vp.points[i].y+oY, intPoints[i]);
+                    }
+                    Point [] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
+                    drawPolygon(clippedPoints, raster);
+                } else if (vb instanceof VectorCache.VectorCircle) {
+                    discCount++;
+                    VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
+                    gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+                    gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+                    assert vci.nature == 2;
+                    drawDisc(tempPt1, tempPt2, raster);
                 }
-            }
-
-			// handle each shape
-			if (vb instanceof VectorCache.VectorManhattan)
-			{
-				boxCount++;
-				VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
-                ERaster raster = getFillRaster(vm.layer, vm.graphics, false);
-                for (int i = 0; i < vm.coords.length; i += 4) {
-                    int c1X = vm.coords[i];
-                    int c1Y = vm.coords[i+1];
-                    int c2X = vm.coords[i+2];
-                    int c2Y = vm.coords[i+3];
-
-                    // determine coordinates of rectangle on the screen
-                    gridToScreen(c1X+oX, c2Y+oY, tempPt1);
-                    gridToScreen(c2X+oX, c1Y+oY, tempPt2);
-                    int lX = tempPt1.x;
-                    int lY = tempPt1.y;
-                    int hX = tempPt2.x;
-                    int hY = tempPt2.y;
-                    
-                    drawBox(lX, hX, lY, hY, raster);
-
-//                    // reject if completely off the screen
-//                    if (hX < clipLX || lX >= clipHX) continue;
-//                    if (hY < clipLY || lY >= clipHY) continue;
-//
-//                    // clip to screen
-//                    if (lX < clipLX) lX = clipLX;
-//                    if (hX > clipHX) hX = clipHX;
-//                    if (lY < clipLY) lY = clipLY;
-//                    if (hY > clipHY) hY = clipHY;
-//
-//                    // draw the box
-//                    drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);
-                }
-            } else if (vb instanceof VectorCache.VectorLine)
-			{
-				lineCount++;
-				VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
-
-				// determine coordinates of line on the screen
-				gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
-				gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
-
-				// clip and draw the line
-				drawLine(tempPt1, tempPt2, layerBitMap, graphics, vl.texture, dimmed);
-			} else if (vb instanceof VectorCache.VectorPolygon)
-			{
-				polygonCount++;
-				VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
-				Point [] intPoints = new Point[vp.points.length];
-				for(int i=0; i<vp.points.length; i++)
-				{
-	                intPoints[i] = new Point();
-					gridToScreen(vp.points[i].x+oX, vp.points[i].y+oY, intPoints[i]);
-	            }
-				Point [] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
-				drawPolygon(clippedPoints, layerBitMap, graphics, dimmed);
-			} else if (vb instanceof VectorCache.VectorCross)
-			{
-				crossCount++;
-				VectorCache.VectorCross vcr = (VectorCache.VectorCross)vb;
-				gridToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
-				int size = 5;
-				if (vcr.small) size = 3;
-				drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
-				drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), null, graphics, 0, dimmed);
-			} else if (vb instanceof VectorCache.VectorText)
-			{
+            } else if (vb instanceof VectorCache.VectorText) {
                 if (!canDrawText) continue;
-				VectorCache.VectorText vt = (VectorCache.VectorText)vb;
-				switch (vt.textType)
-				{
-					case VectorCache.VectorText.TEXTTYPEARC:
-						if (!User.isTextVisibilityOnArc()) continue;
-						break;
-					case VectorCache.VectorText.TEXTTYPENODE:
-						if (!User.isTextVisibilityOnNode()) continue;
-						break;
-					case VectorCache.VectorText.TEXTTYPECELL:
-						if (!User.isTextVisibilityOnCell()) continue;
-						break;
-					case VectorCache.VectorText.TEXTTYPEEXPORT:
-						if (!User.isTextVisibilityOnExport()) continue;
-						break;
-					case VectorCache.VectorText.TEXTTYPEANNOTATION:
-						if (!User.isTextVisibilityOnAnnotation()) continue;
-						break;
-					case VectorCache.VectorText.TEXTTYPEINSTANCE:
-						if (!User.isTextVisibilityOnInstance()) continue;
-						break;
-					case VectorCache.VectorText.TEXTTYPEPORT:
+                VectorCache.VectorText vt = (VectorCache.VectorText)vb;
+                switch (vt.textType) {
+                    case VectorCache.VectorText.TEXTTYPEARC:
+                        if (!User.isTextVisibilityOnArc()) continue;
+                        break;
+                    case VectorCache.VectorText.TEXTTYPENODE:
+                        if (!User.isTextVisibilityOnNode()) continue;
+                        break;
+                    case VectorCache.VectorText.TEXTTYPECELL:
+                        if (!User.isTextVisibilityOnCell()) continue;
+                        break;
+                    case VectorCache.VectorText.TEXTTYPEEXPORT:
+                        if (!User.isTextVisibilityOnExport()) continue;
+                        break;
+                    case VectorCache.VectorText.TEXTTYPEANNOTATION:
+                        if (!User.isTextVisibilityOnAnnotation()) continue;
+                        break;
+                    case VectorCache.VectorText.TEXTTYPEINSTANCE:
+                        if (!User.isTextVisibilityOnInstance()) continue;
+                        break;
+                    case VectorCache.VectorText.TEXTTYPEPORT:
                         assert false;
-						if (!User.isTextVisibilityOnPort()) continue;
-						break;
-				}
+                        if (!User.isTextVisibilityOnPort()) continue;
+                        break;
+                }
 //				if (vt.height < maxTextSize) continue;
-
-				String drawString = vt.str;
+                
+                String drawString = vt.str;
                 int lX = vt.bounds.x;
                 int lY = vt.bounds.y;
                 int hX = lX + vt.bounds.width;
                 int hY = lY + vt.bounds.height;
-				gridToScreen(lX + oX, hY + oY, tempPt1);
-				gridToScreen(hX + oX, lY + oY, tempPt2);
+                gridToScreen(lX + oX, hY + oY, tempPt1);
+                gridToScreen(hX + oX, lY + oY, tempPt2);
                 lX = tempPt1.x;
                 lY = tempPt1.y;
                 hX = tempPt2.x;
                 hY = tempPt2.y;
                 
-                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null)
-				{
-					int exportDisplayLevel = User.getExportDisplayLevel();
-					if (exportDisplayLevel == 2)
-					{
-						// draw export as a cross
-						int cX = (lX + hX) / 2;
-						int cY = (lY + hY) / 2;
-						int size = 3;
-						drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, textGraphics, 0, false);
-						drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, textGraphics, 0, false);
-						crossCount++;
-						continue;
-					}
-
-					// draw export as text
-					if (exportDisplayLevel == 1) drawString = vt.e.getShortName(); else
-						drawString = vt.e.getName();
-					graphics = textGraphics;
-					layerBitMap = null;
-				}
-
-				textCount++;
-				tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-				drawText(tempRect, vt.style, vt.descript, drawString, layerBitMap, graphics, dimmed);
-			} else if (vb instanceof VectorCache.VectorCircle)
-			{
-				circleCount++;
-				VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
-				gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
-				gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
-				switch (vci.nature)
-				{
-					case 0: drawCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);        break;
-					case 1: drawThickCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);   break;
-					case 2: drawDisc(tempPt1, tempPt2, layerBitMap, graphics, dimmed);          break;
-				}
-			} else if (vb instanceof VectorCache.VectorCircleArc)
-			{
-				arcCount++;
-				VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
-				gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
-				gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
-				gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
-				drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, layerBitMap, graphics, dimmed);
-			}
+                EGraphics graphics = vt.graphics;
+                boolean dimmed = vt.layer != null && vt.layer.isDimmed();
+                if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null) {
+                    int exportDisplayLevel = User.getExportDisplayLevel();
+                    if (exportDisplayLevel == 2) {
+                        // draw export as a cross
+                        int cX = (lX + hX) / 2;
+                        int cY = (lY + hY) / 2;
+                        drawCross(cX, cY, 3, textGraphics, false);
+                        crossCount++;
+                        continue;
+                    }
+                    
+                    // draw export as text
+                    if (exportDisplayLevel == 1) drawString = vt.e.getShortName(); else
+                        drawString = vt.e.getName();
+                    graphics = textGraphics;
+                }
+                
+                textCount++;
+                tempRect.setBounds(lX, lY, hX-lX, hY-lY);
+                drawText(tempRect, vt.style, vt.descript, drawString, graphics, dimmed);
+                
+            } else {
+                ERaster raster = getDrawRaster(vb.layer, vb.graphics, false);
+                if (raster == null) continue;
+                
+                if (vb instanceof VectorCache.VectorLine) {
+                    lineCount++;
+                    VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
+                    
+                    // determine coordinates of line on the screen
+                    gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
+                    gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
+                    
+                    // clip and draw the line
+                    drawLine(tempPt1, tempPt2, vl.texture, raster);
+                } else if (vb instanceof VectorCache.VectorCross) {
+                    crossCount++;
+                    VectorCache.VectorCross vcr = (VectorCache.VectorCross)vb;
+                    gridToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
+                    int size = vcr.small ? 3 : 5;
+                    drawCross(tempPt1.x, tempPt1.y, size, raster);
+                } else if (vb instanceof VectorCache.VectorCircle) {
+                    circleCount++;
+                    VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
+                    gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+                    gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+                    switch (vci.nature) {
+                        case 0: drawCircle(tempPt1, tempPt2, raster);        break;
+                        case 1: drawThickCircle(tempPt1, tempPt2, raster);   break;
+                    }
+                } else if (vb instanceof VectorCache.VectorCircleArc) {
+                    arcCount++;
+                    VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
+                    gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
+                    gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
+                    gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
+                    drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, raster);
+                }
+            }
 		}
 	}
 
@@ -2313,9 +2101,7 @@ class PixelDrawing_
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
-				int size = 3;
-				drawLine(new Point(cX-size, cY), new Point(cX+size, cY), null, portGraphics, 0, false);
-				drawLine(new Point(cX, cY-size), new Point(cX, cY+size), null, portGraphics, 0, false);
+                drawCross(cX, cY, 3, portGraphics, false);
 				crossCount++;
 				continue;
 			}
@@ -2328,48 +2114,7 @@ class PixelDrawing_
             
 			textCount++;
 			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-			drawText(tempRect, vt.style, vt.descript, drawString, null, portGraphics, false);
-		}
-	}
-
-	/**
-	 * Method to draw polygon "poly", transformed through "trans".
-	 */
-	private void drawPolys(Poly[] polys, AffineTransform trans, boolean forceVisible)
-	{
-		if (polys == null) return;
-		for(int i = 0; i < polys.length; i++)
-		{
-			// get the polygon and transform it
-			Poly poly = polys[i];
-			if (poly == null) continue;
-			Layer layer = poly.getLayer();
-			EGraphics graphics = null;
-			boolean dimmed = false;
-			if (layer != null)
-			{
-				if (!forceVisible && !layer.isVisible()) continue;
-				graphics = layer.getGraphics();
-				dimmed = layer.isDimmed();
-			}
-
-			// transform the bounds
-			poly.transform(trans);
-//			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
-
-			// render the polygon
-			if (DEBUGRENDERTIMING)
-			{
-	            long startTime = System.currentTimeMillis();
-				renderPoly(poly, graphics, dimmed);
-	            renderPolyTime += (System.currentTimeMillis() - startTime);
-			} else
-			{
-				renderPoly(poly, graphics, dimmed);
-			}
-
-			// handle refreshing
-			periodicRefresh();
+			drawText(tempRect, vt.style, vt.descript, drawString, portGraphics, false);
 		}
 	}
 
@@ -2396,196 +2141,6 @@ class PixelDrawing_
         
     }
     
-	/**
-	 * Render a Poly to the offscreen buffer.
-	 */
-	private void renderPoly(Poly poly, EGraphics graphics, boolean dimmed)
-	{
-		byte [][] layerBitMap = null;
-		if (graphics != null)
-		{
-			int layerNum = graphics.getTransparentLayer() - 1;
-			if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
-		}
-		Poly.Type style = poly.getStyle();
-
-		// only do this for lower-level (cached cells)
-		if (!renderedWindow)
-		{
-			// for fills, handle patterned opaque layers specially
-			if (style == Poly.Type.FILLED || style == Poly.Type.DISC)
-			{
-				// see if it is opaque
-				if (layerBitMap == null)
-				{
-					// see if it is patterned
-					if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
-					{
-						Layer layer = poly.getLayer();
-						PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
-						if (pol == null)
-						{
-							pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
-							patternedOpaqueLayers.put(layer, pol);
-						}
-						layerBitMap = pol.layerBitMap;
-						graphics = null;
-					}
-				}
-			}
-		}
-
-		// now draw it
-		Point2D [] points = poly.getPoints();
-		if (style == Poly.Type.FILLED)
-		{
-			Rectangle2D bounds = poly.getBox();
-			if (bounds != null)
-			{
-				// convert coordinates
-				databaseToScreen(bounds.getMinX(), bounds.getMinY(), tempPt1);
-				databaseToScreen(bounds.getMaxX(), bounds.getMaxY(), tempPt2);
-				int lX = Math.min(tempPt1.x, tempPt2.x);
-				int hX = Math.max(tempPt1.x, tempPt2.x);
-				int lY = Math.min(tempPt1.y, tempPt2.y);
-				int hY = Math.max(tempPt1.y, tempPt2.y);
-
-				// do clipping
-				if (lX < 0) lX = 0;
-				if (hX >= sz.width) hX = sz.width-1;
-				if (lY < 0) lY = 0;
-				if (hY >= sz.height) hY = sz.height-1;
-
-				// draw the box
-				drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);
-				return;
-			}
-			Point [] intPoints = new Point[points.length];
-			for(int i=0; i<points.length; i++) {
-                intPoints[i] = new Point();
-				databaseToScreen(points[i].getX(), points[i].getY(), intPoints[i]);
-            }
-			Point [] clippedPoints = GenMath.clipPoly(intPoints, 0, sz.width-1, 0, sz.height-1);
-			drawPolygon(clippedPoints, layerBitMap, graphics, dimmed);
-			return;
-		}
-		if (style == Poly.Type.CROSSED)
-		{
-			databaseToScreen(points[0].getX(), points[0].getY(), tempPt1);
-			databaseToScreen(points[1].getX(), points[1].getY(), tempPt2);
-			databaseToScreen(points[2].getX(), points[2].getY(), tempPt3);
-			databaseToScreen(points[3].getX(), points[3].getY(), tempPt4);
-			drawLine(tempPt1, tempPt2, layerBitMap, graphics, 0, dimmed);
-			drawLine(tempPt2, tempPt3, layerBitMap, graphics, 0, dimmed);
-			drawLine(tempPt3, tempPt4, layerBitMap, graphics, 0, dimmed);
-			drawLine(tempPt4, tempPt1, layerBitMap, graphics, 0, dimmed);
-			drawLine(tempPt1, tempPt3, layerBitMap, graphics, 0, dimmed);
-			drawLine(tempPt2, tempPt4, layerBitMap, graphics, 0, dimmed);
-			return;
-		}
-		if (style.isText())
-		{
-			Rectangle2D bounds = poly.getBounds2D();
-			Rectangle rect = databaseToScreen(bounds);
-			TextDescriptor descript = poly.getTextDescriptor();
-			String str = poly.getString();
-			drawText(rect, style, descript, str, layerBitMap, graphics, dimmed);
-			return;
-		}
-		if (style == Poly.Type.CLOSED || style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 ||
-			style == Poly.Type.OPENEDT2 || style == Poly.Type.OPENEDT3)
-		{
-			int lineType = 0;
-			if (style == Poly.Type.OPENEDT1) lineType = 1; else
-			if (style == Poly.Type.OPENEDT2) lineType = 2; else
-			if (style == Poly.Type.OPENEDT3) lineType = 3;
-
-			for(int j=1; j<points.length; j++)
-			{
-				Point2D oldPt = points[j-1];
-				Point2D newPt = points[j];
-				databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
-				databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
-				drawLine(tempPt1, tempPt2, layerBitMap, graphics, lineType, dimmed);
-			}
-			if (style == Poly.Type.CLOSED)
-			{
-				Point2D oldPt = points[points.length-1];
-				Point2D newPt = points[0];
-				databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
-				databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
-				drawLine(tempPt1, tempPt2, layerBitMap, graphics, lineType, dimmed);
-			}
-			return;
-		}
-		if (style == Poly.Type.VECTORS)
-		{
-			for(int j=0; j<points.length; j+=2)
-			{
-				Point2D oldPt = points[j];
-				Point2D newPt = points[j+1];
-				databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
-				databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
-				drawLine(tempPt1, tempPt2, layerBitMap, graphics, 0, dimmed);
-			}
-			return;
-		}
-		if (style == Poly.Type.CIRCLE)
-		{
-			Point2D center = points[0];
-			Point2D edge = points[1];
-			databaseToScreen(center.getX(), center.getY(), tempPt1);
-			databaseToScreen(edge.getX(), edge.getY(), tempPt2);
-			drawCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
-			return;
-		}
-		if (style == Poly.Type.THICKCIRCLE)
-		{
-			Point2D center = points[0];
-			Point2D edge = points[1];
-			databaseToScreen(center.getX(), center.getY(), tempPt1);
-			databaseToScreen(edge.getX(), edge.getY(), tempPt2);
-			drawThickCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
-			return;
-		}
-		if (style == Poly.Type.DISC)
-		{
-			Point2D center = points[0];
-			Point2D edge = points[1];
-			databaseToScreen(center.getX(), center.getY(), tempPt1);
-			databaseToScreen(edge.getX(), edge.getY(), tempPt2);
-			drawDisc(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
-			return;
-		}
-		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
-		{
-			Point2D center = points[0];
-			Point2D edge1 = points[1];
-			Point2D edge2 = points[2];
-			databaseToScreen(center.getX(), center.getY(), tempPt1);
-			databaseToScreen(edge1.getX(), edge1.getY(), tempPt2);
-			databaseToScreen(edge2.getX(), edge2.getY(), tempPt3);
-			drawCircleArc(tempPt1, tempPt2, tempPt3, style == Poly.Type.THICKCIRCLEARC, layerBitMap, graphics, dimmed);
-			return;
-		}
-		if (style == Poly.Type.CROSS)
-		{
-			// draw the cross
-			drawCross(poly, graphics, dimmed);
-			return;
-		}
-		if (style == Poly.Type.BIGCROSS)
-		{
-			// draw the big cross
-			Point2D center = points[0];
-			databaseToScreen(center.getX(), center.getY(), tempPt1);
-			int size = 5;
-			drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), layerBitMap, graphics, 0, dimmed);
-			drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), layerBitMap, graphics, 0, dimmed);
-			return;
-		}
-	}
-
 	// ************************************* BOX DRAWING *************************************
 
 	int getTheColor(EGraphics desc, boolean dimmed)
@@ -2704,109 +2259,6 @@ class PixelDrawing_
 			if (b > 255) b = 255;
 		}
 		return (b << 16) | (g << 8) | r;
-	}
-
-	/**
-	 * Method to draw a box on the off-screen buffer.
-	 */
-	void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
-	{
-		// get color and pattern information
-		int col = 0;
-		int [] pattern = null;
-		if (desc != null)
-		{
-			col = getTheColor(desc, dimmed);
-			if (nowPrinting != 0 ? desc.isPatternedOnPrinter() : desc.isPatternedOnDisplay())
-				pattern = desc.getPattern();
-		}
-
-		// different code for patterned and solid
-		if (pattern == null)
-		{
-			// solid fill
-			if (layerBitMap == null)
-			{
-				// solid fill in opaque area
-				for(int y=lY; y<=hY; y++)
-				{
-					int baseIndex = y * sz.width + lX;
-					for(int x=lX; x<=hX; x++)
-					{
-						int index = baseIndex++;
-						int alpha = (opaqueData[index] >> 24) & 0xFF;
-						if (alpha == 0xFF) opaqueData[index] = col;
-					}
-				}
-			} else
-			{
-				// solid fill in transparent layers
-				for(int y=lY; y<=hY; y++)
-				{
-					byte [] row = layerBitMap[y];
-					for(int x=lX; x<=hX; x++)
-						row[x>>3] |= (1 << (x&7));
-				}
-			}
-		} else
-		{
-			// patterned fill
-			if (layerBitMap == null)
-			{
-				// patterned fill in opaque area
-				for(int y=lY; y<=hY; y++)
-				{
-					// setup pattern for this row
-					int pat = pattern[y&15];
-					if (pat == 0) continue;
-
-					int baseIndex = y * sz.width;
-					for(int x=lX; x<=hX; x++)
-					{
-						if ((pat & (0x8000 >> (x&15))) != 0)
-							opaqueData[baseIndex + x] = col;
-					}
-				}
-			} else
-			{
-				// patterned fill in transparent layers
-				for(int y=lY; y<=hY; y++)
-				{
-					// setup pattern for this row
-					int pat = pattern[y&15];
-					if (pat == 0) continue;
-
-					byte [] row = layerBitMap[y];
-					for(int x=lX; x<=hX; x++)
-					{
-						if ((pat & (0x8000 >> (x&15))) != 0)
-							row[x>>3] |= (1 << (x&7));
-					}
-				}
-			}
-			EGraphics.Outline o = desc.getOutlined();
-			if (o != EGraphics.Outline.NOPAT)
-			{
-				drawOutline(lX, lY, lX, hY, layerBitMap, col, o.getPattern(), o.getLen());
-				drawOutline(lX, hY, hX, hY, layerBitMap, col, o.getPattern(), o.getLen());
-				drawOutline(hX, hY, hX, lY, layerBitMap, col, o.getPattern(), o.getLen());
-				drawOutline(hX, lY, lX, lY, layerBitMap, col, o.getPattern(), o.getLen());
-				if (o.getThickness() != 1)
-				{
-					for(int i=1; i<o.getThickness(); i++)
-					{
-						if (lX+i < sz.width)
-							drawOutline(lX+i, lY, lX+i, hY, layerBitMap, col, o.getPattern(), o.getLen());
-						if (hY-i >= 0)
-							drawOutline(lX, hY-i, hX, hY-i, layerBitMap, col, o.getPattern(), o.getLen());
-						if (hX-i >= 0)
-							drawOutline(hX-i, hY, hX-i, lY, layerBitMap, col, o.getPattern(), o.getLen());
-						if (lY+i < sz.height)
-							drawOutline(hX, lY+i, lX, lY+i, layerBitMap, col, o.getPattern(), o.getLen());
-					}
-				}
-			}
-		}
 	}
 
     /**
@@ -2935,70 +2387,53 @@ class PixelDrawing_
 	/**
 	 * Method to draw a line on the off-screen buffer.
 	 */
-	void drawLine(Point pt1, Point pt2, byte [][] layerBitMap, EGraphics desc, int texture, boolean dimmed)
+	void drawLine(Point pt1, Point pt2, int texture, ERaster raster)
 	{
 		// first clip the line
 		if (GenMath.clipLine(pt1, pt2, 0, sz.width-1, 0, sz.height-1)) return;
 
-		int col = 0;
-		if (desc != null) col = getTheColor(desc, dimmed);
-
 		// now draw with the proper line type
 		switch (texture)
 		{
-			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col);          break;
-			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col, 0x88, 8);   break;
-			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col, 0xE7, 8);   break;
-			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col);          break;
+			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, raster);          break;
+			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, 0x88, 8, raster);   break;
+			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, 0xE7, 8, raster);   break;
+			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, raster);          break;
 		}
 	}
 
-	/**
-	 * Method to draw a line on the off-screen buffer.
-	 */
-	private void drawLine(Point pt1, Point pt2, byte[] layerBitMap, byte layerBitMask, int texture)
-	{
-		// first clip the line
-		if (GenMath.clipLine(pt1, pt2, clipLX, clipHX, clipLY, clipHY)) return;
-
-		// now draw with the proper line type
-		switch (texture)
-		{
-			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);          break;
-			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0x88, 8);   break;
-			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0xE7, 8);   break;
-			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);          break;
-		}
-	}
-
-	private void drawCross(Poly poly, EGraphics graphics, boolean dimmed)
-	{
-		Point2D [] points = poly.getPoints();
-		databaseToScreen(points[0].getX(), points[0].getY(), tempPt1);
-		int size = 3;
-		drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
-		drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), null, graphics, 0, dimmed);
-	}
-
-    private void drawCross(Poly poly, byte[] layerBitMap, byte layerBitMask) {
+    private void drawCross(int cX, int cY, int size, EGraphics graphics, boolean dimmed) {
         crosses++;
-        Point2D [] points = poly.getPoints();
-        Point center = tempPt1;
-        databaseToScreen(points[0].getX(), points[0].getY(), center);
-        int size = 3;
-        if (clipLY <= center.y && center.y <= clipHY) {
-            int baseIndex = center.y * width;
-            for (int x = Math.max(clipLX, center.x - size), xend = Math.min(clipLY, center.x + size); x <= xend; x++)
-                layerBitMap[baseIndex + x] |= layerBitMask;
+        int col = getTheColor(graphics, dimmed);
+        if (clipLY <= cY && cY <= clipHY) {
+            int baseIndex = cY * width;
+            for (int x = Math.max(clipLX, cX - size), xend = Math.min(clipLY, cX + size); x <= xend; x++)
+                opaqueData[baseIndex + x] = col;
         }
-        if (clipLX <= center.x && center.x <= clipHX) {
-            int baseIndex = center.y;
-            for (int y = Math.max(clipLY, center.y - size), yend = Math.min(clipHY, center.y + size); y <= yend; y++)
-                layerBitMap[y * width + baseIndex] |= layerBitMask;
+        if (clipLX <= cX && cX <= clipHX) {
+            int baseIndex = cX;
+            for (int y = Math.max(clipLY, cY - size), yend = Math.min(clipHY, cY + size); y <= yend; y++)
+                opaqueData[y * width + baseIndex] = col;
         }
     }
 
-	private void drawSolidLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col)
+    private void drawCross(int cX, int cY, int size, ERaster raster) {
+        crosses++;
+        if (clipLY <= cY && cY <= clipHY) {
+            int lX = Math.max(clipLX, cX - size);
+            int hX = Math.min(clipHY, cX + size);
+            if (lX <= hX)
+                raster.drawHorLine(cY, lX, hX);
+        }
+        if (clipLX <= cX && cX <= clipHX) {
+            int lY = Math.max(clipLY, cY - size);
+            int hY = Math.min(clipHY, cY + size);
+            if (lY <= hY)
+                raster.drawVerLine(cX, lY, hY);
+        }
+    }
+
+	private void drawSolidLine(int x1, int y1, int x2, int y2, ERaster raster)
 	{
 		// initialize the Bresenham algorithm
 		int dx = Math.abs(x2-x1);
@@ -3018,8 +2453,7 @@ class PixelDrawing_
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (yend < y) yincr = -1; else yincr = 1;
-			if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
-				layerBitMap[y][x>>3] |= (1 << (x&7));
+            raster.drawPoint(x, y);
 
 			// draw line that increments along X
 			while (x < xend)
@@ -3029,8 +2463,7 @@ class PixelDrawing_
 				{
 					y += yincr;   d += incr2;
 				}
-				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
-					layerBitMap[y][x>>3] |= (1 << (x&7));
+                raster.drawPoint(x, y);
 			}
 		} else
 		{
@@ -3047,8 +2480,7 @@ class PixelDrawing_
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (xend < x) xincr = -1; else xincr = 1;
-			if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
-				layerBitMap[y][x>>3] |= (1 << (x&7));
+            raster.drawPoint(x, y);
 
 			// draw line that increments along X
 			while (y < yend)
@@ -3058,8 +2490,7 @@ class PixelDrawing_
 				{
 					x += xincr;   d += incr2;
 				}
-				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
-					layerBitMap[y][x>>3] |= (1 << (x&7));
+                raster.drawPoint(x, y);
 			}
 		}
 	}
@@ -3133,7 +2564,7 @@ class PixelDrawing_
         }
     }
 
-	private void drawOutline(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern, int len)
+	private void drawOutline(int x1, int y1, int x2, int y2, int pattern, int len, ERaster raster)
 	{
         tempPt3.x = x1;
         tempPt3.y = y1;
@@ -3143,10 +2574,10 @@ class PixelDrawing_
 		// first clip the line
 		if (GenMath.clipLine(tempPt3, tempPt4, 0, sz.width-1, 0, sz.height-1)) return;
 
-        drawPatLine(tempPt3.x, tempPt3.y, tempPt4.x, tempPt4.y, layerBitMap, col, pattern, len);
+        drawPatLine(tempPt3.x, tempPt3.y, tempPt4.x, tempPt4.y, pattern, len, raster);
 	}
 
-	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern, int len)
+	private void drawPatLine(int x1, int y1, int x2, int y2, int pattern, int len, ERaster raster)
 	{
 		// initialize counter for line style
 		int i = 0;
@@ -3169,8 +2600,7 @@ class PixelDrawing_
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (yend < y) yincr = -1; else yincr = 1;
-			if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
-				layerBitMap[y][x>>3] |= (1 << (x&7));
+            raster.drawPoint(x, y);
 
 			// draw line that increments along X
 			while (x < xend)
@@ -3183,8 +2613,7 @@ class PixelDrawing_
 				i++;
 				if (i == len) i = 0;
 				if ((pattern & (1 << i)) == 0) continue;
-				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
-					layerBitMap[y][x>>3] |= (1 << (x&7));
+                raster.drawPoint(x, y);
 			}
 		} else
 		{
@@ -3201,8 +2630,7 @@ class PixelDrawing_
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (xend < x) xincr = -1; else xincr = 1;
-			if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
-				layerBitMap[y][x>>3] |= (1 << (x&7));
+            raster.drawPoint(x, y);
 
 			// draw line that increments along X
 			while (y < yend)
@@ -3215,8 +2643,7 @@ class PixelDrawing_
 				i++;
 				if (i == len) i = 0;
 				if ((pattern & (1 << i)) == 0) continue;
-				if (layerBitMap == null) opaqueData[y * sz.width + x] = col; else
-					layerBitMap[y][x>>3] |= (1 << (x&7));
+                raster.drawPoint(x, y);
 			}
 		}
 	}
@@ -3295,7 +2722,7 @@ class PixelDrawing_
         }
     }
 
-	private void drawThickLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col)
+	private void drawThickLine(int x1, int y1, int x2, int y2, ERaster raster)
 	{
 		// initialize the Bresenham algorithm
 		int dx = Math.abs(x2-x1);
@@ -3315,7 +2742,7 @@ class PixelDrawing_
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (yend < y) yincr = -1; else yincr = 1;
-			drawThickPoint(x, y, layerBitMap, col);
+			drawThickPoint(x, y, raster);
 
 			// draw line that increments along X
 			while (x < xend)
@@ -3326,7 +2753,7 @@ class PixelDrawing_
 					y += yincr;
 					d += incr2;
 				}
-				drawThickPoint(x, y, layerBitMap, col);
+				drawThickPoint(x, y, raster);
 			}
 		} else
 		{
@@ -3343,7 +2770,7 @@ class PixelDrawing_
 				x = x1;   y = y1;   xend = x2;   yend = y2;
 			}
 			if (xend < x) xincr = -1; else xincr = 1;
-			drawThickPoint(x, y, layerBitMap, col);
+			drawThickPoint(x, y, raster);
 
 			// draw line that increments along X
 			while (y < yend)
@@ -3354,7 +2781,7 @@ class PixelDrawing_
 					x += xincr;
 					d += incr2;
 				}
-				drawThickPoint(x, y, layerBitMap, col);
+				drawThickPoint(x, y, raster);
 			}
 		}
 	}
@@ -3433,18 +2860,8 @@ class PixelDrawing_
 	/**
 	 * Method to draw a polygon on the off-screen buffer.
 	 */
-	void drawPolygon(Point [] points, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawPolygon(Point [] points, ERaster raster)
 	{
-		// get color and pattern information
-		int col = 0;
-		int [] pattern = null;
-		if (desc != null)
-		{
-			col = getTheColor(desc, dimmed);
-			if (nowPrinting != 0 ? desc.isPatternedOnPrinter() : desc.isPatternedOnDisplay())
-				pattern = desc.getPattern();
-		}
-
 		// fill in internal structures
 		PolySeg edgelist = null;
 		PolySeg [] polySegs = new PolySeg[points.length];
@@ -3566,50 +2983,8 @@ class PixelDrawing_
 					int j = (left.fx + 32768) >> 16;
 					int k = (edge.fx + 32768) >> 16;
 
-					if (pattern != null)
-					{
-						int pat = pattern[ycur & 15];
-						if (pat != 0)
-						{
-							if (layerBitMap == null)
-							{
-								int baseIndex = ycur * sz.width;
-								for(int x=j; x<=k; x++)
-								{
-									if ((pat & (1 << (15-(x&15)))) != 0)
-									{
-										int index = baseIndex + x;
-										opaqueData[index] = col;
-									}
-								}
-							} else
-							{
-								byte [] row = layerBitMap[ycur];
-								for(int x=j; x<=k; x++)
-								{
-									if ((pat & (1 << (15-(x&15)))) != 0)
-										row[x>>3] |= (1 << (x&7));
-								}
-							}
-						}
-					} else
-					{
-						if (layerBitMap == null)
-						{
-							int baseIndex = ycur * sz.width;
-							for(int x=j; x<=k; x++)
-							{
-								opaqueData[baseIndex + x] = col;
-							}
-						} else
-						{
-							byte [] row = layerBitMap[ycur];
-							for(int x=j; x<=k; x++)
-							{
-								row[x>>3] |= (1 << (x&7));
-							}
-						}
-					}
+                    raster.fillHorLine(ycur, j, k);
+                    
 					left = edge.nextactive;
 				}
 			}
@@ -3632,61 +3007,33 @@ class PixelDrawing_
 		}
 
 		// if outlined pattern, draw the outline
-		if (pattern != null)
-		{
-			EGraphics.Outline o = desc.getOutlined();
-			if (o != EGraphics.Outline.NOPAT)
-			{
-				for(int i=0; i<points.length; i++)
-				{
-					int last = i-1;
-					if (last < 0) last = points.length - 1;
-					int fX = points[last].x;   int fY = points[last].y;
-					int tX = points[i].x;      int tY = points[i].y;
-					drawOutline(fX, fY, tX, tY, layerBitMap, col, o.getPattern(), o.getLen());
-					if (o.getThickness() != 1)
-					{
-						int ang = GenMath.figureAngle(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY));
-						double sin = DBMath.sin(ang+900);
-						double cos = DBMath.cos(ang+900);
-						for(int t=1; t<o.getThickness(); t++)
-						{
-							int dX = (int)(cos*t + 0.5);
-							int dY = (int)(sin*t + 0.5);
-							drawOutline(fX+dX, fY+dY, tX+dX, tY+dY, layerBitMap, col, o.getPattern(), o.getLen());
-						}
-					}
-				}
-			}
+        EGraphics.Outline o = raster.getOutline();
+        if (o == null) return;
+        for(int i=0; i<points.length; i++) {
+            int last = i-1;
+            if (last < 0) last = points.length - 1;
+            int fX = points[last].x;   int fY = points[last].y;
+            int tX = points[i].x;      int tY = points[i].y;
+            drawOutline(fX, fY, tX, tY, o.getPattern(), o.getLen(), raster);
+            if (o.getThickness() != 1) {
+                int ang = GenMath.figureAngle(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY));
+                double sin = DBMath.sin(ang+900);
+                double cos = DBMath.cos(ang+900);
+                for(int t=1; t<o.getThickness(); t++) {
+                    int dX = (int)(cos*t + 0.5);
+                    int dY = (int)(sin*t + 0.5);
+                    drawOutline(fX+dX, fY+dY, tX+dX, tY+dY, o.getPattern(), o.getLen(), raster);
+                }
+            }
 		}
 	}
 
-    /**
-     * Method to draw a polygon on the off-screen buffer.
-     */
-    private void drawPolygon(Point[] points, byte[] layerBitMap, byte layerBitMask) {
-        polygons++;
-    }
-   
 	// ************************************* TEXT DRAWING *************************************
-
-    /**
-     * Method to draw a text on the off-screen buffer with default values
-     * @param s
-     */
-    public void drawText(String s, Rectangle rect)
-    {
-        if (noCellTextDescriptor == null)
-            noCellTextDescriptor = TextDescriptor.EMPTY.withAbsSize(18).withBold(true);
-        textColor = new Color(User.getColorText());
-		textGraphics.setColor(textColor);
-        drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, s, null, textGraphics, false);
-    }
 
 	/**
 	 * Method to draw a text on the off-screen buffer
 	 */
-	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, EGraphics desc, boolean dimmed)
 	{
 		// quit if string is null
 		if (s == null) return;
@@ -3757,7 +3104,6 @@ class PixelDrawing_
 
 		// create RenderInfo
 		long startTime = 0;
-        if (DEBUGRENDERTIMING) System.currentTimeMillis();
 		RenderTextInfo renderInfo = new RenderTextInfo();
 		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
 			return;
@@ -3778,8 +3124,16 @@ class PixelDrawing_
 			if (lY < 0) lY = 0;
 			if (hY >= sz.height) hY = sz.height-1;
 
-			drawBox(lX, hX, lY, hY, layerBitMap, desc, dimmed);
-			return;
+            // greeked box in opaque area
+            for(int y=lY; y<=hY; y++) {
+                int baseIndex = y * sz.width + lX;
+                for(int x=lX; x<=hX; x++) {
+                    int index = baseIndex++;
+                    int alpha = (opaqueData[index] >> 24) & 0xFF;
+                    if (alpha == 0xFF) opaqueData[index] = col;
+                }
+            }
+            return;
 		}
 
 		// check if text is on-screen
@@ -3789,7 +3143,6 @@ class PixelDrawing_
 
 		// render the text
 		Raster ras = renderText(renderInfo);
-		if (DEBUGRENDERTIMING) renderTextTime += (System.currentTimeMillis() - startTime);
 		if (ras == null) return;
 		int rasWidth = (int)renderInfo.rasBounds.getWidth() << shiftUp;
 		int rasHeight = (int)renderInfo.rasBounds.getHeight() << shiftUp;
@@ -3812,38 +3165,26 @@ class PixelDrawing_
 					if (trueY < 0 || trueY >= sz.height) continue;
 
 					// setup pointers for filling this row
-					byte [] row = null;
-					int baseIndex = 0;
-					if (layerBitMap == null) baseIndex = trueY * sz.width; else
-						row = layerBitMap[trueY];
+					int baseIndex = trueY * sz.width;
 					int samp = (y>>shiftUp) * textImageWidth;
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
 						int alpha = samples[samp + (x>>shiftUp)] & 0xFF;
 						if (alpha == 0) continue;
-						if (layerBitMap == null)
-						{
-							// drawing opaque
-							int fullIndex = baseIndex + trueX;
-							int pixelValue = opaqueData[fullIndex];
-							int oldAlpha = (pixelValue >> 24) & 0xFF;
-							int color = col;
-							if (oldAlpha == 0)
-							{
-								// blend with opaque
-								if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-							} else if (oldAlpha == 0xFF)
-							{
-								// blend with background
-								if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-							}
-							opaqueData[fullIndex] = color;
-						} else
-						{
-							// draw in a transparent layer
-							if (alpha >= 128) row[trueX>>3] |= (1 << (trueX&7));
-						}
+                        // drawing opaque
+                        int fullIndex = baseIndex + trueX;
+                        int pixelValue = opaqueData[fullIndex];
+                        int oldAlpha = (pixelValue >> 24) & 0xFF;
+                        int color = col;
+                        if (oldAlpha == 0) {
+                            // blend with opaque
+                            if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+                        } else if (oldAlpha == 0xFF) {
+                            // blend with background
+                            if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+                        }
+                        opaqueData[fullIndex] = color;
 					}
 				}
 				break;
@@ -3857,36 +3198,25 @@ class PixelDrawing_
 					if (trueY < 0 || trueY >= sz.height) continue;
 
 					// setup pointers for filling this row
-					byte [] row = null;
-					int baseIndex = 0;
-					if (layerBitMap == null) baseIndex = trueY * sz.width; else
-						row = layerBitMap[trueY];
+					int baseIndex = trueY * sz.width;
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
 						int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
-						if (alpha == 0) continue;
-						if (layerBitMap == null)
-						{
-							// drawing opaque
-							int fullIndex = baseIndex + trueX;
-							int pixelValue = opaqueData[fullIndex];
-							int oldAlpha = (pixelValue >> 24) & 0xFF;
-							int color = col;
-							if (oldAlpha == 0)
-							{
-								// blend with opaque
-								if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-							} else if (oldAlpha == 0xFF)
-							{
-								// blend with background
-								if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-							}
-							opaqueData[fullIndex] = color;
-						} else
-						{
-							if (alpha >= 128) row[trueX>>3] |= (1 << (trueX&7));
-						}
+                        if (alpha == 0) continue;
+                        // drawing opaque
+                        int fullIndex = baseIndex + trueX;
+                        int pixelValue = opaqueData[fullIndex];
+                        int oldAlpha = (pixelValue >> 24) & 0xFF;
+                        int color = col;
+                        if (oldAlpha == 0) {
+                            // blend with opaque
+                            if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+                        } else if (oldAlpha == 0xFF) {
+                            // blend with background
+                            if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+                        }
+                        opaqueData[fullIndex] = color;
 					}
 				}
 				break;
@@ -3903,38 +3233,27 @@ class PixelDrawing_
 					if (trueY < 0 || trueY >= sz.height) continue;
 
 					// setup pointers for filling this row
-					byte [] row = null;
-					int baseIndex = 0;
-					if (layerBitMap == null) baseIndex = trueY * sz.width; else
-						row = layerBitMap[trueY];
+					int baseIndex = trueY * sz.width;
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX + x;
 						int index = ((rasHeight-y-1)>>shiftUp) * textImageWidth + ((rasWidth-x-1)>>shiftUp);
 						int alpha = samples[index] & 0xFF;
 						if (alpha == 0) continue;
-						if (layerBitMap == null)
-						{
-							// drawing opaque
-							int fullIndex = baseIndex + trueX;
-							int pixelValue = opaqueData[fullIndex];
-							int oldAlpha = (pixelValue >> 24) & 0xFF;
-							int color = col;
-							if (oldAlpha == 0)
-							{
-								// blend with opaque
-								if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-							} else if (oldAlpha == 0xFF)
-							{
-								// blend with background
-								if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-							}
-							opaqueData[fullIndex] = color;
-						} else
-						{
-							if (alpha >= 128) row[trueX>>3] |= (1 << (trueX&7));
-						}
-					}
+                        // drawing opaque
+                        int fullIndex = baseIndex + trueX;
+                        int pixelValue = opaqueData[fullIndex];
+                        int oldAlpha = (pixelValue >> 24) & 0xFF;
+                        int color = col;
+                        if (oldAlpha == 0) {
+                            // blend with opaque
+                            if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+                        } else if (oldAlpha == 0xFF) {
+                            // blend with background
+                            if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+                        }
+                        opaqueData[fullIndex] = color;
+                    }
 				}
 				break;
 			case 3:			// 90 degrees clockwise
@@ -3947,36 +3266,25 @@ class PixelDrawing_
 					if (trueY < 0 || trueY >= sz.height) continue;
 
 					// setup pointers for filling this row
-					byte [] row = null;
-					int baseIndex = 0;
-					if (layerBitMap == null) baseIndex = trueY * sz.width; else
-						row = layerBitMap[trueY];
+					int baseIndex = trueY * sz.width;
 					for(int x=sx; x<ex; x++)
 					{
 						int trueX = atX - x;
 						int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
 						if (alpha == 0) continue;
-						if (layerBitMap == null)
-						{
-							// drawing opaque
-							int fullIndex = baseIndex + trueX;
-							int pixelValue = opaqueData[fullIndex];
-							int oldAlpha = (pixelValue >> 24) & 0xFF;
-							int color = col;
-							if (oldAlpha == 0)
-							{
-								// blend with opaque
-								if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-							} else if (oldAlpha == 0xFF)
-							{
-								// blend with background
-								if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-							}
-							opaqueData[fullIndex] = color;
-						} else
-						{
-							if (alpha >= 128) row[trueX>>3] |= (1 << (trueX&7));
-						}
+                        // drawing opaque
+                        int fullIndex = baseIndex + trueX;
+                        int pixelValue = opaqueData[fullIndex];
+                        int oldAlpha = (pixelValue >> 24) & 0xFF;
+                        int color = col;
+                        if (oldAlpha == 0) {
+                            // blend with opaque
+                            if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+                        } else if (oldAlpha == 0xFF) {
+                            // blend with background
+                            if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+                        }
+                        opaqueData[fullIndex] = color;
 					}
 				}
 				break;
@@ -4218,12 +3526,10 @@ class PixelDrawing_
 	/**
 	 * Method to draw a circle on the off-screen buffer
 	 */
-	void drawCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawCircle(Point center, Point edge, ERaster raster)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
-		int col = 0;
-		if (desc != null) col = getTheColor(desc, dimmed);
 
 		// set redraw area
 		int left = center.x - radius;
@@ -4238,41 +3544,14 @@ class PixelDrawing_
 			// no clip version is faster
 			while (x <= y)
 			{
-				if (layerBitMap == null)
-				{
-					int baseIndex = (center.y + y) * sz.width;
-					opaqueData[baseIndex + (center.x+x)] = col;
-					opaqueData[baseIndex + (center.x-x)] = col;
-
-					baseIndex = (center.y - y) * sz.width;
-					opaqueData[baseIndex + (center.x+x)] = col;
-					opaqueData[baseIndex + (center.x-x)] = col;
-
-					baseIndex = (center.y + x) * sz.width;
-					opaqueData[baseIndex + (center.x+y)] = col;
-					opaqueData[baseIndex + (center.x-y)] = col;
-
-					baseIndex = (center.y - x) * sz.width;
-					opaqueData[baseIndex + (center.x+y)] = col;
-					opaqueData[baseIndex + (center.x-y)] = col;
-				} else
-				{
-					byte [] row = layerBitMap[center.y + y];
-					row[(center.x+x)>>3] |= (1 << ((center.x+x)&7));
-					row[(center.x-x)>>3] |= (1 << ((center.x-x)&7));
-
-					row = layerBitMap[center.y - y];
-					row[(center.x+x)>>3] |= (1 << ((center.x+x)&7));
-					row[(center.x-x)>>3] |= (1 << ((center.x-x)&7));
-
-					row = layerBitMap[center.y + x];
-					row[(center.x+y)>>3] |= (1 << ((center.x+y)&7));
-					row[(center.x-y)>>3] |= (1 << ((center.x-y)&7));
-
-					row = layerBitMap[center.y - x];
-					row[(center.x+y)>>3] |= (1 << ((center.x+y)&7));
-					row[(center.x-y)>>3] |= (1 << ((center.x-y)&7));
-				}
+                raster.drawPoint(center.x + x, center.y + y);
+                raster.drawPoint(center.x - x, center.y + y);
+                raster.drawPoint(center.x + x, center.y - y);
+                raster.drawPoint(center.x - x, center.y - y);
+                raster.drawPoint(center.x + y, center.y + x);
+                raster.drawPoint(center.x - y, center.y + x);
+                raster.drawPoint(center.x + y, center.y - x);
+                raster.drawPoint(center.x - y, center.y - x);
 
 				if (d < 0) d += 4*x + 6; else
 				{
@@ -4291,10 +3570,10 @@ class PixelDrawing_
 				{
 					int thisx = center.x + x;
 					if (thisx >= 0 && thisx < sz.width)
-						drawPoint(thisx, thisy, layerBitMap, col);
+						raster.drawPoint(thisx, thisy);
 					thisx = center.x - x;
 					if (thisx >= 0 && thisx < sz.width)
-						drawPoint(thisx, thisy, layerBitMap, col);
+						raster.drawPoint(thisx, thisy);
 				}
 
 				thisy = center.y - y;
@@ -4302,10 +3581,10 @@ class PixelDrawing_
 				{
 					int thisx = center.x + x;
 					if (thisx >= 0 && thisx < sz.width)
-						drawPoint(thisx, thisy, layerBitMap, col);
+						raster.drawPoint(thisx, thisy);
 					thisx = center.x - x;
 					if (thisx >= 0 && thisx < sz.width)
-						drawPoint(thisx, thisy, layerBitMap, col);
+						raster.drawPoint(thisx, thisy);
 				}
 
 				thisy = center.y + x;
@@ -4313,10 +3592,10 @@ class PixelDrawing_
 				{
 					int thisx = center.x + y;
 					if (thisx >= 0 && thisx < sz.width)
-						drawPoint(thisx, thisy, layerBitMap, col);
+						raster.drawPoint(thisx, thisy);
 					thisx = center.x - y;
 					if (thisx >= 0 && thisx < sz.width)
-						drawPoint(thisx, thisy, layerBitMap, col);
+						raster.drawPoint(thisx, thisy);
 				}
 
 				thisy = center.y - x;
@@ -4324,10 +3603,10 @@ class PixelDrawing_
 				{
 					int thisx = center.x + y;
 					if (thisx >= 0 && thisx < sz.width)
-						drawPoint(thisx, thisy, layerBitMap, col);
+						raster.drawPoint(thisx, thisy);
 					thisx = center.x - y;
 					if (thisx >= 0 && thisx < sz.width)
-						drawPoint(thisx, thisy, layerBitMap, col);
+						raster.drawPoint(thisx, thisy);
 				}
 
 				if (d < 0) d += 4*x + 6; else
@@ -4350,12 +3629,10 @@ class PixelDrawing_
 	/**
 	 * Method to draw a thick circle on the off-screen buffer
 	 */
-	void drawThickCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawThickCircle(Point center, Point edge, ERaster raster)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
-		int col = 0;
-		if (desc != null) col = getTheColor(desc, dimmed);
 
 		int x = 0;   int y = radius;
 		int d = 3 - 2 * radius;
@@ -4366,10 +3643,10 @@ class PixelDrawing_
 			{
 				int thisx = center.x + x;
 				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, layerBitMap, col);
+					drawThickPoint(thisx, thisy, raster);
 				thisx = center.x - x;
 				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, layerBitMap, col);
+					drawThickPoint(thisx, thisy, raster);
 			}
 
 			thisy = center.y - y;
@@ -4377,10 +3654,10 @@ class PixelDrawing_
 			{
 				int thisx = center.x + x;
 				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, layerBitMap, col);
+					drawThickPoint(thisx, thisy, raster);
 				thisx = center.x - x;
 				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, layerBitMap, col);
+					drawThickPoint(thisx, thisy, raster);
 			}
 
 			thisy = center.y + x;
@@ -4388,10 +3665,10 @@ class PixelDrawing_
 			{
 				int thisx = center.x + y;
 				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, layerBitMap, col);
+					drawThickPoint(thisx, thisy, raster);
 				thisx = center.x - y;
 				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, layerBitMap, col);
+					drawThickPoint(thisx, thisy, raster);
 			}
 
 			thisy = center.y - x;
@@ -4399,10 +3676,10 @@ class PixelDrawing_
 			{
 				int thisx = center.x + y;
 				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, layerBitMap, col);
+					drawThickPoint(thisx, thisy, raster);
 				thisx = center.x - y;
 				if (thisx >= 0 && thisx < sz.width)
-					drawThickPoint(thisx, thisy, layerBitMap, col);
+					drawThickPoint(thisx, thisy, raster);
 			}
 
 			if (d < 0) d += 4*x + 6; else
@@ -4426,77 +3703,24 @@ class PixelDrawing_
 	/**
 	 * Method to draw a scan line of the filled-in circle of radius "radius"
 	 */
-	private void drawDiscRow(int thisy, int startx, int endx, byte [][] layerBitMap, int col, int [] pattern)
+	private void drawDiscRow(int thisy, int startx, int endx, ERaster raster)
 	{
 		if (thisy < 0 || thisy >= sz.height) return;
 		if (startx < 0) startx = 0;
 		if (endx >= sz.width) endx = sz.width - 1;
-		if (pattern != null)
-		{
-			int pat = pattern[thisy & 15];
-			if (pat != 0)
-			{
-				if (layerBitMap == null)
-				{
-					int baseIndex = thisy * sz.width;
-					for(int x=startx; x<=endx; x++)
-					{
-						if ((pat & (1 << (15-(x&15)))) != 0)
-							opaqueData[baseIndex + x] = col;
-					}
-				} else
-				{
-					byte [] row = layerBitMap[thisy];
-					for(int x=startx; x<=endx; x++)
-					{
-						if ((pat & (1 << (15-(x&15)))) != 0)
-							row[x>>3] |= (1 << (x&7));
-					}
-				}
-			}
-		} else
-		{
-			if (layerBitMap == null)
-			{
-				int baseIndex = thisy * sz.width;
-				for(int x=startx; x<=endx; x++)
-				{
-					int index = baseIndex + x;
-					int alpha = (opaqueData[index] >> 24) & 0xFF;
-					if (alpha == 0xFF) opaqueData[index] = col;
-				}
-			} else
-			{
-				byte [] row = layerBitMap[thisy];
-				for(int x=startx; x<=endx; x++)
-				{
-					row[x>>3] |= (1 << (x&7));
-				}
-			}
-		}
+        raster.drawHorLine(thisy, startx, endx);
 	}
 
 	/**
 	 * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
 	 */
-	void drawDisc(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawDisc(Point center, Point edge, ERaster raster)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
-		int col = 0;
-		int [] pattern = null;
-		if (desc != null)
-		{
-			col = getTheColor(desc, dimmed);
-			if (nowPrinting != 0 ? desc.isPatternedOnPrinter() : desc.isPatternedOnDisplay())
-			{
-				pattern = desc.getPattern();
-				if (desc.getOutlined() != EGraphics.Outline.NOPAT)
-				{
-					drawCircle(center, edge, layerBitMap, desc, dimmed);			
-				}
-			}
-		}
+        EGraphics.Outline o = raster.getOutline();
+        if (o != null)
+            drawCircle(center, edge, raster);
 
 		// set redraw area
 		int left = center.x - radius;
@@ -4513,7 +3737,7 @@ class PixelDrawing_
 			{
 				if (y < 0 || y >= sz.height) continue;
 				for(int x=left; x<right; x++)
-					drawPoint(x, y, layerBitMap, col);
+					raster.drawPoint(x, y);
 			}
 			return;
 		}
@@ -4522,10 +3746,10 @@ class PixelDrawing_
 		int d = 3 - 2 * radius;
 		while (x <= y)
 		{
-			drawDiscRow(center.y+y, center.x-x, center.x+x, layerBitMap, col, pattern);
-			drawDiscRow(center.y-y, center.x-x, center.x+x, layerBitMap, col, pattern);
-			drawDiscRow(center.y+x, center.x-y, center.x+y, layerBitMap, col, pattern);
-			drawDiscRow(center.y-x, center.x-y, center.x+y, layerBitMap, col, pattern);
+			drawDiscRow(center.y+y, center.x-x, center.x+x, raster);
+			drawDiscRow(center.y-y, center.x-x, center.x+x, raster);
+			drawDiscRow(center.y+x, center.x-y, center.x+y, raster);
+			drawDiscRow(center.y-x, center.x-y, center.x+y, raster);
 
 			if (d < 0) d += 4*x + 6; else
 			{
@@ -4549,7 +3773,7 @@ class PixelDrawing_
 	private Point      arcCenter;
 	private int        arcRadius;
 	private int        arcCol;
-	private byte [][]  arcLayerBitMap;
+	private ERaster    arcRaster;
 	private boolean    arcThick;
 
 	private int arcFindOctant(int x, int y)
@@ -4591,13 +3815,13 @@ class PixelDrawing_
 
 	private void arcDoPixel(int x, int y)
 	{
-		if (x < 0 || x >= sz.width || y < 0 || y >= sz.height) return;
+		if (x < clipLX || x > clipHX || y < clipLY || y > clipHY) return;
 		if (arcThick)
 		{
-			drawThickPoint(x, y, arcLayerBitMap, arcCol);
+			drawThickPoint(x, y, arcRaster);
 		} else
 		{
-			drawPoint(x, y, arcLayerBitMap, arcCol);
+			arcRaster.drawPoint(x, y);
 		}
 	}
 
@@ -4690,15 +3914,13 @@ class PixelDrawing_
 	 * draws an arc centered at (centerx, centery), clockwise,
 	 * passing by (x1,y1) and (x2,y2)
 	 */
-	void drawCircleArc(Point center, Point p1, Point p2, boolean thick, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawCircleArc(Point center, Point p1, Point p2, boolean thick, ERaster raster)
 	{
 		// ignore tiny arcs
 		if (p1.x == p2.x && p1.y == p2.y) return;
 
 		// get parameters
-		arcLayerBitMap = layerBitMap;
-		arcCol = 0;
-		if (desc != null) arcCol = getTheColor(desc, dimmed);
+		arcRaster = raster;
 
 		arcCenter = center;
 		int pa_x = p2.x - arcCenter.x;
@@ -4797,33 +4019,17 @@ class PixelDrawing_
         layerBitMap[y * width + x] |= layerBitMask;
     }
     
-	private void drawThickPoint(int x, int y, byte [][] layerBitMap, int col)
-	{
-		if (layerBitMap == null)
-		{
-	        int baseIndex = y * sz.width + x;
-			opaqueData[baseIndex] = col;
-			if (x > 0)
-				opaqueData[baseIndex - 1] = col;
-			if (x < sz.width-1)
-				opaqueData[baseIndex + 1] = col;
-			if (y > 0)
-				opaqueData[baseIndex - sz.width] = col;
-			if (y < sz.height-1)
-				opaqueData[baseIndex + sz.width] = col;
-		} else
-		{
-			layerBitMap[y][x>>3] |= (1 << (x&7));
-			if (x > 0)
-				layerBitMap[y][(x-1)>>3] |= (1 << ((x-1)&7));
-			if (x < sz.width-1)
-				layerBitMap[y][(x+1)>>3] |= (1 << ((x+1)&7));
-			if (y > 0)
-				layerBitMap[y-1][x>>3] |= (1 << (x&7));
-			if (y < sz.height-1)
-				layerBitMap[y+1][x>>3] |= (1 << (x&7));
-		}
-	}
+    private void drawThickPoint(int x, int y, ERaster raster) {
+        raster.drawPoint(x, y);
+        if (x > clipLX)
+            raster.drawPoint(x - 1, y);
+        if (x < clipHX)
+            raster.drawPoint(x + 1, y);
+        if (y > clipLY)
+            raster.drawPoint(x, y - 1);
+        if (y < sz.height-1)
+            raster.drawPoint(x, y + 1);
+    }
 
     private void drawThickPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
         thickPoints++;

@@ -105,7 +105,7 @@ public class VectorCache {
 	/**
 	 * Class which defines the common information for all cached displayable objects
 	 */
-    static class VectorBase
+    static abstract class VectorBase
 	{
 		Layer layer;
 		EGraphics graphics;
@@ -115,6 +115,11 @@ public class VectorCache {
 			this.layer = layer;
 			this.graphics = graphics;
 		}
+        
+        /**
+         * Return true if this is a filled primitive.
+         */
+        boolean isFilled() { return false; }
 	}
 
 	/**
@@ -137,8 +142,10 @@ public class VectorCache {
 		{
 			this(new int[] { databaseToGrid(c1X), databaseToGrid(c1Y), databaseToGrid(c2X), databaseToGrid(c2Y) },
                     layer, graphics, pureLayer);
-		}
-	}
+        }
+        
+        @Override boolean isFilled() { return true; }
+    }
 
     /**
      * Class which collects boxes for VectorManhattan.
@@ -187,7 +194,9 @@ public class VectorCache {
                 Point2D p = points[i];
                 this.points[i] = new Point(databaseToGrid(p.getX()), databaseToGrid(p.getY()));
             }
-		}
+        }
+        
+        @Override boolean isFilled() { return true; }
 	}
 
 	/**
@@ -226,6 +235,11 @@ public class VectorCache {
 			this.eY = databaseToGrid(eY);
 			this.nature = nature;
 		}
+        
+        @Override boolean isFilled() {
+            // true for disc nature
+            return nature == 2;
+        }
 	}
 
 	/**
