@@ -23,7 +23,12 @@
  */
 package com.sun.electric.lib;
 
+import com.sun.electric.database.text.TextUtils;
+
+import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to manage files in the "library area" of Electric
@@ -57,10 +62,26 @@ public class LibFile
 	 */
 	public static String [] getSpicePartsLibraries()
 	{
+		String sampleSpiceParts = "spiceparts.jelib";
+		URL url = theOne.getClass().getResource(sampleSpiceParts);
+		String pathToResources = TextUtils.getFilePath(url);
+		int pos = pathToResources.indexOf(sampleSpiceParts);
+		if (pos >= 0)
+			pathToResources = pathToResources.substring(0, pos);
+		File resourceDir = new File(pathToResources);
+		String [] files = resourceDir.list();
+
+		List<String> spiceLibs = new ArrayList<String>();
+		for(int i=0; i<files.length; i++)
+		{
+			if (files[i].startsWith("spiceparts") && files[i].endsWith(".jelib"))
+				spiceLibs.add(files[i].substring(0, files[i].length()-6));
+		}
+
 		// until we find a way to search the resources, this will have to do
-		String [] libNames = new String[2];
-		libNames[0] = "spiceparts";
-		libNames[1] = "spicepartsS3";
+		String [] libNames = new String[spiceLibs.size()];
+		for(int i=0; i<spiceLibs.size(); i++)
+			libNames[i] = spiceLibs.get(i);
 		return libNames;
 	}
 
