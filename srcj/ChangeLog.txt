@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04p: *********************************
 
+IMP: (6/1/06, SMR) Preferences XML is now properly formatted.
+
 IMP: (5/31/06, SMR) Sped up waveform window when sweeps are included or
      excluded (Bug #1078).
 

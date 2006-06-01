@@ -29,12 +29,21 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -48,6 +57,12 @@ import java.util.TreeMap;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.InvalidPreferencesFormatException;
 import java.util.prefs.Preferences;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 
 /**
  * This class manages options.
@@ -398,30 +413,58 @@ public class Pref
         // save preferences there
         try
 		{
-//			ByteArrayOutputStream bs = new ByteArrayOutputStream();
-//			Preferences root = Preferences.userNodeForPackage(Main.class);
-//			root.exportSubtree(bs);
-//			ByteArrayInputStream bis = new ByteArrayInputStream(bs.toByteArray());
-//			StreamSource source = new StreamSource(bis);
-//
-//        	TransformerFactory factory = TransformerFactory.newInstance();
-//        	factory.setAttribute("indent-number", 4);
-//        	Transformer transformer = factory.newTransformer();
-//			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-//			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-//			File file = new File(fileName);
-//			StreamResult result = new StreamResult(file);
-//			transformer.transform(source, result);
-
-			FileOutputStream outputStream = new PrivateFileOutputStream(fileName);
+        	// dump the preferences as a giant XML string (unformatted)
 			Preferences root = Preferences.userNodeForPackage(Main.class);
-			root.exportSubtree(outputStream);
-			outputStream.close();
+			ByteArrayOutputStream bs = new ByteArrayOutputStream();
+			root.exportSubtree(bs);
+			String xmlDump = bs.toString();
+
+			// remove the DTD statement (causes trouble)
+			int sunPos = xmlDump.indexOf("java.sun.com");
+			String insertDTD = "";
+			if (sunPos >= 0)
+			{
+				int openPos = xmlDump.lastIndexOf('<', sunPos);
+				int closePos = xmlDump.indexOf('>', sunPos);
+				if (openPos >= 0 && closePos >= 0)
+				{
+					insertDTD = xmlDump.substring(openPos, closePos+1);
+					xmlDump = xmlDump.substring(0, openPos) + xmlDump.substring(closePos+1);
+				}
+			}
+
+			// reformat the XML
+			StreamSource source = new StreamSource(new StringReader(xmlDump));
+	    	TransformerFactory factory = TransformerFactory.newInstance();
+	    	factory.setAttribute("indent-number", new Integer(2));
+	    	Transformer transformer = factory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			File file = new File(fileName);
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			StreamResult result = new StreamResult(new OutputStreamWriter(bos, "utf-8"));
+			transformer.transform(source, result);
+
+			// add the removed DTD line back into the XML
+			String xmlFormatted = bos.toString();
+			int closePos = xmlFormatted.indexOf('>');
+			if (closePos >= 0)
+				xmlFormatted = xmlFormatted.substring(0, closePos+1) + "\n" + insertDTD + xmlFormatted.substring(closePos+1);
+
+			// save the XML to disk
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+			printWriter.print(xmlFormatted);
+			printWriter.close();
+			
+//			Preferences root = Preferences.userNodeForPackage(Main.class);
+//			FileOutputStream outputStream = new PrivateFileOutputStream(fileName);
+//			root.exportSubtree(outputStream);
+//			outputStream.close();
 		} catch (Exception e)
 		{
             if (Job.getDebug())
                 e.printStackTrace();
-			System.out.println("Error writing file");
+			System.out.println("Error exporting Preferences");
 			return;
 		}
 
