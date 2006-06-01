@@ -601,24 +601,22 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			public void actionPerformed(ActionEvent evt) { vcrClickSlower(); }
 		});
 
-		// the single horizontal ruler panel (when the X axes are locked)
-		if (xAxisLocked)
-		{
-			addMainHorizRulerPanel();
-		}
-
 		// set bounds of the window from extent of the data
 		Rectangle2D dataBounds = sd.getBounds();
 		if (dataBounds != null)
 		{
 			double lowTime = dataBounds.getMinX();
 			double highTime = dataBounds.getMaxX();
-//			double lowValue = dataBounds.getMinY();
-//			double highValue = dataBounds.getMaxY();
 			double timeRange = highTime - lowTime;
 			setMainXPositionCursor(timeRange*0.2 + lowTime);
 			setExtensionXPositionCursor(timeRange*0.8 + lowTime);
 			setDefaultHorizontalRange(lowTime, highTime);
+		}
+
+		// the single horizontal ruler panel (when the X axes are locked)
+		if (xAxisLocked)
+		{
+			addMainHorizRulerPanel();
 		}
 	}
 
@@ -938,24 +936,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public Panel makeNewPanel()
 	{
-		// determine the X and Y ranges
-		Rectangle2D bounds = sd.getBounds();
-		double lowValue = bounds.getMinY();
-		double highValue = bounds.getMaxY();
-		double lowXValue = bounds.getMinX();
-		double highXValue = bounds.getMaxX();
-		int vertAxisPos = -1;
-		if (xAxisLocked)
-		{
-			if (wavePanels.size() > 0)
-			{
-				Panel aPanel = wavePanels.get(0);
-				lowXValue = aPanel.getMinXAxis();
-				highXValue = aPanel.getMaxXAxis();
-				vertAxisPos = aPanel.getVertAxisPos();
-			}
-		}
-
 		// determine panel's analysis type
 		Analysis.AnalysisType analysisType = Analysis.ANALYSIS_SIGNALS;
 		if (sd.isAnalog())
@@ -967,6 +947,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				AnalogSignal as = (AnalogSignal)xAxisSignalAll;
 				analysisType = as.getAnalysis().getAnalysisType();
 			}
+		}
+
+		// determine the X and Y ranges
+		Rectangle2D bounds = null;
+		Analysis an = sd.findAnalysis(analysisType);
+		if (an != null) bounds = an.getBounds(); else
+			bounds = sd.getBounds();
+		double lowValue = bounds.getMinY();
+		double highValue = bounds.getMaxY();
+		double lowXValue = bounds.getMinX();
+		double highXValue = bounds.getMaxX();
+		int vertAxisPos = -1;
+		if (xAxisLocked && wavePanels.size() > 0)
+		{
+			Panel aPanel = wavePanels.get(0);
+			lowXValue = aPanel.getMinXAxis();
+			highXValue = aPanel.getMaxXAxis();
+			vertAxisPos = aPanel.getVertAxisPos();
 		}
 
 		// create the new panel

@@ -572,6 +572,24 @@ public class Panel extends JPanel
 			waveWindow.deleteAllSignalsFromPanel(this);
 		}
 		setAnalysisType(analysisType);
+
+		// redo X scale if time unlocked or this is the only panel
+		Analysis an = waveWindow.getSimData().findAnalysis(analysisType);
+		if (an != null)
+		{
+			Rectangle2D bounds = an.getBounds(); 
+			double lowValue = bounds.getMinY();
+			double highValue = bounds.getMaxY();
+			setYAxisRange(lowValue, highValue);
+			if (!waveWindow.isXAxisLocked() || waveWindow.getNumPanels() == 1)
+			{
+				// set the X range
+				double lowXValue = bounds.getMinX();
+				double highXValue = bounds.getMaxX();
+				setXAxisRange(lowXValue, highXValue);
+			}
+		}
+		
 		repaintWithRulers();
 	}
 
@@ -933,7 +951,6 @@ public class Panel extends JPanel
 		{
 			repaintOffscreenImage();
 		}
-
 		Point screenLoc = getLocationOnScreen();
 		if (waveWindow.getScreenLowX() != screenLoc.x ||
 			waveWindow.getScreenHighX() - waveWindow.getScreenLowX() != wid)
