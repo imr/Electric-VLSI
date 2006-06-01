@@ -29,6 +29,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Client;
 
 import java.awt.Component;
+import java.awt.GraphicsConfiguration;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -66,7 +67,8 @@ public class EDialog extends JDialog
 	/** Creates new form */
 	protected EDialog(Frame parent, boolean modal)
 	{
-		super(parent, modal);
+        // in multi-headed displays, display dialog on head with windowframe
+        super(parent, "", modal, (parent == null) ? null : parent.getGraphicsConfiguration());
 
         assert !Job.BATCHMODE;
 
