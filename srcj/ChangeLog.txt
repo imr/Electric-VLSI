@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04q: *********************************
+
 ************************* Version 8.04p: *********************************
 
 IMP: (6/1/06, SMR) Preferences XML is now properly formatted.
