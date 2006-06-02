@@ -253,7 +253,7 @@ public class Analysis
      */
     public Object getSweep(int i)
     {
-        if (sweeps.size() == 0) return null;
+        if (sweeps == null || sweeps.size() == 0) return null;
         return sweeps.get(i);
     }
 

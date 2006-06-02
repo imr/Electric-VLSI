@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/2/06, GVG) Still exception in Analysis.getSweep(index) due to how signals
+without sweeps are handled. This was introduced while fixing Bug #1077.
+FIX: Detect if sweeps list is null.
+
 BUG: (6/2/06, SMR) Excluding or including all sweeps in an analysis affects
      all sweeps in ALL analyses (Bug #1084).
 FIX: In ExplorerTree.setAllSweepsAction(), compute sweeps under that node.
