@@ -30,22 +30,19 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.technologies.Artwork;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -67,6 +64,10 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -196,6 +197,8 @@ class PixelDrawing_
 	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
     private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;
+    private static boolean DEBUG = false;
+    private static boolean LAYER_MAP = true;
 
     private static class ExpandedCellKey {
         private Cell cell;
@@ -504,6 +507,7 @@ class PixelDrawing_
 		}
         varContext = wnd.getVarContext();
         initOrigin(expandedScale, wnd.getOffset());
+        LAYER_MAP = expandedScale < 1 && Technology.getCurrent() == MoCMOS.tech;
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
@@ -562,7 +566,7 @@ class PixelDrawing_
         if (TAKE_STATS) countTime = System.currentTimeMillis();
         
         // now render it all
-        drawCell_(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
+        drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
         if (TAKE_STATS) drawTime = System.currentTimeMillis();
 
 		// merge transparent image into opaque one
@@ -633,9 +637,9 @@ class PixelDrawing_
 		}
 
 		// erase the patterned opaque layer bitmaps
-		for(Iterator<Map.Entry<Layer,PatternedOpaqueLayer>> it = patternedOpaqueLayers.entrySet().iterator(); it.hasNext(); )
+		for(Map.Entry<Layer,PatternedOpaqueLayer> e: patternedOpaqueLayers.entrySet())
 		{
-			PatternedOpaqueLayer pol = (PatternedOpaqueLayer)it.next();
+			PatternedOpaqueLayer pol = e.getValue();
 			byte [][] layerBitMap = pol.layerBitMap;
 			for(int y=0; y<sz.height; y++)
 			{
@@ -677,6 +681,11 @@ class PixelDrawing_
 	 */
 	public Image composite(Rectangle bounds)
 	{
+        if (LAYER_MAP) {
+            layerComposite();
+            return img;
+        }
+        
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
@@ -851,6 +860,107 @@ class PixelDrawing_
 		}
 		return img;
 	}
+    
+    private void layerComposite() {
+        Color background;
+        ArrayList<PatternedOpaqueLayer> pols = new ArrayList<PatternedOpaqueLayer>();
+        ArrayList<Color> colors = new ArrayList<Color>();
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(new File("/home/dn146861/electric/colors")));
+            background = parseColor(in.readLine());
+            for (;;) {
+                String s = in.readLine();
+                if (s == null) break;
+                if (s.charAt(0) == '#') continue;
+                int indexSp = s.indexOf(' ');
+                if (indexSp < 0)
+                    throw new IOException("Bad line: " + s);
+                String layerName = s.substring(0, indexSp);
+                Layer layer = MoCMOS.tech.findLayer(layerName);
+                if (layer == null)
+                    layer = Artwork.tech.findLayer(layerName);
+                if (layer == null)
+                    throw new IOException("Unknown layer " + layerName);
+                PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
+                Color color = parseColor(s.substring(indexSp));
+//                System.out.println(layer + " " + color);
+                if (pol == null) continue;
+                pols.add(pol);
+                colors.add(color);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
+        }
+        System.out.print("TOP " + total + " pixels t=" + System.currentTimeMillis());
+        for (Layer layer: patternedOpaqueLayers.keySet()) {
+            System.out.print(" " + layer.getName() + ":" + layer.getIndex());
+        }
+        System.out.println();
+        for (int y = 0; y < sz.height; y++) {
+            for (int x = 0; x < sz.width; x++) {
+                int cr = background.getRed();
+                int cg = background.getGreen();
+                int cb = background.getBlue();
+                int index = x >> 3;
+                int mask = 1 << (x&7);
+                for (int i = 0; i < pols.size(); i++) {
+                    PatternedOpaqueLayer pol = pols.get(i);
+                    if ((pol.layerBitMap[y][index] & mask) == 0) continue;
+                    Color col = colors.get(i);
+                    int r = col.getRed();
+                    int g = col.getGreen();
+                    int b = col.getBlue();
+                    int alpha = col.getAlpha();
+                    
+                    int inverseAlpha = 255 - alpha;
+                    cr = ((r * alpha) + (cr * inverseAlpha)) / 255;
+                    cg = ((g * alpha) + (cg * inverseAlpha)) / 255;
+                    cb = ((b * alpha) + (cb * inverseAlpha)) / 255;
+                }
+                assert 0 <= cr && cr <= 255;
+                assert 0 <= cg && cg <= 255;
+                assert 0 <= cb && cb <= 255;
+                int color = (cr << 16) | (cg << 8) + cb;
+                int baseIndex = y * sz.width + x;
+                int pixelValue = opaqueData[baseIndex];
+                if (pixelValue != backgroundValue) {
+    				int pixelAlpha = (pixelValue >> 24) & 0xFF;
+                    if (pixelAlpha == 0xFF || pixelAlpha == 0)
+                        color = pixelValue;
+                    else if (pixelAlpha != 0)
+                        color = alphaBlend(pixelValue, color, pixelAlpha);
+                }
+                opaqueData[baseIndex] = color;
+            }
+        }
+    }
+    
+    private Color parseColor(String s) throws IOException {
+        int[] comps = new int[4];
+        int k = 0;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c != ' ' && c != '\t')
+                sb.append(c);
+            else if (sb.length() != 0) {
+                int v = Integer.parseInt(sb.toString());
+                sb.setLength(0);
+                comps[k++] = v;
+            }
+        }
+        if (sb.length() != 0) {
+            int v = Integer.parseInt(sb.toString());
+            sb.setLength(0);
+            comps[k++] = v;
+        }
+        if (k != 4)
+            throw new IOException("rgba expected");
+        Color color = new Color(comps[0], comps[1], comps[2], comps[3]);
+//        System.out.println("color=" + color);
+        return color;
+    }
 
 	/**
 	 * Method to draw the grid into the offscreen buffer
@@ -1008,7 +1118,7 @@ class PixelDrawing_
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell_(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, int oX, int oY, boolean topLevel, VarContext context)
+	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, int oX, int oY, boolean topLevel, VarContext context)
 	{
 		renderedCells++;
 
@@ -1060,11 +1170,11 @@ class PixelDrawing_
                 Orientation subOrient = orient.concatenate(vsc.ni.getOrient());
                 int soX_ = vsc.offsetX + oX;
                 int soY_ = vsc.offsetY + oY;
-				if (!expandedCellCached_(subCell, subOrient, soX_, soY_, context, fullInstantiate))
+				if (!expandedCellCached(subCell, subOrient, soX_, soY_, context, fullInstantiate))
 				{
 					// just draw it directly
 					cellsRendered++;
-					drawCell_(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(vsc.ni));
+					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, soX_, soY_, false, context.push(vsc.ni));
 				}
 			} else
 			{
@@ -1114,7 +1224,7 @@ class PixelDrawing_
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached_(Cell subCell, Orientation orient, int oX, int oY, VarContext context, boolean fullInstantiate)
+	private boolean expandedCellCached(Cell subCell, Orientation orient, int oX, int oY, VarContext context, boolean fullInstantiate)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -1170,10 +1280,16 @@ class PixelDrawing_
             }
 
             expandedCellCount.offscreen = new PixelDrawing_(scale, screenBounds);
-			expandedCellCount.offscreen.drawCell_(subCell, null, fullInstantiate, orient, 0, 0, false, context);
+			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, 0, 0, false, context);
 			offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
-            
+            if (DEBUG) {
+                System.out.print(subCell + " " + orient + " rendered in " + expandedCellCount.offscreen.total + " pixels" +
+                        " t=" + System.currentTimeMillis());
+                for (Layer layer: expandedCellCount.offscreen.patternedOpaqueLayers.keySet())
+                    System.out.print(" " + layer.getName());
+                System.out.println();
+            }
 		}
 
 		// copy out of the offscreen buffer into the main buffer
@@ -1371,7 +1487,7 @@ class PixelDrawing_
 			byte [][] srcLayerBitMap = polSrc.layerBitMap;
 			if (srcLayerBitMap == null) continue;
 
-			if (renderedWindow)
+			if (renderedWindow && !LAYER_MAP)
 			{
 				// this is the top-level of display: convert patterned opaque to patterns
 				EGraphics desc = layer.getGraphics();
@@ -1518,8 +1634,19 @@ class PixelDrawing_
         boolean dimmed = false;
         if (layer != null) {
             if (!forceVisible && !layer.isVisible()) return null;
+            
+            if (LAYER_MAP) {
+                PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
+                if (pol == null) {
+                    pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
+                    patternedOpaqueLayers.put(layer, pol);
+                }
+                return pol;
+            }
+            
             graphics = layer.getGraphics();
             dimmed = layer.isDimmed();
+            
         }
         
 		byte [][] layerBitMap = null;
@@ -1575,6 +1702,16 @@ class PixelDrawing_
         boolean dimmed = false;
         if (layer != null) {
             if (!forceVisible && !layer.isVisible()) return null;
+            
+            if (LAYER_MAP) {
+                PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
+                if (pol == null) {
+                    pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
+                    patternedOpaqueLayers.put(layer, pol);
+                }
+                return pol;
+            }
+            
             graphics = layer.getGraphics();
             dimmed = layer.isDimmed();
         }
