@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.waveform;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.Analysis;
-import com.sun.electric.tool.simulation.Stimuli;
 
 import java.util.Iterator;
 
@@ -46,8 +45,6 @@ public class SweepSignal
 		this.an = an;
 		included = true;
         sweepIndex = ww.addSweep(this);
-//		sweepIndex = ww.getSweepSignals().size();
-//		ww.getSweepSignals().add(this);
 	}
 
 	public String toString()

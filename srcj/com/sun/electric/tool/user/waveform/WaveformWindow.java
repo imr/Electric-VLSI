@@ -67,7 +67,15 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -1274,18 +1282,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
-			addSweepsForAnalysis(an);
+	        int maxNum = an.getNumSweeps();
+	        for (int i = 0; i < maxNum; i++)
+	        {
+	            Object obj = an.getSweep(i);
+				new SweepSignal(obj, this, an);
+	        }
 		}
-	}
-
-	private void addSweepsForAnalysis(Analysis an)
-	{
-        int maxNum = an.getNumSweeps();
-        for (int i = 0; i < maxNum; i++)
-        {
-            Object obj = an.getSweep(i);
-			new SweepSignal(obj, this, an);
-        }
 	}
 
     public int addSweep(SweepSignal ss)
@@ -1295,21 +1298,19 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         return -1;
     }
 
-    public void setIncludeInAllSweeps(boolean include)
+    public void setIncludeInAllSweeps(List<SweepSignal> sweeps, boolean include)
     {
-    	for(int i=0; i<sweepSignals.size(); i++)
+    	for(int i=0; i<sweeps.size(); i++)
     	{
-    		SweepSignal ss = sweepSignals.get(i);
-    		boolean update = (i == sweepSignals.size()-1);
+    		SweepSignal ss = sweeps.get(i);
+    		boolean update = (i == sweeps.size()-1);
             ss.setIncluded(include, update);
         }
     }
-//	public List<SweepSignal> getSweepSignals() { return sweepSignals; }
 
     /**
      * Method to check whether this particular sweep is included.
-     * Notice that sweepSignals.length doesn't
-     * @return
+     * @return true if the sweep is included
      */
     public boolean isSweepSignalIncluded(Analysis an, int index)
     {
@@ -1533,7 +1534,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public Highlighter getHighlighter() { return highlighter; }
 
-	// ************************************* THE EXPLORER TREE *************************************
+	// ************************************* PRINTING *************************************
 
 	/**
 	 * Method to get a list of polygons describing the waveform window.
@@ -1925,6 +1926,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                 }
             }
 		}
+
 		// create net name
 		String contextStr = context.getInstPath(".");
 		contextStr = TextUtils.canonicString(contextStr);
@@ -1951,6 +1953,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		Cell childCell = (Cell)childNodable.getProto();
 		if (childCell.contentsView() != null)
 			childCell = childCell.contentsView();
+
 		// find export on network
 		boolean found = false;
 		Export export = null;
@@ -1971,10 +1974,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			if (found) break;
 		}
 		if (!found) return null;
+
 		// find corresponding port on icon
-		//System.out.println("In "+cell.describe()+" JNet "+network.describe()+" is exported as "+export.getName()+"; index "+i);
 		Export pp = (Export)childNodable.getProto().findPortProto(export.getNameKey());
-		//System.out.println("Found corresponding port proto "+pp.getName()+" on cell "+no.getProto().describe());
+
 		// find corresponding network in parent
 		Cell parentCell = childNodable.getParent();
 		//if (childNodable instanceof NodeInst) childNodable = Netlist.getNodableFor((NodeInst)childNodable, 0);
@@ -3235,12 +3238,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Rectangle2D anBounds = an.getBounds();
 				if (anBounds != null) // calling new Rectangle2D.Double() in case xBounds == null
                     xBounds = new Rectangle2D.Double(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
-//					xBounds.setRect(anBounds.getMinX(), anBounds.getMinY(), anBounds.getWidth(), anBounds.getHeight());
 				if (wp.getXAxisSignal() != null)
 				{
 					Rectangle2D sigBounds = wp.getXAxisSignal().getBounds();
                     xBounds = new Rectangle2D.Double(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
-//					xBounds.setRect(sigBounds.getMinY(), sigBounds.getMinX(), sigBounds.getHeight(), sigBounds.getWidth());
 				}
 			}
 

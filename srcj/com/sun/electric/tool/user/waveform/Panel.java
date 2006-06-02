@@ -1324,7 +1324,6 @@ public class Panel extends JPanel
 		int hei = sz.height;
 		Signal xSignal = xAxisSignal;
 		if (waveWindow.isXAxisLocked()) xSignal = waveWindow.getXAxisSignalAll();
-//		if (waveWindow.isXAxisLocked()) xSignal = null; // waveWindow.getXAxisSignalAll();
         double[] result = new double[3];
 
         int linePointMode = waveWindow.getLinePointMode();
@@ -1362,13 +1361,6 @@ public class Panel extends JPanel
                 Analysis an = as.getAnalysis();
                 for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++)
 				{
-//                    SweepSignal ss = null;
-//                    if (s < waveWindow.getSweepSignals().size())
-//                        ss = waveWindow.getSweepSignals().get(s);
-//                    Object sweep = an.getSweep(s);
-//                    SweepSignal ss = waveWindow.getSweepSignalObject(an, s);
-//                    if (ss != null && !ss.isIncluded())
-//                        continue;
                     boolean included = waveWindow.isSweepSignalIncluded(an, s);
                     if (!included)
                         continue;
@@ -1386,33 +1378,37 @@ public class Panel extends JPanel
 							oSig.getEvent(s, i, result);
 							x = convertXDataToScreen(result[1]);
 						}
-                        if (i != 0)
-                        {
-                        	if (linePointMode <= 1)
-                        	{
-                        		// drawing has lines
-	                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
+						if ((x > vertAxisPos && x < sz.width) ||
+							(lastX > vertAxisPos && lastX < sz.width))
+						{
+	                        if (i != 0)
+	                        {
+	                        	if (linePointMode <= 1)
+	                        	{
+	                        		// drawing has lines
+		                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
+		                            if (lastLY != lastHY || lowY != highY)
+		                            {
+		        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, -1)) break;
+		        						if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
+		        						if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, -1)) break;
+		                            }
+	                        	}
+							}
+	                    	if (i == numEvents-1 && linePointMode <= 1)
+	                    	{
+	                    		// process extrapolated line from the last data point
+	                            if (processALine(g, x, lowY, sz.width, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
 	                            if (lastLY != lastHY || lowY != highY)
 	                            {
-	        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, -1)) break;
-	        						if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
-	        						if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, -1)) break;
+	        						if (processALine(g, x, highY, sz.width, highY, bounds, forPs, selectedObjects, ws, -1)) break;
 	                            }
-                        	}
-						}
-                    	if (i == numEvents-1 && linePointMode <= 1)
-                    	{
-                    		// process extrapolated line from the last data point
-                            if (processALine(g, x, lowY, sz.width, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
-                            if (lastLY != lastHY || lowY != highY)
-                            {
-        						if (processALine(g, x, highY, sz.width, highY, bounds, forPs, selectedObjects, ws, -1)) break;
-                            }
-                    	}
-                    	if (linePointMode >= 1)
-						{
-                    		// drawing has points
-							if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
+	                    	}
+	                    	if (linePointMode >= 1)
+							{
+	                    		// drawing has points
+								if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, forPs, selectedObjects, ws, false, 0)) break;
+							}
 						}
 						lastX = x;   lastLY = lowY; lastHY = highY; 
 					}
@@ -1985,14 +1981,7 @@ public class Panel extends JPanel
 
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
-                boolean included = waveWindow.isSweepSignalIncluded(an, s);
-                if (!included)
-                    continue;
-//                SweepSignal ss = null;
-//                if (s < waveWindow.getSweepSignals().size())
-//                    ss = waveWindow.getSweepSignals().get(s);
-//                SweepSignal ss = waveWindow.getSweepSignalObject(an, s);
-//                if (ss != null && !ss.isIncluded()) continue;
+                if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
 				int numEvents = as.getNumEvents(s);
 				for(int i=0; i<numEvents; i++)
 				{
@@ -2024,13 +2013,7 @@ public class Panel extends JPanel
 
 			for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 			{
-                boolean included = waveWindow.isSweepSignalIncluded(an, s);
-                if (!included)
-                    continue;
-//                SweepSignal ss = null;
-//                if (s < waveWindow.getSweepSignals().size())
-//                    ss = waveWindow.getSweepSignals().get(s);
-//                if (ss != null && !ss.isIncluded()) continue;
+                if (!waveWindow.isSweepSignalIncluded(an, s)) continue;
 				int numEvents = as.getNumEvents(s);
                 as.getEvent(s, 0, lastResult);
 				Point2D lastPt = new Point2D.Double(convertXDataToScreen(lastResult[0]), convertYDataToScreen((lastResult[1] + lastResult[2]) / 2));
@@ -2165,7 +2148,6 @@ public class Panel extends JPanel
 					{
 						Panel wp = it.next();
 						Point oPt = wp.getLocationOnScreen();
-//						Dimension sz = wp.getSize();
 						if (globalPt.x < oPt.x) continue;
 						if (globalPt.x > oPt.x + sz.width) continue;
 						if (globalPt.y < oPt.y) continue;

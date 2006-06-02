@@ -96,7 +96,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
     
     private TreeHandler handler = null;
 	private final String rootNode;
-//	private Object [] currentSelectedObjects = NULL_TREE_PATH_ARRAY;
     private TreePath [] currentSelectedPaths = new TreePath[0];
 
 	private static class IconGroup
@@ -1732,13 +1731,29 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void setAllSweepsAction(boolean include)
 		{
+			// get all sweep signals below this
+			if (currentPaths.length != 1) return;
+			TreePath path = currentPaths[0];
+			DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+			int numChildren = node.getChildCount();
+			List<SweepSignal> sweeps = new ArrayList<SweepSignal>();
+			for(int i=0; i<numChildren; i++)
+			{
+				DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+				TreePath descentPath = path.pathByAddingChild(child);
+			    Object obj = descentPath.getLastPathComponent();
+				SweepSignal ss = (SweepSignal)((DefaultMutableTreeNode)obj).getUserObject();
+				sweeps.add(ss);
+			}
+
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 			if (wf == null) return;
 			if (wf.getContent() instanceof WaveformWindow)
 			{
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
-                ww.setIncludeInAllSweeps(include);
+                ww.setIncludeInAllSweeps(sweeps, include);
 			}
+			updateUI();
 		}
 
 		private void newCellVersionAction()
