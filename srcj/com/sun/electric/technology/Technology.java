@@ -994,7 +994,9 @@ public class Technology implements Comparable<Technology>
 		{
 			int h1 = l1.getFunction().getHeight();
 			int h2 = l2.getFunction().getHeight();
-			return h1 - h2;
+            int cmp = h1 - h2;
+            if (cmp != 0) return cmp;
+			return l1.getIndex() - l2.getIndex();
 		}
 	}
 

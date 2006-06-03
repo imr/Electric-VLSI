@@ -42,7 +42,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -507,7 +507,7 @@ class PixelDrawing_
 		}
         varContext = wnd.getVarContext();
         initOrigin(expandedScale, wnd.getOffset());
-        LAYER_MAP = expandedScale < 1 && Technology.getCurrent() == MoCMOS.tech;
+        LAYER_MAP = expandedScale < 0.1 && Technology.getCurrent() == MoCMOS.tech;
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
@@ -861,6 +861,202 @@ class PixelDrawing_
 		return img;
 	}
     
+    private class AlphaBlendGroup {
+        private static final int SCALE_SH = 8;
+        private static final int SCALE = 1 << SCALE_SH;
+        
+        PatternedOpaqueLayer[] pols;
+        int[] redMap;
+        int[] greenMap;
+        int[] blueMap;
+        int[] inverseAlphaMap;
+        byte[][] rows;
+        
+        AlphaBlendGroup(List<PatternedOpaqueLayer> pols, List<Color> cols, int offset, int len, Color background) {
+            this.pols = new PatternedOpaqueLayer[len];
+            int mapLen = 1 << len;
+            redMap = new int[mapLen];
+            greenMap = new int[mapLen];
+            blueMap = new int[mapLen];
+            inverseAlphaMap = new int[mapLen];
+            rows = new byte[len][];
+            
+            float[][] compArrays = new float[len][];
+            
+            for (int i = 0; i < len; i++) {
+                this.pols[i] = pols.get(offset + i);
+                Color color = cols.get(offset + i);
+                compArrays[i] = color.getRGBComponents(null);
+            }
+            
+            for (int k = 0; k < mapLen; k++) {
+                double red = 0, green = 0, blue = 0, ia = 1.0;
+                if (background != null) {
+                    float compArray[] = background.getRGBColorComponents(null);
+                    red = compArray[0];
+                    green = compArray[1];
+                    blue = compArray[2];
+                    ia = 0.0;
+                }
+                for (int i = 0; i < len; i++) {
+                    if ((k & (1 << i)) == 0) continue;
+                    float[] compArray = compArrays[i];
+                    double alpha = compArray[3];
+                    red = compArray[0]*alpha + red*(1 - alpha);
+                    green = compArray[1]*alpha + green*(1 - alpha);
+                    blue = compArray[2]*alpha + blue*(1 - alpha);
+                    ia = ia*(1 - alpha);
+                }
+                redMap[k] = (int)(red*SCALE*255);
+                greenMap[k] = (int)(green*SCALE*255);
+                blueMap[k] = (int)(blue*SCALE*255);
+                inverseAlphaMap[k] = (int)(ia*SCALE);
+            }
+        }
+        
+        private void setRows(int y) {
+            for (int i = 0; i < pols.length; i++)
+                rows[i] = pols[i].layerBitMap[y];
+        }
+        
+        private void unpackBytes(int index) {
+            // unpack pixels
+            int pixel0 = 0, pixel1 = 0, pixel2 = 0, pixel3 = 0, pixel4 = 0, pixel5 = 0, pixel6 = 0, pixel7 = 0;
+            for (int i = 0; i < rows.length; i++) {
+                int value = rows[i][index];
+                if (value == 0) continue;
+                pixel0 |= (value & 1) << i;
+                pixel1 |= ((value >> 1) & 1) << i;
+                pixel2 |= ((value >> 2) & 1) << i;
+                pixel3 |= ((value >> 3) & 1) << i;
+                pixel4 |= ((value >> 4) & 1) << i;
+                pixel5 |= ((value >> 5) & 1) << i;
+                pixel6 |= ((value >> 6) & 1) << i;
+                pixel7 |= ((value >> 7) & 1) << i;
+            }
+            
+            // 
+            int red, green, blue, ia;
+            
+            red = redMap[pixel0];
+            green = greenMap[pixel0];
+            blue = blueMap[pixel0];
+            ia = inverseAlphaMap[pixel0];
+            if (ia == 0) {
+                r0 = red >> SCALE_SH;
+                g0 = green >> SCALE_SH;
+                b0 = blue >> SCALE_SH;
+            } else if (ia != SCALE) {
+                r0 = (red + r0 * ia) >> SCALE_SH;
+                g0 = (green + g0 * ia) >> SCALE_SH;
+                b0 = (blue + b0 * ia) >> SCALE_SH;
+            }
+
+            red = redMap[pixel1];
+            green = greenMap[pixel1];
+            blue = blueMap[pixel1];
+            ia = inverseAlphaMap[pixel1];
+            if (ia == 0) {
+                r1 = red >> SCALE_SH;
+                g1 = green >> SCALE_SH;
+                b1 = blue >> SCALE_SH;
+            } else if (ia != SCALE) {
+                r1 = (red + r1 * ia) >> SCALE_SH;
+                g1 = (green + g1 * ia) >> SCALE_SH;
+                b1 = (blue + b1 * ia) >> SCALE_SH;
+            }
+
+            red = redMap[pixel2];
+            green = greenMap[pixel2];
+            blue = blueMap[pixel2];
+            ia = inverseAlphaMap[pixel2];
+            if (ia == 0) {
+                r2 = red >> SCALE_SH;
+                g2 = green >> SCALE_SH;
+                b2 = blue >> SCALE_SH;
+            } else if (ia != SCALE) {
+                r2 = (red + r2 * ia) >> SCALE_SH;
+                g2 = (green + g2 * ia) >> SCALE_SH;
+                b2 = (blue + b2 * ia) >> SCALE_SH;
+            }
+
+            red = redMap[pixel3];
+            green = greenMap[pixel3];
+            blue = blueMap[pixel3];
+            ia = inverseAlphaMap[pixel3];
+            if (ia == 0) {
+                r3 = red >> SCALE_SH;
+                g3 = green >> SCALE_SH;
+                b3 = blue >> SCALE_SH;
+            } else if (ia != SCALE) {
+                r3 = (red + r3 * ia) >> SCALE_SH;
+                g3 = (green + g3 * ia) >> SCALE_SH;
+                b3 = (blue + b3 * ia) >> SCALE_SH;
+            }
+
+            red = redMap[pixel4];
+            green = greenMap[pixel4];
+            blue = blueMap[pixel4];
+            ia = inverseAlphaMap[pixel4];
+            if (ia == 0) {
+                r4 = red >> SCALE_SH;
+                g4 = green >> SCALE_SH;
+                b4 = blue >> SCALE_SH;
+            } else if (ia != SCALE) {
+                r4 = (red + r4 * ia) >> SCALE_SH;
+                g4 = (green + g4 * ia) >> SCALE_SH;
+                b4 = (blue + b4 * ia) >> SCALE_SH;
+            }
+
+            red = redMap[pixel5];
+            green = greenMap[pixel5];
+            blue = blueMap[pixel5];
+            ia = inverseAlphaMap[pixel5];
+            if (ia == 0) {
+                r5 = red >> SCALE_SH;
+                g5 = green >> SCALE_SH;
+                b5 = blue >> SCALE_SH;
+            } else if (ia != SCALE) {
+                r5 = (red + r5 * ia) >> SCALE_SH;
+                g5 = (green + g5 * ia) >> SCALE_SH;
+                b5 = (blue + b5 * ia) >> SCALE_SH;
+            }
+
+            red = redMap[pixel6];
+            green = greenMap[pixel6];
+            blue = blueMap[pixel6];
+            ia = inverseAlphaMap[pixel6];
+            if (ia == 0) {
+                r6 = red >> SCALE_SH;
+                g6 = green >> SCALE_SH;
+                b6 = blue >> SCALE_SH;
+            } else if (ia != SCALE) {
+                r6 = (red + r6 * ia) >> SCALE_SH;
+                g6 = (green + g6 * ia) >> SCALE_SH;
+                b6 = (blue + b6 * ia) >> SCALE_SH;
+            }
+
+            red = redMap[pixel7];
+            green = greenMap[pixel7];
+            blue = blueMap[pixel7];
+            ia = inverseAlphaMap[pixel7];
+            if (ia == 0) {
+                r7 = red >> SCALE_SH;
+                g7 = green >> SCALE_SH;
+                b7 = blue >> SCALE_SH;
+            } else if (ia != SCALE) {
+                r7 = (red + r7 * ia) >> SCALE_SH;
+                g7 = (green + g7 * ia) >> SCALE_SH;
+                b7 = (blue + b7 * ia) >> SCALE_SH;
+            }
+
+        }
+    }
+    
+    private int r0, r1, r2, r3, r4, r5, r6, r7;
+    private int g0, g1, g2, g3, g4, g5, g6, g7;
+    private int b0, b1, b2, b3, b4, b5, b6, b7;
+    
     private void layerComposite() {
         Color background;
         ArrayList<PatternedOpaqueLayer> pols = new ArrayList<PatternedOpaqueLayer>();
@@ -878,7 +1074,7 @@ class PixelDrawing_
                 String layerName = s.substring(0, indexSp);
                 Layer layer = MoCMOS.tech.findLayer(layerName);
                 if (layer == null)
-                    layer = Artwork.tech.findLayer(layerName);
+                    layer = Generic.tech.findLayer(layerName);
                 if (layer == null)
                     throw new IOException("Unknown layer " + layerName);
                 PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
@@ -897,43 +1093,96 @@ class PixelDrawing_
             System.out.print(" " + layer.getName() + ":" + layer.getIndex());
         }
         System.out.println();
-        for (int y = 0; y < sz.height; y++) {
-            for (int x = 0; x < sz.width; x++) {
-                int cr = background.getRed();
-                int cg = background.getGreen();
-                int cb = background.getBlue();
-                int index = x >> 3;
-                int mask = 1 << (x&7);
-                for (int i = 0; i < pols.size(); i++) {
-                    PatternedOpaqueLayer pol = pols.get(i);
-                    if ((pol.layerBitMap[y][index] & mask) == 0) continue;
-                    Color col = colors.get(i);
-                    int r = col.getRed();
-                    int g = col.getGreen();
-                    int b = col.getBlue();
-                    int alpha = col.getAlpha();
-                    
-                    int inverseAlpha = 255 - alpha;
-                    cr = ((r * alpha) + (cr * inverseAlpha)) / 255;
-                    cg = ((g * alpha) + (cg * inverseAlpha)) / 255;
-                    cb = ((b * alpha) + (cb * inverseAlpha)) / 255;
-                }
-                assert 0 <= cr && cr <= 255;
-                assert 0 <= cg && cg <= 255;
-                assert 0 <= cb && cb <= 255;
-                int color = (cr << 16) | (cg << 8) + cb;
-                int baseIndex = y * sz.width + x;
-                int pixelValue = opaqueData[baseIndex];
-                if (pixelValue != backgroundValue) {
-    				int pixelAlpha = (pixelValue >> 24) & 0xFF;
-                    if (pixelAlpha == 0xFF || pixelAlpha == 0)
-                        color = pixelValue;
-                    else if (pixelAlpha != 0)
-                        color = alphaBlend(pixelValue, color, pixelAlpha);
-                }
-                opaqueData[baseIndex] = color;
-            }
+        
+        long startTime = System.currentTimeMillis();
+        AlphaBlendGroup[] groups = new AlphaBlendGroup[pols.size()/12 + 1];
+        int k = 0;
+        for (int i = 0; i < groups.length; i++) {
+            int l = (pols.size() - k) / (groups.length - i);
+            groups[i] = new AlphaBlendGroup(pols, colors, k, l, background);
+            background = null;
+            k += l;
         }
+        
+        long mapTime = System.currentTimeMillis();
+        int numFullBytes = sz.width / 8;
+        int numTailBits = sz.width % 8;
+        int baseIndex = 0;
+        for (int y = 0; y < sz.height; y++) {
+            for (AlphaBlendGroup group: groups)
+                group.setRows(y);
+            int x = 0;
+            for (int index = 0; index < numFullBytes; index++) {
+                for (AlphaBlendGroup group: groups)
+                    group.unpackBytes(index);
+                baseIndex = storeRGB8(baseIndex);
+            }
+            if (numTailBits == 0) continue;
+            for (AlphaBlendGroup group: groups)
+                group.unpackBytes(numFullBytes);
+            switch (numTailBits) {
+                case 7:
+                    storeRGB(baseIndex + 6, r6, g6, b6);
+                case 6:
+                    storeRGB(baseIndex + 5, r5, g5, b5);
+                case 5:
+                    storeRGB(baseIndex + 4, r4, g4, b4);
+                case 4:
+                    storeRGB(baseIndex + 3, r3, g3, b3);
+                case 3:
+                    storeRGB(baseIndex + 2, r2, g2, b2);
+                case 2:
+                    storeRGB(baseIndex + 1, r1, g1, b1);
+                case 1:
+                    storeRGB(baseIndex, r0, g0, b0);
+                case 0:
+                    break;
+                default:
+                    assert false;
+            }
+            baseIndex += numTailBits;
+        }
+        assert baseIndex == sz.width * sz.height;
+        long endTime = System.currentTimeMillis();
+        System.out.println("layerComposite took " + (endTime - startTime) + "(" +
+                (mapTime - startTime) + "+" + (endTime - mapTime) + ") msec");
+        System.out.print("MapSize = ");
+        int mapSize = 0;
+        for (AlphaBlendGroup group: groups) {
+            if (mapSize != 0)
+                System.out.print(" + ");
+            System.out.print("2^" + group.pols.length);
+            mapSize += group.inverseAlphaMap.length;
+        }
+        System.out.println(" = " + mapSize);
+     }
+
+    private int storeRGB8(int baseIndex) {
+        storeRGB(baseIndex++, r0, g0, b0);
+        storeRGB(baseIndex++, r1, g1, b1);
+        storeRGB(baseIndex++, r2, g2, b2);
+        storeRGB(baseIndex++, r3, g3, b3);
+        storeRGB(baseIndex++, r4, g4, b4);
+        storeRGB(baseIndex++, r5, g5, b5);
+        storeRGB(baseIndex++, r6, g6, b6);
+        storeRGB(baseIndex++, r7, g7, b7);
+        return baseIndex;
+    }
+    
+     private void storeRGB(int baseIndex, int red, int green, int blue) {
+        assert 0 <= red && red <= 255;
+        assert 0 <= green && green <= 255;
+        assert 0 <= blue && blue <= 255;
+        int color = (red << 16) | (green << 8) + blue;
+        int pixelValue = opaqueData[baseIndex];
+        if (pixelValue != backgroundValue) {
+            int pixelAlpha = (pixelValue >> 24) & 0xFF;
+            if (pixelAlpha == 0xFF || pixelAlpha == 0)
+                color = pixelValue;
+            else if (pixelAlpha != 0)
+                color = alphaBlend(pixelValue, color, pixelAlpha);
+        }
+        opaqueData[baseIndex] = color;
     }
     
     private Color parseColor(String s) throws IOException {
