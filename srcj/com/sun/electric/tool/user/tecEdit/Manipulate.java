@@ -330,7 +330,7 @@ public class Manipulate
 		{
 			// cell exists: put it in the current window
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-			if (wf != null) wf.setCellWindow(cell);
+			if (wf != null) wf.setCellWindow(cell, null);
 			return;
 		}
 
@@ -389,7 +389,7 @@ public class Manipulate
         public void terminateOK()
         {
 			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-			if (wf != null && newCell != null) wf.setCellWindow(newCell);
+			if (wf != null && newCell != null) wf.setCellWindow(newCell, null);
         }
 	}
 

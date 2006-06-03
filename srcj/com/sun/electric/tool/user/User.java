@@ -526,7 +526,7 @@ public class User extends Listener
             if (winCell == null) continue;
             EditWindow wnd = (EditWindow)content;
             if (!winCell.isLinked()) {
-                wnd.setCell(null, null);
+                wnd.setCell(null, null, null);
             } else if (marked.contains(winCell)) {
                 wnd.repaintContents(null, false);
             }

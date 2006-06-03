@@ -851,7 +851,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         }
     }
 
-	public void setCell(Cell cell, VarContext context)
+	public void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes displayAttributes)
 	{
 		sd.setCell(cell);
 		setWindowTitle();

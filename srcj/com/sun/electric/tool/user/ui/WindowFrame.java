@@ -27,11 +27,15 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Client;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
@@ -54,6 +58,8 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
@@ -68,7 +74,6 @@ import javax.swing.tree.MutableTreeNode;
 public class WindowFrame extends Observable
 {
 	/** the nature of the main window part (from above) */	private WindowContent content;
-//	/** the text edit window part */					private JTextArea textWnd;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
     /** the internal frame (if MDI). */					private JInternalFrame jif = null;
     /** the top-level frame (if SDI). */				private TopLevel jf = null;
@@ -95,13 +100,54 @@ public class WindowFrame extends Observable
 
     /** library tree updater */                         private static LibraryTreeUpdater libTreeUpdater = new LibraryTreeUpdater();
 
+    public static class DisplayAttributes
+    {
+		/** the window scale */									public double scale;
+		/** the window offset */								public double offX, offY;
+		/** the port that is highlighted */						public PortInst selPort;
+		/** true if displayed down-in-place */					public boolean inPlace;
+		/** transform from screen to cell (down-in-place) */	public AffineTransform intoCell;
+		/** transform from cell to screen (down-in-place) */	public AffineTransform outofCell;
+		/** top-level cell being displayed (down-in-place) */	public Cell topLevelCell;
+		/** path to cell being edited (down-in-place) */		public List<NodeInst> inPlaceDescent;
 
-	//******************************** CONSTRUCTION ********************************
+		public DisplayAttributes() {}
+
+		public DisplayAttributes(DisplayAttributes old)
+		{
+			if (old != null) set(old);
+		}
+
+		public void set(DisplayAttributes old)
+		{
+			this.scale = old.scale;
+			this.offX = old.offX;
+			this.offY = old.offY;
+			this.selPort = old.selPort;
+			this.inPlace = old.inPlace;
+			if (old.inPlace)
+			{
+				this.intoCell = new AffineTransform(old.intoCell);
+				this.outofCell = new AffineTransform(old.outofCell);
+				this.topLevelCell = old.topLevelCell;
+				if (old.inPlaceDescent != null)
+				{
+					this.inPlaceDescent = new ArrayList<NodeInst>();
+					for(NodeInst n : old.inPlaceDescent)
+						this.inPlaceDescent.add(n);
+				}
+			}
+		}
+    }
+
+    //******************************** CONSTRUCTION ********************************
 
 	// constructor
 	public WindowFrame()
 	{
 		index = windowIndexCounter++;
+        cellHistory = new ArrayList<CellHistory>();
+        cellHistoryLocation = -1;
 	}
 
     /**
@@ -332,7 +378,7 @@ public class WindowFrame extends Observable
 	private static final int WINDOW_OFFSET = 0;		// was 150
 
 	/**
-	 * Create the JFrame that will hold all the Components in 
+	 * Create the JFrame that will hold all the Components in
 	 * this WindowFrame.
 	 * @return the size of the frame.
 	 */
@@ -357,7 +403,7 @@ public class WindowFrame extends Observable
 			jf.setLocation(windowOffset+WINDOW_OFFSET+preferredLoc.x, windowOffset+preferredLoc.y);
 		}
 		return frameSize;
-	}        
+	}
 
     /**
      * Set the Technology popup in the component tab and the layers tab to the current technology.
@@ -484,7 +530,7 @@ public class WindowFrame extends Observable
 	 * Handles both circuit cells and text cells.
 	 * @param cell the Cell to display.
 	 */
-	public void setCellWindow(Cell cell)
+	public void setCellWindow(Cell cell, CellHistory history)
 	{
 		if (cell != null && cell.getView().isTextView())
 		{
@@ -498,6 +544,7 @@ public class WindowFrame extends Observable
 					js.setLeftComponent(content.getPanel());
 				js.setDividerLocation(i);
 				content.fillScreen();
+				if (history == null) addToHistory(cell, VarContext.globalContext, null);
 				return;
 			}
 		} else
@@ -515,13 +562,25 @@ public class WindowFrame extends Observable
 					js.setLeftComponent(content.getPanel());
 				js.setDividerLocation(i);
 				content.fillScreen();
+				if (history == null) addToHistory(cell, VarContext.globalContext, null);
 				return;
 			}
 		}
-		content.setCell(cell, VarContext.globalContext);
+
+		// proper window type already there: switch cells
+		DisplayAttributes da = null;
+		VarContext upperContext = VarContext.globalContext;
+		if (history != null)
+		{
+			da = history.da;
+			upperContext = history.context;
+		}
+		content.setCell(cell, upperContext, da);
         currentCellChanged();
+
         // Adding into WindowMenu
         WindowMenu.addDynamicMenu(this);
+        if (history == null) addToHistory(cell, VarContext.globalContext, null);
 	}
 
 	public void moveEditWindow(GraphicsConfiguration gc) {
@@ -537,7 +596,7 @@ public class WindowFrame extends Observable
 		String cellDescription = (cell == null) ? "no cell" : cell.describe(false);  // new title
 		createJFrame(cellDescription, gc);          // create new Frame
 		populateJFrame();                           // populate new Frame
-		content.fireCellHistoryStatus();                // update tool bar history buttons
+		fireCellHistoryStatus();                // update tool bar history buttons
 	}
 
 	//******************************** EXPLORER PART ********************************
@@ -670,7 +729,7 @@ public class WindowFrame extends Observable
 		if (wf == null) return null;
 		return wf.getContent().getCell();
 	}
-	
+
 	/**
 	 * Method to insist on a current Cell.
 	 * Prints an error message if there is no current Cell.
@@ -708,7 +767,7 @@ public class WindowFrame extends Observable
 			WindowContent content = wf.getContent();
 			Cell cell = content.getCell();
 			if (cell != null && cell.getLibrary() == lib)
-				content.setCell(null, null);
+				content.setCell(null, null, null);
 			content.fullRepaint();
 		}
 	}
@@ -855,12 +914,6 @@ public class WindowFrame extends Observable
 	public WaveformWindow getWaveformWindow() { return (WaveformWindow)content; }
 
 	/**
-	 * Method to return the text edit window associated with this frame.
-	 * @return the text edit window associated with this frame.
-	 */
-//	public JTextArea getTextEditWindow() { return textWnd; }
-
-	/**
 	 * Method to return the Explorer tab associated with this WindowFrame.
 	 * @return the Explorer tab associated with this WindowFrame.
 	 */
@@ -891,7 +944,7 @@ public class WindowFrame extends Observable
         }
         return jf;
     }
-    
+
 	/**
 	 * Method to return the ToolBar associated with this WindowFrame.
      * In SDI mode this returns this WindowFrame's ToolBar.
@@ -903,7 +956,7 @@ public class WindowFrame extends Observable
         TopLevel topLevel = getFrame();
         return topLevel != null ? topLevel.getToolBar() : null;
     }
-    
+
     /**
      * Method to return the JInternalFrame associated with this WindowFrame.
      * In SDI mode this returns null.
@@ -914,7 +967,7 @@ public class WindowFrame extends Observable
             return jif;
         }
         return null;
-    }    
+    }
 
     /**
      * Returns true if this window frame or it's components generated
@@ -1042,6 +1095,260 @@ public class WindowFrame extends Observable
 		}
 	}
 
+	// ************************** Cell History Traversal  *************************************
+
+	/** List of CellHistory objects */                      private List<CellHistory> cellHistory;
+	/** Location in history (points to valid location) */   private int cellHistoryLocation;
+	/** History limit */                                    private static final int cellHistoryLimit = 20;
+
+	/**
+	 * Class to track CellHistory and associated values.
+	 */
+	public static class CellHistory
+	{
+		/** cell */												private Cell cell;
+		/** context */											private VarContext context;
+		/** display attributes (scale, in-place, etc.) */		private DisplayAttributes da;
+		/** highlights */										private List<Highlight2> highlights;
+		/** highlight offset*/									private double offX, offY;
+
+		public Cell getCell() { return cell; }
+
+		public VarContext getContext() { return context; }
+
+		public void setContext(VarContext context) { this.context = context; }
+
+		public DisplayAttributes getDisplayAttributes() { return da; }
+	}
+
+	/**
+	 * Method to return the list of cell histories associated with this WindowFrame.
+	 * @return the list of cell histories associated with this WindowFrame.
+	 */
+	public List<CellHistory> getCellHistoryList() { return cellHistory; }
+
+	/**
+	 * Method to return the current position in the cell history list.
+	 * @return the current position in the cell history list.
+	 */
+	public int getCellHistoryLocation() { return cellHistoryLocation; }
+
+	/**
+	 * Go back in history list.
+	 */
+	public void cellHistoryGoBack()
+	{
+		// at start of history
+		if (cellHistoryLocation <= 0) return;
+		setCellByHistory(cellHistoryLocation-1);
+	}
+
+	/**
+	 * Go forward in history list.
+	 */
+	public void cellHistoryGoForward()
+	{
+		if (cellHistoryLocation >= (cellHistory.size() - 1)) return; // at end of history
+		setCellByHistory(cellHistoryLocation+1);
+	}
+
+	/** Returns true if we can go back in history list, false otherwise */
+	public boolean cellHistoryCanGoBack()
+	{
+		if (cellHistoryLocation > 0) return true;
+		return false;
+	}
+
+	/** Returns true if we can go forward in history list, false otherwise */
+	public boolean cellHistoryCanGoForward()
+	{
+		if (cellHistoryLocation < cellHistory.size() - 1) return true;
+		return false;
+	}
+
+	/**
+	 * Method to updates back/forward button states.
+	 * Used when new tool bar is created with existing edit window
+	 * (when moving windows across displays).
+	 */
+	public void fireCellHistoryStatus()
+	{
+		ToolBar toolBar = getToolBar();
+		if (toolBar == null) return;
+		toolBar.updateCellHistoryStatus(cellHistoryCanGoBack(), cellHistoryCanGoForward());
+	}
+
+	/**
+	 * Adds to cellHistory record list.
+	 * Should only be called via non-history traversing modifications
+	 * to history. (such as Edit->New Cell).
+	 */
+	public void addToHistory(Cell cell, VarContext context, DisplayAttributes da)
+	{
+		if (cell == null) return;
+
+		CellHistory history = new CellHistory();
+		history.cell = cell;
+		history.context = context;
+		history.da = new DisplayAttributes(da);
+
+		// when user has moved back through history, and then edits a new cell,
+		// get rid of forward history
+		if (cellHistoryLocation < (cellHistory.size() - 1))
+		{
+			// inserting into middle of history: get rid of history forward of this
+			for(int i=cellHistory.size()-1; i>cellHistoryLocation; i--)
+				cellHistory.remove(i);
+		}
+
+		// update history
+		cellHistory.add(history);
+		cellHistoryLocation = cellHistory.size() - 1;
+
+		// adjust if we are over the limit
+		if (cellHistoryLocation > cellHistoryLimit)
+		{
+			cellHistory.remove(0);
+			cellHistoryLocation--;
+		}
+		fireCellHistoryStatus();
+//showHistory("add to history");
+	}
+
+//	private void showHistory(String why)
+//	{
+//		System.out.println("AFTER "+why+", CELL HISTORY:");
+//		for(int i=0; i<cellHistory.size(); i++)
+//		{
+//			CellHistory ch = cellHistory.get(i);
+//			System.out.print("  HISTORY "+i);
+//			if (i == cellHistoryLocation) System.out.print("**");
+//			System.out.println(" cell="+ch.cell.describe(false)+" context="+ch.context.getNodable());
+//		}
+//	}
+
+	/**
+	 * Records current cell state into history
+	 * Assumes record pointed to by cellHistoryLocation is
+	 * history record for the current cell/context.
+	 */
+	public void saveCurrentCellHistoryState()
+	{
+		if (cellHistoryLocation < 0) return;
+
+		if (content instanceof EditWindow)
+		{
+			EditWindow wnd = (EditWindow)content;
+			CellHistory current = cellHistory.get(cellHistoryLocation);
+			current.context = wnd.getVarContext();
+
+			// save zoom and pan
+			current.da.scale = wnd.getScale();
+			current.da.offX = wnd.getOffset().getX();
+			current.da.offY = wnd.getOffset().getY();
+
+			// save down-in-place information
+			current.da.inPlace = wnd.isInPlaceEdit();
+			if (current.da.inPlace)
+			{
+				current.da.intoCell = new AffineTransform(wnd.getInPlaceTransformIn());
+				current.da.outofCell = new AffineTransform(wnd.getInPlaceTransformOut());
+				current.da.topLevelCell = wnd.getInPlaceEditTopCell();
+				current.da.inPlaceDescent = new ArrayList<NodeInst>();
+				for(NodeInst n : wnd.getInPlaceEditNodePath())
+					current.da.inPlaceDescent.add(n);
+			}
+
+			// save selected port
+			current.da.selPort = null;
+			Highlighter highlighter = wnd.getHighlighter();
+			if (highlighter.getNumHighlights() == 1)
+			{
+				Highlight2 h = highlighter.getOneHighlight();
+		        if (h != null)
+		        {
+		        	ElectricObject eobj = h.getElectricObject();
+			        if (eobj instanceof PortInst)
+			        	current.da.selPort = (PortInst)eobj;
+		        }
+			}
+
+			// save highlighting
+			current.highlights = new ArrayList<Highlight2>();
+			Cell cell = content.getCell();
+			for (Highlight2 h : highlighter.getHighlights()) {
+				if (h.getCell() == cell)
+					current.highlights.add(h);
+			}
+			Point2D off = highlighter.getHighlightOffset();
+			if (off != null)
+			{
+				current.offX = off.getX();
+				current.offY = off.getY();
+			}
+		}
+//showHistory("save state");
+	}
+
+	/** Restores cell state from history record */
+	public void setCellByHistory(int location)
+	{
+		// get cell history to go to
+		CellHistory history = cellHistory.get(location);
+
+		// see if cell still valid part of database. If not, nullify entry
+		if (history.cell == null || !history.cell.isLinked())
+		{
+			history.cell = null;
+			history.context = VarContext.globalContext;
+			history.da.selPort = null;
+			history.da.offX = history.da.offY = 0;
+			history.highlights = new ArrayList<Highlight2>();
+			history.offX = history.offY = 0;
+			history.da.inPlace = false;
+		}
+
+		// update current cell
+		setCellWindow(history.cell, history);
+		if (!history.cell.getView().isTextView())
+		{
+			EditWindow wnd = (EditWindow)content;
+			if (history.highlights != null)
+			{
+				wnd.getHighlighter().setHighlightList(history.highlights);
+				wnd.getHighlighter().setHighlightOffset((int)history.offX, (int)history.offY);
+			}
+			if (history.da.selPort != null)
+			{
+				wnd.getHighlighter().addElectricObject(history.da.selPort, history.cell);
+			}
+			wnd.repaintContents(null, false);
+		}
+
+		// point to new location *after* calling setCell, since setCell updates by current location
+		cellHistoryLocation = location;
+		fireCellHistoryStatus();
+//showHistory("left/right buttons");
+	}
+
+	/**
+	 * Method to find a CellHistory index that shows a given cell and context.
+	 * @param cell the cell to find.
+	 * @param context the cell context to find.
+	 * @return the CellHistory index associated with that cell/context
+	 * (-1 if not found).
+	 */
+	public int findCellHistoryIndex(Cell cell, VarContext context)
+	{
+		for (int i=cellHistory.size()-1; i>-1; i--)
+		{
+			CellHistory history = cellHistory.get(i);
+			if (history.cell == cell && history.context.equals(context))
+				return i;
+		}
+		return -1;
+	}
+
     //******************************** HANDLERS FOR WINDOW EVENTS ********************************
 
 	/**
@@ -1091,7 +1398,7 @@ public class WindowFrame extends Observable
 		public void internalFrameActivated(InternalFrameEvent evt)
 		{
 			WindowFrame.setCurrentWindowFrame(wf.get());
-            content.fireCellHistoryStatus();                // update tool bar history buttons
+			(wf.get()).fireCellHistoryStatus();                // update tool bar history buttons
 		}
 	}
 

@@ -93,7 +93,7 @@ import javax.swing.tree.*;
 public class ExplorerTree extends JTree implements DragGestureListener, DragSourceListener
 {
     private final static TreePath[] NULL_TREE_PATH_ARRAY = {};
-    
+
     private TreeHandler handler = null;
 	private final String rootNode;
     private TreePath [] currentSelectedPaths = new TreePath[0];
@@ -362,12 +362,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
      * Recursively
      */
     private void recursivelyCacheExpandedPaths(ArrayList<TreePath> expanded, TreePath path) {
-        
+
         Object node = path.getLastPathComponent();
         if (!isExpanded(path))
             return;
         expanded.add(path);
-        
+
         // now recurse
         for(int i=0; i< treeModel.getChildCount(node); i++) {
             Object child = treeModel.getChild(node, i);
@@ -377,12 +377,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             recursivelyCacheExpandedPaths(expanded, descentPath);
         }
     }
-    
+
     private void expandCachedPaths(ArrayList<TreePath> expanded) {
         for (TreePath path: expanded)
             expandCachedPath(path);
     }
-    
+
     private void expandCachedPath(TreePath oldPath) {
         Object[] path = oldPath.getPath();
         TreePath newPath = new TreePath(rootNode);
@@ -403,7 +403,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             expandPath(newPath);
         }
     }
-    
+
     private Object findChildByUserObject(Object parent, Object userObject) {
         for (int i = 0, childCount = treeModel.getChildCount(parent); i < childCount; i++) {
             Object newChild = treeModel.getChild(parent, i);
@@ -564,7 +564,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	public void dropActionChanged (DragSourceDragEvent e) {}
 
-    
 	private class MyRenderer extends DefaultTreeCellRenderer
 	{
 		private Font plainFont, boldFont, italicFont;
@@ -827,7 +826,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						}
 						didSomething = true;
 					}
-	
+
 					if (getCurrentlySelectedObject(i) instanceof SweepSignal)
 					{
 						SweepSignal ss = (SweepSignal)getCurrentlySelectedObject(i);
@@ -849,21 +848,21 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (nodeObj instanceof ExplorerTreeModel.CellAndCount)
 				{
 					ExplorerTreeModel.CellAndCount cc = (ExplorerTreeModel.CellAndCount)nodeObj;
-					wf.setCellWindow(cc.getCell());
+					wf.setCellWindow(cc.getCell(), null);
 					return;
 				}
 
 				if (nodeObj instanceof Cell)
 				{
 					Cell cell = (Cell)nodeObj;
-					wf.setCellWindow(cell);
+					wf.setCellWindow(cell, null);
 					return;
 				}
 				if (nodeObj instanceof ExplorerTreeModel.MultiPageCell)
 				{
 					ExplorerTreeModel.MultiPageCell mpc = (ExplorerTreeModel.MultiPageCell)nodeObj;
 					Cell cell = mpc.getCell();
-					wf.setCellWindow(cell);
+					wf.setCellWindow(cell, null);
 					if (wf.getContent() instanceof EditWindow)
 					{
 						EditWindow wnd = (EditWindow)wf.getContent();
@@ -958,7 +957,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				WindowFrame wf = it.next();
 				if (wf.getExplorerTab() == ExplorerTree.this)
 				{
-					// initiate crossprobing from WaveformWindow 
+					// initiate crossprobing from WaveformWindow
 					if (wf.getContent() instanceof WaveformWindow)
 					{
 						WaveformWindow ww = (WaveformWindow)wf.getContent();
@@ -967,7 +966,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				}
 			}
 		}
-		
+
 		private void selectTreeElement(int x, int y)
 		{
 			TreePath cp = getPathForLocation(x, y);
@@ -1013,7 +1012,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 //						WindowFrame wf = it.next();
 //						if (wf.getExplorerTab() == tree)
 //						{
-//							// initiate crossprobing from WaveformWindow 
+//							// initiate crossprobing from WaveformWindow
 //							if (wf.getContent() instanceof WaveformWindow)
 //							{
 //								WaveformWindow ww = (WaveformWindow)wf.getContent();
@@ -1024,7 +1023,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 //				}
 //			}
 
-			
+
 			// determine the source of this event
 			currentMouseEvent = e;
 		}
@@ -1626,7 +1625,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			String defaultName = "";
 			if (cellGroup.getNumCells() > 0)
 				defaultName = (cellGroup.getCells().next()).getName();
-		
+
 			String response = JOptionPane.showInputDialog(ExplorerTree.this, "New name for cells in this group", defaultName);
 			if (response == null) return;
 			CircuitChanges.renameCellGroupInJob(cellGroup, response);
@@ -1669,7 +1668,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			} else
 			{
 				wf = WindowFrame.getCurrentWindowFrame();
-				wf.setCellWindow(cell);
+				wf.setCellWindow(cell, null);
 			}
 			if (cell.isMultiPage() && wf.getContent() instanceof EditWindow)
 			{

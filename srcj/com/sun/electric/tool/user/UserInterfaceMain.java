@@ -362,7 +362,7 @@ public class UserInterfaceMain extends AbstractUserInterface
                         // make a new window for the cell
                         WindowFrame wf = WindowFrame.createEditWindow(cell);
                         wnd = (EditWindow)wf.getContent();
-                        wnd.setCell(eh.getCell(database), eh.getVarContext());
+                        wnd.setCell(eh.getCell(database), eh.getVarContext(), null);
                     }
                     if (highlighter == null) {
                         highlighter = wnd.getHighlighter();
@@ -617,7 +617,7 @@ public class UserInterfaceMain extends AbstractUserInterface
             Cell c = content.getCell();
             if (c != null && !c.isLinked()) // got removed in undo
             {
-                wf.setCellWindow(null);
+                wf.setCellWindow(null, null);
                 content.fullRepaint();
             }
 		}

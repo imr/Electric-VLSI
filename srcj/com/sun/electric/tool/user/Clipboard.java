@@ -95,7 +95,7 @@ public class Clipboard
     public static void editClipboard()
     {
         EditWindow wnd = EditWindow.getCurrent();
-        wnd.setCell(clipCell, VarContext.globalContext);
+        wnd.setCell(clipCell, VarContext.globalContext, null);
     }
 
     /**

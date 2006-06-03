@@ -100,7 +100,7 @@ public class TextWindow implements WindowContent
 		overall.setLayout(new BorderLayout());
 		overall.add(scrollPane, BorderLayout.CENTER);
 
-		setCell(cell, VarContext.globalContext);
+		setCell(cell, VarContext.globalContext, null);
 
 		TextWindowDocumentListener twDocumentListener = new TextWindowDocumentListener(this);
 		textArea.getDocument().addDocumentListener(twDocumentListener);
@@ -110,7 +110,7 @@ public class TextWindow implements WindowContent
 
     public void setCursor(Cursor cursor)
     {
-        ; // nothing implemented in TextWindow
+    	// nothing implemented in TextWindow
     }
 
 	private void setCellFont(Cell cell)
@@ -347,7 +347,7 @@ public class TextWindow implements WindowContent
 	/**
 	 * Method to set the cell that is shown in the window to "cell".
 	 */
-	public void setCell(Cell cell, VarContext context)
+	public void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes displayAttributes)
 	{
 		this.cell = cell;
 		String [] lines = (cell != null) ? cell.getTextViewContents() : null;

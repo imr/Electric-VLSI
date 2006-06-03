@@ -526,10 +526,10 @@ public class CircuitChanges
 			{
 				if (!(content instanceof EditWindow))
 				{
-					wf.setCellWindow(null);
+					wf.setCellWindow(null, null);
 				} else
 				{
-					content.setCell(null, null);
+					content.setCell(null, null, null);
 					content.fullRepaint();
 				}
 			}

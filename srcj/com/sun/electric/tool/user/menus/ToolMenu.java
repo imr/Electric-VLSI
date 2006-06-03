@@ -591,7 +591,7 @@ public class ToolMenu {
 			return;
 		}
 		// set current cell to use global context
-		curEdit.setCell(curEdit.getCell(), VarContext.globalContext);
+		curEdit.setCell(curEdit.getCell(), VarContext.globalContext, null);
 
 		// optimize cell for equal gate delays
         if (curEdit.getCell() == null) {

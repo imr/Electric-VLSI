@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+IMP: (6/2/06, SMR) "Back" button now works with text windows (Bug #324).
+
 ************************* Version 8.04p: *********************************
 
 BUG: (6/2/06, GVG) Still exception in Analysis.getSweep(index) due to how signals

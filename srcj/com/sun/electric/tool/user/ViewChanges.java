@@ -229,7 +229,7 @@ public class ViewChanges
 				WindowFrame wf = it.next();
 				if (wf.getContent().getCell() == cell)
 				{
-					wf.getContent().setCell(cell, VarContext.globalContext);
+					wf.getContent().setCell(cell, VarContext.globalContext, null);
 				}
 			}
 			EditWindow.repaintAll();

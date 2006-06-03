@@ -45,6 +45,7 @@ public interface WindowContent
 	 * Method to initialize for a new text search.
 	 * @param search the string to locate.
 	 * @param caseSensitive true to match only where the case is the same.
+	 * @param regExp true if the search string is a regular expression
 	 */
 	public abstract void initTextSearch(String search, boolean caseSensitive,
 	                                    boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch);
@@ -77,12 +78,12 @@ public interface WindowContent
 	public abstract void focusOnHighlighted();
 	public abstract void panXOrY(int direction, double[] panningAmounts, int ticks);
 
-	public abstract void setCell(Cell cell, VarContext context);
+	public abstract void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes displayAttributes);
 	public abstract Cell getCell();
 
     /** Get the Highlighter for this window */
     public abstract Highlighter getHighlighter();
-    
+
 	/**
 	 * Method to return the top-level JPanel for this WindowContent.
 	 * Although the classes that implement this interface may also extend JPanel,
@@ -93,16 +94,12 @@ public interface WindowContent
 	public abstract JPanel getPanel();
 	public abstract void bottomScrollChanged(int e);
 	public abstract void rightScrollChanged(int e);
-	public abstract void fireCellHistoryStatus();
 	public abstract List<MutableTreeNode> loadExplorerTrees();
-	public abstract boolean cellHistoryCanGoBack();
-	public abstract boolean cellHistoryCanGoForward();
-	public abstract void cellHistoryGoBack();
-	public abstract void cellHistoryGoForward();
 	public abstract void setWindowTitle();
-    /**
+
+	/**
      * Method relevant for waveform windows where the drawing panel is not given by getPanel()
-     * @param cursor
+     * @param cursor the cursor to display
      */
     public abstract void setCursor(Cursor cursor);
 
@@ -123,8 +120,8 @@ public interface WindowContent
 	/**
      * Saving method should be done in display thread (valid at least for 3D)
      * to guarantee correct rasting.
-     * @param ep
-     * @param filePath
+     * @param ep Image observer plus printable object.
+     * @param filePath file in which to save image.
      */
     public abstract void writeImage(ElectricPrinter ep, String filePath);
 }

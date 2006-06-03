@@ -1632,7 +1632,7 @@ public class LibToTech
 		if (wf == null) return;
 		if (!(wf.getContent() instanceof EditWindow)) return;
 		EditWindow wnd = (EditWindow)wf.getContent();
-		wf.setCellWindow(cell);
+		wf.setCellWindow(cell, null);
 		if (ni != null)
 		{
 			Highlighter highligher = wnd.getHighlighter();

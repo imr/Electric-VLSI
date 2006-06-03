@@ -76,7 +76,7 @@ public class HighlightTools {
                 // make a new window for the cell
                 WindowFrame wf = WindowFrame.createEditWindow(cell);
                 wnd = (EditWindow)wf.getContent();
-                wnd.setCell(cell, context);
+                wnd.setCell(cell, context, null);
             }
             highlighter = wnd.getHighlighter();
             highlighter.clear();

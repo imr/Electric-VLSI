@@ -218,7 +218,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
         if (wf == null) {
             WindowFrame.createEditWindow(cell);
         } else {
-            wf.setCellWindow(cell);
+            wf.setCellWindow(cell, null);
         }
         cellJList.clearSelection();
     }

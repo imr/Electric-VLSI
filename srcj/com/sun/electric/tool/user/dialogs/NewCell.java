@@ -394,7 +394,7 @@ public class NewCell extends EDialog
             } else
             {
                 WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-                wf.setCellWindow(newCell);
+                wf.setCellWindow(newCell, null);
             }
         }
     }

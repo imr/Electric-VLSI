@@ -40,6 +40,7 @@ import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuCommands;
+import com.sun.electric.tool.user.ui.WindowFrame.CellHistory;
 import com.sun.electric.tool.Client;
 
 import java.awt.Component;
@@ -56,6 +57,8 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
+import java.util.List;
+
 import javax.swing.AbstractButton;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -624,13 +627,13 @@ public class ToolBar extends JToolBar
     /** Go back button */           private CellHistoryButton goBackButton = new CellHistoryButton("Go Back a Cell", "ButtonGoBack") {
         public void run() {
             WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-            if (wf != null) wf.getContent().cellHistoryGoBack();
+            if (wf != null) wf.cellHistoryGoBack();
         }
     };
     /** Go forward button */        private CellHistoryButton goForwardButton = new CellHistoryButton("Go Forward a Cell", "ButtonGoForward") {
         public void run() {
             WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-            if (wf != null) wf.getContent().cellHistoryGoForward();
+            if (wf != null) wf.cellHistoryGoForward();
         }
     };
         
@@ -670,26 +673,24 @@ public class ToolBar extends JToolBar
     }
     
     private static void showHistoryPopup(MouseEvent e) {
-        EditWindow wnd = EditWindow.getCurrent();
-        if (wnd == null) return;
-        EditWindow.CellHistoryState history = wnd.getCellHistory();
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        List<WindowFrame.CellHistory> historyList = wf.getCellHistoryList();
+        int location = wf.getCellHistoryLocation();
 
         JPopupMenu popup = new JPopupMenu();
-        JMenuItem m;
-
         HashMap<Cell,Cell> listed = new HashMap<Cell,Cell>();
-        //for (int i=0; i<history.getHistory().size(); i++) {
-        for (int i=history.getHistory().size()-1; i > -1; i--) {
-            EditWindow.CellHistory entry = (EditWindow.CellHistory)history.getHistory().get(i);
+        for (int i=historyList.size()-1; i > -1; i--) {
+        	WindowFrame.CellHistory entry = (WindowFrame.CellHistory)historyList.get(i);
             Cell cell = entry.getCell();
             // skip if already shown such a cell
 			if (cell == null) continue;
             if (listed.get(cell) != null) continue;
             listed.put(cell, cell);
 
-            boolean shown = (i == history.getLocation());
-            m = new JMenuItem(cell.noLibDescribe() + (shown? "  (shown)" : ""));
-            m.addActionListener(new HistoryPopupAction(wnd, i));
+            boolean shown = (i == location);
+            JMenuItem m = new JMenuItem(cell.noLibDescribe() + (shown? "  (shown)" : ""));
+            m.addActionListener(new HistoryPopupAction(wf, i));
             popup.add(m);
         }
         Component invoker = e.getComponent();
@@ -703,14 +704,14 @@ public class ToolBar extends JToolBar
     }
 
     private static class HistoryPopupAction implements ActionListener {
-        private final EditWindow wnd;
+        private final WindowFrame wf;
         private final int historyLocation;
-        private HistoryPopupAction(EditWindow wnd, int loc) {
-            this.wnd = wnd;
+        private HistoryPopupAction(WindowFrame wf, int loc) {
+            this.wf = wf;
             this.historyLocation = loc;
         }
         public void actionPerformed(ActionEvent e) {
-            wnd.setCellByHistory(historyLocation);
+        	wf.setCellByHistory(historyLocation);
         }
     }
 

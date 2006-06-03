@@ -594,7 +594,7 @@ public class View3DWindow extends JPanel
         u.getViewingPlatform().getViewPlatformBehavior().goHome();
 	}
 
-	public void setCell(Cell cell, VarContext context) {}
+	public void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes da) {}
 	public void focusOnHighlighted() {}
 	public void cellHistoryGoBack() {}
 	public void cellHistoryGoForward() {}
@@ -1119,7 +1119,7 @@ public class View3DWindow extends JPanel
 		// extract library and cell from string
 		Cell cell = (Cell)Cell.findNodeProto(source.getText());
 		if (cell == null) return;
-		setCell(cell, VarContext.globalContext);
+		setCell(cell, VarContext.globalContext, null);
 	}
 
 	// the MouseListener events

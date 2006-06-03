@@ -580,7 +580,7 @@ public class FileMenu {
                 WindowContent content = wf.getContent();
                 if (content.getCell() == null)
                 {
-                    wf.setCellWindow(cell);
+                    wf.setCellWindow(cell, null);
                     //wf.requestFocus();
                     ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
                     return;

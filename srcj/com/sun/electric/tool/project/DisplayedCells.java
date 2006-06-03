@@ -77,7 +77,7 @@ public class DisplayedCells implements Serializable
 			WindowFrame wf = it.next();
 			Cell displayedCell = wf.getContent().getCell();
 			if (formerCellsInWindows.contains(displayedCell))
-    			wf.getContent().setCell(null, null);
+    			wf.getContent().setCell(null, null, null);
 		}
 	}
 
@@ -89,7 +89,7 @@ public class DisplayedCells implements Serializable
 			WindowFrame wf = it.next();
 			Cell displayedCell = wf.getContent().getCell();
 			if (checkOutCells.contains(displayedCell))
-    			wf.getContent().setCell(null, null);
+    			wf.getContent().setCell(null, null, null);
 		}
 	}
 
@@ -125,21 +125,16 @@ public class DisplayedCells implements Serializable
 			Cell displayedCell = wf.getContent().getCell();
 			if (displayedCell != newVers)
 			{
-				double scale = 1;
-				Point2D offset = null;
+				WindowFrame.DisplayAttributes da = new WindowFrame.DisplayAttributes();
+				da.scale = 1;
 				if (wf.getContent() instanceof EditWindow_)
 				{
 					EditWindow_ wnd = (EditWindow_)wf.getContent();
-					scale = wnd.getScale();
-					offset = wnd.getOffset();
+					da.scale = wnd.getScale();
+					da.offX = wnd.getOffset().getX();
+					da.offY = wnd.getOffset().getY();
 				}
-				wf.getContent().setCell(newVers, VarContext.globalContext);
-				if (wf.getContent() instanceof EditWindow_)
-				{
-					EditWindow_ wnd = (EditWindow_)wf.getContent();
-					wnd.setScale(scale);
-					wnd.setOffset(offset);
-				}
+				wf.getContent().setCell(newVers, VarContext.globalContext, da);
 			}
 		}
 	}

@@ -942,7 +942,7 @@ public class CellChangeJobs
 				WindowContent content = wf.getContent();
 				if (content == null) continue;
 				if (content.getCell() == cell)
-					content.setCell(newVersion, VarContext.globalContext);
+					content.setCell(newVersion, VarContext.globalContext, null);
 			}
 
 			EditWindow.repaintAll();
@@ -1038,7 +1038,7 @@ public class CellChangeJobs
 				WindowContent content = curWf.getContent();
 				if (content != null && content.getCell() == cell)
 				{
-					content.setCell(dupCell, VarContext.globalContext);
+					content.setCell(dupCell, VarContext.globalContext, null);
 					content.repaint();
 					found = true;
 				}
@@ -1054,7 +1054,7 @@ public class CellChangeJobs
 					if (content == null) continue;
 					if (content.getCell() == cell)
 					{
-						content.setCell(dupCell, VarContext.globalContext);
+						content.setCell(dupCell, VarContext.globalContext, null);
 						content.repaint();
 						break;
 					}

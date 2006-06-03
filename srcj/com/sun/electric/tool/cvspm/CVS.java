@@ -592,7 +592,7 @@ public class CVS {
                     if (newLib == null) return;
                     Cell newCell = newLib.findNodeProto(cell.noLibDescribe());
                     if (newCell == null) return;
-                    wnd.setCell(newCell, VarContext.globalContext);
+                    wnd.setCell(newCell, VarContext.globalContext, null);
                 }
             }
         }
