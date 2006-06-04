@@ -987,11 +987,13 @@ public class CellChangeJobs
 
         	// examine all other cells in the group
         	Cell.CellGroup group = cell.getCellGroup();
+            View thisView = cell.getView();
         	for(Iterator<Cell> it = group.getCells(); it.hasNext(); )
         	{
         		Cell otherCell = it.next();
         		if (otherCell == cell) continue;
-        		if (!entireGroup && otherCell.getView() != View.ICON) continue;
+                // Only when copy an schematic, we should copy the icon if entireGroup == false
+        		if (!entireGroup && !(thisView == View.SCHEMATIC && otherCell.getView() == View.ICON)) continue;
                 Cell copyCell = Cell.copyNodeProto(otherCell, otherCell.getLibrary(),
                 	newName + "{" + otherCell.getView().getAbbreviation() + "}", false);
                 if (copyCell == null)
