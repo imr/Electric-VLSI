@@ -25,6 +25,7 @@
 package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.tool.Job;
@@ -1160,30 +1161,6 @@ public final class J3DUtils
      *******************************************************************************************************/
 
 
-    /********************************************************************************************************
-     *
-     *******************************************************************************************************/
-
-    public static double[] transformIntoValues(String rotation)
-    {
-        double[] values = new double[3];
-        StringTokenizer parse = new StringTokenizer(rotation, "( )", false);
-        int pair = 0;
-
-        while (parse.hasMoreTokens() && pair < 3)
-        {
-            String value = parse.nextToken();
-            try{
-                values[pair++] = Double.parseDouble(value);
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-        }
-
-        return values;
-    }
-
     public static void get3DColorsInTab(HashMap<String,ColorPatternPanel.Info> transAndSpecialMap)
     {
         // 3D Stuff
@@ -1193,7 +1170,7 @@ public final class J3DUtils
         transAndSpecialMap.put("Special: 3D DIRECTIONAL LIGHT", new ColorPatternPanel.Info(get3DColorDirectionalLight()));
 
 
-        double[] colors = transformIntoValues(get3DColorAxes());
+        double[] colors = GenMath.transformVectorIntoValues(get3DColorAxes());
         String[] axisNames = {" X", " Y", " Z"};
 		String name = "Special: 3D AXIS";
         for (int i = 0; i < colors.length; i++)

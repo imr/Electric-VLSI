@@ -26,6 +26,7 @@
 package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.technology.Layer;
 
@@ -234,7 +235,7 @@ public class J3DAppearance extends Appearance
      */
     public static void setAxisAppearanceValues(Object initValue)
     {
-        double[] colors = J3DUtils.transformIntoValues(J3DUtils.get3DColorAxes());
+        double[] colors = GenMath.transformVectorIntoValues(J3DUtils.get3DColorAxes());
 
         for (int i = 0; i < axisApps.length; i++)
         {

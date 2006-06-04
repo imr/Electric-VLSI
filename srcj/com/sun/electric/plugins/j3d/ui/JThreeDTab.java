@@ -161,7 +161,7 @@ public class JThreeDTab extends ThreeDTab
 		threeD.add(threeDSideView, gbc);
 
         scaleField.setText(TextUtils.formatDouble(J3DUtils.get3DFactor()));
-        double[] rot = J3DUtils.transformIntoValues(J3DUtils.get3DRotation());
+        double[] rot = GenMath.transformVectorIntoValues(J3DUtils.get3DRotation());
         xRotField.setText(TextUtils.formatDouble(rot[0]));
         yRotField.setText(TextUtils.formatDouble(rot[1]));
         zRotField.setText(TextUtils.formatDouble(rot[2]));
@@ -339,17 +339,18 @@ public class JThreeDTab extends ThreeDTab
 
         StringBuffer dir = new StringBuffer();
         if (dirOneBox.isSelected())
-            dir.append("(" + xDirOneField.getText() + " " +
-                yDirOneField.getText() + " " +
-                zDirOneField.getText() + ")");
+            dir.append(GenMath.transformStringsIntoVector(TextUtils.atof(xDirOneField.getText()),
+                    TextUtils.atof(yDirOneField.getText()),
+                    TextUtils.atof(zDirOneField.getText())));
         else
-            dir.append("(0 0 0)");
+            dir.append(GenMath.transformStringsIntoVector(0, 0, 0));
         if (dirTwoBox.isSelected())
-            dir.append("(" + xDirTwoField.getText() + " " +
-                yDirTwoField.getText() + " " +
-                zDirTwoField.getText() + ")");
+            dir.append(GenMath.transformStringsIntoVector(TextUtils.atof(xDirTwoField.getText()),
+                    TextUtils.atof(yDirTwoField.getText()),
+                    TextUtils.atof(zDirTwoField.getText())));
         else
-            dir.append("(0 0 0)");
+            dir.append(GenMath.transformStringsIntoVector(0, 0, 0));
+        
         if (!dir.equals(J3DUtils.get3DLightDirs()))
             J3DUtils.set3DLightDirs(dir.toString());
         int currentInt = TextUtils.atoi(maxNodeField.getText());

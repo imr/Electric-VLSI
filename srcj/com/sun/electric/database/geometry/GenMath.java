@@ -28,6 +28,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.io.Serializable;
 
 /**
@@ -88,6 +89,48 @@ public class GenMath
             y = centerY;
         }
         return (new Rectangle2D.Double(x, y, w, h));
+    }
+
+    /********************************************************************************************************
+     *
+     *******************************************************************************************************/
+
+    /**
+     * Method to transfor 3 doubles in a vector format handled by the preferences
+     * @param s1 first value
+     * @param s2 second value
+     * @param s3 third value
+     * @return string representing the vector
+     */
+    public static String transformStringsIntoVector(double s1, double s2, double s3)
+    {
+        String dir = "(" + s1 + " " + s2 + " " + s3 + ")";
+        return dir;
+    }
+
+    /**
+     * Method to extract 3-value vector in an array of 3
+     * @param vector
+     * @return
+     */
+    public static double[] transformVectorIntoValues(String vector)
+    {
+        double[] values = new double[3];
+        StringTokenizer parse = new StringTokenizer(vector, "( )", false);
+        int pair = 0;
+
+        while (parse.hasMoreTokens() && pair < 3)
+        {
+            String value = parse.nextToken();
+            try{
+                values[pair++] = Double.parseDouble(value);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        return values;
     }
 
     /**
