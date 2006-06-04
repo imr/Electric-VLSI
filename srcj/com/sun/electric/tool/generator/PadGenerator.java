@@ -972,6 +972,11 @@ public class PadGenerator
                         padTemp.add(pp);
                 }
                 for (Export pp : corePorts) {
+                    if (pp == null) {
+                        coreTemp.add(pp);
+                        continue;
+                    }
+
                     if (pp.getName().startsWith("core_"))
                         coreTemp.add(pp);
                     else
