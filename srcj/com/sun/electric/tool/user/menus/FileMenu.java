@@ -294,7 +294,7 @@ public class FileMenu {
         public void terminateOK()
         {
             EditWindow.repaintAll();
-            ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
+            ToolBar.setSaveLibraryButton();
         }
     }
 
@@ -582,14 +582,14 @@ public class FileMenu {
                 {
                     wf.setCellWindow(cell, null);
                     //wf.requestFocus();
-                    ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
+                    ToolBar.setSaveLibraryButton();
                     return;
                 }
             }
             WindowFrame.createEditWindow(cell);
 
             // no clean for now.
-            ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
+            ToolBar.setSaveLibraryButton();
         }
     }
 
@@ -684,7 +684,7 @@ public class FileMenu {
             EditWindow.repaintAll();
 
             // Disable save icon if no more libraries are open
-            ToolBar.setSaveLibraryButton(Library.getCurrent() != null);
+            ToolBar.setSaveLibraryButton();
         }
     }
 

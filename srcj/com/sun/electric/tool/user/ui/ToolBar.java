@@ -40,7 +40,6 @@ import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.ui.WindowFrame.CellHistory;
 import com.sun.electric.tool.Client;
 
 import java.awt.Component;
@@ -233,7 +232,7 @@ public class ToolBar extends JToolBar
         }
     };
     
-	public static void setSaveLibraryButton(boolean value) {
+	public static void setSaveLibraryButton() {
         updateToolBarButtons();
 	}
     
@@ -425,25 +424,53 @@ public class ToolBar extends JToolBar
      * ArrowDisatance is a typesafe enum class that describes the distance that arrow keys move (full, half, or quarter).
      */
     public static enum ArrowDistance {
-        /** Describes full grid unit motion. */				FULL(1.0),
-        /** Describes half grid unit motion. */				HALF(0.5),
-        /** Describes quarter grid unit motion. */			QUARTER(0.25);
+        /** Describes full grid unit motion. */				FULL(1.0, 0),
+        /** Describes half grid unit motion. */				HALF(0.5, 1),
+        /** Describes quarter grid unit motion. */			QUARTER(0.25, 2);
         
-        private final double amount;
-        
-        private ArrowDistance(double amount) {
-            this.amount = amount;
+//        private final double amount;
+        private final int position;
+
+        private ArrowDistance(double amount, int pos) {
+//            this.amount = amount;
+            this.position = pos;
         }
-        
-        public double getDistance() { return amount; }
+
+        public boolean isSelected()
+        {
+            double[] vals = User.getAlignmentToGridVector();
+            for (int i = 0; i < vals.length; i++)
+            {
+                if (vals[i] < 0)
+                    return (i == position);
+            }
+            return false;
+        }
+
+        public void setAlignmentToGrid()
+        {
+            double[] vals = User.getAlignmentToGridVector();
+            for (int i = 0; i < vals.length; i++)
+            {
+                if (i != position)
+                    vals[i] = Math.abs(vals[i]);
+                else
+                    vals[i] = Math.abs(vals[i]) * -1;
+            }
+            User.setAlignmentToGridVector(vals);
+        }
+
+//        public double getDistance()
+//        {
+////            return amount;
+//        }
 //		public String toString() { return "ArrowDistance="+super.toString().toLowerCase(); }
     }
 
     /**
      * Method to signal ToolBar that gridAlignment changed
-     * @param ad
      */
-    public static void setGridAligment(double ad) {
+    public static void setGridAligment() {
         updateToolBarButtons();
     }
 
@@ -466,9 +493,14 @@ public class ToolBar extends JToolBar
 
         @Override public boolean isSelected()
         {
-            return User.getAlignmentToGrid() == ad.getDistance(); 
+//            return User.getAlignmentToGrid() == ad.getDistance();
+            return ad.isSelected();
         }
-        @Override public void run() { User.setAlignmentToGrid(ad.getDistance()); }
+        @Override public void run()
+        {
+            ad.setAlignmentToGrid();
+//            User.setAlignmentToGrid(ad.getDistance());
+        }
     }
     
    // --------------------------- SelectMode staff ---------------------------------------------------------

@@ -27,6 +27,7 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
@@ -1085,18 +1086,48 @@ public class User extends Listener
 	 */
 	public static void setDefGridYBoldFrequency(int dist) { cacheDefGridYBoldFrequency.setInt(dist); }
 
-	private static Pref cacheAlignmentToGrid = Pref.makeDoublePref("AlignmentToGrid", tool.prefs, 1);
+//	private static Pref cacheAlignmentToGrid = Pref.makeDoublePref("AlignmentToGrid", tool.prefs, 1);
 	/**
 	 * Method to return the default alignment of objects to the grid.
 	 * The default is 1, meaning that placement and movement should land on whole grid units.
 	 * @return the default alignment of objects to the grid.
 	 */
-	public static double getAlignmentToGrid() { return cacheAlignmentToGrid.getDouble(); }
+	public static double getAlignmentToGrid()
+    {
+        double[] vals = getAlignmentToGridVector();
+        for (int i = 0; i < vals.length; i++)
+        {
+            if (vals[i] < 0) return Math.abs(vals[i]);
+        }
+        assert(false); // should never reach this point.
+        return -1;
+//        return cacheAlignmentToGrid.getDouble();
+    }
+
 	/**
 	 * Method to set the default alignment of objects to the grid.
 	 * @param dist the default alignment of objects to the grid.
 	 */
-	public static void setAlignmentToGrid(double dist) { cacheAlignmentToGrid.setDouble(dist); }
+//	public static void setAlignmentToGrid(double dist) { cacheAlignmentToGrid.setDouble(dist); }
+
+    private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(-1 0.5 0.25)");
+    /**
+     * Method to return the default alignment of objects to the grid.
+     * The default is 1, meaning that placement and movement should land on whole grid units.
+     * @return the default alignment of objects to the grid.
+     */
+    public static double[] getAlignmentToGridVector()
+    {
+        return GenMath.transformVectorIntoValues(cacheAlignmentToGridVector.getString());
+    }
+    /**
+     * Method to set the default alignment of objects to the grid.
+     * @param dist the default alignment of objects to the grid.
+     */
+    public static void setAlignmentToGridVector(double[] dist)
+    {
+        cacheAlignmentToGridVector.setString(GenMath.transformStringsIntoVector(dist[0], dist[1], dist[2]));
+    }
 
 	private static Pref cacheShowGridAxes = Pref.makeBooleanPref("ShowGridAxes", tool.prefs, false);
 	/**
@@ -1367,7 +1398,7 @@ public class User extends Listener
 	public static void setColorBackground(int c)
 	{
 		cacheColorBackground.setInt(c);
-        Color color = new Color(c);
+//        Color color = new Color(c);
 
 //		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
 //		{
