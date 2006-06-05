@@ -42,7 +42,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -64,10 +63,6 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -267,10 +262,10 @@ class PixelDrawing_
 	/** size of the opaque layer of the window */			private final int total;
 	/** the background color of the offscreen image */		private int backgroundColor;
 	/** the "unset" color of the offscreen image */			private int backgroundValue;
+    /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
 
 	// the transparent bitmaps
-	/** the offscreen maps for transparent layers */		private byte [][][] layerBitMaps;
-	/** row pointers for transparent layers */				private byte [][] compositeRows;
+	/** the offscreen maps for transparent layers */		private byte [][] layerBitMaps;
 	/** the number of transparent layers */					int numLayerBitMaps;
 	/** the number of bytes per row in offscreen maps */	private final int numBytesPerRow;
 	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
@@ -279,7 +274,10 @@ class PixelDrawing_
 
 	// the patterned opaque bitmaps
     private static class PatternedOpaqueLayer extends TransparentRaster {
-        PatternedOpaqueLayer(int height, int numBytesPerRow) { layerBitMap = new byte[height][numBytesPerRow]; }
+        PatternedOpaqueLayer(int height, int numBytesPerRow) {
+            this.bytesPerRow = numBytesPerRow;
+            layerBitMap = new byte[height*numBytesPerRow];
+        }
     }
 	/** the map from layers to Patterned Opaque bitmaps */	private HashMap<Layer,PatternedOpaqueLayer> patternedOpaqueLayers = new HashMap<Layer,PatternedOpaqueLayer>();
 	/** the top-level window being rendered */				private boolean renderedWindow;
@@ -297,11 +295,12 @@ class PixelDrawing_
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     private static Color textColor;
-	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
+	private static final EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
+	private static final EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-	private static EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
+    private static final Layer instanceLayer = Layer.newInstance("Instance", instanceGraphics);
+	private static final EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
     private int clipLX, clipHX, clipLY, clipHY;
@@ -374,15 +373,15 @@ class PixelDrawing_
 		renderedWindow = true;
 	}
     
-    public PixelDrawing_(double scale, Rectangle screenBounds) {
+    public PixelDrawing_(double scale, int lX, int hX, int lY, int hY) {
         this.scale = scale;
         scale_ = (float)(scale/DBMath.GRID);
         
-        this.originX = -screenBounds.x;
-        this.originY = screenBounds.y + screenBounds.height;
+        this.originX = -lX;
+        this.originY = hY;
         factorX = (float)(-originX/scale_);
         factorY = (float)(originY/scale_);
-        this.sz = new Dimension(screenBounds.width, screenBounds.height);
+        this.sz = new Dimension(hX - lX + 1, hY - lY + 1);
         width = sz.width;
         clipLX = 0;
         clipHX = sz.width - 1;
@@ -392,7 +391,7 @@ class PixelDrawing_
 		// allocate pointer to the opaque image
         img = null;
 		total = sz.height * sz.width;
-        opaqueData = new int[total];
+        opaqueData = LAYER_MAP ? null : new int[total];
 		numBytesPerRow = (sz.width + 7) / 8;
         
 		// initialize the data
@@ -623,33 +622,26 @@ class PixelDrawing_
 		backgroundColor = User.getColorBackground() & 0xFFFFFF;
 		backgroundValue = backgroundColor | 0xFF000000;
 
-		// erase the transparent bitmaps
-		for(int i=0; i<numLayerBitMaps; i++)
-		{
-			byte [][] layerBitMap = layerBitMaps[i];
-			if (layerBitMap == null) continue;
-			for(int y=0; y<sz.height; y++)
-			{
-				byte [] row = layerBitMap[y];
-				for(int x=0; x<numBytesPerRow; x++)
-					row[x] = 0;
-			}
-		}
-
 		// erase the patterned opaque layer bitmaps
 		for(Map.Entry<Layer,PatternedOpaqueLayer> e: patternedOpaqueLayers.entrySet())
 		{
 			PatternedOpaqueLayer pol = e.getValue();
-			byte [][] layerBitMap = pol.layerBitMap;
-			for(int y=0; y<sz.height; y++)
-			{
-				byte [] row = layerBitMap[y];
-				for(int x=0; x<numBytesPerRow; x++)
-					row[x] = 0;
-			}
+			byte [] layerBitMap = pol.layerBitMap;
+            for (int i = 0; i < layerBitMap.length; i++)
+                layerBitMap[i] = 0;
+		}
+
+		// erase the transparent bitmaps
+		for(int i=0; i<numLayerBitMaps; i++)
+		{
+			byte [] layerBitMap = layerBitMaps[i];
+			if (layerBitMap == null) continue;
+            for (int j = 0; j < layerBitMap.length; j++)
+                layerBitMap[j] = 0;
 		}
 
 		// erase opaque image
+        if (opaqueData == null) return;
 		if (bounds == null)
 		{
 			// erase the entire image
@@ -761,14 +753,7 @@ class PixelDrawing_
 
 			for(int y=ly; y<=hy; y++)
 			{
-				for(int i=0; i<numLayerBitMaps; i++)
-				{
-					byte [][] layerBitMap = layerBitMaps[i];
-					if (layerBitMap == null) compositeRows[i] = null; else
-					{
-						compositeRows[i] = layerBitMap[y];
-					}
-				}
+                int baseByteIndex = y*numBytesPerRow;
 				int baseIndex = y * sz.width;
 				for(int x=lx; x<=hx; x++)
 				{
@@ -784,12 +769,13 @@ class PixelDrawing_
 					{
 						// aggregate the transparent bitplanes at this pixel
 						int bits = 0;
-						int entry = x >> 3;
+						int entry = baseByteIndex + (x>>3);
 						int maskBit = 1 << (x & 7);
 						for(int i=0; i<numLayerBitMaps; i++)
 						{
-							if (compositeRows[i] == null) continue;
-							int byt = compositeRows[i][entry];
+                            byte[] layerBitMap = layerBitMaps[i]; 
+							if (layerBitMap == null) continue;
+							int byt = layerBitMap[entry];
 							if ((byt & maskBit) != 0) bits |= (1<<i);
 						}
 
@@ -861,356 +847,30 @@ class PixelDrawing_
 		return img;
 	}
     
-    private class AlphaBlendGroup {
-        private static final int SCALE_SH = 8;
-        private static final int SCALE = 1 << SCALE_SH;
-        
-        PatternedOpaqueLayer[] pols;
-        int[] redMap;
-        int[] greenMap;
-        int[] blueMap;
-        int[] inverseAlphaMap;
-        byte[][] rows;
-        
-        AlphaBlendGroup(List<PatternedOpaqueLayer> pols, List<Color> cols, int offset, int len, Color background) {
-            this.pols = new PatternedOpaqueLayer[len];
-            int mapLen = 1 << len;
-            redMap = new int[mapLen];
-            greenMap = new int[mapLen];
-            blueMap = new int[mapLen];
-            inverseAlphaMap = new int[mapLen];
-            rows = new byte[len][];
-            
-            float[][] compArrays = new float[len][];
-            
-            for (int i = 0; i < len; i++) {
-                this.pols[i] = pols.get(offset + i);
-                Color color = cols.get(offset + i);
-                compArrays[i] = color.getRGBComponents(null);
-            }
-            
-            for (int k = 0; k < mapLen; k++) {
-                double red = 0, green = 0, blue = 0, ia = 1.0;
-                if (background != null) {
-                    float compArray[] = background.getRGBColorComponents(null);
-                    red = compArray[0];
-                    green = compArray[1];
-                    blue = compArray[2];
-                    ia = 0.0;
-                }
-                for (int i = 0; i < len; i++) {
-                    if ((k & (1 << i)) == 0) continue;
-                    float[] compArray = compArrays[i];
-                    double alpha = compArray[3];
-                    red = compArray[0]*alpha + red*(1 - alpha);
-                    green = compArray[1]*alpha + green*(1 - alpha);
-                    blue = compArray[2]*alpha + blue*(1 - alpha);
-                    ia = ia*(1 - alpha);
-                }
-                redMap[k] = (int)(red*SCALE*255);
-                greenMap[k] = (int)(green*SCALE*255);
-                blueMap[k] = (int)(blue*SCALE*255);
-                inverseAlphaMap[k] = (int)(ia*SCALE);
-            }
-        }
-        
-        private void setRows(int y) {
-            for (int i = 0; i < pols.length; i++)
-                rows[i] = pols[i].layerBitMap[y];
-        }
-        
-        private void unpackBytes(int index) {
-            // unpack pixels
-            int pixel0 = 0, pixel1 = 0, pixel2 = 0, pixel3 = 0, pixel4 = 0, pixel5 = 0, pixel6 = 0, pixel7 = 0;
-            for (int i = 0; i < rows.length; i++) {
-                int value = rows[i][index];
-                if (value == 0) continue;
-                pixel0 |= (value & 1) << i;
-                pixel1 |= ((value >> 1) & 1) << i;
-                pixel2 |= ((value >> 2) & 1) << i;
-                pixel3 |= ((value >> 3) & 1) << i;
-                pixel4 |= ((value >> 4) & 1) << i;
-                pixel5 |= ((value >> 5) & 1) << i;
-                pixel6 |= ((value >> 6) & 1) << i;
-                pixel7 |= ((value >> 7) & 1) << i;
-            }
-            
-            // 
-            int red, green, blue, ia;
-            
-            red = redMap[pixel0];
-            green = greenMap[pixel0];
-            blue = blueMap[pixel0];
-            ia = inverseAlphaMap[pixel0];
-            if (ia == 0) {
-                r0 = red >> SCALE_SH;
-                g0 = green >> SCALE_SH;
-                b0 = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r0 = (red + r0 * ia) >> SCALE_SH;
-                g0 = (green + g0 * ia) >> SCALE_SH;
-                b0 = (blue + b0 * ia) >> SCALE_SH;
-            }
-
-            red = redMap[pixel1];
-            green = greenMap[pixel1];
-            blue = blueMap[pixel1];
-            ia = inverseAlphaMap[pixel1];
-            if (ia == 0) {
-                r1 = red >> SCALE_SH;
-                g1 = green >> SCALE_SH;
-                b1 = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r1 = (red + r1 * ia) >> SCALE_SH;
-                g1 = (green + g1 * ia) >> SCALE_SH;
-                b1 = (blue + b1 * ia) >> SCALE_SH;
-            }
-
-            red = redMap[pixel2];
-            green = greenMap[pixel2];
-            blue = blueMap[pixel2];
-            ia = inverseAlphaMap[pixel2];
-            if (ia == 0) {
-                r2 = red >> SCALE_SH;
-                g2 = green >> SCALE_SH;
-                b2 = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r2 = (red + r2 * ia) >> SCALE_SH;
-                g2 = (green + g2 * ia) >> SCALE_SH;
-                b2 = (blue + b2 * ia) >> SCALE_SH;
-            }
-
-            red = redMap[pixel3];
-            green = greenMap[pixel3];
-            blue = blueMap[pixel3];
-            ia = inverseAlphaMap[pixel3];
-            if (ia == 0) {
-                r3 = red >> SCALE_SH;
-                g3 = green >> SCALE_SH;
-                b3 = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r3 = (red + r3 * ia) >> SCALE_SH;
-                g3 = (green + g3 * ia) >> SCALE_SH;
-                b3 = (blue + b3 * ia) >> SCALE_SH;
-            }
-
-            red = redMap[pixel4];
-            green = greenMap[pixel4];
-            blue = blueMap[pixel4];
-            ia = inverseAlphaMap[pixel4];
-            if (ia == 0) {
-                r4 = red >> SCALE_SH;
-                g4 = green >> SCALE_SH;
-                b4 = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r4 = (red + r4 * ia) >> SCALE_SH;
-                g4 = (green + g4 * ia) >> SCALE_SH;
-                b4 = (blue + b4 * ia) >> SCALE_SH;
-            }
-
-            red = redMap[pixel5];
-            green = greenMap[pixel5];
-            blue = blueMap[pixel5];
-            ia = inverseAlphaMap[pixel5];
-            if (ia == 0) {
-                r5 = red >> SCALE_SH;
-                g5 = green >> SCALE_SH;
-                b5 = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r5 = (red + r5 * ia) >> SCALE_SH;
-                g5 = (green + g5 * ia) >> SCALE_SH;
-                b5 = (blue + b5 * ia) >> SCALE_SH;
-            }
-
-            red = redMap[pixel6];
-            green = greenMap[pixel6];
-            blue = blueMap[pixel6];
-            ia = inverseAlphaMap[pixel6];
-            if (ia == 0) {
-                r6 = red >> SCALE_SH;
-                g6 = green >> SCALE_SH;
-                b6 = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r6 = (red + r6 * ia) >> SCALE_SH;
-                g6 = (green + g6 * ia) >> SCALE_SH;
-                b6 = (blue + b6 * ia) >> SCALE_SH;
-            }
-
-            red = redMap[pixel7];
-            green = greenMap[pixel7];
-            blue = blueMap[pixel7];
-            ia = inverseAlphaMap[pixel7];
-            if (ia == 0) {
-                r7 = red >> SCALE_SH;
-                g7 = green >> SCALE_SH;
-                b7 = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r7 = (red + r7 * ia) >> SCALE_SH;
-                g7 = (green + g7 * ia) >> SCALE_SH;
-                b7 = (blue + b7 * ia) >> SCALE_SH;
-            }
-
-        }
-    }
-    
-    private int r0, r1, r2, r3, r4, r5, r6, r7;
-    private int g0, g1, g2, g3, g4, g5, g6, g7;
-    private int b0, b1, b2, b3, b4, b5, b6, b7;
-    
     private void layerComposite() {
-        Color background;
-        ArrayList<PatternedOpaqueLayer> pols = new ArrayList<PatternedOpaqueLayer>();
-        ArrayList<Color> colors = new ArrayList<Color>();
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(new File("/home/dn146861/electric/colors")));
-            background = parseColor(in.readLine());
-            for (;;) {
-                String s = in.readLine();
-                if (s == null) break;
-                if (s.charAt(0) == '#') continue;
-                int indexSp = s.indexOf(' ');
-                if (indexSp < 0)
-                    throw new IOException("Bad line: " + s);
-                String layerName = s.substring(0, indexSp);
-                Layer layer = MoCMOS.tech.findLayer(layerName);
-                if (layer == null)
-                    layer = Generic.tech.findLayer(layerName);
-                if (layer == null)
-                    throw new IOException("Unknown layer " + layerName);
-                PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
-                Color color = parseColor(s.substring(indexSp));
-//                System.out.println(layer + " " + color);
-                if (pol == null) continue;
-                pols.add(pol);
-                colors.add(color);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-        System.out.print("TOP " + total + " pixels t=" + System.currentTimeMillis());
-        for (Layer layer: patternedOpaqueLayers.keySet()) {
-            System.out.print(" " + layer.getName() + ":" + layer.getIndex());
-        }
-        System.out.println();
-        
+        HashMap<Layer,byte[]> layerBytes = new HashMap<Layer,byte[]>();
+        for (Map.Entry<Layer,PatternedOpaqueLayer> e: patternedOpaqueLayers.entrySet())
+            layerBytes.put(e.getKey(), e.getValue().layerBitMap);
+        alphaBlender.init(backgroundValue, wnd.getBlendingOrder(layerBytes.keySet(), false), layerBytes);
+    
         long startTime = System.currentTimeMillis();
-        AlphaBlendGroup[] groups = new AlphaBlendGroup[pols.size()/12 + 1];
-        int k = 0;
-        for (int i = 0; i < groups.length; i++) {
-            int l = (pols.size() - k) / (groups.length - i);
-            groups[i] = new AlphaBlendGroup(pols, colors, k, l, background);
-            background = null;
-            k += l;
-        }
-        
-        long mapTime = System.currentTimeMillis();
         int numFullBytes = sz.width / 8;
         int numTailBits = sz.width % 8;
-        int baseIndex = 0;
+        byte tailBitsMask = (byte)((1 << numTailBits) - 1);
+        int baseIndex = 0, baseByteIndex = 0;
         for (int y = 0; y < sz.height; y++) {
-            for (AlphaBlendGroup group: groups)
-                group.setRows(y);
-            int x = 0;
-            for (int index = 0; index < numFullBytes; index++) {
-                for (AlphaBlendGroup group: groups)
-                    group.unpackBytes(index);
-                baseIndex = storeRGB8(baseIndex);
-            }
-            if (numTailBits == 0) continue;
-            for (AlphaBlendGroup group: groups)
-                group.unpackBytes(numFullBytes);
-            switch (numTailBits) {
-                case 7:
-                    storeRGB(baseIndex + 6, r6, g6, b6);
-                case 6:
-                    storeRGB(baseIndex + 5, r5, g5, b5);
-                case 5:
-                    storeRGB(baseIndex + 4, r4, g4, b4);
-                case 4:
-                    storeRGB(baseIndex + 3, r3, g3, b3);
-                case 3:
-                    storeRGB(baseIndex + 2, r2, g2, b2);
-                case 2:
-                    storeRGB(baseIndex + 1, r1, g1, b1);
-                case 1:
-                    storeRGB(baseIndex, r0, g0, b0);
-                case 0:
-                    break;
-                default:
-                    assert false;
-            }
-            baseIndex += numTailBits;
+            alphaBlender.composeBytes(baseByteIndex, numFullBytes, opaqueData, baseIndex);
+            if (numTailBits != 0)
+                alphaBlender.composeBits(baseByteIndex + numFullBytes, tailBitsMask, opaqueData, baseIndex + numFullBytes*8);
+            baseByteIndex += numBytesPerRow;
+            baseIndex += width;
         }
+        assert baseByteIndex == numBytesPerRow * sz.height; 
         assert baseIndex == sz.width * sz.height;
         long endTime = System.currentTimeMillis();
-        System.out.println("layerComposite took " + (endTime - startTime) + "(" +
-                (mapTime - startTime) + "+" + (endTime - mapTime) + ") msec");
-        System.out.print("MapSize = ");
-        int mapSize = 0;
-        for (AlphaBlendGroup group: groups) {
-            if (mapSize != 0)
-                System.out.print(" + ");
-            System.out.print("2^" + group.pols.length);
-            mapSize += group.inverseAlphaMap.length;
-        }
-        System.out.println(" = " + mapSize);
-     }
-
-    private int storeRGB8(int baseIndex) {
-        storeRGB(baseIndex++, r0, g0, b0);
-        storeRGB(baseIndex++, r1, g1, b1);
-        storeRGB(baseIndex++, r2, g2, b2);
-        storeRGB(baseIndex++, r3, g3, b3);
-        storeRGB(baseIndex++, r4, g4, b4);
-        storeRGB(baseIndex++, r5, g5, b5);
-        storeRGB(baseIndex++, r6, g6, b6);
-        storeRGB(baseIndex++, r7, g7, b7);
-        return baseIndex;
+        System.out.println("layerComposite took " + (endTime - startTime) + " msec");
     }
     
-     private void storeRGB(int baseIndex, int red, int green, int blue) {
-        assert 0 <= red && red <= 255;
-        assert 0 <= green && green <= 255;
-        assert 0 <= blue && blue <= 255;
-        int color = (red << 16) | (green << 8) + blue;
-        int pixelValue = opaqueData[baseIndex];
-        if (pixelValue != backgroundValue) {
-            int pixelAlpha = (pixelValue >> 24) & 0xFF;
-            if (pixelAlpha == 0xFF || pixelAlpha == 0)
-                color = pixelValue;
-            else if (pixelAlpha != 0)
-                color = alphaBlend(pixelValue, color, pixelAlpha);
-        }
-        opaqueData[baseIndex] = color;
-    }
-    
-    private Color parseColor(String s) throws IOException {
-        int[] comps = new int[4];
-        int k = 0;
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c != ' ' && c != '\t')
-                sb.append(c);
-            else if (sb.length() != 0) {
-                int v = Integer.parseInt(sb.toString());
-                sb.setLength(0);
-                comps[k++] = v;
-            }
-        }
-        if (sb.length() != 0) {
-            int v = Integer.parseInt(sb.toString());
-            sb.setLength(0);
-            comps[k++] = v;
-        }
-        if (k != 4)
-            throw new IOException("rgba expected");
-        Color color = new Color(comps[0], comps[1], comps[2], comps[3]);
-//        System.out.println("color=" + color);
-        return color;
-    }
-
 	/**
 	 * Method to draw the grid into the offscreen buffer
 	 */
@@ -1342,8 +1002,7 @@ class PixelDrawing_
 
         curTechLayers = new ERaster[curTech.getNumLayers()];
 		numLayerBitMaps = curTech.getNumTransparentLayers();
-		layerBitMaps = new byte[numLayerBitMaps][][];
-		compositeRows = new byte[numLayerBitMaps][];
+		layerBitMaps = new byte[numLayerBitMaps][];
 		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
 		numLayerBitMapsCreated = 0;
 	}
@@ -1439,7 +1098,7 @@ class PixelDrawing_
                 int p4y = op[7] + soY;
                 gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
                 OpaqueRaster.current.init(opaqueData, sz.width, instanceGraphics.getRGB() & 0xffffff);
-                ERaster instanceRaster = OpaqueRaster.current;
+                ERaster instanceRaster = getDrawRaster(instanceLayer, instanceGraphics, false);
 				drawLine(tempPt1, tempPt2, 0, instanceRaster);
 				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
 				drawLine(tempPt1, tempPt2, 0, instanceRaster);
@@ -1507,14 +1166,12 @@ class PixelDrawing_
                 cellBounds.add(textBounds);
             AffineTransform rotTrans = orient.pureRotate();
             DBMath.transformRect(cellBounds, rotTrans);
-            int lX = (int)Math.floor(cellBounds.getMinX()*scale);
-            int hX = (int)Math.ceil(cellBounds.getMaxX()*scale);
-            int lY = (int)Math.floor(cellBounds.getMinY()*scale);
-            int hY = (int)Math.ceil(cellBounds.getMaxY()*scale);
-            Rectangle screenBounds = new Rectangle(lX, lY, hX - lX, hY - lY);
-
-            if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
-
+            int lX = (int)Math.ceil(cellBounds.getMinX()*scale - 0.5);
+            int hX = (int)Math.floor(cellBounds.getMaxX()*scale + 0.5);
+            int lY = (int)Math.ceil(cellBounds.getMinY()*scale - 0.5);
+            int hY = (int)Math.floor(cellBounds.getMaxY()*scale + 0.5);
+            assert lX <= hX && lY <= hY;
+            
 			// if this is the first use, create the offscreen buffer
 			if (expandedCellCount == null)
 			{
@@ -1523,12 +1180,12 @@ class PixelDrawing_
 			}
 
 			// do not cache if the cell is too large (creates immense offscreen buffers)
-			if (screenBounds.width >= topSz.width/2 && screenBounds.height >= topSz.height/2) {
+			if (hX - lX >= topSz.width/2 && hY - lY >= topSz.height/2) {
                 expandedCellCount.tooLarge = true;
 				return false;
             }
 
-            expandedCellCount.offscreen = new PixelDrawing_(scale, screenBounds);
+            expandedCellCount.offscreen = new PixelDrawing_(scale, lX, hX, lY, hY);
 			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, 0, 0, false, context);
 			offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
@@ -1688,52 +1345,52 @@ class PixelDrawing_
             System.out.println("Possible mixture of technologies in PixelDrawing.copyBits");
 
 		// copy the opaque and transparent layers
-        for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
-            int destY = srcY + cornerY;
-            assert destY >= clipLY && destY <= clipHY;
-            if (destY < 0 || destY >= sz.height) continue;
-            int srcBase = srcY * dim.width;
-            int destBase = destY * sz.width;
-            
-            for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
-                int destX = srcX + cornerX;
-                assert destX >= clipLX && destX <= clipHX;
-                if (destX < 0 || destX >= sz.width) continue;
-                int srcColor = srcOffscreen.opaqueData[srcBase + srcX];
-                if (srcColor != backgroundValue)
-                    opaqueData[destBase + destX] = srcColor;
-            }
-        }
-        for (int i = 0; i < numLayerBitMaps; i++) {
-            // out of range. Possible mixture of technologies.
-            if (i >= srcOffscreen.numLayerBitMaps) break;
-            byte [][] srcLayerBitMap = srcOffscreen.layerBitMaps[i];
-            if (srcLayerBitMap == null) continue;
-            byte [][] destLayerBitMap = getLayerBitMap(i);
-            
+        if (!LAYER_MAP) {
             for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
                 int destY = srcY + cornerY;
                 assert destY >= clipLY && destY <= clipHY;
-                if (destY < 0 || destY >= sz.height) continue;
-                byte [] srcRow = srcLayerBitMap[srcY];
-                byte [] destRow = destLayerBitMap[destY];
+                int srcBase = srcY * dim.width;
+                int destBase = destY * sz.width;
                 
                 for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
                     int destX = srcX + cornerX;
                     assert destX >= clipLX && destX <= clipHX;
                     if (destX < 0 || destX >= sz.width) continue;
-                    
-                    if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
-                        destRow[destX>>3] |= (1 << (destX&7));
+                    int srcColor = srcOffscreen.opaqueData[srcBase + srcX];
+                    if (srcColor != backgroundValue)
+                        opaqueData[destBase + destX] = srcColor;
                 }
             }
-        }
+            for (int i = 0; i < numLayerBitMaps; i++) {
+                // out of range. Possible mixture of technologies.
+                if (i >= srcOffscreen.numLayerBitMaps) break;
+                byte [] srcLayerBitMap = srcOffscreen.layerBitMaps[i];
+                if (srcLayerBitMap == null) continue;
+                byte [] destLayerBitMap = getLayerBitMap(i);
+                
+                for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                    int destY = srcY + cornerY;
+                    assert destY >= clipLY && destY <= clipHY;
+                    int srcBaseIndex = srcY*srcOffscreen.numBytesPerRow;
+                    int destBaseIndex = destY*numBytesPerRow;
+                    
+                    for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
+                        int destX = srcX + cornerX;
+                        assert destX >= clipLX && destX <= clipHX;
+                        
+                        if ((srcLayerBitMap[srcBaseIndex + (srcX>>3)] & (1<<(srcX&7))) != 0)
+                            destLayerBitMap[destBaseIndex + (destX>>3)] |= (1 << (destX&7));
+                    }
+                }
+            }
+       }
 
 		// copy the patterned opaque layers
-		for(Layer layer : srcOffscreen.patternedOpaqueLayers.keySet())
+		for(Map.Entry<Layer,PatternedOpaqueLayer> e : srcOffscreen.patternedOpaqueLayers.entrySet())
 		{
-			PatternedOpaqueLayer polSrc = srcOffscreen.patternedOpaqueLayers.get(layer);
-			byte [][] srcLayerBitMap = polSrc.layerBitMap;
+            Layer layer = e.getKey();
+			PatternedOpaqueLayer polSrc = e.getValue();
+			byte [] srcLayerBitMap = polSrc.layerBitMap;
 			if (srcLayerBitMap == null) continue;
 
 			if (renderedWindow && !LAYER_MAP)
@@ -1752,13 +1409,13 @@ class PixelDrawing_
 					int destBase = destY * sz.width;
 					int pat = pattern[destY&15];
 					if (pat == 0) continue;
-					byte [] srcRow = srcLayerBitMap[srcY];
+                    int srcBaseIndex = srcY*polSrc.bytesPerRow;
 					for (int srcX = minSrcX; srcX <= maxSrcX; srcX++)
 					{
 						int destX = srcX + cornerX;
                         assert destX >= clipLX && destX <= clipHX;
 						if (destX < 0 || destX >= sz.width) continue;
-						if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
+						if ((srcLayerBitMap[srcBaseIndex + (srcX>>3)] & (1<<(srcX&7))) != 0)
 						{
 							if ((pat & (0x8000 >> (destX&15))) != 0)
 								opaqueData[destBase + destX] = col;
@@ -1774,24 +1431,99 @@ class PixelDrawing_
 					polDest = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
 					patternedOpaqueLayers.put(layer, polDest);
 				}
-				byte [][] destLayerBitMap = polDest.layerBitMap;
-				for(int srcY = minSrcY; srcY <= maxSrcY; srcY++)
-				{
-					int destY = srcY + cornerY;
-                    assert destY >= clipLY && destY <= clipHY;
-					if (destY < 0 || destY >= sz.height) continue;
-					int destBase = destY * sz.width;
-					byte [] srcRow = srcLayerBitMap[srcY];
-					byte [] destRow = destLayerBitMap[destY];
-					for (int srcX = minSrcX; srcX <= maxSrcX; srcX++)
-					{
-						int destX = srcX + cornerX;
-                        assert destX >= clipLX && destX <= clipHX;
-						if (destX < 0 || destX >= sz.width) continue;
-						if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
-							destRow[destX>>3] |= (1 << (destX&7));
-					}
-				}
+       
+				byte [] destLayerBitMap = polDest.layerBitMap;
+                int minDestX = minSrcX + cornerX;
+                int maxDestX = maxSrcX + cornerX;
+                int minDestY = minSrcY + cornerY;
+                int maxDestY = maxSrcY + cornerY;
+                int leftShift = cornerX&7;
+                int rightShift = 8 - leftShift;
+                int srcBaseIndex = minSrcY*srcOffscreen.numBytesPerRow + minSrcX/8;
+                int destBaseIndex = minDestY*numBytesPerRow + minDestX/8; 
+                if (maxDestX/8 == minDestX/8) {
+                    // Single destination byte.
+                    int destMask = (1 << (maxDestX%8 + 1)) - (1 << minDestX%8);
+                    if (minSrcX/8 != maxSrcX/8) {
+                        // A pair of source bytes
+                        for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                            int s0 = srcLayerBitMap[srcBaseIndex]&0xFF;
+                            int s1 = srcLayerBitMap[srcBaseIndex + 1]&0xFF;
+                            int v = ((s0 >> rightShift) | (s1 << leftShift)) & destMask;
+                            if (v != 0)
+                                destLayerBitMap[destBaseIndex] |= v;
+                            srcBaseIndex += srcOffscreen.numBytesPerRow;
+                            destBaseIndex += numBytesPerRow;
+                        }
+                    } else if (minDestX%8 >= minSrcX%8) {
+                        // source byte shifted left
+                        for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                            int s = srcLayerBitMap[srcBaseIndex]&0xFF;
+                            int v = (s << leftShift) & destMask;
+                            if (v != 0)
+                                destLayerBitMap[destBaseIndex] |= v;
+                            srcBaseIndex += srcOffscreen.numBytesPerRow;
+                            destBaseIndex += numBytesPerRow;
+                        }
+                    } else {
+                        // source byte shifted right
+                        for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                            int s = srcLayerBitMap[srcBaseIndex]&0xFF;
+                            int v = (s >> rightShift) & destMask;
+                            if (v != 0)
+                                destLayerBitMap[destBaseIndex] |= v;
+                            srcBaseIndex += srcOffscreen.numBytesPerRow;
+                            destBaseIndex += numBytesPerRow;
+                        }
+                    }
+                } else {
+                    int minDestMask = (1 << 8) - (1 << minDestX%8);
+                    int maxDestMask = (1 << (maxDestX%8 + 1)) - 1;
+                    boolean minSrcPair = 7 - rightShift >= minDestX%8;
+                    boolean maxSrcPair = leftShift <= maxDestX%8;
+                    int numDestBytes = maxDestX/8 - minDestX/8;
+                    int srcIncr = srcOffscreen.numBytesPerRow - maxSrcX/8 + minSrcX/8 - 1;
+                    for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                        assert srcBaseIndex == srcY*srcOffscreen.numBytesPerRow + minSrcX/8;
+                        assert destBaseIndex == (srcY + cornerY)*numBytesPerRow + (minSrcX + cornerX)/8;
+                        int s = minSrcPair ? srcLayerBitMap[srcBaseIndex++]&0xFF : 0;
+                        int b0 = srcLayerBitMap[srcBaseIndex++]&0xFF;
+                        int v0 = ((s >> rightShift) | (b0 << leftShift)) & minDestMask;
+                        if (v0 != 0)
+                            destLayerBitMap[destBaseIndex] |= v0;
+                        destBaseIndex++;
+                        s = b0;
+                        for (int i = 1; i < numDestBytes; i++) {
+                            int b = srcLayerBitMap[srcBaseIndex++]&0xFF;
+                            int v = (s >> rightShift) | (b << leftShift);
+                            if (v != 0)
+                                destLayerBitMap[destBaseIndex] |= v;
+                            destBaseIndex++;
+                            s = b;
+                        }
+                        int bf = maxSrcPair ? srcLayerBitMap[srcBaseIndex++]&0xFF : 0;
+                        int vf = ((s >> rightShift) | (bf << leftShift)) & maxDestMask;
+                        if (vf != 0)
+                            destLayerBitMap[destBaseIndex] |= vf;
+                        srcBaseIndex += srcIncr;
+                        destBaseIndex += (numBytesPerRow - numDestBytes);
+                    }
+                }
+//				for(int srcY = minSrcY; srcY <= maxSrcY; srcY++)
+//				{
+//					int destY = srcY + cornerY;
+//                    assert destY >= clipLY && destY <= clipHY;
+//					int destBase = destY * sz.width;
+//					int srcBaseIndex = srcY*polSrc.bytesPerRow;
+//					int destBaseIndex = destY*polDest.bytesPerRow;
+//					for (int srcX = minSrcX; srcX <= maxSrcX; srcX++)
+//					{
+//						int destX = srcX + cornerX;
+//                        assert destX >= clipLX && destX <= clipHX;
+//						if ((srcLayerBitMap[srcBaseIndex + (srcX>>3)] & (1<<(srcX&7))) != 0)
+//							destLayerBitMap[destBaseIndex + (destX>>3)] |= (1 << (destX&7));
+//					}
+//				}
 			}
 		}
 	}
@@ -1882,9 +1614,8 @@ class PixelDrawing_
     ERaster getFillRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
         boolean dimmed = false;
         if (layer != null) {
-            if (!forceVisible && !layer.isVisible()) return null;
-            
             if (LAYER_MAP) {
+                layer = layer.getNonPseudoLayer();
                 PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
                 if (pol == null) {
                     pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
@@ -1893,12 +1624,13 @@ class PixelDrawing_
                 return pol;
             }
             
+            if (!forceVisible && !layer.isVisible()) return null;
             graphics = layer.getGraphics();
             dimmed = layer.isDimmed();
             
         }
         
-		byte [][] layerBitMap = null;
+		byte [] layerBitMap = null;
 		int layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
 
@@ -1925,13 +1657,13 @@ class PixelDrawing_
             pattern = graphics.getPattern();
         if (layerBitMap != null) {
             if (pattern == null) {
-                TransparentRaster.current.init(layerBitMap);
+                TransparentRaster.current.init(layerBitMap, numBytesPerRow);
                 return TransparentRaster.current;
             }
 			EGraphics.Outline o = graphics.getOutlined();
             if (o == EGraphics.Outline.NOPAT)
                 o = null;
-            PatternedTransparentRaster.current.init(layerBitMap, pattern, o);
+            PatternedTransparentRaster.current.init(layerBitMap, numBytesPerRow, pattern, o);
             return PatternedTransparentRaster.current;
         } else {
     		int col = getTheColor(graphics, dimmed);
@@ -1950,9 +1682,8 @@ class PixelDrawing_
     ERaster getDrawRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
         boolean dimmed = false;
         if (layer != null) {
-            if (!forceVisible && !layer.isVisible()) return null;
-            
             if (LAYER_MAP) {
+                layer = layer.getNonPseudoLayer();
                 PatternedOpaqueLayer pol = patternedOpaqueLayers.get(layer);
                 if (pol == null) {
                     pol = new PatternedOpaqueLayer(sz.height, numBytesPerRow);
@@ -1961,18 +1692,19 @@ class PixelDrawing_
                 return pol;
             }
             
+            if (!forceVisible && !layer.isVisible()) return null;
             graphics = layer.getGraphics();
             dimmed = layer.isDimmed();
         }
         
-		byte [][] layerBitMap = null;
+		byte [] layerBitMap = null;
         assert graphics != null;
 		int layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
 
         ERaster raster;
         if (layerBitMap != null) {
-            TransparentRaster.current.init(layerBitMap);
+            TransparentRaster.current.init(layerBitMap, numBytesPerRow);
             return TransparentRaster.current;
         } else {
     		int col = getTheColor(graphics, dimmed);
@@ -2096,52 +1828,59 @@ class PixelDrawing_
     private static class TransparentRaster implements ERaster {
         private static TransparentRaster current = new TransparentRaster();
         
-        byte[][] layerBitMap;
+        byte[] layerBitMap;
+        int bytesPerRow;
         
-        private void init(byte[][] layerBitMap) {
+        private void init(byte[] layerBitMap, int bytesPerRow) {
             this.layerBitMap = layerBitMap;
+            this.bytesPerRow = bytesPerRow;
         }
         
         public void fillBox(int lX, int hX, int lY, int hY) {
+            int baseIndex = lY*bytesPerRow;
             for (int y = lY; y <= hY; y++) {
-                byte [] row = layerBitMap[y];
                 for (int x = lX; x <= hX; x++)
-                    row[x>>3] |= (1 << (x&7));
+                    layerBitMap[baseIndex + (x>>3)] |= (1 << (x&7));
+                baseIndex += bytesPerRow;
             }
         }
         
         public void fillHorLine(int y, int lX, int hX) {
-            byte [] row = layerBitMap[y];
+            int baseIndex = y*bytesPerRow;
             for (int x = lX; x <= hX; x++)
-                row[x>>3] |= (1 << (x&7));
+                layerBitMap[baseIndex + (x>>3)] |= (1 << (x&7));
         }
         
         public void fillVerLine(int x, int lY, int hY) {
-            int addr = x >> 3;
+            int baseIndex = lY*bytesPerRow + (x>>3);
             byte mask = (byte)(1 << (x&7));
-            for (int y = lY; y <= hY; y++)
-                layerBitMap[y][addr] |= mask;
+            for (int y = lY; y <= hY; y++) {
+                layerBitMap[baseIndex] |= mask;
+                baseIndex += bytesPerRow;
+            }
         }
         
         public void fillPoint(int x, int y) {
-            layerBitMap[y][x >> 3] |= (1 << (x&7));
+            layerBitMap[y*bytesPerRow + (x>>3)] |= (1 << (x&7));
         }
         
         public void drawHorLine(int y, int lX, int hX) {
-            byte [] row = layerBitMap[y];
+            int baseIndex = y*bytesPerRow;
             for (int x = lX; x <= hX; x++)
-                row[x>>3] |= (1 << (x&7));
+                layerBitMap[baseIndex + (x>>3)] |= (1 << (x&7));
         }
         
         public void drawVerLine(int x, int lY, int hY) {
-            int addr = x >> 3;
+            int baseIndex = lY*bytesPerRow + (x>>3);
             byte mask = (byte)(1 << (x&7));
-            for (int y = lY; y <= hY; y++)
-                layerBitMap[y][addr] |= mask;
+            for (int y = lY; y <= hY; y++) {
+                layerBitMap[baseIndex] |= mask;
+                baseIndex += bytesPerRow;
+            }
         }
         
         public void drawPoint(int x, int y) {
-            layerBitMap[y][x >> 3] |= (1 << (x&7));
+            layerBitMap[y*bytesPerRow + (x>>3)] |= (1 << (x&7));
         }
         
         public EGraphics.Outline getOutline() {
@@ -2220,8 +1959,8 @@ class PixelDrawing_
         int[] pattern;
         EGraphics.Outline outline;
         
-        private void init(byte[][] layerBitMap, int[] pattern, EGraphics.Outline outline) {
-            super.init(layerBitMap);
+        private void init(byte[] layerBitMap, int bytesPerRow, int[] pattern, EGraphics.Outline outline) {
+            super.init(layerBitMap, bytesPerRow);
             this.pattern = pattern;
             this.outline = outline;
         }
@@ -2232,10 +1971,10 @@ class PixelDrawing_
                 int pat = pattern[y&15];
                 if (pat == 0) continue;
                 
-                byte [] row = layerBitMap[y];
+                int baseIndex = y*bytesPerRow;
                 for(int x=lX; x<=hX; x++) {
                     if ((pat & (0x8000 >> (x&15))) != 0)
-                        row[x>>3] |= (1 << (x&7));
+                        layerBitMap[baseIndex + (x>>3)] |= (1 << (x&7));
                 }
             }
         }
@@ -2243,27 +1982,28 @@ class PixelDrawing_
         public void fillHorLine(int y, int lX, int hX) {
             int pat = pattern[y & 15];
             if (pat == 0) return;
-            byte [] row = layerBitMap[y];
+            int baseIndex = y*bytesPerRow;
             for (int x = lX; x <= hX; x++) {
                 if ((pat & (1 << (15-(x&15)))) != 0)
-                    row[x>>3] |= (1 << (x&7));
+                    layerBitMap[baseIndex + (x>>3)] |= (1 << (x&7));
             }
         }
         
         public void fillVerLine(int x, int lY, int hY) {
             int patMask = 0x8000 >> (x&15);
-            int addr = x >> 3;
+            int baseIndex = lY*bytesPerRow + (x>>3);
             byte mask = (byte)(1 << (x&7));
             for (int y = lY; y <= hY; y++) {
                 if ((pattern[y&15] & patMask) != 0)
-                    layerBitMap[y][addr] |= mask;
+                    layerBitMap[baseIndex] |= mask;
+                baseIndex += bytesPerRow;
             }
         }
         
         public void fillPoint(int x, int y) {
             int patMask = 0x8000 >> (x&15);
             if ((pattern[y&15] & patMask) != 0)
-                layerBitMap[y][x >> 3] |= (1 << (x&7));
+                layerBitMap[y*bytesPerRow + (x>>3)] |= (1 << (x&7));
         }
         
         public EGraphics.Outline getOutline() {
@@ -2504,23 +2244,18 @@ class PixelDrawing_
 		}
 	}
 
-	byte [][] getLayerBitMap(int layerNum)
+	byte [] getLayerBitMap(int layerNum)
 	{
 		if (layerNum < 0) return null;
 
-		byte [][] layerBitMap = layerBitMaps[layerNum];
+		byte [] layerBitMap = layerBitMaps[layerNum];
 		if (layerBitMap != null) return layerBitMap;
 		// allocate this bitplane dynamically
         return newLayerBitMap(layerNum);
 	}
 
-    private byte [][] newLayerBitMap(int layerNum) {
-        byte [][] layerBitMap= new byte[sz.height][];
-        for(int y=0; y<sz.height; y++) {
-            byte [] row = new byte[numBytesPerRow];
-            for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
-            layerBitMap[y] = row;
-        }
+    private byte [] newLayerBitMap(int layerNum) {
+        byte [] layerBitMap= new byte[sz.height*numBytesPerRow];
         layerBitMaps[layerNum] = layerBitMap;
         numLayerBitMapsCreated++;
         return layerBitMap;

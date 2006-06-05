@@ -469,7 +469,21 @@ public class Layer
 	{
 		Layer layer = new Layer(name, tech, graphics);
 		graphics.setLayer(layer);
-		if (tech != null) tech.addLayer(layer);
+		tech.addLayer(layer);
+		return layer;
+	}
+
+	/**
+	 * Method to create a new layer with the given name and graphics.
+     * Layer is not attached to any technology.
+	 * @param name the name of the layer.
+	 * @param graphics the appearance of the layer.
+	 * @return the Layer object.
+	 */
+	public static Layer newInstance(String name, EGraphics graphics)
+	{
+		Layer layer = new Layer(name, null, graphics);
+		graphics.setLayer(layer);
 		return layer;
 	}
 

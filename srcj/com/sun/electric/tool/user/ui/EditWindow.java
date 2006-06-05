@@ -49,6 +49,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
@@ -109,8 +110,13 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -222,6 +228,16 @@ public class EditWindow extends JPanel
         void abortRendering() {}
     }
 
+    static class LayerColor {
+        public final Layer layer;
+        public final Color color;
+        
+        LayerColor(Layer layer, Color color) {
+            this.layer = layer;
+            this.color = color;
+        }
+    }
+    
     private static final boolean USE_VECTOR_CACHE = false;
 
 	// ************************************* CONSTRUCTION *************************************
@@ -1442,7 +1458,58 @@ public class EditWindow extends JPanel
 			return true;
 		}
 	}
-
+    
+    /**
+     * Returns alpha blending order for this EditWindow.
+     * Alpha blending order specifies pixel color by such a way:
+     * Color col = backgroudColor;
+     * for (LayerColor layerColor: blendingOrder) {
+     *    if (This pixel covers a piece of layer layerColor.layer) {
+     *       alpha = layerColor.color.getAlpha();
+     *       col =  layerColor.color.getRGB()*alpha + col*(1 - alpha)
+     *    }
+     * }
+     * return col;
+     * @param layersAvailable layers available in this EditWindow
+     * @param patternedDrawing true if some layers were filled in patterned style.
+     * @return alpha blending order.
+     */
+    List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDrawing) {
+        ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
+        HashMap<String,Layer> layers = new HashMap<String,Layer>();
+        System.out.print("getBlendingOrder for:");
+        for (Layer layer: layersAvailable) {
+            System.out.print(" " + layer.getName());
+            layers.put(layer.getName(), layer);
+        }
+        System.out.println();
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(new File("/home/dn146861/electric/opacity")));
+            for (;;) {
+                String s = in.readLine();
+                if (s == null) break;
+                if (s.charAt(0) == '#') continue;
+                int indexSp = s.indexOf(' ');
+                if (indexSp < 0)
+                    throw new IOException("Bad line: " + s);
+                String layerName = s.substring(0, indexSp);
+                Layer layer = layers.get(layerName);
+                if (layer == null) continue;
+                double opacity = 0;
+                if (layer.isVisible())
+                    opacity = TextUtils.atof(s.substring(indexSp).trim());
+                int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
+                Color color = new Color(rgba, true);
+                layerColors.add(new LayerColor(layer, color));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+        
+        return layerColors;
+    }
+    
 	// ************************************* SIMULATION CROSSPROBE LEVEL DISPLAY *************************************
 
 	private static class CrossProbe

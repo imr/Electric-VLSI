@@ -757,7 +757,7 @@ public class Artwork extends Technology
 	{
 		EGraphics graphics = makeGraphics(eObj);
 		if (graphics == null) return defaultLayer;
-		Layer thisLayer = Layer.newInstance(null, "Graphics", graphics);
+		Layer thisLayer = Layer.newInstance("Graphics", graphics);
 		return thisLayer;
 	}
 	
