@@ -4,7 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
-BUG: Duplicating {lay} view also duplicates {ic} (Bug #1090)
+IMP: (6/4/06, GVG) Configurable grid alignment buttons (full,half,quarter) (Bug #1083)
+
+BUG: (6/3/06, GVG) Duplicating {lay} view also duplicates {ic} (Bug #1090)
 FIX: If not the entire group is copied, only Schematics would trigger the copy of its icons.
 Problem introduced while implementing Bug #894.
 
