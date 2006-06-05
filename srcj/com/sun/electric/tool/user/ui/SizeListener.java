@@ -658,6 +658,18 @@ public class SizeListener
 			// make sure scaling the node is allowed
 			if (CircuitChangeJobs.cantEdit(stretchNode.getParent(), null, true) != 0) return false;
 
+			Point2D [] points = stretchNode.getTrace();
+			if (points != null)
+			{
+				double percX = newWidth / stretchNode.getXSize();
+				double percY = newHeight / stretchNode.getYSize();
+				Point2D [] newPoints = new Point2D[points.length];
+				for(int i=0; i<points.length; i++)
+				{
+					newPoints[i] = new Point2D.Double(points[i].getX()*percX, points[i].getY()*percY);
+				}
+				stretchNode.setTrace(newPoints);
+			}
             double dWid = newWidth - stretchNode.getXSize();
             double dHei = newHeight - stretchNode.getYSize();
 			stretchNode.modifyInstance(newCenter.getX() - stretchNode.getAnchorCenterX(),
