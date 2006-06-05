@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+IMP/MAN: (6/5/06, SMR) Reversed the arrow in the spiceparts node "pulseCurrent"
+     (Bug #1076) and added PWL node (Bug #950).
+
 IMP/MAN: (6/5/06, SMR) Can now select multiple cells and regroup them (Bug #1086).
 
 BUG: (6/5/06, SMR) Cannot resize nodes with outline information (Bug #1088).
