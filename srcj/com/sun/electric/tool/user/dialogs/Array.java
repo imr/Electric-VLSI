@@ -39,6 +39,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.Quick;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ExportChanges;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MeasureListener;
@@ -87,8 +88,16 @@ public class Array extends EDialog
 	public static void showArrayDialog()
 	{
 		// first make sure something is selected
-	    EditWindow wnd = EditWindow.getCurrent();
-		List highs = wnd.getHighlighter().getHighlightedEObjs(true, true);
+	    EditWindow wnd = EditWindow.needCurrent();
+	    if (wnd == null) return;
+	    Highlighter highlighter = wnd.getHighlighter();
+	    if (highlighter == null)
+	    {
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Cannot array: nothing is highlighted in this window.");
+			return;
+	    }
+		List highs = highlighter.getHighlightedEObjs(true, true);
 		if (highs.size() == 0)
 		{
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),

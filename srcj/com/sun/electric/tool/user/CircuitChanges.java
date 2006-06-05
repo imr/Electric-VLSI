@@ -101,7 +101,13 @@ public class CircuitChanges
 			amount = (int)(fAmount * 10);
 		}
 
-		new CircuitChangeJobs.RotateSelected(cell, MenuCommands.getSelectedObjects(true, true), amount, false, false);
+		List<Geometric> highs = MenuCommands.getSelectedObjects(true, true);
+		if (highs.size() == 0)
+		{
+			System.out.println("Cannot rotate: nothing is selected");
+			return;
+		}
+		new CircuitChangeJobs.RotateSelected(cell, highs, amount, false, false);
 	}
 
 	/**
