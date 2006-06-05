@@ -749,18 +749,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			ep.setBufferedImage(bImage);
 		}
 
-		Dimension szOld = ep.getOldSize();
-		double scaleX = (double)sz.width / (double)szOld.width;
-		double scaleY = (double)sz.height / (double)szOld.height;
-		double gSX = (double)szOld.width / (double)szOld.height;
-		double gSY = gSX * scaleY / scaleX;
 		Graphics2D g2d = (Graphics2D)ep.getGraphics();
 		if (g2d == null)
 		{
 			g2d = bImage.createGraphics();
 		}
-		g2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
-		g2d.scale(72.0 / ep.getDesiredDPI() / gSX, 72.0 / ep.getDesiredDPI() / gSY);
+
+		// scale if there was an old image size
+		Dimension szOld = ep.getOldSize();
+		if (szOld != null)
+		{
+			double scaleX = (double)sz.width / (double)szOld.width;
+			double scaleY = (double)sz.height / (double)szOld.height;
+			double gSX = (double)szOld.width / (double)szOld.height;
+			double gSY = gSX * scaleY / scaleX;
+			g2d.translate(ep.getPageFormat().getImageableX(), ep.getPageFormat().getImageableY());
+			g2d.scale(72.0 / ep.getDesiredDPI() / gSX, 72.0 / ep.getDesiredDPI() / gSY);
+		}
 
 		overall.paint(g2d);
 //		if (mainHorizRulerPanel != null) 

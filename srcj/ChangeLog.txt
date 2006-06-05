@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/5/06, SMR) PNG output of waveform window fails
+FIX: In WaveformWindow.getPrintImage(), do not scale if there is no former image.
+
 IMP/MAN: (6/5/06, SMR) Reversed the arrow in the spiceparts node "pulseCurrent"
      (Bug #1076) and added PWL node (Bug #950).
 
