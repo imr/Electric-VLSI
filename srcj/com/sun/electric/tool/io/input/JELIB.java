@@ -294,6 +294,7 @@ public class JELIB extends LibraryFiles
     }
 
     protected void readFromFile(boolean fromDelib) throws IOException {
+        boolean ignoreCvsMergedContent = false;
 		for(;;)
 		{
 			// get keyword from file
@@ -304,6 +305,24 @@ public class JELIB extends LibraryFiles
 			if (line.length() == 0) continue;
 			char first = line.charAt(0);
 			if (first == '#') continue;
+
+            if (line.startsWith("<<<<<<<")) {
+                // This marks start of stuff merged from CVS, ignore this stuff
+                ignoreCvsMergedContent = true;
+                Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
+                    ", CVS conflicts found: " + line, -1);
+                continue;
+            }
+            if (ignoreCvsMergedContent && line.startsWith("=======")) {
+                // This marks start of local stuff merged, use this stuff
+                ignoreCvsMergedContent = false;
+                continue;
+            }
+            if (line.startsWith(">>>>>>>")) {
+                // This marks end of cvs merging
+                continue;
+            }
+            if (ignoreCvsMergedContent) continue;
 
 			if (first == 'C')
 			{
