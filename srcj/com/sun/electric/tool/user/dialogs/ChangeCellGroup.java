@@ -45,24 +45,24 @@ public class ChangeCellGroup extends EDialog {
 	private static Preferences prefs = Preferences.userNodeForPackage(ChangeCellGroup.class);
     private static final String selectedRadioButton = "ChangeCellGroup-WhichMoveType";
 
-    private Cell cell;                              // cell to move
+    private List<Cell> cellsToRegroup;              // cells to regroup
     private Library initialLibrary;                 // initial destination library
     private List<Cell.CellGroup> cellGroups;        // list of cell groups
 
     /** Creates new form ChangeCellGroup */
-    public ChangeCellGroup(java.awt.Frame parent, boolean modal, Cell cell, Library initialLibrary) {
+    public ChangeCellGroup(java.awt.Frame parent, boolean modal, List<Cell> cellsToRegroup, Library initialLibrary) {
         super(parent, modal);
         setTitle("Change Cell Group");
-        this.cell = cell;
+        this.cellsToRegroup = cellsToRegroup;
         this.initialLibrary = initialLibrary;
         cellGroups = new ArrayList<Cell.CellGroup>();
 
         initComponents();
 
-        cellNameLabel.setText("Change Cell Group for: "+cell);
+        cellNameLabel.setText("Change Cell Group for: "+cellsToRegroup.get(0));
 
         // populate cell group combo box
-        populateCellGroupsComboBox(cell, initialLibrary);
+        populateCellGroupsComboBox(cellsToRegroup, initialLibrary);
 
         // get last state of dialog
         int selected = prefs.getInt(selectedRadioButton, 0);
@@ -71,19 +71,29 @@ public class ChangeCellGroup extends EDialog {
             case 0: { moveOwnCellGroup.setSelected(true); break; }
             case 1: { moveToCellGroup.setSelected(true); break; }
         }
+        if (cellsToRegroup.size() > 1)
+        {
+        	moveToCellGroup.setSelected(true);
+        	moveOwnCellGroup.setEnabled(false);
+        }
 
         pack();
 		finishInitialization();
     }
 
-    private void populateCellGroupsComboBox(Cell cell, Library lib) {
+    private void populateCellGroupsComboBox(List<Cell> cellsToRegroup, Library lib) {
         cellGroups.clear();
         cellGroupsComboBox.removeAllItems();
         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {
             Cell c = it.next();
             Cell.CellGroup cg = c.getCellGroup();
             if (cg == null) continue;
-            if (cg == cell.getCellGroup()) continue;
+            boolean inList = false;
+            for(Cell rgCell : cellsToRegroup)
+            {
+                if (cg == rgCell.getCellGroup()) { inList = true;   break; }
+            }
+            if (inList) continue;
             if (!cellGroups.contains(cg)) {
                 cellGroups.add(cg);
             }
@@ -106,12 +116,12 @@ public class ChangeCellGroup extends EDialog {
 
     private static class ChangeCellGroupJob extends Job
     {
-        private Cell cell;
+        private List<Cell> cellsToRegroup;
         private Cell newGroupCell;
 
-        ChangeCellGroupJob(Cell cell, Cell newGroupCell) {
-            super("Change Cell Group", User.getUserTool(), Job.Type.CHANGE, cell, cell, Job.Priority.USER);
-            this.cell = cell;
+        ChangeCellGroupJob(List<Cell> cellsToRegroup, Cell newGroupCell) {
+            super("Change Cell Group", User.getUserTool(), Job.Type.CHANGE, cellsToRegroup.get(0), cellsToRegroup.get(0), Job.Priority.USER);
+            this.cellsToRegroup = cellsToRegroup;
             this.newGroupCell = newGroupCell;
             startJob();
         }
@@ -119,15 +129,13 @@ public class ChangeCellGroup extends EDialog {
         public boolean doIt() throws JobException {
         	Cell.CellGroup newGroup = null;
         	if (newGroupCell != null) newGroup = newGroupCell.getCellGroup();
-            cell.setCellGroup(newGroup);
+        	for(Cell cell : cellsToRegroup)
+        	{
+                if (newGroup != null && cell.getCellGroup() == newGroup) continue;
+        		cell.setCellGroup(newGroup);
+        	}
             return true;
         }
-
-//        public void terminateOK()
-//        {
-//        	// update explorer tree
-//    		WindowFrame.wantToRedoLibraryTree();
-//        }
     }
 
 
@@ -252,20 +260,21 @@ public class ChangeCellGroup extends EDialog {
         Cell newGroupCell = null;
         boolean doIt = true;
 
-        if (moveOwnCellGroup.isSelected()) {
+        if (moveOwnCellGroup.isSelected())
+        {
             // if already only cell in group, do nothing
+        	Cell cell = cellsToRegroup.get(0);
             if (cell.getCellGroup() != null && cell.getCellGroup().getNumCells() == 1) doIt = false;
-        } else if (moveToCellGroup.isSelected()) {
+        } else if (moveToCellGroup.isSelected())
+        {
             // get group to move to
             int selected = cellGroupsComboBox.getSelectedIndex();
             Cell.CellGroup newGroup = (Cell.CellGroup)(cellGroups.toArray()[selected]);
             newGroupCell = newGroup.getCells().next();
-            // if already in group, do nothing
-            if (cell.getCellGroup() == newGroup) doIt = false;
         }
 
         if (doIt) {
-            ChangeCellGroupJob job = new ChangeCellGroupJob(cell, newGroupCell);
+            ChangeCellGroupJob job = new ChangeCellGroupJob(cellsToRegroup, newGroupCell);
         }
 
         closeDialog(null);

@@ -1110,7 +1110,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						subMenu.add(subMenuItem);
 						subMenuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { reViewCellAction(e); } });
 					}
-                    if (CVS.isEnabled()) {
+
+					menuItem = new JMenuItem("Change Cell Group...");
+	                menu.add(menuItem);
+	                menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { changeCellGroupAction(); }});
+
+					if (CVS.isEnabled()) {
                         JMenu cvsMenu = new JMenu("CVS");
                         menu.add(cvsMenu);
                         addCVSMenu(cvsMenu);
@@ -1817,9 +1822,24 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 //		}
 
         private void changeCellGroupAction() {
-            Cell cell = (Cell)getCurrentlySelectedObject(0);
-            if (cell == null) return;
-            ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
+        	List<Cell> cellsToChange = new ArrayList<Cell>();
+        	Library lib = null;
+			for(int i=0; i<numCurrentlySelectedObjects(); i++)
+			{
+				Cell cell = (Cell)getCurrentlySelectedObject(i);
+				if (lib == null) lib = cell.getLibrary(); else
+				{
+					if (lib != cell.getLibrary())
+					{
+						Job.getUserInterface().showErrorMessage("All Cells to be regrouped must be in the same library",
+							"Cannot Regroup These Cells");
+						return;
+					}
+				}
+				cellsToChange.add(cell);
+			}
+			if (cellsToChange.size() == 0) return;
+            ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cellsToChange, lib);
             assert !Job.BATCHMODE;
             dialog.setVisible(true);
         }
