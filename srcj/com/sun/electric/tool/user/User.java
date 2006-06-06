@@ -2180,7 +2180,7 @@ public class User extends Listener
 	 */
 	public static void setGreekCellSizeLimit(double l) { cacheGreekCellSizeLimit.setDouble(l); }
 
-	private static Pref cachePatternedScaleLimit = Pref.makeDoublePref("PatternedScaleLimit", tool.prefs, 1);
+	private static Pref cachePatternedScaleLimit = Pref.makeDoublePref("PatternedScaleLimit", tool.prefs, 0.1);
 	/**
 	 * Method to tell the scale of EditWindow when use patterned drawing.
 	 * Smaller scales use solid drawing.

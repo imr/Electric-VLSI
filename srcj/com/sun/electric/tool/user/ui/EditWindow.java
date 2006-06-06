@@ -235,8 +235,6 @@ public class EditWindow extends JPanel
         }
     }
     
-    private static final boolean USE_LAYER_DRAWING = false;
-
 	// ************************************* CONSTRUCTION *************************************
 
     // constructor
@@ -245,7 +243,7 @@ public class EditWindow extends JPanel
         this.cell = cell;
         this.pageNumber = 0;
         this.wf = wf;
-		drawing = USE_LAYER_DRAWING ? new LayerDrawing.Drawing(this) : new PixelDrawing.Drawing(this);
+		drawing = User.getDisplayAlgorithm() == 2 ? new LayerDrawing.Drawing(this) : new PixelDrawing.Drawing(this);
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 		inPlaceDisplay = false;
