@@ -35,6 +35,7 @@ import com.sun.electric.database.network.NetworkManager;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
 
 import java.util.ArrayList;
@@ -73,6 +74,7 @@ public class EDatabase {
     /** Thread which locked database for writing. */            private volatile Thread writingThread;
     /** True if writing thread can changing. */                 private boolean canChanging;
     /** True if writing thread can undoing. */                  private boolean canUndoing;
+    /** Tool which initiated changing. */                       private Tool changingTool;
     
     /** Creates a new instance of EDatabase */
     public EDatabase(IdManager idManager) {
@@ -181,12 +183,24 @@ public class EDatabase {
     }
     
     /**
-     * Low-level method to permit changes in database.
+     * Low-level method to begin changes in database.
+     * @param changingTool tool which initiated
      */
-    public void lowLevelSetCanChanging(boolean b) {
+    public void lowLevelBeginChanging(Tool changingTool) {
         if (Thread.currentThread() != writingThread)
             checkChanging();
-        canChanging = b;
+        canChanging = true;
+        this.changingTool = changingTool;
+    }
+    
+    /**
+     * Low-level method to permit changes in database.
+     */
+    public void lowLevelEndChanging() {
+        if (Thread.currentThread() != writingThread)
+            checkChanging();
+        changingTool = null;
+        canChanging = false;
     }
     
     /**
@@ -333,7 +347,7 @@ public class EDatabase {
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
         if (!cellGroupsChanged) cellGroups = null;
-        snapshot = snapshot.with(cellBackups, cellGroups, cellBounds, libBackups);
+        snapshot = snapshot.with(changingTool, cellBackups, cellGroups, cellBounds, libBackups);
 //        checkFresh(snapshot);
         snapshotFresh = true;
 //        long endTime = System.currentTimeMillis();

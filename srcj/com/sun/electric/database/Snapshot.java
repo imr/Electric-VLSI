@@ -26,7 +26,7 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Tool;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,19 +44,21 @@ import java.util.List;
 public class Snapshot {
     public final IdManager idManager;
     public final int snapshotId;
+    public final Tool tool;
     public final ImmutableArrayList<CellBackup> cellBackups;
     public final int[] cellGroups;
     public final ImmutableArrayList<ERectangle> cellBounds;
     public final ImmutableArrayList<LibraryBackup> libBackups;
 
     /** Creates a new instance of Snapshot */
-    private Snapshot(IdManager idManager, int snapshotId,
+    private Snapshot(IdManager idManager, int snapshotId, Tool tool,
             ImmutableArrayList<CellBackup> cellBackups,
             int[] cellGroups,
             ImmutableArrayList<ERectangle> cellBounds,
             ImmutableArrayList<LibraryBackup> libBackups) {
         this.idManager = idManager;
         this.snapshotId = snapshotId;
+        this.tool = tool;
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
         this.cellBounds = cellBounds;
@@ -67,12 +69,13 @@ public class Snapshot {
      * Creates empty snapshot.
      */
     Snapshot(IdManager idManager) {
-        this(idManager, 0, CellBackup.EMPTY_LIST, new int[0], ERectangle.EMPTY_LIST, LibraryBackup.EMPTY_LIST);
+        this(idManager, 0, null, CellBackup.EMPTY_LIST, new int[0], ERectangle.EMPTY_LIST, LibraryBackup.EMPTY_LIST);
     }
     
     /**
      * Creates a new instance of Snapshot which differs from this Snapshot.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
+     * @param tool tool which initiated database changes/
      * @param cellBackups list indexed by cellIndex of new CellBackups.
      * @param cellGroups array indexed by cellIndex of cellGroups numbers.
      * @param cellBounds list indexed by cellIndex of cell bounds.
@@ -81,7 +84,7 @@ public class Snapshot {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public Snapshot with(CellBackup[] cellBackupsArray, int[] cellGroups, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
+    public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, int[] cellGroups, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
         ImmutableArrayList<CellBackup> cellBackups = copyArray(cellBackupsArray, this.cellBackups);
         cellGroups = copyArray(cellGroups, this.cellGroups);
@@ -157,7 +160,7 @@ public class Snapshot {
         if (namesChanged)
             checkNames(idManager, cellBackups, cellGroups, libBackups);
         
-        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), cellBackups, cellGroups, cellBounds, libBackups);
+        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, cellBounds, libBackups);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -306,6 +309,9 @@ public class Snapshot {
     public void writeDiffs(SnapshotWriter writer, Snapshot oldSnapshot) throws IOException {
         idManager.writeDiffs(writer);
         writer.writeInt(snapshotId);
+        writer.writeBoolean(tool != null);
+        if (tool != null)
+            writer.writeTool(tool);
         boolean libsChanged = oldSnapshot.libBackups != libBackups;
         writer.writeBoolean(libsChanged);
         if (libsChanged) {
@@ -376,6 +382,8 @@ public class Snapshot {
     public static Snapshot readSnapshot(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
         oldSnapshot.idManager.readDiffs(reader);
         int snapshotId = reader.readInt();
+        boolean hasTool = reader.readBoolean();
+        Tool tool = hasTool ? reader.readTool() : null;
         ImmutableArrayList<LibraryBackup> libBackups = oldSnapshot.libBackups;
         boolean libsChanged = reader.readBoolean();
         if (libsChanged) {
@@ -454,7 +462,7 @@ public class Snapshot {
             assert (cellBackups.get(i) != null) == (cellBounds.get(i) != null);
             assert (cellBackups.get(i) != null) == (cellGroups[i] >= 0);
         }
-        return new Snapshot(oldSnapshot.idManager, snapshotId, cellBackups, cellGroups, cellBounds, libBackups);
+        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups, cellGroups, cellBounds, libBackups);
     }
     
     /**

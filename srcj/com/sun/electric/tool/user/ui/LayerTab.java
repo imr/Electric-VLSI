@@ -284,6 +284,7 @@ public class LayerTab extends JPanel
 		layerListModel.set(indices[0], lineName(layer));
 
 		// TODO: redraw the screen to reflect the new opacity
+        EditWindow.repaintAllContents();
 	}
 
 	/**

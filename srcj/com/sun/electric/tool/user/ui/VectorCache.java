@@ -1158,96 +1158,96 @@ public class VectorCache {
         b.add(lX, lY, hX, hY);
     }
     
-    /*------------------------------------------------------*/
-    
-    public void showStatistics(Layer layer) {
-        Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
-        int numCells = 0, numCellLayer = 0;
-        int totalNoBox = 0, totalNoPoly = 0, totalNoDisc = 0, totalNoShapes = 0, totalNoText = 0, totalNoTopShapes = 0, totalNoTopText = 0;
-        for (VectorCellGroup vcg: cachedCells) {
-            if (vcg == null) continue;
-            VectorCell vc = vcg.getAnyCell();
-            numCells++;
-            Map<Layer,GenMath.MutableInteger> layerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
-            int noText = 0, noTopText = 0;
-            for (VectorBase vs: vc.filledShapes) {
-                if (vs instanceof VectorManhattan)
-                    totalNoBox++;
-                else if (vs instanceof VectorPolygon)
-                    totalNoPoly++;
-                else if (vs instanceof VectorCircle)
-                    totalNoDisc++;
-                assert vs.layer != null;
-                GenMath.addToBag(layerBag, vs.layer);
-            }
-            numCellLayer += layerBag.size();
-            GenMath.addToBag(totalLayerBag, layerBag);
-            for (VectorBase vs: vc.shapes) {
-                if (vs instanceof VectorText)
-                    noText++;
-            }
-            totalNoShapes += vc.shapes.size();
-            totalNoText += noText;
-            for (VectorBase vs: vc.topOnlyShapes) {
-                if (vs instanceof VectorText)
-                    noTopText++;
-            }
-            totalNoTopShapes += vc.topOnlyShapes.size();
-            totalNoTopText += noTopText;
-            System.out.print(vcg.cellBackup.d.cellName + " " + vcg.orientations.size() + " ors " + vc.subCells.size() + " subs " +
-                    vc.topOnlyShapes.size() + " topOnlyShapes(" + noTopText + " text) " +
-                    vc.shapes.size() + " shapes(" + noText + " text) " +
-                    vc.filledShapes.size() + " filledShapes ");
-            for (Map.Entry<Layer,GenMath.MutableInteger> e: layerBag.entrySet())
-                System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
-            System.out.println();
-        }
-        System.out.println(numCells + " cells " + numCellLayer + " cellLayes");
-        System.out.println("Top shapes " + totalNoTopShapes + " (" + totalNoTopText + " text)");
-        System.out.println("Shapes " + totalNoShapes + " (" + totalNoText + " text)");
-        System.out.print("FilledShapes " + (totalNoBox + totalNoPoly + totalNoDisc) + " (" +
-                totalNoBox + " boxes " + totalNoPoly + " polys " + totalNoDisc + " discs  ");
-        for (Map.Entry<Layer,GenMath.MutableInteger> e: totalLayerBag.entrySet())
-            System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
-        System.out.println();
-        
-        EditWindow wnd = (EditWindow)Job.getUserInterface().needCurrentEditWindow_();
-        VectorCellGroup topCell = cachedCells.get(wnd.getCell().getCellIndex());
-        HashMap<VectorCell,LayerDrawing.LayerCell> layerCells = new HashMap<VectorCell,LayerDrawing.LayerCell>();
-        LayerDrawing ld = new LayerDrawing(layer);
-        ld.topCell = gatherLayer(topCell, Orientation.IDENT, layer, ld, layerCells);
-        System.out.println(layerCells.size() + " layerCells");
-        ld.draw(wnd);
-    }
-    
-    private LayerDrawing.LayerCell gatherLayer(VectorCellGroup vcg, Orientation or, Layer layer, LayerDrawing ld, HashMap<VectorCell,LayerDrawing.LayerCell> layerCells) {
-        VectorCell vc = vcg.orientations.get(or.canonic());
-        if (vc == null || !vc.valid) return null;
-        LayerDrawing.LayerCell lc = layerCells.get(vc);
-        if (lc == null) {
-            lc = ld.newCell();
-            layerCells.put(vc, lc);
-            for (VectorBase vs: vc.filledShapes) {
-                if (vs.layer == layer && vs instanceof VectorManhattan) {
-                    VectorManhattan vm = (VectorManhattan)vs;
-                    for (int i = 0; i < vm.coords.length; i += 4) {
-                        int c1X = vm.coords[i];
-                        int c1Y = vm.coords[i + 1];
-                        int c2X = vm.coords[i + 2];
-                        int c2Y = vm.coords[i + 3];
-                        lc.rects.add(new Rectangle2D.Float(c1X, c1Y, c2X - c1X, c2Y - c1Y));
-                    }
-                }
-            }
-            for (VectorSubCell vsc: vc.subCells) {
-                VectorCellGroup subVC = cachedCells.get(vsc.subCell.getCellIndex());
-                if (subVC == null) continue;
-				Orientation recurseTrans = or.concatenate(vsc.pureRotate);
-                LayerDrawing.LayerCell proto = gatherLayer(subVC, recurseTrans, layer, ld, layerCells);
-                if (proto == null) continue;
-                lc.addSubCell(proto, vsc.offsetX, vsc.offsetY);
-            }
-        }
-        return lc;
-    }
+//    /*------------------------------------------------------*/
+//    
+//    public void showStatistics(Layer layer) {
+//        Map<Layer,GenMath.MutableInteger> totalLayerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
+//        int numCells = 0, numCellLayer = 0;
+//        int totalNoBox = 0, totalNoPoly = 0, totalNoDisc = 0, totalNoShapes = 0, totalNoText = 0, totalNoTopShapes = 0, totalNoTopText = 0;
+//        for (VectorCellGroup vcg: cachedCells) {
+//            if (vcg == null) continue;
+//            VectorCell vc = vcg.getAnyCell();
+//            numCells++;
+//            Map<Layer,GenMath.MutableInteger> layerBag = new TreeMap<Layer,GenMath.MutableInteger>(Layer.layerSortByName);
+//            int noText = 0, noTopText = 0;
+//            for (VectorBase vs: vc.filledShapes) {
+//                if (vs instanceof VectorManhattan)
+//                    totalNoBox++;
+//                else if (vs instanceof VectorPolygon)
+//                    totalNoPoly++;
+//                else if (vs instanceof VectorCircle)
+//                    totalNoDisc++;
+//                assert vs.layer != null;
+//                GenMath.addToBag(layerBag, vs.layer);
+//            }
+//            numCellLayer += layerBag.size();
+//            GenMath.addToBag(totalLayerBag, layerBag);
+//            for (VectorBase vs: vc.shapes) {
+//                if (vs instanceof VectorText)
+//                    noText++;
+//            }
+//            totalNoShapes += vc.shapes.size();
+//            totalNoText += noText;
+//            for (VectorBase vs: vc.topOnlyShapes) {
+//                if (vs instanceof VectorText)
+//                    noTopText++;
+//            }
+//            totalNoTopShapes += vc.topOnlyShapes.size();
+//            totalNoTopText += noTopText;
+//            System.out.print(vcg.cellBackup.d.cellName + " " + vcg.orientations.size() + " ors " + vc.subCells.size() + " subs " +
+//                    vc.topOnlyShapes.size() + " topOnlyShapes(" + noTopText + " text) " +
+//                    vc.shapes.size() + " shapes(" + noText + " text) " +
+//                    vc.filledShapes.size() + " filledShapes ");
+//            for (Map.Entry<Layer,GenMath.MutableInteger> e: layerBag.entrySet())
+//                System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
+//            System.out.println();
+//        }
+//        System.out.println(numCells + " cells " + numCellLayer + " cellLayes");
+//        System.out.println("Top shapes " + totalNoTopShapes + " (" + totalNoTopText + " text)");
+//        System.out.println("Shapes " + totalNoShapes + " (" + totalNoText + " text)");
+//        System.out.print("FilledShapes " + (totalNoBox + totalNoPoly + totalNoDisc) + " (" +
+//                totalNoBox + " boxes " + totalNoPoly + " polys " + totalNoDisc + " discs  ");
+//        for (Map.Entry<Layer,GenMath.MutableInteger> e: totalLayerBag.entrySet())
+//            System.out.print(" " + e.getKey().getName() + ":" + e.getValue());
+//        System.out.println();
+//        
+//        EditWindow wnd = (EditWindow)Job.getUserInterface().needCurrentEditWindow_();
+//        VectorCellGroup topCell = cachedCells.get(wnd.getCell().getCellIndex());
+//        HashMap<VectorCell,LayerDrawing.LayerCell> layerCells = new HashMap<VectorCell,LayerDrawing.LayerCell>();
+//        LayerDrawing ld = new LayerDrawing(layer);
+//        ld.topCell = gatherLayer(topCell, Orientation.IDENT, layer, ld, layerCells);
+//        System.out.println(layerCells.size() + " layerCells");
+//        ld.draw(wnd);
+//    }
+//    
+//    private LayerDrawing.LayerCell gatherLayer(VectorCellGroup vcg, Orientation or, Layer layer, LayerDrawing ld, HashMap<VectorCell,LayerDrawing.LayerCell> layerCells) {
+//        VectorCell vc = vcg.orientations.get(or.canonic());
+//        if (vc == null || !vc.valid) return null;
+//        LayerDrawing.LayerCell lc = layerCells.get(vc);
+//        if (lc == null) {
+//            lc = ld.newCell();
+//            layerCells.put(vc, lc);
+//            for (VectorBase vs: vc.filledShapes) {
+//                if (vs.layer == layer && vs instanceof VectorManhattan) {
+//                    VectorManhattan vm = (VectorManhattan)vs;
+//                    for (int i = 0; i < vm.coords.length; i += 4) {
+//                        int c1X = vm.coords[i];
+//                        int c1Y = vm.coords[i + 1];
+//                        int c2X = vm.coords[i + 2];
+//                        int c2Y = vm.coords[i + 3];
+//                        lc.rects.add(new Rectangle2D.Float(c1X, c1Y, c2X - c1X, c2Y - c1Y));
+//                    }
+//                }
+//            }
+//            for (VectorSubCell vsc: vc.subCells) {
+//                VectorCellGroup subVC = cachedCells.get(vsc.subCell.getCellIndex());
+//                if (subVC == null) continue;
+//				Orientation recurseTrans = or.concatenate(vsc.pureRotate);
+//                LayerDrawing.LayerCell proto = gatherLayer(subVC, recurseTrans, layer, ld, layerCells);
+//                if (proto == null) continue;
+//                lc.addSubCell(proto, vsc.offsetX, vsc.offsetY);
+//            }
+//        }
+//        return lc;
+//    }
 }

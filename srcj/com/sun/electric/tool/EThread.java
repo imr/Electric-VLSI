@@ -78,14 +78,14 @@ class EThread extends Thread {
                 }
                 switch (ejob.jobType) {
                     case CHANGE:
-                        database.lowLevelSetCanChanging(true);
+                        database.lowLevelBeginChanging(ejob.serverJob.tool);
                         database.getNetworkManager().startBatch();
                         Constraints.getCurrent().startBatch(ejob.oldSnapshot);
                         if (!ejob.serverJob.doIt())
                             throw new JobException("job " + ejob.jobName + " returned false");
                         Constraints.getCurrent().endBatch(ejob.client.userName);
                         database.getNetworkManager().endBatch();
-                        database.lowLevelSetCanChanging(false);
+                        database.lowLevelEndChanging();
                         ejob.newSnapshot = database.backup();
                         break;
                     case UNDO:
@@ -122,7 +122,7 @@ class EThread extends Thread {
                 e.printStackTrace();
                 if (!ejob.isExamine()) {
                     recoverDatabase(e instanceof JobException);
-                    database.lowLevelSetCanChanging(false);
+                    database.lowLevelEndChanging();
                     database.lowLevelSetCanUndoing(false);
                 }
                 ejob.serializeExceptionResult(e, database);

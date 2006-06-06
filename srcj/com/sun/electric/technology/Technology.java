@@ -984,10 +984,12 @@ public class Technology implements Comparable<Technology>
 		{
 			layerList.add(it.next());
 		}
-		Collections.sort(layerList, new LayerHeight());
+		Collections.sort(layerList, LAYERS_BY_HEIGHT);
 		return(layerList);
 	}
 
+    public static final LayerHeight LAYERS_BY_HEIGHT = new LayerHeight();
+    
 	private static class LayerHeight implements Comparator<Layer>
 	{
 		public int compare(Layer l1, Layer l2)
@@ -996,6 +998,13 @@ public class Technology implements Comparable<Technology>
 			int h2 = l2.getFunction().getHeight();
             int cmp = h1 - h2;
             if (cmp != 0) return cmp;
+            Technology tech1 = l1.getTechnology();
+            Technology tech2 = l2.getTechnology();
+            if (tech1 != tech2) {
+                int techIndex1 = tech1 != null ? tech1.getIndex() : -1;
+                int techIndex2 = tech2 != null ? tech2.getIndex() : -1;
+                return techIndex1 - techIndex2;
+            }
 			return l1.getIndex() - l2.getIndex();
 		}
 	}

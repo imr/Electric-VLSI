@@ -111,17 +111,13 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -239,7 +235,7 @@ public class EditWindow extends JPanel
         }
     }
     
-    private static final boolean USE_VECTOR_CACHE = false;
+    private static final boolean USE_LAYER_DRAWING = false;
 
 	// ************************************* CONSTRUCTION *************************************
 
@@ -249,7 +245,7 @@ public class EditWindow extends JPanel
         this.cell = cell;
         this.pageNumber = 0;
         this.wf = wf;
-		drawing = USE_VECTOR_CACHE ? new PixelDrawing_.Drawing(this) : new PixelDrawing.Drawing(this);
+		drawing = USE_LAYER_DRAWING ? new LayerDrawing.Drawing(this) : new PixelDrawing.Drawing(this);
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 		inPlaceDisplay = false;
@@ -1507,14 +1503,19 @@ public class EditWindow extends JPanel
     List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDrawing) {
         ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
 
-        for(Layer layer : layersAvailable)
+        TreeSet<Layer> sortedLayers = new TreeSet(Technology.LAYERS_BY_HEIGHT);
+        sortedLayers.addAll(layersAvailable);
+        System.out.print("getBlendingOrder for:");
+        for(Layer layer : sortedLayers)
         {
         	double opacity = layer.getGraphics().getOpacity();
 			if (!layer.isVisible()) opacity = 0;
 			int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
 			Color color = new Color(rgba, true);
+            System.out.print(" " + layer.getName() + ":" + opacity);
 			layerColors.add(new LayerColor(layer, color));
         }
+        System.out.println();
 //        HashMap<String,Layer> layers = new HashMap<String,Layer>();
 //        System.out.print("getBlendingOrder for:");
 //        for (Layer layer: layersAvailable) {
@@ -3426,13 +3427,13 @@ public class EditWindow extends JPanel
 	public static void clearSubCellCache()
 	{
         PixelDrawing.clearSubCellCache();
-        PixelDrawing_.clearSubCellCache();
+        LayerDrawing.clearSubCellCache();
 	}
 
 	public static void forceRedraw(Cell cell)
 	{
         PixelDrawing.forceRedraw(cell);
-        PixelDrawing_.forceRedraw(cell);
+        LayerDrawing.forceRedraw(cell);
 	}
 
     // ************************************* COORDINATES *************************************
