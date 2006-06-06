@@ -52,6 +52,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -1459,7 +1460,36 @@ public class EditWindow extends JPanel
 		}
 	}
     
-    /**
+	/**
+	 * Method to automatically set the opacity of each layer in a Technology.
+	 * At the current time, this method is not used.
+	 * @param tech the Technology to set.
+	 */
+	public static void setDefaultOpacity(Technology tech)
+	{
+		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
+        {
+			Layer layer = it.next();
+        	Layer.Function fun = layer.getFunction();
+        	int extra = layer.getFunctionExtras();
+        	double opacity = 1;
+        	if (fun.isMetal())
+        	{
+        		opacity = 0.85 - fun.getLevel() * 0.05;
+        	} else if (fun.isContact())
+        	{
+        		if ((extra&Layer.Function.CONMETAL) != 0) opacity = 0.5; else
+        			opacity = 0.75;
+        	} else if (fun == Layer.Function.OVERGLASS)
+        	{
+        		opacity = 0.2;
+        	}
+			if (!layer.isVisible()) opacity = 0;
+			layer.getGraphics().setOpacity(opacity);
+        }
+	}
+
+	/**
      * Returns alpha blending order for this EditWindow.
      * Alpha blending order specifies pixel color by such a way:
      * Color col = backgroudColor;
@@ -1476,36 +1506,45 @@ public class EditWindow extends JPanel
      */
     List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDrawing) {
         ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
-        HashMap<String,Layer> layers = new HashMap<String,Layer>();
-        System.out.print("getBlendingOrder for:");
-        for (Layer layer: layersAvailable) {
-            System.out.print(" " + layer.getName());
-            layers.put(layer.getName(), layer);
+
+        for(Layer layer : layersAvailable)
+        {
+        	double opacity = layer.getGraphics().getOpacity();
+			if (!layer.isVisible()) opacity = 0;
+			int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
+			Color color = new Color(rgba, true);
+			layerColors.add(new LayerColor(layer, color));
         }
-        System.out.println();
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(new File("/home/dn146861/electric/opacity")));
-            for (;;) {
-                String s = in.readLine();
-                if (s == null) break;
-                if (s.charAt(0) == '#') continue;
-                int indexSp = s.indexOf(' ');
-                if (indexSp < 0)
-                    throw new IOException("Bad line: " + s);
-                String layerName = s.substring(0, indexSp);
-                Layer layer = layers.get(layerName);
-                if (layer == null) continue;
-                double opacity = 0;
-                if (layer.isVisible())
-                    opacity = TextUtils.atof(s.substring(indexSp).trim());
-                int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
-                Color color = new Color(rgba, true);
-                layerColors.add(new LayerColor(layer, color));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+//        HashMap<String,Layer> layers = new HashMap<String,Layer>();
+//        System.out.print("getBlendingOrder for:");
+//        for (Layer layer: layersAvailable) {
+//            System.out.print(" " + layer.getName());
+//            layers.put(layer.getName(), layer);
+//        }
+//        System.out.println();
+//        try {
+//            BufferedReader in = new BufferedReader(new FileReader(new File("/home/dn146861/electric/opacity")));
+//            for (;;) {
+//                String s = in.readLine();
+//                if (s == null) break;
+//                if (s.charAt(0) == '#') continue;
+//                int indexSp = s.indexOf(' ');
+//                if (indexSp < 0)
+//                    throw new IOException("Bad line: " + s);
+//                String layerName = s.substring(0, indexSp);
+//                Layer layer = layers.get(layerName);
+//                if (layer == null) continue;
+//                double opacity = 0;
+//                if (layer.isVisible())
+//                    opacity = TextUtils.atof(s.substring(indexSp).trim());
+//                int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
+//                Color color = new Color(rgba, true);
+//                layerColors.add(new LayerColor(layer, color));
+//            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
         
         return layerColors;
     }
