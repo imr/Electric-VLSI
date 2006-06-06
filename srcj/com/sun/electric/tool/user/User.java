@@ -2175,6 +2175,21 @@ public class User extends Listener
 	 * @param l the ratio of cell size to screen size beyond which no cell greeking happens.
 	 */
 	public static void setGreekCellSizeLimit(double l) { cacheGreekCellSizeLimit.setDouble(l); }
+    
+    private static Pref cachePatternedScaleLimit = Pref.makeDoublePref("patternedScaleLimit", tool.prefs, 0.1);
+    /**
+	 * Method to tell the scale of EditWindow when use patterned drawing.
+	 * Smaller scales use solid drawing.
+	 * The default is 0.1, meaning that 10 lamdas per pixel.
+	 * @return the scale of EditWindow when use patterned drawing.
+     */
+    public static double getPatternedScaleLimit() { return cachePatternedScaleLimit.getDouble(); }
+    /**
+	 * Method to set the scale of EditWindow when use patterned drawing.
+	 * Smaller scales use solid drawing.
+     * @param l the scale of EditWindow when use patterned drawing.
+     */
+    public static void setPatternedScaleLimit(double l) { cachePatternedScaleLimit.setDouble(l); }
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", tool.prefs, true);
 	/**

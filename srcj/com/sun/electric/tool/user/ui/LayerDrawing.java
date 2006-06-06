@@ -38,10 +38,10 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.Job;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.technology.technologies.Artwork;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -499,7 +499,7 @@ class LayerDrawing
 		}
         varContext = wnd.getVarContext();
         initOrigin(expandedScale, wnd.getOffset());
-        patternedDisplay = expandedScale > User.getPatternedScaleLimit()*100 || Technology.getCurrent() != MoCMOS.tech;
+        patternedDisplay = expandedScale > User.getPatternedScaleLimit() || Technology.getCurrent() != MoCMOS.tech;
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
@@ -1442,6 +1442,8 @@ class LayerDrawing
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
         if (!patternedDisplay || !renderedWindow) {
             layer = layer.getNonPseudoLayer();
+            if (layer.getTechnology() == null)
+                layer = Artwork.tech.defaultLayer;
             TransparentRaster raster = layerRasters.get(layer);
             if (raster == null) {
                 raster = new TransparentRaster(sz.height, numBytesPerRow);
