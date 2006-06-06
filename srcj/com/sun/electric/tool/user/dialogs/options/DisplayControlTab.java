@@ -23,10 +23,14 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Frame;
+import java.util.Iterator;
 
 import javax.swing.JPanel;
 
@@ -35,6 +39,8 @@ import javax.swing.JPanel;
  */
 public class DisplayControlTab extends PreferencePanel
 {
+	private boolean resetAllOpacity = false;
+
 	/** Creates new form Display Control */
 	public DisplayControlTab(Frame parent, boolean modal)
 	{
@@ -116,6 +122,17 @@ public class DisplayControlTab extends PreferencePanel
 		currDouble = TextUtils.atof(patternScaleLimit.getText());
 		if (currDouble != User.getPatternedScaleLimit())
 			User.setPatternedScaleLimit(currDouble);
+
+		if (resetAllOpacity)
+		{
+			Pref.delayPrefFlushing();
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = it.next();
+				EditWindow.setDefaultOpacity(tech);
+			}
+			Pref.resumePrefFlushing();
+		}
 	}
 
 	/** This method is called from within the constructor to
@@ -147,6 +164,7 @@ public class DisplayControlTab extends PreferencePanel
         layerDisplay = new javax.swing.JRadioButton();
         jLabel8 = new javax.swing.JLabel();
         patternScaleLimit = new javax.swing.JTextField();
+        resetOpacity = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -202,7 +220,7 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 30, 2, 4);
         general.add(generalUseGreekImages, gridBagConstraints);
 
         jLabel4.setText("Greek objects smaller than:");
@@ -210,7 +228,7 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 30, 2, 4);
         general.add(jLabel4, gridBagConstraints);
 
         jLabel6.setText("Do not greek cells greater than:");
@@ -218,7 +236,7 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 30, 4, 4);
         general.add(jLabel6, gridBagConstraints);
 
         generalGreekCellLimit.setColumns(5);
@@ -302,7 +320,7 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 30, 2, 4);
         general.add(jLabel8, gridBagConstraints);
 
         patternScaleLimit.setColumns(5);
@@ -313,10 +331,33 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(patternScaleLimit, gridBagConstraints);
 
+        resetOpacity.setText("Reset all Layer Opacity Values");
+        resetOpacity.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                resetOpacityActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 30, 4, 4);
+        general.add(resetOpacity, gridBagConstraints);
+
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void resetOpacityActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_resetOpacityActionPerformed
+    {//GEN-HEADEREND:event_resetOpacityActionPerformed
+    	resetAllOpacity = true;
+    	resetOpacity.setEnabled(false);
+    }//GEN-LAST:event_resetOpacityActionPerformed
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -343,6 +384,7 @@ public class DisplayControlTab extends PreferencePanel
     private javax.swing.JRadioButton layerDisplay;
     private javax.swing.JTextField patternScaleLimit;
     private javax.swing.JRadioButton pixelDisplay;
+    private javax.swing.JButton resetOpacity;
     private javax.swing.JCheckBox sideBarOnRight;
     private javax.swing.JRadioButton vectorDisplay;
     // End of variables declaration//GEN-END:variables
