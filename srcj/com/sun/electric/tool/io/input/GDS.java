@@ -26,13 +26,7 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -46,11 +40,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.Foundry;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.Technology.NodeLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -293,8 +284,159 @@ public class GDS extends Input
 				// make the instance
                 mi.instantiate(this.cell);
 			}
+//            simplifyNodes(this.cell);
 			builtCells.add(this.cell);
 		}
+
+        /** Method to see if existing primitive nodes could be merged and define more complex nodes
+         * such as contacts
+         */
+        private void simplifyNodes(Cell cell)
+        {
+            HashMap<Layer, List<NodeInst>> map = new HashMap<Layer, List<NodeInst>>();
+
+            for (Iterator<NodeInst> itNi = cell.getNodes(); itNi.hasNext();)
+            {
+                NodeInst ni = itNi.next();
+                if (!(ni.getProto() instanceof PrimitiveNode)) continue; // not primitive
+                PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+                if (pn.getFunction() != PrimitiveNode.Function.NODE) continue; // not pure layer node.
+                Layer layer = pn.getLayerIterator().next(); // they are supposed to have only 1
+                List<NodeInst> list = map.get(layer);
+
+                if (list == null) // first time
+                {
+                    list = new ArrayList<NodeInst>();
+                    map.put(layer, list);
+                }
+                list.add(ni);
+            }
+
+            Technology tech = cell.getTechnology();
+            List<Layer.Function> tmpList = new ArrayList<Layer.Function>();
+            Set<NodeInst> toDelete = new HashSet<NodeInst>();
+            Set<NodeInst> viaToDelete = new HashSet<NodeInst>();
+            List<Geometric> geomList = new ArrayList<Geometric>();
+
+            for (Iterator<PrimitiveNode> itPn = tech.getNodes(); itPn.hasNext();)
+            {
+                PrimitiveNode pn = itPn.next();
+                boolean allFound = true;
+                if (pn.getFunction() != PrimitiveNode.Function.CONTACT) continue; // only dealing with metal contacts for now.
+
+                Layer m1Layer = null, m2Layer = null;
+                Layer viaLayer = null;
+                SizeOffset so = pn.getProtoSizeOffset();
+
+                for (Iterator<Layer> itLa = pn.getLayerIterator(); itLa.hasNext();)
+                {
+                    Layer l = itLa.next();
+                    if (map.get(l) == null)
+                    {
+                        allFound = false;
+                        break;
+                    }
+                    if (l.getFunction().isMetal())
+                    {
+                        if (m1Layer == null)
+                            m1Layer = l;
+                        else
+                            m2Layer = l;
+                    }
+                    else if (l.getFunction().isContact())
+                        viaLayer = l;
+                }
+                if (!allFound) continue; // not all layers for this particular node found
+                if (viaLayer == null) continue; // not metal contact
+                assert(m1Layer != null);
+                List<NodeInst> list = map.get(m1Layer);
+                assert(list != null);
+                tmpList.clear();
+                tmpList.add(viaLayer.getFunction());
+                List<NodeInst> viasList = map.get(viaLayer);
+
+                for (NodeInst ni : list)
+                {
+                    Poly[] polys = tech.getShapeOfNode(ni, null, null, true, false, null);
+                    assert(polys.length == 1); // it must be only 1
+                    Poly m1P = polys[0];
+                    List<NodeInst> nList = map.get(m2Layer);
+                    if (nList == null) continue; // nothing found in m2Layer
+                    for (NodeInst n : nList)
+                    {
+                        Poly[] otherPolys = tech.getShapeOfNode(n, null, null, true, false, null);
+                        assert(otherPolys.length == 1); // it must be only 1
+                        Poly m2P = otherPolys[0];
+                        boolean fullNodeFound = false;
+                        if (!m2P.getBounds2D().equals(m1P.getBounds2D())) continue; // no match
+
+                        ImmutableNodeInst d = (ImmutableNodeInst)ni.getImmutable();
+                        NodeInst newNi = NodeInst.makeInstance(pn, d.anchor,
+                                m2P.getBounds2D().getWidth() + so.getLowXOffset() + so.getHighXOffset(),
+                                m2P.getBounds2D().getHeight() + so.getLowYOffset() + so.getHighYOffset(),
+                                ni.getParent(), ni.getOrient(), ni.getName()+"tmp", 0);
+                        // Searching for vias to delete
+                        assert(viasList != null);
+                        Poly[] viaPolys = tech.getShapeOfNode(newNi, null, null, true, false, tmpList);
+                        boolean found = false;
+
+                        // Can be more than 1 due to MxN cuts
+                        viaToDelete.clear();
+                        for (int i = 0; i < viaPolys.length; i++)
+                        {
+                            Poly poly = viaPolys[i];
+                            Rectangle2D bb = poly.getBounds2D();
+                            bb.setRect(ERectangle.snap(bb));
+                            found = false;
+
+                            for (NodeInst viaNi : viasList)
+                            {
+                                Poly[] thisViaList = tech.getShapeOfNode(viaNi, null, null, true, false, tmpList);
+                                assert(thisViaList.length == 1);
+                                // hack to get rid of the resolution issue
+                                Poly p = thisViaList[0];
+                                Rectangle2D b = p.getBounds2D();
+                                b.setRect(ERectangle.snap(b));
+                                if (thisViaList[0].polySame(poly))
+                                {
+                                    viaToDelete.add(viaNi);
+                                    assert(!found);
+                                    found = true;
+                                }
+                            }
+                            if (!found)
+                            {
+                                break; // fail to find all nodes
+                            }
+                        }
+                        if (!found) // rolling back new node
+                        {
+                            newNi.kill();
+                        }
+                        else
+                        {
+                            if (Job.getDebug())
+                                System.out.println("Adding " + newNi.getName());
+                            toDelete.clear();
+                            geomList.clear();
+                            toDelete.add(ni);
+                            toDelete.add(n);
+                            toDelete.addAll(viaToDelete);
+                            String message = toDelete.size() + " nodes were replaced for more complex primitives in cell '" + cell.getName() + "'";
+                            geomList.add(newNi);
+                            errorLogger.logWarning(message, geomList, null, null, null, null, cell, -1);
+                            // Deleting now replaced pure primitives
+                            for (NodeInst toDel : toDelete)
+                            {
+                                if (Job.getDebug())
+                                    System.out.println("Deleting " + ni.getName());
+                                toDel.kill();
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         private void nameInstances(boolean countOff) {
             HashMap<String,GenMath.MutableInteger> maxSuffixes = new HashMap<String,GenMath.MutableInteger>();
@@ -359,8 +501,8 @@ public class GDS extends Input
 			this.proto = proto;
 			this.loc = loc;
             this.orient = orient;
-            this.wid = wid;
-            this.hei = hei;
+            this.wid = DBMath.round(wid);
+            this.hei = DBMath.round(hei);
             this.points = points;
             this.exportName = exportName;
             this.nodeName = nodeName;
@@ -374,6 +516,7 @@ public class GDS extends Input
         private void instantiate(Cell parent) {
         	String name = nodeName.toString();
             NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, nodeName.toString(), 0);
+
             if (ni == null) return;
             if (ni.getNameKey() != nodeName) {
                 System.out.println("GDS name " + name + " renamed to " + ni.getName());
@@ -1318,13 +1461,11 @@ public class GDS extends Input
 		Layer layer = layerNames.get(layerInt);
 		if (layer == null)
 		{
-			if (IOTool.isGDSInIgnoresUnknownLayers())
-			{
-				System.out.println("GDS layer " + layerNum + ", type " + layerType + " unknown, ignoring it");
-			} else
-			{
-				System.out.println("GDS layer " + layerNum + ", type " + layerType + " unknown, using Generic:DRC");
-			}
+            String message = (IOTool.isGDSInIgnoresUnknownLayers()) ?
+                "GDS layer " + layerNum + ", type " + layerType + " unknown in cell '" + theCell.cell.getName() + "', ignoring it" :
+                "GDS layer " + layerNum + ", type " + layerType + " unknown '" + theCell.cell.getName() + "', using Generic:DRC";
+            errorLogger.logWarning(message, theCell.cell, 0);
+            System.out.println(message);
 			layerNames.put(layerInt, Generic.tech.drcLay);
 			layerUsed = false;
 			layerNodeProto = null;
@@ -1347,7 +1488,9 @@ public class GDS extends Input
             }
 			if (layerNodeProto == null)
 			{
-				System.out.println("Error: no pure layer node for layer "+layer.getName());
+                String message = "Error: no pure layer node for layer "+layer.getName() + " in cell '" + theCell.cell.getName() + "', ignoring it";
+				System.out.println(message);
+                errorLogger.logError(message, theCell.cell, 0);
 				layerNames.put(layerInt, Generic.tech.drcLay);
 				layerUsed = false;
 			}
@@ -1511,7 +1654,9 @@ public class GDS extends Input
 	private void handleError(String msg)
 		throws IOException
 	{
-		System.out.println("Error: " + msg + " at byte " + byteCount);
+        String message = "Error: " + msg + " at byte " + byteCount;
+		System.out.println(message);
+        errorLogger.logError(message, theCell.cell, 0);
 		throw new IOException();
 	}
 
