@@ -7,6 +7,9 @@ NOTE: Please place changes under the version that will be released next.
 IMP/MAN: (6/6/06, SMR) Created new Preferences panel "Display / Display Control"
      to select and control the 3 display algorithms.  Removed items from the
      "Display" section of the "General" preferences panel.
+     "Always Prompt for Index when descending into Array nodes" is in "Nodes".
+     The "layers" sidebar now has a slider for controlling opacity.  Also, it
+     includes the "Generic" technology in debug mode.
 
 BUG: (6/5/06, GVG) Edit->Change fails if instances are not the same (Bug #1087)
 FIX: Change code shouldn't return false if it is not done with nodes in the list.

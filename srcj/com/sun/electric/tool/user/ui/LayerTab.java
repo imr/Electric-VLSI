@@ -28,6 +28,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 
 import java.awt.event.ActionEvent;
@@ -139,7 +140,7 @@ public class LayerTab extends JPanel
         for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
         {
             Technology tech = it.next();
-            if (tech == Generic.tech) continue;
+            if (tech == Generic.tech && !Job.getDebug()) continue;
 			technology.addItem(tech.getTechName());
         }
         setSelectedTechnology(cur);
