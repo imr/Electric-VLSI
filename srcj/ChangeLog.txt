@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/5/06, GVG) Edit->Change fails if instances are not the same (Bug #1087)
+FIX: Change code shouldn't return false if it is not done with nodes in the list.
+
 BUG: (6/5/06, SMR) Some commands crash when a text window is displayed (Bug #532).
 FIX: Fixed the Array command and the Rotate command.
 

@@ -540,6 +540,7 @@ public class Change extends EDialog implements HighlightListener
 		{
 			highlightThese = new ArrayList<Geometric>();
 			fieldVariableChanged("highlightThese");
+
             for (Geometric geomToChange : geomsToChange)
 			{
 				// handle node replacement
@@ -561,7 +562,9 @@ public class Change extends EDialog implements HighlightListener
 					if (oldNType == np)
 					{
 						System.out.println("Node already of type " + np.describe(true));
-						return false;
+                        // just skip this case. No need to redo it. This not an error.
+                        continue;
+//						return false;
 					}
 
 					// replace the nodeinsts
