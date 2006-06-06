@@ -1472,18 +1472,22 @@ public class AutoStitch
 	{
 		// find the bounding boxes of the polygons
 		if (poly.separation(oPoly) > 0) return false;
-//		Rectangle2D polyBounds = poly.getBounds2D();
-//		Rectangle2D oPolyBounds = oPoly.getBounds2D();
-//
-//		// quit now if bounding boxes don't intersect
-//		if (polyBounds.getMinX() > oPolyBounds.getMaxX() || oPolyBounds.getMinX() > polyBounds.getMaxX() ||
-//			polyBounds.getMinY() > oPolyBounds.getMaxY() || oPolyBounds.getMinY() > polyBounds.getMaxY()) return false;
 
 		// be sure the closest ports are being used
 		Poly portPoly = ni.getShapeOfPort(pp);
 		Point2D portCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
-		portPoly = oNi.getShapeOfPort(opp);
-		Point2D oPortCenter = new Point2D.Double(portPoly.getCenterX(), portPoly.getCenterY());
+		Poly oPortPoly = oNi.getShapeOfPort(opp);
+		Point2D oPortCenter = new Point2D.Double(oPortPoly.getCenterX(), oPortPoly.getCenterY());
+
+		if (USEQTREE)
+		{
+			Rectangle2D polyBounds = portPoly.getBounds2D();
+			Rectangle2D oPolyBounds = oPortPoly.getBounds2D();
+	
+			// quit now if bounding boxes don't intersect
+			if (polyBounds.getMinX() > oPolyBounds.getMaxX() || oPolyBounds.getMinX() > polyBounds.getMaxX() ||
+				polyBounds.getMinY() > oPolyBounds.getMaxY() || oPolyBounds.getMinY() > polyBounds.getMaxY()) return false;
+		}
 
 		double dist = portCenter.distance(oPortCenter);
 		for(Iterator<PortProto> it = oNi.getProto().getPorts(); it.hasNext(); )
