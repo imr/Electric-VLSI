@@ -1310,7 +1310,7 @@ public class WindowFrame extends Observable
 
 		// update current cell
 		setCellWindow(history.cell, history);
-		if (!history.cell.getView().isTextView())
+		if (history.cell != null && !history.cell.getView().isTextView())
 		{
 			EditWindow wnd = (EditWindow)content;
 			if (history.highlights != null)

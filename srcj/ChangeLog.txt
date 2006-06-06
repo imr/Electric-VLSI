@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/6/06, SMR) "Back" button crashes if cell has been deleted (Bug #1097).
+FIX: In WindowFrame.setCellByHistory(), test for dead cells.
+
 IMP/MAN: (6/6/06, SMR) Created new Preferences panel "Display / Display Control"
      to select and control the 3 display algorithms.  Removed items from the
      "Display" section of the "General" preferences panel.
