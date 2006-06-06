@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/6/06, SMR) Waveform window makes uneven height panels, and may clip
+     Y axis values (Bug #1095).
+FIX: Panel height no longer taken from previous panels; Y axis values forced
+     to be visible even if they cross to the right of the origin.
+
 BUG: (6/6/06, SMR) Auto-stitching makes incorrect wires (Bug #1096).
 FIX: New quad-tree code fixed to ensure valid connections.
 

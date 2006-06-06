@@ -178,11 +178,6 @@ public class Panel extends JPanel
 		// setup this panel window
 		int height = waveWindow.getPanelSizeDigital();
 		if (analysisType != null) height = waveWindow.getPanelSizeAnalog();
-		if (waveWindow.getNumPanels() > 0)
-		{
-			Panel firstPanel = waveWindow.getPanels().next();
-			height = firstPanel.getSize().height;
-		}
 		sz = new Dimension(50, height);
 		szValid = false;
 		setSize(sz.width, sz.height);
@@ -1306,7 +1301,9 @@ public class Panel extends JPanel
 							int yPos = y + height / 2;
 							if (yPos-height <= 0) yPos = height+1;
 							if (yPos >= hei) yPos = hei;
-							localGraphics.drawString(yValue, vertAxisPos-10-(int)glyphBounds.getWidth()-2, yPos);
+							int xPos = vertAxisPos-10-(int)glyphBounds.getWidth()-2;
+							if (xPos < 0) xPos = 0;
+							localGraphics.drawString(yValue, xPos, yPos);
 						}
 						lastY = y;
 					}
