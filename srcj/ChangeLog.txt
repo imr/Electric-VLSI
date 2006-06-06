@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/6/06, SMR) Reloading waveform windows crashes (Bug #775).
+FIX: Prevent null pointer problem in HSpice signal data.
+
 BUG: (6/6/06, SMR) Waveform window makes uneven height panels, and may clip
      Y axis values (Bug #1095).
 FIX: Panel height no longer taken from previous panels; Y axis values forced

@@ -114,6 +114,7 @@ public class HSpiceOut extends Simulate
          */
         public int getNumSweeps()
 		{
+        	if (sigData == null) return 0;
 			return sigData.length;
         }
     }
