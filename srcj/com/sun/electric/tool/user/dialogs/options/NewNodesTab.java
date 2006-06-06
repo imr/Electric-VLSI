@@ -98,6 +98,7 @@ public class NewNodesTab extends PreferencePanel
 		nodeSwitchTechnology.setSelected(User.isAutoTechnologySwitch());
 		nodePlaceCellCenter.setSelected(User.isPlaceCellCenter());
 		reconstructArcs.setSelected(User.isReconstructArcsToDeletedCells());
+		nodePromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
 
 		// set checkboxes for "all nodes" area
 		nodeDisallowModificationComplexNodes.setSelected(User.isDisallowModificationComplexNodes());
@@ -221,6 +222,10 @@ public class NewNodesTab extends PreferencePanel
 		if (currBoolean != User.isReconstructArcsToDeletedCells())
 			User.setReconstructArcsToDeletedCells(currBoolean);
 
+		currBoolean = nodePromptForIndex.isSelected();
+		if (currBoolean != User.isPromptForIndexWhenDescending())
+			User.setPromptForIndexWhenDescending(currBoolean);
+
 		currBoolean = nodeDisallowModificationComplexNodes.isSelected();
 		if (currBoolean != User.isDisallowModificationComplexNodes())
 			User.setDisallowModificationComplexNodes(currBoolean);
@@ -267,6 +272,7 @@ public class NewNodesTab extends PreferencePanel
         nodeSwitchTechnology = new javax.swing.JCheckBox();
         nodePlaceCellCenter = new javax.swing.JCheckBox();
         reconstructArcs = new javax.swing.JCheckBox();
+        nodePromptForIndex = new javax.swing.JCheckBox();
         jPanel4 = new javax.swing.JPanel();
         nodeDisallowModificationLockedPrims = new javax.swing.JCheckBox();
         nodeMoveAfterDuplicate = new javax.swing.JCheckBox();
@@ -290,7 +296,7 @@ public class NewNodesTab extends PreferencePanel
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
-        jPanel2.setBorder(new javax.swing.border.TitledBorder("For New Primitive Nodes"));
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("For New Primitive Nodes"));
         jLabel1.setText("Primitive:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -367,7 +373,7 @@ public class NewNodesTab extends PreferencePanel
 
         jPanel3.setLayout(new java.awt.GridBagLayout());
 
-        jPanel3.setBorder(new javax.swing.border.TitledBorder("For Cells"));
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("For Cells"));
         nodeCheckCellDates.setText("Check cell dates during editing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -399,8 +405,17 @@ public class NewNodesTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel3.add(reconstructArcs, gridBagConstraints);
+
+        nodePromptForIndex.setText("Always prompt for index when descending into array nodes");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        jPanel3.add(nodePromptForIndex, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -410,7 +425,7 @@ public class NewNodesTab extends PreferencePanel
 
         jPanel4.setLayout(new java.awt.GridBagLayout());
 
-        jPanel4.setBorder(new javax.swing.border.TitledBorder("For All Nodes"));
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("For All Nodes"));
         nodeDisallowModificationLockedPrims.setText("Disallow modification of locked primitives");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -460,8 +475,7 @@ public class NewNodesTab extends PreferencePanel
         getContentPane().add(newNode, new java.awt.GridBagConstraints());
 
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -489,6 +503,7 @@ public class NewNodesTab extends PreferencePanel
     private javax.swing.JComboBox nodePrimitive;
     private javax.swing.JTextField nodePrimitiveXSize;
     private javax.swing.JTextField nodePrimitiveYSize;
+    private javax.swing.JCheckBox nodePromptForIndex;
     private javax.swing.JCheckBox nodeSwitchTechnology;
     private javax.swing.JCheckBox reconstructArcs;
     private javax.swing.JComboBox technologySelection;

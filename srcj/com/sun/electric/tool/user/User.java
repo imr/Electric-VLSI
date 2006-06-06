@@ -2113,18 +2113,22 @@ public class User extends Listener
 	 */
 	public static void setShowHierarchicalCursorCoordinates(boolean on) { cacheShowHierarchicalCursorCoordinates.setBoolean(on); }
 
-	private static Pref cacheUseOlderDisplayAlgorithm = Pref.makeBooleanPref("UseOlderDisplayAlgorithm", tool.prefs, false);
+	private static Pref cacheWhichDisplayAlgorithm = Pref.makeIntPref("WhichDisplayAlgorithm", tool.prefs, 1);
 	/**
-	 * Method to tell whether to use the older "PixelDrawing" display algorithm.
-	 * The default is "false" (use newer "VectorDrawing" display algorithm).
-	 * @return true to use the older "PixelDrawing" display algorithm.
+	 * Method to tell which display algorithm to use.
+	 * The default is "1" (vector display algorithm).
+	 * @return 0 for the pixel display algorithm (oldest);
+	 * 1 for the vector display algorithm (old);
+	 * 2 for the layer display algorithm (new).
 	 */
-	public static boolean isUseOlderDisplayAlgorithm() { return cacheUseOlderDisplayAlgorithm.getBoolean(); }
+	public static int getDisplayAlgorithm() { return cacheWhichDisplayAlgorithm.getInt(); }
 	/**
-	 * Method to set whether to use the older "PixelDrawing" display algorithm.
-	 * @param on true to use the older "PixelDrawing" display algorithm.
+	 * Method to set the display algorithm to use.
+	 * @param w 0 for the pixel display algorithm (oldest);
+	 * 1 for the vector display algorithm (old);
+	 * 2 for the layer display algorithm (new).
 	 */
-	public static void setUseOlderDisplayAlgorithm(boolean on) { cacheUseOlderDisplayAlgorithm.setBoolean(on); }
+	public static void setDisplayAlgorithm(int w) { cacheWhichDisplayAlgorithm.setInt(w); }
 
 	private static Pref cacheUseCellGreekingImages = Pref.makeBooleanPref("UseCellGreekingImages", tool.prefs, false);
 	/**
@@ -2175,21 +2179,21 @@ public class User extends Listener
 	 * @param l the ratio of cell size to screen size beyond which no cell greeking happens.
 	 */
 	public static void setGreekCellSizeLimit(double l) { cacheGreekCellSizeLimit.setDouble(l); }
-    
-    private static Pref cachePatternedScaleLimit = Pref.makeDoublePref("patternedScaleLimit", tool.prefs, 0.1);
-    /**
+
+	private static Pref cachePatternedScaleLimit = Pref.makeDoublePref("PatternedScaleLimit", tool.prefs, 1);
+	/**
 	 * Method to tell the scale of EditWindow when use patterned drawing.
 	 * Smaller scales use solid drawing.
 	 * The default is 0.1, meaning that 10 lamdas per pixel.
 	 * @return the scale of EditWindow when use patterned drawing.
-     */
-    public static double getPatternedScaleLimit() { return cachePatternedScaleLimit.getDouble(); }
-    /**
+	 */
+	public static double getPatternedScaleLimit() { return cachePatternedScaleLimit.getDouble(); }
+	/**
 	 * Method to set the scale of EditWindow when use patterned drawing.
 	 * Smaller scales use solid drawing.
      * @param l the scale of EditWindow when use patterned drawing.
-     */
-    public static void setPatternedScaleLimit(double l) { cachePatternedScaleLimit.setDouble(l); }
+	 */
+	public static void setPatternedScaleLimit(double l) { cachePatternedScaleLimit.setDouble(l); }
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", tool.prefs, true);
 	/**

@@ -353,7 +353,7 @@ class PixelDrawing
         }
         
         void abortRendering() {
-            if (!User.isUseOlderDisplayAlgorithm())
+            if (User.getDisplayAlgorithm() > 0)
                 vd.abortRendering();
         }
     }
@@ -555,7 +555,7 @@ class PixelDrawing
         }
         forceRedraw(changedCellsCopy);
         VectorCache.theCache.forceRedraw(changedCellsCopy);
-		if (User.isUseOlderDisplayAlgorithm())
+		if (User.getDisplayAlgorithm() == 0)
 		{
 			// reset cached cell counts
 			numberToReconcile = SINGLETONSTOADD;
@@ -582,7 +582,7 @@ class PixelDrawing
 			composite(renderBounds);
 		};
 
-		if (TAKE_STATS && User.isUseOlderDisplayAlgorithm())
+		if (TAKE_STATS && User.getDisplayAlgorithm() == 0)
 		{
 			long endTime = System.currentTimeMillis();
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
@@ -647,7 +647,7 @@ class PixelDrawing
         }
         forceRedraw(changedCellsCopy);
         VectorCache.theCache.forceRedraw(changedCellsCopy);
-		if (User.isUseOlderDisplayAlgorithm())
+		if (User.getDisplayAlgorithm() == 0)
 		{
 			// reset cached cell counts
 			numberToReconcile = SINGLETONSTOADD;

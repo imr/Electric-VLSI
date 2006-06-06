@@ -167,6 +167,10 @@ public class PreferencesFrame extends EDialog
 		DefaultMutableTreeNode displaySet = new DefaultMutableTreeNode("Display ");
 		rootNode.add(displaySet);
 
+		DisplayControlTab dct = new DisplayControlTab(parent, modal);
+		optionPanes.add(dct);
+		displaySet.add(new DefaultMutableTreeNode(dct.getName()));
+
 		LayersTab lt = new LayersTab(parent, modal);
 		optionPanes.add(lt);
 		displaySet.add(new DefaultMutableTreeNode(lt.getName()));

@@ -1152,7 +1152,7 @@ public class CircuitChanges
 		{
 			if (unExpand) doUnExpand(ni); else
 				doExpand(ni, amount, 0);
-			if (User.isUseOlderDisplayAlgorithm())
+			if (User.getDisplayAlgorithm() == 0)
                 User.markCellForRedraw(ni.getParent(), false);
 //				Undo.redrawObject(ni);
 		}

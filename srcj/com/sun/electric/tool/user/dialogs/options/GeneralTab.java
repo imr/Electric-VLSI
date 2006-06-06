@@ -23,20 +23,22 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 
-import javax.swing.JPanel;
+import java.awt.Frame;
 import java.util.Iterator;
+
+import javax.swing.JPanel;
 
 /**
  * Class to handle the "General" tab of the Preferences dialog.
  */
 public class GeneralTab extends PreferencePanel
 {
-	/** Creates new form Edit Options */
-	public GeneralTab(java.awt.Frame parent, boolean modal)
+	/** Creates new form General Options */
+	public GeneralTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -54,35 +56,26 @@ public class GeneralTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		generalBeepAfterLongJobs.setSelected(User.isBeepAfterLongJobs());
-        generalVerboseMode.setSelected(User.isJobVerboseMode());
+		// I/O section
 		generalShowFileDialog.setSelected(User.isShowFileSelectionForNetlists());
-		generalShowCursorCoordinates.setSelected(User.isShowHierarchicalCursorCoordinates());
-		sideBarOnRight.setSelected(User.isSideBarOnRight());
-		generalPromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
-		generalOlderDisplayAlgorithm.setSelected(User.isUseOlderDisplayAlgorithm());
-		generalUseGreekImages.setSelected(User.isUseCellGreekingImages());
-		generalGreekLimit.setText(Double.toString(User.getGreekSizeLimit()));
-		generalGreekCellLimit.setText(Double.toString(User.getGreekCellSizeLimit() * 100.0));
-
         for (Iterator<String> it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
             workingDirComboBox.addItem(it.next());
         workingDirComboBox.setSelectedItem(User.getInitialWorkingDirectorySetting());
 
-		generalPanningDistance.addItem("Small");
-		generalPanningDistance.addItem("Medium");
-		generalPanningDistance.addItem("Large");
-		generalPanningDistance.setSelectedIndex(User.getPanningDistance());
-
+        // Jobs section
+        generalBeepAfterLongJobs.setSelected(User.isBeepAfterLongJobs());
+        generalVerboseMode.setSelected(User.isJobVerboseMode());
 		generalErrorLimit.setText(Integer.toString(User.getErrorLimit()));
-
         maxUndoHistory.setText(Integer.toString(User.getMaxUndoHistory()));
 
-		java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
+        // Memory section
+		Runtime runtime = Runtime.getRuntime();
 		long maxMemLimit = runtime.maxMemory() / 1024 / 1024;
 		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
 		generalMaxMem.setText(Long.toString(User.getMemorySize()));
         generalMaxSize.setText(Long.toString(User.getPermSpace()));
+
+        // Database section
 		generalSnapshotLogging.setSelected(User.isUseTwoJVMs());
 //		generalSnapshotLogging.setEnabled(false);
 		generalLogClientServer.setSelected(User.isUseClientServer());
@@ -94,7 +87,17 @@ public class GeneralTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean currBoolean = generalBeepAfterLongJobs.isSelected();
+		// I/O section
+		boolean currBoolean = generalShowFileDialog.isSelected();
+		if (currBoolean != User.isShowFileSelectionForNetlists())
+			User.setShowFileSelectionForNetlists(currBoolean);
+
+		String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
+        if (!currentInitialWorkingDirSetting.equals(User.getInitialWorkingDirectorySetting()))
+            User.setInitialWorkingDirectorySetting(currentInitialWorkingDirSetting);
+
+        // Jobs section
+        currBoolean = generalBeepAfterLongJobs.isSelected();
 		if (currBoolean != User.isBeepAfterLongJobs())
 			User.setBeepAfterLongJobs(currBoolean);
 
@@ -102,50 +105,18 @@ public class GeneralTab extends PreferencePanel
 		if (currBoolean != User.isJobVerboseMode())
 			User.setJobVerboseMode(currBoolean);
 
-		currBoolean = generalShowFileDialog.isSelected();
-		if (currBoolean != User.isShowFileSelectionForNetlists())
-			User.setShowFileSelectionForNetlists(currBoolean);
-
-		currBoolean = generalShowCursorCoordinates.isSelected();
-		if (currBoolean != User.isShowHierarchicalCursorCoordinates())
-			User.setShowHierarchicalCursorCoordinates(currBoolean);
-
-		currBoolean = sideBarOnRight.isSelected();
-		if (currBoolean != User.isSideBarOnRight())
-			User.setSideBarOnRight(currBoolean);
-
-		currBoolean = generalPromptForIndex.isSelected();
-		if (currBoolean != User.isPromptForIndexWhenDescending())
-			User.setPromptForIndexWhenDescending(currBoolean);
-
-		currBoolean = generalOlderDisplayAlgorithm.isSelected();
-		if (currBoolean != User.isUseOlderDisplayAlgorithm())
-			User.setUseOlderDisplayAlgorithm(currBoolean);
-
-		currBoolean = generalUseGreekImages.isSelected();
-		if (currBoolean != User.isUseCellGreekingImages())
-			User.setUseCellGreekingImages(currBoolean);
-
-		double currDouble = TextUtils.atof(generalGreekLimit.getText());
-		if (currDouble != User.getGreekSizeLimit())
-			User.setGreekSizeLimit(currDouble);
-
-		currDouble = TextUtils.atof(generalGreekCellLimit.getText()) / 100.0;
-		if (currDouble != User.getGreekCellSizeLimit())
-			User.setGreekCellSizeLimit(currDouble);
-
-		String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
-        if (!currentInitialWorkingDirSetting.equals(User.getInitialWorkingDirectorySetting()))
-            User.setInitialWorkingDirectorySetting(currentInitialWorkingDirSetting);
-
-		int currInt = generalPanningDistance.getSelectedIndex();
-		if (currInt != User.getPanningDistance())
-			User.setPanningDistance(currInt);
-
-		currInt = TextUtils.atoi(generalErrorLimit.getText());
+		int currInt = TextUtils.atoi(generalErrorLimit.getText());
 		if (currInt != User.getErrorLimit())
 			User.setErrorLimit(currInt);
 
+        currInt = TextUtils.atoi(maxUndoHistory.getText());
+        if (currInt != User.getMaxUndoHistory())
+        {
+            User.setMaxUndoHistory(currInt);
+            Undo.setHistoryListSize(currInt);
+        }
+
+		// Memory section
 		currInt = TextUtils.atoi(generalMaxMem.getText());
 		if (currInt != User.getMemorySize())
 			User.setMemorySize(currInt);
@@ -154,12 +125,7 @@ public class GeneralTab extends PreferencePanel
 		if (currInt != User.getPermSpace())
 			User.setPermSpace(currInt);
 
-        currInt = TextUtils.atoi(maxUndoHistory.getText());
-        if (currInt != User.getMaxUndoHistory()) {
-            User.setMaxUndoHistory(currInt);
-            Undo.setHistoryListSize(currInt);
-        }
-
+		// Database section
 		currBoolean = generalSnapshotLogging.isSelected();
 		if (currBoolean != User.isUseTwoJVMs())
 			User.setUseTwoJVMs(currBoolean);
@@ -175,7 +141,8 @@ public class GeneralTab extends PreferencePanel
 	 * always regenerated by the Form Editor.
 	 */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents()
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         general = new javax.swing.JPanel();
@@ -185,25 +152,9 @@ public class GeneralTab extends PreferencePanel
         jLabel61 = new javax.swing.JLabel();
         generalMemoryUsage = new javax.swing.JLabel();
         jLabel62 = new javax.swing.JLabel();
-        generalSnapshotLogging = new javax.swing.JCheckBox();
-        generalLogClientServer = new javax.swing.JCheckBox();
         jLabel63 = new javax.swing.JLabel();
         generalMaxSize = new javax.swing.JTextField();
         jLabel64 = new javax.swing.JLabel();
-        display = new javax.swing.JPanel();
-        generalShowCursorCoordinates = new javax.swing.JCheckBox();
-        sideBarOnRight = new javax.swing.JCheckBox();
-        jLabel1 = new javax.swing.JLabel();
-        generalPanningDistance = new javax.swing.JComboBox();
-        generalPromptForIndex = new javax.swing.JCheckBox();
-        generalOlderDisplayAlgorithm = new javax.swing.JCheckBox();
-        jLabel4 = new javax.swing.JLabel();
-        generalGreekLimit = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        generalGreekCellLimit = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
-        generalUseGreekImages = new javax.swing.JCheckBox();
         IO = new javax.swing.JPanel();
         generalShowFileDialog = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
@@ -216,13 +167,18 @@ public class GeneralTab extends PreferencePanel
         maxUndoHistory = new javax.swing.JTextField();
         jLabel53 = new javax.swing.JLabel();
         generalVerboseMode = new javax.swing.JCheckBox();
+        database = new javax.swing.JPanel();
+        generalLogClientServer = new javax.swing.JCheckBox();
+        generalSnapshotLogging = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("Edit Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 closeDialog(evt);
             }
         });
@@ -274,26 +230,6 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         memory.add(jLabel62, gridBagConstraints);
 
-        generalSnapshotLogging.setText("Snapshot Logging");
-        generalSnapshotLogging.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        generalSnapshotLogging.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        memory.add(generalSnapshotLogging, gridBagConstraints);
-
-        generalLogClientServer.setText("Use Client / Server interactions");
-        generalLogClientServer.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
-        generalLogClientServer.setMargin(new java.awt.Insets(0, 0, 0, 0));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        memory.add(generalLogClientServer, gridBagConstraints);
-
         jLabel63.setText("Maximum permanent space:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -320,123 +256,9 @@ public class GeneralTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         general.add(memory, gridBagConstraints);
-
-        display.setLayout(new java.awt.GridBagLayout());
-
-        display.setBorder(javax.swing.BorderFactory.createTitledBorder("Display"));
-        generalShowCursorCoordinates.setText("Show hierarchical cursor coordinates in status bar");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(generalShowCursorCoordinates, gridBagConstraints);
-
-        sideBarOnRight.setText("Side Bar defaults to the right side");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(sideBarOnRight, gridBagConstraints);
-
-        jLabel1.setText("Panning distance:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(jLabel1, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(generalPanningDistance, gridBagConstraints);
-
-        generalPromptForIndex.setText("Always prompt for index when descending into array nodes");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(generalPromptForIndex, gridBagConstraints);
-
-        generalOlderDisplayAlgorithm.setText("Use older display algorithm");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(generalOlderDisplayAlgorithm, gridBagConstraints);
-
-        jLabel4.setText("Greek objects smaller than:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(jLabel4, gridBagConstraints);
-
-        generalGreekLimit.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(generalGreekLimit, gridBagConstraints);
-
-        jLabel5.setText("pixels");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(jLabel5, gridBagConstraints);
-
-        jLabel6.setText("Do not greek cells greater than:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(jLabel6, gridBagConstraints);
-
-        generalGreekCellLimit.setColumns(5);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(generalGreekCellLimit, gridBagConstraints);
-
-        jLabel7.setText("percent of screen");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        display.add(jLabel7, gridBagConstraints);
-
-        generalUseGreekImages.setText("Use cell images when greeking");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        display.add(generalUseGreekImages, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        general.add(display, gridBagConstraints);
 
         IO.setLayout(new java.awt.GridBagLayout());
 
@@ -467,7 +289,7 @@ public class GeneralTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         general.add(IO, gridBagConstraints);
 
@@ -524,12 +346,6 @@ public class GeneralTab extends PreferencePanel
         jobs.add(jLabel53, gridBagConstraints);
 
         generalVerboseMode.setText("Verbose mode");
-        generalVerboseMode.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                generalVerboseModeActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -540,18 +356,43 @@ public class GeneralTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         general.add(jobs, gridBagConstraints);
+
+        database.setLayout(new java.awt.GridBagLayout());
+
+        database.setBorder(javax.swing.BorderFactory.createTitledBorder("Database"));
+        generalLogClientServer.setText("Use Client / Server interactions");
+        generalLogClientServer.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        generalLogClientServer.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        database.add(generalLogClientServer, gridBagConstraints);
+
+        generalSnapshotLogging.setText("Snapshot Logging");
+        generalSnapshotLogging.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        generalSnapshotLogging.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        database.add(generalSnapshotLogging, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        general.add(database, gridBagConstraints);
 
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void generalVerboseModeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_generalVerboseModeActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_generalVerboseModeActionPerformed
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -562,42 +403,29 @@ public class GeneralTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel IO;
-    private javax.swing.JPanel display;
+    private javax.swing.JPanel database;
     private javax.swing.JPanel general;
     private javax.swing.JCheckBox generalBeepAfterLongJobs;
     private javax.swing.JTextField generalErrorLimit;
-    private javax.swing.JTextField generalGreekCellLimit;
-    private javax.swing.JTextField generalGreekLimit;
     private javax.swing.JCheckBox generalLogClientServer;
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JTextField generalMaxSize;
     private javax.swing.JLabel generalMemoryUsage;
-    private javax.swing.JCheckBox generalOlderDisplayAlgorithm;
-    private javax.swing.JComboBox generalPanningDistance;
-    private javax.swing.JCheckBox generalPromptForIndex;
-    private javax.swing.JCheckBox generalShowCursorCoordinates;
     private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JCheckBox generalSnapshotLogging;
-    private javax.swing.JCheckBox generalUseGreekImages;
     private javax.swing.JCheckBox generalVerboseMode;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel46;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel53;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
     private javax.swing.JLabel jLabel63;
     private javax.swing.JLabel jLabel64;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jobs;
     private javax.swing.JTextField maxUndoHistory;
     private javax.swing.JPanel memory;
-    private javax.swing.JCheckBox sideBarOnRight;
     private javax.swing.JComboBox workingDirComboBox;
     // End of variables declaration//GEN-END:variables
 
