@@ -1215,17 +1215,17 @@ public class WindowFrame extends Observable
 //showHistory("add to history");
 	}
 
-//	private void showHistory(String why)
+//private void showHistory(String why)
+//{
+//	System.out.println("AFTER "+why+", CELL HISTORY:");
+//	for(int i=0; i<cellHistory.size(); i++)
 //	{
-//		System.out.println("AFTER "+why+", CELL HISTORY:");
-//		for(int i=0; i<cellHistory.size(); i++)
-//		{
-//			CellHistory ch = cellHistory.get(i);
-//			System.out.print("  HISTORY "+i);
-//			if (i == cellHistoryLocation) System.out.print("**");
-//			System.out.println(" cell="+ch.cell.describe(false)+" context="+ch.context.getNodable());
-//		}
+//		CellHistory ch = cellHistory.get(i);
+//		System.out.print("  HISTORY "+i);
+//		if (i == cellHistoryLocation) System.out.print("**");
+//		System.out.println(" cell="+ch.cell.describe(false)+" scale="+ch.da.scale);
 //	}
+//}
 
 	/**
 	 * Records current cell state into history

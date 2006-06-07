@@ -978,6 +978,7 @@ public class EditWindow extends JPanel
 		// by default record history and fillscreen
 		// However, when navigating through history, don't want to record new history objects.
         if (context == null) context = VarContext.globalContext;
+        boolean fillTheScreen = false;
 		if (displayAttributes == null)
 		{
 			displayAttributes = new WindowFrame.DisplayAttributes();
@@ -985,8 +986,9 @@ public class EditWindow extends JPanel
 			displayAttributes.offX = offx;
 			displayAttributes.offY = offy;
 			displayAttributes.inPlace = false;
+			fillTheScreen = true;
 		}
-		showCell(cell, context, true, displayAttributes);
+		showCell(cell, context, fillTheScreen, displayAttributes);
 	}
 
 	/**
@@ -1501,7 +1503,7 @@ public class EditWindow extends JPanel
     List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDrawing) {
         ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
 
-        TreeSet<Layer> sortedLayers = new TreeSet(Technology.LAYERS_BY_HEIGHT);
+        Set<Layer> sortedLayers = new TreeSet<Layer>(Technology.LAYERS_BY_HEIGHT);
         sortedLayers.addAll(layersAvailable);
         System.out.print("getBlendingOrder for:");
         for(Layer layer : sortedLayers)
