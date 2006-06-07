@@ -107,7 +107,7 @@ public class SnapshotTest {
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
         List<ERectangle> expCellBounds = Collections.singletonList(emptyBound);
         List<LibraryBackup> expLibBackups = Collections.singletonList(libBackup);
-        Snapshot result = instance.with(cellBackupsArray, cellGroups, cellBoundsArray, libBackupsArray);
+        Snapshot result = instance.with(null, cellBackupsArray, cellGroups, cellBoundsArray, libBackupsArray);
         assertEquals(1, result.snapshotId);
         assertEquals(expCellBackups, result.cellBackups);
         assertEquals(expCellBounds, result.cellBounds);
