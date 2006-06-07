@@ -740,9 +740,9 @@ public class UserInterfaceMain extends AbstractUserInterface
 			Dimension labelSize = getPreferredSize();
 			setLocation(screenSize.width/2 - (labelSize.width/2),
 				screenSize.height/2 - (labelSize.height/2));
-			WindowsEvents windowsEvents = new WindowsEvents(this);
-			addWindowListener(windowsEvents);
+//			addWindowListener(new WindowsEvents(this));
 			setVisible(true);
+			toFront();
 		}
 	}
 

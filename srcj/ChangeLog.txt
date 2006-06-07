@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/7/06, SMR) Initial splash window obscures everything (Bug #822).
+FIX: Splash window no longer insists on being topmost.
+
 BUG: (6/7/06, SMR) "Up hierarchy" always shows a full-screen view (Bug #1099)
 FIX: In EditWindow.setCell(), only fill the screen if no context.
 
