@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/7/06, SMR) Inserting a "T" in an arc triggers mimic deletion of the
+     arc (Bug #1101).
+FIX: In MimicStitch.mimicStitch(), mimic arc deletion only if no creations
+     were done.
+
 BUG: (6/6/06, SMR) Reloading waveform windows crashes (Bug #775).
 FIX: Prevent null pointer problem in HSpice signal data.
 

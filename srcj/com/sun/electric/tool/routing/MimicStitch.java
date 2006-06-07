@@ -144,7 +144,7 @@ public class MimicStitch
 		}
 
 		// if a single arc was deleted, mimiced it
-		if (lastActivity.numDeletedArcs == 1)
+		if (lastActivity.numDeletedArcs == 1 && lastActivity.numCreatedArcs == 0)
 		{
 			mimicdelete(lastActivity);
 			lastActivity.numDeletedArcs = 0;
