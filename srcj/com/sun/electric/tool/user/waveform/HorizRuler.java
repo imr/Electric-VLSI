@@ -137,21 +137,14 @@ public class HorizRuler extends JPanel implements MouseListener
 			offX = waveWindow.getScreenLowX() - screenLoc.x;
 			int newWid = waveWindow.getScreenHighX() - waveWindow.getScreenLowX();
 
-			// because the main horizontal ruler panel needs a Panel (won't work if there aren't any)
-			// have to do complex things to request a repaint after adding the first Panel
-			if (newWid == 0 || waveWindow.getNumPanels() == 0)
-			{
-				if (waveWindow.isMainHorizRulerNeedsRepaint())
-					repaint();
-				return;
-			}
+			// the main horizontal ruler panel needs a Panel (won't work if there aren't any)
+			if (newWid == 0 || waveWindow.getNumPanels() == 0) return;
 
 			if (offX + newWid > wid) newWid = wid - offX;
 			wid = newWid;
 
 			if (drawHere == null)
 				drawHere = waveWindow.getPanels().next();
-			waveWindow.setMainHorizRulerNeedsRepaint(false);
 			g.setClip(offX, 0, wid, hei);
 
 			// draw the background

@@ -947,10 +947,7 @@ public class Panel extends JPanel
 			repaintOffscreenImage();
 		}
 		Point screenLoc = getLocationOnScreen();
-		if (waveWindow.getScreenLowX() != screenLoc.x ||
-			waveWindow.getScreenHighX() - waveWindow.getScreenLowX() != wid)
-				waveWindow.setMainHorizRulerNeedsRepaint(true);
-		waveWindow.setScreenXSize(screenLoc.x, waveWindow.getScreenLowX() + wid);
+		waveWindow.setScreenXSize(screenLoc.x, screenLoc.x + wid);
 
 		g.drawImage(offscreen, 0, 0, null);
 	}

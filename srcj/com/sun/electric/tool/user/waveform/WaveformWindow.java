@@ -159,7 +159,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** a list of panels in this window */					private List<Panel> wavePanels;
 	/** a list of sweep signals in this window */			private List<SweepSignal> sweepSignals;
 	/** the main horizontal ruler for all panels. */		private HorizRuler mainHorizRulerPanel;
-	/** true to repaint the main horizontal ruler. */		private boolean mainHorizRulerPanelNeedsRepaint;
 	/** true if the main horizontal ruler is logarithmic */	private boolean mainHorizRulerPanelLogarithmic;
 	/** the VCR timer, when running */						private Timer vcrTimer;
 	/** true to run VCR backwards */						private boolean vcrPlayingBackwards = false;
@@ -279,7 +278,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 0;
 			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.fill = GridBagConstraints.NONE;
 			overall.add(addPanel, gbc);
 			addPanel.addActionListener(new ActionListener()
 			{
@@ -296,7 +294,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;       gbc.gridy = 0;
 			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.fill = GridBagConstraints.NONE;
 			overall.add(showPoints, gbc);
 			showPoints.addActionListener(new ActionListener()
 			{
@@ -313,7 +310,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 1;
 			gbc.anchor = GridBagConstraints.CENTER;
-			gbc.fill = GridBagConstraints.NONE;
 			overall.add(toggleGrid, gbc);
 			toggleGrid.addActionListener(new ActionListener()
 			{
@@ -331,7 +327,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;       gbc.gridy = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(refresh, gbc);
 		refresh.addActionListener(new ActionListener()
 		{
@@ -348,7 +343,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(xAxisLockButton, gbc);
 		xAxisLockButton.addActionListener(new ActionListener()
 		{
@@ -381,7 +375,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 8;       gbc.gridy = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(growPanel, gbc);
 		growPanel.addActionListener(new ActionListener()
 		{
@@ -398,7 +391,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 9;       gbc.gridy = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(shrinkPanel, gbc);
 		shrinkPanel.addActionListener(new ActionListener()
 		{
@@ -431,7 +423,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;       gbc.gridy = 0;
 		gbc.anchor = GridBagConstraints.WEST;
-		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = new Insets(2, 4, 2, 0);
 		xAxisLabelPanel.add(centerMain, gbc);
 		centerMain.addActionListener(new ActionListener()
@@ -454,7 +445,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 3;       gbc.gridy = 0;
 		gbc.anchor = GridBagConstraints.WEST;
-		gbc.fill = GridBagConstraints.NONE;
 		gbc.insets = new Insets(2, 4, 2, 0);
 		xAxisLabelPanel.add(centerExt, gbc);
 		centerExt.addActionListener(new ActionListener()
@@ -500,7 +490,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 3;       gbc.gridy = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(vcrButtonRewind, gbc);
 		vcrButtonRewind.addActionListener(new ActionListener()
 		{
@@ -517,7 +506,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 4;       gbc.gridy = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(vcrButtonPlayBackwards, gbc);
 		vcrButtonPlayBackwards.addActionListener(new ActionListener()
 		{
@@ -534,7 +522,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 5;       gbc.gridy = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(vcrButtonStop, gbc);
 		vcrButtonStop.addActionListener(new ActionListener()
 		{
@@ -551,7 +538,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 6;       gbc.gridy = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(vcrButtonPlay, gbc);
 		vcrButtonPlay.addActionListener(new ActionListener()
 		{
@@ -568,7 +554,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 7;       gbc.gridy = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(vcrButtonToEnd, gbc);
 		vcrButtonToEnd.addActionListener(new ActionListener()
 		{
@@ -585,7 +570,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 8;       gbc.gridy = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(vcrButtonFaster, gbc);
 		vcrButtonFaster.addActionListener(new ActionListener()
 		{
@@ -602,7 +586,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc = new GridBagConstraints();
 		gbc.gridx = 9;       gbc.gridy = 1;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
 		overall.add(vcrButtonSlower, gbc);
 		vcrButtonSlower.addActionListener(new ActionListener()
 		{
@@ -992,6 +975,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// show and return the panel
 		panel.makeSelectedPanel();
 		getPanel().validate();
+		if (getMainHorizRuler() != null)
+			getMainHorizRuler().repaint();
 		return panel;
 	}
 
@@ -1008,15 +993,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void addPanel(Panel panel)
 	{
 		wavePanels.add(panel);
-		if (wavePanels.size() == 1)
-		{
-			// on the first real addition, redraw any main horizontal ruler panel
-			if (getMainHorizRuler() != null)
-			{
-				getMainHorizRuler().repaint();
-				setMainHorizRulerNeedsRepaint(true);
-			}
-		}
 	}
 
 	/**
@@ -1252,10 +1228,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public HorizRuler getMainHorizRuler() { return mainHorizRulerPanel; }
 
-	public boolean isMainHorizRulerNeedsRepaint() { return mainHorizRulerPanelNeedsRepaint; }
-
-	public void setMainHorizRulerNeedsRepaint(boolean r) { mainHorizRulerPanelNeedsRepaint = r; }
-
 	public Signal getXAxisSignalAll() { return xAxisSignalAll; }
 
 	public void setXAxisSignalAll(Signal sig) { xAxisSignalAll = sig; }
@@ -1269,7 +1241,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		gbc.gridx = 10;      gbc.gridy = 1;
 		gbc.weightx = 1;     gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.fill = GridBagConstraints.BOTH;
 		overall.add(mainHorizRulerPanel, gbc);
 	}
 
@@ -1900,19 +1872,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * @return a String describing the unique, global spice name for the network,
 	 * or a String describing the context if net is null
 	 */
-	public static String getSpiceNetName(VarContext context, Network net) {
+	public static String getSpiceNetName(VarContext context, Network net)
+	{
         boolean isGlobal = false;
 
-		if (net != null) {
+		if (net != null)
+		{
             Netlist netlist = net.getNetlist();
             Network originalNet = net;
-			while (net.isExported() && (context != VarContext.globalContext)) {
+			while (net.isExported() && (context != VarContext.globalContext))
+			{
 				// net is exported, find net in parent
 				net = getNetworkInParent(net, context.getNodable());
 				if (net == null) break;
 				context = context.pop();
 			}
-            // searching in globals
+
+			// searching in globals
             // Code taken from NCC
             if (net == null)
             {
@@ -3163,6 +3139,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						return;					
 					}
 					WaveSignal.addSignalToPanel(sig, wp);
+					if (getMainHorizRuler() != null)
+						getMainHorizRuler().repaint();
 					break;
 				}
 			}
@@ -3847,10 +3825,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		if (e.getPropertyName().equals("dividerLocation"))
 		{
 			if (mainHorizRulerPanel != null)
-			{
 				mainHorizRulerPanel.repaint();
-//				overall.repaint();
-			}
 		}
 	}
 }
