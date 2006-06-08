@@ -316,6 +316,7 @@ public class FillGeneratorTool extends Tool {
                 }
             }
 
+            System.out.println("No master found for Fill Generator");
             return null;
         }
 
