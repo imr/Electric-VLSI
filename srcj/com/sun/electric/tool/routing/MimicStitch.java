@@ -862,12 +862,14 @@ public class MimicStitch
 
 					// also delete freed pin nodes
 					if (h.getProto().getFunction() == PrimitiveNode.Function.PIN &&
-						h.getNumConnections() == 0 && h.getNumExports() == 0 && !keepPins)
+						!h.hasConnections() && !h.hasExports() && !keepPins)
+//						h.getNumConnections() == 0 && h.getNumExports() == 0 && !keepPins)
 					{
 						h.kill();
 					}
 					if (t.getProto().getFunction() == PrimitiveNode.Function.PIN &&
-						t.getNumConnections() == 0 && t.getNumExports() == 0 && !keepPins)
+						!t.hasConnections() && !t.hasExports() && !keepPins)
+//						t.getNumConnections() == 0 && t.getNumExports() == 0 && !keepPins)
 					{
 						t.kill();
 					}

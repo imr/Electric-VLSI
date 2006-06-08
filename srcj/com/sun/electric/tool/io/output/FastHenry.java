@@ -253,7 +253,8 @@ public class FastHenry extends Output
 	
 			// node is an end point: get its name
 			String nname = ni.getName();
-			if (ni.getNumExports() > 0)
+			if (ni.hasExports())
+//			if (ni.getNumExports() > 0)
 			{
 				Export e = (Export)ni.getExports().next();
 				nname = e.getName();
@@ -281,11 +282,13 @@ public class FastHenry extends Output
 			// get the name of the nodes on each end
 			NodeInst n1 = ai.getHeadPortInst().getNodeInst();
 			String n1Name = n1.getName();
-			if (n1.getNumExports() > 0)
+			if (n1.hasExports())
+//			if (n1.getNumExports() > 0)
 				n1Name = ((Export)n1.getExports().next()).getName();
 			NodeInst n2 = ai.getTailPortInst().getNodeInst();
 			String n2Name = n2.getName();
-			if (n2.getNumExports() > 0)
+			if (n2.hasExports())
+//			if (n2.getNumExports() > 0)
 				n2Name = ((Export)n2.getExports().next()).getName();
 	
 			// write the "E" line
@@ -354,7 +357,8 @@ public class FastHenry extends Output
 	{
 		arcsSeen.add(ai);
 		NodeInst ni = ai.getPortInst(end).getNodeInst();
-		if (ni.getNumExports() > 0) return (Export)ni.getExports().next();
+		if (ni.hasExports()) return (Export)ni.getExports().next();
+//		if (ni.getNumExports() > 0) return (Export)ni.getExports().next();
 
 		for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
 		{

@@ -964,7 +964,8 @@ public class Change extends EDialog implements HighlightListener
 					Connection con = cIt.next();
 					if (!geomMarked.contains(con.getArc())) { allArcs = false;   break; }
 				}
-				if (ni.getNumConnections() != 0 && allArcs) geomMarked.add(ni);
+				if (ni.hasConnections() && allArcs) geomMarked.add(ni);
+//				if (ni.getNumConnections() != 0 && allArcs) geomMarked.add(ni);
 			}
 
 			// now create new pins where they belong
@@ -1053,7 +1054,8 @@ public class Change extends EDialog implements HighlightListener
 			for(NodeInst ni : dupPins)
 			{
 				NodeInst newNi = newNodes.get(ni);
-				if (ni.getNumExports() == 0)
+				if (!ni.hasExports())
+//				if (ni.getNumExports() == 0)
 				{
 					String niName = ni.getName();
 					ni.kill();

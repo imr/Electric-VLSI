@@ -684,10 +684,12 @@ public class CircuitChanges
 			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 
 			// if the pin is an export, save it
-			if (ni.getNumExports() > 0) continue;
+			if (ni.hasExports()) continue;
+//			if (ni.getNumExports() > 0) continue;
 
 			// if the pin is not connected or displayed, delete it
-			if (ni.getNumConnections() == 0)
+			if (!ni.hasConnections())
+//			if (ni.getNumConnections() == 0)
 			{
 				// see if the pin has displayable variables on it
 				boolean hasDisplayable = false;

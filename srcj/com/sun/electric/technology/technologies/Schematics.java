@@ -1440,7 +1440,8 @@ public class Schematics extends Technology
 			if (busCon == 0 && nonBusCon == 0) implicitCon = 1;
 
 			// if the next level up the hierarchy is visible, consider arcs connected there
-			if (context != null && ni.getNumExports() != 0)
+			if (context != null && ni.hasExports())
+//			if (context != null && ni.getNumExports() != 0)
 			{
 				Nodable no = context.getNodable();
 				if (no != null && no instanceof NodeInst)
@@ -1483,7 +1484,8 @@ public class Schematics extends Technology
 						busDiscSize = 0;
 					} else
 					{
-						if (ni.getNumExports() != 0)
+						if (ni.hasExports())
+//						if (ni.getNumExports() != 0)
 							wireDiscSize = busDiscSize = 0;
 					}
 				}

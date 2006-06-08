@@ -964,7 +964,8 @@ public class Highlight
                         if (!markObj.contains(oNi))
                         {
                     		boolean connected = false;
-                        	if (oNi.getNumExports() > 0)
+                        	if (oNi.hasExports())
+ //                       	if (oNi.getNumExports() > 0)
                         	{
                         		// could be connected by exports...check
                         		for(Iterator<PortProto> eIt = oNi.getProto().getPorts(); eIt.hasNext(); )

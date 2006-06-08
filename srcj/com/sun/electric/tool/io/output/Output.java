@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -75,6 +76,7 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -357,7 +359,7 @@ public class Output
             if (CVS.isEnabled()) {
                 CVSLibrary.savingLibrary(lib);
             }
-            if (delib.writeLib(lib.getDatabase().backup(), lib.getId(), null)) return true;
+            if (delib.writeLib(lib.getDatabase().backup(), lib.getId(), lib.getDelibCellFiles())) return true;
             if (delib.closeTextOutputStream()) return true;
             if (CVS.isEnabled()) {
                 CVSLibrary.savedLibrary(lib, delib.getDeletedCellFiles(), delib.getWrittenCellFiles());

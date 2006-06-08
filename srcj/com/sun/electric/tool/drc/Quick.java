@@ -3941,8 +3941,10 @@ public class Quick
 	private void convertPseudoLayers(NodeInst ni, Poly [] pList)
 	{
 		if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) return;
-		if (ni.getNumConnections() != 0) return;
-		if (ni.getNumExports() == 0) return;
+		if (ni.hasConnections()) return;
+//		if (ni.getNumConnections() != 0) return;
+		if (!ni.hasExports()) return;
+//		if (ni.getNumExports() == 0) return;
 
 		// for pins that are unconnected but have exports, convert them to real layers
 		int tot = pList.length;

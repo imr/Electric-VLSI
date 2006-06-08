@@ -767,7 +767,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //				int otherEnd = 0;
 //				if (ai.getConnection(0) == con) otherEnd = 1;
 				NodeInst adjustThisNode = ai.getPortInst(otherEnd).getNodeInst();
-				if (adjustThisNode.getNumExports() == 0)
+				if (!adjustThisNode.hasExports())
+//				if (adjustThisNode.getNumExports() == 0)
 				{
 					// other end not exported, see if all arcs can be adjusted
 					boolean adjustable = true;
@@ -2163,6 +2164,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         exports[index] = export;
     }
     
+	/**
+	 * Returns true of there are Exports on this NodeInst.
+	 * @return true if there are Exports on this NodeInst.
+	 */
+	public boolean hasExports() { return exports.length != 0; }
+    
     /**
 	 * Method to return an Iterator over all Exports on this NodeInst.
 	 * @return an Iterator over all Exports on this NodeInst.
@@ -2325,7 +2332,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public boolean pinUseCount()
 	{
 		if (connections.size() > 2) return false;
-		if (getNumExports() != 0) return true;
+		if (hasExports()) return true;
+//		if (getNumExports() != 0) return true;
 		if (connections.size() == 0) return false;
 		return true;
 	}
@@ -2555,6 +2563,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
     
 	/**
+	 * Returns true of there are Connections on this NodeInst.
+	 * @return true if there are Connections on this NodeInst.
+	 */
+	public boolean hasConnections() { return !connections.isEmpty(); }
+    
+	/**
 	 * Method to return the number of Connections on this NodeInst.
 	 * @return the number of Connections on this NodeInst.
 	 */
@@ -2752,7 +2766,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public boolean isInvisiblePinWithText()
 	{
 		if (getProto() != Generic.tech.invisiblePinNode) return false;
-		if (getNumExports() != 0) return true;
+		if (hasExports()) return true;
+//		if (getNumExports() != 0) return true;
 		if (numDisplayableVariables(false) != 0) return true;
 		return false;
 	}
@@ -2770,7 +2785,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
 		// look for pins that are invisible and have text in different location
 		if (protoType.getFunction() != PrimitiveNode.Function.PIN) return null;
-		if (this.getNumConnections() != 0) return null;
+		if (hasConnections()) return null;
+//		if (this.getNumConnections() != 0) return null;
 
 		// stop now if this isn't invisible
 		if (protoType != Generic.tech.invisiblePinNode)

@@ -121,6 +121,12 @@ public class PortInst extends ElectricObject
 	public final int getPortIndex() { return portProto.getPortIndex(); }
 
 	/**
+	 * Returns true of there are Connections on this PortInst.
+	 * @return true if there are Connections on this PortInst.
+	 */
+	public boolean hasConnections() { return nodeInst.getConnections(getPortIndex()).hasNext(); }
+    
+	/**
 	 * Get iterator of all Connections
 	 * that connect to this PortInst
 	 * @return an iterator over associated Connections

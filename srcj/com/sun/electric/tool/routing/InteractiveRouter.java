@@ -202,7 +202,8 @@ public abstract class InteractiveRouter extends Router {
                 if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN) {
                 	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false);
                     if (re != null) re.reconnectArcs();
-                    if (ni.getNumExports() == 0) ni.kill();
+                    if (!ni.hasExports()) ni.kill();
+//                    if (ni.getNumExports() == 0) ni.kill();
                 }
             }
             return true;

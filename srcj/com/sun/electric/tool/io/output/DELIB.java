@@ -31,6 +31,7 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Version;
 
 import java.io.BufferedWriter;
@@ -39,11 +40,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.BitSet;
 import java.util.List;
 import java.util.ArrayList;
-import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -78,7 +79,7 @@ public class DELIB extends JELIB {
     public static final String SEARCH_FOR_CELL_FILES = "____SEARCH_FOR_CELL_FILES____";
     public static final char PLATFORM_INDEPENDENT_FILE_SEPARATOR = '/';
 
-    protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles) {
+    protected boolean writeLib(Snapshot snapshot, LibId libId, Set<String> oldCellFiles) {
         // sanity check: make sure we are not writing inside another delib file, this is bad for cvs
         // and just bad and confusing in general
         File delibDir = new File(filePath);
@@ -106,21 +107,25 @@ public class DELIB extends JELIB {
             if (cellBackup.modified || !fd.exists()) state.modified = true;
         }
 
-        boolean b = super.writeLib(snapshot, libId, libFiles);
+        boolean b = super.writeLib(snapshot, libId, null);
         if (!b) {
             // rename cell files that are no longer in the library
             deletedCellFiles.clear();
             if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
                 for (File file : delibDir.listFiles()) {
-                    checkIfDeleted(file);
+                    checkIfDeleted(file, oldCellFiles);
                 }
             } else {
                 for (File subdir : delibDir.listFiles()) {
                     if (subdir.isDirectory()) {
                         for (File file : subdir.listFiles())
-                            checkIfDeleted(file);
+                            checkIfDeleted(file, oldCellFiles);
                     }
                 }
+            }
+            if (oldCellFiles != null) {
+                oldCellFiles.clear();
+                oldCellFiles.addAll(cellFileMap.keySet());
             }
         }
         return b;
@@ -131,7 +136,7 @@ public class DELIB extends JELIB {
      * being found by version 8.04n and greater, which searches the delib dir for cell files.
      * @param cellFile
      */
-    private void checkIfDeleted(File cellFile) {
+    private void checkIfDeleted(File cellFile, Set<String> oldCellFiles) {
         if (cellFileMap.containsKey(cellFile.getAbsolutePath())) return;
         String name = cellFile.getName();
         int dot = name.lastIndexOf('.');
@@ -140,6 +145,7 @@ public class DELIB extends JELIB {
         View view = View.findView(name.substring(dot+1));
         if (view == null) return;
 
+        if (oldCellFiles == null || !oldCellFiles.contains(cellFile.getAbsolutePath())) return;
         System.out.println("Renaming unlinked (possibly deleted) cell file "+name+" to "+name+".deleted");
         deletedCellFiles.add(cellFile.getAbsolutePath());
         File deletedFileName = new File(cellFile.getAbsolutePath()+".deleted");

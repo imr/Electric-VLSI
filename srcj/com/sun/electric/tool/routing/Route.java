@@ -193,9 +193,10 @@ public class Route extends ArrayList<RouteElement> {
         Cell cell = replacementRE.getCell();
         boolean replace = true;
 
-        Iterator it2 = pi.getConnections();
+//        Iterator it2 = pi.getConnections();
         // if there are no connections, check if it's at the same location
-        if (!it2.hasNext()) {
+        if (!pi.hasConnections()) {
+//        if (!it2.hasNext()) {
             if (!ni.getTrueCenter().equals(replacementRE.getLocation()))
                 return false;
         }

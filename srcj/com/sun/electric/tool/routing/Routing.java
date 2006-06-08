@@ -488,7 +488,8 @@ public class Routing extends Listener
 					Connection con = cIt.next();
 					if (!con.equals(thisCon) && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
 				}
-				if (ni.getNumExports() > 0) term = true;
+				if (ni.hasExports()) term = true;
+//				if (ni.getNumExports() > 0) term = true;
 				if (ni.isCellInstance()) term = true;
 				if (term)
 				{
@@ -676,7 +677,8 @@ public class Routing extends Listener
 				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
 					fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE)
 				{
-					if (ni.getNumExports() > 0)
+					if (ni.hasExports())
+//					if (ni.getNumExports() > 0)
 					{
 						// an export on a simple node: find the equivalent
 						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
@@ -832,7 +834,8 @@ public class Routing extends Listener
 			NodeInst tNi = tIt.next();
 			if (nodesAssoc.get(tNi) != null) continue;
 			if (tNi.isCellInstance()) continue;
-			if (tNi.getNumExports() == 0) continue;
+			if (!tNi.hasExports()) continue;
+//			if (tNi.getNumExports() == 0) continue;
 			PrimitiveNode.Function fun = tNi.getFunction();
 			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT) continue;
 

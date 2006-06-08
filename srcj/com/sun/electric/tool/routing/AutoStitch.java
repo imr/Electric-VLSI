@@ -1143,7 +1143,8 @@ public class AutoStitch
         if (ni1 != null)
         {
 	        if (ni1.getFunction() == PrimitiveNode.Function.PIN &&
-	        	ni1.getNumExports() == 0 && ni1.getNumConnections() == 0)
+	        	!ni1.hasExports() && !ni1.hasConnections())
+//	        	ni1.getNumExports() == 0 && ni1.getNumConnections() == 0)
 	        {
 	            possibleInlinePins.add(ni1);
 	        }
@@ -1151,7 +1152,8 @@ public class AutoStitch
         if (ni2 != null)
         {
 	        if (ni2.getFunction() == PrimitiveNode.Function.PIN &&
-	        	ni2.getNumExports() == 0 && ni2.getNumConnections() == 0)
+	        	!ni2.hasExports() && !ni2.hasConnections())
+//	        	ni2.getNumExports() == 0 && ni2.getNumConnections() == 0)
 	        {
 	            possibleInlinePins.add(ni2);
 	        }

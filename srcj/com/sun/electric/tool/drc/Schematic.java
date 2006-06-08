@@ -216,7 +216,8 @@ public class Schematic
 			if (np == Schematics.tech.busPinNode)
 			{
 				// proceed only if it has no exports on it
-				if (ni.getNumExports() == 0)
+				if (!ni.hasExports())
+//				if (ni.getNumExports() == 0)
 				{
 					// must not connect to any bus arcs
 					boolean found = false;
@@ -258,7 +259,8 @@ public class Schematic
 			if (np.getFunction() == PrimitiveNode.Function.PIN)
 			{
 				// may be stranded if there are no exports or arcs
-				if (ni.getNumExports() == 0 && ni.getNumConnections() == 0)
+				if (!ni.hasExports() && !ni.hasConnections())
+//				if (ni.getNumExports() == 0 && ni.getNumConnections() == 0)
 				{
 					// see if the pin has displayable variables on it
 					boolean found = false;
@@ -390,7 +392,8 @@ public class Schematic
 					if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 
 					// OK if it has exports on it
-					if (ni.getNumExports() != 0) continue;
+					if (ni.hasExports()) continue;
+//					if (ni.getNumExports() != 0) continue;
 
 					// OK if it connects to more than 1 arc
 					if (ni.getNumConnections() != 1) continue;

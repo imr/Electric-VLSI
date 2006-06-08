@@ -672,7 +672,8 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 					return;
 				}
 			}
-			if (real.getNumExports() == 0 && real.pinUseCount())
+			if (!real.hasExports() && real.pinUseCount())
+//			if (real.getNumExports() == 0 && real.pinUseCount())
 			{
 				dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
                 return;

@@ -1347,10 +1347,12 @@ public class River
 	private void delNodeInst(NodeInst ni)
 	{
 		// see if any arcs connect to this node
-		if (ni.getNumConnections() > 0) return;
+		if (ni.hasConnections()) return;
+//		if (ni.getNumConnections() > 0) return;
 
 		// see if this nodeinst is a portinst of the cell
-		if (ni.getNumExports() > 0) return;
+		if (ni.hasExports()) return;
+//		if (ni.getNumExports() > 0) return;
 
 		// now erase the nodeinst
 		ni.kill();

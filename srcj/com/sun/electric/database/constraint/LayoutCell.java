@@ -179,7 +179,8 @@ class LayoutCell {
             }
         }
         for (NodeInst ni : modifiedInsts) {
-            if (ni.getNumExports() != 0)
+            if (ni.hasExports())
+//            if (ni.getNumExports() != 0)
                 exportsModified = true;
             ImmutableNodeInst d = getOldD(ni);
             Orientation dOrient = d != null ? ni.getOrient().concatenate(d.orient.inverse()) : Orientation.IDENT;
@@ -215,7 +216,8 @@ class LayoutCell {
         movedNodes.add(ni);
 
 		// see if this nodeinst is a port of the current cell
-		if (ni.getNumExports() != 0)
+		if (ni.hasExports())
+//		if (ni.getNumExports() != 0)
             exportsModified = true;
 	}
 

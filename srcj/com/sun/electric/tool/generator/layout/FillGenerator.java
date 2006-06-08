@@ -1245,8 +1245,9 @@ class TiledCell {
 		ArrayList<PortInst> ports = new ArrayList<PortInst>();
 		for (Iterator<PortInst> it=ni.getPortInsts(); it.hasNext();) {
 			PortInst pi = it.next();
-			Iterator conns = pi.getConnections();
-			if (!conns.hasNext())
+			if (!pi.hasConnections())
+//			Iterator conns = pi.getConnections();
+//			if (!conns.hasNext())
             {
                 Orientation or = orientation(bounds,pi);
                 if (orientationList.contains(or))

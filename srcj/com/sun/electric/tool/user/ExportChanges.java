@@ -695,7 +695,8 @@ public final class ExportChanges
         for (PortInst pi : portInsts) {
             if (!includeWiredPorts) {
                 // remove ports that already have connections
-                if (pi.getConnections().hasNext()) continue;
+                if (pi.hasConnections()) continue;
+//                if (pi.getConnections().hasNext()) continue;
             }
             if (onlyPowerGround) {
                 // remove ports that are not power or ground

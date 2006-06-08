@@ -1061,7 +1061,8 @@ public class LibToTech
 
 				// port connectivity
 				nIn.nodePortDetails[i].netIndex = i;
-				if (ns.node.getNumConnections() != 0)
+				if (ns.node.hasConnections())
+//				if (ns.node.getNumConnections() != 0)
 				{
 					ArcInst ai1 = ns.node.getConnections().next().getArc();
 					Network net1 = netList.getNetwork(ai1, 0);
@@ -1070,7 +1071,8 @@ public class LibToTech
 					{
 						if (oNs == ns) break;
 						if (oNs.layer != Generic.tech.portNode) continue;
-						if (oNs.node.getNumConnections() != 0)
+						if (oNs.node.hasConnections())
+//						if (oNs.node.getNumConnections() != 0)
 						{
 							ArcInst ai2 = oNs.node.getConnections().next().getArc();
 							Network net2 = netList.getNetwork(ai2, 0);

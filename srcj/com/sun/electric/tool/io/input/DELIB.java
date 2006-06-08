@@ -29,7 +29,12 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.tool.io.FileType;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.util.HashSet;
 
 /**
  * Created by IntelliJ IDEA.
@@ -47,6 +52,7 @@ public class DELIB extends JELIB {
 //    };
 
     private LineNumberReader headerReader;
+    private HashSet<String> delibCellFiles = new HashSet<String>();
 
     DELIB() {}
 
@@ -66,7 +72,10 @@ public class DELIB extends JELIB {
             return true;
         }
         lineReader = headerReader;
-        return super.readLib();
+        boolean b = super.readLib();
+        if (!b)
+            lib.setDelibCellFiles(delibCellFiles);
+        return b;
     }
 
     protected void readCell(String line) throws IOException {
@@ -128,6 +137,7 @@ public class DELIB extends JELIB {
         curReadFile = cellFD.getAbsolutePath();
         try {
             readFromFile(true);
+            delibCellFiles.add(curReadFile);
         } finally {
             version = savedVersion;
             revision = savedRevision;

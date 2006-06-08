@@ -1447,7 +1447,8 @@ public class Sue extends Input
 		{
 			NodeInst ni = it.next();
 			if (ni.getProto() != Schematics.tech.offpageNode) continue;
-			if (ni.getNumConnections() > 0) continue;
+			if (ni.hasConnections()) continue;
+//			if (ni.getNumConnections() > 0) continue;
 			PortInst pi = ni.getPortInst(1);
 			Poly piPoly = pi.getPoly();
 			double x = piPoly.getCenterX();

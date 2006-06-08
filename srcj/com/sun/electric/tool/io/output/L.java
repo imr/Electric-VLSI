@@ -182,7 +182,8 @@ public class L extends Output
 				if (fun == PrimitiveNode.Function.PIN)
 				{
 					// if pin is an export, don't write separate node statement
-					if (ni.getNumExports() > 0) continue;
+					if (ni.hasExports()) continue;
+//					if (ni.getNumExports() > 0) continue;
 					PrimitivePort primPp = (PrimitivePort)npPrim.getPort(0);
 					ArcProto ap = primPp.getConnections()[0];
 					type = "NODE " + getArcFunctionName(ap, "???");
@@ -294,7 +295,8 @@ public class L extends Output
 					printWriter.print(" W=" + TextUtils.formatDouble(ai.getWidth()-ai.getProto().getWidthOffset()));
 
 				// write the starting node name (use port name if pin is an export)
-				if (ni.getNumExports() > 0 && ni.getFunction() == PrimitiveNode.Function.PIN)
+				if (ni.hasExports() && ni.getFunction() == PrimitiveNode.Function.PIN)
+//				if (ni.getNumExports() > 0 && ni.getFunction() == PrimitiveNode.Function.PIN)
 				{
 					Export e = (Export)ni.getExports().next();
 					printWriter.print(" " + getLegalName(e.getName()));
@@ -386,7 +388,8 @@ public class L extends Output
 				} else printWriter.print(" TO");
 
 				// write the terminating node name (use port name if pin is an export)
-				if (oNi.getNumExports() > 0 && oNi.getFunction() == PrimitiveNode.Function.PIN)
+				if (oNi.hasExports() && oNi.getFunction() == PrimitiveNode.Function.PIN)
+//				if (oNi.getNumExports() > 0 && oNi.getFunction() == PrimitiveNode.Function.PIN)
 				{
 					Export e = (Export)oNi.getExports().next();
 					printWriter.print(" " + getLegalName(e.getName()));

@@ -617,7 +617,8 @@ public class Tegas extends Topology
 	private String getNameOfPower(NodeInst ni)
 	{
 		// To prevent Un-connected power nodes
-		if (ni.getNumConnections() == 0)
+		if (!ni.hasConnections())
+//		if (ni.getNumConnections() == 0)
 		{
 			System.out.println("PWR / GND NODE UNCONNECTED");
 			return "";
@@ -626,7 +627,8 @@ public class Tegas extends Topology
 		PrimitiveNode.Function fun = ni.getFunction();
 		if (fun == PrimitiveNode.Function.CONGROUND || fun == PrimitiveNode.Function.CONPOWER)
 		{
-			if (ni.getNumConnections() > 0)
+			if (ni.hasConnections())
+//			if (ni.getNumConnections() > 0)
 			{
 				Connection con = ni.getConnections().next();
 				Network net = netList.getNetwork(con.getArc(), 0);

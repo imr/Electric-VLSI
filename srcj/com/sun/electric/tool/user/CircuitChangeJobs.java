@@ -1354,12 +1354,14 @@ public class CircuitChangeJobs
 
 				// also delete freed pin nodes
 				if (h.getProto().getFunction() == PrimitiveNode.Function.PIN &&
-					h.getNumConnections() == 0 && h.getNumExports() == 0)
+					!h.hasConnections() && !h.hasExports())
+//					h.getNumConnections() == 0 && h.getNumExports() == 0)
 				{
 					h.kill();
 				}
 				if (t.getProto().getFunction() == PrimitiveNode.Function.PIN &&
-					t.getNumConnections() == 0 && t.getNumExports() == 0)
+					!t.hasConnections() && !t.hasExports())
+//					t.getNumConnections() == 0 && t.getNumExports() == 0)
 				{
 					t.kill();
 				}
@@ -1485,7 +1487,8 @@ public class CircuitChangeJobs
 			if (!ni.isCellInstance())
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
-				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
+				if (ni.hasConnections() || ni.hasExports()) continue;
+//				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
 				deleteTheseNodes.add(ni);
 			}
 		}
@@ -1501,7 +1504,8 @@ public class CircuitChangeJobs
 			if (!ni.isCellInstance())
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
-				if (ni.getNumExports() != 0) continue;
+				if (ni.hasExports()) continue;
+//				if (ni.getNumExports() != 0) continue;
                 if (!ni.isInlinePin()) continue;
 				nodesToPassThru.add(ni);
 			}
@@ -1538,7 +1542,8 @@ public class CircuitChangeJobs
 	public static void eraseNodeInst(NodeInst ni)
 	{
 		// erase all connecting ArcInsts on this NodeInst
-		if (ni.getNumConnections() > 0)
+		if (ni.hasConnections())
+//		if (ni.getNumConnections() > 0)
 		{
 			HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
@@ -2219,7 +2224,8 @@ public class CircuitChangeJobs
 			if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 	
 			// if the pin is an export, save it
-			if (ni.getNumExports() > 0) continue;
+			if (ni.hasExports()) continue;
+//			if (ni.getNumExports() > 0) continue;
 	
 			// if the pin is connected to two arcs along the same slope, delete it
 			if (ni.isInlinePin())

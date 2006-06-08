@@ -986,7 +986,8 @@ public class ScanChainXML {
         String netName = null;
         PortInst pi = no.getNodeInst().findPortInst(portName);
         if (pi == null) return null;
-        if (pi.getConnections().hasNext()) {
+        if (pi.hasConnections()) {
+//        if (pi.getConnections().hasNext()) {
             ArcInst ai = pi.getConnections().next().getArc();
             // see if there is a bus name
             Name busName = no.getParent().getNetlist(true).getBusName(ai);
