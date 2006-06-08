@@ -647,31 +647,41 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	
 	private JComponent findComponentRawValue(int type)
 	{
-		for(int c=0; c<currentChangeTypes.length; c++)
-		{
-			int change = currentChangeTypes[c];
-			if (change == type) return currentChangeValues[c];
-		}
+        if (currentChangeTypes != null)
+        {
+            for(int c=0; c<currentChangeTypes.length; c++)
+            {
+                int change = currentChangeTypes[c];
+                if (change == type) return currentChangeValues[c];
+            }
+        }
 		return null;
 	}
 	
 	private String findComponentStringValue(int type)
 	{
-		for(int c=0; c<currentChangeTypes.length; c++)
-		{
-			int change = currentChangeTypes[c];
-			if (change == type) return ((JTextField)currentChangeValues[c]).getText().trim();
-		}
+        if (currentChangeTypes != null)
+        {
+            for(int c=0; c<currentChangeTypes.length; c++)
+            {
+                int change = currentChangeTypes[c];
+                if (change == type) return ((JTextField)currentChangeValues[c]).getText().trim();
+            }
+        }
 		return "";
 	}
 	
 	private int findComponentIntValue(int type)
 	{
-		for(int c=0; c<currentChangeTypes.length; c++)
-		{
-			int change = currentChangeTypes[c];
-			if (change == type) return ((JComboBox)currentChangeValues[c]).getSelectedIndex();
-		}
+
+        if (currentChangeTypes != null)
+        {
+            for(int c=0; c<currentChangeTypes.length; c++)
+            {
+                int change = currentChangeTypes[c];
+                if (change == type) return ((JComboBox)currentChangeValues[c]).getSelectedIndex();
+            }
+        }
 		return 0;
 	}
 
