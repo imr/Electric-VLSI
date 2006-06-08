@@ -102,10 +102,16 @@ public class LayerTab extends JPanel
         {
             public void actionPerformed(ActionEvent evt) { update(); }
         });
-		opacitySlider.addChangeListener(new ChangeListener()
-        {
-            public void stateChanged(ChangeEvent evt) { sliderChanged(); }
-        });
+		if (Job.getDebug())
+		{
+			opacitySlider.addChangeListener(new ChangeListener()
+	        {
+	            public void stateChanged(ChangeEvent evt) { sliderChanged(); }
+	        });
+		} else
+		{
+			remove(opacitySlider);
+		}
 
 		technology.setLightWeightPopupEnabled(false);
 
@@ -234,7 +240,8 @@ public class LayerTab extends JPanel
 		Boolean layerHighlighted = highlighted.get(layer);
 		layerName.append(layer.getName());
 		if (layerHighlighted.booleanValue()) layerName.append(" (HIGHLIGHTED)");
-		layerName.append(" (" + layer.getGraphics().getOpacity() + ")");
+		if (Job.getDebug())
+			layerName.append(" (" + layer.getGraphics().getOpacity() + ")");
 		return layerName.toString();
 	}
 
@@ -248,13 +255,16 @@ public class LayerTab extends JPanel
 		if (indices.length == 1)
 		{
 			// single layer selected: show opacity
-			Layer layer = getSelectedLayer(indices[0]);
-			if (layer != null)
+			if (Job.getDebug())
 			{
-				double opacity = layer.getGraphics().getOpacity();
-				double range = opacitySlider.getMaximum() - opacitySlider.getMinimum();
-				int newValue = opacitySlider.getMinimum() + (int)(range * opacity);
-				opacitySlider.setValue(newValue);
+				Layer layer = getSelectedLayer(indices[0]);
+				if (layer != null)
+				{
+					double opacity = layer.getGraphics().getOpacity();
+					double range = opacitySlider.getMaximum() - opacitySlider.getMinimum();
+					int newValue = opacitySlider.getMinimum() + (int)(range * opacity);
+					opacitySlider.setValue(newValue);
+				}
 			}
 		}
 		if (e.getClickCount() == 2)
