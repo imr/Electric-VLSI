@@ -5,7 +5,8 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.04q: *********************************
 
 BUG: (6/8/06, GVG) exception when refining object selection in layout (Bug #1106)
-FIX: detecting if currentChangeTypes array is null
+FIX: detecting if currentChangeTypes array is null. Extra: typesafe enum added
+and rotation information is shown.
 
 BUG: (6/7/06, SMR) Initial splash window obscures everything (Bug #822).
 FIX: Splash window no longer insists on being topmost.

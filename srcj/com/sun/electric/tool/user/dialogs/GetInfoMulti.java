@@ -85,47 +85,45 @@ import javax.swing.ListSelectionModel;
  */
 public class GetInfoMulti extends EDialog implements HighlightListener, DatabaseChangeListener
 {
-	private static final int CHANGEXSIZE           = 1;
-	private static final int CHANGEYSIZE           = 2;
-	private static final int CHANGEXPOS            = 3;
-	private static final int CHANGEYPOS            = 4;
-	private static final int CHANGEROTATION        = 5;
-	private static final int CHANGEMIRRORLR        = 6;
-	private static final int CHANGEMIRRORUD        = 7;
-	private static final int CHANGEEXPANDED        = 8;
-	private static final int CHANGEEASYSELECT      = 9;
-	private static final int CHANGEINVOUTSIDECELL  = 10;
-	private static final int CHANGELOCKED          = 11;
-	private static final int CHANGEWIDTH           = 12;
-	private static final int CHANGERIGID           = 13;
-	private static final int CHANGEFIXANGLE        = 14;
-	private static final int CHANGESLIDABLE        = 15;
-	private static final int CHANGEEXTENSION       = 16;
-	private static final int CHANGEDIRECTION       = 17;
-	private static final int CHANGENEGATION        = 18;
-	private static final int CHANGECHARACTERISTICS = 19;
-	private static final int CHANGEBODYONLY        = 20;
-	private static final int CHANGEALWAYSDRAWN     = 21;
-	private static final int CHANGEPOINTSIZE       = 22;
-	private static final int CHANGEUNITSIZE        = 23;
-	private static final int CHANGEXOFF            = 24;
-	private static final int CHANGEYOFF            = 25;
-	private static final int CHANGETEXTROT         = 26;
-	private static final int CHANGEANCHOR          = 27;
-	private static final int CHANGEFONT            = 28;
-	private static final int CHANGECOLOR           = 29;
-	private static final int CHANGEBOLD            = 30;
-	private static final int CHANGEITALIC          = 31;
-	private static final int CHANGEUNDERLINE       = 32;
-	private static final int CHANGECODE            = 33;
-	private static final int CHANGEUNITS           = 34;
-	private static final int CHANGESHOW            = 35;
-	
+    private enum ChangeType {
+        CHANGEXSIZE, CHANGEYSIZE, CHANGEXPOS, CHANGEYPOS, CHANGEROTATION,
+        CHANGEMIRRORLR,
+	CHANGEMIRRORUD,
+	CHANGEEXPANDED,
+	CHANGEEASYSELECT,
+	CHANGEINVOUTSIDECELL,
+	CHANGELOCKED,
+	CHANGEWIDTH,
+	CHANGERIGID,
+	CHANGEFIXANGLE,
+	CHANGESLIDABLE,
+	CHANGEEXTENSION,
+	CHANGEDIRECTION,
+	CHANGENEGATION,
+	CHANGECHARACTERISTICS,
+	CHANGEBODYONLY,
+	CHANGEALWAYSDRAWN,
+	CHANGEPOINTSIZE,
+	CHANGEUNITSIZE,
+	CHANGEXOFF,
+	CHANGEYOFF,
+	CHANGETEXTROT,
+	CHANGEANCHOR,
+	CHANGEFONT,
+	CHANGECOLOR,
+	CHANGEBOLD,
+	CHANGEITALIC,
+	CHANGEUNDERLINE,
+	CHANGECODE,
+	CHANGEUNITS,
+	CHANGESHOW
+    }
+
 	private static GetInfoMulti theDialog = null;
 	private DefaultListModel listModel;
 	private JList list;
 	private JPanel changePanel;
-	private int [] currentChangeTypes;
+	private ChangeType [] currentChangeTypes;
 	private JComponent [] currentChangeValues;
 	private List<Highlight2> highlightList;
 	List<NodeInst> nodeList;
@@ -135,24 +133,30 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
     private EditWindow wnd;
 
-	private static final int [] nodeChanges = {CHANGEXSIZE, CHANGEYSIZE, CHANGEXPOS, CHANGEYPOS, CHANGEROTATION,
-		CHANGEMIRRORLR, CHANGEMIRRORUD, CHANGEEXPANDED, CHANGEEASYSELECT, CHANGEINVOUTSIDECELL, CHANGELOCKED};
-	private static final int [] arcChanges = {CHANGEWIDTH, CHANGERIGID, CHANGEFIXANGLE, CHANGESLIDABLE,
-		CHANGEEXTENSION, CHANGEDIRECTION, CHANGENEGATION, CHANGEEASYSELECT};
-	private static final int [] exportChanges = {CHANGECHARACTERISTICS, CHANGEBODYONLY, CHANGEALWAYSDRAWN,
-		CHANGEPOINTSIZE, CHANGEUNITSIZE, CHANGEXOFF, CHANGEYOFF, CHANGETEXTROT, CHANGEANCHOR, CHANGEFONT,
-		CHANGECOLOR, CHANGEBOLD, CHANGEITALIC, CHANGEUNDERLINE, CHANGEINVOUTSIDECELL};
-	private static final int [] textChanges = {CHANGEPOINTSIZE, CHANGEUNITSIZE, CHANGEXOFF, CHANGEYOFF,
-		CHANGETEXTROT, CHANGEANCHOR, CHANGEFONT, CHANGECOLOR, CHANGECODE, CHANGEUNITS, CHANGESHOW,
-		CHANGEBOLD, CHANGEITALIC, CHANGEUNDERLINE, CHANGEINVOUTSIDECELL};
-	private static final int [] nodeArcChanges = {CHANGEEASYSELECT};
-	private static final int [] nodeTextChanges = {CHANGEINVOUTSIDECELL};
-	private static final int [] nodeExportChanges = {CHANGEINVOUTSIDECELL};
-	private static final int [] nodeTextExportChanges = {CHANGEINVOUTSIDECELL};
-	private static final int [] textExportChanges = {CHANGEPOINTSIZE, CHANGEUNITSIZE, CHANGEXOFF, CHANGEYOFF,
-		CHANGETEXTROT, CHANGEANCHOR, CHANGEFONT, CHANGECOLOR, CHANGEBOLD, CHANGEITALIC, CHANGEUNDERLINE, CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] nodeChanges = {ChangeType.CHANGEXSIZE, ChangeType.CHANGEYSIZE, ChangeType.CHANGEXPOS,
+                                                      ChangeType.CHANGEYPOS, ChangeType.CHANGEROTATION, ChangeType.CHANGEMIRRORLR,
+                                                      ChangeType.CHANGEMIRRORUD, ChangeType.CHANGEEXPANDED, ChangeType.CHANGEEASYSELECT,
+                                                      ChangeType.CHANGEINVOUTSIDECELL, ChangeType.CHANGELOCKED};
+	private static final ChangeType [] arcChanges = {ChangeType.CHANGEWIDTH, ChangeType.CHANGERIGID, ChangeType.CHANGEFIXANGLE,
+                                                     ChangeType.CHANGESLIDABLE, ChangeType.CHANGEEXTENSION, ChangeType.CHANGEDIRECTION,
+                                                     ChangeType.CHANGENEGATION, ChangeType.CHANGEEASYSELECT};
+	private static final ChangeType [] exportChanges = {ChangeType.CHANGECHARACTERISTICS, ChangeType.CHANGEBODYONLY, ChangeType.CHANGEALWAYSDRAWN,
+                                                        ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF,
+                                                        ChangeType.CHANGEYOFF, ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT,
+                                                        ChangeType.CHANGECOLOR, ChangeType.CHANGEBOLD, ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] textChanges = {ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF, ChangeType.CHANGEYOFF,
+                                                      ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR,
+                                                      ChangeType.CHANGECODE, ChangeType.CHANGEUNITS, ChangeType.CHANGESHOW,
+                                                      ChangeType.CHANGEBOLD, ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] nodeArcChanges = {ChangeType.CHANGEEASYSELECT};
+	private static final ChangeType [] nodeTextChanges = {ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] nodeExportChanges = {ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] nodeTextExportChanges = {ChangeType.CHANGEINVOUTSIDECELL};
+	private static final ChangeType [] textExportChanges = {ChangeType.CHANGEPOINTSIZE, ChangeType.CHANGEUNITSIZE, ChangeType.CHANGEXOFF, ChangeType.CHANGEYOFF,
+                                                            ChangeType.CHANGETEXTROT, ChangeType.CHANGEANCHOR, ChangeType.CHANGEFONT, ChangeType.CHANGECOLOR, ChangeType.CHANGEBOLD,
+                                                            ChangeType.CHANGEITALIC, ChangeType.CHANGEUNDERLINE, ChangeType.CHANGEINVOUTSIDECELL};
 
-	private static final int [][] changeCombos =
+	private static final ChangeType [][] changeCombos =
 	{
 		null,						//
 		nodeChanges,				// nodes
@@ -300,6 +304,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		double xSizeLow = Double.MAX_VALUE, xSizeHigh = -Double.MAX_VALUE;
 		double ySizeLow = Double.MAX_VALUE, ySizeHigh = -Double.MAX_VALUE;
 		double widthLow = Double.MAX_VALUE, widthHigh = -Double.MAX_VALUE;
+        double rotLow = Double.MAX_VALUE, rotHigh = -Double.MAX_VALUE;
 		selectionCount.setText(Integer.toString(highlightList.size()) + " selections:");
 		List<String> displayList = new ArrayList<String>();
         for(Highlight2 h : highlightList)
@@ -328,7 +333,11 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					SizeOffset so = ni.getSizeOffset();
 			        double xVal = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
 					double yVal = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
-			        if (ni.getAngle() == 900 || ni.getAngle() == 2700)
+                    double angle = ni.getAngle();
+                    rotLow = Math.min(rotLow, angle);
+                    rotHigh = Math.max(rotHigh, angle);
+
+			        if (angle == 900 || angle == 2700)
 					{
 						double swap = xVal;   xVal = yVal;   yVal = swap;
 					}
@@ -382,7 +391,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		{
 			for(int c=0; c<currentChangeTypes.length; c++)
 			{
-				int change = currentChangeTypes[c];
+				ChangeType change = currentChangeTypes[c];
 				JPanel onePanel = new JPanel();
 				onePanel.setLayout(new GridBagLayout());
 	            String msg = null;
@@ -409,7 +418,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						addChangePossibility("Y position:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGEROTATION:
-						addChangePossibility("Rotation:", currentChangeValues[c] = new JTextField(), null, onePanel);
+                        if (rotLow == rotHigh) msg = "(All are " + TextUtils.formatDouble(rotLow) + ")";
+                        else msg = "(" + TextUtils.formatDouble(rotLow) + " to " + TextUtils.formatDouble(rotHigh) + ")";
+						addChangePossibility("Rotation:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGEMIRRORLR:
 						JComboBox lr = new JComboBox();
@@ -645,40 +656,40 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		}
 	}
 	
-	private JComponent findComponentRawValue(int type)
+	private JComponent findComponentRawValue(ChangeType type)
 	{
         if (currentChangeTypes != null)
         {
             for(int c=0; c<currentChangeTypes.length; c++)
             {
-                int change = currentChangeTypes[c];
+                ChangeType change = currentChangeTypes[c];
                 if (change == type) return currentChangeValues[c];
             }
         }
 		return null;
 	}
 	
-	private String findComponentStringValue(int type)
+	private String findComponentStringValue(ChangeType type)
 	{
         if (currentChangeTypes != null)
         {
             for(int c=0; c<currentChangeTypes.length; c++)
             {
-                int change = currentChangeTypes[c];
+                ChangeType change = currentChangeTypes[c];
                 if (change == type) return ((JTextField)currentChangeValues[c]).getText().trim();
             }
         }
 		return "";
 	}
 	
-	private int findComponentIntValue(int type)
+	private int findComponentIntValue(ChangeType type)
 	{
 
         if (currentChangeTypes != null)
         {
             for(int c=0; c<currentChangeTypes.length; c++)
             {
-                int change = currentChangeTypes[c];
+                ChangeType change = currentChangeTypes[c];
                 if (change == type) return ((JComboBox)currentChangeValues[c]).getSelectedIndex();
             }
         }
@@ -1247,74 +1258,74 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		mcp.anchor = mcp.code = mcp.units = mcp.show = -1;
 		if (nodeList.size() > 0)
 		{
-			mcp.xPos = findComponentStringValue(CHANGEXPOS);
-			mcp.yPos = findComponentStringValue(CHANGEYPOS);
-			mcp.xSize = findComponentStringValue(CHANGEXSIZE);
-			mcp.ySize = findComponentStringValue(CHANGEYSIZE);
-			mcp.rot = findComponentStringValue(CHANGEROTATION);
-			mcp.lr = findComponentIntValue(CHANGEMIRRORLR);
-			mcp.ud = findComponentIntValue(CHANGEMIRRORUD);
-			mcp.expanded = findComponentIntValue(CHANGEEXPANDED);
-			mcp.easySelect = findComponentIntValue(CHANGEEASYSELECT);
-			mcp.invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
-			mcp.locked = findComponentIntValue(CHANGELOCKED);
+			mcp.xPos = findComponentStringValue(ChangeType.CHANGEXPOS);
+			mcp.yPos = findComponentStringValue(ChangeType.CHANGEYPOS);
+			mcp.xSize = findComponentStringValue(ChangeType.CHANGEXSIZE);
+			mcp.ySize = findComponentStringValue(ChangeType.CHANGEYSIZE);
+			mcp.rot = findComponentStringValue(ChangeType.CHANGEROTATION);
+			mcp.lr = findComponentIntValue(ChangeType.CHANGEMIRRORLR);
+			mcp.ud = findComponentIntValue(ChangeType.CHANGEMIRRORUD);
+			mcp.expanded = findComponentIntValue(ChangeType.CHANGEEXPANDED);
+			mcp.easySelect = findComponentIntValue(ChangeType.CHANGEEASYSELECT);
+			mcp.invisOutside = findComponentIntValue(ChangeType.CHANGEINVOUTSIDECELL);
+			mcp.locked = findComponentIntValue(ChangeType.CHANGELOCKED);
 		}
 		if (arcList.size() > 0)
 		{
-			mcp.width = findComponentStringValue(CHANGEWIDTH);
-			mcp.rigid = findComponentIntValue(CHANGERIGID);
-			mcp.fixedangle = findComponentIntValue(CHANGEFIXANGLE);
-			mcp.slidable = findComponentIntValue(CHANGESLIDABLE);
-			mcp.extension = findComponentIntValue(CHANGEEXTENSION);
-			mcp.directional = findComponentIntValue(CHANGEDIRECTION);
-			mcp.negated = findComponentIntValue(CHANGENEGATION);
-			mcp.easySelect = findComponentIntValue(CHANGEEASYSELECT);
+			mcp.width = findComponentStringValue(ChangeType.CHANGEWIDTH);
+			mcp.rigid = findComponentIntValue(ChangeType.CHANGERIGID);
+			mcp.fixedangle = findComponentIntValue(ChangeType.CHANGEFIXANGLE);
+			mcp.slidable = findComponentIntValue(ChangeType.CHANGESLIDABLE);
+			mcp.extension = findComponentIntValue(ChangeType.CHANGEEXTENSION);
+			mcp.directional = findComponentIntValue(ChangeType.CHANGEDIRECTION);
+			mcp.negated = findComponentIntValue(ChangeType.CHANGENEGATION);
+			mcp.easySelect = findComponentIntValue(ChangeType.CHANGEEASYSELECT);
 		}
 		if (exportList.size() > 0)
 		{
-			mcp.characteristics = (String)((JComboBox)findComponentRawValue(CHANGECHARACTERISTICS)).getSelectedItem();
-			mcp.bodyOnly = findComponentIntValue(CHANGEBODYONLY);
-			mcp.alwaysDrawn = findComponentIntValue(CHANGEALWAYSDRAWN);
-			mcp.pointSize = findComponentStringValue(CHANGEPOINTSIZE);
-			mcp.unitSize = findComponentStringValue(CHANGEUNITSIZE);
-			mcp.xOff = findComponentStringValue(CHANGEXOFF);
-			mcp.yOff = findComponentStringValue(CHANGEYOFF);
-			mcp.textRotation = findComponentIntValue(CHANGETEXTROT);
-			Object anValue = ((JComboBox)findComponentRawValue(CHANGEANCHOR)).getSelectedItem();
+			mcp.characteristics = (String)((JComboBox)findComponentRawValue(ChangeType.CHANGECHARACTERISTICS)).getSelectedItem();
+			mcp.bodyOnly = findComponentIntValue(ChangeType.CHANGEBODYONLY);
+			mcp.alwaysDrawn = findComponentIntValue(ChangeType.CHANGEALWAYSDRAWN);
+			mcp.pointSize = findComponentStringValue(ChangeType.CHANGEPOINTSIZE);
+			mcp.unitSize = findComponentStringValue(ChangeType.CHANGEUNITSIZE);
+			mcp.xOff = findComponentStringValue(ChangeType.CHANGEXOFF);
+			mcp.yOff = findComponentStringValue(ChangeType.CHANGEYOFF);
+			mcp.textRotation = findComponentIntValue(ChangeType.CHANGETEXTROT);
+			Object anValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGEANCHOR)).getSelectedItem();
 			if (anValue instanceof TextDescriptor.Position)
 				mcp.anchor = ((TextDescriptor.Position)anValue).getIndex();
-			mcp.font = (String)((JComboBox)findComponentRawValue(CHANGEFONT)).getSelectedItem();
-			mcp.color = ((JComboBox)findComponentRawValue(CHANGECOLOR)).getSelectedIndex();
-			mcp.bold = findComponentIntValue(CHANGEBOLD);
-			mcp.italic = findComponentIntValue(CHANGEITALIC);
-			mcp.underline = findComponentIntValue(CHANGEUNDERLINE);
-			mcp.invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
+			mcp.font = (String)((JComboBox)findComponentRawValue(ChangeType.CHANGEFONT)).getSelectedItem();
+			mcp.color = ((JComboBox)findComponentRawValue(ChangeType.CHANGECOLOR)).getSelectedIndex();
+			mcp.bold = findComponentIntValue(ChangeType.CHANGEBOLD);
+			mcp.italic = findComponentIntValue(ChangeType.CHANGEITALIC);
+			mcp.underline = findComponentIntValue(ChangeType.CHANGEUNDERLINE);
+			mcp.invisOutside = findComponentIntValue(ChangeType.CHANGEINVOUTSIDECELL);
 		}
 		if (textList.size() > 0)
 		{
-			mcp.pointSize = findComponentStringValue(CHANGEPOINTSIZE);
-			mcp.unitSize = findComponentStringValue(CHANGEUNITSIZE);
-			mcp.xOff = findComponentStringValue(CHANGEXOFF);
-			mcp.yOff = findComponentStringValue(CHANGEYOFF);
-			mcp.textRotation = findComponentIntValue(CHANGETEXTROT);
-			Object anValue = ((JComboBox)findComponentRawValue(CHANGEANCHOR)).getSelectedItem();
+			mcp.pointSize = findComponentStringValue(ChangeType.CHANGEPOINTSIZE);
+			mcp.unitSize = findComponentStringValue(ChangeType.CHANGEUNITSIZE);
+			mcp.xOff = findComponentStringValue(ChangeType.CHANGEXOFF);
+			mcp.yOff = findComponentStringValue(ChangeType.CHANGEYOFF);
+			mcp.textRotation = findComponentIntValue(ChangeType.CHANGETEXTROT);
+			Object anValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGEANCHOR)).getSelectedItem();
 			if (anValue instanceof TextDescriptor.Position)
 				mcp.anchor = ((TextDescriptor.Position)anValue).getIndex();
-			mcp.font = (String)((JComboBox)findComponentRawValue(CHANGEFONT)).getSelectedItem();
-			mcp.color = ((JComboBox)findComponentRawValue(CHANGECOLOR)).getSelectedIndex();
-			Object cdValue = ((JComboBox)findComponentRawValue(CHANGECODE)).getSelectedItem();
+			mcp.font = (String)((JComboBox)findComponentRawValue(ChangeType.CHANGEFONT)).getSelectedItem();
+			mcp.color = ((JComboBox)findComponentRawValue(ChangeType.CHANGECOLOR)).getSelectedIndex();
+			Object cdValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGECODE)).getSelectedItem();
 			if (cdValue instanceof TextDescriptor.Code)
 				mcp.code = ((TextDescriptor.Code)cdValue).getCFlags();
-			Object unValue = ((JComboBox)findComponentRawValue(CHANGEUNITS)).getSelectedItem();
+			Object unValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGEUNITS)).getSelectedItem();
 			if (unValue instanceof TextDescriptor.Unit)
 				mcp.units = ((TextDescriptor.Unit)unValue).getIndex();
-			Object shValue = ((JComboBox)findComponentRawValue(CHANGESHOW)).getSelectedItem();
+			Object shValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGESHOW)).getSelectedItem();
 			if (shValue instanceof TextDescriptor.DispPos)
 				mcp.show = ((TextDescriptor.DispPos)shValue).getIndex();
-			mcp.bold = findComponentIntValue(CHANGEBOLD);
-			mcp.italic = findComponentIntValue(CHANGEITALIC);
-			mcp.underline = findComponentIntValue(CHANGEUNDERLINE);
-			mcp.invisOutside = findComponentIntValue(CHANGEINVOUTSIDECELL);
+			mcp.bold = findComponentIntValue(ChangeType.CHANGEBOLD);
+			mcp.italic = findComponentIntValue(ChangeType.CHANGEITALIC);
+			mcp.underline = findComponentIntValue(ChangeType.CHANGEUNDERLINE);
+			mcp.invisOutside = findComponentIntValue(ChangeType.CHANGEINVOUTSIDECELL);
 		}
 
 		new MultiChange(mcp, nodeList, arcList, exportList, textList);
