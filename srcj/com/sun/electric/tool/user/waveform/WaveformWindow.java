@@ -2254,27 +2254,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
 				if (sSig == null)
 					sSig = an.findSignalForNetworkQuickly(netName.replace('@', '_'));
+                if (sSig == null)
+                    sSig = an.findSignalForNetworkQuickly(netName.replace('.', '_'));
 	            if (sSig == null)
 	                sSig = an.findSignalForNetwork(netName);
 				if (sSig != null)
 				{
 					found.add(sSig);
 					foundSig = true;
-				}
-			}
-			if (!foundSig)
-			{
-				// try prepending the cell name
-				netName = net.getParent().getName() + "." + netName;
-				for(Iterator<Analysis> aIt = sd.getAnalyses(); aIt.hasNext(); )
-				{
-					Analysis an = aIt.next();
-					Signal sSig = an.findSignalForNetworkQuickly(netName);
-					if (sSig == null)
-						sSig = an.findSignalForNetworkQuickly(netName.replace('@', '_'));
-		            if (sSig == null)
-		                sSig = an.findSignalForNetwork(netName);
-					if (sSig != null) found.add(sSig);
 				}
 			}
 		}
