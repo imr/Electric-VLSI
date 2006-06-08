@@ -231,7 +231,7 @@
         <property name="version" value=""/>
     </target>
 
-    <target name="jar" depends="init,compile" description="Make binary Jar file">
+    <target name="jar" depends="init,compileTests" description="Make binary Jar file">
 	    <antcall target="unjarBsh"></antcall>
         <unjar dest="." src="${AppleJava}"/>
         <unjar dest="." src="${JUnit}"/>
