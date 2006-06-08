@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+IMP/MAN: (6/8/06, GVG) Electric needs a way to cycle through windows (bug #954)
+Final solution in CVS. Cycle through all WindowFrame windows + messages window
+added as dynamic message.
+
 BUG: (6/8/06, SMR) Too much selected after "Up Hierarchy" (Bug #1105).
 FIX: In EditWindow.upHierarchy(), set selection only if no previous cell
      history found.  In WindowFrame.setCellByHistory(), set only port

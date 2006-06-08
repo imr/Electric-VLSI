@@ -38,7 +38,7 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.tool.Job;
+import com.sun.electric.database.text.TextUtils;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -55,7 +55,6 @@ public class WindowMenu {
     public static KeyStroke getCloseWindowAccelerator() { return EMenuItem.shortcut(KeyEvent.VK_W); }
     private static EMenu thisWindowMenu = null;
     private static EMenuItem hiddenWindowCycleMenuItem = null;
-//    private static JMenu theDynamicMenu = null; // mdi
 
     static EMenu makeMenu() {
         /****************************** THE WINDOW MENU ******************************/
@@ -174,8 +173,6 @@ public class WindowMenu {
                     WindowFrame.setSideBarLocation(false); }}),
 
             SEPARATOR
-
-//            ,new WindowEMenuItem("Window Cycle", windowAccelerator)
         );
         thisWindowMenu = menu;
         return menu;
@@ -183,7 +180,8 @@ public class WindowMenu {
 
     static EMenuItem getHiddenWindowCycleMenuItem() {
         if (hiddenWindowCycleMenuItem == null) {
-            hiddenWindowCycleMenuItem = new EMenuItem("Window Cycle", KeyStroke.getKeyStroke('Q', 0)) { public void run() {
+            hiddenWindowCycleMenuItem = new EMenuItem("Window Cycle", KeyStroke.getKeyStroke('Q', 0)) {
+                public void run() {
                 WindowFrame.getWindows().next().requestFocus(); }};
         }
         return hiddenWindowCycleMenuItem;
@@ -196,7 +194,9 @@ public class WindowMenu {
     public static void deleteDynamicMenu(WindowFrame wf) {
         setDynamicMenus();
     }
-    
+
+    private static DynamicEMenuItem messageDynamicMenu = null;
+
     public static void setDynamicMenus()
     {
         List<DynamicEMenuItem> list = new ArrayList<DynamicEMenuItem>();
@@ -206,6 +206,11 @@ public class WindowMenu {
             list.add(new DynamicEMenuItem(wf, accelerator));
             accelerator = null;
         }
+        if (messageDynamicMenu == null)
+            messageDynamicMenu = new DynamicEMenuItem(accelerator);
+        list.add(messageDynamicMenu);
+        // Sort list of dynamic menus before adding into the menus
+        Collections.sort(list, new TextUtils.ObjectsByToString());
         thisWindowMenu.setDynamicItems(list);
     }
 
@@ -217,6 +222,11 @@ public class WindowMenu {
             super(w.getTitle(), accelerator);
             window = w;
         }
+        public DynamicEMenuItem(KeyStroke accelerator)
+        {
+            super("Electric Messages", accelerator);
+            window = null;
+        }
 
         public String getDescription() { return "Window Cycle"; }
         
@@ -224,194 +234,12 @@ public class WindowMenu {
         
         public void run()
         {
-            window.requestFocus();
+            if (window != null)
+                window.requestFocus();
+            else // message window. This could be done by creating another interface
+                TopLevel.getMessagesWindow().requestFocus();
         }
     }
-
-//    static final HashMap<WindowFrame, List<WindowJMenuItem>> dynamicJItems = new HashMap<WindowFrame, List<WindowJMenuItem>>(); // final Menu in GUI
-//      static KeyStroke windowAccelerator = KeyStroke.getKeyStroke('Q', 0);
-//
-//    private static class WindowJMenuItem extends JMenuItem
-//    {
-//        WindowFrame window;
-//
-//        public WindowJMenuItem(WindowFrame w)
-//        {
-//            super(w.getTitle());
-//            window = w;
-//        }
-//    }
-//
-//    private static class WindowEMenuItem extends EMenuItem
-//    {
-//        public WindowEMenuItem(String text, KeyStroke accelerator)
-//        {
-//            super(text, accelerator);
-//        }
-//        public boolean isVisible() { return false; }
-//        private static void replaceKeyStroke(JMenu theMenu, KeyStroke oldKeyStroke,
-//                                             KeyStroke newKeyStroke)
-//        {
-//            if (theMenu == null) return;
-//            for (int i = 0; i < theMenu.getItemCount(); i++)
-//            {
-//                JMenuItem item = theMenu.getItem(i);
-//                if (!(item instanceof WindowJMenuItem)) continue;
-//                WindowJMenuItem menu = (WindowJMenuItem)item;
-//                if (menu.getAccelerator() == oldKeyStroke)
-//                {
-//                    menu.setAccelerator(newKeyStroke);
-//                }
-//            }
-//        }
-//        void setAccelerator(KeyStroke accelerator)
-//        {
-//            KeyStroke oldKeyStroke = windowAccelerator;
-//            windowAccelerator = accelerator;
-//
-//            if (TopLevel.isMDIMode())
-//            {
-//                replaceKeyStroke(theDynamicMenu, oldKeyStroke, accelerator);
-//            }
-//            else
-//            {
-//                // any window for the reference
-//                for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//                {
-//                    WindowFrame w = it.next();
-//                    replaceKeyStroke(w.getDynamicMenu(), oldKeyStroke, accelerator);
-//                }
-//            }
-//        }
-//        public void run()
-//        {
-//            JMenu theMenu = theDynamicMenu;
-//            if (!TopLevel.isMDIMode())
-//            {
-//                // any window for the reference
-//                WindowFrame w = WindowFrame.getWindows().next();
-//                theMenu = w.getDynamicMenu();
-//            }
-//            int first = -1, found = -1;
-//            for (int i = 0; i < theMenu.getItemCount(); i++)
-//            {
-//                JMenuItem item = theMenu.getItem(i);
-//                if (!(item instanceof WindowJMenuItem)) continue;
-//                WindowJMenuItem menu = (WindowJMenuItem)item;
-//                if (first == -1) first = i;
-//                if (menu.getAccelerator() == windowAccelerator)
-//                {
-//                    menu.window.requestFocus();
-//                    found = i;
-//                    menu.setAccelerator(null);
-//                    break;
-//                }
-//            }
-//            if (found != -1)
-//            {
-//                int next = (found < theMenu.getItemCount() - 1) ? found+1 : first;
-//                JMenuItem item = theMenu.getItem(next);
-//                item.setAccelerator(windowAccelerator);
-//            }
-//        }
-//    }
-//
-//    public static void addDynamicMenu(WindowFrame wf)
-//    {
-//        if (!Job.LOCALDEBUGFLAG) return;
-//
-//        List<WindowJMenuItem> menus = dynamicJItems.get(wf);
-//
-//        if (menus == null)
-//        {
-//            menus = new ArrayList<WindowJMenuItem>();
-//            dynamicJItems.put(wf, menus);
-//
-//            if (TopLevel.isMDIMode())
-//            {
-//                final WindowJMenuItem menu = new WindowJMenuItem(wf);
-//                menu.setAccelerator(windowAccelerator);
-//                menu.addActionListener(new java.awt.event.ActionListener() {
-//                    public void actionPerformed(java.awt.event.ActionEvent evt)
-//                    {
-//                        WindowJMenuItem m = (WindowJMenuItem)evt.getSource();
-//                        m.window.requestFocus();
-//                }});
-//                menus.add(menu);
-//                theDynamicMenu.add(menu);
-//            }
-//            else
-//            {
-//                for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//                {
-//                    WindowFrame w = it.next();
-//                    final WindowJMenuItem menu = new WindowJMenuItem(wf);
-//                    menu.setAccelerator(windowAccelerator);
-//                    menu.addActionListener(new java.awt.event.ActionListener() {
-//                        public void actionPerformed(java.awt.event.ActionEvent evt)
-//                        {
-//                            WindowJMenuItem m = (WindowJMenuItem)evt.getSource();
-//                            m.window.requestFocus();
-//                    }});
-//                    menus.add(menu);
-//                    w.getDynamicMenu().add(menu);
-//                    // Copy other dynamic menus
-//                    if (w != wf)
-//                    {
-//                        List<WindowJMenuItem> l = dynamicJItems.get(w);
-//                        WindowJMenuItem m = new WindowJMenuItem(w);
-//                        l.add(m);
-//                        wf.getDynamicMenu().add(m);
-//                    }
-//                }
-//            }
-//        }
-//        else
-//        {
-//            String name = wf.getTitle();
-//            for (JMenuItem menu : menus)
-//                menu.setText(name);
-//        }
-//    }
-//
-//    public static void deleteDynamicMenu(WindowFrame wf)
-//    {
-//        if (!Job.LOCALDEBUGFLAG) return;
-//        List<WindowJMenuItem> menus = dynamicJItems.get(wf);
-//
-//        if (menus == null) return;
-//        dynamicJItems.put(wf, null);
-//
-//        if (TopLevel.isMDIMode())
-//        {
-//            assert(menus.size() == 1);
-//            for (JMenuItem menu : menus)
-//            {
-//                theDynamicMenu.remove(menu);
-//            }
-//        }
-//        else
-//        {
-//            for (WindowJMenuItem menu : menus)
-//            {
-//                WindowFrame w = menu.window;
-//                w.getDynamicMenu().remove(menu);
-//            }
-//        }
-//    }
-//
-//    private static class WindowEMenu extends EMenu {
-//        public WindowEMenu(String text, EMenuItem... items) {
-//            super(text, items);
-//        }
-//        protected void storeMenuItem(JMenu item, WindowFrame frame)
-//        {
-//            if (frame != null)
-//                frame.setDynamicMenu(item);
-//            else
-//                theDynamicMenu = item;
-//        }
-//    }
 
     public static void fullDisplay()
     {
