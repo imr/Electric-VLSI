@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/8/06, SMR) Too much selected after "Up Hierarchy" (Bug #1105).
+FIX: In EditWindow.upHierarchy(), set selection only if no previous cell
+     history found.  In WindowFrame.setCellByHistory(), set only port
+     or highlights, but not both.
+
 BUG: (6/8/06, SMR) "Show ports on node" and other export highlighting
      crops text on the right side (Bug #1030).
 FIX: In ExportChanges.showPortsAndExports(), draw text better.

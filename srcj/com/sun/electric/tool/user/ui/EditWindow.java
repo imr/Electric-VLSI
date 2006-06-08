@@ -3313,16 +3313,24 @@ public class EditWindow extends JPanel
 			        }
 					showCell(parent, context, true, da);
 			        wf.addToHistory(parent, context, da);
+
+					// highlight node we came from
+					if (selectedExport != null)
+						pi = no.getNodeInst().findPortInstFromProto(selectedExport);
+	                if (pi != null)
+	                    highlighter.addElectricObject(pi, parent);
+	                else
+						highlighter.addElectricObject(no.getNodeInst(), parent);
 				}
 				clearSubCellCache();
 
-				// highlight node we came from
-				if (selectedExport != null)
-					pi = no.getNodeInst().findPortInstFromProto(selectedExport);
-                if (pi != null)
-                    highlighter.addElectricObject(pi, parent);
-                else
-					highlighter.addElectricObject(no.getNodeInst(), parent);
+//				// highlight node we came from
+//				if (selectedExport != null)
+//					pi = no.getNodeInst().findPortInstFromProto(selectedExport);
+//                if (pi != null)
+//                    highlighter.addElectricObject(pi, parent);
+//                else
+//					highlighter.addElectricObject(no.getNodeInst(), parent);
 
                 // highlight portinst selected at the time, if any
                 SelectObject.selectObjectDialog(parent, true);

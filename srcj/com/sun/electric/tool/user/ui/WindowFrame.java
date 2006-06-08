@@ -1313,14 +1313,13 @@ public class WindowFrame extends Observable
 		if (history.cell != null && !history.cell.getView().isTextView())
 		{
 			EditWindow wnd = (EditWindow)content;
-			if (history.highlights != null)
-			{
-				wnd.getHighlighter().setHighlightList(history.highlights);
-				wnd.getHighlighter().setHighlightOffset((int)history.offX, (int)history.offY);
-			}
 			if (history.da.selPort != null)
 			{
 				wnd.getHighlighter().addElectricObject(history.da.selPort, history.cell);
+			} else if (history.highlights != null)
+			{
+				wnd.getHighlighter().setHighlightList(history.highlights);
+				wnd.getHighlighter().setHighlightOffset((int)history.offX, (int)history.offY);
 			}
 			wnd.repaintContents(null, false);
 		}
