@@ -87,7 +87,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	/** list of Cells in this library */					final TreeMap<CellName,Cell> cells = new TreeMap<CellName,Cell>();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
     /** preferences for this library */                     Preferences prefs;
-    /** DELIB cell files. */                                private HashSet<String> delibCellFiles;
+    /** DELIB cell files. */                                private HashSet<String> delibCellFiles = new HashSet<String>();
 
 	/** preferences for all libraries */					private static Preferences allPrefs = null;
 	/** the current library in Electric */					private static Library curLib = null;
@@ -1189,6 +1189,7 @@ public class Library extends ElectricObject implements Comparable<Library>
      * @param delibCellFiles DELIB cell files.
      */
     public void setDelibCellFiles(HashSet<String> delibCellFiles) {
-        this.delibCellFiles = delibCellFiles;
+        this.delibCellFiles.clear();
+        this.delibCellFiles.addAll(delibCellFiles);
     }
 }
