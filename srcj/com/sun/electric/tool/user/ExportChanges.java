@@ -50,6 +50,12 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.font.LineMetrics;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -1102,8 +1108,6 @@ public final class ExportChanges
 				Poly poly = pp.getOriginalPort().getPoly();
 
 				Point2D ptOut = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-//				if ((w->state&INPLACEEDIT) != 0)
-//					xform(xout, yout, &xout, &yout, w->outofcell);
 				if (ptOut.getX() < displayable.getMinX() || ptOut.getX() > displayable.getMaxX() ||
 					ptOut.getY() < displayable.getMinY() || ptOut.getY() > displayable.getMaxY())
 				{
@@ -1128,8 +1132,6 @@ public final class ExportChanges
 					Poly poly = pi.getPoly();
 
 					Point2D ptOut = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-//					if ((w->state&INPLACEEDIT) != 0)
-//						xform(xout, yout, &xout, &yout, w->outofcell);
 					if (ptOut.getX() < displayable.getMinX() || ptOut.getX() > displayable.getMaxX() ||
 						ptOut.getY() < displayable.getMinY() || ptOut.getY() > displayable.getMaxY())
 					{
@@ -1145,10 +1147,16 @@ public final class ExportChanges
 			}
 		}
 
+		// determine the height of text in screen space
+        int fontSize = EditWindow.getDefaultFontSize();
+        Point screenOrigin = wnd.databaseToScreen(0, 0);
+		Point2D thPoint = wnd.screenToDatabase(screenOrigin.x, screenOrigin.y + fontSize);
+		double textHeight = Math.abs(thPoint.getY());
+
 		// determine the location of the port labels
 		Point2D [] labelLocs = new Point2D.Double[total];
-		double digitIndentX = displayable.getWidth() / 15;
-		double digitIndentY = displayable.getHeight() / 15;
+		double digitIndentX = displayable.getWidth() / 20;
+		double digitIndentY = displayable.getHeight() / 20;
 		int numPerSide = (total + 3) / 4;
 		int leftSideCount, topSideCount, rightSideCount, botSideCount;
 		leftSideCount = topSideCount = rightSideCount = botSideCount = numPerSide;
@@ -1166,8 +1174,9 @@ public final class ExportChanges
 		}
 		for(int i=0; i<topSideCount; i++)
 		{
+			double shift = (i % 3) * textHeight - textHeight;
 			labelLocs[fill++] = new Point2D.Double(displayable.getWidth() / (topSideCount+1) * (i+1) + displayable.getMinX(),
-				displayable.getMaxY() - digitIndentY);
+				displayable.getMaxY() - digitIndentY - shift);
 		}
 		for(int i=0; i<rightSideCount; i++)
 		{
@@ -1176,14 +1185,10 @@ public final class ExportChanges
 		}
 		for(int i=0; i<botSideCount; i++)
 		{
+			double shift = (i % 3) * textHeight - textHeight;
 			labelLocs[fill++] = new Point2D.Double(displayable.getMaxX() - displayable.getWidth() / (botSideCount+1) * (i+1),
-				displayable.getMinY() + digitIndentY);
+				displayable.getMinY() + digitIndentY - shift);
 		}
-//		for(int i=0; i<total; i++)
-//		{
-//			if ((w->state&INPLACEEDIT) != 0)
-//				xform(labelLocs[i], &labelLocs[i], w->intocell);
-//		}
 
 		// build a sorted list of ports around the center
 		double x = 0, y = 0;
@@ -1225,20 +1230,60 @@ public final class ExportChanges
 
 		// show the ports
         Highlighter highlighter = wnd.getHighlighter();
-		//highlighter.clear();
-        /*
-		if (nodes != null)
-		{
-			for(NodeInst ni : nodes)
-			{
-				highlighter.addElectricObject(ni, cell);
-			}
-		}*/
+		Font font = wnd.getFont(null);
+		FontRenderContext frc = new FontRenderContext(null, true, true);
+		LineMetrics lm = font.getLineMetrics("hy", frc);
+		double baselineVer = wnd.getTextUnitSize(lm.getDescent());
+		double baselineHor = wnd.getTextUnitSize(2);
+
 		for(int i=0; i<total; i++)
 		{
 			int index = (bestOff + i) % total;
-			highlighter.addMessage(cell, portList[index].pp.getName(), labelLocs[i]);
-			highlighter.addLine(labelLocs[i], portList[index].loc, cell);
+			Point2D loc = labelLocs[i];
+			String msg = portList[index].pp.getName();
+
+			// get the connecting-line coordinates in screen space
+	        Point locationLabel = wnd.databaseToScreen(loc.getX(), loc.getY());
+	        Point locationPort = wnd.databaseToScreen(portList[index].loc.getX(), portList[index].loc.getY());
+
+	        // determine the opposite corner of the text
+			GlyphVector v = font.createGlyphVector(frc, msg);
+			Rectangle2D glyphBounds = v.getLogicalBounds();
+	        int otherX = locationLabel.x + (int)glyphBounds.getWidth();
+	        int otherY = locationLabel.y - (int)glyphBounds.getHeight();
+			Point2D locOther = wnd.screenToDatabase(otherX, otherY);
+
+	        // if the text is off-screen, adjust it
+	        if (otherX > wnd.getSize().width)
+	        {
+	        	int offDist = otherX - wnd.getSize().width;
+	        	locationLabel.x -= offDist;
+	        	otherX -= offDist;
+	        	loc = wnd.screenToDatabase(locationLabel.x, locationLabel.y);
+	        }
+
+	        // change the attachment point on the label to be closest to the port
+	        if (Math.abs(locationPort.x-locationLabel.x) > Math.abs(locationPort.x-otherX))
+	        	locationLabel.x = otherX;
+	        if (Math.abs(locationPort.y-locationLabel.y) > Math.abs(locationPort.y-otherY))
+	        	locationLabel.y = otherY;
+
+	        // convert this shift back to database units for the highlight
+			Point2D locLineEnd = wnd.screenToDatabase(locationLabel.x, locationLabel.y);
+
+			// draw the port name
+			highlighter.addMessage(cell, msg, new Point2D.Double(loc.getX()+baselineHor, loc.getY()+baselineVer));
+
+			// draw a box around the text
+			Point2D odd1 = new Point2D.Double(loc.getX(), locOther.getY());
+			Point2D odd2 = new Point2D.Double(locOther.getX(), loc.getY());
+			highlighter.addLine(loc, odd1, cell);
+			highlighter.addLine(odd1, locOther, cell);
+			highlighter.addLine(locOther, odd2, cell);
+			highlighter.addLine(odd2, loc, cell);
+
+			// draw a line from the text to the port
+			highlighter.addLine(locLineEnd, portList[index].loc, cell);
 		}
 		highlighter.finished();
 		if (total == 0)

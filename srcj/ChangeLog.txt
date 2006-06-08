@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/8/06, SMR) "Show ports on node" and other export highlighting
+     crops text on the right side (Bug #1030).
+FIX: In ExportChanges.showPortsAndExports(), draw text better.
+
 BUG: (6/8/06, GVG) Waveform viewer does not display DC signals from EPIC output (Bug#1103)
 FIX: Wrong boundary condition for end point events.
 
