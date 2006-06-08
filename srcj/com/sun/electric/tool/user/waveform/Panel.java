@@ -1372,7 +1372,7 @@ public class Panel extends JPanel
 							oSig.getEvent(s, i, result);
 							x = convertXDataToScreen(result[1]);
 						}
-						if ((x > vertAxisPos && x < sz.width) ||
+						if ((x >= vertAxisPos && x <= sz.width) ||
 							(lastX > vertAxisPos && lastX < sz.width))
 						{
 	                        if (i != 0)
