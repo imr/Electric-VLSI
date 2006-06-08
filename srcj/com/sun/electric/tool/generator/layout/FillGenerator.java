@@ -2386,11 +2386,12 @@ public class FillGenerator {
         double drcSpacingRule;
         boolean binary;
         boolean useMaster;
+        boolean onlyAround;
 
         public FillGeneratorConfig(Technology tech, String lib, ExportConfig perim, int first, int last,
                                    double w, double h, boolean even,
                                    int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
-                                   boolean binary, boolean useMaster)
+                                   boolean binary, boolean useMaster, boolean onlyAround)
         {
             this.cellTiles = cellTiles;
             this.hierarchy = hierarchy;
@@ -2418,6 +2419,7 @@ public class FillGenerator {
             this.perim = perim;
             this.firstLayer = first;
             this.lastLayer = last;
+            this.onlyAround = onlyAround;
         }
 
         public void setTargetValues(double targetW, double targetH, double sx, double sy) 

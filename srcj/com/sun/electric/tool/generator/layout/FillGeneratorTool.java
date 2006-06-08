@@ -372,8 +372,10 @@ public class FillGeneratorTool extends Tool {
             {
                 NodeInst ni = it.next();
                 NodeProto np = ni.getProto();
-                if (np == Generic.tech.afgNode)
+                // Creates fill only arounds the top cells
+                if (np == Generic.tech.afgNode || fillGenConfig.onlyAround && ni.isCellInstance())
                     exclusionArea.add(new Area(ni.getBounds()));
+
             }
 
             Cell fillCell = (fillGenConfig.hierarchy) ?
