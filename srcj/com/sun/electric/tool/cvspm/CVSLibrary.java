@@ -51,7 +51,7 @@ public class CVSLibrary {
     private State libState;                 // only used for non-DELIB file types
     private Map<Cell,State> cellStates;
     private Map<Cell,Cell> editing;         // list of cells I am editing
-    private boolean libEditing;                 // true if library is being edited (only for JELIB, DELIB)
+    private boolean libEditing;                 // true if library is being edited (only for JELIB, ELIB)
 
     private static Map<Library,CVSLibrary> CVSLibraries = new HashMap<Library,CVSLibrary>();
 
@@ -305,7 +305,8 @@ public class CVSLibrary {
     }
 
     public static Color getColor(State state) {
-        if (state == State.UPDATE) return Color.black;
+        if (state == State.NONE) return Color.black;
+        if (state == State.UPDATE) return Color.magenta;
         if (state == State.MODIFIED) return Color.blue;
         if (state == State.CONFLICT) return Color.red;
         if (state == State.ADDED) return Color.green;

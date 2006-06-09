@@ -299,7 +299,7 @@ public class Update {
                 }
             }
             // update states
-            updateStates(result);
+            updateStates(result, type);
             System.out.println(getMessage(type)+" complete.");
             if (inJob) fieldVariableChanged("libsToReload");
             return true;
@@ -356,7 +356,7 @@ public class Update {
         return "";
     }
 
-    private static void updateStates(StatusResult result) {
+    private static void updateStates(StatusResult result, int type) {
         for (Cell cell : result.getCells(State.ADDED)) {
             CVSLibrary.setState(cell, State.ADDED);
         }
@@ -370,7 +370,10 @@ public class Update {
             CVSLibrary.setState(cell, State.CONFLICT);
         }
         for (Cell cell : result.getCells(State.UPDATE)) {
-            CVSLibrary.setState(cell, State.UPDATE);
+            if (type == STATUS)
+                CVSLibrary.setState(cell, State.UPDATE);
+            else
+                CVSLibrary.setState(cell, State.NONE);
         }
         for (Cell cell : result.getCells(State.UNKNOWN)) {
             CVSLibrary.setState(cell, State.UNKNOWN);

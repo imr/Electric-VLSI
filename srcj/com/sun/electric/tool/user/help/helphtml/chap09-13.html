@@ -25,15 +25,17 @@ format, the library name and all cells are the same color, because
 the entire library is a single file.  When using
 a DELIB format, the cells are different color, because each cell
 is its own file.  The colors and their associated state
-are shown below.
+are shown below.  Colors at the top of the table will be displayed before colors
+at the bottom of the table, if two states are simultaneously valid.
 <P>
 <TABLE border="1">
 <TR><TD><B>State</B></TD><TD><B>Color</B></TD></TR>
-<TR><TD>Up-to-date</TD><TD>Black</TD></TR>
-<TR><TD>Locally Modified</TD><TD><font color="#0000ff">Blue</font></TD></TR>
 <TR><TD>Conflicts with CVS version</TD><TD><font color="#ff0000">Red</font></TD></TR>
+<TR><TD>Locally Modified</TD><TD><font color="#0000ff">Blue</font></TD></TR>
+<TR><TD>Needs Update</TD><TD><font color="#FF66FF">Magenta</font></TD></TR>
 <TR><TD>Added/Removed</TD><TD><font color="#00ff00">Green</font></TD></TR>
-<TR><TD>Unknown (not in CVS)</TD><TD><font color="#ff8040">Orange</font></TD></TR>
+<TR><TD>Unknown (not in CVS)</TD><TD><font color="#FFCC66">Orange</font></TD></TR>
+<TR><TD>Up-to-date</TD><TD>Black</TD></TR>
 </TABLE>
 <P>
 To manipulate all libraries, use commands under <B>Tools / CVS</B>.
