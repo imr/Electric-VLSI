@@ -1484,18 +1484,36 @@ public class EditWindow extends JPanel
 			Layer layer = it.next();
         	Layer.Function fun = layer.getFunction();
         	int extra = layer.getFunctionExtras();
-        	double opacity = 1;
+        	double opacity = 0.4;
         	if (fun.isMetal())
         	{
-        		opacity = 0.85 - fun.getLevel() * 0.05;
+        		opacity = 0.5 - fun.getLevel() * 0.03;
         	} else if (fun.isContact())
         	{
         		if ((extra&Layer.Function.CONMETAL) != 0) opacity = 0.5; else
-        			opacity = 0.75;
+        			opacity = 1;
         	} else if (fun == Layer.Function.OVERGLASS)
         	{
         		opacity = 0.2;
-        	}
+            } else if (fun == Layer.Function.POLY1 ||
+                       fun == Layer.Function.POLY2 ||
+                       fun == Layer.Function.POLY3 ||
+                       fun == Layer.Function.GATE ||
+                       fun == Layer.Function.DIFF ||
+                       fun == Layer.Function.DIFFP ||
+                       fun == Layer.Function.DIFFN ||
+                       fun == Layer.Function.WELL ||
+                       fun == Layer.Function.WELLP ||
+                       fun == Layer.Function.WELLN ||
+                       fun == Layer.Function.IMPLANT ||
+                       fun == Layer.Function.IMPLANTN ||
+                       fun == Layer.Function.IMPLANTP) {
+                // lowest level layers should all be opaque
+                opacity = 1.0;
+            } else if (fun == Layer.Function.ART) {
+                if (layer.getName().equals("Glyph"))
+                    opacity = 0;        // essential bounds
+            }
 			if (!layer.isVisible()) opacity = 0;
 			layer.getGraphics().setOpacity(opacity);
         }
