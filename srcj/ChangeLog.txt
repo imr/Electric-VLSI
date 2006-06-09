@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/8/06, DN) Duisplay mode isn't chang immediiately.
+FIX: Call EditWindow.displayAlgorithmChanged() from DIsplayControlTab.
+
 BUG: (6/8/06, DN) Export->ReExport* broken (Bug #1107).
 FIX: In PortInst.hasConnections().
-
 
 IMP/MAN: (6/8/06, GVG) Electric needs a way to cycle through windows (bug #954)
 Final solution in CVS. Cycle through all WindowFrame windows + messages window

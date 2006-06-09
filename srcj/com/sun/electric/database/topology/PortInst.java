@@ -126,8 +126,7 @@ public class PortInst extends ElectricObject
 	 */
 	public boolean hasConnections() {
         Iterator<Connection> it = nodeInst.getConnections(getPortIndex());
-        if (!it.hasNext()) return false;
-        return it.next().getPortInst() == this;
+        return it.hasNext() && it.next().getPortInst() == this;
     }
     
 	/**

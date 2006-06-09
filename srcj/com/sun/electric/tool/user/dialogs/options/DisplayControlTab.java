@@ -104,8 +104,10 @@ public class DisplayControlTab extends PreferencePanel
 		if (pixelDisplay.isSelected()) currInt = 0; else
 			if (vectorDisplay.isSelected()) currInt = 1; else
 				if (layerDisplay.isSelected()) currInt = 2;
-		if (currInt != User.getDisplayAlgorithm())
+		if (currInt != User.getDisplayAlgorithm()) {
 			User.setDisplayAlgorithm(currInt);
+            EditWindow.displayAlgorithmChanged();
+        }
 
 		currBoolean = generalUseGreekImages.isSelected();
 		if (currBoolean != User.isUseCellGreekingImages())

@@ -1336,6 +1336,22 @@ public class EditWindow extends JPanel
 	public void fullRepaint() { repaintContents(null, false); }
 
 	/**
+	 * Method requests that every EditWindow be redrawn, including a change of display algorithm.
+	 */
+	public static void displayAlgorithmChanged()
+	{
+		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = it.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			EditWindow wnd = (EditWindow)content;
+            wnd.drawing = User.getDisplayAlgorithm() == 2 ? new LayerDrawing.Drawing(wnd) : new PixelDrawing.Drawing(wnd);
+			wnd.repaintContents(null, false);
+		}
+	}
+
+	/**
 	 * Method requests that every EditWindow be redrawn, including a rerendering of its contents.
 	 */
 	public static void repaintAllContents()
