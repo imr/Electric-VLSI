@@ -1968,7 +1968,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
             cvsMenu.add(menuItem);
             menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) {
                 cvsUpdate(Update.ROLLFORWARD); }});
-            menuItem.setEnabled(states.size() == 1 && states.contains(State.CONFLICT));
+            menuItem.setEnabled(false); // need more safeguards before I should enable this
+            //menuItem.setEnabled(states.size() == 1 && states.contains(State.CONFLICT));
         }
 
         private void cvsUpdate(int type) {
