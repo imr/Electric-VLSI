@@ -96,6 +96,7 @@ public class OpenFile
 			if (setSelectedDirAsWorkingDir)
                 User.setWorkingDirectory(getCurrentDirectory().getPath());
 
+            if (fileType != null)
             fileType.setGroupPath(getCurrentDirectory().getPath());
 			super.approveSelection();
 		}
