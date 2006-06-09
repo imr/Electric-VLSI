@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/9/06, GVG) Inconsistent scale for angles in GetNodeInfo v/s GetMultiInfo (Bug#1109)
+FIX: Values in GetInfoMulti.java were inconsistently scaled to integers.
+
 BUG: (6/9/06, GVG) Bogus min area drc errors reported on dp_stageN{lay} (Bug #1111).
 Problem: the abort signal given by user was not considered when leaving the cell using the enumerator.
 FIX: Extra condition added.

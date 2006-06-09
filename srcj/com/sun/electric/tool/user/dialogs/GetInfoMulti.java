@@ -87,36 +87,13 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 {
     private enum ChangeType {
         CHANGEXSIZE, CHANGEYSIZE, CHANGEXPOS, CHANGEYPOS, CHANGEROTATION,
-        CHANGEMIRRORLR,
-	CHANGEMIRRORUD,
-	CHANGEEXPANDED,
-	CHANGEEASYSELECT,
-	CHANGEINVOUTSIDECELL,
-	CHANGELOCKED,
-	CHANGEWIDTH,
-	CHANGERIGID,
-	CHANGEFIXANGLE,
-	CHANGESLIDABLE,
-	CHANGEEXTENSION,
-	CHANGEDIRECTION,
-	CHANGENEGATION,
-	CHANGECHARACTERISTICS,
-	CHANGEBODYONLY,
-	CHANGEALWAYSDRAWN,
-	CHANGEPOINTSIZE,
-	CHANGEUNITSIZE,
-	CHANGEXOFF,
-	CHANGEYOFF,
-	CHANGETEXTROT,
-	CHANGEANCHOR,
-	CHANGEFONT,
-	CHANGECOLOR,
-	CHANGEBOLD,
-	CHANGEITALIC,
-	CHANGEUNDERLINE,
-	CHANGECODE,
-	CHANGEUNITS,
-	CHANGESHOW
+        CHANGEMIRRORLR, CHANGEMIRRORUD, CHANGEEXPANDED, CHANGEEASYSELECT,
+        CHANGEINVOUTSIDECELL, CHANGELOCKED, CHANGEWIDTH, CHANGERIGID,
+        CHANGEFIXANGLE, CHANGESLIDABLE, CHANGEEXTENSION, CHANGEDIRECTION,
+        CHANGENEGATION, CHANGECHARACTERISTICS, CHANGEBODYONLY, CHANGEALWAYSDRAWN,
+        CHANGEPOINTSIZE, CHANGEUNITSIZE, CHANGEXOFF, CHANGEYOFF, CHANGETEXTROT,
+        CHANGEANCHOR, CHANGEFONT, CHANGECOLOR, CHANGEBOLD, CHANGEITALIC,
+        CHANGEUNDERLINE, CHANGECODE, CHANGEUNITS, CHANGESHOW
     }
 
 	private static GetInfoMulti theDialog = null;
@@ -417,9 +394,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 							msg = "(" + TextUtils.formatDouble(yPositionLow) + " to " + TextUtils.formatDouble(yPositionHigh) + ")";
 						addChangePossibility("Y position:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
-					case CHANGEROTATION:
-                        if (rotLow == rotHigh) msg = "(All are " + TextUtils.formatDouble(rotLow) + ")";
-                        else msg = "(" + TextUtils.formatDouble(rotLow) + " to " + TextUtils.formatDouble(rotHigh) + ")";
+					case CHANGEROTATION:;
+                        if (rotLow == rotHigh) msg = "(All are " + TextUtils.formatDouble(rotHigh/10.0) + ")";
+                        else msg = "(" + TextUtils.formatDouble(rotLow/10.0) + " to " + TextUtils.formatDouble(rotHigh/10.0) + ")";
 						addChangePossibility("Rotation:", currentChangeValues[c] = new JTextField(""), msg, onePanel);
 						break;
 					case CHANGEMIRRORLR:
