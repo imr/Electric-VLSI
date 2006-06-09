@@ -46,6 +46,7 @@ public class OpenFile
 	{
 		/** True if this is a file save dialog */						private boolean saveDialog;
         /** True to set new dir as working dir (default is true) */     private boolean setSelectedDirAsWorkingDir;
+        private FileType fileType;
 
 		/** Private constructor, use factory methods chooseInputFile or
 		 * chooseOutputFile instead.
@@ -94,6 +95,8 @@ public class OpenFile
 			setSelectedFile(f);
 			if (setSelectedDirAsWorkingDir)
                 User.setWorkingDirectory(getCurrentDirectory().getPath());
+
+            fileType.setGroupPath(getCurrentDirectory().getPath());
 			super.approveSelection();
 		}
 
@@ -189,6 +192,10 @@ public class OpenFile
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
             dialog.setSelectedDirAsWorkingDir = setSelectedDirAsWorkingDir;
+            dialog.fileType = type;
+            String path = type.getGroupPath();
+//            if (path != null)
+//                initialDir = path;
 			dialog.setDialogTitle(title);
             File dir = new File(initialDir);
             if (!dir.exists() || !dir.isDirectory()) dir = new File(User.getWorkingDirectory());

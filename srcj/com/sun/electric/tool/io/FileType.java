@@ -23,8 +23,12 @@
  */
 package com.sun.electric.tool.io;
 
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.tool.user.User;
+
 import javax.swing.filechooser.FileFilter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.io.FilenameFilter;
 import java.io.File;
 import java.io.ObjectStreamException;
@@ -34,6 +38,11 @@ import java.io.Serializable;
  * A typesafe enum class that describes the types of files that can be read or written.
  */
 public class FileType implements Serializable {
+    private static final FileTypeGroup DATABASEGRP = new FileTypeGroup("Database", User.getWorkingDirectory());
+    private static final FileTypeGroup SIMULATIONGRP = new FileTypeGroup("Simulation", User.getWorkingDirectory());
+    private static final FileTypeGroup EXPORTGRP = new FileTypeGroup("Export", User.getWorkingDirectory());
+
+
 	/** all types */                        private static final ArrayList<FileType> allTypes = new ArrayList<FileType>();
 
 	/** Describes any file.*/				public static final FileType ANY          = makeFileType("All", new String[] {}, "All Files");
@@ -59,9 +68,9 @@ public class FileType implements Serializable {
 	/** Describes ESIM/RNL output. */		public static final FileType ESIM         = makeFileType("ESIM", new String[] {"sim"}, "ESIM File (sim)");
 	/** Describes FastHenry files.*/		public static final FileType FASTHENRY    = makeFileType("FastHenry", new String[] {"inp"}, "FastHenry File (inp)");
 	/** Describes FPGA files.*/				public static final FileType FPGA         = makeFileType("FPGA", new String[] {"fpga"}, "FPGA Architecture File (fpga)");
-	/** Describes GDS files. */				public static final FileType GDS          = makeFileType("GDS", new String[] {"gds"}, "GDS File (gds)");
+	/** Describes GDS files. */				public static final FileType GDS          = makeFileType("GDS", new String[] {"gds"}, "GDS File (gds)", EXPORTGRP);
 	/** Describes GDS layer Map files. */	public static final FileType GDSMAP       = makeFileType("GDS Map", new String[] {"map"}, "GDS Layer Map File (map)");
-	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = makeFileTypeNumeric("HSpice Output", new String[] {"tr"}, "HSpice Output File (tr0,1,2...)");
+	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = makeFileTypeNumeric("HSpice Output", new String[] {"tr"}, "HSpice Output File (tr0,1,2...)", SIMULATIONGRP);
 	/** Describes HPGL files. */			public static final FileType HPGL         = makeFileType("HPGL", new String[] {"hpgl2"}, "HPGL File (hpgl2)");
 	/** Describes HTML files. */			public static final FileType HTML         = makeFileType("HTML", new String[] {"html"}, "HTML File (html)");
 	/** Describes HTML files. */			public static final FileType I            = makeFileType("I", new String[] {"i"}, "Estimated Currents File (i)");
@@ -69,7 +78,7 @@ public class FileType implements Serializable {
 	/** Describes IRSIM parameter decks. */	public static final FileType IRSIMPARAM   = makeFileType("IRSIM Parameters", new String[] {"prm"}, "IRSIM Parameter Deck (prm)");
 	/** Describes IRSIM vector decks. */	public static final FileType IRSIMVECTOR  = makeFileType("IRSIM Vectors", new String[] {"cmd"}, "IRSIM Vector Deck (cmd)");
 	/** Describes Java source. */			public static final FileType JAVA         = makeFileType("Java", new String[] {"java", "bsh"}, "Java Script File (java, bsh)");
-	/** Describes JELIB files.*/			public static final FileType JELIB        = makeFileType("JELIB", new String[] {"jelib"}, "Library File (jelib)");
+	/** Describes JELIB files.*/			public static final FileType JELIB        = makeFileType("JELIB", new String[] {"jelib"}, "Library File (jelib)", DATABASEGRP);
     /** Describes J3D files.*/				public static final FileType J3D          = makeFileType("J3D", new String[] {"j3d"}, "Java3D Demo File (j3d}");
     /** Describes L files.*/				public static final FileType L            = makeFileType("L", new String[] {"L"}, "L File (L)");
 	/** Describes LEF files.*/				public static final FileType LEF          = makeFileType("LEF", new String[] {"lef"}, "LEF File (lef)");
@@ -124,7 +133,8 @@ public class FileType implements Serializable {
 		libraryTypesExtReadable = buf.toString();
 	}
 
-	/** Valid library formats as a Type */  public static final FileType LIBRARYFORMATS = makeFileType("LibraryFormats", libraryTypesExt, "Library Formats "+libraryTypesExtReadable);
+	/** Valid library formats as a Type */  public static final FileType LIBRARYFORMATS = makeFileType("LibraryFormats",
+            libraryTypesExt, "Library Formats "+libraryTypesExtReadable, DATABASEGRP);
 
 	private String name;
 	private String [] extensions;
@@ -132,26 +142,75 @@ public class FileType implements Serializable {
 	private boolean allowNumbers;
 	private transient FileFilterSwing ffs;
 	private transient FileFilterAWT ffa;
+    private FileTypeGroup group;
 
 	private FileType() {}
+
+    private static class FileTypeGroup implements Serializable
+    {
+        /** preferences for all FileTypes */					private static Pref.Group prefs = null;
+        private static HashMap<FileTypeGroup,Pref> groupPrefs = new HashMap<FileTypeGroup,Pref>();
+
+        String groupName;
+        FileTypeGroup(String grpName, String factory)
+        {
+            if (prefs == null) prefs = Pref.groupForPackage(FileType.class);
+            groupName = grpName;
+            Pref path = Pref.makeStringPref("FileTypeGroup"+groupName, IOTool.getIOTool().prefs, factory);
+            groupPrefs.put(this, path);
+        }
+
+        void setPath(String p)
+        {
+            Pref path = groupPrefs.get(this);
+            path.setString(p);
+        }
+        String getPath()
+        {
+            Pref path = groupPrefs.get(this);
+            return path.getString();
+        }
+    }
+
+    public void setGroupPath(String path)
+    {
+        if (group == null) return; // nothing to do
+        group.setPath(path);
+    }
+
+    public String getGroupPath()
+    {
+        if (group == null) return null;
+        return group.getPath();
+    }
+
+    private static FileType makeFileType(String name, String [] extensions, String desc, FileTypeGroup g)
+    {
+        FileType f = makeFileType(name, extensions, desc);
+        f.group = g;
+        return f;
+    }
 
 	private static FileType makeFileType(String name, String [] extensions, String desc)
 	{
 		FileType ft = new FileType();
+
 		ft.name = name;
 		ft.extensions = extensions;
 		ft.desc = desc;
 		ft.ffs = null;
 		ft.ffa = null;
 		ft.allowNumbers = false;
+        ft.group = null;
 		allTypes.add(ft);
 		return ft;
 	}
 
-	private static FileType makeFileTypeNumeric(String name, String [] extensions, String desc)
+	private static FileType makeFileTypeNumeric(String name, String [] extensions, String desc, FileTypeGroup g)
 	{
 		FileType ft = makeFileType(name, extensions, desc);
 		ft.allowNumbers = true;
+        ft.group = g;
 		return ft;
 	}
 
