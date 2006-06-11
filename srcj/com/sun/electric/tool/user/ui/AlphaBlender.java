@@ -53,7 +53,7 @@ class AlphaBlender {
         
     private AlphaBlendGroup[] groups;
     private byte[][] layerBytes;
-    private int m0, m1, m2, m3, m4, m5, m6, m7;
+//    private int m0, m1, m2, m3, m4, m5, m6, m7;
     
     private int r0, r1, r2, r3, r4, r5, r6, r7;
     private int g0, g1, g2, g3, g4, g5, g6, g7;
@@ -83,43 +83,63 @@ class AlphaBlender {
         }
     }
     
-    private void unpackBytes(int index) {
-        // unpack pixels
-        int pixel0 = 0, pixel1 = 0, pixel2 = 0, pixel3 = 0, pixel4 = 0, pixel5 = 0, pixel6 = 0, pixel7 = 0;
-        for (int i = 0; i < layerBytes.length; i++) {
-            int value = layerBytes[i][index];
-            if (value == 0) continue;
-            pixel0 |= (value & 1) << i;
-            pixel1 |= ((value >> 1) & 1) << i;
-            pixel2 |= ((value >> 2) & 1) << i;
-            pixel3 |= ((value >> 3) & 1) << i;
-            pixel4 |= ((value >> 4) & 1) << i;
-            pixel5 |= ((value >> 5) & 1) << i;
-            pixel6 |= ((value >> 6) & 1) << i;
-            pixel7 |= ((value >> 7) & 1) << i;
+//    private void unpackBytes(int index) {
+//        // unpack pixels
+//        int pixel0 = 0, pixel1 = 0, pixel2 = 0, pixel3 = 0, pixel4 = 0, pixel5 = 0, pixel6 = 0, pixel7 = 0;
+//        for (int i = 0; i < layerBytes.length; i++) {
+//            int value = layerBytes[i][index];
+//            if (value == 0) continue;
+//            pixel0 |= (value & 1) << i;
+//            pixel1 |= ((value >> 1) & 1) << i;
+//            pixel2 |= ((value >> 2) & 1) << i;
+//            pixel3 |= ((value >> 3) & 1) << i;
+//            pixel4 |= ((value >> 4) & 1) << i;
+//            pixel5 |= ((value >> 5) & 1) << i;
+//            pixel6 |= ((value >> 6) & 1) << i;
+//            pixel7 |= ((value >> 7) & 1) << i;
+//        }
+//        m0 = pixel0;
+//        m1 = pixel1;
+//        m2 = pixel2;
+//        m3 = pixel3;
+//        m4 = pixel4;
+//        m5 = pixel5;
+//        m6 = pixel6;
+//        m7 = pixel7;
+//    }
+//    
+//    void composeBytes_(int inputOffset, int numBytes, int[] opaqueData, int outputOffset) {
+//        this.opaqueData = opaqueData;
+//        for (int index = 0; index < numBytes; index++) {
+//            for (AlphaBlendGroup group: groups)
+//                group.unpackBytes(inputOffset);
+//            inputOffset++;
+//            outputOffset = storeRGB8_(outputOffset);
+//        }
+//    }
+    
+    void composeLine(int inputOffset, int minX, int maxX, int[] opaqueData, int opaqueOffset) {
+        int minByte = minX >> 3;
+        int maxByte = maxX >> 3;
+        if (minByte == maxByte) {
+            byte mask = (byte)((1 << ((maxX&7) + 1)) - (1 << (minX&7)));
+            composeBits(inputOffset + minByte, mask, opaqueData, opaqueOffset + (minByte<<3));
+        } else {
+            if ((minX&7) != 0) {
+                byte headMask = (byte) -(1 << (minX&7));
+                composeBits(inputOffset + minByte, headMask, opaqueData, opaqueOffset + (minByte<<3));
+                minByte++;
+            }
+            if ((maxX&7) != 7) {
+                byte tailMask = (byte)((1 << ((maxX&7) + 1)) - 1);
+                composeBits(inputOffset + maxByte, tailMask, opaqueData, opaqueOffset + (maxByte<<3));
+                maxByte--;
+            }
+            composeBytes(inputOffset + minByte, maxByte - minByte + 1, opaqueData, opaqueOffset + (minByte<<3));
         }
-        m0 = pixel0;
-        m1 = pixel1;
-        m2 = pixel2;
-        m3 = pixel3;
-        m4 = pixel4;
-        m5 = pixel5;
-        m6 = pixel6;
-        m7 = pixel7;
     }
     
-    int composeBytes(int inputOffset, int numBytes, int[] opaqueData, int outputOffset) {
-        int s = 0;
-        this.opaqueData = opaqueData;
-        for (int index = 0; index < numBytes; index++) {
-            unpackBytes(inputOffset);
-            inputOffset++;
-            outputOffset = storeRGB8_(outputOffset);
-        }
-        return s;
-    }
-    
-    void composeBytes0(int inputOffset, int numBytes, int[] opaqueData, int outputOffset) {
+    private void composeBytes(int inputOffset, int numBytes, int[] opaqueData, int outputOffset) {
         this.opaqueData = opaqueData;
         for (int index = 0; index < numBytes; index++) {
             for (AlphaBlendGroup group: groups)
@@ -129,7 +149,7 @@ class AlphaBlender {
         }
     }
     
-    void composeBits(int inputOffset, byte bitMask, int[] opaqueData, int outputOffset) {
+    private void composeBits(int inputOffset, byte bitMask, int[] opaqueData, int outputOffset) {
         this.opaqueData = opaqueData;
         for (AlphaBlendGroup group: groups)
             group.unpackBytes(inputOffset);
@@ -151,17 +171,17 @@ class AlphaBlender {
             storeRGB(outputOffset + 7, r7, g7, b7);
     }
     
-    private int storeRGB8_(int baseIndex) {
-        storeRGB_(baseIndex++, m0);
-        storeRGB_(baseIndex++, m1);
-        storeRGB_(baseIndex++, m2);
-        storeRGB_(baseIndex++, m3);
-        storeRGB_(baseIndex++, m4);
-        storeRGB_(baseIndex++, m5);
-        storeRGB_(baseIndex++, m6);
-        storeRGB_(baseIndex++, m7);
-        return baseIndex;
-    }
+//    private int storeRGB8_(int baseIndex) {
+//        storeRGB_(baseIndex++, m0);
+//        storeRGB_(baseIndex++, m1);
+//        storeRGB_(baseIndex++, m2);
+//        storeRGB_(baseIndex++, m3);
+//        storeRGB_(baseIndex++, m4);
+//        storeRGB_(baseIndex++, m5);
+//        storeRGB_(baseIndex++, m6);
+//        storeRGB_(baseIndex++, m7);
+//        return baseIndex;
+//    }
     
     private int storeRGB8(int baseIndex) {
         storeRGB(baseIndex++, r0, g0, b0);
@@ -175,39 +195,39 @@ class AlphaBlender {
         return baseIndex;
     }
     
-     private void storeRGB_(int baseIndex, int m) {
-        int r = 0, g = 0, b = 0;
-        for (int i = 0; i < groups.length; i++) {
-            AlphaBlendGroup group = groups[i];
-            int bits = (m >> group.groupShift) & group.groupMask;
-            int red = group.redMap[bits];
-            int green = group.greenMap[bits];
-            int blue = group.blueMap[bits];
-            int ia = group.inverseAlphaMap[bits];
-            if (ia == 0) {
-                r = red >> SCALE_SH;
-                g = green >> SCALE_SH;
-                b = blue >> SCALE_SH;
-            } else if (ia != SCALE) {
-                r = (red + r * ia) >> SCALE_SH;
-                g = (green + g * ia) >> SCALE_SH;
-                b = (blue + b * ia) >> SCALE_SH;
-            }
-        }
-        assert 0 <= r && r <= 255;
-        assert 0 <= g && g <= 255;
-        assert 0 <= b && b <= 255;
-        int color = (r << 16) | (g << 8) + b;
-        int pixelValue = opaqueData[baseIndex];
-        if (pixelValue != backgroundValue) {
-            int pixelAlpha = (pixelValue >> 24) & 0xFF;
-            if (pixelAlpha == 0xFF || pixelAlpha == 0)
-                color = pixelValue;
-            else if (pixelAlpha != 0)
-                color = alphaBlend(pixelValue, color, pixelAlpha);
-        }
-        opaqueData[baseIndex] = color;
-    }
+//     private void storeRGB_(int baseIndex, int m) {
+//        int r = 0, g = 0, b = 0;
+//        for (int i = 0; i < groups.length; i++) {
+//            AlphaBlendGroup group = groups[i];
+//            int bits = (m >> group.groupShift) & group.groupMask;
+//            int red = group.redMap[bits];
+//            int green = group.greenMap[bits];
+//            int blue = group.blueMap[bits];
+//            int ia = group.inverseAlphaMap[bits];
+//            if (ia == 0) {
+//                r = red >> SCALE_SH;
+//                g = green >> SCALE_SH;
+//                b = blue >> SCALE_SH;
+//            } else if (ia != SCALE) {
+//                r = (red + r * ia) >> SCALE_SH;
+//                g = (green + g * ia) >> SCALE_SH;
+//                b = (blue + b * ia) >> SCALE_SH;
+//            }
+//        }
+//        assert 0 <= r && r <= 255;
+//        assert 0 <= g && g <= 255;
+//        assert 0 <= b && b <= 255;
+//        int color = (r << 16) | (g << 8) + b;
+//        int pixelValue = opaqueData[baseIndex];
+//        if (pixelValue != backgroundValue) {
+//            int pixelAlpha = (pixelValue >> 24) & 0xFF;
+//            if (pixelAlpha == 0xFF || pixelAlpha == 0)
+//                color = pixelValue;
+//            else if (pixelAlpha != 0)
+//                color = alphaBlend(pixelValue, color, pixelAlpha);
+//        }
+//        opaqueData[baseIndex] = color;
+//    }
     
      private void storeRGB(int baseIndex, int red, int green, int blue) {
         assert 0 <= red && red <= 255;

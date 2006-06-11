@@ -188,12 +188,11 @@ class LayerDrawing
 	}
 
 	// statistics stuff
-	private static final boolean TAKE_STATS = true;
+	private static final boolean TAKE_STATS = false;
 	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
     private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;
     private static final boolean DEBUG = false;
-    private static boolean patternedDisplay = true;
 
     private static class ExpandedCellKey {
         private Cell cell;
@@ -281,6 +280,7 @@ class LayerDrawing
 	/** the EditWindow being drawn */						private EditWindow wnd;
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
+    /** draw layers patterned (depends on scale). */        private static boolean patternedDisplay;
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
 	/** list of cell expansions. */							private static HashMap<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
     /** Set of changed cells. */                            private static final HashSet<CellId> changedCells = new HashSet<CellId>();
@@ -338,6 +338,10 @@ class LayerDrawing
         void render(boolean fullInstantiate, Rectangle2D bounds) {
             if (offscreen == null) return;
             offscreen.drawImage(this, fullInstantiate, bounds);
+        }
+        
+        void testJogl() {
+            
         }
     }
     
@@ -499,7 +503,7 @@ class LayerDrawing
 		}
         varContext = wnd.getVarContext();
         initOrigin(expandedScale, wnd.getOffset());
-        patternedDisplay = expandedScale > User.getPatternedScaleLimit() || Technology.getCurrent() != MoCMOS.tech;
+        patternedDisplay = expandedScale > User.getPatternedScaleLimit();
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
@@ -847,21 +851,14 @@ class LayerDrawing
         alphaBlender.init(backgroundValue, wnd.getBlendingOrder(layerBytes.keySet(), false), layerBytes);
     
         long startTime = System.currentTimeMillis();
-        int numFullBytes = sz.width / 8;
-        int numTailBits = sz.width % 8;
-        byte tailBitsMask = (byte)((1 << numTailBits) - 1);
-        int baseIndex = 0, baseByteIndex = 0;
-        for (int y = 0; y < sz.height; y++) {
-            alphaBlender.composeBytes(baseByteIndex, numFullBytes, opaqueData, baseIndex);
-            if (numTailBits != 0)
-                alphaBlender.composeBits(baseByteIndex + numFullBytes, tailBitsMask, opaqueData, baseIndex + numFullBytes*8);
+        int baseIndex = clipLY*sz.width, baseByteIndex = clipLY*numBytesPerRow;
+        for (int y = clipLY; y <= clipHY; y++) {
+            alphaBlender.composeLine(baseByteIndex, clipLX, clipHX, opaqueData, baseIndex);
             baseByteIndex += numBytesPerRow;
             baseIndex += width;
         }
-        assert baseByteIndex == numBytesPerRow * sz.height; 
-        assert baseIndex == sz.width * sz.height;
         long endTime = System.currentTimeMillis();
-        System.out.println("layerComposite took " + (endTime - startTime) + " msec");
+        if (DEBUG) System.out.println("layerComposite took " + (endTime - startTime) + " msec");
     }
     
 	/**

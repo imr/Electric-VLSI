@@ -1514,7 +1514,7 @@ public class EditWindow extends JPanel
                 if (layer.getName().equals("Glyph"))
                     opacity = 0;        // essential bounds
             }
-			if (!layer.isVisible()) opacity = 0;
+//			if (!layer.isVisible()) opacity = 0;
 			layer.getGraphics().setOpacity(opacity);
         }
 	}
@@ -1539,49 +1539,23 @@ public class EditWindow extends JPanel
 
         Set<Layer> sortedLayers = new TreeSet<Layer>(Technology.LAYERS_BY_HEIGHT);
         sortedLayers.addAll(layersAvailable);
-        System.out.print("getBlendingOrder for:");
+//        System.out.print("getBlendingOrder for:");
         for(Layer layer : sortedLayers)
         {
         	double opacity = layer.getGraphics().getOpacity();
 			if (!layer.isVisible()) opacity = 0;
 			int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
 			Color color = new Color(rgba, true);
-            System.out.print(" " + layer.getName() + ":" + opacity);
+//            System.out.print(" " + layer.getName() + ":" + opacity);
 			layerColors.add(new LayerColor(layer, color));
         }
-        System.out.println();
-//        HashMap<String,Layer> layers = new HashMap<String,Layer>();
-//        System.out.print("getBlendingOrder for:");
-//        for (Layer layer: layersAvailable) {
-//            System.out.print(" " + layer.getName());
-//            layers.put(layer.getName(), layer);
-//        }
 //        System.out.println();
-//        try {
-//            BufferedReader in = new BufferedReader(new FileReader(new File("/home/dn146861/electric/opacity")));
-//            for (;;) {
-//                String s = in.readLine();
-//                if (s == null) break;
-//                if (s.charAt(0) == '#') continue;
-//                int indexSp = s.indexOf(' ');
-//                if (indexSp < 0)
-//                    throw new IOException("Bad line: " + s);
-//                String layerName = s.substring(0, indexSp);
-//                Layer layer = layers.get(layerName);
-//                if (layer == null) continue;
-//                double opacity = 0;
-//                if (layer.isVisible())
-//                    opacity = TextUtils.atof(s.substring(indexSp).trim());
-//                int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
-//                Color color = new Color(rgba, true);
-//                layerColors.add(new LayerColor(layer, color));
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-        
         return layerColors;
+    }
+    
+    public void testJogl() {
+        if (drawing instanceof LayerDrawing.Drawing)
+            ((LayerDrawing.Drawing)drawing).testJogl();
     }
     
 	// ************************************* SIMULATION CROSSPROBE LEVEL DISPLAY *************************************
