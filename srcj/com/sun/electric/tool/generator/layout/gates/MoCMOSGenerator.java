@@ -62,6 +62,8 @@ public class MoCMOSGenerator {
 		//else if (pNm.equals("nand2PHfk"))     gate = Nand2PHfk.makePart(x, sc);    
 		else if (pNm.equals("nand2_sy"))      gate = Nand2_sy.makePart(x, sc);
 		else if (pNm.equals("nand2en"))       gate = Nand2en.makePart(x, sc);
+		else if (pNm.equals("nand2LTen"))     gate = Nand2LTen.makePart(x, sc);
+		else if (pNm.equals("nand2HTen"))     gate = Nand2HTen.makePart(x, sc);
 		//else if (pNm.equals("nand2en_sy"))    gate = Nand2en_sy.makePart(x, sc);
 		else if (pNm.equals("nand3"))         gate = Nand3.makePart(x, sc);
 		else if (pNm.equals("nand3LT"))       gate = Nand3LT.makePart(x, sc);

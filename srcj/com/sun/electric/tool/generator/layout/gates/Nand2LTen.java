@@ -26,8 +26,8 @@ package com.sun.electric.tool.generator.layout.gates;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 
-public class Nand2en {
+public class Nand2LTen {
   public static Cell makePart(double sz, StdCellParams stdCell) {
-  	return Nand2_star_en.makePart(sz, "", stdCell);
+  	return Nand2_star_en.makePart(sz, "LT", stdCell);
   }
 }

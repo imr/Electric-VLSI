@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+IMP: (6/12/06, RK) Add nand2LTen and nand2HTen to MOCMOS gate generator. (Bugzilla# 1119)
+
 BUG: (6/12/06, SMR) Adding busses to the waveform window shows the signals
      in random order (Bug #1113).
 FIX: In WaveformWindow.findSelectedSignals(), sort the selected signals by name.
