@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+BUG: (6/12/06, SMR) Multi-object properties crashes (Bug #1106).
+FIX: In GetInfoMulti.applyActionPerformed(), must handle special controls.
+
 BUG: (6/12/06, SMR) Copy and paste of arcs that are offset from their
      port center adjusts the arcs to the center (Bug #1117).
 FIX: In Clipboard.java, remember offset and restore it.

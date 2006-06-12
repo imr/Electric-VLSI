@@ -632,18 +632,31 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			return TextUtils.canonicString(s1).compareTo(TextUtils.canonicString(s2));
 		}
 	}
-	
-	private JComponent findComponentRawValue(ChangeType type)
+
+	private Object findComboBoxValue(ChangeType type)
 	{
         if (currentChangeTypes != null)
         {
             for(int c=0; c<currentChangeTypes.length; c++)
             {
                 ChangeType change = currentChangeTypes[c];
-                if (change == type) return currentChangeValues[c];
+                if (change == type) return ((JComboBox)currentChangeValues[c]).getSelectedItem();
             }
         }
 		return null;
+	}
+
+	private int findComboBoxIndex(ChangeType type)
+	{
+        if (currentChangeTypes != null)
+        {
+            for(int c=0; c<currentChangeTypes.length; c++)
+            {
+                ChangeType change = currentChangeTypes[c];
+                if (change == type) return ((JComboBox)currentChangeValues[c]).getSelectedIndex();
+            }
+        }
+		return -1;
 	}
 	
 	private String findComponentStringValue(ChangeType type)
@@ -661,7 +674,6 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	
 	private int findComponentIntValue(ChangeType type)
 	{
-
         if (currentChangeTypes != null)
         {
             for(int c=0; c<currentChangeTypes.length; c++)
@@ -1260,7 +1272,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 		}
 		if (exportList.size() > 0)
 		{
-			mcp.characteristics = (String)((JComboBox)findComponentRawValue(ChangeType.CHANGECHARACTERISTICS)).getSelectedItem();
+			mcp.characteristics = (String)findComboBoxValue(ChangeType.CHANGECHARACTERISTICS);
 			mcp.bodyOnly = findComponentIntValue(ChangeType.CHANGEBODYONLY);
 			mcp.alwaysDrawn = findComponentIntValue(ChangeType.CHANGEALWAYSDRAWN);
 			mcp.pointSize = findComponentStringValue(ChangeType.CHANGEPOINTSIZE);
@@ -1268,11 +1280,11 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			mcp.xOff = findComponentStringValue(ChangeType.CHANGEXOFF);
 			mcp.yOff = findComponentStringValue(ChangeType.CHANGEYOFF);
 			mcp.textRotation = findComponentIntValue(ChangeType.CHANGETEXTROT);
-			Object anValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGEANCHOR)).getSelectedItem();
+			Object anValue = findComboBoxValue(ChangeType.CHANGEANCHOR);
 			if (anValue instanceof TextDescriptor.Position)
 				mcp.anchor = ((TextDescriptor.Position)anValue).getIndex();
-			mcp.font = (String)((JComboBox)findComponentRawValue(ChangeType.CHANGEFONT)).getSelectedItem();
-			mcp.color = ((JComboBox)findComponentRawValue(ChangeType.CHANGECOLOR)).getSelectedIndex();
+			mcp.font = (String)findComboBoxValue(ChangeType.CHANGEFONT);
+			mcp.color = findComboBoxIndex(ChangeType.CHANGECOLOR);
 			mcp.bold = findComponentIntValue(ChangeType.CHANGEBOLD);
 			mcp.italic = findComponentIntValue(ChangeType.CHANGEITALIC);
 			mcp.underline = findComponentIntValue(ChangeType.CHANGEUNDERLINE);
@@ -1285,18 +1297,18 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 			mcp.xOff = findComponentStringValue(ChangeType.CHANGEXOFF);
 			mcp.yOff = findComponentStringValue(ChangeType.CHANGEYOFF);
 			mcp.textRotation = findComponentIntValue(ChangeType.CHANGETEXTROT);
-			Object anValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGEANCHOR)).getSelectedItem();
+			Object anValue = findComboBoxValue(ChangeType.CHANGEANCHOR);
 			if (anValue instanceof TextDescriptor.Position)
 				mcp.anchor = ((TextDescriptor.Position)anValue).getIndex();
-			mcp.font = (String)((JComboBox)findComponentRawValue(ChangeType.CHANGEFONT)).getSelectedItem();
-			mcp.color = ((JComboBox)findComponentRawValue(ChangeType.CHANGECOLOR)).getSelectedIndex();
-			Object cdValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGECODE)).getSelectedItem();
+			mcp.font = (String)findComboBoxValue(ChangeType.CHANGEFONT);
+			mcp.color = findComboBoxIndex(ChangeType.CHANGECOLOR);
+			Object cdValue = findComboBoxValue(ChangeType.CHANGECODE);
 			if (cdValue instanceof TextDescriptor.Code)
 				mcp.code = ((TextDescriptor.Code)cdValue).getCFlags();
-			Object unValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGEUNITS)).getSelectedItem();
+			Object unValue = findComboBoxValue(ChangeType.CHANGEUNITS);
 			if (unValue instanceof TextDescriptor.Unit)
 				mcp.units = ((TextDescriptor.Unit)unValue).getIndex();
-			Object shValue = ((JComboBox)findComponentRawValue(ChangeType.CHANGESHOW)).getSelectedItem();
+			Object shValue = findComboBoxValue(ChangeType.CHANGESHOW);
 			if (shValue instanceof TextDescriptor.DispPos)
 				mcp.show = ((TextDescriptor.DispPos)shValue).getIndex();
 			mcp.bold = findComponentIntValue(ChangeType.CHANGEBOLD);
