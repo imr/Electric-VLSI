@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+BUG: (6/12/06, SMR) "Back" button doesn't ascend schematic hierarchy (Bug #1112)
+FIX: In EditWindow.downHierarchy() record the schematic cell in addToHistory().
+
 BUG: (6/12/06, SMR) Multi-object properties crashes (Bug #1106).
 FIX: In GetInfoMulti.applyActionPerformed(), must handle special controls.
 

@@ -3195,7 +3195,7 @@ public class EditWindow extends JPanel
         	vc = cellVarContext.push(ni);
         }
         newWND.showCell(schCell, vc, redisplay, da);
-        newWND.getWindowFrame().addToHistory(cell, vc, da);
+        newWND.getWindowFrame().addToHistory(schCell, vc, da);
         if (!redisplay) fullRepaint();
 		clearSubCellCache();
 
