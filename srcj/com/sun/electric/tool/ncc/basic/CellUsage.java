@@ -37,7 +37,9 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.logicaleffort.LENetlister;
 
 /** Find all Cells used in the design. Collect information about Cell usage. */
 class CellUsage extends HierarchyEnumerator.Visitor {
@@ -46,7 +48,10 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	private List<Cell> cellsInRevTopoOrder = new ArrayList<Cell>();
 	private Map<Cell.CellGroup,Set<CellContext>> groupToAdditions = new HashMap<Cell.CellGroup,Set<CellContext>>();
 	private Cell root;
+	// Cells that have exactly one instantiation
 	private Set<Cell> singleUseCells;
+	// Cells with at least one LEGATE descendent
+	private Set<Cell> cellsWithLeGates;
 	
 	private void processCellGroupAdditions(CellContext cellCtxt) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cellCtxt.cell);
@@ -86,16 +91,19 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 			usedOnce.add(c);
 		}
 	}
-	private void findSingleUseCells() {
+	private Set<Cell> findSingleUseCells() {
+		Set<Cell> singleUseCells = new HashSet<Cell>();
 		Map<Cell,Set<Cell>> cellToUsedOnce = new HashMap<Cell,Set<Cell>>();
 		Set<Cell> usedMoreThanOnce = new HashSet<Cell>();
 		// For each Cell in the design: c in reverse topological order
 		for (Iterator<Cell> it=cellsInReverseTopologicalOrder(); it.hasNext();) {
 			Cell c = it.next();
+			// usedOnce holds all Cells instantiated exactly once by the design hierarchy
+			// rooted at c
 			Set<Cell> usedOnce = new HashSet<Cell>();
 			// For each child Cell of c: child 
-			for (Iterator<Nodable> ni=c.getNetlist(false).getNodables(); ni.hasNext();) {
-				NodeProto np = ni.next().getProto();
+			for (Iterator<Nodable> noIt=c.getNetlist(false).getNodables(); noIt.hasNext();) {
+				NodeProto np = noIt.next().getProto();
 				if (!(np instanceof Cell)) continue;
 				Cell child = (Cell) np;
 				addUse(usedOnce, usedMoreThanOnce, child);
@@ -115,11 +123,44 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 			if (!it.hasNext()) {
 				// Cell c is the root.  Create set of all cells
 				// in the design that are instantiated exactly once.
-				singleUseCells = new HashSet<Cell>();
 				singleUseCells.add(c);
 				singleUseCells.addAll(usedOnce);
 			}
 		}
+		return singleUseCells;
+	}
+	// I copied these tests from Spice.java. However, they
+	// don't feel right to me.
+	// I think the Cell should be marked LEGATE and not the instance. RKao
+	private boolean isLeGate(Nodable no) {
+        return no.getVar(LENetlister.ATTR_LEGATE)!=null ||
+               no.getVar(LENetlister.ATTR_LEKEEPER)!=null;
+	}
+	// find Cells that have at least one LEGATE descendent
+	private Set<Cell> findCellsWithLeGate() {
+		Set<Cell> cellsWithLeGate = new HashSet<Cell>();
+		for (Iterator<Cell> it=cellsInReverseTopologicalOrder(); it.hasNext();) {
+			Cell c = it.next();
+			boolean hasLeGate = false;
+			for (Iterator<Nodable> noIt=c.getNetlist(false).getNodables(); noIt.hasNext();) {
+				Nodable no = noIt.next();
+				if (isLeGate(no)) {hasLeGate=true; break;}
+				NodeProto np = no.getProto();
+				if (!(np instanceof Cell)) continue;
+				Cell child = (Cell) np;
+				if (cellsWithLeGate.contains(child)) {hasLeGate=true; break;}
+			}
+			if (hasLeGate) {cellsWithLeGate.add(c);}
+		}
+		return cellsWithLeGate;
+	}
+	private boolean cellIsParameterized(Cell c) {
+		Iterator<Variable> vIt = c.getParameters();
+		return vIt.hasNext();
+	}
+	private void postProcess() {
+		singleUseCells = findSingleUseCells();
+		cellsWithLeGates = findCellsWithLeGate();
 	}
 
 	private CellUsage() {}
@@ -129,14 +170,21 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	public static CellUsage getCellUsage(CellContext root) {
 		CellUsage visitor = new CellUsage();
 		HierarchyEnumerator.enumerateCell(root.cell, root.context, visitor);
-//		HierarchyEnumerator.enumerateCell(root.cell, root.context, null, visitor);
-		visitor.findSingleUseCells();
+		visitor.postProcess();
 		return visitor;
 	}
 
 	public boolean cellIsUsed(Cell cell) {return cellsInUse.containsKey(cell);}
-	/** There is only one instance of this Cell in the design */
-	public boolean cellIsUsedOnce(Cell cell) {return singleUseCells.contains(cell);}
+	/** Cell has only one size in the design */
+	public boolean cellHasOnlyOneSize(Cell cell) {
+		final boolean NEW_ALGORITHM = true;
+		if (NEW_ALGORITHM) {
+			return singleUseCells.contains(cell) || 
+		       (!cellsWithLeGates.contains(cell)) && !cellIsParameterized(cell);
+		} else {
+			return singleUseCells.contains(cell);
+		}
+	}
 	public Iterator<Cell> cellsInReverseTopologicalOrder() {
 		return cellsInRevTopoOrder.iterator();
 	}

@@ -6,6 +6,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+IMP: (6/12/06, RK) Speed up NCC "hierarchical with size checking" by taking advantage of restricted schematics (Bugzilla# 1116)
+
+IMP: (6/12/06, RK) Restrict schematics so it's easier to tell if all instances of a schematic cell have the same transistor sizes (Bugzilla# 1115)
+
 BUG: (6/12/06, GVG) Drc doesn't display error properly (Bug #1114). This is the case of two overlapping
 vias coming from two different cells.
 FIX: In case of overlapping vias, the errorLog should only contain the rectangle that the 2 vias form.

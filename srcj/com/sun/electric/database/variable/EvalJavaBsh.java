@@ -242,10 +242,13 @@ public class EvalJavaBsh
 	 * @throws VarContext.EvalException
 	 */
     public synchronized Object PAR(String name) throws VarContext.EvalException {
-        VarContext context = (VarContext)contextStack.peek();
-        Object val = context.lookupVarFarEval(name);
-        if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
-        return val;
+    	throw new VarContext.EvalException("The PAR() function has been disabled because "+
+    			"it confounds the techniques used in Topology.java for detecting when Cell "+
+    			"instances have the same transistor sizes. RKao");
+//        VarContext context = (VarContext)contextStack.peek();
+//        Object val = context.lookupVarFarEval(name);
+//        if (DEBUG) System.out.println(name + " ---> " + val + " ("+val.getClass()+")");
+//        return val;
     }
 
     //---------------------------Running Scripts-------------------------------------

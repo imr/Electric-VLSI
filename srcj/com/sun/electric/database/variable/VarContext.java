@@ -73,6 +73,10 @@ import java.util.Stack;
  *
  * P(name) -- get the value of variable name on the most recent NodeInst.
  * Defaults to Integer(0).<br>
+ * <p>
+ * Methods PD(), PAR(), and PARD() are either gone or deprecated (RKao). Here 
+ * are what they used to do:<br>
+ * 
  * PD(name, default) -- get the value of variable name on the most recent
  * NodeInst.  Defaults to default.<br>
  * PAR(name) -- get the value of variable name on any NodeInst, starting
@@ -435,14 +439,25 @@ public class VarContext implements Serializable
         if (ni == null) throwNotFound(name);
 		Variable.Key key = Variable.findKey(name);
 		if (key == null) throwNotFound(name);
-        Variable var = ni.getVar(key);
-        if (var == null && ni.isCellInstance()) {
-            // look up default var on prototype
-			Cell cell = (Cell)ni.getProto();
-			Cell equiv = cell.getEquivalent();
-			if (equiv != null) cell = equiv;
-			var = cell.getVar(key);
-        }
+		
+        // Topology.java concludes that all instances of a Cell have
+        // the same transistor sizes if that Cell has no parameters.
+        // Let's see if we can enforce these semantics. A Variable has
+		// a value that is visible in a Cell only if that Variable is
+        // is a "parameter".
+        // RKao
+		Variable var = ni.getParameter(key);
+		
+//        Variable var = ni.getVar(key);
+//        
+//        if (var == null && ni.isCellInstance()) {
+//            // look up default var on prototype
+//			Cell cell = (Cell)ni.getProto();
+//			Cell equiv = cell.getEquivalent();
+//			if (equiv != null) cell = equiv;
+//			var = cell.getVar(key);
+//        }
+
         if (var == null) throwNotFound(name);
 
         // evaluate var in it's context
@@ -455,53 +470,58 @@ public class VarContext implements Serializable
         return val;
     }
     
-    /** 
-     * Lookup Variable on all levels up the hierarchy and evaluate.
-     * Looks for var on all NodeInsts on the stack, starting
-     * with the most recent.  At each NodeInst, if no Variable
-     * found, looks for default Variable on NodeProto.
-     * @param name the name of the variable
-     * @return evaluated Object, or null if not found
-     */
-    protected Object lookupVarFarEval(String name) throws EvalException
-    {
-		Variable.Key key = Variable.findKey(name);
-		if (key == null) throwNotFound(name);
-        
-		// look up the entire stack, starting with end
-		VarContext scan = this;
-        Object value = null;
-        while (true)
-		{
-            Nodable sni = scan.getNodable();
-            if (sni == null) break;
-            
-            Variable var = sni.getVar(key);             // look up var
-			if (var != null) {
-				value = scan.pop().evalVarRecurse(var, sni);
-				break;
-			}
-
-			// look up default var value on prototype
-			if (sni.isCellInstance()) {
-				Cell cell = (Cell)sni.getProto();
-				Cell equiv = cell.getEquivalent();
-				if (equiv != null) cell = equiv;
-				var = cell.getVar(key);
-			}
-            if (var != null) {
-            	value = scan.pop().evalVarRecurse(var, sni);
-            	break;
-            }
-			scan = scan.prev;
-		}
-        if (value == null) throwNotFound(name);
-        
-        value = ifNotNumberTryToConvertToNumber(value);
-        if (value == null) throwNotFound(name);
-        
-        return value;
-	}
+    // lookupVarFarEval() is deprecated. Topology.java concludes that all instances
+    // of a Cell have the same transistor sizes if that Cell has no parameters.
+    // lookupVarFarEval() violates this assumption. Luckily we believe that no
+    // designs use PAR() or lookupVarFarEval(). I'm commenting out this method to
+    // guarantee that Topology.java always works correctly. RKao
+//    /** 
+//     * Lookup Variable on all levels up the hierarchy and evaluate.
+//     * Looks for var on all NodeInsts on the stack, starting
+//     * with the most recent.  At each NodeInst, if no Variable
+//     * found, looks for default Variable on NodeProto.
+//     * @param name the name of the variable
+//     * @return evaluated Object, or null if not found
+//     */
+//    protected Object lookupVarFarEval(String name) throws EvalException
+//    {
+//		Variable.Key key = Variable.findKey(name);
+//		if (key == null) throwNotFound(name);
+//        
+//		// look up the entire stack, starting with end
+//		VarContext scan = this;
+//        Object value = null;
+//        while (true)
+//		{
+//            Nodable sni = scan.getNodable();
+//            if (sni == null) break;
+//            
+//            Variable var = sni.getVar(key);             // look up var
+//			if (var != null) {
+//				value = scan.pop().evalVarRecurse(var, sni);
+//				break;
+//			}
+//
+//			// look up default var value on prototype
+//			if (sni.isCellInstance()) {
+//				Cell cell = (Cell)sni.getProto();
+//				Cell equiv = cell.getEquivalent();
+//				if (equiv != null) cell = equiv;
+//				var = cell.getVar(key);
+//			}
+//            if (var != null) {
+//            	value = scan.pop().evalVarRecurse(var, sni);
+//            	break;
+//            }
+//			scan = scan.prev;
+//		}
+//        if (value == null) throwNotFound(name);
+//        
+//        value = ifNotNumberTryToConvertToNumber(value);
+//        if (value == null) throwNotFound(name);
+//        
+//        return value;
+//	}
     
     // ---------------------------------- Utility Methods ----------------------------
 

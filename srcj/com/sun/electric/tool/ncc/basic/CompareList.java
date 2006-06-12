@@ -83,8 +83,8 @@ public class CompareList implements Iterable<CellContext> {
 		for (CellContext cc : cellContexts) {
 			Cell c = cc.cell;
 			if (c.isSchematic()) {
-				if (use1.cellIsUsed(c) && !use1.cellIsUsedOnce(c)) return false;
-				if (use2.cellIsUsed(c) && !use2.cellIsUsedOnce(c)) return false;
+				if (use1.cellIsUsed(c) && !use1.cellHasOnlyOneSize(c)) return false;
+				if (use2.cellIsUsed(c) && !use2.cellHasOnlyOneSize(c)) return false;
 			}
 		}
 		return true;
