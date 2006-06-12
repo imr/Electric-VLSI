@@ -3118,14 +3118,14 @@ public class Quick
         if (DBMath.isGreaterThan(rect.getWidth(), specValues[0]))
         {
             reportError(DRCErrorType.CUTERROR, "along X", topCell, specValues[0], rect.getWidth(),
-                    ruleName, new Poly(rect), geom, layer, null, nGeom, nLayer);
+                    ruleName, new Poly(rect), null, layer, null, null, nLayer);
             foundError = true;
 
         }
         if (DBMath.isGreaterThan(rect.getHeight(), specValues[1]))
         {
             reportError(DRCErrorType.CUTERROR, "along Y", topCell, specValues[1], rect.getHeight(),
-                    ruleName, new Poly(rect), geom, layer, null, geom, layer);
+                    ruleName, new Poly(rect), null, layer, null, null, layer);
             foundError = true;
 
         }

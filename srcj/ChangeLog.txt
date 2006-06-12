@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04q: *********************************
 
+BUG: (6/12/06, GVG) Drc doesn't display error properly (Bug #1114). This is the case of two overlapping
+vias coming from two different cells.
+FIX: In case of overlapping vias, the errorLog should only contain the rectangle that the 2 vias form.
+
 BUG: (6/9/06, GVG) Inconsistent scale for angles in GetNodeInfo v/s GetMultiInfo (Bug#1109)
 FIX: Values in GetInfoMulti.java were inconsistently scaled to integers.
 
