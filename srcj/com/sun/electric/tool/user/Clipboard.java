@@ -118,8 +118,30 @@ public class Clipboard
 		// special case: if one text object is selected, copy its text to the system clipboard
 		copySelectedText(highlightedText);
 
+		// create the transformation for "down in place" copying
+        AffineTransform inPlace = new AffineTransform();
+        Orientation inPlaceOrient = Orientation.IDENT;
+		if (wnd.isInPlaceEdit())
+		{
+			List<NodeInst> nodes = wnd.getInPlaceEditNodePath();
+			for(NodeInst n : nodes)
+			{
+				Orientation o = n.getOrient().inverse();
+				inPlaceOrient = o.concatenate(inPlaceOrient);
+			}
+			AffineTransform justRotation = inPlaceOrient.pureRotate();
+
+			Rectangle2D pasteBounds = getPasteBounds(highlightedGeoms, highlightedText, wnd);
+			AffineTransform untranslate = AffineTransform.getTranslateInstance(-pasteBounds.getCenterX(), -pasteBounds.getCenterY());
+			AffineTransform retranslate = AffineTransform.getTranslateInstance(pasteBounds.getCenterX(), pasteBounds.getCenterY());
+			inPlace.preConcatenate(untranslate);
+			inPlace.preConcatenate(justRotation);
+			inPlace.preConcatenate(retranslate);
+		}
+
 		// copy to Electric clipboard cell
-		new CopyObjects(wnd.getCell(), highlightedGeoms, highlightedText, User.getAlignmentToGrid());
+		new CopyObjects(wnd.getCell(), highlightedGeoms, highlightedText, User.getAlignmentToGrid(),
+			inPlace, inPlaceOrient);
 	}
 
     /**
@@ -144,8 +166,30 @@ public class Clipboard
 		// special case: if one text object is selected, copy its text to the system clipboard
 		copySelectedText(highlightedText);
 
+		// create the transformation for "down in place" copying
+        AffineTransform inPlace = new AffineTransform();
+        Orientation inPlaceOrient = Orientation.IDENT;
+		if (wnd.isInPlaceEdit())
+		{
+			List<NodeInst> nodes = wnd.getInPlaceEditNodePath();
+			for(NodeInst n : nodes)
+			{
+				Orientation o = n.getOrient().inverse();
+				inPlaceOrient = o.concatenate(inPlaceOrient);
+			}
+			AffineTransform justRotation = inPlaceOrient.pureRotate();
+
+			Rectangle2D pasteBounds = getPasteBounds(highlightedGeoms, highlightedText, wnd);
+			AffineTransform untranslate = AffineTransform.getTranslateInstance(-pasteBounds.getCenterX(), -pasteBounds.getCenterY());
+			AffineTransform retranslate = AffineTransform.getTranslateInstance(pasteBounds.getCenterX(), pasteBounds.getCenterY());
+			inPlace.preConcatenate(untranslate);
+			inPlace.preConcatenate(justRotation);
+			inPlace.preConcatenate(retranslate);
+		}
+
 		// cut from Electric, copy to clipboard cell
-		new CutObjects(wnd.getCell(), highlightedGeoms, highlightedText, User.getAlignmentToGrid(), User.isReconstructArcsToDeletedCells());
+		new CutObjects(wnd.getCell(), highlightedGeoms, highlightedText, User.getAlignmentToGrid(),
+			User.isReconstructArcsToDeletedCells(), inPlace, inPlaceOrient);
 	}
 
 	/**
@@ -228,14 +272,37 @@ public class Clipboard
 
         if (geomList.size() == 0 && textList.size() == 0) return;
 
-        if (User.isMoveAfterDuplicate())
+		// create the transformation for "down in place" pasting
+        AffineTransform inPlace = new AffineTransform();
+        Orientation inPlaceOrient = Orientation.IDENT;
+		if (wnd.isInPlaceEdit())
+		{
+			List<NodeInst> nodes = wnd.getInPlaceEditNodePath();
+			for(NodeInst n : nodes)
+			{
+				Orientation o = n.getOrient();
+				inPlaceOrient = inPlaceOrient.concatenate(o);
+			}
+			AffineTransform justRotation = inPlaceOrient.pureRotate();
+
+			Rectangle2D pasteBounds = getPasteBounds(geomList, textList, wnd);
+			AffineTransform untranslate = AffineTransform.getTranslateInstance(-pasteBounds.getCenterX(), -pasteBounds.getCenterY());
+			AffineTransform retranslate = AffineTransform.getTranslateInstance(pasteBounds.getCenterX(), pasteBounds.getCenterY());
+			inPlace.preConcatenate(untranslate);
+			inPlace.preConcatenate(justRotation);
+			inPlace.preConcatenate(retranslate);
+		}
+
+		if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
-			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener));
+			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener,
+				inPlace, inPlaceOrient));
 		} else
 		{
 		    new PasteObjects(parent, geomList, textList, lastDupX, lastDupY,
-		    	User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isArcsAutoIncremented());
+		    	User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
+		    	inPlace, inPlaceOrient);
 		}
 	}
 
@@ -266,7 +333,7 @@ public class Clipboard
         if (User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
-			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener));
+			WindowFrame.setListener(new PasteListener(wnd, geomList, textList, currentListener, null, null));
 		} else
 		{
 			new DuplicateObjects(wnd.getCell(), geomList, textList, User.getAlignmentToGrid());
@@ -318,14 +385,19 @@ public class Clipboard
         private List<Geometric> highlightedGeoms;
         private List<DisplayedText> highlightedText;
         private double alignment;
+        private AffineTransform inPlace;
+        private Orientation inPlaceOrient;
 
-		protected CopyObjects(Cell cell, List<Geometric> highlightedGeoms, List<DisplayedText> highlightedText, double alignment)
+		protected CopyObjects(Cell cell, List<Geometric> highlightedGeoms, List<DisplayedText> highlightedText,
+			double alignment, AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.highlightedGeoms = highlightedGeoms;
             this.highlightedText = highlightedText;
             this.alignment = alignment;
+            this.inPlace = inPlace;
+            this.inPlaceOrient = inPlaceOrient;
 			startJob();
 		}
 
@@ -336,7 +408,8 @@ public class Clipboard
 
 			// copy objects to clipboard
 			copyListToCell(clipCell, highlightedGeoms, highlightedText, null, null,
-				new Point2D.Double(0,0), User.isDupCopiesExports(), User.isArcsAutoIncremented(), alignment);
+				new Point2D.Double(0,0), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
+				alignment, inPlace, inPlaceOrient);
 			return true;
 		}
 	}
@@ -348,8 +421,11 @@ public class Clipboard
         private List<DisplayedText> textList;
         private double alignment;
         private boolean reconstructArcs;
+        private AffineTransform inPlace;
+        private Orientation inPlaceOrient;
 
-		protected CutObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double alignment, boolean reconstructArcs)
+		protected CutObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList, double alignment,
+			boolean reconstructArcs, AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Cut", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
@@ -357,6 +433,8 @@ public class Clipboard
             this.textList = textList;
             this.alignment = alignment;
             this.reconstructArcs = reconstructArcs;
+            this.inPlace = inPlace;
+            this.inPlaceOrient = inPlaceOrient;
 			startJob();
 		}
 
@@ -380,7 +458,8 @@ public class Clipboard
 
 			// copy objects to clipboard
 			copyListToCell(clipCell, geomList, textList, null, null,
-				new Point2D.Double(0, 0), User.isDupCopiesExports(), User.isArcsAutoIncremented(), alignment);
+				new Point2D.Double(0, 0), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
+				alignment, inPlace, inPlaceOrient);
 
 			// and delete the original objects
 			CircuitChangeJobs.eraseObjectsInList(cell, geomList, reconstructArcs);
@@ -420,7 +499,8 @@ public class Clipboard
 			newGeomList = new ArrayList<Geometric>();
 			newTextList = new ArrayList<DisplayedText>();
 			lastCreatedNode = copyListToCell(cell, geomList, textList, newGeomList, newTextList,
-            	new Point2D.Double(lastDupX, lastDupY), User.isDupCopiesExports(), User.isArcsAutoIncremented(), alignment);
+            	new Point2D.Double(lastDupX, lastDupY), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
+            	alignment, null, null);
 			fieldVariableChanged("newGeomList");
 			fieldVariableChanged("newTextList");
 			fieldVariableChanged("lastCreatedNode");
@@ -529,9 +609,12 @@ public class Clipboard
 		private double dX, dY, alignment;
 		private boolean copyExports, uniqueArcs;
 		private NodeInst lastCreatedNode;
+		private AffineTransform inPlace;
+		private Orientation inPlaceOrient;
 
 		protected PasteObjects(Cell cell, List<Geometric> geomList, List<DisplayedText> textList,
-			double dX, double dY, double alignment, boolean copyExports, boolean uniqueArcs)
+			double dX, double dY, double alignment, boolean copyExports, boolean uniqueArcs,
+			AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			super("Paste", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -542,6 +625,8 @@ public class Clipboard
 			this.alignment = alignment;
 			this.copyExports = copyExports;
 			this.uniqueArcs = uniqueArcs;
+			this.inPlace = inPlace;
+			this.inPlaceOrient = inPlaceOrient;
 			startJob();
 		}
 
@@ -554,7 +639,7 @@ public class Clipboard
 			newGeomList = new ArrayList<Geometric>();
 			newTextList = new ArrayList<DisplayedText>();
 			lastCreatedNode = copyListToCell(cell, geomList, textList, newGeomList, newTextList,
-				new Point2D.Double(dX, dY), copyExports, uniqueArcs, alignment);
+				new Point2D.Double(dX, dY), copyExports, uniqueArcs, alignment, inPlace, inPlaceOrient);
 			fieldVariableChanged("newGeomList");
 			fieldVariableChanged("newTextList");
 			fieldVariableChanged("lastCreatedNode");
@@ -642,10 +727,13 @@ public class Clipboard
 	 * @param delta an offset for all of the copied Geometrics.
 	 * @param copyExports true to copy exports.
 	 * @param uniqueArcs true to generate unique arc names.
+	 * @param inPlace the transformation to use which accounts for "down in place" editing.
+	 * @param inPlaceOrient the orientation to use which accounts for "down in place" editing.
 	 * @return the last NodeInst that was created.
 	 */
 	public static NodeInst copyListToCell(Cell toCell, List<Geometric> geomList, List<DisplayedText> textList,
-		List<Geometric> newGeomList, List<DisplayedText> newTextList, Point2D delta, boolean copyExports, boolean uniqueArcs, double alignment)
+		List<Geometric> newGeomList, List<DisplayedText> newTextList, Point2D delta, boolean copyExports,
+		boolean uniqueArcs, double alignment, AffineTransform inPlace, Orientation inPlaceOrient)
 	{
         // make a list of all objects to be copied (includes end points of arcs)
         List<NodeInst> theNodes = new ArrayList<NodeInst>();
@@ -701,15 +789,17 @@ public class Clipboard
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class, false);
-            double px = ni.getAnchorCenterX()+dX;
-            double py = ni.getAnchorCenterY()+dY;
-//            px = DBMath.toNearest(px, User.getAlignmentToGrid());
-//            py = DBMath.toNearest(py, User.getAlignmentToGrid());
-            EPoint point = new EPoint(px, py);
-			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
-                    point,
-//				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
-					width, height, toCell, ni.getOrient(), name, ni.getTechSpecific());
+            EPoint point = new EPoint(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY);
+            Orientation orient = ni.getOrient();
+            if (inPlace != null)
+            {
+            	Point2D dst = new Point2D.Double(0, 0);
+            	inPlace.transform(new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()), dst);
+            	point = new EPoint(dst.getX()+dX, dst.getY()+dY);
+            	orient = orient.concatenate(inPlaceOrient);
+            }
+			NodeInst newNi = NodeInst.newInstance(ni.getProto(), point, width, height,
+				toCell, orient, name, ni.getTechSpecific());
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");
@@ -747,16 +837,37 @@ public class Clipboard
 			// for associating old names with new names
 			HashMap<String,String> newArcNames = new HashMap<String,String>();
 
+			AffineTransform fixOffset = null;
+			if (inPlaceOrient != null) fixOffset = inPlaceOrient.pureRotate();
+
 			// create the new arcs
 			for(ArcInst ai : theArcs)
 			{
 				PortInst oldHeadPi = ai.getHeadPortInst();
 				NodeInst headNi = newNodes.get(oldHeadPi.getNodeInst());
 				PortInst headPi = headNi.findPortInstFromProto(oldHeadPi.getPortProto());
+                EPoint headP = oldHeadPi.getCenter();
+				double headDX = ai.getHeadLocation().getX() - headP.getX();
+				double headDY = ai.getHeadLocation().getY() - headP.getY();
 
 				PortInst oldTailPi = ai.getTailPortInst();
 				NodeInst tailNi = newNodes.get(oldTailPi.getNodeInst());
 				PortInst tailPi = tailNi.findPortInstFromProto(oldTailPi.getPortProto());
+                EPoint tailP = oldTailPi.getCenter();
+				double tailDX = ai.getTailLocation().getX() - tailP.getX();
+				double tailDY = ai.getTailLocation().getY() - tailP.getY();
+
+				// adjust offset if down-in-place
+				if (fixOffset != null)
+				{
+					Point2D result = new Point2D.Double(0, 0);
+					fixOffset.transform(new Point2D.Double(headDX, headDY), result);
+					headDX = result.getX();
+					headDY = result.getY();
+					fixOffset.transform(new Point2D.Double(tailDX, tailDY), result);
+					tailDX = result.getX();
+					tailDY = result.getY();
+				}
 
 				String name = null;
 				if (ai.isUsernamed())
@@ -773,16 +884,10 @@ public class Clipboard
 						name = newName;
 					}
 				}
-//                EPoint headP = new EPoint(ai.getHeadLocation().getX() + dX, ai.getHeadLocation().getY() + dY);
-//                EPoint tailP = new EPoint(ai.getTailLocation().getX() + dX, ai.getTailLocation().getY() + dY);
-                EPoint headP = headPi.getCenter();
-                EPoint tailP = tailPi.getCenter();
+				headP = new EPoint(headPi.getCenter().getX() + headDX, headPi.getCenter().getY() + headDY);
+				tailP = new EPoint(tailPi.getCenter().getX() + tailDX, tailPi.getCenter().getY() + tailDY);
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
-					headPi, tailPi,
-                        headP, tailP,
-//                        new Point2D.Double(ai.getHeadLocation().getX() + dX, ai.getHeadLocation().getY() + dY),
-//				        new Point2D.Double(ai.getTailLocation().getX() + dX, ai.getTailLocation().getY() + dY),
-                        name, ai.getAngle());
+					headPi, tailPi, headP, tailP, name, ai.getAngle());
 				if (newAr == null)
 				{
 					System.out.println("Cannot create arc");
@@ -957,6 +1062,78 @@ public class Clipboard
 		return destArc;
 	}
 
+    /**
+     * Gets a boundary representing the paste bounds of the list of objects.
+     * The corners and center point of the bounds can be used as anchors
+     * when pasting the objects interactively. This is all done in database units.
+     * Note: you will likely want to grid align any points before using them.
+     * @param pasteList a list of Geometrics to paste
+     * @return a Rectangle2D that is the paste bounds.
+     */
+    private static Rectangle2D getPasteBounds(List<Geometric> geomList, List<DisplayedText> textList, EditWindow wnd) {
+
+        Point2D llcorner = null;
+        Point2D urcorner = null;
+
+        // figure out lower-left corner and upper-rigth corner of this collection of objects
+        for(DisplayedText dt : textList)
+        {
+        	ElectricObject eObj = dt.getElectricObject();
+            Poly poly = clipCell.computeTextPoly(wnd, dt.getVariableKey());
+            Rectangle2D bounds = poly.getBounds2D();
+
+            if (llcorner == null) {
+                llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+                urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+                continue;
+            }
+            if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
+            if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
+            if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
+            if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
+        }
+        for(Geometric geom : geomList)
+        {
+            if (geom instanceof NodeInst)
+            {
+                NodeInst ni = (NodeInst)geom;
+                Point2D pt = ni.getAnchorCenter();
+
+                if (llcorner == null) {
+                    llcorner = new Point2D.Double(pt.getX(), pt.getY());
+                    urcorner = new Point2D.Double(pt.getX(), pt.getY());
+                    continue;
+                }
+                if (pt.getX() < llcorner.getX()) llcorner.setLocation(pt.getX(), llcorner.getY());
+                if (pt.getY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), pt.getY());
+                if (pt.getX() > urcorner.getX()) urcorner.setLocation(pt.getX(), urcorner.getY());
+                if (pt.getY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), pt.getY());
+            } else
+            {
+                ArcInst ai = (ArcInst)geom;
+                double wid = ai.getWidth() - ai.getProto().getWidthOffset();
+                Poly poly = ai.makePoly(wid, Poly.Type.FILLED);
+                Rectangle2D bounds = poly.getBounds2D();
+
+                if (llcorner == null) {
+                    llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+                    urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+                    continue;
+                }
+                if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
+                if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
+                if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
+                if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
+            }
+        }
+
+        // figure bounds
+        double width = urcorner.getX() - llcorner.getX();
+        double height = urcorner.getY() - llcorner.getY();
+        Rectangle2D bounds = new Rectangle2D.Double(llcorner.getX(), llcorner.getY(), width, height);
+        return bounds;
+    }
+
 	/****************************** PASTE LISTENER ******************************/
 
 	/**
@@ -974,6 +1151,8 @@ public class Clipboard
 		private double translateY;
 		private Point2D lastMouseDB;				// last point where mouse was (in db units)
 		private JPopupMenu popup;
+		private AffineTransform inPlace;
+		private Orientation inPlaceOrient;
 
 		/** paste anchor types */
 
@@ -983,12 +1162,15 @@ public class Clipboard
 		 * @param pasteList list of objects to paste
 		 * @param currentListener listener to restore when done
 		 */
-		private PasteListener(EditWindow wnd, List<Geometric> geomList, List<DisplayedText> textList, EventListener currentListener)
+		private PasteListener(EditWindow wnd, List<Geometric> geomList, List<DisplayedText> textList,
+			EventListener currentListener, AffineTransform inPlace, Orientation inPlaceOrient)
 		{
 			this.wnd = wnd;
 			this.geomList = geomList;
 			this.textList = textList;
 			this.currentListener = currentListener;
+			this.inPlace = inPlace;
+			this.inPlaceOrient = inPlaceOrient;
 			this.pasteBounds = getPasteBounds(geomList, textList, wnd);
 			translateX = translateY = 0;
 
@@ -1015,18 +1197,22 @@ public class Clipboard
 			if (mouseDB == null) return null;
 			double alignment = User.getAlignmentToGrid();
 			DBMath.gridAlign(mouseDB, alignment);
+
 			// this is the point on the clipboard cell that will be pasted at the mouse location
 			Point2D refPastePoint = new Point2D.Double(pasteBounds.getCenterX() + translateX,
 													   pasteBounds.getCenterY() + translateY);
 
 			double deltaX = mouseDB.getX() - refPastePoint.getX();
 			double deltaY = mouseDB.getY() - refPastePoint.getY();
+
 			// if orthogonal is true, convert to orthogonal
-			if (orthogonal) {
+			if (orthogonal)
+			{
 				// only use delta in direction that has larger delta
 				if (Math.abs(deltaX) > Math.abs(deltaY)) deltaY = 0;
-				else deltaX = 0;
+					else deltaX = 0;
 			}
+
 			// this is now a delta, not a point
 			refPastePoint.setLocation(deltaX, deltaY);
 			DBMath.gridAlign(refPastePoint, alignment);
@@ -1049,19 +1235,13 @@ public class Clipboard
 			Cell cell = wnd.getCell();
 			Highlighter highlighter = wnd.getHighlighter();
 			highlighter.clear();
-//			for(DisplayedText dt : textList)
-//			{
-//				ElectricObject eObj = dt.getElectricObject();
-//				Variable var = eObj.getVar(dt.getVariableKey());
-//				Poly poly = clipCell.computeTextPoly(wnd, var, null);
-//				showPoints(poly.getPoints(), oX, oY, cell, highlighter);
-//			}
 			for(Geometric geom : geomList)
 			{
 				if (geom instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)geom;
 					Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+					poly.transform(inPlace);
 					Point2D [] points = poly.getPoints();
 					showPoints(points, oX, oY, cell, highlighter);
 					continue;
@@ -1078,6 +1258,7 @@ public class Clipboard
 						if (var.isDisplay())
 						{
 							Point2D [] points = Highlighter.describeHighlightText(wnd, geom, var.getKey());
+							inPlace.transform(points, 0, points, 0, points.length);
 							showPoints(points, oX, oY, cell, highlighter);
 							found = true;
 							break;
@@ -1095,6 +1276,7 @@ public class Clipboard
 				double nodeX = (nodeLowX + nodeHighX) / 2;
 				double nodeY = (nodeLowY + nodeHighY) / 2;
 				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
+				poly.transform(inPlace);
 				poly.transform(trans);
 				showPoints(poly.getPoints(), oX, oY, cell, highlighter);
 			}
@@ -1103,6 +1285,7 @@ public class Clipboard
 			Rectangle2D bounds = wnd.getDisplayedBounds();
 			highlighter.addMessage(cell, "("+(int)oX+","+(int)oY+")",
 					new Point2D.Double(bounds.getCenterX(),bounds.getCenterY()));
+
 			// also draw arrow if user has moved highlights off the screen
 			double halfWidth = 0.5*pasteBounds.getWidth();
 			double halfHeight = 0.5*pasteBounds.getHeight();
@@ -1111,7 +1294,9 @@ public class Clipboard
 				Rectangle2D transBounds = new Rectangle2D.Double(pasteBounds.getX()+oX, pasteBounds.getY()+oY,
 					pasteBounds.getWidth(), pasteBounds.getHeight());
 				Poly p = new Poly(transBounds);
+				p.transform(inPlace);
 				Point2D endPoint = p.closestPoint(lastMouseDB);
+
 				// draw arrow
 				highlighter.addLine(lastMouseDB, endPoint, cell);
 				int angle = GenMath.figureAngle(lastMouseDB, endPoint);
@@ -1170,7 +1355,8 @@ public class Clipboard
 			Cell cell = WindowFrame.needCurCell();
 			if (cell != null)
 				new PasteObjects(cell, geomList, textList, delta.getX(), delta.getY(),
-					User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isArcsAutoIncremented());
+					User.getAlignmentToGrid(), User.isDupCopiesExports(), User.isArcsAutoIncremented(),
+					inPlace, inPlaceOrient);
 		}
 
 		public void mouseMoved(MouseEvent evt)
@@ -1276,78 +1462,6 @@ public class Clipboard
             translateY += 0.5*pasteBounds.getHeight();
             Point2D delta = getDelta(lastMouseDB, false);
             showList(delta);
-        }
-
-        /**
-         * Gets a boundary representing the paste bounds of the list of objects.
-         * The corners and center point of the bounds can be used as anchors
-         * when pasting the objects interactively. This is all done in database units.
-         * Note: you will likely want to grid align any points before using them.
-         * @param pasteList a list of Geometrics to paste
-         * @return a Rectangle2D that is the paste bounds.
-         */
-        private static Rectangle2D getPasteBounds(List<Geometric> geomList, List<DisplayedText> textList, EditWindow wnd) {
-
-            Point2D llcorner = null;
-            Point2D urcorner = null;
-
-            // figure out lower-left corner and upper-rigth corner of this collection of objects
-            for(DisplayedText dt : textList)
-            {
-            	ElectricObject eObj = dt.getElectricObject();
-                Poly poly = clipCell.computeTextPoly(wnd, dt.getVariableKey());
-                Rectangle2D bounds = poly.getBounds2D();
-
-                if (llcorner == null) {
-                    llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-                    urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-                    continue;
-                }
-                if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
-                if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
-                if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
-                if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
-            }
-            for(Geometric geom : geomList)
-            {
-                if (geom instanceof NodeInst)
-                {
-                    NodeInst ni = (NodeInst)geom;
-                    Point2D pt = ni.getAnchorCenter();
-
-                    if (llcorner == null) {
-                        llcorner = new Point2D.Double(pt.getX(), pt.getY());
-                        urcorner = new Point2D.Double(pt.getX(), pt.getY());
-                        continue;
-                    }
-                    if (pt.getX() < llcorner.getX()) llcorner.setLocation(pt.getX(), llcorner.getY());
-                    if (pt.getY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), pt.getY());
-                    if (pt.getX() > urcorner.getX()) urcorner.setLocation(pt.getX(), urcorner.getY());
-                    if (pt.getY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), pt.getY());
-                } else
-                {
-                    ArcInst ai = (ArcInst)geom;
-                    double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-                    Poly poly = ai.makePoly(wid, Poly.Type.FILLED);
-                    Rectangle2D bounds = poly.getBounds2D();
-
-                    if (llcorner == null) {
-                        llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
-                        urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
-                        continue;
-                    }
-                    if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
-                    if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
-                    if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
-                    if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
-                }
-            }
-
-            // figure bounds
-            double width = urcorner.getX() - llcorner.getX();
-            double height = urcorner.getY() - llcorner.getY();
-            Rectangle2D bounds = new Rectangle2D.Double(llcorner.getX(), llcorner.getY(), width, height);
-            return bounds;
         }
     }
 

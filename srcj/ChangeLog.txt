@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+BUG: (6/12/06, SMR) Copy and paste of arcs that are offset from their
+     port center adjusts the arcs to the center (Bug #1117).
+FIX: In Clipboard.java, remember offset and restore it.
+
+BUG: (6/12/06, SMR) Pasting when editing down-in-place creates objects with
+     original (incorrect) orientation (Bug #658).
+FIX: In Clipboard.java, code added to adjust orientation of paste, copy, and
+     cut when editing down-in-place.
+
 ************************* Version 8.04q: *********************************
 
 IMP: (6/12/06, RK) Speed up NCC "hierarchical with size checking" by taking advantage of restricted schematics (Bugzilla# 1116)
@@ -21,8 +30,8 @@ BUG: (6/9/06, GVG) Bogus min area drc errors reported on dp_stageN{lay} (Bug #11
 Problem: the abort signal given by user was not considered when leaving the cell using the enumerator.
 FIX: Extra condition added.
 
-BUG: (6/8/06, DN) Duisplay mode isn't chang immediiately.
-FIX: Call EditWindow.displayAlgorithmChanged() from DIsplayControlTab.
+BUG: (6/8/06, DN) Display mode isn't chang immediately.
+FIX: Call EditWindow.displayAlgorithmChanged() from DisplayControlTab.
 
 BUG: (6/8/06, DN) Export->ReExport* broken (Bug #1107).
 FIX: In PortInst.hasConnections().

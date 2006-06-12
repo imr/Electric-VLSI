@@ -152,7 +152,7 @@ public class ViewChanges
 				for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					geomList.add(aIt.next());
 				Clipboard.copyListToCell(destCell, geomList, textList, null, null, new Point2D.Double(0, dY),
-					true, true, alignment);
+					true, true, alignment, null, null);
 	
 				// also copy any variables on the cell
 				for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
