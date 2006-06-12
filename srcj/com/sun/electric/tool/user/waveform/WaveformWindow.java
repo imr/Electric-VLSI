@@ -40,6 +40,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.plugins.sunRouter.global.NetGroup;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
@@ -2265,10 +2266,20 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 			}
 		}
+
+		Collections.sort(found, new CompSignals());
 		return found;
 	}
 
-	private static Network findNetwork(Netlist netlist, String name)
+	private static class CompSignals implements Comparator<Signal>
+    {
+        public int compare(Signal s1, Signal s2)
+        {
+        	return TextUtils.STRING_NUMBER_ORDER.compare(s1.getFullName(), s2.getFullName());
+        }
+    }
+
+    private static Network findNetwork(Netlist netlist, String name)
 	{
 		// Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
 		for(Iterator<Network> nIt = netlist.getNetworks(); nIt.hasNext(); )

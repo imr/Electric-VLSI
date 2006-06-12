@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+BUG: (6/12/06, SMR) Adding busses to the waveform window shows the signals
+     in random order (Bug #1113).
+FIX: In WaveformWindow.findSelectedSignals(), sort the selected signals by name.
+
 BUG: (6/12/06, SMR) "Back" button doesn't ascend schematic hierarchy (Bug #1112)
 FIX: In EditWindow.downHierarchy() record the schematic cell in addToHistory().
 
