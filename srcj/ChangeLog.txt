@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+BUG: (6/13/06, SMR) Window scale not restored after "up hierarchy" (Bug #1099).
+FIX: In ExplorerTree.editCellAction(), always call setCellWindow().
+
 BUG: (6/13/06, SMR) Duplicating circuitry crashes (Bug #1120).
 FIX: In Clipboard.java, the "down in place" transform was not being used properly.
 

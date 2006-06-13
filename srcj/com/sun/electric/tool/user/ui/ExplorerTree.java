@@ -1673,8 +1673,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			} else
 			{
 				wf = WindowFrame.getCurrentWindowFrame();
-				wf.setCellWindow(cell, null);
 			}
+			wf.setCellWindow(cell, null);
 			if (cell.isMultiPage() && wf.getContent() instanceof EditWindow)
 			{
 				EditWindow wnd = (EditWindow)wf.getContent();
