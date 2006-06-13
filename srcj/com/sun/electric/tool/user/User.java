@@ -52,7 +52,6 @@ import java.awt.Point;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -1104,10 +1103,10 @@ public class User extends Listener
 //        return cacheAlignmentToGrid.getDouble();
     }
 
-	/**
-	 * Method to set the default alignment of objects to the grid.
-	 * @param dist the default alignment of objects to the grid.
-	 */
+//	/**
+//	 * Method to set the default alignment of objects to the grid.
+//	 * @param dist the default alignment of objects to the grid.
+//	 */
 //	public static void setAlignmentToGrid(double dist) { cacheAlignmentToGrid.setDouble(dist); }
 
     private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(-1 0.5 0.25)");
@@ -1841,40 +1840,40 @@ public class User extends Listener
 		}
 	}
 
-    public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
-    public static final String INITIALWORKINGDIRSETTING_USECURRENTDIR = "Use current directory";
-    public static final String INITIALWORKINGDIRSETTING_USELASTDIR = "Use last used directory";
-    private static final String [] initialWorkingDirectorySettingChoices = {INITIALWORKINGDIRSETTING_BASEDONOS, INITIALWORKINGDIRSETTING_USECURRENTDIR, INITIALWORKINGDIRSETTING_USELASTDIR};
-    private static Pref cacheInitialWorkingDirectorySetting = Pref.makeStringPref("InitialWorkingDirectorySetting", tool.prefs, initialWorkingDirectorySettingChoices[0]);
-
-    /**
-     * Method to get the way Electric chooses the initial working directory
-     * @return a string describing the way Electric chooses the initial working directory
-     */
-    public static String getInitialWorkingDirectorySetting() { return cacheInitialWorkingDirectorySetting.getString(); }
-
-    /**
-     * Method to set the way Electric chooses the initial working directory
-     * @param setting one of the String settings from getInitialWorkingDirectorySettings
-     */
-    public static void setInitialWorkingDirectorySetting(String setting) {
-        for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++) {
-            if ((initialWorkingDirectorySettingChoices[i]).equals(setting)) {
-                cacheInitialWorkingDirectorySetting.setString(setting);
-            }
-        }
-    }
-
-    /**
-     * Get the choices for the way Electric chooses the initial working directory
-     * @return an iterator over a list of strings that can be used with setIntialWorkingDirectorySetting()
-     */
-    public static Iterator<String> getInitialWorkingDirectorySettings() {
-        ArrayList<String> list = new ArrayList<String>();
-        for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++)
-            list.add(initialWorkingDirectorySettingChoices[i]);
-        return list.iterator();
-    }
+//    public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
+//    public static final String INITIALWORKINGDIRSETTING_USECURRENTDIR = "Use current directory";
+//    public static final String INITIALWORKINGDIRSETTING_USELASTDIR = "Use last used directory";
+//    private static final String [] initialWorkingDirectorySettingChoices = {INITIALWORKINGDIRSETTING_BASEDONOS, INITIALWORKINGDIRSETTING_USECURRENTDIR, INITIALWORKINGDIRSETTING_USELASTDIR};
+//    private static Pref cacheInitialWorkingDirectorySetting = Pref.makeStringPref("InitialWorkingDirectorySetting", tool.prefs, initialWorkingDirectorySettingChoices[0]);
+//
+//    /**
+//     * Method to get the way Electric chooses the initial working directory
+//     * @return a string describing the way Electric chooses the initial working directory
+//     */
+//    public static String getInitialWorkingDirectorySetting() { return cacheInitialWorkingDirectorySetting.getString(); }
+//
+//    /**
+//     * Method to set the way Electric chooses the initial working directory
+//     * @param setting one of the String settings from getInitialWorkingDirectorySettings
+//     */
+//    public static void setInitialWorkingDirectorySetting(String setting) {
+//        for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++) {
+//            if ((initialWorkingDirectorySettingChoices[i]).equals(setting)) {
+//                cacheInitialWorkingDirectorySetting.setString(setting);
+//            }
+//        }
+//    }
+//
+//    /**
+//     * Get the choices for the way Electric chooses the initial working directory
+//     * @return an iterator over a list of strings that can be used with setIntialWorkingDirectorySetting()
+//     */
+//    public static Iterator<String> getInitialWorkingDirectorySettings() {
+//        ArrayList<String> list = new ArrayList<String>();
+//        for (int i=0; i<initialWorkingDirectorySettingChoices.length; i++)
+//            list.add(initialWorkingDirectorySettingChoices[i]);
+//        return list.iterator();
+//    }
 
 	private static Pref cacheWorkingDirectory = Pref.makeStringPref("WorkingDirectory", tool.prefs, java.lang.System.getProperty("user.dir"));
 	/**

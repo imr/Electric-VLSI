@@ -29,6 +29,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibDirs;
 import com.sun.electric.tool.Client;
+import com.sun.electric.database.text.TextUtils;
 
 import java.awt.FileDialog;
 import java.io.File;
@@ -188,15 +189,18 @@ public class OpenFile
 
 //		if (location == null) location = new Point(100, 50);
 //		System.out.println("Put it at "+location);
+
+
+            String path = type.getGroupPath();
+            if (path != null)
+                initialDir = path;
+
 		if (useSwing)
 		{
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
             dialog.setSelectedDirAsWorkingDir = setSelectedDirAsWorkingDir;
             dialog.fileType = type;
-            String path = type.getGroupPath();
-//            if (path != null)
-//                initialDir = path;
 			dialog.setDialogTitle(title);
             File dir = new File(initialDir);
             if (!dir.exists() || !dir.isDirectory()) dir = new File(User.getWorkingDirectory());
@@ -283,6 +287,11 @@ public class OpenFile
 		if (Client.isOSMac())
 			useSwing = false;
 
+        String initialDir = User.getWorkingDirectory();
+        String path = types[0].getGroupPath();
+        if (path != null)
+            initialDir = path;
+
 		if (useSwing)
 		{
 			OpenFileSwing dialog = new OpenFileSwing();
@@ -291,7 +300,7 @@ public class OpenFile
             for (int i=0; i<types.length; i++) {
 			    dialog.addChoosableFileFilter(types[i].getFileFilterSwing());
             }
-			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
+			dialog.setCurrentDirectory(new File(initialDir));
             if (defaultFile != null)
             {
                 dialog.setFileFilter(FileMenu.getLibraryFormat(defaultFile, types[0]).getFileFilterSwing());
@@ -305,9 +314,13 @@ public class OpenFile
                 FileType selectedType = com.sun.electric.tool.io.FileType.getType(dialog.getFileFilter());
                 if (selectedType != null)
                 {
+                    String dir = TextUtils.getFilePath(TextUtils.makeURLToFile(fileName));
+                    selectedType.setGroupPath(dir);
 	                String extension = selectedType.getExtensions()[0];
 	                int dotPos = fileName.lastIndexOf('.');
-	                if (dotPos < 0) fileName += "." + extension; else
+	                if (dotPos < 0)
+                        fileName += "." + extension;
+                    else
 	                {
 	                    if (!fileName.substring(dotPos+1).equals(extension))
 	                    {
@@ -323,12 +336,13 @@ public class OpenFile
 		{
 			// the AWT way
 			FileDialog awtDialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.SAVE);
-			awtDialog.setDirectory(User.getWorkingDirectory());
+			awtDialog.setDirectory(initialDir);
 			awtDialog.setFile(defaultFile);
 			awtDialog.setFilenameFilter(types[0].getFileFilterAWT());
 			awtDialog.setVisible(true);
 			String fileName = awtDialog.getFile();
 			if (fileName == null) return null;
+            types[0].setGroupPath(awtDialog.getDirectory());
 			return awtDialog.getDirectory() + fileName;
 		}
 	}

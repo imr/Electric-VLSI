@@ -220,15 +220,17 @@ public class TopLevel extends JFrame
         //TopLevel.mode = Mode.MDI;
 
         // set current working directory
-        String setting = User.getInitialWorkingDirectorySetting();
-        if (setting.equals(User.INITIALWORKINGDIRSETTING_BASEDONOS)) {
+//        String setting = User.getInitialWorkingDirectorySetting();
+//        if (setting.equals(User.INITIALWORKINGDIRSETTING_BASEDONOS))
+        {
             // default is last used dir
             if (os == Client.OS.UNIX) {
                 // switch to current dir
                 User.setWorkingDirectory(System.getProperty("user.dir"));
             }
-        } else if (setting.equals(User.INITIALWORKINGDIRSETTING_USECURRENTDIR))
-            User.setWorkingDirectory(System.getProperty("user.dir"));
+        }
+//        else if (setting.equals(User.INITIALWORKINGDIRSETTING_USECURRENTDIR))
+//            User.setWorkingDirectory(System.getProperty("user.dir"));
         // else
             // default is to use last used dir
 
