@@ -695,7 +695,7 @@ public class Artwork extends Technology
 	 * @param tracePoints the array of control point values, alternating X/Y/X/Y.
 	 * @return an array of points that describes the spline.
 	 */
-	private Point2D [] fillSpline(double cX, double cY, Point2D [] tracePoints)
+	public Point2D [] fillSpline(double cX, double cY, Point2D [] tracePoints)
 	{
 		int steps = SPLINEGRAIN;
 		int count = tracePoints.length;

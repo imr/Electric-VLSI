@@ -869,6 +869,34 @@ class HighlightEOBJ extends Highlight2
 				Point2D [] points = ni.getTrace();
 				if (points != null)
 				{
+					// if this is a spline, highlight the true shape
+					if (ni.getProto() == Artwork.tech.splineNode)
+					{
+						Point2D [] changedPoints = new Point2D[points.length];
+						for(int i=0; i<points.length; i++)
+						{
+							changedPoints[i] = points[i];
+							if (i == point)
+							{
+								double x = ni.getAnchorCenterX() + points[point].getX();
+								double y = ni.getAnchorCenterY() + points[point].getY();
+								Point2D thisPt = new Point2D.Double(x, y);
+								trans.transform(thisPt, thisPt);
+								Point cThis = wnd.databaseToScreen(thisPt);
+								Point2D db = wnd.screenToDatabase(cThis.x+offX, cThis.y+offY);
+								changedPoints[i] = new Point2D.Double(db.getX() - ni.getAnchorCenterX(), db.getY() - ni.getAnchorCenterY());
+							}
+						}
+						Point2D [] spPoints = Artwork.tech.fillSpline(ni.getAnchorCenterX(), ni.getAnchorCenterY(), changedPoints);
+						Point cLast = wnd.databaseToScreen(spPoints[0]);
+						for(int i=1; i<spPoints.length; i++)
+						{
+							Point cThis = wnd.databaseToScreen(spPoints[i]);
+							drawLine(g, wnd, cLast.x, cLast.y, cThis.x, cThis.y);
+							cLast = cThis;
+						}
+					}
+
 					// draw an "x" through the selected point
 					double x = ni.getAnchorCenterX() + points[point].getX();
 					double y = ni.getAnchorCenterY() + points[point].getY();
