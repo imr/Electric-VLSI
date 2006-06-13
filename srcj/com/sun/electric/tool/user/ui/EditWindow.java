@@ -54,6 +54,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -243,7 +244,7 @@ public class EditWindow extends JPanel
         this.cell = cell;
         this.pageNumber = 0;
         this.wf = wf;
-		drawing = User.getDisplayAlgorithm() == 2 ? new LayerDrawing.Drawing(this) : new PixelDrawing.Drawing(this);
+        setDrawingAlgorithm();
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 		inPlaceDisplay = false;
@@ -308,6 +309,17 @@ public class EditWindow extends JPanel
 			setCell(cell, VarContext.globalContext, null);
 		}
 	}
+    
+    private void setDrawingAlgorithm() {
+        boolean isLayerDrawing = User.getDisplayAlgorithm() == 2 && cell != null && cell.getTechnology().isLayout();
+        if (isLayerDrawing && !(drawing instanceof LayerDrawing.Drawing))
+            drawing = new LayerDrawing.Drawing(this);
+        else if (!isLayerDrawing && !(drawing instanceof LayerDrawing.Drawing))
+            drawing = new PixelDrawing.Drawing(this);
+        LayerTab layerTab = getWindowFrame().getLayersTab();
+        if (layerTab != null)
+            layerTab.setDisplayAlgorithm(isLayerDrawing);
+    }
 
     private void installHighlighters()
     {
@@ -1016,6 +1028,7 @@ public class EditWindow extends JPanel
             Library lib = cell.getLibrary();
             Job.getUserInterface().setCurrentCell(lib, cell);
         }
+        setDrawingAlgorithm();
 
         // add new highlighters from the window
 		installHighlighters();
@@ -1346,7 +1359,7 @@ public class EditWindow extends JPanel
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
-            wnd.drawing = User.getDisplayAlgorithm() == 2 ? new LayerDrawing.Drawing(wnd) : new PixelDrawing.Drawing(wnd);
+            wnd.setDrawingAlgorithm();
 			wnd.repaintContents(null, false);
 		}
 	}
@@ -1550,6 +1563,10 @@ public class EditWindow extends JPanel
 			layerColors.add(new LayerColor(layer, color));
         }
 //        System.out.println();
+        final boolean showOpacity = !patternedDrawing;
+        final LayerTab layerTab = getWindowFrame().getLayersTab();
+        if (layerTab != null)
+            SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
         return layerColors;
     }
     

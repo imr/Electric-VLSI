@@ -793,7 +793,7 @@ class LayerDrawing
             layerComposite();
             return img;
         }
-        
+        wnd.getBlendingOrder(layerRasters.keySet(), true);        
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
@@ -1811,9 +1811,10 @@ class LayerDrawing
             int rightShift = 32 - leftShift;
             int srcBaseIndex = minSrcY*src.intsPerRow + (minSrcX>>5);
             int destBaseIndex = minDestY*intsPerRow + (minDestX>>5);
-            if ((maxDestX>>5) == (minDestX>>5)) {
+            int numDestInts = (maxDestX>>5) - (minDestX>>5);
+            if (numDestInts == 0) {
                 // Single destination byte.
-                int destMask = (1 << ((maxDestX&31) + 1)) - (1 << (minDestX&31));
+                int destMask = (2 << (maxDestX&31)) - (1 << (minDestX&31));
                 if ((minSrcX>>5) != (maxSrcX>>5)) {
                     // A pair of source bytes
                     for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
@@ -1848,35 +1849,71 @@ class LayerDrawing
                 }
             } else {
                 int minDestMask = - (1 << (minDestX&31));
-                int maxDestMask = (1 << ((maxDestX&31) + 1)) - 1;
-                boolean minSrcPair = leftShift > (minDestX&31);
-                boolean maxSrcPair = leftShift <= (maxDestX&31);
-                int numDestBytes = (maxDestX>>5) - (minDestX>>5);
+                int maxDestMask = (2 << (maxDestX&31)) - 1;
                 int srcIncr = src.intsPerRow - (maxSrcX>>5) + (minSrcX>>5) - 1;
-                for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
-                    assert srcBaseIndex == srcY*src.intsPerRow + (minSrcX>>5);
-                    assert destBaseIndex == (srcY + dy)*intsPerRow + (minDestX>>5);
-                    int s = minSrcPair ? srcLayerBitMap[srcBaseIndex++] : 0;
-                    int b0 = srcLayerBitMap[srcBaseIndex++];
-                    int v0 = ((s >>> rightShift) | (b0 << leftShift)) & minDestMask;
-                    if (v0 != 0)
-                        layerBitMap[destBaseIndex] |= v0;
-                    destBaseIndex++;
-                    s = b0;
-                    for (int i = 1; i < numDestBytes; i++) {
-                        int b = srcLayerBitMap[srcBaseIndex++];
-                        int v = (s >>> rightShift) | (b << leftShift);
-                        if (v != 0)
-                            layerBitMap[destBaseIndex] |= v;
+                if (leftShift == 0) {
+                    for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                        assert srcBaseIndex == srcY*src.intsPerRow + (minSrcX>>5);
+                        assert destBaseIndex == (srcY + dy)*intsPerRow + (minDestX>>5);
+                        int v0 = srcLayerBitMap[srcBaseIndex++] & minDestMask;
+                        if (v0 != 0)
+                            layerBitMap[destBaseIndex] |= v0;
                         destBaseIndex++;
-                        s = b;
+                        for (int i = 1; i < numDestInts; i++) {
+                            int v = srcLayerBitMap[srcBaseIndex++];
+                            if (v != 0)
+                                layerBitMap[destBaseIndex] |= v;
+                            destBaseIndex++;
+                        }
+                        int vf = srcLayerBitMap[srcBaseIndex++] & maxDestMask;
+                        if (vf != 0)
+                            layerBitMap[destBaseIndex] |= vf;
+                        srcBaseIndex += srcIncr;
+                        destBaseIndex += (intsPerRow - numDestInts);
                     }
-                    int bf = maxSrcPair ? srcLayerBitMap[srcBaseIndex++] : 0;
-                    int vf = ((s >>> rightShift) | (bf << leftShift)) & maxDestMask;
-                    if (vf != 0)
-                        layerBitMap[destBaseIndex] |= vf;
-                    srcBaseIndex += srcIncr;
-                    destBaseIndex += (intsPerRow - numDestBytes);
+                } else if (numDestInts == 2 && (minSrcX>>5) == (maxSrcX>>5)) {
+                    for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                        assert srcBaseIndex == srcY*src.intsPerRow + (minSrcX>>5);
+                        assert destBaseIndex == (srcY + dy)*intsPerRow + (minDestX>>5);
+                        int s = srcLayerBitMap[srcBaseIndex];
+                        int b0 = srcLayerBitMap[srcBaseIndex++];
+                        int v0 = (s << leftShift) & minDestMask;
+                        if (v0 != 0)
+                            layerBitMap[destBaseIndex] |= v0;
+                        int vf = (s >>> rightShift) & maxDestMask;
+                        if (vf != 0)
+                            layerBitMap[destBaseIndex + 1] |= vf;
+                        srcBaseIndex += src.intsPerRow;
+                        destBaseIndex += intsPerRow;
+                    }
+                } else {
+                    boolean minSrcPair = leftShift > (minDestX&31);
+                    boolean maxSrcPair = leftShift <= (maxDestX&31);
+                    for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+                        assert srcBaseIndex == srcY*src.intsPerRow + (minSrcX>>5);
+                        assert destBaseIndex == (srcY + dy)*intsPerRow + (minDestX>>5);
+                        int s = minSrcPair ? srcLayerBitMap[srcBaseIndex++] : 0;
+                        int b0 = srcLayerBitMap[srcBaseIndex++];
+                        int v0 = ((s >>> rightShift) | (b0 << leftShift)) & minDestMask;
+                        if (v0 != 0)
+                            layerBitMap[destBaseIndex] |= v0;
+                        destBaseIndex++;
+                        s = b0;
+                        for (int i = 1; i < numDestInts; i++) {
+                            int b = srcLayerBitMap[srcBaseIndex++];
+                            int v = (s >>> rightShift) | (b << leftShift);
+                            if (v != 0)
+                                layerBitMap[destBaseIndex] |= v;
+                            destBaseIndex++;
+                            s = b;
+                        }
+                        int bf = maxSrcPair ? srcLayerBitMap[srcBaseIndex++] : 0;
+                        int vf = ((s >>> rightShift) | (bf << leftShift)) & maxDestMask;
+                        if (vf != 0)
+                            layerBitMap[destBaseIndex] |= vf;
+                        srcBaseIndex += srcIncr;
+                        destBaseIndex += (intsPerRow - numDestInts);
+                    }
                 }
             }
         }
@@ -2571,7 +2608,7 @@ class LayerDrawing
         crosses++;
         if (clipLY <= cY && cY <= clipHY) {
             int lX = Math.max(clipLX, cX - size);
-            int hX = Math.min(clipHY, cX + size);
+            int hX = Math.min(clipHX, cX + size);
             if (lX <= hX)
                 raster.drawHorLine(cY, lX, hX);
         }
@@ -3441,13 +3478,6 @@ class LayerDrawing
 		}
 	}
 
-    /**
-	 * Method to draw a text on the off-screen buffer
-	 */
-	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte[] layerBitMap, byte layerBitMask) {
-        texts++;
-    }
-
 	private int alphaBlend(int color, int backgroundColor, int alpha)
 	{
 		int red = (color >> 16) & 0xFF;
@@ -3770,13 +3800,6 @@ class LayerDrawing
 	}
 
 	/**
-	 * Method to draw a circle on the off-screen buffer
-	 */
-	private void drawCircle(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
-        circles++;
-    }
-    
-	/**
 	 * Method to draw a thick circle on the off-screen buffer
 	 */
 	void drawThickCircle(Point center, Point edge, ERaster raster)
@@ -3841,13 +3864,6 @@ class LayerDrawing
 		}
 	}
 
-	/**
-	 * Method to draw a thick circle on the off-screen buffer
-	 */
-	private void drawThickCircle(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
-        thickCircles++;
-    }
-    
 	// ************************************* DISC DRAWING *************************************
 
 	/**
@@ -3855,10 +3871,10 @@ class LayerDrawing
 	 */
 	private void drawDiscRow(int thisy, int startx, int endx, ERaster raster)
 	{
-		if (thisy < 0 || thisy >= sz.height) return;
-		if (startx < 0) startx = 0;
-		if (endx >= sz.width) endx = sz.width - 1;
-        raster.drawHorLine(thisy, startx, endx);
+		if (thisy < clipLY || thisy > clipHY) return;
+		if (startx < clipLX) startx = clipLX;
+		if (endx > clipHX) endx = clipHX;
+        raster.fillHorLine(thisy, startx, endx);
 	}
 
 	/**
@@ -4143,26 +4159,7 @@ class LayerDrawing
 	private int MODM(int x) { return (x<1) ? x+8 : x; }
 	private int MODP(int x) { return (x>8) ? x-8 : x; }
 
-	/**
-	 * draws an arc centered at (centerx, centery), clockwise,
-	 * passing by (x1,y1) and (x2,y2)
-	 */
-	private void drawCircleArc(Point center, Point p1, Point p2, boolean thick, byte[] layerBitMap, byte layerBitMask) {
-        circleArcs++;
-    }
-    
 	// ************************************* RENDERING SUPPORT *************************************
-
-	void drawPoint(int x, int y, byte [][] layerBitMap, int col)
-	{
-		if (layerBitMap == null)
-		{
-			opaqueData[y * sz.width + x] = col;
-		} else
-		{
-			layerBitMap[y][x>>3] |= (1 << (x&7));
-		}
-	}
 
     private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
         points++;

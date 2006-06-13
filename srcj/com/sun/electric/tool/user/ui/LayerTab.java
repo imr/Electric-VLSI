@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -55,6 +56,7 @@ public class LayerTab extends JPanel
 	private HashMap<Layer,Boolean> highlighted;
 	private List<Layer> layersInList;
 	private boolean loading;
+    private boolean layerDrawing;
 
 	private static HashMap<Layer,Boolean> visibility;
 
@@ -102,16 +104,16 @@ public class LayerTab extends JPanel
         {
             public void actionPerformed(ActionEvent evt) { update(); }
         });
-		if (Job.getDebug())
-		{
+//		if (Job.getDebug())
+//		{
 			opacitySlider.addChangeListener(new ChangeListener()
 	        {
 	            public void stateChanged(ChangeEvent evt) { sliderChanged(); }
 	        });
-		} else
-		{
-			remove(opacitySlider);
-		}
+//		} else
+//		{
+//			remove(opacitySlider);
+//		}
 
 		technology.setLightWeightPopupEnabled(false);
 
@@ -172,6 +174,13 @@ public class LayerTab extends JPanel
      */
     public void setSelectedTechnology(Technology tech) { technology.setSelectedItem(tech.getTechName()); }
 
+    public void setDisplayAlgorithm(boolean layerDrawing) {
+        boolean changed = this.layerDrawing != layerDrawing;
+        this.layerDrawing = layerDrawing;
+        if (changed)
+            updateLayersTab();
+    }
+    
 	/**
 	 * Method to update this LayersTab.
 	 * Called when any of the values in the tab have changed.
@@ -228,6 +237,8 @@ public class LayerTab extends JPanel
 			layerListModel.addElement(lineName(layer));
 		}
         layerList.setSelectedIndex(0);
+        if (opacitySlider != null)
+            opacitySlider.setVisible(layerDrawing);
 	}
 
 	private String lineName(Layer layer)
@@ -240,8 +251,8 @@ public class LayerTab extends JPanel
 		Boolean layerHighlighted = highlighted.get(layer);
 		layerName.append(layer.getName());
 		if (layerHighlighted.booleanValue()) layerName.append(" (HIGHLIGHTED)");
-		if (Job.getDebug())
-			layerName.append(" (" + layer.getGraphics().getOpacity() + ")");
+		if (/*Job.getDebug()*/layerDrawing)
+			layerName.append(" (" + TextUtils.formatDouble(layer.getGraphics().getOpacity(),2) + ")");
 		return layerName.toString();
 	}
 
@@ -255,7 +266,7 @@ public class LayerTab extends JPanel
 		if (indices.length == 1)
 		{
 			// single layer selected: show opacity
-			if (Job.getDebug())
+			if (/*Job.getDebug()*/layerDrawing)
 			{
 				Layer layer = getSelectedLayer(indices[0]);
 				if (layer != null)

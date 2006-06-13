@@ -3678,7 +3678,7 @@ public class Technology implements Comparable<Technology>
 			}
 
 			// find the most popular of the layout technologies
-			if (tech == Schematics.tech || tech == Artwork.tech) continue;
+			if (!tech.isLayout()) continue;
 			if (useCount[tech.getIndex()] > bestLayout)
 			{
 				bestLayout = useCount[tech.getIndex()];
@@ -3763,6 +3763,14 @@ public class Technology implements Comparable<Technology>
 		// give up and report the generic technology
 		return retTech;
 	}
+    
+    /**
+     * Returns true if this Technology is layout technology.
+     * @return true if this Technology is layout technology.
+     */
+    public boolean isLayout() {
+        return this != Schematics.tech && this != Artwork.tech && this != Generic.tech;
+    }
 
     /**
      * Compares Technologies by their names.
