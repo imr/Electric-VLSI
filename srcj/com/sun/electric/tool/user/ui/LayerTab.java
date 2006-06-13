@@ -237,8 +237,8 @@ public class LayerTab extends JPanel
 			layerListModel.addElement(lineName(layer));
 		}
         layerList.setSelectedIndex(0);
-        if (opacitySlider != null)
-            opacitySlider.setVisible(layerDrawing);
+        opacitySlider.setVisible(layerDrawing);
+        resetOpacity.setVisible(layerDrawing);
 	}
 
 	private String lineName(Layer layer)
@@ -822,7 +822,12 @@ public class LayerTab extends JPanel
 
     private void resetOpacityActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_resetOpacityActionPerformed
     {//GEN-HEADEREND:event_resetOpacityActionPerformed
-// TODO add your handling code here:
+		String techName = (String)technology.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+        if (tech == null) return;
+        EditWindow.setDefaultOpacity(tech);
+        updateLayersTab();
+        EditWindow.repaintAllContents();
     }//GEN-LAST:event_resetOpacityActionPerformed
 
 	private void toggleHighlightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_toggleHighlightActionPerformed
