@@ -314,7 +314,7 @@ public class EditWindow extends JPanel
         boolean isLayerDrawing = User.getDisplayAlgorithm() == 2 && cell != null && cell.getTechnology().isLayout();
         if (isLayerDrawing && !(drawing instanceof LayerDrawing.Drawing))
             drawing = new LayerDrawing.Drawing(this);
-        else if (!isLayerDrawing && !(drawing instanceof LayerDrawing.Drawing))
+        else if (!isLayerDrawing && !(drawing instanceof PixelDrawing.Drawing))
             drawing = new PixelDrawing.Drawing(this);
         LayerTab layerTab = getWindowFrame().getLayersTab();
         if (layerTab != null)
