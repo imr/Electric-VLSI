@@ -587,6 +587,7 @@ public class CVS {
             if (frame.getContent() instanceof EditWindow) {
                 EditWindow wnd = (EditWindow)frame.getContent();
                 Cell cell = wnd.getCell();
+                if (cell == null) continue;
                 if (!cell.isLinked()) {
                     Library newLib = Library.findLibrary(cell.getLibrary().getName());
                     if (newLib == null) return;
