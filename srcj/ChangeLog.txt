@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+BUG: (6/13/06, SMR) Duplicating circuitry crashes (Bug #1120).
+FIX: In Clipboard.java, the "down in place" transform was not being used properly.
+
 IMP: (6/13/06, GVG) Ability to abort Mimic Stitch job.
 
 IMP/MAN: (6/13/06, GVG) Changes related to groups associated to different file types to

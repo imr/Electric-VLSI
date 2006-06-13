@@ -1241,7 +1241,7 @@ public class Clipboard
 				{
 					ArcInst ai = (ArcInst)geom;
 					Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
-					poly.transform(inPlace);
+					if (inPlace != null) poly.transform(inPlace);
 					Point2D [] points = poly.getPoints();
 					showPoints(points, oX, oY, cell, highlighter);
 					continue;
@@ -1258,7 +1258,7 @@ public class Clipboard
 						if (var.isDisplay())
 						{
 							Point2D [] points = Highlighter.describeHighlightText(wnd, geom, var.getKey());
-							inPlace.transform(points, 0, points, 0, points.length);
+							if (inPlace != null) inPlace.transform(points, 0, points, 0, points.length);
 							showPoints(points, oX, oY, cell, highlighter);
 							found = true;
 							break;
@@ -1276,7 +1276,7 @@ public class Clipboard
 				double nodeX = (nodeLowX + nodeHighX) / 2;
 				double nodeY = (nodeLowY + nodeHighY) / 2;
 				Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
-				poly.transform(inPlace);
+				if (inPlace != null) poly.transform(inPlace);
 				poly.transform(trans);
 				showPoints(poly.getPoints(), oX, oY, cell, highlighter);
 			}
@@ -1294,7 +1294,7 @@ public class Clipboard
 				Rectangle2D transBounds = new Rectangle2D.Double(pasteBounds.getX()+oX, pasteBounds.getY()+oY,
 					pasteBounds.getWidth(), pasteBounds.getHeight());
 				Poly p = new Poly(transBounds);
-				p.transform(inPlace);
+				if (inPlace != null) p.transform(inPlace);
 				Point2D endPoint = p.closestPoint(lastMouseDB);
 
 				// draw arrow
