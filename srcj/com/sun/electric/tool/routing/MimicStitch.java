@@ -390,7 +390,7 @@ public class MimicStitch
 			boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
 
 			mimicOneArc(ai1, end1, ai2, end2, oWidth, oProto, prefX, prefY, forced, Job.Type.EXAMINE,
-				mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
+				mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir, this);
 			return true;
 		}
 	}
@@ -398,24 +398,23 @@ public class MimicStitch
 	/**
 	 * Method to do mimic stitching.
 	 * It can be used during batch processing to mimic directly.
-	 * @param conn1 the connection at one end of the mimic.
-	 * @param conn2 the connection at the other end of the mimic.
 	 * @param oWidth the width of the arc to run.
-	 * @param oProto the type of arc to run.
-	 * @param prefX the preferred X position of the mimic (if there is a choice).
-	 * @param prefY the preferred Y position of the mimic (if there is a choice).
-	 * @param forced true if this was an explicitly requested mimic.
-	 * @param method the type of job that is running (CHANGE or EXAMINE).
-	 * @param mimicInteractive true to run interactively.
-	 * @param matchPorts true to require port types to match.
-	 * @param matchArcCount true to require the number of arcs to match.
-	 * @param matchNodeType true to require the node types to match.
-	 * @param matchNodeSize true to require the node sizes to match.
-	 * @param noOtherArcsThisDir true to require that no other arcs exist in the same direction.
-	 */
+     * @param oProto the type of arc to run.
+     * @param prefX the preferred X position of the mimic (if there is a choice).
+     * @param prefY the preferred Y position of the mimic (if there is a choice).
+     * @param forced true if this was an explicitly requested mimic.
+     * @param method the type of job that is running (CHANGE or EXAMINE).
+     * @param mimicInteractive true to run interactively.
+     * @param matchPorts true to require port types to match.
+     * @param matchArcCount true to require the number of arcs to match.
+     * @param matchNodeType true to require the node types to match.
+     * @param matchNodeSize true to require the node sizes to match.
+     * @param noOtherArcsThisDir true to require that no other arcs exist in the same direction.
+     * @param theJob
+     */
 	public static void mimicOneArc(ArcInst ai1, int end1, ArcInst ai2, int end2, double oWidth, ArcProto oProto,
-		double prefX, double prefY, boolean forced, Job.Type method, boolean mimicInteractive, boolean matchPorts,
-		boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
+                                   double prefX, double prefY, boolean forced, Job.Type method, boolean mimicInteractive, boolean matchPorts,
+                                   boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir, Job theJob)
 	{
 		if (forced) System.out.println("Mimicing last arc...");
 
@@ -496,6 +495,12 @@ public class MimicStitch
 			{
 				NodeInst ni = it.next();
 				Rectangle2D bounds = ni.getBounds();
+
+                if (theJob != null && theJob.checkAbort())
+                {
+                    System.out.println("Mimic Arc Job aborted");
+                    return;
+                }
 
 				// now look for another node that matches the situation
 				for(Iterator<NodeInst> oIt = cell.getNodes(); oIt.hasNext(); )
