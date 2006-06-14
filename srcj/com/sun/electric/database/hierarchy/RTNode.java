@@ -718,8 +718,9 @@ class RTNode
 		/** index stack of search */			private int [] position;
 		/** desired search bounds */			private Rectangle2D searchBounds;
 		/** the next object to return */		private Geometric nextObj;
+        /** includes objects on the search area edges */ private boolean includeEdges;
 
-		Search(Rectangle2D bounds, Cell cell)
+		Search(Rectangle2D bounds, Cell cell, boolean includeEdges)
 		{
 			this.depth = 0;
 			this.rtn = new RTNode[MAXDEPTH];
@@ -727,6 +728,7 @@ class RTNode
 			this.rtn[0] = cell.getRTree();
 			this.searchBounds = new Rectangle2D.Double();
 			this.searchBounds.setRect(bounds);
+            this.includeEdges = includeEdges;
 			this.nextObj = null;
 		}
 
@@ -743,10 +745,20 @@ class RTNode
 				if (i < rtnode.getTotal())
 				{
 					Rectangle2D nodeBounds = rtnode.getBBox(i);
-					if (nodeBounds.getMaxX() < searchBounds.getMinX()) continue;
-					if (nodeBounds.getMinX() > searchBounds.getMaxX()) continue;
-					if (nodeBounds.getMaxY() < searchBounds.getMinY()) continue;
-					if (nodeBounds.getMinY() > searchBounds.getMaxY()) continue;
+                    if (includeEdges)
+                    {
+                        if (nodeBounds.getMaxX() < searchBounds.getMinX()) continue;
+                        if (nodeBounds.getMinX() > searchBounds.getMaxX()) continue;
+                        if (nodeBounds.getMaxY() < searchBounds.getMinY()) continue;
+                        if (nodeBounds.getMinY() > searchBounds.getMaxY()) continue;
+                    }
+                    else
+                    {
+                        if (nodeBounds.getMaxX() <= searchBounds.getMinX()) continue;
+                        if (nodeBounds.getMinX() >= searchBounds.getMaxX()) continue;
+                        if (nodeBounds.getMaxY() <= searchBounds.getMinY()) continue;
+                        if (nodeBounds.getMinY() >= searchBounds.getMaxY()) continue;
+                    }
 					if (rtnode.getFlag()) return((Geometric)rtnode.getChild(i));
 
 					// look down the hierarchy

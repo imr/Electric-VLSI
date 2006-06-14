@@ -1323,7 +1323,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @param bounds the specified area to search.
 	 * @return an iterator over all of the Geometric objects in that area.
 	 */
-	public Iterator<Geometric> searchIterator(Rectangle2D bounds) { return new RTNode.Search(bounds, this); }
+	public Iterator<Geometric> searchIterator(Rectangle2D bounds) { return new RTNode.Search(bounds, this, true); }
+
+    /**
+	 * Method to return an interator over all Geometric objects in a given area of this Cell that allows
+     * to ignore elements touching the area.
+	 * @param bounds the specified area to search.
+     * @param includeEdges true if Geometric objects along edges are considered in.
+	 * @return an iterator over all of the Geometric objects in that area.
+	 */
+	public Iterator<Geometric> searchIterator(Rectangle2D bounds, boolean includeEdges)
+    { return new RTNode.Search(bounds, this, includeEdges); }
 
 	/**
 	 * Method to return the bounds of this Cell.
