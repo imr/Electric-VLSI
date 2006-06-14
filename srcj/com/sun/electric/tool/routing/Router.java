@@ -41,6 +41,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.User;
 
@@ -66,6 +67,7 @@ import java.util.List;
 public abstract class Router {
 
     /** set to tell user short info on what was done */     protected boolean verbose = false;
+    /** the tool that is making routes */					protected Tool tool;
 
     // ------------------ Abstract Router Methods -----------------
 
@@ -96,7 +98,7 @@ public abstract class Router {
      * @param cell the cell in which to create the route
      */
     public void createRoute(Route route, Cell cell) {
-        new CreateRouteJob(toString(), route, cell, verbose);
+        new CreateRouteJob(toString(), route, cell, verbose, tool);
     }
 
     /**
@@ -190,6 +192,9 @@ public abstract class Router {
         return created;
     }
 
+    /** Method to set the tool associated with this router */
+    public void setTool(Tool tool) { this.tool = tool; }
+
     // -------------------------- Job to build route ------------------------
 
     /**
@@ -204,8 +209,8 @@ public abstract class Router {
         /** port to highlight */                    private PortInst portToHighlight;
 
         /** Constructor */
-        protected CreateRouteJob(String what, Route route, Cell cell, boolean verbose) {
-            super(what, Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+        protected CreateRouteJob(String what, Route route, Cell cell, boolean verbose, Tool tool) {
+            super(what, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.route = route;
             this.verbose = verbose;
             this.cell = cell;

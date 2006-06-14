@@ -145,6 +145,7 @@ public class Routing extends Listener
     public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
 		if (undoRedo) return;
+		if (newSnapshot.tool == tool) return;
         current = new Activity();
         checkAutoStitch = false;
         for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {

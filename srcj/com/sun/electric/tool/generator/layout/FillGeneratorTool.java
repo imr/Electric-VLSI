@@ -416,6 +416,7 @@ public class FillGeneratorTool extends Tool {
             AffineTransform fillTransIn = fillNi.transformIn(conNi.transformIn());
 
             InteractiveRouter router  = new SimpleWirer();
+            router.setTool(tool);
             boolean rotated = (master != null && master.getVar("ROTATED_MASTER") != null);
             FillGenJobContainer container = new FillGenJobContainer(router, fillCell, fillNi, connectionCell, conNi,
                     fillGenConfig.drcSpacingRule, rotated);

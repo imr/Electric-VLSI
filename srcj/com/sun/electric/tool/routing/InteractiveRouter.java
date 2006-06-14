@@ -24,10 +24,10 @@
 
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
@@ -41,8 +41,8 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Highlight2;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Line2D;
@@ -83,6 +83,7 @@ public abstract class InteractiveRouter extends Router {
         started = false;
         badStartObject = badEndObject = null;
         wnd = null;
+        tool = Routing.getRoutingTool();
     }
 
     public String toString() { return "Interactive Router"; }
@@ -187,7 +188,7 @@ public abstract class InteractiveRouter extends Router {
 
     private static class MakeVerticalRouteJob extends Router.CreateRouteJob {
         protected MakeVerticalRouteJob(Router router, Route route, Cell cell, boolean verbose) {
-            super(router.toString(), route, cell, false);
+            super(router.toString(), route, cell, false, Routing.getRoutingTool());
         }
 
         /** Implemented doIt() method to perform Job */

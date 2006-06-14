@@ -135,6 +135,7 @@ public class ClickZoomWireListener
     /** Constructor is private */
     private ClickZoomWireListener() {
         router = new SimpleWirer();
+        router.setTool(User.getUserTool());
         readPrefs();
     }
 
