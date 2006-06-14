@@ -240,7 +240,7 @@ public final class J3DUtils
 
     /**
 	 * Method to set default zoom factor
-	 * @param value angle on Y
+	 * @param value zoom factor
 	 */
 	public static void set3DOrigZoom(double value) { cache3DOrigZoom.setDouble(value); }
 
