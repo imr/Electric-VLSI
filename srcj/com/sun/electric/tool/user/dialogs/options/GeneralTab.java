@@ -31,6 +31,7 @@ import com.sun.electric.tool.io.FileType;
 import java.awt.Frame;
 import java.util.HashMap;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -39,7 +40,7 @@ import javax.swing.JPanel;
  */
 public class GeneralTab extends PreferencePanel
 {
-    private HashMap<Object,Object> fileTypeMap = new HashMap<Object,Object>();
+    private HashMap<Object,String> fileTypeMap = new HashMap<Object,String>();
 
 	/** Creates new form General Options */
 	public GeneralTab(Frame parent, boolean modal)
@@ -65,11 +66,13 @@ public class GeneralTab extends PreferencePanel
 //        for (Iterator<String> it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
 //            workingDirComboBox.addItem(it.next());
 //        workingDirComboBox.setSelectedItem(User.getInitialWorkingDirectorySetting());
-        for (Object obj : FileType.getFileTypeGroups())
+        for (FileType.FileTypeGroup obj : FileType.getFileTypeGroups())
         {
             workingDirComboBox.addItem(obj);
             fileTypeMap.put(obj, null);
         }
+        workingDirComboBoxActionPerformed(null);
+        pathTextField.setText(User.getWorkingDirectory());
 
         // Jobs section
         generalBeepAfterLongJobs.setSelected(User.isBeepAfterLongJobs());
@@ -103,10 +106,10 @@ public class GeneralTab extends PreferencePanel
 
         // Resetting dir path
         Collection col = fileTypeMap.values();
-        for (Object obj : col)
+        for (Map.Entry<Object,String> entry : fileTypeMap.entrySet())
         {
-            if (obj != null)
-                FileType.resetFileTypeGroupDir(obj);
+            Object obj = entry.getKey();
+            FileType.resetFileTypeGroupDir(obj, entry.getValue());
         }
 
 //		String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
@@ -173,10 +176,14 @@ public class GeneralTab extends PreferencePanel
         jLabel64 = new javax.swing.JLabel();
         IO = new javax.swing.JPanel();
         generalShowFileDialog = new javax.swing.JCheckBox();
-        jLabel3 = new javax.swing.JLabel();
-        workingDirComboBox = new javax.swing.JComboBox();
+        groupPanel = new javax.swing.JPanel();
+        newPathLabel = new javax.swing.JLabel();
+        pathLabel = new javax.swing.JLabel();
+        pathTextField = new javax.swing.JTextField();
         resetButton = new javax.swing.JButton();
-        jLabel1 = new javax.swing.JLabel();
+        workingDirComboBox = new javax.swing.JComboBox();
+        groupLabel = new javax.swing.JLabel();
+        currentPathLabel = new javax.swing.JLabel();
         jobs = new javax.swing.JPanel();
         generalBeepAfterLongJobs = new javax.swing.JCheckBox();
         jLabel46 = new javax.swing.JLabel();
@@ -288,20 +295,31 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         IO.add(generalShowFileDialog, gridBagConstraints);
 
-        jLabel3.setText("File Type  group");
+        groupPanel.setLayout(new java.awt.GridBagLayout());
+
+        groupPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("File Type Group"));
+        newPathLabel.setText("New:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        IO.add(jLabel3, gridBagConstraints);
+        groupPanel.add(newPathLabel, gridBagConstraints);
 
+        pathLabel.setText("Current:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        groupPanel.add(pathLabel, gridBagConstraints);
+
+        pathTextField.setText("jTextField1");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        IO.add(workingDirComboBox, gridBagConstraints);
+        groupPanel.add(pathTextField, gridBagConstraints);
 
         resetButton.setText("Reset");
         resetButton.addActionListener(new java.awt.event.ActionListener() {
@@ -311,18 +329,44 @@ public class GeneralTab extends PreferencePanel
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        IO.add(resetButton, gridBagConstraints);
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        groupPanel.add(resetButton, gridBagConstraints);
 
-        jLabel1.setText("Resetting group path to current working directory:");
+        workingDirComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                workingDirComboBoxActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        IO.add(jLabel1, gridBagConstraints);
+        groupPanel.add(workingDirComboBox, gridBagConstraints);
+
+        groupLabel.setText("Group");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        groupPanel.add(groupLabel, gridBagConstraints);
+
+        currentPathLabel.setText("jLabel1");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        groupPanel.add(currentPathLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        IO.add(groupPanel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -431,9 +475,21 @@ public class GeneralTab extends PreferencePanel
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void workingDirComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_workingDirComboBoxActionPerformed
+        FileType.FileTypeGroup obj = (FileType.FileTypeGroup)workingDirComboBox.getSelectedItem();
+        currentPathLabel.setText(obj.getPath());
+    }//GEN-LAST:event_workingDirComboBoxActionPerformed
+
+    private void newPath()
+    {
+         Object obj = workingDirComboBox.getSelectedItem();
+        // Storing string
+        fileTypeMap.put(obj, pathTextField.getText());
+    }
     private void resetButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetButtonActionPerformed
         Object obj = workingDirComboBox.getSelectedItem();
-        fileTypeMap.put(obj, obj);
+        // Storing string
+        fileTypeMap.put(obj, pathTextField.getText());
 
     }//GEN-LAST:event_resetButtonActionPerformed
 
@@ -446,6 +502,7 @@ public class GeneralTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel IO;
+    private javax.swing.JLabel currentPathLabel;
     private javax.swing.JPanel database;
     private javax.swing.JPanel general;
     private javax.swing.JCheckBox generalBeepAfterLongJobs;
@@ -457,9 +514,9 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JCheckBox generalSnapshotLogging;
     private javax.swing.JCheckBox generalVerboseMode;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel groupLabel;
+    private javax.swing.JPanel groupPanel;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel46;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel60;
@@ -470,6 +527,9 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JPanel jobs;
     private javax.swing.JTextField maxUndoHistory;
     private javax.swing.JPanel memory;
+    private javax.swing.JLabel newPathLabel;
+    private javax.swing.JLabel pathLabel;
+    private javax.swing.JTextField pathTextField;
     private javax.swing.JButton resetButton;
     private javax.swing.JComboBox workingDirComboBox;
     // End of variables declaration//GEN-END:variables

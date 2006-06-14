@@ -44,15 +44,16 @@ public class FileType implements Serializable {
     private static final FileTypeGroup BUILTINSIMGRP = new FileTypeGroup("Built-In Simulation", User.getWorkingDirectory()); // Built-in simulation tools
     private static final FileTypeGroup VERILOGSIMGRP = new FileTypeGroup("Verilog Simulation", User.getWorkingDirectory()); // Verilog simulation tools
     private static final FileTypeGroup EXPORTIMPORTGRP = new FileTypeGroup("Export-Import", User.getWorkingDirectory()); // Export/Import formats
-    private static final Object[] fileTypeGroups = {DATABASEGRP, OTHERSIMGRP, SPICESIMGRP, BUILTINSIMGRP, VERILOGSIMGRP, EXPORTIMPORTGRP};
+    private static final FileTypeGroup[] fileTypeGroups = {DATABASEGRP, OTHERSIMGRP, SPICESIMGRP, BUILTINSIMGRP, VERILOGSIMGRP, EXPORTIMPORTGRP};
 
-    public static Object[] getFileTypeGroups() { return fileTypeGroups; }
+    public static FileTypeGroup[] getFileTypeGroups() { return fileTypeGroups; }
 
-    public static void resetFileTypeGroupDir(Object obj)
+    public static void resetFileTypeGroupDir(Object obj, String path)
     {
         assert(obj instanceof FileTypeGroup);
+        if (path == null) return; // nothing 
         FileTypeGroup gp = (FileTypeGroup)obj;
-        gp.setPath(User.getWorkingDirectory());
+        gp.setPath(path);
     }
 
 	/** all types */                        private static final ArrayList<FileType> allTypes = new ArrayList<FileType>();
@@ -182,7 +183,7 @@ public class FileType implements Serializable {
             Pref path = groupPrefs.get(this);
             path.setString(p);
         }
-        String getPath()
+        public String getPath()
         {
             Pref path = groupPrefs.get(this);
             return path.getString();
