@@ -698,12 +698,17 @@ public class CellChangeJobs
         private List<NodeInst> nodes;
         private boolean copyExports;
 
-        public ExtractCellInstances(List<NodeInst> highlighted, boolean copyExports)
+        public ExtractCellInstances(List<NodeInst> highlighted, boolean copyExports, boolean startNow)
 		{
 			super("Extract Cell Instances", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.nodes = highlighted;
             this.copyExports = copyExports;
-			startJob();
+            if (!startNow)
+			    startJob();
+            else
+            {
+                try {doIt(); } catch (Exception e) {e.printStackTrace();}
+            }
 		}
 
 		public boolean doIt() throws JobException
@@ -714,7 +719,7 @@ public class CellChangeJobs
 			{
 				if (!ni.isCellInstance()) continue;
 				foundInstance = true;
-                System.out.println("Extracting " + i); i++;
+                if (i%1000==0) System.out.println("Extracting " + i); i++;
 				extractOneNode(ni, copyExports);
 			}
 			if (!foundInstance)
