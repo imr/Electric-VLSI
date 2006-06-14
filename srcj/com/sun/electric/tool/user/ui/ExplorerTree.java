@@ -506,6 +506,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	/** Variables needed for DnD */
 	private DragSource dragSource = null;
 	private ExplorerTreeDropTarget dropTarget;
+	private Point dragOffset;
+	private BufferedImage dragImage;
+	private boolean subCells;
 
 	private void initDND()
 	{
@@ -556,14 +559,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		}
 
 		// make a Transferable object
-		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(getCurrentlySelectedObject(0));
+		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(getCurrentlySelectedObject(0), this);
 		if (!transferable.isValid()) return;
 
 		// find out the offset of the cursor to the selected tree node
 		Point pt = e.getDragOrigin();
 		TreePath path = getPathForLocation(pt.x, pt.y);
 		Rectangle pathRect = getPathBounds(path);
-		Point offset = new Point(pt.x-pathRect.x, pt.y-pathRect.y);
+		dragOffset = new Point(pt.x-pathRect.x, pt.y-pathRect.y);
 
 		// render the dragged stuff
 		Component comp = getCellRenderer().getTreeCellRendererComponent(this, path.getLastPathComponent(),
@@ -571,13 +574,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		int wid = (int)pathRect.getWidth();
 		int hei = (int)pathRect.getHeight();
 		
-		boolean subCells = false;
+		subCells = false;
 		if (e.getTriggerEvent() instanceof MouseEvent)
 			subCells = ClickZoomWireListener.isRightMouse((MouseEvent)e.getTriggerEvent());
 		if (subCells) hei *= 2;
 		comp.setSize(wid, hei);
-		BufferedImage img = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_ARGB_PRE);
-		Graphics2D g2 = img.createGraphics();
+		dragImage = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_ARGB_PRE);
+		Graphics2D g2 = dragImage.createGraphics();
 		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
 		AffineTransform saveAT = g2.getTransform();
 		if (subCells) g2.translate(0, -hei/4);
@@ -592,10 +595,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			g2.drawLine(wid/2, hei/2, wid, hei);
 		}
 		g2.dispose();
-		dropTarget.setDragVisuals(offset, img, subCells);
 
 		// begin the drag
-		e.startDrag(null, img, new Point(0, 0), transferable, this);
+		e.startDrag(null, dragImage, new Point(0, 0), transferable, this);
 //		if (Client.isOSMac())
 //		{
 //			Image img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
@@ -622,16 +624,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static class ExplorerTreeDropTarget implements DropTargetListener
 	{
 		private Rectangle lastDrawn = null;
-		private Point dragOffset;
-		private BufferedImage dragImage;
-		private boolean subCells;
-
-		public void setDragVisuals(Point offset, BufferedImage image, boolean sc)
-		{
-			dragOffset = offset;
-			dragImage = image;
-			subCells = sc;
-		}
 
 		public void dragEnter(DropTargetDragEvent e)
 		{
@@ -649,6 +641,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 			// get the original cell that was dragged
 			Object obj = getDraggedObject(e.getCurrentDataFlavors());
+			ExplorerTree originalTree = getOriginalTree(e.getCurrentDataFlavors());
+			if (originalTree == null) return;
 			if (obj instanceof Cell.CellGroup) obj = ((Cell.CellGroup)obj).getCells().next();
 			if (!(obj instanceof Cell)) return;
 			Cell origCell = (Cell)obj;
@@ -657,11 +651,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (!DragSource.isDragImageSupported())
 			{
 				// Remember where you are about to draw the new ghost image
-				lastDrawn = new Rectangle(e.getLocation().x - dragOffset.x, e.getLocation().y - dragOffset.y,
-					(int)dragImage.getWidth(), dragImage.getHeight());
+				lastDrawn = new Rectangle(e.getLocation().x - originalTree.dragOffset.x,
+					e.getLocation().y - originalTree.dragOffset.y,
+					(int)originalTree.dragImage.getWidth(), originalTree.dragImage.getHeight());
 
 				// Draw the ghost image
-				g2.drawImage(dragImage, AffineTransform.getTranslateInstance(lastDrawn.getX(), lastDrawn.getY()), null);                
+				g2.drawImage(originalTree.dragImage, AffineTransform.getTranslateInstance(lastDrawn.getX(), lastDrawn.getY()), null);                
 			}
 
 			// see what the drop is over
@@ -719,9 +714,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						// must be a cross-library copy
 						if (origCell.getLibrary() != destLib)
 						{
-							new CrossLibraryCopyJob(origCell, destLib, obj instanceof Cell.CellGroup, subCells);
-							dtde.dropComplete(true);
-							return;
+							ExplorerTree originalTree = getOriginalTree(dtde.getCurrentDataFlavors());
+							if (originalTree != null)
+							{
+								new CrossLibraryCopyJob(origCell, destLib, obj instanceof Cell.CellGroup, originalTree.subCells);
+								dtde.dropComplete(true);
+								return;
+							}
 						}
 					}
 				}
@@ -752,6 +751,19 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					EditWindow.NodeProtoDataFlavor npdf = (EditWindow.NodeProtoDataFlavor)flavors[0];
 					Object obj = npdf.getFlavorObject();
 					return obj;
+				}
+			}
+			return null;
+		}
+
+		private ExplorerTree getOriginalTree(DataFlavor [] flavors)
+		{
+			if (flavors.length > 0)
+			{
+				if (flavors[0] instanceof EditWindow.NodeProtoDataFlavor)
+				{
+					EditWindow.NodeProtoDataFlavor npdf = (EditWindow.NodeProtoDataFlavor)flavors[0];
+					return npdf.getOriginalTree();
 				}
 			}
 			return null;

@@ -635,7 +635,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	    Object obj = getObjectUnderCursor(e.getDragOrigin().x, e.getDragOrigin().y);
 
 		// make a Transferable Object
-		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(obj);
+		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(obj, null);
 	
 		// begin the drag
 		dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);

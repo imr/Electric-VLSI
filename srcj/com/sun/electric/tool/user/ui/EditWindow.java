@@ -695,13 +695,15 @@ public class EditWindow extends JPanel
 	{
 		private Cell cell;
 		private Cell.CellGroup group;
+		private ExplorerTree originalTree;
 
-		NodeProtoDataFlavor(Cell cell, Cell.CellGroup group)
+		NodeProtoDataFlavor(Cell cell, Cell.CellGroup group, ExplorerTree originalTree)
 			throws ClassNotFoundException
 		{
 			super(NodeProto.class, "electric/instance");
 			this.cell = cell;
 			this.group = group;
+			this.originalTree = originalTree;
 		}
 
 		public Object getFlavorObject()
@@ -709,6 +711,8 @@ public class EditWindow extends JPanel
 			if (cell != null) return cell;
 			return group;
 		}
+
+		public ExplorerTree getOriginalTree() { return originalTree; }
 	}
 
 	/**
@@ -720,7 +724,7 @@ public class EditWindow extends JPanel
 		private Cell.CellGroup group;
 		private NodeProtoDataFlavor df;
 
-		public NodeProtoTransferable(Object obj)
+		public NodeProtoTransferable(Object obj, ExplorerTree tree)
 		{
 			if (obj instanceof Cell)
 			{
@@ -732,7 +736,7 @@ public class EditWindow extends JPanel
 			}
 			try
 			{
-				df = new NodeProtoDataFlavor(cell, group);
+				df = new NodeProtoDataFlavor(cell, group, tree);
 			} catch (ClassNotFoundException e)
 			{
 				System.out.println("ERROR: Cannot make Electric DataFlavor");
