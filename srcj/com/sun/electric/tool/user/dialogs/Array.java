@@ -323,16 +323,16 @@ public class Array extends EDialog
 	private void rememberFields()
 	{
 		// gather all "last" values
-		lastXRepeat = TextUtils.atoi(xRepeat.getText());
+		lastXRepeat = (int)TextUtils.getValueOfExpression(xRepeat.getText());
 		lastXFlip = flipAlternateColumns.isSelected();
 		lastXStagger = staggerAlternateColumns.isSelected();
 		lastXCenter = centerXAboutOriginal.isSelected();
-		lastYRepeat = TextUtils.atoi(yRepeat.getText());
+		lastYRepeat = (int)TextUtils.getValueOfExpression(yRepeat.getText());
 		lastYFlip = flipAlternateRows.isSelected();
 		lastYStagger = staggerAlternateRows.isSelected();
 		lastYCenter = centerYAboutOriginal.isSelected();
-		lastXDistance = TextUtils.atof(xSpacing.getText());
-		lastYDistance = TextUtils.atof(ySpacing.getText());
+		lastXDistance = TextUtils.getValueOfExpression(xSpacing.getText());
+		lastYDistance = TextUtils.getValueOfExpression(ySpacing.getText());
 		lastLinearDiagonal = linearDiagonalArray.isSelected();
 		lastAddNames = generateArrayIndices.isSelected();
 		lastDRCGood = onlyDRCCorrect.isSelected();

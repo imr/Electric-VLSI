@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
 
@@ -334,6 +335,26 @@ public class TextUtils
 //			num = num * base + cat - '0';
 		}
 		return(num * sign);
+	}
+
+	/**
+	 * Method to get the numeric value of a string that may be an expression.
+	 * @param expression the string that may be an expression.
+	 * @return the numeric value of the expression.
+	 * This method uses the Bean Shell to evaluate non-numeric strings.
+	 */
+	public static double getValueOfExpression(String expression)
+	{
+		if (isANumber(expression))
+		{
+			double res = atof(expression);
+			return res;
+		}
+		Object o = EvalJavaBsh.evalJavaBsh.doEvalLine(expression);
+		if (o == null) return 0;
+		if (o instanceof Double) return ((Double)o).doubleValue();
+		if (o instanceof Integer) return ((Integer)o).intValue();
+		return 0;
 	}
 
 	private static NumberFormat numberFormatPostFix = null;
