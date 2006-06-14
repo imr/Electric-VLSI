@@ -574,6 +574,18 @@ public class IOTool extends Tool
      */
     public static void setGDSConvertNCCExportsConnectedByParentPins(boolean b) { cacheGDSConvertNCCExportsConnectedByParentPins.setBoolean(b); }
 
+    private static Pref cacheGDSInSimplifyCells = Pref.makeBooleanPref("GDSInSimplifyCells", IOTool.tool.prefs, false);
+	/**
+	 * Method to tell whether GDS Input simplifies contact vias.
+	 * The default is "false".
+	 * @return true if GDS Input simplifies contact vias
+	 */
+	public static boolean isGDSInSimplifyCells() { return cacheGDSInSimplifyCells.getBoolean(); }
+	/**
+	 * Method to set whether GDS Input simplifies contact vias
+	 * @param on true if GDS Input simplifies contact vias
+	 */
+	public static void setGDSInSimplifyCells(boolean on) { cacheGDSInSimplifyCells.setBoolean(on); }
 
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 

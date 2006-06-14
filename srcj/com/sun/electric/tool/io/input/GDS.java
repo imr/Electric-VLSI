@@ -175,24 +175,24 @@ public class GDS extends Input
 	private static final GSymbol GDS_NODE         = new GSymbol(21);
 	private static final GSymbol GDS_TEXTTYPE     = new GSymbol(22);
 	private static final GSymbol GDS_PRESENTATION = new GSymbol(23);
-	private static final GSymbol GDS_SPACING      = new GSymbol(24);
+//	private static final GSymbol GDS_SPACING      = new GSymbol(24);
 	private static final GSymbol GDS_STRING       = new GSymbol(25);
 	private static final GSymbol GDS_STRANS       = new GSymbol(26);
 	private static final GSymbol GDS_MAG          = new GSymbol(27);
 	private static final GSymbol GDS_ANGLE        = new GSymbol(28);
-	private static final GSymbol GDS_UINTEGER     = new GSymbol(29);
-	private static final GSymbol GDS_USTRING      = new GSymbol(30);
+//	private static final GSymbol GDS_UINTEGER     = new GSymbol(29);
+//	private static final GSymbol GDS_USTRING      = new GSymbol(30);
 	private static final GSymbol GDS_REFLIBS      = new GSymbol(31);
 	private static final GSymbol GDS_FONTS        = new GSymbol(32);
 	private static final GSymbol GDS_PATHTYPE     = new GSymbol(33);
 	private static final GSymbol GDS_GENERATIONS  = new GSymbol(34);
 	private static final GSymbol GDS_ATTRTABLE    = new GSymbol(35);
-	private static final GSymbol GDS_STYPTABLE    = new GSymbol(36);
-	private static final GSymbol GDS_STRTYPE      = new GSymbol(37);
+//	private static final GSymbol GDS_STYPTABLE    = new GSymbol(36);
+//	private static final GSymbol GDS_STRTYPE      = new GSymbol(37);
 	private static final GSymbol GDS_ELFLAGS      = new GSymbol(38);
-	private static final GSymbol GDS_ELKEY        = new GSymbol(39);
-	private static final GSymbol GDS_LINKTYPE     = new GSymbol(40);
-	private static final GSymbol GDS_LINKKEYS     = new GSymbol(41);
+//	private static final GSymbol GDS_ELKEY        = new GSymbol(39);
+//	private static final GSymbol GDS_LINKTYPE     = new GSymbol(40);
+//	private static final GSymbol GDS_LINKKEYS     = new GSymbol(41);
 	private static final GSymbol GDS_NODETYPE     = new GSymbol(42);
 	private static final GSymbol GDS_PROPATTR     = new GSymbol(43);
 	private static final GSymbol GDS_PROPVALUE    = new GSymbol(44);
@@ -201,10 +201,10 @@ public class GDS extends Input
 	private static final GSymbol GDS_PLEX         = new GSymbol(47);
 	private static final GSymbol GDS_BGNEXTN      = new GSymbol(48);
 	private static final GSymbol GDS_ENDEXTN      = new GSymbol(49);
-	private static final GSymbol GDS_TAPENUM      = new GSymbol(50);
-	private static final GSymbol GDS_TAPECODE     = new GSymbol(51);
-	private static final GSymbol GDS_STRCLASS     = new GSymbol(52);
-	private static final GSymbol GDS_NUMTYPES     = new GSymbol(53);
+//	private static final GSymbol GDS_TAPENUM      = new GSymbol(50);
+//	private static final GSymbol GDS_TAPECODE     = new GSymbol(51);
+//	private static final GSymbol GDS_STRCLASS     = new GSymbol(52);
+//	private static final GSymbol GDS_NUMTYPES     = new GSymbol(53);
 	private static final GSymbol GDS_IDENT        = new GSymbol(54);
 	private static final GSymbol GDS_REALNUM      = new GSymbol(55);
 	private static final GSymbol GDS_SHORT_NUMBER = new GSymbol(56);
@@ -284,7 +284,8 @@ public class GDS extends Input
 				// make the instance
                 mi.instantiate(this.cell);
 			}
-//            simplifyNodes(this.cell);
+            if (IOTool.isGDSInSimplifyCells())
+                simplifyNodes(this.cell);
 			builtCells.add(this.cell);
 		}
 
@@ -367,7 +368,6 @@ public class GDS extends Input
                         Poly[] otherPolys = tech.getShapeOfNode(n, null, null, true, false, null);
                         assert(otherPolys.length == 1); // it must be only 1
                         Poly m2P = otherPolys[0];
-                        boolean fullNodeFound = false;
                         if (!m2P.getBounds2D().equals(m1P.getBounds2D())) continue; // no match
 
                         ImmutableNodeInst d = (ImmutableNodeInst)ni.getImmutable();
