@@ -661,6 +661,7 @@ public class EditWindow extends JPanel
 	public void zoomWindowToFitCellInstance(NodeProto np)
 	{
 		Cell parent = getCell();
+		if (parent == null) return;
 		boolean empty = true;
 		if (parent.getNumArcs() > 0) empty = false;
 		if (parent.getNumNodes() > 1) empty = false; else
@@ -690,39 +691,55 @@ public class EditWindow extends JPanel
 	/**
 	 * Class to define a custom data flavor that packages a NodeProto to create.
 	 */
-	private static class NodeProtoDataFlavor extends DataFlavor
+	public static class NodeProtoDataFlavor extends DataFlavor
 	{
-		private Object obj;
+		private Cell cell;
+		private Cell.CellGroup group;
 
-		NodeProtoDataFlavor(Object obj)
+		NodeProtoDataFlavor(Cell cell, Cell.CellGroup group)
 			throws ClassNotFoundException
 		{
 			super(NodeProto.class, "electric/instance");
-			this.obj = obj;
+			this.cell = cell;
+			this.group = group;
 		}
 
-		public Object getFlavorObject() { return obj; }
+		public Object getFlavorObject()
+		{
+			if (cell != null) return cell;
+			return group;
+		}
 	}
 
 	/**
-	 * Class to define a custom transferable that packages a NodeProto to create.
+	 * Class to define a custom transferable that packages a Cell or Group.
 	 */
 	public static class NodeProtoTransferable implements Transferable
 	{
-		private Object obj;
+		private Cell cell;
+		private Cell.CellGroup group;
 		private NodeProtoDataFlavor df;
 
 		public NodeProtoTransferable(Object obj)
 		{
-			this.obj = obj;
+			if (obj instanceof Cell)
+			{
+				cell = (Cell)obj;
+				group = cell.getCellGroup();
+			} else if (obj instanceof Cell.CellGroup)
+			{
+				group = (Cell.CellGroup)obj;
+			}
 			try
 			{
-				df = new NodeProtoDataFlavor(obj);
+				df = new NodeProtoDataFlavor(cell, group);
 			} catch (ClassNotFoundException e)
 			{
 				System.out.println("ERROR: Cannot make Electric DataFlavor");
 			}
 		}
+
+		public boolean isValid() { return group != null; }
 
 		public DataFlavor[] getTransferDataFlavors()
 		{
@@ -730,15 +747,18 @@ public class EditWindow extends JPanel
 			it[0] = df;
 			return it;
 		}
+
 		public boolean isDataFlavorSupported(DataFlavor flavor)
 		{
 			if (flavor == df) return true;
 			return false;
 		}
+
 		public Object getTransferData(DataFlavor flavor)
 		{
-			if (flavor == df) return obj;
-			return null;
+			if (flavor != df) return null;
+			if (cell != null) return cell;
+			return group;
 		}
 	}
 
@@ -766,7 +786,6 @@ public class EditWindow extends JPanel
 				{
 					NodeProtoDataFlavor npdf = (NodeProtoDataFlavor)flavors[0];
 					Object obj = npdf.getFlavorObject();
-					if (obj instanceof List) obj = ((List)obj).get(0);
 					return obj;
 				}
 			}
@@ -833,7 +852,7 @@ public class EditWindow extends JPanel
 				ni = (NodeInst)obj;
 				np = ni.getProto();
 			}
-			PaletteFrame.PlaceNewNode job = new PaletteFrame.PlaceNewNode("Create Node", np, ni, defAngle, where, wnd.getCell(), null, false);
+			new PaletteFrame.PlaceNewNode("Create Node", np, ni, defAngle, where, wnd.getCell(), null, false);
 		}
 	}
 

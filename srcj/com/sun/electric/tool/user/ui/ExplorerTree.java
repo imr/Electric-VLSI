@@ -26,8 +26,12 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Client;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.cvspm.*;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
@@ -45,6 +49,7 @@ import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
+import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
@@ -53,6 +58,7 @@ import com.sun.electric.tool.user.waveform.SweepSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -64,21 +70,31 @@ import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
 import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
 import java.util.*;
 import java.util.List;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
@@ -489,12 +505,16 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	/** Variables needed for DnD */
 	private DragSource dragSource = null;
-//	private DefaultMutableTreeNode selectedNode;
+	private ExplorerTreeDropTarget dropTarget;
 
 	private void initDND()
 	{
 		dragSource = DragSource.getDefaultDragSource();
 		DragGestureRecognizer dgr = dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_LINK, this);
+
+		// a drop target for the explorer tree
+		dropTarget = new ExplorerTreeDropTarget();
+		new DropTarget(this, DnDConstants.ACTION_LINK, dropTarget, true);
 	}
 
 	public void dragGestureRecognized(DragGestureEvent e)
@@ -528,30 +548,61 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			return;
 		}
 
+		// cells and groups must be dragged one-at-a-time
 		if (numCurrentlySelectedObjects() > 1)
 		{
-			Job.getUserInterface().showErrorMessage("Can drag only one selected object", "Too Much Selected");
+			Job.getUserInterface().showErrorMessage("Can drag only one Cell or Group", "Too Much Selected");
 			return;
 		}
 
-		// Drag cell name to edit window
-		if (getCurrentlySelectedObject(0) instanceof Cell)
+		// make a Transferable object
+		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(getCurrentlySelectedObject(0));
+		if (!transferable.isValid()) return;
+
+		// find out the offset of the cursor to the selected tree node
+		Point pt = e.getDragOrigin();
+		TreePath path = getPathForLocation(pt.x, pt.y);
+		Rectangle pathRect = getPathBounds(path);
+		Point offset = new Point(pt.x-pathRect.x, pt.y-pathRect.y);
+
+		// render the dragged stuff
+		Component comp = getCellRenderer().getTreeCellRendererComponent(this, path.getLastPathComponent(),
+			false, isExpanded(path), getModel().isLeaf(path.getLastPathComponent()), 0, false);
+		int wid = (int)pathRect.getWidth();
+		int hei = (int)pathRect.getHeight();
+		
+		boolean subCells = false;
+		if (e.getTriggerEvent() instanceof MouseEvent)
+			subCells = ClickZoomWireListener.isRightMouse((MouseEvent)e.getTriggerEvent());
+		if (subCells) hei *= 2;
+		comp.setSize(wid, hei);
+		BufferedImage img = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_ARGB_PRE);
+		Graphics2D g2 = img.createGraphics();
+		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
+		AffineTransform saveAT = g2.getTransform();
+		if (subCells) g2.translate(0, -hei/4);
+		comp.paint(g2);
+		g2.setTransform(saveAT);
+		if (subCells)
 		{
-			// make a Transferable Object
-			Cell cell = (Cell)getCurrentlySelectedObject(0);
-			EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(cell);
-
-			// begin the drag
-            if (Client.isOSMac())
-            {
-                // OS X has problems creating DefaultDragImage
-                Image img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
-			    dragSource.startDrag(e, DragSource.DefaultLinkDrop, img, new Point(0,0), transferable, this);
-            }
-            else
-			    dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
-			return;
+			g2.setColor(Color.BLACK);
+			g2.drawLine(wid/2, hei/2, 0, hei);
+			g2.drawLine(wid/2, hei/2, wid/3, hei);
+			g2.drawLine(wid/2, hei/2, wid/3*2, hei);
+			g2.drawLine(wid/2, hei/2, wid, hei);
 		}
+		g2.dispose();
+		dropTarget.setDragVisuals(offset, img, subCells);
+
+		// begin the drag
+		e.startDrag(null, img, new Point(0, 0), transferable, this);
+//		if (Client.isOSMac())
+//		{
+//			Image img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+//			dragSource.startDrag(e, DragSource.DefaultLinkDrop, img, new Point(0,0), transferable, this);
+//		}
+//		else
+//			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
 	}
 
 	public void dragEnter(DragSourceDragEvent e) {}
@@ -563,6 +614,191 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	public void dragDropEnd(DragSourceDropEvent e) {}
 
 	public void dropActionChanged (DragSourceDragEvent e) {}
+
+	/**
+	 * Class for catching drags into the explorer tree.
+	 * These drags come from elsewhere in the Explorer tree (cross-library copy, etc).
+	 */
+	private static class ExplorerTreeDropTarget implements DropTargetListener
+	{
+		private Rectangle lastDrawn = null;
+		private Point dragOffset;
+		private BufferedImage dragImage;
+		private boolean subCells;
+
+		public void setDragVisuals(Point offset, BufferedImage image, boolean sc)
+		{
+			dragOffset = offset;
+			dragImage = image;
+			subCells = sc;
+		}
+
+		public void dragEnter(DropTargetDragEvent e)
+		{
+			dragAction(e);
+		}
+
+		public void dragOver(DropTargetDragEvent e)
+		{
+			DropTarget dt = (DropTarget)e.getSource();
+			ExplorerTree tree = (ExplorerTree)dt.getComponent();
+			Graphics2D g2 = (Graphics2D)tree.getGraphics();
+
+			// erase former drawing
+			eraseDragImage(dt);
+
+			// get the original cell that was dragged
+			Object obj = getDraggedObject(e.getCurrentDataFlavors());
+			if (obj instanceof Cell.CellGroup) obj = ((Cell.CellGroup)obj).getCells().next();
+			if (!(obj instanceof Cell)) return;
+			Cell origCell = (Cell)obj;
+
+			// draw the image of what is being dragged
+			if (!DragSource.isDragImageSupported())
+			{
+				// Remember where you are about to draw the new ghost image
+				lastDrawn = new Rectangle(e.getLocation().x - dragOffset.x, e.getLocation().y - dragOffset.y,
+					(int)dragImage.getWidth(), dragImage.getHeight());
+
+				// Draw the ghost image
+				g2.drawImage(dragImage, AffineTransform.getTranslateInstance(lastDrawn.getX(), lastDrawn.getY()), null);                
+			}
+
+			// see what the drop is over
+			TreePath cp = tree.getPathForLocation(e.getLocation().x, e.getLocation().y);
+			Library destLib = findLibrary(cp);
+			if (destLib == null) return;
+
+			// must be a cross-library drag
+			if (destLib == origCell.getLibrary()) return;
+
+			// highlight the destination
+			Rectangle path = tree.getPathBounds(cp);
+			if (path == null) return;
+			g2.setColor(Color.RED);
+			g2.drawRect(path.x, path.y, path.width-1, path.height-1);
+			if (lastDrawn == null) lastDrawn = path; else
+				Rectangle.union(lastDrawn, path, lastDrawn);
+
+			dragAction(e);
+		}
+
+		public void dropActionChanged(DropTargetDragEvent e)
+		{
+			e.acceptDrag(e.getDropAction());
+		}
+
+		public void dragExit(DropTargetEvent e)
+		{
+			eraseDragImage((DropTarget)e.getSource());
+		}
+
+		public void drop(DropTargetDropEvent dtde)
+		{
+			dtde.acceptDrop(DnDConstants.ACTION_LINK);
+
+			// erase former drawing
+			eraseDragImage((DropTarget)dtde.getSource());
+
+			// get the original cell that was dragged
+			Object obj = getDraggedObject(dtde.getCurrentDataFlavors());
+			if (obj != null)
+			{
+				Cell origCell = null;
+				if (obj instanceof Cell) origCell = (Cell)obj; else
+				if (obj instanceof Cell.CellGroup) origCell = ((Cell.CellGroup)obj).getCells().next();
+				if (origCell != null)
+				{
+					// see what the drop is over
+					DropTarget dt = (DropTarget)dtde.getSource();
+					ExplorerTree tree = (ExplorerTree)dt.getComponent();
+					TreePath cp = tree.getPathForLocation(dtde.getLocation().x, dtde.getLocation().y);
+					Library destLib = findLibrary(cp);
+					if (destLib != null)
+					{
+						// must be a cross-library copy
+						if (origCell.getLibrary() != destLib)
+						{
+							new CrossLibraryCopyJob(origCell, destLib, obj instanceof Cell.CellGroup, subCells);
+							dtde.dropComplete(true);
+							return;
+						}
+					}
+				}
+			}
+			dtde.dropComplete(false);
+		}
+
+		private Library findLibrary(TreePath cp)
+		{
+			if (cp == null) return null;
+			Object obj = cp.getLastPathComponent();
+			if (obj instanceof DefaultMutableTreeNode)
+			{
+				obj = ((DefaultMutableTreeNode)obj).getUserObject();
+				if (obj instanceof Library) return (Library)obj;
+				if (obj instanceof Cell.CellGroup) return ((Cell.CellGroup)obj).getCells().next().getLibrary();
+				if (obj instanceof Cell) return ((Cell)obj).getLibrary();
+			}
+			return null;
+		}
+
+		private Object getDraggedObject(DataFlavor [] flavors)
+		{
+			if (flavors.length > 0)
+			{
+				if (flavors[0] instanceof EditWindow.NodeProtoDataFlavor)
+				{
+					EditWindow.NodeProtoDataFlavor npdf = (EditWindow.NodeProtoDataFlavor)flavors[0];
+					Object obj = npdf.getFlavorObject();
+					return obj;
+				}
+			}
+			return null;
+		}
+
+		private void dragAction(DropTargetDragEvent e)
+		{
+			Object obj = getDraggedObject(e.getCurrentDataFlavors());
+			if (obj != null)
+				e.acceptDrag(e.getDropAction());
+		}
+
+		private void eraseDragImage(DropTarget dt)
+		{
+			if (lastDrawn == null) return;
+			ExplorerTree tree = (ExplorerTree)dt.getComponent();
+			Graphics2D g2 = (Graphics2D)tree.getGraphics();
+			tree.paintImmediately(lastDrawn);
+			lastDrawn = null;
+		}
+	}
+
+	private static class CrossLibraryCopyJob extends Job
+	{
+		private Cell fromCell;
+		private Library toLibrary;
+		private boolean copyRelated, copySubs;
+
+		private CrossLibraryCopyJob(Cell fromCell, Library toLibrary, boolean copyRelated, boolean copySubs)
+		{
+			super("Cross-Library copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.fromCell = fromCell;
+			this.toLibrary = toLibrary;
+			this.copyRelated = copyRelated;
+			this.copySubs = copySubs;
+			startJob();
+		}
+
+		public boolean doIt() throws JobException
+		{
+			// do the copy
+			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, false, copyRelated, copySubs, true);
+			return true;
+		}
+	}
+
+	// *********************************** DISPLAY ***********************************
 
 	private class MyRenderer extends DefaultTreeCellRenderer
 	{
