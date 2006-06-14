@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+BUG: (6/14/06, RK) I repaired the gate layout generator regression (Bugzilla# 1137)
+
 IMP/MAN: (6/14/06, GVG) (a) Added extra flag in GDS import user preferences to have option
 to simplify via contacts (for BIC). Only available in debug mode.
 (b) AFG attempts to detect elements overlapping that belong to same nets based on

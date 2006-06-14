@@ -24,6 +24,23 @@
 
 package com.sun.electric.tool.user.menus;
 
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
@@ -58,8 +75,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -88,6 +105,7 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.ncc.AllSchemNamesToLay;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -114,29 +132,14 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.FillGen;
-import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 
 /**
@@ -353,8 +356,10 @@ public class ToolMenu {
 		        new EMenuItem("Cells from _Two Windows") { public void run() {
                     new NccJob(2); }},
                 SEPARATOR,
-		        new EMenuItem("Copy Schematic _Names to Layout") { public void run() {
+		        new EMenuItem("Copy Schematic _User Names to Layout") { public void run() {
                     new SchemNamesToLay.RenameJob(); }},
+    		    new EMenuItem("Copy All Schematic _Names to Layout") { public void run() {
+                        new AllSchemNamesToLay.RenameJob(); }},
 		        new EMenuItem("Highlight _Equivalent") { public void run() {
 			        HighlightEquivalent.highlight(); }},
 

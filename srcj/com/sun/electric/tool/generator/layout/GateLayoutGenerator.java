@@ -77,6 +77,7 @@ public class GateLayoutGenerator extends Job {
         } else {
             //stdCell = locoParams(outLib);
             stdCell = dividerParams(outLib, technology);
+        	//stdCell = justinParams(outLib, technology);
         }
 
 		GenerateLayoutForGatesInSchematic visitor =
@@ -124,6 +125,19 @@ public class GateLayoutGenerator extends Job {
 		stdCell.setGndY(-21);
 		stdCell.setNmosWellHeight(84);
 		stdCell.setPmosWellHeight(84);
+		stdCell.setSimpleName(true);
+		return stdCell;
+	}
+
+	public static StdCellParams justinParams(Library outLib, Tech.Type technology) {
+		StdCellParams stdCell = new StdCellParams(outLib, technology);
+		stdCell.enableNCC("purpleFour");
+		stdCell.setSizeQuantizationError(0);
+		stdCell.setMaxMosWidth(1000);
+		stdCell.setVddY(21);
+		stdCell.setGndY(-21);
+		stdCell.setNmosWellHeight(42);
+		stdCell.setPmosWellHeight(42);
 		stdCell.setSimpleName(true);
 		return stdCell;
 	}
