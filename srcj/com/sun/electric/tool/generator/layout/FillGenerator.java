@@ -1483,10 +1483,32 @@ class TiledCell {
              *		[   0    1    ty  ]
              *		[   0    0    1   ]
              */
+            Rectangle2D box1 = new Rectangle2D.Double(box.getMinX()+1.5, box.getMinY()+1.5,
+                    box.getWidth()-3, box.getHeight()-3);
+            Rectangle2D essentialBnd = master.findEssentialBounds();
+            if (essentialBnd == null) essentialBnd = master.getBounds();
+            Rectangle2D masterRealBnd = master.getBounds();
             AffineTransform fillTransUp = new AffineTransform(1.0, 0.0, 0.0, 1.0,
-                    box.getCenterX() - master.getBounds().getCenterX(),
-                    box.getCenterY() - master.getBounds().getCenterY());
-            boolean isExcluded = area.intersects(box);
+//                    box.getX() +1.5 - masterRealBnd.getX(),
+//                    box.getY() +1.5 - masterRealBnd.getY());
+                    box.getCenterX() - masterRealBnd.getCenterX(),
+                    box.getCenterY() - masterRealBnd.getCenterY());
+            boolean isExcluded1 = area.intersects(box);
+            boolean isExcluded = area.intersects(box1);
+
+            if (box.getMinX() > -3700)
+                System.out.println("Here ");
+            
+//            if (isExcluded != isExcluded1)
+//                System.out.println("HHH");
+            // Testing if all points are completely inside
+//            boolean anotherTest = area.contains(box1.getMinX(), box1.getMinY());
+//            if (!anotherTest) anotherTest = area.contains(box1.getMinX(), box1.getMaxY());
+//            if (!anotherTest) anotherTest = area.contains(box1.getMaxX(), box1.getMaxY());
+//            if (!anotherTest) anotherTest = area.contains(box1.getMaxX(), box1.getMinY());
+//            if (isExcluded != anotherTest)
+//                System.out.println("HHH dddd");
+
             stdCell = true;
 
             Cell c = (isExcluded) ? empty : FillGenerator.detectOverlappingBars(master, master, empty, fillTransUp, nodesToRemove, arcsToRemove,
@@ -1762,11 +1784,11 @@ public class FillGenerator {
             }
             Rectangle2D rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
             assert(ignore.length == 0);
-            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master))
+            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master, null))
             {
                 // Direct on last top fill cell
-//                rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
-//                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master);
+                rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
+                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master, null);
                 nodesToRemove.add(ni);
                 for (Iterator<Connection> itC = ni.getConnections(); itC.hasNext();)
                 {
@@ -1777,6 +1799,7 @@ public class FillGenerator {
         }
 
         // Checking if any arc in FillCell collides with rest of the cells
+        Netlist netlist = cell.acquireUserNetlist();
         for (Iterator<ArcInst> itArc = cell.getArcs(); itArc.hasNext(); )
         {
             ArcInst ai = itArc.next();
@@ -1785,11 +1808,12 @@ public class FillGenerator {
             // Searching box must reflect DRC constrains
             Rectangle2D rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
             assert(ignore.length == 0);
-            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master))
+            Network net = netlist.getNetwork(ai, 0);
+            if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master, net))
             {
                 arcsToRemove.add(ai);
-//                rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
-//                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master);
+                rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
+                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master, net);
                 // Remove exports and pins as well
 //                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
 //                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
@@ -1866,10 +1890,11 @@ public class FillGenerator {
      * @param p
      * @param ignores NodeInst instances to ignore
      * @param master
+     * @param theNet
      * @return
      */
     protected static boolean searchCollision(Cell parent, Rectangle2D nodeBounds, List<Layer.Function> theseLayers,
-                                             PortConfig p, Object[] ignores, Cell master)
+                                             PortConfig p, Object[] ignores, Cell master, Network theNet)
     {
         // Not checking if they belong to the same net!. If yes, ignore the collision
         Rectangle2D subBound = new Rectangle2D.Double();
@@ -1921,7 +1946,7 @@ public class FillGenerator {
                     subBound.setRect(nodeBounds);
                     DBMath.transformRect(subBound, rTransI);
 
-                    if (searchCollision((Cell)ni.getProto(), subBound, theseLayers, p, ignores, master))
+                    if (searchCollision((Cell)ni.getProto(), subBound, theseLayers, p, ignores, master, theNet))
                         return true;
                 } else
                 {
@@ -1933,7 +1958,7 @@ public class FillGenerator {
                             PortInst port = itP.next();
                             Network net = netlist.getNetwork(port);
                             // They export the same, power or gnd so no worries about overlapping
-                            if (p != null && net.findExportWithSameCharacteristic(p.e) != null)
+                            if (net.findExportWithSameCharacteristic(p.e) != null)
                             {
                                 found = true;
                                 break;
@@ -1958,6 +1983,9 @@ public class FillGenerator {
                 // They export the same, power or gnd so no worries about overlapping
                 if (p != null && net.findExportWithSameCharacteristic(p.e) != null)
                     continue; // no match in network type
+
+                if (theNet != null && net.getName().startsWith(theNet.getName())) // net.doTheyHaveSameCharacteristic(theNet))
+                    continue; // they belong to the same network
 
                 Poly [] subPolyList = parent.getTechnology().getShapeOfArc(ai, null, null, theseLayers);
 

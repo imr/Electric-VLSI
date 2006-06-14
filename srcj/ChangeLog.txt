@@ -4,8 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
-IMP/MAN: (6/14/06, GVG) Added extra flag in GDS import user preferences to have option
+IMP/MAN: (6/14/06, GVG) (a) Added extra flag in GDS import user preferences to have option
 to simplify via contacts (for BIC). Only available in debug mode.
+(b) AFG attempts to detect elements overlapping that belong to same nets based on
+characteristics.
 
 IMP/MAN: (6/14/06, SMR) Can now drag cells or cell groups from the explorer
      tree to another library in the tree, which does a cross-library copy (Bug #630).

@@ -617,7 +617,7 @@ public class FillGeneratorTool extends Tool {
                 }
                 Rectangle2D rect = FillGenerator.getSearchRectangle(ni.getBounds(), fillTransUp, container.drcSpacing);
                 if (FillGenerator.searchCollision(topCell, rect, tmp, null,
-                        new NodeInst[] {container.fillNi, container.connectionNi}, null))
+                        new NodeInst[] {container.fillNi, container.connectionNi}, null, null))
                 {
                     // Direct on last top fill cell
                     if (cell == container.fillCell)
@@ -636,7 +636,7 @@ public class FillGeneratorTool extends Tool {
                 // Searching box must reflect DRC constrains
                 Rectangle2D rect = FillGenerator.getSearchRectangle(ai.getBounds(), fillTransUp, container.drcSpacing);
                 if (FillGenerator.searchCollision(topCell, rect, tmp, null,
-                        new NodeInst[] {container.fillNi, container.connectionNi}, null))
+                        new NodeInst[] {container.fillNi, container.connectionNi}, null, null))
                 {
                     if (cell == container.fillCell)
                     {
@@ -1149,7 +1149,7 @@ public class FillGeneratorTool extends Tool {
                     // Get connecting metal contact (PrimitiveNode) starting from techPin up to the power/vdd bar found
                     // Search if there is a collision with existing nodes/arcs
                     if (FillGenerator.searchCollision(topCell, newElemTop, fillLayers, p,
-                            new NodeInst[] {container.fillNi, container.connectionNi}, null))
+                            new NodeInst[] {container.fillNi, container.connectionNi}, null, null))
                         continue;
 
                     // The first time but only after at least one element can be placed
