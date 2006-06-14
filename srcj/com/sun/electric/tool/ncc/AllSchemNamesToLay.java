@@ -87,6 +87,7 @@ public class AllSchemNamesToLay {
     	private String prefix;
     	NameGenerator(String prefix, int startNumb, Set<String> usedNames) {
     		maxNumb = startNumb;
+    		this.prefix = prefix;
     		for (String nm : usedNames) {
     			if (nm.startsWith(prefix+"@")) {
     				int numb = getAutoGenNumber(nm);
@@ -94,7 +95,7 @@ public class AllSchemNamesToLay {
     			}
     		}
     	}
-    	String nextName() {return prefix+"@"+(maxNumb++);}
+    	String nextName() {return prefix+"@"+(++maxNumb);}
     }
     
     //------------------------------- public types ----------------------------
@@ -211,6 +212,11 @@ public class AllSchemNamesToLay {
     		Network net = netIt.next();
     		for (Iterator<String> nmIt=net.getNames(); nmIt.hasNext();) {
     			String nm = nmIt.next();
+//    			// debug
+//    			if (nm.equals("reset_bitlines")) {
+//    				printHeader();
+//    				System.out.println("layout cell has reset_bitlines");
+//    			}
         		nmToLayNet.put(nm, net);
     		}
     	}
@@ -231,7 +237,7 @@ public class AllSchemNamesToLay {
     		                                  Map<String, Network> nmToLayNet) {
     	if (isAutoGenName(schNetNm)) return false;
     	Network layNetWithSameNm = nmToLayNet.get(schNetNm);
-    	if (layNetWithSameNm!=layNet) {
+    	if (layNetWithSameNm!=null && layNetWithSameNm!=layNet) {
 			printHeader();
 			prln("    Can't copy schematic network name: "+schNetNm+
 				 " to layout because some non-equivalent layout network "+
@@ -251,12 +257,24 @@ public class AllSchemNamesToLay {
     			printHeader();
     			prln("    Can't copy schematic network name: "+schNetNm+
     				 " to layout because equivalent layout network already "+
-    				 " has a name assigned by the designer: "+nm);
+    				 "has a name assigned by the designer: "+nm);
     			numArcManRenames++;
     			return true;
     		}
     	}
     	return false;
+    }
+    // Names of the form: net@161[0] are occur in schematics but are not
+    // permitted in layout.
+    private boolean isLegalLayNetName(String schNetNm) {
+    	if (schNetNm.indexOf('@')!=-1 && 
+    		(schNetNm.indexOf('[')!=-1 || schNetNm.indexOf(']')!=-1)) {
+    		printHeader();
+    		prln("    Can't copy schematic network name: "+schNetNm+
+    			 " to layout because name is not a legal name for layout arcs");
+    		return false;
+    	}
+    	return true;
     }
     
     private ArcRenameInfo buildArcRenameInfo(Cell schCell, Cell layCell,
@@ -297,6 +315,8 @@ public class AllSchemNamesToLay {
     		if (isSchNameOnNonEquivLayNet(schNetNm, layNet, nmToLayNet)) continue;
     		
     		if (isEquivLayNetDesignerNamed(schNetNm, layNet)) continue;
+    		
+    		if (!isLegalLayNetName(schNetNm)) continue;
 
     		List<ArcInst> layArcs = getArcInsts(layNet);
     		
@@ -305,7 +325,7 @@ public class AllSchemNamesToLay {
     			printHeader();
     			prln("    Can't copy schematic network name: "+schNetNm+
     				 " to layout because equivalent layout network has "+
-    				 " no Arcs");
+    				 "no Arcs");
     			continue;
     		}
 
