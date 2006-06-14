@@ -28,7 +28,33 @@ import com.sun.electric.tool.user.User;
 	 Tricky: renaming layout ArcInsts and NodeInsts invalidates the layout 
 	 Networks thereby rendering the NCC equivalence tables useless. Therefore 
 	 first extract all information from the NCC equivalence tables and then
-	 perform all the renaming. */
+	 perform all the renaming.
+	 
+	 Rename nodes:
+        * Scan layout NodeInsts to build a Map: NodeInst name -> NodeInst.
+        * Scan schematic to find all Nodables that 1) have an equivalent 
+          NodeInst in the layout and 2) the layout equivalent doesn't have
+          the same name. Make a list of (schematic_nodable_name, layout_nodeinst)
+          pairs. Let this be list A.
+        * Assign new “autoGen” names to all layout NodeInsts that conflict 
+          with Nodable names in list A.
+        * Perform the renames specified by list A.
+
+     Rename arcs:
+        * Scan layout ArcInsts to build a Map from name -> ArcInst
+        * Scan schematic to find all Networks that 1) have an equivalent in 
+          the layout and 2) the layout equivalent doesn't have the same name. 
+          Make a list of (schematic_network_name, layout_ArcInsts) pairs. 
+          Let this be list B.
+        * Assign new “autoGen” names to all layout ArcInsts that conflict 
+          with schematic Network names in list B. Choose autoGen names to 
+          be greater than the largest schematic autoGen name in list B.
+        * Assign new “autoGen” names to all layout ArcInsts in list B. Choose 
+          autoGen names greater than the largest schematic autoGen name in 
+          list B.
+        * Perform the renames specified by list B. Only rename one layout 
+          ArcInst per pair.
+	 */
 public class AllSchemNamesToLay {
     static final long serialVersionUID = 0;
     //------------------------------- private types ---------------------------
