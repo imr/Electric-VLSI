@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+BUG: (6/13/06, GVG) Search and replace "objects to search" persistence (Bug 1127)
+FIX: lastSearch clear anytime the toggles are changed.
+
 IMP: (6/13/06, SMR) Spline editing in outline mode shows the adjusted spline (Bug #165).
 
 BUG: (6/13/06, SMR) Window scale not restored after "up hierarchy" (Bug #1099).
