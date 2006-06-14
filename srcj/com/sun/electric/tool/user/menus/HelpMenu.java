@@ -52,7 +52,7 @@ public class HelpMenu {
     static EMenu makeMenu() {
         /****************************** THE HELP MENU ******************************/
 
-		// mnemonic keys available:   CDEFGHIJKLMNOPQR T VWXYZ
+		// mnemonic keys available:   CDEFGHIJ LMNOPQR T VWXYZ
         return new EMenu("_Help",
 
             !Client.isOSMac() ? new EMenuItem("_About Electric...") { public void run() {
@@ -65,7 +65,7 @@ public class HelpMenu {
             Job.getDebug() ? new EMenuItem("_User's Manual (Russian)...") { public void run() {
                 ManualViewer.userManualRussianCommand(); }} : null,
 
-            new EMenuItem("List User _Preferences...") { public void run() {
+            new EMenuItem("Show _Key Bindings...") { public void run() {
                 MenuCommands.menuBar().keyBindingManager.printKeyBindings();; }},
 
         // mnemonic keys available: ABCDEFGHIJKL NOPQRSTUVWXYZ
