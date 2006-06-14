@@ -166,6 +166,8 @@ public class LayerTab extends JPanel
 				visibility.put(layer, new Boolean(layer.isVisible()));
 			}
 		}
+        visibility.put(Generic.tech.drcLay, new Boolean(Generic.tech.drcLay.isVisible()));
+        visibility.put(Generic.tech.afgLay, new Boolean(Generic.tech.afgLay.isVisible()));
 	}
 
     /**
@@ -236,6 +238,15 @@ public class LayerTab extends JPanel
 			// add the line to the scroll list
 			layerListModel.addElement(lineName(layer));
 		}
+        // Adding special layers in case of layout technologies
+        if (tech.isLayout())
+        {
+            layersInList.add(Generic.tech.drcLay);
+            layerListModel.addElement(lineName(Generic.tech.drcLay));
+            layersInList.add(Generic.tech.afgLay);
+            layerListModel.addElement(lineName(Generic.tech.afgLay));
+        }
+
         layerList.setSelectedIndex(0);
         opacitySlider.setVisible(layerDrawing);
         resetOpacity.setVisible(layerDrawing);
@@ -376,7 +387,9 @@ public class LayerTab extends JPanel
 		Layer layer = tech.findLayer(name);
 		if (layer == null)
 		{
-			System.out.println("Can't find "+name);
+            layer = Generic.tech.findLayer(name);
+            if (layer == null)
+			    System.out.println("Can't find "+name);
 		}
 		return layer;
 	}

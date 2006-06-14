@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+IMP/MAN: (6/13/06, GVG) DRC and AFG exclusion layers available in LayerTab
+
 BUG: (6/13/06, GVG) Search and replace "objects to search" persistence (Bug 1127)
 FIX: lastSearch clear anytime the toggles are changed.
 
