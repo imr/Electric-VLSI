@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+IMP/MAN: (6/15/06, SMR) New option in mimic stitching: bus widths must match.
+
 BUG: (6/15/06, SMR) Exporting PNG of waveform window alters color scheme
 FIX: In WaveformWindow.getPrintImage() reset colors only if set.
 

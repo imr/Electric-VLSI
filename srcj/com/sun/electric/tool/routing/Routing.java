@@ -1039,6 +1039,21 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchMatchPorts(boolean on) { cacheMimicStitchMatchPorts.setBoolean(on); }
 
+	private static Pref cacheMimicStitchMatchPortWidth = Pref.makeBooleanPref("MimicStitchMatchPortWidth", Routing.tool.prefs, true);
+	/**
+	 * Method to tell whether Mimic-stitching only works between ports of the same width.
+	 * This applies only in the case of busses.
+	 * The default is "true".
+	 * @return true if Mimic-stitching only works between matching ports.
+	 */
+	public static boolean isMimicStitchMatchPortWidth() { return cacheMimicStitchMatchPortWidth.getBoolean(); }
+	/**
+	 * Method to set whether Mimic-stitching only works between ports of the same width.
+	 * This applies only in the case of busses.
+	 * @param on true if Mimic-stitching only works between ports of the same width.
+	 */
+	public static void setMimicStitchMatchPortWidth(boolean on) { cacheMimicStitchMatchPortWidth.setBoolean(on); }
+
 	private static Pref cacheMimicStitchMatchNumArcs = Pref.makeBooleanPref("MimicStitchMatchNumArcs", Routing.tool.prefs, false);
 	/**
 	 * Method to tell whether Mimic-stitching only works when the number of existing arcs matches.

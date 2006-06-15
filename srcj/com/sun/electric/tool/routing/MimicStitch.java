@@ -29,6 +29,7 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
@@ -72,49 +73,88 @@ public class MimicStitch
 {
 	/** router to use */            private static InteractiveRouter router = new SimpleWirer();
 
-	private static final int LIKELYDIFFPORT     =  1;
-	private static final int LIKELYDIFFARCCOUNT =  2;
-	private static final int LIKELYDIFFNODETYPE =  4;
-	private static final int LIKELYDIFFNODESIZE =  8;
-	private static final int LIKELYARCSSAMEDIR  = 16;
+	private static final int LIKELYDIFFPORT      =  1;
+	private static final int LIKELYDIFFPORTWIDTH =  2;
+	private static final int LIKELYDIFFARCCOUNT  =  4;
+	private static final int LIKELYDIFFNODETYPE  =  8;
+	private static final int LIKELYDIFFNODESIZE  = 16;
+	private static final int LIKELYARCSSAMEDIR   = 32;
 
 	private static final int situations[] = {
 		0,
+		// any single situation
 		LIKELYARCSSAMEDIR,
 						  LIKELYDIFFNODESIZE,
 											 LIKELYDIFFARCCOUNT,
-																LIKELYDIFFPORT,
-																			   LIKELYDIFFNODETYPE,
+											 					LIKELYDIFFPORTWIDTH,
+											 										LIKELYDIFFPORT,
+											 													   LIKELYDIFFNODETYPE,
 
+		// any two situations
 		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE,
 		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT,
-		LIKELYARCSSAMEDIR|                                      LIKELYDIFFPORT,
-		LIKELYARCSSAMEDIR|                                                     LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|                                      LIKELYDIFFPORTWIDTH,
+		LIKELYARCSSAMEDIR|                                                          LIKELYDIFFPORT,
+		LIKELYARCSSAMEDIR|                                                                         LIKELYDIFFNODETYPE,
 						  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT,
-						  LIKELYDIFFNODESIZE|                   LIKELYDIFFPORT,
-						  LIKELYDIFFNODESIZE|                                  LIKELYDIFFNODETYPE,
-											 LIKELYDIFFARCCOUNT|LIKELYDIFFPORT,
-											 LIKELYDIFFARCCOUNT|               LIKELYDIFFNODETYPE,
-																LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+						  LIKELYDIFFNODESIZE|                   LIKELYDIFFPORTWIDTH,
+						  LIKELYDIFFNODESIZE|                                       LIKELYDIFFPORT,
+						  LIKELYDIFFNODESIZE|                                                      LIKELYDIFFNODETYPE,
+							 				 LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH,
+											 LIKELYDIFFARCCOUNT|                    LIKELYDIFFPORT,
+											 LIKELYDIFFARCCOUNT|                                   LIKELYDIFFNODETYPE,
+											                    LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT,
+											                    LIKELYDIFFPORTWIDTH|               LIKELYDIFFNODETYPE,
+																                    LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
 
+		// any three situations
 		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT,
-		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                   LIKELYDIFFPORT,
-		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                                  LIKELYDIFFNODETYPE,
-		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|LIKELYDIFFPORT,
-		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|               LIKELYDIFFNODETYPE,
-		LIKELYARCSSAMEDIR|                                      LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
-						  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORT,
-						  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|               LIKELYDIFFNODETYPE,
-						  LIKELYDIFFNODESIZE|                   LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
-											 LIKELYDIFFARCCOUNT|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                   LIKELYDIFFPORTWIDTH,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                                       LIKELYDIFFPORT,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                                                      LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH,
+		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|                    LIKELYDIFFPORT,
+		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|                                   LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|                                      LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT,
+		LIKELYARCSSAMEDIR|                                      LIKELYDIFFPORTWIDTH|               LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|                                                          LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		                  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH,
+						  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|                    LIKELYDIFFPORT,
+						  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|                                   LIKELYDIFFNODETYPE,
+						  LIKELYDIFFNODESIZE|                   LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT,
+						  LIKELYDIFFNODESIZE|                   LIKELYDIFFPORTWIDTH|               LIKELYDIFFNODETYPE,
+						  LIKELYDIFFNODESIZE|                                       LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+											 LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT,
+											 LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|               LIKELYDIFFNODETYPE,
+											                    LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
 
-		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORT,
-		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|               LIKELYDIFFNODETYPE,
-		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                   LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
-		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
-						  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		// any four situations
+		                                     LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		                  LIKELYDIFFNODESIZE|                   LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		                  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|                    LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		                  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|               LIKELYDIFFNODETYPE,
+		                  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT,
+		LIKELYARCSSAMEDIR|                                      LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|                    LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|               LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                                       LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                   LIKELYDIFFPORTWIDTH|               LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                   LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|                                   LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|                    LIKELYDIFFPORT,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH,
 
-		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORT|LIKELYDIFFNODETYPE
+		// any five situations
+		                  LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|                   LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|                   LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|                    LIKELYDIFFPORT|LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|               LIKELYDIFFNODETYPE,
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT,
+
+		// all six situations
+		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE
 	};
 
 	private static class PossibleArc
@@ -248,7 +288,7 @@ public class MimicStitch
 		EditWindow_ wnd = ui.needCurrentEditWindow_();
 		if (wnd == null) return;
 
-		// determine length of deleted arc
+		// determine information about deleted arc
 		ImmutableArcInst mimicAi = activity.deletedArc;
         Cell cell = Cell.inCurrentThread(activity.deletedArcParent);
         if (cell == null) return; // cell killed
@@ -258,18 +298,11 @@ public class MimicStitch
 		ArcProto typ = mimicAi.protoType;
 		Point2D pt0 = mimicAi.headLocation;
 		Point2D pt1 = mimicAi.tailLocation;
-//		ArcInst mimicAi = activity.deletedArcs[0];
-//		NodeInst mimicNiHead = mimicAi.getHeadPortInst().getNodeInst();
-//		NodeInst mimicNiTail = mimicAi.getTailPortInst().getNodeInst();
-//		ArcProto typ = mimicAi.getProto();
-//		Point2D pt0 = mimicAi.getHeadLocation();
-//		Point2D pt1 = mimicAi.getTailLocation();
 		double dist = pt0.distance(pt1);
 		int angle = 0;
 		if (dist != 0) angle = DBMath.figureAngle(pt0, pt1);
 
 		// look for a similar situation to delete
-//		Cell cell = activity.deletedNodes[0].getParent();
 		List<PossibleArc> arcKills = new ArrayList<PossibleArc>();
 		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
@@ -301,6 +334,8 @@ public class MimicStitch
 				ai.getTailPortInst().getPortProto().getId() == activity.deletedPorts[0]) matchPort = true;
 			if (!matchPort) pa.situation |= LIKELYDIFFPORT;
 
+			// arcs must have the same bus width
+			
 			NodeInst niHead = ai.getHeadPortInst().getNodeInst();
 			NodeInst niTail = ai.getTailPortInst().getNodeInst();
 			int con1 = mimicNiHead.getNumConnections() + mimicNiTail.getNumConnections() + 2;
@@ -341,12 +376,13 @@ public class MimicStitch
 
 		boolean mimicInteractive = Routing.isMimicStitchInteractive();
 		boolean matchPorts = Routing.isMimicStitchMatchPorts();
+		boolean matchPortWidth = Routing.isMimicStitchMatchPortWidth();
 		boolean matchArcCount = Routing.isMimicStitchMatchNumArcs();
 		boolean matchNodeType = Routing.isMimicStitchMatchNodeType();
 		boolean matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 		boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
 		processPossibilities(cell, arcKills, 0, 0, Job.Type.EXAMINE, true,
-			mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
+			mimicInteractive, matchPorts, matchPortWidth, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
 	}
 
 	/**
@@ -356,7 +392,6 @@ public class MimicStitch
 	{
 		private ArcInst ai1, ai2;
 		private int end1, end2;
-//		private Connection conn1, conn2;
 		private double oWidth;
 		private ArcProto oProto;
 		private double prefX, prefY;
@@ -384,13 +419,14 @@ public class MimicStitch
 			// get options
 			boolean mimicInteractive = Routing.isMimicStitchInteractive();
 			boolean matchPorts = Routing.isMimicStitchMatchPorts();
+			boolean matchPortWidth = Routing.isMimicStitchMatchPortWidth();
 			boolean matchArcCount = Routing.isMimicStitchMatchNumArcs();
 			boolean matchNodeType = Routing.isMimicStitchMatchNodeType();
 			boolean matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 			boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
 
 			mimicOneArc(ai1, end1, ai2, end2, oWidth, oProto, prefX, prefY, forced, Job.Type.EXAMINE,
-				mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir, this);
+				mimicInteractive, matchPorts, matchPortWidth, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir, this);
 			return true;
 		}
 	}
@@ -406,6 +442,7 @@ public class MimicStitch
      * @param method the type of job that is running (CHANGE or EXAMINE).
      * @param mimicInteractive true to run interactively.
      * @param matchPorts true to require port types to match.
+     * @param matchPortWidth true to require port widths to match.
      * @param matchArcCount true to require the number of arcs to match.
      * @param matchNodeType true to require the node types to match.
      * @param matchNodeSize true to require the node sizes to match.
@@ -413,8 +450,9 @@ public class MimicStitch
      * @param theJob
      */
 	public static void mimicOneArc(ArcInst ai1, int end1, ArcInst ai2, int end2, double oWidth, ArcProto oProto,
-                                   double prefX, double prefY, boolean forced, Job.Type method, boolean mimicInteractive, boolean matchPorts,
-                                   boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir, Job theJob)
+       double prefX, double prefY, boolean forced, Job.Type method, boolean mimicInteractive, boolean matchPorts,
+       boolean matchPortWidth, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir,
+       Job theJob)
 	{
 		if (forced) System.out.println("Mimicing last arc...");
 
@@ -431,6 +469,7 @@ public class MimicStitch
 			System.out.println("Sorry, a deadlock aborted mimic-routing (network information unavailable).  Please try again");
 			return;
 		}
+		int busWidth = netlist.getBusWidth(ai1);
 
 		// make list of possible arc connections
 		List<PossibleArc> possibleArcs = new ArrayList<PossibleArc>();
@@ -663,6 +702,16 @@ public class MimicStitch
 
 							if (pp != port0 || oPp != port1)
 								situation |= LIKELYDIFFPORT;
+							if (pp instanceof Export && oPp instanceof Export)
+							{
+								int e0Wid = netlist.getBusWidth((Export)pp);
+								int e1Wid = netlist.getBusWidth((Export)oPp);
+								if (e0Wid != busWidth || e1Wid != busWidth)
+									situation |= LIKELYDIFFPORTWIDTH;
+							} else
+							{
+								if (busWidth != 1) situation |= LIKELYDIFFPORTWIDTH;
+							}
 							int con2 = ni.getNumConnections() + oNi.getNumConnections();
 							if (con1 != con2) situation |= LIKELYDIFFARCCOUNT;
 							if (ni.getProto() != node0.getProto() || oNi.getProto() != node1.getProto())
@@ -714,12 +763,12 @@ public class MimicStitch
 
 		// now create the mimiced arcs
 		processPossibilities(cell, possibleArcs, prefX, prefY, method, forced,
-			mimicInteractive, matchPorts, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
+			mimicInteractive, matchPorts, matchPortWidth, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
 	}
 	
 	private static void processPossibilities(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY,
 		Job.Type method, boolean forced, boolean mimicInteractive,
-		boolean matchPorts, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
+		boolean matchPorts, boolean matchPortWidth, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
 	{
 		if (mimicInteractive)
 		{
@@ -730,7 +779,7 @@ public class MimicStitch
 		}
 
 		// not interactive: follow rules in the Preferences
-		int ifIgnorePorts = 0, ifIgnoreArcCount = 0, ifIgnoreNodeType = 0, ifIgnoreNodeSize = 0, ifIgnoreOtherSameDir = 0;
+		int ifIgnorePorts = 0, ifIgnorePortWidth = 0, ifIgnoreArcCount = 0, ifIgnoreNodeType = 0, ifIgnoreNodeSize = 0, ifIgnoreOtherSameDir = 0;
 		int count = 0;
 		boolean deletion = false;
 		for(int j=0; j<situations.length; j++)
@@ -771,6 +820,7 @@ public class MimicStitch
 
 			// make sure this situation is the desired one
 			if (matchPorts && (situations[j]&LIKELYDIFFPORT) != 0) { ifIgnorePorts += total;   continue; }
+			if (matchPortWidth && (situations[j]&LIKELYDIFFPORTWIDTH) != 0) { ifIgnorePortWidth += total;   continue; }
 			if (matchArcCount && (situations[j]&LIKELYDIFFARCCOUNT) != 0) { ifIgnoreArcCount += total;   continue; }
 			if (matchNodeType && (situations[j]&LIKELYDIFFNODETYPE) != 0) { ifIgnoreNodeType += total;   continue; }
 			if (matchNodeSize && (situations[j]&LIKELYDIFFNODESIZE) != 0) { ifIgnoreNodeSize += total;   continue; }
@@ -800,6 +850,8 @@ public class MimicStitch
 				String msg = "No wires " + activity;
 				if (ifIgnorePorts != 0)
 					msg += ", might have " + activity + " " + ifIgnorePorts + " wires if 'ports must match' were off";
+				if (ifIgnorePortWidth != 0)
+					msg += ", might have " + activity + " " + ifIgnorePortWidth + " wires if 'ports must match width' were off";
 				if (ifIgnoreArcCount != 0)
 					msg += ", might have " + activity + " " + ifIgnoreArcCount + " wires if 'number of existing arcs must match' were off";
 				if (ifIgnoreNodeType != 0)
