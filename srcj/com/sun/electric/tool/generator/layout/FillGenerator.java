@@ -43,6 +43,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.tool.Job;
 
 // ---------------------------- Fill Cell Globals -----------------------------
 class G {
@@ -1149,7 +1150,7 @@ class TiledCell {
     /**
      *  Method to set up conditions for qTree refinement
      */
-    public Cell makeQTreeCell(Cell master, Cell empty, Library autoLib, int tileOnX, int tileOnY, double minTileSizeX,
+    public Cell makeQTreeCell(List<Cell> masters, Cell empty, Library autoLib, int tileOnX, int tileOnY, double minTileSizeX,
                               double minTileSizeY, boolean isPlanHorizontal, StdCellParams stdCellParam, Cell topCell, boolean binary,
                               List<Rectangle2D> topBoxList, Area area)
     {
@@ -1178,10 +1179,10 @@ class TiledCell {
 
         // refine recursively
         List<Cell> newElems = new ArrayList<Cell>();
-        Rectangle2D essentialBnd = master.findEssentialBounds();
+        Rectangle2D essentialBnd = masters.get(0).findEssentialBounds();
         if (essentialBnd == null)
-            essentialBnd = master.getBounds();
-        refine(master, essentialBnd, empty, autoLib, topBox, isPlanHorizontal, stdCellParam, newElems, topCell, binary, area);
+            essentialBnd = masters.get(0).getBounds();
+        refine(masters, essentialBnd, empty, autoLib, topBox, isPlanHorizontal, stdCellParam, newElems, topCell, binary, area);
         assert(newElems.size()==1);
         return newElems.iterator().next();
     }
@@ -1354,7 +1355,7 @@ class TiledCell {
      * ----------------------------
      * |     0      |      1      |
      * ----------------------------
-     * @param master
+     * @param masters
      * @param empty
      * @param autoLib
      * @param box  bounding box representing region to refine. (0,0) is the top left corner
@@ -1363,7 +1364,8 @@ class TiledCell {
      * @param area
      * @return true if refined elements form std cell
      */
-    private boolean refine(Cell master, Rectangle2D masterBnd, Cell empty, Library autoLib, Rectangle2D box, boolean isPlanHorizontal, StdCellParams stdCellParam,
+    private boolean refine(List<Cell> masters, Rectangle2D masterBnd, Cell empty, Library autoLib,
+                           Rectangle2D box, boolean isPlanHorizontal, StdCellParams stdCellParam,
                            List<Cell> newElems, Cell topCell, boolean binary, Area area)
     {
         double masterW = masterBnd.getWidth();
@@ -1422,7 +1424,7 @@ class TiledCell {
                 int yPos = i/2;
                 bb = GenMath.getQTreeBox(x, y, widths[xPos], heights[yPos], centerX[xPos], centerY[yPos], i);
                 boxes.add(bb);
-                if (!refine(master, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         }
@@ -1447,7 +1449,7 @@ class TiledCell {
             {
                 bb = GenMath.getQTreeBox(x, y, widths[i], h, centerX[i], box.getCenterY(), i);
                 boxes.add(bb);
-                if (!refine(master, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         }
@@ -1471,53 +1473,86 @@ class TiledCell {
             {
                 bb = GenMath.getQTreeBox(x, y, w, heights[i], box.getCenterX(), centerY[i], i*2);
                 boxes.add(bb);
-                if (!refine(master, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
                     stdCell = false;
             }
         } else {
             // nothing refined, qTree leave
             HashSet<NodeInst> nodesToRemove = new HashSet<NodeInst>();
             HashSet<ArcInst> arcsToRemove = new HashSet<ArcInst>();
-            // Translation from master cell center to actual location in the qTree
-            /*		[   1    0    tx  ]
-             *		[   0    1    ty  ]
-             *		[   0    0    1   ]
-             */
-            Rectangle2D box1 = new Rectangle2D.Double(box.getMinX()+1.5, box.getMinY()+1.5,
-                    box.getWidth()-3, box.getHeight()-3);
-            Rectangle2D essentialBnd = master.findEssentialBounds();
-            if (essentialBnd == null) essentialBnd = master.getBounds();
-            Rectangle2D masterRealBnd = master.getBounds();
-            AffineTransform fillTransUp = new AffineTransform(1.0, 0.0, 0.0, 1.0,
-//                    box.getX() +1.5 - masterRealBnd.getX(),
-//                    box.getY() +1.5 - masterRealBnd.getY());
-                    box.getCenterX() - masterRealBnd.getCenterX(),
-                    box.getCenterY() - masterRealBnd.getCenterY());
-            boolean isExcluded1 = area.intersects(box);
-            boolean isExcluded = area.intersects(box1);
 
-            if (box.getMinX() > -3700)
-                System.out.println("Here ");
-            
-//            if (isExcluded != isExcluded1)
-//                System.out.println("HHH");
-            // Testing if all points are completely inside
-//            boolean anotherTest = area.contains(box1.getMinX(), box1.getMinY());
-//            if (!anotherTest) anotherTest = area.contains(box1.getMinX(), box1.getMaxY());
-//            if (!anotherTest) anotherTest = area.contains(box1.getMaxX(), box1.getMaxY());
-//            if (!anotherTest) anotherTest = area.contains(box1.getMaxX(), box1.getMinY());
-//            if (isExcluded != anotherTest)
-//                System.out.println("HHH dddd");
+            // test all possible masters starting from the one in index=0
+            boolean excluded = false;
+            Cell theMasterCell = null, bestFitCell = null;
+            int bestFitNum = Integer.MAX_VALUE;
+
+            for (Cell master : masters)
+            {
+                // Translation from master cell center to actual location in the qTree
+                /*		[   1    0    tx  ]
+                 *		[   0    1    ty  ]
+                 *		[   0    0    1   ]
+                 */
+                Rectangle2D box1 = new Rectangle2D.Double(box.getMinX()+1.5, box.getMinY()+1.5,
+                        box.getWidth()-3, box.getHeight()-3);
+                Rectangle2D essentialBnd = master.findEssentialBounds();
+                if (essentialBnd == null) essentialBnd = master.getBounds();
+                Rectangle2D masterRealBnd = master.getBounds();
+                AffineTransform fillTransUp = new AffineTransform(1.0, 0.0, 0.0, 1.0,
+                        box.getCenterX() - masterRealBnd.getCenterX(),
+                        box.getCenterY() - masterRealBnd.getCenterY());
+//                boolean isExcluded1 = area.intersects(box);
+                boolean isExcluded = area.intersects(box1);
+
+//                if (box.getMinX() > -5680 && box.getMinY() > 3680) //&& box.getMinY() > 2784)
+//                    System.out.println("Here ");
+
+    //            if (isExcluded != isExcluded1)
+    //                System.out.println("HHH");
+                // Testing if all points are completely inside
+    //            boolean anotherTest = area.contains(box1.getMinX(), box1.getMinY());
+    //            if (!anotherTest) anotherTest = area.contains(box1.getMinX(), box1.getMaxY());
+    //            if (!anotherTest) anotherTest = area.contains(box1.getMaxX(), box1.getMaxY());
+    //            if (!anotherTest) anotherTest = area.contains(box1.getMaxX(), box1.getMinY());
+    //            if (isExcluded != anotherTest)
+    //                System.out.println("HHH dddd");
+                Cell c = null;
+
+                if (isExcluded)
+                {
+                    theMasterCell = empty;  // the best is the empty cell as the area is excluded
+                    excluded = true;
+                    break;
+                }
+                else
+                {
+                    c = FillGenerator.detectOverlappingBars(master, master, empty,
+                            fillTransUp, nodesToRemove, arcsToRemove,
+                            topCell, new NodeInst[] {}, drcSpacing, 0);
+                    if (c != empty && c != null)
+                    {
+                        theMasterCell = c;
+                        break; // perfect fit
+                    }
+                    else
+                    {
+                        // keeping the best option
+                        int numToRemove = arcsToRemove.size() + nodesToRemove.size();
+                        if (c != empty && numToRemove < bestFitNum)
+                        {
+                            bestFitCell = master;
+                            bestFitNum = numToRemove;
+                        }
+                    }
+                }
+            }
 
             stdCell = true;
 
-            Cell c = (isExcluded) ? empty : FillGenerator.detectOverlappingBars(master, master, empty, fillTransUp, nodesToRemove, arcsToRemove,
-                    topCell, new NodeInst[] {}, drcSpacing, 0);
-
-            if (c == null)
+            if (theMasterCell == null)
             {
-                assert(!isExcluded);
-                boolean isEmptyCell = isExcluded || arcsToRemove.size() == master.getNumArcs();
+                assert(!excluded);
+                boolean isEmptyCell = excluded || bestFitCell == null || arcsToRemove.size() == bestFitCell.getNumArcs();
                 Cell dummyCell = null;
 
                 if (isEmptyCell)
@@ -1549,7 +1584,7 @@ class TiledCell {
                     if (dummyCell == null)
                     {
                         // Creating empty/dummy Master cell or look for an existing one
-                        dummyCell = Cell.copyNodeProto(master, master.getLibrary(), dummyName, true);
+                        dummyCell = Cell.copyNodeProto(bestFitCell, bestFitCell.getLibrary(), dummyName, true);
 //                        LayoutLib.newNodeInst(Tech.essentialBounds, -masterW/2, -masterH/2,
 //                                              G.DEF_SIZE, G.DEF_SIZE, 180, dummyCell);
 //                        LayoutLib.newNodeInst(Tech.essentialBounds, masterW/2, masterW/2,
@@ -1583,7 +1618,7 @@ class TiledCell {
                 stdCell = isEmptyCell;
             }
             else
-                newElems.add(c);
+                newElems.add(theMasterCell);
             return stdCell;
         }
 
@@ -1619,8 +1654,8 @@ class TiledCell {
         if (stdCell)
         {
             String rootName = childrenList.get(0).getName();
-            if (childrenList.get(0) == master)
-                rootName = master.getName();
+            if (childrenList.get(0) == masters.get(0))
+                rootName = masters.get(0).getName();
             else if (childrenList.get(0) == empty)
                 rootName = empty.getName();
             tileName = rootName+"_"+w+"x"+h+"{lay}";
@@ -1639,7 +1674,7 @@ class TiledCell {
 //            Collections.sort(namesList);
             int code = namesList.toString().hashCode();
 //            tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+x+","+y+"){lay}";
-            tileName = "dummy"+master.getName()+"_"+w+"x"+h+"("+code+"){lay}";
+            tileName = "dummy"+masters.get(0).getName()+"_"+w+"x"+h+"("+code+"){lay}";
             tiledCell = empty.getLibrary().findNodeProto(tileName);
             if  (tiledCell != null)
             {
@@ -1739,9 +1774,9 @@ class TiledCell {
  */
 public class FillGenerator {
     
-    public static Cell detectOverlappingBars(Cell cell, Cell master, Cell empty, AffineTransform fillTransUp,
-                                             HashSet<NodeInst> nodesToRemove, HashSet<ArcInst> arcsToRemove,
-                                             Cell topCell, NodeInst[] ignore, double drcSpacing, int level)
+    protected static Cell detectOverlappingBars(Cell cell, Cell master, Cell empty, AffineTransform fillTransUp,
+                                                HashSet<NodeInst> nodesToRemove, HashSet<ArcInst> arcsToRemove,
+                                                Cell topCell, NodeInst[] ignore, double drcSpacing, int level)
     {
         List<Layer.Function> tmp = new ArrayList<Layer.Function>();
 
@@ -1786,9 +1821,13 @@ public class FillGenerator {
             assert(ignore.length == 0);
             if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master, null))
             {
+                // Just for testing
+                if (Job.LOCALDEBUGFLAG)
+                {
+                    rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
+                    searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master, null);
+                }
                 // Direct on last top fill cell
-                rect = getSearchRectangle(ni.getBounds(), fillTransUp, drcSpacing);
-                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ni}, master, null);
                 nodesToRemove.add(ni);
                 for (Iterator<Connection> itC = ni.getConnections(); itC.hasNext();)
                 {
@@ -1811,9 +1850,13 @@ public class FillGenerator {
             Network net = netlist.getNetwork(ai, 0);
             if (searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master, net))
             {
+                // For testing
+                if (Job.LOCALDEBUGFLAG)
+                {
+                    rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
+                    searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master, net);
+                }
                 arcsToRemove.add(ai);
-                rect = getSearchRectangle(ai.getBounds(), fillTransUp, drcSpacing);
-                searchCollision(topCell, rect, tmp, null, new Object[]{cell, ai}, master, net);
                 // Remove exports and pins as well
 //                nodesToRemove.add(ai.getTail().getPortInst().getNodeInst());
 //                nodesToRemove.add(ai.getHead().getPortInst().getNodeInst());
@@ -1910,7 +1953,7 @@ public class FillGenerator {
         if (master != null && searchSubCellInMasterCell(master, parent))
             return false;
 
-        for(Iterator<Geometric> it = parent.searchIterator(nodeBounds); it.hasNext(); )
+        for(Iterator<Geometric> it = parent.searchIterator(nodeBounds, false); it.hasNext(); )
         {
             Geometric geom = it.next();
 
@@ -2023,7 +2066,7 @@ public class FillGenerator {
     protected FillGeneratorConfig config;
 	private Library lib;
 	private boolean libInitialized;
-    protected Cell master;
+    protected List<Cell> masters;
 	private StdCellParams stdCell, stdCellP;
 	private CapCell capCell, capCellP;
 	private Floorplan[] plans;
@@ -2192,19 +2235,21 @@ public class FillGenerator {
                                  int[] tiledSizes, StdCellParams stdCell,
                                  boolean metalFlex)
     {
-		master = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell,
+		Cell master = FillCell.makeFillCell(lib, plans, lowLay, hiLay, capCell,
 									   wireLowest, stdCell, metalFlex, false);
+        masters = new ArrayList<Cell>();
+        masters.add(master);
         makeTiledCells(master, plans, lib, tiledSizes, stdCell);
         return master;
     }
 
-	private Cell treeMakeAndTileCell(Cell master, boolean isPlanHorizontal, Cell topCell,
+	private Cell treeMakeAndTileCell(List<Cell> masters, boolean isPlanHorizontal, Cell topCell,
                                      List<Rectangle2D> topBoxList, Area area, double drcSpacingRule, boolean binary)
     {
         // Create an empty cell for cases where all nodes/arcs are moved due to collision
-        Cell empty = Cell.newInstance(lib, "empty"+master.getName()+"{lay}");
-        double cellWidth = master.getBounds().getWidth();
-        double cellHeight = master.getBounds().getHeight();
+        Cell empty = Cell.newInstance(lib, "empty"+masters.get(0).getName()+"{lay}");
+        double cellWidth = masters.get(0).getBounds().getWidth();
+        double cellHeight = masters.get(0).getBounds().getHeight();
 		LayoutLib.newNodeInst(Tech.essentialBounds,
 							  -cellWidth/2, -cellHeight/2,
 							  G.DEF_SIZE, G.DEF_SIZE, 180, empty);
@@ -2216,9 +2261,9 @@ public class FillGenerator {
         int tileOnY = (int)Math.ceil(config.targetH/config.minTileSizeY);
 
         TiledCell t = new TiledCell(stdCell, drcSpacingRule);
-        master = t.makeQTreeCell(master, empty, lib, tileOnX, tileOnY, config.minTileSizeX, config.minTileSizeY, isPlanHorizontal, stdCell,
+        Cell topFill = t.makeQTreeCell(masters, empty, lib, tileOnX, tileOnY, config.minTileSizeX, config.minTileSizeY, isPlanHorizontal, stdCell,
                 topCell, binary, topBoxList, area);
-        return master;
+        return topFill;
 	}
 
 	public static final Units LAMBDA = Units.LAMBDA;
@@ -2291,33 +2336,34 @@ public class FillGenerator {
      * @return
      */
     protected Cell treeMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig, Cell topCell,
-                                    Cell givenMaster, List<Rectangle2D> topBoxList, Area area, double drcSpacingRule,
+                                    List<Cell> givenMasters, List<Rectangle2D> topBoxList, Area area, double drcSpacingRule,
                                     boolean binary)
     {
 		boolean metalFlex = true;
         initFillParameters(metalFlex, true);
 
+        masters = givenMasters;
 
-        master = givenMaster;
-
-        if (master == null)
+        if (masters == null)
         {
             LayoutLib.error(loLayer<1, "loLayer must be >=1");
             LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
             LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
             boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
-            master = FillCell.makeFillCell(lib, plans, loLayer, hiLayer, capCell, wireLowest, stdCell, metalFlex, true);
+            masters = new ArrayList<Cell>();
+            Cell master = FillCell.makeFillCell(lib, plans, loLayer, hiLayer, capCell, wireLowest, stdCell, metalFlex, true);
+            masters.add(master);
         }
         else
         {
             // must adjust minSize
-            Rectangle2D r = master.findEssentialBounds(); // must use essential elements to match the edges
+            Rectangle2D r = masters.get(0).findEssentialBounds(); // must use essential elements to match the edges
             if (r == null)
-                r = master.getBounds();
+                r = masters.get(0).getBounds();
             config.minTileSizeX = r.getWidth();
             config.minTileSizeY = r.getHeight();
         }
-        Cell cell = treeMakeAndTileCell(master, plans[plans.length-1].horizontal, topCell, topBoxList, area,
+        Cell cell = treeMakeAndTileCell(masters, plans[plans.length-1].horizontal, topCell, topBoxList, area,
                 drcSpacingRule, binary);
 
         return cell;

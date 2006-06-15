@@ -303,8 +303,12 @@ public class FillGeneratorTool extends Tool {
             return plList;
         }
 
-        private Cell searchPossibleMaster()
+        private List<Cell> searchPossibleMaster()
         {
+            Cell masterCell = null;
+            List<Cell> secondMasterCell = new ArrayList<Cell>();
+            List<Cell> list = null;
+
             for (Iterator<Library> it = Library.getLibraries(); it.hasNext();)
             {
                 Library lib = it.next();
@@ -312,12 +316,21 @@ public class FillGeneratorTool extends Tool {
                 {
                     Cell c = itC.next();
                     if (c.getVar("FILL_MASTER") != null)
-                        return c;
+                        masterCell = c;
+                    else if (c.getVar("FILL_MASTER_ALTERNATIVE") != null)
+                        secondMasterCell.add(c);
                 }
             }
 
-            System.out.println("No master found for Fill Generator");
-            return null;
+            if (masterCell != null)
+            {
+                list = new ArrayList<Cell>();
+                list.add(masterCell);
+                list.addAll(secondMasterCell);
+            }
+            else
+                System.out.println("No master found for Fill Generator");
+            return list;
         }
 
         public boolean doIt()
@@ -346,7 +359,7 @@ public class FillGeneratorTool extends Tool {
 		public void doFillOnCell(FillGenerator fillGen)
 		{
             // Searching for possible master
-            Cell master = (fillGen.config.useMaster) ? searchPossibleMaster() : null;
+            List<Cell> masters = (fillGen.config.useMaster) ? searchPossibleMaster() : null;
 
             // Creating fills only for layers found in exports
 //            firstMetal = Integer.MAX_VALUE;
@@ -376,12 +389,11 @@ public class FillGeneratorTool extends Tool {
                 // Creates fill only arounds the top cells
                 if (np == Generic.tech.afgNode || fillGenConfig.onlyAround && ni.isCellInstance())
                     exclusionArea.add(new Area(ni.getBounds()));
-
             }
 
             Cell fillCell = (fillGenConfig.hierarchy) ?
                     fillGen.treeMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
-                            topCell, master, topBoxList, exclusionArea, fillGenConfig.drcSpacingRule, fillGenConfig.binary) :
+                            topCell, masters, topBoxList, exclusionArea, fillGenConfig.drcSpacingRule, fillGenConfig.binary) :
                     fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
                             fillGenConfig.cellTiles, true);
 
@@ -417,7 +429,7 @@ public class FillGeneratorTool extends Tool {
 
             InteractiveRouter router  = new SimpleWirer();
             router.setTool(tool);
-            boolean rotated = (master != null && master.getVar("ROTATED_MASTER") != null);
+            boolean rotated = (fillGen.masters.get(0) != null && fillGen.masters.get(0).getVar("ROTATED_MASTER") != null);
             FillGenJobContainer container = new FillGenJobContainer(router, fillCell, fillNi, connectionCell, conNi,
                     fillGenConfig.drcSpacingRule, rotated);
 
@@ -478,7 +490,7 @@ public class FillGeneratorTool extends Tool {
                 // Trying the closest arc
                 rect = backupRect;
                 rect = p.pPoly.getBounds2D();
-                double searchWidth = fillGen.master.getBounds().getWidth();
+                double searchWidth = fillGen.masters.get(0).getBounds().getWidth();
                 rect = new Rectangle2D.Double(rect.getX()-searchWidth/2, rect.getY(), rect.getWidth()+searchWidth/2,
                         backupRect.getHeight());
                 added = addAllPossibleContacts(container, p, rect,
@@ -1211,11 +1223,9 @@ public class FillGeneratorTool extends Tool {
                         boolean condition = (horizontalBar) ?
                                 DBMath.isInBetween(geo.getCenterY(), newElemConnect.getMinY(), newElemConnect.getMaxY()) :
                                 DBMath.isInBetween(geo.getCenterX(), newElemConnect.getMinX(), newElemConnect.getMaxX());
-                        boolean cond = (horizontalBar) ?
-                                DBMath.areEquals(deltaY, 0) :
-                                DBMath.areEquals(deltaX, 0);
-                        if (cond != condition)
-                            System.out.println("Here");
+//                        boolean cond = (horizontalBar) ?
+//                                DBMath.areEquals(deltaY, 0) :
+//                                DBMath.areEquals(deltaX, 0);
                         if (!condition)
                             continue; // only align with this so it could guarantee correct arc (M3)
                         double dist = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
