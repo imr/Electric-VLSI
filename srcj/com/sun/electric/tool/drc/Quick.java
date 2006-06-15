@@ -4662,7 +4662,7 @@ public class Quick
 		public void exitCell(HierarchyEnumerator.CellInfo info)
         {
             // If abort, it should not process minArea.
-            if (preProcess || doneAll || job.checkAbort()) return;
+            if (preProcess || doneAll || (job != null && job.checkAbort())) return;
             boolean isTopCell = info.getCell() == topCell;
 
 //            if (!isTopCell) return;     Case 5 too slow!. Case 4 is good for now
