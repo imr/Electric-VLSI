@@ -685,7 +685,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		PNG.writeImage(img, filePath);
 	}
 
-	private int oldBackground, oldForeground, oldStimuli;
+	private int oldBackground, oldForeground;
+	private boolean changedColors = false;
 
 	/**
 	 * Method to intialize for printing.
@@ -698,6 +699,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		oldBackground = User.getColorWaveformBackground();
 		User.setColorWaveformForeground(0);
 		User.setColorWaveformBackground(0xFFFFFF);
+		changedColors = true;
 
 		PrinterJob pj = ep.getPrintJob();
 		ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
@@ -754,8 +756,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		overall.paint(g2d);
 //		if (mainHorizRulerPanel != null) 
 //			mainHorizRulerPanel.paint(g2d);
-		User.setColorWaveformForeground(oldForeground);
-		User.setColorWaveformBackground(oldBackground);
+		if (changedColors)
+		{
+			User.setColorWaveformForeground(oldForeground);
+			User.setColorWaveformBackground(oldBackground);
+			changedColors = false;
+		}
 		nowPrinting = 0;
 		return bImage;
 	}
