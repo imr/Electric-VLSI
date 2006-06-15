@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -195,6 +196,8 @@ public class FileMenu {
                 SEPARATOR,
                 new EMenuItem("ELI_B (Version 6)...") {	public void run() {
                     saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false, false); }},
+                Job.getDebug() ? new EMenuItem("_JELIB (Version 8.04k)") { public void run() {
+                    saveOldJelib(); }} : null,
                 new EMenuItem("P_references...") { public void run() { 
                     Job.getUserInterface().exportPrefs(); }}),
 
@@ -780,6 +783,18 @@ public class FileMenu {
         return true;
     }
 
+    private static void saveOldJelib() {
+        String currentDir = User.getWorkingDirectory();
+        System.out.println("Saving libraries in oldJelib directory under " + currentDir); System.out.flush();
+        File oldJelibDir = new File(currentDir, "oldJelib");
+        if (!oldJelibDir.exists() && !oldJelibDir.mkdir()) {
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Could not create oldJelib directory",
+                 oldJelibDir.getAbsolutePath()}, "Error creating oldJelib directory", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        Output.writePanicSnapshot(EDatabase.clientDatabase().backup(), oldJelibDir, true);
+    }
+    
     /**
      * Class to save a library in a new thread.
      * For a non-interactive script, use SaveLibrary job = new SaveLibrary(filename).
@@ -1463,7 +1478,7 @@ public class FileMenu {
         }
         // set libraries to save to panic dir
         Snapshot panicSnapshot = JobManager.findValidSnapshot();
-        return !Output.writePanicSnapshot(panicSnapshot, panicDir);
+        return !Output.writePanicSnapshot(panicSnapshot, panicDir, false);
     }
     
 //    public static boolean forceSave(boolean confirm) {

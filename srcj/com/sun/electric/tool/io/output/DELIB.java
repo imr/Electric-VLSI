@@ -107,7 +107,7 @@ public class DELIB extends JELIB {
             if (cellBackup.modified || !fd.exists()) state.modified = true;
         }
 
-        boolean b = super.writeLib(snapshot, libId, null);
+        boolean b = super.writeLib(snapshot, libId, null, false);
         if (!b) {
             // rename cell files that are no longer in the library
             deletedCellFiles.clear();

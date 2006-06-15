@@ -174,8 +174,8 @@ public class Output
      * @param panicDir panic directory to save.
      * @return true on error.
 	 */
-	public static boolean writePanicSnapshot(Snapshot panicSnapshot, File panicDir) {
-        FileType type = FileType.DEFAULTLIB;
+	public static boolean writePanicSnapshot(Snapshot panicSnapshot, File panicDir, boolean oldRevision) {
+        FileType type = FileType.JELIB;
         HashMap<LibId,URL> libFiles = new HashMap<LibId,URL>();
         TreeMap<String,LibId> sortedLibs = new TreeMap<String,LibId>(TextUtils.STRING_NUMBER_ORDER);
         for (LibraryBackup libBackup: panicSnapshot.libBackups) {
@@ -204,7 +204,7 @@ public class Output
             JELIB jelib = new JELIB();
     		String properOutputName = TextUtils.getFilePath(libURL) + TextUtils.getFileNameWithoutExtension(libURL) + ".jelib";
             if (jelib.openTextOutputStream(properOutputName) ||
-                    jelib.writeLib(panicSnapshot, libId, libFiles) ||
+                    jelib.writeLib(panicSnapshot, libId, libFiles, oldRevision) ||
                     jelib.closeTextOutputStream()) {
                 System.out.println("Error saving "+panicSnapshot.getLib(libId).d.libName);
                 error = true;
@@ -341,7 +341,7 @@ public class Output
                 if (CVS.isEnabled()) {
                     CVSLibrary.savingLibrary(lib);
                 }
-				if (jelib.writeLib(lib.getDatabase().backup(), lib.getId(), null)) return true;
+				if (jelib.writeLib(lib.getDatabase().backup(), lib.getId(), null, false)) return true;
 				if (jelib.closeTextOutputStream()) return true;
 			}
  		} else if (type == FileType.READABLEDUMP)

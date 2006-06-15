@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04r: *********************************
 
+IMP: (6/14/06, DN) "File|Export|JELIB (Version 8.04k)" command in debug mode to save libraries in old Jelib format.
+
 IMP: (6/14/06, GVG) ToolTips for 3D tab (Bug #215).
 
 IMP: (6/14/06, RK) New experimental command: "Tool -> NCC -> Copy All Schematic Names to Layout" for Jonathan Gainsley
