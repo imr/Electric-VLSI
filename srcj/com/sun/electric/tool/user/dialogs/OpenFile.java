@@ -191,9 +191,9 @@ public class OpenFile
 //		System.out.println("Put it at "+location);
 
 
-            String path = type.getGroupPath();
-            if (path != null)
-                initialDir = path;
+        String path = (type != null) ? type.getGroupPath() : null;
+        if (path != null)
+            initialDir = path;
 
 		if (useSwing)
 		{
