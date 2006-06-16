@@ -392,8 +392,7 @@ public class FillGeneratorTool extends Tool {
             }
 
             Cell fillCell = (fillGenConfig.hierarchy) ?
-                    fillGen.treeMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
-                            topCell, masters, topBoxList, exclusionArea, fillGenConfig.drcSpacingRule, fillGenConfig.binary) :
+                    fillGen.treeMakeFillCell(fillGenConfig, topCell, masters, topBoxList, exclusionArea) :
                     fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
                             fillGenConfig.cellTiles, true);
 

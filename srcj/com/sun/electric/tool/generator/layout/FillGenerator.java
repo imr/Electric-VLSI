@@ -1080,7 +1080,7 @@ class TiledCell {
 	private int vddNum, gndNum;
 	private final String vddNm, gndNm;
     private Cell tileCell;
-    private double drcSpacing; // required by qTree method
+    private FillGenerator.FillGeneratorConfig config; // required by qTree method
 
 	private String vddName() {
 		int n = vddNum++;
@@ -1095,11 +1095,11 @@ class TiledCell {
      * Constructor used by working with qTree fill.
      * @param stdCell
      */
-    public TiledCell(StdCellParams stdCell, double spacing)
+    public TiledCell(StdCellParams stdCell, FillGenerator.FillGeneratorConfig conf)
     {
 	    vddNm = stdCell.getVddExportName();
 	    gndNm = stdCell.getGndExportName();
-        drcSpacing = spacing;
+        config = conf;
     }
 
     /**
@@ -1150,19 +1150,20 @@ class TiledCell {
     /**
      *  Method to set up conditions for qTree refinement
      */
-    public Cell makeQTreeCell(List<Cell> masters, Cell empty, Library autoLib, int tileOnX, int tileOnY, double minTileSizeX,
-                              double minTileSizeY, boolean isPlanHorizontal, StdCellParams stdCellParam, Cell topCell, boolean binary,
+    public Cell makeQTreeCell(List<Cell> masters, Cell empty, Library autoLib,
+                              int tileOnX, int tileOnY, boolean isPlanHorizontal,
+                              StdCellParams stdCellParam, Cell topCell,
                               List<Rectangle2D> topBoxList, Area area)
     {
-        double fillWidth = tileOnX * minTileSizeX;
-        double fillHeight = tileOnY * minTileSizeY;
+        double fillWidth = tileOnX * config.minTileSizeX;
+        double fillHeight = tileOnY * config.minTileSizeY;
         // in case of binary division, make sure the division is 2^N
-        if (binary)
+        if (config.binary)
         {
             int powerX = getFillDimension(tileOnX, true);
             int powerY = getFillDimension(tileOnY, true);
-            fillWidth = powerX*minTileSizeX;
-            fillHeight = powerY*minTileSizeY;
+            fillWidth = powerX*config.minTileSizeX;
+            fillHeight = powerY*config.minTileSizeY;
         }
 
         // topBox its width/height must be multiply of master.getWidth()/Height()
@@ -1182,7 +1183,8 @@ class TiledCell {
         Rectangle2D essentialBnd = masters.get(0).findEssentialBounds();
         if (essentialBnd == null)
             essentialBnd = masters.get(0).getBounds();
-        refine(masters, essentialBnd, empty, autoLib, topBox, isPlanHorizontal, stdCellParam, newElems, topCell, binary, area);
+        refine(masters, essentialBnd, empty, autoLib, topBox, isPlanHorizontal, stdCellParam, newElems,
+                topCell, area);
         assert(newElems.size()==1);
         return newElems.iterator().next();
     }
@@ -1360,13 +1362,12 @@ class TiledCell {
      * @param autoLib
      * @param box  bounding box representing region to refine. (0,0) is the top left corner
      * @param topCell
-     * @param binary
      * @param area
      * @return true if refined elements form std cell
      */
     private boolean refine(List<Cell> masters, Rectangle2D masterBnd, Cell empty, Library autoLib,
                            Rectangle2D box, boolean isPlanHorizontal, StdCellParams stdCellParam,
-                           List<Cell> newElems, Cell topCell, boolean binary, Area area)
+                           List<Cell> newElems, Cell topCell, Area area)
     {
         double masterW = masterBnd.getWidth();
         double masterH = masterBnd.getHeight();
@@ -1402,7 +1403,7 @@ class TiledCell {
             double[] widths = null, heights = null;
             double[] centerX = null, centerY = null;
 
-            if (binary)
+            if (config.binary)
             {
                 widths = new double[]{wHalf, wHalf, wHalf, wHalf};
                 heights = new double[]{hHalf, hHalf, hHalf, hHalf};
@@ -1424,7 +1425,8 @@ class TiledCell {
                 int yPos = i/2;
                 bb = GenMath.getQTreeBox(x, y, widths[xPos], heights[yPos], centerX[xPos], centerY[yPos], i);
                 boxes.add(bb);
-                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList,
+                        topCell, area))
                     stdCell = false;
             }
         }
@@ -1433,7 +1435,7 @@ class TiledCell {
             cut = CutType.X;
             double[] widths = null, centerX = null;
 
-            if (binary)
+            if (config.binary)
             {
                 widths = new double[]{wHalf, wHalf};
                 centerX = new double[]{box.getCenterX(), box.getCenterX()};
@@ -1449,7 +1451,8 @@ class TiledCell {
             {
                 bb = GenMath.getQTreeBox(x, y, widths[i], h, centerX[i], box.getCenterY(), i);
                 boxes.add(bb);
-                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList,
+                        topCell, area))
                     stdCell = false;
             }
         }
@@ -1458,7 +1461,7 @@ class TiledCell {
             cut = CutType.Y;
             double[] heights = null, centerY = null;
 
-            if (binary)
+            if (config.binary)
             {
                 heights = new double[]{hHalf, hHalf};
                 centerY = new double[]{box.getCenterY(), box.getCenterY()};
@@ -1473,7 +1476,8 @@ class TiledCell {
             {
                 bb = GenMath.getQTreeBox(x, y, w, heights[i], box.getCenterX(), centerY[i], i*2);
                 boxes.add(bb);
-                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList, topCell, binary, area))
+                if (!refine(masters, masterBnd, empty, autoLib, bb, isPlanHorizontal, stdCellParam, childrenList,
+                        topCell, area))
                     stdCell = false;
             }
         } else {
@@ -1493,8 +1497,8 @@ class TiledCell {
                  *		[   0    1    ty  ]
                  *		[   0    0    1   ]
                  */
-                Rectangle2D box1 = new Rectangle2D.Double(box.getMinX()+1.5, box.getMinY()+1.5,
-                        box.getWidth()-3, box.getHeight()-3);
+                Rectangle2D box1 = new Rectangle2D.Double(box.getMinX()+config.gap, box.getMinY()+config.gap,
+                        box.getWidth()-config.gap*2, box.getHeight()-config.gap*2);
                 Rectangle2D essentialBnd = master.findEssentialBounds();
                 if (essentialBnd == null) essentialBnd = master.getBounds();
                 Rectangle2D masterRealBnd = master.getBounds();
@@ -1528,7 +1532,7 @@ class TiledCell {
                 {
                     c = FillGenerator.detectOverlappingBars(master, master, empty,
                             fillTransUp, nodesToRemove, arcsToRemove,
-                            topCell, new NodeInst[] {}, drcSpacing, 0);
+                            topCell, new NodeInst[] {}, config.drcSpacingRule, 0);
                     if (c != empty && c != null)
                     {
                         theMasterCell = c;
@@ -2244,7 +2248,7 @@ public class FillGenerator {
     }
 
 	private Cell treeMakeAndTileCell(List<Cell> masters, boolean isPlanHorizontal, Cell topCell,
-                                     List<Rectangle2D> topBoxList, Area area, double drcSpacingRule, boolean binary)
+                                     List<Rectangle2D> topBoxList, Area area)
     {
         // Create an empty cell for cases where all nodes/arcs are moved due to collision
         Cell empty = Cell.newInstance(lib, "empty"+masters.get(0).getName()+"{lay}");
@@ -2260,9 +2264,9 @@ public class FillGenerator {
         int tileOnX = (int)Math.ceil(config.targetW/config.minTileSizeX);
         int tileOnY = (int)Math.ceil(config.targetH/config.minTileSizeY);
 
-        TiledCell t = new TiledCell(stdCell, drcSpacingRule);
-        Cell topFill = t.makeQTreeCell(masters, empty, lib, tileOnX, tileOnY, config.minTileSizeX, config.minTileSizeY, isPlanHorizontal, stdCell,
-                topCell, binary, topBoxList, area);
+        TiledCell t = new TiledCell(stdCell, config);
+        Cell topFill = t.makeQTreeCell(masters, empty, lib, tileOnX, tileOnY, isPlanHorizontal, stdCell,
+                topCell, topBoxList, area);
         return topFill;
 	}
 
@@ -2335,11 +2339,13 @@ public class FillGenerator {
     /** Similar to standardMakeFillCell but it generates hierarchical fills with a qTree
      * @return
      */
-    protected Cell treeMakeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig, Cell topCell,
-                                    List<Cell> givenMasters, List<Rectangle2D> topBoxList, Area area, double drcSpacingRule,
-                                    boolean binary)
+    protected Cell treeMakeFillCell(FillGeneratorConfig config, Cell topCell,
+                                    List<Cell> givenMasters, List<Rectangle2D> topBoxList, Area area)
     {
 		boolean metalFlex = true;
+        int loLayer = config.firstLayer;
+        int hiLayer = config.lastLayer;
+        ExportConfig exportConfig = config.perim;
         initFillParameters(metalFlex, true);
 
         masters = givenMasters;
@@ -2363,8 +2369,7 @@ public class FillGenerator {
             config.minTileSizeX = r.getWidth();
             config.minTileSizeY = r.getHeight();
         }
-        Cell cell = treeMakeAndTileCell(masters, plans[plans.length-1].horizontal, topCell, topBoxList, area,
-                drcSpacingRule, binary);
+        Cell cell = treeMakeAndTileCell(masters, plans[plans.length-1].horizontal, topCell, topBoxList, area);
 
         return cell;
 	}
@@ -2462,11 +2467,12 @@ public class FillGenerator {
         boolean binary;
         boolean useMaster;
         boolean onlyAround;
+        double gap; // allowed overlap between given cells and masters. Typical value is 1.5
 
         public FillGeneratorConfig(Technology tech, String lib, ExportConfig perim, int first, int last,
                                    double w, double h, boolean even,
                                    int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
-                                   boolean binary, boolean useMaster, boolean onlyAround)
+                                   boolean binary, boolean useMaster, boolean onlyAround, double gap)
         {
             this.cellTiles = cellTiles;
             this.hierarchy = hierarchy;
@@ -2495,6 +2501,7 @@ public class FillGenerator {
             this.firstLayer = first;
             this.lastLayer = last;
             this.onlyAround = onlyAround;
+            this.gap = gap; // only valid if onlyAround=true
         }
 
         public void setTargetValues(double targetW, double targetH, double sx, double sy) 

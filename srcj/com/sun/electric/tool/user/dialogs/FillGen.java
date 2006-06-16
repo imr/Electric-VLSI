@@ -269,6 +269,8 @@ public class FillGen extends EDialog {
         aroundButton = new javax.swing.JRadioButton();
         fillTypeComboBox = new javax.swing.JComboBox();
         masterLabel = new javax.swing.JLabel();
+        gapLabel = new javax.swing.JLabel();
+        gapTextField = new javax.swing.JTextField();
         tilingPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jCheckBox1 = new javax.swing.JCheckBox();
@@ -452,6 +454,7 @@ public class FillGen extends EDialog {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         cellPanel.add(fillTypeLabel, gridBagConstraints);
 
         masterComboBox.addActionListener(new java.awt.event.ActionListener() {
@@ -461,20 +464,28 @@ public class FillGen extends EDialog {
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 2, 4, 4);
         cellPanel.add(masterComboBox, gridBagConstraints);
 
         aroundButton.setText("Only Around");
         aroundButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         aroundButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        aroundButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aroundButtonActionPerformed(evt);
+            }
+        });
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         cellPanel.add(aroundButton, gridBagConstraints);
 
         fillTypeComboBox.addActionListener(new java.awt.event.ActionListener() {
@@ -491,15 +502,31 @@ public class FillGen extends EDialog {
 
         masterLabel.setText("Master");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 2);
         cellPanel.add(masterLabel, gridBagConstraints);
+
+        gapLabel.setText("Overlap");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 2);
+        cellPanel.add(gapLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 2, 4, 4);
+        cellPanel.add(gapTextField, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         floorplanPanel.add(cellPanel, gridBagConstraints);
 
         jTabbedPane1.addTab("Floorplan", floorplanPanel);
@@ -607,6 +634,11 @@ public class FillGen extends EDialog {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void aroundButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aroundButtonActionPerformed
+        gapTextField.setEnabled(aroundButton.isSelected());
+        gapLabel.setEnabled(aroundButton.isSelected());
+    }//GEN-LAST:event_aroundButtonActionPerformed
+
     private void fillTypeComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fillTypeComboBoxActionPerformed
         generalSetup();
     }//GEN-LAST:event_fillTypeComboBoxActionPerformed
@@ -643,24 +675,23 @@ public class FillGen extends EDialog {
         }
     }
 
-    private void setEnableInMasterData()
+    private void generalSetup()
     {
         boolean flatSelected = isFlatSelected();
         boolean value = !flatSelected && isCreateOptionSelected() || templateButton.isSelected();
         setEnabledInHierarchy(masterDimPanel, value);
+//        setEnabledInHierarchy(fillTypeComboBox, flatSelected);
+        setEnabledInHierarchy(masterComboBox, !flatSelected);
 
         value = value || flatSelected;
         setEnabledInHierarchy(metalPanel, value);
         setMetalOptions();
         setEnabledInHierarchy(otherMasterPanel, value);
+
+        // setting the around toggles
+        aroundButtonActionPerformed(null);
     }
 
-    private void generalSetup()
-    {
-        boolean isFlatSelected = isFlatSelected();
-        setEnabledInHierarchy(masterComboBox, !isFlatSelected);
-        setEnableInMasterData();
-    }
     private void optionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optionActionPerformed
         boolean isCellSelected = cellButton.isSelected();
         setEnabledInHierarchy(cellPanel, isCellSelected);
@@ -745,7 +776,7 @@ public class FillGen extends EDialog {
                 FillGenerator.PERIMETER, firstMetal, lastMetal, width, height,
                 even, cells, hierarchy, 0.1, drcSpacingRule,
                 fillTypeComboBox.getSelectedItem() == FillGeneratorTool.FillCellMode.BINARY, 
-                useMaster, aroundButton.isSelected());
+                useMaster, aroundButton.isSelected(), TextUtils.atof(gapTextField.getText()));
 
         if (!templateButton.isSelected())
         {
@@ -823,6 +854,8 @@ public class FillGen extends EDialog {
     private javax.swing.JComboBox fillTypeComboBox;
     private javax.swing.JLabel fillTypeLabel;
     private javax.swing.JPanel floorplanPanel;
+    private javax.swing.JLabel gapLabel;
+    private javax.swing.JTextField gapTextField;
     private javax.swing.JLabel gndSpaceLabel;
     private javax.swing.JLabel gndWidthLabel;
     private javax.swing.JCheckBox jCheckBox1;

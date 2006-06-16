@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04s: *********************************
 
+IMP: (6/16/06, GVG) AFG working gap value in case of "only around" option.
+
 BUG: (6/16/06, GVG) Extraction not working? (Bug#1141). Regressions won't catch the problem.
 FIX: Wrong flag to kick the job
 
