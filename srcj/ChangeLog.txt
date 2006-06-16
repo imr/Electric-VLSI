@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04s: *********************************
 
+BUG: (6/16/06, GVG) Extraction not working? (Bug#1141). Regressions won't catch the problem.
+FIX: Wrong flag to kick the job
+
 ************************* Version 8.04r: *********************************
 
 IMP/MAN: (6/15/06, SMR) New option in mimic stitching: bus widths must match.

@@ -632,7 +632,7 @@ public class CircuitChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-		new CellChangeJobs.ExtractCellInstances(MenuCommands.getSelectedNodes(), User.isExtractCopiesExports(), true);
+		new CellChangeJobs.ExtractCellInstances(MenuCommands.getSelectedNodes(), User.isExtractCopiesExports(), false);
 	}
 
 	/****************************** CLEAN-UP ******************************/
