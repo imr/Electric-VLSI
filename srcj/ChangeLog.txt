@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04s: *********************************
 
+BUG: (6/17/06, GVG) [Bug 1147]  New: minimum NT_N spacing error missed
+FIX: NT_N.S.1 and NT_N.W.1 added into TSMC180.xml
+
 IMP: (6/16/06, GVG) AFG working gap value in case of "only around" option.
 
 BUG: (6/16/06, GVG) Extraction not working? (Bug#1141). Regressions won't catch the problem.
