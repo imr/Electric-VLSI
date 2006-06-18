@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04s: *********************************
 
+BUG: (6/17/06, GVG) Missed drc errors on poly resistor with W=4 (Bug #1146)
+FIX: Nothing to fix indeed. The poly can't be smaller that w=4. Added the rule in
+the primitive
+
 BUG: (6/17/06, GVG) If only primitive min size is violated, it should not saved
 the DRC dates.
 

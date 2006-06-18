@@ -798,7 +798,8 @@ public class Quick
 		DRC.NodeSizeRule sizeRule = DRC.getMinSize(np);
 		if (sizeRule != null)
 		{
-			if (ni.getXSize() < sizeRule.sizeX || ni.getYSize() < sizeRule.sizeY)
+			if (DBMath.isGreaterThan(sizeRule.sizeX, ni.getXSize()) ||
+                DBMath.isGreaterThan(sizeRule.sizeY, ni.getYSize()))
 			{
 				SizeOffset so = ni.getSizeOffset();
 				double minSize = 0, actual = 0;
