@@ -104,7 +104,7 @@
         </java>
     </target>
 
-    <target name="runTests" depends="compileTests" description="Run unit tests">
+    <target name="runTests" depends="compile" description="Run unit tests">
         <java classname="org.junit.runner.JUnitCore" failonerror="true" fork="true" maxmemory="1024m">
 	    <jvmarg value="-enableassertions"/>
             <classpath>
@@ -231,7 +231,7 @@
         <property name="version" value=""/>
     </target>
 
-    <target name="jar" depends="init,compileTests" description="Make binary Jar file">
+    <target name="jar" depends="init,compile" description="Make binary Jar file">
 	    <antcall target="unjarBsh"></antcall>
         <unjar dest="." src="${AppleJava}"/>
         <unjar dest="." src="${JUnit}"/>

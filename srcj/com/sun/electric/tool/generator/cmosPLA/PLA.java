@@ -136,16 +136,17 @@ public class PLA
 	 * @param outputsOnBottom true to place outputs on the bottom of the plane.
 	 * @param completion runnable to invoke when the generation has finished.
 	 */
-	public static void generate(Library destLib, String cellName, String andFileName, String orFileName, boolean inputsOnTop, boolean outputsOnBottom)
+	public static void generate(Library destLib, String cellName, String andFileName, String orFileName,
+                                boolean inputsOnTop, boolean outputsOnBottom)
 	{
 		// make sure the standard cell library is read in
 		String libName = "pla_mocmos";
 		if (Library.findLibrary(libName) == null)
 		{
             // start a job to read the PLA support library
-			new ReadPLALibraryJob(libName);
+			new ReadPLALibraryJob(libName, true);
 		}
-		new GeneratePLAJob(destLib, cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
+		new GeneratePLAJob(destLib, cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom, true);
 	}
 
 	/**
@@ -155,11 +156,16 @@ public class PLA
 	{
 		private String libName;
 
-		private ReadPLALibraryJob(String libName)
+		private ReadPLALibraryJob(String libName, boolean doItNow)
 		{
 			super("Read PLA Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.libName = libName;
-			startJob();
+            if (doItNow)
+            {
+                try { doIt(); } catch (Exception e) { e.printStackTrace(); }
+            }
+            else
+			    startJob();
 		}
 
 		public boolean doIt() throws JobException
@@ -183,9 +189,10 @@ public class PLA
 		private boolean inputsOnTop;
 		private boolean outputsOnBottom;
 		private Cell newCell;
+        private boolean doItNow; // for regression
 
 		protected GeneratePLAJob(Library destLib, String cellName, String andFileName, String orFileName,
-			boolean inputsOnTop, boolean outputsOnBottom)
+                                 boolean inputsOnTop, boolean outputsOnBottom, boolean doItNow)
 		{
 			super("Generate MOSIS CMOS PLA", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.destLib = destLib;
@@ -194,14 +201,21 @@ public class PLA
 			this.orFileName = orFileName;
 			this.inputsOnTop = inputsOnTop;
 			this.outputsOnBottom = outputsOnBottom;
-			startJob();
+            this.doItNow = doItNow;
+            if (!doItNow)
+			    startJob();
+            else
+            {
+                try {doIt();} catch (Exception e) { e.printStackTrace();}
+            }
 		}
 
 		public boolean doIt() throws JobException
 		{
 			PLA pla = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
 			newCell = pla.doStep(destLib);
-			fieldVariableChanged("newCell");
+            if (!doItNow)
+			    fieldVariableChanged("newCell");
 			return true;
 		}
 

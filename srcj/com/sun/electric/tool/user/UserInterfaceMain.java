@@ -878,9 +878,9 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     public void setProgressValue(long pct)
 	{
-//		if (progress != null && fileLength > 0)
+        // progress is null if it is in quiet mode
+		if (progress != null)
 		{
-//			long pct = byteCount * 100L / fileLength;
 			progress.setProgress((int)pct);
 		}
 	}
@@ -889,7 +889,12 @@ public class UserInterfaceMain extends AbstractUserInterface
      * Method to set a text message in the progress dialog.
      * @param message
      */
-    public void setProgressNote(String message) { progress.setNote(message); }
+    public void setProgressNote(String message)
+    {
+        // progress is null if it is in quiet mode
+		if (progress != null)
+            progress.setNote(message); 
+    }
 
     /**
      * Method to get text message in the progress dialgo.

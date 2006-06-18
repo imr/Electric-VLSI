@@ -785,7 +785,7 @@ public class FileMenu {
 
     private static void saveOldJelib() {
         String currentDir = User.getWorkingDirectory();
-        System.out.println("Saving libraries in \"oldJelib\" directory under '" + currentDir + "'"); System.out.flush();
+        System.out.println("Saving libraries in oldJelib directory under " + currentDir); System.out.flush();
         File oldJelibDir = new File(currentDir, "oldJelib");
         if (!oldJelibDir.exists() && !oldJelibDir.mkdir()) {
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Could not create oldJelib directory",
@@ -816,6 +816,10 @@ public class FileMenu {
             this.compatibleWith6 = compatibleWith6;
             if (!batchJob)
                 startJob();
+            else
+            {
+                try { doIt(); } catch (Exception e) { e.printStackTrace(); }
+            }
         }
 
         public boolean doIt() throws JobException
