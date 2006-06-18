@@ -815,6 +815,7 @@ public class Quick
 				}
 				reportError(DRCErrorType.MINSIZEERROR, msg, cell, minSize, actual, sizeRule.rule,
 					null, ni, null, null, null, null);
+                errorsFound = true;
 			}
 		}
 		return errorsFound;
