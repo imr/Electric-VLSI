@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04s: *********************************
 
+IMP: (6/19/06, SMR) Waveform window shows large numbers with engineering notation
+     (Bug #1140).
+
 IMP: (6/18/06, GVG) Generation regression got TemplateFill test and CMOSPLA test
 was moved to plugin package. Ability to run SaveLibrary in batch mode.
 

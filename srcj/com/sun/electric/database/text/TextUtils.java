@@ -507,17 +507,30 @@ public class TextUtils
 	}
 	private static ConversionRange [] allRanges = new ConversionRange[]
     {
-		// when adding new ranges, change values at start of "convertToEngineeringNotation"
-//		new ConversionRange("y", 24, 1.0E26),		// yocto
-		new ConversionRange("z", 21, 1.0E23),		// zepto
-		new ConversionRange("a", 18, 1.0E20),		// atto
-		new ConversionRange("f", 15, 1.0E17),		// femto
-		new ConversionRange("p", 12, 1.0E14),		// pico
-		new ConversionRange("n", 9,  1.0E11),		// nano
-		new ConversionRange("u", 6,  1.0E8),		// micro
-		new ConversionRange("m", 3,  1.0E5),		// milli
-		new ConversionRange("",  0,  1.0E2)
+		// Although the extremes (yocto and yotta) are defined in the literature,
+		// they aren't common in circuits (at this time) and so they are commented out.
+		// Add them and more as their use in circuitry becomes common.
+//		new ConversionRange("y", -24, 1.0E26),		// yocto
+		new ConversionRange("z", -21, 1.0E23),		// zepto
+		new ConversionRange("a", -18, 1.0E20),		// atto
+		new ConversionRange("f", -15, 1.0E17),		// femto
+		new ConversionRange("p", -12, 1.0E14),		// pico
+		new ConversionRange("n",  -9, 1.0E11),		// nano
+		new ConversionRange("u",  -6, 1.0E8),		// micro
+		new ConversionRange("m",  -3, 1.0E5),		// milli
+		new ConversionRange("",    0, 1.0E2),		// no scale
+		new ConversionRange("k",   3, 1.0E-1),		// kilo
+		new ConversionRange("M",   6, 1.0E-4),		// mega
+		new ConversionRange("G",   9, 1.0E-7),		// giga
+		new ConversionRange("T",  12, 1.0E-10),		// tera
+		new ConversionRange("P",  15, 1.0E-13),		// peta
+		new ConversionRange("E",  18, 1.0E-16),		// exa
+		new ConversionRange("Z",  21, 1.0E-19)		// zetta
+//		new ConversionRange("Y",  24, 1.0E-22)		// yotta
     };
+	private static final double LOOKS_LIKE_ZERO = 1.0 / (allRanges[0].scale * 1.0E5);
+	private static final double SMALLEST_JUST_PRINT = 1.0 / (allRanges[0].scale * 10.0);
+	private static final double LARGEST_JUST_PRINT = 1.0 / allRanges[allRanges.length-1].scale * 1.0E5;
 
 	public static String convertToEngineeringNotation(double time, String unit, int precpower)
 	{
@@ -530,13 +543,15 @@ public class TextUtils
 		String unitPostfix = unit;
 		if (unitPostfix == null) unitPostfix = "";
 
-		// change these values when adding new ranges to "allRanges"
-		if (Math.abs(time) < 1e-28) return "0" + unitPostfix;
-		if (time >= 1000.0) return negative + TextUtils.formatDouble(time) + unitPostfix;
-		if (time < 1.0E-24) return negative + TextUtils.formatDouble(time) + unitPostfix;
+		// if the value is too tiny, just call it zero
+		if (time < LOOKS_LIKE_ZERO) return "0" + unitPostfix;
+
+		// if the value is out of range, use normal formatting for it
+		if (time < SMALLEST_JUST_PRINT || time >= LARGEST_JUST_PRINT)
+			return negative + TextUtils.formatDouble(time) + unitPostfix;
 
 		// get proper time unit to use
-		String secType = null;
+		String secType = "";
 		int scalePower = 0;
 		long intTime = 0;
 		double scaled = 0;
@@ -544,68 +559,19 @@ public class TextUtils
 		{
 			scaled = time * allRanges[i].scale;
 			intTime = Math.round(scaled);
-			if (i == allRanges.length-1)
+			if (i == allRanges.length-1 || (scaled < 200000.0 && intTime < 100000))
 			{
-				secType = unitPostfix;
-				scalePower = 0;
-			} else if (scaled < 200000.0 && intTime < 100000)
-			{
-				if (unit == null) secType = "e-" + allRanges[i].power; else
-					secType = allRanges[i].postfix + unit;
-				scalePower = -allRanges[i].power;
+				if (unit == null)
+				{
+					if (allRanges[i].power != 0)
+						secType += "e" + allRanges[i].power;
+				} else
+					secType += allRanges[i].postfix + unitPostfix;
+				scalePower = allRanges[i].power;
 				break;
 			}			
 		}
 
-//		double scaled = time * 1.0E17;
-//		long intTime = Math.round(scaled);
-//		if (scaled < 200000.0 && intTime < 100000)
-//		{
-//			if (unit == null) secType = "e-15"; else
-//				secType = "f" + unit;
-//			scalePower = -15;
-//		} else
-//		{
-//			scaled = time * 1.0E14;   intTime = Math.round(scaled);
-//			if (scaled < 200000.0 && intTime < 100000)
-//			{
-//				if (unit == null) secType = "e-12"; else
-//					secType = "p" + unit;
-//				scalePower = -12;
-//			} else
-//			{
-//				scaled = time * 1.0E11;   intTime = Math.round(scaled);
-//				if (scaled < 200000.0 && intTime < 100000)
-//				{
-//					if (unit == null) secType = "e-9"; else
-//						secType = "n" + unit;
-//					scalePower = -9;
-//				} else
-//				{
-//					scaled = time * 1.0E8;   intTime = Math.round(scaled);
-//					if (scaled < 200000.0 && intTime < 100000)
-//					{
-//						if (unit == null) secType = "e-6"; else
-//							secType = "u" + unit;
-//						scalePower = -6;
-//					} else
-//					{
-//						scaled = time * 1.0E5;   intTime = Math.round(scaled);
-//						if (scaled < 200000.0 && intTime < 100000)
-//						{
-//							if (unit == null) secType = "e-3"; else
-//								secType = "m" + unit;
-//							scalePower = -3;
-//						} else
-//						{
-//							scaled = time * 1.0E2;  intTime = Math.round(scaled);
-//							secType = unitPostfix;
-//							scalePower = 0;
-//						}
-//					}
-//				}
-//			}
-//		}
 		if (precpower >= scalePower)
 		{
 			long timeleft = intTime / 100;
