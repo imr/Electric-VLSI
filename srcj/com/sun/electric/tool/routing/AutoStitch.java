@@ -399,7 +399,7 @@ public class AutoStitch
         List<CircuitChangeJobs.Reconnect> pinsToPassThrough = new ArrayList<CircuitChangeJobs.Reconnect>();
         for (NodeInst ni : possibleInlinePins) {
             if (ni.isInlinePin()) {
-            	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false);
+            	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false, true);
                 if (re != null) {
                     pinsToPassThrough.add(re);
                 }

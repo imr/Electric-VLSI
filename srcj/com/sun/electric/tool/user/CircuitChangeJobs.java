@@ -1384,6 +1384,7 @@ public class CircuitChangeJobs
 		// make sets of all of the arcs and nodes explicitly selected for deletion
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
+		if (cantEdit(cell, null, true) != 0) return;
 		for(Geometric geom : list)
 		{
 			if (geom instanceof ArcInst)
@@ -1393,6 +1394,7 @@ public class CircuitChangeJobs
 			} else if (geom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)geom;
+				if (cantEdit(cell, ni, true) != 0) continue;
 				nodesToDelete.add(ni);
 			}
 		}
@@ -1474,7 +1476,7 @@ public class CircuitChangeJobs
 		for(NodeInst ni : nodesToDelete)
 		{
             // see if any arcs can be reconnected as a result of this kill
-            Reconnect re = Reconnect.erasePassThru(ni, false);
+            Reconnect re = Reconnect.erasePassThru(ni, false, false);
             if (re != null) re.reconnectArcs();
 
             eraseNodeInst(ni);
@@ -1512,7 +1514,7 @@ public class CircuitChangeJobs
 		}
 		for(NodeInst ni : nodesToPassThru)
 		{
-            Reconnect re = Reconnect.erasePassThru(ni, false);
+            Reconnect re = Reconnect.erasePassThru(ni, false, false);
 			if (re != null)
 			{
                 re.reconnectArcs();
@@ -2230,7 +2232,7 @@ public class CircuitChangeJobs
 			// if the pin is connected to two arcs along the same slope, delete it
 			if (ni.isInlinePin())
 			{
-				Reconnect re = Reconnect.erasePassThru(ni, false);
+				Reconnect re = Reconnect.erasePassThru(ni, false, true);
 				if (re != null)
 				{
 					pinsToPassThrough.add(re);
@@ -2254,14 +2256,15 @@ public class CircuitChangeJobs
 		 * @param allowdiffs true to allow differences in the two arcs.
 		 * If this is false, then different width arcs, or arcs that are not lined up
 		 * precisely, will not be considered for reconnection.
+		 * @param checkPermission true to check that the node can be changed.
 		 * @return a Reconnect object that describes the reconnection to be done.
 		 * Returns null if no reconnection can be found.
 		 */
-		public static Reconnect erasePassThru(NodeInst ni, boolean allowdiffs)
+		public static Reconnect erasePassThru(NodeInst ni, boolean allowdiffs, boolean checkPermission)
 		{
 			// disallow erasing if lock is on
 			Cell cell = ni.getParent();
-			if (cantEdit(cell, ni, true) != 0) return null;
+			if (checkPermission && cantEdit(cell, ni, true) != 0) return null;
 			// Netlist netlist = cell.getUserNetlist(); Commented 07.01.04 by DN to avoid Netlist recalculation
 
             Reconnect recon = new Reconnect();

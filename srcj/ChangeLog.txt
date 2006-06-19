@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04s: *********************************
 
+BUG: (6/19/06, SMR) Deleting a locked node is always allowed (Bug #1152).
+FIX: In CircuitChangeJobs.eraseObjectsInList(), remove locked nodes from the list
+     of nodes to delete.
+
 IMP: (6/19/06, SMR) Waveform window shows large numbers with engineering notation
      (Bug #1140).
 

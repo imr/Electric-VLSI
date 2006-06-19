@@ -201,7 +201,7 @@ public abstract class InteractiveRouter extends Router {
                 PortInst pi = startRE.getPortInst();
                 NodeInst ni = pi.getNodeInst();
                 if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN) {
-                	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false);
+                	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false, true);
                     if (re != null) re.reconnectArcs();
                     if (!ni.hasExports()) ni.kill();
 //                    if (ni.getNumExports() == 0) ni.kill();
