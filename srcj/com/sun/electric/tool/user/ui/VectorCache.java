@@ -995,8 +995,13 @@ public class VectorCache {
 		Point2D [] points = poly.getPoints();
 		Layer layer = poly.getLayer();
 		EGraphics graphics = null;
-		if (layer != null)
-			graphics = layer.getGraphics();
+		if (layer == null)
+        {
+            layer = Generic.tech.glyphLay;
+            if (Job.getDebug())
+                System.out.println("VectorCache with null layer. Assigning Glyph layer");
+        }
+        graphics = layer.getGraphics();
 		Poly.Type style = poly.getStyle();
         ArrayList<VectorBase> filledShapes = hideOnLowLevel ? vc.topOnlyShapes : vc.filledShapes;
         ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;

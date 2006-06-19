@@ -42,7 +42,7 @@ public class Generic extends Technology
 {
 	/** the Generic Technology object. */	public static final Generic tech = new Generic();
 	/** the Universal Layer. */				private Layer universalLay;
-	/** the Glyph Layer. */					private Layer glyphLay;
+	/** the Glyph Layer. */					public Layer glyphLay;
 	/** the DRC exclusion Layer. */			public Layer drcLay;
 	/** the AFG exclusion Layer. */			public Layer afgLay;
 	/** the Universal Pin node. */			public PrimitiveNode universalPinNode;

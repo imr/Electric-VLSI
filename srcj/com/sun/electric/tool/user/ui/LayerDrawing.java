@@ -1573,7 +1573,9 @@ class LayerDrawing
             graphics = layer.getGraphics();
             dimmed = layer.isDimmed();
         }
-        
+
+        if (graphics == null) return null;
+
 		int [] layerBitMap = null;
 		int layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
