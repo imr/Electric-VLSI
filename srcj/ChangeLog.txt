@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04s: *********************************
 
+BUG: (6/20/06, SMR) Centered, multiline text is shown left-justified.
+FIX: In ElectricObject.getPolyList(), rotate node text only if not centered.
+
 IMP: (6/20/06, GVG) Most of the changes in AFG for BIC tape-out.
 
 IMP: (6/20/06, GVG) NT_N_ACTIVE pins and arcs. Adding NT_N MINWID=7.4

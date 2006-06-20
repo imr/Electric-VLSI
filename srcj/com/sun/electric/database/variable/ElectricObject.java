@@ -475,12 +475,16 @@ public abstract class ElectricObject implements Serializable
 			Poly.Type rotStyle = style;
 			if (this instanceof NodeInst)
 			{
-				NodeInst ni = (NodeInst)this;
-				trans = ni.rotateIn();
-				int origAngle = style.getTextAngle();
-				if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() && ((origAngle%1800) == 0 || (origAngle%1800) == 1350)) origAngle += 1800;
-				int angle = (origAngle - ni.getAngle() + 3600) % 3600;
-				style = Poly.Type.getTextTypeFromAngle(angle);
+				if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTBOX)
+				{
+					NodeInst ni = (NodeInst)this;
+					trans = ni.rotateIn();
+					int origAngle = style.getTextAngle();
+					if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
+						((origAngle%1800) == 0 || (origAngle%1800) == 1350)) origAngle += 1800;
+					int angle = (origAngle - ni.getAngle() + 3600) % 3600;
+					style = Poly.Type.getTextTypeFromAngle(angle);
+				}
 			}
 			if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
 			{
