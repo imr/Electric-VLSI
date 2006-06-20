@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04t: *********************************
+
 ************************* Version 8.04s: *********************************
 
 BUG: (6/20/06, SMR) Centered, multiline text is shown left-justified.
