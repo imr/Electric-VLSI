@@ -2,14 +2,14 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.04t: *********************************
+************************* Version 8.04t: ********************************* 
+
+************************* Version 8.04s: *********************************
 
 BUG: (6/20/06, SMR) "Smart select" broken (selects similar objects to
      what is already selected (Bug #1061).
 FIX: In Highlighter.getSimiliarHighlight(), same types have same class,
      not different class.
-
-************************* Version 8.04s: *********************************
 
 BUG: (6/20/06, SMR) Centered, multiline text is shown left-justified.
 FIX: In ElectricObject.getPolyList(), rotate node text only if not centered.
