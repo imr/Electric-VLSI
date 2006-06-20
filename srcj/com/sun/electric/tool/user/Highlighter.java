@@ -1668,7 +1668,7 @@ public class Highlighter implements DatabaseChangeListener {
         // get Highlights of the same type
         List<Highlight2> sameTypes = new ArrayList<Highlight2>();
         for (Highlight2 h : highlights) {
-            if (h.getClass() != exampleHigh.getClass())
+            if (h.getClass() == exampleHigh.getClass())
             {
                 sameTypes.add(h);
             }
