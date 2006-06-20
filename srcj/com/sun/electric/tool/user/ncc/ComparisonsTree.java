@@ -132,7 +132,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             String title0 = titles[0].substring(0,titles[0].length()-5);
             String title1 = titles[1].substring(0,titles[1].length()-5);
             String title;
-            if (title1.equals(title1))
+            if (title1.equals(title0))
                 title = title0 + "{sch,lay}";
             else
                 title = titles[0] + " & " + titles[1];

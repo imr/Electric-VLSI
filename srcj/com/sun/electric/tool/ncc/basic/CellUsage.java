@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -53,6 +54,7 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	// Cells with at least one LEGATE descendent
 	private Set<Cell> cellsWithLeGates;
 	
+	private void prln(String s) {System.out.println(s);}
 	private void processCellGroupAdditions(CellContext cellCtxt) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cellCtxt.cell);
 		if (ann==null) return;
@@ -133,8 +135,39 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	// don't feel right to me.
 	// I think the Cell should be marked LEGATE and not the instance. RKao
 	private boolean isLeGate(Nodable no) {
-        return no.getVar(LENetlister.ATTR_LEGATE)!=null ||
-               no.getVar(LENetlister.ATTR_LEKEEPER)!=null;
+
+		// The following two lines don't work because too many NodeInsts
+		// of non-LE-Gates have the LEGATE attribute. This causes NCC
+		// to flatten too much when size checking is turned on. This causes
+		// NCC's hierarchy heuristics to behave badly.
+//        return no.getVar(LENetlister.ATTR_LEGATE)!=null ||
+//               no.getVar(LENetlister.ATTR_LEKEEPER)!=null;
+		boolean attrLeGate = no.getVar(LENetlister.ATTR_LEGATE)!=null ||
+			                 no.getVar(LENetlister.ATTR_LEKEEPER)!=null;
+		boolean hasGetDrive = false;
+		for (Iterator<Variable> vIt=no.getVariables(); vIt.hasNext();) {
+			Variable v = vIt.next();
+			if (v.getCode()==TextDescriptor.Code.JAVA) {
+				String expr = v.getObject().toString();
+				// It's spelled two different ways
+				if (expr.indexOf("getDrive")!=-1 || expr.indexOf("getdrive")!=-1) {
+					hasGetDrive = true;
+				}
+			}
+		}
+		if (hasGetDrive && !attrLeGate) {
+			prln("  Warning: instance: "+no.getName()+" in Cell: "+
+				 no.getParent().describe(false)+
+				 " has a variable that calls getDrive but the instance "+
+				 "has no variable named LEGATE or LEKEEPER");
+		}
+		if (attrLeGate && !hasGetDrive) {
+			prln("  Warning: instance: "+no.getName()+" in Cell: "+
+				 no.getParent().describe(false)+
+				 " has a variable named LEGATE or LEKEEPER but has"+
+				 " no variable that calls getDrive()");
+		}
+		return hasGetDrive;
 	}
 	// find Cells that have at least one LEGATE descendent
 	private Set<Cell> findCellsWithLeGate() {
@@ -150,7 +183,11 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 				Cell child = (Cell) np;
 				if (cellsWithLeGate.contains(child)) {hasLeGate=true; break;}
 			}
-			if (hasLeGate) {cellsWithLeGate.add(c);}
+			if (hasLeGate) {
+//				// Debug
+				System.out.println("  Cell contains LE gate: "+c.describe(false));
+				cellsWithLeGate.add(c);
+			}
 		}
 		return cellsWithLeGate;
 	}
@@ -178,6 +215,16 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	/** Cell has only one size in the design */
 	public boolean cellHasOnlyOneSize(Cell cell) {
 		final boolean NEW_ALGORITHM = true;
+		
+//		//debug
+//		String cellNm = cell.getName();
+//		if (cellNm.indexOf("rxSlice")!=-1) {
+//			prln(" Testing rxSlice");
+//			prln("    Single use: "+singleUseCells.contains(cell));
+//			prln("    LE Gates: "+cellsWithLeGates.contains(cell));
+//			prln("    Parameterized: "+cellIsParameterized(cell));
+//		}
+		
 		if (NEW_ALGORITHM) {
 			return singleUseCells.contains(cell) || 
 		       (!cellsWithLeGates.contains(cell)) && !cellIsParameterized(cell);

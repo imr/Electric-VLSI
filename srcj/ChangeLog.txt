@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04t: ********************************* 
 
+BUG: (6/20/06, RK) NCC: Refine the test for logical effort gates. Check for getDrive() and getdrive() instead of LEGATE (Bugzilla# 1139)
+
+BUG: (6/20/06, RK) NCC GUI prints wrong cell names for root node in tree pane, (Bugzilla# 1156)
+
 ************************* Version 8.04s: *********************************
 
 BUG: (6/20/06, SMR) "Smart select" broken (selects similar objects to
