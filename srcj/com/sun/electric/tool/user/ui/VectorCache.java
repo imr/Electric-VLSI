@@ -998,8 +998,8 @@ public class VectorCache {
 		if (layer == null)
         {
             layer = Generic.tech.glyphLay;
-            if (Job.getDebug())
-                System.out.println("VectorCache with null layer. Assigning Glyph layer");
+//            if (Job.getDebug())
+//                System.out.println("VectorCache with null layer. Assigning Glyph layer");
         }
         graphics = layer.getGraphics();
 		Poly.Type style = poly.getStyle();
