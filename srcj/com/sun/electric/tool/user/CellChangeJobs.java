@@ -714,12 +714,10 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			boolean foundInstance = false;
-            int i = 0;
 			for(NodeInst ni : nodes)
 			{
 				if (!ni.isCellInstance()) continue;
 				foundInstance = true;
-                if (i%1000==0) System.out.println("Extracting " + i); i++;
 				extractOneNode(ni, copyExports);
 			}
 			if (!foundInstance)
