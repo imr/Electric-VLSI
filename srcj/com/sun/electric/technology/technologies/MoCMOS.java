@@ -92,6 +92,9 @@ public class MoCMOS extends Technology
     protected Layer polyCutLayer;
     protected Layer pActiveWellLayer;
     protected Layer[] activeLayers = new Layer[2];
+    protected Layer[] pseudoActiveLayers = new Layer[2];
+    protected Layer[] pseudoSelectLayers = new Layer[2];
+    protected Layer[] pseudoWellLayers = new Layer[2];
     protected Layer[] wellLayers = new Layer[2];
     protected Layer activeCutLayer;
     protected Layer thickActiveLayer;
@@ -731,7 +734,7 @@ public class MoCMOS extends Technology
 						0x8888}));// X   X   X   X
 
 		/** pseudo P active */
-		Layer pseudoPActive_lay = Layer.newInstance(this, "Pseudo-P-Active",
+		pseudoActiveLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Active",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96, 1,true,
 			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
@@ -751,7 +754,7 @@ public class MoCMOS extends Technology
 						0x3030}));//   XX      XX
 
 		/** pseudo N active */
-		Layer pseudoNActive_lay = Layer.newInstance(this, "Pseudo-N-Active",
+		pseudoActiveLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Active",
 			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226,96, 1,true,
 			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
@@ -771,7 +774,7 @@ public class MoCMOS extends Technology
 						0x3030}));//   XX      XX
 
 		/** pseudo P Select */
-		Layer pseudoPSelect_lay = Layer.newInstance(this, "Pseudo-P-Select",
+		pseudoSelectLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Select",
 			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
 			new int[] { 0x1010,   //    X       X
 						0x2020,   //   X       X
@@ -791,7 +794,7 @@ public class MoCMOS extends Technology
 						0x0808}));//     X       X
 
 		/** pseudo N Select */
-		Layer pseudoNSelect_lay = Layer.newInstance(this, "Pseudo-N-Select",
+		pseudoSelectLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Select",
 			new EGraphics(true, true, null, 0, 255,255,0, 1,false,
 			new int[] { 0x0101,   //        X       X
 						0x0000,   //
@@ -811,7 +814,7 @@ public class MoCMOS extends Technology
 						0x0000}));//
 
 		/** pseudo P Well */
-		Layer pseudoPWell_lay = Layer.newInstance(this, "Pseudo-P-Well",
+		pseudoWellLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Well",
 			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
 			new int[] { 0x0202,   //       X       X
 						0x0101,   //        X       X
@@ -831,7 +834,7 @@ public class MoCMOS extends Technology
 						0x0404}));//      X       X
 
 		/** pseudo N Well */
-		Layer pseudoNWell_lay = Layer.newInstance(this, "Pseudo-N-Well",
+		pseudoWellLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Well",
 			new EGraphics(true, true, null, 0, 139,99,46, 1,false,
 			new int[] { 0x0202,   //       X       X
 						0x0000,   //
@@ -892,12 +895,12 @@ public class MoCMOS extends Technology
 		pseudoMetal6_lay.setFunction(Layer.Function.METAL6, Layer.Function.PSEUDO);		// Pseudo-Metal-6
 		pseudoPoly1_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-1
 		pseudoPoly2_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);		// Pseudo-P-Active
-		pseudoNActive_lay.setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);		// Pseudo-N-Active
-		pseudoPSelect_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);	// Pseudo-P-Select
-		pseudoNSelect_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);	// Pseudo-N-Select
-		pseudoPWell_lay.setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
-		pseudoNWell_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo-N-Well
+		pseudoActiveLayers[P_TYPE].setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);		// Pseudo-P-Active
+		pseudoActiveLayers[N_TYPE].setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);		// Pseudo-N-Active
+		pseudoSelectLayers[P_TYPE].setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);	// Pseudo-P-Select
+		pseudoSelectLayers[N_TYPE].setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);	// Pseudo-N-Select
+		pseudoWellLayers[P_TYPE].setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
+		pseudoWellLayers[N_TYPE].setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo-N-Well
 		padFrameLayer.setFunction(Layer.Function.ART);									// Pad-Frame
 
 		// The CIF names
@@ -936,12 +939,12 @@ public class MoCMOS extends Technology
 		pseudoMetal6_lay.setFactoryCIFLayer("");			// Pseudo-Metal-6
 		pseudoPoly1_lay.setFactoryCIFLayer("");				// Pseudo-Polysilicon-1
 		pseudoPoly2_lay.setFactoryCIFLayer("");				// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFactoryCIFLayer("");			// Pseudo-P-Active
-		pseudoNActive_lay.setFactoryCIFLayer("");			// Pseudo-N-Active
-		pseudoPSelect_lay.setFactoryCIFLayer("CSP");		// Pseudo-P-Select
-		pseudoNSelect_lay.setFactoryCIFLayer("CSN");		// Pseudo-N-Select
-		pseudoPWell_lay.setFactoryCIFLayer("CWP");			// Pseudo-P-Well
-		pseudoNWell_lay.setFactoryCIFLayer("CWN");			// Pseudo-N-Well
+		pseudoActiveLayers[P_TYPE].setFactoryCIFLayer("");			// Pseudo-P-Active
+		pseudoActiveLayers[N_TYPE].setFactoryCIFLayer("");			// Pseudo-N-Active
+		pseudoSelectLayers[P_TYPE].setFactoryCIFLayer("CSP");		// Pseudo-P-Select
+		pseudoSelectLayers[N_TYPE].setFactoryCIFLayer("CSN");		// Pseudo-N-Select
+		pseudoWellLayers[P_TYPE].setFactoryCIFLayer("CWP");			// Pseudo-P-Well
+		pseudoWellLayers[N_TYPE].setFactoryCIFLayer("CWN");			// Pseudo-N-Well
 		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
 
 		// The GDS names for MOSIS
@@ -1011,12 +1014,12 @@ public class MoCMOS extends Technology
 		pseudoMetal6_lay.setFactorySkillLayer("");			// Pseudo-Metal-6
 		pseudoPoly1_lay.setFactorySkillLayer("");			// Pseudo-Polysilicon-1
 		pseudoPoly2_lay.setFactorySkillLayer("");			// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFactorySkillLayer("");			// Pseudo-P-Active
-		pseudoNActive_lay.setFactorySkillLayer("");			// Pseudo-N-Active
-		pseudoPSelect_lay.setFactorySkillLayer("pplus");	// Pseudo-P-Select
-		pseudoNSelect_lay.setFactorySkillLayer("nplus");	// Pseudo-N-Select
-		pseudoPWell_lay.setFactorySkillLayer("pwell");		// Pseudo-P-Well
-		pseudoNWell_lay.setFactorySkillLayer("nwell");		// Pseudo-N-Well
+		pseudoActiveLayers[P_TYPE].setFactorySkillLayer("");			// Pseudo-P-Active
+		pseudoActiveLayers[N_TYPE].setFactorySkillLayer("");			// Pseudo-N-Active
+		pseudoSelectLayers[P_TYPE].setFactorySkillLayer("pplus");	// Pseudo-P-Select
+		pseudoSelectLayers[N_TYPE].setFactorySkillLayer("nplus");	// Pseudo-N-Select
+		pseudoWellLayers[P_TYPE].setFactorySkillLayer("pwell");		// Pseudo-P-Well
+		pseudoWellLayers[N_TYPE].setFactorySkillLayer("nwell");		// Pseudo-N-Well
 		padFrameLayer.setFactorySkillLayer("");				// Pad-Frame
 
 		// The layer distance
@@ -1080,12 +1083,12 @@ public class MoCMOS extends Technology
 
 		pseudoPoly1_lay.setFactory3DInfo(0, poly1Layer.getDistance());			// Pseudo-Polysilicon-1
 		pseudoPoly2_lay.setFactory3DInfo(0, poly2_lay.getDistance());			// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFactory3DInfo(0, activeLayers[P_TYPE].getDistance());			// Pseudo-P-Active
-		pseudoNActive_lay.setFactory3DInfo(0, activeLayers[N_TYPE].getDistance());			// Pseudo-N-Active
-		pseudoPSelect_lay.setFactory3DInfo(0, selectLayers[P_TYPE].getDistance());			// Pseudo-P-Select
-		pseudoNSelect_lay.setFactory3DInfo(0, selectLayers[N_TYPE].getDistance());			// Pseudo-N-Select
-		pseudoPWell_lay.setFactory3DInfo(0, wellLayers[P_TYPE].getDistance());				// Pseudo-P-Well
-		pseudoNWell_lay.setFactory3DInfo(0, wellLayers[N_TYPE].getDistance());				// Pseudo-N-Well
+		pseudoActiveLayers[P_TYPE].setFactory3DInfo(0, activeLayers[P_TYPE].getDistance());			// Pseudo-P-Active
+		pseudoActiveLayers[N_TYPE].setFactory3DInfo(0, activeLayers[N_TYPE].getDistance());			// Pseudo-N-Active
+		pseudoSelectLayers[P_TYPE].setFactory3DInfo(0, selectLayers[P_TYPE].getDistance());			// Pseudo-P-Select
+		pseudoSelectLayers[N_TYPE].setFactory3DInfo(0, selectLayers[N_TYPE].getDistance());			// Pseudo-N-Select
+		pseudoWellLayers[P_TYPE].setFactory3DInfo(0, wellLayers[P_TYPE].getDistance());				// Pseudo-P-Well
+		pseudoWellLayers[N_TYPE].setFactory3DInfo(0, wellLayers[N_TYPE].getDistance());				// Pseudo-N-Well
 
 		// The Spice parasitics
 		metalLayers[0].setFactoryParasitics(0.078, 0.1209, 0.1104);			// Metal-1
@@ -1123,12 +1126,12 @@ public class MoCMOS extends Technology
 		pseudoMetal6_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Metal-6
 		pseudoPoly1_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Polysilicon-1
 		pseudoPoly2_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-P-Active
-		pseudoNActive_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Active
-		pseudoPSelect_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-P-Select
-		pseudoNSelect_lay.setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
-		pseudoPWell_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-P-Well
-		pseudoNWell_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-N-Well
+		pseudoActiveLayers[P_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-P-Active
+		pseudoActiveLayers[N_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-N-Active
+		pseudoSelectLayers[P_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-P-Select
+		pseudoSelectLayers[N_TYPE].setFactoryParasitics(0, 0, 0);		// Pseudo-N-Select
+		pseudoWellLayers[P_TYPE].setFactoryParasitics(0, 0, 0);			// Pseudo-P-Well
+		pseudoWellLayers[N_TYPE].setFactoryParasitics(0, 0, 0);			// Pseudo-N-Well
 		padFrameLayer.setFactoryParasitics(0, 0, 0);				// Pad-Frame
 
 		setFactoryParasitics(4, 0.1);
@@ -1424,9 +1427,9 @@ public class MoCMOS extends Technology
 		activePinNodes[P_TYPE] = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(pseudoPActive_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
-				new Technology.NodeLayer(pseudoNWell_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(pseudoPSelect_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
+				new Technology.NodeLayer(pseudoActiveLayers[P_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
+				new Technology.NodeLayer(pseudoWellLayers[N_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(pseudoSelectLayers[P_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
 			});
 		activePinNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1441,9 +1444,9 @@ public class MoCMOS extends Technology
 		activePinNodes[N_TYPE] = PrimitiveNode.newInstance("N-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(pseudoNActive_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
-				new Technology.NodeLayer(pseudoPWell_lay,  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(pseudoNSelect_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
+				new Technology.NodeLayer(pseudoActiveLayers[N_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(6)),
+				new Technology.NodeLayer(pseudoWellLayers[P_TYPE],  0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(pseudoSelectLayers[N_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeIndented(4))
 			});
 		activePinNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
@@ -1458,8 +1461,8 @@ public class MoCMOS extends Technology
 		PrimitiveNode activeGenPinNode = PrimitiveNode.newInstance("Active-Pin", this, 3.0, 3.0, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(pseudoPActive_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
-				new Technology.NodeLayer(pseudoNActive_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+				new Technology.NodeLayer(pseudoActiveLayers[P_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox()),
+				new Technology.NodeLayer(pseudoActiveLayers[N_TYPE], 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		activeGenPinNode.addPrimitivePorts(new PrimitivePort []
 			{

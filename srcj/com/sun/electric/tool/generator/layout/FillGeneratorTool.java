@@ -342,24 +342,34 @@ public class FillGeneratorTool extends Tool {
             if (!doItNow)
                 fieldVariableChanged("log");
 
-            if (topCell == null)
-                doTemplateFill(fillGen);
-            else
-                doFillOnCell(fillGen);
-            return true;
+            boolean result = (topCell == null) ?
+                    doTemplateFill(fillGen) :
+                    doFillOnCell(fillGen);
+            return result;
         }
 
-        public void doTemplateFill(FillGenerator fillGen)
+        public boolean doTemplateFill(FillGenerator fillGen)
         {
             fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
                     fillGenConfig.cellTiles, false);
             fillGen.makeGallery();
+            return true;
         }
 
-		public void doFillOnCell(FillGenerator fillGen)
+		public boolean doFillOnCell(FillGenerator fillGen)
 		{
             // Searching for possible master
-            List<Cell> masters = (fillGen.config.useMaster) ? searchPossibleMaster() : null;
+            List<Cell> masters = null;
+
+            if (fillGen.config.useMaster)
+            {
+                masters = searchPossibleMaster();
+                if (masters == null)
+                {
+                    System.out.println("No master found. Either mark one or select create in pulldown menu");
+                    return false;
+                }
+            }
 
             // Creating fills only for layers found in exports
 //            firstMetal = Integer.MAX_VALUE;
@@ -396,7 +406,7 @@ public class FillGeneratorTool extends Tool {
                     fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
                             fillGenConfig.cellTiles, true);
 
-            if (topCell == null || portList == null || portList.size() == 0) return;
+            if (topCell == null) /* || portList == null || portList.size() == 0)*/ return false; // not sure if false is correct
 
             Cell connectionCell = Cell.newInstance(topCell.getLibrary(), topCell.getName()+"fill{lay}");
 
@@ -448,6 +458,9 @@ public class FillGeneratorTool extends Tool {
 		        e.setCharacteristic(p.getPortProto().getCharacteristic());
             }
 
+            List<PolyBase> polyList = new ArrayList<PolyBase>();
+            List<Geometric> gList = new ArrayList<Geometric>();
+
             // First attempt if ports are below a power/ground bars
             for (FillGenerator.PortConfig p : portList)
             {
@@ -461,8 +474,16 @@ public class FillGeneratorTool extends Tool {
                     assert(ex == p.e);
                     Cell exportCell = (Cell)p.p.getNodeInst().getProto();
                     // Supposed to work only with metal layers
-                    rect = LayerCoverageTool.getGeometryOnNetwork(exportCell, ex.getOriginalPort(),
+                    // This is extremelly expensive
+                    if (!fillGenConfig.onlyAround)
+                        rect = LayerCoverageTool.getGeometryOnNetwork(exportCell, ex.getOriginalPort(),
                             p.l.getNonPseudoLayer());
+                    else
+                    {
+                        // This recta
+                        rect = p.pPoly.getBounds2D();
+//                        DBMath.transformRect(rect, p.p.getNodeInst().transformIn()); // bring export down to the subcell
+                    }
                     trans = p.p.getNodeInst().transformOut();
                 }
                 else // port on pins
@@ -470,20 +491,23 @@ public class FillGeneratorTool extends Tool {
 
                 // Looking to detect any possible contact based on overlap between this geometry and fill
                 Rectangle2D backupRect = (Rectangle2D)rect.clone();
-                NodeInst added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon,
-                        conTransOut, exclusionArea);
-                List<PolyBase> polyList = new ArrayList<PolyBase>();
-                List<Geometric> gList = new ArrayList<Geometric>();
+                NodeInst added = null;
+
+                polyList.clear();
+                gList.clear();
                 polyList.add(p.pPoly);
                 gList.add(p.p.getNodeInst());
-                if (added != null)
+
+                if (!fillGenConfig.onlyAround)
                 {
-                    log.logWarning(p.p.describe(false) + " connected", gList, null, null, null, polyList, topCell, 0);
-                    continue;
-                }
-                else
-                {
-//                    log.logError(p.p.describe(false) + " not connected", gList, null, null, null, polyList, topCell, 0);
+                    added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon,
+                            conTransOut, exclusionArea);
+
+                    if (added != null)
+                    {
+                        log.logWarning(p.p.describe(false) + " connected", gList, null, null, null, polyList, topCell, 0);
+                        continue;
+                    }
                 }
 
                 // Trying the closest arc
@@ -576,6 +600,7 @@ public class FillGeneratorTool extends Tool {
 //                    }
 //                }
 //            }
+            return true;
         }
 
         public void terminateOK()

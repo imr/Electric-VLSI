@@ -1168,8 +1168,11 @@ class TiledCell {
 
         // topBox its width/height must be multiply of master.getWidth()/Height()
         Rectangle2D topEssential = topCell.findEssentialBounds();
-        Rectangle2D topBox = new Rectangle2D.Double(topCell.getBounds().getCenterX()-fillWidth/2,
-                topCell.getBounds().getCenterY()-fillHeight/2, fillWidth, fillHeight);
+//        Rectangle2D topBox = new Rectangle2D.Double(topCell.getBounds().getCenterX()-fillWidth/2,
+//                topCell.getBounds().getCenterY()-fillHeight/2, fillWidth, fillHeight);
+        // Center bounding box using the left-bottom corner
+        Rectangle2D topBox = new Rectangle2D.Double(topCell.getBounds().getX() + config.gap,
+                topCell.getBounds().getY() + config.gap, fillWidth, fillHeight);
         if (topEssential != null) // make correction
         {
             topBox = new Rectangle2D.Double(topEssential.getX(), topEssential.getY(), fillWidth, fillHeight);

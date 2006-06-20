@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04s: *********************************
 
+IMP: (6/20/06, GVG) Most of the changes in AFG for BIC tape-out.
+
+IMP: (6/20/06, GVG) NT_N_ACTIVE pins and arcs. Adding NT_N MINWID=7.4
+
 IMP: (6/19/06, GVG) Need NT_N_ACTIVE contacts (Bug #1148)
 
 BUG: (6/19/06, GVG) Exception using the new algorithm while opening TSMC180.jelib (Bug #1150)
