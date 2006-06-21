@@ -48,6 +48,8 @@ public class FileType implements Serializable {
 
     public static FileTypeGroup[] getFileTypeGroups() { return fileTypeGroups; }
 
+    public static String getDatabasePath() { return DATABASEGRP.getPath(); }
+
     public static void resetFileTypeGroupDir(Object obj, String path)
     {
         assert(obj instanceof FileTypeGroup);
