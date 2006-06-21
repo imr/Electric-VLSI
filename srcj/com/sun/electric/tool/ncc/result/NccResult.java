@@ -79,7 +79,7 @@ public class NccResult implements Serializable {
 			equivNets = globalData.getEquivalentNets();
 			equivNodes = globalData.getEquivalentNodes();
 		}
-		return new Equivalence(equivNets, equivNodes);
+		return new Equivalence(equivNets, equivNodes, rootCells, rootContexts);
 	}
 	
 	private NccResult(boolean exportNameMatch, boolean topologyMatch, 

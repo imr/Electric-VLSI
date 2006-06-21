@@ -18,12 +18,17 @@ public class Equivalence implements Serializable {
 	private void prln(String s) {System.out.println(s);}
     
 	public Equivalence(NetNameProxy[][] equivNets,
-			           NodableNameProxy[][] equivNodes) {
-		netEquiv = new NetEquivalence(equivNets);
+			           NodableNameProxy[][] equivNodes,
+			           Cell[] nccRootCells, 
+			           VarContext[] nccRootCtxts) {
+		netEquiv = new NetEquivalence(equivNets, nccRootCells, nccRootCtxts);
 		nodeEquiv = new NodeEquivalence(equivNodes);
 	}
 	public NetNameProxy findEquivalentNet(VarContext vc, Network net) {
 		return netEquiv.findEquivalentNet(vc, net);
+	}
+	public NetNameProxy findEquivalentNetShortingResistors(VarContext vc, Network net) {
+		return netEquiv.findEquivalentNetShortingResistors(vc, net);
 	}
 	public NodableNameProxy findEquivalentNode(VarContext vc, Nodable node) {
 		return nodeEquiv.findEquivalent(vc, node);

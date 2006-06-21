@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04t: ********************************* 
 
+IMP: (6/21/06, RK) New method for Jonathan's cross probing: NetEquivlence.findEquivalentNetShortingResistors(). Handles Networks connected to ports. Shorts Resistors. Untested.
+
 BUG: (6/21/06, GVG) Working directory confused by Sun menu (Bug #1157)
 FIX: Assura files are stored in path relative to the database file type group.
 
