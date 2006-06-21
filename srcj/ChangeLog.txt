@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04t: ********************************* 
 
+BUG: (6/21/06, GVG) Null exception in Spice netlister (bug #1160)
+FIX: Detecting when transistor has null size
+
 BUG: (6/21/06, GVG) Attribute text not visible with black background (bug #1161)
 FIX: Fixed side effect while fixing 1150.
 

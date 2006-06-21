@@ -1351,62 +1351,67 @@ public class Spice extends Topology
 
 			// compute length and width (or area for nonMOS transistors)
 			TransistorSize size = ni.getTransistorSize(context);
-			if (size.getDoubleWidth() > 0 || size.getDoubleLength() > 0)
-			{
-				double w = maskScale * size.getDoubleWidth();
-				double l = maskScale * size.getDoubleLength();
-                // get gate length subtraction in lambda
-                double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
-                l -= lengthSubtraction;
-				if (!Simulation.isSpiceWriteTransSizeInLambda())
-				{
-					// make into microns (convert to nanometers then divide by 1000)
-					l *= layoutTechnology.getScale() / 1000.0;
-					w *= layoutTechnology.getScale() / 1000.0;
-				}
+            if (size == null)
+                System.out.println("Warning: transistor with null size " + ni.getName());
+            else
+            {
+                if (size.getDoubleWidth() > 0 || size.getDoubleLength() > 0)
+                {
+                    double w = maskScale * size.getDoubleWidth();
+                    double l = maskScale * size.getDoubleLength();
+                    // get gate length subtraction in lambda
+                    double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
+                    l -= lengthSubtraction;
+                    if (!Simulation.isSpiceWriteTransSizeInLambda())
+                    {
+                        // make into microns (convert to nanometers then divide by 1000)
+                        l *= layoutTechnology.getScale() / 1000.0;
+                        w *= layoutTechnology.getScale() / 1000.0;
+                    }
 
-				if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
-					fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRA4PMOS ||
-					fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
-					((fun == PrimitiveNode.Function.TRANJFET || fun == PrimitiveNode.Function.TRAPJFET ||
-					  fun == PrimitiveNode.Function.TRADMES || fun == PrimitiveNode.Function.TRAEMES) &&
-					  (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA)))
-				{
-                    // schematic transistors may be text
+                    if (fun == PrimitiveNode.Function.TRANMOS  || fun == PrimitiveNode.Function.TRA4NMOS ||
+                        fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRA4PMOS ||
+                        fun == PrimitiveNode.Function.TRADMOS || fun == PrimitiveNode.Function.TRA4DMOS ||
+                        ((fun == PrimitiveNode.Function.TRANJFET || fun == PrimitiveNode.Function.TRAPJFET ||
+                          fun == PrimitiveNode.Function.TRADMES || fun == PrimitiveNode.Function.TRAEMES) &&
+                          (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H || spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_H_ASSURA)))
+                    {
+                        // schematic transistors may be text
+                        if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
+                            if (lengthSubtraction != 0)
+                                infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength()) + " - "+ lengthSubtraction));
+                            else
+                                infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
+                        } else {
+                            infstr.append(" L=" + TextUtils.formatDouble(l, 2));
+                            if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
+                        }
+                        if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
+                            infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
+                        } else {
+                            infstr.append(" W=" + TextUtils.formatDouble(w, 2));
+                            if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
+                        }
+                    }
+                    if (fun != PrimitiveNode.Function.TRANMOS && fun != PrimitiveNode.Function.TRA4NMOS &&
+                        fun != PrimitiveNode.Function.TRAPMOS && fun != PrimitiveNode.Function.TRA4PMOS &&
+                        fun != PrimitiveNode.Function.TRADMOS && fun != PrimitiveNode.Function.TRA4DMOS)
+                    {
+                        infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2));
+                        if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
+                    }
+                } else {
+                    // get gate length subtraction in lambda
+                    double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
                     if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
                         if (lengthSubtraction != 0)
-                            infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength()) + " - "+ lengthSubtraction));
+                            infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength()) + " - "+lengthSubtraction));
                         else
                             infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
-                    } else {
-                        infstr.append(" L=" + TextUtils.formatDouble(l, 2));
-                        if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
                     }
-                    if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
+                    if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
                         infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
-                    } else {
-                        infstr.append(" W=" + TextUtils.formatDouble(w, 2));
-                        if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
-                    }
-				}
-				if (fun != PrimitiveNode.Function.TRANMOS && fun != PrimitiveNode.Function.TRA4NMOS &&
-					fun != PrimitiveNode.Function.TRAPMOS && fun != PrimitiveNode.Function.TRA4PMOS &&
-					fun != PrimitiveNode.Function.TRADMOS && fun != PrimitiveNode.Function.TRA4DMOS)
-				{
-                    infstr.append(" AREA=" + TextUtils.formatDouble(l*w, 2));
-                    if (!Simulation.isSpiceWriteTransSizeInLambda()) infstr.append("P");
-				}
-			} else {
-                // get gate length subtraction in lambda
-                double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
-                if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
-                    if (lengthSubtraction != 0)
-                        infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength()) + " - "+lengthSubtraction));
-                    else
-                        infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
                 }
-                if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
-                    infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
             }
 
 			// make sure transistor is connected to nets
