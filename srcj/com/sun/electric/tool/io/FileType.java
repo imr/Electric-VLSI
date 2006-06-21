@@ -44,18 +44,22 @@ public class FileType implements Serializable {
     private static final FileTypeGroup BUILTINSIMGRP = new FileTypeGroup("Built-In Simulation", User.getWorkingDirectory()); // Built-in simulation tools
     private static final FileTypeGroup VERILOGSIMGRP = new FileTypeGroup("Verilog Simulation", User.getWorkingDirectory()); // Verilog simulation tools
     private static final FileTypeGroup EXPORTIMPORTGRP = new FileTypeGroup("Export-Import", User.getWorkingDirectory()); // Export/Import formats
-    private static final FileTypeGroup[] fileTypeGroups = {DATABASEGRP, OTHERSIMGRP, SPICESIMGRP, BUILTINSIMGRP, VERILOGSIMGRP, EXPORTIMPORTGRP};
+    private static final Object[] fileTypeGroups = {DATABASEGRP, OTHERSIMGRP, SPICESIMGRP, BUILTINSIMGRP, VERILOGSIMGRP, EXPORTIMPORTGRP};
 
-    public static FileTypeGroup[] getFileTypeGroups() { return fileTypeGroups; }
+    public static Object[] getFileTypeGroups() { return fileTypeGroups; }
 
-    public static String getDatabasePath() { return DATABASEGRP.getPath(); }
+    public static String getDatabaseGroupPath() { return DATABASEGRP.getPath(); }
+
+    public static String getGroupPath(Object group)
+    {
+        assert(group instanceof FileTypeGroup);
+        return ((FileTypeGroup)group).getPath();
+    }
 
     public static void resetFileTypeGroupDir(Object obj, String path)
     {
         assert(obj instanceof FileTypeGroup);
-        if (path == null) return; // nothing 
-        FileTypeGroup gp = (FileTypeGroup)obj;
-        gp.setPath(path);
+        ((FileTypeGroup)obj).setPath(path);
     }
 
 	/** all types */                        private static final ArrayList<FileType> allTypes = new ArrayList<FileType>();
@@ -161,7 +165,7 @@ public class FileType implements Serializable {
 
 	private FileType() {}
 
-    public static class FileTypeGroup implements Serializable
+    private static class FileTypeGroup implements Serializable
     {
         /** preferences for all FileTypes */					private static Pref.Group prefs = null;
         private static HashMap<FileTypeGroup,Pref> groupPrefs = new HashMap<FileTypeGroup,Pref>();
@@ -182,6 +186,7 @@ public class FileType implements Serializable {
 
         void setPath(String p)
         {
+            if (p == null) return; // nothing
             Pref path = groupPrefs.get(this);
             path.setString(p);
         }

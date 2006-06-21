@@ -63,10 +63,7 @@ public class GeneralTab extends PreferencePanel
 	{
 		// I/O section
 		generalShowFileDialog.setSelected(User.isShowFileSelectionForNetlists());
-//        for (Iterator<String> it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
-//            workingDirComboBox.addItem(it.next());
-//        workingDirComboBox.setSelectedItem(User.getInitialWorkingDirectorySetting());
-        for (FileType.FileTypeGroup obj : FileType.getFileTypeGroups())
+        for (Object obj : FileType.getFileTypeGroups())
         {
             workingDirComboBox.addItem(obj);
             fileTypeMap.put(obj, null);
@@ -476,8 +473,7 @@ public class GeneralTab extends PreferencePanel
     }// </editor-fold>//GEN-END:initComponents
 
     private void workingDirComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_workingDirComboBoxActionPerformed
-        FileType.FileTypeGroup obj = (FileType.FileTypeGroup)workingDirComboBox.getSelectedItem();
-        currentPathLabel.setText(obj.getPath());
+        currentPathLabel.setText(FileType.getGroupPath(workingDirComboBox.getSelectedItem()));
     }//GEN-LAST:event_workingDirComboBoxActionPerformed
 
     private void newPath()
