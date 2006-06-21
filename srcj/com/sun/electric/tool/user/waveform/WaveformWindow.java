@@ -43,6 +43,10 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.plugins.sunRouter.global.NetGroup;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.ncc.NccJob;
+import com.sun.electric.tool.ncc.NccCrossProbing;
+import com.sun.electric.tool.ncc.result.NccResults;
+import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.io.input.Simulate;
@@ -2263,6 +2267,27 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					sSig = an.findSignalForNetworkQuickly(netName.replace('@', '_'));
                 if (sSig == null)
                     sSig = an.findSignalForNetworkQuickly(netName.replace('.', '_'));
+                if (sSig == null) {
+                    // check for equivalent layout net name
+                    // search up hierarchy for cell with NCC equiv info
+                    Cell cell = net.getParent();
+                    NccResult result = NccCrossProbing.getResults(cell);
+                    if (result == null) {
+                        for (VarContext checkContext = context; checkContext != VarContext.globalContext; checkContext = checkContext.pop()) {
+                            cell = checkContext.getNodable().getParent();
+                            result = NccCrossProbing.getResults(cell);
+                            if (result != null) break;
+                        }
+                    }
+                    if (result != null) {
+                        HierarchyEnumerator.NetNameProxy proxy = result.getEquivalence().findEquivalentNet(context, net);
+                        if (proxy != null) {
+                            String otherName = getSpiceNetName(proxy.getContext(), proxy.getNet());
+                            System.out.println("Mapped "+netName+" to "+otherName);
+                            sSig = an.findSignalForNetworkQuickly(otherName);
+                        }
+                    }
+                }
 	            if (sSig == null)
 	                sSig = an.findSignalForNetwork(netName);
 				if (sSig != null)

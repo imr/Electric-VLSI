@@ -25,11 +25,7 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
@@ -174,6 +170,9 @@ public abstract class Topology extends Output
 		return cni;
 	}
 
+    /** Used to switch from schematic enumeration to layout enumeration */
+    protected boolean enumerateLayoutView(Cell cell) { return false; }
+
 	//------------------ override for HierarchyEnumerator.Visitor ----------------------
 
 	public class MyCellInfo extends HierarchyEnumerator.CellInfo
@@ -210,7 +209,7 @@ public abstract class Topology extends Output
 			return true;
 		}
 
-		public void exitCell(HierarchyEnumerator.CellInfo info) 
+		public void exitCell(HierarchyEnumerator.CellInfo info)
 		{
 			// write cell
 			Cell cell = info.getCell();
@@ -245,6 +244,28 @@ public abstract class Topology extends Output
 			String parameterizedName = parameterizedName(no, context);
 
 			if (cellTopos.containsKey(parameterizedName)) return false;	// already processed this Cell
+
+            Cell cell = (Cell)no.getProto();
+            Cell schcell = cell.contentsView();
+            if (schcell == null) schcell = cell;
+            if (cell.getView() == View.SCHEMATIC && enumerateLayoutView(schcell)) {
+                Cell layCell = null;
+                for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) {
+                    Cell c = it.next();
+                    if (c.getView() == View.LAYOUT) {
+                        layCell = c;
+                        break;
+                    }
+                }
+                if (layCell != null) {
+                    HierarchyEnumerator.enumerateCell(layCell, context, this);
+                    // save subcell topology, even though the cell isn't being written
+                    CellNetInfo cni = getNetworkInformation(layCell, false, layCell.getName(),
+                            isNetworksUseExportedNames(), layCell.getNetlist(false));
+                    cellTopos.put(parameterizedName, cni);
+                    return false;
+                }
+            }
 
 /*
 			Cell cell = (Cell)np;
@@ -354,6 +375,7 @@ public abstract class Topology extends Output
 	 */
 	protected static class CellNetInfo
 	{
+        private Cell cell;
 		private String paramName;
 		private HashMap<Network,CellSignal> cellSignals;
 		private List<CellSignal> cellSignalsSorted;
@@ -369,6 +391,7 @@ public abstract class Topology extends Output
 		protected Network getPowerNet() { return pwrNet; }
 		protected Network getGroundNet() { return gndNet; }
 		protected Netlist getNetList() { return netList; }
+        protected Cell getCell() { return cell; }
 	}
 
 	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName, boolean useExportedName, Netlist netlist)
@@ -397,6 +420,7 @@ public abstract class Topology extends Output
 	{
 		// create the object with cell net information
 		CellNetInfo cni = new CellNetInfo();
+        cni.cell = cell;
 		cni.paramName = paramName;
 
 		// get network information about this cell
@@ -450,6 +474,10 @@ public abstract class Topology extends Output
 //				}
 			}
 
+            if (cs.getName().equals("gnd") && !cs.isGlobal()) {
+                System.out.println("cell "+cell.describe(false)+" has a global name "+cs.getName()+" but is not a global");
+                continue;
+            }
 			// save it in the map of signals
  			cni.cellSignals.put(net, cs);
 		}
@@ -902,7 +930,10 @@ public abstract class Topology extends Output
 				// one is descending and the other isn't...sort accordingly
 				return cs1.descending ? 1 : -1;
 			}
-			return TextUtils.STRING_NUMBER_ORDER.compare(cs1.name, cs2.name);
+			//return TextUtils.STRING_NUMBER_ORDER.compare(cs1.name, cs2.name);
+            // Sort by simple string comparison, otherwise it is impossible
+            // to stitch this together with netlists from other tools
+            return cs1.name.compareTo(cs2.name);
 		}
 	}
 

@@ -105,11 +105,7 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.ncc.AllSchemNamesToLay;
-import com.sun.electric.tool.ncc.Ncc;
-import com.sun.electric.tool.ncc.NccJob;
-import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.SchemNamesToLay;
+import com.sun.electric.tool.ncc.*;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.result.NccResult;
@@ -255,6 +251,10 @@ public class ToolMenu {
                     Simulation.setSpiceModel(); }},
 		        new EMenuItem("Add M_ultiplier") { public void run() {
                     addMultiplierCommand(); }},
+                new EMenuItem("Add flat code") { public void run() {
+                    makeTemplate(Spice.SPICE_CODE_FLAT_KEY); }},
+                new EMenuItem("Mark to enumerate layout") { public void run() {
+                    makeTemplate(Spice.SPICE_ENUMERATE_LAYOUT); }},
 
                 SEPARATOR,
 
@@ -362,6 +362,8 @@ public class ToolMenu {
                         new AllSchemNamesToLay.RenameJob(); }},
 		        new EMenuItem("Highlight _Equivalent") { public void run() {
 			        HighlightEquivalent.highlight(); }},
+                new EMenuItem("Run NCC for Schematic Cross-Probing") { public void run() {
+                    runNccSchematicCrossProbing(); }},
 
                 new EMenu("Add NCC _Annotation to Cell",
 		        	new EMenuItem("Exports Connected by Parent _vdd") { public void run() {
@@ -1820,6 +1822,14 @@ public class ToolMenu {
                     "Importing DRC Deck", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+
+    public static void runNccSchematicCrossProbing() {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Cell cell = wnd.getCell();
+        if (cell == null) return;
+        NccCrossProbing.runNccSchematicCrossProbing(cell, wnd.getVarContext());
     }
 
 //    private static void newAutoFill(boolean hierarchy, boolean binary)

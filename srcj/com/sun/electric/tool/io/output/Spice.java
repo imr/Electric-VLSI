@@ -65,8 +65,11 @@ import com.sun.electric.tool.logicaleffort.LENetlister;
 import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.*;
 
@@ -87,6 +90,8 @@ public class Spice extends Topology
 	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = Variable.newKey("SIM_spice_card");
 	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = Variable.newKey("SIM_spice_declaration");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
+	/** key of Variable holding SPICE flat code. */				public static final Variable.Key SPICE_CODE_FLAT_KEY = Variable.newKey("SIM_spice_code_flat");
+	/** key of Variable holding SPICE enumerate layout. */		public static final Variable.Key SPICE_ENUMERATE_LAYOUT = Variable.newKey("SIM_spice_enumerate_layout");
     /** key of wire capacitance. */                             public static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
     /** key of wire resistance. */                              public static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
@@ -95,6 +100,7 @@ public class Spice extends Topology
 
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
     /** maximum subcircuit name length */						private static final int CDLMAXLENSUBCKTNAME     = 40;
+    /** maximum subcircuit name length */						private static final int SPICEMAXLENLINE     = 78;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_@";
 	/** legal characters in a spice deck */						private static final String PSPICELEGALCHARS        = "!#$%*+-/<>[]_";
 	/** legal characters in a CDL deck */						private static final String CDLNOBRACKETLEGALCHARS = "!#$%*+-/<>_";
@@ -112,6 +118,9 @@ public class Spice extends Topology
     /** List of segmented nets and parasitics */    private List<SegmentedNets> segmentedParasiticInfo = new ArrayList<SegmentedNets>();
     /** Networks exempted during parasitic ext */   private ExemptedNets exemptedNets;
     /** Whether or not to write empty subckts  */   private boolean writeEmptySubckts = true;
+    /** max length per line */                      private int spiceMaxLenLine = SPICEMAXLENLINE;
+
+    /** Flat measurements file */                   private FlatSpiceCodeVisitor spiceCodeFlat = null;
 
     /** map of "parameterized" cells that are not covered by Topology */    private Map<Cell,Cell> uniquifyCells;
     /** uniqueID */                                                         private int uniqueID;
@@ -341,6 +350,9 @@ public class Spice extends Topology
 		} else
 		{
 			writeHeader(topCell);
+            spiceCodeFlat = new FlatSpiceCodeVisitor(filePath+".flatcode", this);
+            HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, spiceCodeFlat);
+            spiceCodeFlat.close();
 		}
 
         if (Simulation.isParasiticsUseExemptedNetsFile()) {
@@ -524,7 +536,7 @@ public class Spice extends Topology
                     if (poly.getStyle().isText()) continue;
 
                     Layer layer = poly.getLayer();
-                    if (layer.getTechnology() != Technology.getCurrent()) continue;
+                    if (layer.getTechnology() != layoutTechnology) continue;
                     if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 
                     if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
@@ -751,6 +763,11 @@ public class Spice extends Topology
 					if (pp == null) continue;
 
 					if (cs.isGlobal() && !cs.getNetwork().isExported()) continue;
+
+                    if (cs.isGlobal() && cs.getNetwork().isExported()) {
+                        // only add to port list if exported with global name
+                        if (!isGlobalExport(cs)) continue;
+                    }
 				} else
 				{
 					if (pp == null && !cs.isGlobal()) continue;
@@ -761,6 +778,10 @@ public class Spice extends Topology
 //					if (i > 0 && netlist[i-1]->temp2 != net->temp2)
 //						infstr.append(" /");
 				}
+
+                if (cs.isGlobal()) {
+                    System.out.println("Warning: Explicit Global signal "+cs.getName()+" exported in "+cell.describe(false));
+                }
 
                 // special case for parasitic extraction
                 if (useParasitics && !cs.isGlobal() && cs.getExport() != null) {
@@ -873,7 +894,7 @@ public class Spice extends Topology
 					firstDecl = false;
 					multiLinePrint(true, "\n* Spice Declaration nodes in cell " + cell + "\n");
 				}
-				emitEmbeddedSpice(cardVar, context, segmentedNets);
+				emitEmbeddedSpice(cardVar, context, segmentedNets, info, false);
 			}
 		}
 
@@ -910,7 +931,7 @@ public class Spice extends Topology
 						for(int i=0; i<manyLines.length; i++)
 						{
 							String line = manyLines[i].toString();
-							StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets);
+							StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets, info, false);
 		                    // Writing MFactor if available. Not sure here
 							if (i == 0) writeMFactor(context, no, infstr);
 							infstr.append('\n');
@@ -919,7 +940,7 @@ public class Spice extends Topology
 					} else
 					{
 						String line = varTemplate.getObject().toString();
-						StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets);
+						StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets, info, false);
 	                    // Writing MFactor if available. Not sure here
 						writeMFactor(context, no, infstr);
 						
@@ -950,18 +971,58 @@ public class Spice extends Topology
 					// ignore networks that aren't exported
 					PortProto pp = subCS.getExport();
 					Network net;
+                    int exportIndex = subCS.getExportIndex();
+
+                    // This checks if we are netlisting a schematic top level with
+                    // swapped-in layout subcells
+                    if (pp != null && (cell.getView() == View.SCHEMATIC) && (subCni.getCell().getView() == View.LAYOUT)) {
+                        // find equivalent pp from layout to schematic
+                        Network subNet = subCS.getNetwork();  // layout network name
+                        boolean found = false;
+                        for (Iterator<Export> eIt = subCell.getExports(); eIt.hasNext(); ) {
+                            Export ex = eIt.next();
+                            for (int i=0; i<ex.getNameKey().busWidth(); i++) {
+                                String exName = ex.getNameKey().subname(i).toString();
+                                if (exName.equals(subNet.getName())) {
+                                    pp = ex;
+                                    exportIndex = i;
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (found) break;
+                        }
+                        if (!found) {
+                            if (pp.isGround() && pp.getName().startsWith("gnd")) {
+                                infstr.append(" gnd");
+                            } else if (pp.isPower() && pp.getName().startsWith("vdd")) {
+                                infstr.append(" vdd");
+                            } else {
+                                System.out.println("No matching export on schematic/icon found for export "+
+                                        subNet.getName()+" in cell "+subCni.getCell().describe(false));
+                                infstr.append(" unknown");
+                            }
+                            continue;
+                        }
+                    }
+
 					if (USE_GLOBALS)
 					{
 						if (pp == null) continue;
 
-						net = netList.getNetwork(no, pp, subCS.getExportIndex());
+                        if (subCS.isGlobal() && subCS.getNetwork().isExported()) {
+                            // only add to port list if exported with global name
+                            if (!isGlobalExport(subCS)) continue;
+                        }
+
+						net = netList.getNetwork(no, pp, exportIndex);
 					} else
 					{
 						if (pp == null && !subCS.isGlobal()) continue;
 						if (subCS.isGlobal())
 							net = netList.getNetwork(no, subCS.getGlobal());
 						else
-							net = netList.getNetwork(no, pp, subCS.getExportIndex());
+							net = netList.getNetwork(no, pp, exportIndex);
 					}
 					CellSignal cs = cni.getCellSignal(net);
                     // special case for parasitic extraction
@@ -1506,7 +1567,7 @@ public class Spice extends Topology
 					firstDecl = false;
 					multiLinePrint(true, "\n* Spice Code nodes in cell " + cell + "\n");
 				}
-				emitEmbeddedSpice(cardVar, context, segmentedNets);
+				emitEmbeddedSpice(cardVar, context, segmentedNets, info, false);
 			}
 		}
 
@@ -1561,14 +1622,14 @@ public class Spice extends Topology
         }
 	}
 
-	private void emitEmbeddedSpice(Variable cardVar, VarContext context, SegmentedNets segmentedNets)
+	private void emitEmbeddedSpice(Variable cardVar, VarContext context, SegmentedNets segmentedNets, HierarchyEnumerator.CellInfo info, boolean flatNetNames)
 	{
 		Object obj = cardVar.getObject();
 		if (!(obj instanceof String) && !(obj instanceof String[])) return;
 		if (!cardVar.isDisplay()) return;
 		if (obj instanceof String)
 		{
-	        StringBuffer buf = replacePortsAndVars((String)obj, context.getNodable(), context.pop(), null, segmentedNets);
+	        StringBuffer buf = replacePortsAndVars((String)obj, context.getNodable(), context.pop(), null, segmentedNets, info, flatNetNames);
 			buf.append('\n');
 			String msg = buf.toString();
 			boolean isComment = false;
@@ -1579,7 +1640,7 @@ public class Spice extends Topology
 			String [] strings = (String [])obj;
 			for(int i=0; i<strings.length; i++)
 			{
-	            StringBuffer buf = replacePortsAndVars(strings[i], context.getNodable(), context.pop(), null, segmentedNets);
+	            StringBuffer buf = replacePortsAndVars(strings[i], context.getNodable(), context.pop(), null, segmentedNets, info, flatNetNames);
 				buf.append('\n');
 				String msg = buf.toString();
 				boolean isComment = false;
@@ -1681,7 +1742,8 @@ public class Spice extends Topology
      * @return the modified line
      */
     private StringBuffer replacePortsAndVars(String line, Nodable no, VarContext context,
-                                       CellNetInfo cni, SegmentedNets segmentedNets) {
+                                       CellNetInfo cni, SegmentedNets segmentedNets,
+                                       HierarchyEnumerator.CellInfo info, boolean flatNetNames) {
         StringBuffer infstr = new StringBuffer();
         Cell subCell = null;
     	if (no != null)
@@ -1701,12 +1763,21 @@ public class Spice extends Topology
             int start = pt + 2;
             for(pt = start; pt < line.length(); pt++)
                 if (line.charAt(pt) == ')') break;
-            if (subCell == null) continue;
-
             // do the parameter substitution
             String paramName = line.substring(start, pt);
-            PortProto pp = subCell.findPortProto(paramName);
-            if (cni != null && pp != null)
+
+            PortProto pp = null;
+            if (subCell != null) {
+                pp = subCell.findPortProto(paramName);
+            }
+            Variable.Key varKey;
+
+            if (paramName.equalsIgnoreCase("node_name") && no != null)
+            {
+            	String nodeName = getSafeNetName(no.getName(), false);
+//            	nodeName = nodeName.replaceAll("[\\[\\]]", "_");
+                infstr.append(nodeName);
+            } else if (cni != null && pp != null)
             {
                 // port name found: use its spice node
                 Network net = cni.getNetList().getNetwork(no, pp, 0);
@@ -1716,17 +1787,15 @@ public class Spice extends Topology
                     PortInst pi = no.getNodeInst().findPortInstFromProto(pp);
                     portName = segmentedNets.getNetName(pi);
                 }
+                if (flatNetNames) {
+                    portName = info.getUniqueNetName(net, ".");
+                }
                 infstr.append(portName);
-            } else if (paramName.equalsIgnoreCase("node_name"))
-            {
-            	String nodeName = getSafeNetName(no.getName(), false);
-//            	nodeName = nodeName.replaceAll("[\\[\\]]", "_");
-                infstr.append(nodeName);
-            } else
+            } else if (no != null && (varKey = Variable.findKey("ATTR_" + paramName)) != null)
             {
                 // no port name found, look for variable name
                 Variable attrVar = null;
-                Variable.Key varKey = Variable.findKey("ATTR_" + paramName);
+                //Variable.Key varKey = Variable.findKey("ATTR_" + paramName);
                 if (varKey != null) {
                     attrVar = no.getVar(varKey);
                     if (attrVar == null) attrVar = no.getParameter(varKey);
@@ -1739,9 +1808,114 @@ public class Spice extends Topology
                     //else
                     //    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
                 }
+            } else {
+                // look for the network name
+                boolean found = false;
+                String hierName = null;
+                String [] names = paramName.split("\\.");
+                if (names.length > 1 && flatNetNames) {
+                    // hierarchical name, down hierarchy
+                    Cell thisCell = info.getCell();
+                    Netlist thisNetlist = info.getNetlist();
+                    VarContext thisContext = context;
+                    if (no != null) {
+                        // push it back on, it got popped off in "embedSpice..."
+                        thisContext = thisContext.push(no);
+                    }
+                    for (int i=0; i<names.length-1; i++) {
+                        boolean foundno = false;
+                        for (Iterator<Nodable> it = thisNetlist.getNodables(); it.hasNext(); ) {
+                            Nodable subno = it.next();
+                            if (subno.getName().equals(names[i])) {
+                                if (subno.getProto() instanceof Cell) {
+                                    thisCell = (Cell)subno.getProto();
+                                    thisNetlist = thisNetlist.getNetlist(subno);
+                                    thisContext = thisContext.push(subno);
+                                }
+                                foundno = true;
+                                continue;
+                            }
+                        }
+                        if (!foundno) {
+                            System.out.println("Unable to find "+names[i]+" in "+paramName);
+                            break;
+                        }
+                    }
+                    Network net = findNet(thisNetlist, names[names.length-1]);
+                    if (net != null) {
+                        HierarchyEnumerator.NetNameProxy proxy = new HierarchyEnumerator.NetNameProxy(
+                                thisContext, ".x", net);
+                        hierName = proxy.toString();
+                    }
+
+                } else {
+                    // net may be exported and named at higher level, use getUniqueName
+                    Network net = findNet(info.getNetlist(), paramName);
+                    if (net != null) {
+                        if (flatNetNames)
+                            hierName = info.getUniqueNetName(net, ".x");
+                        else
+                            hierName = cni.getCellSignal(net).getName();
+                    }
+                }
+
+                // convert to spice format
+                if (hierName != null) {
+                    if (flatNetNames) {
+                        if (hierName.indexOf(".x") > 0) {
+                            hierName = "x"+hierName;
+                        }
+                        // remove x in front of net name
+                        int i = hierName.lastIndexOf(".x");
+                        if (i > 0)
+                            hierName = hierName.substring(0, i+1) + hierName.substring(i+2);
+                        else {
+                            i = hierName.lastIndexOf("."+paramName);
+                            if (i > 0) {
+                                hierName = hierName.substring(0, i) + "_" + hierName.substring(i+1);
+                            }
+                        }
+                    }
+                    infstr.append(hierName);
+                    found = true;
+                }
+                if (!found) {
+                    System.out.println("Unable to lookup key $("+paramName+") in cell "+context.getInstPath("."));
+                }
             }
         }
         return infstr;
+    }
+
+    private Network findNet(Netlist netlist, String netName) {
+        for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
+            Network net = it.next();
+            if (net.hasName(netName)) {
+                return net;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Check if the global cell signal is exported as with a global name,
+     * rather than just being a global tied to some other export.
+     * I.e., returns true if global "gnd" has been exported using name "gnd".
+     * @param cs
+     * @return
+     */
+    private boolean isGlobalExport(CellSignal cs) {
+        if (!cs.isGlobal() || !cs.isExported()) return false;
+        for (Iterator<Export> it = cs.getNetwork().getExports(); it.hasNext(); ) {
+            Export ex = it.next();
+            for (int i=0; i<ex.getNameKey().busWidth(); i++) {
+                String name = ex.getNameKey().subname(i).canonicString();
+                if (cs.getName().equals(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -2365,6 +2539,12 @@ public class Spice extends Topology
 	 */
 	protected int maxNameLength() { if (useCDL) return CDLMAXLENSUBCKTNAME; return SPICEMAXLENSUBCKTNAME; }
 
+    protected boolean enumerateLayoutView(Cell cell) {
+        Variable var = cell.getVar(SPICE_ENUMERATE_LAYOUT);
+        if (var != null) return true;
+        return false;
+    }
+
 	/******************** DECK GENERATION SUPPORT ********************/
 
 	/**
@@ -2797,12 +2977,11 @@ public class Spice extends Topology
 				if (chr == ' ' && !insideQuotes) lastSpace = pt;
 				if (chr == '\'') insideQuotes = !insideQuotes;
 				count++;
-				if (count >= 78 && !insideQuotes)
+				if (count >= spiceMaxLenLine && !insideQuotes && lastSpace > -1)
 				{
-					if (lastSpace < 0) lastSpace = pt;
 					String partial = str.substring(lineStart, lastSpace+1);
 					printWriter.print(partial + "\n" + contChar);
-					count = 1;
+					count = count - partial.length();
 					lineStart = lastSpace+1;
 					lastSpace = -1;
 				}
@@ -2815,4 +2994,60 @@ public class Spice extends Topology
 		}
 	}
 
+    public static class FlatSpiceCodeVisitor extends HierarchyEnumerator.Visitor {
+
+        private PrintWriter printWriter;
+        private PrintWriter spicePrintWriter;
+        private String filePath;
+        Spice spice; // just used for file writing and formatting
+        SegmentedNets segNets;
+
+        public FlatSpiceCodeVisitor(String filePath, Spice spice) {
+            this.spice = spice;
+            this.spicePrintWriter = spice.printWriter;
+            this.filePath = filePath;
+            spice.spiceMaxLenLine = 1000;
+            segNets = null;
+        }
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+            return true;
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info) {
+            Cell cell = info.getCell();
+            for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
+                Variable cardVar = ni.getVar(SPICE_CODE_FLAT_KEY);
+                if (cardVar != null) {
+                    if (printWriter == null) {
+                        try {
+                            printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
+                        } catch (IOException e) {
+                            System.out.println("Unable to open "+filePath+" for write.");
+                            return;
+                        }
+                        spice.printWriter = printWriter;
+                        segNets = new SegmentedNets(null, false, null, false);
+                    }
+                    spice.emitEmbeddedSpice(cardVar, info.getContext(), segNets, info, true);
+                }
+			}
+        }
+
+        public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
+            return true;
+        }
+
+        public void close() {
+            if (printWriter != null) {
+                System.out.println(filePath+" written");
+                spice.printWriter = spicePrintWriter;
+                printWriter.close();
+                spice.spiceMaxLenLine = SPICEMAXLENLINE;
+            }
+        }
+    }
 }
