@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04t: ********************************* 
 
+BUG: (6/21/06, GVG) Attribute text not visible with black background (bug #1161)
+FIX: Fixed side effect while fixing 1150.
+
 IMP: (6/21/06, RK) New method for Jonathan's cross probing: NetEquivlence.findEquivalentNetShortingResistors(). Handles Networks connected to ports. Shorts Resistors. Untested.
 
 BUG: (6/21/06, GVG) Working directory confused by Sun menu (Bug #1157)

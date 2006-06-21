@@ -33,7 +33,6 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.ERectangle;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -56,7 +55,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
@@ -69,9 +67,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 /**
  *
@@ -995,13 +991,8 @@ public class VectorCache {
 		Point2D [] points = poly.getPoints();
 		Layer layer = poly.getLayer();
 		EGraphics graphics = null;
-		if (layer == null)
-        {
-            layer = Generic.tech.glyphLay;
-//            if (Job.getDebug())
-//                System.out.println("VectorCache with null layer. Assigning Glyph layer");
-        }
-        graphics = layer.getGraphics();
+		if (layer != null)
+			graphics = layer.getGraphics();
 		Poly.Type style = poly.getStyle();
         ArrayList<VectorBase> filledShapes = hideOnLowLevel ? vc.topOnlyShapes : vc.filledShapes;
         ArrayList<VectorBase> shapes = hideOnLowLevel ? vc.topOnlyShapes : vc.shapes;

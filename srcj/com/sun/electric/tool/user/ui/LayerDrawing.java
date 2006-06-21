@@ -41,6 +41,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -1574,7 +1575,10 @@ class LayerDrawing
             dimmed = layer.isDimmed();
         }
 
-        if (graphics == null) return null;
+        if (graphics == null)
+        {
+            graphics = Generic.tech.glyphLay.getGraphics();
+        }
 
 		int [] layerBitMap = null;
 		int layerNum = graphics.getTransparentLayer() - 1;
