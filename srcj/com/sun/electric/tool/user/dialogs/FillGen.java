@@ -271,6 +271,7 @@ public class FillGen extends EDialog {
         masterLabel = new javax.swing.JLabel();
         gapLabel = new javax.swing.JLabel();
         gapTextField = new javax.swing.JTextField();
+        skillButton = new javax.swing.JRadioButton();
         tilingPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jCheckBox1 = new javax.swing.JCheckBox();
@@ -521,6 +522,15 @@ public class FillGen extends EDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 2, 4, 4);
         cellPanel.add(gapTextField, gridBagConstraints);
+
+        skillButton.setText("Only Skill");
+        skillButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        skillButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        cellPanel.add(skillButton, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
@@ -776,7 +786,7 @@ public class FillGen extends EDialog {
                 FillGenerator.PERIMETER, firstMetal, lastMetal, width, height,
                 even, cells, hierarchy, 0.1, drcSpacingRule,
                 fillTypeComboBox.getSelectedItem() == FillGeneratorTool.FillCellMode.BINARY, 
-                useMaster, aroundButton.isSelected(), TextUtils.atof(gapTextField.getText()));
+                useMaster, aroundButton.isSelected(), TextUtils.atof(gapTextField.getText()), skillButton.isSelected());
 
         if (!templateButton.isSelected())
         {
@@ -885,6 +895,7 @@ public class FillGen extends EDialog {
     private javax.swing.JPanel metalPanel;
     private javax.swing.JButton okButton;
     private javax.swing.JPanel otherMasterPanel;
+    private javax.swing.JRadioButton skillButton;
     private javax.swing.JRadioButton templateButton;
     private javax.swing.JPanel templatePanel;
     private javax.swing.JPanel tilingPanel;

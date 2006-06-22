@@ -2,10 +2,7 @@ package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
@@ -14,6 +11,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.extract.LayerCoverageTool;
@@ -342,6 +340,8 @@ public class FillGeneratorTool extends Tool {
             if (!doItNow)
                 fieldVariableChanged("log");
 
+            fillGenConfig.job = this; // to abort job.
+
             boolean result = (topCell == null) ?
                     doTemplateFill(fillGen) :
                     doFillOnCell(fillGen);
@@ -354,6 +354,67 @@ public class FillGeneratorTool extends Tool {
                     fillGenConfig.cellTiles, false);
             fillGen.makeGallery();
             return true;
+        }
+
+        private class Visitor extends HierarchyEnumerator.Visitor
+        {
+            private Area exclusionArea = new Area();
+            private int level = -1;
+
+            public boolean enterCell(HierarchyEnumerator.CellInfo info)
+            {
+                if (level > 2) return false; // only the first 2 levels
+                level++;
+                return true;
+            }
+
+            public void exitCell(HierarchyEnumerator.CellInfo info)
+            {
+                level--;
+            }
+
+            public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+            {
+                NodeProto np = no.getProto();
+                if (!(np == Generic.tech.afgNode || fillGenConfig.onlyAround && no.isCellInstance()))
+                    return false; // nothing to do
+                if (level > 1) // picking only in this level
+                    return false;
+                if (level == 1)
+                {
+                    AffineTransform extra = info.getTransformToRoot();
+                    NodeInst ni = (NodeInst)no;
+                    Rectangle2D rect = (Rectangle2D)ni.getBounds().clone();
+                    DBMath.transformRect(rect, extra);
+                    exclusionArea.add(new Area(rect));
+                }
+                return true;
+            }
+        }
+
+        private void addExclusionAreas(Cell cell, Area exclusionArea, AffineTransform toTop, int level)
+        {
+            if (level > 1) return; // stop here
+
+            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+            {
+                NodeInst ni = it.next();
+                NodeProto np = ni.getProto();
+                // Creates fill only arounds the top cells
+                if (np == Generic.tech.afgNode || fillGenConfig.onlyAround && ni.isCellInstance())
+                {
+                    AffineTransform extra = ni.transformOut(toTop);
+                    if (level == 0)
+                        addExclusionAreas((Cell)ni.getProto(), exclusionArea, extra, level+1);
+                    else
+                    {
+                        Rectangle2D rect = (Rectangle2D)ni.getBounds().clone();
+                        DBMath.transformRect(rect, extra);
+                        exclusionArea.add(new Area(rect));
+//                        exclusionArea.add(new Area(ni.getBounds()));
+                    }
+                }
+            }
         }
 
 		public boolean doFillOnCell(FillGenerator fillGen)
@@ -391,18 +452,21 @@ public class FillGeneratorTool extends Tool {
             List<Rectangle2D> topBoxList = new ArrayList<Rectangle2D>();
             topBoxList.add(topCell.getBounds()); // topBox might change if predefined pitch is included in master cell
 
-            Area exclusionArea = new Area();
-            for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
-            {
-                NodeInst ni = it.next();
-                NodeProto np = ni.getProto();
-                // Creates fill only arounds the top cells
-                if (np == Generic.tech.afgNode || fillGenConfig.onlyAround && ni.isCellInstance())
-                    exclusionArea.add(new Area(ni.getBounds()));
-            }
+//            Area exclusionArea = new Area();
+            Visitor areaVisitor = new Visitor();
+            HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, areaVisitor);
+//            addExclusionAreas(topCell, exclusionArea, new AffineTransform(), 0);
+//            for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
+//            {
+//                NodeInst ni = it.next();
+//                NodeProto np = ni.getProto();
+//                // Creates fill only arounds the top cells
+//                if (np == Generic.tech.afgNode || fillGenConfig.onlyAround && ni.isCellInstance())
+//                    exclusionArea.add(new Area(ni.getBounds()));
+//            }
 
             Cell fillCell = (fillGenConfig.hierarchy) ?
-                    fillGen.treeMakeFillCell(fillGenConfig, topCell, masters, topBoxList, exclusionArea) :
+                    fillGen.treeMakeFillCell(fillGenConfig, topCell, masters, topBoxList, areaVisitor.exclusionArea) :
                     fillGen.standardMakeFillCell(fillGenConfig.firstLayer, fillGenConfig.lastLayer, fillGenConfig.perim,
                             fillGenConfig.cellTiles, true);
 
@@ -461,6 +525,8 @@ public class FillGeneratorTool extends Tool {
             List<PolyBase> polyList = new ArrayList<PolyBase>();
             List<Geometric> gList = new ArrayList<Geometric>();
 
+            if (fillGenConfig.onlySkill) return true;
+            
             // First attempt if ports are below a power/ground bars
             for (FillGenerator.PortConfig p : portList)
             {
@@ -501,7 +567,7 @@ public class FillGeneratorTool extends Tool {
                 if (!fillGenConfig.onlyAround)
                 {
                     added = addAllPossibleContacts(container, p, rect, trans, fillTransIn, fillTransOutToCon,
-                            conTransOut, exclusionArea);
+                            conTransOut, areaVisitor.exclusionArea);
 
                     if (added != null)
                     {
@@ -1136,7 +1202,9 @@ public class FillGeneratorTool extends Tool {
                 if (set == null || set.size() == 0) // information from closestHandling
                     set = closestHandler.getObjects(layer, false, true);
 
-                assert (set != null && set.size() > 0);
+                if (set!=null && set.size() > 0)
+                    System.out.println("Assert error");
+//                assert (set != null && set.size() > 0);
 
                 // Get connecting metal contact (PrimitiveNode) starting from techPin up to the power/vdd bar found
                 List<Layer.Function> fillLayers = new ArrayList<Layer.Function>();

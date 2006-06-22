@@ -1384,6 +1384,9 @@ class TiledCell {
         if (DBMath.hasRemainder(w, masterW) || DBMath.hasRemainder(h, masterH))
             System.out.println("not good refinement");
 
+        if (config.job != null && config.job.checkAbort())
+            return false;
+
         int cutX = (int)Math.ceil(refineOnX);
         int cutY = (int)Math.ceil(refineOnY);
         assert(cutX > 0 && cutY > 0);
@@ -1484,6 +1487,10 @@ class TiledCell {
                     stdCell = false;
             }
         } else {
+
+            if (config.job != null && config.job.checkAbort())
+                return false;
+
             // nothing refined, qTree leave
             HashSet<NodeInst> nodesToRemove = new HashSet<NodeInst>();
             HashSet<ArcInst> arcsToRemove = new HashSet<ArcInst>();
@@ -1527,6 +1534,7 @@ class TiledCell {
 
                 if (isExcluded)
                 {
+
                     theMasterCell = empty;  // the best is the empty cell as the area is excluded
                     excluded = true;
                     break;
@@ -1628,6 +1636,11 @@ class TiledCell {
                 newElems.add(theMasterCell);
             return stdCell;
         }
+
+
+
+        if (config.job != null && config.job.checkAbort())
+            return false;
 
         Cell tiledCell = null;
         String tileName = null;
@@ -1988,13 +2001,9 @@ public class FillGenerator {
                 if (ni.isCellInstance())
                 {
                     // instance found: look inside it for offending geometry
-                    AffineTransform rTransI = ni.rotateIn();
-                    AffineTransform tTransI = ni.translateIn();
                     AffineTransform extra = ni.transformIn();
-                    rTransI.preConcatenate(tTransI);
-                    assert(extra.equals(rTransI));
                     subBound.setRect(nodeBounds);
-                    DBMath.transformRect(subBound, rTransI);
+                    DBMath.transformRect(subBound, extra);
 
                     if (searchCollision((Cell)ni.getProto(), subBound, theseLayers, p, ignores, master, theNet))
                         return true;
@@ -2471,11 +2480,13 @@ public class FillGenerator {
         boolean useMaster;
         boolean onlyAround;
         double gap; // allowed overlap between given cells and masters. Typical value is 1.5
+        boolean onlySkill; // don't attempt to connect wires... -> very slow
+        Job job;
 
         public FillGeneratorConfig(Technology tech, String lib, ExportConfig perim, int first, int last,
                                    double w, double h, boolean even,
                                    int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
-                                   boolean binary, boolean useMaster, boolean onlyAround, double gap)
+                                   boolean binary, boolean useMaster, boolean onlyAround, double gap, boolean onlySkill)
         {
             this.cellTiles = cellTiles;
             this.hierarchy = hierarchy;
@@ -2505,6 +2516,7 @@ public class FillGenerator {
             this.lastLayer = last;
             this.onlyAround = onlyAround;
             this.gap = gap; // only valid if onlyAround=true
+            this.onlySkill = onlySkill;
         }
 
         public void setTargetValues(double targetW, double targetH, double sx, double sy) 
@@ -2516,8 +2528,8 @@ public class FillGenerator {
         }
 
         public ReserveConfig reserveSpaceOnLayer(Technology tech, int layer,
-                                        double vddReserved, Units vddUnits,
-                                        double gndReserved, Units gndUnits)
+                                                 double vddReserved, Units vddUnits,
+                                                 double gndReserved, Units gndUnits)
         {
             int numMetals = tech.getNumMetals();
             LayoutLib.error(layer<2 || layer>numMetals,
