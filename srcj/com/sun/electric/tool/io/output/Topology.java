@@ -431,7 +431,7 @@ public abstract class Topology extends Output
 
 		// create a map of all nets in the cell
 		cni.cellSignals = new HashMap<Network,CellSignal>();
-		int nullNameCount = 1;
+//		int nullNameCount = 1;
 		for(Iterator<Network> it = cni.netList.getNetworks(); it.hasNext(); )
 		{
 			Network net = it.next();
@@ -474,10 +474,10 @@ public abstract class Topology extends Output
 //				}
 			}
 
-            if (cs.getName().equals("gnd") && !cs.isGlobal()) {
-                System.out.println("cell "+cell.describe(false)+" has a global name "+cs.getName()+" but is not a global");
-                continue;
-            }
+//            if (cs.getName().equals("gnd") && !cs.isGlobal()) {
+//                System.out.println("cell "+cell.describe(false)+" has a global name "+cs.getName()+" but is not a global");
+//                continue;
+//            }
 			// save it in the map of signals
  			cni.cellSignals.put(net, cs);
 		}
