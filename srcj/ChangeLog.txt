@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04t: ********************************* 
 
+IMP: (6/21/06, GVG) BJT dummy layer for PNP transistors and LVS.
+
 BUG: (6/21/06, GVG) No multi-cuts in native active contacts
 FIX: Via layer MUST be last one defined in the primitive. This is not good!
 Split of NT on native transistors to correct port assignments.
