@@ -518,7 +518,7 @@ public class FileMenu {
 
         public boolean doIt() throws JobException {
             // try to open initial libraries
-            boolean success = false;
+//            boolean success = false;
             for (URL file : fileURLs) {
                 FileType defType = null;
                 String fileName = file.getFile();
@@ -779,7 +779,7 @@ public class FileMenu {
         }
 
         // save the library
-        new SaveLibrary(lib, fileName, type, compatibleWith6, false);
+        new SaveLibrary(lib, fileName, type, compatibleWith6);
         return true;
     }
 
@@ -794,32 +794,32 @@ public class FileMenu {
         }
         Output.writePanicSnapshot(EDatabase.clientDatabase().backup(), oldJelibDir, true);
     }
-    
+
+    public static boolean saveLibraryNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)
+    {
+        return SaveLibrary.performTaskNoJob(newName, lib, type, compatibleWith6);
+    }
+
     /**
      * Class to save a library in a new thread.
      * For a non-interactive script, use SaveLibrary job = new SaveLibrary(filename).
      * Saves as an elib.
      */
-    public static class SaveLibrary extends Job
+    private static class SaveLibrary extends Job
     {
         private Library lib;
         private String newName;
         private FileType type;
         private boolean compatibleWith6;
 
-        public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, boolean batchJob)
+        public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6)
         {
             super("Write "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER); // CHANGE because of possible renaming
             this.lib = lib;
             this.newName = newName;
             this.type = type;
             this.compatibleWith6 = compatibleWith6;
-            if (!batchJob)
-                startJob();
-            else
-            {
-                try { doIt(); } catch (Exception e) { e.printStackTrace(); }
-            }
+            startJob();
         }
 
         public boolean doIt() throws JobException
@@ -827,7 +827,7 @@ public class FileMenu {
             boolean success = false;
             try
             {
-            	success = performTask();
+            	success = performTaskNoJob(newName, lib, type, compatibleWith6);
             } catch (Exception e)
             {
                 e.printStackTrace(System.out);
@@ -839,7 +839,8 @@ public class FileMenu {
             return success;
         }
 
-        public boolean performTask() {
+        protected static boolean performTaskNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)
+        {
             // rename the library if requested
             if (newName != null)
             {

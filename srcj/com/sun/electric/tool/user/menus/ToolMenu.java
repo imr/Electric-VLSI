@@ -529,7 +529,7 @@ public class ToolMenu {
 		// mnemonic keys available: AB DEFGHIJKLM OPQRSTUVWXYZ
             new EMenu("Silicon Co_mpiler",
 		        new EMenuItem("_Convert Current Cell to Layout") { public void run() {
-                    doSiliconCompilation(WindowFrame.needCurCell()); }},
+                    doSiliconCompilation(WindowFrame.needCurCell(), false); }},
                 SEPARATOR,
 		        new EMenuItem("Compile VHDL to _Netlist View") { public void run() {
                     compileVHDL(); }}),
@@ -1522,8 +1522,9 @@ public class ToolMenu {
 	 * Generates Electric layout;
 	 * Displays the resulting layout.
 	 * @param cell the cell to compile.
+     * @param doItNow if the job must executed now
 	 */
-	public static void doSiliconCompilation(Cell cell)
+	public static void doSiliconCompilation(Cell cell, boolean doItNow)
 	{
 		if (cell == null) return;
 		int activities = PLACE_AND_ROUTE | SHOW_CELL;
@@ -1548,10 +1549,15 @@ public class ToolMenu {
 		}
 
 		if (Library.findLibrary(SilComp.SCLIBNAME) == null)
-			new ReadSCLibraryJob();
+        {
+            if (doItNow)
+                ReadSCLibraryJob.performTaskNoJob();
+            else
+			    new ReadSCLibraryJob();
+        }
 
 		// do the silicon compilation task
-		new DoSilCompActivity(cell, activities);
+        doSilCompActivityNoJob(cell, activities, doItNow);
 	}
 
 	/**
@@ -1599,16 +1605,40 @@ public class ToolMenu {
 			startJob();
 		}
 
-		public boolean doIt() throws JobException
-		{
+        public static boolean performTaskNoJob()
+        {
 			// read standard cell library
 			System.out.println("Reading Standard Cell Library '" + SilComp.SCLIBNAME + "'");
 			URL fileURL = LibFile.getLibFile(SilComp.SCLIBNAME + ".jelib");
 			LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, true);
-//	        Undo.noUndoAllowed();
-			return true;
+            return true;
+        }
+
+		public boolean doIt() throws JobException
+		{
+            return performTaskNoJob();
 		}
 	}
+
+    public static boolean doSilCompActivityNoJob(Cell cell, int activities, boolean doItNow)
+    {
+        if (doItNow)
+        {
+            List<Cell> textCellsToRedraw = new ArrayList<Cell>();
+            try
+            {
+                DoSilCompActivity.performTaskNoJob(cell, textCellsToRedraw, activities);
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                return false;
+            }
+        }
+        else
+		    new DoSilCompActivity(cell, activities);
+        return true;
+    }
 
 	/**
 	 * Class to do the next silicon-compilation activity in a Job.
@@ -1627,12 +1657,10 @@ public class ToolMenu {
 			startJob();
 		}
 
-		public boolean doIt() throws JobException
-		{
+        public static boolean performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities) throws JobException
+        {
             Library destLib = cell.getLibrary();
-			fieldVariableChanged("cell");
 			textCellsToRedraw = new ArrayList<Cell>();
-			fieldVariableChanged("textCellsToRedraw");
 
 			if ((activities&CONVERT_TO_VHDL) != 0)
 			{
@@ -1721,6 +1749,14 @@ public class ToolMenu {
 				System.out.println("Created " + cell);
 			}
 		    return true;
+        }
+
+		public boolean doIt() throws JobException
+		{
+			fieldVariableChanged("cell");
+			textCellsToRedraw = new ArrayList<Cell>();
+			fieldVariableChanged("textCellsToRedraw");
+            return performTaskNoJob(cell, textCellsToRedraw, activities);
 		}
 
         public void terminateOK()

@@ -115,7 +115,8 @@ public class ROMGenerator
 	public static void generateROM(Library destLib, String romFile)
 	{
 		// build the ROM (in a separate Job thread)
-		new DoROM(destLib, romFile);
+//		new DoROM(destLib, romFile);
+        Cell topLevel = makeAROM(destLib, romFile, "ROMCELL");
 	}
 
 	/**
