@@ -6,10 +6,10 @@ NOTE: Please place changes under the version that will be released next.
 
 BUG: (6/23/06, SMR) Using shift-right click to zoom out fails when down-in-place (Bug #1164).
 FIX: In ClickZoomWireListener.mouseReleased(), transform coordinates when zooming out.
-s
+
 BUG: (6/22/06, GVG) DRC exclusion layer not working (Bug#1166)
 FIX: Exclusion area was expecting that both geometries were completely inside the area.
-Changed to only 1.
+     Changed to only 1.
 
 ************************* Version 8.04t: *********************************
 
@@ -27,7 +27,8 @@ FIX: Detecting when transistor has null size
 BUG: (6/21/06, GVG) Attribute text not visible with black background (bug #1161)
 FIX: Fixed side effect while fixing 1150.
 
-IMP: (6/21/06, RK) New method for Jonathan's cross probing: NetEquivlence.findEquivalentNetShortingResistors(). Handles Networks connected to ports. Shorts Resistors. Untested.
+IMP: (6/21/06, RK) New method for Jonathan's cross probing: NetEquivlence.findEquivalentNetShortingResistors().
+     Handles Networks connected to ports. Shorts Resistors. Untested.
 
 BUG: (6/21/06, GVG) Working directory confused by Sun menu (Bug #1157)
 FIX: Assura files are stored in path relative to the database file type group.
@@ -64,14 +65,14 @@ IMP: (6/19/06, SMR) Waveform window shows large numbers with engineering notatio
      (Bug #1140).
 
 IMP: (6/18/06, GVG) Generation regression got TemplateFill test and CMOSPLA test
-was moved to plugin package. Ability to run SaveLibrary in batch mode.
+     was moved to plugin package. Ability to run SaveLibrary in batch mode.
 
 BUG: (6/17/06, GVG) Missed drc errors on poly resistor with W=4 (Bug #1146)
 FIX: Nothing to fix indeed. The poly can't be smaller that w=4. Added the rule in
-the primitive
+     the primitive
 
 BUG: (6/17/06, GVG) If only primitive min size is violated, it should not saved
-the DRC dates.
+     the DRC dates.
 
 BUG: (6/17/06, GVG) NT_N clearance to OD not checked correctly (Bug# 1149)
 FIX: NT_N.C.1 added  into TSMC180.xml
@@ -105,16 +106,16 @@ FIX: Routing.endBatch() now ensures that the snapshot was not from the router.
 BUG: (6/14/06, RK) I repaired the gate layout generator regression (Bugzilla# 1137)
 
 IMP/MAN: (6/14/06, GVG) (a) Added extra flag in GDS import user preferences to have option
-to simplify via contacts (for BIC). Only available in debug mode.
-(b) AFG attempts to detect elements overlapping that belong to same nets based on
-characteristics.
-(c) Able to run flat job in batch mode.
+     to simplify via contacts (for BIC). Only available in debug mode.
+     (b) AFG attempts to detect elements overlapping that belong to same nets based on
+     characteristics.
+     (c) Able to run flat job in batch mode.
 
 IMP/MAN: (6/14/06, SMR) Can now drag cells or cell groups from the explorer
      tree to another library in the tree, which does a cross-library copy (Bug #630).
 
 IMP/MAN: (6/14/06, GVG) Changes in GeneralTab/IO/FileTypeGroup dialog to accomodate
-resetting of default values. These changes cover Bugzilla #397 and #1021.
+     resetting of default values. These changes cover Bugzilla #397 and #1021.
 
 IMP/MAN: (6/13/06, GVG) DRC and AFG exclusion layers available in LayerTab
 
@@ -132,7 +133,7 @@ FIX: In Clipboard.java, the "down in place" transform was not being used properl
 IMP: (6/13/06, GVG) Ability to abort Mimic Stitch job.
 
 IMP/MAN: (6/13/06, GVG) Changes related to groups associated to different file types to
-be able to store different paths depending on tools/features.
+     be able to store different paths depending on tools/features.
 
 IMP: (6/12/06, RK) Add nand2LTen and nand2HTen to MOCMOS gate generator. (Bugzilla# 1119)
 
@@ -157,19 +158,21 @@ FIX: In Clipboard.java, code added to adjust orientation of paste, copy, and
 
 ************************* Version 8.04q: *********************************
 
-IMP: (6/12/06, RK) Speed up NCC "hierarchical with size checking" by taking advantage of restricted schematics (Bugzilla# 1116)
+IMP: (6/12/06, RK) Speed up NCC "hierarchical with size checking" by taking advantage
+     of restricted schematics (Bugzilla# 1116)
 
-IMP: (6/12/06, RK) Restrict schematics so it's easier to tell if all instances of a schematic cell have the same transistor sizes (Bugzilla# 1115)
+IMP: (6/12/06, RK) Restrict schematics so it's easier to tell if all instances of a
+     schematic cell have the same transistor sizes (Bugzilla# 1115)
 
 BUG: (6/12/06, GVG) Drc doesn't display error properly (Bug #1114). This is the case of two overlapping
-vias coming from two different cells.
+     vias coming from two different cells.
 FIX: In case of overlapping vias, the errorLog should only contain the rectangle that the 2 vias form.
 
 BUG: (6/9/06, GVG) Inconsistent scale for angles in GetNodeInfo v/s GetMultiInfo (Bug#1109)
 FIX: Values in GetInfoMulti.java were inconsistently scaled to integers.
 
 BUG: (6/9/06, GVG) Bogus min area drc errors reported on dp_stageN{lay} (Bug #1111).
-Problem: the abort signal given by user was not considered when leaving the cell using the enumerator.
+     Problem: the abort signal given by user was not considered when leaving the cell using the enumerator.
 FIX: Extra condition added.
 
 BUG: (6/8/06, DN) Display mode isn't chang immediately.
@@ -179,8 +182,8 @@ BUG: (6/8/06, DN) Export->ReExport* broken (Bug #1107).
 FIX: In PortInst.hasConnections().
 
 IMP/MAN: (6/8/06, GVG) Electric needs a way to cycle through windows (bug #954)
-Final solution in CVS. Cycle through all WindowFrame windows + messages window
-added as dynamic message.
+     Final solution in CVS. Cycle through all WindowFrame windows + messages window
+     added as dynamic message.
 
 BUG: (6/8/06, SMR) Too much selected after "Up Hierarchy" (Bug #1105).
 FIX: In EditWindow.upHierarchy(), set selection only if no previous cell
@@ -196,7 +199,7 @@ FIX: Wrong boundary condition for end point events.
 
 BUG/MAN: (6/8/06, GVG) exception when refining object selection in layout (Bug #1106)
 FIX: detecting if currentChangeTypes array is null. Extra: typesafe enum added
-and rotation information is shown.
+     and rotation information is shown.
 
 BUG: (6/7/06, SMR) Initial splash window obscures everything (Bug #822).
 FIX: Splash window no longer insists on being topmost.
@@ -251,14 +254,14 @@ IMP: (6/4/06, GVG) Configurable grid alignment buttons (full,half,quarter) (Bug 
 
 BUG: (6/3/06, GVG) Duplicating {lay} view also duplicates {ic} (Bug #1090)
 FIX: If not the entire group is copied, only Schematics would trigger the copy of its icons.
-Problem introduced while implementing Bug #894.
+     Problem introduced while implementing Bug #894.
 
 IMP: (6/2/06, SMR) "Back" button now works with text windows (Bug #324).
 
 ************************* Version 8.04p: *********************************
 
 BUG: (6/2/06, GVG) Still exception in Analysis.getSweep(index) due to how signals
-without sweeps are handled. This was introduced while fixing Bug #1077.
+     without sweeps are handled. This was introduced while fixing Bug #1077.
 FIX: Detect if sweeps list is null.
 
 BUG: (6/2/06, SMR) Excluding or including all sweeps in an analysis affects
@@ -298,9 +301,9 @@ FIX: In ServerJobManager write latest snapshot on connection.
      In ClientJobManager show initial snapshot immediately.
 
 BUG: (5/30/06, GVG) Include/Exclude options not working when more than 1 signal included a sweep (Bug #1077)
-FIX: The code to retrieve the correct sweep of a given AnalogSignal was incorrect. Extra code and refactorization
-to guarantee the correct index is retrieved from the Explorer. Disable direct access to Analysis.sweeps and WaveformWindow.sweepSignals
-lists.
+FIX: The code to retrieve the correct sweep of a given AnalogSignal was incorrect.
+     Extra code and refactorization to guarantee the correct index is retrieved from the Explorer.
+     Disable direct access to Analysis.sweeps and WaveformWindow.sweepSignals lists.
 
 IMP: (5/30/06, SMR) Added drop shadow to highlighted text (Bug #747).
 
@@ -365,7 +368,7 @@ BUG: (5/26/06, SMR) "Change" of arcs that includes "nodes with arcs" fails (Bug 
 FIX: In Change.replaceAllArcs(), corrected head/tail reversal, maintain node names.
 
 IMP: (5/25/06, GVG) Cursor in Name field in Attributes dialog can be moved to the middle of the word.
-Done by not calling showSelectedAttribute(varKey).
+     Done by not calling showSelectedAttribute(varKey).
 
 BUG: (5/25/06, GVG) [Bug 1065]  New: NullPointerException on toggle head and tail (Bug #1065)
 FIX: Indeed, the exception is in Toggle Port Negation. Exception was due to Highlight2 not serializable.
@@ -378,10 +381,11 @@ IMP/MAN: (5/25/06, SMR) "Layers and Patterns" preferences has "Factory Reset" (B
 IMP: (5/25/06, RK) NCC: Remove  print statements I put in for debugging Bugzilla# 969.
 
 IMP/MAN: (5/25/06, GVG) Workaround for KeyBindings in EToolBarRadioButton for MacOSX (Bug #1056).
-Problem: JRadioButtonMenuItem doesn't handle accelerators well. In case of Command-S and S in two different
-functions, JRadioButtonMenuItem assumes are identical and a conflict is generated. Temporary workaround:
-Switch from JRadioButtonMenuItem to JMenuItem for EToolBarRadioButton on MacOSX. Thus the accelerators will
-be displayed and user can use toolbar icons to know what is selected.
+     Problem: JRadioButtonMenuItem doesn't handle accelerators well.
+     In case of Command-S and S in two different functions, JRadioButtonMenuItem assumes
+     are identical and a conflict is generated. Temporary workaround:
+     Switch from JRadioButtonMenuItem to JMenuItem for EToolBarRadioButton on MacOSX.
+     Thus the accelerators will be displayed and user can use toolbar icons to know what is selected.
 
 IMP: (5/24/06, RK) Improvements to NCC GUI user manual
 
@@ -414,7 +418,7 @@ BUG: (5/23/06, DN) Null Pointer Exception in mimic unstitch (Bug #1047).
 FIX: Check if end of deleted arc killed too.
 
 BUG: (06/21/06, GVG) No calling of TechPref.sideEffect while reading cacheObj values from XML (Bug #1043).
-Noticed by loading XMl for TSMC.
+     Noticed by loading XMl for TSMC.
 FIX: cacheObj must be changed by calling Pref.setDouble/setInt/setString functions.
 
 ************************* Version 8.04m-8.04n: *********************************
@@ -466,9 +470,9 @@ BUG: (5/18/06, SMR) Left-aligned exports select badly on rotated nodes (Bug #964
 FIX: In Highlighter.findAllInArea(), must transform before calling setExactTextBounds.
 
 IMP/MAN: (5/18/06, DN) JELIB/DELIB format has cellGroupName field into "C" line.
-   Name of cell group is base name of a main schematics if any,
-   otherwise shortest base name. On reading both legacy "G" lines and this new field
-   are treated to gather cells into groups.
+     Name of cell group is base name of a main schematics if any,
+     otherwise shortest base name. On reading both legacy "G" lines and this new field
+     are treated to gather cells into groups.
 
 BUG: (5/18/06, DN) Client/server mode doesn't work.
 FIX: Repair ClientJobManager.
@@ -589,13 +593,13 @@ IMP: (5/5/06, RK) NCC regression. Move contents of bean shell scripts into Java.
 BUG: (5/5/06, DN) Sometimes VectorCache is not updated.
 FIX: In VectorCache.forceRedraw and VectrorCellGroup constuctor.
 
-IMP: (5/5/06, GVG) Working with Netbeans profiler: Many finished() functions added. In
-EMenuBar.Instance, LayerTab.finished(), Stimuli, HSpiceAnalogSignal, Analysis, AnalogSignal, TimedSignal, Signal
-gv = null in Poly
+IMP: (5/5/06, GVG) Working with Netbeans profiler: Many finished() functions added.
+     In EMenuBar.Instance, LayerTab.finished(), Stimuli, HSpiceAnalogSignal,
+     Analysis, AnalogSignal, TimedSignal, Signal gv = null in Poly
 
 BUG: (5/4/06, DN) Deserialization of equal TestDescriptors returned different objects.
 FIX: Implement TextDescriptor.readResolve to resolve unique TestDescriptor.
-      Make TextDescriptor.Code an enumeration.
+     Make TextDescriptor.Code an enumeration.
 
 BUG: (5/4/06, GVG) Problems with ModifyNodeProperties job (no Bugzilla)
 FIX: TextDescriptor.Code serializable
@@ -611,8 +615,8 @@ FIX: In AutoStitch.compRoutes.compare(), handle sorting arc wirings.
 IMP/MAN: (5/3/06, GVG) [Bug 961] Ability to refresh simulation data with KeyBinding.
 
 BUG: (5/3/06, GVG) "Easy selection of cell instances" off makes impossible to select primitive nodes with MouseOverHighlighter.
-FIX:  if (!findSpecial && !User.isEasySelectionOfCellInstances()) condition applied only if cell instance is found, not
-longer in phase 0
+FIX: if (!findSpecial && !User.isEasySelectionOfCellInstances()) condition applied only if
+     cell instance is found, not longer in phase 0
 
 BUG: (5/3/06, GVG) "package into cell" throws exception (Bug #960)
 FIX: We can't use Rectangle2D.Double as field in Job. They can't be serializable. Changed to EPoint+double
@@ -626,7 +630,7 @@ BUG: (5/2/06, GVG) Strange clean up of goodDRCdates in Quick.java (no Bugzilla)
 FIX: Not cleaning the Data list if only errors.
 
 IMP: (5/2/06, DN) Vector cache is moved from VectorDrawing to a new class as a preparation of
-    further redisplay changes.
+     further redisplay changes.
 
 BUG: (5/2/06, DN) No marking library in bold after cleaning up NCC annotations (Bug #941)
 FIX: Move clean up of NCC annotations to CheckAndRepairJob.
@@ -639,7 +643,7 @@ FIX: More problems found. In LENetlister2.printResults(). comparing NodeInst now
 
 BUG: (5/1/06, GVG) Zoom when plotting HSPICE has wrong cursor (Bug #948)
 FIX: WindowContext.setCursor() defined so WaveformWindow would be able to set cursor for each individual wavePanels.
-Remove unnecessary calls from wave.Panel to ZoomAndPanListener.setProperCursor(evt)
+     Remove unnecessary calls from wave.Panel to ZoomAndPanListener.setProperCursor(evt)
 
 BUG: (4/28/06, GVG) Snapping problems in Clipboard.copyListToCell after fixing Bug #899.
 FIX: Getting arc port information based on new node locations. This should fix 947 and 899.
@@ -651,12 +655,12 @@ BUG: (4/26/06, GVG) Get info dialog box remains behind other windows (Bug #949).
 FIX: Fixing unexpected change done for bug #878.
 
 IMP: (4/25/06, GVG) Aligning metals based on maximum numbers assigned to reserved tracks and spacing values in 
-template fill generator otherwise tracks get misaligned.
+     template fill generator otherwise tracks get misaligned.
 
 IMP: (4/24/06, GVG) Preparing AFG dialog box for release
 
 IMP: (4/24/06, GVG) Tests plugin refactored. Added DRC tests for primitive nodes using TechEdit
-functions.
+     functions.
 
 ************************* Version 8.04j: *********************************
 
@@ -666,15 +670,15 @@ BUG: (4/20/06, GVG) print info for selected node doesn't work in LE (Bug #944)
 FIX: Mistake when Highlight2 was introduced.
 
 IMP: (4/20/06, GVG) Snapping to grid (Bug #899). Elements in Clipboard.copyListToCell() get snapped to grid.
-Similar to Bug #937 solution.
+     Similar to Bug #937 solution.
 
 IMP: (4/20/06, GVG) Avoing null exception if Manual index can't be found (no Bugzilla)
 
 IMP: (4/20/06, GVG) Making sure exports on icon are on grid (Bug #937)
 
 BUG: (4/20/06, GVG) Inconsistent cell displayed after undo that deletes that cell (Bug #927)
-FIX: Extra code in UserInterfaceMain.firePropertyChange to clean current cells in WindowFrame if they are not
-longer linked.
+FIX: Extra code in UserInterfaceMain.firePropertyChange to clean current cells in WindowFrame
+     if they are not longer linked.
 
 BUG: (4/18/06, GVG) SPICE template for CCVS fixed (reported by Ian).
 
@@ -688,13 +692,13 @@ FIX: Skipping those cases and printing a message
 
 BUG: (4/14/06, GVG) More fixes for Bug #931. The ones introduced on 4/13/06 were not sufficient.
 FIX: It loads initial DRC variables from disk if values are kept on cache. ValidVersion variable not used
-for now. Later I might clean the code.
+     for now. Later I might clean the code.
 
 BUG: (4/14/06,DN) "fieldVariableChanged" doesn't work for Examine Jobs launched from client.
 FIX: Add field to JobsTest.FakeJob. Fix EJob.serializeResult
 
 BUG: (4/14/06, GVG) Exception from Tool->Network->ListGeometryOnNetwork (Bug #939) due to Examine job setting
-fieldVariableChanged variables. This is illegal for jobs running on client.
+     fieldVariableChanged variables. This is illegal for jobs running on client.
 FIX: No fieldVariableChanged set.
 
 IMP: (4/14/06, GVG) Re-arraging debug menus. Consolidated in DevelopersMenus and moved to tests plugin.
@@ -702,12 +706,12 @@ IMP: (4/14/06, GVG) Re-arraging debug menus. Consolidated in DevelopersMenus and
 BUG: (4/14/06, DN) Exception when zooming layout with outlined layers.
 FIX: Add PixelDrawing.drawOutline() with proper clipping.
 
-BUG: (4/13/06, GVG) ErrorLogger writing invalid characters for XML parser such as ">" and "<". This is related to
-Bug #933.
+BUG: (4/13/06, GVG) ErrorLogger writing invalid characters for XML parser such as ">" and "<".
+     This is related to Bug #933.
 FIX: Replacement of special XML characters. Extra changes: avoding crash in reading Assura if cell is null.
 
 IMP: (4/13/06, GVG) Entering text (Bug #935). Implemented by adding a new item under EditMenu -> Text
-so KeyBindings can be used.
+     so KeyBindings can be used.
 
 BUG: (4/13/06, GVG) Fix for DRC redoing on already checked cells (Bug #931)
 FIX: Inconsisten caching of stored dates if you switch from data on memory to data on disk.
@@ -733,7 +737,7 @@ FIX: Menu template classes are implemented. They are llisteners of keyboard even
     No dependency of very first window.
 
 BUG: (4/11/06, GVG) Wiring problems in Schematics (Bug 926). Due to rounding issues,
-startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY() is never true in that particular case.
+     startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY() is never true in that particular case.
 FIX: Condition using DBMath.
 
 ************************* Version 8.04i: *********************************
@@ -742,7 +746,7 @@ BUG: (4/11/06, DN) Batch output is too verbose.
 FIX: In Main.UserInterfaceDummy.setProgressValue compare new procent with previous one.
 
 IMP: (4/11/06, DN) Preparation for new revision of JELIB/DELIB format. It will happen in "8.04l".
-    Versions "i", "j" and "k" can already read new format. They ignore new fields.
+     Versions "i", "j" and "k" can already read new format. They ignore new fields.
 
 BUG: (4/11/06, GVG) Bug in mouseOver highlighter introduced on 4/5/06
 FIX: Highlighter.overHighlighted() returns the unique element overlapping so mouseOver highlighter never grows more than 1.
@@ -753,7 +757,7 @@ FIX: In EditMenu.java use KeyStroke.getKeyStroke(ch, 0) instead of KeyStroke.get
 IMP: (4/9/06, GVG) Cleaning extra Comparators.
 
 IMP: (4/9/06, DN) Menu API changed: Tools make generic menus EMenu which are
-   used to generate actual JMenus for every window. This is preparation to fix bug #890.
+     used to generate actual JMenus for every window. This is preparation to fix bug #890.
 
 IMP: (4/8/06, GVG) More changes in AFG including AFG exclusion regions working.
 
