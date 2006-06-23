@@ -672,6 +672,8 @@ public class ClickZoomWireListener
 	                // zoom out by a factor of two
 	                double scale = wnd.getScale();
 	                wnd.setScale(scale / 2);
+	    	        if (wnd.isInPlaceEdit())
+	    	        	wnd.getInPlaceTransformOut().transform(dbMouse, dbMouse);
                     wnd.setOffset(dbMouse);
 	                wnd.clearDoingAreaDrag();
                     wnd.getSavedFocusBrowser().saveCurrentFocus();
