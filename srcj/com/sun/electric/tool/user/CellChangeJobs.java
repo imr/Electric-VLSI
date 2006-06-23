@@ -1179,7 +1179,7 @@ public class CellChangeJobs
 		if (!allRelatedViewsThisLevel)
 		{
 			// not copying related views: just copy schematic if this was icon
-			if (toView == View.ICON && schematicRelatedView && move)
+			if (toView == View.ICON && schematicRelatedView /*&& move*/ )
 			{
 				// now copy the schematics
 				boolean found = true;

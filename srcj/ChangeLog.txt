@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+BUG: (6/23/06, SMR) When doing cross-library copy and copying subcells,
+     schematics don't copy with the icons (Bug #1130).
+FIX: In CellChangeJobs.copyRecursively(), copy related views independent
+     of "delete after copy".
+
 BUG: (6/23/06, SMR) Using shift-right click to zoom out fails when down-in-place (Bug #1164).
 FIX: In ClickZoomWireListener.mouseReleased(), transform coordinates when zooming out.
 
