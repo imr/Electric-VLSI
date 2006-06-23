@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+BUG: (6/22/06, GVG) DRC exclusion layer not working (Bug#1166)
+FIX: Exclusion area was expecting that both geometries were completely inside the area.
+Changed to only 1.
+
 ************************* Version 8.04t: *********************************
 
 IMP: (6/21/06, GVG) Cleaning Generation regression.

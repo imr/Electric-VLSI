@@ -4216,7 +4216,8 @@ public class Quick
                         geomList.get(i) + ")");
         }
         // At least one DRC exclusion that contains both
-        if (count == polyList.size())
+//        if (count == polyList.size())
+        if (count >= 1) // at one element is inside the DRC exclusion
             return true;
         return false;
     }
