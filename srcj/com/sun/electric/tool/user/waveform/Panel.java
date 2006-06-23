@@ -394,8 +394,11 @@ public class Panel extends JPanel
 		rightHalf.add(this, gbc);
 
 		// put the left and right sides into the window
-		waveWindow.getSignalNamesPanel().add(leftHalf);
-		waveWindow.getSignalTracesPanel().add(rightHalf);
+		if (!WaveformWindow.USETABLES)
+		{
+			waveWindow.getSignalNamesPanel().add(leftHalf);
+			waveWindow.getSignalTracesPanel().add(rightHalf);
+		}
 
 		// add to list of wave panels
 		waveWindow.addPanel(this);

@@ -128,7 +128,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.Timer;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -141,14 +145,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 {
 	/** minimum height of an Analog panel */				private static final int MINANALOGPANELSIZE = 30;
 	/** minimum height of a Digital panel */				private static final int MINDIGITALPANELSIZE = 20;
+	public static final boolean USETABLES = false;
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
 	/** the simulation engine that runs in this window. */	private Engine se;
 	/** the signal on all X axes (null for time) */			private Signal xAxisSignalAll;
 	/** the top-level panel of the waveform window. */		private JPanel overall;
-	/** left panel: the signal names */						private JPanel left;
-	/** right panel: the signal traces */					private JPanel right;
 	/** the "lock X axis" button. */						private JButton xAxisLockButton;
 	/** the "refresh" button. */							private JButton refresh;
 	/** the "show points" button. */						private JButton showPoints;
@@ -159,6 +162,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
+	/** left panel: the signal names */						private JPanel left;
+	/** right panel: the signal traces */					private JPanel right;
+	/** the table with panels and labels */					private JTable table;
+	/** the table with panels and labels */					private TableModel tableModel;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta, diskLabel;
 	/** buttons for centering the X-axis cursors. */		private JButton centerMain, centerExt;
 	/** a list of panels in this window */					private List<Panel> wavePanels;
@@ -250,18 +257,29 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// a drop target for the overall waveform window
 		new DropTarget(overall, DnDConstants.ACTION_LINK, waveformDropTarget, true);
+		
+		// the table that holds the waveform panels
+		if (USETABLES)
+		{
+			tableModel = new WaveTableModel(this);
+			table = new WaveTable(tableModel);
+			table.setDefaultRenderer(Object.class, new WaveCellRenderer());
+			scrollAll = new JScrollPane(table);
+		} else
+		{
+			// the left half has signal names; the right half has waveforms
+			left = new JPanel();
+			left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+			right = new JPanel();
+			right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
 
-		// the left half has signal names; the right half has waveforms
-		left = new JPanel();
-		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-		right = new JPanel();
-		right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
+			// the main part of the waveform window: a split-pane between names and waveforms, put into a scrollpane
+			split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
+			split.setResizeWeight(0.1);
+			split.addPropertyChangeListener(this);
+			scrollAll = new JScrollPane(split);
+		}
 
-		// the main part of the waveform window: a split-pane between names and waveforms, put into a scrollpane
-		split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, left, right);
-		split.setResizeWeight(0.1);
-		split.addPropertyChangeListener(this);
-		scrollAll = new JScrollPane(split);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 0;       gbc.gridy = 2;
 		gbc.gridwidth = 11;  gbc.gridheight = 1;
@@ -616,6 +634,45 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 	}
 
+	private static class WaveTableModel extends AbstractTableModel
+	{
+		WaveformWindow ww;
+
+		public WaveTableModel(WaveformWindow ww) { this.ww = ww; }
+
+		public int getColumnCount() { return 2; }
+
+		public int getRowCount() { return ww.getNumPanels(); }
+
+		public Object getValueAt(int row, int col)
+		{
+			Panel panel = ww.getPanel(row);
+			if (col == 0) return panel.getLeftHalf();
+			return panel.getRightHalf();
+		}
+	}
+
+	private static class WaveTable extends JTable
+	{
+		public WaveTable(TableModel wtm) { super(wtm); }
+
+		public TableCellRenderer getCellRenderer(int row, int col)
+		{
+			return waveCellRenderer;
+		}
+	}
+
+	private static WaveCellRenderer waveCellRenderer = new WaveCellRenderer();
+
+	private static class WaveCellRenderer implements TableCellRenderer
+	{
+		public Component getTableCellRendererComponent(JTable table, Object value,
+			boolean isSelected, boolean hasFocus, int row, int column)
+		{
+			return (Component)table.getValueAt(row, column);
+		}
+	}
+
 	// ************************************* REQUIRED IMPLEMENTATION METHODS *************************************
 
 	/**
@@ -842,8 +899,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
     public void setCursor(Cursor cursor)
     {
         overall.setCursor(cursor);
-        split.setCursor(cursor);
-        right.setCursor(cursor);
+		if (USETABLES)
+		{
+	        table.setCursor(cursor);
+		} else
+		{
+	        split.setCursor(cursor);
+	        right.setCursor(cursor);
+		}
         for (JPanel p : wavePanels)
         {
             p.setCursor(cursor);
@@ -998,6 +1061,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public int getNumPanels() { return wavePanels.size(); }
 
 	/**
+	 * Method to return a Panel in this window.
+	 * @param index the panel number to get.
+	 * @return a Panel in this window.
+	 */
+	public Panel getPanel(int index) { return wavePanels.get(index); }
+
+	/**
 	 * Method to return the List of Panels in this window.
 	 * @return the List of Panels in this window.
 	 */
@@ -1077,8 +1147,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		if (mainHorizRulerPanel != null) 
 			mainHorizRulerPanel.repaint();
-		left.repaint();
-		right.repaint();
+		if (USETABLES)
+		{
+			table.repaint();
+		} else
+		{
+			left.repaint();
+			right.repaint();
+		}
 		for(Panel wp : wavePanels)
 		{
 			wp.repaintContents();
