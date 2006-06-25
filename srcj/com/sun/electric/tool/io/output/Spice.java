@@ -2562,8 +2562,8 @@ public class Spice extends Topology
     /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
     protected boolean isShortExplicitResistors() {
         // until netlister is changed
-        if (useCDL && Simulation.getCDLIgnoreResistors())
-            return true;
+        //if (useCDL && Simulation.getCDLIgnoreResistors())
+        //    return true;
         return false;
     }
 
