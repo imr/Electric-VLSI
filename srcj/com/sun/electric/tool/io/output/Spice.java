@@ -351,7 +351,7 @@ public class Spice extends Topology
 		{
 			writeHeader(topCell);
             spiceCodeFlat = new FlatSpiceCodeVisitor(filePath+".flatcode", this);
-            HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, spiceCodeFlat);
+            HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, spiceCodeFlat, true);
             spiceCodeFlat.close();
 		}
 
@@ -1113,7 +1113,8 @@ public class Spice extends Topology
 			{
 				if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
 				{
-                    if (useCDL && Simulation.getCDLIgnoreResistors() && (fun != PrimitiveNode.Function.PRESIST))
+                    if ((fun == PrimitiveNode.Function.PRESIST && isShortExplicitResistors()) ||
+                        (fun == PrimitiveNode.Function.RESIST && isShortResistors()))
                         continue;
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
 					String extra = "";
@@ -1850,17 +1851,27 @@ public class Spice extends Topology
                     if (net != null) {
                         HierarchyEnumerator.NetNameProxy proxy = new HierarchyEnumerator.NetNameProxy(
                                 thisContext, ".x", net);
-                        hierName = proxy.toString();
+                        Global g = getGlobal(proxy.getNet());
+                        if (g != null)
+                            hierName = g.getName();
+                        else
+                            hierName = proxy.toString();
                     }
 
                 } else {
                     // net may be exported and named at higher level, use getUniqueName
                     Network net = findNet(info.getNetlist(), paramName);
                     if (net != null) {
-                        if (flatNetNames)
-                            hierName = info.getUniqueNetName(net, ".x");
-                        else
+                        if (flatNetNames) {
+                            HierarchyEnumerator.NetNameProxy proxy = info.getUniqueNetNameProxy(net, ".x");
+                            Global g = getGlobal(proxy.getNet());
+                            if (g != null)
+                                hierName = g.getName();
+                            else
+                                hierName = proxy.toString();
+                        } else {
                             hierName = cni.getCellSignal(net).getName();
+                        }
                     }
                 }
 
@@ -1893,11 +1904,29 @@ public class Spice extends Topology
     }
 
     private Network findNet(Netlist netlist, String netName) {
+        Network foundnet = null;
         for (Iterator<Network> it = netlist.getNetworks(); it.hasNext(); ) {
             Network net = it.next();
             if (net.hasName(netName)) {
-                return net;
+                foundnet = net;
+                break;
             }
+        }
+        return foundnet;
+    }
+
+    /**
+     * Get the global associated with this net. Returns null if net is
+     * not a global.
+     * @param net
+     * @return
+     */
+    private Global getGlobal(Network net) {
+        Netlist netlist = net.getNetlist();
+        for (int i=0; i<netlist.getGlobals().size(); i++) {
+            Global g = netlist.getGlobals().get(i);
+            if (netlist.getNetwork(g) == net)
+                return g;
         }
         return null;
     }
@@ -2531,7 +2560,12 @@ public class Spice extends Topology
     }
 
     /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
-    protected boolean isShortExplicitResistors() { return false; }
+    protected boolean isShortExplicitResistors() {
+        // until netlister is changed
+        if (useCDL && Simulation.getCDLIgnoreResistors())
+            return true;
+        return false;
+    }
 
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
