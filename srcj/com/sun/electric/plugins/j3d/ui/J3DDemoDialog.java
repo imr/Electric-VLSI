@@ -31,6 +31,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DSerialization;
+import com.sun.electric.database.text.TextUtils;
 
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
@@ -38,10 +39,8 @@ import javax.media.j3d.BranchGroup;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
-import java.io.FileInputStream;
-import java.io.ObjectInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
+import java.net.URL;
 
 /**
  * Class to handle the "3D View Demo Dialog" dialog.
@@ -57,9 +56,9 @@ public class J3DDemoDialog extends EDialog
     /**
      * Method to open demo dialog. If filename is not null, it will load the demo
      * @param parent
-     * @param fileName file containing a j3d demo
+     * @param fileURL file containing a j3d demo
      */
-    public static void create3DDemoDialog(java.awt.Frame parent, String fileName)
+    public static void create3DDemoDialog(java.awt.Frame parent, URL fileURL)
     {
         View3DWindow view3D = null;
         WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
@@ -71,10 +70,10 @@ public class J3DDemoDialog extends EDialog
             return;
         }
         J3DDemoDialog dialog = new J3DDemoDialog(parent, view3D, false);
-        if (dialog.readDemoFromFile(fileName))
+        if (dialog.readDemoFromFile(fileURL))
         {
             // loading and starting the demo
-            if (fileName != null)
+            if (fileURL != null)
                 dialog.demoActionPerformed(null);
 		    dialog.setVisible(true);
         }
@@ -269,18 +268,19 @@ public class J3DDemoDialog extends EDialog
 
     /**
      * Method to read demo from a file
-     * @param fileName
+     * @param fileURL
      * @return false if errors were found
      */
-    private boolean readDemoFromFile(String fileName)
+    private boolean readDemoFromFile(URL fileURL)
     {
-        if (fileName == null) return false;
+        if (fileURL == null) return false;
 
+        InputStream stream = TextUtils.getURLStream(fileURL);
         knots = null;
         try
         {
-            FileInputStream inputStream = new FileInputStream(fileName);
-            ObjectInputStream in = new ObjectInputStream(inputStream);
+//            FileInputStream inputStream = new FileInputStream(stream);
+            ObjectInputStream in = new ObjectInputStream(stream);
             J3DSerialization serial = (J3DSerialization)in.readObject();
             boolean useViewplatform = false;
             if (serial.useView != null) // old file is false;
@@ -303,7 +303,7 @@ public class J3DDemoDialog extends EDialog
     private void readActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readActionPerformed
         String fileName = OpenFile.chooseInputFile(FileType.J3D, "Read 3D Demo Frames");
 
-        readDemoFromFile(fileName);
+        readDemoFromFile(TextUtils.makeURLToFile(fileName));
     }//GEN-LAST:event_readActionPerformed
 
     private void enterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterActionPerformed

@@ -219,6 +219,7 @@ public class ManualViewer extends EDialog
      */
     public static void animate3DSample()
     {
+
         URL url = ManualViewer.class.getResource("helphtml/demo.j3d");
         if (url == null)
         {
@@ -231,8 +232,8 @@ public class ManualViewer extends EDialog
             // Adding 3D/Demo menu
             try {
                 Method createMethod = plugin3D.getDeclaredMethod("create3DDemoDialog",
-                        new Class[] {java.awt.Frame.class, String.class});
-                createMethod.invoke(plugin3D, new Object[] {TopLevel.getCurrentJFrame(), url.getFile()});
+                        new Class[] {java.awt.Frame.class, URL.class});
+                createMethod.invoke(plugin3D, new Object[] {TopLevel.getCurrentJFrame(), url});
             } catch (Exception e)
             {
                 System.out.println("Can't open 3D demo dialog: " + e.getMessage());
