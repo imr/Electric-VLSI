@@ -374,7 +374,7 @@ public class FillGeneratorTool extends Tool {
 
             public boolean enterCell(HierarchyEnumerator.CellInfo info)
             {
-                if (level > 2) return false; // only the first 2 levels
+                if (level > 4) return false; // only the first 2 levels
                 level++;
                 return true;
             }
@@ -389,9 +389,9 @@ public class FillGeneratorTool extends Tool {
                 NodeProto np = no.getProto();
                 if (!(np == Generic.tech.afgNode || fillGenConfig.onlyAround && no.isCellInstance()))
                     return false; // nothing to do
-                if (level > 1) // picking only in this level
+                if (level > 3) // picking only in this level
                     return false;
-                if (level == 1)
+                if (level == 3)
                 {
                     AffineTransform extra = info.getTransformToRoot();
                     NodeInst ni = (NodeInst)no;
