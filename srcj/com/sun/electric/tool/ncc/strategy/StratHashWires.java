@@ -82,4 +82,8 @@ public class StratHashWires extends Strategy {
 		hwa.summary(el);
 		return el;
 	}
+	public static LeafList doYourJob(EquivRecord er, NccGlobals globals) {
+		StratHashWires hwa = new StratHashWires(globals);
+		return hwa.doFor(er);
+	}
 }

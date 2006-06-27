@@ -73,4 +73,8 @@ public class StratHashParts extends Strategy {
 		jhpa.summary(offspring);
 		return offspring;
 	}
+	public static LeafList doYourJob(EquivRecord er, NccGlobals globals) {
+		StratHashParts jhpa = new StratHashParts(globals);
+		return jhpa.doFor(er);
+	}
 }
