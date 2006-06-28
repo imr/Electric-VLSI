@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+IMP: (6/28/06, GVG) Changes in DRCToolTest to run DRC batch mode inclusing saving of XML file containing DRC ErrorLogger.
+
 IMP: (6/27/06, RK) NCC: Rewrote hash code algorithm to make it strictly activity directed. This allows NCC to handle ambiguity more efficiently. (Bugzilla# 1165)
 
 BUG: (6/23/06, GVG) demo.j3d was not loaded from electric.jar

@@ -67,10 +67,7 @@ import com.sun.j3d.utils.universe.PlatformGeometry;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 
-import java.awt.BorderLayout;
-import java.awt.Graphics2D;
-import java.awt.GraphicsConfiguration;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -96,18 +93,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.Set;
 
-import javax.media.j3d.Alpha;
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Behavior;
-import javax.media.j3d.BoundingBox;
-import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Interpolator;
-import javax.media.j3d.Node;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.View;
+import javax.media.j3d.*;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.tree.MutableTreeNode;
@@ -254,10 +240,13 @@ public class View3DWindow extends JPanel
 
 		setLayout(new BorderLayout());
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-//        GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
-//		gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
-//		GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
-//        GraphicsConfiguration config = gd[0].getBestConfiguration( gc3D );
+        if (config == null)
+        {
+        GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
+		gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
+		GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
+        config = gd[0].getBestConfiguration( gc3D );
+        }
 
 		canvas = new J3DCanvas3D(config);
 		add("Center", canvas);

@@ -38,10 +38,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 
 import java.awt.geom.Point2D;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.Serializable;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -647,8 +644,19 @@ public class ErrorLogger implements Serializable
         return removed;
     }
 
-     public void save(PrintStream buffWriter)
+     public void save(String filePath)
     {
+         PrintStream buffWriter = null;
+         try
+         {
+            buffWriter = new PrintStream(new FileOutputStream(filePath));
+         } catch (Exception e)
+         {
+             e.printStackTrace();
+             System.out.println("Error opening " + filePath);
+             return; // error opening the file
+         }
+
         // Creating header
         buffWriter.println("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         buffWriter.println();

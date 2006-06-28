@@ -19,9 +19,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.io.PrintStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.List;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
@@ -425,9 +422,8 @@ public class ErrorLoggerTree {
                     try {
                         filePath = OpenFile.chooseOutputFile(FileType.XML, null, "ErrorLoggerSave.xml");
                         if (filePath == null) return; // cancel operation
-                        PrintStream buffWriter = new PrintStream(new FileOutputStream(filePath));
-                        logger.save(buffWriter);
-                    } catch (IOException se) {
+                        logger.save(filePath);
+                    } catch (Exception se) {
                         System.out.println("Error creating " + filePath);
                     }
                 } else if (m.getText().equals("Get Info")) {
