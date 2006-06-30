@@ -56,6 +56,7 @@ public abstract class Topology extends Output
 
 	/** HashMap of all CellTopologies */				private HashMap<String,CellNetInfo> cellTopos;
 	/** HashMap of all Cell names */					private HashMap<Cell,String> cellNameMap;
+                                                        private HierarchyEnumerator.CellInfo lastInfo;
 
 	/** Creates a new instance of Topology */
 	public Topology() 
@@ -199,7 +200,7 @@ public abstract class Topology extends Output
 	                Nodable no = info.getParentInst();
 	                String parameterizedName = parameterizedName(no, parentInfo.getContext());
 					CellNetInfo cni = getNetworkInformation(info.getCell(), false, parameterizedName,
-	                        isNetworksUseExportedNames(), info.getNetlist());
+	                        isNetworksUseExportedNames(), info);
 	                cellTopos.put(parameterizedName, cni);
 				}
 				return false;
@@ -216,7 +217,8 @@ public abstract class Topology extends Output
 			if (info.isRootCell())
 			{
 				cni = getNetworkInformation(cell, false, cell.getName(),
-                        isNetworksUseExportedNames(), info.getNetlist());
+                        isNetworksUseExportedNames(), info);
+                cellTopos.put(cell.getName(), cni);
 			} else
 			{
                 // derived parameterized name of instance of this cell in parent
@@ -224,7 +226,7 @@ public abstract class Topology extends Output
                 Nodable no = info.getParentInst();
                 String parameterizedName = parameterizedName(no, parentInfo.getContext());
                 cni = getNetworkInformation(info.getCell(), false, parameterizedName,
-                        isNetworksUseExportedNames(), info.getNetlist());
+                        isNetworksUseExportedNames(), info);
                 cellTopos.put(parameterizedName, cni);
 /*
 				MyCellInfo mci = (MyCellInfo)info;
@@ -233,6 +235,7 @@ public abstract class Topology extends Output
 */
 			}
 			outGeom.writeCellTopology(cell, cni, info.getContext(), (MyCellInfo)info);
+            lastInfo = info;
 		}
 
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) 
@@ -260,7 +263,7 @@ public abstract class Topology extends Output
                     HierarchyEnumerator.enumerateCell(layCell, context, this);
                     // save subcell topology, even though the cell isn't being written
                     CellNetInfo cni = getNetworkInformation(layCell, false, layCell.getName(),
-                            isNetworksUseExportedNames(), layCell.getNetlist(false));
+                            isNetworksUseExportedNames(), lastInfo);
                     cellTopos.put(parameterizedName, cni);
                     return false;
                 }
@@ -393,9 +396,10 @@ public abstract class Topology extends Output
         protected Cell getCell() { return cell; }
 	}
 
-	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName, boolean useExportedName, Netlist netlist)
+	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName, boolean useExportedName, 
+                                              HierarchyEnumerator.CellInfo info)
 	{
-		CellNetInfo cni = doGetNetworks(cell, quiet, paramName, useExportedName, netlist);
+		CellNetInfo cni = doGetNetworks(cell, quiet, paramName, useExportedName, info);
 //printWriter.print("********Decomposition of cell " + cell + "\n");
 //printWriter.print("** Have " + cni.cellSignalsSorted.size() + " signals:\n");
 //for(Iterator it = cni.getCellSignals(); it.hasNext(); )
@@ -415,7 +419,8 @@ public abstract class Topology extends Output
 		return cni;
 	}
 
-	private CellNetInfo doGetNetworks(Cell cell, boolean quiet, String paramName, boolean useExportedName, Netlist netlist)
+	private CellNetInfo doGetNetworks(Cell cell, boolean quiet, String paramName, boolean useExportedName,
+                                      HierarchyEnumerator.CellInfo info)
 	{
 		// create the object with cell net information
 		CellNetInfo cni = new CellNetInfo();
@@ -424,7 +429,7 @@ public abstract class Topology extends Output
 
 		// get network information about this cell
 		//cni.netList = getNetlistForCell(cell);
-		cni.netList = netlist;
+		cni.netList = info.getNetlist();
 		Global.Set globals = cni.netList.getGlobals();
 		int globalSize = globals.size();
 
