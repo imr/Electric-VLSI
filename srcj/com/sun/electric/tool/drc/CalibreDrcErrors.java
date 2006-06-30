@@ -33,6 +33,8 @@ public class CalibreDrcErrors {
     private List<DrcRuleViolation> ruleViolations;            // list of DrcRuleViolations
     private int lineno;
     private HashMap<Cell,String> mangledNames;
+    private String type;
+    private String filename;
 
     private static final String spaces = "[\\s\\t ]+";
 
@@ -41,18 +43,19 @@ public class CalibreDrcErrors {
      * and then convert them to the ErrorLogger.
      * @param filename the ASCII calibre drc results database file
      */
-    public static void importErrors(String filename, HashMap<Cell,String> mangledNames) {
+    public static void importErrors(String filename, HashMap<Cell,String> mangledNames, String type) {
         BufferedReader in;
         try {
             FileReader reader = new FileReader(filename);
             in = new BufferedReader(reader);
         } catch (IOException e) {
-            System.out.println("Error importing DRC Errors: "+e.getMessage());
+            System.out.println("Error importing "+type+" Errors: "+e.getMessage());
             return;
         }
 
         if (in == null) return;
-        CalibreDrcErrors errors = new CalibreDrcErrors(in, mangledNames);
+        CalibreDrcErrors errors = new CalibreDrcErrors(in, mangledNames, type);
+        errors.filename = filename;
         // read first line
         if (!errors.readTop()) return;
         // read all rule violations
@@ -62,12 +65,13 @@ public class CalibreDrcErrors {
     }
 
     // Constructor
-    private CalibreDrcErrors(BufferedReader in, HashMap<Cell,String> mangledNames) {
+    private CalibreDrcErrors(BufferedReader in, HashMap<Cell,String> mangledNames, String type) {
         assert(in != null);
         this.in = in;
         lineno = 0;
         ruleViolations = new ArrayList<DrcRuleViolation>();
         this.mangledNames = mangledNames;
+        this.type = type;
     }
 
     // read the cell name and precision, if any
@@ -141,6 +145,7 @@ public class CalibreDrcErrors {
             if (s == null) return null;
             header.addHeaderLine(s);
         }
+        if (header.comment.length() == 0) header.comment.append(ruleName);
 
         DrcRuleViolation v = new DrcRuleViolation(ruleName, header);
 
@@ -299,7 +304,7 @@ public class CalibreDrcErrors {
         } catch (IOException e) {}
 
         // populate error logger
-        logger = ErrorLogger.newInstance("Calibre DRC Errors");
+        logger = ErrorLogger.newInstance("Calibre "+type+" Errors");
         int sortKey = 0;
         int count = 0;
         for (Iterator<DrcRuleViolation> it = ruleViolations.iterator(); it.hasNext(); ) {
@@ -332,9 +337,9 @@ public class CalibreDrcErrors {
             }
             sortKey++;
         }
-        System.out.println("Imported "+count+" errors");
+        System.out.println(type+" Imported "+count+" errors from "+filename);
         if (count == 0) {
-        	Job.getUserInterface().showInformationMessage("Imported Zero Errors", "DRC Import Complete");
+        	Job.getUserInterface().showInformationMessage(type+" Imported Zero Errors", type+" Import Complete");
         }
         logger.termLogging(true);
     }
