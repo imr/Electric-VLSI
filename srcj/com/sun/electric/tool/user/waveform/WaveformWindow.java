@@ -2364,8 +2364,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
                         }
                     }
                 }
-	            if (sSig == null)
-	                sSig = an.findSignalForNetwork(netName);
+	            //if (sSig == null)
+	            //    sSig = an.findSignalForNetwork(netName);
 				if (sSig != null)
 				{
 					found.add(sSig);
