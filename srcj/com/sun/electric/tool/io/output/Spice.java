@@ -1136,11 +1136,21 @@ public class Spice extends Topology
                             width = width - offset.getHighYOffset() - offset.getLowYOffset();
                             length = length - offset.getHighXOffset() - offset.getLowXOffset();
                             extra = " L='"+length+"*LAMBDA' W='"+width+"*LAMBDA'";
-                            if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
-                                extra = "rppo1rpo"+extra;
-                            }
-                            if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) {
-                                extra = "rnpo1rpo"+extra;
+                            if (layoutTechnology == Technology.getTSMC90Technology() ||
+                               (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getTSMC90Technology())) {
+                                if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
+                                    extra = "GND rpporpo"+extra;
+                                }
+                                if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) {
+                                    extra = "GND rnporpo"+extra;
+                                }
+                            } else {
+                                if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
+                                    extra = "rppo1rpo"+extra;
+                                }
+                                if (ni.getProto().getName().equals("N-Poly-RPO-Resistor")) {
+                                    extra = "rnpo1rpo"+extra;
+                                }
                             }
                         }
                     }
@@ -2562,8 +2572,8 @@ public class Spice extends Topology
     /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
     protected boolean isShortExplicitResistors() {
         // until netlister is changed
-        //if (useCDL && Simulation.getCDLIgnoreResistors())
-        //    return true;
+        if (useCDL && Simulation.getCDLIgnoreResistors())
+            return true;
         return false;
     }
 
