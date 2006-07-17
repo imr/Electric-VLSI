@@ -824,6 +824,9 @@ public abstract class Topology extends Output
 					}
 				}
 			}
+
+            Collections.sort(cni.cellAggretateSignals, new SortAggregateNetsByName(isSeparateInputAndOutput()));
+
 		} else {
             // just get safe net names for all cell signals
             for (CellSignal cs : cni.cellSignalsSorted)
@@ -934,12 +937,46 @@ public abstract class Topology extends Output
 				// one is descending and the other isn't...sort accordingly
 				return cs1.descending ? 1 : -1;
 			}
-			//return TextUtils.STRING_NUMBER_ORDER.compare(cs1.name, cs2.name);
+            if (aggregateNamesSupported)
+			    return TextUtils.STRING_NUMBER_ORDER.compare(cs1.name, cs2.name);
+            else {
+                // Sort by simple string comparison, otherwise it is impossible
+                // to stitch this together with netlists from other tools
+                return cs1.name.compareTo(cs2.name);
+            }
+		}
+	}
+
+    private static class SortAggregateNetsByName implements Comparator<CellAggregateSignal>
+    {
+        private boolean separateInputAndOutput;
+        SortAggregateNetsByName(boolean separateInputAndOutput)
+        {
+            this.separateInputAndOutput = separateInputAndOutput;
+        }
+
+        public int compare(CellAggregateSignal cs1, CellAggregateSignal cs2)
+        {
+            if ((separateInputAndOutput) && (cs1.pp == null) != (cs2.pp == null))
+            {
+                // one is exported and the other isn't...sort accordingly
+                return cs1.pp == null ? 1 : -1;
+            }
+            if (cs1.pp != null && cs2.pp != null)
+            {
+                if (separateInputAndOutput)
+                {
+                    // both are exported: sort by characteristics (if different)
+                    PortCharacteristic ch1 = cs1.pp.getCharacteristic();
+                    PortCharacteristic ch2 = cs2.pp.getCharacteristic();
+                    if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
+                }
+            }
             // Sort by simple string comparison, otherwise it is impossible
             // to stitch this together with netlists from other tools
             return cs1.name.compareTo(cs2.name);
-		}
-	}
+        }
+    }
 
 	/**
 	 * Method to create a parameterized name for node instance "ni".
