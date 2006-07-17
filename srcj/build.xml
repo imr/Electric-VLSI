@@ -212,6 +212,9 @@
             <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc/fill90nm/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc/gates90nm/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/dais/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/sunRouter/*/*.*" if="GNU"/>
+            <exclude name="com/sun/electric/plugins/sunRouter/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
             <exclude name="com/sun/electric/plugins/Java3D/*.*" unless="Java3D"/>
 	    <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
