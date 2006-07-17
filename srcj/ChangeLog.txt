@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+IMP: (7/17/06, GVG) Adding level control to AFG.
+
 BUG: (7/17/06, GVG) Cell Info -> Graphically not working. Calling redisplay inside doIt() (bug #1180)
 FIX: Move redisplay call to terminateOK().
 

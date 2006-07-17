@@ -2481,12 +2481,14 @@ public class FillGenerator {
         boolean onlyAround;
         double gap; // allowed overlap between given cells and masters. Typical value is 1.5
         boolean onlySkill; // don't attempt to connect wires... -> very slow
+        int level; // to control the level of hierarchy in case of onlyAround option
         Job job;
 
         public FillGeneratorConfig(Technology tech, String lib, ExportConfig perim, int first, int last,
                                    double w, double h, boolean even,
                                    int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
-                                   boolean binary, boolean useMaster, boolean onlyAround, double gap, boolean onlySkill)
+                                   boolean binary, boolean useMaster, boolean onlyAround, double gap, boolean onlySkill,
+                                   int level)
         {
             this.cellTiles = cellTiles;
             this.hierarchy = hierarchy;
@@ -2517,6 +2519,7 @@ public class FillGenerator {
             this.onlyAround = onlyAround;
             this.gap = gap; // only valid if onlyAround=true
             this.onlySkill = onlySkill;
+            this.level = level;
         }
 
         public void setTargetValues(double targetW, double targetH, double sx, double sy) 

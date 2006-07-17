@@ -371,10 +371,16 @@ public class FillGeneratorTool extends Tool {
         {
             private Area exclusionArea = new Area();
             private int level = -1;
+            private int maxLevel = 0;  // 3 for island_top, 3 or 2 for bridge_core
+
+            public Visitor(int l)
+            {
+                this.maxLevel = l;
+            }
 
             public boolean enterCell(HierarchyEnumerator.CellInfo info)
             {
-                if (level > 4) return false; // only the first 2 levels
+                if (level > (maxLevel+1)) return false; // only the first 2 levels
                 level++;
                 return true;
             }
@@ -389,9 +395,9 @@ public class FillGeneratorTool extends Tool {
                 NodeProto np = no.getProto();
                 if (!(np == Generic.tech.afgNode || fillGenConfig.onlyAround && no.isCellInstance()))
                     return false; // nothing to do
-                if (level > 3) // picking only in this level
+                if (level > maxLevel) // picking only in this level
                     return false;
-                if (level == 3)
+                if (level == maxLevel) // 3 for island_top
                 {
                     AffineTransform extra = info.getTransformToRoot();
                     NodeInst ni = (NodeInst)no;
@@ -444,18 +450,7 @@ public class FillGeneratorTool extends Tool {
             }
 
             // Creating fills only for layers found in exports
-//            firstMetal = Integer.MAX_VALUE;
-//            lastMetal = Integer.MIN_VALUE;
             List<FillGenerator.PortConfig> portList = searchPortList();
-
-//            for (PortConfig p : portList)
-//            {
-//                int index = p.l.getIndex() + 1;
-//                if (index < firstMetal) firstMetal = index;
-////                if (lastMetal < index) lastMetal = index;
-//            }
-//            if (firstMetal <= 2) firstMetal = 3;
-//            if (lastMetal < firstMetal) lastMetal = firstMetal;
 
             // otherwise pins at edges increase cell sizes and FillRouter.connectCoincident(portInsts)
             // does work
@@ -463,18 +458,8 @@ public class FillGeneratorTool extends Tool {
             List<Rectangle2D> topBoxList = new ArrayList<Rectangle2D>();
             topBoxList.add(topCell.getBounds()); // topBox might change if predefined pitch is included in master cell
 
-//            Area exclusionArea = new Area();
-            Visitor areaVisitor = new Visitor();
+            Visitor areaVisitor = new Visitor(fillGenConfig.level);
             HierarchyEnumerator.enumerateCell(topCell, VarContext.globalContext, areaVisitor);
-//            addExclusionAreas(topCell, exclusionArea, new AffineTransform(), 0);
-//            for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); )
-//            {
-//                NodeInst ni = it.next();
-//                NodeProto np = ni.getProto();
-//                // Creates fill only arounds the top cells
-//                if (np == Generic.tech.afgNode || fillGenConfig.onlyAround && ni.isCellInstance())
-//                    exclusionArea.add(new Area(ni.getBounds()));
-//            }
 
             Cell fillCell = (fillGenConfig.hierarchy) ?
                     fillGen.treeMakeFillCell(fillGenConfig, topCell, masters, topBoxList, areaVisitor.exclusionArea) :
@@ -590,16 +575,26 @@ public class FillGeneratorTool extends Tool {
                 // Trying the closest arc
                 rect = backupRect;
                 rect = p.pPoly.getBounds2D();
-                double searchWidth = fillGen.masters.get(0).getBounds().getWidth();
+//                double searchWidth = fillGen.masters.get(0).getBounds().getWidth();
 //                rect = new Rectangle2D.Double(rect.getX()-searchWidth/2, rect.getY(), rect.getWidth()+searchWidth/2,
 //                        backupRect.getHeight());
                 rect = new Rectangle2D.Double(rect.getX()-fillGenConfig.gap, rect.getY(),
                         rect.getWidth()+fillGenConfig.gap*2,
                         backupRect.getHeight());
-                added = addAllPossibleContactsII(container, p, rect,
+                added = addAllPossibleContactsOverPort(container, p, rect,
                         null, //trans,
-                        fillTransIn, fillTransOutToCon,
-                        conTransOut, null);
+                        fillTransIn, null, true);
+
+                if (added == null) // trying extension with different width
+                {
+                    double searchWidth = fillGen.masters.get(0).getBounds().getWidth();
+                    rect = p.pPoly.getBounds2D();
+                    rect = new Rectangle2D.Double(rect.getX()-searchWidth/2, rect.getY(), rect.getWidth()+searchWidth/2,
+                            backupRect.getHeight());
+                    added = addAllPossibleContactsOverPort(container, p, rect,
+                            null, //trans,
+                            fillTransIn, null, false);
+                }
 
                 if (added != null)
                 {
@@ -1126,19 +1121,16 @@ public class FillGeneratorTool extends Tool {
          * Second try
          * @param searchCell
          * @param rotated
-         * @param handler
-         * @param closestHandler
          * @param p
          * @param contactAreaOrig
          * @param downTrans
          * @param upTrans
          * @return
          */
-        private Export searchOverlapHierarchicallyII(FillGenJobContainer container, Cell searchCell, boolean rotated,
-                                                    Map<Layer,List<FillGenArcConnect>> handler,
-                                                    Map<Layer,List<FillGenArcConnect>> closestHandler,
-                                                    FillGenerator.PortConfig p, Rectangle2D contactAreaOrig,
-                                                    AffineTransform downTrans, AffineTransform upTrans)
+        private Export searchOverlapHierarchicallyOverPort(FillGenJobContainer container, Cell searchCell, boolean rotated,
+                                                           FillGenerator.PortConfig p, Rectangle2D contactAreaOrig,
+                                                           AffineTransform downTrans, AffineTransform upTrans, 
+                                                           boolean noClosestPin)
         {
             Rectangle2D contactArea = (Rectangle2D)contactAreaOrig.clone();
             DBMath.transformRect(contactArea, downTrans);
@@ -1162,8 +1154,8 @@ public class FillGeneratorTool extends Tool {
                     AffineTransform fillIn = ni.transformIn();
                     AffineTransform fillUp = ni.transformOut(upTrans);
                     // In case of being a cell
-                    Export export = searchOverlapHierarchicallyII(container, (Cell)ni.getProto(), rotated,
-                            handler, closestHandler, p, contactArea, fillIn, fillUp);
+                    Export export = searchOverlapHierarchicallyOverPort(container, (Cell)ni.getProto(), rotated,
+                            p, contactArea, fillIn, fillUp, noClosestPin);
                     if (export != null)
                     {
                         PortInst pinPort = ni.findPortInstFromProto(export);
@@ -1235,8 +1227,6 @@ public class FillGeneratorTool extends Tool {
                     else
                         assert(false);
                 }
-
-                boolean found = false;
 
                 Layer theLayer = null;
                 for (ArcInst ai : protoMap.get(layer))
@@ -1357,9 +1347,9 @@ public class FillGeneratorTool extends Tool {
                         double overlap = (diff)/usefulBar;
                         // Checking if new element is completely inside the contactArea otherwise routeToClosestArc could add
                         // the missing contact
-                        if (overlap < fillGenConfig.minOverlap)
+                        if (overlap < fillGenConfig.minOverlap || !noClosestPin)
                         {
-                            System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p.p);
+                            if (noClosestPin) System.out.println("Not enough overlap (" + overlap + ") in " + ai + " to cover " + p.p);
                             double val = Math.abs(diff);
                             if (closestDist > val) // only in this case the elements are close enough but not touching
                             {
@@ -1371,45 +1361,35 @@ public class FillGeneratorTool extends Tool {
                         }
                     }
 
-                    PrimitiveNode thePin = findPrimitiveNodeFromLayer(ai.getProto().getLayerIterator().next().getNonPseudoLayer());
-                    NodeInst pinOnArc = LayoutLib.newNodeInst(thePin, newElem.getCenterX(), newElem.getCenterY(),
-                                thePin.getDefWidth(), contactAreaHeight, 0, ai.getParent());
-                    EPoint center = pinOnArc.getOnlyPortInst().getCenter();
-                    Route exportRoute = container.router.planRoute(ai.getParent(), ai.getPortInst(0),
-                                pinOnArc.getOnlyPortInst(),
-                                center,
-                                null, false);
-                    Router.createRouteNoJob(exportRoute, ai.getParent(), true, false);
-                    Export pinExport = Export.newInstance(ai.getParent(), pinOnArc.getOnlyPortInst(), "proj-"+p.e.getName());
-                    pinExport.setCharacteristic(p.e.getCharacteristic());
-
-                    // Transforming geometry up to fillCell coordinates
-                    DBMath.transformRect(newElem, upTrans);
-                    // Adding element
-                    List<FillGenArcConnect> list = handler.get(theLayer);
-                    if (list == null) // first ime
+                    if (noClosestPin)
                     {
-                        list = new ArrayList<FillGenArcConnect>();
-                        handler.put(theLayer, list);
+                        closestDist = 0; // found
+                        closestRect = newElem;
+                        closestArc = ai;
+                        break;
                     }
-                    list.add(new FillGenArcConnect(newElem, ai));
-                    found = true;
-                    return pinExport;
                 }
 
+                if (noClosestPin && closestRect != null)
+                    break;
                 if (horizontalBar || closestRect == null) continue;
-                // trying with closest vertical arcs
-                // Transforming geometry up to fillCell coordinates
-                DBMath.transformRect(closestRect, upTrans);
-                List<FillGenArcConnect> list = closestHandler.get(theLayer);
-                if (list == null) // first ime
-                {
-                    list = new ArrayList<FillGenArcConnect>();
-                    closestHandler.put(theLayer, list);
-                }
-                // Adding element
-                list.add(new FillGenArcConnect(closestRect, closestArc));
-//                return true;
+            }
+            if (closestRect != null)
+            {
+                if (!noClosestPin)
+                    System.out.println("Selecting a closest arc!");
+                PrimitiveNode thePin = findPrimitiveNodeFromLayer(closestArc.getProto().getLayerIterator().next().getNonPseudoLayer());
+                NodeInst pinOnArc = LayoutLib.newNodeInst(thePin, closestRect.getCenterX(), closestRect.getCenterY(),
+                            thePin.getDefWidth(), contactAreaHeight, 0, closestArc.getParent());
+                EPoint center = pinOnArc.getOnlyPortInst().getCenter();
+                Route exportRoute = container.router.planRoute(closestArc.getParent(), closestArc.getPortInst(0),
+                            pinOnArc.getOnlyPortInst(),
+                            center,
+                            null, false);
+                Router.createRouteNoJob(exportRoute, closestArc.getParent(), true, false);
+                Export pinExport = Export.newInstance(closestArc.getParent(), pinOnArc.getOnlyPortInst(), "proj-"+p.e.getName());
+                pinExport.setCharacteristic(p.e.getCharacteristic());
+                return pinExport;
             }
             // I might work with the best case
             return null;
@@ -1686,12 +1666,12 @@ public class FillGeneratorTool extends Tool {
          * @param p
          * @param contactArea
          * @param nodeTransOut null if the port is on the top cell
-         * @param fillTransOutToCon
          * @return
          */
-        private NodeInst addAllPossibleContactsII(FillGenJobContainer container, FillGenerator.PortConfig p, Rectangle2D contactArea,
-                                                AffineTransform nodeTransOut, AffineTransform fillTransIn, AffineTransform fillTransOutToCon,
-                                                AffineTransform conTransOut, Area exclusionArea)
+        private NodeInst addAllPossibleContactsOverPort(FillGenJobContainer container,
+                                                        FillGenerator.PortConfig p, Rectangle2D contactArea,
+                                                        AffineTransform nodeTransOut, AffineTransform fillTransIn,
+                                                        Area exclusionArea, boolean noClosestPin)
         {
             // Until this point, contactArea is at the fillCell level
             // Contact area will contain the remaining are to check
@@ -1703,11 +1683,8 @@ public class FillGeneratorTool extends Tool {
             if (exclusionArea != null && exclusionArea.intersects(contactArea))
                 return null; // can't connect here.
 
-            Map<Layer,List<FillGenArcConnect>> overlapHandler = new HashMap<Layer,List<FillGenArcConnect>>();
-            Map<Layer,List<FillGenArcConnect>> closestHandler = new HashMap<Layer,List<FillGenArcConnect>>();
-
-            Export fillExport = searchOverlapHierarchicallyII(container, container.fillCell, container.rotated, overlapHandler, closestHandler, p,
-                    contactArea, fillTransIn, GenMath.MATID);
+            Export fillExport = searchOverlapHierarchicallyOverPort(container, container.fillCell, container.rotated, p,
+                    contactArea, fillTransIn, GenMath.MATID, noClosestPin);
 
             if (fillExport == null) return null;
 
@@ -1734,14 +1711,18 @@ public class FillGeneratorTool extends Tool {
             // Connecting with top cell
 
             Export pinExport = Export.newInstance(container.connectionCell, pin, "proj-"+p.e.getName());
-            assert(pinExport != null);
-            pinExport.setCharacteristic(p.e.getCharacteristic());
-            // Connect projected pin in ConnectionCell with real port
-            PortInst pinTopPort = container.connectionNi.findPortInstFromProto(pinExport);
-            Route conTopExportRoute = container.router.planRoute(topCell, p.p, pinTopPort,
-                    new Point2D.Double(p.pPoly.getBounds2D().getCenterX(), p.pPoly.getBounds2D().getCenterY()), null, false);
-            Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
-
+//            assert(pinExport != null);
+            if (pinExport != null)
+            {
+                pinExport.setCharacteristic(p.e.getCharacteristic());
+                // Connect projected pin in ConnectionCell with real port
+                PortInst pinTopPort = container.connectionNi.findPortInstFromProto(pinExport);
+                Route conTopExportRoute = container.router.planRoute(topCell, p.p, pinTopPort,
+                        new Point2D.Double(p.pPoly.getBounds2D().getCenterX(), p.pPoly.getBounds2D().getCenterY()), null, false);
+                Router.createRouteNoJob(conTopExportRoute, topCell, true, false);
+            }
+            else
+                System.out.println("Error here");
             return pinNode;
         }
     }

@@ -272,6 +272,8 @@ public class FillGen extends EDialog {
         gapLabel = new javax.swing.JLabel();
         gapTextField = new javax.swing.JTextField();
         skillButton = new javax.swing.JRadioButton();
+        levelLabel = new javax.swing.JLabel();
+        levelTextField = new javax.swing.JTextField();
         tilingPanel = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jCheckBox1 = new javax.swing.JCheckBox();
@@ -532,6 +534,20 @@ public class FillGen extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         cellPanel.add(skillButton, gridBagConstraints);
 
+        levelLabel.setText("Level");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 2);
+        cellPanel.add(levelLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 2, 4, 4);
+        cellPanel.add(levelTextField, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
@@ -785,8 +801,9 @@ public class FillGen extends EDialog {
         FillGenerator.FillGeneratorConfig config = new FillGenerator.FillGeneratorConfig(tech, "autoFillLib",
                 FillGenerator.PERIMETER, firstMetal, lastMetal, width, height,
                 even, cells, hierarchy, 0.1, drcSpacingRule,
-                fillTypeComboBox.getSelectedItem() == FillGeneratorTool.FillCellMode.BINARY, 
-                useMaster, aroundButton.isSelected(), TextUtils.atof(gapTextField.getText()), skillButton.isSelected());
+                fillTypeComboBox.getSelectedItem() == FillGeneratorTool.FillCellMode.BINARY,
+                useMaster, aroundButton.isSelected(), TextUtils.atof(gapTextField.getText()), skillButton.isSelected(),
+                TextUtils.atoi(levelTextField.getText()));
 
         if (!templateButton.isSelected())
         {
@@ -889,6 +906,8 @@ public class FillGen extends EDialog {
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
+    private javax.swing.JLabel levelLabel;
+    private javax.swing.JTextField levelTextField;
     private javax.swing.JComboBox masterComboBox;
     private javax.swing.JPanel masterDimPanel;
     private javax.swing.JLabel masterLabel;
