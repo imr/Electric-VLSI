@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.variable.Variable;
+
 import java.io.IOException;
 
 /**
@@ -65,6 +66,17 @@ public class ImmutablePortInst extends ImmutableElectricObject {
         Variable[] vars = arrayWithoutVariable(key);
         if (getVars() == vars) return this;
         if (vars.length == 0) return EMPTY;
+        return new ImmutablePortInst(vars);
+    }
+    
+	/**
+	 * Returns ImmutablePortInst which differs from this ImmutablePortInst by renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return ImmutablePortInst with renamed Ids.
+	 */
+    public ImmutablePortInst withRenamedIds(IdMapper idMapper) {
+        Variable[] vars = arrayWithRenamedIds(idMapper);
+        if (getVars() == vars) return this;
         return new ImmutablePortInst(vars);
     }
     

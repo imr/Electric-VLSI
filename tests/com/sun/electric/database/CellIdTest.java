@@ -26,6 +26,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.text.CellName;
 
 import java.util.Arrays;
 
@@ -50,9 +51,13 @@ public class CellIdTest {
     
     @Before public void setUp() throws Exception {
         idManager = new IdManager();
-        cellId0 = idManager.newCellId();
-        cellId1 = idManager.newCellId();
-        cellId2 = idManager.newCellId();
+        LibId libId = idManager.newLibId("lib");
+        CellName cellName0 = CellName.parseName("cell0;1{sch}");
+        CellName cellName1 = CellName.parseName("cell1;1{sch}");
+        CellName cellName2 = CellName.parseName("cell2;1{sch}");
+        cellId0 = libId.newCellId(cellName0);
+        cellId1 = libId.newCellId(cellName1);
+        cellId2 = libId.newCellId(cellName2);
         u0_2 = cellId0.getUsageIn(cellId2);
         u0_1 = cellId0.getUsageIn(cellId1);
         u1_2 = cellId1.getUsageIn(cellId2);

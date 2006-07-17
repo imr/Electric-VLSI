@@ -31,8 +31,8 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
-import java.io.IOException;
 
+import java.io.IOException;
 
 /**
  * Immutable class ImmutableArcInst represents an arc instance.
@@ -437,6 +437,26 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
+                this.width, this.length, this.angle, this.flags, vars);
+    }
+    
+	/**
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return ImmutableArcInst with renamed Ids.
+	 */
+    ImmutableArcInst withRenamedIds(IdMapper idMapper) {
+        Variable[] vars = arrayWithRenamedIds(idMapper);
+        PortProtoId tailPortId = this.tailPortId;
+        PortProtoId headPortId = this.headPortId;
+        if (tailPortId instanceof ExportId)
+            tailPortId = idMapper.get((ExportId)tailPortId);
+        if (headPortId instanceof ExportId)
+            headPortId = idMapper.get((ExportId)headPortId);
+        if (getVars() == vars && this.tailPortId == tailPortId && this.headPortId == headPortId) return this;
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
+                this.tailNodeId, tailPortId, this.tailLocation,
+                this.headNodeId, headPortId, this.headLocation,
                 this.width, this.length, this.angle, this.flags, vars);
     }
     

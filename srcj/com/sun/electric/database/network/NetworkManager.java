@@ -35,11 +35,11 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorHighlight;
 import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -197,33 +197,57 @@ public class NetworkManager {
         }
         // Changed CellGroups
         if (oldSnapshot.cellGroups != newSnapshot.cellGroups) {
-            // Lower Cell changed
-            for (int i = 0; i < newSnapshot.cellGroups.length; i++) {
-                if (newSnapshot.cellGroups[i] != i) continue;
-                if (i < oldSnapshot.cellGroups.length && i == oldSnapshot.cellGroups[i]) continue;
-                CellId cellId = newSnapshot.getCell(i).d.cellId;
+            int maxOldGroupIndex = -1;
+            for (int oldGroupIndex: oldSnapshot.cellGroups)
+                maxOldGroupIndex = Math.max(maxOldGroupIndex, oldGroupIndex);
+            int[] oldGroupMap = new int[maxOldGroupIndex + 1];
+            Arrays.fill(oldGroupMap, -2);
+            for (int cellIndex = 0; cellIndex < oldSnapshot.cellGroups.length; cellIndex++) {
+                int oldGroupIndex = oldSnapshot.cellGroups[cellIndex];
+                if (oldGroupIndex < 0) continue;
+                int newGroupIndex = cellIndex < newSnapshot.cellGroups.length ? newSnapshot.cellGroups[cellIndex] : -1;
+                if (oldGroupMap[oldGroupIndex] == -2)
+                    oldGroupMap[oldGroupIndex] = newGroupIndex;
+                else if (oldGroupMap[oldGroupIndex] != newGroupIndex)
+                    oldGroupMap[oldGroupIndex] = -3;
+            }
+            for (int oldGroupIndex: oldGroupMap)
+                assert oldGroupIndex != -2;
+            // oldGroupMap[oldGroupIndex] == newGroupIndex >= 0 ==> oldGroupIndex is a subset of newGroupIndex
+            // oldGroupMap[oldGroupIndex] == -1 ==> oldGroupIndex contains only killed cells
+            // oldGroupMap[oldGroupIndex] == -3 ==> oldGroupIndex contains new cells from different new groups or has both new and old cells
+            
+            int maxNewGroupIndex = -1;
+            for (int newGroupIndex: newSnapshot.cellGroups)
+                maxNewGroupIndex = Math.max(maxNewGroupIndex, newGroupIndex);
+            int[] newGroupMap = new int[maxNewGroupIndex + 1];
+            Arrays.fill(newGroupMap, -2);
+            for (int cellIndex = 0; cellIndex < newSnapshot.cellGroups.length; cellIndex++) {
+                int newGroupIndex = newSnapshot.cellGroups[cellIndex];
+                if (newGroupIndex < 0) continue;
+                int oldGroupIndex = cellIndex < oldSnapshot.cellGroups.length ? oldSnapshot.cellGroups[cellIndex] : -1;
+                if (newGroupMap[newGroupIndex] == -2)
+                    newGroupMap[newGroupIndex] = oldGroupIndex;
+                else if (newGroupMap[newGroupIndex] != oldGroupIndex)
+                    newGroupMap[newGroupIndex] = -3;
+            }
+            for (int newGroupIndex: newGroupMap)
+                assert newGroupIndex != -2;
+            // newGroupMap[newGroupIndex] == oldGroupIndex >= 0 ==> newGroupIndex is a subset of oldGroupIndex
+            // newGroupMap[newGroupIndex] == -1 ==> newGroupIndex contains only new cells
+            // newGroupMap[newGroupIndex] == -3 ==> newGroupIndex contains old cells from different old groups or has both new and old cells
+            
+            for (int cellIndex = 0; cellIndex < newSnapshot.cellGroups.length; cellIndex++) {
+                int newGroupIndex = newSnapshot.cellGroups[cellIndex];
+                if (newGroupIndex == -1) continue;
+                int oldGroupIndex = newGroupMap[newGroupIndex];
+                if (oldGroupIndex == -1) continue;
+                if (oldGroupIndex >= 0 && oldGroupMap[oldGroupIndex] == newGroupIndex) continue;
+                CellId cellId = newSnapshot.getCell(cellIndex).d.cellId;
                 Cell cell = database.getCell(cellId);
                 NetSchem.updateCellGroup(cell.getCellGroup());
+                newGroupMap[newGroupIndex] = -1;
             }
-            // Lower Cell same, but some cells deleted
-            for (int i = 0; i < oldSnapshot.cellGroups.length; i++) {
-                int l = oldSnapshot.cellGroups[i];
-                if (l < 0 || l >= newSnapshot.cellGroups.length || newSnapshot.cellGroups[l] != l) continue;
-                if (i < newSnapshot.cellGroups.length && newSnapshot.cellGroups[i] == l) continue;
-                CellId cellId = oldSnapshot.getCell(l).d.cellId;
-                Cell cell = database.getCell(cellId);
-                NetSchem.updateCellGroup(cell.getCellGroup());
-            }
-        }
-        // Main schematics changed
-        for (int i = 0; i < maxCells; i++) {
-            CellBackup newBackup = newSnapshot.getCell(i);
-            CellBackup oldBackup = oldSnapshot.getCell(i);
-            if (newBackup == null || oldBackup == null) continue;
-            if (oldBackup.isMainSchematics == newBackup.isMainSchematics) continue;
-            CellId cellId = newBackup.d.cellId;
-            Cell cell = database.getCell(cellId);
-            NetSchem.updateCellGroup(cell.getCellGroup());
         }
         // Cell contents changed
         for (int i = 0; i < maxCells; i++) {

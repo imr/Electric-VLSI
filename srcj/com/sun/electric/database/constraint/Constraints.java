@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.constraint;
 
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
@@ -162,4 +163,10 @@ public abstract class Constraints
 	 * @param lib the Library that will be saved.
 	 */
 	public void writeLibrary(Library lib) {}
+    /**
+     * Method to announce than Ids were renamed.
+     * @param idMapper mapper from old Ids to new Ids.
+     */
+    public void renameIds(IdMapper idMapper) {}
+    
 }

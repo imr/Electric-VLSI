@@ -29,7 +29,6 @@ import java.io.IOException;
 
 import java.util.Iterator;
 
-
 /**
  * This immutable class is the base class of all Electric immutable objects that can be extended with Variables.
  */
@@ -88,6 +87,27 @@ public abstract class ImmutableElectricObject {
         System.arraycopy(vars, 0, newVars, 0, varIndex);
         System.arraycopy(vars, varIndex + 1, newVars, varIndex, newVars.length - varIndex);
         return newVars;
+    }
+    
+	/**
+	 * Returns array of Variable which differs from array of this ImmutableElectricObject by renamed Ids.
+     * Returns array of this ImmutableElectricObject if it doesn't contain reanmed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return array of Variable with renamed Ids.
+	 */
+    Variable[] arrayWithRenamedIds(IdMapper idMapper) {
+        Variable[] newVars = null;
+        for (int i = 0; i < vars.length; i++) {
+            Variable oldVar = vars[i];
+            Variable newVar = oldVar.withRenamedIds(idMapper);
+            if (newVar != oldVar && newVars == null) {
+                newVars = new Variable[vars.length];
+                System.arraycopy(vars, 0, newVars, 0, i);
+            }
+            if (newVars != null)
+                newVars[i] = newVar;
+        }
+        return newVars != null ? newVars : vars;
     }
     
 	/**

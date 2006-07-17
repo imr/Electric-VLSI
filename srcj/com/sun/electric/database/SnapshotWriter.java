@@ -46,6 +46,7 @@ import java.util.HashMap;
 public class SnapshotWriter {
     
     private final DataOutputStream out;
+    int libCount;
     int[] exportCounts = {};
     private HashMap<Variable.Key,Integer> varKeys = new HashMap<Variable.Key,Integer>();
     private HashMap<TextDescriptor,Integer> textDescriptors = new HashMap<TextDescriptor,Integer>();
@@ -60,6 +61,10 @@ public class SnapshotWriter {
         this.out = out;
     }
 
+    void setLibCount(int libCount) {
+        this.libCount = libCount;
+    }
+    
     void setCellCount(int cellCount) {
         if (cellCount == exportCounts.length) return;
         int[] newExportCounts = new int[cellCount];

@@ -23,9 +23,9 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.CellBackup.CellUsageInfo;
 import com.sun.electric.database.text.ImmutableArrayList;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -68,6 +68,32 @@ public class LibraryBackup {
             }
             exports.or(this.usedExports.get(cellId));
         }
+    }
+    
+	/**
+	 * Returns LibraryBackup which differs from this LibraryBackup by renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return LibraryBackup with renamed Ids.
+	 */
+    LibraryBackup withRenamedIds(IdMapper idMapper) {
+        ImmutableLibrary d = this.d.withRenamedIds(idMapper);
+        LibId[] referencedLibs = null;
+        for (int i = 0; i < this.referencedLibs.length; i++) {
+            LibId oldLibId = this.referencedLibs[i];
+            LibId newLibId = idMapper.get(oldLibId);
+            if (newLibId != oldLibId && referencedLibs == null) {
+                referencedLibs = new LibId[this.referencedLibs.length];
+                System.arraycopy(this.referencedLibs, 0, referencedLibs, 0, referencedLibs.length);
+            }
+            if (referencedLibs != null)
+                referencedLibs[i] = newLibId;
+        }
+        if (referencedLibs == null)
+            referencedLibs = this.referencedLibs;
+        if (this.d == d && this.referencedLibs == referencedLibs) return this;
+        LibraryBackup newBackup = new LibraryBackup(d, true, referencedLibs);
+        newBackup.check();
+        return newBackup;
     }
     
     /**

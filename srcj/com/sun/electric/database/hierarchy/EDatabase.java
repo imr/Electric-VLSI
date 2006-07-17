@@ -320,34 +320,20 @@ public class EDatabase {
         
         CellBackup[] cellBackups = new CellBackup[linkedCells.size()];
         ERectangle[] cellBounds = new ERectangle[cellBackups.length];
-        int[] cellGroups = new int[cellBackups.length];
-        Arrays.fill(cellGroups, -1);
-        HashMap<Cell.CellGroup,Integer> groupNums = new HashMap<Cell.CellGroup,Integer>();
         boolean cellsChanged = cellBackups.length != snapshot.cellBackups.size();
         boolean cellBoundsChanged = cellsChanged;
-        boolean cellGroupsChanged = cellsChanged;
         for (int cellIndex = 0; cellIndex < cellBackups.length; cellIndex++) {
             Cell cell = getCell(cellIndex);
 			if (cell != null) {
 				cellBackups[cellIndex] = cell.backup();
                 cellBounds[cellIndex] = cell.getBounds();
-                
-                Cell.CellGroup cellGroup = cell.getCellGroup();
-                Integer gn = groupNums.get(cellGroup);
-                if (gn == null) {
-                    gn = Integer.valueOf(groupNums.size());
-                    groupNums.put(cellGroup, gn);
-                }
-                cellGroups[cellIndex] = gn.intValue();
             }
             cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
             cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);
-            cellGroupsChanged = cellGroupsChanged || cellGroups[cellIndex] != snapshot.cellGroups[cellIndex];
         }
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
-        if (!cellGroupsChanged) cellGroups = null;
-        snapshot = snapshot.with(changingTool, cellBackups, cellGroups, cellBounds, libBackups);
+        snapshot = snapshot.with(changingTool, cellBackups, cellBounds, libBackups);
 //        checkFresh(snapshot);
         snapshotFresh = true;
 //        long endTime = System.currentTimeMillis();
@@ -431,7 +417,7 @@ public class EDatabase {
                         cellNamesChangedInLibrary.set(newBackup.d.libId.libIndex);
                         cellNamesChangedInLibrary.set(oldBackup.d.libId.libIndex);
                     }
-                    if (moved || oldBackup.isMainSchematics != newBackup.isMainSchematics)
+                    if (moved)
                         cellGroupsChanged = true;
                 }
             }

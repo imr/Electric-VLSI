@@ -126,7 +126,7 @@ public class JELIB extends Output
         // write header information (library, version)
         printWriter.println("# header information:");
         Version version = oldRevision ? Version.parseVersion("8.04k") : Version.getVersion();
-        printWriter.print("H" + convertString(libBackup.d.libName) + "|" + version);
+        printWriter.print("H" + convertString(libBackup.d.libId.libName) + "|" + version);
         printlnVars(libBackup.d);
         
         // write view information
@@ -205,7 +205,8 @@ public class JELIB extends Output
         ArrayList<CellGroup> chronGroups = new ArrayList<CellGroup>();
         ArrayList<CellGroup> sortedGroups = new ArrayList<CellGroup>();
         for (CellBackup cellBackup: sortedCells.values()) {
-			cellNames.put(cellBackup.d.cellId, convertString(cellBackup.d.cellName.toString()));
+            CellName cellName = cellBackup.d.cellName;
+			cellNames.put(cellBackup.d.cellId, convertString(cellName.toString()));
             
             int groupIndex = snapshot.cellGroups[cellBackup.d.cellId.cellIndex];
             while (groupIndex >= chronGroups.size()) chronGroups.add(null);
@@ -215,9 +216,9 @@ public class JELIB extends Output
                 chronGroups.set(groupIndex, group);
                 sortedGroups.add(group);
             }
-            group.cellNames.add(cellBackup.d.cellName);
-            if (cellBackup.isMainSchematics)
-                group.mainSchematics = cellBackup.d.cellName;
+            group.cellNames.add(cellName);
+            if (cellName.getView() == View.SCHEMATIC && group.mainSchematics == null)
+                group.mainSchematics = cellName;
         }
         
         // write cells
@@ -447,7 +448,7 @@ public class JELIB extends Output
         for (LibraryBackup libBackup: snapshot.libBackups) {
             if (libBackup == null) continue;
             if (usedLibs.get(libBackup.d.libId.libIndex))
-                sortedLibraries.put(libBackup.d.libName, libBackup);
+                sortedLibraries.put(libBackup.d.libId.libName, libBackup);
         }
         String mainLibPath = TextUtils.getFilePath(snapshot.getLib(thisLib).d.libFile);
         if (libFiles != null && libFiles.containsKey(thisLib))
@@ -463,14 +464,14 @@ public class JELIB extends Output
             URL libUrl = l.d.libFile;
             if (libFiles != null && libFiles.containsKey(l.d.libId))
                 libUrl = libFiles.get(l.d.libId);
-            String libFile = l.d.libName;
+            String libFile = l.d.libId.libName;
             if (libUrl != null)
             {
                 String thisLibPath = TextUtils.getFilePath(libUrl);
                 if (!mainLibPath.equals(thisLibPath)) libFile = libUrl.toString();
             }
             printWriter.println();
-            printWriter.println("L" + convertString(l.d.libName) + "|" + convertString(libFile));
+            printWriter.println("L" + convertString(l.d.libId.libName) + "|" + convertString(libFile));
          
             TreeMap<CellName,CellBackup> sortedCells = new TreeMap<CellName,CellBackup>();
             for (CellBackup cellBackup: snapshot.cellBackups) {
@@ -748,7 +749,7 @@ public class JELIB extends Output
             case 'G': infstr.append(((Long)obj).longValue()); return;
             case 'H': infstr.append(((Short)obj).shortValue()); return;
             case 'I': infstr.append(((Integer)obj).intValue()); return;
-            case 'L': infstr.append(convertString(snapshot.getLib((LibId)obj).d.libName, inArray)); return;
+            case 'L': infstr.append(convertString(snapshot.getLib((LibId)obj).d.libId.libName, inArray)); return;
             case 'O': infstr.append(convertString(((Tool)obj).getName(), inArray)); return;
             case 'P': infstr.append(convertString(((PrimitiveNode)obj).getFullName(), inArray)); return;
             case 'R': infstr.append(convertString(((ArcProto)obj).getFullName(), inArray)); return;
@@ -782,7 +783,7 @@ public class JELIB extends Output
 	private String getFullCellName(CellId cellId) {
         ImmutableCell d = snapshot.getCell(cellId).d;
         LibraryBackup libBackup = snapshot.getLib(d.libId);
-		return convertString(libBackup.d.libName + ":" + d.cellName);
+		return convertString(libBackup.d.libId.libName + ":" + d.cellName);
 	}
 
 	/**

@@ -282,7 +282,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			for (Cell cell: cells) {
                 if (undo) {
                     cell.d.groupName.equals(groupName);
-                    assert cell.backup().isMainSchematics == (cell == mainSchematic);
                 } else {
                     cell.setD(cell.d.withGroupName(groupName));
                 }
@@ -422,8 +421,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public static Cell newInstance(Library lib, String name)
 	{
 		lib.checkChanging();
-		Cell cell = lowLevelAllocate(lib);
-		if (cell.lowLevelPopulate(name)) return null;
+		Cell cell = lowLevelAllocate(lib, name);
 		if (cell.lowLevelLink()) return null;
 
 		return cell;
@@ -819,30 +817,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Low-level access method to create a cell in library "lib".
 	 * Unless you know what you are doing, do not use this method.
 	 * @param lib library in which to place this cell.
-	 * @return the newly created cell.
-	 */
-	public static Cell lowLevelAllocate(Library lib)
-	{
-		lib.checkChanging();
-        Date creationDate = new Date();
-        EDatabase database = lib.getDatabase();
-        CellId cellId = database.getIdManager().newCellId();
-		Cell c = new Cell(database, ImmutableCell.newInstance(cellId, lib.getId(), null, creationDate.getTime()));
-		return c;
-	}
-
-	/**
-	 * Low-level access method to fill-in the cell name.
-	 * Unless you know what you are doing, do not use this method.
 	 * @param name the name of this cell.
 	 * Cell names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
-	 * @return true on error.
+	 * @return the newly created cell or null on error.
 	 */
-	public boolean lowLevelPopulate(String name)
+	public static Cell lowLevelAllocate(Library lib, String name)
 	{
-		assert !isLinked();
+		lib.checkChanging();
 		CellName n = CellName.parseName(name);
-		if (n == null) return true;
+		if (n == null) return null;
 
 		// check name for legal characters
 		String cellName = n.getName();
@@ -862,8 +845,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			n = CellName.newName(cellName, n.getView(), n.getVersion());
 		}
 		
-        setD(getD().withCellName(n));
-		return false;
+        Date creationDate = new Date();
+        CellId cellId = lib.getId().newCellId(n);
+		Cell c = new Cell(lib.getDatabase(), ImmutableCell.newInstance(cellId, lib.getId(), n, creationDate.getTime()));
+		return c;
 	}
 
 	/**
@@ -967,7 +952,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     }
     
     private CellBackup doBackup() {
-        boolean isMainSchematics = cellGroup.getMainSchematics() == this;
         if (backup == null) {
             getTechnology();
             backup = new CellBackup(getD().withoutVariables());
@@ -982,7 +966,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             arcs = backupArcs();
             exports = backupExports();
         }
-        backup = backup.with(getD(), revisionDate, modified, isMainSchematics,
+        backup = backup.with(getD(), revisionDate, modified,
                 nodes, arcs, exports);
         cellBackupFresh = true;
         cellContentsFresh = true;
@@ -4236,7 +4220,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert backup.d == getD();
             assert backup.revisionDate == revisionDate;
             assert backup.modified == modified;
-            assert backup.isMainSchematics == (cellGroup.getMainSchematics() == this);
             assert cellContentsFresh;
         }
         if (cellContentsFresh) {

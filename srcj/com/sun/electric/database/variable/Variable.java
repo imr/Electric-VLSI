@@ -25,6 +25,7 @@ package com.sun.electric.database.variable;
 
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.SnapshotReader;
 import com.sun.electric.database.SnapshotWriter;
@@ -48,7 +49,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Map;
 
 /**
  * The Variable immutable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -253,59 +254,15 @@ public class Variable implements Serializable
         byte type;
         if (value instanceof Object[]) {
             Byte typeByte = (Byte)validClasses.get(value.getClass().getComponentType());
-            if (typeByte != null) {
-                value = ((Object[])value).clone();
-                type = (byte)(typeByte.byteValue()|ARRAY);
-//            } else if (value instanceof Library[]) {
-//                Library[] libs = (Library[])value;
-//                LibId[] libIds = new LibId[libs.length];
-//                for (int i = 0; i < libs.length; i++)
-//                    if (libs[i] != null) libIds[i] = libs[i].getId();
-//                value = libIds;
-//                type = LIBRARY|ARRAY;
-//            } else if (value instanceof Cell[]) {
-//                Cell[] cells = (Cell[])value;
-//                CellId[] cellIds = new CellId[cells.length];
-//                for (int i = 0; i < cells.length; i++)
-//                    if (cells[i] != null) cellIds[i] = (CellId)cells[i].getId();
-//                value = cellIds;
-//                type = CELL|ARRAY;
-//            } else if (value instanceof Export[]) {
-//                Export[] exports = (Export[])value;
-//                ExportId[] exportIds = new ExportId[exports.length];
-//                for (int i = 0; i < exports.length; i++)
-//                    if (exports[i] != null) exportIds[i] = (ExportId)exports[i].getId();
-//                value = exportIds;
-//                type = EXPORT|ARRAY;
-//            } else if (value instanceof Point2D[]) {
-//                Point2D[] points = (Point2D[])value;
-//                EPoint[] epoints = new EPoint[points.length];
-//                for (int i = 0; i < points.length; i++)
-//                    if (points[i] != null) epoints[i] = EPoint.snap(points[i]);
-//                value = epoints;
-//                type = SIMPLE|ARRAY;
-            } else {
+            if (typeByte == null)
                 throw new IllegalArgumentException(value.getClass().toString());
-            }
+            value = ((Object[])value).clone();
+            type = (byte)(typeByte.byteValue()|ARRAY);
         } else {
             Byte typeByte = (Byte)validClasses.get(value.getClass());
-            if (typeByte != null) {
-                type = typeByte.byteValue();
-//            } else if (value instanceof Library) {
-//                value = ((Library)value).getId();
-//                type = LIBRARY;
-//            } else if (value instanceof Cell) {
-//                value = ((Cell)value).getId();
-//                type = CELL;
-//            } else if (value instanceof Export) {
-//                value = ((Export)value).getId();
-//                type = EXPORT;
-//            } else if (value instanceof Point2D) {
-//                value = EPoint.snap((Point2D)value);
-//                type = SIMPLE;
-            } else {
+            if (typeByte == null)
                 throw new IllegalArgumentException(value.getClass().toString());
-            }
+            type = typeByte.byteValue();
         }
         if (descriptor.isCode() && !(value instanceof String || value instanceof String[])) {
             descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
@@ -566,6 +523,60 @@ public class Variable implements Serializable
                 this.value.getClass().getComponentType() == value.getClass().getComponentType())
             return this;
         return newInstance(this.key, value, this.descriptor);
+    }
+    
+	/**
+	 * Returns Variable which differs from this Variable by renamed Ids.
+	 * @param idMapper a mapper from old Ids to new Ids.
+     * @return Variable which differs from this Variable by renamed Ids.
+	 */
+    public Variable withRenamedIds(IdMapper idMapper) {
+        Object newValue = value;
+        switch (type) {
+            case LIBRARY:
+                newValue = idMapper.get((LibId)value);
+                break;
+            case CELL:
+                newValue = idMapper.get((CellId)value);
+                break;
+            case EXPORT:
+                newValue = idMapper.get((ExportId)value);
+                break;
+            case LIBRARY|ARRAY:
+                LibId[] libIds = (LibId[])getObject();
+                for (int i = 0; i < libIds.length; i++) {
+                    if (libIds[i] == null) continue;
+                    LibId libId = idMapper.get(libIds[i]);
+                    if (libId != libIds[i]) {
+                        libIds[i] = libId;
+                        newValue = libIds;
+                    }
+                }
+                break;
+            case CELL|ARRAY:
+                CellId[] cellIds = (CellId[])getObject();
+                for (int i = 0; i < cellIds.length; i++) {
+                    if (cellIds[i] == null) continue;
+                    CellId cellId = idMapper.get(cellIds[i]);
+                    if (cellId != cellIds[i]) {
+                        cellIds[i] = cellId;
+                        newValue = cellIds;
+                    }
+                }
+                break;
+            case EXPORT|ARRAY:
+                ExportId[] exportIds = (ExportId[])getObject();
+                for (int i = 0; i < exportIds.length; i++) {
+                    if (exportIds[i] == null) continue;
+                    ExportId exportId = idMapper.get(exportIds[i]);
+                    if (exportId != exportIds[i]) {
+                        exportIds[i] = exportId;
+                        newValue = exportIds;
+                    }
+                }
+                break;
+        }
+        return newValue != value ? withObject(newValue) : this;
     }
     
     /**

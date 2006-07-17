@@ -89,16 +89,15 @@ public class SnapshotTest {
     @Test public void testWith() {
         System.out.println("with");
         
-        LibId libId = idManager.newLibId();
-        ImmutableLibrary l = ImmutableLibrary.newInstance(libId, "lib", null, null);
+        LibId libId = idManager.newLibId("libId0");
+        ImmutableLibrary l = ImmutableLibrary.newInstance(libId, null, null);
         LibraryBackup libBackup = new LibraryBackup(l, false, new LibId[]{});
-        CellId cellId = idManager.newCellId();
         CellName cellName = CellName.parseName("cell;1{sch}");
+        CellId cellId = libId.newCellId(cellName);
         ImmutableCell c = ImmutableCell.newInstance(cellId, libId, cellName, 0).withTech(Schematics.tech);
         CellBackup cellBackup = new CellBackup(c);
         
         CellBackup[] cellBackupsArray = { cellBackup };
-        int[] cellGroups = { 0 }; 
         ERectangle emptyBound = new ERectangle(0, 0, 0, 0);
         ERectangle[] cellBoundsArray = { emptyBound };
         LibraryBackup[] libBackupsArray = { libBackup };
@@ -107,11 +106,10 @@ public class SnapshotTest {
         List<CellBackup> expCellBackups = Collections.singletonList(cellBackup);
         List<ERectangle> expCellBounds = Collections.singletonList(emptyBound);
         List<LibraryBackup> expLibBackups = Collections.singletonList(libBackup);
-        Snapshot result = instance.with(null, cellBackupsArray, cellGroups, cellBoundsArray, libBackupsArray);
+        Snapshot result = instance.with(null, cellBackupsArray, cellBoundsArray, libBackupsArray);
         assertEquals(1, result.snapshotId);
         assertEquals(expCellBackups, result.cellBackups);
         assertEquals(expCellBounds, result.cellBounds);
-        assertTrue(Arrays.equals(cellGroups, result.cellGroups));
         assertEquals(expLibBackups, result.libBackups);
         
 //        CellId otherId = new CellId();
@@ -120,6 +118,43 @@ public class SnapshotTest {
 //        CellBackup newCellBackup = cellBackup.with(newC, 0, (byte)-1, false, null, null, null);
 //        CellBackup[] newCellBackups = { newCellBackup };
 //        Snapshot newSnapshot = result.with(newCellBackups, cellGroups, cellBoundsArray, libBackupsArray);
+    }
+    
+    @Test public void testWithRenamedIds() {
+        System.out.println("withReanmedIds");
+        
+        LibId libIdX = idManager.newLibId("X");
+        ImmutableLibrary libX = ImmutableLibrary.newInstance(libIdX, null, null);
+        LibraryBackup libBackupX = new LibraryBackup(libX, false, new LibId[0]);
+        LibId libIdY = idManager.newLibId("Y");
+        ImmutableLibrary libY = ImmutableLibrary.newInstance(libIdY, null, null);
+        LibraryBackup libBackupY = new LibraryBackup(libY, false, new LibId[0]);
+        LibraryBackup[] libBackupArray = new LibraryBackup[] { libBackupX, libBackupY };
+        CellName cellNameA = CellName.parseName("A;1{sch}");
+        CellId cellId0 = libIdX.newCellId(cellNameA);
+        ImmutableCell cellA = ImmutableCell.newInstance(cellId0, libIdX, cellNameA, 0).withTech(Schematics.tech);
+        CellBackup cellBackupA = new CellBackup(cellA);
+        CellBackup[] cellBackupArray = new CellBackup[] { cellBackupA };
+        ERectangle[] cellBoundsArray = new ERectangle[] { new ERectangle(0, 0, 0, 0) }; 
+        LibId libIdA = idManager.newLibId("A");
+        
+        Snapshot oldSnapshot = initialSnapshot.with(null, cellBackupArray, cellBoundsArray, libBackupArray);
+        IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, libIdX, libIdA);
+        Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper);
+        
+        assertEquals(3, newSnapshot.libBackups.size());
+        assertNull( newSnapshot.libBackups.get(0) );
+        assertSame( libBackupY, newSnapshot.libBackups.get(1) );
+        LibraryBackup libBackupA = newSnapshot.libBackups.get(2);
+        assertSame( libIdA, libBackupA.d.libId );
+        assertTrue( libBackupA.modified );
+        
+        assertEquals(2, newSnapshot.cellBackups.size());
+        assertNull( newSnapshot.cellBackups.get(0) );
+        CellBackup newCellA = newSnapshot.cellBackups.get(1);
+        assertSame( cellNameA, newCellA.d.cellName );
+        assertSame( libIdA, newCellA.d.libId );
+        assertEquals( idManager.getCellId(1), newCellA.d.cellId );
     }
     
     /**
@@ -156,7 +191,8 @@ public class SnapshotTest {
     @Test public void testGetCell() {
         System.out.println("getCell");
         
-        CellId cellId = idManager.newCellId();
+        LibId libId = idManager.newLibId("lib");
+        CellId cellId = libId.newCellId(CellName.parseName("cellId0"));
         assertEquals(0, cellId.cellIndex);
         Snapshot instance = initialSnapshot;
         
@@ -171,7 +207,8 @@ public class SnapshotTest {
     @Test public void testGetCellBounds() {
         System.out.println("getCellBounds");
         
-        CellId cellId = idManager.newCellId();
+        LibId libId = idManager.newLibId("lib");
+        CellId cellId = libId.newCellId(CellName.parseName("cellId0"));
         assertEquals(0, cellId.cellIndex);
         Snapshot instance = initialSnapshot;
         
@@ -186,7 +223,7 @@ public class SnapshotTest {
     @Test public void testGetLib() {
         System.out.println("getLib");
         
-        LibId libId = idManager.newLibId();
+        LibId libId = idManager.newLibId("libId0");
         assertEquals(0, libId.libIndex);
         Snapshot instance = initialSnapshot;
         

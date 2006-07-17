@@ -24,12 +24,13 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ExportId;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
@@ -45,7 +46,6 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
@@ -329,11 +329,12 @@ public abstract class LibraryFiles extends Input
      * because it also reloads new
      * cells from disk that are not currently in memory.
      * @param lib
+	 * @return mapping of Library/Cell/Export ids, null if the library was renamed.
      */
-    public static void reloadLibrary(Library lib) {
+    public static IdMapper reloadLibrary(Library lib) {
         if (!lib.isFromDisk()) {
             System.out.println("No disk file associated with this library, cannot reload from disk");
-            return;
+            return null;
         }
         FileType type = OpenFile.getOpenFileType(lib.getLibFile().getPath(), FileType.JELIB);
 
@@ -342,7 +343,9 @@ public abstract class LibraryFiles extends Input
 
         String name = lib.getName();
         URL libFile = lib.getLibFile();
-        lib.setName("___old___"+name);
+        IdMapper idMapper = lib.setName("___old___"+name);
+        if (idMapper == null) return null;
+        lib = idMapper.get(lib.getId()).inDatabase(EDatabase.serverDatabase());
         lib.setHidden();                // hide the old library
         startProgressDialog("library", name);
         Library newLib = readLibrary(libFile, name, type, true, null);
@@ -374,6 +377,7 @@ public abstract class LibraryFiles extends Input
         // close temp library
         lib.kill("delete old library");
         System.out.println("Reloaded library "+newLib.getName()+" from disk.");
+        return idMapper;
     }
 
     /**

@@ -48,7 +48,6 @@ public class CellBackup {
     /** Cell persistent data. */                                    public final ImmutableCell d;
 	/** The date this ImmutableCell was last modified. */           public final long revisionDate;
     /** "Modified" flag of the Cell. */                             public final boolean modified;
-	/** This Cell is mainSchematics in its group. */				public final boolean isMainSchematics;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
@@ -61,7 +60,7 @@ public class CellBackup {
     /** Bitmap of deleted exports. */                               final BitSet deletedExports;
 
     /** Creates a new instance of CellBackup */
-    private CellBackup(ImmutableCell d, long revisionDate, boolean modified, boolean isMainSchematics,
+    private CellBackup(ImmutableCell d, long revisionDate, boolean modified,
             ImmutableArrayList<ImmutableNodeInst> nodes,
             ImmutableArrayList<ImmutableArcInst> arcs,
             ImmutableArrayList<ImmutableExport> exports,
@@ -69,7 +68,6 @@ public class CellBackup {
         this.d = d;
         this.revisionDate = revisionDate;
         this.modified = modified;
-        this.isMainSchematics = isMainSchematics;
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
@@ -84,7 +82,7 @@ public class CellBackup {
     
     /** Creates a new instance of CellBackup */
     public CellBackup(ImmutableCell d) {
-        this(d, 0, false, false,
+        this(d, 0, false,
                 ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
                 EMPTY_BITSET, NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
         if (d.cellName == null)
@@ -101,7 +99,6 @@ public class CellBackup {
      * @param d new persistent data of a cell.
      * @param revisionDate new revision date.
      * @param modified new modified flag
-     * @param isMainSchematics new main schematics flag
      * @param nodesArray new array of nodes
      * @param arcsArray new array of arcs
      * @param exportsArray new array of exports
@@ -109,13 +106,12 @@ public class CellBackup {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public CellBackup with(ImmutableCell d, long revisionDate, boolean modified, boolean isMainSchematics,
+    public CellBackup with(ImmutableCell d, long revisionDate, boolean modified,
             ImmutableNodeInst[] nodesArray, ImmutableArcInst[] arcsArray, ImmutableExport[] exportsArray) {
         ImmutableArrayList<ImmutableNodeInst> nodes = copyArray(nodesArray, this.nodes);
         ImmutableArrayList<ImmutableArcInst> arcs = copyArray(arcsArray, this.arcs);
         ImmutableArrayList<ImmutableExport> exports = copyArray(exportsArray, this.exports);
         if (this.d == d && this.revisionDate == revisionDate && this.modified == modified &&
-                this.isMainSchematics == isMainSchematics &&
                 this.nodes == nodes && this.arcs == arcs && this.exports == exports) {
             return this;
         }
@@ -128,8 +124,8 @@ public class CellBackup {
                 throw new IllegalArgumentException("cellVersion");
             if (d.tech == null)
                 throw new NullPointerException("tech");
-            if (cellId != this.d.cellId)
-                throw new IllegalArgumentException("cellId");
+//            if (cellId != this.d.cellId)
+//                throw new IllegalArgumentException("cellId");
         }
         
         BitSet usedLibs = this.usedLibs;
@@ -202,13 +198,66 @@ public class CellBackup {
             }
         }
         
-        CellBackup backup = new CellBackup(d, revisionDate, modified, isMainSchematics,
+        CellBackup backup = new CellBackup(d, revisionDate, modified,
                 nodes, arcs, exports, usedLibs, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
         return backup;
     }
     
     private static <T> ImmutableArrayList<T> copyArray(T[] newArray, ImmutableArrayList<T> oldList) {
         return newArray != null ? new ImmutableArrayList<T>(newArray) : oldList;
+    }
+    
+	/**
+	 * Returns CellBackup which differs from this CellBackup by renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return CellBackup with renamed Ids.
+	 */
+    CellBackup withRenamedIds(IdMapper idMapper) {
+        ImmutableCell d = this.d.withRenamedIds(idMapper);
+        
+        ImmutableNodeInst[] nodesArray = null;
+        for (int i = 0; i < nodes.size(); i++) {
+            ImmutableNodeInst oldNode = nodes.get(i);
+            ImmutableNodeInst newNode = oldNode.withRenamedIds(idMapper);
+            if (newNode != oldNode && nodesArray == null) {
+                nodesArray = new ImmutableNodeInst[nodes.size()];
+                for (int j = 0; j < i; j++)
+                    nodesArray[j] = nodes.get(j);
+            }
+            if (nodesArray != null)
+                nodesArray[i] = newNode;
+        }
+        
+        ImmutableArcInst[] arcsArray = null;
+        for (int i = 0; i < arcs.size(); i++) {
+            ImmutableArcInst oldArc = arcs.get(i);
+            ImmutableArcInst newArc = oldArc.withRenamedIds(idMapper);
+            if (newArc != oldArc && arcsArray == null) {
+                arcsArray = new ImmutableArcInst[arcs.size()];
+                for (int j = 0; j < i; j++)
+                    arcsArray[j] = arcs.get(j);
+            }
+            if (arcsArray != null)
+                arcsArray[i] = newArc;
+        }
+
+        ImmutableExport[] exportsArray = null;
+        for (int i = 0; i < exports.size(); i++) {
+            ImmutableExport oldExport = exports.get(i);
+            ImmutableExport newExport = oldExport.withRenamedIds(idMapper);
+            if (newExport != oldExport && exportsArray == null) {
+                exportsArray = new ImmutableExport[exports.size()];
+                for (int j = 0; j < i; j++)
+                    exportsArray[j] = exports.get(j);
+            }
+            if (exportsArray != null)
+                exportsArray[i] = newExport;
+        }
+        
+        if (this.d == d && nodesArray == null && arcsArray == null && exportsArray == null) return this;
+        CellBackup newBackup = with(d, revisionDate, true, nodesArray, arcsArray, exportsArray);
+        newBackup.check();
+        return newBackup;
     }
     
     /**
@@ -300,7 +349,6 @@ public class CellBackup {
         d.write(writer);
         writer.writeLong(revisionDate);
         writer.writeBoolean(modified);
-        writer.writeBoolean(isMainSchematics);
         writer.writeInt(nodes.size());
         for (ImmutableNodeInst n: nodes)
             n.write(writer);
@@ -320,7 +368,6 @@ public class CellBackup {
         ImmutableCell d = ImmutableCell.read(reader);
         long revisionDate = reader.readLong();
         boolean modified = reader.readBoolean();
-        boolean isMainSchematics = reader.readBoolean();
         CellBackup backup = new CellBackup(d.withoutVariables());
         
         int nodesLength = reader.readInt();
@@ -338,7 +385,7 @@ public class CellBackup {
         for (int i = 0; i < exportsLength; i++)
             exports[i] = ImmutableExport.read(reader);
         
-        backup = backup.with(d, revisionDate, modified, isMainSchematics, nodes, arcs, exports);
+        backup = backup.with(d, revisionDate, modified, nodes, arcs, exports);
         return backup;
     }
 

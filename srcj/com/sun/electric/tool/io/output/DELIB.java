@@ -85,7 +85,7 @@ public class DELIB extends JELIB {
         File delibDir = new File(filePath);
         File parent = delibDir.getParentFile();
         if (parent.getName().endsWith(".delib")) {
-            System.out.println("Error: Cannot write "+snapshot.getLib(libId).d.libName+" inside of another DELIB directory");
+            System.out.println("Error: Cannot write "+snapshot.getLib(libId).d.libId.libName+" inside of another DELIB directory");
             return true;
         }
 
@@ -211,7 +211,7 @@ public class DELIB extends JELIB {
 
              // write short header information (library, version)
             LibId libId = cellBackup.d.libId;
-            printWriter.println("H" + convertString(snapshot.getLib(libId).d.libName) + "|" + Version.getVersion());
+            printWriter.println("H" + convertString(snapshot.getLib(libId).d.libId.libName) + "|" + Version.getVersion());
 
             super.writeExternalLibraryInfo(libId, usedLibs, usedExports);
 

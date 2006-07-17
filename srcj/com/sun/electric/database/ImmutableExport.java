@@ -209,6 +209,22 @@ public class ImmutableExport extends ImmutableElectricObject {
                 this.originalNodeId, this.originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, vars);
     }
     
+	/**
+	 * Returns ImmutableExport which differs from this ImmutableExport by renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return ImmutableExport with renamed Ids.
+	 */
+    ImmutableExport withRenamedIds(IdMapper idMapper) {
+        Variable[] vars = arrayWithRenamedIds(idMapper);
+        ExportId exportId = idMapper.get(this.exportId);
+        PortProtoId originalPortId = this.originalPortId;
+        if (originalPortId instanceof ExportId)
+            originalPortId = idMapper.get((ExportId)originalPortId);
+        if (getVars() == vars && this.exportId == exportId && this.originalPortId == this.originalPortId) return this;
+		return new ImmutableExport(exportId, this.name, this.nameDescriptor,
+                this.originalNodeId, originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, vars);
+    }
+    
     /**
      * Writes this ImmutableArcInst to SnapshotWriter.
      * @param writer where to write.

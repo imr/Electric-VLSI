@@ -84,10 +84,9 @@ public class Snapshot {
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
      */
-    public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, int[] cellGroups, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
+    public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
         ImmutableArrayList<CellBackup> cellBackups = copyArray(cellBackupsArray, this.cellBackups);
-        cellGroups = copyArray(cellGroups, this.cellGroups);
         ImmutableArrayList<ERectangle> cellBounds = copyArray(cellBoundsArray, this.cellBounds);
         ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
         boolean namesChanged = this.cellGroups != cellGroups || this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
@@ -110,8 +109,7 @@ public class Snapshot {
             if (newBackup != null) {
                 if (oldBackup == null ||
                         newBackup.d.libId != oldBackup.d.libId ||
-                        newBackup.d.cellName != oldBackup.d.cellName ||
-                        newBackup.isMainSchematics != oldBackup.isMainSchematics)
+                        newBackup.d.cellName != oldBackup.d.cellName)
                     namesChanged = true;
                 
                 // Check lib usages.
@@ -157,8 +155,13 @@ public class Snapshot {
         }
         
         // Check names
-        if (namesChanged)
+        int[] cellGroups = this.cellGroups;
+        if (namesChanged) {
+            cellGroups = new int[cellBackups.size()];
             checkNames(idManager, cellBackups, cellGroups, libBackups);
+            if (Arrays.equals(this.cellGroups, cellGroups))
+                cellGroups = this.cellGroups;
+        }
         
         Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, cellBounds, libBackups);
 //        long endTime = System.currentTimeMillis();
@@ -216,6 +219,62 @@ public class Snapshot {
         if (l > 0 && copyArray[l - 1] < 0)
             throw new ConcurrentModificationException();
         return copyArray;
+    }
+    
+	/**
+	 * Returns Snapshot which differs from this Snapshot by renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return Snapshot with renamed Ids.
+	 */
+    public Snapshot withRenamedIds(IdMapper idMapper) {
+        int maxCellIndex = -1;
+        for (CellBackup cellBackup: cellBackups) {
+            if (cellBackup == null) continue;
+            maxCellIndex = Math.max(maxCellIndex, idMapper.get(cellBackup.d.cellId).cellIndex);
+        }
+        int maxLibIndex = -1;
+        for (LibraryBackup libBackup: libBackups) {
+            if (libBackup == null) continue;
+            maxLibIndex = Math.max(maxLibIndex, idMapper.get(libBackup.d.libId).libIndex);
+        }
+        
+        CellBackup[] cellBackupsArray = new CellBackup[maxCellIndex + 1];
+        ERectangle[] cellBoundsArray = new ERectangle[maxCellIndex + 1];
+        LibraryBackup[] libBackupsArray = new LibraryBackup[maxLibIndex + 1];
+        
+        boolean cellBackupsChanged = false;
+        boolean cellIdsChanged = false;
+        for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
+            CellBackup oldCellBackup = cellBackups.get(cellIndex);
+            if (oldCellBackup == null) continue;
+            CellBackup newCellBackup = oldCellBackup.withRenamedIds(idMapper);
+            if (newCellBackup != oldCellBackup)
+                cellBackupsChanged = true;
+            int newCellIndex = newCellBackup.d.cellId.cellIndex;
+            if (newCellIndex != cellIndex)
+                cellIdsChanged = true;
+            cellBackupsArray[newCellIndex] = newCellBackup;
+            cellBoundsArray[newCellIndex] = cellBounds.get(cellIndex);
+        }
+        if (!cellBackupsChanged)
+            cellBackupsArray = null;
+        if (!cellIdsChanged)
+            cellBoundsArray = null;
+        
+        boolean libBackupsChanged = false;
+        for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
+            LibraryBackup oldLibBackup = libBackups.get(libIndex);
+            if (oldLibBackup == null) continue;
+            LibraryBackup newLibBackup = oldLibBackup.withRenamedIds(idMapper);
+            if (newLibBackup != oldLibBackup)
+                libBackupsChanged = true;
+            libBackupsArray[newLibBackup.d.libId.libIndex] = newLibBackup;
+        }
+        if (!libBackupsChanged)
+            libBackupsArray = null;
+        
+        if (cellBackupsArray == null && cellBounds == null && libBackups == null) return this;
+        return with(tool, cellBackupsArray, cellBoundsArray, libBackupsArray);
     }
     
     public List<LibId> getChangedLibraries(Snapshot oldSnapshot) {
@@ -487,7 +546,9 @@ public class Snapshot {
             assert libBackups.get(libBackups.size() - 1) != null;
         if (cellBackups.size() > 0)
             assert cellBackups.get(cellBackups.size() - 1) != null;
+        int[] cellGroups = new int[cellBackups.size()];
         checkNames(idManager, cellBackups, cellGroups, libBackups);
+        assert Arrays.equals(this.cellGroups, cellGroups);
         assert cellBackups.size() == cellBounds.size();
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
@@ -517,20 +578,23 @@ public class Snapshot {
      */
     private static void checkNames(IdManager idManager, ImmutableArrayList<CellBackup> cellBackups, int[] cellGroups, ImmutableArrayList<LibraryBackup> libBackups) {
         HashSet<String> libNames = new HashSet<String>();
-        ArrayList<HashMap<String,Integer>> protoNameToGroup = new ArrayList<HashMap<String,Integer>>();
+        ArrayList<HashMap<String,CellName>> protoNameToGroupName = new ArrayList<HashMap<String,CellName>>();
         ArrayList<HashSet<CellName>> cellNames = new ArrayList<HashSet<CellName>>();
+        ArrayList<HashMap<CellName,Integer>> groupNameToGroupIndex = new ArrayList<HashMap<CellName,Integer>>();
         for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
             LibraryBackup libBackup = libBackups.get(libIndex);
             if (libBackup == null) {
-                protoNameToGroup.add(null);
+                protoNameToGroupName.add(null);
                 cellNames.add(null);
+                groupNameToGroupIndex.add(null);
                 continue;
             }
-            protoNameToGroup.add(new HashMap<String,Integer>());
+            protoNameToGroupName.add(new HashMap<String,CellName>());
             cellNames.add(new HashSet<CellName>());
+            groupNameToGroupIndex.add(new HashMap<CellName,Integer>());
             if (libBackup.d.libId != idManager.getLibId(libIndex))
                 throw new IllegalArgumentException("LibId");
-            String libName = libBackup.d.libName;
+            String libName = libBackup.d.libId.libName;
             if (!libNames.add(libName))
                 throw new IllegalArgumentException("duplicate libName");
             for (LibId libId: libBackup.referencedLibs) {
@@ -538,20 +602,14 @@ public class Snapshot {
                     throw new IllegalArgumentException("LibId in referencedLibs");
             }
         }
-        assert protoNameToGroup.size() == libBackups.size() && cellNames.size() == libBackups.size();
+        assert protoNameToGroupName.size() == libBackups.size() && cellNames.size() == libBackups.size() && groupNameToGroupIndex.size() == libBackups.size();
         
-        if (cellBackups.size() != cellGroups.length)
-            throw new IllegalArgumentException("cellGroups.length");
-        ArrayList<LibId> groupLibs = new ArrayList<LibId>();
-        ArrayList<CellName> groupNames = new ArrayList<CellName>();
-        BitSet mainSchematicsFoundInGroup = new BitSet();
+        assert cellBackups.size() == cellGroups.length;
+        Arrays.fill(cellGroups, -1);
+        int groupCount = 0;
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
-            if (cellBackup == null) {
-                if (cellGroups[cellIndex] != -1)
-                    throw new IllegalArgumentException("cellGroups");
-                continue;
-            }
+            if (cellBackup == null) continue;
             ImmutableCell d = cellBackup.d;
             CellId cellId = d.cellId;
             if (cellId != idManager.getCellId(cellIndex))
@@ -560,32 +618,24 @@ public class Snapshot {
             int libIndex = libId.libIndex;
             if (libId != libBackups.get(libIndex).d.libId)
                 throw new IllegalArgumentException("LibId in ImmutableCell");
-            int cellGroup = cellGroups[cellIndex];
-            if (cellGroup == groupLibs.size()) {
-                groupLibs.add(libId);
-                groupNames.add(d.groupName);
-            } else {
-                if (groupLibs.get(cellGroup) != libId)
-                    throw new IllegalArgumentException("cellGroups mix of libraries");
-                if (!groupNames.get(cellGroup).equals(d.groupName))
-                    throw new IllegalArgumentException("cellGroup names are not consistent");
-            }
-            HashMap<String,Integer> cellNameToGroupInLibrary = protoNameToGroup.get(libId.libIndex);
-            String protoName = d.cellName.getName();
-            Integer gn = cellNameToGroupInLibrary.get(protoName);
-            if (gn == null)
-                cellNameToGroupInLibrary.put(protoName, Integer.valueOf(cellGroup));
-            else if (gn.intValue() != cellGroup)
-                throw new IllegalArgumentException("cells with same proto name in different groups");
+            HashMap<String,CellName> cellNameToGroupNameInLibrary = protoNameToGroupName.get(libId.libIndex);
             HashSet<CellName> cellNamesInLibrary = cellNames.get(libId.libIndex);
+            HashMap<CellName,Integer> groupNameToGroupIndexInLibrary = groupNameToGroupIndex.get(libId.libIndex);
+            String protoName = d.cellName.getName();
+            CellName groupName = cellNameToGroupNameInLibrary.get(protoName);
+            if (groupName == null) {
+                groupName = d.groupName;
+                cellNameToGroupNameInLibrary.put(protoName, groupName);
+            } else if (!d.groupName.equals(groupName))
+                throw new IllegalArgumentException("cells with same proto name in different groups");
+            Integer gn = groupNameToGroupIndexInLibrary.get(groupName);
+            if (gn == null) {
+                gn = Integer.valueOf(groupCount++);
+                groupNameToGroupIndexInLibrary.put(groupName, gn);
+            }
+            cellGroups[cellIndex] = gn.intValue();
             if (!cellNamesInLibrary.add(d.cellName))
                 throw new IllegalArgumentException("duplicate CellName in library");
-            
-            if (cellBackup.isMainSchematics) {
-                if (mainSchematicsFoundInGroup.get(cellGroup))
-                    throw new IllegalArgumentException("second main schematics in group");
-                mainSchematicsFoundInGroup.set(cellGroup);
-            }
         }
     }
 }

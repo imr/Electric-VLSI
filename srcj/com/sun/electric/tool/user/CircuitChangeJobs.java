@@ -22,6 +22,8 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
@@ -43,6 +45,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -58,6 +61,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -3041,6 +3045,7 @@ public class CircuitChangeJobs
 	{
 		private Library lib;
 		private String newName;
+        private IdMapper idMapper;
 
 		public RenameLibrary(Library lib, String newName)
 		{
@@ -3053,26 +3058,16 @@ public class CircuitChangeJobs
 		public boolean doIt() throws JobException
 		{
 			String oldName = lib.getName();
-			if (lib.setName(newName)) return false;
+            idMapper = lib.setName(newName);
+ 			if (idMapper == null) return false;
+            fieldVariableChanged("idMapper");
 			System.out.println("Library '" + oldName + "' renamed to '" + newName + "'");
-
-            // mark this library for saving
-//            lib.setChanged();
-//
-//			// mark for saving, all libraries that depend on this
-//			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
-//			{
-//				Library oLib = it.next();
-//				if (oLib.isHidden()) continue;
-//				if (oLib == lib) continue;
-//				if (oLib.isChanged()) continue;
-//	
-//				// see if any cells in this library reference the renamed one
-//                if (oLib.referencesLib(lib))
-//                    oLib.setChanged();
-//			}
 			return true;
 		}
+        
+        public void terminateOK() {
+            User.fixStaleCellReferences(idMapper);
+        }
 	}
 
 	/**

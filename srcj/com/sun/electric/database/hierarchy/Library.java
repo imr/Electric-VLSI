@@ -24,11 +24,14 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableLibrary;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
+import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -102,15 +105,15 @@ public class Library extends ElectricObject implements Comparable<Library>
         this.database = database;
         this.d = d;
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
-        prefs = allPrefs.node(d.libName);
-        prefs.put("LIB", d.libName);
+        prefs = allPrefs.node(getName());
+        prefs.put("LIB", getName());
 	}
 
 	/**
 	 * This method is a factory to create new libraries.
 	 * A Library has both a name and a file.
 	 * @param libName the name of the library (for example, "gates").
-	 * Library names must be unique, and they must not contain spaces.
+	 * Library names must be unique, and they must not contain spaces or colons.
 	 * @param libFile the URL to the disk file (for example "/home/strubin/gates.elib").
 	 * If the Library is being created, the libFile can be null.
 	 * If the Library file is given and it points to an existing file, then the I/O system
@@ -120,7 +123,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	public static Library newInstance(String libName, URL libFile)
 	{
 		// make sure the name is legal
-        String legalName = legalLibraryName(libName);
+        String legalName = LibId.legalLibraryName(libName);
         if (legalName == null) return null;
 		if (legalName != libName)
 			System.out.println("Warning: library '" + libName + "' renamed to '" + legalName + "'");
@@ -135,30 +138,23 @@ public class Library extends ElectricObject implements Comparable<Library>
 		
 		// create the library
         EDatabase database = EDatabase.theDatabase;
-        return newInstance(database, database.getIdManager().newLibId(), legalName, libFile);
+        return newInstance(database, database.getIdManager().newLibId(legalName), libFile);
 	}
 
 	/**
 	 * This method is a factory to create new libraries.
 	 * A Library has both a name and a file.
      * @param libId ID of new Library. 
-	 * @param legalName the name of the library (for example, "gates").
-	 * Library names must be unique, and they must not contain spaces.
 	 * @param libFile the URL to the disk file (for example "/home/strubin/gates.elib").
 	 * If the Library is being created, the libFile can be null.
 	 * If the Library file is given and it points to an existing file, then the I/O system
 	 * can be told to read that file and populate the Library.
 	 * @return the Library object.
      * @throws NullPointerException if libId or legalName is null.
-     * @throws IllegalArgumentException if libId is occupied or legalName is not legal or
-     * library with such name exists
 	 */
-	private static Library newInstance(EDatabase edb, LibId libId, String legalName, URL libFile) {
-        if (legalName == null) throw new NullPointerException();
-        if (legalName != legalLibraryName(legalName)) throw new IllegalArgumentException(legalName);
-        
+	private static Library newInstance(EDatabase edb, LibId libId, URL libFile) {
 		// create the library
-        ImmutableLibrary d = ImmutableLibrary.newInstance(libId, legalName, libFile, null);
+        ImmutableLibrary d = ImmutableLibrary.newInstance(libId, libFile, null);
 		Library lib = new Library(edb, d);
 
 		// add the library to the global list
@@ -699,9 +695,10 @@ public class Library extends ElectricObject implements Comparable<Library>
             assert backup.referencedLibs.length == referencedLibs.size();
         }
         super.check();
-		assert d.libName != null;
-		assert d.libName.length() > 0;
-		assert d.libName.indexOf(' ') == -1 && d.libName.indexOf(':') == -1 : d.libName;
+        String libName = d.libId.libName;
+		assert libName != null;
+		assert libName.length() > 0;
+		assert libName.indexOf(' ') == -1 && libName.indexOf(':') == -1 : libName;
         for (int i = 0; i < referencedLibs.size(); i++) {
             Library rLib = referencedLibs.get(i);
             assert rLib.isLinked() && rLib.database == database;
@@ -900,94 +897,93 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 * Method to return the name of this Library.
 	 * @return the name of this Library.
 	 */
-	public String getName() { return d.libName; }
+	public String getName() { return d.libId.libName; }
 
 	/**
 	 * Method to set the name of this Library.
 	 * @param libName the new name of this Library.
-	 * @return false if the library was renamed.
-	 * True on error.
+	 * @return mapping of Library/Cell/Export ids, null if the library was renamed.
 	 */
-	public boolean setName(String libName)
+	public IdMapper setName(String libName)
 	{
-		if (d.libName.equals(libName)) return true;
+		if (d.libId.libName.equals(libName)) return null;
 
 		// make sure the name is legal
-        if (legalLibraryName(libName) != libName) {
+        if (LibId.legalLibraryName(libName) != libName) {
             System.out.println("Error: '"+libName+"' is not a valid name");
-            return true;
+            return null;
         }
 		Library already = findLibrary(libName);
 		if (already != null)
 		{
 			System.out.println("Already a library called " + already.getName());
-			return true;
+			return null;
 		}
 
-		String oldName = d.libName;
-		lowLevelRename(libName);
-		Constraints.getCurrent().renameObject(this, oldName);
-//        setChanged();
-        assert isLinked();
-        database.unfreshSnapshot();
-        for (Cell cell: cells.values())
-            cell.notifyRename();
-		return false;
+        Snapshot oldSnapshot = database.backup();
+        LibId newLibId = oldSnapshot.idManager.newLibId(libName);
+        IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, d.libId, newLibId);
+        Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper);
+        LibraryBackup[] libBackups = newSnapshot.libBackups.toArray(new LibraryBackup[newSnapshot.libBackups.size()]);
+        LibraryBackup libBackup = libBackups[newLibId.libIndex];
+        
+        String newLibFile = TextUtils.getFilePath(d.libFile) + libName;
+        String extension = TextUtils.getExtension(d.libFile);
+        if (extension.length() > 0) newLibFile += "." + extension;
+        URL libFile = TextUtils.makeURLToFile(newLibFile);
+        libBackups[newLibId.libIndex] = new LibraryBackup(libBackup.d.withLibFile(libFile), true, libBackup.referencedLibs);
+        newSnapshot = newSnapshot.with(null, null, null, libBackups);
+        checkChanging();
+        boolean isCurrent = getCurrent() == this;
+        database.lowLevelSetCanUndoing(true);
+        database.undo(newSnapshot);
+        database.lowLevelSetCanUndoing(false);
+        Constraints.getCurrent().renameIds(idMapper);
+        Library newLib = database.getLib(newLibId);
+        if (isCurrent)
+            newLib.setCurrent();
+        return idMapper;
+        
+//		String oldName = d.libId.libName;
+//		lowLevelRename(libName);
+//		Constraints.getCurrent().renameObject(this, oldName);
+////        setChanged();
+//        assert isLinked();
+//        database.unfreshSnapshot();
+//        for (Cell cell: cells.values())
+//            cell.notifyRename();
+//		return this;
 	}
 
-	/**
-	 * Method to rename this Library.
-	 * This method is for low-level use by the database, and should not be called elsewhere.
-	 * @param libName the new name of the Library.
-	 */
-	public void lowLevelRename(String libName)
-	{
-		String newLibFile = TextUtils.getFilePath(d.libFile) + libName;
-		String extension = TextUtils.getExtension(d.libFile);
-		if (extension.length() > 0) newLibFile += "." + extension;
-		URL libFile = TextUtils.makeURLToFile(newLibFile);
+//	/**
+//	 * Method to rename this Library.
+//	 * This method is for low-level use by the database, and should not be called elsewhere.
+//	 * @param libName the new name of the Library.
+//	 */
+//	private void lowLevelRename(String libName)
+//	{
+//		String newLibFile = TextUtils.getFilePath(d.libFile) + libName;
+//		String extension = TextUtils.getExtension(d.libFile);
+//		if (extension.length() > 0) newLibFile += "." + extension;
+//		URL libFile = TextUtils.makeURLToFile(newLibFile);
+//
+//        database.libraries.remove(d.libName);
+//        setD(d.withName(libName, libFile));
+//		database.libraries.put(libName, this);
+//        assert isLinked();
+//        database.unfreshSnapshot();
+//        
+//        Cell curCell = getCurCell();
+//        prefs = allPrefs.node(libName);
+//        prefs.put("LIB", libName);
+//        curCellPref = null;
+//        setCurCell(curCell);
+//        for (Iterator<Cell> it = getCells(); it.hasNext(); ) {
+//            Cell cell = it.next();
+//            cell.expandStatusChanged();
+//        }
+//	}
 
-        database.libraries.remove(d.libName);
-        setD(d.withName(libName, libFile));
-		database.libraries.put(libName, this);
-        assert isLinked();
-        database.unfreshSnapshot();
-        
-        Cell curCell = getCurCell();
-        prefs = allPrefs.node(libName);
-        prefs.put("LIB", libName);
-        curCellPref = null;
-        setCurCell(curCell);
-        for (Iterator<Cell> it = getCells(); it.hasNext(); ) {
-            Cell cell = it.next();
-            cell.expandStatusChanged();
-        }
-	}
-
-    /**
-     * Checks that string is legal library name.
-     * If not, tries to convert string to legal library name.
-     * @param libName specified library name.
-     * @return legal library name obtained from specified library name,
-     *   or null if speicifed name is null or empty.
-     */
-    public static String legalLibraryName(String libName) {
-        if (libName == null || libName.length() == 0) return null;
-        int i = 0;
-        for (; i < libName.length(); i++) {
-            char ch = libName.charAt(i);
-            if (Character.isWhitespace(ch) || ch == ':') break;
-        }
-        if (i == libName.length()) return libName;
-        
-        char[] chars = libName.toCharArray();
-        for (; i < libName.length(); i++) {
-            char ch = chars[i];
-            chars[i] = Character.isWhitespace(ch) || ch == ':' ? '-' : ch;
-        }
-        return new String(chars);
-    }
-    
 	/**
 	 * Method to return the URL of this Library.
 	 * @return the URL of this Library.
@@ -1000,7 +996,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 */
 	public void setLibFile(URL libFile)
 	{
-		setD(d.withName(d.libName, libFile));
+		setD(d.withLibFile(libFile));
 	}
 
     /**
@@ -1010,7 +1006,7 @@ public class Library extends ElectricObject implements Comparable<Library>
      */
 	public int compareTo(Library that)
 	{
-		return TextUtils.STRING_NUMBER_ORDER.compare(d.libName, that.d.libName);
+		return TextUtils.STRING_NUMBER_ORDER.compare(getName(), that.getName());
     }
 
 	/**
@@ -1019,7 +1015,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 	 */
 	public String toString()
 	{
-		return "library '" + d.libName + "'";
+		return "library '" + getName() + "'";
 	}
 
 	// ----------------- cells --------------------

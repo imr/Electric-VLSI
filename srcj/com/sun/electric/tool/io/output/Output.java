@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
@@ -33,7 +34,6 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -76,7 +76,6 @@ import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -182,7 +181,7 @@ public class Output
             if (libBackup == null) continue;
             if ((libBackup.d.flags & Library.HIDDENLIBRARY) != 0) continue;
             LibId libId = libBackup.d.libId;
-            String libName = libBackup.d.libName;
+            String libName = libBackup.d.libId.libName;
             URL libURL = libBackup.d.libFile;
             File newLibFile = null;
             if (libURL == null || libURL.getPath() == null) {
@@ -206,7 +205,7 @@ public class Output
             if (jelib.openTextOutputStream(properOutputName) ||
                     jelib.writeLib(panicSnapshot, libId, libFiles, oldRevision) ||
                     jelib.closeTextOutputStream()) {
-                System.out.println("Error saving "+panicSnapshot.getLib(libId).d.libName);
+                System.out.println("Error saving "+panicSnapshot.getLib(libId).d.libId.libName);
                 error = true;
             }
         }
@@ -214,6 +213,34 @@ public class Output
         return error;
     }
     
+    /**
+     * Method to write an entire Library in JELIB format.
+     * This method doesn't modifiy library, so it can be run out of Job.
+     * @param newName name which is used to prepare file name of the library.
+     * @param lib library to save
+     */
+    public static boolean saveJelib(String newName, Library lib) {
+        HashMap<LibId,URL> libFiles = new HashMap<LibId,URL>();
+        // rename the library if requested
+        URL libURL = lib.getLibFile();
+        if (newName != null) {
+            libURL = TextUtils.makeURLToFile(newName);
+            libFiles.put(lib.getId(), libURL);
+//            lib.setLibFile(libURL);
+//            lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
+        }
+        boolean error = false;
+        String properOutputName = TextUtils.getFilePath(libURL) + TextUtils.getFileNameWithoutExtension(libURL) + ".jelib";
+        JELIB jelib = new JELIB();
+        if (jelib.openTextOutputStream(properOutputName) ||
+                jelib.writeLib(lib.getDatabase().backup(), lib.getId(), libFiles, false) ||
+                jelib.closeTextOutputStream()) {
+            System.out.println("Error saving "+lib.getName());
+            error = true;
+        }
+        return error;
+    }
+
 	/**
 	 * Method to write an entire Library with a particular format.
 	 * This is used for output formats that capture the entire library
@@ -988,6 +1015,7 @@ public class Output
     {
         private Library lib;
         private String newName;
+        private IdMapper idMapper;
 
         public WriteJELIB(Library lib, String newName)
         {
@@ -1002,18 +1030,24 @@ public class Output
             boolean error = false;
             try
             {
-            	if (newName != null)
-            	{
-	                URL libURL = TextUtils.makeURLToFile(newName);
-	                lib.setLibFile(libURL);
-	                lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
-            	}
+                if (newName != null) {
+                    URL libURL = TextUtils.makeURLToFile(newName);
+                    lib.setLibFile(libURL);
+                    idMapper = lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
+                    if (idMapper != null)
+                        lib = EDatabase.serverDatabase().getLib(idMapper.get(lib.getId()));
+                }
+                fieldVariableChanged("idMapper");
                 error = Output.writeLibrary(lib, FileType.JELIB, false, false);
             } catch (Exception e)
             {
             	throw new JobException("Exception caught when saving library: " + e.getMessage());
             }
             return !error;
+        }
+        
+        public void terminateOK() {
+            User.fixStaleCellReferences(idMapper);
         }
     }
 }

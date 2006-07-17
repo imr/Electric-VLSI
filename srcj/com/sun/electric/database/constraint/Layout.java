@@ -25,6 +25,8 @@ package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.ExportId;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableExport;
@@ -238,6 +240,18 @@ public class Layout extends Constraints
 	 * @param lib the Library that will be saved.
 	 */
 	public void writeLibrary(Library lib) { librariesWritten.add(lib.getId()); }
+    
+    /**
+     * Method to announce than Ids were renamed.
+     * @param idMapper mapper from old Ids to new Ids.
+     */
+    public void renameIds(IdMapper idMapper) {
+        EDatabase database = EDatabase.serverDatabase();
+        for (CellId cellId: idMapper.getNewCellIds())
+            newObject(cellId.inDatabase(database));
+        for (ExportId exportId: idMapper.getNewExportIds())
+            newObject(exportId.inDatabase(database));
+    }
     
 	/**
 	 * Method to set temporary rigidity on an ArcInst.

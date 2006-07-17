@@ -27,6 +27,7 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProtoId;
+import com.sun.electric.database.text.CellName;
 
 import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
@@ -40,11 +41,13 @@ import java.util.Random;
  * This class is thread-safe except inCurrentThread method in 1.5, but not thread-safe in 1.4  .
  */
 public final class CellId implements NodeProtoId, Serializable {
-    /** Empty ExportId array for initialization. */
+    /** Empty CellId array for initialization. */
     public static final CellId[] NULL_ARRAY = {};
     
-    /** IdManager which owns this LibId. */
+    /** IdManager which owns this CellId. */
     public final IdManager idManager;
+    /** CellName of this CellId. */
+    public final CellName cellName;
     /** Unique index of this cell in the database. */
     public final int cellIndex;
     /**
@@ -101,8 +104,9 @@ public final class CellId implements NodeProtoId, Serializable {
     /**
      * CellId constructor.
      */
-    CellId(IdManager idManager, int cellIndex) {
+    CellId(IdManager idManager, CellName cellName, int cellIndex) {
         this.idManager = idManager;
+        this.cellName = cellName;
         this.cellIndex = cellIndex;
     }
     

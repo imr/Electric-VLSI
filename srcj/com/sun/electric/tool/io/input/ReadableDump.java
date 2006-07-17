@@ -125,6 +125,7 @@ public class ReadableDump extends LibraryFiles
 	/** The CellName of the current Cell being processed. */		private CellName curCellName;
 	/** The creation date of the current Cell being processed. */	private int curCellCreationDate;
 	/** The revision date of the current Cell being processed. */	private int curCellRevisionDate;
+    /** The technology of the current Cell being processed. */      private Technology curCellTech;
 	/** The userbits of the current Cell being processed. */		private int curCellUserbits;
 	/** The low X bounds of the current Cell being processed. */	private int curCellLowX;
 	/** The high X bounds of the current Cell being processed. */	private int curCellHighX;
@@ -831,11 +832,11 @@ public class ReadableDump extends LibraryFiles
 		arcInstList = new ArcInstList[nodeProtoCount];
 		exportList = new ExportList[nodeProtoCount];
 
-		for(int i=0; i<nodeProtoCount; i++)
-		{
-			allCellsArray[i] = nodeProtoList[i] = Cell.lowLevelAllocate(lib);
-			if (nodeProtoList[i] == null) break;
-		}
+//		for(int i=0; i<nodeProtoCount; i++)
+//		{
+//			allCellsArray[i] = nodeProtoList[i] = Cell.lowLevelAllocate(lib);
+//			if (nodeProtoList[i] == null) break;
+//		}
 	}
 
 	/**
@@ -895,11 +896,19 @@ public class ReadableDump extends LibraryFiles
 	private void keywordNewCel()
 	{
 		curCellNumber = TextUtils.atoi(keyWord);
-		curCell = nodeProtoList[curCellNumber];
+//		curCell = nodeProtoList[curCellNumber];
 
+        curCell = null;
+        curCellName = null;
+        curCellCreationDate = curCellRevisionDate = 0;
+        curCellTech = null;
+        curCellUserbits = 0;
+        curCellLowX = curCellHighX = curCellLowY = curCellHighY = 0;
+        
 		curCellGroup = -1;
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0) curCellGroup = TextUtils.atoi(keyWord.substring(slashPos+1));
+        
 		textLevel = INCELL;
 		varPos = INVNODEPROTO;
 	}
@@ -1080,9 +1089,12 @@ public class ReadableDump extends LibraryFiles
 
 	private void finishCellInitialization()
 	{
+        allCellsArray[curCellNumber] = nodeProtoList[curCellNumber] = curCell = Cell.newInstance(lib, curCellName.toString());
 		curCell.setTempInt(curCellGroup);
-		curCell.lowLevelPopulate(curCellName.toString());
-		curCell.lowLevelLink();
+//		curCell.lowLevelPopulate(curCellName.toString());
+        if (curCellTech != null)
+            curCell.setTechnology(curCellTech);
+//		curCell.lowLevelLink();
 		curCell.lowLevelSetCreationDate(ELIBConstants.secondsToDate(curCellCreationDate));
 		curCell.lowLevelSetRevisionDate(ELIBConstants.secondsToDate(curCellRevisionDate));
 		curCell.lowLevelSetUserbits(curCellUserbits);
@@ -1094,7 +1106,7 @@ public class ReadableDump extends LibraryFiles
 	private void keywordTech()
 	{
 		Technology tech = findTechnologyName(keyWord);
-		curCell.setTechnology(tech);
+        curCellTech = tech;
 	}
 
 	/**

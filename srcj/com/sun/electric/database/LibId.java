@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.CellName;
 
 import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
@@ -36,17 +37,24 @@ import java.io.Serializable;
  * This class is thread-safe except inCurrentThread method.
  */
 public final class LibId implements Serializable {
+    /** Empty LibId array for initialization. */
+    public static final LibId[] NULL_ARRAY = {};
     
     /** IdManager which owns this LibId. */
     public final IdManager idManager;
+    /** Library name */
+    public final String libName;
     /** Unique index of this lib in the database. */
     public final int libIndex;
     
     /**
      * LibId constructor.
      */
-    LibId(IdManager idManager, int libIndex) {
+    LibId(IdManager idManager, String libName, int libIndex) {
+        if (legalLibraryName(libName) != libName)
+            throw new IllegalArgumentException(libName);
         this.idManager = idManager;
+        this.libName = libName;
         this.libIndex = libIndex;
     }
     
@@ -66,6 +74,14 @@ public final class LibId implements Serializable {
     }
          
     /**
+     * Returns new CellId with cellIndex unique in this IdManager.
+     * @return new CellId.
+     */
+    public CellId newCellId(CellName cellName) {
+        return idManager.newCellId(cellName);
+    }
+    
+    /**
      * Method to return the Library representing LibId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the Library representing LibId in the specified database.
@@ -74,13 +90,42 @@ public final class LibId implements Serializable {
     public Library inDatabase(EDatabase database) { return database.getLib(this); }
     
 	/**
-	 * Returns a printable version of this CellId.
-	 * @return a printable version of this CellId.
+	 * Returns a printable version of this LibId.
+	 * @return a printable version of this LibId.
 	 */
-    public String toString() {
-        String s = "LibraryId#" + libIndex;
-        Library lib = Library.inCurrentThread(this);
-        if (lib != null) s += "(" + lib.getName() + ")";
-        return s;
+    public String toString() { return libName; }
+    
+	/**
+	 * Checks invariants in this LibId.
+     * @exception AssertionError if invariants are not valid
+	 */
+    void check() {
+        assert this == idManager.getLibId(libIndex);
+        assert legalLibraryName(libName) == libName;
+    }
+
+    
+    /**
+     * Checks that string is legal library name.
+     * If not, tries to convert string to legal library name.
+     * @param libName specified library name.
+     * @return legal library name obtained from specified library name,
+     *   or null if speicifed name is null or empty.
+     */
+    public static String legalLibraryName(String libName) {
+        if (libName == null || libName.length() == 0) return null;
+        int i = 0;
+        for (; i < libName.length(); i++) {
+            char ch = libName.charAt(i);
+            if (Character.isWhitespace(ch) || ch == ':') break;
+        }
+        if (i == libName.length()) return libName;
+        
+        char[] chars = libName.toCharArray();
+        for (; i < libName.length(); i++) {
+            char ch = chars[i];
+            chars[i] = Character.isWhitespace(ch) || ch == ':' ? '-' : ch;
+        }
+        return new String(chars);
     }
 }

@@ -25,14 +25,17 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
@@ -529,6 +532,31 @@ public class User extends Listener
                 wnd.setCell(null, null, null);
             } else if (marked.contains(winCell)) {
                 wnd.repaintContents(null, false);
+            }
+        }
+    }
+    
+    /**
+     * Reloading oe renaming libraries has the side affect that any EditWindows
+     * containing cells that were reloaded now point to old, unlinked
+     * cells instead of the new ones. This method checks for this state
+     * and fixes it.
+     * @param idMapper mapping of Library/Cell/Export ids, null if the library was renamed.
+     */
+    public static void fixStaleCellReferences(IdMapper idMapper) {
+        if (idMapper == null) return;
+        for (Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+            WindowFrame frame = it.next();
+            if (frame.getContent() instanceof EditWindow) {
+                EditWindow wnd = (EditWindow)frame.getContent();
+                Cell cell = wnd.getCell();
+                if (cell == null) continue;
+                if (!cell.isLinked()) {
+                    CellId cellId = idMapper.get(cell.getId());
+                    Cell newCell = EDatabase.clientDatabase().getCell(cellId);
+                    if (newCell == null) continue;
+                    wnd.setCell(newCell, VarContext.globalContext, null);
+                }
             }
         }
     }

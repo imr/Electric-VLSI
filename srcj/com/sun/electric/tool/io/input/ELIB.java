@@ -452,21 +452,21 @@ public class ELIB extends LibraryFiles
 				arcCounts[i] = nodeCounts[i] = portCounts[i] = 0;
 		}
 
-		// allocate all cells in the library
-		for(int i=0; i<nodeProtoCount; i++)
-		{
-			if (arcCounts[i] < 0 && nodeCounts[i] < 0)
-			{
-				// this cell is from an external library
-				nodeProtoList[i] = null;
-				xLibRefSatisfied[i] = false;
-			} else
-			{
-				nodeProtoList[i] = Cell.lowLevelAllocate(lib);
-				if (nodeProtoList[i] == null) return true;
-				xLibRefSatisfied[i] = true;
-			}
-		}
+//		// allocate all cells in the library
+//		for(int i=0; i<nodeProtoCount; i++)
+//		{
+//			if (arcCounts[i] < 0 && nodeCounts[i] < 0)
+//			{
+//				// this cell is from an external library
+//				nodeProtoList[i] = null;
+//				xLibRefSatisfied[i] = false;
+//			} else
+//			{
+//				nodeProtoList[i] = Cell.lowLevelAllocate(lib);
+//				if (nodeProtoList[i] == null) return true;
+//				xLibRefSatisfied[i] = true;
+//			}
+//		}
 
 		// setup pointers for technologies and primitives
 		primNodeProtoCount = 0;
@@ -772,12 +772,14 @@ public class ELIB extends LibraryFiles
 
 		// read the cells
 		exportIndex = 0;
-		HashMap<Cell,Cell> nextInCellGroup = new HashMap<Cell,Cell>();
+		HashMap<Cell,Integer> nextInCellGroup = new HashMap<Cell,Integer>();
 		for(int i=0; i<nodeProtoCount; i++)
 		{
-			Cell cell = nodeProtoList[i];
-			if (cell == null) continue;
-			if (readNodeProto(cell, i, nextInCellGroup))
+			if (arcCounts[i] < 0 && nodeCounts[i] < 0) continue;
+            xLibRefSatisfied[i] = true;
+//			Cell cell = nodeProtoList[i];
+//			if (cell == null) continue;
+			if (readNodeProto(i, nextInCellGroup))
 			{
 				System.out.println("Error reading cell");
 				return true;
@@ -798,7 +800,7 @@ public class ELIB extends LibraryFiles
 				protoNames.put(protoName, protoName);
 			}
 			transitive.theseAreRelated(cell, protoName);
-			Cell otherCell = nextInCellGroup.get(cell);
+			Cell otherCell = nodeProtoList[nextInCellGroup.get(cell).intValue()];
 			if (otherCell != null && cell.getLibrary() == lib)
 				transitive.theseAreRelated(cell, otherCell);
 		}
@@ -1026,9 +1028,7 @@ public class ELIB extends LibraryFiles
 		if (scaledCellName != null)
 		{
 			Cell oldCell = cell;
-			cell = Cell.lowLevelAllocate(cell.getLibrary());
-			cell.lowLevelPopulate(scaledCellName);
-			cell.lowLevelLink();
+			cell = Cell.newInstance(cell.getLibrary(), scaledCellName);
 			cell.setTempInt(cellIndex);
 			recursiveSetupFlag.add(cell);
 			cell.joinGroup(oldCell);
@@ -1581,13 +1581,15 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to read a cell.  returns true upon error
 	 */
-	private boolean readNodeProto(Cell cell, int cellIndex, HashMap<Cell,Cell> nextInCellGroup)
+	private boolean readNodeProto(int cellIndex, HashMap<Cell,Integer> nextInCellGroup)
 		throws IOException
 	{
+        Cell cell;
 		// read the cell name
 		String theProtoName;
 		if (magic <= ELIBConstants.MAGIC9)
 		{
+            Integer nextInCell = null;
 			// read the cell information (version 9 and later)
 			if (magic >= ELIBConstants.MAGIC11)
 			{
@@ -1602,13 +1604,14 @@ public class ELIB extends LibraryFiles
 
                 // fix for new cell version library corruption bug
                 if (k == -1) {
-                    // find self in list
-                    for (int i=0; i<nodeProtoList.length; i++) {
-                        if (cell == nodeProtoList[i]) { k = i; break; }
-                    }
+                    k = cellIndex;
+//                    // find self in list
+//                    for (int i=0; i<nodeProtoList.length; i++) {
+//                        if (cell == nodeProtoList[i]) { k = i; break; }
+//                    }
                 }
 
-                nextInCellGroup.put(cell, nodeProtoList[k]);		// the "next in cell group" circular pointer
+                nextInCell = Integer.valueOf(k); // the "next in cell group" circular pointer
 				k = readBigInteger();
 //				cell->nextcont = nodeProtoList[k];		// the "next in cell continuation" circular pointer
 			}
@@ -1616,6 +1619,9 @@ public class ELIB extends LibraryFiles
 			if (v == null) v = View.UNKNOWN;
 			int version = readBigInteger();
 			theProtoName += ";" + version + "{" + v.getAbbreviation() + "}";
+            cell = Cell.lowLevelAllocate(lib, theProtoName);
+            if (nextInCell != null)
+                nextInCellGroup.put(cell, nextInCell);
 			int creationDate = readBigInteger();
 			int revisionDate = readBigInteger();
 			cell.lowLevelSetCreationDate(ELIBConstants.secondsToDate(creationDate));
@@ -1624,11 +1630,9 @@ public class ELIB extends LibraryFiles
 		{
 			// versions 8 and earlier read a cell name
 			theProtoName = readString();
+            cell = Cell.lowLevelAllocate(lib, theProtoName);
 		}
-		if (cell.lowLevelPopulate(theProtoName)) {
-            System.out.println("Strange cell name " + theProtoName + " in library " + lib);
-            cell.lowLevelPopulate("?????????????????");
-        }
+        nodeProtoList[cellIndex] = cell;
         assert cell.getCellName() != null;
 
 		// ignore the cell bounding box

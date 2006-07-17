@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
+
 import java.io.IOException;
 
 /**
@@ -77,7 +78,7 @@ public class ImmutableCell extends ImmutableElectricObject {
     public static ImmutableCell newInstance(CellId cellId, LibId libId, CellName cellName, long creationDate) {
         if (cellId == null) throw new NullPointerException("cellId");
         if (libId == null) throw new NullPointerException("libId");
-//        if (cellName == null) throw new NullPointerException("cellName");
+        if (cellName == null) throw new NullPointerException("cellName");
 		return new ImmutableCell(cellId, libId, cellName, null, creationDate, null, 0, Variable.NULL_ARRAY);
     }
 
@@ -101,7 +102,8 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
 	public ImmutableCell withCellName(CellName cellName) {
         if (this.cellName == cellName) return this;
-        if (this.cellName != null && this.cellName.equals(cellName)) return this;
+        if (cellName == null) throw new NullPointerException("cellName");
+        if (this.cellName.equals(cellName)) return this;
 		return new ImmutableCell(this.cellId, this.libId, cellName, this.groupName,
                 this.creationDate, this.tech, this.flags, getVars());
 	}
@@ -184,6 +186,20 @@ public class ImmutableCell extends ImmutableElectricObject {
     }
     
 	/**
+	 * Returns ImmutableCell which differs from this ImmutableCell by renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return ImmutableCell with renamed Ids.
+	 */
+    ImmutableCell withRenamedIds(IdMapper idMapper) {
+        Variable[] vars = arrayWithRenamedIds(idMapper);
+        CellId cellId = idMapper.get(this.cellId);
+        LibId libId = idMapper.get(this.libId);
+        if (getVars() == vars && this.cellId == cellId && this.libId == libId) return this;
+		return new ImmutableCell(cellId, libId, this.cellName, this.groupName,
+                this.creationDate, this.tech, this.flags, vars);
+    }
+    
+	/**
 	 * Returns ImmutableCell which differs from this ImmutableCell by removing all Variables.
      * Returns this ImmutableCell if it hasn't variables.
 	 * @return ImmutableCell without Variables.
@@ -201,9 +217,7 @@ public class ImmutableCell extends ImmutableElectricObject {
     void write(SnapshotWriter writer) throws IOException {
         writer.writeNodeProtoId(cellId);
         writer.writeLibId(libId);
-        writer.writeBoolean(cellName != null);
-        if (cellName != null)
-            writer.writeString(cellName.toString());
+        writer.writeString(cellName.toString());
         writer.writeBoolean(groupName != null);
         if (groupName != null)
             writer.writeString(groupName.toString());
@@ -222,12 +236,8 @@ public class ImmutableCell extends ImmutableElectricObject {
     static ImmutableCell read(SnapshotReader reader) throws IOException {
         CellId cellId = (CellId)reader.readNodeProtoId();
         LibId libId = reader.readLibId();
-        CellName cellName = null;
-        boolean hasCellName = reader.readBoolean();
-        if (hasCellName) {
-            String cellNameString = reader.readString();
-            cellName = CellName.parseName(cellNameString);
-        }
+        String cellNameString = reader.readString();
+        CellName cellName = CellName.parseName(cellNameString);
         CellName groupName = null;
         boolean hasGroupName = reader.readBoolean();
         if (hasGroupName) {
@@ -271,8 +281,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         check(true);
         assert cellId != null;
         assert libId != null;
-        if (cellName != null)
-            cellName.check();
+        cellName.check();
         if (groupName != null) {
             assert groupName.getVersion() == 0;
             assert groupName.getView() == View.SCHEMATIC;

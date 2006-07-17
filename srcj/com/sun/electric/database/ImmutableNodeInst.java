@@ -34,13 +34,9 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -394,6 +390,74 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (this.getVars() == vars) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
+    }
+    
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by renamed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return ImmutableNodeInst with renamed Ids.
+	 */
+    ImmutableNodeInst withRenamedIds(IdMapper idMapper) {
+        Variable[] vars = arrayWithRenamedIds(idMapper);
+        NodeProtoId protoId = this.protoId;
+        ImmutablePortInst[] ports = portsWithRenamedIds(idMapper);
+        if (protoId instanceof CellId)
+            protoId = idMapper.get((CellId)protoId);
+        if (getVars() == vars && this.protoId == protoId && this.ports == ports) return this;
+		return new ImmutableNodeInst(this.nodeId, protoId, this.name, this.nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, ports);
+    }
+    
+	/**
+	 * Returns array of ImmutablePortInst which differs from array of this ImmutableNodeInst by renamed Ids.
+     * Returns array of this ImmutableNodeInst if it doesn't contain reanmed Ids.
+	 * @param idMapper a map from old Ids to new Ids.
+     * @return array of ImmutablePortInst with renamed Ids.
+	 */
+    private ImmutablePortInst[] portsWithRenamedIds(IdMapper idMapper) {
+        if (ports.length == 0) {
+            assert ports == ImmutablePortInst.NULL_ARRAY;
+            return ports;
+        }
+        if (protoId instanceof CellId) {
+            boolean chronIndexChanged = false;
+            int maxChronIndex = -1;
+            CellId subCellId = (CellId)protoId;
+            for (int chronIndex = 0; chronIndex < ports.length; chronIndex++) {
+                ImmutablePortInst oldPort = ports[chronIndex];
+                if (oldPort == ImmutablePortInst.EMPTY) continue;
+                ExportId oldExportId = subCellId.getPortId(chronIndex);
+                assert oldExportId.chronIndex == chronIndex;
+                ExportId newExportId = idMapper.get(oldExportId);
+                maxChronIndex = Math.max(maxChronIndex, newExportId.chronIndex);
+                if (newExportId.chronIndex != chronIndex)
+                    chronIndexChanged = true;
+            }
+            if (chronIndexChanged) {
+                ImmutablePortInst[] newPorts = new ImmutablePortInst[maxChronIndex + 1];
+                assert newPorts.length > 0;
+                Arrays.fill(newPorts, ImmutablePortInst.EMPTY);
+                for (int chronIndex = 0; chronIndex < ports.length; chronIndex++) {
+                    ImmutablePortInst oldPort = ports[chronIndex];
+                    if (oldPort == ImmutablePortInst.EMPTY) continue;
+                    newPorts[idMapper.get(subCellId.getPortId(chronIndex)).chronIndex] = oldPort.withRenamedIds(idMapper);
+                }
+                return newPorts;
+            }
+        }
+        
+        ImmutablePortInst[] newPorts = null;
+        for (int i = 0; i < ports.length; i++) {
+            ImmutablePortInst oldPort = ports[i];
+            ImmutablePortInst newPort = oldPort.withRenamedIds(idMapper);
+            if (newPort != oldPort && newPorts == null) {
+                newPorts = new ImmutablePortInst[ports.length];
+                System.arraycopy(ports, 0, newPorts, 0, i);
+            }
+            if (newPorts != null)
+                newPorts[i] = newPort;
+        }
+        return newPorts != null ? newPorts : ports;
     }
     
 	/**

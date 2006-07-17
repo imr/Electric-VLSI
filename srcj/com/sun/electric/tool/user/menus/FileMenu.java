@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -368,16 +369,16 @@ public class FileMenu {
 			// see if the former library can be deleted
 			if (deleteLib != null)
 			{
-				if (Library.getVisibleLibraries().size() > 1)
-				{
+//				if (Library.getVisibleLibraries().size() > 1)
+//				{
 					if (!deleteLib.kill("replace")) return false;
 					deleteLib = null;
-				} else
-				{
-					// cannot delete last library: must delete it later
-					// mangle the name so that the new one can be created
-					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
-				}
+//				} else
+//				{
+//					// cannot delete last library: must delete it later
+//					// mangle the name so that the new one can be created
+//					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
+//				}
 			}
             fieldVariableChanged("meaningVariables");
             meaningVariables = new HashMap<Object,Map<String,Object>>();
@@ -395,8 +396,8 @@ public class FileMenu {
             lib.setCurrent();
 //            showThisCell = Job.getUserInterface().getCurrentCell(lib);
 //			fieldVariableChanged("showThisCell");
-			if (deleteLib != null)
-				deleteLib.kill("replace");
+//			if (deleteLib != null)
+//				deleteLib.kill("replace");
 			return true;
 		}
 
@@ -437,16 +438,16 @@ public class FileMenu {
 			// see if the former library can be deleted
 			if (deleteLib != null)
 			{
-				if (Library.getVisibleLibraries().size() > 1)
-				{
+//				if (Library.getVisibleLibraries().size() > 1)
+//				{
 					if (!deleteLib.kill("replace")) return false;
 					deleteLib = null;
-				} else
-				{
-					// cannot delete last library: must delete it later
-					// mangle the name so that the new one can be created
-					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
-				}
+//				} else
+//				{
+//					// cannot delete last library: must delete it later
+//					// mangle the name so that the new one can be created
+//					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
+//				}
 			}
 			createLib = Input.importLibrary(fileURL, type);
 			if (createLib == null) return false;
@@ -462,8 +463,8 @@ public class FileMenu {
 //            Undo.noUndoAllowed();
 //            showThisCell =  Job.getUserInterface().getCurrentCell(createLib);
 // 			fieldVariableChanged("showThisCell");
-			if (deleteLib != null)
-				deleteLib.kill("replace");
+//			if (deleteLib != null)
+//				deleteLib.kill("replace");
 			fieldVariableChanged("createLib");
 			return true;
 		}
@@ -795,10 +796,10 @@ public class FileMenu {
         Output.writePanicSnapshot(EDatabase.clientDatabase().backup(), oldJelibDir, true);
     }
 
-    public static boolean saveLibraryNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)
-    {
-        return SaveLibrary.performTaskNoJob(newName, lib, type, compatibleWith6);
-    }
+//    public static boolean saveLibraryNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)
+//    {
+//        return SaveLibrary.performTaskNoJob(newName, lib, type, compatibleWith6);
+//    }
 
     /**
      * Class to save a library in a new thread.
@@ -811,6 +812,7 @@ public class FileMenu {
         private String newName;
         private FileType type;
         private boolean compatibleWith6;
+        private IdMapper idMapper;
 
         public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6)
         {
@@ -827,7 +829,18 @@ public class FileMenu {
             boolean success = false;
             try
             {
-            	success = performTaskNoJob(newName, lib, type, compatibleWith6);
+//                success = performTaskNoJob(newName, lib, type, compatibleWith6);
+                // rename the library if requested
+                if (newName != null) {
+                    URL libURL = TextUtils.makeURLToFile(newName);
+                    lib.setLibFile(libURL);
+                    idMapper = lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
+                    if (idMapper != null)
+                        lib = EDatabase.serverDatabase().getLib(idMapper.get(lib.getId()));
+                }
+                fieldVariableChanged("idMapper");
+                
+                success = !Output.writeLibrary(lib, type, compatibleWith6, false);
             } catch (Exception e)
             {
                 e.printStackTrace(System.out);
@@ -839,20 +852,23 @@ public class FileMenu {
             return success;
         }
 
-        protected static boolean performTaskNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)
-        {
-            // rename the library if requested
-            if (newName != null)
-            {
-                URL libURL = TextUtils.makeURLToFile(newName);
-                lib.setLibFile(libURL);
-                lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
-            }
-
-            boolean error = Output.writeLibrary(lib, type, compatibleWith6, false);
-            if (error) return false;
-            return true;
+        public void terminateOK() {
+            User.fixStaleCellReferences(idMapper);
         }
+//        protected static boolean performTaskNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)
+//        {
+//            // rename the library if requested
+//            if (newName != null)
+//            {
+//                URL libURL = TextUtils.makeURLToFile(newName);
+//                lib.setLibFile(libURL);
+//                IdMapper idMapper = lib.setName(TextUtils.getFileNameWithoutExtension(libURL));
+//            }
+//
+//            boolean error = Output.writeLibrary(lib, type, compatibleWith6, false);
+//            if (error) return false;
+//            return true;
+//        }
     }
 
     /**

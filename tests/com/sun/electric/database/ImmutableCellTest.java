@@ -55,9 +55,9 @@ public class ImmutableCellTest {
     
     @Before public void setUp() {
         idManager = new IdManager();
-        libId = idManager.newLibId();
-        cellId = idManager.newCellId();
-        fooName = CellName.parseName("foo{lay}");
+        libId = idManager.newLibId("libId0");
+        fooName = CellName.parseName("foo;1{lay}");
+        cellId = libId.newCellId(fooName);
         groupName = CellName.parseName("foo{sch}");
         d = ImmutableCell.newInstance(cellId, libId, fooName, 12345).withGroupName(groupName).withTech(Generic.tech);
         var = Variable.newInstance(Variable.newKey("A"), "foo", TextDescriptor.EMPTY.withParam(true) );
@@ -85,7 +85,7 @@ public class ImmutableCellTest {
         
         assertSame(d, d.withLibrary(libId));
         
-        LibId libId1 = idManager.newLibId();
+        LibId libId1 = idManager.newLibId("libId1");
         ImmutableCell d1 = d.withLibrary(libId1);
         d1.check();
         assertSame(d.cellId, d1.cellId );
@@ -113,7 +113,7 @@ public class ImmutableCellTest {
     @Test public void testWithCellName() {
         System.out.println("withCellName");
       
-        assertSame(d, d.withCellName(CellName.parseName("foo{lay}")));
+        assertSame(d, d.withCellName(CellName.parseName("foo;1{lay}")));
         
         CellName cellName = CellName.parseName("bar{lay}");
         ImmutableCell d1 = d.withCellName(cellName);
@@ -126,10 +126,17 @@ public class ImmutableCellTest {
         assertSame(d.tech, d1.tech);
         assertSame(d.getVars(), d1.getVars());
         assertEquals(d.flags, d1.flags);
-        
-        assertNull( d.withCellName(null).cellName );
     }
 
+    /**
+     * Test of withCellName method, of class com.sun.electric.database.ImmutableCell.
+     */
+    @Test(expected=NullPointerException.class) public void testWithCellNameNull() {
+        System.out.println("withCellNameNull");
+        
+        d.withLibrary(null);
+    }
+    
     /**
      * Test of withGroupName method, of class com.sun.electric.database.ImmutableCell.
      */
@@ -315,7 +322,7 @@ public class ImmutableCellTest {
         System.out.println("equalsExceptVariables");
         
         assertTrue( d.equalsExceptVariables(d) );
-        assertFalse( d.equalsExceptVariables(d.withLibrary(idManager.newLibId())) );
+        assertFalse( d.equalsExceptVariables(d.withLibrary(idManager.newLibId("libId1"))) );
         assertFalse( d.equalsExceptVariables(d.withCellName(CellName.parseName("bar{lay}"))) );
         assertFalse( d.equalsExceptVariables(d.withGroupName(CellName.parseName("bar{sch}"))) );
         assertFalse( d.equalsExceptVariables(d.withCreationDate(1)) );

@@ -429,7 +429,6 @@ public class Project extends Listener
         if (oldBackup.nodes != newBackup.nodes) return true;
         if (oldBackup.arcs != newBackup.arcs) return true;
         if (oldBackup.exports != newBackup.exports) return true;
-        if (oldBackup.isMainSchematics != newBackup.isMainSchematics) return true;
         // if (oldBackup.revisionDate != newBackup.revisionDate) return true;
         // if (oldBackup.modified != newBackup.modified) return true; // This will happen if subcells are renamed.
         

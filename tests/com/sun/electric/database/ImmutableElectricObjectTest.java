@@ -31,6 +31,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 
 import java.util.Iterator;
 
@@ -89,6 +90,17 @@ public class ImmutableElectricObjectTest {
         Variable[] vars1 = obj_Aa.arrayWithoutVariable(Variable.newKey("A"));
         assertEquals(1, vars1.length);
         assertSame(a_foo, vars1[0]);
+    }
+
+    /**
+     * Test of arrayWithRenamedIds method, of class com.sun.electric.database.ImmutableElectricObject.
+     */
+    @Test public void testArrayWithRenamedIds() {
+        System.out.println("arrayWithRenamedIds");
+        
+        IdMapper idMapper = new IdMapper();
+        
+        assertSame(obj_Aa.getVars(), obj_Aa.arrayWithRenamedIds(idMapper));
     }
 
     /**
