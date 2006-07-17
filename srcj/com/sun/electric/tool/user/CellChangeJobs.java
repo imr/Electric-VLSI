@@ -230,6 +230,7 @@ public class CellChangeJobs
 	public static class GraphCells extends Job
 	{
 		private Cell top;
+        private Cell graphCell;
 
 		private static class CellGraphNode
 		{
@@ -252,7 +253,8 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			// create the graph cell
-			Cell graphCell = Cell.newInstance(Library.getCurrent(), "CellStructure");
+			graphCell = Cell.newInstance(Library.getCurrent(), "CellStructure");
+            fieldVariableChanged("graphCell");
 			if (graphCell == null) return false;
 			if (graphCell.getNumVersions() > 1)
 				System.out.println("Creating new version of cell: CellStructure"); else
@@ -564,10 +566,15 @@ public class CellChangeJobs
 					}
 				}
 			}
-			UserInterface ui = Job.getUserInterface();
-			ui.displayCell(graphCell);
 			return true;
 		}
+
+        public void terminateOK()
+        {
+            // to redraw the new cell
+			UserInterface ui = Job.getUserInterface();
+            ui.displayCell(graphCell);
+        }
 	}
 
 	/**
