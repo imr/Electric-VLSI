@@ -1650,7 +1650,7 @@ public class Simulation extends Tool
     public static boolean isSpiceWriteEmtpySubckts() { return cacheSpiceWriteEmptySubckts.getBoolean(); }
     public static void setSpiceWriteEmptySubckts(boolean b) { cacheSpiceWriteEmptySubckts.setBoolean(b); }
 
-    private static Pref cacheSpiceEpicReaderProcess = Pref.makeBooleanPref("SpiceEpicReaderProcess", tool.prefs, false);
+    private static Pref cacheSpiceEpicReaderProcess = Pref.makeBooleanPref("SpiceEpicReaderProcess", tool.prefs, true);
     public static boolean isSpiceEpicReaderProcess() { return cacheSpiceEpicReaderProcess.getBoolean(); }
     public static void setSpiceEpicReaderProcess(boolean b) { cacheSpiceEpicReaderProcess.setBoolean(b); }
     
