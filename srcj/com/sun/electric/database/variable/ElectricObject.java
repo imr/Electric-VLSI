@@ -241,8 +241,7 @@ public abstract class ElectricObject implements Serializable
 	 * The text can be described by a node or arc name.
 	 * The text can be described by a variable on an ElectricObject.
 	 * @param wnd the EditWindow0 in which the text will be drawn.
-	 * @param var the Variable on the ElectricObject (may be null).
-	 * @param name the Name of the node or arc in the ElectricObject (may be null).
+	 * @param varKey the Variable.Key on the ElectricObject (may be null).
 	 * @return a Poly that covers the text completely.
 	 * Even though the Poly is scaled for a particular EditWindow,
 	 * its coordinates are in object space, not screen space.
