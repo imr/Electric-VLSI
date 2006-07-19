@@ -407,10 +407,10 @@ public final class Main
             if (url == null) continue;
             fileURLs.add(url);
             User.setWorkingDirectory(TextUtils.getFilePath(url));
+            // setting database path for future references
+            FileType.setDatabaseGroupPath(User.getWorkingDirectory());
         }
 
-        // setting database path for future references
-        FileType.setDatabaseGroupPath(User.getWorkingDirectory());
         // open any libraries but only when there is at least one
         new FileMenu.ReadInitialELIBs(fileURLs);
     }
