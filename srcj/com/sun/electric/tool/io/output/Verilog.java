@@ -899,6 +899,12 @@ public class Verilog extends Topology
                         cas = cas2;
                         break;
                     }
+                    if (netList.sameNetwork(no, pp, no, cas2.getExport())) {
+                        // this will be true if there are two exports connected together
+                        // in the subcell, and we are searching for the export name that is not used.
+                        cas = cas2;
+                        break;
+                    }
                 }
             } else {
                 // maybe it is a single bit in an bussed export
@@ -915,7 +921,7 @@ public class Verilog extends Topology
             }
 
             if (cas != null) {
-                // this code is copied from instantiated 
+                // this code is copied from instantiated
                 int low = cas.getLowIndex(), high = cas.getHighIndex();
                 if (low > high)
                 {
