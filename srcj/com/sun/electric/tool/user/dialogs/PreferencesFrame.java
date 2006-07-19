@@ -29,6 +29,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.*;
@@ -299,6 +300,10 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(spt);
 		toolSet.add(new DefaultMutableTreeNode(spt.getName()));
 
+        CellModelTab spt2 = new CellModelTab(parent, modal, CellModelPrefs.spiceModelPrefs);
+        optionPanes.add(spt2);
+        toolSet.add(new DefaultMutableTreeNode(spt2.getName()));
+
 		if (Routing.hasSunRouter())
 		{
 			SunRouterTab srt = new SunRouterTab(parent, modal);
@@ -306,7 +311,8 @@ public class PreferencesFrame extends EDialog
 			toolSet.add(new DefaultMutableTreeNode(srt.getName()));
 		}
 
-		VerilogTab vet = new VerilogTab(parent, modal);
+		//VerilogTab vet = new VerilogTab(parent, modal);
+		CellModelTab vet = new CellModelTab(parent, modal, CellModelPrefs.verilogModelPrefs);
 		optionPanes.add(vet);
 		toolSet.add(new DefaultMutableTreeNode(vet.getName()));
 

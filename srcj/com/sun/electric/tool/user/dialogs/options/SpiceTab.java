@@ -176,6 +176,14 @@ public class SpiceTab extends PreferencePanel
 			public void actionPerformed(ActionEvent evt) { spiceBrowseTrailerFileActionPerformed(); }
 		});
 
+        spice6.setEnabled(false);
+        spiceCell.setEnabled(false);
+        spiceModelLibrary.setEnabled(false);
+        spiceModelFileBrowse.setEnabled(false);
+        spiceModelCell.setEnabled(false);
+        spiceUseModelFromFile.setEnabled(false);
+        spiceDeriveModelFromCircuit.setEnabled(false);
+/*
 		// the last section has cell overrides
 		// gather all existing behave file information
 		initialSpiceModelFiles = new HashMap<Cell,TempPref>();
@@ -232,6 +240,7 @@ public class SpiceTab extends PreferencePanel
 		});
 		spiceModelCell.getDocument().addDocumentListener(new SpiceModelDocumentListener(this));
 		spiceLoadCellList();
+*/
 	}
 
 	/**
@@ -458,6 +467,7 @@ public class SpiceTab extends PreferencePanel
 		if (!Simulation.getSpiceTrailerCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
 
 		// bottom section: model file overrides for cells
+/*
 		for(Library lib : Library.getVisibleLibraries())
 		{
 			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
@@ -472,6 +482,7 @@ public class SpiceTab extends PreferencePanel
 				}
 			}
 		}
+*/
 	}
 
     // enable or disable the spice run options
