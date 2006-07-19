@@ -253,8 +253,6 @@ public class ToolMenu {
                     addMultiplierCommand(); }},
                 new EMenuItem("Add flat code") { public void run() {
                     makeTemplate(Spice.SPICE_CODE_FLAT_KEY); }},
-                new EMenuItem("Mark to enumerate layout") { public void run() {
-                    makeTemplate(Spice.SPICE_ENUMERATE_LAYOUT); }},
 
                 SEPARATOR,
 
@@ -1796,7 +1794,7 @@ public class ToolMenu {
         if (cell == null) return;
         HashMap<Cell,String> mangledNames = new HashMap<Cell,String>();
         com.sun.electric.tool.io.output.GDS.buildUniqueNames(cell, mangledNames);
-        AssuraDrcErrors.importErrors(fileName, mangledNames);
+        AssuraDrcErrors.importErrors(fileName, mangledNames, "DRC");
     }    
 
     public static void importCalibreDrcErrors() {
