@@ -57,6 +57,8 @@ import com.sun.electric.tool.cvspm.CVSLibrary;
 import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -839,8 +841,13 @@ public abstract class LibraryFiles extends Input
 				Variable var = cell.getVar(SPICE_MODEL_FILE_KEY, String.class);
 				if (var != null)
 				{
-					cell.setSpiceModelFile((String)var.getObject());
+					CellModelPrefs.spiceModelPrefs.setModelFile(cell, (String)var.getObject(), false, false);
 				}
+                var = cell.getVar(Verilog.VERILOG_BEHAVE_FILE_KEY);
+                if (var != null)
+                {
+                    CellModelPrefs.verilogModelPrefs.setModelFile(cell, (String)var.getObject(), false, false);                    
+                }
 			}
 		}
 

@@ -10,6 +10,7 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.Job;
 
 import java.util.*;
@@ -69,8 +70,8 @@ public class NccCrossProbing extends HierarchyEnumerator.Visitor {
         }
 
         // check if schematic has enumerate layout annotation
-        Variable var = cell.getVar(Spice.SPICE_ENUMERATE_LAYOUT);
-        if (var == null) return true;
+        if (!CellModelPrefs.spiceModelPrefs.isUseLayoutView(cell))
+            return true;
 
         Cell.CellGroup group = cell.getCellGroup();
         Cell layCell = null;

@@ -91,7 +91,6 @@ public class Spice extends Topology
 	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = Variable.newKey("SIM_spice_declaration");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE flat code. */				public static final Variable.Key SPICE_CODE_FLAT_KEY = Variable.newKey("SIM_spice_code_flat");
-	/** key of Variable holding SPICE enumerate layout. */		public static final Variable.Key SPICE_ENUMERATE_LAYOUT = Variable.newKey("SIM_spice_enumerate_layout");
     /** key of wire capacitance. */                             public static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
     /** key of wire resistance. */                              public static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
@@ -2502,21 +2501,16 @@ public class Spice extends Topology
         if (varTemplate != null) return true;
 
 		// look for a model file on the current cell
-        String fileName = cell.getSpiceModelFile();
-        if (fileName.length() > 0)
-        {
-			if (!fileName.startsWith("-----"))
-			{
-				if (!modelOverrides.contains(cell))
-				{
-					multiLinePrint(true, "\n* " + cell + " is described in this file:\n");
-					addIncludeFile(fileName);
-					modelOverrides.add(cell);
-				}
-				return true;
-			}
+        if (CellModelPrefs.spiceModelPrefs.isUseModelFromFile(cell)) {
+            String fileName = CellModelPrefs.spiceModelPrefs.getModelFile(cell);
+            if (!modelOverrides.contains(cell))
+            {
+                multiLinePrint(true, "\n* " + cell + " is described in this file:\n");
+                addIncludeFile(fileName);
+                modelOverrides.add(cell);
+            }
+            return true;
         }
-
 		return false;
     }
 
@@ -2589,9 +2583,7 @@ public class Spice extends Topology
 	protected int maxNameLength() { if (useCDL) return CDLMAXLENSUBCKTNAME; return SPICEMAXLENSUBCKTNAME; }
 
     protected boolean enumerateLayoutView(Cell cell) {
-        Variable var = cell.getVar(SPICE_ENUMERATE_LAYOUT);
-        if (var != null) return true;
-        return false;
+        return (CellModelPrefs.spiceModelPrefs.isUseLayoutView(cell));
     }
 
 	/******************** DECK GENERATION SUPPORT ********************/
@@ -2948,7 +2940,7 @@ public class Spice extends Topology
             // otherwise, this is a primitive
             PrimitiveNode.Function fun = ni.getFunction();
             // Passive devices used by spice/CDL
-            if (fun.isResistor() || // == PrimitiveNode.Function.RESIST || 
+            if (fun.isResistor() || // == PrimitiveNode.Function.RESIST ||
                 fun == PrimitiveNode.Function.INDUCT ||
                 fun.isCapacitor() || // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC ||
                 fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
@@ -2963,11 +2955,8 @@ public class Spice extends Topology
             }
         }
         // look for a model file on the current cell
-        String fileName = cell.getSpiceModelFile();
-        if (fileName.length() > 0) {
-            if (!fileName.startsWith("-----")) {
-                empty = false;
-            }
+        if (CellModelPrefs.spiceModelPrefs.isUseModelFromFile(cell)) {
+            empty = false;
         }
 
         // empty
