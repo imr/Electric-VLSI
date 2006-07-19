@@ -83,13 +83,13 @@ public class AssuraDrcErrors {
 	 * Method to import Assura DRC errors from a file.
 	 * @param filename the file to read.
 	 */
-    public static void importErrors(String filename, HashMap<Cell,String> mangledNames) {
+    public static void importErrors(String filename, HashMap<Cell,String> mangledNames, String type) {
         BufferedReader in;
         try {
             FileReader reader = new FileReader(filename);
             in = new BufferedReader(reader);
         } catch (IOException e) {
-            System.out.println("Error importing DRC Errors: "+e.getMessage());
+            System.out.println("Error importing "+type+" Errors: "+e.getMessage());
             return;
         }
 
@@ -97,7 +97,7 @@ public class AssuraDrcErrors {
         DrcRuleViolation rule = null;
         DrcError error = null;
         Cell cell = null;
-        ErrorLogger logger = ErrorLogger.newInstance("Assura DRC Errors");
+        ErrorLogger logger = ErrorLogger.newInstance("Assura "+type+" Errors");
         int count = 0;
         int num = 1;
         try {
@@ -163,12 +163,12 @@ public class AssuraDrcErrors {
                 }
             }
         } catch (IOException e) {
-            System.out.println("Error importing DRC Errors: "+e.getMessage());
+            System.out.println("Error importing "+type+" Errors: "+e.getMessage());
             return;
         }
         System.out.println("Imported "+count+" errors from file "+filename);
         if (count == 0) {
-        	Job.getUserInterface().showInformationMessage("Imported Zero Errors", "DRC Import Complete");
+        	Job.getUserInterface().showInformationMessage("Imported Zero "+type+" Errors", type+" Import Complete");
         }
         logger.termLogging(true);
     }
