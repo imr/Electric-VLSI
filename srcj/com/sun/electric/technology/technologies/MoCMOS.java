@@ -66,9 +66,10 @@ public class MoCMOS extends Technology
             tech = (MoCMOS)obj;
         } catch (Exception e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
 
-            System.out.println("GNU Release without extra plugins");
+            if (Job.getDebug())
+                System.out.println("GNU Release without extra plugins");
             tech = new MoCMOS();
         }
         return tech;

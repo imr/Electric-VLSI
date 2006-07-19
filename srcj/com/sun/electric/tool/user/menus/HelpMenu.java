@@ -41,8 +41,10 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
+import javax.swing.*;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.awt.event.KeyEvent;
 
 /**
  * Class to handle the commands in the "Help" pulldown menu.
@@ -70,21 +72,21 @@ public class HelpMenu {
 
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
             new EMenu("_Samples",
-                new EMenuItem("_Load Library") { public void run() {
+                new EMenuItem("_Load Library", KeyStroke.getKeyStroke(KeyEvent.VK_1, KeyEvent.ALT_MASK)) { public void run() {
                     ManualViewer.loadSamplesLibrary("samples", "tech-MOSISCMOS"); }},
-                new EMenuItem("_3D View of Sample Cell") { public void run() {
+                new EMenuItem("_3D View of Sample Cell", KeyStroke.getKeyStroke(KeyEvent.VK_2, KeyEvent.ALT_MASK)) { public void run() {
                     ManualViewer.open3DSample("samples", "tech-MOSISCMOS", "Samples"); }},
-                new EMenuItem("_Animate Sample Cell") { public void run() {
+                new EMenuItem("_Animate Sample Cell", KeyStroke.getKeyStroke(KeyEvent.VK_3, KeyEvent.ALT_MASK)) { public void run() {
                     ManualViewer.animate3DSample("demo.j3d"); }}),
 
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
             new EMenu("_3D ShowCase",
-                new EMenuItem("_Load Library") { public void run() {
+                new EMenuItem("_Load Library", KeyStroke.getKeyStroke(KeyEvent.VK_4, KeyEvent.ALT_MASK)) { public void run() {
                     ManualViewer.loadSamplesLibrary("floatingGates", "topCell"); }},
-                new EMenuItem("_3D View of Cage Cell") { public void run() {
+                new EMenuItem("_3D View of Cage Cell", KeyStroke.getKeyStroke(KeyEvent.VK_5, KeyEvent.ALT_MASK)) { public void run() {
                     ManualViewer.open3DSample("floatingGates" ,"topCell", "3D ShowCase"); }},
-                new EMenuItem("_Animate Cage Cell") { public void run() {
-                    ManualViewer.animate3DSample("demo.j3d"); }}),
+                new EMenuItem("_Animate Cage Cell", KeyStroke.getKeyStroke(KeyEvent.VK_6, KeyEvent.ALT_MASK)) { public void run() {
+                    ManualViewer.animate3DSample("demoCage.j3d"); }}),
 
 		// mnemonic keys available: ABCDEFGHIJKL NO QRSTUVWXYZ
             new EMenu("_Load Built-in Libraries",

@@ -394,7 +394,8 @@ public class View3DWindow extends JPanel
         Class plugin = Resources.getJMFJ3DClass("J3DAxisBehavior");
         if (plugin == null)
         {
-            System.out.println("Java3D plugin not available. 3D axes not created.");
+            if (Job.getDebug())
+                System.out.println("Java3D plugin not available. 3D axes not created.");
         }
         else
         {

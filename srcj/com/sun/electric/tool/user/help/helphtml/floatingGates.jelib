@@ -1,3 +1,29 @@
+#/* -*- tab-width: 4 -*-
+# *
+# * Electric(tm) VLSI Design System
+# *
+# * File: floatingGates.jelib
+# * Designed by Robert Drost, Sun Microsystems.
+# * Memo publised: A Metal Cage Layout Designed with Electric (SML2006-0339)
+# *
+# * Copyright (c) 2003 Sun Microsystems and Static Free Software
+# *
+# * Electric(tm) is free software; you can redistribute it and/or modify
+# * it under the terms of the GNU General Public License as published by
+# * the Free Software Foundation; either version 2 of the License, or
+# * (at your option) any later version.
+# *
+# * Electric(tm) is distributed in the hope that it will be useful,
+# * but WITHOUT ANY WARRANTY; without even the implied warranty of
+# * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# * GNU General Public License for more details.
+# *
+# * You should have received a copy of the GNU General Public License
+# * along with Electric(tm); see the file COPYING.  If not, write to
+# * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+# * Boston, Mass 02111-1307, USA.
+# */
+
 # header information:
 HfloatingGates|8.04u
 
@@ -147,43 +173,43 @@ Etopad||D5G2;|contact@1||B/A
 X
 
 # Cell topCell;1{lay}
-CtopCell;1{lay}||mocmos|1100125938029|1153280624784|
+CtopCell;1{lay}||mocmos|1100125938029|1153340929982||FACET_schematic_page_size()Sh|USER_drawing_designer_name()SRobert Drost, Sun Microsystems (SML2006-0339)
 Ngeneric:Facet-Center|art@0||0|0|0|0||AV
-NMetal-1-N-Active-Con|contact@0||0|4|22|17||
-NMetal-1-N-Active-Con|contact@1||0|-4|22|17||
-NMetal-1-Polysilicon-1-Con|contact@2||-9.5|0|5|5||
-NMetal-1-N-Active-Con|contact@9||2.5|15|17|17||
-NMetal-4-Metal-5-Con|contact@10||2.5|15|7|7||
-NMetal-3-Metal-4-Con|contact@11||2.5|15|6|6||
-NMetal-2-Metal-3-Con|contact@12||2.5|15|6|6||
-NMetal-1-Metal-2-Con|contact@13||2.5|15|5|5||
-NMetal-4-Metal-5-Con|contact@14||-16|36|7|7||
-NMetal-3-Metal-4-Con|contact@15||-16|36|6|6||
-NMetal-2-Metal-3-Con|contact@16||-9.5|36|6|6||
-Im1CapFan;1{lay}|m1CapFan@0||1|0|||D5G4;
-NN-Transistor|nmos@0||0|0|22|22||
-NMetal-5-Pin|pin@40||-16|44.5|3|3||
-NMetal-5-Pin|pin@41||2.5|44.5|3|3||
-NMetal-3-Pin|pin@43||-9.5|36|3|3||
-NMetal-2-Pin|pin@44||-9.5|36|3|3||
-NP-Well-Node|plnode@9||3|-13|16|16||
-NPassivation-Node|plnode@10||-57|-0.5|70|70||
-NMetal-1-P-Well-Con|well@0||2.5|-13|17|17||
-AN-Active|net@0||22|IJS900|contact@0||0|4.5|nmos@0|n-trans-diff-top|0|3.75
-AN-Active|net@1||15|IJS2700|contact@1||0|-4|nmos@0|n-trans-diff-bottom|0|-3.75
-APolysilicon-1|net@2||2|S1800|contact@2||-9.5|0|nmos@0|n-trans-poly-left|-7|0
-AMetal-1|net@53||4|S1800|m1CapFan@0|togate|-10|0|contact@2||-9.5|0
-AMetal-5|net@54||3|S1800|pin@40||-16|44.5|pin@41||2.5|44.5
-AMetal-5|net@55||3|S900|pin@41||2.5|44.5|contact@10||2.5|15
-AMetal-1|net@56||3|S0|contact@9||2.5|15|contact@13||2.5|15
-AMetal-4|net@57||3|S900|contact@10||2.5|15|contact@11||2.5|15
-AMetal-3|net@58||3|S900|contact@11||2.5|15|contact@12||2.5|15
-AMetal-2|net@59||3|S900|contact@12||2.5|15|contact@13||2.5|15
-AMetal-5|net@60||3|S900|pin@40||-16|44.5|contact@14||-16|36
-AMetal-4|net@62||3|S900|contact@14||-16|36|contact@15||-16|36
-AMetal-3|net@64||3|S2700|pin@43||-9.5|36|contact@16||-9.5|36.5
-AMetal-2|net@65||3|S0|pin@44||-9.5|36|contact@16||-9.5|36
-AMetal-3|net@66||3|S1800|contact@15||-16|36|pin@43||-9.5|36
+NMetal-1-N-Active-Con|contact@0||43|4|22|17||
+NMetal-1-N-Active-Con|contact@1||43|-4|22|17||
+NMetal-1-Polysilicon-1-Con|contact@2||33.5|0|5|5||
+NMetal-1-N-Active-Con|contact@9||45.5|15|17|17||
+NMetal-4-Metal-5-Con|contact@10||45.5|15|7|7||
+NMetal-3-Metal-4-Con|contact@11||45.5|15|6|6||
+NMetal-2-Metal-3-Con|contact@12||45.5|15|6|6||
+NMetal-1-Metal-2-Con|contact@13||45.5|15|5|5||
+NMetal-4-Metal-5-Con|contact@14||27|36|7|7||
+NMetal-3-Metal-4-Con|contact@15||27|36|6|6||
+NMetal-2-Metal-3-Con|contact@16||33.5|36|6|6||
+Im1CapFan;1{lay}|m1CapFan@0||44|0|||D5G4;
+NN-Transistor|nmos@0||43|0|22|22||
+NMetal-5-Pin|pin@40||27|44.5|3|3||
+NMetal-5-Pin|pin@41||45.5|44.5|3|3||
+NMetal-3-Pin|pin@43||33.5|36|3|3||
+NMetal-2-Pin|pin@44||33.5|36|3|3||
+NP-Well-Node|plnode@9||46|-13|16|16||
+NPassivation-Node|plnode@10||-14|-0.5|70|70||
+NMetal-1-P-Well-Con|well@0||45.5|-13|17|17||
+AN-Active|net@0||22|IJS900|contact@0||43|4.5|nmos@0|n-trans-diff-top|43|3.75
+AN-Active|net@1||15|IJS2700|contact@1||43|-4|nmos@0|n-trans-diff-bottom|43|-3.75
+APolysilicon-1|net@2||2|S1800|contact@2||33.5|0|nmos@0|n-trans-poly-left|36|0
+AMetal-1|net@53||4|S1800|m1CapFan@0|togate|33|0|contact@2||33.5|0
+AMetal-5|net@54||3|S1800|pin@40||27|44.5|pin@41||45.5|44.5
+AMetal-5|net@55||3|S900|pin@41||45.5|44.5|contact@10||45.5|15
+AMetal-1|net@56||3|S0|contact@9||45.5|15|contact@13||45.5|15
+AMetal-4|net@57||3|S900|contact@10||45.5|15|contact@11||45.5|15
+AMetal-3|net@58||3|S900|contact@11||45.5|15|contact@12||45.5|15
+AMetal-2|net@59||3|S900|contact@12||45.5|15|contact@13||45.5|15
+AMetal-5|net@60||3|S900|pin@40||27|44.5|contact@14||27|36
+AMetal-4|net@62||3|S900|contact@14||27|36|contact@15||27|36
+AMetal-3|net@64||3|S2700|pin@43||33.5|36|contact@16||33.5|36.5
+AMetal-2|net@65||3|S0|pin@44||33.5|36|contact@16||33.5|36
+AMetal-3|net@66||3|S1800|contact@15||27|36|pin@43||33.5|36
 X
 
 # Groups:

@@ -65,6 +65,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -219,14 +220,12 @@ public class ManualViewer extends EDialog
         if (cell == null) return; // error opening the 2D view
 
         // Making sure all cell instances are expanded
-//        for(NodeInst ni : list)
-//        {
-//            if (!ni.isCellInstance()) continue;
-//            {
-//                if (ni.isExpanded())
-//                    setUnExpand(ni, amount);
-//            }
-//        }
+        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext();)
+        {
+            NodeInst ni = it.next();
+            ni.setExpanded();
+        }
+        // to guarantee the redisplay with extended 
 
         Class plugin3D = Resources.get3DClass("ui.J3DMenu");
         if (plugin3D != null)

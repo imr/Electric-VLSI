@@ -106,15 +106,15 @@ public final class J3DUtils
     private static Pref cache3DAntialiasing = Pref.makeBooleanPref("3DAntialiasing", User.getUserTool().prefs, false);
 	private static Pref cache3DPerspective = Pref.makeBooleanPref("3DPerspective", User.getUserTool().prefs, true);
     private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DCellBnd", User.getUserTool().prefs, true);
-    private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.getUserTool().prefs, true);
+    private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.getUserTool().prefs, false);
     private static Pref cache3DMaxNumber = Pref.makeIntPref("3DMaxNumNodes", User.getUserTool().prefs, 1000);
-    private static Pref cache3DAlpha = Pref.makeIntPref("3DAlpha", User.getUserTool().prefs, 1000);
+    private static Pref cache3DAlpha = Pref.makeIntPref("3DAlpha", User.getUserTool().prefs, 20000);
     private static Pref cache3DColorInstanceCell = Pref.makeIntPref("3DColorInstanceCell", User.getUserTool().prefs, Color.GRAY.getRGB());
     private static Pref cache3DColorHighlighted = Pref.makeIntPref("3DColorHighlighted", User.getUserTool().prefs, Color.GRAY.getRGB());
     private static Pref cache3DColorAmbient = Pref.makeIntPref("3DColorAmbient", User.getUserTool().prefs, Color.GRAY.getRGB());
     private static Pref cache3DColorAxes = Pref.makeStringPref("3DColorAxes", User.getUserTool().prefs,
             "("+Color.RED.getRGB()+" "+ Color.BLUE.getRGB() + " "+ Color.GREEN.getRGB() + ")");
-    private static Pref cache3DColorDirectionalLight = Pref.makeIntPref("3DColorDirectionalLight", User.getUserTool().prefs, Color.WHITE.getRGB());
+    private static Pref cache3DColorDirectionalLight = Pref.makeIntPref("3DColorDirectionalLight", User.getUserTool().prefs, Color.GRAY.getRGB());
     private static Pref cache3DLightDirs = Pref.makeStringPref("3DLightDirs", User.getUserTool().prefs, "(-1 1 -1)(1 -1 -1)");
 
     public static J3DAlpha jAlpha = null;
