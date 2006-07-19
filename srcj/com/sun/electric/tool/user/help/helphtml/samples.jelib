@@ -118,8 +118,8 @@ Ngeneric:Invisible-Pin|pin@41||36|52|0|0|||ART_message(D3G2;)S[grab point,is in 
 Ngeneric:Invisible-Pin|pin@42||24|64|0|0|||ART_message(D5G2;)S[grab point,is in the,center]
 ASolid|net@0||0|F900|pin@29||-77|7|art@20||-77|1
 ASolid|net@1||0|F2700|pin@28||-77|11|art@17||-77|17
-ADashed|net@2||0|F457|pin@22||-71|23|art@15||-75.64|18.23
-ADashed|net@3||0|F2221|pin@21||-67|27|art@13||-61.79|31.71
+ADashed|net@2||0|F457|pin@22||-71|23|art@15||-75.643|18.234
+ADashed|net@3||0|F2221|pin@21||-67|27|art@13||-61.793|31.707
 ADotted|net@4||0|F1800|pin@19||-48|31|art@11||-45|31
 ADotted|net@5||0|F0|pin@20||-56|31|art@12||-59|31
 AThicker|net@6||0|F0|pin@27||-2|19|pin@26||-7|19
