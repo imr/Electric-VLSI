@@ -179,6 +179,7 @@ public class Verilog extends Topology
 	/** key of Variable holding verilog wire time. */		public static final Variable.Key WIRE_TYPE_KEY = Variable.newKey("SIM_verilog_wire_type");
 	/** key of Variable holding verilog templates. */		public static final Variable.Key VERILOG_TEMPLATE_KEY = Variable.newKey("ATTR_verilog_template");
 	/** key of Variable holding file name with Verilog. */	public static final Variable.Key VERILOG_BEHAVE_FILE_KEY = Variable.newKey("SIM_verilog_behave_file");
+    /** those cells that have overridden models */	        private HashSet<Cell> modelOverrides = new HashSet<Cell>();
 
 	/**
 	 * The main entry point for Verilog deck writing.
@@ -267,6 +268,16 @@ public class Verilog extends Topology
         }
         // also skip subcells if a behavioral file specified.
         // If one specified, write it out here and skip both cell and subcells
+        if (CellModelPrefs.verilogModelPrefs.isUseModelFromFile(cell)) {
+            String fileName = CellModelPrefs.verilogModelPrefs.getModelFile(cell);
+            if (!modelOverrides.contains(cell))
+            {
+                printWriter.print("`include \"" + fileName + "\"\n");
+                modelOverrides.add(cell);
+            }
+            return true;
+        }
+/*
         Variable behaveFileVar = cell.getVar(VERILOG_BEHAVE_FILE_KEY);
         if (behaveFileVar != null)
         {
@@ -277,7 +288,7 @@ public class Verilog extends Topology
                 return true;
             }
         }
-
+*/
         return false;
     }
 
@@ -851,6 +862,9 @@ public class Verilog extends Topology
 
 	private void writeTemplate(String line, Nodable no, CellNetInfo cni, VarContext context)
 	{
+        // special case: do not write out string "//"
+        if (line.equals("//")) return;
+
 		// special case for Verilog templates
 		Netlist netList = cni.getNetList();
 		StringBuffer infstr = new StringBuffer();
@@ -870,12 +884,60 @@ public class Verilog extends Topology
 				if (line.charAt(pt) == ')') break;
 			String paramName = line.substring(startpt, pt);
 			PortProto pp = no.getProto().findPortProto(paramName);
-			if (pp != null)
-			{
-				// port name found: use its verilog node
-				Network net = netList.getNetwork(no, pp, 0);
-				CellSignal cs = cni.getCellSignal(net);
-				infstr.append(cs.getName());
+            String nodeName = parameterizedName(no, context);
+            CellNetInfo subCni = getCellNetInfo(nodeName);
+
+            // see if aggregate signal matches pp
+            CellAggregateSignal cas = null;
+            CellSignal netcs = null;
+
+            if (pp != null) {
+                // it matches the whole port (may be a bussed port)
+                for (Iterator<CellAggregateSignal> it = subCni.getCellAggregateSignals(); it.hasNext(); ) {
+                    CellAggregateSignal cas2 = it.next();
+                    if (cas2.getExport() == pp) {
+                        cas = cas2;
+                        break;
+                    }
+                }
+            } else {
+                // maybe it is a single bit in an bussed export
+                for (Iterator<PortProto> it = no.getProto().getPorts(); it.hasNext(); ) {
+                    PortProto ppcheck = it.next();
+                    for (int i=0; i<ppcheck.getNameKey().busWidth(); i++) {
+                        if (paramName.equals(ppcheck.getNameKey().subname(i).toString())) {
+                            Network net = netList.getNetwork(no, ppcheck, i);
+                            netcs = cni.getCellSignal(net);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (cas != null) {
+                // this code is copied from instantiated 
+                int low = cas.getLowIndex(), high = cas.getHighIndex();
+                if (low > high)
+                {
+                    // single signal
+                    Network net = netList.getNetwork(no, pp, cas.getExportIndex());
+                    CellSignal cs = cni.getCellSignal(net);
+                    infstr.append(cs.getName());
+                } else
+                {
+                    int total = high - low + 1;
+                    CellSignal [] outerSignalList = new CellSignal[total];
+                    for(int j=low; j<=high; j++)
+                    {
+                        CellSignal cInnerSig = cas.getSignal(j-low);
+                        Network net = netList.getNetwork(no, cas.getExport(), cInnerSig.getExportIndex());
+                        outerSignalList[j-low] = cni.getCellSignal(net);
+                    }
+                    writeBus(outerSignalList, low, high, cas.isDescending(),
+                        null, cni.getPowerNet(), cni.getGroundNet(), infstr);
+                }
+            } else if (netcs != null) {
+                infstr.append(netcs.getName());
 			} else if (paramName.equalsIgnoreCase("node_name"))
 			{
 				infstr.append(getSafeNetName(no.getName(), true));
