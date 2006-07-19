@@ -86,7 +86,7 @@ public abstract class Topology extends Output
 		cellTopos = new HashMap<String,CellNetInfo>();
 
 		// make a map of cell names to use (unique across libraries)
-		makeCellNameMap();
+        cellNameMap = makeCellNameMap(topCell);
 
 		// write out cells
 		start();
@@ -1030,53 +1030,118 @@ public abstract class Topology extends Output
 	 */
 	protected String getUniqueCellName(Cell cell)
 	{
+        Cell contents = cell.contentsView();
+        if (contents != null) cell = contents;
 		String name = cellNameMap.get(cell);
 		return name;
 	}
 
+    private static class NameMapGenerator extends HierarchyEnumerator.Visitor {
+
+        private HashMap<Cell,String> cellNameMap;
+        private HashMap<String,Cell> cellNameMapReverse;
+        private boolean alwaysUseLibName;
+        private Topology topology;
+
+        public NameMapGenerator(boolean alwaysUseLibName, Topology topology) {
+            cellNameMap = new HashMap<Cell,String>();
+            cellNameMapReverse = new HashMap<String,Cell>();
+            this.alwaysUseLibName = alwaysUseLibName;
+            this.topology = topology;
+        }
+
+        public boolean enterCell(HierarchyEnumerator.CellInfo info) {
+            Cell cell = info.getCell();
+            if (cellNameMap.containsKey(cell)) return false;
+            // add name for this cell
+            String name = getUniqueName(cell);
+            cellNameMap.put(cell, name);
+            cellNameMapReverse.put(name.toLowerCase(), cell);
+            //System.out.println("Mapped "+cell.describe(false) + " --> " + name);
+            return true;
+        }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info) {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
+            if (!no.isCellInstance()) return false;
+
+            VarContext context = info.getContext();
+
+            Cell cell = (Cell)no.getProto();
+            Cell schcell = cell.contentsView();
+            if (schcell == null) schcell = cell;
+            if (cell.getView() == View.SCHEMATIC && topology.enumerateLayoutView(schcell)) {
+                Cell layCell = null;
+                for (Iterator<Cell> it = cell.getCellGroup().getCells(); it.hasNext(); ) {
+                    Cell c = it.next();
+                    if (c.getView() == View.LAYOUT) {
+                        layCell = c;
+                        break;
+                    }
+                }
+                if (layCell != null) {
+                    String name = getUniqueName(schcell);
+                    cellNameMap.put(schcell, name);
+                    cellNameMapReverse.put(name.toLowerCase(), schcell);
+                    //System.out.println("Mapped "+schcell.describe(false) + " --> " + name);
+                    HierarchyEnumerator.enumerateCell(layCell, context, this);
+                    return false;
+                }
+            } else {
+                // special case for cells with only icons
+                schcell = cell.contentsView();
+                if (cell.getView() == View.ICON && schcell == null && !cellNameMap.containsKey(cell)) {
+                    String name = getUniqueName(cell);
+                    cellNameMap.put(cell, name);
+                    cellNameMapReverse.put(name.toLowerCase(), cell);
+                    return false;
+                }
+            }
+
+
+            return true;
+        }
+
+        private String getUniqueName(Cell cell) {
+            String name = "";
+            if (!alwaysUseLibName) {
+                name = cell.getName();
+                if (!isNameTaken(cell, name)) return name;
+            }
+            name = cell.getLibrary().getName() + "__" + cell.getName();
+            if (!isNameTaken(cell, name)) return name;
+
+            name = cell.getLibrary().getName() + "_" + cell.getName() + "_" + cell.getView().getAbbreviation();
+            if (!isNameTaken(cell, name)) return name;
+
+            Cell conflictCell = cellNameMapReverse.get(name.toLowerCase());
+            System.out.println("Error: Unable to make unique cell name for "+cell.describe(false)+
+                    ", it conflicts with "+conflictCell.describe(false));
+            return name;
+        }
+
+        private boolean isNameTaken(Cell cell, String name) {
+            Cell existingEntry = cellNameMapReverse.get(name.toLowerCase());
+            if (existingEntry == null || existingEntry == cell) {
+                // same entry
+                return false;
+            }
+            // name in use by some other cell
+            return true;
+        }
+    }
+
 	/**
 	 * determine whether any cells have name clashes in other libraries
 	 */
-	private void makeCellNameMap()
+	private HashMap<Cell,String> makeCellNameMap(Cell cell)
 	{
-		cellNameMap = new HashMap<Cell,String>();
-		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
-		{
-			Library lib = lIt.next();
-			if (lib.isHidden()) continue;
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-				if (isLibraryNameAlwaysAddedToCellName())
-				{
-					// always prepend library name: just do it
-					cellNameMap.put(cell, lib.getName() + "__" + cell.getName());
-					continue;
-				}
-
-				// only prepend library name when there is a conflict of cell names
-				boolean duplicate = false;
-				for(Iterator<Library> oLIt = Library.getLibraries(); oLIt.hasNext(); )
-				{
-					Library oLib = oLIt.next();
-					if (oLib.isHidden()) continue;
-					if (oLib == lib) continue;
-					for(Iterator<Cell> oCIt = oLib.getCells(); oCIt.hasNext(); )
-					{
-						Cell oCell = oCIt.next();
-						if (cell.getName().equalsIgnoreCase(oCell.getName()))
-						{
-							duplicate = true;
-							break;
-						}
-					}
-					if (duplicate) break;
-				}
-
-				if (duplicate) cellNameMap.put(cell, lib.getName() + "__" + cell.getName()); else
-					cellNameMap.put(cell, cell.getName());
-			}
-		}
+        NameMapGenerator gen = new NameMapGenerator(isLibraryNameAlwaysAddedToCellName(), this);
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, gen);
+        return gen.cellNameMap;
 	}
 
 }
