@@ -37,6 +37,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
@@ -408,6 +409,8 @@ public final class Main
             User.setWorkingDirectory(TextUtils.getFilePath(url));
         }
 
+        // setting database path for future references
+        FileType.setDatabaseGroupPath(User.getWorkingDirectory());
         // open any libraries but only when there is at least one
         new FileMenu.ReadInitialELIBs(fileURLs);
     }

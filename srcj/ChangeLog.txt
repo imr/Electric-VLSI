@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+BUG: (7/19/06, GVG) Working directory path not updated properly (bug #1181)
+FIX: Setting path for database file group explicitely
+
 IMP: (7/18/06, GVG) Switching "External Reader JVM" on by default due to "small nanosim waveform takes forever to load" (bug #1177).
 
 IMP: (7/17/06, GVG) Adding level control to AFG.

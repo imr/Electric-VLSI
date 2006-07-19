@@ -106,7 +106,7 @@ public class GeneralTab extends PreferencePanel
         for (Map.Entry<Object,String> entry : fileTypeMap.entrySet())
         {
             Object obj = entry.getKey();
-            FileType.resetFileTypeGroupDir(obj, entry.getValue());
+            FileType.setFileTypeGroupDir(obj, entry.getValue());
         }
 
 //		String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();

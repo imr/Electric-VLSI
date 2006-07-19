@@ -50,13 +50,18 @@ public class FileType implements Serializable {
 
     public static String getDatabaseGroupPath() { return DATABASEGRP.getPath(); }
 
+    public static void setDatabaseGroupPath(String path)
+    {
+        DATABASEGRP.setPath(path);
+    }
+
     public static String getGroupPath(Object group)
     {
         assert(group instanceof FileTypeGroup);
         return ((FileTypeGroup)group).getPath();
     }
 
-    public static void resetFileTypeGroupDir(Object obj, String path)
+    public static void setFileTypeGroupDir(Object obj, String path)
     {
         assert(obj instanceof FileTypeGroup);
         ((FileTypeGroup)obj).setPath(path);
