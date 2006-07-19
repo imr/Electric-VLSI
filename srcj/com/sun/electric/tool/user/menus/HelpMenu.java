@@ -71,18 +71,18 @@ public class HelpMenu {
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
             new EMenu("_Samples",
                 new EMenuItem("_Load Library") { public void run() {
-                    ManualViewer.loadSamplesLibrary("samples"); }},
+                    ManualViewer.loadSamplesLibrary("samples", "tech-MOSISCMOS"); }},
                 new EMenuItem("_3D View of Sample Cell") { public void run() {
-                    ManualViewer.open3DSample("samples", "tech-MOSISCMOS"); }},
+                    ManualViewer.open3DSample("samples", "tech-MOSISCMOS", "Samples"); }},
                 new EMenuItem("_Animate Sample Cell") { public void run() {
                     ManualViewer.animate3DSample("demo.j3d"); }}),
 
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
             new EMenu("_3D ShowCase",
                 new EMenuItem("_Load Library") { public void run() {
-                    ManualViewer.loadSamplesLibrary("floatingGates"); }},
+                    ManualViewer.loadSamplesLibrary("floatingGates", "topCell"); }},
                 new EMenuItem("_3D View of Cage Cell") { public void run() {
-                    ManualViewer.open3DSample("floatingGates" ,"nn"); }},
+                    ManualViewer.open3DSample("floatingGates" ,"topCell", "3D ShowCase"); }},
                 new EMenuItem("_Animate Cage Cell") { public void run() {
                     ManualViewer.animate3DSample("demo.j3d"); }}),
 
@@ -121,7 +121,7 @@ public class HelpMenu {
 	{
 		if (Library.findLibrary(libName) != null) return;
 		URL url = LibFile.getLibFile(libName + ".jelib");
-		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
+		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null, null);
 	}
     
 	// ---------------------- Help Menu additions -----------------

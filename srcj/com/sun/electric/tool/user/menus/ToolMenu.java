@@ -775,7 +775,7 @@ public class ToolMenu {
 	{
 		if (Library.findLibrary("purpleGeneric180") != null) return;
 		URL url = LibFile.getLibFile("purpleGeneric180.jelib");
-		new FileMenu.ReadLibrary(url, FileType.JELIB, null);
+		new FileMenu.ReadLibrary(url, FileType.JELIB, null, null);
 	}
 
 	/**

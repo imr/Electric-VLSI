@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.help;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -180,27 +181,53 @@ public class ManualViewer extends EDialog
 	}
 
     /**
-     * Method to open the 3D view of a given layout cell
+     * Method to open the 2D view of a given layout cell
      * @param fileName name of the library where the cell is stored
      * @param cellName cell name
+     * @param menuName name of the menu executing this command
      */
-    public static void open3DSample(String fileName, String cellName)
+    public static Cell open2DSample(String fileName, String cellName, String menuName)
     {
         Library library = Library.findLibrary(fileName);
         if (library == null)
         {
-            System.out.println("Load first the library '" + fileName + "'");
-            return;
+            System.out.println("Load first the library '" + fileName +
+                    "' (Help -> " + menuName + " -> Load Library)");
+            return null;
         }
         Cell cell = library.findNodeProto(cellName);
         if (cell == null)
         {
             System.out.println("Cell '" + cellName + "' not found");
-            return;
+            return null;
         }
         // Open the window frame if not available
         if (cell != WindowFrame.getCurrentCell())
             WindowFrame.createEditWindow(cell);
+        return cell;
+    }
+
+    /**
+     * Method to open the 3D view of a given layout cell
+     * @param fileName name of the library where the cell is stored
+     * @param cellName cell name
+     */
+    public static void open3DSample(String fileName, String cellName, String menuName)
+    {
+        Cell cell = open2DSample(fileName, cellName, menuName);
+
+        if (cell == null) return; // error opening the 2D view
+
+        // Making sure all cell instances are expanded
+//        for(NodeInst ni : list)
+//        {
+//            if (!ni.isCellInstance()) continue;
+//            {
+//                if (ni.isExpanded())
+//                    setUnExpand(ni, amount);
+//            }
+//        }
+
         Class plugin3D = Resources.get3DClass("ui.J3DMenu");
         if (plugin3D != null)
         {
@@ -247,17 +274,21 @@ public class ManualViewer extends EDialog
 
     /**
      * Method to load a sample library from the lib area.
-     * @param filename library name
+     * @param fileName library name
      */
-	public static void loadSamplesLibrary(String filename)
+	public static void loadSamplesLibrary(String fileName, String cellName)
 	{
-		if (Library.findLibrary(filename) != null)
+        Library lib = Library.findLibrary(fileName);
+		if (lib != null)
         {
-            System.out.println("Library '" + filename + "' already loaded");
+            System.out.println(lib + " already loaded");
+            Cell cell = lib.findNodeProto(cellName);
+            if (cell == null)
+                System.out.println("Cell '" + cellName + "' does not exist in " + lib);
             return;
         }
-		URL url = ManualViewer.class.getResource("helphtml/"+filename+".jelib");
-		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
+		URL url = ManualViewer.class.getResource("helphtml/"+fileName+".jelib");
+		new FileMenu.ReadLibrary(url, FileType.JELIB, null, cellName);
 	}
 
 	/**

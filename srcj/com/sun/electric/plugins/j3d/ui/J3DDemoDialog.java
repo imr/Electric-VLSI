@@ -70,7 +70,7 @@ public class J3DDemoDialog extends EDialog
             return;
         }
         J3DDemoDialog dialog = new J3DDemoDialog(parent, view3D, false);
-        if (dialog.readDemoFromFile(fileURL))
+        if (fileURL == null || dialog.readDemoFromFile(fileURL))
         {
             // loading and starting the demo
             if (fileURL != null)

@@ -322,7 +322,7 @@ public class FileMenu {
 				WindowFrame.removeLibraryReferences(deleteLib);
 			}
 			FileType type = getLibraryFormat(fileName, FileType.DEFAULTLIB);
-			new ReadLibrary(fileURL, type, deleteLib);
+			new ReadLibrary(fileURL, type, deleteLib, null);
         }
     }
 
@@ -351,16 +351,17 @@ public class FileMenu {
 		private URL fileURL;
 		private FileType type;
 		private Library deleteLib;
-//        private Cell showThisCell;
+        private String cellName; // cell to view once the library is open
         private HashMap<Object,Map<String,Object>> meaningVariables;
         private Library lib;
 
-		public ReadLibrary(URL fileURL, FileType type, Library deleteLib)
+		public ReadLibrary(URL fileURL, FileType type, Library deleteLib, String cellName)
 		{
 			super("Read External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
 			this.type = type;
 			this.deleteLib = deleteLib;
+            this.cellName = cellName;
 			startJob();
 		}
 
@@ -394,10 +395,6 @@ public class FileMenu {
             }
 //            Undo.noUndoAllowed();
             lib.setCurrent();
-//            showThisCell = Job.getUserInterface().getCurrentCell(lib);
-//			fieldVariableChanged("showThisCell");
-//			if (deleteLib != null)
-//				deleteLib.kill("replace");
 			return true;
 		}
 
@@ -405,7 +402,10 @@ public class FileMenu {
         {
             Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
             meaningVariables = null;
-            Cell showThisCell = Job.getUserInterface().getCurrentCell(lib);
+
+            Cell showThisCell = (cellName != null) ?
+                    lib.findNodeProto(cellName) :
+                    Job.getUserInterface().getCurrentCell(lib);
         	doneOpeningLibrary(showThisCell);
 
             // Repair libraries.
@@ -557,7 +557,7 @@ public class FileMenu {
                     }
                 }
                 if (defType == null) defType = FileType.DEFAULTLIB;
-                new ReadLibrary(file, defType, null);
+                new ReadLibrary(file, defType, null, null);
 //                showThisCell = openALibrary(file, defType);
             }
 //			fieldVariableChanged("showThisCell");
