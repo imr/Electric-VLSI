@@ -180,20 +180,22 @@ public class ManualViewer extends EDialog
 	}
 
     /**
-     * Method to open 3D view for "tech-MOSISCMOS{lay} cell"
+     * Method to open the 3D view of a given layout cell
+     * @param fileName name of the library where the cell is stored
+     * @param cellName cell name
      */
-    public static void open3DSample()
+    public static void open3DSample(String fileName, String cellName)
     {
-        Library library = Library.findLibrary("samples");
+        Library library = Library.findLibrary(fileName);
         if (library == null)
         {
-            System.out.println("Load first samples");
+            System.out.println("Load first the library '" + fileName + "'");
             return;
         }
-        Cell cell = library.findNodeProto("tech-MOSISCMOS");
+        Cell cell = library.findNodeProto(cellName);
         if (cell == null)
         {
-            System.out.println("Cell 'tech-MOSISCMOS' not found");
+            System.out.println("Cell '" + cellName + "' not found");
             return;
         }
         // Open the window frame if not available
@@ -215,15 +217,16 @@ public class ManualViewer extends EDialog
     }
 
     /**
-     * Method to animate 3D view for "tech-MOSISCMOS{lay} cell"
+     * Method to animate the 3D view of current layout cell
+     * @param demoName name of j3d file containing the demo
      */
-    public static void animate3DSample()
+    public static void animate3DSample(String demoName)
     {
-
-        URL url = ManualViewer.class.getResource("helphtml/demo.j3d");
+        String fileName = "helphtml/" + demoName;
+        URL url = ManualViewer.class.getResource(fileName);
         if (url == null)
         {
-            System.out.println("Can't open 3D demo file 'helphtml/demo.j3d'");
+            System.out.println("Can't open 3D demo file '" + fileName + "'");
             return;
         }
         Class plugin3D = Resources.get3DClass("ui.J3DDemoDialog");
@@ -242,13 +245,18 @@ public class ManualViewer extends EDialog
         }
     }
 
-	/**
-	 * Method to load the samples library from the lib area.
-	 */
-	public static void loadSamplesLibrary()
+    /**
+     * Method to load a sample library from the lib area.
+     * @param filename library name
+     */
+	public static void loadSamplesLibrary(String filename)
 	{
-		if (Library.findLibrary("samples") != null) return;
-		URL url = ManualViewer.class.getResource("helphtml/samples.jelib");
+		if (Library.findLibrary(filename) != null)
+        {
+            System.out.println("Library '" + filename + "' already loaded");
+            return;
+        }
+		URL url = ManualViewer.class.getResource("helphtml/"+filename+".jelib");
 		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
 	}
 

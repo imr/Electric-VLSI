@@ -52,7 +52,7 @@ public class HelpMenu {
     static EMenu makeMenu() {
         /****************************** THE HELP MENU ******************************/
 
-		// mnemonic keys available:   CDEFGHIJ LMNOPQR T VWXYZ
+		// mnemonic keys available:  BC EFGHIJ  MNOPQ  T VWXYZ
         return new EMenu("_Help",
 
             !Client.isOSMac() ? new EMenuItem("_About Electric...") { public void run() {
@@ -62,23 +62,32 @@ public class HelpMenu {
 		    new EMenuItem("_User's Manual...") { public void run() {
                 ManualViewer.userManualCommand(); }},
 
-            Job.getDebug() ? new EMenuItem("_User's Manual (Russian)...") { public void run() {
+            Job.getDebug() ? new EMenuItem("User's Manual (_Russian)...") { public void run() {
                 ManualViewer.userManualRussianCommand(); }} : null,
 
             new EMenuItem("Show _Key Bindings...") { public void run() {
                 MenuCommands.menuBar().keyBindingManager.printKeyBindings();; }},
 
-        // mnemonic keys available: ABCDEFGHIJKL NOPQRSTUVWXYZ
+        // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
             new EMenu("_Samples",
                 new EMenuItem("_Load Library") { public void run() {
-                    ManualViewer.loadSamplesLibrary(); }},
+                    ManualViewer.loadSamplesLibrary("samples"); }},
                 new EMenuItem("_3D View of Sample Cell") { public void run() {
-                    ManualViewer.open3DSample(); }},
+                    ManualViewer.open3DSample("samples", "tech-MOSISCMOS"); }},
                 new EMenuItem("_Animate Sample Cell") { public void run() {
-                    ManualViewer.animate3DSample(); }}),
+                    ManualViewer.animate3DSample("demo.j3d"); }}),
+
+        // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
+            new EMenu("_3D ShowCase",
+                new EMenuItem("_Load Library") { public void run() {
+                    ManualViewer.loadSamplesLibrary("floatingGates"); }},
+                new EMenuItem("_3D View of Cage Cell") { public void run() {
+                    ManualViewer.open3DSample("floatingGates" ,"nn"); }},
+                new EMenuItem("_Animate Cage Cell") { public void run() {
+                    ManualViewer.animate3DSample("demo.j3d"); }}),
 
 		// mnemonic keys available: ABCDEFGHIJKL NO QRSTUVWXYZ
-            new EMenu("_Load _Built-in Libraries",
+            new EMenu("_Load Built-in Libraries",
                 new EMenuItem("_MOSIS CMOS Pads") { public void run() {
                     loadBuiltInLibraryCommand("pads4u"); }},
                 new EMenuItem("MI_PS Cells") { public void run() {
