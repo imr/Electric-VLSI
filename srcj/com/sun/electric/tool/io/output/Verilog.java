@@ -573,11 +573,18 @@ public class Verilog extends Topology
 				{
                     if (varTemplate.getObject() instanceof String []) {
                         String [] lines = (String [])varTemplate.getObject();
+                        writeWidthLimited("  /* begin Verilog_template for "+no.getProto().describe(false)+"*/\n");
                         for (int i=0; i<lines.length; i++) {
                             writeTemplate(lines[i], no, cni, context);
                         }
+                        writeWidthLimited("  // end Verilog_template\n");
                     } else {
-					    writeTemplate((String)varTemplate.getObject(), no, cni, context);
+                        // special case: do not write out string "//"
+                        if (!((String)varTemplate.getObject()).equals("//")) {
+                            writeWidthLimited("  /* begin Verilog_template for "+no.getProto().describe(false)+"*/\n");
+                            writeTemplate((String)varTemplate.getObject(), no, cni, context);
+                            writeWidthLimited("  // end Verilog_template\n");
+                        }
                     }
 					continue;
 				}
@@ -862,9 +869,6 @@ public class Verilog extends Topology
 
 	private void writeTemplate(String line, Nodable no, CellNetInfo cni, VarContext context)
 	{
-        // special case: do not write out string "//"
-        if (line.equals("//")) return;
-
 		// special case for Verilog templates
 		Netlist netList = cni.getNetList();
 		StringBuffer infstr = new StringBuffer();
