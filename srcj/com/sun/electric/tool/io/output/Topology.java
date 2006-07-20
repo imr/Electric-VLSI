@@ -1039,30 +1039,50 @@ public abstract class Topology extends Output
     private static class NameMapGenerator extends HierarchyEnumerator.Visitor {
 
         private HashMap<Cell,String> cellNameMap;
-        private HashMap<String,Cell> cellNameMapReverse;
+        private HashMap<String,List<Cell>> cellNameMapReverse;
         private boolean alwaysUseLibName;
         private Topology topology;
+        private Cell topCell;
 
         public NameMapGenerator(boolean alwaysUseLibName, Topology topology) {
             cellNameMap = new HashMap<Cell,String>();
-            cellNameMapReverse = new HashMap<String,Cell>();
+            cellNameMapReverse = new HashMap<String,List<Cell>>();
             this.alwaysUseLibName = alwaysUseLibName;
             this.topology = topology;
+            topCell = null;
         }
 
         public boolean enterCell(HierarchyEnumerator.CellInfo info) {
             Cell cell = info.getCell();
+            if (topCell == null) topCell = cell;
+
             if (cellNameMap.containsKey(cell)) return false;
             // add name for this cell
-            String name = getUniqueName(cell);
+            String name = getDefaultName(cell);
             cellNameMap.put(cell, name);
-            cellNameMapReverse.put(name.toLowerCase(), cell);
+            getConflictList(name).add(cell);
             //System.out.println("Mapped "+cell.describe(false) + " --> " + name);
             return true;
         }
 
+        private List getConflictList(String cellname) {
+            List<Cell> conflictList = cellNameMapReverse.get(cellname.toLowerCase());
+            if (conflictList == null) {
+                conflictList = new ArrayList<Cell>();
+                cellNameMapReverse.put(cellname.toLowerCase(), conflictList);
+            }
+            return conflictList;
+        }
+
         public void exitCell(HierarchyEnumerator.CellInfo info) {
-            //To change body of implemented methods use File | Settings | File Templates.
+            Cell cell = info.getCell();
+            if (cell == topCell) {
+                // resolve conflicts
+                if (!alwaysUseLibName)
+                    resolveConflicts(1);
+                resolveConflicts(2);
+                resolveConflicts(3);
+            }
         }
 
         public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info) {
@@ -1083,9 +1103,9 @@ public abstract class Topology extends Output
                     }
                 }
                 if (layCell != null) {
-                    String name = getUniqueName(schcell);
+                    String name = getDefaultName(schcell);
                     cellNameMap.put(schcell, name);
-                    cellNameMapReverse.put(name.toLowerCase(), schcell);
+                    getConflictList(name).add(schcell);
                     //System.out.println("Mapped "+schcell.describe(false) + " --> " + name);
                     HierarchyEnumerator.enumerateCell(layCell, context, this);
                     return false;
@@ -1094,9 +1114,9 @@ public abstract class Topology extends Output
                 // special case for cells with only icons
                 schcell = cell.contentsView();
                 if (cell.getView() == View.ICON && schcell == null && !cellNameMap.containsKey(cell)) {
-                    String name = getUniqueName(cell);
+                    String name = getDefaultName(cell);
                     cellNameMap.put(cell, name);
-                    cellNameMapReverse.put(name.toLowerCase(), cell);
+                    getConflictList(name).add(cell);
                     return false;
                 }
             }
@@ -1105,32 +1125,50 @@ public abstract class Topology extends Output
             return true;
         }
 
-        private String getUniqueName(Cell cell) {
-            String name = "";
-            if (!alwaysUseLibName) {
-                name = cell.getName();
-                if (!isNameTaken(cell, name)) return name;
-            }
-            name = cell.getLibrary().getName() + "__" + cell.getName();
-            if (!isNameTaken(cell, name)) return name;
-
-            name = cell.getLibrary().getName() + "_" + cell.getName() + "_" + cell.getView().getAbbreviation();
-            if (!isNameTaken(cell, name)) return name;
-
-            Cell conflictCell = cellNameMapReverse.get(name.toLowerCase());
-            System.out.println("Error: Unable to make unique cell name for "+cell.describe(false)+
-                    ", it conflicts with "+conflictCell.describe(false));
-            return name;
+        private String getDefaultName(Cell cell) {
+            if (alwaysUseLibName) {
+                return cell.getLibrary().getName() + "__" + cell.getName();
+            } else
+                return cell.getName();
         }
 
-        private boolean isNameTaken(Cell cell, String name) {
-            Cell existingEntry = cellNameMapReverse.get(name.toLowerCase());
-            if (existingEntry == null || existingEntry == cell) {
-                // same entry
-                return false;
+        private void resolveConflicts(int whichPass) {
+            List<List<Cell>> conflictLists = new ArrayList<List<Cell>>();
+            for (List<Cell> conflictList : cellNameMapReverse.values()) {
+                if (conflictList.size() <= 1) continue; // no conflict
+                conflictLists.add(conflictList);
             }
-            // name in use by some other cell
-            return true;
+            for (List<Cell> conflictList : conflictLists) {
+                // on pass 1, only cell names. If any conflicts, prepend libname
+                if (whichPass == 1) {
+                    // replace name with lib + name
+                    for (Cell cell : conflictList) {
+                        String name = cell.getLibrary().getName() + "__" + cell.getName();
+                        cellNameMap.put(cell, name);
+                        getConflictList(name).add(cell);
+                    }
+                    conflictList.clear();
+                }
+                if (whichPass == 2) {
+                    // lib + name conflicts, append view
+                    for (Cell cell : conflictList) {
+                        String name = cell.getLibrary().getName() + "__" + cell.getName() + "__" + cell.getView().getAbbreviation();
+                        cellNameMap.put(cell, name);
+                        getConflictList(name).add(cell);
+                    }
+                    conflictList.clear();
+                }
+                if (whichPass == 3) {
+                    // must be an error
+                    Cell cell = conflictList.get(0);
+                    System.out.print("Error: Unable to make unique cell name for "+cell.describe(false)+
+                            ", it conflicts with: ");
+                    for (int i=1; i<conflictList.size(); i++) {
+                        System.out.print(conflictList.get(i).describe(false)+" ");
+                    }
+                    System.out.println();
+                }
+            }
         }
     }
 
