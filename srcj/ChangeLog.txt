@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+IMP: (7/20/06, DN) In LayerDrawing algorithm use alpha blending for both patterned and solid scales.
+
 BUG: (7/19/06, GVG) Working directory path not updated properly (bug #1181)
 FIX: Setting path for database file group explicitely
 

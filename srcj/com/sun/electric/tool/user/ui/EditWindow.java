@@ -1586,7 +1586,7 @@ public class EditWindow extends JPanel
 			layerColors.add(new LayerColor(layer, color));
         }
 //        System.out.println();
-        final boolean showOpacity = !patternedDrawing;
+        final boolean showOpacity = true /*!patternedDrawing*/;
         final LayerTab layerTab = getWindowFrame().getLayersTab();
         if (layerTab != null)
             SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});

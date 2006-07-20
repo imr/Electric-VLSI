@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: LayerDrawing_.java
+ * File: LayerDrawing.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -176,6 +176,9 @@ import java.util.Map;
  */
 class LayerDrawing
 {
+    /** Flag to use alpha blending for patterned scales. */
+    private static final boolean ALPHA_BLEND_PATTERNED = true;
+    
 	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE =   5;
 	/** Text larger than this is granular. */						public static final int MAXIMUMTEXTSIZE = 100;
 	/** Number of singleton cells to cache when redisplaying. */	public static final int SINGLETONSTOADD =   5;
@@ -262,6 +265,8 @@ class LayerDrawing
 	/** the background color of the offscreen image */		private int backgroundColor;
 	/** the "unset" color of the offscreen image */			private int backgroundValue;
     /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
+    /** list of render text. */                             private final ArrayList<RenderTextInfo> renderTextList = new ArrayList<RenderTextInfo>();
+    /** list of greek text. */                              private final ArrayList<GreekTextInfo> greekTextList = new ArrayList<GreekTextInfo>();
 
 	// the transparent bitmaps
 	/** the offscreen maps for transparent layers */		private int [][] layerBitMaps;
@@ -306,6 +311,7 @@ class LayerDrawing
 
     static class Drawing extends EditWindow.Drawing {
         private LayerDrawing offscreen;
+        private volatile RenderTextInfo[] renderText = {};
         
         Drawing(EditWindow wnd) {
             super(wnd);
@@ -326,10 +332,15 @@ class LayerDrawing
             }
             
             // show the image
+            long startTime = System.currentTimeMillis();
             BufferedImage img = offscreen.getBufferedImage();
 //		synchronized(img) // Do not need synchronization here
             {
                 g.drawImage(img, 0, 0, wnd);
+            }
+            if (TAKE_STATS) {
+                long endTime = System.currentTimeMillis();
+                System.out.println("paintComponent took "+ (endTime-startTime) + " msec");
             }
             return true;
         }
@@ -582,7 +593,7 @@ class LayerDrawing
 	 */
 	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds)
 	{
-		long startTime = 0, clearTime = 0, countTime = 0, drawTime = 0;
+		long startTime = 0, clearTime = 0, countTime = 0, drawTime = 0, compositeTime = 0;
 		long initialUsed = 0;
 		if (TAKE_STATS)
 		{
@@ -682,9 +693,11 @@ class LayerDrawing
         if (TAKE_STATS) countTime = System.currentTimeMillis();
         
         // now render it all
+        renderTextList.clear();
+        greekTextList.clear();
         drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
         if (TAKE_STATS) drawTime = System.currentTimeMillis();
-
+        
 		// merge transparent image into opaque one
 		synchronized(img)
 		{
@@ -694,19 +707,26 @@ class LayerDrawing
 			// combine transparent and opaque colors into a final image
 			composite(renderBounds);
 		};
-
+        if (TAKE_STATS) compositeTime = System.currentTimeMillis();
+        
+        for (GreekTextInfo greekInfo: greekTextList)
+            greekInfo.draw();
+        for (RenderTextInfo renderInfo: renderTextList)
+            renderInfo.draw();
+        
 		if (TAKE_STATS)
 		{
 			long endTime = System.currentTimeMillis();
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			long memConsumed = curUsed - initialUsed;
 			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime) +
-                "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (drawTime-countTime) + "+" + (endTime - drawTime) + ")"+
+                "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (drawTime-countTime) + "+" + (compositeTime - drawTime) + "+" + (endTime - compositeTime) + ")"+
 				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) cached cells, created "+
 				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
 				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
-				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines");
+				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines" + 
+                " Texts " + renderTextList.size() + " Greeks " + greekTextList.size());
 //            System.out.print("    " + (boxes+crosses+solidLines+patLines+thickLines+polygons+texts+circles+thickCircles+discs+circleArcs+points+thickPoints)+" rendered: ");
 //            if (boxes != 0) System.out.print(boxes+" boxes ");
 //            if (crosses != 0) System.out.print(crosses+" crosses ");
@@ -790,7 +810,7 @@ class LayerDrawing
 	 */
 	public Image composite(Rectangle bounds)
 	{
-        if (!patternedDisplay) {
+        if (ALPHA_BLEND_PATTERNED || !patternedDisplay) {
             layerComposite();
             return img;
         }
@@ -968,7 +988,7 @@ class LayerDrawing
         HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
         for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
             layerBits.put(e.getKey(), e.getValue().layerBitMap);
-        alphaBlender.init(backgroundValue, wnd.getBlendingOrder(layerBits.keySet(), false), layerBits);
+        alphaBlender.init(backgroundValue, wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay), layerBits);
     
         long startTime = System.currentTimeMillis();
         int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
@@ -978,7 +998,7 @@ class LayerDrawing
             baseIndex += width;
         }
         long endTime = System.currentTimeMillis();
-        if (DEBUG) System.out.println("layerComposite took " + (endTime - startTime) + " msec");
+        if (TAKE_STATS) System.out.println("layerComposite took " + (endTime - startTime) + " msec");
     }
     
 	/**
@@ -1556,6 +1576,31 @@ class LayerDrawing
     }
     
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
+        if (!ALPHA_BLEND_PATTERNED)
+            return getRaster_(layer, graphics, forceVisible);
+        
+        layer = layer.getNonPseudoLayer();
+        if (layer.getTechnology() == null)
+            layer = Artwork.tech.defaultLayer;
+        TransparentRaster raster = layerRasters.get(layer);
+        if (raster == null) {
+            raster = new TransparentRaster(sz.height, numIntsPerRow);
+            layerRasters.put(layer, raster);
+        }
+        int [] pattern = null;
+        if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
+            pattern = graphics.getPattern();
+        if (pattern != null && patternedDisplay && renderedWindow) {
+            EGraphics.Outline o = graphics.getOutlined();
+            if (o == EGraphics.Outline.NOPAT)
+                o = null;
+            PatternedTransparentRaster.current.init(raster.layerBitMap, raster.intsPerRow, pattern, o);
+            raster = PatternedTransparentRaster.current;
+        }
+        return raster;
+    }
+    
+    ERaster getRaster_(Layer layer, EGraphics graphics, boolean forceVisible) {
         if (!patternedDisplay || !renderedWindow) {
             layer = layer.getNonPseudoLayer();
             if (layer.getTechnology() == null)
@@ -1574,12 +1619,9 @@ class LayerDrawing
             graphics = layer.getGraphics();
             dimmed = layer.isDimmed();
         }
-
         if (graphics == null)
-        {
             graphics = Generic.tech.glyphLay.getGraphics();
-        }
-
+        
 		int [] layerBitMap = null;
 		int layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
@@ -1751,7 +1793,7 @@ class LayerDrawing
             layerBitMap = new int[height*numIntsPerRow];
         }
             
-    private void init(int[] layerBitMap, int intsPerRow) {
+        private void init(int[] layerBitMap, int intsPerRow) {
             this.layerBitMap = layerBitMap;
             this.intsPerRow = intsPerRow;
         }
@@ -2013,6 +2055,8 @@ class LayerDrawing
         
         int[] pattern;
         EGraphics.Outline outline;
+  
+        PatternedTransparentRaster() {}
         
         private void init(int[] layerBitMap, int intsPerRow, int[] pattern, EGraphics.Outline outline) {
             super.init(layerBitMap, intsPerRow);
@@ -2111,49 +2155,7 @@ class LayerDrawing
 			// handle refreshing
 			periodicRefresh();
             
-            if (vb.isFilled()) {
-                ERaster raster = getRaster(vb.layer, vb.graphics, false);
-                if (raster == null) continue;
-                
-                // handle each shape
-                if (vb instanceof VectorCache.VectorManhattan) {
-                    boxCount++;
-                    VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
-                    for (int i = 0; i < vm.coords.length; i += 4) {
-                        int c1X = vm.coords[i];
-                        int c1Y = vm.coords[i+1];
-                        int c2X = vm.coords[i+2];
-                        int c2Y = vm.coords[i+3];
-                        
-                        // determine coordinates of rectangle on the screen
-                        gridToScreen(c1X+oX, c2Y+oY, tempPt1);
-                        gridToScreen(c2X+oX, c1Y+oY, tempPt2);
-                        int lX = tempPt1.x;
-                        int lY = tempPt1.y;
-                        int hX = tempPt2.x;
-                        int hY = tempPt2.y;
-                        
-                        drawBox(lX, hX, lY, hY, raster);
-                    }
-                } else if (vb instanceof VectorCache.VectorPolygon) {
-                    polygonCount++;
-                    VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
-                    Point [] intPoints = new Point[vp.points.length];
-                    for(int i=0; i<vp.points.length; i++) {
-                        intPoints[i] = new Point();
-                        gridToScreen(vp.points[i].x+oX, vp.points[i].y+oY, intPoints[i]);
-                    }
-                    Point [] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
-                    drawPolygon(clippedPoints, raster);
-                } else if (vb instanceof VectorCache.VectorCircle) {
-                    discCount++;
-                    VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
-                    gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
-                    gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
-                    assert vci.nature == 2;
-                    drawDisc(tempPt1, tempPt2, raster);
-                }
-            } else if (vb instanceof VectorCache.VectorText) {
+            if (vb instanceof VectorCache.VectorText) {
                 if (!canDrawText) continue;
                 VectorCache.VectorText vt = (VectorCache.VectorText)vb;
                 switch (vt.textType) {
@@ -2216,44 +2218,81 @@ class LayerDrawing
                 textCount++;
                 tempRect.setBounds(lX, lY, hX-lX, hY-lY);
                 drawText(tempRect, vt.style, vt.descript, drawString, graphics, dimmed);
+                continue;
+            }
+            
+            ERaster raster = getRaster(vb.layer, vb.graphics, false);
+            if (raster == null) continue;
                 
-            } else {
-                ERaster raster = getRaster(vb.layer, vb.graphics, false);
-                if (raster == null) continue;
-                
-                if (vb instanceof VectorCache.VectorLine) {
-                    lineCount++;
-                    VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
+            // handle each shape
+            if (vb instanceof VectorCache.VectorManhattan) {
+                boxCount++;
+                VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
+                for (int i = 0; i < vm.coords.length; i += 4) {
+                    int c1X = vm.coords[i];
+                    int c1Y = vm.coords[i+1];
+                    int c2X = vm.coords[i+2];
+                    int c2Y = vm.coords[i+3];
                     
-                    // determine coordinates of line on the screen
-                    gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
-                    gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
+                    // determine coordinates of rectangle on the screen
+                    gridToScreen(c1X+oX, c2Y+oY, tempPt1);
+                    gridToScreen(c2X+oX, c1Y+oY, tempPt2);
+                    int lX = tempPt1.x;
+                    int lY = tempPt1.y;
+                    int hX = tempPt2.x;
+                    int hY = tempPt2.y;
                     
-                    // clip and draw the line
-                    drawLine(tempPt1, tempPt2, vl.texture, raster);
-                } else if (vb instanceof VectorCache.VectorCross) {
-                    crossCount++;
-                    VectorCache.VectorCross vcr = (VectorCache.VectorCross)vb;
-                    gridToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
-                    int size = vcr.small ? 3 : 5;
-                    drawCross(tempPt1.x, tempPt1.y, size, raster);
-                } else if (vb instanceof VectorCache.VectorCircle) {
-                    circleCount++;
-                    VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
-                    gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
-                    gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
-                    switch (vci.nature) {
-                        case 0: drawCircle(tempPt1, tempPt2, raster);        break;
-                        case 1: drawThickCircle(tempPt1, tempPt2, raster);   break;
-                    }
-                } else if (vb instanceof VectorCache.VectorCircleArc) {
-                    arcCount++;
-                    VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
-                    gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
-                    gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
-                    gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
-                    drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, raster);
+                    drawBox(lX, hX, lY, hY, raster);
                 }
+            } else if (vb instanceof VectorCache.VectorPolygon) {
+                polygonCount++;
+                VectorCache.VectorPolygon vp = (VectorCache.VectorPolygon)vb;
+                Point [] intPoints = new Point[vp.points.length];
+                for(int i=0; i<vp.points.length; i++) {
+                    intPoints[i] = new Point();
+                    gridToScreen(vp.points[i].x+oX, vp.points[i].y+oY, intPoints[i]);
+                }
+                Point [] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
+                drawPolygon(clippedPoints, raster);
+            } else if (vb instanceof VectorCache.VectorCircle) {
+                discCount++;
+                VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
+                gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+                gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+                assert vci.nature == 2;
+                drawDisc(tempPt1, tempPt2, raster);
+            } else if (vb instanceof VectorCache.VectorLine) {
+                lineCount++;
+                VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
+                
+                // determine coordinates of line on the screen
+                gridToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
+                gridToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
+                
+                // clip and draw the line
+                drawLine(tempPt1, tempPt2, vl.texture, raster);
+            } else if (vb instanceof VectorCache.VectorCross) {
+                crossCount++;
+                VectorCache.VectorCross vcr = (VectorCache.VectorCross)vb;
+                gridToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
+                int size = vcr.small ? 3 : 5;
+                drawCross(tempPt1.x, tempPt1.y, size, raster);
+            } else if (vb instanceof VectorCache.VectorCircle) {
+                circleCount++;
+                VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
+                gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+                gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+                switch (vci.nature) {
+                    case 0: drawCircle(tempPt1, tempPt2, raster);        break;
+                    case 1: drawThickCircle(tempPt1, tempPt2, raster);   break;
+                }
+            } else if (vb instanceof VectorCache.VectorCircleArc) {
+                arcCount++;
+                VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
+                gridToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
+                gridToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
+                gridToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
+                drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, raster);
             }
 		}
 	}
@@ -3298,7 +3337,7 @@ class LayerDrawing
 		// create RenderInfo
 		long startTime = 0;
 		RenderTextInfo renderInfo = new RenderTextInfo();
-		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
+		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation, shiftUp, col))
 			return;
 
 		// if text was made "greek", just draw a line
@@ -3318,14 +3357,17 @@ class LayerDrawing
 			if (hY >= sz.height) hY = sz.height-1;
 
             // greeked box in opaque area
-            for(int y=lY; y<=hY; y++) {
-                int baseIndex = y * sz.width + lX;
-                for(int x=lX; x<=hX; x++) {
-                    int index = baseIndex++;
-                    int alpha = (opaqueData[index] >> 24) & 0xFF;
-                    if (alpha == 0xFF) opaqueData[index] = col;
-                }
-            }
+            if (lX > hX || lY > hY) return;
+            
+            greekTextList.add(new GreekTextInfo(lX, hX, lY, hY, col));
+//            for(int y=lY; y<=hY; y++) {
+//                int baseIndex = y * sz.width + lX;
+//                for(int x=lX; x<=hX; x++) {
+//                    int index = baseIndex++;
+//                    int alpha = (opaqueData[index] >> 24) & 0xFF;
+//                    if (alpha == 0xFF) opaqueData[index] = col;
+//                }
+//            }
             return;
 		}
 
@@ -3335,153 +3377,8 @@ class LayerDrawing
                 return;
 
 		// render the text
-		Raster ras = renderText(renderInfo);
-		if (ras == null) return;
-		int rasWidth = (int)renderInfo.rasBounds.getWidth() << shiftUp;
-		int rasHeight = (int)renderInfo.rasBounds.getHeight() << shiftUp;
-		Point pt = getTextCorner(rasWidth, rasHeight, style, rect, rotation);
-		int atX = pt.x;
-		int atY = pt.y;
-		DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
-		byte [] samples = dbb.getData();
-
-		int sx, ex;
-		switch (rotation)
-		{
-			case 0:			// no rotation
-				if (atX < 0) sx = -atX; else sx = 0;
-				if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
-					ex = rasWidth;
-				for(int y=0; y<rasHeight; y++)
-				{
-					int trueY = atY + y;
-					if (trueY < 0 || trueY >= sz.height) continue;
-
-					// setup pointers for filling this row
-					int baseIndex = trueY * sz.width;
-					int samp = (y>>shiftUp) * textImageWidth;
-					for(int x=sx; x<ex; x++)
-					{
-						int trueX = atX + x;
-						int alpha = samples[samp + (x>>shiftUp)] & 0xFF;
-						if (alpha == 0) continue;
-                        // drawing opaque
-                        int fullIndex = baseIndex + trueX;
-                        int pixelValue = opaqueData[fullIndex];
-                        int oldAlpha = (pixelValue >> 24) & 0xFF;
-                        int color = col;
-                        if (oldAlpha == 0) {
-                            // blend with opaque
-                            if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-                        } else if (oldAlpha == 0xFF) {
-                            // blend with background
-                            if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-                        }
-                        opaqueData[fullIndex] = color;
-					}
-				}
-				break;
-			case 1:			// 90 degrees counterclockwise
-				if (atX < 0) sx = -atX; else sx = 0;
-				if (atX >= sz.width) ex = sz.width - atX; else
-					ex = rasHeight;
-				for(int y=0; y<rasWidth; y++)
-				{
-					int trueY = atY - y;
-					if (trueY < 0 || trueY >= sz.height) continue;
-
-					// setup pointers for filling this row
-					int baseIndex = trueY * sz.width;
-					for(int x=sx; x<ex; x++)
-					{
-						int trueX = atX + x;
-						int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
-                        if (alpha == 0) continue;
-                        // drawing opaque
-                        int fullIndex = baseIndex + trueX;
-                        int pixelValue = opaqueData[fullIndex];
-                        int oldAlpha = (pixelValue >> 24) & 0xFF;
-                        int color = col;
-                        if (oldAlpha == 0) {
-                            // blend with opaque
-                            if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-                        } else if (oldAlpha == 0xFF) {
-                            // blend with background
-                            if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-                        }
-                        opaqueData[fullIndex] = color;
-					}
-				}
-				break;
-			case 2:			// 180 degrees
-				atX -= rasWidth;
-				atY -= rasHeight;
-				if (atX < 0) sx = -atX; else sx = 0;
-				if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
-					ex = rasWidth;
-
-				for(int y=0; y<rasHeight; y++)
-				{
-					int trueY = atY + y;
-					if (trueY < 0 || trueY >= sz.height) continue;
-
-					// setup pointers for filling this row
-					int baseIndex = trueY * sz.width;
-					for(int x=sx; x<ex; x++)
-					{
-						int trueX = atX + x;
-						int index = ((rasHeight-y-1)>>shiftUp) * textImageWidth + ((rasWidth-x-1)>>shiftUp);
-						int alpha = samples[index] & 0xFF;
-						if (alpha == 0) continue;
-                        // drawing opaque
-                        int fullIndex = baseIndex + trueX;
-                        int pixelValue = opaqueData[fullIndex];
-                        int oldAlpha = (pixelValue >> 24) & 0xFF;
-                        int color = col;
-                        if (oldAlpha == 0) {
-                            // blend with opaque
-                            if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-                        } else if (oldAlpha == 0xFF) {
-                            // blend with background
-                            if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-                        }
-                        opaqueData[fullIndex] = color;
-                    }
-				}
-				break;
-			case 3:			// 90 degrees clockwise
-				if (atX < 0) sx = -atX; else sx = 0;
-				if (atX >= sz.width) ex = sz.width - atX; else
-					ex = rasHeight;
-				for(int y=0; y<rasWidth; y++)
-				{
-					int trueY = atY + y;
-					if (trueY < 0 || trueY >= sz.height) continue;
-
-					// setup pointers for filling this row
-					int baseIndex = trueY * sz.width;
-					for(int x=sx; x<ex; x++)
-					{
-						int trueX = atX - x;
-						int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
-						if (alpha == 0) continue;
-                        // drawing opaque
-                        int fullIndex = baseIndex + trueX;
-                        int pixelValue = opaqueData[fullIndex];
-                        int oldAlpha = (pixelValue >> 24) & 0xFF;
-                        int color = col;
-                        if (oldAlpha == 0) {
-                            // blend with opaque
-                            if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-                        } else if (oldAlpha == 0xFF) {
-                            // blend with background
-                            if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-                        }
-                        opaqueData[fullIndex] = color;
-					}
-				}
-				break;
-		}
+        renderTextList.add(renderInfo);
+//        renderInfo.draw();
 	}
 
 	private int alphaBlend(int color, int backgroundColor, int alpha)
@@ -3500,20 +3397,30 @@ class LayerDrawing
 		return color;
 	}
 
-	private static class RenderTextInfo {
+	private class RenderTextInfo {
 		private Font font;
 		private GlyphVector gv;
 		private LineMetrics lm;
 		private Point2D anchorPoint;
 	    private Rectangle2D rasBounds;              // the raster bounds of the unrotated text, in pixels (screen units)
 	    private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
+        private Poly.Type style;
 	    private boolean underline;
+        private int rotation;
+        private int shiftUp;
+        private int col; 
+        private Rectangle rect;
 
 	    private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
-	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation)
+	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation, int shiftUp, int col)
 	    {
 			font = getFont(msg, fontName, tSize, italic, bold, underline);
+            this.style = style;
 			this.underline = underline;
+            this.rotation = rotation;
+            this.shiftUp = shiftUp;
+            this.col = col;
+            rect = (Rectangle)probableBoxedBounds.clone();
 
 			// convert the text to a GlyphVector
 			FontRenderContext frc = new FontRenderContext(null, true, true);
@@ -3562,8 +3469,181 @@ class LayerDrawing
             }
             return true;
         }
+        
+        private void draw() {
+            // render the text
+            Raster ras = renderText(this);
+            if (ras == null) return;
+            int rasWidth = (int)rasBounds.getWidth() << shiftUp;
+            int rasHeight = (int)rasBounds.getHeight() << shiftUp;
+            Point pt = getTextCorner(rasWidth, rasHeight, style, rect, rotation);
+            int atX = pt.x;
+            int atY = pt.y;
+            DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
+            byte [] samples = dbb.getData();
+            
+            int sx, ex;
+            switch (rotation) {
+                case 0:			// no rotation
+                    if (atX < 0) sx = -atX; else sx = 0;
+                    if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
+                        ex = rasWidth;
+                    for(int y=0; y<rasHeight; y++) {
+                        int trueY = atY + y;
+                        if (trueY < 0 || trueY >= sz.height) continue;
+                        
+                        // setup pointers for filling this row
+                        int baseIndex = trueY * sz.width;
+                        int samp = (y>>shiftUp) * textImageWidth;
+                        for(int x=sx; x<ex; x++) {
+                            int trueX = atX + x;
+                            int alpha = samples[samp + (x>>shiftUp)] & 0xFF;
+                            if (alpha == 0) continue;
+                            // drawing opaque
+                            int fullIndex = baseIndex + trueX;
+                            int color = alpha == 0xFF ? col : alphaBlend(col, opaqueData[fullIndex], alpha);
+//                            int pixelValue = opaqueData[fullIndex];
+//                            int oldAlpha = (pixelValue >> 24) & 0xFF;
+//                            int color = col;
+//                            if (oldAlpha == 0) {
+//                                // blend with opaque
+//                                if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+//                            } else if (oldAlpha == 0xFF) {
+//                                // blend with background
+//                                if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+//                            }
+                            opaqueData[fullIndex] = color;
+                        }
+                    }
+                    break;
+                case 1:			// 90 degrees counterclockwise
+                    if (atX < 0) sx = -atX; else sx = 0;
+                    if (atX >= sz.width) ex = sz.width - atX; else
+                        ex = rasHeight;
+                    for(int y=0; y<rasWidth; y++) {
+                        int trueY = atY - y;
+                        if (trueY < 0 || trueY >= sz.height) continue;
+                        
+                        // setup pointers for filling this row
+                        int baseIndex = trueY * sz.width;
+                        for(int x=sx; x<ex; x++) {
+                            int trueX = atX + x;
+                            int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
+                            if (alpha == 0) continue;
+                            // drawing opaque
+                            int fullIndex = baseIndex + trueX;
+                            int color = alpha == 0xFF ? col : alphaBlend(col, opaqueData[fullIndex], alpha);
+//                            int pixelValue = opaqueData[fullIndex];
+//                            int oldAlpha = (pixelValue >> 24) & 0xFF;
+//                            int color = col;
+//                            if (oldAlpha == 0) {
+//                                // blend with opaque
+//                                if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+//                            } else if (oldAlpha == 0xFF) {
+//                                // blend with background
+//                                if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+//                            }
+                            opaqueData[fullIndex] = color;
+                        }
+                    }
+                    break;
+                case 2:			// 180 degrees
+                    atX -= rasWidth;
+                    atY -= rasHeight;
+                    if (atX < 0) sx = -atX; else sx = 0;
+                    if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
+                        ex = rasWidth;
+                    
+                    for(int y=0; y<rasHeight; y++) {
+                        int trueY = atY + y;
+                        if (trueY < 0 || trueY >= sz.height) continue;
+                        
+                        // setup pointers for filling this row
+                        int baseIndex = trueY * sz.width;
+                        for(int x=sx; x<ex; x++) {
+                            int trueX = atX + x;
+                            int index = ((rasHeight-y-1)>>shiftUp) * textImageWidth + ((rasWidth-x-1)>>shiftUp);
+                            int alpha = samples[index] & 0xFF;
+                            if (alpha == 0) continue;
+                            // drawing opaque
+                            int fullIndex = baseIndex + trueX;
+                            int color = alpha == 0xFF ? col : alphaBlend(col, opaqueData[fullIndex], alpha);
+//                            int pixelValue = opaqueData[fullIndex];
+//                            int oldAlpha = (pixelValue >> 24) & 0xFF;
+//                            int color = col;
+//                            if (oldAlpha == 0) {
+//                                // blend with opaque
+//                                if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+//                            } else if (oldAlpha == 0xFF) {
+//                                // blend with background
+//                                if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+//                            }
+                            opaqueData[fullIndex] = color;
+                        }
+                    }
+                    break;
+                case 3:			// 90 degrees clockwise
+                    if (atX < 0) sx = -atX; else sx = 0;
+                    if (atX >= sz.width) ex = sz.width - atX; else
+                        ex = rasHeight;
+                    for(int y=0; y<rasWidth; y++) {
+                        int trueY = atY + y;
+                        if (trueY < 0 || trueY >= sz.height) continue;
+                        
+                        // setup pointers for filling this row
+                        int baseIndex = trueY * sz.width;
+                        for(int x=sx; x<ex; x++) {
+                            int trueX = atX - x;
+                            int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
+                            if (alpha == 0) continue;
+                            // drawing opaque
+                            int fullIndex = baseIndex + trueX;
+                            int color = alpha == 0xFF ? col : alphaBlend(col, opaqueData[fullIndex], alpha);
+//                            int pixelValue = opaqueData[fullIndex];
+//                            int oldAlpha = (pixelValue >> 24) & 0xFF;
+//                            int color = col;
+//                            if (oldAlpha == 0) {
+//                                // blend with opaque
+//                                if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
+//                            } else if (oldAlpha == 0xFF) {
+//                                // blend with background
+//                                if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
+//                            }
+                            opaqueData[fullIndex] = color;
+                        }
+                    }
+                    break;
+            }
+        }
     }
 
+    private class GreekTextInfo {
+        int lX, hX, lY, hY;
+        int col;
+        
+        private GreekTextInfo(int lX, int hX, int lY, int hY, int col) {
+            this.lX = lX;
+            this.hX = hX;
+            this.lY = lY;
+            this.hY = hY;
+            this.col = col;
+        }
+        
+        private void draw() {
+            // greeked box in opaque area
+            for(int y=lY; y<=hY; y++) {
+                int baseIndex = y * sz.width + lX;
+                for(int x=lX; x<=hX; x++) {
+                    int index = baseIndex++;
+                    opaqueData[index] = col;
+//                    int alpha = (opaqueData[index] >> 24) & 0xFF;
+//                    if (alpha == 0xFF) opaqueData[index] = col;
+                }
+            }
+            
+        }
+    }
+    
 	/**
 	 * Method to return the coordinates of the lower-left corner of text in this window.
 	 * @param rasterWidth the width of the text.
