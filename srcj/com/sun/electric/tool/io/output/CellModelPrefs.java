@@ -62,7 +62,7 @@ public class CellModelPrefs {
 
     public void setModelFile(Cell cell, String fileName, boolean useModelFromFile, boolean useLayoutView) {
         assert !(useModelFromFile && useLayoutView);
-        String prefName = type + "ModelFileFor_" + cell.getName() + "_" + cell.getView().getAbbreviation();
+        String prefName = type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
         Pref modelPref = modelFilePrefs.get(prefName);
         if (modelPref == null)
         {
@@ -77,7 +77,7 @@ public class CellModelPrefs {
     }
 
     private String getModelFileUnfiltered(Cell cell) {
-        String prefName = type + "ModelFileFor_" + cell.getName() + "_" + cell.getView().getAbbreviation();
+        String prefName = type + "ModelFileFor_" + cell.getLibrary().getName() +"_" + cell.getName() + "_" + cell.getView().getAbbreviation();
         Pref modelPref = modelFilePrefs.get(prefName);
         if (modelPref == null)
         {
