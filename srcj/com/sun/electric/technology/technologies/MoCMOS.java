@@ -3459,7 +3459,7 @@ public class MoCMOS extends Technology
 	/******************** OPTIONS ********************/
 
     private static Pref cacheNumberOfMetalLayers = TechPref.makeIntSetting(tech, "MoCMOSNumberOfMetalLayers",
-    	"Technology/Technology tab", "MOSIS CMOS: Number of Metal Layers", 4);
+    	"Technology/Technology tab", "MOSIS CMOS: Number of Metal Layers", 6);
 	/**
 	 * Method to tell the number of metal layers in the MoCMOS technology.
 	 * The default is "4".
@@ -3497,7 +3497,7 @@ public class MoCMOS extends Technology
 	public static void setRuleSet(int set) { cacheRuleSet.setInt(set); }
 
 	private static Pref cacheSecondPolysilicon = TechPref.makeBooleanSetting("MoCMOSSecondPolysilicon", getTechnologyPreferences(),
-		tech, "Technology/Technology tab", "MOSIS CMOS: Second Polysilicon Layer", false);
+		tech, "Technology/Technology tab", "MOSIS CMOS: Second Polysilicon Layer", true);
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
 	 * The default is false.

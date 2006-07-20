@@ -4,7 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+TEC: (7/20/06, GVG) Default # metal layers in MoCMOS = 6. Second polysilicon in MoCMOS available by default.
+Changes triggered by demo in SSC Sydney.
+
 IMP: (7/20/06, DN) In LayerDrawing algorithm use alpha blending for both patterned and solid scales.
+
+IMP/MAN: (7/19/06, GVG) Changes in 3D defaults in preparation for the SSC Sydney.
 
 BUG: (7/19/06, GVG) Working directory path not updated properly (bug #1181)
 FIX: Setting path for database file group explicitely
