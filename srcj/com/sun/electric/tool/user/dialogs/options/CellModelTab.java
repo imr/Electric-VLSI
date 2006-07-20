@@ -240,7 +240,8 @@ public class CellModelTab extends PreferencePanel
             cellListModel.clear();
             for (Map.Entry<Cell,ModelPref> entry : initialBehaveFiles.entrySet()) {
                 ModelPref pref = entry.getValue();
-                if (pref.fileName.length() > 0) {
+                if (pref.fileName.length() > 0 || pref.choice == Choice.USELAYOUTNETLIST ||
+                        pref.choice == Choice.USEMODELFILE) {
                     Cell cell = entry.getKey();
                     cellListModel.addElement(cell.describe(false));
                     notEmpty = true;
