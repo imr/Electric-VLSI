@@ -1411,7 +1411,7 @@ public class User extends Listener
 
 	/****************************** COLOR PREFERENCES ******************************/
 
-	private static Pref cacheColorBackground = Pref.makeIntPref("ColorBackground", tool.prefs, Color.WHITE.getRGB());
+	private static Pref cacheColorBackground = Pref.makeIntPref("ColorBackground", tool.prefs, Color.LIGHT_GRAY.getRGB());
 	/**
 	 * Method to get the color of the background on the display.
 	 * The default is "light gray".
@@ -1464,7 +1464,7 @@ public class User extends Listener
 	 */
 	public static void setColorGrid(int c) { cacheColorGrid.setInt(c); }
 
-	private static Pref cacheColorHighlight = Pref.makeIntPref("ColorHighlight", tool.prefs, Color.RED.getRGB());
+	private static Pref cacheColorHighlight = Pref.makeIntPref("ColorHighlight", tool.prefs, Color.WHITE.getRGB());
 	/**
 	 * Method to get the color of the highlight on the display.
 	 * The default is "white".
