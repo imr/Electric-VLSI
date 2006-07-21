@@ -383,6 +383,7 @@ public class CVSLibrary {
 
         if (!CVS.isDELIB(lib)) {
             File file = TextUtils.getFile(lib.getLibFile());
+            if (file == null) return;
             if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath()))) return;
             if (getState(lib) == State.ADDED) return;       // not actually in cvs yet
             if (!isEditing(lib)) {
@@ -415,7 +416,10 @@ public class CVSLibrary {
         if (buf.length() == 0) return;      // nothing to 'edit'
         // turn on edit for files to be modified
         // note that header is never to have edit on or off
-        Edit.edit(buf.toString(), TextUtils.getFile(lib.getLibFile()).getPath());
+        File file = TextUtils.getFile(lib.getLibFile());
+        if (file != null) {
+            Edit.edit(buf.toString(), file.getPath());
+        }
     }
 
     /**

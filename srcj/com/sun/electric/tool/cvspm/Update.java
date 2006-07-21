@@ -218,6 +218,7 @@ public class Update {
                 // build list of files to back up
                 for (Library lib : librariesToUpdate) {
                     File libFile = TextUtils.getFile(lib.getLibFile());
+                    if (libFile == null) continue;
                     if (CVS.isDELIB(lib)) {
                         // add all cell files and header file
                         for (Iterator<Cell> it = lib.getCells(); it.hasNext(); ) {

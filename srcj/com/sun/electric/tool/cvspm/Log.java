@@ -98,6 +98,7 @@ public class Log {
             // show log for header file
             libsBuf = new StringBuffer();
             File libFile = TextUtils.getFile(lib.getLibFile());
+            if (libFile == null) return;
             String file = libFile.getPath();
             if (file.startsWith(useDir)) {
                 file = file.substring(useDir.length()+1, file.length());

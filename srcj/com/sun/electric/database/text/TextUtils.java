@@ -1163,8 +1163,9 @@ public class TextUtils
      * windows with command line arguments containing file paths. Otherwise,
      * the Java IO code does the correct conversion.
      *
-     * @param url the URL to convert to a File
-     * @return the File.
+     * @param url the URL to convert to a File.
+     * @return the File.  Will return null if
+     * URL does not point to a file.
      */
     public static File getFile(URL url) {
         try {
@@ -1172,6 +1173,9 @@ public class TextUtils
         } catch (java.net.URISyntaxException e) {
             System.out.println("URL -> File conversion error: "+e.getMessage());
             return new File(url.getPath());
+        } catch (java.lang.IllegalArgumentException e) {
+            System.out.println("URL -> File conversion error: "+e.getMessage());
+            return null;
         }
     }
 

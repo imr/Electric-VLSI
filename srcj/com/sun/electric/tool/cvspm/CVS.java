@@ -228,7 +228,9 @@ public class CVS {
         if (isDELIB(cell.getLibrary())) {
             String relativeFile = DELIB.getCellFile(cell);
             URL libFile = cell.getLibrary().getLibFile();
-            return new File(TextUtils.getFile(libFile), relativeFile);
+            File file = TextUtils.getFile(libFile);
+            if (file == null) return null;
+            return new File(file, relativeFile);
         }
         return null;
     }
@@ -308,7 +310,9 @@ public class CVS {
      * @return true if the library is in cvs, false otherwise.
      */
     public static boolean isInCVS(Library lib) {
-        String libfilestr = TextUtils.getFile(lib.getLibFile()).getPath();
+        File libfile = TextUtils.getFile(lib.getLibFile());
+        if (libfile == null) return false;
+        String libfilestr = libfile.getPath();
         File libFile = new File(libfilestr);
         if (isDELIB(lib)) {
             // check both lib dir and header file
@@ -439,6 +443,7 @@ public class CVS {
                 if (lib.isHidden()) continue;
                 if (!lib.isFromDisk()) continue;
                 File libFile = TextUtils.getFile(lib.getLibFile());
+                if (libFile == null) continue;
                 return libFile.getParent();
             }
         }
@@ -448,6 +453,7 @@ public class CVS {
                 if (lib.isHidden()) continue;
                 if (!lib.isFromDisk()) continue;
                 File libFile = TextUtils.getFile(lib.getLibFile());
+                if (libFile == null) continue;
                 return libFile.getParent();
             }
         }
@@ -466,6 +472,7 @@ public class CVS {
         if (libs == null) return libsBuf;
         for (Library lib : libs) {
             File libFile = TextUtils.getFile(lib.getLibFile());
+            if (libFile == null) continue;
             String file = libFile.getPath();
             if (file.startsWith(useDir)) {
                 file = file.substring(useDir.length()+1, file.length());
@@ -491,6 +498,7 @@ public class CVS {
             if (libs.contains(cell.getLibrary())) continue;
             if (!isDELIB(cell.getLibrary())) continue;
             File libFile = TextUtils.getFile(cell.getLibrary().getLibFile());
+            if (libFile == null) continue;
             String file = libFile.getPath();
             if (file.startsWith(useDir)) {
                 file = file.substring(useDir.length()+1, file.length());

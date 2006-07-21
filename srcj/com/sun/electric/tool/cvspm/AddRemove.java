@@ -230,7 +230,10 @@ public class AddRemove {
         }
         private void generate(StringBuffer buf, Library lib, String useDir) {
             // see if library file is in CVS
-            String libfile = TextUtils.getFile(lib.getLibFile()).getPath();
+            File libraryFile = TextUtils.getFile(lib.getLibFile());
+            if (libraryFile == null) return;
+            String libfile = libraryFile.getPath();
+
             add(buf, libfile, useDir);
             if (CVS.isDELIB(lib)) {
                 // see if cell directories are in CVS
@@ -244,7 +247,9 @@ public class AddRemove {
         }
         private void generate(StringBuffer buf, Cell cell, String useDir) {
             if (!CVS.isDELIB(cell.getLibrary())) return;
-            String libfile = TextUtils.getFile(cell.getLibrary().getLibFile()).getPath();
+            File libraryFile = TextUtils.getFile(cell.getLibrary().getLibFile());
+            if (libraryFile == null) return;
+            String libfile = libraryFile.getPath();
             // get cell directory if not already added before
             File celldirFile = new File(libfile, DELIB.getCellSubDir(cell.backup()));
             String celldir = celldirFile.getPath();
@@ -307,7 +312,9 @@ public class AddRemove {
         }
         private void undo(Library lib) {
             // see if library file is in CVS
-            String libfile = TextUtils.getFile(lib.getLibFile()).getPath();
+            File libraryFile = TextUtils.getFile(lib.getLibFile());
+            if (libraryFile == null) return;
+            String libfile = libraryFile.getPath();
             if (!CVS.isDELIB(lib)) {
                 if (undo(new File(libfile))) {
                     State state = CVSLibrary.getState(lib);
@@ -327,7 +334,9 @@ public class AddRemove {
         }
         private void undo(Cell cell) {
             if (!CVS.isDELIB(cell.getLibrary())) return;
-            String libfile = TextUtils.getFile(cell.getLibrary().getLibFile()).getPath();
+            File libraryFile = TextUtils.getFile(cell.getLibrary().getLibFile());
+            if (libraryFile == null) return;
+            String libfile = libraryFile.getPath();
             // get cell directory if not already added before
             // check cell files
             File cellFile = new File(libfile, DELIB.getCellFile(cell));
