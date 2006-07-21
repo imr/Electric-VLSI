@@ -384,10 +384,9 @@ public class TextWindow implements WindowContent
         // start a job to do the input
         URL fileURL = TextUtils.makeURLToFile(fileName);
         InputStream stream = TextUtils.getURLStream(fileURL);
-        URLConnection urlCon = null;
         try
         {
-            urlCon = fileURL.openConnection();
+            fileURL.openConnection();
         } catch (IOException e)
         {
             System.out.println("Could not find file: " + fileURL.getFile());
@@ -399,7 +398,7 @@ public class TextWindow implements WindowContent
 
         final int READ_BUFFER_SIZE = 65536;
         char [] buf = new char[READ_BUFFER_SIZE];
-        BufferedInputStream bufStrm = new BufferedInputStream(stream, READ_BUFFER_SIZE);
+//        BufferedInputStream bufStrm = new BufferedInputStream(stream, READ_BUFFER_SIZE);
         InputStreamReader is = new InputStreamReader(stream);
         try
         {
