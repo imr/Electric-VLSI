@@ -726,12 +726,12 @@ public class ErrorLogger implements Serializable
      */
     public synchronized void termLogging(boolean explain)
     {
-        termLogging_();
-        Job.getUserInterface().termLogging(this, explain);
+//        termLogging_(true);
+        Job.getUserInterface().termLogging(this, explain, true);
 //        alreadyExplained = true;
     }
 
-    public synchronized void termLogging_()
+    public synchronized void termLogging_(boolean terminate)
     {
         // enumerate the errors
         int errs = 0;
@@ -743,7 +743,8 @@ public class ErrorLogger implements Serializable
         {
             el.index = ++errs;
         }
-        terminated = true;
+        if (terminate)
+            terminated = true;
     }
 
     /**

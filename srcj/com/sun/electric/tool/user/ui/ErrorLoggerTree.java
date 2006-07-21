@@ -45,8 +45,8 @@ public class ErrorLoggerTree {
         return indexOf(logger) >= 0;
     };
     
-    public static void addLogger(ErrorLogger logger, boolean explain) {
-        logger.termLogging_();
+    public static void addLogger(ErrorLogger logger, boolean explain, boolean terminate) {
+        logger.termLogging_(terminate);
         if (logger.getNumLogs() == 0) return;
         SwingUtilities.invokeLater(new AddLogger(logger, explain));
     };
@@ -127,7 +127,7 @@ public class ErrorLoggerTree {
             boolean changed = networkErrorLogger.clearLogs(cell) || !errors.isEmpty();
             networkErrorLogger.addMessages(errors);
             if (!changed) return;
-            networkErrorLogger.termLogging_();
+            networkErrorLogger.termLogging_(true);
             if (networkErrorLogger.getNumLogs() == 0) {
                 removeLogger(0);
                 return;
@@ -152,7 +152,7 @@ public class ErrorLoggerTree {
             boolean changed = drcErrorLogger.clearLogs(cell) || !errors.isEmpty();
             drcErrorLogger.addMessages(errors);
             if (!changed) return;
-            drcErrorLogger.termLogging_();
+            drcErrorLogger.termLogging_(true);
             int index = networkTree != null ? 1 : 0;
             if (drcErrorLogger.getNumLogs() == 0) {
                 removeLogger(index);
@@ -323,7 +323,7 @@ public class ErrorLoggerTree {
             ErrorLogger.XMLParser parser = new ErrorLogger.XMLParser();
             ErrorLogger logger = parser.process(TextUtils.makeURLToFile(fileName), true);
             if (logger != null)
-                addLogger(logger, false);
+                addLogger(logger, false, true);
         } catch (Exception e)
 		{
 			System.out.println("Error loading " + fileName);

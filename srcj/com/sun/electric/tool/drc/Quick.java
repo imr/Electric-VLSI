@@ -198,6 +198,7 @@ public class Quick
 	/** for tracking the time of good DRC. */					private HashMap<Cell,Date> goodDRCDate = new HashMap<Cell,Date>();
 	/** for tracking cells that need to clean good DRC vars */	private HashMap<Cell,Cell> cleanDRCDate = new HashMap<Cell,Cell>();
 	/** for logging errors */                                   private ErrorLogger errorLogger;
+    /** for interactive error logging */                        private boolean interactiveLogger = false;
 	/** Top cell for DRC */                                     private Cell topCell;
 
 	/* for figuring out which layers are valid for DRC */
@@ -247,6 +248,7 @@ public class Quick
 
         // caching memory setting
         inMemory = DRC.isDatesStoredInMemory();
+        interactiveLogger = DRC.isInteractiveLoggingOn();
 
         // minimim resolution different from zero if flag is on otherwise stays at zero (default)
         minAllowedResolution = tech.getResolution();
@@ -684,6 +686,23 @@ public class Quick
 	}
 
     /**
+     * Private method to check if geometry is covered 100% by exclusion region
+     * @param geo
+     * @return
+     */
+    private boolean coverByExclusion(Geometric geo)
+    {
+        Cell cell = geo.getParent();
+        Area area = exclusionMap.get(cell);
+        if (area != null && area.contains(geo.getBounds()))
+        {
+            System.out.println("DRC Exclusion found");
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Method to check the design rules about nodeinst "ni".
      * @param ni
      * @param globalIndex
@@ -703,15 +722,8 @@ public class Quick
 
         if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
 
-        Area area = exclusionMap.get(ni.getParent());
-        if (area != null)
-        {
-            if (area.contains(ni.getBounds()))
-            {
-                System.out.println("DRC Exclusion found");
-                return false;
-            }
-        }
+        if (coverByExclusion(ni)) return false; // no errors
+
         // Already done
 		if (nodesMap.get(ni) != null)
 			return (false);
@@ -882,6 +894,10 @@ public class Quick
 		}
 		nodesMap.put(ai, ai);
 
+        // Check if arc is contained in exclusion region
+//        if (coverByExclusion(ai))
+//            return false; // no error
+
 		// get all of the polygons on this arc
 		Technology tech = ai.getProto().getTechnology();
 		Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
@@ -969,9 +985,9 @@ public class Quick
 			nodeBounds.getHeight() + worstInteractionDistance*2);
 
         instanceInteractionList.clear(); // part3
-		for(Iterator it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
+		for(Iterator<Geometric> it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
+			Geometric geom = it.next();
 
 			if ( geom == ni ) continue; // covered by checkInteraction?
 
@@ -1023,9 +1039,13 @@ public class Quick
 		AffineTransform downTrans = thisNi.transformIn();
 		DBMath.transformRect(bb, downTrans);
 
-		for(Iterator it = cell.searchIterator(bb); it.hasNext(); )
+		for(Iterator<Geometric> it = cell.searchIterator(bb); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
+			Geometric geom = it.next();
+
+            // Checking if element is covered by exclusion region
+//            if (coverByExclusion(geom))
+//                continue; // skips this element
 
 			if (geom instanceof NodeInst)
 			{
@@ -1232,12 +1252,16 @@ public class Quick
 			return false;
 
 		// Sept04 changes: bounds by rBound
-		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric nGeom = (Geometric)it.next();
+			Geometric nGeom = it.next();
             // I have to check if they are the same instance otherwise I check geometry against itself
             if (nGeom == geom && (sameInstance))// || nGeom.getParent() == cell))
                 continue;
+
+            // Checking if element is covered by exclusion region
+            //if (coverByExclusion(nGeom)) continue; // skips this element
+
 			if (nGeom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)nGeom;
@@ -1957,9 +1981,9 @@ public class Quick
 			nodeBounds.getWidth() + worstInteractionDistance*2,
 			nodeBounds.getHeight() + worstInteractionDistance*2);
 
-		for(Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
+		for(Iterator<Geometric> it = cell.searchIterator(searchBounds); it.hasNext(); )
 		{
-			Geometric geom = (Geometric)it.next();
+			Geometric geom = it.next();
 
 			if ( geom == ni ) continue;
 
@@ -2898,9 +2922,9 @@ public class Quick
         boolean skip = false;
         Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
 
-		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric g = (Geometric)it.next();
+			Geometric g = it.next();
 			if (g instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)g;
@@ -2996,9 +3020,9 @@ public class Quick
 		int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
 
-		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric g = (Geometric)it.next();
+			Geometric g = it.next();
 
             // Skipping the same geometry only when looking for notches in min distance
 //			if (ignoreSameGeometry && (g == geo1 || g == geo2)) //not valid condition
@@ -3362,9 +3386,9 @@ public class Quick
                                               Area extensionArea, Area overlapArea,
                                               Rectangle2D polyBnd)
     {
-        for(Iterator sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
+        for(Iterator<Geometric> sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
 		{
-			Geometric g = (Geometric)sIt.next();
+			Geometric g = sIt.next();
 	        if (g == geom) continue;
 			if ((g instanceof NodeInst))
             {
@@ -3465,9 +3489,9 @@ public class Quick
     {
         boolean[] founds = new boolean[4];
 
-        for(Iterator sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
+        for(Iterator<Geometric> sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
 		{
-			Geometric g = (Geometric)sIt.next();
+			Geometric g = sIt.next();
 	        if (g == geom) continue;
 			if (!(g instanceof NodeInst))
             {
@@ -3646,9 +3670,9 @@ public class Quick
 	{
 		Netlist netlist = getCheckProto(cell).netlist;
 		Rectangle2D subBounds = new Rectangle2D.Double();
-		for(Iterator sIt = cell.searchIterator(bounds); sIt.hasNext(); )
+		for(Iterator<Geometric> sIt = cell.searchIterator(bounds); sIt.hasNext(); )
 		{
-			Geometric g = (Geometric)sIt.next();
+			Geometric g = sIt.next();
 			if (!(g instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)g;
 			NodeProto np = ni.getProto();
@@ -4168,11 +4192,6 @@ public class Quick
 			NodeProto np = ni.getProto();
 			if (np == Generic.tech.drcNode)
 			{
-				/*
-				AffineTransform subUpTrans = ni.rotateOut();
-				subUpTrans.preConcatenate(upTrans);
-				dex.poly.transform(subUpTrans);
-				*/
                 // Must get polygon from getNodeShape otherwise it will miss
                 // rings
                 Poly [] list = cell.getTechnology().getShapeOfNode(ni, null, null, true, true, null);
@@ -4187,7 +4206,6 @@ public class Quick
 			if (ni.isCellInstance())
 			{
 				// examine contents
-//				AffineTransform tTrans = ni.translateOut(ni.rotateOut());
 				accumulateExclusion((Cell)np);
 			}
 		};
@@ -4203,9 +4221,7 @@ public class Quick
         int count = 0, i = -1;
 
         for (PolyBase thisPoly : polyList)
-//        for (int i = 0; i < polyList.size(); i++)
         {
-//            PolyBase thisPoly = polyList.get(i);
             i++;
             if (thisPoly == null)
                 continue; // MinNode case
@@ -4232,7 +4248,6 @@ public class Quick
 
 		// if this error is in an ignored area, don't record it
 		StringBuffer DRCexclusionMsg = new StringBuffer();
-//		if (exclusionList.size() > 0)
         if (exclusionMap.get(cell) != null)
 		{
 			// determine the bounding box of the error
@@ -4379,8 +4394,13 @@ public class Quick
 			if (geom1 != null) geomList.add(geom1);
 		if (poly2 != null) polyList.add(poly2); else
 			if (geom2 != null) geomList.add(geom2);
-		if (onlyWarning) errorLogger.logWarning(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortLayer); else
+		if (onlyWarning)
+            errorLogger.logWarning(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortLayer);
+        else
 		    errorLogger.logError(errorMessage.toString(), geomList, null, null, null, polyList, cell, sortLayer);
+        // Temporary display of errors.
+        if (interactiveLogger)
+            Job.getUserInterface().termLogging(errorLogger, false, false);
 	}
 
 	/**************************************************************************************************************

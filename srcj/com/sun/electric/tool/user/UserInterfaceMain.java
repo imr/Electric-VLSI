@@ -279,11 +279,11 @@ public class UserInterfaceMain extends AbstractUserInterface
 	}
 
     // ErrorLogger functions
-    public void termLogging(final ErrorLogger logger, boolean explain)
+    public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate)
     {
         if (logger.getNumLogs() == 0) return;
 
-        ErrorLoggerTree.addLogger(logger, explain);
+        ErrorLoggerTree.addLogger(logger, explain, terminate);
     }
 
     public void updateNetworkErrors(Cell cell, List<ErrorLogger.MessageLog> errors) {

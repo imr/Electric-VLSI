@@ -546,8 +546,8 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { throw new IllegalStateException(); }
 
-        public void termLogging(final ErrorLogger logger, boolean explain) {
-            Job.currentUI.termLogging(logger, explain);
+        public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) {
+            Job.currentUI.termLogging(logger, explain, terminate);
             // transmit to client
         }
 

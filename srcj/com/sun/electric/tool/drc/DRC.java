@@ -978,7 +978,7 @@ public class DRC extends Listener
     private static Pref cacheStoreDatesInMemory = Pref.makeBooleanPref("StoreDatesInMemory", tool.prefs, false);
     /**
      * Method to tell whether DRC dates should be stored in memory or not.
-     * The default is "true".
+     * The default is "false".
      * @return true if DRC dates should be stored in memory or not.
      */
     public static boolean isDatesStoredInMemory() { return cacheStoreDatesInMemory.getBoolean(); }
@@ -987,6 +987,19 @@ public class DRC extends Listener
      * @param on true if DRC dates should be stored in memory or not.
      */
     public static void setDatesStoredInMemory(boolean on) { cacheStoreDatesInMemory.setBoolean(on); }
+
+    private static Pref cacheInteractiveLog = Pref.makeBooleanPref("InteractiveLog", tool.prefs, false);
+    /**
+     * Method to tell whether DRC loggers should be displayed in Explorer immediately
+     * The default is "false".
+     * @return true if DRC loggers should be displayed in Explorer immediately or not.
+     */
+    public static boolean isInteractiveLoggingOn() { return cacheInteractiveLog.getBoolean(); }
+    /**
+     * Method to set whether DRC loggers should be displayed in Explorer immediately or not
+     * @param on true if DRC loggers should be displayed in Explorer immediately.
+     */
+    public static void setInteractiveLogging(boolean on) { cacheInteractiveLog.setBoolean(on); }
 
     public static void addDRCUpdate(int bits, HashMap<Cell, Date> goodDRCDate, HashMap<Cell, Cell> cleanDRCDate,
                                     HashMap<Geometric, List<Variable>> newVariables)

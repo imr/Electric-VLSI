@@ -277,7 +277,7 @@ public final class Main
 //		public Highlighter getHighlighter();
 		public EditWindow_ displayCell(Cell cell) { return null; }
 
-        public void termLogging(final ErrorLogger logger, boolean explain) {
+        public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate) {
             System.out.println(logger.getInfo());
         }
 

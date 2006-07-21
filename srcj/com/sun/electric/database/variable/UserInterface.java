@@ -111,7 +111,7 @@ public interface UserInterface
 	public EditWindow_ displayCell(Cell cell);
 
     // ErrorLogger related functions
-    public void termLogging(final ErrorLogger logger, boolean explain);
+    public void termLogging(final ErrorLogger logger, boolean explain, boolean terminate);
     
     /**
      * Method to return the error message associated with the current error.
