@@ -251,9 +251,10 @@ public class Output
 	 * @param type the format of the output file.
 	 * @param compatibleWith6 true to write a library that is compatible with version 6 Electric.
 	 * @param quiet true to save with less information displayed.
+     * @param delibHeaderOnly true to write only the header for a DELIB type library
      * @return true on error.
 	 */
-	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6, boolean quiet)
+	public static boolean writeLibrary(Library lib, FileType type, boolean compatibleWith6, boolean quiet, boolean delibHeaderOnly)
 	{
 		// make sure that all "meaning" options are attached to the database
 //		Pref.installMeaningVariables();
@@ -380,15 +381,15 @@ public class Output
 			if (readableDump.closeTextOutputStream()) return true;
         } else if (type == FileType.DELIB)
         {
-            DELIB delib = new DELIB();
+            DELIB delib = new DELIB(delibHeaderOnly);
             delib.quiet = quiet;
             if (delib.openTextOutputStream(properOutputName)) return true;
-            if (CVS.isEnabled()) {
+            if (CVS.isEnabled() && !delibHeaderOnly) {
                 CVSLibrary.savingLibrary(lib);
             }
             if (delib.writeLib(lib.getDatabase().backup(), lib.getId(), lib.getDelibCellFiles())) return true;
             if (delib.closeTextOutputStream()) return true;
-            if (CVS.isEnabled()) {
+            if (CVS.isEnabled() && !delibHeaderOnly) {
                 CVSLibrary.savedLibrary(lib, delib.getDeletedCellFiles(), delib.getWrittenCellFiles());
             }
 		} else
@@ -1038,7 +1039,7 @@ public class Output
                         lib = EDatabase.serverDatabase().getLib(idMapper.get(lib.getId()));
                 }
                 fieldVariableChanged("idMapper");
-                error = Output.writeLibrary(lib, FileType.JELIB, false, false);
+                error = Output.writeLibrary(lib, FileType.JELIB, false, false, false);
             } catch (Exception e)
             {
             	throw new JobException("Exception caught when saving library: " + e.getMessage());

@@ -327,7 +327,7 @@ public class Update {
      * @param dir
      * @return
      */
-    private static StatusResult update(String file, String dir, int type) {
+    protected static StatusResult update(String file, String dir, int type) {
         String command = "-q update -d -P ";
         String message = "Running CVS Update";
         if (type == STATUS) {
@@ -444,9 +444,15 @@ public class Update {
             Cell cell = CVS.getCellFromPath(filename);
             if (cell != null) {
                 result.addCell(state, cell);
-            } else {
-                result.addUnknownFile(state, filename);
+                continue;
             }
+            Library lib = CVS.getLibraryFromHeader(filename);
+            if (lib != null) {
+                result.addLibraryHeaderFile(state, lib);
+                continue;
+            }
+            // default action
+            result.addUnknownFile(state, filename);
         }
         return result;
     }
@@ -505,10 +511,12 @@ public class Update {
     public static class StatusResult {
         private Map<State,List<Cell>> cells;
         private Map<State,List<String>> unknownFiles;
+        private Map<State,List<Library>> headerFiles;
         private int exitVal;
 
         private StatusResult(int exitVal) {
             cells = new HashMap<State,List<Cell>>();
+            headerFiles = new HashMap<State,List<Library>>();
             unknownFiles = new HashMap<State,List<String>>();
             this.exitVal = exitVal;
         }
@@ -525,6 +533,20 @@ public class Update {
             if (statecells == null)
                 statecells = new ArrayList<Cell>();
             return statecells;
+        }
+        public void addLibraryHeaderFile(State state, Library lib) {
+            List<Library> statelibs = headerFiles.get(state);
+            if (statelibs == null) {
+                statelibs = new ArrayList<Library>();
+                headerFiles.put(state, statelibs);
+            }
+            statelibs.add(lib);
+        }
+        public List<Library> getLibraryHeaderFiles(State state) {
+            List<Library> statelibs = headerFiles.get(state);
+            if (statelibs == null)
+                statelibs = new ArrayList<Library>();
+            return statelibs;
         }
         public void addUnknownFile(State state, String file) {
             List<String> list = unknownFiles.get(state);

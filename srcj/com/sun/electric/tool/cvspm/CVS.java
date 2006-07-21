@@ -558,6 +558,35 @@ public class CVS {
     }
 
     /**
+     * Get the library for the given header file plus path.
+     * This string should be of the format .../libraryName.delib/header.
+     * Returns null if not of the correct format,
+     * or if the library cannot be found.
+     * @param headerPath
+     * @return
+     */
+    static Library getLibraryFromHeader(String headerPath) {
+        int delibExt = headerPath.toLowerCase().indexOf(".delib"+File.separator);
+        if (delibExt ==- 1) {
+            // try the unix file separator, since even on windows, the
+            // cvs command returns file paths with the unxi separator
+            delibExt = headerPath.toLowerCase().indexOf(".delib/");
+        }
+        if (delibExt == -1) return null;
+
+        // get the library
+        String libpath = headerPath.substring(0, delibExt);
+        File libFile = new File(libpath);
+        String filename = headerPath.substring(delibExt+7);
+        if (!filename.equals(DELIB.getHeaderFile()))
+            return null;
+
+        String libName = libFile.getName();
+        Library lib = Library.findLibrary(libName);
+        return lib;
+    }
+
+    /**
      * Reloading libraries has the side affect that any EditWindows
      * containing cells that were reloaded now point to old, unlinked
      * cells instead of the new ones. This method checks for this state

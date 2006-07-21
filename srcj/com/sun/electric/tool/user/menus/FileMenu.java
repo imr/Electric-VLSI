@@ -840,7 +840,7 @@ public class FileMenu {
                 }
                 fieldVariableChanged("idMapper");
                 
-                success = !Output.writeLibrary(lib, type, compatibleWith6, false);
+                success = !Output.writeLibrary(lib, type, compatibleWith6, false, false);
             } catch (Exception e)
             {
                 e.printStackTrace(System.out);

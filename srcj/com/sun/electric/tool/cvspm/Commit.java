@@ -29,6 +29,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.io.FileType;
 
 import javax.swing.JOptionPane;
 import java.util.List;
@@ -152,6 +154,19 @@ public class Commit {
                 System.out.println("Nothing to commit");
                 exitVal = 0;
                 return true;
+            }
+
+            // check if any header file conflicts
+            // if so, re-write header file for that library
+            if (!headerFiles.toString().trim().equals("")) {
+                Update.StatusResult result = Update.update(headerFiles.toString(), useDir, Update.UPDATE);
+                if (result.getExitVal() == 0) {
+                    List<Library> headerlibs = result.getLibraryHeaderFiles(State.CONFLICT);
+                    for (Library lib : headerlibs) {
+                        // rewrite the header file
+                        Output.writeLibrary(lib, FileType.DELIB, false, true, true);
+                    }
+                }
             }
 
             exitVal = CVS.runCVSCommandWithQuotes("-q commit -m \""+message+"\" "+commitFiles, "Committing files to CVS", useDir, System.out);

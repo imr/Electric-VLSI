@@ -59,13 +59,15 @@ public class DELIB extends JELIB {
     private List<String> deletedCellFiles;
     private String headerFile;
     private boolean wroteSearchForCells;
+    private boolean writeHeaderOnly;    // overwrite header if it has cvs conflicts
 
-    DELIB() {
+    DELIB(boolean writeHeaderOnly) {
         // keep list of all associated cell files
         cellFileMap = new HashMap<String,CellFileState>();
         // list of cell files deleted (renamed) because they no longer exist in the library
         deletedCellFiles = new ArrayList<String>();
         wroteSearchForCells = false;
+        this.writeHeaderOnly = writeHeaderOnly;
     }
 
     private static class CellFileState {
@@ -108,7 +110,7 @@ public class DELIB extends JELIB {
         }
 
         boolean b = super.writeLib(snapshot, libId, null, false);
-        if (!b) {
+        if (!b && !writeHeaderOnly) {
             // rename cell files that are no longer in the library
             deletedCellFiles.clear();
             if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
@@ -160,6 +162,8 @@ public class DELIB extends JELIB {
      * @param cellBackup
      */
     void writeCell(CellBackup cellBackup) {
+        if (writeHeaderOnly) return;
+
         if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             // new way, no subdir
         } else {

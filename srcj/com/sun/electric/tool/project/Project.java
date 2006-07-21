@@ -729,7 +729,7 @@ public class Project extends Listener
 
 		fLib.setCurCell(cellCopy);
 		fLib.setFromDisk();
-		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true);
+		boolean error = Output.writeLibrary(fLib, pc.getLibType(), false, true, false);
 		if (error)
 		{
 			System.out.println("Could not save library with " + cell + " in it");
