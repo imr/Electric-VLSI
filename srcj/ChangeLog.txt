@@ -7,6 +7,11 @@ NOTE: Please place changes under the version that will be released next.
 IMP/MAN: (7/21/06, GVG) Request to add errors to list in real-time (bug #1169)
 Done using option in User's preferences for DRC until issues with job queuing is clarified.
 
+BUG: (7/21/06, JVG) CVS: IllegalArgumentException: URI is not hierarchical (bug #1184)
+FIX: CVS only operates on files, however, so CVS will just ignore anything that cannot be converted to a file.
+
+IMP: (7/21/06, JVG) Added option to writeLibrary to write only delib header if delib file.
+
 TEC: (7/20/06, GVG) Default # metal layers in MoCMOS = 6. Second polysilicon in MoCMOS available by default.
 Changes triggered by demo in SSC Sydney.
 
