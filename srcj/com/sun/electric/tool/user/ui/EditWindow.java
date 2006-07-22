@@ -54,7 +54,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -114,11 +113,11 @@ import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -219,7 +218,7 @@ public class EditWindow extends JPanel
 
         abstract void setScreenSize(Dimension sz);
 
-        abstract boolean paintComponent(Graphics g, Dimension sz);
+        abstract boolean paintComponent(Graphics2D g, Dimension sz);
 
         abstract void render(boolean fullInstantiate, Rectangle2D bounds);
 
@@ -1571,25 +1570,50 @@ public class EditWindow extends JPanel
      * @return alpha blending order.
      */
     List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDrawing) {
+        final boolean USE_OPACITY_FOR_PATTERNED = true; // use opacity for patterned scales
         ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
 
-        Set<Layer> sortedLayers = new TreeSet<Layer>(Technology.LAYERS_BY_HEIGHT);
-        sortedLayers.addAll(layersAvailable);
-//        System.out.print("getBlendingOrder for:");
-        for(Layer layer : sortedLayers)
-        {
-        	double opacity = layer.getGraphics().getOpacity();
-			if (!layer.isVisible()) opacity = 0;
-			int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
-			Color color = new Color(rgba, true);
-//            System.out.print(" " + layer.getName() + ":" + opacity);
-			layerColors.add(new LayerColor(layer, color));
+        ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
+        Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT);
+        final boolean useOpacity = patternedDrawing ? USE_OPACITY_FOR_PATTERNED : true;
+        if (useOpacity) {
+            for(Layer layer : sortedLayers) {
+                double opacity = layer.getGraphics().getOpacity();
+//                if (patternedDrawing && layer.getGraphics().getTransparentLayer() != 0)
+//                    opacity = opacity*0.5 + 0.7*0.5;
+                if (!layer.isVisible()) opacity = 0;
+                int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
+                Color color = new Color(rgba, true);
+                layerColors.add(new LayerColor(layer, color));
+            }
+        } else {
+            int maxTransparency = 0;
+            for(Layer layer : sortedLayers) {
+                int transparancy = layer.getGraphics().getTransparentLayer();
+                if (transparancy == 0) continue;
+                maxTransparency = Math.max(maxTransparency, transparancy);
+            }
+            double transparentOpacity = 0.7;
+            for (int transparency = 0; transparency <= maxTransparency; transparency++) {
+                for(Layer layer : sortedLayers) {
+                    if (layer.getGraphics().getTransparentLayer() != transparency) continue;
+                    if (!layer.isVisible()) continue;
+                    int rgba = layer.getGraphics().getRGB() | (int)(transparentOpacity * 255 + 0.5) << 24;
+                    Color color = new Color(rgba, true);
+                    layerColors.add(new LayerColor(layer, color));
+                }
+            }
+            for(Layer layer : sortedLayers) {
+                if (layer.getGraphics().getTransparentLayer() != 0) continue;
+                if (!layer.isVisible()) continue;
+                int rgba = layer.getGraphics().getRGB() | 255 << 24;
+                Color color = new Color(rgba, true);
+                layerColors.add(new LayerColor(layer, color));
+            }
         }
-//        System.out.println();
-        final boolean showOpacity = true /*!patternedDrawing*/;
         final LayerTab layerTab = getWindowFrame().getLayersTab();
         if (layerTab != null)
-            SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
+            SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(useOpacity); }});
         return layerColors;
     }
     

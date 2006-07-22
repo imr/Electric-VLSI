@@ -712,6 +712,16 @@ public class EGraphics extends Observable
 	}
 
 	/**
+	 * Method to return the color associated with this EGraphics with full opacity.
+	 * @return the color associated with this EGraphics.
+	 */
+	public Color getOpaqueColor()
+	{
+		Color color = new Color(red, green, blue, 255);
+		return color;
+	}
+
+	/**
 	 * Method to get the RGB value representing the color by factory default.
      * (Bits 16-23 are red, 8-15 are green, 0-7 are blue).
      * Alpha/opacity component is not returned 

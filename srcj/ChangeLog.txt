@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+BUG: (7/22/06, DN) N-well disappears in LayerDrawing.
+FIX: In PatternedTransparentRaster.copyBits use "continue" instead of "return". 
+
 IMP/MAN: (7/21/06, GVG) Request to add errors to list in real-time (bug #1169)
 Done using option in User's preferences for DRC until issues with job queuing is clarified.
 

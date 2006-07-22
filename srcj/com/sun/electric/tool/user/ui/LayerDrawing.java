@@ -46,7 +46,6 @@ import com.sun.electric.technology.technologies.Generic;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -180,7 +179,6 @@ class LayerDrawing
     private static final boolean ALPHA_BLEND_PATTERNED = true;
     
 	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE =   5;
-	/** Text larger than this is granular. */						public static final int MAXIMUMTEXTSIZE = 100;
 	/** Number of singleton cells to cache when redisplaying. */	public static final int SINGLETONSTOADD =   5;
 
 	private static class PolySeg
@@ -267,6 +265,7 @@ class LayerDrawing
     /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
     /** list of render text. */                             private final ArrayList<RenderTextInfo> renderTextList = new ArrayList<RenderTextInfo>();
     /** list of greek text. */                              private final ArrayList<GreekTextInfo> greekTextList = new ArrayList<GreekTextInfo>();
+    /** list of cross text. */                              private final ArrayList<CrossTextInfo> crossTextList = new ArrayList<CrossTextInfo>();
 
 	// the transparent bitmaps
 	/** the offscreen maps for transparent layers */		private int [][] layerBitMaps;
@@ -297,6 +296,9 @@ class LayerDrawing
 	private static final EGraphics instanceGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
     private static final Layer instanceLayer = Layer.newInstance("Instance", instanceGraphics);
+	private static final EGraphics gridGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
+		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+    private static final Layer gridLayer = Layer.newInstance("Grid", gridGraphics);
 	private static final EGraphics portGraphics = new EGraphics(false, false, null, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
@@ -311,7 +313,9 @@ class LayerDrawing
 
     static class Drawing extends EditWindow.Drawing {
         private LayerDrawing offscreen;
+        private volatile GreekTextInfo[] greekText = {};
         private volatile RenderTextInfo[] renderText = {};
+        private volatile CrossTextInfo[] crossText = {};
         
         Drawing(EditWindow wnd) {
             super(wnd);
@@ -321,7 +325,7 @@ class LayerDrawing
             offscreen = new LayerDrawing(sz);
         }
         
-        boolean paintComponent(Graphics g, Dimension sz) {
+        boolean paintComponent(Graphics2D g, Dimension sz) {
             if (offscreen == null || !wnd.getSize().equals(sz)) {
                 Dimension newSize = wnd.getSize();
                 wnd.setScreenSize(newSize);
@@ -334,13 +338,21 @@ class LayerDrawing
             // show the image
             long startTime = System.currentTimeMillis();
             BufferedImage img = offscreen.getBufferedImage();
+            long imageTime = System.currentTimeMillis();
 //		synchronized(img) // Do not need synchronization here
             {
                 g.drawImage(img, 0, 0, wnd);
+                for (GreekTextInfo greekInfo: greekText)
+                    greekInfo.draw(g);
+                for (CrossTextInfo crossInfo: crossText)
+                    crossInfo.draw(g);
+        		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                for (RenderTextInfo textInfo: renderText)
+                    textInfo.draw(g);
             }
             if (TAKE_STATS) {
                 long endTime = System.currentTimeMillis();
-                System.out.println("paintComponent took "+ (endTime-startTime) + " msec");
+                System.out.println("paintComponent took "+ (imageTime - startTime) + "+" + (endTime-imageTime) + " msec");
             }
             return true;
         }
@@ -593,7 +605,7 @@ class LayerDrawing
 	 */
 	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds)
 	{
-		long startTime = 0, clearTime = 0, countTime = 0, drawTime = 0, compositeTime = 0;
+		long startTime = 0, clearTime = 0, countTime = 0, drawTime = 0;
 		long initialUsed = 0;
 		if (TAKE_STATS)
 		{
@@ -625,7 +637,8 @@ class LayerDrawing
         textColor = new Color(User.getColorText());
 		textGraphics.setColor(textColor);
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
-		
+        gridGraphics.setColor(new Color(User.getColorGrid()));
+        
 		// initialize the cache of expanded cell displays
 		if (expandedScale != wnd.getScale())
 		{
@@ -695,24 +708,23 @@ class LayerDrawing
         // now render it all
         renderTextList.clear();
         greekTextList.clear();
+        crossTextList.clear();
         drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
+		if (cell != null && wnd.isGrid()) drawGrid(wnd);
         if (TAKE_STATS) drawTime = System.currentTimeMillis();
         
 		// merge transparent image into opaque one
 		synchronized(img)
 		{
 			// if a grid is requested, overlay it
-			if (cell != null && wnd.isGrid()) drawGrid(wnd);
 
 			// combine transparent and opaque colors into a final image
 			composite(renderBounds);
 		};
-        if (TAKE_STATS) compositeTime = System.currentTimeMillis();
         
-        for (GreekTextInfo greekInfo: greekTextList)
-            greekInfo.draw();
-        for (RenderTextInfo renderInfo: renderTextList)
-            renderInfo.draw();
+        drawing.greekText = greekTextList.toArray(new GreekTextInfo[greekTextList.size()]);
+        drawing.crossText = crossTextList.toArray(new CrossTextInfo[crossTextList.size()]);
+        drawing.renderText = renderTextList.toArray(new RenderTextInfo[renderTextList.size()]);
         
 		if (TAKE_STATS)
 		{
@@ -720,7 +732,7 @@ class LayerDrawing
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			long memConsumed = curUsed - initialUsed;
 			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime) +
-                "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (drawTime-countTime) + "+" + (compositeTime - drawTime) + "+" + (endTime - compositeTime) + ")"+
+                "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (drawTime-countTime) + "+" + (endTime - drawTime) + ")"+
 				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) cached cells, created "+
 				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
@@ -810,11 +822,25 @@ class LayerDrawing
 	 */
 	public Image composite(Rectangle bounds)
 	{
-        if (ALPHA_BLEND_PATTERNED || !patternedDisplay) {
-            layerComposite();
-            return img;
+        final boolean USE_COMPATABLE = false;
+        if (patternedDisplay) {
+            if (!ALPHA_BLEND_PATTERNED)
+                return compositeOld(bounds);
+            else if (USE_COMPATABLE)
+                return layerCompositeCompatable(bounds);
         }
-        wnd.getBlendingOrder(layerRasters.keySet(), true);        
+        layerComposite();
+        return img;
+    }
+    
+	/**
+	 * Method to complete rendering by combining the transparent and opaque imagery.
+	 * This is called after all rendering is done.
+	 * @return the offscreen Image with the final display.
+	 */
+	public Image compositeOld(Rectangle bounds)
+	{
+        wnd.getBlendingOrder(layerRasters.keySet(), true);
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
 		{
@@ -984,11 +1010,142 @@ class LayerDrawing
 		return img;
 	}
     
+	/**
+	 * Method to complete rendering by combining the transparent and opaque imagery.
+	 * This is called after all rendering is done.
+	 * @return the offscreen Image with the final display.
+	 */
+	public Image layerCompositeCompatable(Rectangle bounds)
+	{
+        wnd.getBlendingOrder(layerRasters.keySet(), true);
+        // get the technology's color map
+        Color [] colorMap = curTech.getColorMap();
+        
+        // adjust the colors if any of the transparent layers are dimmed
+        boolean dimmedTransparentLayers = false;
+        for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
+            Layer layer = it.next();
+            if (!layer.isDimmed()) continue;
+            if (layer.getGraphics().getTransparentLayer() == 0) continue;
+            dimmedTransparentLayers = true;
+            break;
+        }
+        if (dimmedTransparentLayers) {
+            Color [] newColorMap = new Color[colorMap.length];
+            int numTransparents = curTech.getNumTransparentLayers();
+            boolean [] dimLayer = new boolean[numTransparents];
+            for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
+            for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
+                Layer layer = it.next();
+                if (layer.isDimmed()) continue;
+                int tIndex = layer.getGraphics().getTransparentLayer();
+                if (tIndex == 0) continue;
+                dimLayer[tIndex-1] = false;
+            }
+            
+            for(int i=0; i<colorMap.length; i++) {
+                newColorMap[i] = colorMap[i];
+                if (i == 0) continue;
+                boolean dimThisEntry = true;
+                for(int j=0; j<numTransparents; j++) {
+                    if ((i & (1<<j)) != 0) {
+                        if (!dimLayer[j]) {
+                            dimThisEntry = false;
+                            break;
+                        }
+                    }
+                }
+                if (dimThisEntry) {
+                    newColorMap[i] = new Color(dimColor(colorMap[i].getRGB()));
+                } else {
+                    newColorMap[i] = new Color(brightenColor(colorMap[i].getRGB()));
+                }
+            }
+            colorMap = newColorMap;
+        }
+        
+        // determine range
+        int lx = 0, hx = sz.width-1;
+        int ly = 0, hy = sz.height-1;
+        if (bounds != null) {
+            lx = bounds.x;
+            hx = lx + bounds.width;
+            ly = bounds.y;
+            hy = ly + bounds.height;
+            if (lx < 0) lx = 0;
+            if (hx >= sz.width) hx = sz.width - 1;
+            if (ly < 0) ly = 0;
+            if (hy >= sz.height) hy = sz.height - 1;
+        }
+        
+        int numTransparent = 0, numOpaque = 0;
+        for (Layer layer: layerRasters.keySet()) {
+            if (layer.getGraphics().getTransparentLayer() == 0)
+                numOpaque++;
+            else
+                numTransparent++;
+        }
+        TransparentRaster[] transparentRasters = new TransparentRaster[numTransparent];
+        int[] transparentMasks = new int[numTransparent];
+        TransparentRaster[] opaqueRasters = new TransparentRaster[numOpaque];
+        int[] opaqueCols = new int[numOpaque];
+        
+        numTransparent = numOpaque = 0;
+        for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet()) {
+            Layer layer = e.getKey();
+            TransparentRaster raster = e.getValue();
+            int transparentNum = layer.getGraphics().getTransparentLayer();
+            if (transparentNum != 0) {
+                transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
+                transparentRasters[numTransparent++] = raster;
+            } else {
+                opaqueCols[numOpaque] = getTheColor(layer.getGraphics(), layer.isDimmed());
+                opaqueRasters[numOpaque++] = raster;
+            }
+        }
+        
+        for(int y=ly; y<=hy; y++) {
+            int baseByteIndex = y*numIntsPerRow;
+            int baseIndex = y * sz.width;
+            for(int x=lx; x<=hx; x++) {
+                int entry = baseByteIndex + (x>>5);
+                int maskBit = 1 << (x & 31);
+                int opaqueIndex = -1;
+                for (int i = 0; i < opaqueRasters.length; i++) {
+                    if ((opaqueRasters[i].layerBitMap[entry] & maskBit) != 0)
+                        opaqueIndex = i;
+                }
+                int pixelValue;
+                if (opaqueIndex >= 0) {
+                    pixelValue = opaqueCols[opaqueIndex];               
+                } else {
+                    int bits = 0;
+                    for (int i = 0; i < transparentRasters.length; i++) {
+                        if ((transparentRasters[i].layerBitMap[entry] & maskBit) != 0)
+                            bits |= transparentMasks[i];
+                    }
+                    pixelValue = bits != 0 ? colorMap[bits].getRGB() & 0xFFFFFF : backgroundColor;
+                }
+                opaqueData[baseIndex + x] = pixelValue;
+            }
+		}
+		return img;
+	}
+    
     private void layerComposite() {
         HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
         for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
             layerBits.put(e.getKey(), e.getValue().layerBitMap);
-        alphaBlender.init(backgroundValue, wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay), layerBits);
+        List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay);
+        if (TAKE_STATS) {
+            System.out.print("BlendingOrder:");
+            for (EditWindow.LayerColor lc: blendingOrder) {
+                int alpha = lc.color.getAlpha();
+                System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
+            }
+            System.out.println();
+        }
+        alphaBlender.init(backgroundValue, blendingOrder, layerBits);
     
         long startTime = System.currentTimeMillis();
         int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
@@ -1042,7 +1199,7 @@ class LayerDrawing
 		}
 
 		// draw the grid
-		int col = User.getColorGrid() & 0xFFFFFF;
+        ERaster raster = getRaster(gridLayer, gridGraphics, false);
 		for(double i = y1; i > hY; i -= spacingY)
 		{
 			double boldValueY = i;
@@ -1069,49 +1226,62 @@ class LayerDrawing
 					int boxHY = y+2;   if (boxHY >= sz.height) boxHY = sz.height-1;
                     
                     // draw box  in opaque area
-                    for(int yg=boxLY; yg<=boxHY; yg++) {
-                        int baseIndex = yg * sz.width;
-                        for(int xg=boxLX; xg<=boxHX; xg++)
-                            opaqueData[baseIndex + xg] = col;
-                        baseIndex += sz.width;
-                    }
+                    raster.fillBox(boxLX, boxHX, boxLY, boxHY);
+//                    for(int yg=boxLY; yg<=boxHY; yg++) {
+//                        int baseIndex = yg * sz.width;
+//                        for(int xg=boxLX; xg<=boxHX; xg++)
+//                            opaqueData[baseIndex + xg] = col;
+//                        baseIndex += sz.width;
+//                    }
                     
-					if (x > 1) opaqueData[y * sz.width + (x-2)] = col;
-					if (x < sz.width-2) opaqueData[y * sz.width + (x+2)] = col;
-					if (y > 1) opaqueData[(y-2) * sz.width + x] = col;
-					if (y < sz.height-2) opaqueData[(y+2) * sz.width + x] = col;
+					if (x > 1) raster.fillPoint(x - 2, y);
+					if (x < sz.width-2) raster.fillPoint(x + 2, y);
+					if (y > 1) raster.fillPoint(x, y - 2);
+					if (y < sz.height-2) raster.fillPoint(x, y + 2);
+//					if (x > 1) opaqueData[y * sz.width + (x-2)] = col;
+//					if (x < sz.width-2) opaqueData[y * sz.width + (x+2)] = col;
+//					if (y > 1) opaqueData[(y-2) * sz.width + x] = col;
+//					if (y < sz.height-2) opaqueData[(y+2) * sz.width + x] = col;
 					continue;
 				}
 
 				// special case every 10 grid points in each direction
 				if (allBoldDots || (everyTenX && everyTenY))
 				{
-					opaqueData[y * sz.width + x] = col;
-					if (x > 0) opaqueData[y * sz.width + (x-1)] = col;
-					if (x < sz.width-1) opaqueData[y * sz.width + (x+1)] = col;
-					if (y > 0) opaqueData[(y-1) * sz.width + x] = col;
-					if (y < sz.height-1) opaqueData[(y+1) * sz.width + x] = col;
+					raster.fillPoint(x, y);
+					if (x > 0) raster.fillPoint(x - 1, y);
+					if (x < sz.width-1) raster.fillPoint(x + 1, y);
+					if (y > 0) raster.fillPoint(x, y - 1);
+					if (y < sz.height-1) raster.fillPoint(x, y + 1);
+//					opaqueData[y * sz.width + x] = col;
+//					if (x > 0) opaqueData[y * sz.width + (x-1)] = col;
+//					if (x < sz.width-1) opaqueData[y * sz.width + (x+1)] = col;
+//					if (y > 0) opaqueData[(y-1) * sz.width + x] = col;
+//					if (y < sz.height-1) opaqueData[(y+1) * sz.width + x] = col;
 					continue;
 				}
 
 				// just a single dot
-				opaqueData[y * sz.width + x] = col;
+                raster.fillPoint(x, y);
+//				opaqueData[y * sz.width + x] = col;
 			}
 		}
 		if (User.isGridAxesShown())
 		{
 			Point xy = wnd.databaseToScreen(0, 0);
 			if (xy.x >= 0 && xy.x < sz.width) {
-                int baseIndex = xy.x;
-                for (int y = 0; y < sz.height; y++) {
-                    opaqueData[baseIndex] = col;
-                    baseIndex += sz.width;
-                }
+                raster.fillVerLine(xy.x, 0, sz.height - 1);
+//                int baseIndex = xy.x;
+//                for (int y = 0; y < sz.height; y++) {
+//                    opaqueData[baseIndex] = col;
+//                    baseIndex += sz.width;
+//                }
             }
 			if (xy.y >= 0 && xy.y < sz.height) {
-                int baseIndex = xy.y * sz.width;
-                for (int x = 0; x < sz.width; x++)
-                    opaqueData[baseIndex + x] = col;
+                raster.fillHorLine(xy.y, 0, sz.width - 1);
+//                int baseIndex = xy.y * sz.width;
+//                for (int x = 0; x < sz.width; x++)
+//                    opaqueData[baseIndex + x] = col;
             }
 		}
 	}
@@ -1226,7 +1396,6 @@ class LayerDrawing
                 int p4x = op[6] + soX;
                 int p4y = op[7] + soY;
                 gridToScreen(p1x, p1y, tempPt1);   gridToScreen(p2x, p2y, tempPt2);
-                OpaqueRaster.current.init(opaqueData, sz.width, instanceGraphics.getRGB() & 0xffffff);
                 ERaster instanceRaster = getRaster(instanceLayer, instanceGraphics, false);
 				drawLine(tempPt1, tempPt2, 0, instanceRaster);
 				gridToScreen(p2x, p2y, tempPt1);   gridToScreen(p3x, p3y, tempPt2);
@@ -1242,7 +1411,7 @@ class LayerDrawing
 					tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
 					NodeProto np = vsc.ni.getProto();
-					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textGraphics, false);
+					drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), textGraphics);
 				}
 			}
 			if (canDrawText) drawPortList(vsc, subVC, soX, soY, vsc.ni.isExpanded());
@@ -1580,7 +1749,7 @@ class LayerDrawing
             return getRaster_(layer, graphics, forceVisible);
         
         layer = layer.getNonPseudoLayer();
-        if (layer.getTechnology() == null)
+        if (layer.getTechnology() == null && layer != instanceLayer && layer != gridLayer)
             layer = Artwork.tech.defaultLayer;
         TransparentRaster raster = layerRasters.get(layer);
         if (raster == null) {
@@ -2114,7 +2283,7 @@ class LayerDrawing
             for(int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
                 int destY = srcY + dy;
                 int pat = pattern[destY & 15];
-                if (pat == 0) return;
+                if (pat == 0) continue;
                 int srcBaseIndex = srcY*src.intsPerRow;
                 int destBaseIndex = destY*intsPerRow;
                 for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
@@ -2197,14 +2366,13 @@ class LayerDrawing
                 hY = tempPt2.y;
                 
                 EGraphics graphics = vt.graphics;
-                boolean dimmed = vt.layer != null && vt.layer.isDimmed();
                 if (vt.textType == VectorCache.VectorText.TEXTTYPEEXPORT && vt.e != null) {
                     int exportDisplayLevel = User.getExportDisplayLevel();
                     if (exportDisplayLevel == 2) {
                         // draw export as a cross
                         int cX = (lX + hX) / 2;
                         int cY = (lY + hY) / 2;
-                        drawCross(cX, cY, 3, textGraphics, false);
+                        crossTextList.add(new CrossTextInfo(cX, cY, textColor));
                         crossCount++;
                         continue;
                     }
@@ -2217,7 +2385,7 @@ class LayerDrawing
                 
                 textCount++;
                 tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-                drawText(tempRect, vt.style, vt.descript, drawString, graphics, dimmed);
+                drawText(tempRect, vt.style, vt.descript, drawString, graphics);
                 continue;
             }
             
@@ -2338,7 +2506,7 @@ class LayerDrawing
 			if (portDisplayLevel == 2)
 			{
 				// draw port as a cross
-                drawCross(cX, cY, 3, portGraphics, false);
+                crossTextList.add(new CrossTextInfo(cX, cY, portColor != null ? portColor : textColor));
 				crossCount++;
 				continue;
 			}
@@ -2351,7 +2519,7 @@ class LayerDrawing
             
 			textCount++;
 			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
-			drawText(tempRect, vt.style, vt.descript, drawString, portGraphics, false);
+			drawText(tempRect, vt.style, vt.descript, drawString, portGraphics);
 		}
 	}
 
@@ -2633,21 +2801,6 @@ class LayerDrawing
 			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, raster);          break;
 		}
 	}
-
-    private void drawCross(int cX, int cY, int size, EGraphics graphics, boolean dimmed) {
-        crosses++;
-        int col = getTheColor(graphics, dimmed);
-        if (clipLY <= cY && cY <= clipHY) {
-            int baseIndex = cY * width;
-            for (int x = Math.max(clipLX, cX - size), xend = Math.min(clipLY, cX + size); x <= xend; x++)
-                opaqueData[baseIndex + x] = col;
-        }
-        if (clipLX <= cX && cX <= clipHX) {
-            int baseIndex = cX;
-            for (int y = Math.max(clipLY, cY - size), yend = Math.min(clipHY, cY + size); y <= yend; y++)
-                opaqueData[y * width + baseIndex] = col;
-        }
-    }
 
     private void drawCross(int cX, int cY, int size, ERaster raster) {
         crosses++;
@@ -3265,7 +3418,7 @@ class LayerDrawing
 	/**
 	 * Method to draw a text on the off-screen buffer
 	 */
-	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, EGraphics desc, boolean dimmed)
+	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, EGraphics desc)
 	{
 		// quit if string is null
 		if (s == null) return;
@@ -3273,8 +3426,9 @@ class LayerDrawing
 		if (len == 0) return;
 
 		// get parameters
-		int col = User.getColorText() & 0xFFFFFF;
-		if (desc != null) col = getTheColor(desc, dimmed);
+        Color color = textColor;
+        if (desc != null) color = desc.getOpaqueColor();
+		int col = color.getRGB() & 0xFFFFFF;
 
 		// get text description
 		int size = EditWindow.getDefaultFontSize();
@@ -3285,7 +3439,6 @@ class LayerDrawing
 		boolean underline = false;
 		int rotation = 0;
 		int greekScale = 0;
-		int shiftUp = 0;
 		if (descript != null)
 		{
 			rotation = descript.getRotation().getIndex();
@@ -3309,13 +3462,6 @@ class LayerDrawing
 				}
 			}
 
-			// prevent exceedingly large text
-			while (size > MAXIMUMTEXTSIZE)
-			{
-				size /= 2;
-				shiftUp++;
-			}
-
 			italic = descript.isItalic();
 			bold = descript.isBold();
 			underline = descript.isUnderline();
@@ -3337,7 +3483,7 @@ class LayerDrawing
 		// create RenderInfo
 		long startTime = 0;
 		RenderTextInfo renderInfo = new RenderTextInfo();
-		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation, shiftUp, col))
+		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation, color))
 			return;
 
 		// if text was made "greek", just draw a line
@@ -3359,7 +3505,7 @@ class LayerDrawing
             // greeked box in opaque area
             if (lX > hX || lY > hY) return;
             
-            greekTextList.add(new GreekTextInfo(lX, hX, lY, hY, col));
+            greekTextList.add(new GreekTextInfo(lX, hX, lY, hY, color));
 //            for(int y=lY; y<=hY; y++) {
 //                int baseIndex = y * sz.width + lX;
 //                for(int x=lX; x<=hX; x++) {
@@ -3407,19 +3553,17 @@ class LayerDrawing
         private Poly.Type style;
 	    private boolean underline;
         private int rotation;
-        private int shiftUp;
-        private int col; 
+        private Color color; 
         private Rectangle rect;
 
 	    private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
-	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation, int shiftUp, int col)
+	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation, Color color)
 	    {
 			font = getFont(msg, fontName, tSize, italic, bold, underline);
             this.style = style;
 			this.underline = underline;
             this.rotation = rotation;
-            this.shiftUp = shiftUp;
-            this.col = col;
+            this.color = color;
             rect = (Rectangle)probableBoxedBounds.clone();
 
 			// convert the text to a GlyphVector
@@ -3470,177 +3614,89 @@ class LayerDrawing
             return true;
         }
         
-        private void draw() {
-            // render the text
-            Raster ras = renderText(this);
-            if (ras == null) return;
-            int rasWidth = (int)rasBounds.getWidth() << shiftUp;
-            int rasHeight = (int)rasBounds.getHeight() << shiftUp;
-            Point pt = getTextCorner(rasWidth, rasHeight, style, rect, rotation);
-            int atX = pt.x;
-            int atY = pt.y;
-            DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
-            byte [] samples = dbb.getData();
-            
-            int sx, ex;
-            switch (rotation) {
-                case 0:			// no rotation
-                    if (atX < 0) sx = -atX; else sx = 0;
-                    if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
-                        ex = rasWidth;
-                    for(int y=0; y<rasHeight; y++) {
-                        int trueY = atY + y;
-                        if (trueY < 0 || trueY >= sz.height) continue;
-                        
-                        // setup pointers for filling this row
-                        int baseIndex = trueY * sz.width;
-                        int samp = (y>>shiftUp) * textImageWidth;
-                        for(int x=sx; x<ex; x++) {
-                            int trueX = atX + x;
-                            int alpha = samples[samp + (x>>shiftUp)] & 0xFF;
-                            if (alpha == 0) continue;
-                            // drawing opaque
-                            int fullIndex = baseIndex + trueX;
-                            int color = alpha == 0xFF ? col : alphaBlend(col, opaqueData[fullIndex], alpha);
-//                            int pixelValue = opaqueData[fullIndex];
-//                            int oldAlpha = (pixelValue >> 24) & 0xFF;
-//                            int color = col;
-//                            if (oldAlpha == 0) {
-//                                // blend with opaque
-//                                if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-//                            } else if (oldAlpha == 0xFF) {
-//                                // blend with background
-//                                if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-//                            }
-                            opaqueData[fullIndex] = color;
-                        }
-                    }
-                    break;
-                case 1:			// 90 degrees counterclockwise
-                    if (atX < 0) sx = -atX; else sx = 0;
-                    if (atX >= sz.width) ex = sz.width - atX; else
-                        ex = rasHeight;
-                    for(int y=0; y<rasWidth; y++) {
-                        int trueY = atY - y;
-                        if (trueY < 0 || trueY >= sz.height) continue;
-                        
-                        // setup pointers for filling this row
-                        int baseIndex = trueY * sz.width;
-                        for(int x=sx; x<ex; x++) {
-                            int trueX = atX + x;
-                            int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
-                            if (alpha == 0) continue;
-                            // drawing opaque
-                            int fullIndex = baseIndex + trueX;
-                            int color = alpha == 0xFF ? col : alphaBlend(col, opaqueData[fullIndex], alpha);
-//                            int pixelValue = opaqueData[fullIndex];
-//                            int oldAlpha = (pixelValue >> 24) & 0xFF;
-//                            int color = col;
-//                            if (oldAlpha == 0) {
-//                                // blend with opaque
-//                                if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-//                            } else if (oldAlpha == 0xFF) {
-//                                // blend with background
-//                                if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-//                            }
-                            opaqueData[fullIndex] = color;
-                        }
-                    }
-                    break;
-                case 2:			// 180 degrees
-                    atX -= rasWidth;
-                    atY -= rasHeight;
-                    if (atX < 0) sx = -atX; else sx = 0;
-                    if (atX+rasWidth >= sz.width) ex = sz.width-1 - atX; else
-                        ex = rasWidth;
-                    
-                    for(int y=0; y<rasHeight; y++) {
-                        int trueY = atY + y;
-                        if (trueY < 0 || trueY >= sz.height) continue;
-                        
-                        // setup pointers for filling this row
-                        int baseIndex = trueY * sz.width;
-                        for(int x=sx; x<ex; x++) {
-                            int trueX = atX + x;
-                            int index = ((rasHeight-y-1)>>shiftUp) * textImageWidth + ((rasWidth-x-1)>>shiftUp);
-                            int alpha = samples[index] & 0xFF;
-                            if (alpha == 0) continue;
-                            // drawing opaque
-                            int fullIndex = baseIndex + trueX;
-                            int color = alpha == 0xFF ? col : alphaBlend(col, opaqueData[fullIndex], alpha);
-//                            int pixelValue = opaqueData[fullIndex];
-//                            int oldAlpha = (pixelValue >> 24) & 0xFF;
-//                            int color = col;
-//                            if (oldAlpha == 0) {
-//                                // blend with opaque
-//                                if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-//                            } else if (oldAlpha == 0xFF) {
-//                                // blend with background
-//                                if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-//                            }
-                            opaqueData[fullIndex] = color;
-                        }
-                    }
-                    break;
-                case 3:			// 90 degrees clockwise
-                    if (atX < 0) sx = -atX; else sx = 0;
-                    if (atX >= sz.width) ex = sz.width - atX; else
-                        ex = rasHeight;
-                    for(int y=0; y<rasWidth; y++) {
-                        int trueY = atY + y;
-                        if (trueY < 0 || trueY >= sz.height) continue;
-                        
-                        // setup pointers for filling this row
-                        int baseIndex = trueY * sz.width;
-                        for(int x=sx; x<ex; x++) {
-                            int trueX = atX - x;
-                            int alpha = samples[(x>>shiftUp) * textImageWidth + (y>>shiftUp)] & 0xFF;
-                            if (alpha == 0) continue;
-                            // drawing opaque
-                            int fullIndex = baseIndex + trueX;
-                            int color = alpha == 0xFF ? col : alphaBlend(col, opaqueData[fullIndex], alpha);
-//                            int pixelValue = opaqueData[fullIndex];
-//                            int oldAlpha = (pixelValue >> 24) & 0xFF;
-//                            int color = col;
-//                            if (oldAlpha == 0) {
-//                                // blend with opaque
-//                                if (alpha != 0xFF) color = alphaBlend(color, pixelValue, alpha);
-//                            } else if (oldAlpha == 0xFF) {
-//                                // blend with background
-//                                if (alpha < 255) color = (color & 0xFFFFFF) | (alpha << 24);
-//                            }
-                            opaqueData[fullIndex] = color;
-                        }
-                    }
-                    break;
+        private void draw(Graphics2D g) {
+            int width = (int)rasBounds.getWidth();
+            int height = (int)rasBounds.getHeight();
+            // adjust to place text in the center
+            int textWidth = width;
+            int textHeight = height;
+            int offX = 0, offY = 0;
+            if (style == Poly.Type.TEXTCENT) {
+                offX = -textWidth/2;
+                offY = -textHeight/2;
+            } else if (style == Poly.Type.TEXTTOP) {
+                offX = -textWidth/2;
+            } else if (style == Poly.Type.TEXTBOT) {
+                offX = -textWidth/2;
+                offY = -textHeight;
+            } else if (style == Poly.Type.TEXTLEFT) {
+                offY = -textHeight/2;
+            } else if (style == Poly.Type.TEXTRIGHT) {
+                offX = -textWidth;
+                offY = -textHeight/2;
+            } else if (style == Poly.Type.TEXTTOPLEFT) {
+            } else if (style == Poly.Type.TEXTBOTLEFT) {
+                offY = -textHeight;
+            } else if (style == Poly.Type.TEXTTOPRIGHT) {
+                offX = -textWidth;
+            } else if (style == Poly.Type.TEXTBOTRIGHT) {
+                offX = -textWidth;
+                offY = -textHeight;
+            } if (style == Poly.Type.TEXTBOX) {
+                offX = -textWidth/2;
+                offY = -textHeight/2;
+            }
+            g.setColor(color);
+            if (rotation == 0 && false) {
+                int atX = (int)rect.getCenterX() + offX;
+                int atY = (int)rect.getCenterY() + offY;
+                g.drawGlyphVector(gv, (float)(atX - rasBounds.getX()), atY + (lm.getAscent()-lm.getLeading()));
+                if (underline)
+                    g.drawLine(atX, atY + height-1, atX + width-1, atY + height-1);
+            } else {
+                AffineTransform saveAT = g.getTransform();
+                g.translate(rect.getCenterX(), rect.getCenterY());
+                g.rotate(-rotation*Math.PI/2);
+                g.drawGlyphVector(gv, (float)(offX - rasBounds.getX()), offY + (lm.getAscent()-lm.getLeading()));
+                if (underline)
+                    g.drawLine(offX, offY + height-1, offX + width-1, offY + height-1);
+                g.setTransform(saveAT);
             }
         }
     }
 
     private class GreekTextInfo {
         int lX, hX, lY, hY;
-        int col;
+        Color color;
         
-        private GreekTextInfo(int lX, int hX, int lY, int hY, int col) {
+        private GreekTextInfo(int lX, int hX, int lY, int hY, Color color) {
             this.lX = lX;
             this.hX = hX;
             this.lY = lY;
             this.hY = hY;
-            this.col = col;
+            this.color = color;
         }
         
-        private void draw() {
-            // greeked box in opaque area
-            for(int y=lY; y<=hY; y++) {
-                int baseIndex = y * sz.width + lX;
-                for(int x=lX; x<=hX; x++) {
-                    int index = baseIndex++;
-                    opaqueData[index] = col;
-//                    int alpha = (opaqueData[index] >> 24) & 0xFF;
-//                    if (alpha == 0xFF) opaqueData[index] = col;
-                }
-            }
-            
+        private void draw(Graphics2D g) {
+            g.setColor(color);
+            g.drawLine(lX, lY, hX, hY);
+        }
+    }
+    
+    private class CrossTextInfo {
+        int x, y;
+        Color color;
+        
+        private CrossTextInfo(int x, int y, Color color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+        }
+        
+        private void draw(Graphics2D g) {
+            g.setColor(color);
+            g.drawLine(x - 3, y, x + 3, y);
+            g.drawLine(x, y - 3, x, y + 3);
         }
     }
     
@@ -3691,11 +3747,6 @@ class LayerDrawing
 			offY = -textHeight;
 		} if (style == Poly.Type.TEXTBOX)
 		{
-//			if (textWidth > rect.getWidth())
-//			{
-//				// text too big for box: scale it down
-//				textScale *= rect.getWidth() / textWidth;
-//			}
 			offX = -textWidth/2;
 			offY = -textHeight/2;
 		}
@@ -3721,56 +3772,6 @@ class LayerDrawing
 		int cX = (int)rect.getCenterX() + offX;
 		int cY = (int)rect.getCenterY() + offY;
 		return new Point(cX, cY);
-	}
-
-	private int textImageWidth = 0, textImageHeight = 0;
-	private BufferedImage textImage = null;
-	private Graphics2D textImageGraphics;
-
-    private Raster renderText(RenderTextInfo renderInfo) {
-
-        Font theFont = renderInfo.font;
-        if (theFont == null) return null;
-
-        int width = (int)renderInfo.rasBounds.getWidth();
-        int height = (int)renderInfo.rasBounds.getHeight();
-        GlyphVector gv = renderInfo.gv;
-        LineMetrics lm = renderInfo.lm;
-
-	    // Too small to appear in the screen
-	    if (width <= 0 || height <= 0)
-		    return null;
-
-		// if the new image is larger than what is saved, must rebuild
-		if (width > textImageWidth || height > textImageHeight)
-			textImage = null;
-		if (textImage == null)
-		{
-			// create a new text buffer
-			textImageWidth = width;
-			textImageHeight = height;
-			textImage = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-			textImageGraphics = textImage.createGraphics();
-		} else
-		{
-			// clear and reuse the existing text buffer
-			textImageGraphics.setColor(Color.BLACK);
-			textImageGraphics.fillRect(0, 0, width, height);
-		}
-
-		// now render it
-		Graphics2D g2 = (Graphics2D)textImage.getGraphics();
-		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-		g2.setColor(new Color(255,255,255));
-		g2.drawGlyphVector(gv, (float)-renderInfo.rasBounds.getX(), (float)(lm.getAscent()-lm.getLeading()));
-		if (renderInfo.underline)
-		{
-			g2.drawLine(0, height-1, width-1, height-1);
-		}
-
-		// return the bits
-		return textImage.getData();
 	}
 
     public static Font getFont(String msg, String font, int tSize, boolean italic, boolean bold, boolean underline) {

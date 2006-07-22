@@ -52,7 +52,6 @@ import com.sun.electric.database.variable.TextDescriptor;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
@@ -328,7 +327,7 @@ class PixelDrawing
             offscreen = new PixelDrawing(sz);
         }
         
-        boolean paintComponent(Graphics g, Dimension sz) {
+        boolean paintComponent(Graphics2D g, Dimension sz) {
             if (offscreen == null || !wnd.getSize().equals(sz)) {
                 Dimension newSize = wnd.getSize();
                 wnd.setScreenSize(newSize);
