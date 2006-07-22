@@ -290,9 +290,9 @@ public class Quick
 	    // No incremental neither per Cell
 	    if (!DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.DRCCheckMode.ERROR_CHECK_CELL)
 	    {
-		    for(Iterator it = tech.getLayers(); it.hasNext(); )
+		    for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 			{
-				Layer layer = (Layer)it.next();
+				Layer layer = it.next();
 
 				// Storing min areas
 				DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.DRCRuleType.MINAREA);
@@ -4117,9 +4117,9 @@ public class Quick
 			for(int i=0; i<layers.length; i++)
 			{
 				Layer layer = layers[i].getLayer();
-				for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				{
-					Layer oLayer = (Layer)lIt.next();
+					Layer oLayer = lIt.next();
 					if (DRC.isAnyRule(layer, oLayer))
 						layersInNode[oLayer.getIndex()] = true;
 				}
@@ -4139,9 +4139,9 @@ public class Quick
 			for(int i=0; i<layers.length; i++)
 			{
 				Layer layer = layers[i].getLayer();
-				for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				{
-					Layer oLayer = (Layer)lIt.next();
+					Layer oLayer = lIt.next();
 					if (DRC.isAnyRule(layer, oLayer))
 						layersInArc[oLayer.getIndex()] = true;
 				}
