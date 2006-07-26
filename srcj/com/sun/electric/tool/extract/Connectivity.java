@@ -376,26 +376,26 @@ public class Connectivity
 		System.out.print("geometry, ");
 
 		// cleanup by auto-stitching
-		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
-		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
-		for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			if (ni.isIconOfParent()) continue;
-			if (!ni.isCellInstance())
-			{
-				PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-				if (pnp.getTechnology() == Generic.tech) continue;
-				if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-			}
-			nodesToStitch.add(ni);
-		}
-		for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = it.next();
-			arcsToStitch.add(ai);
-		}
-		AutoStitch.runAutoStitch(newCell, nodesToStitch, arcsToStitch, originalMerge, null, false, Routing.getPreferredRoutingArcProto());
+//		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
+//		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
+//		for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+//		{
+//			NodeInst ni = it.next();
+//			if (ni.isIconOfParent()) continue;
+//			if (!ni.isCellInstance())
+//			{
+//				PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+//				if (pnp.getTechnology() == Generic.tech) continue;
+//				if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+//			}
+//			nodesToStitch.add(ni);
+//		}
+//		for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
+//		{
+//			ArcInst ai = it.next();
+//			arcsToStitch.add(ai);
+//		}
+		AutoStitch.runAutoStitch(newCell, null, null, originalMerge, null, false, Routing.getPreferredRoutingArcProto());
 		System.out.println("done.");
 		return newCell;
 	}

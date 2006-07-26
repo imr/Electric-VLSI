@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+IMP: (7/26/06, GVG) Refactoring AutoStitch to get regressions working.
+
 BUG: (7/22/06, DN) N-well disappears in LayerDrawing.
 FIX: In PatternedTransparentRaster.copyBits use "continue" instead of "return". 
 

@@ -92,11 +92,14 @@ public class AutoStitch
 		Cell cell = ui.needCurrentCell();
 		if (cell == null) return;
 
-		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
-		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
+		List<NodeInst> nodesToStitch = null;
+		List<ArcInst> arcsToStitch = null;
 		Rectangle2D limitBound = null;
+
 		if (highlighted)
 		{
+			nodesToStitch = new ArrayList<NodeInst>();
+            arcsToStitch = new ArrayList<ArcInst>();
 	        EditWindow_ wnd = ui.getCurrentEditWindow_();
 	        if (wnd == null) return;
 			List<Geometric> highs = wnd.getHighlightedEObjs(true, true);
@@ -120,23 +123,24 @@ public class AutoStitch
 					arcsToStitch.add((ArcInst)eObj);
 				}
 			}
-		} else
-		{
-			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
-				if (ni.isIconOfParent()) continue;
-				if (!ni.isCellInstance())
-				{
-					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-					if (pnp.getTechnology() == Generic.tech) continue;
-					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-				}
-				nodesToStitch.add(ni);
-			}
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-				arcsToStitch.add(it.next());
 		}
+//        else
+//		{
+//            for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+//			{
+//				NodeInst ni = it.next();
+//				if (ni.isIconOfParent()) continue;
+//				if (!ni.isCellInstance())
+//				{
+//					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+//					if (pnp.getTechnology() == Generic.tech) continue;
+//					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+//				}
+//				nodesToStitch.add(ni);
+//			}
+//			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+//				arcsToStitch.add(it.next());
+//		}
 		if (nodesToStitch.size() == 0 && arcsToStitch.size() == 0)
 		{
             if (forced) System.out.println("Nothing selected to auto-route");
@@ -195,16 +199,45 @@ public class AutoStitch
 		}
 	}
 
-	/**
-	 * This is the public interface for Auto-stitching when done in batch mode.
-	 * @param cell the cell in which to stitch.
-	 * @param highlighted true to auto-stitch only what is highlighted; false to do the entire current cell.
-	 * @param forced true if the stitching was explicitly requested (and so results should be printed).
-	 * @param stayInside is the area in which to route (null to route arbitrarily).
-	 */
-	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch, PolyMerge stayInside,
-		Rectangle2D limitBound, boolean forced, ArcProto preferredArc)
+    /**
+     * This is the public interface for Auto-stitching when done in batch mode.
+     * @param cell the cell in which to stitch.
+     * @param nodesToStitch
+     * @param arcsToStitch
+     * @param stayInside is the area in which to route (null to route arbitrarily).
+     * @param limitBound
+     * @param forced true if the stitching was explicitly requested (and so results should be printed).
+     * @param preferredArc
+     */
+	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
+                                     PolyMerge stayInside, Rectangle2D limitBound, boolean forced, ArcProto preferredArc)
 	{
+        if (preferredArc == null)
+            preferredArc = Routing.getPreferredRoutingArcProto();
+
+        if (nodesToStitch == null) // no data from highlighter
+        {
+            nodesToStitch = new ArrayList<NodeInst>();
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (ni.isIconOfParent()) continue;
+				if (!ni.isCellInstance())
+				{
+					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+					if (pnp.getTechnology() == Generic.tech) continue;
+					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+				}
+				nodesToStitch.add(ni);
+			}
+        }
+        if (arcsToStitch == null)
+        {
+            arcsToStitch = new ArrayList<ArcInst>();
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+				arcsToStitch.add(it.next());
+        }
+
 		allRoutes = new ArrayList<Route>();
 		intendedPairs = new Pairs();
         possibleInlinePins = new HashSet<NodeInst>();

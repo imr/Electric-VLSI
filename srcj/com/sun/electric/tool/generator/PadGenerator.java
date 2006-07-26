@@ -847,23 +847,24 @@ public class PadGenerator
 
         // auto stitch everything
 //        AutoStitch.autoStitch(false, true);
-		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
-		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
-		for(Iterator<NodeInst> it = framecell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			if (ni.isIconOfParent()) continue;
-			if (!ni.isCellInstance())
-			{
-				PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-				if (pnp.getTechnology() == Generic.tech) continue;
-				if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-			}
-			nodesToStitch.add(ni);
-		}
-		for(Iterator<ArcInst> it = framecell.getArcs(); it.hasNext(); )
-			arcsToStitch.add(it.next());
-        AutoStitch.runAutoStitch(framecell, nodesToStitch, arcsToStitch, null, null, true, Routing.getPreferredRoutingArcProto());
+//		List<NodeInst> nodesToStitch = new ArrayList<NodeInst>();
+//		List<ArcInst> arcsToStitch = new ArrayList<ArcInst>();
+//		for(Iterator<NodeInst> it = framecell.getNodes(); it.hasNext(); )
+//		{
+//			NodeInst ni = it.next();
+//			if (ni.isIconOfParent()) continue;
+//			if (!ni.isCellInstance())
+//			{
+//				PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
+//				if (pnp.getTechnology() == Generic.tech) continue;
+//				if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
+//			}
+//			nodesToStitch.add(ni);
+//		}
+//		for(Iterator<ArcInst> it = framecell.getArcs(); it.hasNext(); )
+//			arcsToStitch.add(it.next());
+        AutoStitch.runAutoStitch(framecell, null, null, null, null, true,
+                Routing.getPreferredRoutingArcProto());
 
         if (corename != null)
 		{
