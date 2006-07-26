@@ -724,7 +724,7 @@ public abstract class Topology extends Output
 			// organize by name and index order
 			cni.cellAggretateSignals = new ArrayList<CellAggregateSignal>();
 			int total = cni.cellSignalsSorted.size();
-			int emptyName = 1;
+//			int emptyName = 1;
 			for(int i=0; i<total; i++)
 			{
 				CellSignal cs = cni.cellSignalsSorted.get(i);
@@ -1065,7 +1065,7 @@ public abstract class Topology extends Output
             return true;
         }
 
-        private List getConflictList(String cellname) {
+        private List<Cell> getConflictList(String cellname) {
             List<Cell> conflictList = cellNameMapReverse.get(cellname.toLowerCase());
             if (conflictList == null) {
                 conflictList = new ArrayList<Cell>();
