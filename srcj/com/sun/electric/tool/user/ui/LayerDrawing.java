@@ -822,6 +822,10 @@ class LayerDrawing
 	 */
 	public Image composite(Rectangle bounds)
 	{
+        if (false) {
+            layerCompositeSlow();
+            return img;
+        }
         final boolean USE_COMPATABLE = false;
         if (patternedDisplay) {
             if (!ALPHA_BLEND_PATTERNED)
@@ -1151,6 +1155,56 @@ class LayerDrawing
         int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
         for (int y = clipLY; y <= clipHY; y++) {
             alphaBlender.composeLine(baseByteIndex, clipLX, clipHX, opaqueData, baseIndex);
+            baseByteIndex += numIntsPerRow;
+            baseIndex += width;
+        }
+        long endTime = System.currentTimeMillis();
+        if (TAKE_STATS) System.out.println("layerComposite took " + (endTime - startTime) + " msec");
+    }
+    
+    private void layerCompositeSlow() {
+        HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
+        for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
+            layerBits.put(e.getKey(), e.getValue().layerBitMap);
+        List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay);
+        if (TAKE_STATS) {
+            System.out.print("BlendingOrder:");
+            for (EditWindow.LayerColor lc: blendingOrder) {
+                int alpha = lc.color.getAlpha();
+                System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
+            }
+            System.out.println();
+        }
+    
+        long startTime = System.currentTimeMillis();
+        Color background = new Color(backgroundValue);
+        float[] backgroundComponents = background.getColorComponents(null);
+        float[] components = new float[4];
+        TransparentRaster[] rasters = new TransparentRaster[blendingOrder.size()];
+        for (int i = 0; i < blendingOrder.size(); i++) {
+            EditWindow.LayerColor lc = blendingOrder.get(i);
+            rasters[i] = layerRasters.get(lc.layer);
+        }
+        int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
+        for (int y = clipLY; y <= clipHY; y++) {
+            for (int x = clipLX; x <= clipHX; x++) {
+                float red = backgroundComponents[0];
+                float green = backgroundComponents[1];
+                float blue = backgroundComponents[2];
+                int entry = baseByteIndex + (x>>5);
+                int maskBit = 1 << (x & 31);
+                for (int i = 0; i < blendingOrder.size(); i++) {
+                    if ((rasters[i].layerBitMap[entry] & maskBit) == 0) continue;
+                    EditWindow.LayerColor lc = blendingOrder.get(i);
+                    lc.color.getComponents(components);
+                    float alpha = components[3];
+                    red = red*(1 - alpha) + components[0]*alpha;
+                    green = green*(1 - alpha) + components[1]*alpha;
+                    blue = blue*(1 - alpha) + components[2]*alpha;
+                }
+                Color c = new Color(red, green, blue);
+                opaqueData[baseIndex + x] = c.getRGB() | 0xFF000000;
+            }
             baseByteIndex += numIntsPerRow;
             baseIndex += width;
         }
