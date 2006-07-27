@@ -157,7 +157,7 @@ public class AutoStitch
 		}
 
 		// find out the prefered routing arc
-		new AutoStitchJob(cell, nodesToStitch, arcsToStitch, lX, hX, lY, hY, forced, Routing.getPreferredRoutingArcProto());
+		new AutoStitchJob(cell, nodesToStitch, arcsToStitch, lX, hX, lY, hY, forced);
 	}
 
 	/**
@@ -170,10 +170,9 @@ public class AutoStitch
 		private List<ArcInst> arcsToStitch;
 		private double lX, hX, lY, hY;
 		private boolean forced;
-		private ArcProto preferredArc;
  
 		private AutoStitchJob(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
-			double lX, double hX, double lY, double hY, boolean forced, ArcProto preferredArc)
+                              double lX, double hX, double lY, double hY, boolean forced)
 		{
 			super("Auto-Stitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -184,7 +183,6 @@ public class AutoStitch
 			this.lY = lY;
 			this.hY = hY;
 			this.forced = forced;
-			this.preferredArc = preferredArc;
             setReportExecutionFlag(true);
 			startJob();
 		}
@@ -194,7 +192,7 @@ public class AutoStitch
 			Rectangle2D limitBound = null;
 			if (lX != hX && lY != hY)
 				limitBound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-			runAutoStitch(cell, nodesToStitch, arcsToStitch, null, limitBound, forced, preferredArc);
+			runAutoStitch(cell, nodesToStitch, arcsToStitch, null, limitBound, forced);
 			return true;
 		}
 	}
@@ -207,13 +205,11 @@ public class AutoStitch
      * @param stayInside is the area in which to route (null to route arbitrarily).
      * @param limitBound
      * @param forced true if the stitching was explicitly requested (and so results should be printed).
-     * @param preferredArc
      */
 	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
-                                     PolyMerge stayInside, Rectangle2D limitBound, boolean forced, ArcProto preferredArc)
+                                     PolyMerge stayInside, Rectangle2D limitBound, boolean forced)
 	{
-        if (preferredArc == null)
-            preferredArc = Routing.getPreferredRoutingArcProto();
+        ArcProto preferredArc = Routing.getPreferredRoutingArcProto();
 
         if (nodesToStitch == null) // no data from highlighter
         {
