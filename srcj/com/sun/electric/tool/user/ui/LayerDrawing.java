@@ -823,7 +823,8 @@ class LayerDrawing
 	public Image composite(Rectangle bounds)
 	{
         if (false) {
-            layerCompositeSlow();
+            layerCompositeHsb();
+//            layerCompositeSlow();
             return img;
         }
         final boolean USE_COMPATABLE = false;
@@ -1186,11 +1187,13 @@ class LayerDrawing
             rasters[i] = layerRasters.get(lc.layer);
         }
         int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
+        boolean WHITE_BACK = true;
         for (int y = clipLY; y <= clipHY; y++) {
             for (int x = clipLX; x <= clipHX; x++) {
-                float red = backgroundComponents[0];
-                float green = backgroundComponents[1];
-                float blue = backgroundComponents[2];
+                float red = WHITE_BACK ? 1f : backgroundComponents[0];
+                float green = WHITE_BACK ? 1f : backgroundComponents[1];
+                float blue = WHITE_BACK ? 1f : backgroundComponents[2];
+                boolean hasSomething = false;
                 int entry = baseByteIndex + (x>>5);
                 int maskBit = 1 << (x & 31);
                 for (int i = 0; i < blendingOrder.size(); i++) {
@@ -1198,12 +1201,81 @@ class LayerDrawing
                     EditWindow.LayerColor lc = blendingOrder.get(i);
                     lc.color.getComponents(components);
                     float alpha = components[3];
+                    if (alpha == 0.0) continue;
+                    hasSomething = true;
                     red = red*(1 - alpha) + components[0]*alpha;
                     green = green*(1 - alpha) + components[1]*alpha;
                     blue = blue*(1 - alpha) + components[2]*alpha;
                 }
+                if (WHITE_BACK && !hasSomething) {
+                    opaqueData[baseIndex + x] = backgroundValue;
+                    continue;
+                }
                 Color c = new Color(red, green, blue);
                 opaqueData[baseIndex + x] = c.getRGB() | 0xFF000000;
+            }
+            baseByteIndex += numIntsPerRow;
+            baseIndex += width;
+        }
+        long endTime = System.currentTimeMillis();
+        if (TAKE_STATS) System.out.println("layerComposite took " + (endTime - startTime) + " msec");
+    }
+    
+    private void layerCompositeHsb() {
+        HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
+        for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
+            layerBits.put(e.getKey(), e.getValue().layerBitMap);
+        List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay);
+        if (TAKE_STATS) {
+            System.out.print("BlendingOrder:");
+            for (EditWindow.LayerColor lc: blendingOrder) {
+                int alpha = lc.color.getAlpha();
+                System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
+            }
+            System.out.println();
+        }
+    
+        long startTime = System.currentTimeMillis();
+        Color background = new Color(backgroundValue);
+        float[] backgroundComponents = background.getColorComponents(null);
+        float[] components = new float[4];
+        float[] hsbval = new float[3];
+        TransparentRaster[] rasters = new TransparentRaster[blendingOrder.size()];
+        for (int i = 0; i < blendingOrder.size(); i++) {
+            EditWindow.LayerColor lc = blendingOrder.get(i);
+            rasters[i] = layerRasters.get(lc.layer);
+        }
+        int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
+        boolean WHITE_BACK = true;
+        for (int y = clipLY; y <= clipHY; y++) {
+            for (int x = clipLX; x <= clipHX; x++) {
+                float CX = 0f;
+                float CY = 0f;
+                float BR = WHITE_BACK ? 1f : 0f;
+                int entry = baseByteIndex + (x>>5);
+                int maskBit = 1 << (x & 31);
+                for (int i = 0; i < blendingOrder.size(); i++) {
+                    if ((rasters[i].layerBitMap[entry] & maskBit) == 0) continue;
+                    EditWindow.LayerColor lc = blendingOrder.get(i);
+                    lc.color.getComponents(components);
+                    float alpha = components[3];
+                    if (alpha == 0f) continue;
+                    Color.RGBtoHSB(lc.color.getRed(), lc.color.getGreen(), lc.color.getBlue(), hsbval);
+                    float hue = hsbval[0];
+                    float sat = hsbval[1];
+                    float bright = hsbval[2];
+                    float cx = (float)(sat*Math.cos(2*Math.PI*hue));
+                    float cy = (float)(sat*Math.sin(2*Math.PI*hue));
+                    CX = CX*(1-alpha) + cx*alpha;
+                    CY = CY*(1-alpha) + cy*alpha;
+                    BR = (float)(WHITE_BACK ? Math.min(BR, bright) : Math.max(BR, bright));
+                }
+                float oSat = (float)Math.sqrt(CX*CX + CY*CY);
+                float oHue = (float)(Math.atan2(CY, CX)/2/Math.PI);
+                if (oHue < 0)
+                    oHue += 1f;
+                assert oHue >= 0f && oHue <= 1f;
+                opaqueData[baseIndex + x] = Color.HSBtoRGB(oHue, oSat, BR) | 0xFF000000;
             }
             baseByteIndex += numIntsPerRow;
             baseIndex += width;
