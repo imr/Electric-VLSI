@@ -316,9 +316,22 @@ public class LayerTab extends JPanel
 		layer.getGraphics().setOpacity(newOpacity);
 		layerListModel.set(indices[0], lineName(layer));
 
-		// TODO: redraw the screen to reflect the new opacity
-        EditWindow.repaintAllContents();
+        opacityChanged();
 	}
+    
+    private void opacityChanged() {
+        for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); ) {
+            WindowFrame wf = it.next();
+            WindowContent content = wf.getContent();
+            if (!(content instanceof EditWindow)) continue;
+            EditWindow wnd = (EditWindow)content;
+            wnd.opacityChanged();
+            LayerTab layerTab = wf.getLayersTab();
+//            layerTab.updateLayersTab();
+            if (layerTab == this)
+                wnd.repaint();
+        }
+    }
 
 	/**
 	 * Method to clear all highlighting.
@@ -840,7 +853,7 @@ public class LayerTab extends JPanel
         if (tech == null) return;
         EditWindow.setDefaultOpacity(tech);
         updateLayersTab();
-        EditWindow.repaintAllContents();
+        opacityChanged();
     }//GEN-LAST:event_resetOpacityActionPerformed
 
 	private void toggleHighlightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_toggleHighlightActionPerformed

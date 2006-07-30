@@ -328,14 +328,8 @@ class PixelDrawing
         }
         
         boolean paintComponent(Graphics2D g, Dimension sz) {
-            if (offscreen == null || !wnd.getSize().equals(sz)) {
-                Dimension newSize = wnd.getSize();
-                wnd.setScreenSize(newSize);
-                wnd.repaintContents(null, false);
-                g.setColor(new Color(User.getColorBackground()));
-                g.fillRect(0, 0, newSize.width, newSize.height);
+            if (offscreen == null || !wnd.getSize().equals(sz))
                 return false;
-            }
             
             // show the image
             BufferedImage img = offscreen.getBufferedImage();

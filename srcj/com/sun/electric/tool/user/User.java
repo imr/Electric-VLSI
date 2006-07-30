@@ -2222,6 +2222,21 @@ public class User extends Listener
 	 */
 	public static void setPatternedScaleLimit(double l) { cachePatternedScaleLimit.setDouble(l); }
 
+	private static Pref cacheAlphaBlendingLimit = Pref.makeDoublePref("AlphaBlendingLimit", tool.prefs, 0.6);
+	/**
+	 * Method to tell the scale of EditWindow when use alpha blending color composite.
+	 * Larger scales use legacy (transparent layers) color composite.
+	 * The default is 0.6, meaning that 1.66 lamdas per pixel.
+	 * @return the scale of EditWindow when use alpha blending.
+	 */
+	public static double getAlphaBlendingLimit() { return cacheAlphaBlendingLimit.getDouble(); }
+	/**
+	 * Method to set the scale of EditWindow when use alpha blending color composite.
+	 * Larger scales use legacy (transparent layers) color composite.
+	 * @param l the scale of EditWindow when use alpha blending.
+	 */
+	public static void setAlphaBlendingLimit(double l) { cacheAlphaBlendingLimit.setDouble(l); }
+
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", tool.prefs, true);
 	/**
 	 * Method to tell whether to display a file selection dialog before writing netlists.

@@ -350,14 +350,6 @@ class AlphaBlender {
 //        assert 0 <= g && g <= 255;
 //        assert 0 <= b && b <= 255;
 //        int color = (r << 16) | (g << 8) + b;
-//        int pixelValue = opaqueData[baseIndex];
-//        if (pixelValue != backgroundValue) {
-//            int pixelAlpha = (pixelValue >> 24) & 0xFF;
-//            if (pixelAlpha == 0xFF || pixelAlpha == 0)
-//                color = pixelValue;
-//            else if (pixelAlpha != 0)
-//                color = alphaBlend(pixelValue, color, pixelAlpha);
-//        }
 //        opaqueData[baseIndex] = color;
 //    }
     
@@ -366,33 +358,9 @@ class AlphaBlender {
         assert 0 <= green && green <= 255;
         assert 0 <= blue && blue <= 255;
         int color = (red << 16) | (green << 8) + blue;
-        int pixelValue = opaqueData[baseIndex];
-        if (pixelValue != backgroundValue) {
-            int pixelAlpha = (pixelValue >> 24) & 0xFF;
-            if (pixelAlpha == 0xFF || pixelAlpha == 0)
-                color = pixelValue;
-            else if (pixelAlpha != 0)
-                color = alphaBlend(pixelValue, color, pixelAlpha);
-        }
         opaqueData[baseIndex] = color;
     }
     
-	private static int alphaBlend(int color, int backgroundColor, int alpha)
-	{
-		int red = (color >> 16) & 0xFF;
-		int green = (color >> 8) & 0xFF;
-		int blue = color & 0xFF;
-		int inverseAlpha = 254 - alpha;
-		int redBack = (backgroundColor >> 16) & 0xFF;
-		int greenBack = (backgroundColor >> 8) & 0xFF;
-		int blueBack = backgroundColor & 0xFF;
-		red = ((red * alpha) + (redBack * inverseAlpha)) / 255;
-		green = ((green * alpha) + (greenBack * inverseAlpha)) / 255;
-		blue = ((blue * alpha) + (blueBack * inverseAlpha)) / 255;
-		color = (red << 16) | (green << 8) + blue;
-		return color;
-	}
-
     //********************************************************************
     
     private class AlphaBlendGroup {

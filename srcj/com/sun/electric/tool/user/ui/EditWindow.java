@@ -223,6 +223,8 @@ public class EditWindow extends JPanel
         abstract void render(boolean fullInstantiate, Rectangle2D bounds);
 
         void abortRendering() {}
+        
+        void opacityChanged() {}
     }
 
     static class LayerColor {
@@ -1209,8 +1211,13 @@ public class EditWindow extends JPanel
         logger.entering(CLASS_NAME, "paintComponent", this);
 
         if (!drawing.paintComponent(g, sz)) {
-             logger.exiting(CLASS_NAME, "paintComponent", "resize and repaint");
-           return;
+            Dimension newSize = getSize();
+            setScreenSize(newSize);
+            repaintContents(null, false);
+            g.setColor(new Color(User.getColorBackground()));
+            g.fillRect(0, 0, newSize.width, newSize.height);
+            logger.exiting(CLASS_NAME, "paintComponent", "resize and repaint");
+            return;
         }
         logger.logp(Level.FINER, CLASS_NAME, "paintComponent", "offscreen is drawn");
 
@@ -1566,60 +1573,33 @@ public class EditWindow extends JPanel
      * }
      * return col;
      * @param layersAvailable layers available in this EditWindow
-     * @param patternedDrawing true if some layers were filled in patterned style.
+     * @param showOpacity show opacity controls in LayerTab.
      * @return alpha blending order.
      */
-    List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDrawing) {
-        final boolean USE_OPACITY_FOR_PATTERNED = true; // use opacity for patterned scales
+    List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, final boolean showOpacity) {
         ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
-
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
         Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT);
-        final boolean useOpacity = patternedDrawing ? USE_OPACITY_FOR_PATTERNED : true;
-        if (useOpacity) {
-            for(Layer layer : sortedLayers) {
-                double opacity = layer.getGraphics().getOpacity();
-//                if (patternedDrawing && layer.getGraphics().getTransparentLayer() != 0)
-//                    opacity = opacity*0.5 + 0.7*0.5;
-                if (!layer.isVisible()) opacity = 0;
-                int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
-                Color color = new Color(rgba, true);
-                layerColors.add(new LayerColor(layer, color));
-            }
-        } else {
-            int maxTransparency = 0;
-            for(Layer layer : sortedLayers) {
-                int transparancy = layer.getGraphics().getTransparentLayer();
-                if (transparancy == 0) continue;
-                maxTransparency = Math.max(maxTransparency, transparancy);
-            }
-            double transparentOpacity = 0.7;
-            for (int transparency = 0; transparency <= maxTransparency; transparency++) {
-                for(Layer layer : sortedLayers) {
-                    if (layer.getGraphics().getTransparentLayer() != transparency) continue;
-                    if (!layer.isVisible()) continue;
-                    int rgba = layer.getGraphics().getRGB() | (int)(transparentOpacity * 255 + 0.5) << 24;
-                    Color color = new Color(rgba, true);
-                    layerColors.add(new LayerColor(layer, color));
-                }
-            }
-            for(Layer layer : sortedLayers) {
-                if (layer.getGraphics().getTransparentLayer() != 0) continue;
-                if (!layer.isVisible()) continue;
-                int rgba = layer.getGraphics().getRGB() | 255 << 24;
-                Color color = new Color(rgba, true);
-                layerColors.add(new LayerColor(layer, color));
-            }
+        for(Layer layer : sortedLayers) {
+            double opacity = layer.getGraphics().getOpacity();
+            if (!layer.isVisible()) opacity = 0;
+            int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
+            Color color = new Color(rgba, true);
+            layerColors.add(new LayerColor(layer, color));
         }
         final LayerTab layerTab = getWindowFrame().getLayersTab();
         if (layerTab != null)
-            SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(useOpacity); }});
-        return layerColors;
+            SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
+            return layerColors;
     }
     
     public void testJogl() {
         if (drawing instanceof LayerDrawing.Drawing)
             ((LayerDrawing.Drawing)drawing).testJogl();
+    }
+    
+    void opacityChanged() {
+        drawing.opacityChanged();
     }
     
 	// ************************************* SIMULATION CROSSPROBE LEVEL DISPLAY *************************************

@@ -187,6 +187,7 @@ public class EGraphics extends Observable
 	/** opacity (0 to 1) of color */						private double opacity;
 	/** whether to draw color in foregound */				private boolean foreground;
 	/** stipple pattern to draw */							private int [] pattern;
+    /** stipple pattern to draw with proper bit order */    private int [] reversedPattern;
 	/** 3D appearance */                                    private Object appearance3D;
 
 	private static HashMap<Layer,Pref> usePatternDisplayMap = new HashMap<Layer,Pref>();
@@ -293,11 +294,7 @@ public class EGraphics extends Observable
 		this.blue = blue;
 		this.opacity = opacity;
 		this.foreground = foreground;
-		this.pattern = pattern;
-		if (pattern.length != 16)
-		{
-			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
-		}
+        setPatternLow(pattern);
 		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
@@ -325,11 +322,7 @@ public class EGraphics extends Observable
 		this.blue = gColor.getBlue();
 		this.opacity = g.getOpacity();
 		this.foreground = g.getForeground();
-		this.pattern = (int[])g.getPattern().clone();
-		if (pattern.length != 16)
-		{
-			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
-		}
+		setPatternLow((int[])g.getPattern().clone());
 		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
@@ -339,6 +332,10 @@ public class EGraphics extends Observable
 			System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
 		}
 	}
+    
+    private static void setPattern() {
+        
+    }
 
 	/**
 	 * Method to return the Layer associated with this EGraphics.
@@ -628,6 +625,13 @@ public class EGraphics extends Observable
 	public int [] getPattern() { return pattern; }
 
 	/**
+	 * Method to get the reversed stipple pattern of this EGraphics.
+	 * The reversed stipple pattern is a 16 x 32 pattern that is stored in 16 integers.
+	 * @return the stipple pattern of this EGraphics.
+	 */
+	public int [] getReversedPattern() { return reversedPattern; }
+
+	/**
 	 * Method to return the stipple pattern by factory default.
 	 * The stipple pattern is a 16 x 16 pattern that is stored in 16 integers.
 	 * @return the stipple pattern by factory default.
@@ -648,6 +652,7 @@ public class EGraphics extends Observable
 	 */
 	public void setPattern(int [] pattern)
 	{
+        setPatternLow(pattern);
 		this.pattern = pattern;
 
 		if (layer != null)
@@ -656,6 +661,22 @@ public class EGraphics extends Observable
 			if (pref != null) pref.setString(makePatString(pattern));
 		}
 	}
+    
+    private void setPatternLow(int [] pattern) {
+		if (pattern.length != 16)
+		{
+			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
+		}
+        this.pattern = pattern;
+        reversedPattern = new int[16];
+        for (int i = 0; i < reversedPattern.length; i++) {
+            int shortPattern = pattern[i];
+            for (int j = 0; j < 16; j++) {
+                if ((shortPattern & (1 << (15 - j))) != 0)
+                    reversedPattern[i] |= 0x10001 << j;
+            }
+        }
+    }
 
 	/**
 	 * Method to get the opacity of this EGraphics.

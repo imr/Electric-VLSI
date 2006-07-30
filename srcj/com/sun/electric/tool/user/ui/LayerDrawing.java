@@ -4,7 +4,7 @@
  *
  * File: LayerDrawing.java
  *
- * Copyright (c) 2003 Sun Microsystems and Static Free Software
+ * Copyright (c) 2006 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -58,16 +57,15 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
+import java.awt.image.VolatileImage;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
+import javax.swing.SwingUtilities;
 
 /**
  * This class manages an offscreen display for an associated EditWindow.
@@ -175,9 +173,6 @@ import java.util.Map;
  */
 class LayerDrawing
 {
-    /** Flag to use alpha blending for patterned scales. */
-    private static final boolean ALPHA_BLEND_PATTERNED = true;
-    
 	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE =   5;
 	/** Number of singleton cells to cache when redisplaying. */	public static final int SINGLETONSTOADD =   5;
 
@@ -189,10 +184,10 @@ class LayerDrawing
 	}
 
 	// statistics stuff
-	private static final boolean TAKE_STATS = false;
+	private static final boolean TAKE_STATS = true;
 	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
-    private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;
+    private static int boxArrayCount, boxCount, boxDisplayCount, lineCount, polygonCount, crossCount, circleCount, discCount, arcCount;
     private static final boolean DEBUG = false;
 
     private static class ExpandedCellKey {
@@ -257,22 +252,13 @@ class LayerDrawing
 	/** temporary objects (saves reallocation) */			private final Point tempPt3 = new Point(), tempPt4 = new Point();
 
 	// the full-depth image
-    /** the offscreen opaque image of the window */			private final BufferedImage img;
-	/** opaque layer of the window */						private final int [] opaqueData;
 	/** size of the opaque layer of the window */			private final int total;
-	/** the background color of the offscreen image */		private int backgroundColor;
-	/** the "unset" color of the offscreen image */			private int backgroundValue;
-    /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
     /** list of render text. */                             private final ArrayList<RenderTextInfo> renderTextList = new ArrayList<RenderTextInfo>();
     /** list of greek text. */                              private final ArrayList<GreekTextInfo> greekTextList = new ArrayList<GreekTextInfo>();
     /** list of cross text. */                              private final ArrayList<CrossTextInfo> crossTextList = new ArrayList<CrossTextInfo>();
 
 	// the transparent bitmaps
-	/** the offscreen maps for transparent layers */		private int [][] layerBitMaps;
-	/** the number of transparent layers */					int numLayerBitMaps;
 	/** the number of ints per row in offscreen maps */     private final int numIntsPerRow;
-	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
-	/** the technology of the window */						private Technology curTech;
 
 	/** the map from layers to layer bitmaps */             private HashMap<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
 	/** the top-level window being rendered */				private boolean renderedWindow;
@@ -284,7 +270,7 @@ class LayerDrawing
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
     /** draw layers patterned (depends on scale). */        private static boolean patternedDisplay;
-	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
+    /** Composite is alpha blending (depends on scale). */  private static boolean alphaBlendingComposite;           
 	/** list of cell expansions. */							private static HashMap<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
     /** Set of changed cells. */                            private static final HashSet<CellId> changedCells = new HashSet<CellId>();
 	/** scale of cell expansions. */						private static double expandedScale = 0;
@@ -312,7 +298,16 @@ class LayerDrawing
     };
 
     static class Drawing extends EditWindow.Drawing {
+        private static final int SMALL_IMG_HEIGHT = 2;
+        /** the offscreen opaque image of the window */ private VolatileImage vImg;
+        private BufferedImage smallImg;
+        private int[] smallOpaqueData;
         private LayerDrawing offscreen;
+        /** alpha blender of layer maps */                      private final AlphaBlender alphaBlender = new AlphaBlender();
+        
+        // The following fields are produced by "render" method in Job thread.
+        private volatile boolean needComposite;
+        /** the map from layers to layer bitmaps */             private volatile HashMap<Layer,TransparentRaster> layerRasters = new HashMap<Layer,TransparentRaster>();
         private volatile GreekTextInfo[] greekText = {};
         private volatile RenderTextInfo[] renderText = {};
         private volatile CrossTextInfo[] crossText = {};
@@ -321,45 +316,357 @@ class LayerDrawing
             super(wnd);
         }
         
+        /**
+         * This method is called from AWT thread.
+         */
         void setScreenSize(Dimension sz) {
+            assert SwingUtilities.isEventDispatchThread();
+            if (vImg != null && vImg.getWidth() == sz.width && vImg.getHeight() == sz.height) return;
+            if (vImg != null)
+                vImg.flush();
+            vImg = wnd.createVolatileImage(sz.width, sz.height);
+            
+//            smallImg = (BufferedImage)wnd.createImage(sz.width, 1);
+            smallImg = new BufferedImage(sz.width, SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
+            DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
+            smallOpaqueData = smallDbi.getData();
+                    
             offscreen = new LayerDrawing(sz);
         }
         
+        /**
+         * This method is called from AWT thread.
+         */
         boolean paintComponent(Graphics2D g, Dimension sz) {
-            if (offscreen == null || !wnd.getSize().equals(sz)) {
-                Dimension newSize = wnd.getSize();
-                wnd.setScreenSize(newSize);
-                wnd.repaintContents(null, false);
-                g.setColor(new Color(User.getColorBackground()));
-                g.fillRect(0, 0, newSize.width, newSize.height);
+            assert SwingUtilities.isEventDispatchThread();
+            if (offscreen == null || !wnd.getSize().equals(sz))
                 return false;
-            }
             
             // show the image
-            long startTime = System.currentTimeMillis();
-            BufferedImage img = offscreen.getBufferedImage();
-            long imageTime = System.currentTimeMillis();
-//		synchronized(img) // Do not need synchronization here
-            {
-                g.drawImage(img, 0, 0, wnd);
+            // copying from the image (here, gScreen is the Graphics
+            // object for the onscreen window)
+            do {
+                int returnCode = vImg.validate(wnd.getGraphicsConfiguration());
+                if (returnCode == VolatileImage.IMAGE_RESTORED) {
+                    // Contents need to be restored
+                    renderOffscreen();	    // restore contents
+                } else if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE) {
+                    // old vImg doesn't work with new GraphicsConfig; re-create it
+                    vImg.flush();
+                    vImg = wnd.createVolatileImage(sz.width, sz.height);
+                    renderOffscreen();
+                } else if (needComposite) {
+                    renderOffscreen();
+                }
+                g.drawImage(vImg, 0, 0, wnd);
+            } while (vImg.contentsLost());
+            
+            return true;
+        }
+        
+        /**
+         * This method is called from AWT thread.
+         */
+        private void renderOffscreen() {
+            needComposite = false;
+            do {
+                if (vImg.validate(wnd.getGraphicsConfiguration()) == VolatileImage.IMAGE_INCOMPATIBLE) {
+                    // old vImg doesn't work with new GraphicsConfig; re-create it
+                    vImg = wnd.createVolatileImage(offscreen.sz.width, offscreen.sz.height);
+                }
+                long startTime = System.currentTimeMillis();
+                Graphics2D g = vImg.createGraphics();
+                if (alphaBlendingComposite) {
+                    boolean TRY_OVERBLEND = false;
+                    if (TRY_OVERBLEND) {
+                        layerCompositeSlow(g);
+                    } else {
+                        layerComposite(g);
+                    }
+                } else {
+                    layerCompositeCompatable(g);
+                }
+                long compositeTime = System.currentTimeMillis();
                 for (GreekTextInfo greekInfo: greekText)
                     greekInfo.draw(g);
                 for (CrossTextInfo crossInfo: crossText)
                     crossInfo.draw(g);
-        		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
                 for (RenderTextInfo textInfo: renderText)
                     textInfo.draw(g);
-            }
-            if (TAKE_STATS) {
-                long endTime = System.currentTimeMillis();
-                System.out.println("paintComponent took "+ (imageTime - startTime) + "+" + (endTime-imageTime) + " msec");
-            }
-            return true;
+                g.dispose();
+                if (TAKE_STATS) {
+                    long endTime = System.currentTimeMillis();
+                    System.out.println((alphaBlendingComposite ? "alphaBlendingComposite took " : "legacyComposite took ")
+                    + (compositeTime - startTime) + " msec, textRendering took " + (endTime - compositeTime) + " msec");
+                }
+            } while (vImg.contentsLost());
         }
         
+        void opacityChanged() {
+            assert SwingUtilities.isEventDispatchThread();
+            needComposite = true;
+        }
+        
+        private void layerComposite(Graphics2D g) {
+            HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
+            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
+                layerBits.put(e.getKey(), e.getValue().layerBitMap);
+            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), true);
+            if (TAKE_STATS) {
+                System.out.print("BlendingOrder:");
+                for (EditWindow.LayerColor lc: blendingOrder) {
+                    int alpha = lc.color.getAlpha();
+                    System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
+                }
+                System.out.println();
+            }
+            alphaBlender.init(User.getColorBackground(), blendingOrder, layerBits);
+            
+            int width = offscreen.sz.width;
+            int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
+            int numIntsPerRow = offscreen.numIntsPerRow;
+            int baseByteIndex = 0;
+            int y = 0;
+            while (y < height) {
+                int h = Math.min(SMALL_IMG_HEIGHT, height - y);
+                int baseIndex = 0;
+                for (int k = 0; k < h; k++) {
+                    alphaBlender.composeLine(baseByteIndex, 0, width - 1, smallOpaqueData, baseIndex);
+                    baseByteIndex += numIntsPerRow;
+                    baseIndex += width;
+                }
+                g.drawImage(smallImg, 0, y, null);
+                y += h;
+            }
+        }
+        
+        /**
+         * Method to complete rendering by combining the transparent and opaque imagery.
+         * This is called after all rendering is done.
+         * @return the offscreen Image with the final display.
+         */
+        private void layerCompositeCompatable(Graphics2D g) {
+            wnd.getBlendingOrder(layerRasters.keySet(), false);
+            
+            Technology curTech = Technology.getCurrent();
+            if (curTech == null) {
+                for (Layer layer: layerRasters.keySet()) {
+                    int transparentDepth = layer.getGraphics().getTransparentLayer();
+                    if (transparentDepth != 0 && layer.getTechnology() != null)
+                        curTech = layer.getTechnology();
+                }
+            }
+            if (curTech == null)
+                curTech = Generic.tech;
+            
+            // get the technology's color map
+            Color [] colorMap = curTech.getColorMap();
+            
+            // adjust the colors if any of the transparent layers are dimmed
+            boolean dimmedTransparentLayers = false;
+            for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
+                Layer layer = it.next();
+                if (!layer.isDimmed()) continue;
+                if (layer.getGraphics().getTransparentLayer() == 0) continue;
+                dimmedTransparentLayers = true;
+                break;
+            }
+            if (dimmedTransparentLayers) {
+                Color [] newColorMap = new Color[colorMap.length];
+                int numTransparents = curTech.getNumTransparentLayers();
+                boolean [] dimLayer = new boolean[numTransparents];
+                for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
+                for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
+                    Layer layer = it.next();
+                    if (layer.isDimmed()) continue;
+                    int tIndex = layer.getGraphics().getTransparentLayer();
+                    if (tIndex == 0) continue;
+                    dimLayer[tIndex-1] = false;
+                }
+                
+                for(int i=0; i<colorMap.length; i++) {
+                    newColorMap[i] = colorMap[i];
+                    if (i == 0) continue;
+                    boolean dimThisEntry = true;
+                    for(int j=0; j<numTransparents; j++) {
+                        if ((i & (1<<j)) != 0) {
+                            if (!dimLayer[j]) {
+                                dimThisEntry = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (dimThisEntry) {
+                        newColorMap[i] = new Color(offscreen.dimColor(colorMap[i].getRGB()));
+                    } else {
+                        newColorMap[i] = new Color(offscreen.brightenColor(colorMap[i].getRGB()));
+                    }
+                }
+                colorMap = newColorMap;
+            }
+            
+            int numTransparent = 0, numOpaque = 0;
+            int deepestTransparentDepth = 0;
+            for (Layer layer: layerRasters.keySet()) {
+                if (!layer.isVisible()) continue;
+                if (layer.getGraphics().getTransparentLayer() == 0) {
+                    numOpaque++;
+                } else {
+                    numTransparent++;
+                }
+            }
+            TransparentRaster[] transparentRasters = new TransparentRaster[numTransparent];
+            int[] transparentMasks = new int[numTransparent];
+            TransparentRaster[] opaqueRasters = new TransparentRaster[numOpaque];
+            int[] opaqueCols = new int[numOpaque];
+            
+            numTransparent = numOpaque = 0;
+            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet()) {
+                Layer layer = e.getKey();
+                if (!layer.isVisible()) continue;
+                TransparentRaster raster = e.getValue();
+                int transparentNum = layer.getGraphics().getTransparentLayer();
+                if (transparentNum != 0) {
+                    transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
+                    transparentRasters[numTransparent++] = raster;
+                } else {
+                    opaqueCols[numOpaque] = offscreen.getTheColor(layer.getGraphics(), layer.isDimmed());
+                    opaqueRasters[numOpaque++] = raster;
+                }
+            }
+            
+            // determine range
+            Dimension sz = offscreen.sz;
+            int numIntsPerRow = offscreen.numIntsPerRow;
+            int backgroundColor = User.getColorBackground() & 0xFFFFFF;
+            int lx = 0, hx = sz.width-1;
+            int ly = 0, hy = sz.height-1;
+            
+            for(int y=ly; y<=hy; y++) {
+                int baseByteIndex = y*numIntsPerRow;
+                int baseIndex = y * sz.width;
+                for(int x=0; x<=hx; x++) {
+                    int entry = baseByteIndex + (x>>5);
+                    int maskBit = 1 << (x & 31);
+                    int opaqueIndex = -1;
+                    for (int i = 0; i < opaqueRasters.length; i++) {
+                        if ((opaqueRasters[i].layerBitMap[entry] & maskBit) != 0)
+                            opaqueIndex = i;
+                    }
+                    int pixelValue;
+                    if (opaqueIndex >= 0) {
+                        pixelValue = opaqueCols[opaqueIndex];
+                    } else {
+                        int bits = 0;
+                        for (int i = 0; i < transparentRasters.length; i++) {
+                            if ((transparentRasters[i].layerBitMap[entry] & maskBit) != 0)
+                                bits |= transparentMasks[i];
+                        }
+                        pixelValue = bits != 0 ? colorMap[bits].getRGB() & 0xFFFFFF : backgroundColor;
+                    }
+                    smallOpaqueData[x] = pixelValue;
+                }
+                g.drawImage(smallImg, 0, y, null);
+            }
+        }
+        
+        private void layerCompositeSlow(Graphics2D g) {
+            HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
+            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
+                layerBits.put(e.getKey(), e.getValue().layerBitMap);
+            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), true);
+            if (TAKE_STATS) {
+                System.out.print("BlendingOrder:");
+                for (EditWindow.LayerColor lc: blendingOrder) {
+                    int alpha = lc.color.getAlpha();
+                    System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
+                }
+                System.out.println();
+            }
+            
+            Color background = new Color(User.getColorBackground() | 0xFF000000);
+            float[] backgroundComponents = background.getColorComponents(null);
+            float backRed = backgroundComponents[0];
+            float backGreen = backgroundComponents[1];
+            float backBlue = backgroundComponents[2];
+            float[] components = new float[4];
+            TransparentRaster[] rasters = new TransparentRaster[blendingOrder.size()];
+            for (int i = 0; i < blendingOrder.size(); i++) {
+                EditWindow.LayerColor lc = blendingOrder.get(i);
+                rasters[i] = layerRasters.get(lc.layer);
+            }
+            int width = offscreen.sz.width;
+            int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
+            int numIntsPerRow = offscreen.numIntsPerRow;
+            int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    float red = backRed;
+                    float green = backGreen;
+                    float blue = backBlue;
+                    boolean hasSomething = false;
+                    int entry = baseByteIndex + (x>>5);
+                    int maskBit = 1 << (x & 31);
+                    for (int i = 0; i < blendingOrder.size(); i++) {
+                        if ((rasters[i].layerBitMap[entry] & maskBit) == 0) continue;
+                        EditWindow.LayerColor lc = blendingOrder.get(i);
+                        lc.color.getComponents(components);
+                        float alpha = components[3];
+                        if (alpha == 0.0) continue;
+                        if (true) {
+                            red = (red - backRed)*(1 - alpha) + components[0];
+                            green = (green - backGreen)*(1 - alpha) + components[1];
+                            blue = (blue - backBlue)*(1 - alpha) + components[2];
+                        } else {
+                            red = red*(1 - alpha) + components[0]*alpha;
+                            green = green*(1 - alpha) + components[1]*alpha;
+                            blue = blue*(1 - alpha) + components[2]*alpha;
+                        }
+                    }
+                    if (red < 0f || red > 1f || green < 0f || green > 1f || blue < 0f || blue > 1f) {
+                        int OVERBLEND_MODE = 2;
+                        switch (OVERBLEND_MODE) {
+                            case 0:
+                                // highlight in white
+                                red = green = blue = 1f;
+                                break;
+                            case 1:
+                                // clip RGB components
+                                red = Math.min(Math.max(red, 0f), 1f);
+                                green = Math.min(Math.max(green, 0f), 1f);
+                                blue = Math.min(Math.max(blue, 0f), 1f);
+                                break;
+                            case 2:
+                                // decrease brightness
+                                float max = Math.max(Math.max(red, green), blue);
+                                float dec = max - 1f;
+                                red = Math.max(red - dec, 0f);
+                                green = Math.max(green - dec, 0f);
+                                blue = Math.max(blue - dec, 0f);
+                                break;
+                        }
+                    }
+                    Color c = new Color(red, green, blue);
+                    smallOpaqueData[x] = c.getRGB() | 0xFF000000;
+                }
+                g.drawImage(smallImg, 0, y, null);
+                baseByteIndex += numIntsPerRow;
+                baseIndex += width;
+            }
+        }
+        
+        /**
+         * This method is called from Job thread.
+         */
         void render(boolean fullInstantiate, Rectangle2D bounds) {
             if (offscreen == null) return;
             offscreen.drawImage(this, fullInstantiate, bounds);
+            needComposite = true;
+            layerRasters = new HashMap<Layer,TransparentRaster>(offscreen.layerRasters);
+            greekText = offscreen.greekTextList.toArray(new GreekTextInfo[offscreen.greekTextList.size()]);
+            crossText = offscreen.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
+            renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
         }
         
         void testJogl() {
@@ -504,10 +811,6 @@ class LayerDrawing
         clipHY = sz.height - 1;
         
 		// allocate pointer to the opaque image
-		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
-		WritableRaster raster = ((BufferedImage)img).getRaster();
-		DataBufferInt dbi = (DataBufferInt)raster.getDataBuffer();
-		opaqueData = dbi.getData();
 		total = sz.height * sz.width;
 		numIntsPerRow = (sz.width + Integer.SIZE - 1) / Integer.SIZE;
 		renderedWindow = true;
@@ -529,13 +832,8 @@ class LayerDrawing
         clipHY = sz.height - 1;
         
 		// allocate pointer to the opaque image
-        img = null;
 		total = sz.height * sz.width;
-        opaqueData = null;
 		numIntsPerRow = (sz.width + Integer.SIZE - 1) / Integer.SIZE;
-        
-		// initialize the data
-		clearImage(null);
     }
     
     void initOrigin(double scale, Point2D offset) {
@@ -547,40 +845,12 @@ class LayerDrawing
 		factorY = (float)(offset.getY()*DBMath.GRID + sz.height/2/scale_);
     }
 
-    void initDrawing(double scale) {
-		clearImage(null);
-        initOrigin(scale, EPoint.ORIGIN);
-    }
-    
     /**
      * Method to set the printing mode used for all drawing.
      * @param mode the printing mode:  0=color display (default), 1=color printing, 2=B&W printing.
      */
     public void setPrintingMode(int mode) { nowPrinting = mode; }
 
-    /**
-	 * Method to override the background color.
-	 * Must be called before "drawImage()".
-	 * This is used by printing, which forces the background to be white.
-	 * @param bg the background color to use.
-	 */
-	public void setBackgroundColor(Color bg)
-	{
-		backgroundColor = bg.getRGB() & 0xFFFFFF;
-	}
-
-	/**
-	 * Method for obtaining the rendered image after "drawImage" has finished.
-	 * @return an Image for this edit window.
-	 */
-	protected BufferedImage getBufferedImage() { return img; }
-
-	/**
-	 * Method for obtaining the RGB array of the rendered image after "drawImage" has finished.
-	 * @return an RGB array for this edit window.
-	 */
-    int[] getOpaqueData() { return opaqueData; }
-    
 	/**
 	 * Method for obtaining the size of the offscreen bitmap.
 	 * @return the size of the offscreen bitmap.
@@ -605,7 +875,7 @@ class LayerDrawing
 	 */
 	private void drawImage(Drawing drawing, boolean fullInstantiate, Rectangle2D drawLimitBounds)
 	{
-		long startTime = 0, clearTime = 0, countTime = 0, drawTime = 0;
+		long startTime = 0, clearTime = 0, countTime = 0;
 		long initialUsed = 0;
 		if (TAKE_STATS)
 		{
@@ -614,7 +884,7 @@ class LayerDrawing
 			initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
 			offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
-            boxes = crosses = solidLines = patLines = thickLines = polygons = texts = circles = thickCircles = discs = circleArcs = points = thickPoints = 0;
+            boxArrayCount = boxCount = boxDisplayCount = lineCount = polygonCount = crossCount = circleCount = discCount = arcCount = 0;
 		}
 
 		if (fullInstantiate != lastFullInstantiate)
@@ -648,6 +918,7 @@ class LayerDrawing
         varContext = wnd.getVarContext();
         initOrigin(expandedScale, wnd.getOffset());
         patternedDisplay = expandedScale > User.getPatternedScaleLimit();
+        alphaBlendingComposite = expandedScale < User.getAlphaBlendingLimit();
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
@@ -710,21 +981,8 @@ class LayerDrawing
         greekTextList.clear();
         crossTextList.clear();
         drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, 0, 0, true, wnd.getVarContext());
+        // if a grid is requested, overlay it
 		if (cell != null && wnd.isGrid()) drawGrid(wnd);
-        if (TAKE_STATS) drawTime = System.currentTimeMillis();
-        
-		// merge transparent image into opaque one
-		synchronized(img)
-		{
-			// if a grid is requested, overlay it
-
-			// combine transparent and opaque colors into a final image
-			composite(renderBounds);
-		};
-        
-        drawing.greekText = greekTextList.toArray(new GreekTextInfo[greekTextList.size()]);
-        drawing.crossText = crossTextList.toArray(new CrossTextInfo[crossTextList.size()]);
-        drawing.renderText = renderTextList.toArray(new RenderTextInfo[renderTextList.size()]);
         
 		if (TAKE_STATS)
 		{
@@ -732,28 +990,24 @@ class LayerDrawing
 			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			long memConsumed = curUsed - initialUsed;
 			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime) +
-                "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (drawTime-countTime) + "+" + (endTime - drawTime) + ")"+
+                "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (endTime-countTime) + ")"+
 				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) cached cells, created "+
 				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
 				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
 				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines" + 
                 " Texts " + renderTextList.size() + " Greeks " + greekTextList.size());
-//            System.out.print("    " + (boxes+crosses+solidLines+patLines+thickLines+polygons+texts+circles+thickCircles+discs+circleArcs+points+thickPoints)+" rendered: ");
-//            if (boxes != 0) System.out.print(boxes+" boxes ");
-//            if (crosses != 0) System.out.print(crosses+" crosses ");
-//            if (solidLines != 0) System.out.print(solidLines+" solidLines ");
-//            if (patLines != 0) System.out.print(patLines+" patLines ");
-//            if (thickLines != 0) System.out.print(thickLines+" thickLines ");
-//            if (polygons != 0) System.out.print(polygons+" polygons ");
-//            if (texts != 0) System.out.print(texts+" texts ");
-//            if (circles != 0) System.out.print(circles+" circles ");
-//            if (thickCircles != 0) System.out.print(thickCircles+" thickCircles ");
-//            if (discs != 0) System.out.print(discs+" discs ");
-//            if (circleArcs != 0) System.out.print(circleArcs+" circleArcs ");
-//            if (points != 0) System.out.print(points+" points ");
-//            if (thickPoints != 0) System.out.print(thickPoints+" thickPoints ");
-//            System.out.println();
+            if (true) {
+                System.out.print("    " + (boxCount+polygonCount+discCount+lineCount+crossCount+circleCount+arcCount)+" rendered: ");
+                if (boxArrayCount != 0) System.out.print(boxCount+"("+boxArrayCount+","+boxDisplayCount+") boxes ");
+                if (polygonCount != 0) System.out.print(polygonCount+" polygons ");
+                if (discCount != 0) System.out.print(discCount+" discs ");
+                if (lineCount != 0) System.out.print(lineCount+" lines ");
+                if (crossCount != 0) System.out.print(crossCount+" crosses ");
+                if (circleCount != 0) System.out.print(circleCount+" circles ");
+                if (arcCount != 0) System.out.print(arcCount+" circleArcs ");
+                System.out.println();
+            }
 		}
 	}
 
@@ -766,11 +1020,6 @@ class LayerDrawing
 	 */
 	public void clearImage(Rectangle bounds)
 	{
-		// pickup new technology if it changed
-		initForTechnology();
-		backgroundColor = User.getColorBackground() & 0xFFFFFF;
-		backgroundValue = backgroundColor | 0xFF000000;
-
 		// erase the patterned opaque layer bitmaps
 		for(Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
 		{
@@ -779,511 +1028,8 @@ class LayerDrawing
             for (int i = 0; i < layerBitMap.length; i++)
                 layerBitMap[i] = 0;
 		}
-
-		// erase the transparent bitmaps
-		for(int i=0; i<numLayerBitMaps; i++)
-		{
-			int [] layerBitMap = layerBitMaps[i];
-			if (layerBitMap == null) continue;
-            for (int j = 0; j < layerBitMap.length; j++)
-                layerBitMap[j] = 0;
-		}
-
-		// erase opaque image
-        if (opaqueData == null) return;
-		if (bounds == null)
-		{
-			// erase the entire image
-			for(int i=0; i<total; i++) opaqueData[i] = backgroundValue;
-		} else
-		{
-			// erase only part of the image
-			int lx = bounds.x;
-			int hx = lx + bounds.width;
-			int ly = bounds.y;
-			int hy = ly + bounds.height;
-			if (lx < 0) lx = 0;
-			if (hx >= sz.width) hx = sz.width - 1;
-			if (ly < 0) ly = 0;
-			if (hy >= sz.height) hy = sz.height - 1;
-			for(int y=ly; y<=hy; y++)
-			{
-				int baseIndex = y * sz.width;
-				for(int x=lx; x<=hx; x++)
-					opaqueData[baseIndex + x] = backgroundValue;
-			}
-		}
 	}
 
-	/**
-	 * Method to complete rendering by combining the transparent and opaque imagery.
-	 * This is called after all rendering is done.
-	 * @return the offscreen Image with the final display.
-	 */
-	public Image composite(Rectangle bounds)
-	{
-        if (false) {
-            layerCompositeHsb();
-//            layerCompositeSlow();
-            return img;
-        }
-        final boolean USE_COMPATABLE = false;
-        if (patternedDisplay) {
-            if (!ALPHA_BLEND_PATTERNED)
-                return compositeOld(bounds);
-            else if (USE_COMPATABLE)
-                return layerCompositeCompatable(bounds);
-        }
-        layerComposite();
-        return img;
-    }
-    
-	/**
-	 * Method to complete rendering by combining the transparent and opaque imagery.
-	 * This is called after all rendering is done.
-	 * @return the offscreen Image with the final display.
-	 */
-	public Image compositeOld(Rectangle bounds)
-	{
-        wnd.getBlendingOrder(layerRasters.keySet(), true);
-		// merge in the transparent layers
-		if (numLayerBitMapsCreated > 0)
-		{
-			// get the technology's color map
-			Color [] colorMap = curTech.getColorMap();
-
-			// adjust the colors if any of the transparent layers are dimmed
-			boolean dimmedTransparentLayers = false;
-			for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
-			{
-				Layer layer = it.next();
-				if (!layer.isDimmed()) continue;
-				if (layer.getGraphics().getTransparentLayer() == 0) continue;
-				dimmedTransparentLayers = true;
-				break;
-			}
-			if (dimmedTransparentLayers)
-			{
-				Color [] newColorMap = new Color[colorMap.length];
-				int numTransparents = curTech.getNumTransparentLayers();
-				boolean [] dimLayer = new boolean[numTransparents];
-				for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
-				for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); )
-				{
-					Layer layer = it.next();
-					if (layer.isDimmed()) continue;
-					int tIndex = layer.getGraphics().getTransparentLayer();
-					if (tIndex == 0) continue;
-					dimLayer[tIndex-1] = false;
-				}
-
-				for(int i=0; i<colorMap.length; i++)
-				{
-					newColorMap[i] = colorMap[i];
-					if (i == 0) continue;
-					boolean dimThisEntry = true;
-					for(int j=0; j<numTransparents; j++)
-					{
-						if ((i & (1<<j)) != 0)
-						{
-							if (!dimLayer[j])
-							{
-								dimThisEntry = false;
-								break;
-							}
-						}
-					}
-					if (dimThisEntry)
-					{
-						newColorMap[i] = new Color(dimColor(colorMap[i].getRGB()));
-					} else
-					{
-						newColorMap[i] = new Color(brightenColor(colorMap[i].getRGB()));
-					}
-				}
-				colorMap = newColorMap;
-			}
-
-			// determine range
-			int lx = 0, hx = sz.width-1;
-			int ly = 0, hy = sz.height-1;
-			if (bounds != null)
-			{
-				lx = bounds.x;
-				hx = lx + bounds.width;
-				ly = bounds.y;
-				hy = ly + bounds.height;
-				if (lx < 0) lx = 0;
-				if (hx >= sz.width) hx = sz.width - 1;
-				if (ly < 0) ly = 0;
-				if (hy >= sz.height) hy = sz.height - 1;
-			}
-
-			for(int y=ly; y<=hy; y++)
-			{
-                int baseByteIndex = y*numIntsPerRow;
-				int baseIndex = y * sz.width;
-				for(int x=lx; x<=hx; x++)
-				{
-					int index = baseIndex + x;
-					int pixelValue = opaqueData[index];
-				
-					// the value of Alpha starts at 0xFF, which means "background"
-					// opaque drawing typically sets it to 0, which means "filled"
-					// Text drawing can antialias by setting the edge values in the range 0-254
-					//    where the lower the value, the more saturated the color (so 0 means all color, 254 means little color)
-					int alpha = (pixelValue >> 24) & 0xFF;
-					if (alpha != 0)
-					{
-						// aggregate the transparent bitplanes at this pixel
-						int bits = 0;
-						int entry = baseByteIndex + (x>>5);
-						int maskBit = 1 << (x & 31);
-						for(int i=0; i<numLayerBitMaps; i++)
-						{
-                            int[] layerBitMap = layerBitMaps[i]; 
-							if (layerBitMap == null) continue;
-							int byt = layerBitMap[entry];
-							if ((byt & maskBit) != 0) bits |= (1<<i);
-						}
-
-						// determine the transparent color to draw
-						int newColor = backgroundColor;
-						if (bits != 0)
-						{
-							// set a transparent color
-							newColor = colorMap[bits].getRGB() & 0xFFFFFF;
-						}
-
-						// if alpha blending, merge with the opaque data
-						if (alpha != 0xFF)
-						{
-							newColor = alphaBlend(pixelValue, newColor, alpha);
-						}
-						opaqueData[index] = newColor;
-					}
-				}
-			}
-		} else
-		{
-			// nothing in transparent layers: make sure background color is right
-			if (bounds == null)
-			{
-				// handle the entire image
-				for(int i=0; i<total; i++)
-				{
-					int pixelValue = opaqueData[i];
-					if (pixelValue == backgroundValue) opaqueData[i] = backgroundColor; else
-					{
-						if ((pixelValue&0xFF000000) != 0)
-						{
-							int alpha = (pixelValue >> 24) & 0xFF;
-							opaqueData[i] = alphaBlend(pixelValue, backgroundColor, alpha);
-						}
-					}
-				}
-			} else
-			{
-				// handle a partial image
-				int lx = bounds.x;
-				int hx = lx + bounds.width;
-				int ly = bounds.y;
-				int hy = ly + bounds.height;
-				if (lx < 0) lx = 0;
-				if (hx >= sz.width) hx = sz.width - 1;
-				if (ly < 0) ly = 0;
-				if (hy >= sz.height) hy = sz.height - 1;
-				for(int y=ly; y<=hy; y++)
-				{
-					int baseIndex = y * sz.width;
-					for(int x=lx; x<=hx; x++)
-					{
-						int index = baseIndex + x;
-						int pixelValue = opaqueData[index];
-						if (pixelValue == backgroundValue) opaqueData[index] = backgroundColor; else
-						{
-							if ((pixelValue&0xFF000000) != 0)
-							{
-								int alpha = (pixelValue >> 24) & 0xFF;
-								opaqueData[index] = alphaBlend(pixelValue, backgroundColor, alpha);
-							}
-						}
-					}
-				}
-			}
-		}
-		return img;
-	}
-    
-	/**
-	 * Method to complete rendering by combining the transparent and opaque imagery.
-	 * This is called after all rendering is done.
-	 * @return the offscreen Image with the final display.
-	 */
-	public Image layerCompositeCompatable(Rectangle bounds)
-	{
-        wnd.getBlendingOrder(layerRasters.keySet(), true);
-        // get the technology's color map
-        Color [] colorMap = curTech.getColorMap();
-        
-        // adjust the colors if any of the transparent layers are dimmed
-        boolean dimmedTransparentLayers = false;
-        for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
-            Layer layer = it.next();
-            if (!layer.isDimmed()) continue;
-            if (layer.getGraphics().getTransparentLayer() == 0) continue;
-            dimmedTransparentLayers = true;
-            break;
-        }
-        if (dimmedTransparentLayers) {
-            Color [] newColorMap = new Color[colorMap.length];
-            int numTransparents = curTech.getNumTransparentLayers();
-            boolean [] dimLayer = new boolean[numTransparents];
-            for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
-            for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
-                Layer layer = it.next();
-                if (layer.isDimmed()) continue;
-                int tIndex = layer.getGraphics().getTransparentLayer();
-                if (tIndex == 0) continue;
-                dimLayer[tIndex-1] = false;
-            }
-            
-            for(int i=0; i<colorMap.length; i++) {
-                newColorMap[i] = colorMap[i];
-                if (i == 0) continue;
-                boolean dimThisEntry = true;
-                for(int j=0; j<numTransparents; j++) {
-                    if ((i & (1<<j)) != 0) {
-                        if (!dimLayer[j]) {
-                            dimThisEntry = false;
-                            break;
-                        }
-                    }
-                }
-                if (dimThisEntry) {
-                    newColorMap[i] = new Color(dimColor(colorMap[i].getRGB()));
-                } else {
-                    newColorMap[i] = new Color(brightenColor(colorMap[i].getRGB()));
-                }
-            }
-            colorMap = newColorMap;
-        }
-        
-        // determine range
-        int lx = 0, hx = sz.width-1;
-        int ly = 0, hy = sz.height-1;
-        if (bounds != null) {
-            lx = bounds.x;
-            hx = lx + bounds.width;
-            ly = bounds.y;
-            hy = ly + bounds.height;
-            if (lx < 0) lx = 0;
-            if (hx >= sz.width) hx = sz.width - 1;
-            if (ly < 0) ly = 0;
-            if (hy >= sz.height) hy = sz.height - 1;
-        }
-        
-        int numTransparent = 0, numOpaque = 0;
-        for (Layer layer: layerRasters.keySet()) {
-            if (layer.getGraphics().getTransparentLayer() == 0)
-                numOpaque++;
-            else
-                numTransparent++;
-        }
-        TransparentRaster[] transparentRasters = new TransparentRaster[numTransparent];
-        int[] transparentMasks = new int[numTransparent];
-        TransparentRaster[] opaqueRasters = new TransparentRaster[numOpaque];
-        int[] opaqueCols = new int[numOpaque];
-        
-        numTransparent = numOpaque = 0;
-        for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet()) {
-            Layer layer = e.getKey();
-            TransparentRaster raster = e.getValue();
-            int transparentNum = layer.getGraphics().getTransparentLayer();
-            if (transparentNum != 0) {
-                transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
-                transparentRasters[numTransparent++] = raster;
-            } else {
-                opaqueCols[numOpaque] = getTheColor(layer.getGraphics(), layer.isDimmed());
-                opaqueRasters[numOpaque++] = raster;
-            }
-        }
-        
-        for(int y=ly; y<=hy; y++) {
-            int baseByteIndex = y*numIntsPerRow;
-            int baseIndex = y * sz.width;
-            for(int x=lx; x<=hx; x++) {
-                int entry = baseByteIndex + (x>>5);
-                int maskBit = 1 << (x & 31);
-                int opaqueIndex = -1;
-                for (int i = 0; i < opaqueRasters.length; i++) {
-                    if ((opaqueRasters[i].layerBitMap[entry] & maskBit) != 0)
-                        opaqueIndex = i;
-                }
-                int pixelValue;
-                if (opaqueIndex >= 0) {
-                    pixelValue = opaqueCols[opaqueIndex];               
-                } else {
-                    int bits = 0;
-                    for (int i = 0; i < transparentRasters.length; i++) {
-                        if ((transparentRasters[i].layerBitMap[entry] & maskBit) != 0)
-                            bits |= transparentMasks[i];
-                    }
-                    pixelValue = bits != 0 ? colorMap[bits].getRGB() & 0xFFFFFF : backgroundColor;
-                }
-                opaqueData[baseIndex + x] = pixelValue;
-            }
-		}
-		return img;
-	}
-    
-    private void layerComposite() {
-        HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
-        for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
-            layerBits.put(e.getKey(), e.getValue().layerBitMap);
-        List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay);
-        if (TAKE_STATS) {
-            System.out.print("BlendingOrder:");
-            for (EditWindow.LayerColor lc: blendingOrder) {
-                int alpha = lc.color.getAlpha();
-                System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
-            }
-            System.out.println();
-        }
-        alphaBlender.init(backgroundValue, blendingOrder, layerBits);
-    
-        long startTime = System.currentTimeMillis();
-        int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
-        for (int y = clipLY; y <= clipHY; y++) {
-            alphaBlender.composeLine(baseByteIndex, clipLX, clipHX, opaqueData, baseIndex);
-            baseByteIndex += numIntsPerRow;
-            baseIndex += width;
-        }
-        long endTime = System.currentTimeMillis();
-        if (TAKE_STATS) System.out.println("layerComposite took " + (endTime - startTime) + " msec");
-    }
-    
-    private void layerCompositeSlow() {
-        HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
-        for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
-            layerBits.put(e.getKey(), e.getValue().layerBitMap);
-        List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay);
-        if (TAKE_STATS) {
-            System.out.print("BlendingOrder:");
-            for (EditWindow.LayerColor lc: blendingOrder) {
-                int alpha = lc.color.getAlpha();
-                System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
-            }
-            System.out.println();
-        }
-    
-        long startTime = System.currentTimeMillis();
-        Color background = new Color(backgroundValue);
-        float[] backgroundComponents = background.getColorComponents(null);
-        float[] components = new float[4];
-        TransparentRaster[] rasters = new TransparentRaster[blendingOrder.size()];
-        for (int i = 0; i < blendingOrder.size(); i++) {
-            EditWindow.LayerColor lc = blendingOrder.get(i);
-            rasters[i] = layerRasters.get(lc.layer);
-        }
-        int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
-        boolean WHITE_BACK = true;
-        for (int y = clipLY; y <= clipHY; y++) {
-            for (int x = clipLX; x <= clipHX; x++) {
-                float red = WHITE_BACK ? 1f : backgroundComponents[0];
-                float green = WHITE_BACK ? 1f : backgroundComponents[1];
-                float blue = WHITE_BACK ? 1f : backgroundComponents[2];
-                boolean hasSomething = false;
-                int entry = baseByteIndex + (x>>5);
-                int maskBit = 1 << (x & 31);
-                for (int i = 0; i < blendingOrder.size(); i++) {
-                    if ((rasters[i].layerBitMap[entry] & maskBit) == 0) continue;
-                    EditWindow.LayerColor lc = blendingOrder.get(i);
-                    lc.color.getComponents(components);
-                    float alpha = components[3];
-                    if (alpha == 0.0) continue;
-                    hasSomething = true;
-                    red = red*(1 - alpha) + components[0]*alpha;
-                    green = green*(1 - alpha) + components[1]*alpha;
-                    blue = blue*(1 - alpha) + components[2]*alpha;
-                }
-                if (WHITE_BACK && !hasSomething) {
-                    opaqueData[baseIndex + x] = backgroundValue;
-                    continue;
-                }
-                Color c = new Color(red, green, blue);
-                opaqueData[baseIndex + x] = c.getRGB() | 0xFF000000;
-            }
-            baseByteIndex += numIntsPerRow;
-            baseIndex += width;
-        }
-        long endTime = System.currentTimeMillis();
-        if (TAKE_STATS) System.out.println("layerComposite took " + (endTime - startTime) + " msec");
-    }
-    
-    private void layerCompositeHsb() {
-        HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
-        for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
-            layerBits.put(e.getKey(), e.getValue().layerBitMap);
-        List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay);
-        if (TAKE_STATS) {
-            System.out.print("BlendingOrder:");
-            for (EditWindow.LayerColor lc: blendingOrder) {
-                int alpha = lc.color.getAlpha();
-                System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
-            }
-            System.out.println();
-        }
-    
-        long startTime = System.currentTimeMillis();
-        Color background = new Color(backgroundValue);
-        float[] backgroundComponents = background.getColorComponents(null);
-        float[] components = new float[4];
-        float[] hsbval = new float[3];
-        TransparentRaster[] rasters = new TransparentRaster[blendingOrder.size()];
-        for (int i = 0; i < blendingOrder.size(); i++) {
-            EditWindow.LayerColor lc = blendingOrder.get(i);
-            rasters[i] = layerRasters.get(lc.layer);
-        }
-        int baseIndex = clipLY*width, baseByteIndex = clipLY*numIntsPerRow;
-        boolean WHITE_BACK = true;
-        for (int y = clipLY; y <= clipHY; y++) {
-            for (int x = clipLX; x <= clipHX; x++) {
-                float CX = 0f;
-                float CY = 0f;
-                float BR = WHITE_BACK ? 1f : 0f;
-                int entry = baseByteIndex + (x>>5);
-                int maskBit = 1 << (x & 31);
-                for (int i = 0; i < blendingOrder.size(); i++) {
-                    if ((rasters[i].layerBitMap[entry] & maskBit) == 0) continue;
-                    EditWindow.LayerColor lc = blendingOrder.get(i);
-                    lc.color.getComponents(components);
-                    float alpha = components[3];
-                    if (alpha == 0f) continue;
-                    Color.RGBtoHSB(lc.color.getRed(), lc.color.getGreen(), lc.color.getBlue(), hsbval);
-                    float hue = hsbval[0];
-                    float sat = hsbval[1];
-                    float bright = hsbval[2];
-                    float cx = (float)(sat*Math.cos(2*Math.PI*hue));
-                    float cy = (float)(sat*Math.sin(2*Math.PI*hue));
-                    CX = CX*(1-alpha) + cx*alpha;
-                    CY = CY*(1-alpha) + cy*alpha;
-                    BR = (float)(WHITE_BACK ? Math.min(BR, bright) : Math.max(BR, bright));
-                }
-                float oSat = (float)Math.sqrt(CX*CX + CY*CY);
-                float oHue = (float)(Math.atan2(CY, CX)/2/Math.PI);
-                if (oHue < 0)
-                    oHue += 1f;
-                assert oHue >= 0f && oHue <= 1f;
-                opaqueData[baseIndex + x] = Color.HSBtoRGB(oHue, oSat, BR) | 0xFF000000;
-            }
-            baseByteIndex += numIntsPerRow;
-            baseIndex += width;
-        }
-        long endTime = System.currentTimeMillis();
-        if (TAKE_STATS) System.out.println("layerComposite took " + (endTime - startTime) + " msec");
-    }
-    
 	/**
 	 * Method to draw the grid into the offscreen buffer
 	 */
@@ -1410,26 +1156,6 @@ class LayerDrawing
 //                    opaqueData[baseIndex + x] = col;
             }
 		}
-	}
-
-	private void initForTechnology()
-	{
-		// allocate pointers to the overlappable layers
-		Technology tech = Technology.getCurrent();
-		if (tech == null) return;
-		if (tech == curTech) return;
-		int transLayers = tech.getNumTransparentLayers();
-		if (transLayers != 0)
-		{
-			techWithLayers = curTech = tech;
-		}
-		if (curTech == null) curTech = techWithLayers;
-        if (curTech == null) return;
-
-		numLayerBitMaps = curTech.getNumTransparentLayers();
-		layerBitMaps = new int[numLayerBitMaps][];
-		for(int i=0; i<numLayerBitMaps; i++) layerBitMaps[i] = null;
-		numLayerBitMapsCreated = 0;
 	}
 
     private void periodicRefresh() {
@@ -1585,9 +1311,11 @@ class LayerDrawing
             // compute the cell's location on the screen
             Rectangle2D cellBounds = new Rectangle2D.Double();
             cellBounds.setRect(subCell.getBounds());
-            Rectangle2D textBounds = subCell.getTextBounds(dummyWnd);
-            if (textBounds != null)
-                cellBounds.add(textBounds);
+            if (canDrawText) {
+                Rectangle2D textBounds = subCell.getTextBounds(dummyWnd);
+                if (textBounds != null)
+                    cellBounds.add(textBounds);
+            }
             AffineTransform rotTrans = orient.pureRotate();
             DBMath.transformRect(cellBounds, rotTrans);
             int lX = (int)Math.ceil(cellBounds.getMinX()*scale - 0.5);
@@ -1603,10 +1331,10 @@ class LayerDrawing
 				expandedCells.put(expansionKey, expandedCellCount);
 			}
 
-			// do not cache if the cell is too large (creates immense offscreen buffers)
-			if (hX - lX >= topSz.width/2 && hY - lY >= topSz.height/2) {
+            // do not cache if the cell is too large (creates immense offscreen buffers)
+            if (hX - lX >= topSz.width/32 && hY - lY >= topSz.height/32) {
                 expandedCellCount.tooLarge = true;
-				return false;
+                return false;
             }
 
             expandedCellCount.offscreen = new LayerDrawing(scale, lX, hX, lY, hY);
@@ -1871,9 +1599,6 @@ class LayerDrawing
     }
     
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
-        if (!ALPHA_BLEND_PATTERNED)
-            return getRaster_(layer, graphics, forceVisible);
-        
         layer = layer.getNonPseudoLayer();
         if (layer.getTechnology() == null && layer != instanceLayer && layer != gridLayer)
             layer = Artwork.tech.defaultLayer;
@@ -1884,7 +1609,7 @@ class LayerDrawing
         }
         int [] pattern = null;
         if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
-            pattern = graphics.getPattern();
+            pattern = graphics.getReversedPattern();
         if (pattern != null && patternedDisplay && renderedWindow) {
             EGraphics.Outline o = graphics.getOutlined();
             if (o == EGraphics.Outline.NOPAT)
@@ -1895,182 +1620,85 @@ class LayerDrawing
         return raster;
     }
     
-    ERaster getRaster_(Layer layer, EGraphics graphics, boolean forceVisible) {
-        if (!patternedDisplay || !renderedWindow) {
-            layer = layer.getNonPseudoLayer();
-            if (layer.getTechnology() == null)
-                layer = Artwork.tech.defaultLayer;
-            TransparentRaster raster = layerRasters.get(layer);
-            if (raster == null) {
-                raster = new TransparentRaster(sz.height, numIntsPerRow);
-                layerRasters.put(layer, raster);
-            }
-            return raster;
-        }
-        
-        boolean dimmed = false;
-        if (layer != null) {
-            if (!forceVisible && !layer.isVisible()) return null;
-            graphics = layer.getGraphics();
-            dimmed = layer.isDimmed();
-        }
-        if (graphics == null)
-            graphics = Generic.tech.glyphLay.getGraphics();
-        
-		int [] layerBitMap = null;
-		int layerNum = graphics.getTransparentLayer() - 1;
-		if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
-
-        ERaster raster;
-		int [] pattern = null;
-        if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
-            pattern = graphics.getPattern();
-        if (layerBitMap != null) {
-            if (pattern == null) {
-                TransparentRaster.current.init(layerBitMap, numIntsPerRow);
-                return TransparentRaster.current;
-            }
-			EGraphics.Outline o = graphics.getOutlined();
-            if (o == EGraphics.Outline.NOPAT)
-                o = null;
-            PatternedTransparentRaster.current.init(layerBitMap, numIntsPerRow, pattern, o);
-            return PatternedTransparentRaster.current;
-        } else {
-    		int col = getTheColor(graphics, dimmed);
-            if (pattern == null) {
-                OpaqueRaster.current.init(opaqueData, sz.width, col);
-                return OpaqueRaster.current;
-            }
-            EGraphics.Outline o = graphics.getOutlined();
-            if (o == EGraphics.Outline.NOPAT)
-                o = null;
-            PatternedOpaqueRaster.current.init(opaqueData, sz.width, col, pattern, o);
-            return PatternedOpaqueRaster.current;
-        }
-    }
-    
-    /**
-     * ERaster for solid opaque layers.
-     */
-    private static class OpaqueRaster implements ERaster {
-        private static OpaqueRaster current = new OpaqueRaster();
-        
-        int[] opaqueData;
-        int width;
-        int col;
-        
-        void init(int[] opaqueData, int width, int col) {
-            this.opaqueData = opaqueData;
-            this.width = width;
-            this.col = col;
-        }
-        
-        public void fillBox(int lX, int hX, int lY, int hY) {
-            int baseIndex = lY*width;
-            for (int y = lY; y <= hY; y++) {
-                for(int x = lX; x <= hX; x++)
-                    opaqueData[baseIndex + x] = col;
-                baseIndex += width;
-            }
-        }
-        
-        public void fillHorLine(int y, int lX, int hX) {
-            int baseIndex = y*width + lX;
-            for (int x = lX; x <= hX; x++)
-                opaqueData[baseIndex++] = col;
-        }
-        
-        public void fillVerLine(int x, int lY, int hY) {
-            int baseIndex = lY*width + x;
-            for (int y = lY; y <= hY; y++) {
-                opaqueData[baseIndex] = col;
-                baseIndex += width;
-            }
-        }
-        
-        public void fillPoint(int x, int y) {
-            opaqueData[y * width + x] = col;
-        }
-        
-        public void drawHorLine(int y, int lX, int hX) {
-            int baseIndex = y*width + lX;
-            for (int x = lX; x <= hX; x++)
-                opaqueData[baseIndex++] = col;
-        }
-        
-        public void drawVerLine(int x, int lY, int hY) {
-            int baseIndex = lY*width + x;
-            for (int y = lY; y <= hY; y++) {
-                opaqueData[baseIndex] = col;
-                baseIndex += width;
-            }
-        }
-        
-        public void drawPoint(int x, int y) {
-            opaqueData[y * width + x] = col;
-        }
-
-        public EGraphics.Outline getOutline() {
-            return null;
-        }
-        
-        public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
-            int[] srcLayerBitMap = src.layerBitMap;
-            for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
-                int destY = srcY + dy;
-                int destBase = destY * width;
-                int srcBaseIndex = srcY*src.intsPerRow;
-                for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
-                    int destX = srcX + dx;
-                    if ((srcLayerBitMap[srcBaseIndex + (srcX>>5)] & (1<<(srcX&31))) != 0)
-                        opaqueData[destBase + destX] = col;
-                }
-            }
-        }
-    }
-
-    /**
-     * ERaster for solid opaque layers with alpha protection against overriding.
-     */
-    private static class OpaqueAlphaRaster extends OpaqueRaster {
-        private static OpaqueAlphaRaster current = new OpaqueAlphaRaster();
-        
-        public void fillBox(int lX, int hX, int lY, int hY) {
-            int baseIndex = lY*width;
-            for (int y = lY; y <= hY; y++) {
-                for(int x = lX; x <= hX; x++) {
-                    int index = baseIndex + x;
-                    int alpha = (opaqueData[index] >> 24) & 0xFF;
-                    if (alpha == 0xFF) opaqueData[index] = col;
-                }
-                baseIndex += width;
-            }
-        }
-        
-        public void fillHorLine(int y, int lX, int hX) {
-            int baseIndex = y*width + lX;
-            for (int x = lX; x <= hX; x++) {
-                int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
-                if (alpha == 0xFF) opaqueData[baseIndex] = col;
-                baseIndex++;
-            }
-        }
-        
-        public void fillVerLine(int x, int lY, int hY) {
-            int baseIndex = lY*width + x;
-            for (int y = lY; y <= hY; y++) {
-                int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
-                if (alpha == 0xFF) opaqueData[baseIndex] = col;
-                baseIndex += width;
-            }
-        }
-        
-        public void fillPoint(int x, int y) {
-            int baseIndex = y*width + x;
-            int alpha = (opaqueData[baseIndex] >> 24) & 0xFF;
-            if (alpha == 0xFF) opaqueData[baseIndex] = col;
-        }
-    }
+//    /**
+//     * ERaster for solid opaque layers.
+//     */
+//    private static class OpaqueRaster implements ERaster {
+//        private static OpaqueRaster current = new OpaqueRaster();
+//        
+//        int[] opaqueData;
+//        int width;
+//        int col;
+//        
+//        void init(int[] opaqueData, int width, int col) {
+//            this.opaqueData = opaqueData;
+//            this.width = width;
+//            this.col = col;
+//        }
+//        
+//        public void fillBox(int lX, int hX, int lY, int hY) {
+//            int baseIndex = lY*width;
+//            for (int y = lY; y <= hY; y++) {
+//                for(int x = lX; x <= hX; x++)
+//                    opaqueData[baseIndex + x] = col;
+//                baseIndex += width;
+//            }
+//        }
+//        
+//        public void fillHorLine(int y, int lX, int hX) {
+//            int baseIndex = y*width + lX;
+//            for (int x = lX; x <= hX; x++)
+//                opaqueData[baseIndex++] = col;
+//        }
+//        
+//        public void fillVerLine(int x, int lY, int hY) {
+//            int baseIndex = lY*width + x;
+//            for (int y = lY; y <= hY; y++) {
+//                opaqueData[baseIndex] = col;
+//                baseIndex += width;
+//            }
+//        }
+//        
+//        public void fillPoint(int x, int y) {
+//            opaqueData[y * width + x] = col;
+//        }
+//        
+//        public void drawHorLine(int y, int lX, int hX) {
+//            int baseIndex = y*width + lX;
+//            for (int x = lX; x <= hX; x++)
+//                opaqueData[baseIndex++] = col;
+//        }
+//        
+//        public void drawVerLine(int x, int lY, int hY) {
+//            int baseIndex = lY*width + x;
+//            for (int y = lY; y <= hY; y++) {
+//                opaqueData[baseIndex] = col;
+//                baseIndex += width;
+//            }
+//        }
+//        
+//        public void drawPoint(int x, int y) {
+//            opaqueData[y * width + x] = col;
+//        }
+//
+//        public EGraphics.Outline getOutline() {
+//            return null;
+//        }
+//        
+//        public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
+//            int[] srcLayerBitMap = src.layerBitMap;
+//            for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+//                int destY = srcY + dy;
+//                int destBase = destY * width;
+//                int srcBaseIndex = srcY*src.intsPerRow;
+//                for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
+//                    int destX = srcX + dx;
+//                    if ((srcLayerBitMap[srcBaseIndex + (srcX>>5)] & (1<<(srcX&31))) != 0)
+//                        opaqueData[destBase + destX] = col;
+//                }
+//            }
+//        }
+//    }
 
     /**
      * ERaster for solid transparent layers.
@@ -2095,17 +1723,40 @@ class LayerDrawing
         
         public void fillBox(int lX, int hX, int lY, int hY) {
             int baseIndex = lY*intsPerRow;
-            for (int y = lY; y <= hY; y++) {
-                for (int x = lX; x <= hX; x++)
-                    layerBitMap[baseIndex + (x>>5)] |= (1 << (x&31));
-                baseIndex += intsPerRow;
+            int lIndex = baseIndex + (lX>>5);
+            int hIndex = baseIndex + (hX>>5);
+            if (lIndex == hIndex) {
+                int mask = (2 << (hX&31)) - (1 << (lX&31));
+                for (int y = lY; y < hY; y++) {
+                    layerBitMap[lIndex] |= mask;
+                    lIndex += intsPerRow;
+                }
+            } else {
+                int lMask = -(1 << (lX&31));
+                int hMask = (2 << (hX&31)) - 1;
+                for (int y = lY; y <= hY; y++) {
+                    layerBitMap[lIndex] |= lMask;
+                    for (int index = lIndex + 1; index < hIndex; index++)
+                        layerBitMap[index] |= -1;
+                    layerBitMap[hIndex] |= hMask;
+                    lIndex += intsPerRow;
+                    hIndex += intsPerRow;
+                }
             }
         }
         
         public void fillHorLine(int y, int lX, int hX) {
             int baseIndex = y*intsPerRow;
-            for (int x = lX; x <= hX; x++)
-                layerBitMap[baseIndex + (x>>5)] |= (1 << (x&31));
+            int lIndex = baseIndex + (lX>>5);
+            int hIndex = baseIndex + (hX>>5);
+            if (lIndex == hIndex) {
+                layerBitMap[lIndex] |= (2 << (hX&31)) - (1 << (lX&31));
+            } else {
+                layerBitMap[lIndex++] |= -(1 << (lX&31));
+                while (lIndex < hIndex)
+                    layerBitMap[lIndex++] |= -1;
+                layerBitMap[hIndex] |= (2 << (hX&31)) - 1;
+            }
         }
         
         public void fillVerLine(int x, int lY, int hY) {
@@ -2123,8 +1774,16 @@ class LayerDrawing
         
         public void drawHorLine(int y, int lX, int hX) {
             int baseIndex = y*intsPerRow;
-            for (int x = lX; x <= hX; x++)
-                layerBitMap[baseIndex + (x>>5)] |= (1 << (x&31));
+            int lIndex = baseIndex + (lX>>5);
+            int hIndex = baseIndex + (hX>>5);
+            if (lIndex == hIndex) {
+                layerBitMap[lIndex] |= (2 << (hX&31)) - (1 << (lX&31));
+            } else {
+                layerBitMap[lIndex++] |= -(1 << (lX&31));
+                while (lIndex < hIndex)
+                    layerBitMap[lIndex++] |= -1;
+                layerBitMap[hIndex] |= (2 << (hX&31)) - 1;
+            }
         }
         
         public void drawVerLine(int x, int lY, int hY) {
@@ -2262,85 +1921,85 @@ class LayerDrawing
         }
     }
 
-    /**
-     * ERaster for patterned opaque layers.
-     */
-    private static class PatternedOpaqueRaster extends OpaqueRaster {
-        private static PatternedOpaqueRaster current = new PatternedOpaqueRaster();
-        
-        int[] pattern;
-        EGraphics.Outline outline;
-        
-        private void init(int[] opaqueData, int width, int col, int[] pattern, EGraphics.Outline outline) {
-            super.init(opaqueData, width, col);
-            this.pattern = pattern;
-            this.outline = outline;
-        }
-        
-        public void fillBox(int lX, int hX, int lY, int hY) {
-            for (int y = lY; y <= hY; y++) {
-                // setup pattern for this row
-                int pat = pattern[y&15];
-                if (pat == 0) continue;
-                
-                int baseIndex = y * width;
-                for (int x = lX; x <= hX; x++) {
-                    if ((pat & (0x8000 >> (x&15))) != 0)
-                        opaqueData[baseIndex + x] = col;
-                }
-            }
-        }
-        
-        public void fillHorLine(int y, int lX, int hX) {
-            int pat = pattern[y & 15];
-            if (pat == 0) return;
-            int baseIndex = y * width;
-            for (int x = lX; x <= hX; x++) {
-                if ((pat & (1 << (15-(x&15)))) != 0) {
-                    int index = baseIndex + x;
-                    opaqueData[index] = col;
-                }
-            }
-        }
-        
-        public void fillVerLine(int x, int lY, int hY) {
-            int patMask = 0x8000 >> (x&15);
-            int baseIndex = lY*width + x;
-            for (int y = lY; y <= hY; y++) {
-                if ((pattern[y&15] & patMask) != 0)
-                    opaqueData[baseIndex] = col;
-                baseIndex += width;
-            }
-        }
-        
-        public void fillPoint(int x, int y) {
-            int patMask = 0x8000 >> (x&15);
-            if ((pattern[y&15] &  patMask) != 0)
-                opaqueData[y*width + x] = col;
-        }
-        
-        public EGraphics.Outline getOutline() {
-            return outline;
-        }
-        
-        public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
-            int[] srcLayerBitMap = src.layerBitMap;
-            for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
-                int destY = srcY + dy;
-                int destBase = destY * width;
-                int pat = pattern[destY&15];
-                if (pat == 0) continue;
-                int srcBaseIndex = srcY*src.intsPerRow;
-                for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
-                    int destX = srcX + dx;
-                    if ((srcLayerBitMap[srcBaseIndex + (srcX>>5)] & (1<<(srcX&31))) != 0) {
-                        if ((pat & (0x8000 >> (destX&15))) != 0)
-                            opaqueData[destBase + destX] = col;
-                    }
-                }
-            }
-        }
-    }
+//    /**
+//     * ERaster for patterned opaque layers.
+//     */
+//    private static class PatternedOpaqueRaster extends OpaqueRaster {
+//        private static PatternedOpaqueRaster current = new PatternedOpaqueRaster();
+//        
+//        int[] pattern;
+//        EGraphics.Outline outline;
+//        
+//        private void init(int[] opaqueData, int width, int col, int[] pattern, EGraphics.Outline outline) {
+//            super.init(opaqueData, width, col);
+//            this.pattern = pattern;
+//            this.outline = outline;
+//        }
+//        
+//        public void fillBox(int lX, int hX, int lY, int hY) {
+//            for (int y = lY; y <= hY; y++) {
+//                // setup pattern for this row
+//                int pat = pattern[y&15];
+//                if (pat == 0) continue;
+//                
+//                int baseIndex = y * width;
+//                for (int x = lX; x <= hX; x++) {
+//                    if ((pat & (0x8000 >> (x&15))) != 0)
+//                        opaqueData[baseIndex + x] = col;
+//                }
+//            }
+//        }
+//        
+//        public void fillHorLine(int y, int lX, int hX) {
+//            int pat = pattern[y & 15];
+//            if (pat == 0) return;
+//            int baseIndex = y * width;
+//            for (int x = lX; x <= hX; x++) {
+//                if ((pat & (1 << (15-(x&15)))) != 0) {
+//                    int index = baseIndex + x;
+//                    opaqueData[index] = col;
+//                }
+//            }
+//        }
+//        
+//        public void fillVerLine(int x, int lY, int hY) {
+//            int patMask = 0x8000 >> (x&15);
+//            int baseIndex = lY*width + x;
+//            for (int y = lY; y <= hY; y++) {
+//                if ((pattern[y&15] & patMask) != 0)
+//                    opaqueData[baseIndex] = col;
+//                baseIndex += width;
+//            }
+//        }
+//        
+//        public void fillPoint(int x, int y) {
+//            int patMask = 0x8000 >> (x&15);
+//            if ((pattern[y&15] &  patMask) != 0)
+//                opaqueData[y*width + x] = col;
+//        }
+//        
+//        public EGraphics.Outline getOutline() {
+//            return outline;
+//        }
+//        
+//        public void copyBits(TransparentRaster src, int minSrcX, int maxSrcX, int minSrcY, int maxSrcY, int dx, int dy) {
+//            int[] srcLayerBitMap = src.layerBitMap;
+//            for (int srcY = minSrcY; srcY <= maxSrcY; srcY++) {
+//                int destY = srcY + dy;
+//                int destBase = destY * width;
+//                int pat = pattern[destY&15];
+//                if (pat == 0) continue;
+//                int srcBaseIndex = srcY*src.intsPerRow;
+//                for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
+//                    int destX = srcX + dx;
+//                    if ((srcLayerBitMap[srcBaseIndex + (srcX>>5)] & (1<<(srcX&31))) != 0) {
+//                        if ((pat & (0x8000 >> (destX&15))) != 0)
+//                            opaqueData[destBase + destX] = col;
+//                    }
+//                }
+//            }
+//        }
+//    }
     
     /**
      * ERaster for patterned transparent layers.
@@ -2360,15 +2019,30 @@ class LayerDrawing
         }
         
         public void fillBox(int lX, int hX, int lY, int hY) {
-            for (int y = lY; y <= hY; y++) {
-                // setup pattern for this row
-                int pat = pattern[y&15];
-                if (pat == 0) continue;
-                
-                int baseIndex = y*intsPerRow;
-                for(int x=lX; x<=hX; x++) {
-                    if ((pat & (0x8000 >> (x&15))) != 0)
-                        layerBitMap[baseIndex + (x>>5)] |= (1 << (x&31));
+            int baseIndex = lY*intsPerRow;
+            int lIndex = baseIndex + (lX>>5);
+            int hIndex = baseIndex + (hX>>5);
+            if (lIndex == hIndex) {
+                int mask = (2 << (hX&31)) - (1 << (lX&31));
+                for (int y = lY; y < hY; y++) {
+                    int pat = mask & pattern[y&15];
+                    if (pat != 0)
+                        layerBitMap[lIndex] |= pat;
+                    lIndex += intsPerRow;
+                }
+            } else {
+                int lMask = -(1 << (lX&31));
+                int hMask = (2 << (hX&31)) - 1;
+                for (int y = lY; y <= hY; y++) {
+                    int pat = pattern[y&15];
+                    if (pat != 0) {
+                        layerBitMap[lIndex] |= lMask & pat;
+                        for (int index = lIndex + 1; index < hIndex; index++)
+                            layerBitMap[index] |= pat;
+                        layerBitMap[hIndex] |= hMask & pat;
+                    }
+                    lIndex += intsPerRow;
+                    hIndex += intsPerRow;
                 }
             }
         }
@@ -2377,27 +2051,34 @@ class LayerDrawing
             int pat = pattern[y & 15];
             if (pat == 0) return;
             int baseIndex = y*intsPerRow;
-            for (int x = lX; x <= hX; x++) {
-                if ((pat & (1 << (15-(x&15)))) != 0)
-                    layerBitMap[baseIndex + (x>>5)] |= (1 << (x&31));
+            int lIndex = baseIndex + (lX>>5);
+            int hIndex = baseIndex + (hX>>5);
+            if (lIndex == hIndex) {
+                int mask = pat & ((2 << (hX&31)) - (1 << (lX&31)));
+                if (mask != 0)
+                    layerBitMap[lIndex] |= mask;
+            } else {
+                layerBitMap[lIndex++] |= pat & (-(1 << (lX&31)));
+                while (lIndex < hIndex)
+                    layerBitMap[lIndex++] |= pat;
+                layerBitMap[hIndex] |= pat & ((2 << (hX&31)) - 1);
             }
         }
         
         public void fillVerLine(int x, int lY, int hY) {
-            int patMask = 0x8000 >> (x&15);
             int baseIndex = lY*intsPerRow + (x>>5);
             int mask = 1 << (x&31);
             for (int y = lY; y <= hY; y++) {
-                if ((pattern[y&15] & patMask) != 0)
+                if ((pattern[y&15] & mask) != 0)
                     layerBitMap[baseIndex] |= mask;
                 baseIndex += intsPerRow;
             }
         }
         
         public void fillPoint(int x, int y) {
-            int patMask = 0x8000 >> (x&15);
-            if ((pattern[y&15] & patMask) != 0)
-                layerBitMap[y*intsPerRow + (x>>5)] |= (1 << (x&31));
+            int mask = (1 << (x&31)) & pattern[y&15];
+            if (mask != 0)
+                layerBitMap[y*intsPerRow + (x>>5)] |= mask;
         }
         
         public EGraphics.Outline getOutline() {
@@ -2414,9 +2095,11 @@ class LayerDrawing
                 int destBaseIndex = destY*intsPerRow;
                 for (int srcX = minSrcX; srcX <= maxSrcX; srcX++) {
                     int destX = srcX + dx;
-                    if ((srcLayerBitMap[srcBaseIndex + (srcX>>5)] & (1<<(srcX&31))) != 0)
-                        if ((pat & (1 << (15-(destX&15)))) != 0)
-                            layerBitMap[destBaseIndex + (destX>>5)] |= (1 << (destX&31));
+                    if ((srcLayerBitMap[srcBaseIndex + (srcX>>5)] & (1<<(srcX&31))) != 0) {
+                        int destMask = 1 << (destX&31);
+                        if ((pat & destMask) != 0)
+                            layerBitMap[destBaseIndex + (destX>>5)] |= destMask;
+                    }
                 }
             }
         }
@@ -2424,7 +2107,6 @@ class LayerDrawing
     
 	// ************************************* RENDERING POLY SHAPES *************************************
 
-    private static int boxCount, tinyBoxCount, lineBoxCount, lineCount, polygonCount, crossCount, circleCount, discCount, arcCount, textCount;
     private static Rectangle tempRect = new Rectangle();
     private void gridToScreen(int dbX, int dbY, Point result) {
         double scrX = (dbX - factorX) * scale_;
@@ -2499,7 +2181,6 @@ class LayerDrawing
                         int cX = (lX + hX) / 2;
                         int cY = (lY + hY) / 2;
                         crossTextList.add(new CrossTextInfo(cX, cY, textColor));
-                        crossCount++;
                         continue;
                     }
                     
@@ -2509,7 +2190,6 @@ class LayerDrawing
                     graphics = textGraphics;
                 }
                 
-                textCount++;
                 tempRect.setBounds(lX, lY, hX-lX, hY-lY);
                 drawText(tempRect, vt.style, vt.descript, drawString, graphics);
                 continue;
@@ -2522,6 +2202,7 @@ class LayerDrawing
             if (vb instanceof VectorCache.VectorManhattan) {
                 boxCount++;
                 VectorCache.VectorManhattan vm = (VectorCache.VectorManhattan)vb;
+                boxArrayCount += vm.coords.length/4;
                 for (int i = 0; i < vm.coords.length; i += 4) {
                     int c1X = vm.coords[i];
                     int c1Y = vm.coords[i+1];
@@ -2633,7 +2314,6 @@ class LayerDrawing
 			{
 				// draw port as a cross
                 crossTextList.add(new CrossTextInfo(cX, cY, portColor != null ? portColor : textColor));
-				crossCount++;
 				continue;
 			}
 
@@ -2643,30 +2323,11 @@ class LayerDrawing
 			lX = hX = cX;
 			lY = hY = cY;
             
-			textCount++;
 			tempRect.setBounds(lX, lY, hX-lX, hY-lY);
 			drawText(tempRect, vt.style, vt.descript, drawString, portGraphics);
 		}
 	}
 
-	int [] getLayerBitMap(int layerNum)
-	{
-		if (layerNum < 0) return null;
-
-		int [] layerBitMap = layerBitMaps[layerNum];
-		if (layerBitMap != null) return layerBitMap;
-		// allocate this bitplane dynamically
-        return newLayerBitMap(layerNum);
-	}
-
-    private int [] newLayerBitMap(int layerNum) {
-        int [] layerBitMap= new int[sz.height*numIntsPerRow];
-        layerBitMaps[layerNum] = layerBitMap;
-        numLayerBitMapsCreated++;
-        return layerBitMap;
-        
-    }
-    
 	// ************************************* BOX DRAWING *************************************
 
 	int getTheColor(EGraphics desc, boolean dimmed)
@@ -2796,6 +2457,7 @@ class LayerDrawing
         if (lY < clipLY) lY = clipLY;
         if (hY > clipHY) hY = clipHY;
         if (lX > hX || lY > hY) return;
+        boxDisplayCount++;
         EGraphics.Outline o = raster.getOutline();
         if (lY == hY) {
             if (lX == hX) {
@@ -2879,34 +2541,34 @@ class LayerDrawing
         }
     }
     
-    /**
-     * Method to draw a box on the off-screen buffer.
-     */
-    private void drawBox(int lX, int hX, int lY, int hY, byte[] layerBitMap, byte layerBitMask) {
-        boxes++;
-        int dx = hX - lX;
-        int dy = hY - lY;
-        int baseIndex = lY * width + lX;
-        if (dx >= dy) {
-            int baseIncr = width - (dx + 1);
-            for (int i = dy; i >= 0; i--) {
-                for (int j = dx; j >= 0; j--) {
-                    layerBitMap[baseIndex] |= layerBitMask;
-                    baseIndex += 1;
-                }
-                baseIndex += baseIncr;
-            }
-        } else {
-            int baseIncr = 1 - (dy + 1) * width;
-            for (int i = dx; i >= 0; i--) {
-                for (int j = dy; j >= 0; j--) {
-                    layerBitMap[baseIndex] |= layerBitMask;
-                    baseIndex += width;
-                }
-                baseIndex += baseIncr;
-            }
-        }
-    }
+//    /**
+//     * Method to draw a box on the off-screen buffer.
+//     */
+//    private void drawBox(int lX, int hX, int lY, int hY, byte[] layerBitMap, byte layerBitMask) {
+//        boxes++;
+//        int dx = hX - lX;
+//        int dy = hY - lY;
+//        int baseIndex = lY * width + lX;
+//        if (dx >= dy) {
+//            int baseIncr = width - (dx + 1);
+//            for (int i = dy; i >= 0; i--) {
+//                for (int j = dx; j >= 0; j--) {
+//                    layerBitMap[baseIndex] |= layerBitMask;
+//                    baseIndex += 1;
+//                }
+//                baseIndex += baseIncr;
+//            }
+//        } else {
+//            int baseIncr = 1 - (dy + 1) * width;
+//            for (int i = dx; i >= 0; i--) {
+//                for (int j = dy; j >= 0; j--) {
+//                    layerBitMap[baseIndex] |= layerBitMask;
+//                    baseIndex += width;
+//                }
+//                baseIndex += baseIncr;
+//            }
+//        }
+//    }
 
 	// ************************************* LINE DRAWING *************************************
 
@@ -2929,7 +2591,6 @@ class LayerDrawing
 	}
 
     private void drawCross(int cX, int cY, int size, ERaster raster) {
-        crosses++;
         if (clipLY <= cY && cY <= clipHY) {
             int lX = Math.max(clipLX, cX - size);
             int hX = Math.min(clipHX, cX + size);
@@ -3006,74 +2667,74 @@ class LayerDrawing
 		}
 	}
 
-    private void drawSolidLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
-        solidLines++;
-        // initialize the Bresenham algorithm
-        int dx = Math.abs(x2-x1);
-        int dy = Math.abs(y2-y1);
-        if (dx >= dy) {
-            // initialize for lines that increment along X
-            int incr1 = 2 * dy;
-            int incr2 = 2 * (dy - dx);
-            int d = incr2;
-            int x, y, yend;
-            if (x1 <= x2) {
-                x = x1;   y = y1;   yend = y2;
-            } else {
-                x = x2;   y = y2;   yend = y1;
-            }
-            int baseIndex = y * width + x;
-            if (dy == 0) {
-                // draw horizontal line
-                for (int i = dx; i >= 0; i--)
-                    layerBitMap[baseIndex++] |= layerBitMask;
-            } else {
-                // draw line that increments along X
-                int baseIncr = yend >= y ? 1 + width : 1 - width;
-                for (int i = dx; i >= 0; i--) {
-                    layerBitMap[baseIndex] |= layerBitMask;
-                    if (d < 0) {
-                        d += incr1;
-                        baseIndex += 1;
-                    } else {
-                        d += incr2;
-                        baseIndex += baseIncr;
-                    }
-                }
-            }
-        } else {
-            // initialize for lines that increment along Y
-            int incr1 = 2 * dx;
-            int incr2 = 2 * (dx - dy);
-            int d = incr2;
-            int x, y, xend;
-            if (y1 <= y2) {
-                x = x1;   y = y1;   xend = x2;
-            } else {
-                x = x2;   y = y2;   xend = x1;
-            }
-            int baseIndex = y * width + x;
-            if (dx == 0) {
-                // draw vertical line
-                for (int i = dy; i >= 0; i--) {
-                    layerBitMap[baseIndex] |= layerBitMask;
-                    baseIndex += width;
-                }
-            } else {
-                int baseIncr = xend >= x ? width + 1 : width - 1;
-                for (int i = dy; i >= 0; i--) {
-                    layerBitMap[baseIndex] |= layerBitMask;
-                    if (d < 0) {
-                        d += incr1;
-                        baseIndex += width;
-                    } else {
-                        d += incr2;
-                        baseIndex += baseIncr;
-                    }
-                }
-            }
-        }
-    }
+//    private void drawSolidLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
+//        solidLines++;
+//        // initialize the Bresenham algorithm
+//        int dx = Math.abs(x2-x1);
+//        int dy = Math.abs(y2-y1);
+//        if (dx >= dy) {
+//            // initialize for lines that increment along X
+//            int incr1 = 2 * dy;
+//            int incr2 = 2 * (dy - dx);
+//            int d = incr2;
+//            int x, y, yend;
+//            if (x1 <= x2) {
+//                x = x1;   y = y1;   yend = y2;
+//            } else {
+//                x = x2;   y = y2;   yend = y1;
+//            }
+//            int baseIndex = y * width + x;
+//            if (dy == 0) {
+//                // draw horizontal line
+//                for (int i = dx; i >= 0; i--)
+//                    layerBitMap[baseIndex++] |= layerBitMask;
+//            } else {
+//                // draw line that increments along X
+//                int baseIncr = yend >= y ? 1 + width : 1 - width;
+//                for (int i = dx; i >= 0; i--) {
+//                    layerBitMap[baseIndex] |= layerBitMask;
+//                    if (d < 0) {
+//                        d += incr1;
+//                        baseIndex += 1;
+//                    } else {
+//                        d += incr2;
+//                        baseIndex += baseIncr;
+//                    }
+//                }
+//            }
+//        } else {
+//            // initialize for lines that increment along Y
+//            int incr1 = 2 * dx;
+//            int incr2 = 2 * (dx - dy);
+//            int d = incr2;
+//            int x, y, xend;
+//            if (y1 <= y2) {
+//                x = x1;   y = y1;   xend = x2;
+//            } else {
+//                x = x2;   y = y2;   xend = x1;
+//            }
+//            int baseIndex = y * width + x;
+//            if (dx == 0) {
+//                // draw vertical line
+//                for (int i = dy; i >= 0; i--) {
+//                    layerBitMap[baseIndex] |= layerBitMask;
+//                    baseIndex += width;
+//                }
+//            } else {
+//                int baseIncr = xend >= x ? width + 1 : width - 1;
+//                for (int i = dy; i >= 0; i--) {
+//                    layerBitMap[baseIndex] |= layerBitMask;
+//                    if (d < 0) {
+//                        d += incr1;
+//                        baseIndex += width;
+//                    } else {
+//                        d += incr2;
+//                        baseIndex += baseIncr;
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 	private void drawOutline(int x1, int y1, int x2, int y2, int pattern, int len, ERaster raster)
 	{
@@ -3159,79 +2820,79 @@ class LayerDrawing
 		}
 	}
 
-    private void drawPatLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask, int pattern, int len) {
-        patLines++;
-        // initialize the Bresenham algorithm
-        int dx = Math.abs(x2-x1);
-        int dy = Math.abs(y2-y1);
-        if (dx >= dy) {
-            // initialize for lines that increment along X
-            int incr1 = 2 * dy;
-            int incr2 = 2 * (dy - dx);
-            int d = incr2;
-            int x, y, yend;
-            if (x1 <= x2) {
-                x = x1;   y = y1;   yend = y2;
-            } else {
-                x = x2;   y = y2;   yend = y1;
-            }
-            int baseIndex = y * width + x;
-            if (dy == 0) {
-                // draw horizontal line
-                for (int i = 0; i <= dx; i++) {
-                    if ((pattern & (1 << (i&7))) != 0)
-                        layerBitMap[baseIndex++] |= layerBitMask;
-                }
-            } else {
-                // draw line that increments along X
-                int baseIncr = yend >= y ? 1 + width : 1 - width;
-                for (int i = 0; i <= dx; i++) {
-                    if ((pattern & (1 << (i&7))) != 0)
-                        layerBitMap[baseIndex] |= layerBitMask;
-                    if (d < 0) {
-                        d += incr1;
-                        baseIndex += 1;
-                    } else {
-                        d += incr2;
-                        baseIndex += baseIncr;
-                    }
-                }
-            }
-        } else {
-            // initialize for lines that increment along Y
-            int incr1 = 2 * dx;
-            int incr2 = 2 * (dx - dy);
-            int d = incr2;
-            int x, y, xend;
-            if (y1 <= y2) {
-                x = x1;   y = y1;   xend = x2;
-            } else {
-                x = x2;   y = y2;   xend = x1;
-            }
-            int baseIndex = y * width + x;
-            if (dx == 0) {
-                // draw vertical line
-                for (int i = 0; i <= dy; i++) {
-                    if ((pattern & (1 << (i&7))) != 0)
-                        layerBitMap[baseIndex] |= layerBitMask;
-                    baseIndex += width;
-                }
-            } else {
-                int baseIncr = xend >= x ? width + 1 : width - 1;
-                for (int i = 0; i <= dy; i++) {
-                    if ((pattern & (1 << (i&7))) != 0)
-                        layerBitMap[baseIndex] |= layerBitMask;
-                    if (d < 0) {
-                        d += incr1;
-                        baseIndex += width;
-                    } else {
-                        d += incr2;
-                        baseIndex += baseIncr;
-                    }
-                }
-            }
-        }
-    }
+//    private void drawPatLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask, int pattern, int len) {
+//        patLines++;
+//        // initialize the Bresenham algorithm
+//        int dx = Math.abs(x2-x1);
+//        int dy = Math.abs(y2-y1);
+//        if (dx >= dy) {
+//            // initialize for lines that increment along X
+//            int incr1 = 2 * dy;
+//            int incr2 = 2 * (dy - dx);
+//            int d = incr2;
+//            int x, y, yend;
+//            if (x1 <= x2) {
+//                x = x1;   y = y1;   yend = y2;
+//            } else {
+//                x = x2;   y = y2;   yend = y1;
+//            }
+//            int baseIndex = y * width + x;
+//            if (dy == 0) {
+//                // draw horizontal line
+//                for (int i = 0; i <= dx; i++) {
+//                    if ((pattern & (1 << (i&7))) != 0)
+//                        layerBitMap[baseIndex++] |= layerBitMask;
+//                }
+//            } else {
+//                // draw line that increments along X
+//                int baseIncr = yend >= y ? 1 + width : 1 - width;
+//                for (int i = 0; i <= dx; i++) {
+//                    if ((pattern & (1 << (i&7))) != 0)
+//                        layerBitMap[baseIndex] |= layerBitMask;
+//                    if (d < 0) {
+//                        d += incr1;
+//                        baseIndex += 1;
+//                    } else {
+//                        d += incr2;
+//                        baseIndex += baseIncr;
+//                    }
+//                }
+//            }
+//        } else {
+//            // initialize for lines that increment along Y
+//            int incr1 = 2 * dx;
+//            int incr2 = 2 * (dx - dy);
+//            int d = incr2;
+//            int x, y, xend;
+//            if (y1 <= y2) {
+//                x = x1;   y = y1;   xend = x2;
+//            } else {
+//                x = x2;   y = y2;   xend = x1;
+//            }
+//            int baseIndex = y * width + x;
+//            if (dx == 0) {
+//                // draw vertical line
+//                for (int i = 0; i <= dy; i++) {
+//                    if ((pattern & (1 << (i&7))) != 0)
+//                        layerBitMap[baseIndex] |= layerBitMask;
+//                    baseIndex += width;
+//                }
+//            } else {
+//                int baseIncr = xend >= x ? width + 1 : width - 1;
+//                for (int i = 0; i <= dy; i++) {
+//                    if ((pattern & (1 << (i&7))) != 0)
+//                        layerBitMap[baseIndex] |= layerBitMask;
+//                    if (d < 0) {
+//                        d += incr1;
+//                        baseIndex += width;
+//                    } else {
+//                        d += incr2;
+//                        baseIndex += baseIncr;
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 	private void drawThickLine(int x1, int y1, int x2, int y2, ERaster raster)
 	{
@@ -3297,74 +2958,74 @@ class LayerDrawing
 		}
 	}
 
-    private void drawThickLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
-        thickLines++;
-        // initialize the Bresenham algorithm
-        int dx = Math.abs(x2-x1);
-        int dy = Math.abs(y2-y1);
-        if (dx >= dy) {
-            // initialize for lines that increment along X
-            int incr1 = 2 * dy;
-            int incr2 = 2 * (dy - dx);
-            int d = incr2;
-            int x, y, xend, yend;
-            if (x1 <= x2) {
-                x = x1;   y = y1;   xend = x2;  yend = y2;
-            } else {
-                x = x2;   y = y2;   xend = x1;  yend = y1;
-            }
-            if (dy == 0) {
-                // draw horizontal line
-                drawBox(x, xend, Math.max(clipLY, y - 1), Math.min(clipHY, y + 1), layerBitMap, layerBitMask);
-                if (x > clipLX)
-                    drawPoint(x - 1, y, layerBitMap, layerBitMask);
-                if (xend < clipHX)
-                    drawPoint(xend + 1, y, layerBitMap, layerBitMask);
-            } else {
-                // draw line that increments along X
-                int yIncr = yend >= y ? 1 : -1;
-                for (int i = 0; i <= dx; i++) {
-                    drawThickPoint(x + i, y, layerBitMap, layerBitMask);
-                    if (d < 0) {
-                        d += incr1;
-                    } else {
-                        d += incr2;
-                        y += yIncr;
-                    }
-                }
-            }
-        } else {
-            // initialize for lines that increment along Y
-            int incr1 = 2 * dx;
-            int incr2 = 2 * (dx - dy);
-            int d = incr2;
-            int x, y, xend, yend;
-            if (y1 <= y2) {
-                x = x1;   y = y1;   xend = x2;  yend = y2;
-            } else {
-                x = x2;   y = y2;   xend = x1;  yend = x1;
-            }
-            if (dx == 0) {
-                // draw vertical line
-                drawBox(Math.max(clipLX, x - 1), Math.min(clipHX, x + 1), y, yend, layerBitMap, layerBitMask);
-                if (y > clipLY)
-                    drawPoint(x, y - 1, layerBitMap, layerBitMask);
-                if (yend < clipHY)
-                    drawPoint(x, yend + 1, layerBitMap, layerBitMask);
-            } else {
-                int xIncr = xend >= x ? 1 : - 1;
-                for (int i = 0; i <= dy; i++) {
-                    drawThickPoint(x, y + i, layerBitMap, layerBitMask);
-                    if (d < 0) {
-                        d += incr1;
-                    } else {
-                        d += incr2;
-                        x += xIncr;
-                    }
-                }
-            }
-        }
-    }
+//    private void drawThickLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
+//        thickLines++;
+//        // initialize the Bresenham algorithm
+//        int dx = Math.abs(x2-x1);
+//        int dy = Math.abs(y2-y1);
+//        if (dx >= dy) {
+//            // initialize for lines that increment along X
+//            int incr1 = 2 * dy;
+//            int incr2 = 2 * (dy - dx);
+//            int d = incr2;
+//            int x, y, xend, yend;
+//            if (x1 <= x2) {
+//                x = x1;   y = y1;   xend = x2;  yend = y2;
+//            } else {
+//                x = x2;   y = y2;   xend = x1;  yend = y1;
+//            }
+//            if (dy == 0) {
+//                // draw horizontal line
+//                drawBox(x, xend, Math.max(clipLY, y - 1), Math.min(clipHY, y + 1), layerBitMap, layerBitMask);
+//                if (x > clipLX)
+//                    drawPoint(x - 1, y, layerBitMap, layerBitMask);
+//                if (xend < clipHX)
+//                    drawPoint(xend + 1, y, layerBitMap, layerBitMask);
+//            } else {
+//                // draw line that increments along X
+//                int yIncr = yend >= y ? 1 : -1;
+//                for (int i = 0; i <= dx; i++) {
+//                    drawThickPoint(x + i, y, layerBitMap, layerBitMask);
+//                    if (d < 0) {
+//                        d += incr1;
+//                    } else {
+//                        d += incr2;
+//                        y += yIncr;
+//                    }
+//                }
+//            }
+//        } else {
+//            // initialize for lines that increment along Y
+//            int incr1 = 2 * dx;
+//            int incr2 = 2 * (dx - dy);
+//            int d = incr2;
+//            int x, y, xend, yend;
+//            if (y1 <= y2) {
+//                x = x1;   y = y1;   xend = x2;  yend = y2;
+//            } else {
+//                x = x2;   y = y2;   xend = x1;  yend = x1;
+//            }
+//            if (dx == 0) {
+//                // draw vertical line
+//                drawBox(Math.max(clipLX, x - 1), Math.min(clipHX, x + 1), y, yend, layerBitMap, layerBitMask);
+//                if (y > clipLY)
+//                    drawPoint(x, y - 1, layerBitMap, layerBitMask);
+//                if (yend < clipHY)
+//                    drawPoint(x, yend + 1, layerBitMap, layerBitMask);
+//            } else {
+//                int xIncr = xend >= x ? 1 : - 1;
+//                for (int i = 0; i <= dy; i++) {
+//                    drawThickPoint(x, y + i, layerBitMap, layerBitMask);
+//                    if (d < 0) {
+//                        d += incr1;
+//                    } else {
+//                        d += incr2;
+//                        x += xIncr;
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 	// ************************************* POLYGON DRAWING *************************************
 
@@ -3653,40 +3314,21 @@ class LayerDrawing
 //        renderInfo.draw();
 	}
 
-	private int alphaBlend(int color, int backgroundColor, int alpha)
-	{
-		int red = (color >> 16) & 0xFF;
-		int green = (color >> 8) & 0xFF;
-		int blue = color & 0xFF;
-		int inverseAlpha = 254 - alpha;
-		int redBack = (backgroundColor >> 16) & 0xFF;
-		int greenBack = (backgroundColor >> 8) & 0xFF;
-		int blueBack = backgroundColor & 0xFF;
-		red = ((red * alpha) + (redBack * inverseAlpha)) / 255;
-		green = ((green * alpha) + (greenBack * inverseAlpha)) / 255;
-		blue = ((blue * alpha) + (blueBack * inverseAlpha)) / 255;
-		color = (red << 16) | (green << 8) + blue;
-		return color;
-	}
-
-	private class RenderTextInfo {
-		private Font font;
+	private static class RenderTextInfo {
 		private GlyphVector gv;
 		private LineMetrics lm;
-		private Point2D anchorPoint;
 	    private Rectangle2D rasBounds;              // the raster bounds of the unrotated text, in pixels (screen units)
 	    private Rectangle2D bounds;                 // the real bounds of the rotated, anchored text (in screen units)
-        private Poly.Type style;
 	    private boolean underline;
         private int rotation;
         private Color color; 
         private Rectangle rect;
+        private int offX, offY;
 
 	    private boolean buildInfo(String msg, String fontName, int tSize, boolean italic, boolean bold, boolean underline,
 	    	Rectangle probableBoxedBounds, Poly.Type style, int rotation, Color color)
 	    {
-			font = getFont(msg, fontName, tSize, italic, bold, underline);
-            this.style = style;
+			Font font = getFont(msg, fontName, tSize, italic, bold, underline);
 			this.underline = underline;
             this.rotation = rotation;
             this.color = color;
@@ -3729,7 +3371,7 @@ class LayerDrawing
 			if (underline) height++;
 			rasBounds = new Rectangle2D.Double(0, (float)lm.getAscent()-lm.getLeading(), width, height);
 
-			anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
+			Point2D anchorPoint = getTextCorner(width, height, style, probableBoxedBounds, rotation);
 			if (rotation == 1 || rotation == 3)
             {
                 bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), height, width);
@@ -3737,16 +3379,8 @@ class LayerDrawing
             {
                 bounds = new Rectangle2D.Double(anchorPoint.getX(), anchorPoint.getY(), width, height);
             }
-            return true;
-        }
-        
-        private void draw(Graphics2D g) {
-            int width = (int)rasBounds.getWidth();
-            int height = (int)rasBounds.getHeight();
-            // adjust to place text in the center
-            int textWidth = width;
-            int textHeight = height;
-            int offX = 0, offY = 0;
+            int textWidth = (int)rasBounds.getWidth();
+            int textHeight = (int)rasBounds.getHeight();
             if (style == Poly.Type.TEXTCENT) {
                 offX = -textWidth/2;
                 offY = -textHeight/2;
@@ -3772,8 +3406,14 @@ class LayerDrawing
                 offX = -textWidth/2;
                 offY = -textHeight/2;
             }
+            return true;
+        }
+        
+        private void draw(Graphics2D g) {
+            int width = (int)rasBounds.getWidth();
+            int height = (int)rasBounds.getHeight();
             g.setColor(color);
-            if (rotation == 0 && false) {
+            if (rotation == 0) {
                 int atX = (int)rect.getCenterX() + offX;
                 int atY = (int)rect.getCenterY() + offY;
                 g.drawGlyphVector(gv, (float)(atX - rasBounds.getX()), atY + (lm.getAscent()-lm.getLeading()));
@@ -4139,13 +3779,6 @@ class LayerDrawing
 		}
 	}
 
-	/**
-	 * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
-	 */
-	private void drawDisc(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
-        discs++;
-    }
-    
 	// ************************************* ARC DRAWING *************************************
 
 	private boolean [] arcOctTable = new boolean[9];
@@ -4375,7 +4008,6 @@ class LayerDrawing
 	// ************************************* RENDERING SUPPORT *************************************
 
     private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
-        points++;
         layerBitMap[y * width + x] |= layerBitMask;
     }
     
@@ -4392,7 +4024,6 @@ class LayerDrawing
     }
 
     private void drawThickPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
-        thickPoints++;
         int baseIndex = y * sz.width + x;
         layerBitMap[baseIndex] |= layerBitMask;
         if (x > clipLX)
