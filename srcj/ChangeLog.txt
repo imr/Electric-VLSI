@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04u: *********************************
 
+BUG: (7/31/06, DN) Deep zoom in can crash X11 servers because of large text.
+FIX: In LayerDrawing.drawText limit text size to MAXIMUMTEXTSIZE = 200.
+
 BUG: (7/30/06, DN) Layer outlines sometimes missing with new display algorithm (Bug #1187).
 FIX: In LayerDrawing.expendedCellCached change "cell is too large" threshold from 1/2 to 1/32.
     This expands range of scales when outlines are visible.

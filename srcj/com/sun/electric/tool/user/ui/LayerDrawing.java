@@ -46,7 +46,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -59,6 +58,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.awt.image.VolatileImage;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -175,6 +175,7 @@ class LayerDrawing
 {
 	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE =   5;
 	/** Number of singleton cells to cache when redisplaying. */	public static final int SINGLETONSTOADD =   5;
+	/** Text size is limited by this. */                			public static final int MAXIMUMTEXTSIZE = 200;
 
 	private static class PolySeg
 	{
@@ -669,17 +670,68 @@ class LayerDrawing
             renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
         }
         
+        private static boolean joglChecked = false;
+        private static Class layerDrawerClass;
+        private static Method joglShowLayerMethod;
+        
+        /**
+         * Method to tell whether JOGL redisplay is available.
+         * JOGL is Java extension.
+         * This method dynamically figures out whether the JOGL module is present by using reflection.
+         * @return true if the JOGL redisplay is available.
+         */
+        public static boolean hasJogl() {
+            if (!joglChecked) {
+                joglChecked = true;
+                
+                // find the LayerDrawer class
+                try {
+                    layerDrawerClass = Class.forName("com.sun.electric.plugins.jogl.LayerDrawer");
+                    joglShowLayerMethod = layerDrawerClass.getMethod("showLayer", new Class[] {Dimension.class, (new int[0]).getClass(), Double.TYPE, Double.TYPE, Double.TYPE});
+                } catch (Exception e) {}
+            }
+            return joglShowLayerMethod != null;
+        }
+        
         void testJogl() {
+            if (hasJogl()) {
+                try {
+                    int numBoxes = 1000000;
+                    int[] boxes = new int[numBoxes*4];
+                    for (int i = 0; i < numBoxes; i++) {
+                        int x = (i*5) % 501 - 100;
+                        int y = (i*7) % 500 - 200;
+                        boxes[i*4 + 0] = x;
+                        boxes[i*4 + 1] = y;
+                        boxes[i*4 + 2] = x + 10;
+                        boxes[i*4 + 3] = y + 10;
+                    }
+                    joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {offscreen.sz, boxes, 1.0, 0.0, 0.0});
+//                joglShowLayerMethod.invoke(layerDrawerClass, new Object[] {offscreen.sz, boxes, offscreen.scale, wnd.getOffset().getX(), wnd.getOffset().getY()});
+                } catch (Exception e) {
+                    System.out.println("Unable to run the LayerDrawer input module (" + e.getClass() + ")");
+                    e.printStackTrace(System.out);
+                }
+                return;
+            }
+//            testJogl_();
+        }
+        
+//        private void testJogl_() {
 //            JFrame frame = new JFrame("Jogl");
-//            GLCanvas canvas = new GLCanvas();
+//            GLCapabilities capabilities = new GLCapabilities();
+//            capabilities.setDoubleBuffered(false);
+//            capabilities.setHardwareAccelerated(false);
+//            System.out.println("Capabilities: " + capabilities);
+//            GLCanvas canvas = new GLCanvas(capabilities);
 //            
 //            canvas.addGLEventListener(new JoglEventListener());
 //            frame.add(canvas);
 //            frame.setSize(offscreen.getSize());
 //            
 //            frame.setVisible(true);
-        }
-        
+//        }
+//        
 //        private static void showInt(GL gl, String s, int i) {
 //            IntBuffer intBuffer = IntBuffer.allocate(100);
 //            gl.glGetIntegerv(GL.GL_MULTISAMPLE, intBuffer);
@@ -687,12 +739,13 @@ class LayerDrawing
 //        }
 //    
 //        private class JoglEventListener implements GLEventListener {
+//            
 //            public void init(GLAutoDrawable drawable) {
 //                GL gl = drawable.getGL();
-////                gl = new DebugGL(gl);
-////                drawable.setGL(gl);
+//                gl = new DebugGL(gl);
+//                drawable.setGL(gl);
 //                
-//                gl.glDisable(GL.GL_MULTISAMPLE);
+////                gl.glDisable(GL.GL_MULTISAMPLE);
 //                
 //                System.out.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
 //                System.out.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
@@ -701,13 +754,13 @@ class LayerDrawing
 //                showInt(gl, "GL_SAMPLE_BUFFERS", GL.GL_SAMPLE_BUFFERS);
 //                showInt(gl, "GL_SAMPLES", GL.GL_SAMPLES);
 //                
-//    
+////                gl.glPixelStorei(GL.GL_UNPACK_SWAP_BYTES, 1);
 ////                gl.glPixelStorei(gl.GL_UNPACK_LSB_FIRST, 1);
 ////                gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, 1);
 //                
 ////                gl.glPixelTransferi(gl.GL_MAP_COLOR, 1);
-////                gl.glEnable(gl.GL_BLEND);
-//                gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
+//                  gl.glEnable(gl.GL_BLEND);
+//                  gl.glBlendFunc(gl.GL_SRC_ALPHA, gl.GL_ONE_MINUS_SRC_ALPHA);
 //            }
 //            
 //            public void display(GLAutoDrawable drawable) {
@@ -715,22 +768,34 @@ class LayerDrawing
 //                
 //                GL gl = drawable.getGL();
 //                
-//                int w = offscreen.getSize().width, h = offscreen.getSize().height;
+//                BufferedImage bImg = vImg.getSnapshot();
+//                DataBufferInt dbi = (DataBufferInt)bImg.getRaster().getDataBuffer();
+//                int[] opaqueData = dbi.getData();
+//                int w = bImg.getWidth(), h = bImg.getHeight();
 //                IntBuffer intBuffer = IntBuffer.allocate(w*h);
-//                for (int i = 0; i < w*h; i++) {
-//                    int v = offscreen.opaqueData[i];
-//                    if ((v & 0xFF000000) == 0)
-//                        v |= 0xFF000000;
-//                    v |= 0xFF000000;
-//                    intBuffer.put(v);
+//                ByteBuffer redBuffer = ByteBuffer.allocate(w*h);
+//                ByteBuffer greenBuffer = ByteBuffer.allocate(w*h);
+//                ByteBuffer blueBuffer = ByteBuffer.allocate(w*h);
+//                assert intBuffer.order() == ByteOrder.nativeOrder();
+//                for (int y = 0; y < h; y++) {
+//                    for (int x = 0; x < w; x++) {
+//                        int v = opaqueData[(h - y - 1)*w + x];
+//                        intBuffer.put(v | 0xFF000000);
+//                        redBuffer.put((byte)(v >> 16));
+//                        greenBuffer.put((byte)(v >> 8));
+//                        blueBuffer.put((byte)v);
+//                    }
 //                }
 //                intBuffer.rewind();
+//                redBuffer.rewind();
+//                greenBuffer.rewind();
+//                blueBuffer.rewind();
 ////                IntBuffer intBuffer = IntBuffer.wrap(offscreen.opaqueData, 0, w*h);
 //                
 //                long startTime = System.currentTimeMillis();
-//                float[] bg = (new Color(offscreen.backgroundColor)).getRGBComponents(null);
-//                gl.glClearColor(bg[0], bg[1], bg[2], 1.0f);
-//                gl.glClearColor(0f, 0f, 0f, 0f);
+////                float[] bg = (new Color(User.getColorBackground())).getRGBComponents(null);
+////                gl.glClearColor(bg[0], bg[1], bg[2], 1.0f);
+//                gl.glClearColor(1f, 1f, 1f, 1f);
 //                gl.glClear(GL.GL_COLOR_BUFFER_BIT);
 //                
 //                gl.glMatrixMode(GL.GL_PROJECTION);
@@ -767,7 +832,22 @@ class LayerDrawing
 ////                    float[] alpha = new float[256];
 ////                    Arrays.fill(alpha, 1f);
 ////                    gl.glPixelMapfv(gl.GL_PIXEL_MAP_I_TO_A, 256, alpha, 0);
-//                    gl.glDrawPixels(w, h, gl.GL_RGBA, gl.GL_UNSIGNED_INT_8_8_8_8_REV, intBuffer);
+//                    
+//                      for (int i = 0; i < 1000; i++)
+//                        gl.glDrawPixels(w, h, GL.GL_BGRA, GL.GL_UNSIGNED_INT_8_8_8_8_REV, intBuffer);
+////                    gl.glDrawPixels(w, h, GL.GL_GREEN, GL.GL_UNSIGNED_BYTE, greenBuffer);
+////                    gl.glDrawPixels(w, h, GL.GL_BLUE, GL.GL_UNSIGNED_BYTE, blueBuffer);
+////                    gl.glDrawPixels(w, h, GL.GL_RED, GL.GL_UNSIGNED_BYTE, redBuffer);
+////                    ByteBuffer byteBuffer = ByteBuffer.allocate(w*h);
+////                    gl.glReadPixels(0, 0, w, h, GL.GL_BLUE, GL.GL_UNSIGNED_BYTE, byteBuffer);
+////                    for (int y = 0; y < h; y++) {
+////                        for (int x = 0; x < w; x++) {
+////                            int v = opaqueData[(h - y - 1)*w + x];
+////                            byte b = byteBuffer.get();
+////                            if (((v >> 16) & 0xFF) != (b & 0xFF))
+////                                System.out.println("Mismatch at x=" + x + " y=" + y + " v=" + Integer.toHexString(v) + " b=" + Integer.toHexString(b));
+////                        }
+////                    }
 //                } else {
 //                    for (EditWindow.LayerColor layerColor: blendingOrder) {
 //                        float[] c = layerColor.color.getComponents(null);
@@ -3236,7 +3316,7 @@ class LayerDrawing
 				if (full != null) col = full.getRGB() & 0xFFFFFF;
 			}
 			double dSize = descript.getTrueSize(scale);
-			size = (int)dSize;
+			size = Math.min((int)dSize, MAXIMUMTEXTSIZE);
 			if (size < MINIMUMTEXTSIZE)
 			{
 				// text too small: scale it to get proper size
