@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04v: *********************************
 
+IMP/MAN: (7/31/06, GVG) Colapsing pin names like vdd_*/gnd_* in vdd/gnd while exporting in GDS (Bug #1188).
+This is for Fire/Ice extraction tool. A new flag in User GDS tab was added.
+
 BUG: (7/31/06, DN) Deep zoom in can crash X11 servers because of large text.
 FIX: In LayerDrawing.drawText limit text size to MAXIMUMTEXTSIZE = 200.
 

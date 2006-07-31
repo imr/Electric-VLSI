@@ -62,6 +62,7 @@ public class GDSTab extends PreferencePanel
 		gdsInputIgnoresUnknownLayers.setSelected(IOTool.isGDSInIgnoresUnknownLayers());
         if (Job.getDebug())
         gdsSimplifyCells.setSelected(IOTool.isGDSInSimplifyCells());
+        gdsColapseNames.setSelected(IOTool.isGDSColapseVddGndPinNames());
 	}
 
 	/**
@@ -92,6 +93,9 @@ public class GDSTab extends PreferencePanel
         currentValue = gdsSimplifyCells.isSelected();
         if (currentValue != IOTool.isGDSInSimplifyCells())
 			IOTool.setGDSInSimplifyCells(currentValue);
+        currentValue = gdsColapseNames.isSelected();
+        if (currentValue != IOTool.isGDSColapseVddGndPinNames())
+			IOTool.setGDSColapseVddGndPinNames(currentValue);
 	}
 
 	/** This method is called from within the constructor to
@@ -111,6 +115,7 @@ public class GDSTab extends PreferencePanel
         gdsConvertNCCExportsConnectedByParentPins = new javax.swing.JCheckBox();
         gdsInputMergesBoxes = new javax.swing.JCheckBox();
         gdsSimplifyCells = new javax.swing.JCheckBox();
+        gdsColapseNames = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -124,7 +129,7 @@ public class GDSTab extends PreferencePanel
 
         gds.setLayout(new java.awt.GridBagLayout());
 
-        gdsInputIncludesText.setText("Input includes Text");
+        gdsInputIncludesText.setText("Input includes text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -140,7 +145,7 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gds.add(gdsInputExpandsCells, gridBagConstraints);
 
-        gdsInputInstantiatesArrays.setText("Input instantiates Arrays");
+        gdsInputInstantiatesArrays.setText("Input instantiates arrays");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
@@ -156,7 +161,7 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 6, 4);
         gds.add(gdsInputIgnoresUnknownLayers, gridBagConstraints);
 
-        gdsConvertNCCExportsConnectedByParentPins.setText("Use NCC annotations for Exports");
+        gdsConvertNCCExportsConnectedByParentPins.setText("Use NCC annotations for exports");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -164,7 +169,7 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gds.add(gdsConvertNCCExportsConnectedByParentPins, gridBagConstraints);
 
-        gdsInputMergesBoxes.setText("Input merges Boxes (slow)");
+        gdsInputMergesBoxes.setText("Input merges boxes (slow)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -180,10 +185,28 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gds.add(gdsSimplifyCells, gridBagConstraints);
 
+        gdsColapseNames.setText("Colapse Vdd/Gnd pin names");
+        gdsColapseNames.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                gdsColapseNamesActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gds.add(gdsColapseNames, gridBagConstraints);
+
         getContentPane().add(gds, new java.awt.GridBagConstraints());
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void gdsColapseNamesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gdsColapseNamesActionPerformed
+// TODO add your handling code here:
+    }//GEN-LAST:event_gdsColapseNamesActionPerformed
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -194,6 +217,7 @@ public class GDSTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel gds;
+    private javax.swing.JCheckBox gdsColapseNames;
     private javax.swing.JCheckBox gdsConvertNCCExportsConnectedByParentPins;
     private javax.swing.JCheckBox gdsInputExpandsCells;
     private javax.swing.JCheckBox gdsInputIgnoresUnknownLayers;

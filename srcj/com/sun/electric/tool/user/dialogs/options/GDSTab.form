@@ -32,7 +32,7 @@
       <SubComponents>
         <Component class="javax.swing.JCheckBox" name="gdsInputIncludesText">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Input includes Text"/>
+            <Property name="text" type="java.lang.String" value="Input includes text"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -52,7 +52,7 @@
         </Component>
         <Component class="javax.swing.JCheckBox" name="gdsInputInstantiatesArrays">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Input instantiates Arrays"/>
+            <Property name="text" type="java.lang.String" value="Input instantiates arrays"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -72,7 +72,7 @@
         </Component>
         <Component class="javax.swing.JCheckBox" name="gdsConvertNCCExportsConnectedByParentPins">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Use NCC annotations for Exports"/>
+            <Property name="text" type="java.lang.String" value="Use NCC annotations for exports"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -82,7 +82,7 @@
         </Component>
         <Component class="javax.swing.JCheckBox" name="gdsInputMergesBoxes">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Input merges Boxes (slow)"/>
+            <Property name="text" type="java.lang.String" value="Input merges boxes (slow)"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -97,6 +97,19 @@
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
               <GridBagConstraints gridX="0" gridY="6" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="4" insetsBottom="2" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
+            </Constraint>
+          </Constraints>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="gdsColapseNames">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Colapse Vdd/Gnd pin names"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="gdsColapseNamesActionPerformed"/>
+          </Events>
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+              <GridBagConstraints gridX="0" gridY="7" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="2" insetsLeft="4" insetsBottom="2" insetsRight="4" anchor="17" weightX="0.0" weightY="0.0"/>
             </Constraint>
           </Constraints>
         </Component>

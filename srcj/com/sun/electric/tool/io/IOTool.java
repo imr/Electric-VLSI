@@ -556,7 +556,6 @@ public class IOTool extends Tool
     public static void setGDSCellNameLenMax(int len) { cacheGDSCellNameLenMax.setInt(len); }
 
     private static Pref cacheGDSConvertNCCExportsConnectedByParentPins = Pref.makeBooleanPref("GDSConvertNCCEconnectedByParentPins", IOTool.tool.prefs, false);
-
     /**
      * True to convert pin names to name:name for pins that are specified in the
      * NCC annotation, "exportsConnectedByParent".  This allows external LVS tools to
@@ -586,6 +585,18 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input simplifies contact vias
 	 */
 	public static void setGDSInSimplifyCells(boolean on) { cacheGDSInSimplifyCells.setBoolean(on); }
+
+    private static Pref cacheGDSColapseVddGndPinNames = Pref.makeBooleanPref("cacheGDSColapseVddGndPinNames", IOTool.tool.prefs, false);
+    /**
+     * Method to tell whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice
+     * @return
+     */
+    public static boolean isGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBoolean(); }
+    /**
+     * Method to set whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice
+     * @param on true if GDS Input colapses vdd/gnd names
+     */
+    public static void setGDSColapseVddGndPinNames(boolean on) { cacheGDSColapseVddGndPinNames.setBoolean(on); }
 
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 

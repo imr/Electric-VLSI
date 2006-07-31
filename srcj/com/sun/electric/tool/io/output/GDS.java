@@ -66,7 +66,7 @@ public class GDS extends Geometry
 
 	// GDSII bit assignments in STRANS record
 	private static final int STRANS_REFLX      = 0x8000;
-	private static final int STRANS_ABSA       =    0x2;
+//	private static final int STRANS_ABSA       =    0x2;
 
 	// data type codes
 	private static final int DTYP_NONE         =      0;
@@ -83,7 +83,7 @@ public class GDS extends Geometry
 	private static final short HDR_BOUNDARY    = 0x0800;
 	private static final short HDR_PATH        = 0x0900;
 	private static final short HDR_SREF        = 0x0A00;
-	private static final short HDR_AREF        = 0x0B00;
+//	private static final short HDR_AREF        = 0x0B00;
 	private static final short HDR_TEXT        = 0x0C00;
 	private static final short HDR_LAYER       = 0x0D02;
 	private static final short HDR_DATATYPE    = 0x0E02;
@@ -96,8 +96,8 @@ public class GDS extends Geometry
 	private static final short HDR_STRANS      = 0x1A01;
 	private static final short HDR_MAG         = 0x1B05;
 	private static final short HDR_ANGLE       = 0x1C05;
-    private static final short HDR_PROPATTR    = 0x2B02;
-    private static final short HDR_PROPVALUE   = 0x2C06;
+//    private static final short HDR_PROPATTR    = 0x2B02;
+//    private static final short HDR_PROPVALUE   = 0x2C06;
 
 	// Header byte counts
 	private static final short HDR_N_BGNLIB    =     28;
@@ -111,8 +111,8 @@ public class GDS extends Geometry
 	private static final int HDR_M_ASCII       =    256;
 
 	// contour gathering thresholds for polygon accumulation
-	private static final double BESTTHRESH     =   0.001;		/* 1/1000 of a millimeter */
-	private static final double WORSTTHRESH    =   0.1;			/* 1/10 of a millimeter */
+//	private static final double BESTTHRESH     =   0.001;		/* 1/1000 of a millimeter */
+//	private static final double WORSTTHRESH    =   0.1;			/* 1/10 of a millimeter */
 
 	/** for buffering output data */			private static byte [] dataBufferGDS = new byte[DSIZE];
 	/** for buffering output data */			private static byte [] emptyBuffer = new byte[DSIZE];
@@ -179,6 +179,8 @@ public class GDS extends Geometry
         Foundry foundry = cell.getTechnology().getSelectedFoundry();
 		outputBeginStruct(cell);
         boolean renamePins = (cell == topCell && IOTool.getGDSConvertNCCExportsConnectedByParentPins());
+        boolean colapseGndVddNames = (cell == topCell && IOTool.isGDSColapseVddGndPinNames());
+
         if (renamePins) {
             // rename pins to allow external LVS programs to virtually connect nets as specified
             // by the NCC annotation exportsConnectedByParent
@@ -229,7 +231,7 @@ public class GDS extends Geometry
 				PortOriginal fp = new PortOriginal(pp.getOriginalPort());
 				PortInst bottomPort = fp.getBottomPort();
 				NodeInst bottomNi = bottomPort.getNodeInst();
-				AffineTransform trans = fp.getTransformToTop();
+//				AffineTransform trans = fp.getTransformToTop();
 
 				// find the layer associated with this node
 				PrimitiveNode pNp = (PrimitiveNode)bottomNi.getProto();
@@ -253,7 +255,7 @@ public class GDS extends Geometry
 				// put out a pin if requested
 				if (IOTool.isGDSOutWritesExportPins())
                 {
-					writeExportOnLayer(pp, pinLayer, pinType, renamePins);
+					writeExportOnLayer(pp, pinLayer, pinType, renamePins, colapseGndVddNames);
 
                     // write the text
                     //writeExportOnLayer(pp, textLayer, textType);
@@ -300,7 +302,7 @@ public class GDS extends Geometry
             return (this == obj);
         }
     }
-	private void writeExportOnLayer(Export pp, int layer, int type, boolean remapNames)
+	private void writeExportOnLayer(Export pp, int layer, int type, boolean remapNames, boolean colapseGndVddNames)
 	{
 		outputHeader(HDR_TEXT, 0);
 		outputHeader(HDR_LAYER, layer);
@@ -338,6 +340,13 @@ public class GDS extends Geometry
         if (IOTool.getGDSOutputConvertsBracketsInExports()) {
             // convert brackets to underscores
             str = str.replaceAll("[\\[\\]]", "_");
+        }
+        if (colapseGndVddNames)
+        {
+            String tmp = str.toLowerCase();
+            // Detecting string in lower case and later search for "_"
+            if (tmp.startsWith("vdd_") || tmp.startsWith("gnd_"))
+                str = str.substring(0, str.indexOf("_"));
         }
         outputString(str, HDR_STRING);
 		outputHeader(HDR_ENDEL, 0);
