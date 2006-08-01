@@ -2224,18 +2224,18 @@ public class User extends Listener
 
 	private static Pref cacheAlphaBlendingLimit = Pref.makeDoublePref("AlphaBlendingLimit", tool.prefs, 0.6);
 	/**
-	 * Method to tell the scale of EditWindow when use alpha blending color composite.
-	 * Larger scales use legacy (transparent layers) color composite.
+	 * Method to tell the scale of EditWindow when use overcolor in alpha blending color composite.
+	 * Smaller scales don't use overcolor.
 	 * The default is 0.6, meaning that 1.66 lamdas per pixel.
-	 * @return the scale of EditWindow when use alpha blending.
+	 * @return the scale of EditWindow when use overcolor in alpha blending.
 	 */
-	public static double getAlphaBlendingLimit() { return cacheAlphaBlendingLimit.getDouble(); }
+	public static double getAlphaBlendingOvercolorLimit() { return cacheAlphaBlendingLimit.getDouble(); }
 	/**
-	 * Method to set the scale of EditWindow when use alpha blending color composite.
-	 * Larger scales use legacy (transparent layers) color composite.
-	 * @param l the scale of EditWindow when use alpha blending.
+	 * Method to set the scale of EditWindow when use overcolor in alpha blending color composite.
+	 * Smaller scales don't use overcolor.
+	 * @param l the scale of EditWindow when use overcolor in alpha blending.
 	 */
-	public static void setAlphaBlendingLimit(double l) { cacheAlphaBlendingLimit.setDouble(l); }
+	public static void setAlphaBlendingOvercolorLimit(double l) { cacheAlphaBlendingLimit.setDouble(l); }
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", tool.prefs, true);
 	/**

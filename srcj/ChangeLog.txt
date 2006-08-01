@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04v: *********************************
 
+IMP: EditWindow.getBlendingOrder uses LAYERS_BY_HEIGHT_LIFT_CONTACTS to sort layers.
+    So every contact is higher than its upper metal. Requested by Jonathan Gainsley.
+
+IMP/MAN: (7/30/06, DN) "Alpha blending limit" preference renamed to "Alpha blending overcolor limit".
+    When zooming out below this limit, standard alpha blending composition rule is used.
+    When zooming in above this scale, alphablending with overcolor composituin rule (as inMagic editor) is used.
+
 BUG: (7/31/06, DN) Layer redisplay doesn't take stipple patterns from Cadence preferences (Bug #1190).
 FIX: Add call of "setPatternLow" to "EGraphics.setLayer" and "EGraphics.recachePrefs" so that
      it updates "reversedPatterned".

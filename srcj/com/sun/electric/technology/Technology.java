@@ -988,14 +988,33 @@ public class Technology implements Comparable<Technology>
 		return(layerList);
 	}
 
-    public static final LayerHeight LAYERS_BY_HEIGHT = new LayerHeight();
+    public static final LayerHeight LAYERS_BY_HEIGHT = new LayerHeight(false);
+    public static final LayerHeight LAYERS_BY_HEIGHT_LIFT_CONTACTS = new LayerHeight(true);
     
 	private static class LayerHeight implements Comparator<Layer>
 	{
+        final boolean liftContacts;
+        
+        private LayerHeight(boolean liftContacts) {
+            this.liftContacts = liftContacts;
+        }
+        
 		public int compare(Layer l1, Layer l2)
 		{
-			int h1 = l1.getFunction().getHeight();
-			int h2 = l2.getFunction().getHeight();
+            Layer.Function f1 = l1.getFunction();
+            Layer.Function f2 = l2.getFunction();
+			int h1 = f1.getHeight();
+			int h2 = f2.getHeight();
+            if (liftContacts) {
+                if (f1.isContact())
+                    h1++;
+                else if (f1.isMetal())
+                    h1--;
+                if (f2.isContact())
+                    h2++;
+                else if (f2.isMetal())
+                    h2--;
+            }
             int cmp = h1 - h2;
             if (cmp != 0) return cmp;
             Technology tech1 = l1.getTechnology();

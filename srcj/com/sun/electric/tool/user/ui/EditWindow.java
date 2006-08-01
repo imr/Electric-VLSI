@@ -1579,7 +1579,7 @@ public class EditWindow extends JPanel
     List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, final boolean showOpacity) {
         ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
-        Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT);
+        Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
         for(Layer layer : sortedLayers) {
             double opacity = layer.getGraphics().getOpacity();
             if (!layer.isVisible()) opacity = 0;

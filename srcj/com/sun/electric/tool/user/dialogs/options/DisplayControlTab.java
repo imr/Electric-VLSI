@@ -80,7 +80,7 @@ public class DisplayControlTab extends PreferencePanel
 		generalGreekLimit.setText(Double.toString(User.getGreekSizeLimit()));
 		generalGreekCellLimit.setText(Double.toString(User.getGreekCellSizeLimit() * 100.0));
 		patternScaleLimit.setText(Double.toString(User.getPatternedScaleLimit()));
-        alphaBlendLimit.setText(Double.toString(User.getAlphaBlendingLimit()));
+        alphaBlendingOvercolorLimit.setText(Double.toString(User.getAlphaBlendingOvercolorLimit()));
 	}
 
 	/**
@@ -126,9 +126,9 @@ public class DisplayControlTab extends PreferencePanel
 		if (currDouble != User.getPatternedScaleLimit())
 			User.setPatternedScaleLimit(currDouble);
 
-		currDouble = TextUtils.atof(alphaBlendLimit.getText());
-		if (currDouble != User.getAlphaBlendingLimit())
-			User.setAlphaBlendingLimit(currDouble);
+		currDouble = TextUtils.atof(alphaBlendingOvercolorLimit.getText());
+		if (currDouble != User.getAlphaBlendingOvercolorLimit())
+			User.setAlphaBlendingOvercolorLimit(currDouble);
 
 		if (resetAllOpacity)
 		{
@@ -171,7 +171,7 @@ public class DisplayControlTab extends PreferencePanel
         jLabel8 = new javax.swing.JLabel();
         patternScaleLimit = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
-        alphaBlendLimit = new javax.swing.JTextField();
+        alphaBlendingOvercolorLimit = new javax.swing.JTextField();
         resetOpacity = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -337,7 +337,7 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         general.add(patternScaleLimit, gridBagConstraints);
 
-        jLabel2.setText("Alpha blending limit");
+        jLabel2.setText("Alpha blending overcolor limit");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 11;
@@ -345,13 +345,13 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 30, 2, 4);
         general.add(jLabel2, gridBagConstraints);
 
-        alphaBlendLimit.setColumns(5);
+        alphaBlendingOvercolorLimit.setColumns(5);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(alphaBlendLimit, gridBagConstraints);
+        general.add(alphaBlendingOvercolorLimit, gridBagConstraints);
 
         resetOpacity.setText("Reset all Layer Opacity Values");
         resetOpacity.addActionListener(new java.awt.event.ActionListener() {
@@ -387,7 +387,7 @@ public class DisplayControlTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField alphaBlendLimit;
+    private javax.swing.JTextField alphaBlendingOvercolorLimit;
     private javax.swing.ButtonGroup displayAlgorithm;
     private javax.swing.JPanel general;
     private javax.swing.JTextField generalGreekCellLimit;

@@ -41,7 +41,8 @@ import java.util.Set;
  */
 class AlphaBlender {
     
-    private int backgroundValue;
+    private Color background;
+    private boolean overcolor;
     private int[] opaqueData;
     
     /** Creates a new instance of AlphaBlender */
@@ -59,9 +60,9 @@ class AlphaBlender {
     private int g0, g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14, g15, g16, g17, g18, g19, g20, g21, g22, g23, g24, g25, g26, g27, g28, g29, g30, g31;
     private int b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13, b14, b15, b16, b17, b18, b19, b20, b21, b22, b23, b24, b25, b26, b27, b28, b29, b30, b31;
     
-    void init(int backgroundValue, List<EditWindow.LayerColor> blendingOrder, Map<Layer,int[]> layerBits) {
-        this.backgroundValue = backgroundValue;
-        Color background = new Color(backgroundValue);
+    void init(int backgroundValue, boolean overcolor, List<EditWindow.LayerColor> blendingOrder, Map<Layer,int[]> layerBits) {
+        background = new Color(backgroundValue);
+        this.overcolor = overcolor;
         ArrayList<int[]> bits = new ArrayList<int[]>();
         ArrayList<Color> colors = new ArrayList<Color>();
         for (EditWindow.LayerColor layerColor: blendingOrder) {
@@ -77,8 +78,7 @@ class AlphaBlender {
         int k = 0;
         for (int i = 0; i < groups.length; i++) {
             int l = (bits.size() - k) / (groups.length - i);
-            groups[i] = new AlphaBlendGroup(this.layerBits, colors, k, l, background);
-            background = null;
+            groups[i] = new AlphaBlendGroup(this.layerBits, colors, k, l, i == 0);
             k += l;
         }
     }
@@ -353,12 +353,56 @@ class AlphaBlender {
 //        opaqueData[baseIndex] = color;
 //    }
     
-     private void storeRGB(int baseIndex, int red, int green, int blue) {
-        assert 0 <= red && red <= 255;
-        assert 0 <= green && green <= 255;
-        assert 0 <= blue && blue <= 255;
-        int color = (red << 16) | (green << 8) + blue;
+    private void storeRGB(int baseIndex, int red, int green, int blue) {
+        int color;
+        if (((red | green | blue) & ~0xFF) == 0) {
+            color = (red << 16) | (green << 8) | blue;
+        } else {
+            color = normalizeRgbDim(red, green, blue);
+        }
         opaqueData[baseIndex] = color;
+    }
+    
+    private int normalizeRgbHighlight(int red, int green, int blue) {
+        assert overcolor;
+        return 0xFFFFFF;
+    }
+    
+    private int normalizeRgbClip(int red, int green, int blue) {
+        assert overcolor;
+        red = Math.max(0, Math.min(0xFF, red));
+        green = Math.max(0, Math.min(0xFF, red));
+        blue = Math.max(0, Math.min(0xFF, red));
+        return (red << 16) | (green << 8) | blue;
+    }
+    
+    private int normalizeRgbDim(int red, int green, int blue) {
+        assert overcolor;
+        int min, max;
+        if (red <= green) {
+            min = red;
+            max = green;
+        } else {
+            min = green;
+            max = red;
+        }
+        if (blue > max)
+            max = blue;
+        if (blue < min)
+            min = blue;
+        
+        if (max - min <= 255) {
+            int dec = min < 0 ? min : max - 255;
+            red -= dec;
+            green -= dec;
+            blue -= dec;
+        } else {
+            int dec = max - 255;
+            red = Math.max(0, red - dec);
+            green = Math.max(0, green - dec);
+            blue = Math.max(0, blue - dec);
+        }
+        return (red << 16) | (green << 8) | blue;
     }
     
     //********************************************************************
@@ -372,7 +416,7 @@ class AlphaBlender {
         int[] inverseAlphaMap;
         int[][] bits;
         
-        AlphaBlendGroup(int[][] bits, List<Color> cols, int offset, int len, Color background) {
+        AlphaBlendGroup(int[][] bits, List<Color> cols, int offset, int len, boolean fillBackround) {
             groupShift = offset;
             groupMask = (1 << len) - 1;
             int mapLen = 1 << len;
@@ -390,23 +434,36 @@ class AlphaBlender {
                 compArrays[i] = color.getRGBComponents(null);
             }
             
+            float[] backgroundComps = background.getRGBColorComponents(null);
+            float bRed = backgroundComps[0];
+            float bGreen = backgroundComps[1];
+            float bBlue = backgroundComps[2];
             for (int k = 0; k < mapLen; k++) {
                 double red = 0, green = 0, blue = 0, ia = 1.0;
-                if (background != null) {
-                    float compArray[] = background.getRGBColorComponents(null);
-                    red = compArray[0];
-                    green = compArray[1];
-                    blue = compArray[2];
+                if (fillBackround) {
+                    red = bRed;
+                    green = bGreen;
+                    blue = bBlue;
                     ia = 0.0;
                 }
                 for (int i = 0; i < len; i++) {
                     if ((k & (1 << i)) == 0) continue;
                     float[] compArray = compArrays[i];
                     double alpha = compArray[3];
-                    red = compArray[0]*alpha + red*(1 - alpha);
-                    green = compArray[1]*alpha + green*(1 - alpha);
-                    blue = compArray[2]*alpha + blue*(1 - alpha);
-                    ia = ia*(1 - alpha);
+                    double iAlpha = 1 - alpha;
+                    red *= iAlpha;
+                    green *= iAlpha;
+                    blue *= iAlpha;
+                    ia *= iAlpha;
+                    if (overcolor) {
+                        red += compArray[0] - bRed*iAlpha;
+                        green += compArray[1] - bGreen*iAlpha;
+                        blue += compArray[2] - bBlue*iAlpha;
+                    } else {
+                        red += compArray[0]*alpha;
+                        green += compArray[1]*alpha;
+                        blue += compArray[2]*alpha;
+                    }
                 }
                 redMap[k] = (int)(red*SCALE*255);
                 greenMap[k] = (int)(green*SCALE*255);
