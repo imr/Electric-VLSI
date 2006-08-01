@@ -234,7 +234,7 @@ public class EditWindow extends JPanel
         public final float premultipliedGreen;
         public final float premultipliedBlue;
         public final float inverseAlpha;
-        
+
         LayerColor(Layer layer, float premultipliedRed, float premultipliedGreen, float premultipliedBlue, float inverseAlpha) {
             this.layer = layer;
             this.premultipliedRed = premultipliedRed;
@@ -243,7 +243,7 @@ public class EditWindow extends JPanel
             this.inverseAlpha = inverseAlpha;
         }
     }
-    
+
 	// ************************************* CONSTRUCTION *************************************
 
     // constructor
@@ -317,7 +317,7 @@ public class EditWindow extends JPanel
 			setCell(cell, VarContext.globalContext, null);
 		}
 	}
-    
+
     private void setDrawingAlgorithm() {
         boolean isLayerDrawing = User.getDisplayAlgorithm() == 2 && cell != null && cell.getTechnology().isLayout();
         if (isLayerDrawing && !(drawing instanceof LayerDrawing.Drawing))
@@ -1520,7 +1520,7 @@ public class EditWindow extends JPanel
 			return true;
 		}
 	}
-    
+
 	/**
 	 * Method to automatically set the opacity of each layer in a Technology.
 	 * At the current time, this method is not used.
@@ -1536,10 +1536,10 @@ public class EditWindow extends JPanel
         	double opacity = 0.4;
         	if (fun.isMetal())
         	{
-        		opacity = 0.5 - fun.getLevel() * 0.03;
+        		opacity = 0.75 - fun.getLevel() * 0.05;
         	} else if (fun.isContact())
         	{
-        		if ((extra&Layer.Function.CONMETAL) != 0) opacity = 0.5; else
+        		if ((extra&Layer.Function.CONMETAL) != 0) opacity = 0.7; else
         			opacity = 1;
         	} else if (fun == Layer.Function.OVERGLASS)
         	{
