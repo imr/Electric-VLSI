@@ -399,6 +399,7 @@ public class EGraphics extends Observable
 			Technology.getTechnologyPreferences(), pat);
 		pat = patternPref.getString();
 		parsePatString(pat, pattern);
+        setPatternLow(pattern);
 		patternMap.put(layer, patternPref);
 	}
 
@@ -435,6 +436,7 @@ public class EGraphics extends Observable
 		Pref patternPref = patternMap.get(layer);
 		String pat = patternPref.getString();
 		parsePatString(pat, pattern);
+        setPatternLow(pattern);
 	}
 
 	private String makePatString(int [] pattern)
@@ -653,7 +655,6 @@ public class EGraphics extends Observable
 	public void setPattern(int [] pattern)
 	{
         setPatternLow(pattern);
-		this.pattern = pattern;
 
 		if (layer != null)
 		{
