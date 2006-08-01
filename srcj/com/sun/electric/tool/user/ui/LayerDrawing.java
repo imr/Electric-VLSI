@@ -414,16 +414,16 @@ class LayerDrawing
             HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
-            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), true);
+            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay, alphaBlendingOvercolor);
             if (TAKE_STATS) {
                 System.out.print("BlendingOrder:");
                 for (EditWindow.LayerColor lc: blendingOrder) {
-                    int alpha = lc.color.getAlpha();
-                    System.out.print(" " + lc.layer.getName() + ":" + (alpha * 100 / 255));
+                    int alpha = (int)((1 - lc.inverseAlpha) * 100 + 0.5);
+                    System.out.print(" " + lc.layer.getName() + ":" + alpha);
                 }
                 System.out.println();
             }
-            alphaBlender.init(User.getColorBackground(), alphaBlendingOvercolor, blendingOrder, layerBits);
+            alphaBlender.init(User.getColorBackground(), blendingOrder, layerBits);
             
             int width = offscreen.sz.width;
             int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;

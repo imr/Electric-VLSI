@@ -229,11 +229,18 @@ public class EditWindow extends JPanel
 
     static class LayerColor {
         public final Layer layer;
-        public final Color color;
+        // nextRgb = inverseAlpha*prevRgb + premultipliedRgb
+        public final float premultipliedRed;
+        public final float premultipliedGreen;
+        public final float premultipliedBlue;
+        public final float inverseAlpha;
         
-        LayerColor(Layer layer, Color color) {
+        LayerColor(Layer layer, float premultipliedRed, float premultipliedGreen, float premultipliedBlue, float inverseAlpha) {
             this.layer = layer;
-            this.color = color;
+            this.premultipliedRed = premultipliedRed;
+            this.premultipliedGreen = premultipliedGreen;
+            this.premultipliedBlue = premultipliedBlue;
+            this.inverseAlpha = inverseAlpha;
         }
     }
     
@@ -1576,18 +1583,38 @@ public class EditWindow extends JPanel
      * @param showOpacity show opacity controls in LayerTab.
      * @return alpha blending order.
      */
-    List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, final boolean showOpacity) {
+    List<LayerColor> getBlendingOrder(Set<Layer> layersAvailable, boolean patternedDisplay, boolean alphaBlendingOvercolor) {
         ArrayList<LayerColor> layerColors = new ArrayList<LayerColor>();
         ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
         Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
+        float[] backgroundComps = (new Color(User.getColorBackground())).getRGBColorComponents(null);
+        float bRed = backgroundComps[0];
+        float bGreen = backgroundComps[1];
+        float bBlue = backgroundComps[2];
         for(Layer layer : sortedLayers) {
-            double opacity = layer.getGraphics().getOpacity();
-            if (!layer.isVisible()) opacity = 0;
-            int rgba = layer.getGraphics().getRGB() | (int)(opacity * 255 + 0.5) << 24;
-            Color color = new Color(rgba, true);
-            layerColors.add(new LayerColor(layer, color));
+            if (!layer.isVisible()) continue;
+            if (layer == Generic.tech.glyphLay && !patternedDisplay) continue;
+            Color color = new Color(layer.getGraphics().getRGB());
+            float[] compArray = color.getRGBComponents(null);
+            float red = compArray[0];
+            float green = compArray[1];
+            float blue = compArray[2];
+            float opacity = (float)layer.getGraphics().getOpacity();
+            if (opacity <= 0) continue;
+            float inverseAlpha = 1 - opacity;
+            if (alphaBlendingOvercolor) {
+                red -= bRed*inverseAlpha;
+                green -= bGreen*inverseAlpha;
+                blue -= bBlue*inverseAlpha;
+            } else {
+                red *= opacity;
+                green *= opacity;
+                blue *= opacity;
+            }
+            layerColors.add(new LayerColor(layer, red, green, blue, inverseAlpha));
         }
         final LayerTab layerTab = getWindowFrame().getLayersTab();
+        final boolean showOpacity = true;
         if (layerTab != null)
             SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
             return layerColors;

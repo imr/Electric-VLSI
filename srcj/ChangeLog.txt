@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04v: *********************************
 
+IMP: EditWindow.getBlendingOrder don't put Generic.Gluph layer into blending order on solid layers.
+     So essential bounds are not shown. 
+
 IMP: EditWindow.getBlendingOrder uses LAYERS_BY_HEIGHT_LIFT_CONTACTS to sort layers.
     So every contact is higher than its upper metal. Requested by Jonathan Gainsley.
 
