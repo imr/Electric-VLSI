@@ -1680,8 +1680,9 @@ class LayerDrawing
     }
     
     ERaster getRaster(Layer layer, EGraphics graphics, boolean forceVisible) {
-        layer = layer.getNonPseudoLayer();
-        if (layer.getTechnology() == null && layer != instanceLayer && layer != gridLayer)
+        if (layer != null)
+            layer = layer.getNonPseudoLayer();
+        if ((layer == null || layer.getTechnology() == null) && layer != instanceLayer && layer != gridLayer)
             layer = Artwork.tech.defaultLayer;
         TransparentRaster raster = layerRasters.get(layer);
         if (raster == null) {
@@ -1689,6 +1690,7 @@ class LayerDrawing
             layerRasters.put(layer, raster);
         }
         int [] pattern = null;
+        if (graphics == null) graphics = layer.getGraphics();
         if (nowPrinting != 0 ? graphics.isPatternedOnPrinter() : graphics.isPatternedOnDisplay())
             pattern = graphics.getReversedPattern();
         if (pattern != null && patternedDisplay && renderedWindow) {
