@@ -292,14 +292,17 @@ public class ProjectSettingsFrame extends EDialog
 
     private void writeToDiskActionPerformed()
     {
+        int ret = JOptionPane.showConfirmDialog(this, "Changes to Project Settings may affect all users\n\nContinue Anyway?",
+                "Warning!", JOptionPane.YES_NO_OPTION);
+        if (ret == JOptionPane.NO_OPTION) return;
+
         File outputFile = new File(User.getWorkingDirectory(), "projsettings.xml");
-        String msg = "Warning: Changes to project settings may affect all users\n"+
-                "Really write to "+outputFile.getPath()+"?"+
-                (outputFile.exists() ? "\nWarning: file exists. Overwrite?":"");
-        int ret = JOptionPane.showConfirmDialog(this, msg, "Write Project Settings", JOptionPane.YES_NO_OPTION);
-        if (ret == JOptionPane.YES_OPTION) {
-            ProjSettings.writeSettings(outputFile);
+        if (outputFile.exists()) {
+            ret = JOptionPane.showConfirmDialog(this, outputFile.getPath()+" exists. Overwrite?", "Output File",
+                    JOptionPane.YES_NO_OPTION);
+            if (ret == JOptionPane.NO_OPTION) return;
         }
+        ProjSettings.writeSettings(outputFile);
     }
 
     private void helpActionPerformed()
@@ -393,7 +396,9 @@ public class ProjectSettingsFrame extends EDialog
 
 		public void terminateOK()
 		{
-			dialog.closeDialog(null);
+            Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
+            "\nTo save them permanently, use \"Write To Disk\"", "Warning");
+            dialog.closeDialog(null);
 		}
 	}
 
