@@ -117,26 +117,26 @@
 
         <!-- Active contacts -->
         <NodeRule ruleName="6.2 Mosis" type="NODSIZ" when="NAC" value="5" nodeName="Metal-1-P-Active-Con, Metal-1-N-Active-Con"/>
-        <NodeLayersRule ruleName="6.2 Mosis" layerNames="{P-Active, Metal-1}" type="SURROUND" when="NAC" value="0.5" nodeName="Metal-1-P-Active-Con"/>
-        <NodeLayersRule ruleName="6.2 Mosis" layerNames="{N-Active, Metal-1}" type="SURROUND" when="NAC" value="0.5" nodeName="Metal-1-N-Active-Con"/>
-        <NodeLayersRule ruleName="6.2 Mosis" layerNames="{P-Select, P-Active}" type="SURROUND" when="NAC" value="2" nodeName="Metal-1-P-Active-Con"/>
-        <NodeLayersRule ruleName="6.2 Mosis" layerNames="{N-Select, N-Active}" type="SURROUND" when="NAC" value="2" nodeName="Metal-1-N-Active-Con"/>
-        <NodeLayersRule ruleName="6.2 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="DE|SU|NAC" value="6" nodeName="Metal-1-P-Active-Con"/>
-        <NodeLayersRule ruleName="6.2 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="DE|SU|NAC" value="6" nodeName="Metal-1-N-Active-Con"/>
-        <NodeLayersRule ruleName="6.2 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="SC|NAC" value="5" nodeName="Metal-1-P-Active-Con"/>
-        <NodeLayersRule ruleName="6.2 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="SC|NAC" value="5" nodeName="Metal-1-N-Active-Con"/>
-        <NodeRule ruleName="6.2 Mosis" type="CUTSUR" when="NAC" value="1.5" nodeName="Metal-1-P-Active-Con, Metal-1-N-Active-Con"/>
+        <NodeLayersRule ruleName="6.2-4.2 Mosis" layerNames="{P-Active, Metal-1}" type="SURROUND" when="NAC" value="0.5" nodeName="Metal-1-P-Active-Con"/>
+        <NodeLayersRule ruleName="6.2-4.2 Mosis" layerNames="{N-Active, Metal-1}" type="SURROUND" when="NAC" value="0.5" nodeName="Metal-1-N-Active-Con"/>
+        <NodeLayersRule ruleName="4.2 Mosis" layerNames="{P-Select, P-Active}" type="SURROUND" when="NAC" value="2" nodeName="Metal-1-P-Active-Con"/>
+        <NodeLayersRule ruleName="4.2 Mosis" layerNames="{N-Select, N-Active}" type="SURROUND" when="NAC" value="2" nodeName="Metal-1-N-Active-Con"/>
+        <NodeRule ruleName="6.2 Mosis" type="CUTSUR" when="NAC" value="1.5" nodeName="Metal-1-P-Active-Con, Metal-1-N-Active-Con"/> <!-- 2.0 - 0,5 = rule 6.2 -->
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="DE|SU|NAC" value="6" nodeName="Metal-1-P-Active-Con"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="DE|SU|NAC" value="6" nodeName="Metal-1-N-Active-Con"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="SC|NAC" value="5" nodeName="Metal-1-P-Active-Con"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="SC|NAC" value="5" nodeName="Metal-1-N-Active-Con"/>
         <!-- Active contacts with alternative arcs -->
         <NodeRule ruleName="6.2b Mosis" type="NODSIZ" when="AC" value="4" nodeName="Metal-1-P-Active-Con, Metal-1-N-Active-Con"/>
         <NodeLayersRule ruleName="6.2b Mosis" layerNames="{P-Active, Metal-1}" type="SURROUND" when="AC" value="0" nodeName="Metal-1-P-Active-Con"/>
         <NodeLayersRule ruleName="6.2b Mosis" layerNames="{N-Active, Metal-1}" type="SURROUND" when="AC" value="0" nodeName="Metal-1-N-Active-Con"/>
         <NodeLayersRule ruleName="6.2b Mosis" layerNames="{P-Select, P-Active}" type="SURROUND" when="AC" value="2" nodeName="Metal-1-P-Active-Con"/>
         <NodeLayersRule ruleName="6.2b Mosis" layerNames="{N-Select, N-Active}" type="SURROUND" when="AC" value="2" nodeName="Metal-1-N-Active-Con"/>
-        <NodeLayersRule ruleName="6.2b Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="DE|SU|AC" value="6" nodeName="Metal-1-P-Active-Con"/>
-        <NodeLayersRule ruleName="6.2b Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="DE|SU|AC" value="6" nodeName="Metal-1-N-Active-Con"/>
-        <NodeLayersRule ruleName="6.2b Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="SC|AC" value="5" nodeName="Metal-1-P-Active-Con"/>
-        <NodeLayersRule ruleName="6.2b Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="SC|AC" value="5" nodeName="Metal-1-N-Active-Con"/>
-        <NodeRule ruleName="6.2b Mosis" type="CUTSUR" when="AC" value="1" nodeName="Metal-1-P-Active-Con, Metal-1-N-Active-Con"/>
+        <NodeRule ruleName="6.2b Mosis" type="CUTSUR" when="AC" value="1" nodeName="Metal-1-P-Active-Con, Metal-1-N-Active-Con"/> <!-- 1? should it be 2-0 -->
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="DE|SU|AC" value="6" nodeName="Metal-1-P-Active-Con"/>   <!-- these are redudant -->
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="DE|SU|AC" value="6" nodeName="Metal-1-N-Active-Con"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{N-Well, P-Active}" type="SURROUND" when="SC|AC" value="5" nodeName="Metal-1-P-Active-Con"/>
+        <NodeLayersRule ruleName="2.3 Mosis" layerNames="{P-Well, N-Active}" type="SURROUND" when="SC|AC" value="5" nodeName="Metal-1-N-Active-Con"/>
 
         <!-- Well contacts -->
         <NodeRule ruleName="6.2 Mosis" type="NODSIZ" when="NAC" value="5" nodeName="Metal-1-P-Well-Con, Metal-1-N-Well-Con"/>
