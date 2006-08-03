@@ -334,19 +334,19 @@ public class DRCTemplate
      * @return true if the rule is valid under this foundry
      */
     /** TODO This function should be removed */
-    private static boolean isRuleValidInFoundry(Technology tech, Foundry foundry, DRCTemplate rule)
-    {
-        // Direct reference in rule, then rule is valid
-        if ((rule.when & foundry.getType().mode()) != 0) return true;
-        // if not direct reference, see if rule is for another foundry. If yes, then rule is not valid
-        for (Iterator<Foundry> it = tech.getFoundries(); it.hasNext();)
-        {
-            Foundry f = it.next();
-            if (f == foundry) continue;
-            if ((rule.when & f.getType().mode()) != 0) return false; // belong to another foundry
-        }
-        return true;
-    }
+//    private static boolean isRuleValidInFoundry(Technology tech, Foundry foundry, DRCTemplate rule)
+//    {
+//        // Direct reference in rule, then rule is valid
+//        if ((rule.when & foundry.getType().mode()) != 0) return true;
+//        // if not direct reference, see if rule is for another foundry. If yes, then rule is not valid
+//        for (Iterator<Foundry> it = tech.getFoundries(); it.hasNext();)
+//        {
+//            Foundry f = it.next();
+//            if (f == foundry) continue;
+//            if ((rule.when & f.getType().mode()) != 0) return false; // belong to another foundry
+//        }
+//        return true;
+//    }
 
     public static void exportDRCDecks(String fileName, Technology tech)
     {
@@ -370,9 +370,9 @@ public class DRCTemplate
 
                 for (DRCTemplate rule : rules)
                 {
-                    boolean oldVa = isRuleValidInFoundry(tech, foundry, rule);
-                    assert(oldVa);
-//                    if (!i) continue;
+//                    boolean oldVa = isRuleValidInFoundry(tech, foundry, rule);
+//                    assert(oldVa);
+////                    if (!i) continue;
 
                     String whenName = null;
                     for (DRCMode p : DRCMode.values())
@@ -706,21 +706,18 @@ public class DRCTemplate
 
             public void fatalError(SAXParseException e)
             {
-                System.out.println("Parser Fatal Error");
-                e.printStackTrace();
+                System.out.println("Parser Fatal Error: '" + e.getMessage() + "'");
                 passed = false;
             }
 
             public void warning(SAXParseException e)
             {
-                System.out.println("Parser Warning");
-                e.printStackTrace();
+                System.out.println("Parser Warning: '" + e.getMessage() + "'");
             }
 
             public void error(SAXParseException e)
             {
-                System.out.println("Parser Error");
-                e.printStackTrace();
+                System.out.println("Parser Error: " + e.getMessage() + "'");
                 passed = false;
             }
         }

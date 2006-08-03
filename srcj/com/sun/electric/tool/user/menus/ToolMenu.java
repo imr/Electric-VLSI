@@ -1820,12 +1820,14 @@ public class ToolMenu {
         if (fileName == null) return;
         Technology tech = Technology.getCurrent();
         DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(TextUtils.makeURLToFile(fileName), true);
-
         String message = "Deck file '" + fileName + "' loaded ";
-        message += (parser.isParseOK()) ? "without errors." : " with errors. No rules loaded.";
-        JOptionPane.showMessageDialog(null, message);
 
-        if (!parser.isParseOK()) return; // errors in the file
+        message += (parser.isParseOK()) ? "without errors." : " with errors. No rules loaded.";
+
+        JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message,
+                    "Import DRC Deck", (parser.isParseOK()) ? JOptionPane.WARNING_MESSAGE : JOptionPane.ERROR_MESSAGE);
+
+        if (!parser.isParseOK())  return; // errors in the file
         
         for (DRCTemplate.DRCXMLBucket bucket : parser.getRules())
         {
