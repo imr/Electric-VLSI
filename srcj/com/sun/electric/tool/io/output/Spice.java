@@ -287,7 +287,10 @@ public class Spice extends Topology
 	protected void start()
 	{
 		// find the proper technology to use if this is schematics
-		layoutTechnology = Schematics.getDefaultSchematicTechnology();
+        if (topCell.getTechnology().isLayout())
+            layoutTechnology = topCell.getTechnology();
+        else
+            layoutTechnology = Schematics.getDefaultSchematicTechnology();
 
 		// make sure key is cached
 		spiceEngine = Simulation.getSpiceEngine();
@@ -577,7 +580,7 @@ public class Spice extends Topology
                     }
                 }
 
-                int arcPImodels = SegmentedNets.getNumPISegments(res);
+                int arcPImodels = SegmentedNets.getNumPISegments(res, layoutTechnology.getMaxSeriesResistance());
 
                 if (ignoreArc)
                     arcPImodels = 1;                        // split cap to two pins if ignoring arc
@@ -1513,7 +1516,7 @@ public class Spice extends Topology
                         if (res == null) continue;
                         String n0 = segmentedNets.getNetName(ai.getHeadPortInst());
                         String n1 = segmentedNets.getNetName(ai.getTailPortInst());
-                        int arcPImodels = SegmentedNets.getNumPISegments(res.doubleValue());
+                        int arcPImodels = SegmentedNets.getNumPISegments(res.doubleValue(), layoutTechnology.getMaxSeriesResistance());
                         if (arcPImodels > 1) {
                             // have to break it up into smaller pieces
                             double segCap = segmentedNets.getArcCap(ai)/((double)(arcPImodels+1));
@@ -2149,11 +2152,10 @@ public class Spice extends Topology
         }
         // list of lists of export names (Strings)
         private Iterator<List<String>> getShortedExports() { return shortedExports.iterator(); }
-        public static int getNumPISegments(double res) {
+        public static int getNumPISegments(double res, double maxSeriesResistance) {
             int arcPImodels = 1;
-            double maxRes = Simulation.getSpiceMaxSeriesResistance();
-            arcPImodels = (int)(res/maxRes);            // need preference here
-            if ((res % maxRes) != 0) arcPImodels++;
+            arcPImodels = (int)(res/maxSeriesResistance);            // need preference here
+            if ((res % maxSeriesResistance) != 0) arcPImodels++;
             return arcPImodels;
         }
         // for arcs of larger than max series resistance, we need to break it up into
@@ -2567,7 +2569,7 @@ public class Spice extends Topology
     protected boolean isShortExplicitResistors() {
         // until netlister is changed
         if (useCDL && Simulation.getCDLIgnoreResistors())
-            return true;
+            return false;
         return false;
     }
 

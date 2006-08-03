@@ -27,7 +27,9 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.GDSTab;
@@ -54,12 +56,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
+import javax.swing.JOptionPane;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -75,8 +79,9 @@ public class ProjectSettingsFrame extends EDialog
 	private JTree optionTree;
 	JButton cancel;
 	JButton ok;
+    JButton writeToDisk;
 
-	List<ProjSettingsPanel> optionPanes = new ArrayList<ProjSettingsPanel>();
+    List<ProjSettingsPanel> optionPanes = new ArrayList<ProjSettingsPanel>();
 
 	/** The name of the current tab in this dialog. */		private static String currentTabName = "Netlists";
 	/** The name of the current section in this dialog. */	private static String currentSectionName = "General ";
@@ -231,7 +236,18 @@ public class ProjectSettingsFrame extends EDialog
 
 		getRootPane().setDefaultButton(ok);
 
-		// build Project Settings framework
+        writeToDisk = new JButton("Write To Disk");
+        writeToDisk.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent evt) { writeToDiskActionPerformed(); }
+        });
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;   gbc.gridy = 4;
+        gbc.insets = new Insets(4, 4, 4, 4);
+        gbc.gridwidth = 2;
+        leftPanel.add(writeToDisk, gbc);
+
+        // build Project Settings framework
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
 		loadOptionPanel();
@@ -274,7 +290,19 @@ public class ProjectSettingsFrame extends EDialog
 		new OKUpdate(this);
 	}
 
-	private void helpActionPerformed()
+    private void writeToDiskActionPerformed()
+    {
+        File outputFile = new File(User.getWorkingDirectory(), "projsettings.xml");
+        String msg = "Warning: Changes to project settings may affect all users\n"+
+                "Really write to "+outputFile.getPath()+"?"+
+                (outputFile.exists() ? "\nWarning: file exists. Overwrite?":"");
+        int ret = JOptionPane.showConfirmDialog(this, msg, "Write Project Settings", JOptionPane.YES_NO_OPTION);
+        if (ret == JOptionPane.YES_OPTION) {
+            ProjSettings.writeSettings(outputFile);
+        }
+    }
+
+    private void helpActionPerformed()
 	{
 		ManualViewer.showPreferenceHelp(currentTabName);
 		closeDialog(null);

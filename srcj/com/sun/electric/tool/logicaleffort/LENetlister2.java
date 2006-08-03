@@ -124,7 +124,7 @@ public class LENetlister2 extends LENetlister {
         // read schematic-specific sizing options
         constants = getSettings(cell);
         if (constants == null) {
-            constants = new NetlisterConstants();
+            constants = new NetlisterConstants(cell.getTechnology());
             if (!saveSettings(constants, cell)) {
                 // couldn't save settings to cell, abort
                 return false;

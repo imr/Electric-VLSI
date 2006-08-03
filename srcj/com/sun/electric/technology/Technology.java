@@ -60,6 +60,8 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -797,7 +799,7 @@ public class Technology implements Comparable<Technology>
 	/**
 	 * Find the Technology with a particular name.
 	 * @param name the name of the desired Technology
-	 * @return the Technology with the same name, or null if no 
+	 * @return the Technology with the same name, or null if no
 	 * Technology matches.
 	 */
 	public static Technology findTechnology(String name)
@@ -990,15 +992,15 @@ public class Technology implements Comparable<Technology>
 
     public static final LayerHeight LAYERS_BY_HEIGHT = new LayerHeight(false);
     public static final LayerHeight LAYERS_BY_HEIGHT_LIFT_CONTACTS = new LayerHeight(true);
-    
+
 	private static class LayerHeight implements Comparator<Layer>
 	{
         final boolean liftContacts;
-        
+
         private LayerHeight(boolean liftContacts) {
             this.liftContacts = liftContacts;
         }
-        
+
 		public int compare(Layer l1, Layer l2)
 		{
             Layer.Function f1 = l1.getFunction();
@@ -1308,7 +1310,7 @@ public class Technology implements Comparable<Technology>
 				polyNum++;
 			}
 		}
-		
+
 		// add in the displayable variables
 		if (numDisplayable > 0)
 		{
@@ -1444,7 +1446,7 @@ public class Technology implements Comparable<Technology>
         PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(length));
         return size;
     }
-    
+
     /**
      * Method to return length of active reqion. This will be used for
      * parasitics extraction. Electric layers are used for the calculation
@@ -1520,7 +1522,7 @@ public class Technology implements Comparable<Technology>
      * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
-     * types increases.  Note: You should be calling 
+     * types increases.  Note: You should be calling
      * NodeInst.getTransistorGatePort() instead of this, most likely.
      * @param ni the NodeInst
      * @return a PortInst for the gate of the transistor
@@ -1532,12 +1534,12 @@ public class Technology implements Comparable<Technology>
      * @return a PortInst for the base of the transistor
      */
 	public PortInst getTransistorBasePort(NodeInst ni) { return ni.getPortInst(0); }
-    
+
     /**
      * Method to return a source PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
-     * types increases.  Note: You should be calling 
+     * types increases.  Note: You should be calling
      * NodeInst.getTransistorSourcePort() instead of this, most likely.
      * @param ni the NodeInst
      * @return a PortInst for the source of the transistor
@@ -1554,7 +1556,7 @@ public class Technology implements Comparable<Technology>
      * Method to return a drain PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
-     * types increases.  Note: You should be calling 
+     * types increases.  Note: You should be calling
      * NodeInst.getTransistorDrainPort() instead of this, most likely.
      * @param ni the NodeInst
      * @return a PortInst for the drain of the transistor
@@ -1575,7 +1577,7 @@ public class Technology implements Comparable<Technology>
      * Method to return a bias PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
-     * types increases.  Note: You should be calling 
+     * types increases.  Note: You should be calling
      * NodeInst.getTransistorBiasPort() instead of this, most likely.
      * @param ni the NodeInst
      * @return a PortInst for the bias of the transistor
@@ -2683,27 +2685,7 @@ public class Technology implements Comparable<Technology>
 		return null;
 	}
 
-	/****************************** PARASITICS ******************************/
-
-	private Pref getParasiticSetting(String what, Pref pref, double factory)
-	{
-		if (pref == null)
-		{
-			pref = Pref.makeDoubleSetting(what + "IN" + getTechName(), prefs, this, "Tools/Parasitic tab",
-				getTechShortName() + " " + what, factory);
-		}
-		return pref;
-	}
-
-    private Pref getParasiticSetting(String what, Pref pref, boolean factory)
-	{
-		if (pref == null)
-		{
-			pref = Pref.makeBooleanSetting(what + "IN" + getTechName(), prefs, this, "Tools/Parasitic tab",
-				getTechShortName() + " " + what, factory);
-		}
-		return pref;
-	}
+	/*********************** PARASITIC SETTINGS ***************************/
 
 	/**
 	 * Method to return the Pref object associated with all Technologies.
@@ -2721,8 +2703,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getMinResistance()
 	{
-		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, 10.0);
-		return prefMinResistance.getDouble();
+        return getProjectSettings().getDouble("MinimumResistance");
 	}
 
 	/**
@@ -2731,8 +2712,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setMinResistance(double minResistance)
 	{
-		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, minResistance);
-		prefMinResistance.setDouble(minResistance);
+        getProjectSettings().putDouble("MinimumResistance", minResistance);
 	}
 
 	/**
@@ -2742,9 +2722,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getMinCapacitance()
 	{
-        // 0.0 is the default value
-		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, 0.0);
-		return prefMinCapacitance.getDouble();
+        return getProjectSettings().getDouble("MinimumCapacitance");
 	}
 
 	/**
@@ -2753,9 +2731,27 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setMinCapacitance(double minCapacitance)
 	{
-		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, minCapacitance);
-		prefMinCapacitance.setDouble(minCapacitance);
+        getProjectSettings().putDouble("MinimumCapacitance", minCapacitance);
 	}
+
+    /**
+     * Get the maximum series resistance for layout extraction
+     *  for this Technology.
+     * @return the maximum series resistance of extracted layout nets
+     */
+    public double getMaxSeriesResistance()
+    {
+        return getProjectSettings().getDouble("MaxSeriesResistance");
+    }
+
+    /**
+     * Set the maximum series resistance for layout extraction
+     *  for this Technology.
+     */
+    public void setMaxSeriesResistance(double maxSeriesResistance)
+    {
+        getProjectSettings().putDouble("MaxSeriesResistance", maxSeriesResistance);
+    }
 
 	/**
 	 * Returns true if gate is included in resistance calculation. False is the default.
@@ -2763,9 +2759,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public boolean isGateIncluded()
 	{
-        // False is the default
-		prefIncludeGate = getParasiticSetting("Gate Inclusion", prefIncludeGate, false);
-		return prefIncludeGate.getBoolean();
+        return getProjectSettings().getBoolean("Gate Inclusion");
 	}
 
     /**
@@ -2774,8 +2768,7 @@ public class Technology implements Comparable<Technology>
      */
     public void setGateIncluded(boolean set)
     {
-        prefIncludeGate = getParasiticSetting("Gate Inclusion", prefIncludeGate, set);
-        prefIncludeGate.setBoolean(set);
+        getProjectSettings().putBoolean("Gate Inclusion", set);
     }
 
 	/**
@@ -2784,8 +2777,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGroundNetIncluded(boolean set)
 	{
-		prefIncludeGnd = getParasiticSetting("Ground Net Inclusion", prefIncludeGnd, set);
-		prefIncludeGnd.setBoolean(set);
+        getProjectSettings().putBoolean("Ground Net Inclusion", set);
 	}
 
     /**
@@ -2794,9 +2786,7 @@ public class Technology implements Comparable<Technology>
      */
     public boolean isGroundNetIncluded()
     {
-        // False is the default
-        prefIncludeGnd = getParasiticSetting("Ground Net Inclusion", prefIncludeGnd, false);
-        return prefIncludeGnd.getBoolean();
+        return getProjectSettings().getBoolean("Ground Net Inclusion");
     }
 
     /**
@@ -2807,8 +2797,7 @@ public class Technology implements Comparable<Technology>
      */
     public double getGateLengthSubtraction()
     {
-        prefGateLengthSubtraction = getParasiticSetting("Gate Length Subtraction (microns) ", prefGateLengthSubtraction, 0.0);
-        return prefGateLengthSubtraction.getDouble();
+        return getProjectSettings().getDouble("Gate Length Subtraction (microns) ");
     }
 
     /**
@@ -2819,8 +2808,7 @@ public class Technology implements Comparable<Technology>
      */
     public void setGateLengthSubtraction(double value)
     {
-        getGateLengthSubtraction();
-        prefGateLengthSubtraction.setDouble(value);
+        getProjectSettings().putDouble("Gate Length Subtraction (microns) ", value);
     }
 
 	/**
@@ -2831,92 +2819,20 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setFactoryParasitics(double minResistance, double minCapacitance)
 	{
-		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, minResistance);
-		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, minCapacitance);
-	}
-	
-	
-
-
-	private Pref getLESetting(String what, Pref pref, double factory)
-	{
-		if (pref == null)
-		{
-			pref = Pref.makeDoubleSetting(what + "IN" + getTechName(), prefs, this,
-				"Tools/Logical Effort tab", getTechShortName() + " " + what, factory);
-		}
-		return pref;
+        setMinResistance(minResistance);
+        setMinCapacitance(minCapacitance);
 	}
 
-	private Pref getLESetting(String what, Pref pref, int factory)
-	{
-		if (pref == null)
-		{
-			pref = Pref.makeIntSetting(what + "IN" + getTechName(), prefs, this,
-				"Tools/Logical Effort tab", getTechShortName() + " " + what, factory);
-		}
-		return pref;
-	}
+    /*********************** LOGICAL EFFORT SETTINGS ***************************/
 
-	/**
-	 * Method to get the Global Fanout for Logical Effort.
-	 * The default is DEFAULT_GLOBALFANOUT.
-	 * @return the Global Fanout for Logical Effort.
-	 */
-	public double getGlobalFanout()
-	{
-		cacheGlobalFanout = getLESetting("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
-		return cacheGlobalFanout.getDouble();
-	}
-	/**
-	 * Method to set the Global Fanout for Logical Effort.
-	 * @param fo the Global Fanout for Logical Effort.
-	 */
-	public void setGlobalFanout(double fo)
-	{
-		cacheGlobalFanout = getLESetting("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
-		cacheGlobalFanout.setDouble(fo);
-	}
-
-	/**
-	 * Method to get the Convergence Epsilon value for Logical Effort.
-	 * The default is DEFAULT_EPSILON.
-	 * @return the Convergence Epsilon value for Logical Effort.
-	 */
-	public double getConvergenceEpsilon()
-	{
-		cacheConvergenceEpsilon = getLESetting("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
-		return cacheConvergenceEpsilon.getDouble();
-	}
-	/**
-	 * Method to set the Convergence Epsilon value for Logical Effort.
-	 * @param ep the Convergence Epsilon value for Logical Effort.
-	 */
-	public void setConvergenceEpsilon(double ep)
-	{
-		cacheConvergenceEpsilon = getLESetting("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
-		cacheConvergenceEpsilon.setDouble(ep);
-	}
-
-	/**
-	 * Method to get the maximum number of iterations for Logical Effort.
-	 * The default is DEFAULT_MAXITER.
-	 * @return the maximum number of iterations for Logical Effort.
-	 */
-	public int getMaxIterations()
-	{
-		cacheMaxIterations = getLESetting("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
-		return cacheMaxIterations.getInt();
-	}
-	/**
-	 * Method to set the maximum number of iterations for Logical Effort.
-	 * @param it the maximum number of iterations for Logical Effort.
-	 */
-	public void setMaxIterations(int it)
-	{
-		cacheMaxIterations = getLESetting("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
-		cacheMaxIterations.setInt(it);
-	}
+    private ProjSettingsNode getLESettingsNode() {
+        ProjSettingsNode node = getProjectSettings().getNode("LogicalEffort");
+        if (node == null) {
+            node = new ProjSettingsNode();
+            getProjectSettings().putNode("LogicalEffort", node);
+        }
+        return node;
+    }
 
 	/**
 	 * Method to get the Gate Capacitance for Logical Effort.
@@ -2925,8 +2841,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getGateCapacitance()
 	{
-		cacheGateCapacitance = getLESetting("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
-		return cacheGateCapacitance.getDouble();
+        return getLESettingsNode().getDouble("GateCapacitance");
 	}
 	/**
 	 * Method to set the Gate Capacitance for Logical Effort.
@@ -2934,8 +2849,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGateCapacitance(double gc)
 	{
-		cacheGateCapacitance = getLESetting("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
-		cacheGateCapacitance.setDouble(gc);
+        getLESettingsNode().putDouble("GateCapacitance", gc);
 	}
 
 	/**
@@ -2945,8 +2859,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getWireRatio()
 	{
-		cacheWireRatio = getLESetting("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
-		return cacheWireRatio.getDouble();
+        return getLESettingsNode().getDouble("WireRatio");
 	}
 	/**
 	 * Method to set the wire capacitance ratio for Logical Effort.
@@ -2954,8 +2867,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setWireRatio(double wr)
 	{
-		cacheWireRatio = getLESetting("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
-		cacheWireRatio.setDouble(wr);
+        getLESettingsNode().putDouble("WireRatio", wr);
 	}
 
 	/**
@@ -2965,8 +2877,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getDiffAlpha()
 	{
-		cacheDiffAlpha = getLESetting("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
-		return cacheDiffAlpha.getDouble();
+        return getLESettingsNode().getDouble("DiffAlpha");
 	}
 	/**
 	 * Method to set the diffusion to gate capacitance ratio for Logical Effort.
@@ -2974,29 +2885,10 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setDiffAlpha(double da)
 	{
-		cacheDiffAlpha = getLESetting("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
-		cacheDiffAlpha.setDouble(da);
+        getLESettingsNode().putDouble("DiffAlpha", da);
 	}
 
-	/**
-	 * Method to get the keeper size ratio for Logical Effort.
-	 * The default is DEFAULT_KEEPERRATIO.
-	 * @return the keeper size ratio for Logical Effort.
-	 */
-	public double getKeeperRatio()
-	{
-		cacheKeeperRatio = getLESetting("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
-		return cacheKeeperRatio.getDouble();
-	}
-	/**
-	 * Method to set the keeper size ratio for Logical Effort.
-	 * @param kr the keeper size ratio for Logical Effort.
-	 */
-	public void setKeeperRatio(double kr)
-	{
-		cacheKeeperRatio = getLESetting("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
-		cacheKeeperRatio.setDouble(kr);
-	}
+    // ================================================================
 
 	/**
 	 * Method to return the level-1 header cards for SPICE in this Technology.
@@ -3176,7 +3068,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getScale()
 	{
-		return prefScale.getDouble();
+        return getProjectSettings().getDouble("technology scale");
 	}
 
 	/**
@@ -3204,7 +3096,9 @@ public class Technology implements Comparable<Technology>
 		prefScale = Pref.makeDoubleSetting(getScaleVariableName(), prefs, this, "Technology/Scale tab", getTechShortName() + " scale", factory);
 		Pref.Meaning meaning = prefScale.getMeaning();
 		meaning.setValidOption(isScaleRelevant());
-	}
+        // use old pref as default (if pref missing, will use hard-coded default)
+        setScale(prefScale.getDouble());
+    }
 
 	/**
 	 * Sets the scale of this technology.
@@ -3215,7 +3109,7 @@ public class Technology implements Comparable<Technology>
 	public void setScale(double scale)
 	{
 		if (scale == 0) return;
-		prefScale.setDouble(scale);
+        getProjectSettings().putDouble("technology scale", scale);
 	}
 
 	/**
@@ -3782,7 +3676,7 @@ public class Technology implements Comparable<Technology>
 		// give up and report the generic technology
 		return retTech;
 	}
-    
+
     /**
      * Returns true if this Technology is layout technology.
      * @return true if this Technology is layout technology.
@@ -4095,7 +3989,7 @@ public class Technology implements Comparable<Technology>
      * @param ignoreCenterCuts
      * @return true if one of the polysilicon polygons is covered by a vth layer.
      */
-    public boolean polyCoverByAnyVTLayer(Cell cell, DRCTemplate theRule, Technology tech, Poly[] polys, Layer[] layers, 
+    public boolean polyCoverByAnyVTLayer(Cell cell, DRCTemplate theRule, Technology tech, Poly[] polys, Layer[] layers,
                                          Geometric[] geoms, boolean ignoreCenterCuts) { return false; }
 
     /**
@@ -4148,4 +4042,15 @@ public class Technology implements Comparable<Technology>
 			return pref;
 		}
 	}
+
+    // -------------------------- Project Settings -------------------------
+
+    public ProjSettingsNode getProjectSettings() {
+        ProjSettingsNode node = ProjSettings.getSettings().getNode(getTechName());
+        if (node == null) {
+            node = new ProjSettingsNode();
+            ProjSettings.getSettings().putNode(getTechName(), node);
+        }
+        return node;
+    }
 }

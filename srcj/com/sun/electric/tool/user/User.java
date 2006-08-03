@@ -39,6 +39,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -46,6 +47,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.VectorCache;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -445,7 +447,7 @@ public class User extends Listener
 //		{
 //			String userName = System.getProperty("user.name");
 //			List<Cell> updateLastDesigner = new ArrayList<Cell>();
-//	
+//
 //			for(Iterator<Cell> it = Undo.getChangedCells(); it.hasNext(); )
 //			{
 //				Cell cell = it.next();
@@ -466,7 +468,7 @@ public class User extends Listener
 //				// must update the "last designer" on this cell
 //				updateLastDesigner.add(cell);
 //			}
-//	
+//
 //			if (updateLastDesigner.size() > 0)
 //			{
 //				// change the "last designer" on these cells
@@ -535,7 +537,7 @@ public class User extends Listener
             }
         }
     }
-    
+
     /**
      * Reloading oe renaming libraries has the side affect that any EditWindows
      * containing cells that were reloaded now point to old, unlinked
@@ -560,7 +562,7 @@ public class User extends Listener
             }
         }
     }
-    
+
 	/************************** TRACKING CHANGES TO CELLS **************************/
 
 	private static HashMap<EditWindow,Rectangle2D> changedWindowRects = new HashMap<EditWindow,Rectangle2D>();
@@ -619,7 +621,7 @@ public class User extends Listener
                 markCellForRedrawRecursively(ni.getParent(), marked);
             }
 		}
-        
+
 		for(Iterator<WindowFrame> wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = wit.next();
@@ -633,7 +635,7 @@ public class User extends Listener
 			}
 		}
 	}
-    
+
     private static void markCellForRedrawRecursively(Cell cell, HashSet<Cell> marked) {
         if (marked.contains(cell)) return;
         marked.add(cell);
@@ -667,7 +669,7 @@ public class User extends Listener
         EditWindow.clearSubCellCache();
 		EditWindow.repaintAllContents();
     }
-    
+
 	/****************************** MISCELLANEOUS FUNCTIONS ******************************/
 
 	/**
@@ -1821,23 +1823,22 @@ public class User extends Listener
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
-	private static Pref cacheDefaultTechnology = Pref.makeStringSetting("DefaultTechnology", tool.prefs, tool,
-		"Technology/Technology tab", "Default Technology for editing", "mocmos");
+    private static Pref cacheDefaultTechnology = Pref.makeStringSetting("DefaultTechnology", tool.prefs, tool,
+        "Technology/Technology tab", "Default Technology for editing", "mocmos");
 	/**
 	 * Method to get default technique in Tech Palette.
 	 * The default is "mocmos".
 	 * @return the default technology to use in Tech Palette
 	 */
-	public static String getDefaultTechnology() { return cacheDefaultTechnology.getString(); }
+	public static String getDefaultTechnology() { return ProjSettings.getSettings().getString("defaultTechnology"); }
 	/**
 	 * Method to set default technique in Tech Palette.
 	 * @param t the default technology to use in Tech Palette.
 	 */
-	public static void setDefaultTechnology(String t) { cacheDefaultTechnology.setString(t); }
+	public static void setDefaultTechnology(String t) { ProjSettings.getSettings().putString("defaultTechnology", t);}
 
-	private static Pref cacheSchematicTechnology = Pref.makeStringSetting("SchematicTechnology", tool.prefs, tool,
-		"Technology/Technology tab", "Schematics use scale values from this technology", "mocmos");
-	private static Technology schematicTechnologyCache = null;
+    private static Pref cacheSchematicTechnology = Pref.makeStringSetting("SchematicTechnology", tool.prefs, tool,
+        "Technology/Technology tab", "Schematics use scale values from this technology", "mocmos");
 	/**
 	 * Method to choose the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
@@ -1848,10 +1849,11 @@ public class User extends Listener
 	 */
 	public static Technology getSchematicTechnology()
 	{
-		if (schematicTechnologyCache != null) return schematicTechnologyCache;
-		schematicTechnologyCache = Technology.findTechnology(cacheSchematicTechnology.getString());
-		return schematicTechnologyCache;
-	}
+        String t = ProjSettings.getSettings().getString("schematicTechnology");
+		Technology tech = Technology.findTechnology(t);
+        if (tech == null) return MoCMOS.tech;
+        return tech;
+    }
 	/**
 	 * Method to set the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
@@ -1861,12 +1863,15 @@ public class User extends Listener
 	 */
 	public static void setSchematicTechnology(Technology t)
 	{
-		if (schematicTechnologyCache != t)
-		{
-			schematicTechnologyCache = t;
-			cacheSchematicTechnology.setString(t.getTechName());
-		}
+        if (t == null) return;
+        ProjSettings.getSettings().putString("schematicTechnology", t.getTechName());
 	}
+
+    static {
+        // initial settings - come either from hard-coded defaults, or last user prefs
+        setDefaultTechnology(cacheDefaultTechnology.getString());
+        setSchematicTechnology(Technology.findTechnology(cacheSchematicTechnology.getString()));
+    }
 
 //    public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
 //    public static final String INITIALWORKINGDIRSETTING_USECURRENTDIR = "Use current directory";

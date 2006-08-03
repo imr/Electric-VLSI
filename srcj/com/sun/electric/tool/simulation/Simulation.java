@@ -45,6 +45,8 @@ import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.als.ALS;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.GenerateVHDL;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -1069,19 +1071,23 @@ public class Simulation extends Tool
 
 	/****************************** VERILOG OPTIONS ******************************/
 
-	private static Pref cacheVerilogUseAssign = Pref.makeBooleanSetting("VerilogUseAssign", tool.prefs, tool,
+    public static ProjSettingsNode getVerilogNode() {
+        return ProjSettings.getSettings().getNode("Verilog");
+    }
+
+    private static Pref cacheVerilogUseAssign = Pref.makeBooleanSetting("VerilogUseAssign", tool.prefs, tool,
 		"Tools/Verilog tab", "Verilog uses Assign construct", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use the Assign statement.
 	 * The default is false.
 	 * @return true if Verilog deck generation should use the Assign statement.
 	 */
-	public static boolean getVerilogUseAssign() { return cacheVerilogUseAssign.getBoolean(); }
+	public static boolean getVerilogUseAssign() { return getVerilogNode().getBoolean("VerilogUseAssign"); }
 	/**
 	 * Method to set whether Verilog deck generation should use the Assign statement.
 	 * @param use true if Verilog deck generation should use the Assign statement.
 	 */
-	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
+	public static void setVerilogUseAssign(boolean use) { getVerilogNode().putBoolean("VerilogUseAssign", use); }
 
 	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanSetting("VerilogUseTrireg", tool.prefs, tool,
 		"Tools/Verilog tab", "Verilog presumes wire is Trireg", false);
@@ -1091,15 +1097,21 @@ public class Simulation extends Tool
 	 * The default is false.
 	 * @return true if Verilog deck generation should use Trireg by default.
 	 */
-	public static boolean getVerilogUseTrireg() { return cacheVerilogUseTrireg.getBoolean(); }
+	public static boolean getVerilogUseTrireg() { return getVerilogNode().getBoolean("UseTrireg"); }
 	/**
 	 * Method to set whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.
 	 * @param use true if Verilog deck generation should use Trireg by default.
 	 */
-	public static void setVerilogUseTrireg(boolean use) { cacheVerilogUseTrireg.setBoolean(use); }
+	public static void setVerilogUseTrireg(boolean use) { getVerilogNode().putBoolean("UseTrireg", use); }
 
-	/****************************** CDL OPTIONS ******************************/
+    static {
+        // defaults
+        setVerilogUseAssign(false);
+        setVerilogUseTrireg(false);
+    }
+
+    /****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", tool.prefs, "");
 //    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
@@ -1641,10 +1653,6 @@ public class Simulation extends Tool
     private static Pref cacheSpiceWriteSubcktTopCell = Pref.makeBooleanPref("SpiceWriteSubcktTopCell", tool.prefs, false);
     public static boolean isSpiceWriteSubcktTopCell() { return cacheSpiceWriteSubcktTopCell.getBoolean(); }
     public static void setSpiceWriteSubcktTopCell(boolean b) { cacheSpiceWriteSubcktTopCell.setBoolean(b); }
-
-    private static Pref cacheSpiceMaxSeriesResistance = Pref.makeDoublePref("SpiceMaxSeriesResistance", tool.prefs, 8.0);
-    public static double getSpiceMaxSeriesResistance() { return cacheSpiceMaxSeriesResistance.getDouble(); }
-    public static void setSpiceMaxSeriesResistance(double d) { cacheSpiceMaxSeriesResistance.setDouble(d); }
 
     private static Pref cacheSpiceWriteEmptySubckts = Pref.makeBooleanPref("SpiceWriteEmptySubckts", tool.prefs, true);
     public static boolean isSpiceWriteEmtpySubckts() { return cacheSpiceWriteEmptySubckts.getBoolean(); }

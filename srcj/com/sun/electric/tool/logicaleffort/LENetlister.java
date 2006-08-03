@@ -24,14 +24,12 @@
  */
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -86,15 +84,16 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
         }
 
         /** Create a new set of constants from the user's settings */
-        public NetlisterConstants() {
-			Technology curTech = Technology.getCurrent();
-            su = (float)curTech.getGlobalFanout();
-            epsilon = (float)curTech.getConvergenceEpsilon();
-            maxIterations = curTech.getMaxIterations();
-            gateCap = (float)curTech.getGateCapacitance();
-            wireRatio = (float)curTech.getWireRatio();
-            alpha = (float)curTech.getDiffAlpha();
-            keeperRatio = (float)curTech.getKeeperRatio();
+        public NetlisterConstants(Technology technology) {
+            if (technology == Schematics.tech)
+                technology = Schematics.getDefaultSchematicTechnology();
+            su = (float)LETool.getGlobalFanout();
+            epsilon = (float)LETool.getConvergenceEpsilon();
+            maxIterations = LETool.getMaxIterations();
+            gateCap = (float)technology.getGateCapacitance();
+            wireRatio = (float)technology.getWireRatio();
+            alpha = (float)technology.getDiffAlpha();
+            keeperRatio = (float)LETool.getKeeperRatio();
         }
 
         /** Returns true if the two NetlisterConstants have the same values for all fields */
@@ -159,14 +158,16 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (ni.isIconOfParent()) continue;
             if (!ni.isCellInstance()) continue;
             if (ni.getVar(ATTR_LESETTINGS) != null) {
-				Technology tech = cell.getTechnology();
-                float su = (float)tech.getGlobalFanout();
-                float epsilon = (float)tech.getConvergenceEpsilon();
-                int maxIterations = tech.getMaxIterations();
+                Technology tech = cell.getTechnology();
+                if (cell.getView() == View.SCHEMATIC)
+                    tech = Schematics.getDefaultSchematicTechnology();
+                float su = (float)LETool.getGlobalFanout();
+                float epsilon = (float)LETool.getConvergenceEpsilon();
+                int maxIterations = LETool.getMaxIterations();
                 float gateCap = (float)tech.getGateCapacitance();
                 float wireRatio = (float)tech.getWireRatio();
                 float alpha = (float)tech.getDiffAlpha();
-                float keeperRatio = (float)tech.getKeeperRatio();
+                float keeperRatio = (float)LETool.getKeeperRatio();
                 Variable var;
                 VarContext context = VarContext.globalContext;
                 if ((var = ni.getVar(ATTR_su)) != null) su = VarContext.objectToFloat(context.evalVar(var), su);

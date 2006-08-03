@@ -61,6 +61,8 @@ import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.io.output.CellModelPrefs;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
@@ -245,6 +247,13 @@ public abstract class LibraryFiles extends Input
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
 		}
+
+        // read project settings
+        if (f != null && f.exists()) {
+            File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
+            if (projsettings.exists())
+                ProjSettings.readSettings(projsettings);
+        }
 
         // if CVS is enabled, get status of library
         if (CVS.isEnabled()) {

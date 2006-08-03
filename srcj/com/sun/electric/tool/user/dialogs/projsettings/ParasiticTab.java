@@ -57,6 +57,7 @@ public class ParasiticTab extends ProjSettingsPanel {
 	private HashMap<Layer,TempPref> layerEdgeCapacitanceOptions;
 	private HashMap<Technology,TempPref> techMinResistance, techMinCapacitance, techGateLengthShrink;
 	private HashMap<Technology,TempPref> techIncludeGateInResistance, techIncludeGroundNetwork;
+	private HashMap<Technology,TempPref> techMaxSeriesResistance;
 	private JList layerList;
 	private DefaultListModel layerListModel;
 	private boolean changing;
@@ -97,6 +98,7 @@ public class ParasiticTab extends ProjSettingsPanel {
 		techGateLengthShrink = new HashMap<Technology,TempPref>();
 		techIncludeGateInResistance = new HashMap<Technology,TempPref>();
 		techIncludeGroundNetwork = new HashMap<Technology,TempPref>();
+		techMaxSeriesResistance = new HashMap<Technology,TempPref>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
@@ -106,6 +108,7 @@ public class ParasiticTab extends ProjSettingsPanel {
 			techGateLengthShrink.put(tech, TempPref.makeDoublePref(tech.getGateLengthSubtraction()));
 			techIncludeGateInResistance.put(tech, TempPref.makeBooleanPref(tech.isGateIncluded()));
 			techIncludeGroundNetwork.put(tech, TempPref.makeBooleanPref(tech.isGroundNetIncluded()));
+			techMaxSeriesResistance.put(tech, TempPref.makeDoublePref(tech.getMaxSeriesResistance()));
 
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
@@ -127,6 +130,7 @@ public class ParasiticTab extends ProjSettingsPanel {
 
 		minResistance.getDocument().addDocumentListener(new ParasiticTechDocumentListener(this));
 		minCapacitance.getDocument().addDocumentListener(new ParasiticTechDocumentListener(this));
+		maxSeriesResistance.getDocument().addDocumentListener(new ParasiticTechDocumentListener(this));
 		gateLengthSubtraction.getDocument().addDocumentListener(new ParasiticTechDocumentListener(this));
 
 		includeGate.addActionListener(new ActionListener()
@@ -137,8 +141,6 @@ public class ParasiticTab extends ProjSettingsPanel {
 		{
 			public void actionPerformed(ActionEvent evt) { updateTechnologyGlobals(); }
 		});
-
-		maxSeriesResistance.setText(TextUtils.formatDouble(Simulation.getSpiceMaxSeriesResistance()));
 	}
 
 	private void techChanged()
@@ -154,6 +156,8 @@ public class ParasiticTab extends ProjSettingsPanel {
 		minCapacitance.setText(TextUtils.formatDouble(pref.getDouble()));
 		pref = techGateLengthShrink.get(tech);
 		gateLengthSubtraction.setText(TextUtils.formatDouble(pref.getDouble()));
+        pref = techMaxSeriesResistance.get(tech);
+        maxSeriesResistance.setText(TextUtils.formatDouble(pref.getDouble()));
 
 		pref = techIncludeGateInResistance.get(tech);
 		includeGate.setSelected(pref.getBoolean());
@@ -205,6 +209,8 @@ public class ParasiticTab extends ProjSettingsPanel {
 		pref.setDouble(TextUtils.atof(minCapacitance.getText()));
 		pref = techGateLengthShrink.get(tech);
 		pref.setDouble(TextUtils.atof(gateLengthSubtraction.getText()));
+        pref = techMaxSeriesResistance.get(tech);
+        pref.setDouble(TextUtils.atof(maxSeriesResistance.getText()));
 
 		pref = techIncludeGateInResistance.get(tech);
 		pref.setBoolean(includeGate.isSelected());
@@ -291,6 +297,9 @@ public class ParasiticTab extends ProjSettingsPanel {
 			pref = techMinCapacitance.get(tech);
 			if (pref != null && pref.getDoubleFactoryValue() != pref.getDouble())
 				tech.setMinCapacitance(pref.getDouble());
+            pref = techMaxSeriesResistance.get(tech);
+            if (pref != null && pref.getDoubleFactoryValue() != pref.getDouble())
+                tech.setMaxSeriesResistance(pref.getDouble());
 			pref = techGateLengthShrink.get(tech);
 			if (pref != null && pref.getDoubleFactoryValue() != pref.getDouble())
 				tech.setGateLengthSubtraction(pref.getDouble());
@@ -316,9 +325,6 @@ public class ParasiticTab extends ProjSettingsPanel {
 					layer.setEdgeCapacitance(edgeCapacitancePref.getDouble());
 			}
 		}
-
-		double doubleNow = TextUtils.atof(maxSeriesResistance.getText());
-		if (Simulation.getSpiceMaxSeriesResistance() != doubleNow) Simulation.setSpiceMaxSeriesResistance(doubleNow);
 	}
 
 	private void factoryResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_factoryResetActionPerformed

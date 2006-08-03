@@ -90,8 +90,9 @@ public abstract class Topology extends Output
 
 		// write out cells
 		start();
-		HierarchyEnumerator.enumerateCell(cell, context, visitor,
-                isShortResistors(), isShortExplicitResistors(), isShortResistors(), false);
+        boolean shortPolyResistors = isShortExplicitResistors();
+        HierarchyEnumerator.enumerateCell(cell, context, visitor,
+                isShortResistors(), shortPolyResistors, isShortResistors(), false);
 		done();
 		return false;
 	}
