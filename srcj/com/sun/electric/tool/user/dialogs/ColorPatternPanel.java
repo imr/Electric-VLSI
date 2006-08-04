@@ -987,14 +987,16 @@ public class ColorPatternPanel extends JPanel
 		implements MouseListener
 	{
 		private static final int NUMROWS = 2;
+        private static final int ROWSIZE = 17;
 		int numPatterns = preDefinedPatterns.length / 16;
+        int yEntry = -1, xEntry = -1;
 
 		PatternChoices()
 		{
 			addMouseListener(this);
-			setMaximumSize(new Dimension(numPatterns*17/NUMROWS+1, 17*NUMROWS+1));
-			setMinimumSize(new Dimension(numPatterns*17/NUMROWS+1, 17*NUMROWS+1));
-			setPreferredSize(new Dimension(numPatterns*17/NUMROWS+1, 17*NUMROWS+1));
+			setMaximumSize(new Dimension(numPatterns*ROWSIZE/NUMROWS+1, ROWSIZE*NUMROWS+1));
+			setMinimumSize(new Dimension(numPatterns*ROWSIZE/NUMROWS+1, ROWSIZE*NUMROWS+1));
+			setPreferredSize(new Dimension(numPatterns*ROWSIZE/NUMROWS+1, ROWSIZE*NUMROWS+1));
 		}
 
 		/**
@@ -1004,15 +1006,23 @@ public class ColorPatternPanel extends JPanel
 		{
 			ImageIcon icon = Resources.getResource(getClass(), "IconLayerPatterns.gif");
 			g.drawImage(icon.getImage(), 0, 0, null);
+            if (yEntry != -1 && xEntry != -1)
+            {
+                g.setColor(Color.BLACK);
+                // Simulating thick lines
+                g.drawRect(xEntry*ROWSIZE-1, yEntry*ROWSIZE-1, ROWSIZE+1, ROWSIZE+1);
+                g.drawRect(xEntry*ROWSIZE, yEntry*ROWSIZE, ROWSIZE, ROWSIZE);
+                g.drawRect(xEntry*ROWSIZE+1, yEntry*ROWSIZE+1, ROWSIZE-1, ROWSIZE-1);
+            }
 		}
 
 		// the MouseListener events
 		public void mousePressed(MouseEvent evt)
 		{
 			if (currentLI == null || currentLI.justColor) return;
-			int xEntry = evt.getX() / 17;
+			xEntry = evt.getX() / ROWSIZE;
 			if (xEntry >= numPatterns/NUMROWS) xEntry = numPatterns/NUMROWS-1;
-			int yEntry = evt.getY() / 17;
+			yEntry = evt.getY() / ROWSIZE;
 			if (yEntry >= NUMROWS) yEntry = NUMROWS-1;
 			int iconIndex = xEntry + 11*yEntry;
 			for(int i=0; i<16; i++)
@@ -1025,6 +1035,7 @@ public class ColorPatternPanel extends JPanel
 			outlinePattern.setEnabled(true);
 			currentLI.useStippleDisplay = true;
 
+            paint(this.getGraphics());
 			patternView.repaint();
 			colorPreviewPanel.repaint();
 		}

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04v: *********************************
 
+IMP: (8/4/06, GVG) Selected layer pattern not highlighted in patterns palette (Bug #1193)
+Basic marking done. It might be beneficial to rewrite the pattern selection section.
+
 BUG: (8/4/06, GVG) auto-stitch exception (Bug #1194) due to refactoring done for AutoStitch and regressions (7/21/06).
 FIX: check if lists are null.
 
