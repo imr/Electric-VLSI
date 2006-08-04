@@ -6,7 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 BUG: (8/3/06, GVG) Exception in LayerDrawing because of null layer in getRaster() (Bug #1191).
 This seems due to artwork in layout cells.
-FIX: If layer==null in LayerDrawing -> layer = Artwork.tech.defaultLayer. Similar fix with Graphics == null
+FIX: If layer==null in LayerDrawing -> layer = Artwork.tech.defaultLayer. Similar fix with Graphics == null.
+     In Technology.getShapeOfArc call setLayer for arrowed arcs.
 
 IMP: (8/3/06, GVG) Different message dialogs in case of XML errors while importing DRC deck. Printing only parser
 error in case of problems, not full trace.

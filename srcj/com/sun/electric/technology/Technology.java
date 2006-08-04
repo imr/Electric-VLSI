@@ -1275,7 +1275,7 @@ public class Technology implements Comparable<Technology>
 				points[1] = new Point2D.Double(tailX, tailY);
 				polys[polyNum] = new Poly(points);
 				polys[polyNum].setStyle(Poly.Type.VECTORS);
-//				polys[polyNum].setLayer(lastLayer);
+				polys[polyNum].setLayer(lastLayer);
 				polyNum++;
 			}
 			if (ai.isTailArrowed())
@@ -1290,7 +1290,7 @@ public class Technology implements Comparable<Technology>
 				points[3] = new Point2D.Double(tailX + DBMath.cos(backAngle2), tailY + DBMath.sin(backAngle2));
 				polys[polyNum] = new Poly(points);
 				polys[polyNum].setStyle(Poly.Type.VECTORS);
-//				polys[polyNum].setLayer(lastLayer);
+				polys[polyNum].setLayer(lastLayer);
 				polyNum++;
 			}
 			if (ai.isHeadArrowed())
@@ -1306,7 +1306,7 @@ public class Technology implements Comparable<Technology>
 				points[3] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
 				polys[polyNum] = new Poly(points);
 				polys[polyNum].setStyle(Poly.Type.VECTORS);
-//				polys[polyNum].setLayer(lastLayer);
+				polys[polyNum].setLayer(lastLayer);
 				polyNum++;
 			}
 		}
