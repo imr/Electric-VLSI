@@ -124,24 +124,7 @@ public class AutoStitch
 				}
 			}
 		}
-//        else
-//		{
-//            for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-//			{
-//				NodeInst ni = it.next();
-//				if (ni.isIconOfParent()) continue;
-//				if (!ni.isCellInstance())
-//				{
-//					PrimitiveNode pnp = (PrimitiveNode)ni.getProto();
-//					if (pnp.getTechnology() == Generic.tech) continue;
-//					if (pnp.getFunction() == PrimitiveNode.Function.NODE) continue;
-//				}
-//				nodesToStitch.add(ni);
-//			}
-//			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-//				arcsToStitch.add(it.next());
-//		}
-		if (nodesToStitch.size() == 0 && arcsToStitch.size() == 0)
+		if ((nodesToStitch == null || nodesToStitch.size() == 0) && (nodesToStitch == null || arcsToStitch.size() == 0))
 		{
             if (forced) System.out.println("Nothing selected to auto-route");
             return;
