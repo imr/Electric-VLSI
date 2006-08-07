@@ -123,12 +123,12 @@ public class AutoStitch
 					arcsToStitch.add((ArcInst)eObj);
 				}
 			}
+            if (nodesToStitch.size() == 0 && arcsToStitch.size() == 0)
+            {
+                if (forced) System.out.println("Nothing selected to auto-route");
+                return;
+            }
 		}
-		if ((nodesToStitch == null || nodesToStitch.size() == 0) && (nodesToStitch == null || arcsToStitch.size() == 0))
-		{
-            if (forced) System.out.println("Nothing selected to auto-route");
-            return;
-        }
 
 		double lX = 0, hX = 0, lY = 0, hY = 0;
 		if (limitBound != null)
