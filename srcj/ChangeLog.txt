@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04w: *********************************
+
 ************************* Version 8.04v: *********************************
 
 BUG: (8/7/06, GVG) auto-stitch exception (Bug #1194) due to refactoring done for AutoStitch and regressions (7/21/06).
