@@ -183,10 +183,10 @@ public class AutoStitch
     /**
      * This is the public interface for Auto-stitching when done in batch mode.
      * @param cell the cell in which to stitch.
-     * @param nodesToStitch
-     * @param arcsToStitch
+     * @param nodesToStitch a list of NodeInsts to stitch (null to use all in the cell).
+     * @param arcsToStitch a list of ArcInsts to stitch (null to use all in the cell).
      * @param stayInside is the area in which to route (null to route arbitrarily).
-     * @param limitBound
+	 * @param limitBound if not null, only consider errors that occur in this area.
      * @param forced true if the stitching was explicitly requested (and so results should be printed).
      */
 	public static void runAutoStitch(Cell cell, List<NodeInst> nodesToStitch, List<ArcInst> arcsToStitch,
@@ -562,6 +562,16 @@ public class AutoStitch
 
 	/**
 	 * Method to check an object for possible stitching to neighboring objects.
+	 * @param geom
+	 * @param arcCount
+	 * @param nodeBounds
+	 * @param nodePortBounds
+	 * @param arcLayers
+	 * @param stayInside
+	 * @param netlist
+	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param preferredArc
+	 * @return
 	 */
 	private static int checkStitching(Geometric geom, HashMap<ArcProto, Integer> arcCount, HashMap<NodeInst, Rectangle2D[]> nodeBounds,
 		HashMap<NodeInst, ObjectQTree> nodePortBounds,
@@ -626,6 +636,19 @@ public class AutoStitch
 		return count;
 	}
 
+	/**
+	 * @param ni
+	 * @param oNi
+	 * @param arcCount
+	 * @param nodeBounds
+	 * @param nodePortBounds
+	 * @param arcLayers
+	 * @param stayInside
+	 * @param netlist
+	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @param preferredArc
+	 * @return
+	 */
 	private static int compareTwoNodes(NodeInst ni, NodeInst oNi, HashMap<ArcProto, Integer> arcCount,
 		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<NodeInst, ObjectQTree> nodePortBounds,
 		HashMap<ArcProto,Layer> arcLayers, PolyMerge stayInside,
@@ -1025,6 +1048,14 @@ public class AutoStitch
 		return count;
 	}
 
+	/**
+	 * @param ai1
+	 * @param ai2
+	 * @param stayInside
+	 * @param nl
+	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @return
+	 */
 	private static int compareTwoArcs(ArcInst ai1, ArcInst ai2, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
 	{
 		// if connected, stop now
@@ -1071,6 +1102,14 @@ public class AutoStitch
 		return 0;
 	}
 
+	/**
+	 * @param ni
+	 * @param ai
+	 * @param stayInside
+	 * @param nl
+	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @return
+	 */
 	private static int compareNodeWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
 	{
 		if (ni.isCellInstance()) return 0;
@@ -1131,6 +1170,17 @@ public class AutoStitch
 		return 0;
 	}
 
+	/**
+	 * @param eobj1
+	 * @param net1
+	 * @param eobj2
+	 * @param net2
+	 * @param cell
+	 * @param ctr
+	 * @param stayInside
+	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @return
+	 */
 	private static boolean connectObjects(ElectricObject eobj1, Network net1, ElectricObject eobj2, Network net2,
 		Cell cell, Point2D ctr, PolyMerge stayInside, Rectangle2D limitBound)
 	{
@@ -1178,6 +1228,18 @@ public class AutoStitch
 	 * in "poly" on the same layer.  When they do, these should be connected to
 	 * nodeinst "ni", port "pp" with an arc of type "ap".  Returns the number of
 	 * connections made (0 if none).
+	 * @param ni
+	 * @param pp
+	 * @param ap
+	 * @param poly
+	 * @param oNi
+	 * @param netlist
+	 * @param nodeBounds
+	 * @param nodePortBounds
+	 * @param arcLayers
+	 * @param stayInside
+	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @return
 	 */
 	private static boolean testPoly(NodeInst ni, PortProto pp, ArcProto ap, Poly poly, NodeInst oNi, Netlist netlist,
 		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<NodeInst, ObjectQTree> nodePortBounds,
@@ -1474,11 +1536,21 @@ public class AutoStitch
 	}
 
 	/**
-	 * Method to compare polygon "oPoly" from nodeinst "oNi", port "opp" and
-	 * polygon "poly" from nodeinst "ni", port "pp".  If these polygons touch
-	 * or overlap then the two nodes should be connected with an arc of type
-	 * "ap".  If a connection is made, the method returns true, otherwise
-	 * it returns false.
+	 * Method to compare two polygons.  If these polygons touch
+	 * or overlap then the two nodes should be connected.
+	 * @param oNi the NodeInst responsible for the first polygon.
+	 * @param opp the PortProto responsible for the first polygon.
+	 * @param oPoly the first polygon.
+	 * @param oNet the Network responsible for the first polygon.
+	 * @param ni the NodeInst responsible for the second polygon.
+	 * @param pp the PortProto responsible for the second polygon.
+	 * @param poly the second polygon.
+	 * @param net the Network responsible for the second polygon.
+	 * @param ap the type of arc to use when stitching the nodes.
+	 * @param stayInside
+	 * @param netlist
+	 * @param limitBound if not null, only consider errors that occur in this area.
+	 * @return true if the connection is made.
 	 */
 	private static boolean comparePoly(NodeInst oNi, PortProto opp, Poly oPoly, Network oNet,
 		NodeInst ni, PortProto pp, Poly poly, Network net,
