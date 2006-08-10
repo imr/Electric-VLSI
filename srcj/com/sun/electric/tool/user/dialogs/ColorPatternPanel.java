@@ -430,7 +430,9 @@ public class ColorPatternPanel extends JPanel
 			opacity.setText(TextUtils.formatDouble(li.opacity));
 		}
 		transparentLayer.setSelectedIndex(li.transparentLayer);
-		colorChooser.setColor(new Color(li.red, li.green, li.blue));
+		Color initialColor = new Color(li.red, li.green, li.blue);
+		colorChooser.setColor(initialColor);
+		colorPreviewPanel.setPreviewColor(initialColor);
 		patternView.repaint();
 		colorPreviewPanel.repaint();
 		dataChanging = false;

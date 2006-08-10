@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+BUG: (8/10/06, SMR) Color chooser patch not always correct (Bug #1198).
+FIX: In ColorPatternPanel.setColorPattern() set the preview color.
+
 BUG: (8/10/06, GVG) PostScript Export ignores "instance names" flag (bug #1197)
 FIX: Checking if "instance names" is on/off
 
@@ -508,14 +511,16 @@ FIX: Skip computeSmallestValues if no signals are found.
 BUG: (5/23/06, DN) Null Pointer Exception in mimic unstitch (Bug #1047).
 FIX: Check if end of deleted arc killed too.
 
-BUG: (06/21/06, GVG) No calling of TechPref.sideEffect while reading cacheObj values from XML (Bug #1043).
+BUG: (5/21/06, GVG) No calling of TechPref.sideEffect while reading cacheObj values from XML (Bug #1043).
      Noticed by loading XMl for TSMC.
 FIX: cacheObj must be changed by calling Pref.setDouble/setInt/setString functions.
 
 ************************* Version 8.04m-8.04n: *********************************
 
-BUG: (5/19/06, DN) Invariant "Names are unique" is not always true.
+BUG/MAN: (5/19/06, DN) Invariant "Names are unique" is not always true.
 FIX: In Name.findTrimmedName don't override busy entry in hash array.
+     Now all names must be unique, and multipart icons are not allowed
+     (there is no way to unify them).
 
 IMP: (5/19/06, DN) Warning in NetCell.addNetName about possible change to
      CaseSensitive network name matching in future versions.
