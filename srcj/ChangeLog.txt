@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+BUG: (8/10/06, GVG) PostScript Export ignores "instance names" flag (bug #1197)
+FIX: Checking if "instance names" is on/off
+
 ************************* Version 8.04v: *********************************
 
 BUG: (8/7/06, GVG) auto-stitch exception (Bug #1194) due to refactoring done for AutoStitch and regressions (7/21/06).

@@ -32,7 +32,6 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -42,7 +41,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
@@ -639,11 +637,15 @@ public class PostScript extends Output
 					poly.setStyle(Poly.Type.CLOSED);
 					poly.setLayer(blackLayer);
 					psPoly(poly);
-	
-					poly.setStyle(Poly.Type.TEXTBOX);
-					TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
-					poly.setTextDescriptor(td);
-					poly.setString(ni.getProto().describe(false));
+
+                    // Only when the instance names flag is on
+                    if (User.isTextVisibilityOnInstance())
+                    {
+                        poly.setStyle(Poly.Type.TEXTBOX);
+                        TextDescriptor td = TextDescriptor.getInstanceTextDescriptor().withAbsSize(24);
+                        poly.setTextDescriptor(td);
+                        poly.setString(ni.getProto().describe(false));
+                    }
 					psPoly(poly);
 					showCellPorts(ni, trans, null);
 				} else
