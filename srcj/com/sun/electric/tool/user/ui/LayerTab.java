@@ -494,22 +494,6 @@ public class LayerTab extends JPanel
 
                         // graphics notifies to all 3D observers if available
                         layer.getGraphics().notifyVisibility(layerVis);
-
-//						// 3D appearance if available
-//						Object obj3D = layer.getGraphics().get3DAppearance();
-//						if (obj3D != null)
-//						{
-//                            Class j3DAppClass = Resources.get3DClass("utils.J3DAppearance");
-//                            Method setVisibilityMethod = null;
-//
-//							try
-//							{
-//								if (setVisibilityMethod == null) setVisibilityMethod = j3DAppClass.getDeclaredMethod("set3DVisibility", new Class[] {Boolean.class});
-//								setVisibilityMethod.invoke(obj3D, new Object[]{layerVis});
-//							} catch (Exception e) {
-//								System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
-//							}
-//						}
 	                }
                 }
 
