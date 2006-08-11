@@ -41,6 +41,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.io.IOException;
+import java.io.File;
 import java.net.URL;
 
 
@@ -168,10 +169,17 @@ public class Simulate extends Input
 		{
 			if (fileURL == null)
 			{
-				String [] extensions = type.getExtensions();
-				String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
-				String fileName = cell.getName() + "." + extensions[0];
-				fileURL = TextUtils.makeURLToFile(filePath + fileName);
+                String [] extensions = type.getExtensions();
+                String fileName = cell.getName() + "." + extensions[0];
+                // look for file in library path
+                String filePath = TextUtils.getFilePath(cell.getLibrary().getLibFile());
+                File file = new File(filePath, fileName);
+                if (!file.exists()) {
+                    // look for file in spice working directory
+                    String dir = type.getGroupPath();
+                    file = new File(dir, fileName);
+                }
+                fileURL = TextUtils.makeURLToFile(file.getPath());
 			}
 		}
 		(new ReadSimulationOutput(type, is, fileURL, cell, ww)).startJob();
