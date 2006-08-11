@@ -40,12 +40,9 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.plugins.sunRouter.global.NetGroup;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.ncc.NccJob;
 import com.sun.electric.tool.ncc.NccCrossProbing;
-import com.sun.electric.tool.ncc.result.NccResults;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
@@ -1272,7 +1269,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			for(WaveSignal ws : wp.getSignals())
 			{
 				if (!ws.isHighlighted()) continue;
-				wp.removeHighlightedSignal(ws);
+				wp.removeHighlightedSignal(ws, true);
 				wp.removeSignal(ws.getButton());
 				found = true;
 				break;
@@ -1931,7 +1928,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						for(WaveSignal ws : wp.getSignals())
 						{
 							if (ws.getSignal() != sSig) continue;
-							wp.removeHighlightedSignal(ws);
+							wp.removeHighlightedSignal(ws, true);
 							wp.removeSignal(ws.getButton());
 							wp.getSignalButtons().validate();
 							wp.getSignalButtons().repaint();
@@ -2224,11 +2221,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		tree.clearCurrentlySelectedObjects();
 
 		// find the signal to show in the waveform window
+        long time1 = System.currentTimeMillis();
 		List<Signal> found = findSelectedSignals(which, loc.getContext());
+        long time2 = System.currentTimeMillis();
+        System.out.println("Find signals took "+TextUtils.getElapsedTime(time2-time1));
 
 		// show it in every panel
 		boolean foundSignal = false;
-		for(Panel wp : wavePanels)
+        for(Panel wp : wavePanels)
 		{
 			for(WaveSignal ws : wp.getSignals())
 			{
@@ -2236,13 +2236,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					if (ws.getSignal() == sSig)
 					{
-						wp.addHighlightedSignal(ws);
+						wp.addHighlightedSignal(ws, false);
 						foundSignal = true;
 					}
 				}
 			}
 		}
-		if (foundSignal) repaint();
+        long time3 = System.currentTimeMillis();
+        System.out.println("Highlight signals took "+TextUtils.getElapsedTime(time3-time2));
+        if (foundSignal) repaint();
 
 		// show only one in the "Signals" tree
 		Collections.sort(found, new SignalsByName());
@@ -3721,7 +3723,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							return;					
 						}
 						oldColor = ws.getColor();
-						sourcePanel.removeHighlightedSignal(ws);
+						sourcePanel.removeHighlightedSignal(ws, true);
 						sourcePanel.removeSignal(ws.getButton());
 						break;
 					}

@@ -1857,13 +1857,13 @@ public class Panel extends JPanel
 				Panel wp = it.next();
 				wp.clearHighlightedSignals();
 			}
-			addHighlightedSignal(ws);
+			addHighlightedSignal(ws, true);
 			makeSelectedPanel();
 		} else
 		{
 			// shift click: add or remove to list of highlighted traces
-			if (ws.isHighlighted()) removeHighlightedSignal(ws); else
-				addHighlightedSignal(ws);
+			if (ws.isHighlighted()) removeHighlightedSignal(ws, true); else
+				addHighlightedSignal(ws, true);
 		}
 
 		// show it in the schematic
@@ -2064,7 +2064,7 @@ public class Panel extends JPanel
 						{
 							wSel.ws.addSelectedControlPoint(wSel.controlXValue);
 						}
-						wp.addHighlightedSignal(wSel.ws);
+						wp.addHighlightedSignal(wSel.ws, false);
 					}
 				} else
 				{
@@ -2075,11 +2075,11 @@ public class Panel extends JPanel
 						if (ws.isHighlighted())
 						{
 							if (wSel.controlPoint) ws.removeSelectedControlPoint(wSel.controlXValue);
-							removeHighlightedSignal(ws);
+							removeHighlightedSignal(ws, false);
 						} else
 						{
 							if (wSel.controlPoint) ws.addSelectedControlPoint(wSel.controlXValue);
-							wp.addHighlightedSignal(ws);
+							wp.addHighlightedSignal(ws, false);
 						}
 					}
 				}
@@ -2213,7 +2213,7 @@ public class Panel extends JPanel
 		repaintContents();
 	}
 
-	public void addHighlightedSignal(WaveSignal ws)
+	public void addHighlightedSignal(WaveSignal ws, boolean repaintContents)
 	{
 		if (ws.getButton() != null)
 		{
@@ -2222,16 +2222,16 @@ public class Panel extends JPanel
 		}
 		ws.setHighlighted(true);
 		waveWindow.setHighlightedSweep(-1);
-		repaintContents();
+		if (repaintContents) repaintContents();
 	}
 
-	public void removeHighlightedSignal(WaveSignal ws)
+	public void removeHighlightedSignal(WaveSignal ws, boolean repaintContents)
 	{
 		ws.setHighlighted(false);
 		if (ws.getButton() != null)
 			ws.getButton().setBackground(background);
 		waveWindow.setHighlightedSweep(-1);
-		repaintContents();
+        if (repaintContents) repaintContents();
 	}
 
 	public boolean isHidden() { return hidden; }

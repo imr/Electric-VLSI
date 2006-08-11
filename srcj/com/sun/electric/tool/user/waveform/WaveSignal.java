@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.waveform;
-import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.User;
 
@@ -32,10 +31,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.HashMap;
-import java.util.Iterator;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -85,7 +81,7 @@ public class WaveSignal
 				if (!signal.highlighted)
 				{
 					signal.wavePanel.clearHighlightedSignals();
-					signal.wavePanel.addHighlightedSignal(signal);
+					signal.wavePanel.addHighlightedSignal(signal, true);
 					signal.wavePanel.makeSelectedPanel();
 				}
 				JPopupMenu menu = new JPopupMenu("Color");
@@ -269,13 +265,13 @@ public class WaveSignal
 		{
 			// standard click: add this as the only trace
 			ws.wavePanel.clearHighlightedSignals();
-			ws.wavePanel.addHighlightedSignal(ws);
+			ws.wavePanel.addHighlightedSignal(ws, true);
 			ws.wavePanel.makeSelectedPanel();
 		} else
 		{
 			// shift click: add or remove to list of highlighted traces
-			if (ws.highlighted) ws.wavePanel.removeHighlightedSignal(ws); else
-				ws.wavePanel.addHighlightedSignal(ws);
+			if (ws.highlighted) ws.wavePanel.removeHighlightedSignal(ws, true); else
+				ws.wavePanel.addHighlightedSignal(ws, true);
 		}
 
 		// show it in the schematic
