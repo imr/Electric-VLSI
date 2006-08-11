@@ -48,6 +48,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
+import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
@@ -998,7 +999,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	/**
 	 * Method to create a new panel with an X range similar to others on the display.
-	 * @param isAnalog true if the new panel holds analog signals.
 	 * @return the newly created Panel.
 	 */
 	public Panel makeNewPanel()
@@ -1066,7 +1066,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	/**
 	 * Method to return the List of Panels in this window.
-	 * @return the List of Panels in this window.
 	 */
 	public void addPanel(Panel panel)
 	{
@@ -1945,7 +1944,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public static String getSpiceNetName(Network net)
 	{
-        return net.getName();
+        return Spice.getSafeNetName(net.getName());
 	}
 
 	/**
@@ -1960,34 +1959,32 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
         boolean isGlobal = false;
 
-		if (net != null)
+        if (net != null)
 		{
             Netlist netlist = net.getNetlist();
             Network originalNet = net;
 			while (net.isExported() && (context != VarContext.globalContext))
 			{
 				// net is exported, find net in parent
-				net = getNetworkInParent(net, context.getNodable());
-				if (net == null) break;
-				context = context.pop();
+				Network tempnet = getNetworkInParent(net, context.getNodable());
+				if (tempnet == null)
+                    break;
+                net = tempnet;
+                context = context.pop();
 			}
 
-			// searching in globals
+            // searching in globals
             // Code taken from NCC
-            if (net == null)
+            netlist = net.getNetlist();
+            Global.Set globNets = netlist.getGlobals();
+            for (int i=0; i<globNets.size(); i++)
             {
-                Global.Set globNets = netlist.getGlobals();
-                for (int i=0; i<globNets.size(); i++)
+                Global g = globNets.get(i);
+                Network netG = netlist.getNetwork(g);
+                if (netG == net)
                 {
-                    Global g = globNets.get(i);
-			        Network netG = netlist.getNetwork(g);
-                    if (netG == originalNet)
-                    {
-                        context = context.pop();
-                        net = netG;
-                        isGlobal = true;
-                        break;
-                    }
+                    isGlobal = true;
+                    break;
                 }
             }
 		}
@@ -2224,7 +2221,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
         long time1 = System.currentTimeMillis();
 		List<Signal> found = findSelectedSignals(which, loc.getContext());
         long time2 = System.currentTimeMillis();
-        System.out.println("Find signals took "+TextUtils.getElapsedTime(time2-time1));
+        //System.out.println("Find signals took "+TextUtils.getElapsedTime(time2-time1));
 
 		// show it in every panel
 		boolean foundSignal = false;
@@ -2243,7 +2240,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 		}
         long time3 = System.currentTimeMillis();
-        System.out.println("Highlight signals took "+TextUtils.getElapsedTime(time3-time2));
+        //System.out.println("Highlight signals took "+TextUtils.getElapsedTime(time3-time2));
         if (foundSignal) repaint();
 
 		// show only one in the "Signals" tree
@@ -2333,7 +2330,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// convert all networks to signals
 		Set<Network> nets = h.getHighlightedNetworks();
-		for(Network net : nets)
+        found.addAll(findSelectedSignals(nets, context, false));
+        Collections.sort(found, new CompSignals());
+        return found;
+    }
+
+    private List<Signal> findSelectedSignals(Set<Network> nets, VarContext context, boolean sort)
+    {
+        List<Signal> found = new ArrayList<Signal>();
+        for(Network net : nets)
 		{
 			String netName = getSpiceNetName(context, net);
 			boolean foundSig = false;
@@ -2341,10 +2346,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Analysis an = aIt.next();
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
-				if (sSig == null)
-					sSig = an.findSignalForNetworkQuickly(netName.replace('@', '_'));
-                if (sSig == null)
-                    sSig = an.findSignalForNetworkQuickly(netName.replace('.', '_'));
                 if (sSig == null) {
                     // check for equivalent layout net name
                     // search up hierarchy for cell with NCC equiv info
@@ -2372,15 +2373,40 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				{
 					found.add(sSig);
 					foundSig = true;
-				}
+				} else {
+                    System.out.println("Can't find net "+netName+" in cell "+context.getInstPath("."));
+                }
 			}
 		}
 
-		Collections.sort(found, new CompSignals());
+		if (sort) Collections.sort(found, new CompSignals());
 		return found;
 	}
 
-	private static class CompSignals implements Comparator<Signal>
+    /** Test signal lookup */
+    public List<Signal> findAllSignals(Cell cell, VarContext context, boolean sort, boolean recurse)
+    {
+        Set<Network> nets = new HashSet<Network>();
+        List<Signal> found = new ArrayList<Signal>();
+        for (Iterator<Network> it = cell.getNetlist(false).getNetworks(); it.hasNext(); ) {
+            nets.add(it.next());
+        }
+        found.addAll(findSelectedSignals(nets, context, false));
+
+        if (recurse) {
+            for (Iterator<Nodable> it = cell.getNetlist(false).getNodables(); it.hasNext(); ) {
+                Nodable no = it.next();
+                if (!(no.getProto() instanceof Cell)) continue;
+                Cell subCell = (Cell)no.getProto();
+                VarContext subContext = context.push(no);
+                found.addAll(findAllSignals(subCell, subContext, false, true));
+            }
+        }
+        if (sort) Collections.sort(found, new CompSignals());
+        return found;
+    }
+
+    private static class CompSignals implements Comparator<Signal>
     {
         public int compare(Signal s1, Signal s2)
         {

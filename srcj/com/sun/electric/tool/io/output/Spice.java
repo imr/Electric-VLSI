@@ -48,6 +48,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Simulate;
+import com.sun.electric.tool.io.input.SpiceNetlistReader;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.User;
@@ -63,13 +64,7 @@ import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 
 import java.awt.geom.AffineTransform;
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -1068,6 +1063,7 @@ public class Spice extends Topology
 						}
 					}
 				}
+                // TODO: put somethign here
                 if (useCDL) {
 				    infstr.append(" /" + subCni.getParameterizedName());
                 } else {
@@ -1931,7 +1927,7 @@ public class Spice extends Topology
      * Get the global associated with this net. Returns null if net is
      * not a global.
      * @param net
-     * @return
+     * @return global associated with this net, or null if not global
      */
     private Global getGlobal(Network net) {
         Netlist netlist = net.getNetlist();
@@ -1948,7 +1944,7 @@ public class Spice extends Topology
      * rather than just being a global tied to some other export.
      * I.e., returns true if global "gnd" has been exported using name "gnd".
      * @param cs
-     * @return
+     * @return true if global signal exported with global name
      */
     private boolean isGlobalExport(CellSignal cs) {
         if (!cs.isGlobal() || !cs.isExported()) return false;
@@ -2522,7 +2518,28 @@ public class Spice extends Topology
 	 */
 	protected String getSafeNetName(String name, boolean bus)
 	{
-		// simple names are trivially accepted as is
+        return getSafeNetName(name, bus, legalSpiceChars);
+    }
+
+    /**
+     * Method to adjust a network name to be safe for Spice output.
+     * Spice has a list of legal punctuation characters that it allows.
+     */
+    public static String getSafeNetName(String name)
+    {
+        String legalSpiceChars = SPICELEGALCHARS;
+        if (Simulation.getSpiceEngine() == Simulation.SpiceEngine.SPICE_ENGINE_P)
+            legalSpiceChars = PSPICELEGALCHARS;
+        return getSafeNetName(name, false, legalSpiceChars);
+    }
+
+    /**
+     * Method to adjust a network name to be safe for Spice output.
+     * Spice has a list of legal punctuation characters that it allows.
+     */
+    private static String getSafeNetName(String name, boolean bus, String legalSpiceChars)
+    {
+        // simple names are trivially accepted as is
 		boolean allAlNum = true;
 		int len = name.length();
 		if (len <= 0) return name;
@@ -2888,7 +2905,35 @@ public class Spice extends Topology
 		}
 	}
 
-	/******************** SUPPORT ********************/
+    private void validateIncludeFile(String fileName, String subcktName) {
+        SpiceNetlistReader reader;
+        try {
+            reader = new SpiceNetlistReader(fileName);
+        } catch (FileNotFoundException e) {
+            System.out.println("Include file not found: "+fileName);
+            return;
+        }
+        String line;
+        while (true) {
+            try {
+                line = reader.readLine();
+            } catch (IOException e) {
+                System.out.println("Error reading include file "+fileName);
+                break;
+            }
+            if (line == null) break;
+            line = line.trim();
+            if (line.length() == 0) continue;
+
+            if (line.toLowerCase().startsWith(".subckt "+subcktName.toLowerCase())) {
+
+            }
+        }
+
+        System.out.println("Error: subckt definition for "+subcktName+" not found in "+fileName);
+    }
+
+    /******************** SUPPORT ********************/
 
 	/**
 	 * Method to return value if arc contains device active diffusion
