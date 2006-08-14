@@ -583,14 +583,7 @@ public class SizeListener
 		Point2D newSize = new Point2D.Double(newXSize, newYSize);
 
 		// grid align the new node size
-		if (centerBased)
-		{
-			EditWindow.gridAlign(newSize);
-		} else
-		{
-			double alignment = User.getAlignmentToGrid();
-			DBMath.gridAlign(newSize, alignment);
-		}
+		EditWindow.gridAlign(newSize);
 
 		// determine the new center point
 		if (!centerBased)
@@ -598,10 +591,10 @@ public class SizeListener
 			AffineTransform pureTrans = ni.pureRotateOut();
 			Point2D xformedSize = new Point2D.Double();
 			pureTrans.transform(newSize, xformedSize);
-			if (closestX > farthestX) closestX = farthestX + xformedSize.getX(); else
-				closestX = farthestX - xformedSize.getX();
-			if (closestY > farthestY) closestY = farthestY + xformedSize.getY(); else
-				closestY = farthestY - xformedSize.getY();
+			if (closestX > farthestX) closestX = farthestX + Math.abs(xformedSize.getX()); else
+				closestX = farthestX - Math.abs(xformedSize.getX());
+			if (closestY > farthestY) closestY = farthestY + Math.abs(xformedSize.getY()); else
+				closestY = farthestY - Math.abs(xformedSize.getY());
 			newCenter.setLocation((closestX + farthestX) / 2, (closestY + farthestY) / 2);
 		}
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+BUG: (8/14/06, SMR) Interactive sizing of rotated nodes is wrong (Bug #1201).
+FIX: In SizeListener.getNewNodeSize(), determine new center properly.
+
 BUG: (8/10/06, SMR) Color chooser patch not always correct (Bug #1198).
 FIX: In ColorPatternPanel.setColorPattern() set the preview color.
 
