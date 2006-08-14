@@ -537,7 +537,7 @@ public class AutoStitch
 	 * @param head the coordinate of the head of the arc
 	 * @param tail the coordinate of the tail of the arc.
 	 * @param width the width of the arc.
-	 * @param stayInside the PolyMerge area to test.
+     * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param layer the layer in the PolyMerge to test.
 	 * @return true if the proposed arc is completely contained in the merge area.
 	 * False if any part of the arc is not in the merge area.
@@ -567,7 +567,7 @@ public class AutoStitch
 	 * @param nodeBounds
 	 * @param nodePortBounds
 	 * @param arcLayers
-	 * @param stayInside
+     * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param netlist
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @param preferredArc
@@ -637,17 +637,18 @@ public class AutoStitch
 	}
 
 	/**
-	 * @param ni
-	 * @param oNi
+	 * Method to compare two nodes and see if they should be connected
+	 * @param ni the first NodeInst to compare.
+	 * @param oNi the second NodeInst to compare.
 	 * @param arcCount
 	 * @param nodeBounds
 	 * @param nodePortBounds
 	 * @param arcLayers
-	 * @param stayInside
+     * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param netlist
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @param preferredArc
-	 * @return
+	 * @return the number of connections made.
 	 */
 	private static int compareTwoNodes(NodeInst ni, NodeInst oNi, HashMap<ArcProto, Integer> arcCount,
 		HashMap<NodeInst, Rectangle2D[]> nodeBounds, HashMap<NodeInst, ObjectQTree> nodePortBounds,
@@ -1049,12 +1050,13 @@ public class AutoStitch
 	}
 
 	/**
-	 * @param ai1
-	 * @param ai2
-	 * @param stayInside
-	 * @param nl
+	 * Method to compare two arcs and see if they should be connected.
+	 * @param ai1 the first ArcInst to compare.
+	 * @param ai2 the second ArcInst to compare.
+     * @param stayInside is the area in which to route (null to route arbitrarily).
+	 * @param nl the Netlist information for the Cell with the arcs.
 	 * @param limitBound if not null, only consider errors that occur in this area.
-	 * @return
+	 * @return the number of connections made (0 or 1).
 	 */
 	private static int compareTwoArcs(ArcInst ai1, ArcInst ai2, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
 	{
@@ -1103,17 +1105,23 @@ public class AutoStitch
 	}
 
 	/**
-	 * @param ni
-	 * @param ai
-	 * @param stayInside
-	 * @param nl
+	 * Method to compare a node and an arc to see if they touch and should be connected.
+	 * @param ni the NodeInst to compare.
+	 * @param ai the ArcInst to compare.
+     * @param stayInside is the area in which to route (null to route arbitrarily).
+	 * @param nl the Netlist information for the Cell with the node and arc.
 	 * @param limitBound if not null, only consider errors that occur in this area.
-	 * @return
+	 * @return the number of connections made (0 or 1).
 	 */
 	private static int compareNodeWithArc(NodeInst ni, ArcInst ai, PolyMerge stayInside, Netlist nl, Rectangle2D limitBound)
 	{
 		if (ni.isCellInstance()) return 0;
 		Network arcNet = nl.getNetwork(ai, 0);
+
+		// gather information about the node
+		Poly [] nodePolys = shapeOfNode(ni);
+		int nTot = nodePolys.length;
+		AffineTransform trans = ni.rotateOut();
 
 		// look at all polygons on the arcinst
 		Poly [] arcPolys = ai.getProto().getTechnology().getShapeOfArc(ai);
@@ -1126,16 +1134,16 @@ public class AutoStitch
 			double aCX = arcBounds.getCenterX();
 			double aCY = arcBounds.getCenterY();
 
-			// compare them against all of the polygons in the node  TODO: move this "shapeOfNode()" call outside the arcpoly loop
-			Poly [] nodePolys = shapeOfNode(ni);
-			int nTot = nodePolys.length;
+			// compare them against all of the polygons in the node
 			for(int j=0; j<nTot; j++)
 			{
 				Poly nodePoly = nodePolys[j];
+				nodePoly.transform(trans);
 
 				// they must be on the same layer and touch
 				if (nodePoly.getLayer() != arcLayer) continue;
-				if (arcPoly.separation(nodePoly) > 0) continue;
+				double polyDist = arcPoly.separation(nodePoly);
+				if (polyDist > 0) continue;
 
 				// only want electrically connected polygons
 				if (nodePoly.getPort() == null) continue;
@@ -1177,7 +1185,7 @@ public class AutoStitch
 	 * @param net2
 	 * @param cell
 	 * @param ctr
-	 * @param stayInside
+     * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @return
 	 */
@@ -1237,7 +1245,7 @@ public class AutoStitch
 	 * @param nodeBounds
 	 * @param nodePortBounds
 	 * @param arcLayers
-	 * @param stayInside
+     * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @return
 	 */
@@ -1454,8 +1462,8 @@ public class AutoStitch
 				for(Iterator<PortProto> pIt = oNi.getProto().getPorts(); pIt.hasNext(); )
 				{
 					PortProto rPp = pIt.next();
+
 					// compute best distance to the other node
-					
 					Poly portPoly = oNi.getShapeOfPort(rPp);
 					double dist = Math.abs(portPoly.getCenterX()-ox) + Math.abs(portPoly.getCenterY()-oy);
 					if (bestPp == null) {
@@ -1547,7 +1555,7 @@ public class AutoStitch
 	 * @param poly the second polygon.
 	 * @param net the Network responsible for the second polygon.
 	 * @param ap the type of arc to use when stitching the nodes.
-	 * @param stayInside
+     * @param stayInside is the area in which to route (null to route arbitrarily).
 	 * @param netlist
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @return true if the connection is made.
