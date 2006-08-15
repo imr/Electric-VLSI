@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+IMP: (8/15/06, RK) Comment out obsolete code, old hash code partitioning
+
 BUG: (8/14/06, SMR) Autorouter incorrectly connects arcs to rotated nodes (Bug #1199).
 FIX: In AutoStitch.compareNodeWithArc, transform node polygons.
 
