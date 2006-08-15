@@ -1681,12 +1681,14 @@ public class Spice extends Topology
             if (ni.getVar(LENetlister.ATTR_LEGATE) != null) {
                 // make sure cell also has that var
                 Cell np = (Cell)ni.getProto();
+                if (np.contentsView() != null) np = np.contentsView();
                 if (np.getVar(LENetlister.ATTR_LEGATE) != null)
                     mark = true; continue;
             }
             if (ni.getVar(LENetlister.ATTR_LEKEEPER) != null) {
                 // make sure cell also has that var
                 Cell np = (Cell)ni.getProto();
+                if (np.contentsView() != null) np = np.contentsView();
                 if (np.getVar(LENetlister.ATTR_LEKEEPER) != null)
                     mark = true; continue;
             }
