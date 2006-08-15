@@ -1678,8 +1678,18 @@ public class Spice extends Topology
             NodeInst ni = it.next();
             if (!ni.isCellInstance()) continue;
             if (ni.isIconOfParent()) continue;
-            if (ni.getVar(LENetlister.ATTR_LEGATE) != null) { mark = true; continue; }
-            if (ni.getVar(LENetlister.ATTR_LEKEEPER) != null) { mark = true; continue; }
+            if (ni.getVar(LENetlister.ATTR_LEGATE) != null) {
+                // make sure cell also has that var
+                Cell np = (Cell)ni.getProto();
+                if (np.getVar(LENetlister.ATTR_LEGATE) != null)
+                    mark = true; continue;
+            }
+            if (ni.getVar(LENetlister.ATTR_LEKEEPER) != null) {
+                // make sure cell also has that var
+                Cell np = (Cell)ni.getProto();
+                if (np.getVar(LENetlister.ATTR_LEKEEPER) != null)
+                    mark = true; continue;
+            }
             Cell proto = ((Cell)ni.getProto()).contentsView();
             if (proto == null) proto = (Cell)ni.getProto();
             if (checkIfParameterized(proto)) { mark = true; }
@@ -2906,31 +2916,6 @@ public class Spice extends Topology
 	}
 
     private void validateIncludeFile(String fileName, String subcktName) {
-        SpiceNetlistReader reader;
-        try {
-            reader = new SpiceNetlistReader(fileName);
-        } catch (FileNotFoundException e) {
-            System.out.println("Include file not found: "+fileName);
-            return;
-        }
-        String line;
-        while (true) {
-            try {
-                line = reader.readLine();
-            } catch (IOException e) {
-                System.out.println("Error reading include file "+fileName);
-                break;
-            }
-            if (line == null) break;
-            line = line.trim();
-            if (line.length() == 0) continue;
-
-            if (line.toLowerCase().startsWith(".subckt "+subcktName.toLowerCase())) {
-
-            }
-        }
-
-        System.out.println("Error: subckt definition for "+subcktName+" not found in "+fileName);
     }
 
     /******************** SUPPORT ********************/
