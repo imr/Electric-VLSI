@@ -926,39 +926,29 @@ public class PolyBase implements Shape, PolyNodeMerge
     /**
      * Method to calculate fast distance between two manhattan
      * polygons that do not intersect
-     * @param polyOther
-     * @return positive distance if both polygons are manhattan types,
-     * -1 if at least one of them is not.
+     * @param polyOther the other polygon being examined with this.
+     * @return non-negative distance if both polygons are manhattan types,
+     * -1 if at least one of them is not manhattan.
      */
     public double separationBox(PolyBase polyOther)
     {
         Rectangle2D thisBounds = getBox();
 		Rectangle2D otherBounds = polyOther.getBox();
 
-        // Both polygons must be manhattan-shaped type
+        // Both polygons must be manhattan-shaped
         if (thisBounds == null || otherBounds == null) return -1;
 
-        int dir = -1;
         double lX1 = thisBounds.getMinX();   double hX1 = thisBounds.getMaxX();
         double lY1 = thisBounds.getMinY();   double hY1 = thisBounds.getMaxY();
         double lX2 = otherBounds.getMinX();   double hX2 = otherBounds.getMaxX();
         double lY2 = otherBounds.getMinY();   double hY2 = otherBounds.getMaxY();
-        double [][] points1 = {{thisBounds.getMinX(), thisBounds.getMinY()},
-                               {thisBounds.getMaxX(), thisBounds.getMaxY()}};
-        double [][] points2 = {{otherBounds.getMinX(), otherBounds.getMinY()},
-                               {otherBounds.getMaxX(), otherBounds.getMaxY()}};
         double pdx = Math.max(lX2-hX1, lX1-hX2);
         double pdy = Math.max(lY2-hY1, lY1-hY2);
-        double pdx1 = Math.max(points2[0][X]-points1[1][X], points1[0][X]-points2[1][X]);
-        double pdy1 = Math.max(points2[0][Y]-points1[1][Y], points1[0][Y]-points2[1][Y]);
-
-        if (pdx1 != pdx || pdy1 != pdy)
-            System.out.println("Error in separtionBox");
 
         double pd = (pdx > 0 && pdy > 0) ? // Diagonal
                 Math.sqrt(pdx*pdx + pdy*pdy) :
                 Math.max(pdx, pdy);
-        return (pd);
+        return pd;
     }
 
 	/**
@@ -970,10 +960,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 	{
 		// stop now if they touch
 		if (intersects(polyOther)) return 0;
-
-        // Case both are mahnattan shaped elements
-		double minPD1 = separationBox(polyOther);
-        // if (minPD != -1) return minPD;
 
 		// look at all points on polygon 1
 		double minPD = 0;
@@ -996,12 +982,11 @@ public class PolyBase implements Shape, PolyNodeMerge
 			if (pd <= 0) return 0;
 			if (pd < minPD) minPD = pd;
 		}
-        //@TODO remove this condition PROFILING
-        if (minPD1 != -1 && minPD != minPD1)
-        {
-            System.out.println("Error in calculation in Poly.separation");
-            separationBox(polyOther);
-        }
+
+        // also compute manhattan separation and use it if better
+		double minPDman = separationBox(polyOther);
+        if (minPDman != -1 && minPDman < minPD) minPD = minPDman;
+
 		return minPD;
 	}
 
@@ -1123,32 +1108,50 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 */
 	public boolean contains(double lX, double lY, double w, double h)
 	{
+		// first ensure all rectangle corners are inside of the polygon
 		double hX = lX + w;
 		double hY = lY + h;
+		if (!isInside(new Point2D.Double(lX, lY)) ||
+			!isInside(new Point2D.Double(hX, lY)) ||
+			!isInside(new Point2D.Double(lX, hY)) ||
+			!isInside(new Point2D.Double(hX, hY))) return false;
+
+		// because nonconvex polygons may pierce rectangle, check all edges
 		for(int i=0; i<points.length; i++)
 		{
+			// get a polygon edge
 			int last = i-1;
 			if (last < 0) last = points.length-1;
 			Point2D thisPt = new Point2D.Double(points[i].getX(), points[i].getY());
 			Point2D lastPt = new Point2D.Double(points[last].getX(), points[last].getY());
-		    boolean invisible = GenMath.clipLine(lastPt, thisPt, lX, hX, lY, hY);
+
+			// if the edge is completely outside of the rectangle, it is OK
+			boolean invisible = GenMath.clipLine(lastPt, thisPt, lX, hX, lY, hY);
 		    if (invisible) continue;
+
+		    // if the polygon edge line was not completely clipped, it must sit on the rectangle edge
 		    if (lastPt.getX() == thisPt.getX())
 		    {
-		    	if (thisPt.getX() <= lX || thisPt.getX() >= hX) continue;
+		    	if (lastPt.getY() == thisPt.getY())
+		    	{
+		    		if (thisPt.getX() <= lX || thisPt.getX() >= hX ||
+				    	thisPt.getY() <= lY || thisPt.getY() >= hY) continue;
+		    	} else
+		    	{
+		    		if (thisPt.getX() <= lX || thisPt.getX() >= hX) continue;
+		    	}
 		    }
 		    if (lastPt.getY() == thisPt.getY())
 		    {
 		    	if (thisPt.getY() <= lY || thisPt.getY() >= hY) continue;
 		    }
+
+		    // polygon edge is inside of rectangle: no containment
 		    return false;
 		}
+
+		// all edges pass: rectangle is contained
 		return true;
-//		// Implementation not valid for non-convex polygons
-//		return (isInside(new Point2D.Double(x, y)) &&
-//				isInside(new Point2D.Double(x+w, y)) &&
-//				isInside(new Point2D.Double(x, y+h)) &&
-//				isInside(new Point2D.Double(x+w, y+h)));
 	}
 
 	/**
@@ -1756,6 +1759,7 @@ public class PolyBase implements Shape, PolyNodeMerge
             Stack<PolyBase> s = new Stack<PolyBase>();
             r.getLoops(count, s);
             polyList.addAll(s);
+for(PolyBase pb : s) pb.setLayer(layer);
         }
         return polyList;
 	}
