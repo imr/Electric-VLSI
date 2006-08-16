@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -333,18 +334,23 @@ public class EditMenu {
 //              new EMenuItem("D_elete Current Technology", null, { public void run() {
 //                  CircuitChanges.deleteCurrentTechnology(); }});
 
-		// mnemonic keys available:  B   F  I KLM  PQ        Z
+		// mnemonic keys available:  B   F    KLM   Q        Z
             new EMenu("_Selection",
                 new EMenuItem("Sele_ct All", 'A') { public void run() {
                     selectAllCommand(); }},
-                new EMenuItem("Select All Like _This") { public void run() {
-                    selectAllLikeThisCommand(); }},
                 new EMenuItem("Select All _Easy") { public void run() {
                     selectEasyCommand(); }},
                 new EMenuItem("Select All _Hard") { public void run() {
                     selectHardCommand(); }},
                 new EMenuItem("Select Nothin_g") { public void run() {
                     selectNothingCommand(); }},
+                SEPARATOR,
+                new EMenuItem("Select All Like _This") { public void run() {
+                    selectAllLikeThisCommand(); }},
+                new EMenuItem("Select _Next Like This" /*, '\t', KeyEvent.VK_TAB */) { public void run() {
+                    selectNextLikeThisCommand(true); }},
+                new EMenuItem("Select _Previous Like This") { public void run() {
+                    selectNextLikeThisCommand(false); }},
                 SEPARATOR,
                 new EMenuItem("_Select Object...") { public void run() {
                     SelectObject.selectObjectDialog(null, false); }},
@@ -371,7 +377,7 @@ public class EditMenu {
                 new EMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<')) { public void run() {
                     showPrevErrorCommand(); }},
                 SEPARATOR,
-                new EMenuItem("Add to Waveform in _New Panel", KeyStroke.getKeyStroke('A', 0)) { public void run() { 
+                new EMenuItem("Add to Waveform _in New Panel", KeyStroke.getKeyStroke('A', 0)) { public void run() { 
                     addToWaveformNewCommand(); }},
                 new EMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0)) { public void run() {
                     addToWaveformCurrentCommand(); }},
@@ -889,6 +895,111 @@ public class EditMenu {
 		}
 		highlighter.finished();
         System.out.println("Selected "+highlighter.getNumHighlights()+ " objects");
+	}
+
+	/**
+	 * Method to select the next object that is of the same type as the current object.
+	 */
+	public static void selectNextLikeThisCommand(boolean next)
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
+		Highlight2 high = highlighter.getOneHighlight();
+		if (high == null) return;
+        ElectricObject eObj = high.getElectricObject();
+        if (high.isHighlightEOBJ())
+		{
+            if (eObj instanceof PortInst)
+            {
+            	eObj = ((PortInst)eObj).getNodeInst();
+            }
+			if (eObj instanceof NodeInst)
+			{
+				NodeInst thisNi = (NodeInst)eObj;
+				NodeInst [] allNodes = new NodeInst[curCell.getNumNodes()];
+				int tot = 0;
+				int which = 0;
+				for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					if (ni.getProto() != thisNi.getProto()) continue;
+					if (ni == thisNi) which = tot;
+					allNodes[tot++] = ni;
+				}
+				if (next)
+				{
+					which++;
+					if (which >= tot) which = 0;
+				} else
+				{
+					which--;
+					if (which < 0) which = tot - 1;
+				}
+				highlighter.clear();
+				highlighter.addElectricObject(allNodes[which], curCell);
+				highlighter.finished();
+				return;
+			}
+			if (eObj instanceof ArcInst)
+			{
+				ArcInst thisAi = (ArcInst)eObj;
+				ArcInst [] allArcs = new ArcInst[curCell.getNumArcs()];
+				int tot = 0;
+				int which = 0;
+				for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = it.next();
+					if (ai.getProto() != thisAi.getProto()) continue;
+					if (ai == thisAi) which = tot;
+					allArcs[tot++] = ai;
+				}
+				if (next)
+				{
+					which++;
+					if (which >= tot) which = 0;
+				} else
+				{
+					which--;
+					if (which < 0) which = tot - 1;
+				}
+				highlighter.clear();
+				highlighter.addElectricObject(allArcs[which], curCell);
+				highlighter.finished();
+				return;
+			}
+		}
+        if (high.isHighlightText())
+        {
+			if (eObj instanceof Export)
+			{
+				Export [] allExports = new Export[curCell.getNumPorts()];
+				int i = 0;
+				int which = 0;
+				for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+				{
+					Export e = it.next();
+					if (e == eObj) which = i;
+					allExports[i++] = e;
+				}
+				if (next)
+				{
+					which++;
+					if (which >= allExports.length) which = 0;
+				} else
+				{
+					which--;
+					if (which < 0) which = allExports.length - 1;
+				}
+				highlighter.clear();
+				highlighter.addText(allExports[which], curCell, Export.EXPORT_NAME);
+				highlighter.finished();
+				return;
+			}
+        }
+        System.out.println("Cannot advance the current selection");
 	}
 
 	/**

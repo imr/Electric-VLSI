@@ -5,7 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.04w: *********************************
 
 IMP/MAN: (8/16/06, SMR) New commands in "Edit / Selection":
-     "Select Next Like This" and "Select Previous Like This".
+     "Select Next Like This" and "Select Previous Like This" (Bug #879).
 
 BUG: (8/16/06, SMR) Primitive nodes don't auto-route (Bug #1176).
 FIX: In AutoStitch.comparePoly(), don't exclude ports due to quad-tree.
