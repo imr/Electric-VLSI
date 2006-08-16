@@ -1573,15 +1573,15 @@ public class AutoStitch
 		Poly oPortPoly = oNi.getShapeOfPort(opp);
 		Point2D oPortCenter = new Point2D.Double(oPortPoly.getCenterX(), oPortPoly.getCenterY());
 
-		if (USEQTREE)
-		{
-			Rectangle2D polyBounds = portPoly.getBounds2D();
-			Rectangle2D oPolyBounds = oPortPoly.getBounds2D();
-	
-			// quit now if bounding boxes don't intersect
-			if (polyBounds.getMinX() > oPolyBounds.getMaxX() || oPolyBounds.getMinX() > polyBounds.getMaxX() ||
-				polyBounds.getMinY() > oPolyBounds.getMaxY() || oPolyBounds.getMinY() > polyBounds.getMaxY()) return false;
-		}
+//		if (USEQTREE)
+//		{
+//			Rectangle2D polyBounds = portPoly.getBounds2D();
+//			Rectangle2D oPolyBounds = oPortPoly.getBounds2D();
+//	
+//			// quit now if bounding boxes don't intersect
+//			if (polyBounds.getMinX() > oPolyBounds.getMaxX() || oPolyBounds.getMinX() > polyBounds.getMaxX() ||
+//				polyBounds.getMinY() > oPolyBounds.getMaxY() || oPolyBounds.getMinY() > polyBounds.getMaxY()) return false;
+//		}
 
 		double dist = portCenter.distance(oPortCenter);
 		for(Iterator<PortProto> it = oNi.getProto().getPorts(); it.hasNext(); )
