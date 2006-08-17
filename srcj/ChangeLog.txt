@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+BUG: (8/16/06, SMR) Pad-frame generator regression fails.
+FIX: Fixed AutoStitch.comparePoly to do proper port alignment test.
+
 IMP: (8/16/06, RK) Create a new plugin, PIE for Port Interchange Experiment
 
 IMP/MAN: (8/16/06, SMR) New commands in "Edit / Selection":
