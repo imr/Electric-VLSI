@@ -33,6 +33,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.result.EquivRecReport;
 import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.ncc.result.NccResult.CellSummary;
+import com.sun.electric.tool.ncc.result.SizeMismatch.Mismatch;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 
 /**
@@ -55,7 +56,7 @@ public class NccGuiInfo  implements Serializable {
     
     /** Export mismatches          */   private List<ExportMismatch> exportMismatches;
     
-    /** Transistor size mismatches */   private List<StratCheckSizes.Mismatch> sizeMismatches;
+    /** Transistor size mismatches */   private List<Mismatch> sizeMismatches;
     /** Some export mismatches are duplicated when suggestions are added.
      *  Suggestions are given only when topology match. 
      *  This variable holds the total number of mismatches without suggestions
@@ -73,7 +74,7 @@ public class NccGuiInfo  implements Serializable {
         numExportsValidOnlyWhenTopologyMismatch = 0;
         
         exportMismatches = new LinkedList<ExportMismatch>();
-        sizeMismatches = new LinkedList<StratCheckSizes.Mismatch>();
+        sizeMismatches = new LinkedList<Mismatch>();
         exportAssertionFailures = new LinkedList<ExportAssertionFailures>();
         networkExportConflicts = new LinkedList<ExportConflict.NetworkConflict>();
         charactExportConflicts = new LinkedList<ExportConflict.CharactConflict>();
@@ -189,10 +190,10 @@ public class NccGuiInfo  implements Serializable {
         return exportMismatches.size();
     }
 
-    public List<StratCheckSizes.Mismatch> getSizeMismatches() {
+    public List<Mismatch> getSizeMismatches() {
         return sizeMismatches;
     }
-    public void setSizeMismatches(List<StratCheckSizes.Mismatch> sizeMismatches) {
+    public void setSizeMismatches(List<Mismatch> sizeMismatches) {
         this.sizeMismatches = sizeMismatches;
     }
     

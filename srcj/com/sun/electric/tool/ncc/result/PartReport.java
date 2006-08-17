@@ -32,6 +32,14 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 
 public class PartReport extends NetObjReport {
 	static final long serialVersionUID = 0;
+	public interface PartReportable extends NetObjReportable {
+		PartNameProxy getNameProxy();
+		String typeString();
+		boolean isMos();
+		boolean isResistor();
+		double getWidth();
+		double getLength();
+	}
 	
 	private final PartNameProxy nameProxy;
 	private final String typeString;
@@ -41,21 +49,18 @@ public class PartReport extends NetObjReport {
 		LayoutLib.error(!isMos && !isResistor, 
 				        "PartReport has no width or length");
 	}
-	
-	public PartReport(Part p) {
+	public PartReport(PartReportable p) {
 		super(p);
 		nameProxy = p.getNameProxy();
 		typeString = p.typeString();
-		if (p instanceof Mos) {
-			isMos = true;
-			width = ((Mos)p).getWidth();
-			length = ((Mos)p).getLength();
-		} else if (p instanceof Resistor) {
-			isResistor = true;
-			width = ((Resistor)p).getWidth();
-			length = ((Resistor)p).getLength();
+		isMos = p.isMos();
+		isResistor = p.isResistor();
+		if (isMos || isResistor) {
+			width = p.getWidth();
+			length = p.getLength();
 		}
 	}
+
 	public PartNameProxy getNameProxy() {return nameProxy;}
 	public boolean isMos() {return isMos;}
 	public boolean isResistor() {return isResistor;}

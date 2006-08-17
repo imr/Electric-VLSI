@@ -25,7 +25,6 @@
 /** StratFrontier finds all non-matched EquivRecords */
 
 package com.sun.electric.tool.ncc.strategy;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,72 +40,13 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Resistor;
 import com.sun.electric.tool.ncc.netlist.Subcircuit;
-import com.sun.electric.tool.ncc.result.PartReport;
+import com.sun.electric.tool.ncc.result.SizeMismatch.LengthMismatch;
+import com.sun.electric.tool.ncc.result.SizeMismatch.Mismatch;
+import com.sun.electric.tool.ncc.result.SizeMismatch.WidthMismatch;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratCheckSizes extends Strategy {
-	// ----------------------- private types ----------------------------------0
-	public static abstract class Mismatch implements Serializable {
-		private StringBuffer sb = new StringBuffer();
-		private void aln(String s) {sb.append(s); sb.append("\n");}
-		public final double min, max;
-		public final PartReport minPart, maxPart;
-        public final int minNdx, maxNdx;
-		Mismatch(double min, Part minPart, int minNdx, 
-                 double max, Part maxPart, int maxNdx) {
-			this.min=min; this.max=max;
-            this.minNdx = minNdx; this.maxNdx = maxNdx;
-			this.minPart = new PartReport(minPart); 
-			this.maxPart = new PartReport(maxPart);
-		}
-		public double relErr() {return (max-min)/min;}
-		public double absErr() {return max-min;}
-		public abstract String widLen();
-		public abstract String wl();
-		public String toString() {
-			// don't round if error will round to zero
-			double relErr, absErr, minSz, maxSz;
-			if (relErr()*100<.1 || absErr()<.1) {
-				relErr = relErr()*100;
-				absErr = absErr();
-				minSz = min;
-				maxSz = max;
-			} else {
-				relErr = NccUtils.round(relErr()*100,1);
-				absErr = NccUtils.round(absErr(),2);
-				minSz = NccUtils.round(min,2);
-				maxSz = NccUtils.round(max,2);
-			}
-			aln("    "+minPart.getTypeString()+
-				" "+widLen()+"s don't match. "+
-				" relativeError="+relErr+"%"+
-				" absoluteError="+absErr);
-			aln("      "+wl()+"="+minSz+" for "+minPart.fullDescription());
-			aln("      "+wl()+"="+maxSz+" for "+maxPart.fullDescription());
-			return sb.toString();
-		}
-	}
-    public static class LengthMismatch extends Mismatch {
-    	static final long serialVersionUID = 0;
-
-		public String widLen() {return "length";}
-		public String wl() {return "L";}
-		public LengthMismatch(double min, Part minPart, int minNdx, 
-                              double max, Part maxPart, int maxNdx) {
-			super(min, minPart, minNdx, max, maxPart, maxNdx);
-		}
-	}
-    public static class WidthMismatch extends Mismatch {
-    	static final long serialVersionUID = 0;
-
-		public String widLen() {return "width";}
-		public String wl() {return "W";}
-		public WidthMismatch(double min, Part minPart, int minNdx, 
-                             double max, Part maxPart, int maxNdx) {
-			super(min, minPart, minNdx, max, maxPart, maxNdx);
-		}
-	}
 	// ------------------------------ private data -----------------------------
 	private NccOptions options;
 	private double minWidth, maxWidth, minLength, maxLength;

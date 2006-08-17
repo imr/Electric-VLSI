@@ -51,11 +51,10 @@ import javax.swing.event.HyperlinkListener;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.netlist.Mos;
-import com.sun.electric.tool.ncc.netlist.Part;
-import com.sun.electric.tool.ncc.netlist.Resistor;
 import com.sun.electric.tool.ncc.result.PartReport;
-import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
+import com.sun.electric.tool.ncc.result.SizeMismatch.LengthMismatch;
+import com.sun.electric.tool.ncc.result.SizeMismatch.Mismatch;
+import com.sun.electric.tool.ncc.result.SizeMismatch.WidthMismatch;
 import com.sun.electric.tool.user.Highlighter;
 
 class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentListener {
@@ -73,15 +72,15 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
     
     // data holders
     private NccGuiInfo result;
-    private StratCheckSizes.Mismatch[] mismatches;
+    private Mismatch[] mismatches;
     private PartReport[][] parts;
     
     public SizeMismatchPane(NccGuiInfo res) {
         super(new BorderLayout());
         
         result = res;
-        mismatches = (StratCheckSizes.Mismatch[])result.getSizeMismatches()
-                                     .toArray(new StratCheckSizes.Mismatch[0]);
+        mismatches = (Mismatch[])result.getSizeMismatches()
+                                     .toArray(new Mismatch[0]);
         int size = Math.min(mismatches.length, MAXROWS);
         if (size == 0) return;
         parts = new PartReport[size][2];
@@ -245,8 +244,8 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
             label.setFont(font);
             if (rowNdx >= 0) {  // if not header
                 boolean red = 
-                    (i == 0 && mismatches[rowNdx] instanceof StratCheckSizes.WidthMismatch) ||
-                    (i == 1 && mismatches[rowNdx] instanceof StratCheckSizes.LengthMismatch); 
+                    (i == 0 && mismatches[rowNdx] instanceof WidthMismatch) ||
+                    (i == 1 && mismatches[rowNdx] instanceof LengthMismatch); 
                 if (red)
                     label.setForeground(Color.RED);
             }

@@ -41,6 +41,7 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.netlist.Wire;
+import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.user.ncc.ExportMismatch;
@@ -128,7 +129,7 @@ public class ExportChecker {
 		return map;
 	}
 	private void prln(String s) {System.out.println(s);}
-	private void pr(String s) {System.out.print(s);}
+	//private void pr(String s) {System.out.print(s);}
 
 	private void printOneToManyError(String design1, String exports1,
 								     String design2, Set<Port> exports2) {
@@ -187,7 +188,9 @@ public class ExportChecker {
                 em.setCells(rootCells[ckt1], rootCells[ckt2]);
                 em.setContexts(rootContexts[ckt1], rootContexts[ckt2]);
                 em.add(0, p1);
-                em.add(1, p2ports);
+                Set<PortReportable> p2portReportables = new HashSet<PortReportable>();
+                p2portReportables.addAll(p2ports);
+                em.add(1, p2portReportables);
                 globals.getNccGuiInfo().addExportMismatch(em);                
 			}
 		}

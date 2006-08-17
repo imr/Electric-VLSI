@@ -39,6 +39,8 @@ import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.lists.RecordList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.processing.NewLocalPartitionWires;
+import com.sun.electric.tool.ncc.result.EquivRecReport.EquivRecReportable;
+import com.sun.electric.tool.ncc.result.NetObjReport.NetObjReportable;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 
 /** Leaf EquivRecords hold Circuits. Internal EquivRecords hold offspring.
@@ -49,7 +51,76 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
  * NetObjects. "Matched" means balanced with each Circuit having one 
  * NetObject. "Mismatched" means unbalanced with some some Circuit having 
  * no NetObject. "Active" means not matched and not mismatched. */
-public class EquivRecord {
+public class EquivRecord implements EquivRecReportable {
+	/** Get all NetObjects contained by an EquivRecord subtree. 
+	 * The NetObjects found in matched EquivRecords are collected 
+	 * separately from NetObjects found in not-matched EquivRecords. */
+	private static class GetNetObjs extends Strategy {
+		private int numDesigns = -1;
+//		private NetObject.Type  type = null;
+		private final List<List<NetObject>> matches = 
+									new ArrayList<List<NetObject>>();
+		private final List<List<NetObject>> notMatches = 
+									new ArrayList<List<NetObject>>();
+		
+//		private void checkType(NetObject n) {
+//			NetObject.Type t = n.getNetObjType();
+//			if (type==null) type=t;
+//			LayoutLib.error(type!=t, "different types in same EquivRecord");
+//			LayoutLib.error(type!=NetObject.Type.PART &&
+//					        type!=NetObject.Type.WIRE,
+//					        "expecting only Parts or Wires");
+//		}
+		
+		private void appendNetObjsFromCircuit(List<List<NetObject>> lists, 
+				                              EquivRecord er) {
+			int i=0;
+			for (Iterator<Circuit> itC=er.getCircuits(); itC.hasNext(); i++) {
+				Circuit ckt = (Circuit) itC.next();
+				for (Iterator<NetObject> itN=ckt.getNetObjs(); itN.hasNext();) {
+					lists.get(i).add(itN.next());
+				}
+			}
+			LayoutLib.error(i!=numDesigns, "wrong number of circuits");
+		}
+		
+		@Override public LeafList doFor(EquivRecord er) {
+			if (er.isLeaf()) {
+				if (numDesigns==-1) {
+					// We've encountered the first leaf EquivRec. Now we
+					// can initialize the Lists.
+					numDesigns = er.numCircuits();
+					for (int i=0; i<numDesigns; i++) {
+						matches.add(new ArrayList<NetObject>());
+						notMatches.add(new ArrayList<NetObject>());
+					}
+				}
+				appendNetObjsFromCircuit(er.isMatched() ? matches : notMatches, er);
+				return new LeafList();
+			} else {
+				return super.doFor(er);
+			}
+		}
+		
+		// ------------------------- intended interface -----------------------
+		public GetNetObjs(EquivRecord er) {
+			super(null);
+			doFor(er);
+		}
+		
+		/**  @return one list per Circuit. Each list contains all the matched
+		 * NetObjects in that circuit. For all these lists, elements at the
+		 * same index matched. */
+		public List<List<NetObject>> getMatchedNetObjs() {return matches;}
+		
+		/** @return one list per Circuit. Each list contains all not-matched
+		 * NetObjects in that circuit. */
+		public List<List<NetObject>> getNotMatchedNetObjs() {
+			return notMatches;
+		}
+		//public boolean hasParts() {return type==NetObject.Type.PART;}
+	}
+
 	// points toward root 	             
 	private EquivRecord parent;
 	
@@ -389,5 +460,41 @@ public class EquivRecord {
 			r.addOffspring(er);
 		}
 		return r;		
+	}
+	/** Get all NetObjects contained by an EquivRecord subtree.
+	 * @param matched list of list of NetObjects from matched EquivRecords
+	 * indexed as: [circuitIndex][netObjectIndex]. NetObjects at the same
+	 * index in each list match.
+	 * @param notmatched list of list of NetObjects from not matched
+	 * EquivRecords indexed as [circuitIndex][netObjectIndex] */
+	public void getNetObjsFromEntireTree(List<List<NetObject>> matched,
+			                             List<List<NetObject>> notMatched) {
+		GetNetObjs gno = new GetNetObjs(this);
+		matched.clear();
+		matched.addAll(gno.getMatchedNetObjs());
+		notMatched.clear();
+		notMatched.addAll(gno.getNotMatchedNetObjs());
+	}
+	private List<List<NetObjReportable>> coerceToReportable(List<List<NetObject>> no) {
+		List<List<NetObjReportable>> nor = new ArrayList<List<NetObjReportable>>();
+		for (List<NetObject> i : no) {
+			List<NetObjReportable> j = new ArrayList<NetObjReportable>();
+			j.addAll(i);
+			nor.add(j);
+		}
+		return nor;
+	}
+	public void getNetObjReportablesFromEntireTree(
+									List<List<NetObjReportable>> matched,
+						            List<List<NetObjReportable>> notMatched) {
+		List<List<NetObject>> m = new ArrayList<List<NetObject>>();
+		List<List<NetObject>> nm = new ArrayList<List<NetObject>>();
+		getNetObjsFromEntireTree(m, nm);
+
+		matched.clear();
+		matched.addAll(coerceToReportable(m));
+		
+		notMatched.clear();
+		notMatched.addAll(coerceToReportable(nm));
 	}
 }

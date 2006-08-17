@@ -1,7 +1,6 @@
 package com.sun.electric.tool.ncc.processing;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import com.sun.electric.tool.ncc.NccGlobals;
@@ -71,11 +70,11 @@ public class LocalPartitionResult {
 
     	badPartReps = new ArrayList<EquivRecReport>();
     	for (EquivRecord er: saveBadPartRecs)
-    		badPartReps.add(new EquivRecReport(er, false, globals));
+    		badPartReps.add(new EquivRecReport(er, false));
 
     	badWireReps = new ArrayList<EquivRecReport>();
     	for (EquivRecord er: saveBadWireRecs)
-    		badWireReps.add(new EquivRecReport(er, false, globals));
+    		badWireReps.add(new EquivRecReport(er, false));
     }
 
     // --------------------------- public methods -----------------------------

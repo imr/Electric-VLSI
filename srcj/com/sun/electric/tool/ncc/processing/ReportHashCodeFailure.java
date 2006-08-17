@@ -29,11 +29,9 @@ import java.util.List;
 
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.result.EquivRecReport;
 import com.sun.electric.tool.ncc.result.NetObjReport;
 import com.sun.electric.tool.ncc.strategy.StratCount;
-import com.sun.electric.tool.ncc.strategy.Strategy;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** Try to print useful information to explain to the user why
@@ -119,10 +117,10 @@ public class ReportHashCodeFailure {
 		printCounts();
 		for (Iterator<EquivRecord> 
 		     it=globals.getPartLeafEquivRecs().getNotMatched(); it.hasNext();)
-			badParts.add(new EquivRecReport(it.next(), true, globals));
+			badParts.add(new EquivRecReport(it.next(), true));
 		for (Iterator<EquivRecord> 
 		     it=globals.getWireLeafEquivRecs().getNotMatched(); it.hasNext();)
-			badWires.add(new EquivRecReport(it.next(), true, globals));
+			badWires.add(new EquivRecReport(it.next(), true));
 		
 //		badParts = GetNotMatched.doIt(globals.getParts(), globals);
 //		badWires = GetNotMatched.doIt(globals.getWires(), globals);

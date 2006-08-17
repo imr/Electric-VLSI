@@ -22,20 +22,20 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.netlist;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
+import com.sun.electric.tool.ncc.result.PartReport.PartReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** Part is an intermediate abstract sub-class of NetObject.
  * sub-classes of Part include Transistor, Resistor, (Capacitor), but
  * NOT Port. */
-public abstract class Part extends NetObject {
+public abstract class Part extends NetObject implements PartReportable {
 	private static final Wire[] DELETED = null;
 
 	protected static final int RESISTOR = 0;
@@ -59,10 +59,10 @@ public abstract class Part extends NetObject {
     }
 
     // ---------- public methods ----------
-    public String getName() {return nameProxy.getName();}
-	public Iterator getConnected() {return Arrays.asList(pins).iterator();}
+    @Override public String getName() {return nameProxy.getName();}
+	@Override public Iterator getConnected() {return Arrays.asList(pins).iterator();}
 	public PartNameProxy getNameProxy() {return nameProxy;}
-    public Type getNetObjType() {return Type.PART;}
+    @Override public Type getNetObjType() {return Type.PART;}
 
 	/** Here is the accessor for the number of terminals on this Part
 	 * @return the number of terminals on this Part, usually a small number. */
@@ -86,7 +86,7 @@ public abstract class Part extends NetObject {
 	
     /** Mark this Part deleted and release all storage */
     public void setDeleted() {pins=DELETED;}
-    public boolean isDeleted() {return pins==DELETED;}
+    @Override public boolean isDeleted() {return pins==DELETED;}
     
     public int numDistinctWires() {
     	Set<Wire> wires = new HashSet<Wire>();
@@ -139,7 +139,7 @@ public abstract class Part extends NetObject {
 	
 	/** check that this Part is in proper form
 	 * complain if it's wrong */
-	public void checkMe(Circuit parent){
+	@Override public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
 		for(int i=0; i<pins.length; i++){
 		    Wire w= pins[i];
@@ -163,7 +163,7 @@ public abstract class Part extends NetObject {
 	
     /** @return a String containing the part type, the Cell containing the part, 
      * and the instance name */
-    public String instanceDescription() {
+    @Override public String instanceDescription() {
     	// Don't print "Cell instance:" in root Cell where there is no path.
     	String inst = nameProxy.cellInstPath();
     	String instMsg = inst.equals("") ? "" : (" Cell instance: "+inst); 
@@ -174,10 +174,14 @@ public abstract class Part extends NetObject {
 	/** Report the numeric values of this Part,
 	 * for example: width, length, resistance.
 	 * @return a String describing the Part's numeric values.*/
-	public abstract String valueDescription();
+	@Override public abstract String valueDescription();
 
 	/** comma separated list of pins connected to w */
 	public abstract String connectionDescription(Wire w);
-
+	
+	public boolean isMos() {return this instanceof Mos;}
+	public boolean isResistor() {return this instanceof Resistor;}
+	public double getWidth() {LayoutLib.error(true, "Part has no width"); return 0;}
+	public double getLength() {LayoutLib.error(true, "Part has no length"); return 0;}
 }
 

@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.lists.RecordList;
@@ -66,8 +67,16 @@ public abstract class Strategy {
     /** Die if error occurs
      * @param pred true if error occurs
      * @param msg message to print if error occurs */
-    public void error(boolean pred, String msg) {globals.error(pred, msg);}
+    public void error(boolean pred, String msg) {
+    	if (globals==null) {
+    		LayoutLib.error(pred, msg);
+    	} else {
+    		globals.error(pred, msg);
+    	}
+    }
 	
+    /** Simple stratgies may pass in null for globals. But they can't
+     * call startTime, elapsedTime, or pickAnOffspring */
     protected Strategy(NccGlobals globals) {this.globals=globals;}
 
 	private LeafList apply(Iterator<EquivRecord> it){

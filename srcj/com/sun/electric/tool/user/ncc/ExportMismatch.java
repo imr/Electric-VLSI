@@ -30,10 +30,10 @@ import java.util.Set;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.tool.ncc.netlist.NetObject;
-import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.result.NetObjReport;
 import com.sun.electric.tool.ncc.result.PortReport;
+import com.sun.electric.tool.ncc.result.NetObjReport.NetObjReportable;
+import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
 
 /**
  * This class is an abstract superclass for Export mismatches
@@ -165,7 +165,7 @@ public abstract class ExportMismatch implements Serializable {
          * @param listIndex  Cell index
          * @param port  Port to add
          */
-        public void add(int listIndex, Port port) {
+        public void add(int listIndex, PortReportable port) {
             ports[listIndex].add(new PortReport(port));
         }
         
@@ -174,8 +174,8 @@ public abstract class ExportMismatch implements Serializable {
          * @param listIndex  Cell index
          * @param portSet  Ports to add
          */
-        public void add(int listIndex, Set<Port> portSet) {
-        	for (Port p : portSet) ports[listIndex].add(new PortReport(p));
+        public void add(int listIndex, Set<PortReportable> portSet) {
+        	for (PortReportable p : portSet) ports[listIndex].add(new PortReport(p));
         }
         
         /**
@@ -210,10 +210,10 @@ public abstract class ExportMismatch implements Serializable {
         public PortReport   getFirstExport() { return exp1; }
         public NetObjReport getSuggestion()  { return exp2; }
         
-        public void setFirstExport(Port exp1)     { 
+        public void setFirstExport(PortReportable exp1)     { 
         	this.exp1 = new PortReport(exp1); 
         }
-        public void setSuggestion(NetObject exp2) { 
+        public void setSuggestion(NetObjReportable exp2) { 
         	this.exp2 = NetObjReport.newNetObjReport(exp2); 
         }
     }
@@ -244,13 +244,13 @@ public abstract class ExportMismatch implements Serializable {
         public PortReport   getSecondExport() { return exp2; }
         public NetObjReport getSuggestion()   { return sug;  }
         
-        public void setFirstExport(Port exp1){
+        public void setFirstExport(PortReportable exp1){
         	this.exp1 = new PortReport(exp1); 
         }        
-        public void setSecondExport(Port exp2) {
+        public void setSecondExport(PortReportable exp2) {
         	this.exp2 = new PortReport(exp2); 
         }
-        public void setSuggestion(NetObject sug) { 
+        public void setSuggestion(NetObjReportable sug) { 
         	this.sug = NetObjReport.newNetObjReport(sug); 
         }
     }    

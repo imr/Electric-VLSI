@@ -28,6 +28,7 @@ package com.sun.electric.tool.ncc.netlist;
 import java.util.Iterator;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.result.NetObjReport.NetObjReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /**  
@@ -36,7 +37,7 @@ import com.sun.electric.tool.ncc.trees.Circuit;
  * Transistor, Resistor.  The hash code calculations are in Wire and
  * Part.  Wires can connect only to Parts and vice versa.
  */
-public abstract class NetObject {
+public abstract class NetObject implements NetObjReportable {
 	public static class Type {
 		int ordinal;
 		private Type(int ord) {ordinal=ord;}

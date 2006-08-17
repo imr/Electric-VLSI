@@ -32,11 +32,12 @@ import java.util.TreeSet;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
 /** An NCC Port holds all the Export names associated with a single NCC
  * Wire. */ 
-public class Port extends NetObject {
+public class Port extends NetObject implements PortReportable {
     // ---------- private data -------------
 	private Wire wire;
 	/** name of each Export attached to Wire */    
@@ -93,6 +94,7 @@ public class Port extends NetObject {
 	}
 	
 	public Wire getWire(){return wire;}
+	public String getWireName() {return wire.getName();}
 
 	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");

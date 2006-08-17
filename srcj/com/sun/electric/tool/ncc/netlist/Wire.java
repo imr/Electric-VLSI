@@ -22,17 +22,17 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.netlist;
-import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
+import com.sun.electric.tool.ncc.result.WireReport.WireReportable;
 import com.sun.electric.tool.ncc.trees.Circuit;
 
-public class Wire extends NetObject{
+public class Wire extends NetObject implements WireReportable {
 	private static final ArrayList<Part> DELETED = null;
 
 	// ---------- private data -------------

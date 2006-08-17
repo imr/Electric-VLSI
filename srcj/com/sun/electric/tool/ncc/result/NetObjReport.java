@@ -26,28 +26,38 @@ package com.sun.electric.tool.ncc.result;
 import java.io.Serializable;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.netlist.Wire;
+import com.sun.electric.tool.ncc.result.PartReport.PartReportable;
+import com.sun.electric.tool.ncc.result.PortReport.PortReportable;
+import com.sun.electric.tool.ncc.result.WireReport.WireReportable;
 
 public abstract class NetObjReport implements Serializable {
+	public interface NetObjReportable {
+		String instanceDescription();
+		String fullDescription();
+		String getName();
+	}
 	private final String instanceDescription;
 	private final String fullDescription;
 	private final String name;
-	NetObjReport(NetObject n) {
+
+	public NetObjReport(NetObjReportable n) {
 		instanceDescription = n.instanceDescription();
 		fullDescription = n.fullDescription();
 		name = n.getName();
 	}
+
 	public String fullDescription() {return fullDescription;}
 	public String instanceDescription() {return instanceDescription;}
 	public String getName() {return name;}
-	public static NetObjReport newNetObjReport(NetObject no) {
-		if (no instanceof Part) return new PartReport((Part)no);
-		else if (no instanceof Wire) return new WireReport((Wire)no);
-		else if (no instanceof Port) return new PortReport((Port)no);
+	public static NetObjReport newNetObjReport(NetObjReportable no) {
+		if (no instanceof PartReportable) return new PartReport((PartReportable)no);
+		else if (no instanceof WireReportable) return new WireReport((WireReportable)no);
+		else if (no instanceof PortReportable) return new PortReport((PortReportable)no);
 		LayoutLib.error(true, "unrecognized NetObject");
 		return null;
 	}
+
 }
