@@ -145,7 +145,11 @@ public abstract class Topology extends Output
      * subcells, override this method. */
     protected boolean skipCellAndSubcells(Cell cell) { return false; }
 
-	/**
+    /** If a cell is skipped, this method can perform any checking to
+     * validate that no error occurs */
+    protected void validateSkippedCell(HierarchyEnumerator.CellInfo info) { }
+
+    /**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
 	 */
 	protected boolean canParameterizeNames() { return false; }
@@ -204,7 +208,8 @@ public abstract class Topology extends Output
 	                        isNetworksUseExportedNames(), info);
 	                cellTopos.put(parameterizedName, cni);
 				}
-				return false;
+                validateSkippedCell(info);
+                return false;
 			}
             outGeom.enterCell(info);
 			return true;

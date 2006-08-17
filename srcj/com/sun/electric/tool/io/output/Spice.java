@@ -108,7 +108,7 @@ public class Spice extends Topology
 	/** Template Key for current spice engine */	private Variable.Key preferedEngineTemplateKey;
     /** Special case for HSpice for Assura */       private boolean assuraHSpice = false;
 	/** Spice type: 2, 3, H, P, etc */				private Simulation.SpiceEngine spiceEngine;
-	/** those cells that have overridden models */	private HashSet<Cell> modelOverrides = new HashSet<Cell>();
+	/** those cells that have overridden models */	private HashMap<Cell,String> modelOverrides = new HashMap<Cell,String>();
     /** List of segmented nets and parasitics */    private List<SegmentedNets> segmentedParasiticInfo = new ArrayList<SegmentedNets>();
     /** Networks exempted during parasitic ext */   private ExemptedNets exemptedNets;
     /** Whether or not to write empty subckts  */   private boolean writeEmptySubckts = true;
@@ -752,29 +752,7 @@ public class Spice extends Topology
 			for(Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); )
 			{
 				CellSignal cs = sIt.next();
-
-				// ignore networks that aren't exported
-				PortProto pp = cs.getExport();
-				if (USE_GLOBALS)
-				{
-					if (pp == null) continue;
-
-					if (cs.isGlobal() && !cs.getNetwork().isExported()) continue;
-
-                    if (cs.isGlobal() && cs.getNetwork().isExported()) {
-                        // only add to port list if exported with global name
-                        if (!isGlobalExport(cs)) continue;
-                    }
-				} else
-				{
-					if (pp == null && !cs.isGlobal()) continue;
-				}
-				if (useCDL)
-				{
-//					// if this is output and the last was input (or visa-versa), insert "/"
-//					if (i > 0 && netlist[i-1]->temp2 != net->temp2)
-//						infstr.append(" /");
-				}
+                if (ignoreSubcktPort(cs)) continue;
 
                 if (cs.isGlobal()) {
                     System.out.println("Warning: Explicit Global signal "+cs.getName()+" exported in "+cell.describe(false));
@@ -1972,6 +1950,33 @@ public class Spice extends Topology
         return false;
     }
 
+    private boolean ignoreSubcktPort(CellSignal cs) {
+        // ignore networks that aren't exported
+        PortProto pp = cs.getExport();
+        if (USE_GLOBALS)
+        {
+            if (pp == null) return true;
+
+            if (cs.isGlobal() && !cs.getNetwork().isExported()) return true;
+
+            if (cs.isGlobal() && cs.getNetwork().isExported()) {
+                // only add to port list if exported with global name
+                if (!isGlobalExport(cs)) return true;
+            }
+        } else
+        {
+            if (pp == null && !cs.isGlobal()) return true;
+        }
+        if (useCDL)
+        {
+//					// if this is output and the last was input (or visa-versa), insert "/"
+//					if (i > 0 && netlist[i-1]->temp2 != net->temp2)
+//						infstr.append(" /");
+        }
+        return false;
+    }
+
+
     /**
      * Class to take care of added networks in cell due to
      * extracting resistance of arcs.  Takes care of naming,
@@ -2513,18 +2518,65 @@ public class Spice extends Topology
 		// look for a model file on the current cell
         if (CellModelPrefs.spiceModelPrefs.isUseModelFromFile(cell)) {
             String fileName = CellModelPrefs.spiceModelPrefs.getModelFile(cell);
-            if (!modelOverrides.contains(cell))
+            if (!modelOverrides.containsKey(cell))
             {
                 multiLinePrint(true, "\n* " + cell + " is described in this file:\n");
                 addIncludeFile(fileName);
-                modelOverrides.add(cell);
+                if (!fileName.startsWith("/") && !fileName.startsWith("\\")) {
+                    File spiceFile = new File(filePath);
+                    fileName = (new File(spiceFile.getParent(), fileName)).getPath();
+                }
+                modelOverrides.put(cell, fileName);
             }
             return true;
         }
 		return false;
     }
 
-	/**
+    protected void validateSkippedCell(HierarchyEnumerator.CellInfo info) {
+        String fileName = modelOverrides.get(info.getCell());
+        if (fileName != null) {
+            // validate included file
+            SpiceNetlistReader reader = new SpiceNetlistReader();
+            try {
+                reader.readFile(fileName, false);
+                HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
+                Nodable no = info.getParentInst();
+                String parameterizedName = parameterizedName(no, parentInfo.getContext());
+                CellNetInfo cni = getCellNetInfo(parameterizedName);
+                SpiceNetlistReader.Subckt subckt = reader.getSubckts().get(parameterizedName.toLowerCase());
+                if (subckt == null) {
+                    System.out.println("Error: No subckt for "+parameterizedName+" found in included file: "+fileName);
+                } else {
+                    List<String> signals = new ArrayList<String>();
+                    for (Iterator<CellSignal> sIt = cni.getCellSignals(); sIt.hasNext(); ) {
+                        CellSignal cs = sIt.next();
+                        if (ignoreSubcktPort(cs)) continue;
+                        signals.add(cs.getName());
+                    }
+                    List<String> subcktSignals = subckt.getPorts();
+                    if (signals.size() != subcktSignals.size()) {
+                        System.out.println("Warning: wrong number of ports for subckt "+
+                                parameterizedName+": expected "+signals.size()+", but found "+
+                                subcktSignals.size()+", in included file "+fileName);
+                    }
+                    int len = Math.min(signals.size(), subcktSignals.size());
+                    for (int i=0; i<len; i++) {
+                        String s1 = signals.get(i);
+                        String s2 = subcktSignals.get(i);
+                        if (!s1.equalsIgnoreCase(s2)) {
+                            System.out.println("Warning: port "+i+" of subckt "+parameterizedName+
+                                    " is named "+s1+" in Electric, but "+s2+" in included file "+fileName);
+                        }
+                    }
+                }
+            } catch (FileNotFoundException e) {
+                System.out.println("Error validating included file: "+e.getMessage());
+            }
+        }
+    }
+
+    /**
 	 * Method to adjust a network name to be safe for Spice output.
 	 * Spice has a list of legal punctuation characters that it allows.
 	 */

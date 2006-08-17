@@ -1,10 +1,7 @@
 package com.sun.electric.tool.io.input;
 
 import java.io.*;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -47,6 +44,8 @@ public class SpiceNetlistReader {
 
     // ============================== Parsing ==================================
 
+    enum TType { PAR, PARVAL, WORD };
+
     public void readFile(String fileName, boolean verbose) throws FileNotFoundException {
         file = new File(fileName);
         reader = new BufferedReader(new FileReader(fileName));
@@ -58,97 +57,88 @@ public class SpiceNetlistReader {
         try {
             while ((line = readLine()) != null) {
                 line = line.trim();
+                String [] tokens = getTokens(line);
+                if (tokens.length == 0) continue;
+                String keyword = tokens[0];
 
-                if (line.startsWith(".include")) {
-                    String [] parts = line.split("\\s+");
-                    if (parts.length < 2) {
-                        System.out.println("Error: No file specified for .include at "+getLocation());
+                if (keyword.equals(".include")) {
+                    if (tokens.length < 2) {
+                        prErr("No file specified for .include");
                         continue;
                     }
-                    String ifile = parts[1];
-                    if (ifile.startsWith("'") && ifile.endsWith("'") ||
-                        ifile.startsWith("\"") && ifile.endsWith("\""))
-                        ifile = ifile.substring(1, ifile.length()-1);
+                    String ifile = tokens[1];
                     if (!ifile.startsWith("/") && !ifile.startsWith("\\")) {
                         // relative path, add to current path
                         File newFile = new File(file.getParent(), ifile);
                         ifile = newFile.getPath();
                     }
-
                     File saveFile = file;
                     BufferedReader saveReader = reader;
                     StringBuffer saveLines = lines;
                     int saveLine = lineno;
 
                     try {
+                        if (verbose)
+                            System.out.println("Reading include file "+ifile);
                         readFile(ifile, verbose);
                     } catch (FileNotFoundException e) {
                         file = saveFile;
                         lineno = saveLine;
-                        System.out.println("Error: Include file does not exist ("+getLocation()+"): "+ifile);
+                        prErr("Include file does not exist: "+ifile);
                     }
                     file = saveFile;
                     reader = saveReader;
                     lines = saveLines;
                     lineno = saveLine;
                 }
-
-
-                line = line.toLowerCase();
-                line = line.replaceAll("\\s*=\\s*", "=");
-
-                if (line.startsWith(".options ") || line.startsWith(".opt ")) {
-                    line = removeFirstWord(line);
-                    parseParams(options, line);
+                else if (keyword.startsWith(".opt")) {
+                    parseOptions(options, 1, tokens);
                 }
-                else if (line.startsWith(".param ")) {
-                    line = removeFirstWord(line);
-                    parseParams(globalParams, line);
+                else if (keyword.equals(".param")) {
+                    parseParams(globalParams, 1, tokens);
                 }
-                else if (line.startsWith(".subckt")) {
-                    line = removeFirstWord(line);
-                    currentSubckt = parseSubckt(line);
+                else if (keyword.equals(".subckt")) {
+                    currentSubckt = parseSubckt(tokens);
                     if (currentSubckt != null && subckts.containsKey(currentSubckt.getName())) {
-                        System.out.println("Error: Subckt "+currentSubckt.getName()+
-                                " already defined at line "+lineno);
+                        prErr("Subckt "+currentSubckt.getName()+
+                                " already defined");
                         continue;
                     }
                     subckts.put(currentSubckt.getName(), currentSubckt);
                 }
-                else if (line.startsWith(".global ")) {
-                    line = removeFirstWord(line);
-                    String [] nets = line.split("\\s+");
-                    for (int i=0; i<nets.length; i++)
-                        globalNets.add(nets[i]);
+                else if (keyword.equals(".global")) {
+                    for (int i=1; i<tokens.length; i++) {
+                        if (!globalNets.contains(tokens[i]))
+                            globalNets.add(tokens[i]);
+                    }
                 }
-                else if (line.startsWith(".ends")) {
+                else if (keyword.startsWith(".ends")) {
                     currentSubckt = null;
                 }
-                else if (line.startsWith(".end")) {
+                else if (keyword.startsWith(".end")) {
                     // end of file
                 }
-                else if (line.startsWith(".")) {
-                    if (verbose)
-                        System.out.println("Warning: Parser does not recognize ("+getLocation()+"): "+line);
-                }
-                else if (line.startsWith("x")) {
-                    Instance inst = parseSubcktInstance(line);
+                else if (keyword.startsWith("x")) {
+                    Instance inst = parseSubcktInstance(tokens);
                     addInstance(inst);
                 }
-                else if (line.startsWith("r")) {
-                    Instance inst = parseResistor(line);
+                else if (keyword.startsWith("r")) {
+                    Instance inst = parseResistor(tokens);
                     addInstance(inst);
                 }
-                else if (line.startsWith("c")) {
-                    Instance inst = parseCapacitor(line);
+                else if (keyword.startsWith("c")) {
+                    Instance inst = parseCapacitor(tokens);
                     addInstance(inst);
                 }
-                else if (line.startsWith("m")) {
-                    Instance inst = parseMosfet(line);
+                else if (keyword.startsWith("m")) {
+                    Instance inst = parseMosfet(tokens);
                     addInstance(inst);
+                }
+                else if (keyword.equals(".protect") || keyword.equals(".unprotect")) {
+                    // ignore
                 }
                 else {
-                    System.out.println("Warning: Parser does not recognize ("+getLocation()+"): "+line);
+                    prWarn("Parser does not recognize: "+line);
                 }
             }
             reader.close();
@@ -157,56 +147,160 @@ public class SpiceNetlistReader {
         }
     }
 
+    private void prErr(String msg) {
+        System.out.println("Error ("+getLocation()+"): "+msg);
+    }
+    private void prWarn(String msg) {
+        System.out.println("Warning ("+getLocation()+"): "+msg);
+    }
     private String getLocation() {
         return file.getName()+":"+lineno;
     }
 
-    private void addInstance(Instance inst) {
-        if (inst == null) return;
-        if (currentSubckt != null)
-            currentSubckt.addInstance(inst);
-        else
-            topLevelInstances.add(inst);
+    /**
+     * Get the tokens in a line.  Tokens are separated by whitespace,
+     * unless that whitespace is surrounded by single quotes, or parentheses.
+     * When quotes are used, those quotes are removed from the string literal.
+     * The construct <code>name=value</code> is returned as three tokens,
+     * the second being the char '='.
+     * @param line the line to parse
+     * @return an array of tokens
+     */
+    private String [] getTokens(String line) {
+        List<String> tokens = new ArrayList<String>();
+        int start = 0;
+        boolean inquotes = false;
+        int inparens = 0;
+        int i;
+        for (i=0; i<line.length(); i++) {
+            char c = line.charAt(i);
+            if (inquotes) {
+                if (c == '\'') {
+                    if (inparens > 0) continue;
+                    // end string literal
+                    tokens.add(line.substring(start, i));
+                    start = i+1;
+                    inquotes = false;
+                }
+            }
+            else if (c == '\'') {
+                if (inparens > 0) continue;
+                inquotes = true;
+                if (start != i) {
+                    prErr("Improper use of open quote '");
+                    break;
+                }
+                start = i+1;
+            }
+            // else !inquotes:
+            else if (Character.isWhitespace(c) && inparens == 0) {
+                // end of token (unless just more whitespace)
+                if (start < i)
+                    tokens.add(line.substring(start, i).toLowerCase());
+                start = i+1;
+            }
+            else if (c == '(') {
+                inparens++;
+            }
+            else if (c == ')') {
+                if (inparens == 0) {
+                    prErr("Too many ')'s");
+                    break;
+                }
+                inparens--;
+            }
+            else if (c == '=') {
+                if (start < i)
+                    tokens.add(line.substring(start, i).toLowerCase());
+                tokens.add("=");
+                start = i+1;
+            }
+            else if (c == '*') {
+                break; // rest of line is comment
+            }
+        }
+        if (start < i) {
+            tokens.add(line.substring(start, i).toLowerCase());
+        }
+
+        if (inparens != 0)
+            prErr("Unmatched parentheses");
+
+        // join {par, =, val} to {par=val}
+        List<String> joined = new ArrayList<String>();
+        for (int j=0; j<tokens.size(); j++) {
+            if (tokens.get(j).equals("=")) {
+                if (j == 0) {
+                    prErr("No right hand side to assignment");
+                } else if (j == tokens.size()-1) {
+                    prErr("No left hand side to assignment");
+                } else {
+                    int last = joined.size() - 1;
+                    joined.set(last, joined.get(last)+"="+tokens.get(++j));
+                }
+            } else {
+                joined.add(tokens.get(j));
+            }
+        }
+        String ret [] = new String[joined.size()];
+        for (int k=0; k<joined.size(); k++)
+            ret[k] = joined.get(k);
+        return ret;
     }
 
-    /** Remove the first word on a line */
-    private String removeFirstWord(String line) {
-        int i = line.indexOf(' ');
-        return line.substring(i).trim();
-    }
-
-    private void parseParams(HashMap<String,String> map, String line) {
-        String [] parts = line.split("\\s+");
-        for (int i=0; i<parts.length; i++) {
-            parseParam(map, parts[i]);
+    private void parseOptions(HashMap<String,String> map, int start, String [] tokens) {
+        for (int i=start; i<tokens.length; i++) {
+            int e = tokens[i].indexOf('=');
+            String pname = tokens[i];
+            String value = "true";
+            if (e > 0) {
+                pname = tokens[i].substring(0, e);
+                value = tokens[i].substring(e+1);
+            }
+            if (pname == null || value == null) {
+                prErr("Bad option value: "+tokens[i]);
+                continue;
+            }
+            map.put(pname, value);
         }
     }
 
-    private void parseParam(HashMap<String,String> map, String paramAndValue) {
-        String [] str = paramAndValue.split("=");
-        if (str.length == 1) {
-            map.put(str[0].toLowerCase(), null);
-        } else {
-            map.put(str[0].toLowerCase(), str[1]);
+    private void parseParams(HashMap<String,String> map, int start, String [] tokens) {
+        for (int i=start; i<tokens.length; i++) {
+            parseParam(map, tokens[i], null);
         }
     }
 
-    private Subckt parseSubckt(String line) {
-        String [] parts = line.split("\\s+");
-        Subckt subckt = new Subckt(parts[0]);
-        int i=1;
+    private void parseParam(HashMap<String,String> map, String parval, String defaultParName) {
+        int e = parval.indexOf('=');
+        String pname = defaultParName;
+        String value = parval;
+        if (e > 0) {
+            pname = parval.substring(0, e);
+            value = parval.substring(e+1);
+            if (defaultParName != null && !defaultParName.equals(pname)) {
+                prWarn("Expected param "+defaultParName+", but got "+pname);
+            }
+        }
+        if (pname == null || value == null) {
+            prErr("Badly formatted param=val: "+parval);
+            return;
+        }
+        map.put(pname, value);
+    }
+
+    private Subckt parseSubckt(String [] parts) {
+        Subckt subckt = new Subckt(parts[1]);
+        int i=2;
         for (; i<parts.length; i++) {
-            if (parts[i].contains("=")) break;  // parameter
+            if (parts[i].indexOf('=') > 0) break;  // parameter
             subckt.addPort(parts[i]);
         }
-        for (; i<parts.length; i++) {
-            parseParam(subckt.getParams(), parts[i]);
-        }
+        parseParams(subckt.getParams(), i, parts);
         return subckt;
     }
 
-    private Instance parseSubcktInstance(String line) {
-        String [] parts = line.split("\\s+");
+    private Instance parseSubcktInstance(String [] parts) {
         String name = parts[0].substring(1);
         List<String> nets = new ArrayList<String>();
         int i=1;
@@ -217,57 +311,59 @@ public class SpiceNetlistReader {
         String subcktName = nets.remove(nets.size()-1); // last one is subckt reference
         Subckt subckt = subckts.get(subcktName);
         if (subckt == null) {
-            System.out.println("Error: Cannot find subckt for "+subcktName+" at line "+lineno);
+            prErr("Cannot find subckt for "+subcktName);
             return null;
         }
         Instance inst = new Instance(subckt, name);
         for (String net : nets)
             inst.addNet(net);
-        for (; i<parts.length; i++) {
-            parseParam(inst.getParams(), parts[i]);
-        }
+        parseParams(inst.getParams(), i, parts);
         // consistency check
         if (inst.getNets().size() != subckt.getPorts().size()) {
-            System.out.println("Error: Instance "+inst.getName()+" on line "+lineno+" has "+
-            inst.getNets().size()+" ports, while the subckt definition has "+subckt.getPorts().size());
+            prErr("Number of ports do not match: "+inst.getNets().size()+
+                  " (instance "+name+") vs "+subckt.getPorts().size()+
+                  " (subckt "+subckt.getName()+")");
         }
         return inst;
     }
 
-    private Instance parseResistor(String line) {
-        String [] parts = line.split("\\s+");
+    private void addInstance(Instance inst) {
+        if (inst == null) return;
+        if (currentSubckt != null)
+            currentSubckt.addInstance(inst);
+        else
+            topLevelInstances.add(inst);
+    }
+
+    private Instance parseResistor(String [] parts) {
         if (parts.length < 4) {
-            System.out.println("Parse Error: Not enough arguments on line "+lineno+": "+line);
+            prErr("Not enough arguments for resistor");
             return null;
         }
         Instance inst = new Instance(parts[0]);
-        int i=1;
-        for (; i<3; i++) {
+        for (int i=1; i<3; i++) {
             inst.addNet(parts[i]);
         }
-        inst.getParams().put("r", parts[i]);
+        parseParam(inst.getParams(), parts[3], "r");
         return inst;
     }
 
-    private Instance parseCapacitor(String line) {
-        String [] parts = line.split("\\s+");
+    private Instance parseCapacitor(String [] parts) {
         if (parts.length < 4) {
-            System.out.println("Parse Error: Not enough arguments on line "+lineno+": "+line);
+            prErr("Not enough arguments for capacitor");
             return null;
         }
         Instance inst = new Instance(parts[0]);
-        int i=1;
-        for (; i<3; i++) {
+        for (int i=1; i<3; i++) {
             inst.addNet(parts[i]);
         }
-        inst.getParams().put("c", parts[i]);
+        parseParam(inst.getParams(), parts[3], "c");
         return inst;
     }
 
-    private Instance parseMosfet(String line) {
-        String [] parts = line.split("\\s+");
+    private Instance parseMosfet(String [] parts) {
         if (parts.length < 8) {
-            System.out.println("Parse Error: Not enough arguments on line "+lineno+": "+line);
+            prErr("Not enough arguments for mosfet");
             return null;
         }
         Instance inst = new Instance(parts[0]);
@@ -278,9 +374,7 @@ public class SpiceNetlistReader {
         String model = parts[i];
         inst.getParams().put("model", model);
         i++;
-        for (; i<parts.length; i++) {
-            parseParam(inst.getParams(), parts[i]);
-        }
+        parseParams(inst.getParams(), i, parts);
         return inst;
     }
 
@@ -370,7 +464,12 @@ public class SpiceNetlistReader {
             subckt.write(out);
             out.println();
         }
+        for (Instance inst : topLevelInstances) {
+            inst.write(out);
+        }
+        out.println();
         out.println(".end");
+        if (out != System.out) out.close();
     }
 
     private static void multiLinePrint(PrintStream out, boolean isComment, String str)
@@ -431,10 +530,10 @@ public class SpiceNetlistReader {
             this.name = typeAndName.substring(1);
             this.nets = new ArrayList<String>();
             this.subckt = null;
-            this.params = new HashMap<String,String>();
+            this.params = new LinkedHashMap<String,String>();
         }
         public Instance(Subckt subckt, String name) {
-            this.type = 'X';
+            this.type = 'x';
             this.name = name;
             this.nets = new ArrayList<String>();
             this.subckt = subckt;
@@ -451,7 +550,8 @@ public class SpiceNetlistReader {
         public HashMap<String,String> getParams() { return params; }
         public Subckt getSubckt() { return subckt; }
         public void write(PrintStream out) {
-            StringBuffer buf = new StringBuffer(type);
+            StringBuffer buf = new StringBuffer();
+            buf.append(type);
             buf.append(name);
             buf.append(" ");
             for (String net : nets) {
@@ -470,6 +570,7 @@ public class SpiceNetlistReader {
                 }
                 buf.append(" ");
             }
+            buf.append("\n");
             multiLinePrint(out, false, buf.toString());
         }
     }
@@ -505,6 +606,7 @@ public class SpiceNetlistReader {
                 buf.append(params.get(key));
                 buf.append(" ");
             }
+            buf.append("\n");
             multiLinePrint(out, false, buf.toString());
             for (Instance inst : instances) {
                 inst.write(out);
@@ -518,8 +620,6 @@ public class SpiceNetlistReader {
     public static void main(String [] args) {
         SpiceNetlistReader reader = new SpiceNetlistReader();
 
-        // test
-        reader = new SpiceNetlistReader();
         try {
             reader.readFile("/import/async/cad/2006/bic/jkg/bic/testSims/test_clk_regen.spi", true);
         } catch (FileNotFoundException e) {
@@ -527,5 +627,24 @@ public class SpiceNetlistReader {
         }
 
         reader.writeFile("/tmp/output.spi");
+    }
+
+    private static void testLineParserTests() {
+        SpiceNetlistReader reader = new SpiceNetlistReader();
+        reader = new SpiceNetlistReader();
+        reader.file = new File("/none");
+        reader.lineno = 1;
+        testLineParser(reader, ".measure tran vmin min v( data) from=0ns to=1.25ns  ");
+        testLineParser(reader, ".param poly_res_corner='1.0 * p' * 0.8 corner");
+        testLineParser(reader, ".param poly_res_corner   =    '1.0 * p' * 0.8 corner");
+        testLineParser(reader, ".param AVT0N = AGAUSS(0.0,  '0.01 / 0.1' , 1)");
+    }
+
+    private static void testLineParser(SpiceNetlistReader reader, String line) {
+        System.out.println("Parsing: "+line);
+        String [] tokens = reader.getTokens(line);
+        for (int i=0; i<tokens.length; i++) {
+            System.out.println(i+": "+tokens[i]);
+        }
     }
 }
