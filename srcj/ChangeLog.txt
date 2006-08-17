@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+IMP: (8/17/06, RK) Put PIE into Tools menu. Make PIE pass regressions.
+
 BUG: (8/16/06, SMR) Pad-frame generator regression fails.
 FIX: Fixed AutoStitch.comparePoly to do proper port alignment test.
 

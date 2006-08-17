@@ -354,12 +354,12 @@ public class ToolMenu {
 		        new EMenuItem("Cells from _Two Windows") { public void run() {
                     new NccJob(2); }},
                 SEPARATOR,
-		        new EMenuItem("Copy Schematic _User Names to Layout") { public void run() {
+   		        new EMenuItem("Copy Schematic _User Names to Layout") { public void run() {
                     new SchemNamesToLay.RenameJob(); }},
-    		    new EMenuItem("Copy All Schematic _Names to Layout") { public void run() {
-                        new AllSchemNamesToLay.RenameJob(); }},
-		        new EMenuItem("Highlight _Equivalent") { public void run() {
-			        HighlightEquivalent.highlight(); }},
+       		    new EMenuItem("Copy All Schematic _Names to Layout") { public void run() {
+                    new AllSchemNamesToLay.RenameJob(); }},
+   		        new EMenuItem("Highlight _Equivalent") { public void run() {
+   			        HighlightEquivalent.highlight(); }},
                 new EMenuItem("Run NCC for Schematic Cross-Probing") { public void run() {
                     runNccSchematicCrossProbing(); }},
 
@@ -569,6 +569,14 @@ public class ToolMenu {
                         registerUpdatable();
                     }
                  },
+
+        // ------------------- PIE
+            // If Pie package is installed then add menu entries to call it
+            Pie.hasPie() ? new EMenu("_PIE",
+               new EMenuItem("PIE Schematic and Layout Views of Cell in Current Window") { public void run() {
+                    Pie.invokePieNcc(1); }},
+               new EMenuItem("Cells from _Two Windows") { public void run() {
+                    Pie.invokePieNcc(2); }}) : null,
 
         //------------------- Others
 

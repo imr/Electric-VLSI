@@ -51,7 +51,8 @@ public class NccJob extends Job {
 	// This field is the result passed from the server to the client
 	private NccResults results;
 
-    static NccMsgsFrame nccgui = new NccMsgsFrame();
+	// Share with com.sun.electric.plugins.pie.NccJob
+    public static NccMsgsFrame nccgui = new NccMsgsFrame();
 
 	private void prln(String s) {System.out.println(s);}
 	private void pr(String s) {System.out.print(s);}
