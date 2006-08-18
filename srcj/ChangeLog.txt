@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+BUG: (8/17/06, GVG) Avoiding PS export and printing of document cells (Bug #1203). Some users
+believe this is possible.
+FIX: Detect View type and suggest to use "Text Cell Contents".
+
 IMP: (8/17/06, RK) Put PIE into Tools menu. Make PIE pass regressions.
 
 BUG: (8/16/06, SMR) Pad-frame generator regression fails.

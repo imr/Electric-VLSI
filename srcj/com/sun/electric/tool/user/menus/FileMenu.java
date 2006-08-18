@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
@@ -1018,6 +1019,15 @@ public class FileMenu {
         List<PolyBase> override = null;
         if (type == FileType.POSTSCRIPT)
         {
+            if (cell.getView() == View.DOC)
+            {
+                System.out.println("Document cells can't be exported as postscript.");
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Document cells can't be exported as postscript.\n" +
+                        "Try \"Export -> Text Cell Contents\"",
+                    "Exporting PS", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
             if (IOTool.isPrintEncapsulated()) type = FileType.EPS;
 			if (wnd instanceof WaveformWindow)
 			{
@@ -1130,6 +1140,14 @@ public class FileMenu {
     		System.out.println("No current window to print");
     		return;
     	}
+        Cell cell = WindowFrame.getCurrentCell();
+        if (cell.getView() == View.DOC)
+        {
+            System.out.println("Document cells can't be printed as postscript.");
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Document cells can't be printed as postscript.",
+                    "Printing Cell", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName(wf.getTitle());
