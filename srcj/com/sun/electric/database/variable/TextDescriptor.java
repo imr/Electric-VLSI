@@ -121,6 +121,7 @@ public class TextDescriptor extends AbstractTextDescriptor
         if (p == null) throw new NullPointerException();
         if (getPos() == p) return this;
 		MutableTextDescriptor td = new MutableTextDescriptor(this);
+		td.setPos(p);
         return newTextDescriptor(td);
 	}
 

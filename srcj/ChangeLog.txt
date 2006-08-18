@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+BUG: (8/18/06, SMR) TextDescriptor.withPos() does nothing.
+FIX: Added td.setPos(p);
+
 BUG: (8/17/06, GVG) Avoiding PS export and printing of document cells (Bug #1203). Some users
 believe this is possible.
 FIX: Detect View type and suggest to use "Text Cell Contents".
