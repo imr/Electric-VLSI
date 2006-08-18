@@ -2784,6 +2784,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// reload the sweeps
 		resetSweeps();
 
+		// adjust the overall X axis signal (if it is not time)
+		String oldXAxisSignalAllName = null;
+		if (xAxisSignalAll != null)
+		{
+			oldXAxisSignalAllName = xAxisSignalAll.getFullName();
+			xAxisSignalAll = null;
+		}
+
 		List<Panel> panelList = new ArrayList<Panel>();
 		for(Panel wp : wavePanels)
 			panelList.add(wp);
@@ -2791,6 +2799,38 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			Analysis an = sd.findAnalysis(wp.getAnalysisType());
 			boolean redoPanel = false;
+
+			// adjust the panel's X axis signal (if it is not time)
+			if (wp.getXAxisSignal() != null)
+			{
+				String oldSigName = wp.getXAxisSignal().getFullName();
+				wp.setXAxisSignal(null);
+				for(Signal newSs : an.getSignals())
+				{
+					String newSigName = newSs.getFullName();
+					if (!newSigName.equals(oldSigName)) continue;
+					wp.setXAxisSignal(newSs);
+					break;
+				}
+				if (wp.getXAxisSignal() == null)
+				{
+					System.out.println("Could not find X axis signal " + oldSigName + " in the new data");
+					redoPanel = true;
+				}
+			}
+
+			if (oldXAxisSignalAllName != null)
+			{
+				for(Signal newSs : an.getSignals())
+				{
+					String newSigName = newSs.getFullName();
+					if (!newSigName.equals(oldXAxisSignalAllName)) continue;
+					xAxisSignalAll = newSs;
+					break;
+				}
+			}
+
+			// adjust all signals inside the panel
 			for(WaveSignal ws : wp.getSignals())
 			{
 				Signal ss = ws.getSignal();
@@ -2867,6 +2907,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				wp.repaintContents();
 			}
 		}
+		if (oldXAxisSignalAllName != null && xAxisSignalAll == null)
+			System.out.println("Could not find main X axis signal " + oldXAxisSignalAllName + " in the new data");
 		wf.wantToRedoSignalTree();
 		System.out.println("Simulation data refreshed from disk");
 	}
@@ -3665,6 +3707,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						}
 						hr.repaint();
 					}
+					ww.saveSignalOrder();
 				}
 				dtde.dropComplete(false);
 				return;

@@ -359,5 +359,6 @@ public class HorizRuler extends JPanel implements MouseListener
 			waveWindow.getMainHorizRuler().repaint();
 			waveWindow.redrawAllPanels();
 		}
+		waveWindow.saveSignalOrder();
 	}
 }
