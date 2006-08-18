@@ -180,6 +180,10 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(txtt);
 		displaySet.add(new DefaultMutableTreeNode(txtt.getName()));
 
+		SmartTextTab stxtt = new SmartTextTab(parent, modal);
+		optionPanes.add(stxtt);
+		displaySet.add(new DefaultMutableTreeNode(stxtt.getName()));
+
 		GridAndAlignmentTab gat = new GridAndAlignmentTab(parent, modal);
 		optionPanes.add(gat);
 		displaySet.add(new DefaultMutableTreeNode(gat.getName()));

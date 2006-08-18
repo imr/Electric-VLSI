@@ -95,20 +95,6 @@ public class TextTab extends PreferencePanel
 		currentTextInstanceDescriptor = MutableTextDescriptor.getInstanceTextDescriptor();
 		currentTextCellDescriptor = MutableTextDescriptor.getCellTextDescriptor();
 
-		switch (User.getSmartVerticalPlacement())
-		{
-			case 0: textSmartVerticalOff.setSelected(true);       break;
-			case 1: textSmartVerticalInside.setSelected(true);    break;
-			case 2: textSmartVerticalOutside.setSelected(true);   break;
-		}
-
-		switch (User.getSmartHorizontalPlacement())
-		{
-			case 0: textSmartHorizontalOff.setSelected(true);       break;
-			case 1: textSmartHorizontalInside.setSelected(true);    break;
-			case 2: textSmartHorizontalOutside.setSelected(true);   break;
-		}
-
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		String [] fontNames = ge.getAvailableFontFamilyNames();
 		textFace.addItem("DEFAULT FONT");
@@ -336,18 +322,6 @@ public class TextTab extends PreferencePanel
 		if (!currentTextCellDescriptor.equals(initialTextCellDescriptor))
 			TextDescriptor.setCellTextDescriptor(currentTextCellDescriptor);
 
-		currInt = 0;
-		if (textSmartVerticalInside.isSelected()) currInt = 1; else
-			if (textSmartVerticalOutside.isSelected()) currInt = 2;
-		if (currInt != User.getSmartVerticalPlacement())
-			User.setSmartVerticalPlacement(currInt);
-
-		currInt = 0;
-		if (textSmartHorizontalInside.isSelected()) currInt = 1; else
-			if (textSmartHorizontalOutside.isSelected()) currInt = 2;
-		if (currInt != User.getSmartHorizontalPlacement())
-			User.setSmartHorizontalPlacement(currInt);
-
 		double currentGlobalScale = TextUtils.atof(textGlobalScale.getText()) / 100;
 		if (currentGlobalScale != User.getGlobalTextScale())
 		{
@@ -387,8 +361,6 @@ public class TextTab extends PreferencePanel
 
         textSizeGroup = new javax.swing.ButtonGroup();
         textTypeGroup = new javax.swing.ButtonGroup();
-        textVerticalGroup = new javax.swing.ButtonGroup();
-        textHorizontalGroup = new javax.swing.ButtonGroup();
         text = new javax.swing.JPanel();
         top = new javax.swing.JPanel();
         jLabel41 = new javax.swing.JLabel();
@@ -418,15 +390,6 @@ public class TextTab extends PreferencePanel
         jLabel1 = new javax.swing.JLabel();
         textGlobalScale = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
-        bottom = new javax.swing.JPanel();
-        jLabel56 = new javax.swing.JLabel();
-        textSmartVerticalOff = new javax.swing.JRadioButton();
-        textSmartVerticalInside = new javax.swing.JRadioButton();
-        textSmartVerticalOutside = new javax.swing.JRadioButton();
-        jLabel57 = new javax.swing.JLabel();
-        textSmartHorizontalOff = new javax.swing.JRadioButton();
-        textSmartHorizontalInside = new javax.swing.JRadioButton();
-        textSmartHorizontalOutside = new javax.swing.JRadioButton();
         textCells = new javax.swing.JPanel();
         jLabel7 = new javax.swing.JLabel();
         textCellFont = new javax.swing.JComboBox();
@@ -449,8 +412,8 @@ public class TextTab extends PreferencePanel
 
         top.setLayout(new java.awt.GridBagLayout());
 
-        top.setBorder(new javax.swing.border.TitledBorder("Default Text Style"));
-        jLabel41.setText("Which type of text:");
+        top.setBorder(javax.swing.BorderFactory.createTitledBorder("Default Style for New Text"));
+        jLabel41.setText("Which type of new text:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -459,7 +422,7 @@ public class TextTab extends PreferencePanel
         top.add(jLabel41, gridBagConstraints);
 
         textTypeGroup.add(textNodes);
-        textNodes.setText("Nodes");
+        textNodes.setText("Node text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -468,7 +431,7 @@ public class TextTab extends PreferencePanel
         top.add(textNodes, gridBagConstraints);
 
         textTypeGroup.add(textArcs);
-        textArcs.setText("Arcs");
+        textArcs.setText("Arc text");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -526,7 +489,7 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         top.add(textPointSize, gridBagConstraints);
 
         textUnitSize.setColumns(8);
@@ -534,7 +497,7 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         top.add(textUnitSize, gridBagConstraints);
 
         jLabel43.setText("Font:");
@@ -584,7 +547,7 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         top.add(textPoints, gridBagConstraints);
 
         textSizeGroup.add(textUnits);
@@ -593,7 +556,7 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         top.add(textUnits, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -601,7 +564,7 @@ public class TextTab extends PreferencePanel
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 30, 4, 30);
         top.add(jSeparator3, gridBagConstraints);
 
         jLabel6.setText("Anchor:");
@@ -636,7 +599,7 @@ public class TextTab extends PreferencePanel
 
         globals.setLayout(new java.awt.GridBagLayout());
 
-        globals.setBorder(new javax.swing.border.TitledBorder("Everywhere:"));
+        globals.setBorder(javax.swing.BorderFactory.createTitledBorder("Everywhere:"));
         jLabel44.setText("Default font:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -679,92 +642,13 @@ public class TextTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         text.add(globals, gridBagConstraints);
 
-        bottom.setLayout(new java.awt.GridBagLayout());
-
-        bottom.setBorder(new javax.swing.border.TitledBorder("Smart Placement of Export Text"));
-        jLabel56.setText("Vertical:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        bottom.add(jLabel56, gridBagConstraints);
-
-        textVerticalGroup.add(textSmartVerticalOff);
-        textSmartVerticalOff.setText("Off");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        bottom.add(textSmartVerticalOff, gridBagConstraints);
-
-        textVerticalGroup.add(textSmartVerticalInside);
-        textSmartVerticalInside.setText("Inside");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        bottom.add(textSmartVerticalInside, gridBagConstraints);
-
-        textVerticalGroup.add(textSmartVerticalOutside);
-        textSmartVerticalOutside.setText("Outside");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        bottom.add(textSmartVerticalOutside, gridBagConstraints);
-
-        jLabel57.setText("Horizontal:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        bottom.add(jLabel57, gridBagConstraints);
-
-        textHorizontalGroup.add(textSmartHorizontalOff);
-        textSmartHorizontalOff.setText("Off");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        bottom.add(textSmartHorizontalOff, gridBagConstraints);
-
-        textHorizontalGroup.add(textSmartHorizontalInside);
-        textSmartHorizontalInside.setText("Inside");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        bottom.add(textSmartHorizontalInside, gridBagConstraints);
-
-        textHorizontalGroup.add(textSmartHorizontalOutside);
-        textSmartHorizontalOutside.setText("Outside");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        bottom.add(textSmartHorizontalOutside, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        text.add(bottom, gridBagConstraints);
-
         textCells.setLayout(new java.awt.GridBagLayout());
 
-        textCells.setBorder(new javax.swing.border.TitledBorder("For Textual Cells:"));
+        textCells.setBorder(javax.swing.BorderFactory.createTitledBorder("For Textual Cells:"));
         jLabel7.setText("Font:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -805,8 +689,7 @@ public class TextTab extends PreferencePanel
         getContentPane().add(text, new java.awt.GridBagConstraints());
 
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -816,7 +699,6 @@ public class TextTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JPanel bottom;
     private javax.swing.JPanel globals;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -825,8 +707,6 @@ public class TextTab extends PreferencePanel
     private javax.swing.JLabel jLabel42;
     private javax.swing.JLabel jLabel43;
     private javax.swing.JLabel jLabel44;
-    private javax.swing.JLabel jLabel56;
-    private javax.swing.JLabel jLabel57;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JSeparator jSeparator3;
@@ -842,7 +722,6 @@ public class TextTab extends PreferencePanel
     private javax.swing.JComboBox textDefaultFont;
     private javax.swing.JComboBox textFace;
     private javax.swing.JTextField textGlobalScale;
-    private javax.swing.ButtonGroup textHorizontalGroup;
     private javax.swing.JRadioButton textInstances;
     private javax.swing.JCheckBox textItalic;
     private javax.swing.JCheckBox textNewVisibleInsideCell;
@@ -851,17 +730,10 @@ public class TextTab extends PreferencePanel
     private javax.swing.JRadioButton textPoints;
     private javax.swing.JRadioButton textPorts;
     private javax.swing.ButtonGroup textSizeGroup;
-    private javax.swing.JRadioButton textSmartHorizontalInside;
-    private javax.swing.JRadioButton textSmartHorizontalOff;
-    private javax.swing.JRadioButton textSmartHorizontalOutside;
-    private javax.swing.JRadioButton textSmartVerticalInside;
-    private javax.swing.JRadioButton textSmartVerticalOff;
-    private javax.swing.JRadioButton textSmartVerticalOutside;
     private javax.swing.ButtonGroup textTypeGroup;
     private javax.swing.JCheckBox textUnderline;
     private javax.swing.JTextField textUnitSize;
     private javax.swing.JRadioButton textUnits;
-    private javax.swing.ButtonGroup textVerticalGroup;
     private javax.swing.JPanel top;
     // End of variables declaration//GEN-END:variables
 

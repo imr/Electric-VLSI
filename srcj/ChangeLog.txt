@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+IMP/MAN: (8/18/06, SMR) Smart Text Placement now in its own Preferences panel,
+     includes smart text placement for arcs (Bug #1058).
+
 BUG: (8/18/06, SMR) TextDescriptor.withPos() does nothing.
 FIX: Added td.setPos(p);
 

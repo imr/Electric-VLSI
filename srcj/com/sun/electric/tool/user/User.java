@@ -1280,35 +1280,65 @@ public class User extends Listener
 	 */
 	public static void setTextVisibilityOnCell(boolean on) { cacheTextVisibilityCell.setBoolean(on); }
 
-	private static Pref cacheSmartVerticalPlacement = Pref.makeIntPref("TextSmartVerticalPlacement", tool.prefs, 0);
+	private static Pref cacheSmartVerticalPlacementExport = Pref.makeIntPref("SmartVerticalPlacementExport", tool.prefs, 0);
 	/**
-	 * Method to tell what type of "smart" vertical text placement should be done.
+	 * Method to tell what type of "smart" vertical text placement should be done for Exports.
 	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
-	 * The default is "0".
-	 * @return the type of "smart" vertical text placement to be done.
+	 * The default is 0.
+	 * @return the type of "smart" vertical text placement to be done for Exports.
 	 */
-	public static int getSmartVerticalPlacement() { return cacheSmartVerticalPlacement.getInt(); }
+	public static int getSmartVerticalPlacementExport() { return cacheSmartVerticalPlacementExport.getInt(); }
 	/**
-	 * Method to set the type of "smart" vertical text placement to be done.
+	 * Method to set the type of "smart" vertical text placement to be done for Exports.
 	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
-	 * @param s the type of "smart" vertical text placement to be done.
+	 * @param s the type of "smart" vertical text placement to be done for Exports.
 	 */
-	public static void setSmartVerticalPlacement(int s) { cacheSmartVerticalPlacement.setInt(s); }
+	public static void setSmartVerticalPlacementExport(int s) { cacheSmartVerticalPlacementExport.setInt(s); }
 
-	private static Pref cacheSmartHorizontalPlacement = Pref.makeIntPref("TextSmartHorizontalPlacement", tool.prefs, 0);
+	private static Pref cacheSmartHorizontalPlacementExport = Pref.makeIntPref("SmartHorizontalPlacementExport", tool.prefs, 0);
 	/**
-	 * Method to tell what type of "smart" horizontal text placement should be done.
+	 * Method to tell what type of "smart" horizontal text placement should be done for Exports.
 	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
-	 * The default is "0".
-	 * @return the type of "smart" horizontal text placement to be done.
+	 * The default is 0.
+	 * @return the type of "smart" horizontal text placement to be done for Exports.
 	 */
-	public static int getSmartHorizontalPlacement() { return cacheSmartHorizontalPlacement.getInt(); }
+	public static int getSmartHorizontalPlacementExport() { return cacheSmartHorizontalPlacementExport.getInt(); }
 	/**
-	 * Method to set the type of "smart" horizontal text placement to be done.
+	 * Method to set the type of "smart" horizontal text placement to be done for Exports.
 	 * The values can be 0: no smart placement; 1: place text "inside"; 2: place text "outside".
-	 * @param s the type of "smart" horizontal text placement to be done.
+	 * @param s the type of "smart" horizontal text placement to be done for Exports.
 	 */
-	public static void setSmartHorizontalPlacement(int s) { cacheSmartHorizontalPlacement.setInt(s); }
+	public static void setSmartHorizontalPlacementExport(int s) { cacheSmartHorizontalPlacementExport.setInt(s); }
+
+	private static Pref cacheSmartVerticalPlacementArc = Pref.makeIntPref("SmartVerticalPlacementArc", tool.prefs, 0);
+	/**
+	 * Method to tell what type of "smart" text placement should be done for vertical Arcs.
+	 * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
+	 * The default is 0.
+	 * @return the type of "smart" text placement to be done for vertical Arcs.
+	 */
+	public static int getSmartVerticalPlacementArc() { return cacheSmartVerticalPlacementArc.getInt(); }
+	/**
+	 * Method to set the type of "smart" text placement to be done for vertical Arcs.
+	 * The values can be 0: place text inside; 1: place text to left; 2: place text to right.
+	 * @param s the type of "smart" text placement to be done for vertical Arcs.
+	 */
+	public static void setSmartVerticalPlacementArc(int s) { cacheSmartVerticalPlacementArc.setInt(s); }
+
+	private static Pref cacheSmartHorizontalPlacementArc = Pref.makeIntPref("SmartHorizontalPlacementArc", tool.prefs, 0);
+	/**
+	 * Method to tell what type of "smart" text placement should be done for horizontal Arcs.
+	 * The values can be 0: place text inside; 1: place text above; 2: place text below.
+	 * The default is 0.
+	 * @return the type of "smart" text placement to be done for horizontal Arcs.
+	 */
+	public static int getSmartHorizontalPlacementArc() { return cacheSmartHorizontalPlacementArc.getInt(); }
+	/**
+	 * Method to set the type of "smart" text placement to be done for horizontal Arcs.
+	 * The values can be 0: place text inside; 1: place text above; 2: place text below.
+	 * @param s the type of "smart" text placement to be done for horizontal Arcs.
+	 */
+	public static void setSmartHorizontalPlacementArc(int s) { cacheSmartHorizontalPlacementArc.setInt(s); }
 
 	private static Pref cacheDefaultFont = Pref.makeStringPref("DefaultFont", tool.prefs, "SansSerif");
 	/**

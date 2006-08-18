@@ -47,6 +47,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -376,12 +377,17 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return null;
 		}
 
+        if (nameDescriptor == null) nameDescriptor = TextDescriptor.getArcTextDescriptor();
         Name nameKey = name != null ? Name.findName(name) : null;
 		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, ArcInst.class, null)) || checkNameKey(nameKey, parent))
 		{
             nameKey = parent.getArcAutoname();
+		} else
+		{
+			// adjust the name descriptor for "smart" text placement
+			TextDescriptor smartDescriptor = getSmartTextDescriptor(angle, width, nameDescriptor);
+			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
 		}
-        if (nameDescriptor == null) nameDescriptor = TextDescriptor.getArcTextDescriptor();
 		if (width < 0)
 			width = protoType.getWidth();
        
@@ -1097,9 +1103,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	{
 		assert isLinked();
 		Name key;
+		boolean doSmart = false;
 		if (name != null && name.length() > 0)
 		{
 			if (name.equals(getName())) return false;
+			if (!isUsernamed()) doSmart = true;
 			key = Name.findName(name);
 		} else
 		{
@@ -1109,8 +1117,56 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		if (checkNameKey(key, parent)) return true;
         ImmutableArcInst oldD = d;
         lowLevelModify(d.withName(key));
+        if (doSmart)
+        {
+    		TextDescriptor smartDescriptor = getSmartTextDescriptor(d.angle, d.width, d.nameDescriptor);
+        	if (smartDescriptor != null) setTextDescriptor(ARC_NAME, smartDescriptor);
+        }
+
+        // apply constraints
         Constraints.getCurrent().modifyArcInst(this, oldD);
 		return false;
+	}
+
+	/**
+	 * Method to return a "smart" text descriptor for an arc.
+	 * @param angle the angle of the arc (in tenths of a degree).
+	 * @param width the width of the arc.
+	 * @param prev the former text descriptor of the arc.
+	 * @return a new text descriptor that handles smart placement.
+	 * Returns null if no change was made.
+	 */
+	private static TextDescriptor getSmartTextDescriptor(int angle, double width, TextDescriptor prev)
+	{
+		// assigning valid name: do smart text placement
+		if ((angle%1800) == 0)
+		{
+			// horizontal arc
+			int smart = User.getSmartHorizontalPlacementArc();
+			if (smart == 1)
+			{
+				// arc text above
+				return prev.withPos(TextDescriptor.Position.UP).withOff(0, width/2);
+			} else if (smart == 2)
+			{
+				// arc text below
+				return prev.withPos(TextDescriptor.Position.DOWN).withOff(0, -width/2);
+			}
+		} else if ((angle%1800) == 900)
+		{
+			// vertical arc
+			int smart = User.getSmartVerticalPlacementArc();
+			if (smart == 1)
+			{
+				// arc text to the left
+				return prev.withPos(TextDescriptor.Position.LEFT).withOff(-width/2, 0);
+			} else if (smart == 2)
+			{
+				// arc text to the right
+				return prev.withPos(TextDescriptor.Position.RIGHT).withOff(width/2, 0);
+			}
+		}
+		return null;
 	}
 
 	/**

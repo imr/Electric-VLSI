@@ -711,8 +711,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	private static TextDescriptor smartPlacement(PortInst originalPort)
 	{
 		// handle smart text placement relative to attached object
-		int smartVertical = User.getSmartVerticalPlacement();
-		int smartHorizontal = User.getSmartHorizontalPlacement();
+		int smartVertical = User.getSmartVerticalPlacementExport();
+		int smartHorizontal = User.getSmartHorizontalPlacementExport();
 		if (smartVertical == 0 && smartHorizontal == 0) return TextDescriptor.getExportTextDescriptor();
 
 		// figure out location of object relative to environment
