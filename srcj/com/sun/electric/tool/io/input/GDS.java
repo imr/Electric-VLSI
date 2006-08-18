@@ -267,6 +267,25 @@ public class GDS extends Input
 					" with " + size + " instances");
 				if (size >= 100000) countOff = true;
 			}
+
+// ignore internal contents when cell is very large (for testing only)
+//if (countOff)
+//{
+//	MakeInstance ll = null, ul = null, lr = null, ur = null;
+//	for(MakeInstance mi : insts)
+//	{
+//		if (ll == null) ll = ul = lr = ur = mi;
+//		if (mi.loc.getX() <= ll.loc.getX() && mi.loc.getY() <= ll.loc.getY()) ll = mi;
+//		if (mi.loc.getX() <= ul.loc.getX() && mi.loc.getY() >= ul.loc.getY()) ul = mi;
+//		if (mi.loc.getX() >= lr.loc.getX() && mi.loc.getY() <= lr.loc.getY()) lr = mi;
+//		if (mi.loc.getX() >= ur.loc.getX() && mi.loc.getY() >= ur.loc.getY()) ur = mi;
+//	}
+//	insts.clear();
+//	insts.add(ll);
+//	if (!insts.contains(ul)) insts.add(ul);
+//	if (!insts.contains(lr)) insts.add(lr);
+//	if (!insts.contains(ur)) insts.add(ur);
+//}
             nameInstances(countOff);
            	Collections.sort(insts);
 			int count = 0;
@@ -371,10 +390,15 @@ public class GDS extends Input
                         if (!m2P.getBounds2D().equals(m1P.getBounds2D())) continue; // no match
 
                         ImmutableNodeInst d = (ImmutableNodeInst)ni.getImmutable();
+                        String name = ni.getName();
+                        int atIndex = name.indexOf('@');
+                        if (atIndex < 0) name += "tmp"; else
+                        	name = name.substring(0, atIndex) + "tmp" + name.substring(atIndex);                        	
                         NodeInst newNi = NodeInst.makeInstance(pn, d.anchor,
                                 m2P.getBounds2D().getWidth() + so.getLowXOffset() + so.getHighXOffset(),
                                 m2P.getBounds2D().getHeight() + so.getLowYOffset() + so.getHighYOffset(),
-                                ni.getParent(), ni.getOrient(), ni.getName()+"tmp", 0);
+                                ni.getParent(), ni.getOrient(), name, 0);
+
                         // Searching for vias to delete
                         assert(viasList != null);
                         Poly[] viaPolys = tech.getShapeOfNode(newNi, null, null, true, false, tmpList);
@@ -868,25 +892,25 @@ public class GDS extends Input
 		getToken();
 		int n = determinePoints(3, 3);
 
-		Point2D colInterval = new Point2D.Double(0, 0);
-		if (nCols != 1)
-		{
-			colInterval.setLocation((theVertices[1].getX() - theVertices[0].getX()) / nCols, (theVertices[1].getY() - theVertices[0].getY()) / nCols);
-			makeTransform(colInterval, angle, trans);
-		}
-		Point2D rowInterval = new Point2D.Double(0, 0);
-		if (nRows != 1)
-		{
-			rowInterval.setLocation((theVertices[2].getX() - theVertices[0].getX()) / nRows, (theVertices[2].getY() - theVertices[0].getY()) / nRows);
-			makeTransform(rowInterval, angle, trans);
-		}
-
 		boolean mY = false;
 		boolean mX = false;
 		if (trans)
 		{
 			mY = true;
 			angle = (angle + 900) % 3600;
+		}
+
+		Point2D colInterval = new Point2D.Double(0, 0);
+		if (nCols != 1)
+		{
+			colInterval.setLocation((theVertices[1].getX() - theVertices[0].getX()) / nCols, (theVertices[1].getY() - theVertices[0].getY()) / nCols);
+//			makeTransform(colInterval, angle, trans);
+		}
+		Point2D rowInterval = new Point2D.Double(0, 0);
+		if (nRows != 1)
+		{
+			rowInterval.setLocation((theVertices[2].getX() - theVertices[0].getX()) / nRows, (theVertices[2].getY() - theVertices[0].getY()) / nRows);
+//			makeTransform(rowInterval, angle, trans);
 		}
 
 		// now generate the array

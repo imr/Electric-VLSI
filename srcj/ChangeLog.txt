@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+BUG: (8/18/06, SMR) GDS arrays are read incorrectly (Bug #1204).
+FIX: In GDS.determineARef(), do not transform offset of array elements.
+
 BUG: (8/18/06, SMR) Waveform window crashes when reloading with non-time X axis (Bug #1205).
 FIX: Must reevaluate X axis signals when reloading; must save signals when X axis changes.
 
