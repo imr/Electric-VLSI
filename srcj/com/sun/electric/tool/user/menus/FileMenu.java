@@ -1135,12 +1135,12 @@ public class FileMenu {
     public static void printCommand()
     {
     	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-    	if (wf == null)
+        Cell cell = WindowFrame.getCurrentCell();
+    	if (wf == null || cell == null)
     	{
     		System.out.println("No current window to print");
     		return;
     	}
-        Cell cell = WindowFrame.getCurrentCell();
         if (cell.getView() == View.DOC)
         {
             System.out.println("Document cells can't be printed as postscript.");
@@ -1157,11 +1157,11 @@ public class FileMenu {
         String pName = IOTool.getPrinterName();
         PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
         PrintService printerToUse = null;
-        for(int i=0; i<printers.length; i++)
+        for(PrintService printer : printers)
         {
-            if (pName.equals(printers[i].getName()))
+            if (pName.equals(printer.getName()))
             {
-                printerToUse = printers[i];
+                printerToUse = printer;
                 break;
             }
         }
