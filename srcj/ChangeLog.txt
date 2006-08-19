@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+IMP: (8/18/06, RK) PIE: Save EquivRecords before guessing
+
 BUG: (8/18/06, SMR) GDS arrays are read incorrectly (Bug #1204).
 FIX: In GDS.determineARef(), do not transform offset of array elements.
 
