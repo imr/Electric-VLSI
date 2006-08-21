@@ -286,8 +286,8 @@ public class Variable implements Serializable
             assert type == typeByte.byteValue();
         }
         assert descriptor != null;
-        if (descriptor.isCode())
-            assert value instanceof String || value instanceof String[];
+        //if (descriptor.isCode())
+        //    assert value instanceof String || value instanceof String[];
         if (!paramAllowed)
             assert !descriptor.isParam();
 	}
@@ -933,9 +933,9 @@ public class Variable implements Serializable
 	 */
 	public Variable withTextDescriptor(TextDescriptor descriptor) {
         if (this.descriptor == descriptor) return this;
-        if (descriptor.isCode() && !(value instanceof String || value instanceof String[]))
-            descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
-        if (this.descriptor == descriptor) return this;
+        //if (descriptor.isCode() && !(value instanceof String || value instanceof String[]))
+        //    descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
+        //if (this.descriptor == descriptor) return this;
         return new Variable(this.key, this.value, descriptor, this.type);
     }
     
