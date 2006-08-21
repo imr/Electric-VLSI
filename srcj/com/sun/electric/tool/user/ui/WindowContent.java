@@ -107,8 +107,9 @@ public interface WindowContent
 	 * Method to intialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
+     * @return true if there were no errors initializing the printer.
 	 */
-	public abstract void initializePrinting(ElectricPrinter ep, PageFormat pageFormat);
+	public abstract boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat);
 
 	/**
 	 * Method to print window using offscreen canvas.

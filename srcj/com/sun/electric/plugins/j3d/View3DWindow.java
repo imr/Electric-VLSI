@@ -439,7 +439,7 @@ public class View3DWindow extends JPanel
     /**
      * Method to create main transformation group
      * @param cell
-     * @return
+     * @return BrachGroup representing the scene graph
      */
     protected BranchGroup createSceneGraph(Cell cell)
 	{
@@ -1023,8 +1023,9 @@ public class View3DWindow extends JPanel
 	 * Method to intialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
+     * @return false for now.
 	 */
-	public void initializePrinting(ElectricPrinter ep, PageFormat pageFormat) {}
+    public boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat) { return false;}
 
 	/**
 	 * Method to print window using offscreen canvas.

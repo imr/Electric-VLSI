@@ -751,8 +751,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to intialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
+     * @return true if no erros were found during initialization.
 	 */
-	public void initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
+	public boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
 		oldForeground = User.getColorWaveformForeground();
 		oldBackground = User.getColorWaveformBackground();
@@ -761,8 +762,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		changedColors = true;
 
 		PrinterJob pj = ep.getPrintJob();
-		ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
-		nowPrinting = 1;
+        if (pj == null) return false; // error
+        ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
+        if (cs == null) return false; // error
+        nowPrinting = 1;
 		if (cs.getValue() == 0) nowPrinting = 2;
 
 		Dimension oldSize = ep.getOldSize();
@@ -777,7 +780,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		overall.validate();
 		redrawAllPanels();
 		overall.repaint();
-	}
+        return true;
+    }
 
 	/**
 	 * Method to print window using offscreen canvas.

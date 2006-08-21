@@ -777,15 +777,17 @@ public class TextWindow implements WindowContent
 	 * Method to intialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
+     * @return Always true.
 	 */
-	public void initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
+	public boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
 		int pageWid = (int)pageFormat.getImageableWidth() * ep.getDesiredDPI() / 72;
 		int pageHei = (int)pageFormat.getImageableHeight() * ep.getDesiredDPI() / 72;
 		overall.setSize(pageWid, pageHei);
 		overall.validate();
 		overall.repaint();
-	}
+        return true;
+    }
 
 	/**
 	 * Method to print window using offscreen canvas.

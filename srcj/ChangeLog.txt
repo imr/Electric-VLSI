@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+BUG: (8/21/06, GVG) Exception when printing waveform (bug #1206)
+FIX: Detecting if PrinterJob or ColorSupported is null.
+
 IMP: (8/18/06, RK) PIE: Save EquivRecords before guessing
 
 BUG: (8/18/06, SMR) GDS arrays are read incorrectly (Bug #1204).

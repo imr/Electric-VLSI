@@ -3743,8 +3743,9 @@ public class EditWindow extends JPanel
 	 * Method to intialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
+     * @return Always true.
 	 */
-	public void initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
+	public boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
 		int scaleFactor = ep.getDesiredDPI() / 72;
 		if (scaleFactor > 2) scaleFactor = 2; else
@@ -3754,7 +3755,8 @@ public class EditWindow extends JPanel
 		overall.setSize(pageWid, pageHei);
 		overall.validate();
 		overall.repaint();
-	}
+        return true;
+    }
 
 	/**
 	 * Method to print window using offscreen canvas.

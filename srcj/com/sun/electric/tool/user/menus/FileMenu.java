@@ -1143,8 +1143,9 @@ public class FileMenu {
     	}
         if (cell.getView() == View.DOC)
         {
-            System.out.println("Document cells can't be printed as postscript.");
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Document cells can't be printed as postscript.",
+            String message = "Document cells can't be printed as postscript.";
+            System.out.println(message);
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message,
                     "Printing Cell", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -1188,7 +1189,15 @@ public class FileMenu {
 			ep.setOldSize(oldSize);
 
 			// initialize for content-specific printing
-			wf.getContent().initializePrinting(ep, pageFormat);
+            if (!wf.getContent().initializePrinting(ep, pageFormat))
+            {
+                String message = "Problems initializing printers. Check printer setup.";
+                System.out.println(message);
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message,
+                    "Printing Cell", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
 
             printerToUse = pj.getPrintService();
             if (printerToUse != null)
