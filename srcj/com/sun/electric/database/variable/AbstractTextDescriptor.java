@@ -107,7 +107,7 @@ abstract class AbstractTextDescriptor implements Serializable
 	/** variable is interpreted code (with VCODE2) */	private static final int VCODE1 =                040;
 	/** display variable (uses textdescript field) */	/*private*/ static final int VDISPLAY =         0100;
 	/** variable is interpreted code (with VCODE1) */	private static final int VCODE2 =        04000000000;
-	/** variable is LISP */								private static final int VLISP =              VCODE1;
+	/** variable is LISP */								private static final int VSPICE =             VCODE1;
 	/** variable is TCL */								private static final int VTCL =               VCODE2;
 	/** variable is Java */								private static final int VJAVA =      (VCODE1|VCODE2);
 
@@ -691,7 +691,7 @@ abstract class AbstractTextDescriptor implements Serializable
      */
     public static enum Code {
         /** Indicator that code is in Java. */	JAVA("Java", VJAVA),
-		/** Indicator that code is in Lisp. */	LISP("Lisp (not avail.)", VLISP),
+		/** Indicator that code is in Lisp. */	SPICE("Spice", VSPICE),
 		/** Indicator that code is in TCL. */	TCL("TCL (not avail.)", VTCL),
 		/** Indicator that this is not code. */	NONE("Not Code", 0);
         
@@ -731,7 +731,7 @@ abstract class AbstractTextDescriptor implements Serializable
             switch (cBits & (VCODE1|VCODE2))
             {
                 case VJAVA: return JAVA;
-                case VLISP: return LISP;
+                case VSPICE: return SPICE;
                 case VTCL: return TCL;
                 default: return NONE;
             }

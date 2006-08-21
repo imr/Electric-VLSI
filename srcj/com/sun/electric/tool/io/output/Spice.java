@@ -43,6 +43,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -817,7 +818,8 @@ public class Spice extends Topology
 				for(Iterator<Variable> it = cell.getParameters(); it.hasNext(); )
 				{
 					Variable paramVar = it.next();
-					infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
+                    if (paramVar.getCode() != TextDescriptor.Code.SPICE) continue;
+                    infstr.append(" " + paramVar.getTrueName() + "=" + paramVar.getPureValue(-1));
 				}
 //				for(Iterator it = cell.getVariables(); it.hasNext(); )
 //				{
@@ -1041,7 +1043,6 @@ public class Spice extends Topology
 						}
 					}
 				}
-                // TODO: put somethign here
                 if (useCDL) {
 				    infstr.append(" /" + subCni.getParameterizedName());
                 } else {
@@ -1055,8 +1056,13 @@ public class Spice extends Topology
 					{
 						Variable paramVar = it.next();
 						Variable instVar = no.getVar(paramVar.getKey());
-						String paramStr = "??";
-						if (instVar != null) paramStr = formatParam(trimSingleQuotes(String.valueOf(context.evalVar(instVar))));
+                        String paramStr = "??";
+						if (instVar != null) {
+                            if (instVar.getCode() != TextDescriptor.Code.SPICE) continue;
+                            Object obj = context.evalSpice(instVar, false);
+                            if (obj != null)
+                                paramStr = formatParam(trimSingleQuotes(String.valueOf(obj)));
+                        }
 						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
 					}
 //					for(Iterator it = subCell.getVariables(); it.hasNext(); )
@@ -1695,6 +1701,7 @@ public class Spice extends Topology
             VarContext vc = context.push(no);
             uniqueCellName.append("_"+vc.getInstPath("."));
         } else {
+            boolean useCellParams = !useCDL && Simulation.isSpiceUseCellParameters();
             if (canParameterizeNames() && no.isCellInstance())
             {
                 // if there are parameters, append them to this name
@@ -1704,6 +1711,9 @@ public class Spice extends Topology
                     Variable var = it.next();
                     if (!no.getNodeInst().isParam(var.getKey())) continue;
 //                    if (!var.isParam()) continue;
+                    if (useCellParams && (var.getCode() == TextDescriptor.Code.SPICE)) {
+                        continue;
+                    }
                     paramValues.add(var);
                 }
                 for(Variable var : paramValues)
@@ -1806,7 +1816,15 @@ public class Spice extends Topology
                 }
                 if (attrVar == null) infstr.append("??"); else
                 {
-					String pVal = String.valueOf(context.evalVar(attrVar, no));
+                    String pVal = "?";
+                    if (!useCDL && Simulation.isSpiceUseCellParameters() &&
+                            attrVar.getCode() == TextDescriptor.Code.SPICE) {
+                        Object obj = context.evalSpice(attrVar, false);
+                        if (obj != null)
+                            pVal = obj.toString();
+                    } else {
+                        pVal = String.valueOf(context.evalVar(attrVar, no));
+                    }
                     if (attrVar.getCode() != TextDescriptor.Code.NONE) pVal = trimSingleQuotes(pVal);
                     infstr.append(pVal);
                     //else
@@ -3170,8 +3188,8 @@ public class Spice extends Topology
                 System.out.println(filePath+" written");
                 spice.printWriter = spicePrintWriter;
                 printWriter.close();
-                spice.spiceMaxLenLine = SPICEMAXLENLINE;
             }
+            spice.spiceMaxLenLine = SPICEMAXLENLINE;
         }
     }
 }

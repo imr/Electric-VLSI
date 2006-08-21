@@ -1726,7 +1726,7 @@ public class JELIB extends LibraryFiles
 						break;
 					}
 					if (codeLetter == 'J') mtd.setCode(TextDescriptor.Code.JAVA); else
-					if (codeLetter == 'L') mtd.setCode(TextDescriptor.Code.LISP); else
+					if (codeLetter == 'L') mtd.setCode(TextDescriptor.Code.SPICE); else
 					if (codeLetter == 'T') mtd.setCode(TextDescriptor.Code.TCL); else
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +

@@ -808,7 +808,7 @@ public class TextDescriptorTest {
         
         List<TextDescriptor.Code> expResult = Arrays.asList(
                 TextDescriptor.Code.JAVA,
-                TextDescriptor.Code.LISP,
+                TextDescriptor.Code.SPICE,
                 TextDescriptor.Code.TCL,
                 TextDescriptor.Code.NONE
                 );

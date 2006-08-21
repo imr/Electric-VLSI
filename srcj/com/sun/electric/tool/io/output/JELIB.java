@@ -595,7 +595,7 @@ public class JELIB extends Output
             {
                 TextDescriptor.Code codeType = td.getCode();
                 if (codeType == TextDescriptor.Code.JAVA) ret.append("OJ"); else
-                if (codeType == TextDescriptor.Code.LISP) ret.append("OL"); else
+                if (codeType == TextDescriptor.Code.SPICE) ret.append("OL"); else
                 if (codeType == TextDescriptor.Code.TCL) ret.append("OT");
             }
 		}

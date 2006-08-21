@@ -275,7 +275,9 @@ public class LENodable {
             }
             retVal = context.evalVar(var);
             if (retVal == null) return -1f;
-            float width = VarContext.objectToFloat(retVal, (float)3.0);
+            //float width = VarContext.objectToFloat(retVal, (float)3.0);
+            float width = VarContext.objectToFloat(retVal, -1f);
+            if (width == -1f) return -1f;
 
 //            var = no.getVar(Schematics.ATTR_LENGTH);
 //            if (var == null) {

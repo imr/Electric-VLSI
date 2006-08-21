@@ -1,10 +1,5 @@
 package com.sun.electric.database.variable;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.io.IOException;
@@ -17,8 +12,6 @@ import java.io.IOException;
  * To change this template use File | Settings | File Templates.
  */
 public class EvalSpice {
-
-    private static final Pattern pat = Pattern.compile("(sin|cos|tan|pow|log|exp|int|sgn|min|max|sign)\\((.*?)\\)");
 
     private String expr;
     private StreamTokenizer tokenizer;
@@ -143,6 +136,39 @@ public class EvalSpice {
                     }
                     eq.addIdentifier(m1);
                 }
+                else if (tokenizer.sval.equalsIgnoreCase("abs")) {
+                    expect('(');
+                    openParens++;
+                    Object arg = evalEq().eval();
+                    if (arg instanceof Double) {
+                        arg = new Double(Math.abs(((Double)arg).doubleValue()));
+                    } else {
+                        arg = "abs"+arg.toString();
+                    }
+                    eq.addIdentifier(arg);
+                }
+                else if (tokenizer.sval.equalsIgnoreCase("sqrt")) {
+                    expect('(');
+                    openParens++;
+                    Object arg = evalEq().eval();
+                    if (arg instanceof Double) {
+                        arg = new Double(Math.sqrt(((Double)arg).doubleValue()));
+                    } else {
+                        arg = "sqrt"+arg.toString();
+                    }
+                    eq.addIdentifier(arg);
+                }
+                else if (tokenizer.sval.equalsIgnoreCase("int")) {
+                    expect('(');
+                    openParens++;
+                    Object arg = evalEq().eval();
+                    if (arg instanceof Double) {
+                        arg = new Double((int)(((Double)arg).doubleValue()));
+                    } else {
+                        arg = "int"+arg.toString();
+                    }
+                    eq.addIdentifier(arg);
+                }
                 else {
                     // identifier
                     eq.addIdentifier(tokenizer.sval);
@@ -198,11 +224,11 @@ public class EvalSpice {
             }
             else if (tt == StreamTokenizer.TT_WORD) {
                 if (tokenizer.sval.equalsIgnoreCase("g")) {
-                    val = 1000000000 * val;
+                    val = val * 1e9;
                 } else if (tokenizer.sval.equalsIgnoreCase("meg")) {
-                    val = 1000000 * val;
+                    val = val * 1e6;
                 } else if (tokenizer.sval.equalsIgnoreCase("k")) {
-                    val = 1000 * val;
+                    val = val * 1e3;
                 } else if (tokenizer.sval.equalsIgnoreCase("m")) {
                     val = val * 1e-3;
                 } else if (tokenizer.sval.equalsIgnoreCase("u")) {

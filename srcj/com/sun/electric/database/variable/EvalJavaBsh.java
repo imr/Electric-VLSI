@@ -145,7 +145,7 @@ public class EvalJavaBsh
      * @param expr the expression
      * @return replaced expression
      */
-    protected static String replace(String expr) {
+    public static String replace(String expr) {
         String result = replaceHash.get(expr);
         if (result != null) return result;
         StringBuffer sb = new StringBuffer();
