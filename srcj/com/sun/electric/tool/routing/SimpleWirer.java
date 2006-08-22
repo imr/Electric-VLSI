@@ -150,7 +150,8 @@ public class SimpleWirer extends InteractiveRouter {
 		}
         if (singleArc) {
             // draw single
-            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null, extendArc);
+            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE,
+            	startLoc, endLoc, null, null, null, extendArc, stayInside);
             route.add(arcRE);
             return true;
         }
@@ -165,7 +166,8 @@ public class SimpleWirer extends InteractiveRouter {
         if (DBMath.areEquals(startLoc.getX(), endLoc.getX()) || DBMath.areEquals(startLoc.getY(), endLoc.getY()))
         {
             // single arc
-            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null, extendArc);
+            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE,
+            	startLoc, endLoc, null, null, null, extendArc, stayInside);
             route.add(arcRE);
         } else {
             // otherwise, create new pin and two arcs for corner
@@ -176,8 +178,10 @@ public class SimpleWirer extends InteractiveRouter {
             double defheight = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
             RouteElementPort pinRE = RouteElementPort.newNode(cell, pn, pn.getPort(0), cornerLoc,
                     defwidth, defheight);
-            RouteElement arcRE1 = RouteElementArc.newArc(cell, useArc, width, startRE, pinRE, startLoc, cornerLoc, null, null, null, extendArc);
-            RouteElement arcRE2 = RouteElementArc.newArc(cell, useArc, width, pinRE, endRE, cornerLoc, endLoc, null, null, null, extendArc);
+            RouteElement arcRE1 = RouteElementArc.newArc(cell, useArc, width, startRE, pinRE,
+            	startLoc, cornerLoc, null, null, null, extendArc, stayInside);
+            RouteElement arcRE2 = RouteElementArc.newArc(cell, useArc, width, pinRE, endRE,
+            	cornerLoc, endLoc, null, null, null, extendArc, stayInside);
             route.add(pinRE);
             route.add(arcRE1);
             route.add(arcRE2);

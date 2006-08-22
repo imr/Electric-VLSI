@@ -29,6 +29,8 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.topology.ArcInst;
@@ -37,12 +39,15 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.Highlighter;
 
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 
 /**
  * Class for defining RouteElements that are arcs.
@@ -78,10 +83,50 @@ public class RouteElementArc extends RouteElement {
      * @param nameTextDescriptor
      * @param inheritFrom
      * @param extendArc only applied if inheritFrom is null
+     * @param stayInside a polygonal area in which the new arc must reside (if not null).
+     * The arc is narrowed and has its ends extended in an attempt to stay inside this area.
      */
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcWidth, RouteElementPort headRE, RouteElementPort tailRE,
                                          Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor,
-                                         ArcInst inheritFrom, boolean extendArc) {
+                                         ArcInst inheritFrom, boolean extendArc, PolyMerge stayInside) {
+    	EPoint headEP = EPoint.snap(headConnPoint);
+    	EPoint tailEP = EPoint.snap(tailConnPoint);
+    	if (stayInside != null)
+    	{
+    		double length = headEP.distance(tailEP);
+    		int angle = GenMath.figureAngle(headEP, tailEP);
+        	Layer layer = ap.getLayers()[0].getLayer();
+        	double extension = extendArc ? arcWidth/2 : 0;
+			Poly poly = Poly.makeEndPointPoly(length, arcWidth, angle,
+				headEP, extension, tailEP, extension, Poly.Type.FILLED);
+        	boolean good = stayInside.contains(layer, poly);
+
+        	// try reducing to default width if it doesn't fit
+        	if (!good && arcWidth > ap.getDefaultWidth())
+        	{
+        		arcWidth = ap.getDefaultWidth();
+        		extension = extendArc ? arcWidth/2 : 0;
+    			poly = Poly.makeEndPointPoly(length, arcWidth, angle,
+    				headEP, extension, tailEP, extension, Poly.Type.FILLED);
+            	good = stayInside.contains(layer, poly);
+        	}
+
+        	// try turning off end extension if it doesn't fit
+        	if (!good && extendArc)
+        	{
+            	extension = 0;
+            	extendArc = false;
+    			poly = Poly.makeEndPointPoly(length, arcWidth, angle,
+    				headEP, extension, tailEP, extension, Poly.Type.FILLED);
+            	good = stayInside.contains(layer, poly);
+        	}
+
+        	// make it zero-width if it doesn't fit
+        	if (!good)
+        	{
+        		arcWidth = 0;
+        	}
+    	}
         RouteElementArc e = new RouteElementArc(RouteElementAction.newArc, cell);
         e.arcProto = ap;
         e.arcWidth = arcWidth;
@@ -97,8 +142,8 @@ public class RouteElementArc extends RouteElement {
             System.out.println("  ERROR: tailRE of newArc RouteElementArc must be newNode or existingPortInst");
         headRE.addConnectingNewArc(e);
         tailRE.addConnectingNewArc(e);
-        e.headConnPoint = EPoint.snap(headConnPoint);
-        e.tailConnPoint = EPoint.snap(tailConnPoint);
+        e.headConnPoint = headEP;
+        e.tailConnPoint = tailEP;
         assert(e.headConnPoint != null);
         assert(e.tailConnPoint != null);
         e.arcAngle = 0;

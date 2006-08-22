@@ -219,7 +219,7 @@ public class Route extends ArrayList<RouteElement> {
                     RouteElementArc newArc = RouteElementArc.newArc(cell, ai.getProto(),
                             ai.getWidth(), otherPort, replacementRE,
                             ai.getLocation(otherEnd), conn.getLocation(), ai.getName(),
-                            ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true);
+                            ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, null);
                     RouteElementArc delArc = RouteElementArc.deleteArc(ai);
                     newElements.add(newArc);
                     newElements.add(delArc);

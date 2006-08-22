@@ -1206,7 +1206,11 @@ public class AutoStitch
 			if (eobj2 instanceof PortInst) ni2 = ((PortInst)eobj2).getNodeInst();
 
         Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true);
-        if (route.size() == 0) return false;
+        if (route.size() == 0)
+        {
+//        	System.out.println("Unable to route from "+eobj1+" to "+eobj2);
+        	return false;
+        }
         allRoutes.add(route);
 
         // if either ni or oNi is a pin primitive, see if it is a candidate for clean-up
