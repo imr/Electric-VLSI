@@ -1711,7 +1711,8 @@ public class Spice extends Topology
                     Variable var = it.next();
                     if (!no.getNodeInst().isParam(var.getKey())) continue;
 //                    if (!var.isParam()) continue;
-                    if (useCellParams && (var.getCode() == TextDescriptor.Code.SPICE)) {
+                    Variable cellvar = cell.getVar(var.getKey());
+                    if (useCellParams && (cellvar.getCode() == TextDescriptor.Code.SPICE)) {
                         continue;
                     }
                     paramValues.add(var);
@@ -1817,8 +1818,11 @@ public class Spice extends Topology
                 if (attrVar == null) infstr.append("??"); else
                 {
                     String pVal = "?";
+                    Variable parentVar = attrVar;
+                    if (subCell != null)
+                        parentVar = subCell.getVar(attrVar.getKey());
                     if (!useCDL && Simulation.isSpiceUseCellParameters() &&
-                            attrVar.getCode() == TextDescriptor.Code.SPICE) {
+                            parentVar.getCode() == TextDescriptor.Code.SPICE) {
                         Object obj = context.evalSpice(attrVar, false);
                         if (obj != null)
                             pVal = obj.toString();

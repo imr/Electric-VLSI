@@ -466,10 +466,20 @@ public class VarContext implements Serializable
         while (pMat.find()) {
             Object value = pMat.group(1).substring(5);
             Variable parentVar = null;
-            if (getNodable() != null)
-                parentVar = getNodable().getVar(Variable.findKey(pMat.group(1)));
+            Nodable no = getNodable();
+            if (no != null)
+                parentVar = no.getVar(Variable.findKey(pMat.group(1)));
             if (parentVar != null) {
-                if (recurse || (parentVar.getCode() != TextDescriptor.Code.SPICE))
+                // see if param is spice code by looking at instance code, and definition code
+                boolean isSpiceCode = parentVar.getCode() == TextDescriptor.Code.SPICE;
+                if (no.isCellInstance()) {
+                    Cell c = (Cell)no.getProto();
+                    if (c.contentsView() != null) c = c.contentsView();
+                    Variable protoVar = c.getVar(parentVar.getKey());
+                    if (protoVar != null)
+                        isSpiceCode = protoVar.getCode() == TextDescriptor.Code.SPICE;
+                }
+                if (recurse || !isSpiceCode)
                     value = pop().evalVarRecurse(parentVar, getNodable());
             }
             pMat.appendReplacement(sb, value.toString());
