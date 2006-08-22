@@ -1058,7 +1058,7 @@ public class Spice extends Topology
 						Variable instVar = no.getVar(paramVar.getKey());
                         String paramStr = "??";
 						if (instVar != null) {
-                            if (instVar.getCode() != TextDescriptor.Code.SPICE) continue;
+                            if (paramVar.getCode() != TextDescriptor.Code.SPICE) continue;
                             Object obj = context.evalSpice(instVar, false);
                             if (obj != null)
                                 paramStr = formatParam(trimSingleQuotes(String.valueOf(obj)));
