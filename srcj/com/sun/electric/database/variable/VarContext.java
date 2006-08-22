@@ -434,11 +434,10 @@ public class VarContext implements Serializable
      * Evaluate a spice variable
      * @param var the variable to evaluate
      * @param recurse false to not recursively evaluate (only if param call is SPICE code).
-     * @return the evaluated string, or null on eval error or if
-     * var is not of type SPICE.
+     * @return the evaluated string, or null on eval error
      */
     public Object evalSpice(Variable var, boolean recurse) {
-        if (var.getCode() != TextDescriptor.Code.SPICE) return null;
+        //if (var.getCode() != TextDescriptor.Code.SPICE) return null;
         try {
             return evalSpice_(var, recurse);
         } catch (EvalException e) {
