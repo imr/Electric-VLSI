@@ -591,13 +591,13 @@ public class JELIB extends Output
 		if (var != null && td.isCode())
         {
             Object value = var.getObject();
-            if (value instanceof String || value instanceof String[])
-            {
+            //if (value instanceof String || value instanceof String[])
+            //{
                 TextDescriptor.Code codeType = td.getCode();
                 if (codeType == TextDescriptor.Code.JAVA) ret.append("OJ"); else
                 if (codeType == TextDescriptor.Code.SPICE) ret.append("OL"); else
                 if (codeType == TextDescriptor.Code.TCL) ret.append("OT");
-            }
+            //}
 		}
 
 		// write parameter
