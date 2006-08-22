@@ -413,12 +413,7 @@ public class Spice extends Topology
             return;
         }
 
-        // CDL doesn't like single quotes around mfactor value.  In fact, it doesn't support
-        // parameters at all, but it seems to be ok with M factors.
-        if (useCDL)
-            infstr.append(" M=" + value.toString());
-        else
-            infstr.append(" M=" + formatParam(value.toString()));
+        infstr.append(" M=" + formatParam(value.toString()));
     }
 
     /** Called at the end of the enter cell phase of hierarchy enumeration */
@@ -1061,7 +1056,7 @@ public class Spice extends Topology
                             if (paramVar.getCode() != TextDescriptor.Code.SPICE) continue;
                             Object obj = context.evalSpice(instVar, false);
                             if (obj != null)
-                                paramStr = formatParam(trimSingleQuotes(String.valueOf(obj)));
+                                paramStr = formatParam(String.valueOf(obj));
                         }
 						infstr.append(" " + paramVar.getTrueName() + "=" + paramStr);
 					}
@@ -1372,15 +1367,15 @@ public class Spice extends Topology
                         // schematic transistors may be text
                         if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
                             if (lengthSubtraction != 0)
-                                infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength()) + " - "+ lengthSubtraction));
+                                infstr.append(" L="+formatParam((String)size.getLength()) + " - "+ lengthSubtraction);
                             else
-                                infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
+                                infstr.append(" L="+formatParam((String)size.getLength()));
                         } else {
                             infstr.append(" L=" + TextUtils.formatDouble(l, 2));
                             if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
                         }
                         if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String)) {
-                            infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
+                            infstr.append(" W="+formatParam((String)size.getWidth()));
                         } else {
                             infstr.append(" W=" + TextUtils.formatDouble(w, 2));
                             if (!Simulation.isSpiceWriteTransSizeInLambda() && !st090laytrans) infstr.append("U");
@@ -1398,12 +1393,12 @@ public class Spice extends Topology
                     double lengthSubtraction = layoutTechnology.getGateLengthSubtraction() / layoutTechnology.getScale() * 1000;
                     if ((size.getDoubleLength() == 0) && (size.getLength() instanceof String)) {
                         if (lengthSubtraction != 0)
-                            infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength()) + " - "+lengthSubtraction));
+                            infstr.append(" L="+formatParam((String)size.getLength()) + " - "+lengthSubtraction);
                         else
-                            infstr.append(" L="+formatParam(trimSingleQuotes((String)size.getLength())));
+                            infstr.append(" L="+formatParam((String)size.getLength()));
                     }
                     if ((size.getDoubleWidth() == 0) && (size.getWidth() instanceof String))
-                        infstr.append(" W="+formatParam(trimSingleQuotes((String)size.getWidth())));
+                        infstr.append(" W="+formatParam((String)size.getWidth()));
                 }
             }
 
@@ -2868,8 +2863,13 @@ public class Spice extends Topology
      * @return a param string with single quotes around it
      */
     private static String formatParam(String param) {
-        if (param.endsWith("'") || param.startsWith("'")) return param;
-        return ("'"+param+"'");
+        String value = trimSingleQuotes(param);
+        try {
+            Double.valueOf(value);
+            return value;
+        } catch (NumberFormatException e) {
+            return ("'"+value+"'");
+        }
     }
 
     private static String trimSingleQuotes(String param) {
