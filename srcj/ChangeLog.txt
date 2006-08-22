@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04w: *********************************
 
+IMP: (8/22/06, RK) PIE: Backtrack after successful comparison
+
 BUG: (8/21/06, GVG) Exception when printing waveform (bug #1206)
 FIX: Detecting if PrinterJob or ColorSupported is null.
 
