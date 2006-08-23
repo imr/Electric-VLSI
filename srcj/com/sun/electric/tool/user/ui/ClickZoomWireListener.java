@@ -80,6 +80,7 @@ public class ClickZoomWireListener
     public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 
     private int clickX, clickY;                 /* last mouse pressed coords in screen space */
+    private Cell startCell;
     private double dbMoveStartX, dbMoveStartY;     /* left mouse pressed coords for move in database space */
     private double lastdbMouseX, lastdbMouseY;     /* last location of mouse */
     private Mode modeLeft = Mode.none;          /* left mouse button context mode */
@@ -256,8 +257,8 @@ public class ClickZoomWireListener
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
             Highlighter highlighter = wnd.getHighlighter();
-	        Cell cell = wnd.getCell();
-	        if (cell == null) return;
+	        startCell = wnd.getCell();
+	        if (startCell == null) return;
 	        clickX = evt.getX();
 	        clickY = evt.getY();
 	        Point2D dbClick = wnd.screenToDatabase(clickX, clickY);
@@ -308,7 +309,7 @@ public class ClickZoomWireListener
 	                        endObj = h2.getElectricObject();
                             currentArcWhenWiringPressed = User.getUserTool().getCurrentArcProto();
 	                        EditWindow.gridAlign(dbClick);
-	                        router.highlightRoute(wnd, cell, h1.getElectricObject(), h2.getElectricObject(), dbClick);
+	                        router.highlightRoute(wnd, startCell, h1.getElectricObject(), h2.getElectricObject(), dbClick);
 	                        return;
 	                    }
 	                }
@@ -335,7 +336,7 @@ public class ClickZoomWireListener
                             }
                             currentArcWhenWiringPressed = User.getUserTool().getCurrentArcProto();
 	                        EditWindow.gridAlign(dbClick);
-	                        router.highlightRoute(wnd, cell, h1.getElectricObject(), endObj, dbClick);
+	                        router.highlightRoute(wnd, startCell, h1.getElectricObject(), endObj, dbClick);
 	                        return;
 	                    }
 	                }
@@ -649,7 +650,11 @@ public class ClickZoomWireListener
             Highlighter highlighter = wnd.getHighlighter();
 	        Cell cell = wnd.getCell();
 	        if (cell == null) return;
-	        // add back in offset
+            if (cell != startCell) {
+                escapePressed(wnd);
+                return;
+            }
+            // add back in offset
 	        int releaseX = evt.getX();
 	        int releaseY = evt.getY();
 	        Point2D dbMouse = wnd.screenToDatabase(releaseX, releaseY);
@@ -1007,7 +1012,6 @@ public class ClickZoomWireListener
 		if (evt.getSource() instanceof EditWindow)
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
-            Highlighter highlighter = wnd.getHighlighter();
 			Cell cell = wnd.getCell();
 			if (cell == null) return;
 
@@ -1024,19 +1028,8 @@ public class ClickZoomWireListener
 			}
 			// cancel current mode
 			else if (chr == KeyEvent.VK_ESCAPE) {
-				if (modeRight == Mode.wiringConnect || modeRight == Mode.wiringFind ||
-					modeRight == Mode.stickyWiring)
-					router.cancelInteractiveRoute();
-				if (modeRight == Mode.zoomBox || modeRight == Mode.zoomBoxSingleShot || modeRight == Mode.zoomOut ||
-					modeLeft == Mode.drawBox || modeLeft == Mode.selectBox)
-				{
-					wnd.clearDoingAreaDrag();
-				}
-				modeLeft = Mode.none;
-				modeRight = Mode.none;
-				highlighter.setHighlightOffset(0, 0);
-				wnd.repaint();
-			}
+                escapePressed(wnd);
+            }
             else if (chr == KeyEvent.VK_CONTROL) {
                 if (!another) redrawMouseOver = true;
                 another = true;
@@ -1065,6 +1058,22 @@ public class ClickZoomWireListener
 				}
 			} */
 		}
+    }
+
+    private void escapePressed(EditWindow wnd) {
+        Highlighter highlighter = wnd.getHighlighter();
+        if (modeRight == Mode.wiringConnect || modeRight == Mode.wiringFind ||
+            modeRight == Mode.stickyWiring)
+            router.cancelInteractiveRoute();
+        if (modeRight == Mode.zoomBox || modeRight == Mode.zoomBoxSingleShot || modeRight == Mode.zoomOut ||
+            modeLeft == Mode.drawBox || modeLeft == Mode.selectBox)
+        {
+            wnd.clearDoingAreaDrag();
+        }
+        modeLeft = Mode.none;
+        modeRight = Mode.none;
+        highlighter.setHighlightOffset(0, 0);
+        wnd.repaint();
     }
 
     public void keyReleased(KeyEvent evt) {
