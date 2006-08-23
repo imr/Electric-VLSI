@@ -1114,7 +1114,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
      * Method to determine if node has a given bit on. This is usefull for different
      * @param bit bit containing information to query. It could be LOWVTTRANS,
      * HIGHVTTRANS, NATIVETRANS, OD18TRANS, OD25TRANS or OD33TRANS in case of transistors.
-     * @return
+     * @return true if the given bit is on in the node.
      */
     public boolean isNodeBitOn(int bit)
     {
