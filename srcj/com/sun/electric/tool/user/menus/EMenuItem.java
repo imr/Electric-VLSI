@@ -161,7 +161,7 @@ public abstract class EMenuItem implements ActionListener {
     public static KeyStroke [] shortcut(int [] keyCode) {
         KeyStroke [] strokes = new KeyStroke[keyCode.length];
         for (int i=0; i<keyCode.length; i++)
-            strokes[i] = KeyStroke.getKeyStroke(keyCode[i], buckyBit);
+            strokes[i] = shortcut(keyCode[i]);
         return strokes;
     }
 
