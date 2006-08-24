@@ -48,7 +48,7 @@ public class GeometryConnection
 {
 
     // Private construction for now
-    private GeometryConnection() {;}
+    private GeometryConnection() {}
 
     // Version to cover old Steve's request for NodeExtraction
     public static boolean checkCellConnectivity(NodeInst cellA, NodeInst cellB)
@@ -67,7 +67,7 @@ public class GeometryConnection
             // Search in other cell possible neighbors
             for(Iterator<Geometric> it = cellBProto.searchIterator(cellBounds); it.hasNext(); )
             {
-                Geometric nGeom = (Geometric)it.next();
+                Geometric nGeom = it.next();
 
                 if (nGeom instanceof NodeInst)
                 {
@@ -92,11 +92,11 @@ public class GeometryConnection
     {
         for (Iterator<Export> it = net1.getExports(); it.hasNext();)
         {
-            Export exp1 = (Export)it.next();
+            Export exp1 = it.next();
             Network tmpNet1 = netlist1.getNetwork(exp1.getOriginalPort());
             for (Iterator<Export> otherIt = net2.getExports(); otherIt.hasNext();)
             {
-                Export exp2 = (Export)otherIt.next();
+                Export exp2 = otherIt.next();
                 Network tmpNet2 = netlist2.getNetwork(exp2.getOriginalPort());
                 if (tmpNet2 == tmpNet1) return true;
             }
@@ -105,7 +105,7 @@ public class GeometryConnection
     }
 
     /**************************************************************************************************************
-	 *  QuickAreaEnumerator class
+	 *  ConnectionEnumerator class
 	 **************************************************************************************************************/
 	// Extra functions to check area
 	private static class ConnectionEnumerator extends HierarchyEnumerator.Visitor
@@ -142,7 +142,7 @@ public class GeometryConnection
 
             for(Iterator<Geometric> it = cell.searchIterator(geomBBnd); it.hasNext(); )
             {
-                Geometric nGeom = (Geometric)it.next();
+                Geometric nGeom = it.next();
                 System.out.println(nGeom.toString());
 
                 // Only valid for arc-nodeinst pair
@@ -159,8 +159,8 @@ public class GeometryConnection
                 {
                     for (Iterator<PortProto> pIt = topCell.getPorts(); pIt.hasNext();)
                     {
-                        PortProto port = (PortProto)pIt.next();
-                        System.out.println("Port ");
+                        PortProto port = pIt.next();
+                        System.out.println("Port " + port);
                     }
                     if (searchInExportNetwork(topNetlist,(Network)netsB.toArray()[0],
                               topNetlist, (Network)nets.toArray()[0]))
