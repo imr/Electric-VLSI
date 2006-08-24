@@ -22,6 +22,15 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.waveform;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.SystemColor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -32,6 +41,8 @@ import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
 import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DragSourceListener;
+import java.awt.event.InputEvent;
+import java.awt.image.BufferedImage;
 
 import javax.swing.JButton;
 
@@ -53,11 +64,19 @@ public class DragButton extends JButton implements DragGestureListener, DragSour
 
 	public void dragGestureRecognized(DragGestureEvent e)
 	{
+		Cursor style = DragSource.DefaultMoveDrop;
+		String command = "MOVEBUTTON";
+		if (ClickZoomWireListener.isRightMouse(e.getTriggerEvent()))
+		{
+			style = DragSource.DefaultCopyDrop;
+			command = "COPYBUTTON";
+		}
+
 		// make the Transferable Object
-		Transferable transferable = new StringSelection("PANEL " + panelNumber + " BUTTON " + getText());
+		Transferable transferable = new StringSelection("PANEL " + panelNumber + " " + command+ " " + getText());
 
 		// begin the drag
-		dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+		dragSource.startDrag(e, style, transferable, this);
 	}
 
 	public void dragEnter(DragSourceDragEvent e) {}

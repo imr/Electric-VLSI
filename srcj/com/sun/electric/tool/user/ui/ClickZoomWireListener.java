@@ -38,6 +38,7 @@ import com.sun.electric.tool.Client;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -220,7 +221,7 @@ public class ClickZoomWireListener
      * See if event is a right mouse click.  Platform independent.
      * One-button macs: Command + click == right mouse click.
      */
-    public static boolean isRightMouse(MouseEvent evt) {
+    public static boolean isRightMouse(InputEvent evt) {
         if (isMac) {
             if (evt.isMetaDown()) {
                 if ((evt.getModifiers() & MouseEvent.BUTTON1_MASK) == MouseEvent.BUTTON1_MASK)

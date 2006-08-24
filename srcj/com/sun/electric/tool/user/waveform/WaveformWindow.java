@@ -62,6 +62,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ExplorerTree;
@@ -3569,6 +3570,22 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		public void dragExit(DropTargetEvent e) {}
 
+		/**
+		 * Entry point when something is dropped onto the waveform window.
+		 * The data that is transferred is always a string with these values:
+		 *
+		 * "PANEL #" means an entire panel has been dragged (user has rearranged panels)
+		 *    Drag originates in Panel.DragLabel.dragGestureRecognized().
+		 *
+		 * "TRANS sig" / "DC sig" / "AC sig" / "MEASUREMENT sig" means
+		 *    a transient/DC/AC/measurement signal has been dragged (from the Explorer tree)
+		 *    Drag originates in ExplorerTree.dragGestureRecognized().
+		 *    Multiple signals may be combined, separated by Newline.
+		 *
+		 * "PANEL # MOVEBUTTON sig" / "PANEL # COPYBUTTON sig" means a signal has been
+		 *    moved or copied (from one panel to another).
+		 *    Drag originates in DragButton.dragGestureRecognized().
+		 */
 		public void drop(DropTargetDropEvent dtde)
 		{
 			// get information about the drop (such as the signal name)
@@ -3637,20 +3654,39 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			DropTarget dt = (DropTarget)dtde.getSource();
 			if (dt.getComponent() instanceof HorizRuler)
 			{
-				// make sure only one signal was selected
+				// dragged a signal to the ruler panel: make sure only one signal was selected
 				if (sigNames.length != 1)
 				{
 					Job.getUserInterface().showErrorMessage("Only one signal can be dragged to a ruler", "Too Much Selected");
 					dtde.dropComplete(false);
 					return;			
 				}
+				HorizRuler hr = (HorizRuler)dt.getComponent();
+				Panel panel = hr.getPanel();
+				WaveformWindow ww = hr.getWaveformWindow();
 
-				// dragged a signal to the ruler panel: make that signal the X axis
-				if (!sigNames[0].startsWith("PANEL "))
+				// find the signal that was dragged
+				Signal sSig = null;
+				if (sigNames[0].startsWith("PANEL "))
 				{
-					HorizRuler hr = (HorizRuler)dt.getComponent();
-					Panel panel = hr.getPanel();
-					WaveformWindow ww = hr.getWaveformWindow();
+					// get signal when dragged from inside the waveform window
+					int sigPos = Math.max(sigNames[0].indexOf("MOVEBUTTON "), sigNames[0].indexOf("COPYBUTTON "));
+					if (sigPos >= 0)
+					{
+						// dragging from waveform window signal to horizontal ruler
+						int panelNumber = TextUtils.atoi(sigNames[0].substring(6));
+						Panel sourcePanel = ww.getPanelFromNumber(panelNumber);
+						analysisType = sourcePanel.getAnalysisType();
+						String signalName = sigNames[0].substring(sigPos + 11);
+						for(WaveSignal ws : sourcePanel.getSignals())
+						{
+							if (!ws.getSignal().getFullName().equals(signalName)) continue;
+							sSig = ws.getSignal();
+							break;
+						}
+					}
+				} else
+				{
 					Analysis an = ww.getSimData().findAnalysis(analysisType);
 					if (an == null)
 					{
@@ -3658,59 +3694,57 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						dtde.dropComplete(true);
 						return;
 					}
-					Signal sSig = ww.findSignal(sigNames[0], an);
-					if (sSig != null)
+					sSig = ww.findSignal(sigNames[0], an);
+				}
+				if (sSig != null)
+				{
+					Rectangle2D bounds = sSig.getBounds();
+					if (panel == null)
 					{
-						Rectangle2D bounds = sSig.getBounds();
-						if (panel == null)
+						// dropped signal onto main time ruler: make sure it is the right type
+						boolean warn = false;
+						for(Panel wp : ww.wavePanels)
 						{
-							// dropped signal onto main time ruler: make sure it is the right type
-							boolean warn = false;
-							for(Panel wp : ww.wavePanels)
-							{
-								if (wp.getAnalysisType() != analysisType && wp.getNumSignals() > 0) warn = true;
-							}
-							if (warn)
-							{
-								String warning = "The waveform window is not showing " + analysisType +
-									" data.  Remove all traces and convert panels to show " + analysisType + " data?";
-								int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), warning);
-								if (response != JOptionPane.YES_OPTION)
-								{
-									dtde.dropComplete(true);
-									return;
-								}
-								for(Panel wp : ww.wavePanels)
-								{
-									ww.deleteAllSignalsFromPanel(wp);
-								}
-							}
-							ww.xAxisSignalAll = sSig;
-							for(Panel wp : ww.wavePanels)
-							{
-								wp.setAnalysisType(analysisType);
-								wp.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
-							}
-							ww.redrawAllPanels();
-						} else
+							if (wp.getAnalysisType() != analysisType && wp.getNumSignals() > 0) warn = true;
+						}
+						if (warn)
 						{
-							// dropped signal onto a single panel's time ruler
-							if (panel.getAnalysisType() != analysisType)
+							String warning = "The waveform window is not showing " + analysisType +
+								" data.  Remove all traces and convert panels to show " + analysisType + " data?";
+							int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), warning);
+							if (response != JOptionPane.YES_OPTION)
 							{
-								JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-									"Cannot drop a " + analysisType + " signal onto the horizontal ruler of a " +
-									panel.getAnalysisType() + " panel.  " +
-									"First convert the panel with the popup in the upper-left.",
-									"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
 								dtde.dropComplete(true);
 								return;
 							}
-							panel.setXAxisSignal(sSig);
-							panel.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
-							panel.repaintContents();
+							for(Panel wp : ww.wavePanels)
+								ww.deleteAllSignalsFromPanel(wp);
 						}
-						hr.repaint();
+						ww.xAxisSignalAll = sSig;
+						for(Panel wp : ww.wavePanels)
+						{
+							wp.setAnalysisType(analysisType);
+							wp.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
+						}
+						ww.redrawAllPanels();
+					} else
+					{
+						// dropped signal onto a single panel's time ruler
+						if (panel.getAnalysisType() != analysisType)
+						{
+							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+								"Cannot drop a " + analysisType + " signal onto the horizontal ruler of a " +
+								panel.getAnalysisType() + " panel.  " +
+								"First convert the panel with the popup in the upper-left.",
+								"Error Displaying Signals", JOptionPane.ERROR_MESSAGE);
+							dtde.dropComplete(true);
+							return;
+						}
+						panel.setXAxisSignal(sSig);
+						panel.setXAxisRange(bounds.getMinY(), bounds.getMaxY());
+						panel.repaintContents();
 					}
+					hr.repaint();
 					ww.saveSignalOrder();
 				}
 				dtde.dropComplete(false);
@@ -3751,9 +3785,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 
 				// see if a signal button was grabbed
-				int sigPos = sigNames[0].indexOf("BUTTON ");
-				if (panel.getAnalysisType() == null) sigPos = -1;
-				if (sigPos < 0)
+				int sigMovePos = sigNames[0].indexOf("MOVEBUTTON ");
+				int sigCopyPos = sigNames[0].indexOf("COPYBUTTON ");
+				if (panel.getAnalysisType() == null) sigMovePos = sigCopyPos = -1;
+				if (sigMovePos < 0 && sigCopyPos < 0)
 				{
 					// moving the entire panel
 					ww.left.remove(sourcePanel.getLeftHalf());
@@ -3778,8 +3813,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					return;
 				} else
 				{
-					// moving a signal (analog only)
-					String signalName = sigNames[0].substring(sigPos + 7);
+					// moving/copying a signal (analog only)
+					int sigPos = Math.max(sigMovePos, sigCopyPos);
+					String signalName = sigNames[0].substring(sigPos + 11);
 					Signal sSig = null;
 					Color oldColor = null;
 					for(WaveSignal ws : sourcePanel.getSignals())
@@ -3796,8 +3832,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							return;					
 						}
 						oldColor = ws.getColor();
-						sourcePanel.removeHighlightedSignal(ws, true);
-						sourcePanel.removeSignal(ws.getButton());
+						if (sigCopyPos < 0)
+						{
+							sourcePanel.removeHighlightedSignal(ws, true);
+							sourcePanel.removeSignal(ws.getButton());
+						}
 						break;
 					}
 					if (sSig != null)

@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/22/06, SMR) Improvements to node extractor.
+
+IMP/MAN: (8/24/06, SMR) Made waveform improvements: (1) Can now use the
+     right-button to drag signals from one panel to another (this copies them,
+     instead of moving them). (2) Can now drag a signal from one panel to
+     horizontal axis of another (Bug #893).
+
 BUG: (8/24/06, JKG) Bug #975 - Keypad keys do not work over VNC
 FIX: VNC transmits different key codes than normal, so I have added those keycodes to the 
 menu items bound to keypad keys.
