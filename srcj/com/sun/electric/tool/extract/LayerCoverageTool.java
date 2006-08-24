@@ -45,7 +45,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.Tool;
 
 import java.awt.geom.Rectangle2D;
@@ -169,7 +168,7 @@ public class LayerCoverageTool extends Tool
         // Must be change job for merge and implant;
         Job.Type jobType = (func == LayerCoverageTool.LCMode.MERGE || func == LayerCoverageTool.LCMode.IMPLANT) ?
                 Job.Type.CHANGE : Job.Type.EXAMINE;
-        LayerCoverageJob job = new LayerCoverageJob(!startJob, curCell, jobType, func, mode, null, null);
+        LayerCoverageJob job = new LayerCoverageJob(curCell, jobType, func, mode, null, null);
         if (startJob)
             job.startJob();
         else
@@ -178,7 +177,7 @@ public class LayerCoverageTool extends Tool
             {
                 job.doIt();
             }
-            catch (Exception e) {};
+            catch (Exception e) {}
             return job.nodesAdded;
         }
         return null;
@@ -226,7 +225,7 @@ public class LayerCoverageTool extends Tool
     /**
      * Method to extract bounding box for a particular Network/Layer
      * @param exportCell
-     * @return
+     * @return Rectangle2D containing the bounding box for a particular Network/Layer
      */
     public static Rectangle2D getGeometryOnNetwork(Cell exportCell, PortInst pi, Layer layer)
     {
@@ -238,7 +237,7 @@ public class LayerCoverageTool extends Tool
         // This assumes that pi.getBounds() alywas gives you a degenerated rectangle (zero area) so
         // only a point should be searchedd.
         Rectangle2D bnd = pi.getBounds();
-		LayerCoverageJob job = new LayerCoverageJob(true, exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
+		LayerCoverageJob job = new LayerCoverageJob(exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
                 GeometryHandler.GHMode.ALGO_SWEEP, geoms,
                 new Point2D.Double(bnd.getX(), bnd.getY()));
 
@@ -278,7 +277,7 @@ public class LayerCoverageTool extends Tool
 	    double lambda = 1; // lambdaofcell(np);
         // startJob is identical to printable
 	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob, null);
-		Job job = new LayerCoverageJob(!startJob, cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms, null);
+		Job job = new LayerCoverageJob(cell, Job.Type.EXAMINE, LCMode.NETWORK, mode, geoms, null);
 
         if (startJob)
             job.startJob();
@@ -373,9 +372,9 @@ public class LayerCoverageTool extends Tool
                                 {
                                     Object[] array = polySet.toArray();
                                     boolean foundOrigPoly = false;
-                                    for (int j = 0; j < array.length; j++)
+                                    for (Object poly : array)
                                     {
-                                        foundOrigPoly = polyB.polySame((PolyBase)array[j]);
+                                        foundOrigPoly = polyB.polySame((PolyBase)poly);
                                         if (foundOrigPoly)
                                             break;
                                     }
@@ -485,14 +484,12 @@ public class LayerCoverageTool extends Tool
         private GeometryHandler.GHMode mode;
         private GeometryOnNetwork geoms;
         private List<Object> nodesAdded;
-        private boolean manualStart; // in case of manual start, fieldVariableChanged can't be called
         private Point2D overlapPoint; // to get to crop the search if a given bbox is not null
 
-        public LayerCoverageJob(boolean manualStart, Cell cell, Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
+        public LayerCoverageJob(Cell cell, Job.Type jobType, LCMode func, GeometryHandler.GHMode mode,
                                 GeometryOnNetwork geoms, Point2D overlapPoint)
         {
             super("Layer Coverage on " + cell, User.getUserTool(), jobType, null, null, Priority.USER);
-            this.manualStart = manualStart;
             this.cell = cell;
             this.func = func;
             this.mode = mode;
@@ -510,8 +507,6 @@ public class LayerCoverageTool extends Tool
             {
                 nodesAdded = new ArrayList<Object>();
                 nodesAdded.addAll(data.getNodesToHighlight());
-//                if (!manualStart)
-//                    fieldVariableChanged("nodesAdded");
             }
             return done;
         }
@@ -597,7 +592,7 @@ public class LayerCoverageTool extends Tool
                         double newV = area;
                         if (oldV != null)
                             newV += oldV;
-                        internalMap.put(layer, new Double(newV));
+                        internalMap.put(layer, newV);
                     }
                 }
             }
@@ -613,7 +608,7 @@ public class LayerCoverageTool extends Tool
 	    AREA,   // function Layer Coverage
 	    MERGE,  // Generic merge polygons function
 	    IMPLANT, // Coverage implants
-	    NETWORK; // List Geometry on Network function
+	    NETWORK // List Geometry on Network function
     }
 
 
@@ -708,8 +703,8 @@ public class LayerCoverageTool extends Tool
             boolean found = (netSet == null);
             for (Iterator<Network> it = netlist.getNetworks(); !found && it.hasNext(); )
             {
-                Network aNet = it.next();
-                Network parentNet = aNet;
+//                Network aNet = it.next();
+                Network parentNet = it.next();
                 HierarchyEnumerator.CellInfo cinfo = info;
                 boolean netFound = false;
                 while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
@@ -746,9 +741,8 @@ public class LayerCoverageTool extends Tool
 
 				// Treating the arcs associated to each node
 				// Arcs don't need to be rotated
-				for (int i = 0; i < polyList.length; i++)
+				for (Poly poly : polyList)
 				{
-					Poly poly = polyList[i];
 					Layer layer = poly.getLayer();
 
 					boolean value = isValidFunction(layer, function);
@@ -795,7 +789,7 @@ public class LayerCoverageTool extends Tool
          *
          * @param no
          * @param info
-         * @return
+         * @return true if node was visited
          */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
@@ -818,8 +812,7 @@ public class LayerCoverageTool extends Tool
 			{
 				PortInst pi = pIt.next();
 				PortProto subPP = pi.getPortProto();
-				Network oNet = info.getNetlist().getNetwork(node, subPP, 0);
-				Network parentNet = oNet;
+				Network parentNet = info.getNetlist().getNetwork(node, subPP, 0);
 				HierarchyEnumerator.CellInfo cinfo = info;
 				boolean netFound = false;
 				while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
@@ -938,8 +931,8 @@ public class LayerCoverageTool extends Tool
             assert(layer != null);
             if (onlyThisLayer != null && layer != onlyThisLayer) return; // skip this one
 	        layers.add(layer);
-	        areas.add(new Double(area));
-	        halfPerimeters.add(new Double(halfperimeter));
+	        areas.add(area);
+	        halfPerimeters.add(halfperimeter);
 
 	        Layer.Function func = layer.getFunction();
 	        /* accumulate total wire length on all metal/poly layers */
@@ -964,7 +957,7 @@ public class LayerCoverageTool extends Tool
             {
                 Layer layer = layers.get(i);
                 Double area = areas.get(i);
-                double percentage = area.doubleValue()/totalArea * 100;
+                double percentage = area/totalArea * 100;
                 double minV = layer.getAreaCoverage();
                 if (percentage < minV)
                 {
@@ -991,15 +984,14 @@ public class LayerCoverageTool extends Tool
             }
 
 	        for (int i=0; i<layers.size(); i++) {
-	            Layer layer = layers.get(i);
-	            Double area = areas.get(i);
-	            Double halfperim = halfPerimeters.get(i);
+	            Layer layer = layers.get(i); // autoboxing
+	            double area = areas.get(i);  // autoboxing
+	            double halfperim = halfPerimeters.get(i);
 
-                double layerArea = area.doubleValue();
 	            System.out.println("\tLayer " + layer.getName()
-	                    + ":\t area " + TextUtils.formatDouble(layerArea) + "(" + TextUtils.formatDouble((layerArea/totalArea)*100, 2) + "%)"
-	                    + "\t half-perimeter " + TextUtils.formatDouble(halfperim.doubleValue())
-	                    + "\t ratio " + TextUtils.formatDouble(area.doubleValue()/halfperim.doubleValue()));
+	                    + ":\t area " + TextUtils.formatDouble(area) + "(" + TextUtils.formatDouble((area/totalArea)*100, 2) + "%)"
+	                    + "\t half-perimeter " + TextUtils.formatDouble(halfperim)
+	                    + "\t ratio " + TextUtils.formatDouble(area/halfperim));
 	        }
 	        if (totalWire > 0)
 	            System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda));
