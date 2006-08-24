@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (8/24/06, JKG) Bug #975 - Keypad keys do not work over VNC
+FIX: VNC transmits different key codes than normal, so I have added those keycodes to the 
+menu items bound to keypad keys.
+
 IMP: (8/23/06, RK) PIE: Composite Information begun
 
 IMP: (8/23/06, SAF) PIE: Subcircuit island extraction and port to port matrix generation.
