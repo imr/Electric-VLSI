@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/23/06, RK) PIE: Composite Information begun
+
 IMP: (8/23/06, SAF) PIE: Subcircuit island extraction and port to port matrix generation.
 
 ************************* Version 8.04w: *********************************
