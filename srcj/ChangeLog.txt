@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/22/06, RK) PIE: Composite Part Information prints out
+
 IMP: (8/22/06, SMR) Improvements to node extractor.
 
 IMP/MAN: (8/24/06, SMR) Made waveform improvements: (1) Can now use the
