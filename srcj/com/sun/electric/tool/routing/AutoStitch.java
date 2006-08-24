@@ -598,11 +598,11 @@ public class AutoStitch
 				// other geometric is an ArcInst
 				ArcInst oAi = (ArcInst)oGeom;
 
-				// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
-				if (!arcTooWide(oAi)) continue;
-
 				if (ni == null)
 				{
+					// only interested in arcs that are wider than their nodes (and have geometry that sticks out)
+					if (!arcTooWide(oAi)) continue;
+
 					// compare arc "geom" against arc "oAi"
 					count += compareTwoArcs((ArcInst)geom, oAi, stayInside, netlist, limitBound);
 					continue;
@@ -1141,7 +1141,9 @@ public class AutoStitch
 				nodePoly.transform(trans);
 
 				// they must be on the same layer and touch
-				if (nodePoly.getLayer() != arcLayer) continue;
+				Layer nodeLayer = nodePoly.getLayer();
+				if (nodeLayer != null) nodeLayer = nodeLayer.getNonPseudoLayer();
+				if (nodeLayer != arcLayer) continue;
 				double polyDist = arcPoly.separation(nodePoly);
 				if (polyDist > 0) continue;
 
@@ -1158,9 +1160,9 @@ public class AutoStitch
 
 					// compute best distance to the other node
 					Poly portPoly = ni.getShapeOfPort(tPp);
-					double x = portPoly.getCenterX();
-					double y = portPoly.getCenterY();
-					double dist = Math.abs(x-aCX) + Math.abs(y-aCY);
+					double portCX = portPoly.getCenterX();
+					double portCY = portPoly.getCenterY();
+					double dist = Math.abs(portCX-aCX) + Math.abs(portCY-aCY);
 					if (bestPp == null) bestDist = dist;
 					if (dist > bestDist) continue;
 					bestPp = tPp;   bestDist = dist;
@@ -1169,9 +1171,21 @@ public class AutoStitch
 
 				// run the wire
 				PortInst pi = ni.findPortInstFromProto(bestPp);
+				Poly portPoly = ni.getShapeOfPort(bestPp);
+				double portCX = portPoly.getCenterX();
+				double portCY = portPoly.getCenterY();
 				Network nodeNet = nl.getNetwork(pi);
 				if (arcNet == nodeNet) continue;
-				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), new Point2D.Double(aCX, aCY), stayInside, limitBound);
+				Point2D bend1 = new Point2D.Double(portCX, aCY);
+				Point2D bend2 = new Point2D.Double(aCX, portCY);
+				if (stayInside != null)
+				{
+					if (!stayInside.contains(arcLayer, bend1)) bend1 = bend2;
+				} else
+				{
+					if (!arcPoly.contains(bend1)) bend1 = bend2;
+				}
+				connectObjects(ai, arcNet, pi, nodeNet, ai.getParent(), bend1 /*new Point2D.Double(aCX, aCY)*/, stayInside, limitBound);
 				return 1;
 			}
 		}
@@ -1695,7 +1709,7 @@ public class AutoStitch
 					}
 				}
 			}
-			if (!gotOne)
+			if (!gotOne && ni.getNumExports() == 0)
 			{
 				if (coverage == null) return new Poly[0];
 

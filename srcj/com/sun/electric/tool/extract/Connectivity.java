@@ -82,6 +82,7 @@ public class Connectivity
 {
 	/** true to prevent objects smaller than minimum size */	private static final boolean ENFORCEMINIMUMSIZE = false;
 	/** amount to scale values before merging */				private static final double SCALEFACTOR = DBMath.GRID;
+	/** true to debug centerline determination */				private static final boolean DEBUGCENTERLINES = false;
 
 	/** the current technology for extraction */				private Technology tech;
 	/** layers to use for given arc functions */				private HashMap<Layer.Function,Layer> layerForFunction;
@@ -1601,7 +1602,7 @@ public class Connectivity
 		double cX = (lX + hX) / 2;
 		double cY = (lY + hY) / 2;
 		for(int i=0; i<points.length; i++)
-			points[i].setLocation((points[i].getX() - cX) / SCALEFACTOR, (points[i].getY() - cY) / SCALEFACTOR);
+			points[i] = new EPoint((points[i].getX() - cX) / SCALEFACTOR, (points[i].getY() - cY) / SCALEFACTOR);
 		realizeNode(transistor, cX, cY, hX - lX, hY - lY, 0, points, merge, newCell);
 	}
 
@@ -1983,6 +1984,7 @@ public class Connectivity
 			for(PolyBase aPoly : polysToAnalyze)
 			{
 				// first make a list of all parallel wires in the polygon
+				aPoly.setLayer(layer);
 				List<Centerline> centerlines = gatherCenterlines(aPoly, originalMerge);
 
 				// now pull out the relevant ones
@@ -2001,9 +2003,9 @@ public class Connectivity
 
 					// see if this centerline actually covers new area
 					if (!merge.intersects(tempLayer1, clPoly)) continue;
-		
-					// make sure this centerline is actually inside of the original geometry
-					if (!originalMerge.contains(layer, clPoly)) continue;
+
+//					// make sure this centerline is actually inside of the original geometry
+//					if (!originalMerge.contains(layer, clPoly)) continue;
 
 					// add this to the list of valid centerlines
 					validCenterlines.add(cl);
@@ -2019,21 +2021,21 @@ public class Connectivity
 		}
 		merge.deleteLayer(tempLayer1);
 
-		// now combine colinear centerlines
-		for(int i=0; i<validCenterlines.size(); i++)
-		{
-			Centerline cl = validCenterlines.get(i);
-			for(int j=i+1; j<validCenterlines.size(); j++)
-			{
-				Centerline oCl = validCenterlines.get(j);
-				if (cl.width == oCl.width && isColinear(cl, oCl))
-				{
-					// delete the second line
-					validCenterlines.remove(j);
-					j--;
-				}
-			}
-		}
+//		// now combine colinear centerlines
+//		for(int i=0; i<validCenterlines.size(); i++)
+//		{
+//			Centerline cl = validCenterlines.get(i);
+//			for(int j=i+1; j<validCenterlines.size(); j++)
+//			{
+//				Centerline oCl = validCenterlines.get(j);
+//				if (cl.width == oCl.width && isColinear(cl, oCl))
+//				{
+//					// delete the second line
+//					validCenterlines.remove(j);
+//					j--;
+//				}
+//			}
+//		}
 //System.out.println("Centerlines are:");
 //for(int i=0; i<validCenterlines.size(); i++) System.out.println("    "+validCenterlines.get(i).toString());
 
@@ -2042,14 +2044,24 @@ public class Connectivity
 		for(int i=0; i<validCenterlines.size(); i++)
 		{
 			Centerline cl = validCenterlines.get(i);
+			double minCLX = Math.min(cl.start.getX(), cl.end.getX());
+			double maxCLX = Math.max(cl.start.getX(), cl.end.getX());
+			double minCLY = Math.min(cl.start.getY(), cl.end.getY());
+			double maxCLY = Math.max(cl.start.getY(), cl.end.getY());
 			for(int j=i+1; j<validCenterlines.size(); j++)
 			{
 				Centerline oCl = validCenterlines.get(j);
+				double minOCLX = Math.min(oCl.start.getX(), oCl.end.getX());
+				double maxOCLX = Math.max(oCl.start.getX(), oCl.end.getX());
+				double minOCLY = Math.min(oCl.start.getY(), oCl.end.getY());
+				double maxOCLY = Math.max(oCl.start.getY(), oCl.end.getY());
+				if (minOCLX > maxCLX || maxOCLX < minCLX || minOCLY > maxCLY || maxOCLY < minCLY) continue;
+
 //System.out.println("COMPARE "+cl.toString()+" WITH "+oCl.toString());
 				Point2D intersect = GenMath.intersect(cl.start, cl.angle, oCl.start, oCl.angle);
 				if (intersect == null) continue;
-				if (cl.start.distance(intersect) <= oCl.width/2 || cl.end.distance(intersect) <= oCl.width/2 ||
-					oCl.start.distance(intersect) <= cl.width/2 || oCl.end.distance(intersect) <= cl.width/2)
+//				if (cl.start.distance(intersect) <= oCl.width/2 || cl.end.distance(intersect) <= oCl.width/2 ||
+//					oCl.start.distance(intersect) <= cl.width/2 || oCl.end.distance(intersect) <= cl.width/2)
 				{
 //System.out.println("  INTERSECTION AT ("+intersect.getX()+","+intersect.getY()+")");
 					both[0] = cl;   both[1] = oCl;
@@ -2132,9 +2144,12 @@ public class Connectivity
 		// first make a list of all parallel wires in the polygon
 		List<Centerline> centerlines = new ArrayList<Centerline>();
 		Point2D [] points = poly.getPoints();
-//System.out.print("POLYGON:");
-//for(int i=0; i<points.length; i++) System.out.print(" ("+points[i].getX()+","+points[i].getY()+")");
-//System.out.println();
+		if (DEBUGCENTERLINES)
+		{
+			System.out.print("POLYGON ON LAYER "+poly.getLayer().getName()+":");
+			for(int i=0; i<points.length; i++) System.out.print(" ("+points[i].getX()+","+points[i].getY()+")");
+			System.out.println();
+		}
 		for(int i=0; i<points.length; i++)
 		{
 			int lastI = i-1;
@@ -2197,8 +2212,9 @@ public class Connectivity
 					// make sure the ranges overlap
 					if (Math.min(lastDist, thisDist) >= Math.max(oLastDist, oThisDist) ||
 						Math.min(oLastDist, oThisDist) >= Math.max(lastDist, thisDist)) continue;
-//System.out.println("PARALLEL LINES ("+lastPt.getX()+","+lastPt.getY()+") to ("+thisPt.getX()+","+thisPt.getY()+")"+
-//	" and ("+oLastPt.getX()+","+oLastPt.getY()+") to ("+oThisPt.getX()+","+oThisPt.getY()+")");
+					if (DEBUGCENTERLINES)
+						System.out.println("PARALLEL LINES ("+lastPt.getX()+","+lastPt.getY()+") to ("+thisPt.getX()+","+thisPt.getY()+")"+
+							" and ("+oLastPt.getX()+","+oLastPt.getY()+") to ("+oThisPt.getX()+","+oThisPt.getY()+")");
 
 					// find the overlap
 					if (lastDist > thisDist)
@@ -2249,13 +2265,39 @@ public class Connectivity
 					// try all possible spans
 					for(int p=0; p<4; p++)
 					{
-						Poly clPoly = Poly.makeEndPointPoly(possibleStart[p].distance(possibleEnd[p]), width, angle,
+						double length = possibleStart[p].distance(possibleEnd[p]);
+						Poly clPoly = Poly.makeEndPointPoly(length, width, angle,
 							possibleStart[p], 0, possibleEnd[p], 0, Poly.Type.FILLED);
 						if (originalMerge.contains(poly.getLayer(), clPoly))
 						{
+							// if the width is greater than the length, rotate the centerline 90 degrees
+							if (width > length)
+							{
+								Point2D [] pts = clPoly.getPoints();
+								Point2D [] edgeCtrs = new Point2D[pts.length];
+								double bestDist = Double.MAX_VALUE;
+								int bestPt = -1;
+								for(int e=0; e<pts.length; e++)
+								{
+									Point2D last;
+									if (e == 0) last = pts[pts.length-1]; else last = pts[e-1];
+									edgeCtrs[e] = new Point2D.Double((pts[e].getX() + last.getX()) / 2,
+										(pts[e].getY() + last.getY()) / 2);
+									double dist = edgeCtrs[e].distance(possibleStart[p]);
+									if (dist < bestDist) { bestDist = dist;   bestPt = e; }
+								}
+								width = length;
+								int startPt = (bestPt + 1) % pts.length;
+								int endPt = (bestPt + 3) % pts.length;
+								possibleStart[p] = edgeCtrs[startPt];
+								possibleEnd[p] = edgeCtrs[endPt];
+								length = edgeCtrs[startPt].distance(edgeCtrs[endPt]);
+							}
+
+							// create the centerline
 							Centerline newCL = new Centerline(width, possibleStart[p], possibleEnd[p]);
 							if (newCL.angle >= 0) centerlines.add(newCL);
-//System.out.println("  MAKE "+newCL.toString());
+							if (DEBUGCENTERLINES) System.out.println("  MAKE "+newCL.toString());
 							break;
 						}
 					}
@@ -2265,12 +2307,16 @@ public class Connectivity
 
 		// sort the parallel wires by length
 		Collections.sort(centerlines, new ParallelWiresByLength());
-//for(Centerline cl : centerlines)
-//	System.out.println("BY LENGTH "+cl.toString());
+		if (DEBUGCENTERLINES)
+		{
+			for(Centerline cl : centerlines)
+				System.out.println("SORTED BY LENGTH "+cl.toString());
+		}
 
 		// remove redundant centerlines
-		for(int i=0; i<centerlines.size(); i++)
+		for(int i=0; i<centerlines.size(); )
 		{
+			int nextI = i+1;
 			Centerline cl = centerlines.get(i);
 			Poly clPoly = Poly.makeEndPointPoly(cl.start.distance(cl.end), cl.width, cl.angle,
 				cl.start, 0, cl.end, 0, Poly.Type.FILLED);
@@ -2278,26 +2324,31 @@ public class Connectivity
 			// see if others are contained in it
 			for(int j=0; j<centerlines.size(); j++)
 			{
-				if (j == i) continue;
 				Centerline oCl = centerlines.get(j);
+				if (oCl == cl) continue;
 				Poly oClPoly = Poly.makeEndPointPoly(oCl.start.distance(oCl.end), oCl.width, oCl.angle,
 					oCl.start, 0, oCl.end, 0, Poly.Type.FILLED);
 				Rectangle2D oClBox = oClPoly.getBox();
 				if (oClBox == null) continue;
 				if (clPoly.contains(oClBox))
 				{
-//System.out.println("REMOVE "+oCl.toString()+" WHICH IS COVERED BY "+cl.toString());
+					if (DEBUGCENTERLINES)
+						System.out.println("***REMOVE "+oCl.toString()+" WHICH IS COVERED BY "+cl.toString());
 					centerlines.remove(j);
+					if (nextI > j) nextI--;
 					j--;
-					if (i > j) i--;
 				}
 			}
+			i = nextI;
 		}
 
 		// sort the parallel wires by width
 		Collections.sort(centerlines, new ParallelWiresByWidth());
-//for(Centerline cl : centerlines)
-//	System.out.println("HAVE "+cl.toString());
+		if (DEBUGCENTERLINES)
+		{
+			for(Centerline cl : centerlines)
+				System.out.println("FINALLY HAVE "+cl.toString());
+		}
 		return centerlines;
 	}
 
@@ -2308,8 +2359,8 @@ public class Connectivity
 	{
 		public int compare(Centerline cl1, Centerline cl2)
 		{
-			if (cl1.width < cl2.width) return -1;
-			if (cl1.width > cl2.width) return 1;
+			if (cl1.width < cl2.width) return 1;
+			if (cl1.width > cl2.width) return -1;
 			double cll1 = cl1.start.distance(cl1.end);
 			double cll2 = cl2.start.distance(cl2.end);
 			if (cll1 > cll2) return -1;
@@ -2490,14 +2541,31 @@ public class Connectivity
 							continue;
 						}
 					}
+				} else
+				{
+					if (layer.getFunction().isSubstrate())
+					{
+						// implant layers may be large rectangles: see if bounds of poly is valid
+						Rectangle2D polyBounds = poly.getBounds2D();
+						if (originalMerge.contains(layer, polyBounds))
+						{
+							// valid rectangle: cover it all with a large pure layer rectangle
+							PrimitiveNode pNp = layer.getPureLayerNode();
+							double centerX = poly.getCenterX() / SCALEFACTOR;
+							double centerY = poly.getCenterY() / SCALEFACTOR;
+							Point2D center = new Point2D.Double(centerX, centerY);
+							NodeInst ni = NodeInst.makeInstance(pNp, center,
+								polyBounds.getWidth() / SCALEFACTOR, polyBounds.getHeight() / SCALEFACTOR, newCell);
+							continue;
+						}
+					}
 				}
 
 				// just generate more pure-layer nodes
 				double centerX = poly.getCenterX() / SCALEFACTOR;
 				double centerY = poly.getCenterY() / SCALEFACTOR;
 				Point2D center = new Point2D.Double(centerX, centerY);
-				Layer lay = poly.getLayer();
-				PrimitiveNode pNp = lay.getPureLayerNode();
+				PrimitiveNode pNp = layer.getPureLayerNode();
 				if (pNp == null)
 				{
 					System.out.println("CANNOT FIND PURE LAYER NODE FOR LAYER "+poly.getLayer().getName());

@@ -280,6 +280,7 @@ public class Poly extends PolyBase {
 		double cX = (lX + hX) / 2;
 		double cY = (lY + hY) / 2;
 		Point2D corner = getTextCorner(style, cX, cY, scaledWidth, scaledHeight);
+//System.out.println("STRING '"+theString+"' STYLE="+getStyle().name+" ROTSTYLE="+style.name+" FROM ("+cX+","+cY+") HAS CORNER ("+corner.getX()+","+corner.getY()+")");
 		cX = corner.getX();
 		cY = corner.getY();
 		double width = glyphBounds.getWidth() * textScale;

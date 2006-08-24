@@ -94,7 +94,9 @@ public class RouteElementArc extends RouteElement {
     	if (stayInside != null)
     	{
     		double length = headEP.distance(tailEP);
-    		int angle = GenMath.figureAngle(headEP, tailEP);
+    		int angle = 0;
+    		if (headEP.getX() != tailEP.getX() || headEP.getY() != tailEP.getY())
+    			angle = GenMath.figureAngle(headEP, tailEP);
         	Layer layer = ap.getLayers()[0].getLayer();
         	double extension = extendArc ? arcWidth/2 : 0;
 			Poly poly = Poly.makeEndPointPoly(length, arcWidth, angle,
@@ -124,7 +126,7 @@ public class RouteElementArc extends RouteElement {
         	// make it zero-width if it doesn't fit
         	if (!good)
         	{
-        		arcWidth = 0;
+        		arcWidth = ap.getWidthOffset();
         	}
     	}
         RouteElementArc e = new RouteElementArc(RouteElementAction.newArc, cell);
