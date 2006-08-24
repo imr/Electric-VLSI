@@ -29,7 +29,7 @@ public class ObjectQTree {
      * Method to insert new element into qTree
      * @param newObj
      * @param rect
-     * @return
+     * @return true if the element was inserteed
      */
     public boolean add(Object newObj, Rectangle2D rect)
     {
@@ -48,7 +48,7 @@ public class ObjectQTree {
     /**
      * Method to find set of elements overlaping the search box.
      * @param searchB
-     * @return
+     * @return Set containding all objects inside the given bounding box
      */
     public Set find(Rectangle2D searchB)
     {
