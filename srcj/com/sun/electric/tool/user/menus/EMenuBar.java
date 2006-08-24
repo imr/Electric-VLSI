@@ -126,8 +126,9 @@ public class EMenuBar extends EMenu {
         menuItems.put(key, menuItem);
         
         // add default binding
-        addDefaultKeyBinding(menuItem, menuItem.getAccelerator());
-        addDefaultKeyBinding(menuItem, menuItem.getAccelerator2());
+        KeyStroke [] bindings = menuItem.getAccelerators();
+        for (int i=0; i<bindings.length; i++)
+            addDefaultKeyBinding(menuItem, bindings[i]);
         
         // The generic menu item is an action listener for instance menu items.
         keyBindingManager.addActionListener(key, menuItem);

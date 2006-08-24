@@ -32,6 +32,8 @@ import com.sun.electric.tool.user.ui.KeyStrokePair;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
@@ -71,13 +73,9 @@ public abstract class EMenuItem implements ActionListener {
      */
     private final int mnemonicsPos;
     /**
-     * Accelerator for this EMenuItem.
-     */
-    private KeyStroke accelerator;
-    /**
      * Additional accelerator for this EMenuItem.
      */
-    private KeyStroke accelerator2;
+    private KeyStroke [] accelerators;
     /**
      * Top EMenuBar for this EMenuItem.
      */
@@ -90,23 +88,32 @@ public abstract class EMenuItem implements ActionListener {
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
-     * @param accelerator the shortcut key, or null if none specified.
-     * @param accelerator2 the second shortcut key, or null if none specified.
+     * @param accelerators the shortcut keys, or null if none specified.
      */
-    EMenuItem(String text, KeyStroke accelerator, KeyStroke accelerator2) {
+    EMenuItem(String text, KeyStroke [] accelerators) {
         mnemonicsPos = text.indexOf('_');
         this.text = mnemonicsPos >= 0 ? text.substring(0, mnemonicsPos) + text.substring(mnemonicsPos+1) : text;
-        this.accelerator = accelerator;
-        this.accelerator2 = accelerator2;
+        if (accelerators == null) accelerators = new KeyStroke [0];
+        this.accelerators = accelerators;
     }
     
     /**
      * @param text the menu item's displayed text.  An "_" in the string
      * indicates the location of the "mnemonic" key for that entry.
      * @param accelerator the shortcut key, or null if none specified.
+     * @param accelerator2 the second shortcut key, or null if none specified.
+     */
+    EMenuItem(String text, KeyStroke accelerator, KeyStroke accelerator2) {
+        this(text, new KeyStroke [] { accelerator, accelerator2 });
+    }
+
+    /**
+     * @param text the menu item's displayed text.  An "_" in the string
+     * indicates the location of the "mnemonic" key for that entry.
+     * @param accelerator the shortcut key, or null if none specified.
      */
     public EMenuItem(String text, KeyStroke accelerator) {
-        this(text, accelerator, null);
+        this(text, new KeyStroke [] { accelerator });
     }
     
     /**
@@ -114,7 +121,7 @@ public abstract class EMenuItem implements ActionListener {
      * indicates the location of the "mnemonic" key for that entry.
      */
     public EMenuItem(String text) {
-        this(text, null);
+        this(text, new KeyStroke [0]);
     }
     
     /**
@@ -133,7 +140,29 @@ public abstract class EMenuItem implements ActionListener {
      * @param keyCode the second shortcut key.
      */
     EMenuItem(String text, char acceleratorChar, int keyCode) {
-        this(text, shortcut(acceleratorChar), shortcut(keyCode));
+        this(text, new KeyStroke [] { shortcut(acceleratorChar), shortcut(keyCode)});
+    }
+
+    /**
+     * @param text the menu item's displayed text.  An "_" in the string
+     * indicates the location of the "mnemonic" key for that entry.
+     * @param keyCodes the shortcut keys.
+     */
+    EMenuItem(String text, int [] keyCodes) {
+        this(text, shortcut(keyCodes));
+    }
+
+    /**
+     * Determines which modifier key is the appropriate accelerator
+     * key for menu shortcuts.
+     * @param keyCode key code without modifier.
+     * @return key stroke whih approptiate modified
+     */
+    public static KeyStroke [] shortcut(int [] keyCode) {
+        KeyStroke [] strokes = new KeyStroke[keyCode.length];
+        for (int i=0; i<keyCode.length; i++)
+            strokes[i] = KeyStroke.getKeyStroke(keyCode[i], buckyBit);
+        return strokes;
     }
 
     /**
@@ -144,9 +173,9 @@ public abstract class EMenuItem implements ActionListener {
      */
     public static KeyStroke shortcut(int keyCode) {
         return KeyStroke.getKeyStroke(keyCode, buckyBit);
-    } 
+    }
     
-	/**
+    /**
      * Repeat the last Command
      */
     public static void repeatLastCommand() {
@@ -163,16 +192,22 @@ public abstract class EMenuItem implements ActionListener {
     {
         String s = text;
         if (getAccelerator() != null)
-            s += "(" + KeyStrokePair.keyStrokeToString(accelerator) + ")";
+            s += "(" + KeyStrokePair.keyStrokeToString(getAccelerator()) + ")";
         return s;
     }
 
-    KeyStroke getAccelerator() { return accelerator; }
-    KeyStroke getAccelerator2() { return accelerator2; }
-    
+    KeyStroke getAccelerator() {
+        if (accelerators.length > 0)
+            return accelerators[0];
+        return null;
+    }
+    KeyStroke [] getAccelerators() { return accelerators; }
+
     void setAccelerator(KeyStroke accelerator) {
-        if (this.accelerator == accelerator) return;
-        this.accelerator = accelerator;
+        if (getAccelerator() == accelerator) return;
+        if (accelerators.length < 1)
+            accelerators = new KeyStroke[1];
+        this.accelerators[0] = accelerator;
         for (EMenuBar.Instance menuBarInstance: TopLevel.getMenuBars()) {
             JMenuItem item = menuBarInstance.findMenuItem(path);
             if (item == null) continue;
@@ -233,8 +268,8 @@ public abstract class EMenuItem implements ActionListener {
             item.setMnemonic(text.charAt(mnemonicsPos));
             item.setDisplayedMnemonicIndex(mnemonicsPos);
         }
-        if (accelerator != null)
-            item.setAccelerator(accelerator);
+        if (getAccelerator() != null)
+            item.setAccelerator(getAccelerator());
         
         // add action listeners so when user selects menu, actions will occur
         item.addActionListener(this);
