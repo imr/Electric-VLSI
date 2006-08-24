@@ -63,18 +63,18 @@ public class WindowMenu {
         EMenu menu = new EMenu("_Window",
 //        WindowEMenu menu = new WindowEMenu("_Window",
 
-            new EMenuItem("_Fill Window", '9', KeyEvent.VK_NUMPAD9) { public void run() {
+            new EMenuItem("_Fill Window", new int [] {'9', KeyEvent.VK_NUMPAD9, KeyEvent.VK_PAGE_UP}) { public void run() {
                 fullDisplay(); }},
             new EMenuItem("Redisplay _Window") { public void run() {
                 ZoomAndPanListener.redrawDisplay(); }},
-            new EMenuItem("Zoom _Out", '0', KeyEvent.VK_NUMPAD0) { public void run() {
+            new EMenuItem("Zoom _Out", new int [] {'0', KeyEvent.VK_NUMPAD0, KeyEvent.VK_INSERT}) { public void run() {
                 zoomOutDisplay(); }},
-            new EMenuItem("Zoom _In", '7', KeyEvent.VK_NUMPAD7) { public void run() {
+            new EMenuItem("Zoom _In", new int [] {'7', KeyEvent.VK_NUMPAD7, KeyEvent.VK_HOME}) { public void run() {
                 zoomInDisplay(); }},
 
 		// mnemonic keys available: ABCDEF  IJKLMNOPQRSTUV XY
             new EMenu("Special _Zoom",
-                new EMenuItem("Focus on _Highlighted", 'F', KeyEvent.VK_NUMPAD5) { public void run() {
+                new EMenuItem("Focus on _Highlighted", new int [] {'F', KeyEvent.VK_NUMPAD5, KeyEvent.VK_BEGIN}) { public void run() {
                     focusOnHighlighted(); }},
                 new EMenuItem("_Zoom Box") { public void run() {
                     zoomBoxCommand(); }},
@@ -85,13 +85,13 @@ public class WindowMenu {
 
             SEPARATOR,
 
-            new EMenuItem("Pan _Left", '4', KeyEvent.VK_NUMPAD4) { public void run() {
+            new EMenuItem("Pan _Left", new int [] { '4', KeyEvent.VK_NUMPAD4, KeyEvent.VK_KP_LEFT}) { public void run() {
                 ZoomAndPanListener.panXOrY(0, WindowFrame.getCurrentWindowFrame(), 1); }},
-            new EMenuItem("Pan _Right", '6', KeyEvent.VK_NUMPAD6) { public void run() {
+            new EMenuItem("Pan _Right", new int [] {'6', KeyEvent.VK_NUMPAD6, KeyEvent.VK_KP_RIGHT}) { public void run() {
                 ZoomAndPanListener.panXOrY(0, WindowFrame.getCurrentWindowFrame(), -1); }},
-            new EMenuItem("Pan _Up",  '8', KeyEvent.VK_NUMPAD8) { public void run() {
+            new EMenuItem("Pan _Up",  new int[] { '8', KeyEvent.VK_NUMPAD8, KeyEvent.VK_KP_UP}) { public void run() {
                 ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), -1); }},
-            new EMenuItem("Pan _Down", '2', KeyEvent.VK_NUMPAD2) { public void run() {
+            new EMenuItem("Pan _Down", new int[] { '2', KeyEvent.VK_NUMPAD2, KeyEvent.VK_KP_DOWN}) { public void run() {
                 ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), 1); }},
 
 		// mnemonic keys available:  B DEFGHIJKLMNOPQR TUVW  Z
