@@ -38,6 +38,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.extract.TransistorSearch;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -461,7 +462,18 @@ public class CellLists extends EDialog
 			System.out.println("There are no instances in " + curCell);
 	}
 
-	/**
+    /**
+     * This method implements the command to count the number of transistors
+     * from this current Cell.
+     */
+    public static void numberOfTransistorsCommand()
+	{
+		Cell curCell = WindowFrame.needCurCell();
+		if (curCell == null) return;
+        TransistorSearch.countNumberOfTransistors(curCell);
+    }
+
+    /**
 	 * This method implements the command to list the usage of the current Cell.
 	 */
 	public static void listCellUsageCommand()

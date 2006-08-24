@@ -24,8 +24,6 @@
 package com.sun.electric.database.hierarchy;
 
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,7 +99,7 @@ public final class HierarchyEnumerator {
 		public String leafName() {
 			Iterator<String> it = net.getNames();
 			if (it.hasNext()) {
-				return (String) it.next();
+				return it.next();
 			} else {
 				return "netIndex"+net.getNetIndex();
 			}
@@ -188,10 +186,10 @@ public final class HierarchyEnumerator {
 	}
 
 	// Prevent anyone from instantiating HierarchyEnumerator.
-	private HierarchyEnumerator() {	};
+	private HierarchyEnumerator() {	}
 
     private CellShorts getShortened(Cell cell, Netlist netlist) {
-        CellShorts shorts = (CellShorts)cellShortsMap.get(cell);
+        CellShorts shorts = cellShortsMap.get(cell);
         if (shorts != null) return shorts;
 
         shorts = new CellShorts(netlist);
@@ -201,7 +199,7 @@ public final class HierarchyEnumerator {
         	                            spiceParts.findNodeProto("Ammeter{ic}");
 
         for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext();) {
-			Nodable ni = (Nodable)it.next();
+			Nodable ni = it.next();
 			NodeProto np = ni.getProto();
 			if (ni.isCellInstance() && !((Cell)np).isIcon()) {
                 Cell subCell = (Cell)np;
@@ -223,7 +221,7 @@ public final class HierarchyEnumerator {
                 }
                 
         		for (int i=0, numPorts = subCell.getNumPorts(); i < numPorts; i++) {
-                	Export export = (Export)subCell.getPort(i);
+                	Export export = subCell.getPort(i);
                     for (int j=0, busWidth = subNetlist.getBusWidth(export); j < busWidth; j++) {
             			Network net = netlist.getNetwork(ni, export, j);
                         Network subNet = subNetlist.getNetwork(export, j);
@@ -258,7 +256,7 @@ public final class HierarchyEnumerator {
 	private int[] numberNets(Cell cell, Netlist netlist, 
 							 int[][] portNdxToNetIDs, CellInfo info) {
 		int numNets = netlist.getNumNetworks();
-        CellShorts shorts = (CellShorts)cellShortsMap.get(cell);
+        CellShorts shorts = cellShortsMap.get(cell);
 		int[] netNdxToNetID = new int[numNets];
         int baseId = nextNetID();
         Arrays.fill(shorts.externalIds, -1);
@@ -272,7 +270,7 @@ public final class HierarchyEnumerator {
                 shorts.externalIds[shorts.net2id[netIndex]] = portNdxToNetIDs[0][i];
 			}
 			for (int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
-				Export export = (Export) cell.getPort(i);
+				Export export = cell.getPort(i);
 				int[] ids = portNdxToNetIDs[i + 1];
 				assert ids.length == export.getNameKey().busWidth();
 				for (int j=0; j<ids.length; j++) {
@@ -294,7 +292,7 @@ public final class HierarchyEnumerator {
                 assert nextNetID() == baseId + localId;
                 netIdToNetDesc.add(new NetDescription(net, info));
             } else if (localId >= shorts.externalIds.length || portNdxToNetIDs == null) {
-                NetDescription nd = (NetDescription)netIdToNetDesc.get(baseId + localId);
+                NetDescription nd = netIdToNetDesc.get(baseId + localId);
                 int cmp = !net.isUsernamed() ? 1 : nd.net.isUsernamed() ? 0 : -1; 
                 if (cmp == 0 && net.isExported() != nd.net.isExported())
                     cmp = net.isExported() ? -1 : 1;
@@ -358,14 +356,14 @@ public final class HierarchyEnumerator {
 		int[] netNdxToNetID = numberNets(cell, netlist, portNdxToNetIDs, info);
 		int lastNetIDPlusOne = nextNetID();
 		cellCnt++;
-		info.init(parentInst, cell,	(CellShorts)cellShortsMap.get(cell), context, netlist, netNdxToNetID, 
+		info.init(parentInst, cell,	cellShortsMap.get(cell), context, netlist, netNdxToNetID,
 				  portNdxToNetIDs, xformToRoot, netIdToNetDesc, parent);
 
 		boolean enumInsts = visitor.enterCell(info);
 		if (!enumInsts) return;
 
 		for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext();) {
-			Nodable ni = (Nodable)it.next();
+			Nodable ni = it.next();
 
 			instCnt++;
 			boolean descend = visitor.visitNodeInst(ni, info);
@@ -803,7 +801,7 @@ public final class HierarchyEnumerator {
 		/** Same as getUniqueNetName except it returns a NameProxy instead of a
 		 * String name */
 		public final NetNameProxy getUniqueNetNameProxy(int netID, String sep) {
-			NetDescription ns = (NetDescription) netIdToNetDesc.get(netID);
+			NetDescription ns = netIdToNetDesc.get(netID);
 			VarContext netContext = ns.getCellInfo().getContext();
 			String leafName;
 
@@ -833,7 +831,7 @@ public final class HierarchyEnumerator {
 		/** Get the Network that is closest to the root in the design
 		 * hierarchy that corresponds to netID. */
 		public final NetDescription netIdToNetDescription(int netID) {
-			return (NetDescription) netIdToNetDesc.get(netID);
+			return netIdToNetDesc.get(netID);
 		}
 
         /**
@@ -883,64 +881,14 @@ public final class HierarchyEnumerator {
             return null;
         }
 
-		/** Find position of NodeInst: ni in the root Cell. The
-		 * getPositionInRoot method is useful for flattening
-		 * layout. */
-		public final AffineTransform getPositionInRoot(NodeInst ni) {
-			AffineTransform x = new AffineTransform(xformToRoot);
-//			x.concatenate(ni.getPositionAsTransform());
-			return x;
-		}
+        /**
+         * Method to get the transformation from the current location to the root.
+         * If this is at the top cell, the transformation is identity.
+         * @return the transformation from the current location to the root.
+         */
+        public AffineTransform getTransformToRoot() { return xformToRoot; }
 
-		/**
-		 * Method to get the transformation from the current location to the root.
-		 * If this is at the top cell, the transformation is identity.
-		 * @return the transformation from the current location to the root.
-		 */
-		public AffineTransform getTransformToRoot() { return xformToRoot; }
-
-		/** Find the position of a Point2D: p in the root Cell. The
-		 * getPositionInRoot method is useful for flattening
-		 * layout. */
-		public final Point2D getPositionInRoot(Point2D p) {
-			Point2D ans = new Point2D.Double();
-			xformToRoot.transform(p, ans);
-			return ans;
-		}
-
-		/** Find the rectangular bounds of rectangle: r in the root
-		 * Cell.  If the current Cell instance is rotated by a
-		 * multiple of 90 degrees in the root Cell then the result is
-		 * also the position of rectangle: r mapped to the root Cell.
-		 * getBoundsInRoot is useful for flattening layout. */
-		public final Rectangle2D getBoundsInRoot(Rectangle2D r) {
-			double[] coords = new double[8];
-			// Clockwise
-			coords[0] = r.getX();
-			coords[1] = r.getY();
-
-			coords[2] = r.getX();
-			coords[3] = r.getY() + r.getHeight();
-
-			coords[4] = r.getX() + r.getWidth();
-			coords[5] = r.getY() + r.getHeight();
-
-			coords[6] = r.getX() + r.getWidth();
-			coords[7] = r.getY();
-
-			xformToRoot.transform(coords, 0, coords, 0, 8);
-			double minX, minY, maxX, maxY;
-			minX = minY = Double.MAX_VALUE;
-			maxX = maxY = Double.MIN_VALUE;
-			for (int i = 0; i < 8; i += 2) {
-				minX = Math.min(minX, coords[i]);
-				maxX = Math.max(maxX, coords[i]);
-				minY = Math.min(minY, coords[i + 1]);
-				maxY = Math.max(maxY, coords[i + 1]);
-			}
-            return new Rectangle2D.Double(minX, minY, maxX - minX, maxY - minY);
-		}
-	}
+    }
 
 	// ----------------------- public methods --------------------------
 
@@ -985,7 +933,7 @@ public final class HierarchyEnumerator {
     /** Recursive method used to traverse down hierarchy */
     private static void hierCellsRecurse(Cell cell, HashMap<Cell,Cell> uniqueCells) {
         for (Iterator<CellUsage> uit = cell.getUsagesIn(); uit.hasNext();) {
-            CellUsage u = (CellUsage) uit.next();
+            CellUsage u = uit.next();
             Cell subCell = u.getProto();
             if (subCell.isIcon()) continue;
             uniqueCells.put(subCell, subCell);
@@ -1013,7 +961,7 @@ public final class HierarchyEnumerator {
         NodeInst ni = childNodable.getNodeInst();
         // find port and index on nodable that is connected to parentNet
         for (Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); ) {
-            PortInst pi = (PortInst)it.next();
+            PortInst pi = it.next();
             pp = pi.getPortProto();
             for (i=0; i<pp.getNameKey().busWidth(); i++) {
                 Network net = parentNetlist.getNetwork(childNodable, pp, i);
@@ -1055,7 +1003,7 @@ public final class HierarchyEnumerator {
         boolean found = false;
         for (Iterator<Export> it = net.getExports(); !found && it.hasNext();)
         {
-            Export exp = (Export)it.next();
+            Export exp = it.next();
             Network tmpNet = info.getNetlist().getNetwork(exp, 0);
             found = searchNetworkInParent(tmpNet, info, visitorNet);
         }

@@ -138,7 +138,7 @@ public class CellMenu {
 
             SEPARATOR,
 
-		// mnemonic keys available:  BC    H JKLM OPQRST  WXYZ
+		// mnemonic keys available:  BC    H JKLM OPQRS   WXYZ
             new EMenu("Cell In_fo",
                 new EMenuItem("_Describe this Cell") { public void run() {
                     CellLists.describeThisCellCommand(); }},
@@ -151,6 +151,8 @@ public class CellMenu {
                     CellLists.listCellInstancesCommand(); }},
                 new EMenuItem("List Cell _Usage") { public void run() {
                     CellLists.listCellUsageCommand(); }},
+                new EMenuItem("Number of _Transistors") { public void run() {
+                    CellLists.numberOfTransistorsCommand(); }},
                 SEPARATOR,
                 new EMenuItem("Graphically, _Entire Library") { public void run() {
                     CircuitChanges.graphCellsInLibrary(); }},
