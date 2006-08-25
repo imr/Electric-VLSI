@@ -428,6 +428,11 @@ public class CellMenu {
         if (curEdit == null) return;
         Cell cell = curEdit.getCell();
         if (cell == null) return;
+        if (cell.getView() != View.LAYOUT) {
+            System.out.println("Current cell should be layout cell for down hier in place to object");
+            return;
+        }
+
         // if object under mouse, descend to that location
         Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
         Point2D mouseDB = curEdit.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
