@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/25/06, SAF) PIE: All pseudo part info created with cannonical port ordering.
+
 IMP/MAN: (8/25/06, JKG) Added menu command for down hier in place to object, bug#733
 
 IMP: (8/24/06, SAF) PIE: Hash using sub-cell port to port matrix when creating port
