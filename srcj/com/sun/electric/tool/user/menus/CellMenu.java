@@ -25,13 +25,18 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.extract.GeometrySearch;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -45,13 +50,12 @@ import com.sun.electric.tool.user.dialogs.CellProperties;
 import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ToolBar;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 
 import java.awt.Dimension;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -122,7 +126,9 @@ public class CellMenu {
                     downHierCommand(true, true); }},
                 SEPARATOR,
 		        new EMenuItem("Down Hierarchy In _Place", KeyStroke.getKeyStroke('D', 0)) { public void run() {
-                    downHierInPlaceCommand(); }}),
+                    downHierInPlaceCommand(); }},
+                new EMenuItem("Down Hierarchy In Place To Object", KeyStroke.getKeyStroke('D', KeyEvent.SHIFT_MASK)) { public void run() {
+                    downHierInPlaceToObject(); }}),
 
 		    new EMenuItem("_Up Hierarchy", 'U') { public void run() {
                 upHierCommand(); }},
@@ -414,6 +420,46 @@ public class CellMenu {
         EditWindow curEdit = EditWindow.needCurrent();
         if (curEdit == null) return;
         curEdit.downHierarchy(false, false, true);
+    }
+
+    private static void downHierInPlaceToObject()
+    {
+        EditWindow curEdit = EditWindow.needCurrent();
+        if (curEdit == null) return;
+        Cell cell = curEdit.getCell();
+        if (cell == null) return;
+        // if object under mouse, descend to that location
+        Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
+        Point2D mouseDB = curEdit.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
+        EPoint point = new EPoint(mouseDB.getX(), mouseDB.getY());
+        GeometrySearch search = new GeometrySearch();
+        long start = System.currentTimeMillis();
+        if (search.searchGeometries(cell, point, true)) {
+            VarContext context = search.getContext();
+
+            if (context == VarContext.globalContext) {
+                System.out.println(search.describeFoundGeometry()+", not descending down hierarchy");
+                return;
+            }
+            Geometric geom = search.getGeometricFound();
+            System.out.println("Descending to "+geom+" at point ("+point.getX()+","+point.getY()+") in cell "+geom.getParent().getName());
+            for (Iterator<Nodable> it = context.getPathIterator(); it.hasNext(); ) {
+                Nodable no = it.next();
+                Cell curCell = no.getParent();
+                curEdit.getHighlighter().clear();
+                curEdit.getHighlighter().addElectricObject(no.getNodeInst(), curCell);
+                curEdit.getHighlighter().finished();
+                System.out.println("  descended into "+no.getName()+"["+no.getProto().getName()+"] in cell "+curCell.getName());
+                curEdit.downHierarchy(false, false, true);
+            }
+            curEdit.getHighlighter().clear();
+            curEdit.getHighlighter().addElectricObject(geom, geom.getParent());
+            curEdit.getHighlighter().finished();
+        } else {
+            // nothing found
+            System.out.println("No primitive node or arc found under mouse to descend to.");
+        }
+        System.out.println("Search took "+ TextUtils.getElapsedTime(System.currentTimeMillis()-start));
     }
 
     /**
