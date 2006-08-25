@@ -36,6 +36,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -304,6 +307,25 @@ public class VarContext implements Serializable
 
         if (! ((c1 == c2) && (name1.equals(name2)))) return false;
         return prev.equals(c.pop());            // compare parents
+    }
+
+    /**
+     * Get an iterator over the Nodables that describe this context.
+     * This iterator starts from the top of the hierarchy, and goes down.
+     * @return an iterator over the context path
+     */
+    public Iterator<Nodable> getPathIterator() {
+        Stack<Nodable> stack = new Stack<Nodable>();
+        VarContext context = this;
+        while (context != VarContext.globalContext) {
+            Nodable no = context.getNodable();
+            stack.push(no);
+            context = context.pop();
+        }
+        List<Nodable> path = new ArrayList<Nodable>();
+        while (!stack.isEmpty())
+            path.add(stack.pop());
+        return path.iterator();
     }
 
     /**
