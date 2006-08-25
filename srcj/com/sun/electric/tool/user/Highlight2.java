@@ -42,6 +42,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.Job;
 import com.sun.electric.technology.technologies.Artwork;
@@ -796,9 +797,11 @@ class HighlightEOBJ extends Highlight2
 		// highlight NodeInst
 		PortProto pp = null;
 		ElectricObject realEObj = eobj;
-		if (realEObj instanceof PortInst)
+        PortInst originalPi = null;
+        if (realEObj instanceof PortInst)
 		{
-			pp = ((PortInst)realEObj).getPortProto();
+            originalPi = ((PortInst)realEObj);
+            pp = originalPi.getPortProto();
 			realEObj = ((PortInst)realEObj).getNodeInst();
 		}
 		if (realEObj instanceof NodeInst)
@@ -1064,6 +1067,7 @@ class HighlightEOBJ extends Highlight2
                 // it figures out what's connected and adds them manually. Because they are added
                 // in addNetwork, we shouldn't try and add connected objects here.
                 if (highlightConnected && onlyHighlight) {
+                    long start = System.currentTimeMillis();
                     Netlist netlist = cell.acquireUserNetlist();
 					if (netlist == null) return;
 					NodeInst originalNI = ni;
@@ -1073,29 +1077,52 @@ class HighlightEOBJ extends Highlight2
 	                	Export equiv = (Export)cell.findPortProto(pp.getName());
 	                	if (equiv != null)
 						{
-	                		PortInst ePi = equiv.getOriginalPort();
-							ni = ePi.getNodeInst();
-							pp = ePi.getPortProto();
+	                		originalPi = equiv.getOriginalPort();
+							ni = originalPi.getNodeInst();
+							pp = originalPi.getPortProto();
 						}
 		            }
-                    Nodable no = Netlist.getNodableFor(ni, 0);
-					PortProto epp = pp;
-					if (pp instanceof Export) {
-						epp = ((Export)pp).getEquivalent();
-						if (epp == null) epp = pp;
-					}
-//                    int busWidth = pp.getNameKey().busWidth();
+                    Set<Network> networks = new HashSet<Network>();
+                    networks = NetworkTool.getNetworksOnPort(originalPi, netlist, networks);
 
                     HashSet<Geometric> markObj = new HashSet<Geometric>();
                     for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
                     {
                         ArcInst ai = it.next();
-                        if (!netlist.sameNetwork(no, epp, ai)) continue;
-
-                        markObj.add(ai);
-                        markObj.add(ai.getHeadPortInst().getNodeInst());
-                        markObj.add(ai.getTailPortInst().getNodeInst());
+                        Name arcName = ai.getNameKey();
+                        for (int i=0; i<arcName.busWidth(); i++) {
+                            if (networks.contains(netlist.getNetwork(ai, i))) {
+                                markObj.add(ai);
+                                markObj.add(ai.getHeadPortInst().getNodeInst());
+                                markObj.add(ai.getTailPortInst().getNodeInst());
+                                break;
+                            }
+                        }
                     }
+
+                    for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
+                        Nodable no = it.next();
+                        NodeInst oNi = no.getNodeInst();
+                        if (oNi == originalNI) continue;
+                        if (markObj.contains(ni)) continue;
+
+                        boolean highlightNo = false;
+                        for(Iterator<PortProto> eIt = no.getProto().getPorts(); eIt.hasNext(); )
+                        {
+                            PortProto oPp = eIt.next();
+                            Name opName = oPp.getNameKey();
+                            for (int j=0; j<opName.busWidth(); j++) {
+                                if (networks.contains(netlist.getNetwork(no, oPp, j))) {
+                                    highlightNo = true;
+                                    break;
+                                }
+                            }
+                            if (highlightNo) break;
+                        }
+                        if (highlightNo)
+                            markObj.add(oNi);
+                    }
+                    //System.out.println("Search took "+com.sun.electric.database.text.TextUtils.getElapsedTime(System.currentTimeMillis()-start));
 
                     // draw lines along all of the arcs on the network
                     Stroke origStroke = g2.getStroke();
@@ -1111,25 +1138,10 @@ class HighlightEOBJ extends Highlight2
 
                     // draw dots in all connected nodes
                     g2.setStroke(solidLine);
-                    for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+                    for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
                     {
                         NodeInst oNi = it.next();
-                        if (oNi == originalNI) continue;
-                        if (!markObj.contains(oNi))
-                        {
-                    		boolean connected = false;
-                        	if (oNi.hasExports())
-//                        	if (oNi.getNumExports() > 0)
-                        	{
-                        		// could be connected by exports...check
-                        		for(Iterator<PortProto> eIt = oNi.getProto().getPorts(); eIt.hasNext(); )
-                        		{
-                        			PortProto oPp = eIt.next();
-                        			if (netlist.sameNetwork(no, epp, oNi, oPp)) { connected = true;   break; }
-                        		}
-                        	}
-                        	if (!connected) continue;
-                        }
+                        if (!markObj.contains(oNi)) continue;
 
                         Point c = wnd.databaseToScreen(oNi.getTrueCenter());
                         g.fillOval(c.x-4, c.y-4, 8, 8);
