@@ -122,7 +122,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
                 {
                     // ignore nodes that and fully invisible
                     PrimitiveNode node = (PrimitiveNode)oNi.getProto();
-                    //if (visibleObjectsOnly && !isNodeVisible(node)) continue;
+                    if (visibleObjectsOnly && !isNodeVisible(node)) continue;
                     foundElement = geom;
                     context = info.getContext();
                     found = true;
@@ -132,7 +132,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
             {
                 // ignore arcs that and fully invisible
                 ArcProto ap = ((ArcInst)geom).getProto();
-                //if (visibleObjectsOnly && !isArcVisible(ap)) continue;
+                if (visibleObjectsOnly && !isArcVisible(ap)) continue;
                 foundElement = geom;
                 context = info.getContext();
                 found = true;
@@ -145,7 +145,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
     public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
     {
         if (found) return false;
-        //if (visibleObjectsOnly && !no.getNodeInst().isExpanded()) return false;
+        if (visibleObjectsOnly && !no.getNodeInst().isExpanded()) return false;
         return true;
     }
 
