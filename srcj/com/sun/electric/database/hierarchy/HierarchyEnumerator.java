@@ -852,7 +852,7 @@ public final class HierarchyEnumerator {
             Export export = null;
             int i = 0;
             for (Iterator<Export> it = cell.getExports(); it.hasNext(); ) {
-                export = (Export)it.next();
+                export = it.next();
                 for (i=0; i<export.getNameKey().busWidth(); i++) {
                     Network net = netlist.getNetwork(export, i);
                     if (net == network) { found = true; break; }
