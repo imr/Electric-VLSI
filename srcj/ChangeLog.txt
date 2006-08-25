@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/24/06, SAF) PIE: Hash using sub-cell port to port matrix when creating port
+     to port matrix. Pins and pseudo-parts classified by equivalence type. 
+
 IMP/MAN: (8/24/06, GVG) Function to count number of transistors in Schematics.
 
 IMP: (8/22/06, RK) PIE: Composite Part Information prints out
