@@ -35,6 +35,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
     private boolean visibleObjectsOnly;
     private HashMap<PrimitiveNode,Boolean> cacheVisibilityNodes;
     private HashMap<ArcProto,Boolean> cacheVisibilityArcs;
+    private int cellsProcessed;         // for debug
 
     public GeometrySearch() {
         cacheVisibilityNodes = new HashMap<PrimitiveNode,Boolean>();
@@ -59,6 +60,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
         this.visibleObjectsOnly = visibleObjectsOnly;
         this.cacheVisibilityArcs.clear();
         this.cacheVisibilityNodes.clear();
+        this.cellsProcessed = 0;
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, this);
         return found;
     }
@@ -68,6 +70,8 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
     public Geometric getGeometricFound() { return foundElement; }
 
     public VarContext getContext() { return context; }
+
+    public int getCellsProcessed() { return cellsProcessed; }
 
     public String describeFoundGeometry() {
         String contextstr = "current cell";
@@ -98,8 +102,10 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
         Rectangle2D rect = new Rectangle2D.Double();
         rect.setRect(geomBBnd);
         DBMath.transformRect(rect, xformToRoot);
+        cellsProcessed++;
 
-        for(Iterator<Geometric> it = cell.searchIterator(rect); it.hasNext(); )
+        boolean continueDown = false;
+        for(Iterator<Geometric> it = cell.searchIterator(rect, false); it.hasNext(); )
         {
             Geometric geom = it.next();
 
@@ -110,12 +116,13 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
                 if (oNi.isCellInstance())
                 {
                     // keep searching
+                    continueDown = true;
                 }
                 else // primitive found
                 {
                     // ignore nodes that and fully invisible
                     PrimitiveNode node = (PrimitiveNode)oNi.getProto();
-                    if (visibleObjectsOnly && !isNodeVisible(node)) continue;
+                    //if (visibleObjectsOnly && !isNodeVisible(node)) continue;
                     foundElement = geom;
                     context = info.getContext();
                     found = true;
@@ -125,19 +132,20 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
             {
                 // ignore arcs that and fully invisible
                 ArcProto ap = ((ArcInst)geom).getProto();
-                if (visibleObjectsOnly && !isArcVisible(ap)) continue;
+                //if (visibleObjectsOnly && !isArcVisible(ap)) continue;
                 foundElement = geom;
                 context = info.getContext();
                 found = true;
             }
         }
-        return !found;
+        if (found) return false;
+        return continueDown;
     }
     public void exitCell(HierarchyEnumerator.CellInfo info) {}
     public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
     {
         if (found) return false;
-        if (visibleObjectsOnly && !no.getNodeInst().isExpanded()) return false;
+        //if (visibleObjectsOnly && !no.getNodeInst().isExpanded()) return false;
         return true;
     }
 
