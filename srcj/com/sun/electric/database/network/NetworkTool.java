@@ -27,7 +27,9 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -239,6 +241,32 @@ public class NetworkTool extends Tool
                 {
                     added = true;
                     nets.add(net);
+                }
+            }
+        }
+        if (!added)
+        {
+            // port may be exported, without wire attached, and may
+            // connect by export name to other wires
+            NodeInst ni = pi.getNodeInst();
+            Set<PortInst> ports = new HashSet<PortInst>();
+            ports.add(pi);
+            for (Iterator<PortInst> it = ni.getPortInsts(); it.hasNext(); ) {
+                // several ports on node may be connected together at lower level
+                PortInst otherpi = it.next();
+                if (otherpi == pi) continue;
+                if (netlist.sameNetwork(ni, pi.getPortProto(), ni, otherpi.getPortProto()))
+                    ports.add(otherpi);
+            }
+            for (Iterator<Export> it = ni.getParent().getExports(); it.hasNext(); ) {
+                Export export = it.next();
+                if (ports.contains(export.getOriginalPort())) {
+                    Name name = export.getNameKey();
+                    for (int i=0; i<name.busWidth(); i++) {
+                        nets.add(netlist.getNetwork(pi.getNodeInst(), pi.getPortProto(), i));
+                        added = true;
+                    }
+                    break;
                 }
             }
         }
