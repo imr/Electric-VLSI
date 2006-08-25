@@ -11,9 +11,10 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
 
 import java.util.Iterator;
-import java.util.HashMap;
 
 /**
  * Created by IntelliJ IDEA.
@@ -31,17 +32,41 @@ public class TransistorSearch
             System.out.println("Counting number of transistors only valid for Schematics cells");
             return;
         }
-        TransistorSearchEnumerator visitor = new TransistorSearchEnumerator();
-        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, visitor);
-        System.out.println("Number of transistors found from cell " + cell.getName() + ": " + visitor.transistorNumber);
+        new TransistorSearchJob(cell);
+    }
+
+    private static class TransistorSearchJob extends Job
+    {
+        private Cell cell;
+
+        public TransistorSearchJob(Cell cell)
+        {
+            super("Searching Transistors in " + cell.getName(), null, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+            long startTime = System.currentTimeMillis();
+
+            TransistorSearchEnumerator visitor = new TransistorSearchEnumerator();
+            HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, visitor);
+            System.out.println("Number of transistors found from cell " + cell.getName() + ": " + visitor.transistorTotalNumber);
+            System.out.println("Number of non-cap transistors found from cell " + cell.getName() + ": " + visitor.transistorRealNumber);
+            System.out.println("(took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
+
+            return true;
+        }
     }
 
     /**************************************************************************************************************
-     *  ConnectionEnumerator class
+     *  TransistorSearchEnumerator class
      **************************************************************************************************************/
     private static class TransistorSearchEnumerator extends HierarchyEnumerator.Visitor
     {
-        private int transistorNumber;
+        private int transistorTotalNumber;
+        private int transistorRealNumber; // doesn't include cap transistros where drain/source ports are connected
 
         public TransistorSearchEnumerator() {}
 
@@ -57,11 +82,12 @@ public class TransistorSearch
             if (ni.getProto().getFunction().isTransistor())
             {
                 Netlist netlist = info.getNetlist();
-                Global.Set globals = netlist.getGlobals();
+                HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo() != null ? info.getParentInfo() : info;
+                Global.Set globals = parentInfo.getNetlist().getGlobals();
                 // checking the ports
                 boolean found = false; // no cap transistor (2 gnd or 2 vdd)
-                HashMap<Integer,Integer> map = new HashMap<Integer,Integer>();
                 int netID = -1;
+                // Bypass capacitors: gate=vdd, substrate=gnd.
                 for (Iterator<PortInst> itPi = ni.getPortInsts(); itPi.hasNext();)
                 {
                     PortInst pi = itPi.next();
@@ -74,19 +100,25 @@ public class TransistorSearch
                         netID = key;
                     else if (key == netID)  // same network
                     {
-                        found = true;
                         for (int j = 0; j < globals.size(); j++)
                         {
                             Global g = globals.get(j);
-                            if (netlist.getNetwork(g) == net)
-                                System.out.println();
+                            Network gnet = parentInfo.getNetlist().getNetwork(g);
+                            int gnetID = parentInfo.getNetID(gnet);
+                            if (gnetID == netID)
+                            {
+                                found = true;
+                                break; // not checking if they are ground or vdd
+                            }
                         }
-                        break;
+                        if (found)
+                            break;
                     }
                 }
                 // Only counting when it is not a cap transistor.
+                transistorTotalNumber++;
                 if (!found)
-                    transistorNumber++;
+                    transistorRealNumber++;
             }
             return true;
         }

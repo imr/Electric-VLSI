@@ -234,7 +234,7 @@ public class CellMenu {
     		return;
     	}
 
-		SetMultiPageJob job = new SetMultiPageJob(cell, 1);
+		new SetMultiPageJob(cell, 1);
     }
 
     /**
@@ -263,7 +263,7 @@ public class CellMenu {
 	    	}
 			boolean wasMulti = cell.isMultiPage();
 	    	cell.setMultiPage(true);
-	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages));
+	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, numPages); // autoboxing
 	    	if (!wasMulti) System.out.println("Cell " + cell.describe(true) + " is now a multi-page schematic");
 			return true;
 		}
@@ -310,7 +310,7 @@ public class CellMenu {
 			{
 				CircuitChangeJobs.spreadCircuitry(cell, null, 'u', -Cell.FrameDescription.MULTIPAGESEPARATION, 0, 0, lY, hY);
 			}
-	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages-1));
+	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, (numPages-1)); // autoboxing
 			fieldVariableChanged("numPages");
 			return true;
 		}
@@ -349,7 +349,7 @@ public class CellMenu {
     		return;
     	}
     	int numPages = cell.getNumMultiPages();
-		SetMultiPageJob job = new SetMultiPageJob(cell, numPages+1);
+		new SetMultiPageJob(cell, numPages+1);
     	wnd.setMultiPageNumber(numPages);
     }
 
@@ -368,7 +368,7 @@ public class CellMenu {
     		return;
     	}
     	int curPage = wnd.getMultiPageNumber();
-    	DeleteMultiPageJob job = new DeleteMultiPageJob(cell, curPage);
+    	new DeleteMultiPageJob(cell, curPage);
     	int numPages = cell.getNumMultiPages();
     	if (curPage >= numPages) wnd.setMultiPageNumber(numPages-1);
     }

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/25/06, GVG) Code to count number of transistors in Schematics (bug #1209)
+
 IMP: (8/25/06, RK) PIE: First cut at equivalent pins
 
 IMP: (8/25/06, RK) PIE: Deal with topologically identical islands
