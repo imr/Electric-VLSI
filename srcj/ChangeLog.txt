@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (8/28/06, SMR) GNUCap simulation output is wrong.
+FIX: In tool.io.output.Spice.java, use "0" for "gnd" and supress "@" for GNUCap.
+
 IMP/MAN: (8/28/06, SMR) Added new Export commands: "Re-Export Deep Highlighted Area"
      and "Re-Export Deep Highlighted Area, With Wired Ports".  Deep reexporting
      recursively examines cell instances, creating exports from the bottom of the

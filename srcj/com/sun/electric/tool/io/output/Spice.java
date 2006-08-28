@@ -321,7 +321,8 @@ public class Spice extends Topology
 
 		// setup the legal characters
 		legalSpiceChars = SPICELEGALCHARS;
-		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P) legalSpiceChars = PSPICELEGALCHARS;
+		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P ||
+			spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_G) legalSpiceChars = PSPICELEGALCHARS;
 
 		// start writing the spice deck
 		if (useCDL)
@@ -2475,7 +2476,9 @@ public class Spice extends Topology
 	/** Method to return the proper name of Ground */
 	protected String getGroundName(Network net)
 	{
-		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P) return "0";
+		if (spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_2 ||
+			spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_P ||
+			spiceEngine == Simulation.SpiceEngine.SPICE_ENGINE_G) return "0";
 
 		if (net != null)
 		{
@@ -2599,7 +2602,7 @@ public class Spice extends Topology
 	 */
 	protected String getSafeNetName(String name, boolean bus)
 	{
-        return getSafeNetName(name, bus, legalSpiceChars);
+        return getSafeNetName(name, bus, legalSpiceChars, spiceEngine);
     }
 
     /**
@@ -2611,14 +2614,14 @@ public class Spice extends Topology
         String legalSpiceChars = SPICELEGALCHARS;
         if (Simulation.getSpiceEngine() == Simulation.SpiceEngine.SPICE_ENGINE_P)
             legalSpiceChars = PSPICELEGALCHARS;
-        return getSafeNetName(name, false, legalSpiceChars);
+        return getSafeNetName(name, false, legalSpiceChars, Simulation.getSpiceEngine());
     }
 
     /**
      * Method to adjust a network name to be safe for Spice output.
      * Spice has a list of legal punctuation characters that it allows.
      */
-    private static String getSafeNetName(String name, boolean bus, String legalSpiceChars)
+    private static String getSafeNetName(String name, boolean bus, String legalSpiceChars, Simulation.SpiceEngine spiceEngine)
     {
         // simple names are trivially accepted as is
 		boolean allAlNum = true;
@@ -2637,7 +2640,10 @@ public class Spice extends Topology
 		if (allAlNum) return name;
 
 		StringBuffer sb = new StringBuffer();
-		if (TextUtils.isDigit(name.charAt(0))) sb.append('_');
+		if (TextUtils.isDigit(name.charAt(0)) &&
+			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_G &&
+			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_P &&
+			spiceEngine != Simulation.SpiceEngine.SPICE_ENGINE_2) sb.append('_');
 		for(int t=0; t<name.length(); t++)
 		{
 			char chr = name.charAt(t);
