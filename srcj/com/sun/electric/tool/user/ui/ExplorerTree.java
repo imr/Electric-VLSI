@@ -54,6 +54,7 @@ import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
+import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.SweepSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
@@ -1080,6 +1081,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						SweepSignal ss = (SweepSignal)getCurrentlySelectedObject(i);
 						if (ss == null) return;
 						ss.setIncluded(!ss.isIncluded(), true);
+						updateUI();
 						didSomething = true;
 					}
 				}
@@ -1677,6 +1679,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setAllSweepsAction(false); } });
 
+					menuItem = new JMenuItem("Remove Highlighting");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { removeSweepHighlighting(); } });
+
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
 				}
@@ -1979,6 +1985,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (ss == null) continue;
 				ss.highlight();
 			}
+			updateUI();
 		}
 
 		private void setAllSweepsAction(boolean include)
@@ -2004,6 +2011,23 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			{
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
                 ww.setIncludeInAllSweeps(sweeps, include);
+			}
+			updateUI();
+		}
+
+		private void removeSweepHighlighting()
+		{
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf == null) return;
+			if (wf.getContent() instanceof WaveformWindow)
+			{
+				WaveformWindow ww = (WaveformWindow)wf.getContent();
+                ww.setHighlightedSweep(-1);
+        		for(Iterator<Panel> it = ww.getPanels(); it.hasNext(); )
+        		{
+        			Panel wp = (Panel)it.next();
+        			wp.repaintWithRulers();
+        		}
 			}
 			updateUI();
 		}

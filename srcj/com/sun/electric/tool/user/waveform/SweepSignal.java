@@ -52,7 +52,15 @@ public class SweepSignal
 		String name = null;
 		if (obj instanceof Double) name = TextUtils.formatDouble(((Double)obj).doubleValue()); else
 			name = obj.toString();
-		name += (included ? " >>>>> INCLUDED" : " ----- EXCLUDED");
+		if (included)
+		{
+			name += " >>>>> INCLUDED";
+			if (ww.getHighlightedSweep() == sweepIndex)
+				name += " !!!!";
+		} else
+		{
+			name += " ----- EXCLUDED";
+		}
 		return name;
 	}
 

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG/MAN: (8/28/06, SMR) Waveform window sweep display bad (Bug #1210).
+FIX: Changes to inclusion/exclusion now show immediately; sweep highlighting
+     works now, and the overall sweep header has an option to remove.
+
 IMP: (8/28/06, SAF) PIE: Active frontier hashing properly recognizes composite
      parts as still active and recognizes pseudo parts belonging to the same
      composite part as neighbors.

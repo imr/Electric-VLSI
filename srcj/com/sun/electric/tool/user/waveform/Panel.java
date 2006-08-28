@@ -1383,22 +1383,22 @@ public class Panel extends JPanel
 	                        	if (linePointMode <= 1)
 	                        	{
 	                        		// drawing has lines
-		                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
+		                            if (processALine(g, lastX, lastLY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
 		                            if (lastLY != lastHY || lowY != highY)
 		                            {
-		        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, -1)) break;
-		        						if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
-		        						if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, -1)) break;
+		        						if (processALine(g, lastX, lastHY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
+		        						if (processALine(g, lastX, lastHY, x, lowY, bounds, forPs, selectedObjects, ws, s)) break;
+		        						if (processALine(g, lastX, lastLY, x, highY, bounds, forPs, selectedObjects, ws, s)) break;
 		                            }
 	                        	}
 							}
 	                    	if (i == numEvents-1 && linePointMode <= 1)
 	                    	{
 	                    		// process extrapolated line from the last data point
-	                            if (processALine(g, x, lowY, sz.width, lowY, bounds, forPs, selectedObjects, ws, -1)) break;
+	                            if (processALine(g, x, lowY, sz.width, lowY, bounds, forPs, selectedObjects, ws, s)) break;
 	                            if (lastLY != lastHY || lowY != highY)
 	                            {
-	        						if (processALine(g, x, highY, sz.width, highY, bounds, forPs, selectedObjects, ws, -1)) break;
+	        						if (processALine(g, x, highY, sz.width, highY, bounds, forPs, selectedObjects, ws, s)) break;
 	                            }
 	                    	}
 	                    	if (linePointMode >= 1)
