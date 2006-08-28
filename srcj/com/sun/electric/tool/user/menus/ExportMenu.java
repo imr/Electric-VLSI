@@ -40,7 +40,7 @@ public class ExportMenu {
     static EMenu makeMenu() {
         /****************************** THE EXPORT MENU ******************************/
 
-		// mnemonic keys available:  B   F  IJK     Q    V  Y 
+		// mnemonic keys available:  B   F   JK     Q       Y 
         return new EMenu("E_xport",
 
             new EMenuItem("_Create Export...", 'E') { public void run() {
@@ -48,20 +48,27 @@ public class ExportMenu {
 
             SEPARATOR,
 
-            new EMenuItem("Re-Export _Everything") { public void run() {
+            new EMenuItem("Re-Export E_verything") { public void run() {
                 ExportChanges.reExportAll(); }},
             new EMenuItem("Re-Export Sele_cted") { public void run() {
                 ExportChanges.reExportSelected(false); }},
             new EMenuItem("Re-Export Selected, With _Wired Ports") { public void run() {
                 ExportChanges.reExportSelected(true); }},
-            new EMenuItem("Re-Export _Highlighted Area") { public void run() {
-                ExportChanges.reExportHighlighted(false); }},
-            new EMenuItem("Re-Export Hi_ghlighted Area, With Wired Ports") { public void run() {
-                ExportChanges.reExportHighlighted(true); }},
             new EMenuItem("Re-E_xport Selected Port on All Nodes") { public void run() {
 			    ExportChanges.reExportSelectedPort(); }},
             new EMenuItem("Re-Export _Power and Ground") { public void run() {
                 ExportChanges.reExportPowerAndGround(); }},
+
+            SEPARATOR,
+
+            new EMenuItem("Re-Export _Highlighted Area") { public void run() {
+                ExportChanges.reExportHighlighted(false, false); }},
+            new EMenuItem("Re-Export Hi_ghlighted Area, With Wired Ports") { public void run() {
+                ExportChanges.reExportHighlighted(false, true); }},
+            new EMenuItem("Re-Export D_eep Highlighted Area") { public void run() {
+                ExportChanges.reExportHighlighted(true, false); }},
+            new EMenuItem("Re-Export Deep Highlighted Area, With W_ired Ports") { public void run() {
+                ExportChanges.reExportHighlighted(true, true); }},
 
             SEPARATOR,
 

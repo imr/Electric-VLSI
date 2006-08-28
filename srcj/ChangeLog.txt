@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP/MAN: (8/28/06, SMR) Added new Export commands: "Re-Export Deep Highlighted Area"
+     and "Re-Export Deep Highlighted Area, With Wired Ports".  Deep reexporting
+     recursively examines cell instances, creating exports from the bottom of the
+     hierarchy (Bug #726).
+
 BUG: (8/28/06, RK) PIE: Backtracking bug hides much ambiguity, type string should be one to one with type code
 
 IMP: (8/25/06, SAF) PIE: InterchangePart access of P2P matrix from shared info, ports 

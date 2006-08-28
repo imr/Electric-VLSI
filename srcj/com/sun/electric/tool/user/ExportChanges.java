@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -56,6 +57,7 @@ import java.awt.Point;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -411,87 +413,34 @@ public final class ExportChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-        List<Geometric> allNodes = new ArrayList<Geometric>();
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            allNodes.add(it.next());
-        }
+		List<Geometric> allNodes = new ArrayList<Geometric>();
+		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+			allNodes.add(it.next());
+		}
 
-        new ReExportNodes(cell, allNodes, false, false, true);
+		new ReExportNodes(cell, allNodes, false, false, true);
 	}
 
 	/**
-	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
-	 * Only works in the currently highlighted area.
+	 * Method to re-export everything that is selected.
+	 * @param includeWiredPorts true to re-export ports that are wired.
 	 */
-	public static void reExportHighlighted(boolean includeWiredPorts)
+	public static void reExportSelected(boolean includeWiredPorts)
 	{
 		// make sure there is a current cell
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-        EditWindow wnd = EditWindow.getCurrent();
-		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
-		if (bounds == null)
-		{
+		List<Geometric> nodeInsts = MenuCommands.getSelectedObjects(true, false);
+		if (nodeInsts.size() == 0) {
 			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-				"Must select area before re-exporting the highlighted area",
+				"Please select one or objects to re-export",
 					"Re-export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 
-        // find all ports in highlighted area
-        List<PortInst> queuedExports = new ArrayList<PortInst>();
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-        {
-            NodeInst ni = it.next();
-            if (!ni.isCellInstance()) continue;
-            for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
-            {
-                PortInst pi = pIt.next();
-                // if a highlighted area is specified, make sure this is in it
-                if (bounds != null)
-                {
-                    Poly portPoly = pi.getPoly();
-                    if (!bounds.contains(portPoly.getCenterX(), portPoly.getCenterY())) continue;
-                }
-                queuedExports.add(pi);
-            }
-        }
-
-        // remove already-exported ports
-        for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
-        {
-        	Export pp = (Export)it.next();
-        	PortInst pi = pp.getOriginalPort();
-        	queuedExports.remove(pi);
-        }
-
-        // no ports to export
-        if (queuedExports.size() == 0) {
-            System.out.println("No ports in area to export");
-            return;
-        }
-
-        // create job
-        new ReExportPorts(cell, queuedExports, true, includeWiredPorts, false, null);
+		new ReExportNodes(cell, nodeInsts, includeWiredPorts, false, true);
 	}
-
-    public static void reExportSelected(boolean includeWiredPorts)
-    {
-        // make sure there is a current cell
-        Cell cell = WindowFrame.needCurCell();
-        if (cell == null) return;
-
-        List<Geometric> nodeInsts = MenuCommands.getSelectedObjects(true, false);
-        if (nodeInsts.size() == 0) {
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                "Please select one or objects to re-export",
-                    "Re-export failed", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        new ReExportNodes(cell, nodeInsts, includeWiredPorts, false, true);
-    }
 
 	/**
 	 * Method to reexport the selected port on other nodes in the cell.
@@ -559,6 +508,9 @@ public final class ExportChanges
         new ReExportNodes(cell, allNodes, false, true, true);
 	}
 
+	/**
+	 * Helper class for re-exporting ports on nodes.
+	 */
     private static class ReExportNodes extends Job
     {
         private Cell cell;
@@ -588,42 +540,6 @@ public final class ExportChanges
             if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
             int num = reExportNodes(cell, nodeInsts, includeWiredPorts, onlyPowerGround, ignorePrimitives);
-            System.out.println(num+" ports exported.");
-            return true;
-        }
-    }
-
-    public static class ReExportPorts extends Job
-    {
-        private Cell cell;
-        private List<PortInst> portInsts;
-        private boolean sort;
-        private boolean includeWiredPorts;
-        private boolean onlyPowerGround;
-        private HashMap<PortInst,Export> originalExports;
-
-        /**
-         * @see ExportChanges#reExportPorts(java.util.List, boolean, boolean, boolean, java.util.HashMap)
-         */
-        public ReExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
-                             boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)
-        {
-            super("Re-export ports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.portInsts = portInsts;
-            this.includeWiredPorts = includeWiredPorts;
-            this.onlyPowerGround = onlyPowerGround;
-            this.sort = sort;
-            this.originalExports = originalExports;
-            startJob();
-        }
-
-        public boolean doIt() throws JobException
-        {
-    		// disallow port action if lock is on
-    		if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
-
-    		int num = reExportPorts(cell, portInsts, sort, includeWiredPorts, onlyPowerGround, originalExports);
             System.out.println(num+" ports exported.");
             return true;
         }
@@ -675,6 +591,166 @@ public final class ExportChanges
         }
         return total;
     }
+
+    /**
+     * Helper class for re-exporting a port on a node.
+     */
+    public static class ReExportPorts extends Job
+    {
+        private Cell cell;
+        private List<PortInst> portInsts;
+        private boolean sort;
+        private boolean includeWiredPorts;
+        private boolean onlyPowerGround;
+        private HashMap<PortInst,Export> originalExports;
+
+        /**
+         * @see ExportChanges#reExportPorts(java.util.List, boolean, boolean, boolean, java.util.HashMap)
+         */
+        public ReExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
+                             boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)
+        {
+            super("Re-export ports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.portInsts = portInsts;
+            this.includeWiredPorts = includeWiredPorts;
+            this.onlyPowerGround = onlyPowerGround;
+            this.sort = sort;
+            this.originalExports = originalExports;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+    		// disallow port action if lock is on
+    		if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+
+    		int num = reExportPorts(cell, portInsts, sort, includeWiredPorts, onlyPowerGround, originalExports);
+            System.out.println(num+" ports exported.");
+            return true;
+        }
+    }
+
+	/****************************** EXPORT CREATION IN A HIGHLIGHTED AREA ******************************/
+
+	/**
+	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
+	 * Only works in the currently highlighted area.
+	 * @param deep true to reexport hierarchically to the bottom.
+	 * @param includeWiredPorts true to reexport ports that are wired.
+	 */
+	public static void reExportHighlighted(boolean deep, boolean includeWiredPorts)
+	{
+		// make sure there is a current cell
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+
+		EditWindow wnd = EditWindow.getCurrent();
+		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
+		if (bounds == null)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Must select area before re-exporting the highlighted area",
+					"Re-export failed", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		// do the job of reexporting in a boundary
+		ERectangle eBounds = new ERectangle(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+		new ReExportHighlighted(cell, eBounds, deep, includeWiredPorts);
+	}
+
+	/**
+	 * Class to Re-export the highlighted area in a Job.
+	 */
+    private static class ReExportHighlighted extends Job
+    {
+        private Cell cell;
+        private ERectangle bounds;
+        private boolean deep;
+        private boolean includeWiredPorts;
+
+        public ReExportHighlighted(Cell cell, ERectangle bounds, boolean deep, boolean includeWiredPorts)
+        {
+            super("Re-export highlighted", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.bounds = bounds;
+            this.deep = deep;
+            this.includeWiredPorts = includeWiredPorts;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+    		// disallow port action if lock is on
+    		if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+
+    		reExportInBounds(cell, bounds, deep, includeWiredPorts, true);
+            return true;
+        }
+    }
+
+    /**
+     * Helper method to recursively re-export everything in a highlighted area.
+     * @param cell the Cell in which to re-export.
+     * @param bounds the area of the Cell to re-export.
+     * @param deep true to recurse down to subcells and re-export.
+     * @param includeWiredPorts true to re-export when the port is wired.
+     * @param topLevel true if this is the top-level call.
+     */
+	private static void reExportInBounds(Cell cell, Rectangle2D bounds, boolean deep, boolean includeWiredPorts, boolean topLevel)
+	{
+		// find all ports in highlighted area
+		List<PortInst> queuedExports = new ArrayList<PortInst>();
+		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = it.next();
+			if (!ni.isCellInstance()) continue;
+
+			// see if the cell intersects the bounds
+			Rectangle2D cellBounds = ni.getBounds();
+			if (!bounds.intersects(cellBounds)) continue;
+
+			// if doing a deep reexport, recurse into the cell
+			if (deep)
+			{
+				AffineTransform goIn = ni.translateIn(ni.rotateIn());
+				Rectangle2D boundsInside = new Rectangle2D.Double(bounds.getMinX(), bounds.getMinY(),
+					bounds.getWidth(), bounds.getHeight());
+				GenMath.transformRect(boundsInside, goIn);
+				reExportInBounds((Cell)ni.getProto(), boundsInside, deep, includeWiredPorts, false);
+			}
+			
+			for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
+			{
+				PortInst pi = pIt.next();
+
+				// make sure the port is inside the selected area
+				Poly portPoly = pi.getPoly();
+				if (!bounds.contains(portPoly.getCenterX(), portPoly.getCenterY())) continue;
+				queuedExports.add(pi);
+			}
+		}
+
+		// remove already-exported ports
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+			PortInst pi = pp.getOriginalPort();
+			queuedExports.remove(pi);
+		}
+
+		// no ports to export
+		if (queuedExports.size() == 0)
+		{
+			if (topLevel) System.out.println("No ports in area to export");
+			return;
+		}
+
+		// create job
+		int num = reExportPorts(cell, queuedExports, true, includeWiredPorts, false, null);
+        System.out.println(num+" ports exported.");
+	}
 
     /**
      * Re-exports the PortInsts in the list. If sort is true, it first sorts the list by name and
