@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+FIX: (8/28/06) PIE: Ports are now separated by type properly.
+
 BUG/MAN: (8/28/06, SMR) Waveform window sweep display bad (Bug #1210).
 FIX: Changes to inclusion/exclusion now show immediately; sweep highlighting
      works now, and the overall sweep header has an option to remove.
