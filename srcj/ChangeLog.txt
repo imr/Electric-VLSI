@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/28/06, SAF) PIE: Active frontier hashing properly recognizes composite
+     parts as still active and recognizes pseudo parts belonging to the same
+     composite part as neighbors.
+
 BUG: (8/28/06, SMR) GNUCap simulation output is wrong.
 FIX: In tool.io.output.Spice.java, use "0" for "gnd" and supress "@" for GNUCap.
 
