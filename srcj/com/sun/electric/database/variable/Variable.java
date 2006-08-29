@@ -252,6 +252,10 @@ public class Variable implements Serializable
         if (key == null) throw new NullPointerException("key");
         if (descriptor == null) throw new NullPointerException("descriptor");
         byte type;
+        if (descriptor.isCode()) {
+            if (!(value instanceof String || value instanceof String[]))
+                value = value.toString();
+        }
         if (value instanceof Object[]) {
             Byte typeByte = (Byte)validClasses.get(value.getClass().getComponentType());
             if (typeByte == null)
@@ -263,9 +267,6 @@ public class Variable implements Serializable
             if (typeByte == null)
                 throw new IllegalArgumentException(value.getClass().toString());
             type = typeByte.byteValue();
-        }
-        if (descriptor.isCode() && !(value instanceof String || value instanceof String[])) {
-            descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
         }
 		return new Variable(key, value, descriptor, type);
     }
@@ -286,8 +287,8 @@ public class Variable implements Serializable
             assert type == typeByte.byteValue();
         }
         assert descriptor != null;
-        //if (descriptor.isCode())
-        //    assert value instanceof String || value instanceof String[];
+        if (descriptor.isCode())
+            assert value instanceof String || value instanceof String[];
         if (!paramAllowed)
             assert !descriptor.isParam();
 	}
@@ -933,10 +934,18 @@ public class Variable implements Serializable
 	 */
 	public Variable withTextDescriptor(TextDescriptor descriptor) {
         if (this.descriptor == descriptor) return this;
-        //if (descriptor.isCode() && !(value instanceof String || value instanceof String[]))
-        //    descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
-        //if (this.descriptor == descriptor) return this;
-        return new Variable(this.key, this.value, descriptor, this.type);
+        Object value = this.value;
+        byte type = this.type;
+        if (descriptor.isCode() && !(value instanceof String || value instanceof String[])) {
+            //descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
+            value = value.toString();
+            Byte typeByte = (Byte)validClasses.get(value.getClass());
+            if (typeByte == null)
+                throw new IllegalArgumentException(value.getClass().toString());
+            type = typeByte.byteValue();
+        }
+        if (this.descriptor == descriptor) return this;
+        return new Variable(this.key, value, descriptor, type);
     }
     
 	/**
