@@ -338,7 +338,6 @@ public class SizeListener
 		}
 	}
 
-
 	public void mousePressed(MouseEvent evt)
 	{
 		farthestPoint = null;
@@ -656,10 +655,13 @@ public class SizeListener
 			{
 				double percX = newWidth / stretchNode.getXSize();
 				double percY = newHeight / stretchNode.getYSize();
+				AffineTransform trans = stretchNode.pureRotateOut();
 				Point2D [] newPoints = new Point2D[points.length];
+				Point2D newPoint = new Point2D.Double(0, 0);
 				for(int i=0; i<points.length; i++)
 				{
-					newPoints[i] = new Point2D.Double(points[i].getX()*percX, points[i].getY()*percY);
+					trans.transform(points[i], newPoint);
+					newPoints[i] = new Point2D.Double(newPoint.getX()*percX, newPoint.getY()*percY);
 				}
 				stretchNode.setTrace(newPoints);
 			}

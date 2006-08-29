@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (8/29/06, SMR) Resizing rotated nodes with outline information is bad (Bug #1201).
+FIX: Transform the points when resizing.
+
 IMP: (8/29/06) PIE: Add print method to SubcircuitExtractionResult to help debugging
 
 FIX: (8/28/06) PIE: Ports are now separated by type properly.
