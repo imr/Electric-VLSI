@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+FIX/IMP: (8/29/06, RK) PIE: hash code partitioning wasn't partitioning non-composite parts. I added more debugging printouts for hash coding process
+
 IMP: (8/29/06, SMR) Combined waveform-window commands into one place.
      Former commands in "Tool / Simulation (Built-in)":
         Save Waveform Window Configuration to Disk...
