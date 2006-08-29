@@ -1,5 +1,7 @@
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.text.TextUtils;
+
 import java.io.StreamTokenizer;
 import java.io.StringReader;
 import java.io.IOException;
@@ -33,6 +35,13 @@ public class EvalSpice {
         tokenizer.ordinaryChar('/');
         tokenizer.ordinaryChar('+');
         tokenizer.ordinaryChar('-');
+        tokenizer.ordinaryChar('<');
+        tokenizer.ordinaryChar('=');
+        tokenizer.ordinaryChar('>');
+        tokenizer.ordinaryChar('!');
+        tokenizer.ordinaryChar('?');
+        tokenizer.ordinaryChar(':');
+        tokenizer.wordChars('_', '_');
         try {
             return evalEq().eval();
         } catch (IOException e) {
@@ -65,6 +74,7 @@ public class EvalSpice {
                 if (openParens > 0) throw new ParseException("Unmatched open parens");
                 return eq;
             }
+            // delimiters come first
             else if (tt == ')') {       // end eq
                 openParens--;
                 if (openParens < 0) throw new ParseException("Unmatched close parens");
@@ -84,6 +94,9 @@ public class EvalSpice {
             else if (tt == ',') {       // end eq
                 return eq;
             }
+            else if (tt == ':') {       // end conditional true arg
+                return eq;
+            }
             else if (tt == StreamTokenizer.TT_NUMBER) {
                 tokenizer.pushBack();
                 eq.addIdentifier(parseNumber());
@@ -96,7 +109,7 @@ public class EvalSpice {
                     if (arg instanceof Double) {
                         arg = new Double(Math.sin(((Double)arg).doubleValue()));
                     } else {
-                        arg = "sin"+arg.toString();
+                        arg = "sin"+format(arg);
                     }
                     eq.addIdentifier(arg);
                 }
@@ -110,11 +123,11 @@ public class EvalSpice {
                         double b = ((Double)m2).doubleValue();
                         m1 = new Double(Math.min(a,b));
                     } else {
-                        String m2str = m2.toString();
+                        String m2str = format(m2);
                         // remove extraneous ()'s
                         if (m2str.startsWith("(") && m2str.endsWith(")"))
                             m2str = m2str.substring(1, m2str.length()-1);
-                        m1 = "min("+m1.toString()+","+m2str+")";
+                        m1 = "min("+format(m1)+","+m2str+")";
                     }
                     eq.addIdentifier(m1);
                 }
@@ -128,11 +141,11 @@ public class EvalSpice {
                         double b = ((Double)m2).doubleValue();
                         m1 = new Double(Math.max(a,b));
                     } else {
-                        String m2str = m2.toString();
+                        String m2str = format(m2);
                         // remove extraneous ()'s
                         if (m2str.startsWith("(") && m2str.endsWith(")"))
                             m2str = m2str.substring(1, m2str.length()-1);
-                        m1 = "max("+m1.toString()+","+m2str+")";
+                        m1 = "max("+format(m1)+","+m2str+")";
                     }
                     eq.addIdentifier(m1);
                 }
@@ -143,7 +156,7 @@ public class EvalSpice {
                     if (arg instanceof Double) {
                         arg = new Double(Math.abs(((Double)arg).doubleValue()));
                     } else {
-                        arg = "abs"+arg.toString();
+                        arg = "abs"+format(arg);
                     }
                     eq.addIdentifier(arg);
                 }
@@ -154,7 +167,7 @@ public class EvalSpice {
                     if (arg instanceof Double) {
                         arg = new Double(Math.sqrt(((Double)arg).doubleValue()));
                     } else {
-                        arg = "sqrt"+arg.toString();
+                        arg = "sqrt"+format(arg);
                     }
                     eq.addIdentifier(arg);
                 }
@@ -165,7 +178,7 @@ public class EvalSpice {
                     if (arg instanceof Double) {
                         arg = new Double((int)(((Double)arg).doubleValue()));
                     } else {
-                        arg = "int"+arg.toString();
+                        arg = "int"+format(arg);
                     }
                     eq.addIdentifier(arg);
                 }
@@ -185,6 +198,40 @@ public class EvalSpice {
             }
             else if (tt == '-') {
                 eq.addOp(Op.MINUS);
+            }
+            else if (tt == '<') {
+                tt = tokenizer.nextToken();
+                if (tt == '=') {
+                    eq.addOp(Op.LTOE);
+                } else {
+                    tokenizer.pushBack();
+                    eq.addOp(Op.LT);
+                }
+            }
+            else if (tt == '>') {
+                tt = tokenizer.nextToken();
+                if (tt == '=') {
+                    eq.addOp(Op.GTOE);
+                } else {
+                    tokenizer.pushBack();
+                    eq.addOp(Op.GT);
+                }
+            }
+            else if (tt == '=') {
+                expect('=');
+                eq.addOp(Op.EQ);
+            }
+            else if (tt == '!') {
+                expect('=');
+                eq.addOp(Op.NE);
+            }
+            else if (tt == '?') {
+                eq.addOp(Op.COND);
+                Object arg1 = evalEq().eval();
+                if (tokenizer.ttype != ':') throw new ParseException("Expected ':' after conditional");
+                Object arg2 = evalEq().eval();
+                SimpleEq condval = new SimpleEq(arg1, Op.CONDCHOICE, arg2);
+                eq.addIdentifier(condval);
             }
         }
     }
@@ -263,17 +310,34 @@ public class EvalSpice {
         public ParseException(String msg) { super(msg); }
     }
 
-    private enum Op { MULT, DIV, PLUS, MINUS };
-    private static char getOpStr(Op op) {
-        if (op == null) return '?';
-        switch (op) {
-            case MULT: return '*';
-            case DIV: return '/';
-            case PLUS: return '+';
-            case MINUS: return '-';
+    public static class Op {
+        public final String name;
+        public final int precedence;
+        private Op(String name, int precedence) {
+            this.name = name;
+            this.precedence = precedence;
         }
-        return '?';
+        public String toString() { return name; }
+
+        // operators with lower value precedence bind tighter than higher value precedence
+        public static final Op MULT =  new Op("*", 2);
+        public static final Op DIV =   new Op("/", 2);
+        public static final Op PLUS =  new Op("+", 3);
+        public static final Op MINUS = new Op("-", 3);
+        public static final Op LT =    new Op("<", 5);
+        public static final Op LTOE =  new Op("<=", 5);
+        public static final Op GT =    new Op(">", 5);
+        public static final Op GTOE =  new Op(">=", 5);
+        public static final Op EQ =    new Op("==", 6);
+        public static final Op NE =    new Op("!=", 6);
+        public static final Op LAND =  new Op("&&", 10);
+        public static final Op LOR =   new Op("||", 11);
+        public static final Op COND =  new Op("?", 12);
+        public static final Op CONDCHOICE =  new Op(":", 12);
     }
+
+    private static final Double ONE = new Double(1);
+    private static final Double ZERO = new Double(0);
 
     /**
      * A simple equation consists of two Identifiers (operands)
@@ -330,7 +394,7 @@ public class EvalSpice {
             if (lhop == null && operator == Op.MINUS && !neglh)
                 neglh = true;               // unary minus on left hand operand
             else if (lhop == null)
-                throw new ParseException("Operator "+getOpStr(operator)+" with no left hand operand");
+                throw new ParseException("Operator "+operator+" with no left hand operand");
             // lhop defined from here on
             else if (op == null && rhop == null)
                 this.op = operator;
@@ -341,7 +405,8 @@ public class EvalSpice {
                     ((SimpleEq)rhop).addOp(operator);
                 }
                 else {
-                    if ((op == Op.PLUS || op == Op.MINUS) && (operator == Op.MULT || operator == Op.DIV)) {
+                    // operators with lower value precedence bind tighter than higher value precedence
+                    if (operator.precedence < op.precedence) {
                         // bind right
                         rhop = new SimpleEq(rhop, operator, null);
                         // retain proper negation associations
@@ -370,26 +435,52 @@ public class EvalSpice {
          * the equation after any numerical resolution can be done.
          * @return a Double or a String
          */
-        public Object eval() {
+        public Object eval() throws ParseException {
             if (lhop instanceof SimpleEq)
                 lhop = ((SimpleEq)lhop).eval();
             if (rhop instanceof SimpleEq)
                 rhop = ((SimpleEq)rhop).eval();
 
-            if ((lhop instanceof Double) && (rhop instanceof Double)) {
+            if (op == Op.CONDCHOICE) {
+                return this;
+            }
+
+            if (op == Op.COND && (rhop instanceof SimpleEq)) {
+                SimpleEq condval = (SimpleEq)rhop;
+                if ((lhop instanceof Double) && (condval.lhop instanceof Double) && (condval.rhop instanceof Double)) {
+                    double cond = ((Double)lhop).doubleValue();
+                    if (neglh) cond = -1.0 * cond;
+                    double valt = ((Double)condval.lhop).doubleValue();
+                    if (condval.neglh) valt = -1.0 * valt;
+                    double valf = ((Double)condval.rhop).doubleValue();
+                    if (condval.negrh) valf = -1.0 * valf;
+                    if (cond == 0) return valf;
+                    return valt;
+                } else {
+                    String neglhstr = condval.neglh ? "-" : "";
+                    String negrhstr = condval.negrh ? "-" : "";
+                    rhop = neglhstr + format(condval.lhop) + " : " + negrhstr + format(condval.rhop);
+                }
+            }
+            else if ((lhop instanceof Double) && (rhop instanceof Double)) {
                 double lh = ((Double)lhop).doubleValue();
                 double rh = ((Double)rhop).doubleValue();
                 if (neglh) lh = -1.0 * lh;
                 if (negrh) rh = -1.0 * rh;
-                switch (op) {
-                    case MULT: return new Double(lh * rh);
-                    case DIV: return new Double(lh / rh);
-                    case PLUS: return new Double(lh + rh);
-                    case MINUS: return new Double(lh - rh);
-                }
+                if      (op == Op.MULT)  return new Double(lh * rh);
+                else if (op == Op.DIV)   return new Double(lh / rh);
+                else if (op == Op.PLUS)  return new Double(lh + rh);
+                else if (op == Op.MINUS) return new Double(lh - rh);
+                else if (op == Op.LT)    return lh < rh ? ONE : ZERO;
+                else if (op == Op.LTOE)  return lh <= rh ? ONE : ZERO;
+                else if (op == Op.GT)    return lh > rh ? ONE : ZERO;
+                else if (op == Op.GTOE)  return lh >= rh ? ONE : ZERO;
+                else if (op == Op.EQ)    return lh == rh ? ONE : ZERO;
+                else if (op == Op.NE)    return lh != rh ? ONE : ZERO;
+                else if (op == Op.LAND)  return (lh != 0 && rh != 0) ? ONE : ZERO;
+                else if (op == Op.LOR)  return (lh != 0 || rh != 0) ? ONE : ZERO;
             }
-
-            if (op == null && rhop == null) {
+            else if (op == null && rhop == null) {
                 if (neglh) {
                     if (lhop instanceof Double) {
                         return -1.0 * ((Double)lhop).doubleValue();
@@ -399,15 +490,18 @@ public class EvalSpice {
                 return lhop;
             }
 
+            // can't resolve numerically
             String neglhstr = neglh ? "-" : "";
             String negrhstr = negrh ? "-" : "";
-            String lhstr = (lhop == null ? "?" : lhop.toString());
-            String rhstr = (rhop == null ? "?" : rhop.toString());
-
-            // can't resolve numerically
-            return neglhstr + lhstr + " " + getOpStr(op) + " " + negrhstr + rhstr;
+            String lhstr = (lhop == null ? "?" : format(lhop));
+            String rhstr = (rhop == null ? "?" : format(rhop));
+            return neglhstr + lhstr + " " + op + " " + negrhstr + rhstr;
         }
+    }
 
+    private static String format(Object obj) {
+        if (obj instanceof Double) return TextUtils.formatDouble(((Double)obj).doubleValue());
+        return obj.toString();
     }
 
 
@@ -436,12 +530,20 @@ public class EvalSpice {
         testEval("1-min((a+b)*c,x)", null);
         testEval("1-min((a+b)*c,(a+b))", null);
         testEval("-a + 2 * 3 * -b + - 4", null);
+        testEval("1 ? -2 : 4", -2);
+        testEval("0 ? -2 : 4", 4);
+        testEval("8 == 1 ? -2 : 4", 4);
+        testEval("8 > 1 ? -2 : 4", -2);
+        testEval("1 - 7 <= 1 ? -2 : 4", -2);
+        testEval("layer == 1 ? two + 1 : eight * 4 / 2", "layer == 1.0 ? two + 1.0 : eight * 4.0 / 2.0");
+        testEval("0 * 1 ? 3 / 2 : -4 + 10", 6);
         System.out.println("\nThese should flag as errors:\n---------------------------\n");
         testEval("1 2 +", null);
         testEval("1 + * 2", null);
         testEval("1 + 2 * - -3", null);
         testEval("300 / -1.5ee2 + 5", null);
         testEval("1-min((a+b)*c,(a+b)", null);
+        testEval("1/0", null);
     }
 
     private static void testEval(String eq, String expected) {
