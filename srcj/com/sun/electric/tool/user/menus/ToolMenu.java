@@ -26,21 +26,6 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
-
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
@@ -105,7 +90,13 @@ import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.ncc.*;
+import com.sun.electric.tool.ncc.AllSchemNamesToLay;
+import com.sun.electric.tool.ncc.Ncc;
+import com.sun.electric.tool.ncc.NccCrossProbing;
+import com.sun.electric.tool.ncc.NccJob;
+import com.sun.electric.tool.ncc.NccOptions;
+import com.sun.electric.tool.ncc.Pie;
+import com.sun.electric.tool.ncc.SchemNamesToLay;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.result.NccResult;
@@ -135,7 +126,21 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.waveform.WaveformWindow;
+
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 
 
 /**
@@ -224,14 +229,7 @@ public class ToolMenu {
 		        new EMenuItem("_Save Stimuli to Disk...") { public void run() {
                     Simulation.saveStimuli(); }},
 		        new EMenuItem("_Restore Stimuli from Disk...") { public void run() {
-                    Simulation.restoreStimuli(); }},
-
-                SEPARATOR,
-
-		        new EMenuItem("Sa_ve Waveform Window Configuration to Disk...") { public void run() {
-                    WaveformWindow.saveConfiguration(); }},
-		        new EMenuItem("R_estore Waveform Window Configuration from Disk...") { public void run() {
-                    WaveformWindow.restoreConfiguration(); }}),
+                    Simulation.restoreStimuli(); }}),
 
 		//------------------- Simulation (SPICE)
 
@@ -245,8 +243,6 @@ public class ToolMenu {
                     Simulate.plotSpiceResults(); }},
 		        new EMenuItem("Plot Spice _for This Cell") { public void run() {
                     Simulate.plotSpiceResultsThisCell(); }},
-                new EMenuItem("Refresh Simulation Data") { public void run() {
-                    WaveformWindow.refreshSimulationData(); }},
 		        new EMenuItem("Set Spice _Model...") { public void run() {
                     Simulation.setSpiceModel(); }},
 		        new EMenuItem("Add M_ultiplier") { public void run() {

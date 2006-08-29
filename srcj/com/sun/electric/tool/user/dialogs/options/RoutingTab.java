@@ -334,7 +334,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
         jPanel7.add(routMimicKeepPins, gridBagConstraints);
 
-        routMimicPortsWidthMustMatch.setText("Ports widths must match (for busses)");
+        routMimicPortsWidthMustMatch.setText("Bus ports must have same width");
         routMimicPortsWidthMustMatch.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;

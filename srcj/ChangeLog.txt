@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/29/06, SMR) Combined waveform-window commands into one place.
+     Former commands in "Tool / Simulation (Built-in)":
+        Save Waveform Window Configuration to Disk...
+        Restore Waveform Window Configuration from Disk...
+     Former commands in "Tool / Simulation (Spice)":
+        Refresh Simulation Data
+     Are now in "Window / Waveform Window"
+
 IMP/FIX: (8/29/06, SAF) PIE: Avoid computing hash codes using parts stripped away
     from islands/fixed equivalent island mapping.
 
@@ -14,7 +22,7 @@ IMP: (8/29/06) PIE: Add print method to SubcircuitExtractionResult to help debug
 
 FIX: (8/28/06) PIE: Ports are now separated by type properly.
 
-BUG/MAN: (8/28/06, SMR) Waveform window sweep display bad (Bug #1210).
+BUG: (8/28/06, SMR) Waveform window sweep display bad (Bug #1210).
 FIX: Changes to inclusion/exclusion now show immediately; sweep highlighting
      works now, and the overall sweep header has an option to remove.
 
@@ -25,7 +33,7 @@ IMP: (8/28/06, SAF) PIE: Active frontier hashing properly recognizes composite
 BUG: (8/28/06, SMR) GNUCap simulation output is wrong.
 FIX: In tool.io.output.Spice.java, use "0" for "gnd" and supress "@" for GNUCap.
 
-IMP/MAN: (8/28/06, SMR) Added new Export commands: "Re-Export Deep Highlighted Area"
+IMP: (8/28/06, SMR) Added new Export commands: "Re-Export Deep Highlighted Area"
      and "Re-Export Deep Highlighted Area, With Wired Ports".  Deep reexporting
      recursively examines cell instances, creating exports from the bottom of the
      hierarchy (Bug #726).
@@ -45,18 +53,18 @@ IMP: (8/25/06, RK) PIE: Deal with topologically identical islands
 
 IMP: (8/25/06, SAF) PIE: All pseudo part info created with cannonical port ordering.
 
-IMP/MAN: (8/25/06, JKG) Added menu command for down hier in place to object, bug#733
+IMP: (8/25/06, JKG) Added menu command for down hier in place to object, bug#733
 
 IMP: (8/24/06, SAF) PIE: Hash using sub-cell port to port matrix when creating port
      to port matrix. Pins and pseudo-parts classified by equivalence type. 
 
-IMP/MAN: (8/24/06, GVG) Function to count number of transistors in Schematics.
+IMP: (8/24/06, GVG) Function to count number of transistors in Schematics.
 
 IMP: (8/22/06, RK) PIE: Composite Part Information prints out
 
 IMP: (8/22/06, SMR) Improvements to node extractor.
 
-IMP/MAN: (8/24/06, SMR) Made waveform improvements: (1) Can now use the
+IMP: (8/24/06, SMR) Made waveform improvements: (1) Can now use the
      right-button to drag signals from one panel to another (this copies them,
      instead of moving them). (2) Can now drag a signal from one panel to
      horizontal axis of another (Bug #893).
@@ -93,7 +101,7 @@ FIX: In GDS.determineARef(), do not transform offset of array elements.
 BUG: (8/18/06, SMR) Waveform window crashes when reloading with non-time X axis (Bug #1205).
 FIX: Must reevaluate X axis signals when reloading; must save signals when X axis changes.
 
-IMP/MAN: (8/18/06, SMR) Smart Text Placement now in its own Preferences panel,
+IMP: (8/18/06, SMR) Smart Text Placement now in its own Preferences panel,
      includes smart text placement for arcs (Bug #1058).
 
 BUG: (8/18/06, SMR) TextDescriptor.withPos() does nothing.
@@ -110,7 +118,7 @@ FIX: Fixed AutoStitch.comparePoly to do proper port alignment test.
 
 IMP: (8/16/06, RK) Create a new plugin, PIE for Port Interchange Experiment
 
-IMP/MAN: (8/16/06, SMR) New commands in "Edit / Selection":
+IMP: (8/16/06, SMR) New commands in "Edit / Selection":
      "Select Next Like This" and "Select Previous Like This" (Bug #879).
 
 BUG: (8/16/06, SMR) Primitive nodes don't auto-route (Bug #1176).
@@ -152,7 +160,7 @@ IMP: (8/1/06, DN) EditWindow.getBlendingOrder don't put Generic.Gluph layer into
 IMP: (8/1/06, DN) EditWindow.getBlendingOrder uses LAYERS_BY_HEIGHT_LIFT_CONTACTS to sort layers.
     So every contact is higher than its upper metal. Requested by Jonathan Gainsley.
 
-IMP/MAN: (7/30/06, DN) "Alpha blending limit" preference renamed to "Alpha blending overcolor limit".
+IMP: (7/30/06, DN) "Alpha blending limit" preference renamed to "Alpha blending overcolor limit".
     When zooming out below this limit, standard alpha blending composition rule is used.
     When zooming in above this scale, alphablending with overcolor composituin rule (as inMagic editor) is used.
 
@@ -160,7 +168,7 @@ BUG: (7/31/06, DN) Layer redisplay doesn't take stipple patterns from Cadence pr
 FIX: Add call of "setPatternLow" to "EGraphics.setLayer" and "EGraphics.recachePrefs" so that
      it updates "reversedPatterned".
 
-IMP/MAN: (7/31/06, GVG) Colapsing pin names like vdd_*/gnd_* in vdd/gnd while exporting in GDS (Bug #1188).
+IMP: (7/31/06, GVG) Colapsing pin names like vdd_*/gnd_* in vdd/gnd while exporting in GDS (Bug #1188).
 This is for Fire/Ice extraction tool. A new flag in User GDS tab was added.
 
 BUG: (7/31/06, DN) Deep zoom in can crash X11 servers because of large text.
@@ -172,7 +180,7 @@ BUG: (7/30/06, DN) Layer outlines sometimes missing with new display algorithm (
 FIX: In LayerDrawing.expendedCellCached change "cell is too large" threshold from 1/2 to 1/32.
     This expands range of scales when outlines are visible.
 
-IMP/MAN: (7/30/06, DN) "Alpha blending limit" preference is added to DisplayControlTab.
+IMP: (7/30/06, DN) "Alpha blending limit" preference is added to DisplayControlTab.
     When zooming out below this limit, an alpha blending composition rule (with opacity controlas) is used.
     When zooming in above this scale, a traditional electric composituin rule (transparent/opaque layers) is used.
 
@@ -181,7 +189,7 @@ IMP: (7/26/06, GVG) Refactoring AutoStitch to get regressions working.
 BUG: (7/22/06, DN) N-well disappears in LayerDrawing.
 FIX: In PatternedTransparentRaster.copyBits use "continue" instead of "return". 
 
-IMP/MAN: (7/21/06, GVG) Request to add errors to list in real-time (bug #1169)
+IMP: (7/21/06, GVG) Request to add errors to list in real-time (bug #1169)
 Done using option in User's preferences for DRC until issues with job queuing is clarified.
 
 BUG: (7/21/06, JKG) CVS: IllegalArgumentException: URI is not hierarchical (bug #1184)
@@ -194,7 +202,7 @@ Changes triggered by demo in SSC Sydney.
 
 IMP: (7/20/06, DN) In LayerDrawing algorithm use alpha blending for both patterned and solid scales.
 
-IMP/MAN: (7/19/06, GVG) Changes in 3D defaults in preparation for the SSC Sydney.
+IMP: (7/19/06, GVG) Changes in 3D defaults in preparation for the SSC Sydney.
 
 BUG: (7/19/06, GVG) Working directory path not updated properly (bug #1181)
 FIX: Setting path for database file group explicitely
@@ -301,7 +309,7 @@ FIX: Wrong flag to kick the job
 
 ************************* Version 8.04r: *********************************
 
-IMP/MAN: (6/15/06, SMR) New option in mimic stitching: bus widths must match.
+IMP: (6/15/06, SMR) New option in mimic stitching: bus widths must match.
 
 BUG: (6/15/06, SMR) Exporting PNG of waveform window alters color scheme
 FIX: In WaveformWindow.getPrintImage() reset colors only if set.
@@ -312,26 +320,26 @@ IMP: (6/14/06, GVG) ToolTips for 3D tab (Bug #215).
 
 IMP: (6/14/06, RK) New experimental command: "Tool -> NCC -> Copy All Schematic Names to Layout" for Jonathan Gainsley
 
-IMP/MAN: (6/14/06, SMR) Expressions allowed in Array dialog (Bug #1100).
+IMP: (6/14/06, SMR) Expressions allowed in Array dialog (Bug #1100).
 
 BUG: (6/14/06, SMR) Mimic stitcher responds to its own arcs (Bug #1048, #1134).
 FIX: Routing.endBatch() now ensures that the snapshot was not from the router.
 
 BUG: (6/14/06, RK) I repaired the gate layout generator regression (Bugzilla# 1137)
 
-IMP/MAN: (6/14/06, GVG) (a) Added extra flag in GDS import user preferences to have option
+IMP: (6/14/06, GVG) (a) Added extra flag in GDS import user preferences to have option
      to simplify via contacts (for BIC). Only available in debug mode.
      (b) AFG attempts to detect elements overlapping that belong to same nets based on
      characteristics.
      (c) Able to run flat job in batch mode.
 
-IMP/MAN: (6/14/06, SMR) Can now drag cells or cell groups from the explorer
+IMP: (6/14/06, SMR) Can now drag cells or cell groups from the explorer
      tree to another library in the tree, which does a cross-library copy (Bug #630).
 
-IMP/MAN: (6/14/06, GVG) Changes in GeneralTab/IO/FileTypeGroup dialog to accomodate
+IMP: (6/14/06, GVG) Changes in GeneralTab/IO/FileTypeGroup dialog to accomodate
      resetting of default values. These changes cover Bugzilla #397 and #1021.
 
-IMP/MAN: (6/13/06, GVG) DRC and AFG exclusion layers available in LayerTab
+IMP: (6/13/06, GVG) DRC and AFG exclusion layers available in LayerTab
 
 BUG: (6/13/06, GVG) Search and replace "objects to search" persistence (Bug 1127)
 FIX: lastSearch clear anytime the toggles are changed.
@@ -346,7 +354,7 @@ FIX: In Clipboard.java, the "down in place" transform was not being used properl
 
 IMP: (6/13/06, GVG) Ability to abort Mimic Stitch job.
 
-IMP/MAN: (6/13/06, GVG) Changes related to groups associated to different file types to
+IMP: (6/13/06, GVG) Changes related to groups associated to different file types to
      be able to store different paths depending on tools/features.
 
 IMP: (6/12/06, RK) Add nand2LTen and nand2HTen to MOCMOS gate generator. (Bugzilla# 1119)
@@ -395,7 +403,7 @@ FIX: Call EditWindow.displayAlgorithmChanged() from DisplayControlTab.
 BUG: (6/8/06, DN) Export->ReExport* broken (Bug #1107).
 FIX: In PortInst.hasConnections().
 
-IMP/MAN: (6/8/06, GVG) Electric needs a way to cycle through windows (bug #954)
+IMP: (6/8/06, GVG) Electric needs a way to cycle through windows (bug #954)
      Final solution in CVS. Cycle through all WindowFrame windows + messages window
      added as dynamic message.
 
@@ -411,7 +419,7 @@ FIX: In ExportChanges.showPortsAndExports(), draw text better.
 BUG: (6/8/06, GVG) Waveform viewer does not display DC signals from EPIC output (Bug#1103)
 FIX: Wrong boundary condition for end point events.
 
-BUG/MAN: (6/8/06, GVG) exception when refining object selection in layout (Bug #1106)
+BUG: (6/8/06, GVG) exception when refining object selection in layout (Bug #1106)
 FIX: detecting if currentChangeTypes array is null. Extra: typesafe enum added
      and rotation information is shown.
 
@@ -440,7 +448,7 @@ FIX: New quad-tree code fixed to ensure valid connections.
 BUG: (6/6/06, SMR) "Back" button crashes if cell has been deleted (Bug #1097).
 FIX: In WindowFrame.setCellByHistory(), test for dead cells.
 
-IMP/MAN: (6/6/06, SMR) Created new Preferences panel "Display / Display Control"
+IMP: (6/6/06, SMR) Created new Preferences panel "Display / Display Control"
      to select and control the 3 display algorithms.  Removed items from the
      "Display" section of the "General" preferences panel.
      "Always Prompt for Index when descending into Array nodes" is in "Nodes".
@@ -456,10 +464,10 @@ FIX: Fixed the Array command and the Rotate command.
 BUG: (6/5/06, SMR) PNG output of waveform window fails
 FIX: In WaveformWindow.getPrintImage(), do not scale if there is no former image.
 
-IMP/MAN: (6/5/06, SMR) Reversed the arrow in the spiceparts node "pulseCurrent"
+IMP: (6/5/06, SMR) Reversed the arrow in the spiceparts node "pulseCurrent"
      (Bug #1076) and added PWL node (Bug #950).
 
-IMP/MAN: (6/5/06, SMR) Can now select multiple cells and regroup them (Bug #1086).
+IMP: (6/5/06, SMR) Can now select multiple cells and regroup them (Bug #1086).
 
 BUG: (6/5/06, SMR) Cannot resize nodes with outline information (Bug #1088).
 FIX: In SizeListener.ScaleNode.doIt(), handle nodes with outlines.
@@ -526,10 +534,10 @@ BUG: (5/30/06, SMR) Renaming a cell group that has heterogenous cell names
 FIX: In CellChangeJobs.RenameCellGroup.doIt(), detect groups with different-
      named cells, and force them to the same group.
 
-IMP/MAN: (5/30/06, SMR) New command: "Tool / Network / Show All Networks"
+IMP: (5/30/06, SMR) New command: "Tool / Network / Show All Networks"
      shows every network in a different color (Bug #943).
 
-IMP/MAN: (5/30/06, SMR) New "Technology" preference allows layout transistors
+IMP: (5/30/06, SMR) New "Technology" preference allows layout transistors
      to be rotated 90 degrees (Bug #369).
 
 BUG: (5/30/06, SMR) IRSIM stimuli can get out of order.
@@ -554,10 +562,10 @@ IMP: (5/26/06, RK) NCC: new annotation: forcePartMatch (Bugzilla# 713)
 IMP: (5/26/06, SMR) When adding an export to a schematic, new icon export
      uses standard lead lengths. (Bug #902).
 
-IMP/MAN: (5/26/06, SMR) Added new context-menu item in explorer tree:
+IMP: (5/26/06, SMR) Added new context-menu item in explorer tree:
      Cell Groups can be duplicated, copying everything in the group (Bug #894).
 
-IMP/MAN: (5/26/06, SMR) Added command "Window / Special Pan / Match Other Window
+IMP: (5/26/06, SMR) Added command "Window / Special Pan / Match Other Window
      in X, Y, and Scale" to do all window matching at once (Bug #808).
 
 BUG: (5/26/06, SMR) Undoing mimic stitching may trigger new stitching (Bug #1055).
@@ -590,11 +598,11 @@ Code changed so list of ElectricObjects is used in the doIt() method.
 
 IMP: (5/25/06, RK) NCC: add test for "forceWireMatch" to regression suite
 
-IMP/MAN: (5/25/06, SMR) "Layers and Patterns" preferences has "Factory Reset" (Bug #1037).
+IMP: (5/25/06, SMR) "Layers and Patterns" preferences has "Factory Reset" (Bug #1037).
 
 IMP: (5/25/06, RK) NCC: Remove  print statements I put in for debugging Bugzilla# 969.
 
-IMP/MAN: (5/25/06, GVG) Workaround for KeyBindings in EToolBarRadioButton for MacOSX (Bug #1056).
+IMP: (5/25/06, GVG) Workaround for KeyBindings in EToolBarRadioButton for MacOSX (Bug #1056).
      Problem: JRadioButtonMenuItem doesn't handle accelerators well.
      In case of Command-S and S in two different functions, JRadioButtonMenuItem assumes
      are identical and a conflict is generated. Temporary workaround:
@@ -603,9 +611,9 @@ IMP/MAN: (5/25/06, GVG) Workaround for KeyBindings in EToolBarRadioButton for Ma
 
 IMP: (5/24/06, RK) Improvements to NCC GUI user manual
 
-IMP/MAN: (5/24/06, GVG) List User Preferences in HelpMenu.
+IMP: (5/24/06, GVG) List User Preferences in HelpMenu.
 
-IMP/MAN: (5/23/06, GVG) Accelerators in ToolTip text of ToolBar buttons.
+IMP: (5/23/06, GVG) Accelerators in ToolTip text of ToolBar buttons.
 
 BUG: (5/23/06, SMR) Smooth zooming can crash (Bug #1054)
 FIX: In ZoomAndPanListener.mouseDragged(), prevent negative scale.
@@ -637,7 +645,7 @@ FIX: cacheObj must be changed by calling Pref.setDouble/setInt/setString functio
 
 ************************* Version 8.04m-8.04n: *********************************
 
-BUG/MAN: (5/19/06, DN) Invariant "Names are unique" is not always true.
+BUG: (5/19/06, DN) Invariant "Names are unique" is not always true.
 FIX: In Name.findTrimmedName don't override busy entry in hash array.
      Now all names must be unique, and multipart icons are not allowed
      (there is no way to unify them).
@@ -685,7 +693,7 @@ FIX: In WindowMenu.whiteBackgroundCommand() and others, do fullRepaint.
 BUG: (5/18/06, SMR) Left-aligned exports select badly on rotated nodes (Bug #964).
 FIX: In Highlighter.findAllInArea(), must transform before calling setExactTextBounds.
 
-IMP/MAN: (5/18/06, DN) JELIB/DELIB format has cellGroupName field into "C" line.
+IMP: (5/18/06, DN) JELIB/DELIB format has cellGroupName field into "C" line.
      Name of cell group is base name of a main schematics if any,
      otherwise shortest base name. On reading both legacy "G" lines and this new field
      are treated to gather cells into groups.
@@ -693,7 +701,7 @@ IMP/MAN: (5/18/06, DN) JELIB/DELIB format has cellGroupName field into "C" line.
 BUG: (5/18/06, DN) Client/server mode doesn't work.
 FIX: Repair ClientJobManager.
 
-IMP/MAN: (5/17/06, GVG) electric.log on MacOX is in user.home instead of user.dir (Bug #1033)
+IMP: (5/17/06, GVG) electric.log on MacOX is in user.home instead of user.dir (Bug #1033)
 
 BUG: (5/17/06, DN) Nodable names must be unique (Bug #850).
 FIX: Uniqueness of NodeInst names is database invariant.
@@ -747,10 +755,10 @@ FIX: Make valid export name a database invariant. ExportIds are taken as is, Exp
 BUG: (5/12/06, GVG) Shorten selected arc causes Exception (see log shorten-selected electric) (Bug #1001).
 FIX: cell not setup in ShortenArcs job.
 
-BUG/MAN: (5/12/06, GVG) Problems with text size <1 (Bug #986).
+BUG: (5/12/06, GVG) Problems with text size <1 (Bug #986).
 FIX: Consistent setting of min and max values in TexInfoPanel.java by adding Size.TXTMINPOINTS and Size.TXTMINQGRID.
 
-IMP/MAN: (5/12/06, DN) In EidtKeyBindings dialog edit hidden submenu as "Shortcuts" submenu.
+IMP: (5/12/06, DN) In EidtKeyBindings dialog edit hidden submenu as "Shortcuts" submenu.
 
 BUG: (5/12/06, DN) Exception when define accelerator for submenu.
 FIX: In EditKeyBindings forbid editing accelerators of separators and submenus.
@@ -758,7 +766,7 @@ FIX: In EditKeyBindings forbid editing accelerators of separators and submenus.
 BUG: (5/12/06, DN) Russian manual is not properly displayed.
 FIX: In ManualViewer.loadPage add explicitly name of encoding: "UTF-8".
 
-IMP/MAN: (5/11/06, GVG) NT-N-transistor in TSMC180
+IMP: (5/11/06, GVG) NT-N-transistor in TSMC180
 
 BUG: NCC. Insert print statements to help debug Bugzilla# 969, 977
 
@@ -828,7 +836,7 @@ FIX: Swap them in ToolBar.java.
 BUG: (5/3/06, SMR) Auto Stitcher crashes wiring a node to an arc (Bug #958)
 FIX: In AutoStitch.compRoutes.compare(), handle sorting arc wirings.
 
-IMP/MAN: (5/3/06, GVG) [Bug 961] Ability to refresh simulation data with KeyBinding.
+IMP: (5/3/06, GVG) [Bug 961] Ability to refresh simulation data with KeyBinding.
 
 BUG: (5/3/06, GVG) "Easy selection of cell instances" off makes impossible to select primitive nodes with MouseOverHighlighter.
 FIX: if (!findSpecial && !User.isEasySelectionOfCellInstances()) condition applied only if
@@ -840,7 +848,7 @@ FIX: We can't use Rectangle2D.Double as field in Job. They can't be serializable
 BUG: (5/2/06, GVG) Quarter motion button missing in toolbar (Bug #957)
 FIX: Added into ToolBar.java. Left off in v8.04j.
 
-IMP/MAN (5/2/06, JKG) Added CVS Page in HTML Manual
+IMP (5/2/06, JKG) Added CVS Page in HTML Manual
 
 BUG: (5/2/06, GVG) Strange clean up of goodDRCdates in Quick.java (no Bugzilla)
 FIX: Not cleaning the Data list if only errors.
@@ -1065,7 +1073,7 @@ FIX: Variable was not serializable.
 
 IMP: (3/24/06, RK) First step in moving NCC regressions to Dima's and Gilda's all-Java model
 
-IMP/MAN: (3/24/06, GVG) TestTab and GenerationTest class
+IMP: (3/24/06, GVG) TestTab and GenerationTest class
 
 BUG: (3/24/06, GVG) MaxPerm=0 on Windows causes problems (not seen on Linux/Mac) (Bug #905)
 FIX: detect the condition.
@@ -1076,7 +1084,7 @@ IMP: (3/24/06, DN) Added method Cell.move(Library newLib) for CrossLibraryMove.
 BUG: (3/24/06, DN)) Read Library Job used getCurrentCell inside doIt.
 FIX: Move it to terminateOK.
 
-IMP/MAN: (3/23/06, GVG) Access to reloadLibrary in ExplorerTree (no cvs mode).
+IMP: (3/23/06, GVG) Access to reloadLibrary in ExplorerTree (no cvs mode).
                                    
 IMP: (3/23/06, JG): Need facility to reload changed libraries from disk (Bug #721)
 
@@ -1100,7 +1108,7 @@ FIX: Uodate Regression.java to recent changes in ServerClient.java
 BUG: (3/21/06, DN) All libraries marked changed after loading up (Bug #900)
 FIX: In Main.InitDatabase insert Input.changesQuiet(false). 
 
-IMP/MAN: (3/21/06, DN) Snapshot Logging which is enabled by button in GeneralTab panel.
+IMP: (3/21/06, DN) Snapshot Logging which is enabled by button in GeneralTab panel.
    Logging is performed to temporary file in platform-dependent  directory. Name of the file
    is printed to "electric.log" and to stdin.
 
@@ -1122,7 +1130,7 @@ FIX: In CellBackup.with correctly update definedExports set.
 BUG: (3/20/06, GVG) CheckAndRepair on arcs only reporting the error in repair mode.
 FIX: Create the error logger also in check mode.
 
-IMP/MAN: (3/19/06, GVG) Ability to leave unconnected pins (Bug 488)
+IMP: (3/19/06, GVG) Ability to leave unconnected pins (Bug 488)
 New preferences added in Routing tool.
 
 Bugzilla #s to close: 318 (works now),
@@ -1194,20 +1202,20 @@ IMP: (3/13/06, GVG) Ability to mark selected cell if you do "Edit in New Window"
 
 IMP: (3/13/06, RK) NCC: delete initial version of local wire paritioning code.
 
-IMP/MAN: (3/13/06, GVG) Multiple selection in cross library copy (Bug #867)
+IMP: (3/13/06, GVG) Multiple selection in cross library copy (Bug #867)
 
 BUG: (3/13/06, GVG) Date/Content in CrossLibCopy dialog was not filled if "Date/Content" toggle
 is selected (Bug #869).
 FIX: Call showCells function. Side effect: message between "()" only if content is compared otherwise
 doesn't have sense.
 
-IMP/MAN: (3/12/06, GVG) Ability to set MaxPermSize option as preference (Bug #866)
+IMP: (3/12/06, GVG) Ability to set MaxPermSize option as preference (Bug #866)
 If value is zero, then doesn't set anything. New item in General Tab.
 
-IMP/MAN: (3/12/06, GVG) Make saving last DRC date with libraries an option (Bug #847).
+IMP: (3/12/06, GVG) Make saving last DRC date with libraries an option (Bug #847).
 New flag in DRC tab.
 
-IMP/MAN: (3/10/06, JKG) Added DELIB file format. This is a just a distributed
+IMP: (3/10/06, JKG) Added DELIB file format. This is a just a distributed
     JELIB format, where each cell has it's own file. This will be used for
     CVS version control of cells.
 
@@ -1630,35 +1638,35 @@ BUG: (1/5/06, SMR) PolyMerge.contains(Layer, Rectangle2D) does not work.
 FIX: Must use same method as in PolyMerge.contains(Layer, PolyBase),
      subtracting areas and seeing if the result has near-zero size.
 
-IMP/MAN: (1/5/06, SMR) Added option to merge geometry while reading GDS in.
+IMP: (1/5/06, SMR) Added option to merge geometry while reading GDS in.
 
-IMP/MAN: (1/3/06, SMR) The "Edit / Erase" command is now a submenu and has
+IMP: (1/3/06, SMR) The "Edit / Erase" command is now a submenu and has
      two new entries: "Arcs Connected to Selected Nodes" and
      "Arcs Connected Between Selected Nodes" (Bug #610).
 
-IMP/MAN: (1/3/06, SMR) Moved "Edit / Info / Show Undo List" to "Edit / Show Undo List".
+IMP: (1/3/06, SMR) Moved "Edit / Info / Show Undo List" to "Edit / Show Undo List".
 
 IMP: (1/3/06, SMR) When two EditWindows share the same cell, they share Highlighters,
      too (Bug #402).
 
-IMP/MAN: (1/3/06, SMR) The "Window / Center" submenu is now called "Window / Special Pan"
+IMP: (1/3/06, SMR) The "Window / Center" submenu is now called "Window / Special Pan"
      and includes two new commands: "Match Other Window in X" and
      "Match Other Window in Y" (Bug #402).
 
 IMP: (1/3/06, SMR) "Select Object" dialog allows quick-key commands to "pass through"
      (but it works only when the "Find" button or no dialog item is current) (Bug #370).
 
-IMP/MAN: (1/2/06, SMR) New command: Export / Manipulate Ports on Node (Bug #697).
+IMP: (1/2/06, SMR) New command: Export / Manipulate Ports on Node (Bug #697).
 
 BUG: (1/2/06, SMR) Changing default text font doesn't update display (Bug #771).
 FIX: In TextTab.term() redraw all edit windows if font changes.
 
-IMP/MAN: (1/2/06, SMR) Mimic unstitch now works interactively (Bug #488).
+IMP: (1/2/06, SMR) Mimic unstitch now works interactively (Bug #488).
 
 BUG: (12/28/05, SMR) Dragging or deleting text fails.
 FIX: In Highlight2.getHighlightedText() changed "return" to "continue" in last loop.
 
-IMP/MAN: (12/27/05, SMR) Added commands "Edit / Properties /  Parameterize Bus Name"
+IMP: (12/27/05, SMR) Added commands "Edit / Properties /  Parameterize Bus Name"
      and "Edit / Properties / Edit Bus Parameters..." to parameterize busses.
 
 IMP: (12/26/05, SMR) Sped up exporting many ports by a factor of 3.
@@ -1726,7 +1734,7 @@ FIX: In PostScript.recurseCircuitLevel(), use untransformed cell bounds.
 BUG: (12/7/05, SMR) Waveform window always calls horizontal axis "seconds", even if it isn't time.
 FIX: Use pure numbers when a signal is on the X axis.
 
-IMP/MAN: (12/7/05, SMR) Added David Harris's "merged PostScript" output.
+IMP: (12/7/05, SMR) Added David Harris's "merged PostScript" output.
      Fixed MOSIS CMOS technology color opacity.
 
 IMP: (12/7/05, GVG) Got rid of ExplorerTree activities in Job.java
@@ -1746,7 +1754,7 @@ IMP: (12/1/05, SMR) Making windows fill the screen works right in MDI mode.
 BUG: (12/1/05, SMR) Initial cell display doesn't fill the window (Bug #562).
 FIX: In WindowFrame.createEditWindow(), set window size properly.
 
-IMP/MAN: (12/1/05, SMR) Cell Properties lets you specify the font of text cells (Bug #662).
+IMP: (12/1/05, SMR) Cell Properties lets you specify the font of text cells (Bug #662).
      Changed the layout of the "text" preferences tab.
 
 BUG: (11/30/05, SMR) PostScript text scale is wrong (Bug #763).
@@ -1755,7 +1763,7 @@ FIX: Increased PostScript text size.
 BUG: (11/30/05, SMR) Pasting shows undisplayable cell variables (Bug #760);
 FIX: In Clipboard.paste() ignore variables that are not displayed.
 
-IMP/MAN (11/30/05, SMR) New commands in Tool / Simulation (Built-in):
+IMP (11/30/05, SMR) New commands in Tool / Simulation (Built-in):
      "Save Waveform Window Configuration to Disk..." and
      "Restore Waveform Window Configuration from Disk..." remember the waveform
      window configuration (Bug #704).
@@ -1782,9 +1790,9 @@ FIX: In TextWindow.redo(), must catch the CannotRedoException exception.
 
 IMP: (11/28/05, SMR) Entering "measure" mode clears previous measurements (Bug #761).
 
-IMP/MAN: (11/28/05, SMR) Waveform window can show lines, points, or both.
+IMP: (11/28/05, SMR) Waveform window can show lines, points, or both.
 
-IMP/MAN: (11/28/05, SMR) Waveform window can handle many types of analysis (transient,
+IMP: (11/28/05, SMR) Waveform window can handle many types of analysis (transient,
      AC, DC, and Measurements).  HSpice reads them.
 
 IMP: (11/28/05, DN) Changes towards Snapshots.
@@ -1797,7 +1805,7 @@ IMP: (11/21/05, SMR) Refactored the waveform window.
 
 IMP: (11/21/05, DN) NodeInst.redoGeometric allocated less temporary objects.
 
-IMP/MAN: (11/18/05, SMR) Waveform window can now draw horizontal axis logarithmically.
+IMP: (11/18/05, SMR) Waveform window can now draw horizontal axis logarithmically.
 
 BUG: (11/18/05, SMR) Waveform window drops zeros from numbers.
 FIX: In TextUtils.convertToEngineeringNotation() remove trailing zeros only if
@@ -1808,7 +1816,7 @@ FIX: In User.endBatch(), ignore cell changes to deleted cells.
 
 IMP: (11/17/05, GVG) Adding Ctl-W to NCC GUI (Bug 756)
 
-IMP/MAN: (11/17/05, SMR) Waveform window can now plot any signal on the X axis.
+IMP: (11/17/05, SMR) Waveform window can now plot any signal on the X axis.
      Drag the signal to the time bar to set it as the X axis.  Right-click on
      time bar to reset to time on the X axis.
 
@@ -1824,7 +1832,7 @@ IMP: (11/16/05, DN) Memory optimization: Name module stores only canonic String 
 
 IMP: (11/15/05, SMR) Spice templates can now have multiple lines.
 
-IMP/MAN: (11/15/05, SMR) New command: "Tool / Network / Repair Power and Ground" fixes
+IMP: (11/15/05, SMR) New command: "Tool / Network / Repair Power and Ground" fixes
      export characteristics that are inconsistent (Bug #380).
 
 IMP: (11/15/05, SMR) Now have "Tool / NCC" command to create NCC annotations (Bug #646).
@@ -1857,18 +1865,18 @@ BUG: (11/10/05, SMR) Crash when drawing upside-down text (rotated 180).
 FIX: In PixelDrawing.drawText, 180 degree case should use the index:
      ((rasHeight-y-1)>>shiftUp) * textImageWidth + ((rasWidth-x-1)>>shiftUp)
 
-IMP/MAN: (11/9/05, SMR) New command: "Window / Set Focus..." lets you control
+IMP: (11/9/05, SMR) New command: "Window / Set Focus..." lets you control
      the window zoom and pan (Bug #722).
 
-IMP/MAN: (11/9/05, SMR) Now have "Export /Re-Export Selected Port on All Nodes"
+IMP: (11/9/05, SMR) Now have "Export /Re-Export Selected Port on All Nodes"
      which takes a single node/port selection and re-exports that port on all
      similar node/port combinations in the cell (Bug #660).
 
-IMP/MAN: (11/9/05, SMR) Now have "Last Changed By" field in title box (Bug #609).
+IMP: (11/9/05, SMR) Now have "Last Changed By" field in title box (Bug #609).
 
 IMP: (11/9/05, SMR) Auto stitching now considers highlighted area more precisely (Bug #725).
 
-IMP/MAN (11/9/05, JKG) Added "exemptedNets" capability and options to simple parasitic extraction
+IMP (11/9/05, JKG) Added "exemptedNets" capability and options to simple parasitic extraction
     for spice netlister. Updated manual (Parasitic Extraction), but did not update
     manual picture.
 
@@ -1878,20 +1886,20 @@ FIX: In EditWindow.paintComponent(), do not request focus.
 BUG: (11/9/05, SMR) Node Properties takes too long when there are many ports (Bug #736).
 FIX: In GetInfoNode.showProperList(), use "setListData" to load the list.
 
-IMP/MAN: (11/9/05, SMR) Project management now uses user names without asking
+IMP: (11/9/05, SMR) Project management now uses user names without asking
      for accounts to be created.  Higher-level of security can be had by changing
      Project.LOWSECURITY to false (Bug #737).
 
 BUG: (11/9/05, SMR) Library closing gives cryptic error messages (Bug #739).
 FIX: Better message in Library.kill().
 
-IMP/MAN: (11/9/05, SMR) Project management menu now has "Add All Libraries to
+IMP: (11/9/05, SMR) Project management menu now has "Add All Libraries to
      Repository" (Bug #740).
 
 IMP: (11/9/05, SMR) Adding a library to the repository now asks if dependent
      libraries should also be added (Bug #742).
 
-IMP/MAN: (11/9/05, SMR) Project management command "Cancel Checkout" is now
+IMP: (11/9/05, SMR) Project management command "Cancel Checkout" is now
      "Rollback and Release Checkout" (in explorer and in menus).  The command
      checks sensibility before confirming the operation (Bug #743).
 
@@ -1903,10 +1911,10 @@ IMP: (11/8/05, SMR) Dialogs move with the main display (Bug #581).
 BUG: (11/8/05, SMR) Cells do not fill the screen when first edited (Bug #562).
 FIX: In EditWindow.java, use true screen size instead of 500x500.
 
-BUG/MAN: (11/8/05, SMR) Interactive sizing always stretches to farthest corner (Bug #558).
+BUG: (11/8/05, SMR) Interactive sizing always stretches to farthest corner (Bug #558).
 FIX: Must click to start sizing, and it remembers the farthest corner.
 
-IMP/MAN: (11/8/05, SMR) Added "Down Hierarchy" commands to keep the focus and
+IMP: (11/8/05, SMR) Added "Down Hierarchy" commands to keep the focus and
      edit in a new window (Bug #732).
 
 BUG: (11/8/05, SMR) Aborting the "quit" dialog with an ESCAPE quits anyway.
@@ -1936,10 +1944,10 @@ IMP: (11/4/05, SMR) New icons in the toolbar.
 IMP: (11/4/05, SMR) Ant scripts updated to exclude Sun menus from build,
      Javadoc cleaned up
 
-IMP/MAN: (11/3/05, GVG) XML format for ErrorLogger (bug #715). You can save and restore errorloggers
+IMP: (11/3/05, GVG) XML format for ErrorLogger (bug #715). You can save and restore errorloggers
 from disk.
 
-IMP/MAN: (11/2/05, GVG) Adding index to ErrorLogger.Message so it would be easier to
+IMP: (11/2/05, GVG) Adding index to ErrorLogger.Message so it would be easier to
 exchange information about DRC errors (Bug #729). This affects all ErrorLogger instances.
 
 BUG: (11/2/05, SMR) Redisplay slow when zoomed far in (Bug #719).
@@ -1973,11 +1981,11 @@ IMP: (10/31/05, SMR) Silicon compiler works when number of cells is less than
 
 IMP: (10/31/05, GVG) Undo.Type converted into typesafe enum.
 
-IMP/MAN: (10/30/05, GVG) TSMC1080.xml ready with all TSMC rules for 180nm tech
+IMP: (10/30/05, GVG) TSMC1080.xml ready with all TSMC rules for 180nm tech
 
-IMP/MAN: (10/29/05, GVG) Mosis.xml ready with all Mosis rules for 180nm tech
+IMP: (10/29/05, GVG) Mosis.xml ready with all Mosis rules for 180nm tech
 
-IMP/MAN: (10/28/05, GVG) PP/NP.C.1 implemented in TSMC180 (Bug 703, 642, 689).
+IMP: (10/28/05, GVG) PP/NP.C.1 implemented in TSMC180 (Bug 703, 642, 689).
 This is a new type of SPACING rule where one of the layer must belong to P/N well nodes.
 
 IMP: (10/28/05, SMR) Changed the window "view" to a window "focus".

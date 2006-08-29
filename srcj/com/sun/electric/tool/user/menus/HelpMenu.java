@@ -67,7 +67,7 @@ public class HelpMenu {
             Job.getDebug() ? new EMenuItem("User's Manual (_Russian)...") { public void run() {
                 ManualViewer.userManualRussianCommand(); }} : null,
 
-            new EMenuItem("Show _Key Bindings...") { public void run() {
+            new EMenuItem("Show _Key Bindings") { public void run() {
                 MenuCommands.menuBar().keyBindingManager.printKeyBindings();; }},
 
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ

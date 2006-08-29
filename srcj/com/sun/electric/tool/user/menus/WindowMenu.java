@@ -24,11 +24,13 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.MessagesStream;
-import com.sun.electric.tool.user.dialogs.SetFocus;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.MessagesStream;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.SetFocus;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
@@ -38,16 +40,26 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
-import com.sun.electric.database.text.TextUtils;
 
-import java.awt.*;
-import java.awt.event.KeyEvent;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EventListener;
+import java.util.Iterator;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.KeyStroke;
 
 /**
  * Class to handle the commands in the "Window" pulldown menu.
@@ -80,7 +92,6 @@ public class WindowMenu {
 
         // mnemonic keys available: A         K     Q  T    Y
         EMenu menu = new EMenu("_Window",
-//        WindowEMenu menu = new WindowEMenu("_Window",
 
             new EMenuItem("_Fill Window", numpad9) { public void run() {
                 fullDisplay(); }},
@@ -162,7 +173,8 @@ public class WindowMenu {
                 moveToOtherDisplayCommand(); }} : null,
 			!TopLevel.isMDIMode() ? new EMenuItem("Remember Locatio_n of Display") { public void run() {
 				    rememberDisplayLocation(); }} : null,
-            SEPARATOR,
+
+		    SEPARATOR,
 
         // mnemonic keys available: A CDEFGHIJKLMNOPQ STUV XYZ
             new EMenu("_Color Schemes",
@@ -172,6 +184,16 @@ public class WindowMenu {
                     blackBackgroundCommand(); }},
                 new EMenuItem("_White Background Colors") { public void run() {
                     whiteBackgroundCommand(); }}),
+
+		// mnemonic keys available: ABC EFGHIJKLMNOPQ  TUVWXYZ
+            new EMenu("W_aveform Window",
+		        new EMenuItem("_Save Waveform Window Configuration to Disk...") { public void run() {
+                    WaveformWindow.saveConfiguration(); }},
+		        new EMenuItem("_Restore Waveform Window Configuration from Disk...") { public void run() {
+                    WaveformWindow.restoreConfiguration(); }},
+                SEPARATOR,
+                new EMenuItem("Refresh Simulation _Data") { public void run() {
+                    WaveformWindow.refreshSimulationData(); }}),
 
 		// mnemonic keys available: AB DE GHIJKLMNOPQR TUVWXYZ
             new EMenu("_Messages Window",
