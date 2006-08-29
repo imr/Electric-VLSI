@@ -229,6 +229,15 @@ Tools
   NCC Commands                       =chap09-07-02
   NCC Preferences                    =chap09-07-03
   NCC Annotations                    =chap09-07-04
+  NCC Graphical User Interface                 
+   Overview                          =chap09-07-05-01
+   Exports                           =chap09-07-05-02
+   Parts and Wires                   =chap09-07-05-03
+   Sizes                             =chap09-07-05-04
+   Export Assertions                 =chap09-07-05-05
+   Export/Global Network and Characteristics Conflicts =chap09-07-05-06
+   Unrecognized Parts                =chap09-07-05-07
+   Advanced Features                 =chap09-07-05-08
  Generation
   Pad Frame Generation               =chap09-08-01
   Other Generators                   =chap09-08-02
