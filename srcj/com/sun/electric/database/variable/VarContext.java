@@ -507,7 +507,7 @@ public class VarContext implements Serializable
         }
         pMat.appendTail(sb);
         EvalSpice sp = new EvalSpice(sb.toString());
-        return sp.evaluate().toString();
+        return sp.evaluate();
     }
 
     /**
