@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/29/06) PIE: Add print method to SubcircuitExtractionResult to help debugging
+
 FIX: (8/28/06) PIE: Ports are now separated by type properly.
 
 BUG/MAN: (8/28/06, SMR) Waveform window sweep display bad (Bug #1210).
