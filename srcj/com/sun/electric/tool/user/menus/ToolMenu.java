@@ -66,10 +66,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.compaction.Compaction;
-import com.sun.electric.tool.cvspm.CVS;
-import com.sun.electric.tool.cvspm.Commit;
-import com.sun.electric.tool.cvspm.Edit;
-import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.drc.AssuraDrcErrors;
 import com.sun.electric.tool.drc.CalibreDrcErrors;
 import com.sun.electric.tool.drc.DRC;
@@ -383,6 +379,14 @@ public class ToolMenu {
 		        	new EMenuItem("_Black Box") { public void run() {
                         NccCellAnnotations.makeNCCAnnotation("blackBox <comment explaining why>"); }})),
 
+        // ------------------- PIE
+            // If Pie package is installed then add menu entries to call it
+            Pie.hasPie() ? new EMenu("_PIE",
+               new EMenuItem("PIE Schematic and Layout Views of Cell in Current Window") { public void run() {
+                    Pie.invokePieNcc(1); }},
+               new EMenuItem("Cells from _Two Windows") { public void run() {
+                    Pie.invokePieNcc(2); }}) : null,
+
 		//------------------- Network
 
 		// mnemonic keys available:    D F  IJK M O Q S   W YZ
@@ -534,45 +538,6 @@ public class ToolMenu {
             new EMenu("_Compaction",
 		        new EMenuItem("Do _Compaction") { public void run() {
                     Compaction.compactNow(); }}),
-
-        // ------------------ CVS
-            new EMenu("CVS",
-                new EMenuItem("Commit All Open Libraries") { public void run() {
-                    Commit.commitAllLibraries(); }},
-                new EMenuItem("Update Open Libraries") { public void run() {
-                    Update.updateOpenLibraries(Update.UPDATE); }},
-                new EMenuItem("Get Status Open Libraries") { public void run() {
-                    Update.updateOpenLibraries(Update.STATUS); }},
-                new EMenuItem("List Editors Open Libraries") { public void run() {
-                    Edit.listEditorsOpenLibraries(); }},
-                SEPARATOR,
-                new EMenuItem("Update Project Libraries") { public void run() {
-                    Update.updateProject(Update.UPDATE); }},
-                new EMenuItem("Get Status Project Libraries") { public void run() {
-                    Update.updateProject(Update.STATUS); }},
-                new EMenuItem("List Editors Project Libraries") { public void run() {
-                    Edit.listEditorsProject(); }},
-                SEPARATOR,
-                new EMenuItem("Checkout From Repository") { public void run() {
-                    CVS.checkoutFromRepository(); }})
-                {
-                    @Override
-                    public boolean isEnabled() { return CVS.isEnabled(); }
-                    
-                    @Override
-                    protected void registerItem() {
-                        super.registerItem();
-                        registerUpdatable();
-                    }
-                 },
-
-        // ------------------- PIE
-            // If Pie package is installed then add menu entries to call it
-            Pie.hasPie() ? new EMenu("_PIE",
-               new EMenuItem("PIE Schematic and Layout Views of Cell in Current Window") { public void run() {
-                    Pie.invokePieNcc(1); }},
-               new EMenuItem("Cells from _Two Windows") { public void run() {
-                    Pie.invokePieNcc(2); }}) : null,
 
         //------------------- Others
 

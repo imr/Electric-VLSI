@@ -24,6 +24,8 @@
 
 package com.sun.electric.tool.user.menus;
 
+import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.PolyBase;
@@ -35,10 +37,14 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.JobManager;
-import com.sun.electric.tool.Client;
+import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.Commit;
+import com.sun.electric.tool.cvspm.Edit;
+import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.GDSMap;
@@ -64,7 +70,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
-import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -224,7 +229,7 @@ public class FileMenu {
             SEPARATOR,
 
         // mnemonic keys available:   C EFG  JK MN PQ ST VWXYZ
-            new EMenu("Project Management",
+            new EMenu("P_roject Management",
                 new EMenuItem("_Update") { public void run() {
                     UpdateJob.updateProject(); }},
                 new EMenuItem("Check _Out This Cell") { public void run() {
@@ -247,6 +252,37 @@ public class FileMenu {
                     AddLibraryJob.addThisLibrary(); }},
                 new EMenuItem("Ad_d All Libraries To Repository") {	public void run() {
                     AddLibraryJob.addAllLibraries(); }}),
+
+        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            new EMenu("C_VS",
+                new EMenuItem("Commit All Open Libraries") { public void run() {
+                    Commit.commitAllLibraries(); }},
+                new EMenuItem("Update Open Libraries") { public void run() {
+                    Update.updateOpenLibraries(Update.UPDATE); }},
+                new EMenuItem("Get Status Open Libraries") { public void run() {
+                    Update.updateOpenLibraries(Update.STATUS); }},
+                new EMenuItem("List Editors Open Libraries") { public void run() {
+                    Edit.listEditorsOpenLibraries(); }},
+                SEPARATOR,
+                new EMenuItem("Update Project Libraries") { public void run() {
+                    Update.updateProject(Update.UPDATE); }},
+                new EMenuItem("Get Status Project Libraries") { public void run() {
+                    Update.updateProject(Update.STATUS); }},
+                new EMenuItem("List Editors Project Libraries") { public void run() {
+                    Edit.listEditorsProject(); }},
+                SEPARATOR,
+                new EMenuItem("Checkout From Repository") { public void run() {
+                    CVS.checkoutFromRepository(); }})
+                {
+                    @Override
+                    public boolean isEnabled() { return CVS.isEnabled(); }
+                    
+                    @Override
+                    protected void registerItem() {
+                        super.registerItem();
+                        registerUpdatable();
+                    }
+                 },
 
             SEPARATOR,
 
