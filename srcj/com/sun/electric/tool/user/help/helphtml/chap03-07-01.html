@@ -3,6 +3,7 @@
 <!-- COMMAND Cell/Cell Info/Describe this Cell -->
 <!-- COMMAND Cell/Cell Info/General Cell Lists... -->
 <!-- COMMAND Cell/Cell Info/List Nodes in this Cell -->
+<!-- COMMAND Cell/Cell Info/Number of Transistors -->
 <!-- COMMAND Cell/Cell Info/List Cell Usage -->
 <!-- COMMAND Cell/Cell Info/List Cell Instances -->
 
@@ -52,10 +53,18 @@ The state bits are:
 <LI>"D" if the cell has passed design-rule checking</LI>
 </UL>
 <P>
-For more cell information, use the commands of menu <B>Cell / Cell Info</B>.
-The <B>List Nodes in this Cell</B> command shows all nonprimitive nodes in the current cell.
-The <B>List Cell Instances</B> command shows all cell instances below the current cell.
-The <B>List Cell Usage</B> command looks up the hierarchy and finds cells that contain the
-current cell as an instance.
+For more cell information, use the commands of menu <B>Cell / Cell Info</B>:
+<UL>
+<LI><B>List Nodes in this Cell</B> counts the number of nodes in current cell and below.
+This is a hierarchical count: if two cell instances each have two transistors inside of them,
+the total is 4 transistors.
+However, it counts only actual nodes, ignoring arrayed nodes
+(see <A HREF="chap06-09-03.html#chap06-09-03">Section 6-9-3</A>).</LI>
+<LI><B>List Cell Instances</B> shows all cell instances below the current cell.</LI>
+<LI><B>List Cell Usage</B> looks up the hierarchy and finds cells that contain the
+current cell as an instance.</LI>
+<LI><B>Number of Transistors</B> counts the number of transistors in the current cell and below
+(considering arrayed instances).</LI>
+</UL>
 
 <!-- TRAILER -->

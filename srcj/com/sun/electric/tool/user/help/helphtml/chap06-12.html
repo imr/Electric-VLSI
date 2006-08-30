@@ -55,6 +55,8 @@ This must be a shared location that each user can access (read and write).
 Use the "Project Management" preferences, in menu <B>File / Preferences...</B>,
 "General" section, "Project Management" tab.
 Each user must do this and set the same location so that they can share the repository.
+Also, be sure that your user name is correct, as this will be used
+when tagging file changes.
 </TD><TD><CENTER><IMG SRC="fig06-10.png" ALT="Figure 6.10"></CENTER></TD></TR></TABLE>
 <P>
 After the repository has been set, libraries can be entered into it.
@@ -66,16 +68,6 @@ Therefore, you should save your library after entering it into the repository.
 <P>
 Other users can obtain a copy of your library directly from the repository by using
 the <B>Get Library From Repository...</B> command.
-<P>
-Individual users can now begin to work on the library.
-Before checking cells out of a library, it is necessary to create a "user" account
-in the project management system.
-The "Project Management" preferences shows a list of users.
-Although each user must "login" to the project management system with their own password,
-Electric remembers the logged-in user between sessions, so it is not necessary to do this more than once.
-Adding new users can be done in the "Administration" section of the dialog.
-Note that to add or delete users, the administrator must first click "Authorize..." and provide
-the appropriate password.  This password is provided elsewhere in the manual.
 <P>
 <H3>Checking Cells In and Out</H3>
 <P>
@@ -137,12 +129,5 @@ When a cell is checked-out, a new version is made in your local library, and the
 All instances of the old version are switched to the new version. The old version remains in the repository.
 When the cell is checked-in, that new version also goes into the repository.
 When updates are done, newer versions are obtained from the repository, and appropriate substitutions are performed.
-<P>
-
-It is assumed that anyone who has read all the way to the end of this manual page must be quite serious about the
-project management system.  Such a person is probably an administrator, and therefore deserves to know what
-the administration password is for adding and deleting users.
-The password is just the letter "e".
-For increased security, edit the code and change this to something more secure.
 
 <!-- TRAILER -->

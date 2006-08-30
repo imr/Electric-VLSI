@@ -31,7 +31,8 @@ To build Electric so that it can run on all platforms, Macintosh and other,
 you will need to keep the module "com.sun.electric.MacOSXInterface.java".
 However, in order to build it, you will need the stub package "AppleJavaExtensions.jar".
 The package can be downloaded from Apple at
-<A HREF="http://developer.apple.com/samplecode/AppleJavaExtensions/AppleJavaExtensions.html">http://developer.apple.com/samplecode/AppleJavaExtensions/AppleJavaExtensions.html</A>.</LI>
+<A HREF="http://developer.apple.com/samplecode/AppleJavaExtensions/AppleJavaExtensions.html">
+http://developer.apple.com/samplecode/AppleJavaExtensions/AppleJavaExtensions.html</A>.</LI>
 </UL>
 <P>
 
@@ -42,7 +43,8 @@ This limit prevents programs from growing too large, and speeds up garbage colle
 However, it prevents large circuits from being edited.
 If Electric runs out of memory, you can request that more be used.
 To do this, use "General" preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab).
-At the bottom of the dialog is a memory limit field.
-You will have to quit Electric and restart it for the new memory limit to take effect.
+At the bottom of the dialog are two memory limit fields, for heap space and permanent memory.
+The heap size limit is the most important, but insufficient permanent memory can also cause problems.
+After changing these values, you will have to quit Electric and restart it for the new memory limit to take effect.
 
 <!-- TRAILER -->

@@ -15,25 +15,36 @@ and so does not always add all necessary wires.
 To control the wiring of arrays of cells more directly,
 there is the mimic-stitcher.
 This tool lets the designer place a wire between two cells,
-and then it adds other wires between all other similarly configured cells in the circuit.
+and then it adds other wires between all other similar situations in the circuit.
 Thus, it mimics your actions.
+The router also mimics your wire removals, removing arcs similar to the ones that you delete.
 <P>
-Specifically, it mimics all situations where the same ports on the same type of nodes exist,
-separated by the same distance.
+A set of restrictions applies to the mimic stitcher.
+These restrictions prevent mimicing from happening.
+Use "Routing" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Routing" tab)
+to control these exact conditions in which arc creation and deletion will be mimiced.
 <P>
-The "Routing" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Routing" tab)
-has many useful controls for mimic stitching.
+<TABLE><TR><TD><CENTER><IMG SRC="fig09-05.png" ALT="Figure 9.5"></CENTER></TD><TD>
+When "Interactive mimicing" is checked, the mimic stitcher will ignore the restrictions,
+and present all possible mimic situations for your approval.
+These situations will be organized by the restrictions that apply to them,
+in order of increasingly relaxed acceptance criteria.
 <P>
-<TABLE><TR>
-<TD><CENTER><IMG SRC="fig09-05.png" ALT="Figure 9.5"></CENTER></TD><TD>
-First, you can request that the mimic stitcher also mimic wire deletions.
-Second, you can request that the mimic stitcher relax its restriction about mimicing arcs
-(by allowing the ports to be different, the nodes to be different, or the node sizes to be different).
-You can also ask the mimic stitcher to work interactively,
-which causes it to examine all possible restriction sets,
-offering to route wires with increasingly relaxed acceptance criteria.
+The bottommost checkbox is "Keep Pins", which requests that deleted arcs keep their pins
+(typically, pins at the ends of deleted arcs are also deleted).
 </TD></TR></TABLE>
 <P>
+When running noninteractively, these are the restrictions that may be applied:
+<UL>
+<LI>"Ports must match" indicates that the specific ports at the end of the arcs must be the same.</LI>
+<LI>"Bus ports must have same width" applies to schematics: the ports must have the same bus-width.</LI>
+<LI>"Number of existing arcs must match" counts the number of arcs already connected to the other ports
+and ensures that they match.</LI>
+<LI>"Node sizes must match" applies to primitives, and forces their sizes to be equal.</LI>
+<LI>"Node types must match" demands that the mimiced connections be on the same type of node.</LI>
+<LI>"Cannot have other arcs in the same direction" requires prevents arc creation when there are existing arcs
+wired in the same location as the proposed new arcs.</LI>
+</UL>
 <P>
 To turn on the mimic-stitcher, use the <B>Enable Mimic-Stitching</B> command
 (in menu <B>Tool / Routing</B>).
