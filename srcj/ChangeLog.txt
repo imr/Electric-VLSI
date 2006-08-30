@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/30/06, Tarik) First version of the new graph view based on prefuse.
+
 IMP: (8/30/06, SMR) Moved "CVS" menu from "Tools" to "File".
 
 IMP: (8/29/06, SAF) PIE: InterchangeParts are now properly retrieved as neighbors of 
