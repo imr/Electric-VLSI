@@ -937,14 +937,9 @@ public class Variable implements Serializable
         Object value = this.value;
         byte type = this.type;
         if (descriptor.isCode() && !(value instanceof String || value instanceof String[])) {
-            //descriptor = descriptor.withCode(TextDescriptor.Code.NONE);
             value = value.toString();
-            Byte typeByte = (Byte)validClasses.get(value.getClass());
-            if (typeByte == null)
-                throw new IllegalArgumentException(value.getClass().toString());
-            type = typeByte.byteValue();
+            type = STRING;
         }
-        if (this.descriptor == descriptor) return this;
         return new Variable(this.key, value, descriptor, type);
     }
     
