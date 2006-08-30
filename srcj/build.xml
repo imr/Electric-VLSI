@@ -158,6 +158,34 @@
         </delete>
 	</target>
 
+	<target name="jarForPIE" depends="init,compile" description="Make source Jar file for Port Interchange Experiment">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
+        <jar basedir="." compress="true" jarfile="electricPIE-${version}.jar">
+        	<include name="com/sun/electric/plugins/pie/*.*"/>
+        </jar>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+	</target>
+
+	<target name="jarForRussianManual" depends="init,compile" description="Make Jar file for Russian User's Manual">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
+        <jar basedir="." compress="true" jarfile="electricRussianManual-${version}.jar">
+        	<include name="com/sun/electric/plugins/manualRussian/*.*"/>
+        </jar>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+	</target>
+
     <target name="jarForJava3D" depends="init,compile" description="Make source Jar file for Java3D plugin">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
