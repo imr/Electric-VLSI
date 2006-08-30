@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.help;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
@@ -64,8 +65,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -109,6 +110,9 @@ public class ManualViewer extends EDialog
 		boolean newAtLevel;
 	};
 
+	private static final String RUSSIANMANUALPATH = "plugins/manualRussian";
+
+	private Class htmlBaseClass;
 	private String htmlDirectory;
     private JScrollPane rightHalf;
     private JEditorPane editorPane;
@@ -132,19 +136,29 @@ public class ManualViewer extends EDialog
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, "helphtml");
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, ManualViewer.class, "helphtml");
 		}
 		theManual.setVisible(true);
 	}
 
 	/**
-	 * Method to display the user's manual.
+	 * Method to tell whether there is a Russian user's manual installed.
+	 * @return true if the Russian user's manual is available.
+	 */
+	public static boolean hasRussianManual()
+	{
+		URL url = Main.class.getResource(RUSSIANMANUALPATH + "/toc.txt");
+		return url != null;
+	}
+
+	/**
+	 * Method to display the Russian user's manual.
 	 */
 	public static void userManualRussianCommand()
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, "helphtmlRus");
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null, Main.class, RUSSIANMANUALPATH);
 		}
 		theManual.setVisible(true);
 	}
@@ -158,7 +172,7 @@ public class ManualViewer extends EDialog
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), preference, "helphtml");
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), preference, ManualViewer.class, "helphtml");
 		} else
 		{
 			if (preference != null)
@@ -294,9 +308,10 @@ public class ManualViewer extends EDialog
      * Create a new user's manual dialog.
      * @param parent
      */
-    private ManualViewer(Frame parent, String preference, String htmlDir)
+    private ManualViewer(Frame parent, String preference, Class baseClass, String htmlDir)
     {
         super(parent, false);
+        htmlBaseClass = baseClass;
         htmlDirectory = htmlDir;
         setTitle("User's Manual");
         init();
@@ -312,11 +327,11 @@ public class ManualViewer extends EDialog
 
 		// load the table of contents
         String indexName = htmlDirectory + "/toc.txt";
-		URL url = ManualViewer.class.getResource(indexName);
+		URL url = htmlBaseClass.getResource(indexName);
 		InputStream stream = TextUtils.getURLStream(url, null);
         if (stream == null)
         {
-            System.out.println("Can't open " + indexName + " in " + ManualViewer.class.getPackage());
+            System.out.println("Can't open " + indexName + " in " + htmlBaseClass.getPackage());
             return;
         }
 		InputStreamReader is = new InputStreamReader(stream);
@@ -377,7 +392,7 @@ public class ManualViewer extends EDialog
 				pi.fullChapterNumber += sectionNumbers[indent];
 				pi.level = indent;
 				pi.newAtLevel = newAtLevel;
-				pi.url = ManualViewer.class.getResource(htmlDirectory + "/" + fileName + ".html");
+				pi.url = htmlBaseClass.getResource(htmlDirectory + "/" + fileName + ".html");
 				if (pi.url == null)
                     System.out.println("NULL URL to "+fileName);
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Integer(pageSequence.size()));
@@ -464,11 +479,11 @@ public class ManualViewer extends EDialog
 
 		// scan all manual entries for menu associations
         String indexName = htmlDirectory + "/toc.txt";
-		URL url = ManualViewer.class.getResource(indexName);
+		URL url = htmlBaseClass.getResource(indexName);
 		InputStream stream = TextUtils.getURLStream(url, null);
         if (stream == null)
         {
-            System.out.println("Can't open " + indexName + " in " + ManualViewer.class.getPackage());
+            System.out.println("Can't open " + indexName + " in " + htmlBaseClass.getPackage());
             return;
         }
 		InputStreamReader is = new InputStreamReader(stream);
@@ -488,7 +503,7 @@ public class ManualViewer extends EDialog
 			if (titleEnd < 0) continue;
 			String fileName = line.substring(titleEnd+1).trim();
 
-			URL pageURL = ManualViewer.class.getResource(htmlDirectory + "/" + fileName + ".html");
+			URL pageURL = htmlBaseClass.getResource(htmlDirectory + "/" + fileName + ".html");
 			if (pageURL == null)
 			{
 				System.out.println("NULL URL to "+fileName);

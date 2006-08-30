@@ -64,7 +64,7 @@ public class HelpMenu {
 		    new EMenuItem("_User's Manual...") { public void run() {
                 ManualViewer.userManualCommand(); }},
 
-            Job.getDebug() ? new EMenuItem("User's Manual (_Russian)...") { public void run() {
+            ManualViewer.hasRussianManual() ? new EMenuItem("User's Manual (_Russian)...") { public void run() {
                 ManualViewer.userManualRussianCommand(); }} : null,
 
             new EMenuItem("Show _Key Bindings") { public void run() {

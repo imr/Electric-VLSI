@@ -1,0 +1,48 @@
+<!-- HEADER 1-5: Plug-Ins -->
+
+Electric plug-ins это добавочный код, используемый для повышения функциональности системы, который можно скачать отдельно
+от основного кода.
+На данный момент доступны следующие плагины:
+<UL>
+<LI><B>IRSIM.</B>
+IRSIM это симулятор предоставленный Станфордским Университетом.
+Первоначально написанный на C, он был переписан на Java поэтому Electric может его использовать.
+Текущую версию Electric можно скачать с <A HREF="http://www.staticfreesoft.com">Static Free Software</A> 
+<A HREF="http://www.staticfreesoft.com/electricIRSIM-8.02.jar">www.staticfreesoft.com/electricIRSIM-8.02.jar</A>.
+</LI>
+<LI><B>Bean Shell.</B>
+Используется для осуществления обработки всех параметров.
+Для выполнения практически всех операций в Electric требуется этот plug-in.
+Он также доступен на <A HREF="http://www.beanshell.org">www.beanshell.org</A>.
+</LI>
+<LI><B>3D.</B>
+3D компонент позволяет отображать ИМС в трехмерном пространстве.
+В добавок, к 3D плагину можно установить контролер (3D ось).
+3D пакет доступен для скачивания по адресу 
+<A HREF="http://www.j3d.org">www.j3d.org</A>.
+Контролер 3D оси можно скачать с <A HREF="http://www.staticfreesoft.com">Static Free Software</A> 
+<A HREF="http://www.staticfreesoft.com/electricJava3D-8.02.jar">www.staticfreesoft.com/electricJava3D-8.02.jar</A>
+</LI>
+<LI><B>Animation</B>
+3D анимация возможна при условии наличия 3D компонентов, описанных выше, а так же при наличии
+Java Media Framework (JMF) анимационного кода.
+Java Media Framework доступен по адресу <A HREF="http://www.sun.com">Sun Microsystems</A> 
+<A HREF="http://java.sun.com/products/java-media/jmf/">java.sun.com/products/java-media/jmf</A>
+анимационный код по адресу <A HREF="http://www.staticfreesoft.com">Static Free Software</A> 
+<A HREF="http://www.staticfreesoft.com/electricJMF-8.02.jar">www.staticfreesoft.com/electricJMF-8.02.jar</A>.
+</LI>
+
+</UL>
+<P>
+Для корректной работы плагинов они должны быть добавлены к основному коду.
+Например, для добавления beanshell (имя файла "bsh-2.0b1.jar"), наберите:
+<CENTER><CODE>java -classpath electric.jar:bsh-2.0b1.jar com.sun.electric.Launcher</CODE></CENTER>
+<P>
+Под Windows, вы  должны разделять jar файлы с помощью ";"
+<CENTER><CODE>java -classpath "electric.jar;bsh-2.0b1.jar" com.sun.electric.Launcher</CODE></CENTER>
+<P>
+Запомните, вы должны однозначно ссылаться на главный класс Electric (com.sun.electric.Launcher),
+так как при использовании плагинов все jar файлы группируются в один, так называемый, "classpath".
+<P>
+
+<!-- TRAILER -->
