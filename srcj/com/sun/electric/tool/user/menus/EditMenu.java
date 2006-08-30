@@ -418,7 +418,8 @@ public class EditMenu {
 		{
 			// information about the cell
 			Cell c = WindowFrame.getCurrentCell();
-            if (c != null) c.getInfo();
+            //if (c != null) c.getInfo();
+            if (c != null) Attributes.showDialog();
 		} else
 		{
             int [] counts = new int[5];
