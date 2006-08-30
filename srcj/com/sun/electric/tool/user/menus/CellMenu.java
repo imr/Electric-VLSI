@@ -34,7 +34,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.plugins.prefuse.electric.CircuitGraph;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.extract.GeometrySearch;
