@@ -72,11 +72,6 @@ public class SpiceTab extends PreferencePanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Spice"; }
 
-	private JList spiceCellList;
-	private DefaultListModel spiceCellListModel;
-	private HashMap<Cell,TempPref> spiceCellModelOptions;
-	private HashMap<Cell,TempPref> initialSpiceModelFiles;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Spice tab.
@@ -104,7 +99,7 @@ public class SpiceTab extends PreferencePanel
         spiceOutputFormatPopup.addItem(SpiceOutFormat.Epic);
 		spiceOutputFormatPopup.setSelectedItem(SpiceOutFormat.valueOf(Simulation.getSpiceOutputFormat()));
 
-        // IF Reader JVM is on  and the memoery
+        // IF Reader JVM is on and the memoery
         epicCheckBox.setSelected(Simulation.isSpiceEpicReaderProcess());
         epicText.setText(String.valueOf(Simulation.getSpiceEpicMemorySize()));
 
@@ -175,192 +170,6 @@ public class SpiceTab extends PreferencePanel
 		{
 			public void actionPerformed(ActionEvent evt) { spiceBrowseTrailerFileActionPerformed(); }
 		});
-
-        spice6.setEnabled(false);
-        spiceCell.setEnabled(false);
-        spiceModelLibrary.setEnabled(false);
-        spiceModelFileBrowse.setEnabled(false);
-        spiceModelCell.setEnabled(false);
-        spiceUseModelFromFile.setEnabled(false);
-        spiceDeriveModelFromCircuit.setEnabled(false);
-/*
-		// the last section has cell overrides
-		// gather all existing behave file information
-		initialSpiceModelFiles = new HashMap<Cell,TempPref>();
-		for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
-		{
-			Library lib = lIt.next();
-			if (lib.isHidden()) continue;
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-				String behaveFile = cell.getSpiceModelFile();
-				initialSpiceModelFiles.put(cell, TempPref.makeStringPref(behaveFile));
-			}
-		}
-
-		// make list of libraries
-		spiceCellModelOptions = new HashMap<Cell,TempPref>();
-		for(Library lib : Library.getVisibleLibraries())
-		{
-			spiceModelLibrary.addItem(lib.getName());
-
-			for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = cIt.next();
-				String modelFile = cell.getSpiceModelFile();
-				spiceCellModelOptions.put(cell, TempPref.makeStringPref(modelFile));
-			}
-		}
-		spiceModelLibrary.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { spiceLoadCellList(); }
-		});
-
-		spiceCellListModel = new DefaultListModel();
-		spiceCellList = new JList(spiceCellListModel);
-		spiceCellList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		spiceCell.setViewportView(spiceCellList);
-		spiceCellList.setSelectedIndex(0);
-		spiceCellList.addMouseListener(new MouseAdapter()
-		{
-			public void mouseClicked(MouseEvent evt) { spiceCellListClick(); }
-		});
-		spiceModelFileBrowse.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { spiceModelFileBrowseActionPerformed(); }
-		});
-		spiceDeriveModelFromCircuit.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { spiceCellModelButtonClick(); }
-		});
-		spiceUseModelFromFile.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent evt) { spiceCellModelButtonClick(); }
-		});
-		spiceModelCell.getDocument().addDocumentListener(new SpiceModelDocumentListener(this));
-		spiceLoadCellList();
-*/
-	}
-
-	/**
-	 * Method called when the library selection changes in the bottom (for cell models).
-	 */
-	private void spiceLoadCellList()
-	{
-		String libName = (String)spiceModelLibrary.getSelectedItem();
-		Library lib = Library.findLibrary(libName);
-		if (lib == null) return;
-		spiceCellListModel.clear();
-		boolean notEmpty = false;
-		for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
-		{
-			Cell cell = it.next();
-			spiceCellListModel.addElement(cell.noLibDescribe());
-			notEmpty = true;
-		}
-		if (notEmpty)
-		{
-			spiceCellList.setSelectedIndex(0);
-			spiceCellListClick();
-		}
-	}
-
-	private boolean spiceModelFileChanging = false;
-
-	/**
-	 * Method called when the user clicks on a model file radio button at in the bottom of the Spice Options dialog.
-	 */
-	private void spiceCellModelButtonClick()
-	{
-		spiceModelCell.setEditable(spiceUseModelFromFile.isSelected());
-		spiceModelFileChanged();
-//		if (spiceDeriveModelFromCircuit.isSelected()) spiceModelCell.setText("");
-	}
-
-	/**
-	 * Method called when the user clicks on a cell name at in the bottom of the Spice Options dialog.
-	 */
-	private void spiceCellListClick()
-	{
-		if (spiceCellListModel.size() == 0) return;
-
-		String libName = (String)spiceModelLibrary.getSelectedItem();
-		Library lib = Library.findLibrary(libName);
-		if (lib == null) return;
-
-		String cellName = (String)spiceCellList.getSelectedValue();
-		Cell cell = lib.findNodeProto(cellName);
-		if (cell == null) return;
-
-		TempPref pref = spiceCellModelOptions.get(cell);
-		String modelFile = pref.getString();
-		spiceModelFileChanging = true;
-		boolean hasModelFile = false;
-		if (modelFile.length() > 0 && !modelFile.startsWith("-----"))
-		{
-			hasModelFile = true;
-			spiceModelCell.setText(modelFile);
-		}
-		if (modelFile.startsWith("-----"))
-		{
-			spiceModelCell.setText(modelFile.substring(5));
-		}
-		if (hasModelFile) spiceUseModelFromFile.setSelected(true); else
-			spiceDeriveModelFromCircuit.setSelected(true);
-		spiceModelCell.setEditable(hasModelFile);
-		spiceModelFileChanging = false;
-	}
-
-	/**
-	 * Method called when the user clicks on the "Browse" button in the bottom of the Spice Options dialog.
-	 */
-	private void spiceModelFileBrowseActionPerformed()
-	{
-		String fileName = OpenFile.chooseInputFile(FileType.ANY, null);
-		if (fileName == null) return;
-		spiceUseModelFromFile.setSelected(true);
-		spiceModelCell.setText(fileName);
-		spiceModelCell.setEditable(true);
-		spiceModelFileChanged();
-	}
-
-	/**
-	 * Method called when the user changes the model file name at the bottom of the Spice Options dialog.
-	 */
-	private void spiceModelFileChanged()
-	{
-		if (spiceModelFileChanging) return;
-
-		String libName = (String)spiceModelLibrary.getSelectedItem();
-		Library lib = Library.findLibrary(libName);
-		if (lib == null) return;
-
-		String cellName = (String)spiceCellList.getSelectedValue();
-		Cell cell = lib.findNodeProto(cellName);
-		if (cell == null) return;
-
-		TempPref pref = spiceCellModelOptions.get(cell);
-		String typedString = spiceModelCell.getText();
-		if (spiceDeriveModelFromCircuit.isSelected()) typedString = "-----" + typedString;
-		pref.setString(typedString);
-	}
-
-	/**
-	 * Class to handle changes to per-cell model file names.
-	 */
-	private static class SpiceModelDocumentListener implements DocumentListener
-	{
-		SpiceTab dialog;
-
-		SpiceModelDocumentListener(SpiceTab dialog)
-		{
-			this.dialog = dialog;
-		}
-
-		public void changedUpdate(DocumentEvent e) { dialog.spiceModelFileChanged(); }
-		public void insertUpdate(DocumentEvent e) { dialog.spiceModelFileChanged(); }
-		public void removeUpdate(DocumentEvent e) { dialog.spiceModelFileChanged(); }
 	}
 
 	private void spiceBrowseTrailerFileActionPerformed()
@@ -465,24 +274,6 @@ public class SpiceTab extends PreferencePanel
 			trailer = spiceTrailerCardFile.getText();
 		}
 		if (!Simulation.getSpiceTrailerCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
-
-		// bottom section: model file overrides for cells
-/*
-		for(Library lib : Library.getVisibleLibraries())
-		{
-			for(Iterator<Cell> it = lib.getCells(); it.hasNext(); )
-			{
-				Cell cell = it.next();
-				TempPref pref = spiceCellModelOptions.get(cell);
-				if (pref == null) continue;
-				if (!pref.getStringFactoryValue().equals(pref.getString()))
-				{
-					String fileName = pref.getString().trim();
-					cell.setSpiceModelFile(fileName);
-				}
-			}
-		}
-*/
 	}
 
     // enable or disable the spice run options
@@ -570,16 +361,6 @@ public class SpiceTab extends PreferencePanel
         spiceTrailerCardFile = new javax.swing.JTextField();
         spiceBrowseTrailerFile = new javax.swing.JButton();
         jSeparator4 = new javax.swing.JSeparator();
-        jSeparator3 = new javax.swing.JSeparator();
-        spice6 = new javax.swing.JPanel();
-        spiceCell = new javax.swing.JScrollPane();
-        jLabel8 = new javax.swing.JLabel();
-        spiceDeriveModelFromCircuit = new javax.swing.JRadioButton();
-        spiceUseModelFromFile = new javax.swing.JRadioButton();
-        spiceModelFileBrowse = new javax.swing.JButton();
-        spiceModelCell = new javax.swing.JTextField();
-        spiceModelLibrary = new javax.swing.JComboBox();
-        jLabel2 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -708,7 +489,7 @@ public class SpiceTab extends PreferencePanel
 
         epicFrame.setLayout(new java.awt.GridBagLayout());
 
-        epicFrame.setBorder(new javax.swing.border.TitledBorder("Epic Format"));
+        epicFrame.setBorder(javax.swing.BorderFactory.createTitledBorder("Epic Format"));
         epicCheckBox.setText("Use External Reader JVM");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -751,7 +532,7 @@ public class SpiceTab extends PreferencePanel
 
         spice2.setLayout(new java.awt.GridBagLayout());
 
-        spice2.setBorder(new javax.swing.border.EtchedBorder());
+        spice2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         spiceRunProgram.setColumns(8);
         spiceRunProgram.setMinimumSize(new java.awt.Dimension(100, 20));
         spiceRunProgram.setPreferredSize(new java.awt.Dimension(92, 20));
@@ -1004,92 +785,10 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.weightx = 1.0;
         spice.add(spice5, gridBagConstraints);
 
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
-        spice.add(jSeparator3, gridBagConstraints);
-
-        spice6.setLayout(new java.awt.GridBagLayout());
-
-        spiceCell.setMinimumSize(new java.awt.Dimension(150, 100));
-        spiceCell.setPreferredSize(new java.awt.Dimension(150, 100));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.weighty = 1.0;
-        spice6.add(spiceCell, gridBagConstraints);
-
-        jLabel8.setText("Cell:");
-        jLabel8.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        spice6.add(jLabel8, gridBagConstraints);
-
-        spiceModel.add(spiceDeriveModelFromCircuit);
-        spiceDeriveModelFromCircuit.setText("Derive Cell Model from Circuitry");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice6.add(spiceDeriveModelFromCircuit, gridBagConstraints);
-
-        spiceModel.add(spiceUseModelFromFile);
-        spiceUseModelFromFile.setText("Use Cell Model from File:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        spice6.add(spiceUseModelFromFile, gridBagConstraints);
-
-        spiceModelFileBrowse.setText("Browse");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        spice6.add(spiceModelFileBrowse, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 0.5;
-        spice6.add(spiceModelCell, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        spice6.add(spiceModelLibrary, gridBagConstraints);
-
-        jLabel2.setText("Library:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        spice6.add(jLabel2, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 0.5;
-        spice.add(spice6, gridBagConstraints);
-
         getContentPane().add(spice, new java.awt.GridBagConstraints());
 
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void spiceOutputFormatPopupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceOutputFormatPopupActionPerformed
         epicFrame.setVisible(spiceOutputFormatPopup.getSelectedItem() == SpiceOutFormat.Epic);
@@ -1102,7 +801,7 @@ public class SpiceTab extends PreferencePanel
             setSpiceRunOptionsEnabled(true);
     }//GEN-LAST:event_spiceRunPopupActionPerformed
 
-    private void spiceRunHelpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_spiceRunHelpActionPerformed
+    private void spiceRunHelpActionPerformed(ActionEvent evt) {//GEN-FIRST:event_spiceRunHelpActionPerformed
         String [] message = { "IMPORTANT: This executes a single program with the given args.  It does NOT run a command-line command.",
                               "For example, 'echo blah > file' will NOT work. Encapsulate it in a script if you want to do such things.",
                               "-----------------",
@@ -1115,7 +814,7 @@ public class SpiceTab extends PreferencePanel
         JOptionPane.showMessageDialog(this, message, "Spice Run Help", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_spiceRunHelpActionPerformed
 
-    private void useDirCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useDirCheckBoxActionPerformed
+    private void useDirCheckBoxActionPerformed(ActionEvent evt) {//GEN-FIRST:event_useDirCheckBoxActionPerformed
         // enable use dir field
         boolean b = useDirCheckBox.isSelected();
         useDir.setEnabled(b);
@@ -1142,12 +841,9 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel17;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JCheckBox overwriteOutputFile;
     private javax.swing.JPanel spice;
@@ -1155,11 +851,8 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JPanel spice2;
     private javax.swing.JPanel spice3;
     private javax.swing.JPanel spice5;
-    private javax.swing.JPanel spice6;
     private javax.swing.JButton spiceBrowseHeaderFile;
     private javax.swing.JButton spiceBrowseTrailerFile;
-    private javax.swing.JScrollPane spiceCell;
-    private javax.swing.JRadioButton spiceDeriveModelFromCircuit;
     private javax.swing.JComboBox spiceEnginePopup;
     private javax.swing.JCheckBox spiceForceGlobalPwrGnd;
     private javax.swing.ButtonGroup spiceHeader;
@@ -1169,9 +862,6 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JRadioButton spiceHeaderCardsWithExtension;
     private javax.swing.JComboBox spiceLevelPopup;
     private javax.swing.ButtonGroup spiceModel;
-    private javax.swing.JTextField spiceModelCell;
-    private javax.swing.JButton spiceModelFileBrowse;
-    private javax.swing.JComboBox spiceModelLibrary;
     private javax.swing.JRadioButton spiceNoHeaderCards;
     private javax.swing.JRadioButton spiceNoTrailerCards;
     private javax.swing.JComboBox spiceOutputFormatPopup;
@@ -1187,7 +877,6 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JRadioButton spiceTrailerCardsFromFile;
     private javax.swing.JRadioButton spiceTrailerCardsWithExtension;
     private javax.swing.JCheckBox spiceUseCellParameters;
-    private javax.swing.JRadioButton spiceUseModelFromFile;
     private javax.swing.JCheckBox spiceUseNodeNames;
     private javax.swing.JCheckBox spiceUseParasitics;
     private javax.swing.JCheckBox spiceWriteSubcktTopCell;
