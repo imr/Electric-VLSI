@@ -3,12 +3,14 @@
 <!-- COMMAND File/Project Management/Update -->
 <!-- COMMAND File/Project Management/Check Out This Cell -->
 <!-- COMMAND File/Project Management/Check In This Cell... -->
-<!-- COMMAND File/Project Management/Cancel Check-Out -->
+<!-- COMMAND File/Project Management/Rollback and Release Check-Out -->
 <!-- COMMAND File/Project Management/Add This Cell -->
 <!-- COMMAND File/Project Management/Remove This Cell -->
 <!-- COMMAND File/Project Management/Show History of This Cell... -->
 <!-- COMMAND File/Project Management/Get Library From Repository... -->
 <!-- COMMAND File/Project Management/Add Current Library To Repository -->
+<!-- COMMAND File/Project Management/Add All Libraries To Repository -->
+
 <!-- PREFERENCE General/Project Management -->
 
 The project management system in Electric allows multiple users to work together on
@@ -57,6 +59,7 @@ Each user must do this and set the same location so that they can share the repo
 <P>
 After the repository has been set, libraries can be entered into it.
 Use the <B>Add Current Library To Repository</B> command to place your library in the repository.
+Use <B>Add All Libraries To Repository</B> to add all libraries in the system.
 Note that a library that has been entered into the repository is also tagged with information
 about the repository location, as well as the state of the cells (checked-in or checked-out).
 Therefore, you should save your library after entering it into the repository.
@@ -110,8 +113,8 @@ You will be given a list of cells that were replaced.
 <H3>Advanced Commands</H3>
 <P>
 If, after a cell has been checked-out, you change your mind and do not wish to make changes,
-use the <B>Cancel Check-Out</B> command (or
-use the "Cancel Check-Out" context menu when clicking on a cell name in the cell explorer).
+use the <B>Rollback and Release Check-Out</B> command (or
+use the "Rollback and Release Check-Out" context menu when clicking on a cell name in the cell explorer).
 This will destroy any changes made to the cell since it was checked-out and revert the cell to its
 state when it was checked-in.
 <P>

@@ -3,6 +3,9 @@
 <!-- HEADER 4-12-2: Analog Waveform Windows -->
 
 <!-- COMMAND Edit/Selection/Add to Waveform in Current Panel -->
+<!-- COMMAND Window/Waveform Window/Save Waveform Window Configuration to Disk... -->
+<!-- COMMAND Window/Waveform Window/Restore Waveform Window Configuration from Disk... -->
+<!-- COMMAND Window/Waveform Window/Refresh Simulation Data -->
 
 The waveform window is able to display analog simulation output.
 This simulation output comes from external simulators (such as Spice).
@@ -13,6 +16,8 @@ The analog waveform window looks like the picture below.
 Note that there is a side bar with a cell explorer in the window, just like in all windows,
 but the explorer has a "SIGNALS" section that lists the signals found in the simulation
 (and optionally a "SWEEPS" section if swept data was found).
+When reading HSpice data, the signals and sweeps sections may be further qualified by analysis,
+for example "TRANS SIGNALS", "DC SWEEPS", etc.
 <P>
 <CENTER><IMG SRC="fig09-04.png" ALT="Figure 9.4"></CENTER>
 <P>
@@ -32,9 +37,11 @@ of the waveform window).</LI>
 You can select a signal by selecting either its name or the actual waveform.
 Note that when you click on a signal,
 the equivalent network in the associated schematic or layout window is also highlighted.
-<P>
-You can rearrange the order of the signals by dragging their names to their desired location.
 You can change the color of a signal by right-clicking on its name.
+<P>
+You can rearrange the order of the waveform panels by clicking on their panel-number and dragging the panel to a new location.
+You can move signals from one panel to another by dragging their names to their desired panel.
+If you use the right-click to drag signals, they are copied to the new panel.
 <P>
 You can add a signal to the list by double-clicking on its name in the "SIGNALS" area
 (or by dragging that name to the waveform part on the right).
@@ -43,9 +50,14 @@ You can create a new panel, with no signals in it, by clicking on the button in 
 (looks like: <IMG SRC="fig09-29.png" ALT="Figure 9.29"> a panel-with-waveform icon being dropped down).
 <P>
 If the simulation had sweeps, those values are shown in the cell explorer in the "SWEEPS" area.
-You can right-click on a sweep and choose to include or exclude it from the display.
-You can also request that a sweep signal be highlighted.
+You can right-click on a sweep and choose to include or exclude it from the display
+(double-clicking on the sweep toggles its inclusion).
 Right-clicking on the "SWEEPS" icon lets you include or exclude all of them.
+<P>
+A single sweep can be highlighted to distinguish it on the display.
+Right-click on that sweep and choose "Highlight".
+To remove all highlighting, right-click on the "SWEEPS" icon and choose "Remove Highlighting".
+
 <P>
 If the layout or schematics cell that produced the simulation is being displayed in another window,
 and the currently selected network in that window is found in the simulation output,
@@ -55,6 +67,11 @@ The command <B>Add to Waveform in Current Panel</B> overlays the signal on top o
 <P>
 The order of signals in the waveform window is saved in the original cell
 so that subsequent simulations will show the same signals.
+You can also save the configuration of the waveform window with the
+<B>Save Waveform Window Configuration to Disk...</B> command
+(in menu <B>Window / Waveform Window</B>)
+and you can restore the configuration with the
+<B>Restore Waveform Window Configuration from Disk...</B> command.
 
 <P>
 <H3>Time Control</H3>
@@ -82,6 +99,10 @@ You can control the horizontal and vertical range precisely by double-clicking i
 The dialog lets you type exact values into the ranges.
 </TD><TD><CENTER><IMG SRC="fig09-13.png" ALT="Figure 9.13"></CENTER></TD></TR></TABLE>
 <P>
+Both the horizontal and vertical axis are drawn linearly.
+Either axis can be changed to a logarithmic scale by right-clicking on the ruler
+and choosing "Logarithmic" (use "Linear" to restore the scale).
+<P>
 The different panels in the waveform window are locked in time: they all show the same range of time,
 as shown at the top of the waveform window.
 If you click on the "time lock" button at the top of the waveform window
@@ -107,6 +128,14 @@ These window functions apply to the analog simulation windows:
 </UL>
 
 <BR>
+<H3>Eye Plots</H3>
+<P>
+The horizontal axis does not have to represent time.
+Any signal can be used in the horizontal axis, simply by dragging that signal onto the horizontal ruler.
+To restore the horizontal axis to show time, right-click on it and choose "Make the X axis show Time".
+<P>
+
+<BR>
 <H3>Other Controls</H3>
 <P>
 At the top of the waveform window, above the signal names, are many useful controls.
@@ -116,11 +145,14 @@ Here are the remaining buttons:
 <LI><B>"Refresh"</B>&nbsp;<IMG SRC="fig09-28.png" ALT="Figure 9.28">&nbsp;&nbsp;
 Rereads the simultion output file and updates the display.
 If the simulation has been re-run, and the output file is different, then this button shows the new data.
+This function is also available with the <B>Refresh Simulation Data</B> command
+(in menu <B>Window / Waveform Window</B>).
 </LI>
 
 <LI><B>"Show Vertices"</B>&nbsp;<IMG SRC="fig09-19.png" ALT="Figure 9.19">&nbsp;&nbsp;
-Displays dots on the vertices of the waveforms.
-The button toggles between showing and not-showing the vertex dots.
+Controls the display of dots on the vertices of the waveforms.
+The button toggles between three states:
+(1) showing lines only, (2) showing lines and dots, and (3) showing dots only.
 </LI>
 
 <LI><B>"Show Grid"</B>&nbsp;<IMG SRC="fig09-27.png" ALT="Figure 9.27">&nbsp;&nbsp;

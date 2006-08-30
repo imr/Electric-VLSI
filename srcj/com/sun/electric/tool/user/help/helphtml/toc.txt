@@ -153,7 +153,8 @@ Advanced Editing
   Special Outline Generation         =chap06-10-03
  Interpretive Languages              =chap06-11
  Project Management                  =chap06-12
- Emergencies                         =chap06-13
+ CVS Version Control                 =chap06-13
+ Emergencies                         =chap06-14
 
 Technologies
  Introduction to Technologies
@@ -247,7 +248,6 @@ Tools
   Node Extraction                    =chap09-10-02
  Compaction                          =chap09-11
  Silicon Compiler                    =chap09-12
- CVS Version Control                 =chap09-13
 
 The JELIB File Format
  Introduction                        =chap10-01

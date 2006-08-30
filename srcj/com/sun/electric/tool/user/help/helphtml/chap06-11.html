@@ -13,33 +13,32 @@ To run a script, use the <B>Run Java Bean Shell Script</B> command
 (in menu <B>Tool / Languages</B>).
 Here is an example script that searches the current cell for exports starting with "a".
 <CENTER><TABLE BORDER=1><TR><TD>
-<PRE>
-   import com.sun.electric.database.hierarchy.Cell;
-   import com.sun.electric.tool.user.ui.WindowFrame;
-   import java.util.List;
-   import java.util.ArrayList;
-   import java.util.Iterator;
-
-   // read library with test setup
-   Cell lay = WindowFrame.getCurrentCell();
-
-   // find all exports
-   com.sun.electric.database.hierarchy.Export e;
-   List aList = new ArrayList();
-   for(Iterator it = lay.getPorts(); it.hasNext(); )
-   {
-       e = (com.sun.electric.database.hierarchy.Export)it.next();
-       if (e.getName().startsWith("a")) aList.add(e);
-   }
-
-   String aOut = "Exports that start with 'a':";
-   for(Iterator it = aList.iterator(); it.hasNext(); )
-   {
-       e = (com.sun.electric.database.hierarchy.Export)it.next();
-       aOut += " " + e.getName();
-   }
-   System.out.println(aOut);
-</PRE>
+<CODE>
+&nbsp;&nbsp;&nbsp;import com.sun.electric.database.hierarchy.Cell;<BR>
+&nbsp;&nbsp;&nbsp;import com.sun.electric.tool.user.ui.WindowFrame;<BR>
+&nbsp;&nbsp;&nbsp;import java.util.List;<BR>
+&nbsp;&nbsp;&nbsp;import java.util.ArrayList;<BR>
+&nbsp;&nbsp;&nbsp;import java.util.Iterator;<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;// read library with test setup<BR>
+&nbsp;&nbsp;&nbsp;Cell lay = WindowFrame.getCurrentCell();<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;// find all exports<BR>
+&nbsp;&nbsp;&nbsp;com.sun.electric.database.hierarchy.Export e;<BR>
+&nbsp;&nbsp;&nbsp;List aList = new ArrayList();<BR>
+&nbsp;&nbsp;&nbsp;for(Iterator it = lay.getPorts(); it.hasNext(); )<BR>
+&nbsp;&nbsp;&nbsp;{<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e = (com.sun.electric.database.hierarchy.Export)it.next();<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (e.getName().startsWith("a")) aList.add(e);<BR>
+&nbsp;&nbsp;&nbsp;}<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;String aOut = "Exports that start with 'a':";<BR>
+&nbsp;&nbsp;&nbsp;for(Iterator it = aList.iterator(); it.hasNext(); )<BR>
+&nbsp;&nbsp;&nbsp;{<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;e = (com.sun.electric.database.hierarchy.Export)it.next();<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;aOut += " " + e.getName();<BR>
+&nbsp;&nbsp;&nbsp;}<BR>
+&nbsp;&nbsp;&nbsp;System.out.println(aOut);</CODE>
 </TD></TR></TABLE></CENTER>
 <P>
 Notice that Electric's "Export" object must be a fully-qualified name, because the

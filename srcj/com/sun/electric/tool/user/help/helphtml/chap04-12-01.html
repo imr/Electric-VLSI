@@ -64,8 +64,11 @@ then that output can be added to the waveform window with
 the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>).
 You can also use the <B>Remove from Waveform</B> command to remove the currently selected network from the waveform display.
 <P>
-The order of signals in the waveform window is saved
+The order of signals in the waveform window is saved in the original cell
 so that subsequent simulations will show the same signals.
+You can also save the configuration of the waveform window with the
+<B>Save Waveform Window Configuration to Disk...</B> command (in menu <B>Window / Waveform Window</B>)
+and you can restore the configuration with the <B>Restore Waveform Window Configuration from Disk...</B> command.
 
 <P>
 <H3>Time Control</H3>
@@ -88,6 +91,9 @@ to change the view.
 The pan tool lets you smoothly shift time when you click and drag.
 In the zoom tool, you zoom into an area by clicking and dragging out that area.
 To zoom out, hold the shift key and click in the center of the desired area.
+<P>
+The time axis is drawn linearly, but it can be changed to a logarithmic scale by right-clicking on the ruler and choosing
+"Logarithmic" (use "Linear" to restore the scale).
 <P>
 The different panels in the waveform window are locked in time: they all show the same range of time,
 as shown at the top of the waveform window.
@@ -193,7 +199,9 @@ Refreshing the simulation causes it to reload from the original source.
 In the case of external simulation, it is assumed that the simulation was re-run and the
 output file is different, so the simulation output file is re-read.
 In the case of built-in simulators, it is assumed that the original circuit has changed,
-so it is re-evaluated and reloaded into the simulator.</LI>
+so it is re-evaluated and reloaded into the simulator.
+This function is also available with the <B>Refresh Simulation Data</B> command
+(in menu <B>Window / Waveform Window</B>).</LI>
 <LI><B>The Panel popup</B> This is a list of all panels, including the hidden ones.
 Selecting a panel from this list toggles its "hidden" state, making a visible one disappear,
 and making a hidden one reappear.</LI>

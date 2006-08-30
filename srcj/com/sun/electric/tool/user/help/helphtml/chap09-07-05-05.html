@@ -1,60 +1,60 @@
 <!-- HEADER 9-7-5-5: NCC GUI: Export Assertions -->
-<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
-<FONT FACE="Thorndale, serif">It is very common for a layout Cell, <FONT FACE="Arial, sans-serif">A</FONT>,
-to have multiple ground Wires that are connected by <FONT FACE="Arial, sans-serif">A</FONT>'s
-parent Cell, <FONT FACE="Arial, sans-serif">B</FONT>. For example,
-Cell <FONT FACE="Arial, sans-serif">A</FONT> may have a Wire with the
-Export <FONT FACE="Arial, sans-serif">gnd</FONT> and a different Wire
-with the Export <FONT FACE="Arial, sans-serif">gnd_1</FONT>. When
-Cell <FONT FACE="Arial, sans-serif">B</FONT> instantiates <FONT FACE="Arial, sans-serif">A</FONT>,
-Cell <FONT FACE="Arial, sans-serif">B</FONT> connects <FONT FACE="Arial, sans-serif">A</FONT>'s
-Exports <FONT FACE="Arial, sans-serif">gnd</FONT> and <FONT FACE="Arial, sans-serif">gnd_1</FONT>.
-However, <FONT FACE="Arial, sans-serif">A</FONT>'s schematic
-typically has only one combined <FONT FACE="Arial, sans-serif">gnd</FONT>
-Wire. When NCC compares <FONT FACE="Arial, sans-serif">A</FONT>'s
+
+<P>
+It is very common for a layout Cell, <CODE>A</CODE>,
+to have multiple ground Wires that are connected by it's
+parent Cell, <CODE>B</CODE>. For example,
+Cell <CODE>A</CODE> may have a Wire with the
+Export "gnd" and a different Wire
+with the Export "gnd_1". When
+Cell <CODE>B</CODE> instantiates <CODE>A</CODE>,
+Cell <CODE>B</CODE> connects <CODE>A</CODE>'s
+Exports "gnd" and "gnd_1".
+However, <CODE>A</CODE>'s schematic
+typically has only one combined "gnd"
+Wire. When NCC compares <CODE>A</CODE>'s
 schematic and layout, it finds that the ground Wires mismatch. As a
-solution, the designer adds the following NCC annotation into <FONT FACE="Arial, sans-serif">A</FONT>'s
-layout cell:</FONT></P>
-<P ALIGN=CENTER STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium; line-height: 150%">
-<FONT FACE="Arial, sans-serif">exportsConnectedByParent gnd gnd_1</FONT></P>
-<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
-<FONT FACE="Thorndale, serif">This annotation constitutes a promise
-that whenever <FONT FACE="Arial, sans-serif">A</FONT> is
-instantiated, its Exports <FONT FACE="Arial, sans-serif">gnd</FONT>
-and <FONT FACE="Arial, sans-serif">gnd_1</FONT> will be connected.
+solution, the designer adds the following NCC annotation into <CODE>A</CODE>'s
+layout cell:</P>
+
+<P ALIGN=CENTER>exportsConnectedByParent gnd gnd_1</P>
+
+<P>
+This annotation constitutes a promise
+that whenever <CODE>A</CODE> is
+instantiated, its Exports "gnd"
+and "gnd_1" will be connected.
 Then, when NCC compares A's schematic and layout, it assumes that the
 promise has been kept and the comparison passes. However, when NCC
-compares <FONT FACE="Arial, sans-serif">B</FONT>'s schematic and
+compares <CODE>B</CODE>'s schematic and
 layout, it checks to see if the designer is keeping the promise. If
 the promise is not kept, and no new promise to connect Exports in the
 next parent is given, then NCC reports an Export assertion error in
-the &quot;<FONT FACE="Arial, sans-serif">Export Assertions</FONT>&quot;
-leaf node.</FONT></P>
-<P  STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
-<FONT FACE="Thorndale, serif">When an &quot;<FONT FACE="Arial, sans-serif">Export
-Assertions</FONT>&quot; node is selected, it displays a table with
+the "Export Assertions"
+leaf node.</P>
+
+<P>
+When an "Export Assertions" node is selected, it displays a table with
 two columns and one or more rows (Figure 11). Each row corresponds to
 a broken promise. The first column has Cell names. The second column
 lists Exports that the designer promised would be connected, but
 which remained disconnected. The Exports are organized into two or
 more Export lists. Each Export list is a comma-separated list of
-Exports enclosed in curly brackets <FONT FACE="Arial, sans-serif">{
-}</FONT>. Exports in the same list are connected. Exports in
+Exports enclosed in curly brackets "{ }".
+Exports in the same list are connected. Exports in
 different lists are disconnected. The designer promised that all
-Exports in all lists would be connected. </FONT>
-</P>
-<P ALIGN=CENTER STYLE="margin-top: 0.04in; margin-bottom: 0.08in; font-weight: medium">
-<FONT COLOR="#000000"><IMG SRC="fig09-51.png" NAME="Graphic8" ALIGN=BOTTOM BORDER=1></FONT></P>
-<P ALIGN=CENTER STYLE="margin-top: 0.08in; margin-bottom: 0.2in; font-weight: medium">
-<FONT FACE="Thorndale, serif"><FONT SIZE=2>Figure 11: The Export
-Assertions table</FONT></FONT></P>
+Exports in all lists would be connected.</P>
+
+<P ALIGN=CENTER><IMG SRC="fig09-51.png" NAME="Graphic8" BORDER=1><BR>
+<FONT SIZE="-1">Figure 11: The Export Assertions table</FONT></P>
+
 <p>
 All exports are individually highlightable. For example, if the designer clicks on the "vdd" 
 Export then NCC will open up a window for Cell "rectifier{lay}" and highlight the net connected
-to the Export "vdd". 
-</p>
+to the Export "vdd".</p>
 <p>
 Tip: If it the design includes multiple instances of Cell "rectifier{lay}" then
 the designer can find out which particular instance failed to keep the promise by typing control-U
-which will pop up a level in the hierarchy.
-</p>
+which will pop up a level in the hierarchy.</p>
+
+<!-- TRAILER -->
