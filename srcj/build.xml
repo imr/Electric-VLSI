@@ -278,6 +278,8 @@
 	    <antcall target="unjarBsh"></antcall>
         <unjar dest="." src="${AppleJava}"/>
         <unjar dest="." src="${JUnit}"/>
+        <unjar dest="." src="${lucene}"/>
+        <unjar dest="." src="${prefuse}"/>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
