@@ -180,9 +180,9 @@ public class EditMenu {
 
             SEPARATOR,
 
-		// mnemonic keys available:   CDEF HIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:   CDEFGHIJKLMNOPQR TUVWXYZ
             new EMenu("_Erase",
-                new EMenuItem("_Geometry", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0)) {
+                new EMenuItem("_Selected", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0)) {
                     public void run() {
                         CircuitChanges.deleteSelected(); }},    
                 new EMenuItem("_Arcs Connected to Selected Nodes") { public void run() {
