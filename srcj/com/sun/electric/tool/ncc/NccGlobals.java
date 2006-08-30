@@ -39,6 +39,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.netlist.NetObject;
@@ -67,7 +68,7 @@ class NccRandom {
 	}
 }
 
-public class NccGlobals {
+public class NccGlobals implements NccGlobalsReportable {
 	// ---------------------------- private data ------------------------------
 	private static final int CODE_PART= 0;
 	private static final int CODE_WIRE= 1;

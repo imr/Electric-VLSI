@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.NccGlobalsReportable;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.result.equivalence.Equivalence;
 import com.sun.electric.tool.user.ncc.NccGuiInfo;
@@ -63,7 +64,7 @@ public class NccResult implements Serializable {
 	private NccOptions options;
 	private CellSummary summary;
 	
-	private Equivalence buildNetEquivalence(NccGlobals globalData) {
+	private Equivalence buildNetEquivalence(NccGlobalsReportable globalData) {
 		NetNameProxy[][] equivNets;
 		NodableNameProxy[][] equivNodes;
 		if (globalData==null) {
@@ -83,7 +84,7 @@ public class NccResult implements Serializable {
 	}
 	
 	private NccResult(boolean exportNameMatch, boolean topologyMatch, 
-			          boolean sizeMatch, boolean userAbort, NccGlobals globalData) {
+			          boolean sizeMatch, boolean userAbort, NccGlobalsReportable globalData) {
 		this.exportMatch = exportNameMatch;
 		this.topologyMatch = topologyMatch;
 		this.sizeMatch = sizeMatch;
@@ -104,55 +105,55 @@ public class NccResult implements Serializable {
 	public static NccResult newResult(boolean exportNameMatch, 
             boolean topologyMatch, 
             boolean sizeMatch, 
-            NccGlobals globalData) {
+            NccGlobalsReportable globalData) {
 			return new NccResult(exportNameMatch, topologyMatch, sizeMatch, false, globalData);
 	}
 
-	private Equivalence buildNetEquivalence(com.sun.electric.plugins.pie.NccGlobals globalData) {
-		NetNameProxy[][] equivNets;
-		NodableNameProxy[][] equivNodes;
-		if (globalData==null) {
-			// For severe netlist errors, NCC doesn't even construct globalData.
-			// Create a NetEquivalence that has no matching nets.
-			equivNets = new NetNameProxy[2][];
-			equivNets[0] = new NetNameProxy[0];
-			equivNets[1] = new NetNameProxy[0];
-			equivNodes = new NodableNameProxy[2][];
-			equivNodes[0] = new NodableNameProxy[0];
-			equivNodes[1] = new NodableNameProxy[0];
-		} else {
-			equivNets = globalData.getEquivalentNets();
-			equivNodes = globalData.getEquivalentNodes();
-		}
-		return new Equivalence(equivNets, equivNodes, rootCells, rootContexts);
-	}
+//	private Equivalence buildNetEquivalence(com.sun.electric.plugins.pie.NccGlobals globalData) {
+//		NetNameProxy[][] equivNets;
+//		NodableNameProxy[][] equivNodes;
+//		if (globalData==null) {
+//			// For severe netlist errors, NCC doesn't even construct globalData.
+//			// Create a NetEquivalence that has no matching nets.
+//			equivNets = new NetNameProxy[2][];
+//			equivNets[0] = new NetNameProxy[0];
+//			equivNets[1] = new NetNameProxy[0];
+//			equivNodes = new NodableNameProxy[2][];
+//			equivNodes[0] = new NodableNameProxy[0];
+//			equivNodes[1] = new NodableNameProxy[0];
+//		} else {
+//			equivNets = globalData.getEquivalentNets();
+//			equivNodes = globalData.getEquivalentNodes();
+//		}
+//		return new Equivalence(equivNets, equivNodes, rootCells, rootContexts);
+//	}
 	
-	private NccResult(boolean exportNameMatch, boolean topologyMatch, 
-	          		  boolean sizeMatch, boolean userAbort, 
-	          		  com.sun.electric.plugins.pie.NccGlobals globalData) {
-		this.exportMatch = exportNameMatch;
-		this.topologyMatch = topologyMatch;
-		this.sizeMatch = sizeMatch;
-		this.userAbort = userAbort; 
-		if (userAbort) return;
-
-		rootCells = globalData.getRootCells();
-		rootCellNames = globalData.getRootCellNames();
-		rootContexts = globalData.getRootContexts();
-		equivalence = buildNetEquivalence(globalData);
-		nccGuiInfo = globalData.getNccGuiInfo();
-		options = globalData.getOptions();
-		summary = new CellSummary(globalData.getPartCounts(),
-      				  			  globalData.getPortCounts(),
-      				  			  globalData.getWireCounts(),
-      				  			  globalData.cantBuildNetlistBits());
-	}
-	public static NccResult newResult(boolean exportNameMatch, 
-									  boolean topologyMatch,
-									  boolean sizeMatch,
-									  com.sun.electric.plugins.pie.NccGlobals globalData) {
-        return new NccResult(exportNameMatch, topologyMatch, sizeMatch, false, globalData);
-	}
+//	private NccResult(boolean exportNameMatch, boolean topologyMatch, 
+//	          		  boolean sizeMatch, boolean userAbort, 
+//	          		  com.sun.electric.plugins.pie.NccGlobals globalData) {
+//		this.exportMatch = exportNameMatch;
+//		this.topologyMatch = topologyMatch;
+//		this.sizeMatch = sizeMatch;
+//		this.userAbort = userAbort; 
+//		if (userAbort) return;
+//
+//		rootCells = globalData.getRootCells();
+//		rootCellNames = globalData.getRootCellNames();
+//		rootContexts = globalData.getRootContexts();
+//		equivalence = buildNetEquivalence(globalData);
+//		nccGuiInfo = globalData.getNccGuiInfo();
+//		options = globalData.getOptions();
+//		summary = new CellSummary(globalData.getPartCounts(),
+//      				  			  globalData.getPortCounts(),
+//      				  			  globalData.getWireCounts(),
+//      				  			  globalData.cantBuildNetlistBits());
+//	}
+//	public static NccResult newResult(boolean exportNameMatch, 
+//									  boolean topologyMatch,
+//									  boolean sizeMatch,
+//									  com.sun.electric.plugins.pie.NccGlobals globalData) {
+//        return new NccResult(exportNameMatch, topologyMatch, sizeMatch, false, globalData);
+//	}
 
 	public static NccResult newUserAbortResult() {
 		return new NccResult(false, false, false, true, (NccGlobals)null);
