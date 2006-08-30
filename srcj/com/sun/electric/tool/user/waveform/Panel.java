@@ -132,6 +132,7 @@ public class Panel extends JPanel
 	/** true if this waveform panel is selected */			private boolean selected;
 	/** true if this waveform panel is hidden */			private boolean hidden;
 	/** the type of analysis shown in this panel */			private Analysis.AnalysisType analysisType;
+	/** true for analog panel; false for digital */			private boolean analog;
 	/** the horizontal ruler at the top of this panel. */	private HorizRuler horizRulerPanel;
 	/** true if the horizontal ruler is logarithmic */		private boolean horizRulerPanelLogarithmic;
 	/** true if this panel is logarithmic in Y */			private boolean vertPanelLogarithmic;
@@ -160,13 +161,14 @@ public class Panel extends JPanel
 	/**
 	 * Constructor creates a panel in a WaveformWindow.
 	 * @param waveWindow the WaveformWindow in which to place this Panel.
-	 * @param analysisType the type of data shown in this Panel (null for digital data).
+	 * @param analysisType the type of data shown in this Panel.
 	 */
-	public Panel(WaveformWindow waveWindow, Analysis.AnalysisType analysisType)
+	public Panel(WaveformWindow waveWindow, boolean analog, Analysis.AnalysisType analysisType)
 	{
 		// remember state
 		this.waveWindow = waveWindow;
 		setAnalysisType(analysisType);
+		this.analog = analog;
 		selected = false;
 		panelNumber = nextPanelNumber++;
 		vertAxisPos = VERTLABELWIDTH;
@@ -177,7 +179,7 @@ public class Panel extends JPanel
 
 		// setup this panel window
 		int height = waveWindow.getPanelSizeDigital();
-		if (analysisType != null) height = waveWindow.getPanelSizeAnalog();
+		if (analog) height = waveWindow.getPanelSizeAnalog();
 		sz = new Dimension(50, height);
 		szValid = false;
 		setSize(sz.width, sz.height);
@@ -212,7 +214,7 @@ public class Panel extends JPanel
 		leftHalf.add(sep, gbc);
 
 		// the name of this panel
-		if (analysisType != null)
+		if (analog)
 		{
 			// analog panel
 			JLabel label = new DragLabel(Integer.toString(panelNumber));
@@ -255,7 +257,7 @@ public class Panel extends JPanel
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;       gbc.gridy = 1;
 		gbc.weightx = 0.2;  gbc.weighty = 0;
-		if (analysisType != null) gbc.anchor = GridBagConstraints.NORTH; else
+		if (analog) gbc.anchor = GridBagConstraints.NORTH; else
 			gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = GridBagConstraints.NONE;
 		leftHalf.add(close, gbc);
@@ -275,7 +277,7 @@ public class Panel extends JPanel
 		gbc = new GridBagConstraints();
 		gbc.gridx = 2;       gbc.gridy = 1;
 		gbc.weightx = 0.2;  gbc.weighty = 0;
-		if (analysisType != null) gbc.anchor = GridBagConstraints.NORTH; else
+		if (analog) gbc.anchor = GridBagConstraints.NORTH; else
 			gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = GridBagConstraints.NONE;
 		leftHalf.add(hide, gbc);
@@ -284,7 +286,7 @@ public class Panel extends JPanel
 			public void actionPerformed(ActionEvent evt) { hidePanel(); }
 		});
 
-		if (analysisType != null)
+		if (analog)
 		{
 			// the "delete signal" button for this panel (analog only)
 			deleteSignal = new JButton(iconDeleteSignal);
@@ -443,6 +445,8 @@ public class Panel extends JPanel
 		vertPanelLogarithmic = logarithmic;
 		repaintContents();
 	}
+
+	public boolean isAnalog() { return analog; }
 
 	public Analysis.AnalysisType getAnalysisType() { return analysisType; };
 
@@ -1065,7 +1069,7 @@ public class Panel extends JPanel
 					offscreenGraphics.drawLine(highX, yPos, highX+5, yPos-4);
 				}
 
-				if (analysisType != null)
+				if (analog)
 				{
 					// show the low value
 					String lowValueString = TextUtils.convertToEngineeringNotation(highValue, null);
@@ -1135,7 +1139,7 @@ public class Panel extends JPanel
 		{
 			localGraphics = offscreenGraphics;
 		}
-		if (analysisType != null && waveWindow.isShowGrid())
+		if (analog && waveWindow.isShowGrid())
 		{
 			if (localGraphics != null)
 			{
@@ -1224,7 +1228,7 @@ public class Panel extends JPanel
 				localGraphics.drawLine(vertAxisPos-3, 0, vertAxisPos-3, hei-2);
 			}
 		}
-		if (analysisType != null)
+		if (analog)
 		{
 			double displayedLow = convertYScreenToData(hei);
 			double displayedHigh = convertYScreenToData(0);
@@ -2050,7 +2054,7 @@ public class Panel extends JPanel
 				if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) == 0)
 				{
 					// standard click: add this as the only trace
-					if (wp.analysisType != null) clearHighlightedSignals(); else
+					if (analog) clearHighlightedSignals(); else
 					{
 						for(Iterator<Panel> it = waveWindow.getPanels(); it.hasNext(); )
 						{

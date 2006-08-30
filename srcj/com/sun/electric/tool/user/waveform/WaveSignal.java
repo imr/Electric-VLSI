@@ -131,7 +131,7 @@ public class WaveSignal
 		controlPointsSelected = null;
 		highlighted = false;
 		String sigName = sSig.getFullName();
-		if (wavePanel.getAnalysisType() != null)
+		if (wavePanel.isAnalog())
 		{
 			color = colorArray[sigNo % colorArray.length];
 			sigButton = new DragButton(sigName, wavePanel.getPanelNumber());

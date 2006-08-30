@@ -1040,7 +1040,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// create the new panel
-		Panel panel = new Panel(this, analysisType);
+		Panel panel = new Panel(this, sd.isAnalog(), analysisType);
 
 		// set the X and Y ranges
 		panel.setXAxisRange(lowXValue, highXValue);
@@ -3080,7 +3080,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 							}
 						}
 					}
-					curPanel = new Panel(ww, analysisType);
+					curPanel = new Panel(ww, ww.getSimData().isAnalog(), analysisType);
 					if (xLog)
 					{
 						if (ww.isXAxisLocked()) ww.togglePanelXAxisLock();
@@ -3097,7 +3097,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 					double lowXValue = TextUtils.atof(keywords[3]);
 					double highXValue = TextUtils.atof(keywords[4]);
 					curPanel.setXAxisRange(lowXValue, highXValue);
-					if (curPanel.getAnalysisType() != null)
+					if (curPanel.isAnalog())
 						curPanel.setYAxisRange(lowYValue, highYValue);
 					continue;
 				}
@@ -3787,7 +3787,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				// see if a signal button was grabbed
 				int sigMovePos = sigNames[0].indexOf("MOVEBUTTON ");
 				int sigCopyPos = sigNames[0].indexOf("COPYBUTTON ");
-				if (panel.getAnalysisType() == null) sigMovePos = sigCopyPos = -1;
+				if (!panel.isAnalog()) sigMovePos = sigCopyPos = -1;
 				if (sigMovePos < 0 && sigCopyPos < 0)
 				{
 					// moving the entire panel

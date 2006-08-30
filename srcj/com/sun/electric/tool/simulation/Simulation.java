@@ -701,7 +701,7 @@ public class Simulation extends Tool
 						if (firstSignal)
 						{
 							firstSignal = false;
-							wp = new Panel(ww, an.getAnalysisType());
+							wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType());
 							if (xAxisSignal != null)
 								wp.setXAxisSignal(xAxisSignal);
 							wp.makeSelectedPanel();
@@ -740,7 +740,7 @@ public class Simulation extends Tool
 		// nothing saved, so show a default set of signals (if it even exists)
 		if (sd.isAnalog())
 		{
-			Panel wp = new Panel(ww, an.getAnalysisType());
+			Panel wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType());
 			Rectangle2D bounds = an.getBounds();
 			double lowValue = bounds.getMinY();
 			double highValue = bounds.getMaxY();
@@ -758,7 +758,7 @@ public class Simulation extends Tool
 				if (sDSig.getSignalContext() != null) continue;
 				if (sDSig.isInBus()) continue;
 				if (sDSig.getSignalName().indexOf('@') >= 0) continue;
-				Panel wp = new Panel(ww, an.getAnalysisType());
+				Panel wp = new Panel(ww, sd.isAnalog(), an.getAnalysisType());
 				wp.makeSelectedPanel();
 				new WaveSignal(wp, sDSig);
 				numSignals++;

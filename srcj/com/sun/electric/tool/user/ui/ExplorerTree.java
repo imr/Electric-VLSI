@@ -921,14 +921,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					if (iconErrors == null)
 						iconErrors = Resources.getResource(getClass(), "IconErrors.gif");
 					setIcon(iconErrors);
-				} else if (theString.equalsIgnoreCase("trans signals") || theString.equalsIgnoreCase("ac signals") ||
-					theString.equalsIgnoreCase("dc signals"))
+				} else if (theString.equalsIgnoreCase("signals") || theString.equalsIgnoreCase("trans signals") ||
+					theString.equalsIgnoreCase("ac signals") || theString.equalsIgnoreCase("dc signals"))
 				{
 					if (iconSignals == null)
 						iconSignals = Resources.getResource(getClass(), "IconSignals.gif");
 					setIcon(iconSignals);
-				} else if (theString.equalsIgnoreCase("trans sweeps") || theString.equalsIgnoreCase("ac sweeps") ||
-					theString.equalsIgnoreCase("dc sweeps"))
+				} else if (theString.equalsIgnoreCase("sweeps") || theString.equalsIgnoreCase("trans sweeps") ||
+					theString.equalsIgnoreCase("ac sweeps") || theString.equalsIgnoreCase("dc sweeps"))
 				{
 					if (iconSweeps == null)
 						iconSweeps = Resources.getResource(getClass(), "IconSweeps.gif");

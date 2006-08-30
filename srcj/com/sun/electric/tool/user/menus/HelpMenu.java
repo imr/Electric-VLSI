@@ -172,7 +172,7 @@ public class HelpMenu {
 		// make some waveform panels and put signals in them
 		for(int i=0; i<6; i++)
 		{
-			Panel wp = new Panel(ww, Analysis.ANALYSIS_SIGNALS);
+			Panel wp = new Panel(ww, true, Analysis.ANALYSIS_SIGNALS);
 			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<(i+1)*3; j++)
 			{
@@ -242,7 +242,7 @@ public class HelpMenu {
 		int k = 0;
 		for(int i=0; i<3; i++)
 		{
-			Panel wp = new Panel(ww, Analysis.ANALYSIS_SIGNALS);
+			Panel wp = new Panel(ww, true, Analysis.ANALYSIS_SIGNALS);
 			wp.setYAxisRange(-5, 5);
 			for(int j=0; j<=i; j++)
 			{
