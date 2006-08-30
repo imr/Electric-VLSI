@@ -318,7 +318,7 @@ public class RoutingTab extends PreferencePanel
         jPanel7.add(routMimicNoOtherArcs, gridBagConstraints);
 
         routMimicKeepPins.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        routMimicKeepPins.setLabel("Keep Pins");
+        routMimicKeepPins.setText("Keep Pins");
         routMimicKeepPins.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

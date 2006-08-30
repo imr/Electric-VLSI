@@ -28,7 +28,8 @@
     <target name="init" description="Initialization">
         <property name="beanshell" value="packaging/bsh-2.0b2.jar"/>
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
-	    <property name="JUnit" value="packaging/junit-4.0.jar"/>
+	<property name="JUnit" value="packaging/junit-4.0.jar"/>
+	<property name="lucene" value="packaging/lucene-1.4.3.jar"/>
     </target>
 
 	<!-- Use -DGNU=true for GNU release -->
@@ -40,6 +41,7 @@
 	    <!--compilerarg value="-Xlint:unchecked"/-->
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
+            <classpath><pathelement location="${lucene}"/></classpath>
             <exclude name="intervalsimulation/"/>  
             <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
 	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
@@ -57,6 +59,7 @@
             fork="true" memoryMaximumSize="256m">
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
+            <classpath><pathelement location="${lucene}"/></classpath>
             <exclude name="intervalsimulation/"/>
         </javac>
         <copy todir="bin/com">
@@ -87,6 +90,7 @@
                 <pathelement location="bin"/>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
+                <pathelement location="${lucene}"/>
            </classpath>
            <arg value="-debug"/>
         </java>
@@ -99,6 +103,7 @@
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
+                <pathelement location="${lucene}"/>
            </classpath>
             <arg value="-debug"/>
         </java>
@@ -112,6 +117,7 @@
                 <pathelement location="."/>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
+                <pathelement location="${lucene}"/>
            </classpath>
            <arg value="com.sun.electric.database.IdManagerTest"/>
            <arg value="com.sun.electric.database.SnapshotTest"/>
@@ -218,6 +224,7 @@
             <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
             <exclude name="com/sun/electric/plugins/Java3D/*.*" unless="Java3D"/>
 	    <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
+	    <exclude name="com/sun/electric/plugins/prefuse/*.*" unless="PREFUSE"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>
