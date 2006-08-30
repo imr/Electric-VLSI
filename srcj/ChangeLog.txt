@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+FIX: (8/29/06, SAF) PIE: InterchangeParts are now properly retrieved as neighbors of 
+     UniquePort Parts.  Fixed bug in grouping equivalent interchangeable ports.  Changed
+     InterchangePart so that in normal NCC, the proper wire hash code is retrieved and
+     the port to port matrix is modified by the current EquivRecord code.
+
 FIX/IMP: (8/29/06, RK) PIE: hash code partitioning wasn't partitioning non-composite parts. I added more debugging printouts for hash coding process
 
 IMP: (8/29/06, SMR) Combined waveform-window commands into one place.
