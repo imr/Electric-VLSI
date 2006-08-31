@@ -118,7 +118,7 @@ public class NccPreferences {
 
 	private static int boundStatus(int s) {		
 		s = Math.max(s, 0);
-		s = Math.min(s, 2);
+		s = Math.min(s, 3);
 		return s;
 	}
 

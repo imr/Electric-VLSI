@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/31/06, RK) PIE: runs on LoCo memory. The results are promising.
+
 IMP: (8/30/06, SMR) Changed "Edit / Erase / Geometry" to "Edit / Erase / Selected"
 
 FIX: (8/30/06, RK) Remove references to PIE in non-plugin code base.
