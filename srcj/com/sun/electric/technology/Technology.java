@@ -554,31 +554,31 @@ public class Technology implements Comparable<Technology>
     /** resolution for this Technology */                   private Pref prefResolution;
     /** default foundry for this Technology */              private Pref prefFoundry;
     /** static list of all Manufacturers in Electric */     protected List<Foundry> foundries;
-	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
-	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
-    /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
-    /** Include gate in Resistance calculation */           private Pref prefIncludeGate;
-    /** Include ground network in parasitics calculation */ private Pref prefIncludeGnd;
-	/** Logical effort global fanout preference. */			private Pref cacheGlobalFanout;
-	/** Logical effort convergence (epsilon) preference. */	private Pref cacheConvergenceEpsilon;
-	/** Logical effort maximum iterations preference. */	private Pref cacheMaxIterations;
-	/** Logical effort gate capacitance preference. */		private Pref cacheGateCapacitance;
-	/** Logical effort wire ratio preference. */			private Pref cacheWireRatio;
-	/** Logical effort diff alpha preference. */			private Pref cacheDiffAlpha;
-	/** Logical effort keeper ratio preference. */			private Pref cacheKeeperRatio;
+//	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
+//	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
+//    /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
+//    /** Include gate in Resistance calculation */           private Pref prefIncludeGate;
+//    /** Include ground network in parasitics calculation */ private Pref prefIncludeGnd;
+//	/** Logical effort global fanout preference. */			private Pref cacheGlobalFanout;
+//	/** Logical effort convergence (epsilon) preference. */	private Pref cacheConvergenceEpsilon;
+//	/** Logical effort maximum iterations preference. */	private Pref cacheMaxIterations;
+//	/** Logical effort gate capacitance preference. */		private Pref cacheGateCapacitance;
+//	/** Logical effort wire ratio preference. */			private Pref cacheWireRatio;
+//	/** Logical effort diff alpha preference. */			private Pref cacheDiffAlpha;
+//	/** Logical effort keeper ratio preference. */			private Pref cacheKeeperRatio;
 
-	/** Default Logical effort global fanout. */			private static double DEFAULT_GLOBALFANOUT = 4.7;
-	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
-	/** Default Logical effort maximum iterations. */		private static int    DEFAULT_MAXITER      = 30;
-	/** Default Logical effort gate capacitance. */			private static double DEFAULT_GATECAP      = 0.4;
-	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = 0.16;
-	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
-	/** Default Logical effort keeper ratio. */				private static double DEFAULT_KEEPERRATIO  = 0.1;
+//	/** Default Logical effort global fanout. */			private static double DEFAULT_GLOBALFANOUT = 4.7;
+//	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
+//	/** Default Logical effort maximum iterations. */		private static int    DEFAULT_MAXITER      = 30;
+//	/** Default Logical effort gate capacitance. */			private static double DEFAULT_GATECAP      = 0.4;
+//	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = 0.16;
+//	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
+//	/** Default Logical effort keeper ratio. */				private static double DEFAULT_KEEPERRATIO  = 0.1;
 
 	/** To group elements for the component menu */         protected Object[][] nodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
-	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
+	/** Cached rules for the technology. */		            protected XMLRules cachedRules = null;
 
 	/****************************** CONTROL ******************************/
 
@@ -902,8 +902,8 @@ public class Technology implements Comparable<Technology>
 	{
 		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
 		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
-		pIndex = index2 + (getNumLayers() + getNumNodes()) * index1 - pIndex;
-		return pIndex;
+		pIndex = index2 + (getNumLayers()) * index1 - pIndex;
+		return getNumLayers() + getNumNodes() + pIndex;
 	}
 
     /**
@@ -920,7 +920,7 @@ public class Technology implements Comparable<Technology>
         {
             PrimitiveNode pn = it.next();
             if (pn.getName().equalsIgnoreCase(name))
-                return (getNumLayers() + count);
+                return (getNumLayers() + count);   // it should use get
         }
         return -1;
     }
@@ -930,8 +930,7 @@ public class Technology implements Comparable<Technology>
         int endPos = override.indexOf(endChr, startPos);
         if (endPos < 0) return null;
         String layerName = override.substring(startPos, endPos);
-        Layer layer = tech.findLayer(layerName);
-        return layer;
+        return tech.findLayer(layerName);
     }
 
 	/**
@@ -2057,10 +2056,16 @@ public class Technology implements Comparable<Technology>
 
 			// number of cuts depends on the size
 			// Checking first if configuration gives 2D cuts
-			int oneDcutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep1D) / (cutSizeX+cutSep1D));
-			int oneDcutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep1D) / (cutSizeY+cutSep1D));
-			int twoDcutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep2D) / (cutSizeX+cutSep2D));
-			int twoDcutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep2D) / (cutSizeY+cutSep2D));
+//			int oneDcutsXOLD = (int)((cutAreaWidth-cutIndentX*2+cutSep1D) / (cutSizeX+cutSep1D));
+//			int oneDcutsYOLD = (int)((cutAreaHeight-cutIndentY*2+cutSep1D) / (cutSizeY+cutSep1D));
+            int oneDcutsX = (int)(DBMath.round(cutAreaWidth-cutIndentX*2+cutSep1D) / (cutSizeX+cutSep1D));
+			int oneDcutsY = (int)(DBMath.round((cutAreaHeight-cutIndentY*2+cutSep1D) / (cutSizeY+cutSep1D)));
+//			int twoDcutsXOLD = (int)((cutAreaWidth-cutIndentX*2+cutSep2D) / (cutSizeX+cutSep2D));
+//			int twoDcutsYOLD = (int)((cutAreaHeight-cutIndentY*2+cutSep2D) / (cutSizeY+cutSep2D));
+            int twoDcutsX = (int)(DBMath.round(cutAreaWidth-cutIndentX*2+cutSep2D) / (cutSizeX+cutSep2D));
+			int twoDcutsY = (int)(DBMath.round(cutAreaHeight-cutIndentY*2+cutSep2D) / (cutSizeY+cutSep2D));
+//            if (oneDcutsX != oneDcutsXOLD || oneDcutsY != oneDcutsYOLD || twoDcutsXOLD != twoDcutsX || twoDcutsYOLD != twoDcutsY)
+//                System.out.println("ERROR in multicut");
 
 			cutSep = cutSep1D;
 			cutsX = oneDcutsX;
@@ -3404,7 +3409,7 @@ public class Technology implements Comparable<Technology>
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
 	 */
-	public DRCRules getFactoryDesignRules(Foundry foundry)
+	public XMLRules getFactoryDesignRules(Foundry foundry)
 	{
 		return null;
 	}
@@ -3425,12 +3430,6 @@ public class Technology implements Comparable<Technology>
 	 * @param newRules
 	 */
 	public void setRuleVariables(DRCRules newRules) {;}
-
-    /**
-     * Method to get the DRC deck containing rules
-     * @return the DRC deck containing rules.
-     */
-//    public List<DRCTemplate> getDRCDeck() { return null; }
 
 	/**
 	 * Method to create a set of Design Rules from some simple spacing arrays.
@@ -3781,28 +3780,33 @@ public class Technology implements Comparable<Technology>
 		}
 	}
 
+    protected void setDefNodeSize(PrimitiveNode nty, double wid, double hei)
+    {
+        double xindent = (nty.getDefWidth() - wid) / 2;
+		double yindent = (nty.getDefHeight() - hei) / 2;
+		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));  // bug 1040
+    }
+
 	/**
 	* Method to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
 	*/
 	protected void setDefNodeSize(PrimitiveNode nty, String ruleName, double wid, double hei, DRCRules rules)
 	{
-		//SizeOffset so = nty.getProtoSizeOffset();
 		double xindent = (nty.getDefWidth() - wid) / 2;
-		double yindent = (nty.getDefHeight() - hei) / 2;
-		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));  // bug 1040
-
-		int index = 0;
-		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = it.next();
-			if (np == nty) break;
-			index++;
-		}
-        //@TODO this index might overlap with layer indices.
-        DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.NODSIZ, 0, 0, null, null, wid, -1);
-        tmp.value2 = hei;
-        rules.addRule(index, tmp, DRCTemplate.DRCRuleType.NONE);
-//		rules.setMinNodeSize(index, ruleName, wid, hei);
+//		double yindent = (nty.getDefHeight() - hei) / 2;
+//		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));  // bug 1040
+//
+//		int index = 0;
+//		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
+//		{
+//			PrimitiveNode np = it.next();
+//			if (np == nty) break;
+//			index++;
+//		}
+//        //@TODO this index might overlap with layer indices.
+//        DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.NODSIZ, 0, 0, null, null, wid, -1);
+//        tmp.value2 = hei;
+//        rules.addRule(index, tmp, DRCTemplate.DRCRuleType.NONE);
 	}
 
 	/**
@@ -3973,12 +3977,12 @@ public class Technology implements Comparable<Technology>
      * Method to retrieve cached rules
      * @return cached design rules.
      */
-    public DRCRules getCachedRules() {return cachedRules;}
+    public XMLRules getCachedRules() {return cachedRules;}
 
     /**
      * Method to set cached rules
      */
-    public void setCachedRules(DRCRules rules) {cachedRules = rules;}
+    public void setCachedRules(XMLRules rules) {cachedRules = rules;}
 
     /**
      * This method determines if one of the polysilicon polygons is covered by a vth layer. Only implemented in 90nm

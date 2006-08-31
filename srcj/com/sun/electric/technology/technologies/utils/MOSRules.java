@@ -75,6 +75,13 @@ public class MOSRules implements DRCRules {
 	/** minimim node size rules */								public String [] minNodeSizeRules;
     /** cut size in the technology */				            public Double [] cutNodeSize;
 	/** cut size rules */								        public String [] cutNodeSizeRules;
+    /** cut 1D spacing in the technology */				            public Double [] cutNodeSpa1D;
+	/** cut 1D s[acing rules */								        public String [] cutNodeSpa1DRules;
+    /** cut 2D spacing in the technology */				            public Double [] cutNodeSpa2D;
+    /** cut 2D s[acing rules */								        public String [] cutNodeSpa2DRules;
+    /** Only 1 surround per contact node! **/
+    /** cut surround in the technology */				            public Double [] cutNodeSurround;
+	/** cut surround rules */								        public String [] cutNodeSurroundRules;
     /** poly overhang/surround along gate **/                   public double transPolyOverhang;
 	/** number of rules stored */                               private int      numberOfRules;
 	/** DEFAULT null rule */                                private final static int MOSNORULE = -1;
@@ -195,6 +202,12 @@ public class MOSRules implements DRCRules {
 		minNodeSizeRules = new String[numNodes];
         cutNodeSize = new Double[numNodes];
 		cutNodeSizeRules = new String[numNodes];
+        cutNodeSurround = new Double[numNodes];
+		cutNodeSurroundRules = new String[numNodes];
+        cutNodeSpa1D = new Double[numNodes];
+		cutNodeSpa1DRules = new String[numNodes];
+        cutNodeSpa2D = new Double[numNodes];
+		cutNodeSpa2DRules = new String[numNodes];
 		j = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
@@ -204,6 +217,12 @@ public class MOSRules implements DRCRules {
 			minNodeSizeRules[j] = np.getMinSizeRule();
             cutNodeSizeRules[j] = "";
             cutNodeSize[j] = new Double(MOSNORULE);
+            cutNodeSurroundRules[j] = "";
+            cutNodeSurround[j] = new Double(MOSNORULE);
+            cutNodeSpa1DRules[j] = "";
+            cutNodeSpa1D[j] = new Double(MOSNORULE);
+            cutNodeSpa2DRules[j] = "";
+            cutNodeSpa2D[j] = new Double(MOSNORULE);
 			j++;
 		}
 	}
@@ -409,7 +428,7 @@ public class MOSRules implements DRCRules {
      * @param layer2 the second Layer to check.
      * @return true if there are design rules between the layers.
      */
-    public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2)
+    public boolean isAnySpacingRule(Technology tech, Layer layer1, Layer layer2)
     {
         int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
         if (conList[pIndex].doubleValue() >= 0) return true;
@@ -446,11 +465,14 @@ public class MOSRules implements DRCRules {
      */
     public String[] getNodesWithRules() {return nodeNames;}
 
+    public void addRule(int index, DRCTemplate rule)
+    {
+        new Error("Not implemented");
+    }
     /**
 	 * Method to add a rule based on template
 	 * @param index
      @param rule
-
      */
 	public void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase)
 	{
@@ -476,7 +498,7 @@ public class MOSRules implements DRCRules {
                             conListWideRules[index] = rule.ruleName;
                             if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
                             break;
-                        case CUTSPA:
+                        case UCONSPA2D:
                             conListMulti[index] = new Double(rule.value1);
                             conListMultiRules[index] = rule.ruleName;
                             break;
@@ -503,7 +525,7 @@ public class MOSRules implements DRCRules {
                             unConListWideRules[index] = rule.ruleName;
                             if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
                             break;
-                        case CUTSPA:
+                        case UCONSPA2D:
                             unConListMulti[index] = new Double(rule.value1);
                             unConListMultiRules[index] = rule.ruleName;
                             break;
@@ -589,7 +611,7 @@ public class MOSRules implements DRCRules {
                             wideLimit.doubleValue(), 0, null, null, dist, -1));
            }
            break;
-           case CUTSPA: // multi contact rules
+           case UCONSPA2D: // multi contact rules
            {
                 double dist = conListMulti[index].doubleValue();
                 if (dist >= 0)
@@ -653,54 +675,95 @@ public class MOSRules implements DRCRules {
 	 * where <type> is the rule type. E.g. MinWidth or Area
 	 * @param layer the Layer to examine.
 	 * @param type rule type
-	 * @return the minimum width rule for the layer.
+	 * @return the minimum rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
     public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type)
 	{
-	    if (type == DRCTemplate.DRCRuleType.MINWID)
+        int index = layer.getIndex();
+        switch(type)
         {
-            int index = layer.getIndex();
-            double dist = minWidth[index].doubleValue();
+            case MINWID:
+            {
+                double dist = minWidth[index].doubleValue();
 
-            if (dist < 0) return null;
-            return (new DRCTemplate(minWidthRules[index], DRCTemplate.DRCMode.ALL.mode(),
-                    DRCTemplate.DRCRuleType.MINWID, 0, 0, null, null, dist, -1));
-        }
-        if (type == DRCTemplate.DRCRuleType.MINAREA)
-        {
-            int index = layer.getIndex();
-            double dist = minArea[index].doubleValue();
+                if (dist < 0) return null;
+                return (new DRCTemplate(minWidthRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                        DRCTemplate.DRCRuleType.MINWID, 0, 0, null, null, dist, -1));
+            }
+            case MINAREA:
+            {
+                double dist = minArea[index].doubleValue();
 
-            if (dist < 0) return null;
-            return (new DRCTemplate(minAreaRules[index], DRCTemplate.DRCMode.ALL.mode(),
-                    DRCTemplate.DRCRuleType.MINAREA, 0, 0, null, null, dist, -1));
-        }
-        if (type == DRCTemplate.DRCRuleType.SLOTSIZE)
-        {
-            int index = layer.getIndex();
-            double dist = slotSize[index].doubleValue();
+                if (dist < 0) return null;
+                return (new DRCTemplate(minAreaRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                        DRCTemplate.DRCRuleType.MINAREA, 0, 0, null, null, dist, -1));
+            }
+            case SLOTSIZE:
+            {
+                double dist = slotSize[index].doubleValue();
 
-            if (dist < 0) return null;
-            return (new DRCTemplate(slotSizeRules[index], DRCTemplate.DRCMode.ALL.mode(),
-                    DRCTemplate.DRCRuleType.SLOTSIZE, 0, 0, null, null, dist, -1));
+                if (dist < 0) return null;
+                return (new DRCTemplate(slotSizeRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                        DRCTemplate.DRCRuleType.SLOTSIZE, 0, 0, null, null, dist, -1));
+            }
         }
+
         return null;
 	}
 
     /**
-     * Method to get cut values associates to a contact node
-     * @param index the index of the node.
+     * Method to retrieve simple layer or node rules
+     * @param index the index of the layer or node
      * @param type the rule type.
-     * @return the requested cut rule.
+     * @return the requested rule.
      */
-    public DRCTemplate getCutRule(int index, DRCTemplate.DRCRuleType type)
+    public DRCTemplate getRule(int index, DRCTemplate.DRCRuleType type)
     {
-        if (type != DRCTemplate.DRCRuleType.CUTSIZE) return null;
-        double cutSize = minWidth[index].doubleValue();
-        if (cutSize < 0) return null;
-        return (new DRCTemplate(cutNodeSizeRules[index], DRCTemplate.DRCMode.ALL.mode(),
-                DRCTemplate.DRCRuleType.CUTSIZE, 0, 0, null, null, cutSize, -1));
+        switch(type)
+        {
+            case MINWID:
+                double minSize = minWidth[index].doubleValue();
+                if (minSize < 0) return null;
+                return (new DRCTemplate(minWidthRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                        type, 0, 0, null, null, minSize, -1));
+//            case CUTSIZE:
+//                double cutSize = cutNodeSize[index].doubleValue();
+//                if (cutSize < 0) return null;
+//                return (new DRCTemplate(cutNodeSizeRules[index], DRCTemplate.DRCMode.ALL.mode(),
+//                        type, 0, 0, null, null, cutSize, -1));
+//            case VIASUR:
+//            case CUTSUR:
+//                double cutSur = cutNodeSurround[index].doubleValue();
+//                if (cutSur < 0) return null;
+//                return (new DRCTemplate(cutNodeSurroundRules[index], DRCTemplate.DRCMode.ALL.mode(),
+//                        type, 0, 0, null, null, cutSur, -1));
+            case UCONSPA2D:
+                 double cutSpa = cutNodeSpa1D[index].doubleValue();
+                if (cutSpa < 0) return null;
+                return (new DRCTemplate(cutNodeSpa1DRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                        type, 0, 0, null, null, cutSpa, -1));
+//            case CUTSPA2D:
+//                 double cutSpa2D = cutNodeSpa2D[index].doubleValue();
+//                if (cutSpa2D < 0) return null;
+//                return (new DRCTemplate(cutNodeSpa2DRules[index], DRCTemplate.DRCMode.ALL.mode(),
+//                        type, 0, 0, null, null, cutSpa2D, -1));
+
+        }
+        return null;
+    }
+
+    /**
+     * Method to retrieve specific rules stored per node that involve two layers
+     * @param index the combined index of the two layers involved
+     * @param type
+     * @param nodeName name of the primitive
+     * @return
+     */
+    public DRCTemplate getRule(int index, DRCTemplate.DRCRuleType type, String nodeName)
+    {
+        new Error("not implemented");
+        return null;
     }
 
     /**

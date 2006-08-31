@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP/MAN: (8/31/06, GVG) Refactoring of DRC decks. Old MOSRules decomissioned and TSMCRules class became
+the global under the name XMLRules. 180nm primitives are consistent resized according to rules
+provided. Similar work is being done for 90nm primitives.
+Surround distances are taken from decks, not from the Java code. Rules such as CUTSPA, CUTSPA2D
+and CUTSUR were eliminated. DesignRules dialog was modified and only 1 value is required (instead of
+unconnected/connected values).
+
 IMP: (8/31/06, RK) PIE: runs on LoCo memory. The results are promising.
 
 IMP: (8/30/06, SMR) Changed "Edit / Erase / Geometry" to "Edit / Erase / Selected"

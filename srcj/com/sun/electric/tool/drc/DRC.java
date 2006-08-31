@@ -44,7 +44,6 @@ import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -417,9 +416,9 @@ public class DRC extends Listener
 	 * @param tech the Technology to examine.
 	 * @return a new Rules object with the design rules for the given Technology.
 	 */
-	public static DRCRules getRules(Technology tech)
+	public static XMLRules getRules(Technology tech)
 	{
-        DRCRules currentRules = tech.getCachedRules();
+        XMLRules currentRules = tech.getCachedRules();
 		if (currentRules != null && tech == currentTechnology) return currentRules;
 
 		// constructing design rules: start with factory rules
@@ -563,12 +562,12 @@ public class DRC extends Listener
 	 * @param layer2 the second Layer to check.
 	 * @return true if there are design rules between the layers.
 	 */
-	public static boolean isAnyRule(Layer layer1, Layer layer2)
+	public static boolean isAnySpacingRule(Layer layer1, Layer layer2)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return false;
-        return (rules.isAnyRule(tech, layer1, layer2));
+        return (rules.isAnySpacingRule(tech, layer1, layer2));
 	}
 
 	/**
@@ -768,7 +767,7 @@ public class DRC extends Listener
      * Method to check if current date is later than cell revision
      * @param cell
      * @param date
-     * @return
+     * @return true if DRC date in cell is valid
      */
     public static boolean isCellDRCDateGood(Cell cell, Date date)
     {
@@ -1033,7 +1032,7 @@ public class DRC extends Listener
 
         public boolean doIt()
         {
-                storedDRCDate.clear();
+            storedDRCDate.clear();
             if (isDatesStoredInMemory())
             {
                 // delete any date stored

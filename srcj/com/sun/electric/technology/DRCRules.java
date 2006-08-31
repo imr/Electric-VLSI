@@ -39,20 +39,37 @@ public interface DRCRules
     public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Geometric geo1,
                                       Layer layer2, Geometric geo2, boolean connected,
                                       int multiCut, double wideS, double length);
-    public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2);
+    public boolean isAnySpacingRule(Technology tech, Layer layer1, Layer layer2);
     public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2,
                                         boolean isGateExtension);
 	public int getNumberOfRules();
     public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type);
-    public DRCTemplate getCutRule(int index, DRCTemplate.DRCRuleType type);
+
+    /**
+     * Method to retrieve simple layer or node rules
+     * @param index the index of the layer or node
+     * @param type the rule type.
+     * @return the requested rule.
+     */
+    public DRCTemplate getRule(int index, DRCTemplate.DRCRuleType type);
+
+    /**
+     * Method to retrieve specific rules stored per node that involve two layers
+     * @param index the combined index of the two layers involved
+     * @param type
+     * @param nodeName the name of the primitive
+     * @return the requested rule.
+     */
+    public DRCTemplate getRule(int index, DRCTemplate.DRCRuleType type, String nodeName);
+
     public void setMinValue(Layer layer, String name, double value, DRCTemplate.DRCRuleType type);
     public void applyDRCOverrides(String override, Technology tech);
     public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type);
-    public double getPolyOverhang();
     /********************* For UI ***********************************/
-    DRCTemplate getMinNodeSize(int index, int when);
+    //DRCTemplate getMinNodeSize(int index, int when);
     String[] getNodesWithRules();
     List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type);
+    void addRule(int index, DRCTemplate rule);
     void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase);
     void deleteRule(int index, DRCTemplate rule);
     void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase);

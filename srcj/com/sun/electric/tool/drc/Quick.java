@@ -118,7 +118,7 @@ public class Quick
 		int localIndex;
 		int multiplier;
 		int offset;
-	};
+	}
 	private HashMap<NodeInst,CheckInst> checkInsts = null;
 
 
@@ -137,8 +137,9 @@ public class Quick
 		/** true if this cell or subcell has parameters */				boolean treeParameterized;
 		/** list of instances in a particular parent */					List<CheckInst> nodesInCell;
 		/** netlist of this cell */										Netlist netlist;
-	};
-	private HashMap<Cell,CheckProto> checkProtos = null;
+	}
+
+    private HashMap<Cell,CheckProto> checkProtos = null;
 	private HashMap<Network,Integer[]> networkLists = null;
 	private HashMap<Layer,DRCTemplate> minAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For minimum area checking
 	private HashMap<Layer,DRCTemplate> enclosedAreaLayerMap = new HashMap<Layer,DRCTemplate>();    // For enclosed area checking
@@ -232,7 +233,7 @@ public class Quick
                                                Rectangle2D bounds, DRC.CheckDRCJob drcJob, GeometryHandler.GHMode mode)
 	{
 		Quick q = new Quick(drcJob, mode);
-		return q.doCheck(errorLog, cell, geomsToCheck, validity, bounds);
+        return q.doCheck(errorLog, cell, geomsToCheck, validity, bounds);
 	}
 
     // returns the number of errors found
@@ -401,7 +402,6 @@ public class Quick
 			System.out.println("Found " + checkNetNumber + " networks");
 
 		// now search for DRC exclusion areas
-//		exclusionList.clear();
         exclusionMap.clear();
 		accumulateExclusion(cell);
 
@@ -688,7 +688,7 @@ public class Quick
     /**
      * Private method to check if geometry is covered 100% by exclusion region
      * @param geo
-     * @return
+     * @return true if geometry is covered by exclusion
      */
     private boolean coverByExclusion(Geometric geo)
     {
@@ -742,7 +742,8 @@ public class Quick
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
         boolean isTransistor =  np.getFunction().isTransistor();
-		// examine the polygons on this node
+
+        // examine the polygons on this node
 		for(int j=0; j<tot; j++)
 		{
 			Poly poly = nodeInstPolyList[j];
@@ -766,7 +767,6 @@ public class Quick
 				if (errorTypeSearch == DRC.DRCCheckMode.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
-
 
 			// determine network for this polygon
 			int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
@@ -1300,7 +1300,10 @@ public class Quick
 					// see if this type of node can interact with this layer
 					if (!checkLayerWithNode(layer, np)) continue;
 
-					// see if the objects directly touch but they are not
+//                    System.out.println("Checking Node " + ni.getName() + " " + layer.getName() + " " +
+//                            geom);
+
+                    // see if the objects directly touch but they are not
                     // coming from different NodeInst (not from checkCellInstContents
                     // because they might below to the same cell but in different instances
 					boolean touch = sameInstance && Geometric.objectsTouch(nGeom, geom);
@@ -1326,7 +1329,7 @@ public class Quick
 						if (nLayer == null) continue;
                         //npoly.transform(rTrans);
 
-						Rectangle2D nPolyRect = npoly.getBounds2D();
+                        Rectangle2D nPolyRect = npoly.getBounds2D();
 
 						// can't do this because "lxbound..." is local but the poly bounds are global
                         // On the corners?
@@ -1380,7 +1383,8 @@ public class Quick
                         }
 
 						boolean edge = false;
-						DRCTemplate theRule = getSpacingRule(layer, poly, geom, nLayer, npoly, ni, con, multiInt);
+                        // @TODO check if previous spacing rule was composed of same layers!
+                        DRCTemplate theRule = getSpacingRule(layer, poly, geom, nLayer, npoly, ni, con, multiInt);
                         if (theRule == null)
                         {
 						    theRule = DRC.getEdgeRule(layer, nLayer);
@@ -1389,7 +1393,8 @@ public class Quick
 
 						if (theRule != null)
                         {
-                            // check the distance
+//                            System.out.println("Rule " + ni.getName() + " " + layer.getName() + " " +
+//                            geom + " " + nLayer.getName() + " " + j);
                             ret = checkDist(tech, topCell, topGlobalIndex,
                                 poly, layer, net, geom, trans, globalIndex,
                                 npoly, nLayer, nNet, nGeom, rTrans, cellGlobalIndex,
@@ -1413,7 +1418,10 @@ public class Quick
 				// see if this type of arc can interact with this layer
 				if (!checkLayerWithArc(layer, ap)) continue;
 
-				// see if the objects directly touch
+//                System.out.println("Checking Arc " + ai.getName() + " " + layer.getName() + " " +
+//                            geom);
+
+                // see if the objects directly touch
 				boolean touch = sameInstance && Geometric.objectsTouch(nGeom, geom);
 
 				// see whether the two objects are electrically connected
@@ -1655,7 +1663,7 @@ public class Quick
      * @param con
      * @param layer1
      * @param layer2
-     * @return
+     * @return true if the layer may touch
      */
     private boolean mayTouch(Technology tech, boolean con, Layer layer1, Layer layer2)
     {
@@ -3139,7 +3147,10 @@ public class Quick
         double maxX = Math.max(box1.getMaxX(), box2.getMaxX());
         double maxY = Math.max(box1.getMaxY(), box2.getMaxY());
         Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
-        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getCutRule(nty.getPrimNodeIndexInTech(), DRCTemplate.DRCRuleType.CUTSIZE);
+        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getRule(layer.getIndex(),
+                DRCTemplate.DRCRuleType.MINWID);
+//        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getRule(nty.getPrimNodeIndexInTech(),
+//                DRCTemplate.DRCRuleType.CUTSIZE);
         String ruleName = (rule != null) ? rule.ruleName : "for contacts";
         if (DBMath.isGreaterThan(rect.getWidth(), specValues[0]))
         {
@@ -3239,25 +3250,25 @@ public class Quick
      * special rule in 90nm technology. MOVE TO TECHNOLOGY class!! to be cleaner
      * @param network
      * @param geom
-     * @return
+     * @return v
      */
-    private boolean searchTransistor(Network network, Geometric geom)
-    {
-        // checking if any port in that network belongs to a transistor
-        // No need of checking arcs?
-        for (Iterator it = network.getPorts(); it.hasNext();)
-        {
-            PortInst pi = (PortInst)it.next();
-            NodeInst ni = pi.getNodeInst();
-            if (ni != geom && ni.getProto() instanceof PrimitiveNode)
-            {
-                PrimitiveNode pn = (PrimitiveNode)ni.getProto();
-                if (pn.getFunction().isTransistor())
-                    return true; // found a transistor!
-            }
-        }
-        return false;
-    }
+//    private boolean searchTransistor(Network network, Geometric geom)
+//    {
+//        // checking if any port in that network belongs to a transistor
+//        // No need of checking arcs?
+//        for (Iterator it = network.getPorts(); it.hasNext();)
+//        {
+//            PortInst pi = (PortInst)it.next();
+//            NodeInst ni = pi.getNodeInst();
+//            if (ni != geom && ni.getProto() instanceof PrimitiveNode)
+//            {
+//                PrimitiveNode pn = (PrimitiveNode)ni.getProto();
+//                if (pn.getFunction().isTransistor())
+//                    return true; // found a transistor!
+//            }
+//        }
+//        return false;
+//    }
 
     /**
 	 * Method to check extension rules in general
@@ -4051,17 +4062,17 @@ public class Quick
      * @param poly
      * @return
      */
-    private Network getDRCNetNumber(Netlist netlist, Geometric geom, Poly poly)
-    {
-        Network jNet = null;
-        if (geom instanceof ArcInst)
-        {
-            ArcInst ai = (ArcInst)geom;
-            jNet = netlist.getNetwork(ai, 0);
-        } else if (geom instanceof NodeInst)
-            jNet = netlist.getNetwork((NodeInst)geom, poly.getPort(), 0);
-        return jNet;
-    }
+//    private Network getDRCNetNumber(Netlist netlist, Geometric geom, Poly poly)
+//    {
+//        Network jNet = null;
+//        if (geom instanceof ArcInst)
+//        {
+//            ArcInst ai = (ArcInst)geom;
+//            jNet = netlist.getNetwork(ai, 0);
+//        } else if (geom instanceof NodeInst)
+//            jNet = netlist.getNetwork((NodeInst)geom, poly.getPort(), 0);
+//        return jNet;
+//    }
 
 	/**
 	 * Method to return the network number for port "pp" on node "ni", given that the node is
@@ -4114,14 +4125,14 @@ public class Quick
 			Technology.NodeLayer [] layers = np.getLayers();
 			Technology.NodeLayer [] eLayers = np.getElectricalLayers();
 			if (eLayers != null) layers = eLayers;
-			for(int i=0; i<layers.length; i++)
+			for(Technology.NodeLayer l : layers)
 			{
-				Layer layer = layers[i].getLayer();
+				Layer layer = l.getLayer();
 				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				{
 					Layer oLayer = lIt.next();
-					if (DRC.isAnyRule(layer, oLayer))
-						layersInNode[oLayer.getIndex()] = true;
+                    if (DRC.isAnySpacingRule(layer, oLayer))
+                        layersInNode[oLayer.getIndex()] = true;
 				}
 			}
 			layersInterNodes.put(np, layersInNode);
@@ -4133,16 +4144,16 @@ public class Quick
 		{
 			ArcProto ap = it.next();
 			boolean [] layersInArc = new boolean[numLayers];
-			for(int i=0; i<numLayers; i++) layersInArc[i] = false;
+            Arrays.fill(layersInArc, false);
 
 			Technology.ArcLayer [] layers = ap.getLayers();
-			for(int i=0; i<layers.length; i++)
+			for(Technology.ArcLayer l : layers)
 			{
-				Layer layer = layers[i].getLayer();
+				Layer layer = l.getLayer();
 				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				{
 					Layer oLayer = lIt.next();
-					if (DRC.isAnyRule(layer, oLayer))
+					if (DRC.isAnySpacingRule(layer, oLayer))
 						layersInArc[oLayer.getIndex()] = true;
 				}
 			}
@@ -4259,10 +4270,8 @@ public class Quick
 				polyList.add(poly2);
 				geomList.add(geom2);
 			}
-//            boolean found = checkExclusionList(cell, polyList, geomList, DRCexclusionMsg);
             boolean found = checkExclusionMap(cell, polyList, geomList, DRCexclusionMsg);
 
-//            assert(found == foundNew);
             // At least one DRC exclusion that contains both
             if (found) return;
 		}
@@ -4450,7 +4459,7 @@ public class Quick
             /**
              * Method to check whether the layer must be checked or not. It might be done by this layer on that network
              * @param layer
-             * @return
+             * @return true is the layer is should be skipped
              */
             private boolean skipLayer(Layer layer)
             {
@@ -4468,8 +4477,8 @@ public class Quick
                 else
                 {
                     // Done means either doesn't have rule or it is reached.
-                    boolean minADone = (noMinArea || (!noMinArea && minAreaLayerMapDone.get(layer) != null));
-                    boolean minEDone = (noMinEnc || (!noMinEnc && enclosedAreaLayerMapDone.get(layer) != null));
+                    boolean minADone = (noMinArea || (minAreaLayerMapDone.get(layer) != null));
+                    boolean minEDone = (noMinEnc || (enclosedAreaLayerMapDone.get(layer) != null));
                     if (minADone && minEDone)
                         return true;
                 }
@@ -4546,7 +4555,7 @@ public class Quick
          * Method to check if all layers have been checked and are OK with the rule for a particular
          * network. This is under the assumption that connectivity gives you all the nodes connected so
          * there is no point of checking more once the minimum has been reached.
-         * @return
+         * @return true if all layers are checked.
          */
         private boolean areAllLayersDone()
         {
@@ -5020,8 +5029,8 @@ public class Quick
             // No done yet
 	        if (doneCells.get(cell) == null)
             {
-                GeometryHandler thisMerge = (GeometryHandler)mainMergeMap.get(cell);
-                GeometryHandler thisOtherMerge = (GeometryHandler)otherTypeMergeMap.get(cell);
+                GeometryHandler thisMerge = mainMergeMap.get(cell);
+                GeometryHandler thisOtherMerge = otherTypeMergeMap.get(cell);
 
                 PrimitiveNode pNp = (PrimitiveNode)np;
 				if (np instanceof PrimitiveNode)

@@ -92,20 +92,21 @@ public class DRCTemplate
         /** a minimum-width rule */			MINWID (1),
         /** a node size rule */				NODSIZ (2),
         /** a general surround rule */		SURROUND (3),
-        /** a via surround rule */			VIASUR (4),
-        /** a transistor well rule */		TRAWELL (5),
-        /** a transistor poly rule */		TRAPOLY (6),
-        /** a transistor active rule */		TRAACTIVE (7),
+//        /** a via surround rule */			VIASUR (4),
+//        /** a transistor well rule */		TRAWELL (5),
+//        /** a transistor poly rule */		TRAPOLY (6),
+//        /** a transistor active rule */		TRAACTIVE (7),
         /** a spacing rule */				SPACING (8),
         /** a multi-cut spacing rule */		SPACINGM (9),
         /** a wide spacing rule */			SPACINGW (10),
         /** an edge spacing rule */			SPACINGE (11),
         /** a connected spacing rule */		CONSPA (12),
         /** an unconnected spacing rule */	UCONSPA (13),
-        /** a contact cut spacing rule */	CUTSPA (14),
-        /** 2D contact cut spacing rule */	CUTSPA2D (15),
-        /** a contact cut size rule */		CUTSIZE (16),
-        /** a contact cut surround rule */	CUTSUR (17),
+        /** a spacing rule for 2D cuts*/	UCONSPA2D (28), // get rid of mode()?
+//        /** a contact cut spacing rule */	CUTSPA (14),
+//        /** 2D contact cut spacing rule */	CUTSPA2D (15),
+//        /** a contact cut size rule */		CUTSIZE (16),
+//        /** a contact cut surround rule */	CUTSUR (17),
         /** X contact cut surround rule */	CUTSURX (18),
         /** Y contact cut surround rule */	CUTSURY (19),
         /** arc surround rule */			ASURROUND (20),
@@ -134,12 +135,27 @@ public class DRCTemplate
     public DRCRuleType ruleType;			/* the type of the rule */
     public String name1, name2;	/* two layers/nodes that are used by the rule */
     public double value1;		/* value1 is distance for spacing rule or width for node rule */
-    public double value2;		/* value1 is height for node rule */
+    public double value2;		/* value2 is height for node rule if available */
     public double maxWidth;         /* max length where spacing is valid */
     public double minLength;       /* min paralell distance for spacing rule */
     public String nodeName;		/* the node that is used by the rule */
 	public int multiCuts;         /* -1=dont care, 0=no cuts, 1=with cuts multi cut rule */
 
+
+    public DRCTemplate(DRCTemplate rule)
+    {
+        this.ruleName = rule.ruleName;
+        this.when = rule.when;
+        this.ruleType = rule.ruleType;
+        this.name1 = rule.name1;
+        this.name2 = rule.name2;
+        this.value1 = rule.value1;
+        this.value2 = rule.value2;
+        this.maxWidth = rule.maxWidth;
+        this.minLength = rule.minLength;
+        this.nodeName = rule.nodeName;
+        this.multiCuts = rule.multiCuts;
+    }
 
     public DRCTemplate(String rule, int when, DRCRuleType ruleType, String name1, String name2, double distance, String nodeName)
     {
@@ -148,18 +164,20 @@ public class DRCTemplate
         this.ruleType = ruleType;
         this.name1 = name1;
         this.name2 = name2;
-        this.value1 = distance;
+        this.value1 = this.value2 = distance; // same value for now
         this.nodeName = nodeName;
+        this.multiCuts = -1; // don't care
 
         switch (ruleType)
         {
             case SPACING:
+            case SURROUND:
+            {
+                if (name1 == null || name2 == null)
                 {
-                    if (name1 == null || name2 == null)
-                    {
-                        System.out.println("Error: missing one layer in no '" + rule + "' ");
-                    }
+                    System.out.println("Error: missing one layer in no '" + rule + "' ");
                 }
+            }
             break;
             default:
         }
@@ -230,7 +248,8 @@ public class DRCTemplate
      *  Create same rules for different foundries. In this case, primitive nodes are involved
      *  Matrix contains triple pair: layer1, layer2, primitiveNode
      */
-    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, DRCRuleType type, double value, String matrix[][])
+    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, DRCRuleType type,
+                                                      double value, String matrix[][])
 	{
         List<DRCTemplate> list = new ArrayList<DRCTemplate>(names.length * matrix.length);
 
@@ -317,7 +336,7 @@ public class DRCTemplate
      * it won't file the file in Electric jar file.
      * @param fileURL
      * @param verbose
-     * @return
+     * @return parsed information
      */
     public static DRCXMLParser importDRCDeck(URL fileURL, boolean verbose)
     {
@@ -370,10 +389,6 @@ public class DRCTemplate
 
                 for (DRCTemplate rule : rules)
                 {
-//                    boolean oldVa = isRuleValidInFoundry(tech, foundry, rule);
-//                    assert(oldVa);
-////                    if (!i) continue;
-
                     String whenName = null;
                     for (DRCMode p : DRCMode.values())
                     {
@@ -404,15 +419,15 @@ public class DRCTemplate
                                     + " value=\"" + rule.value1 + "\""
                                     + "/>");
                             break;
-                        case VIASUR:
-                            out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
-                                    + " layerName=\"" + rule.name1 + "\""
-                                    + " type=\""+rule.ruleType+"\""
-                                    + " when=\"" + whenName + "\""
-                                    + " value=\"" + rule.value1 + "\""
-                                    + " nodeName=\"" + rule.nodeName + "\""
-                                    + "/>");
-                            break;
+//                        case VIASUR:
+//                            out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
+//                                    + " layerName=\"" + rule.name1 + "\""
+//                                    + " type=\""+rule.ruleType+"\""
+//                                    + " when=\"" + whenName + "\""
+//                                    + " value=\"" + rule.value1 + "\""
+//                                    + " nodeName=\"" + rule.nodeName + "\""
+//                                    + "/>");
+//                            break;
                         case UCONSPA:
                         case CONSPA:
                         case SPACING:
@@ -420,24 +435,27 @@ public class DRCTemplate
                         case SPACINGE:
                         case COMBINATION:
                             String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
+                            String wideValues = (rule.maxWidth > 0) ? (" maxW=\"" + rule.maxWidth + "\""
+                                    + " minLen=\"" + rule.minLength + "\"") : "";
                             out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
                                     + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
                                     + " type=\""+rule.ruleType+"\""
                                     + " when=\"" + whenName + "\""
                                     + " value=\"" + rule.value1 + "\""
+                                    + wideValues
                                     + noName
                                     + "/>");
                             break;
-                        case SPACINGW:
-                            out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
-                                    + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
-                                    + " type=\""+rule.ruleType+"\""
-                                    + " when=\"" + whenName + "\""
-                                    + " value=\"" + rule.value1 + "\""
-                                    + " maxW=\"" + rule.maxWidth + "\""
-                                    + " minLen=\"" + rule.minLength + "\""
-                                    + "/>");
-                            break;
+//                        case SPACINGW:
+//                            out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
+//                                    + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
+//                                    + " type=\""+rule.ruleType+"\""
+//                                    + " when=\"" + whenName + "\""
+//                                    + " value=\"" + rule.value1 + "\""
+//                                    + " maxW=\"" + rule.maxWidth + "\""
+//                                    + " minLen=\"" + rule.minLength + "\""
+//                                    + "/>");
+//                            break;
                         case SURROUND:
                         case ASURROUND:
                             out.println("        <NodeLayersRule ruleName=\"" + rule.ruleName + "\""
@@ -448,20 +466,21 @@ public class DRCTemplate
                                     + " nodeName=\"" + rule.nodeName + "\""
                                     + "/>");
                             break;
-                        case TRAWELL:
-                        case TRAPOLY:
-                        case TRAACTIVE:
-                            out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
-                                    + " type=\""+rule.ruleType+"\""
-                                    + " when=\"" + whenName + "\""
-                                    + " value=\"" + rule.value1 + "\""
-                                    + "/>");
-                            break;
+//                        case TRAWELL:
+//                        case TRAPOLY:
+//                        case TRAACTIVE:
+//                            out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
+//                                    + " type=\""+rule.ruleType+"\""
+//                                    + " when=\"" + whenName + "\""
+//                                    + " value=\"" + rule.value1 + "\""
+//                                    + " nodeName=\"" + rule.nodeName + "\""
+//                                    + "/>");
+//                            break;
                         case NODSIZ:
-                        case CUTSUR:
-                        case CUTSPA:
-                        case CUTSPA2D:
-                        case CUTSIZE:
+//                        case CUTSUR:
+//                        case CUTSPA:
+//                        case CUTSPA2D:
+////                        case CUTSIZE:
                             out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
                                     + " type=\""+rule.ruleType+"\""
                                     + " when=\"" + whenName + "\""
@@ -471,7 +490,6 @@ public class DRCTemplate
                             break;
                         default:
                             System.out.println("Case not implemented " + rule.ruleType);
-                            ;
                     }
                 }
                 out.println("    </Foundry>");
@@ -518,6 +536,7 @@ public class DRCTemplate
         private List<DRCXMLBucket> rulesList = new ArrayList<DRCXMLBucket>();
         private DRCXMLBucket current = null;
         private boolean fullLoaded = true;
+        private String fileName;
 
         public List<DRCXMLBucket> getRules() { return rulesList; }
         public boolean isParseOK() { return fullLoaded; }
@@ -530,6 +549,7 @@ public class DRCTemplate
          */
         protected boolean process(URL fileURL, boolean verbose)
         {
+            fileName = TextUtils.getFileNameWithoutExtension(fileURL);
             try
             {
                 // Factory call
@@ -609,13 +629,11 @@ public class DRCTemplate
                     else if (attributes.getQName(i).equals("when"))
                     {
                         String[] modes = TextUtils.parseString(attributes.getValue(i), "|");
-                        for (int j = 0; j < modes.length; j++)
+                        for (String mode : modes)
                         {
-                            DRCTemplate.DRCMode m = DRCTemplate.DRCMode.valueOf(modes[j]);
+                            DRCTemplate.DRCMode m = DRCTemplate.DRCMode.valueOf(mode);
                             when |= m.mode();
                         }
-//                        if (foundry != Foundry.Type.NONE)
-//                            when |= foundry.mode();
                     }
                     else if (attributes.getQName(i).equals("value"))
                         value = Double.parseDouble(attributes.getValue(i));
@@ -631,19 +649,21 @@ public class DRCTemplate
                 if (layerRule)
                 {
                     String[] layers = TextUtils.parseString(layerNames, ",");
-                    for (int i = 0; i < layers.length; i++)
+                    for (String layer : layers)
                     {
                         if (nodeNames == null)
                         {
-                            DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layers[i], null, value, null);
+                            DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layer,
+                                    null, value, null);
                             current.drcRules.add(tmp);
                         }
                         else
                         {
                             String[] names = TextUtils.parseString(nodeNames, ",");
-                            for (int j = 0; j < names.length; j++)
+                            for (String name : names)
                             {
-                                DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layers[i], null, value, names[j]);
+                                DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layer,
+                                        null, value, name);
                                 current.drcRules.add(tmp);
                             }
                         }
@@ -659,9 +679,10 @@ public class DRCTemplate
                     else
                     {
                         String[] names = TextUtils.parseString(nodeNames, ",");
-                        for (int i = 0; i < names.length; i++)
+                        for (String name : names)
                         {
-                            DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, value, names[i]);
+                            DRCTemplate tmp = new DRCTemplate(ruleName, when, type,
+                                    null, null, value, name);
                             current.drcRules.add(tmp);
                         }
                     }
@@ -669,13 +690,13 @@ public class DRCTemplate
                 else if (layersRule || nodeLayersRule)
                 {
                     String[] layerPairs = TextUtils.parseString(layerNames, "{}");
-                    for (int i = 0; i < layerPairs.length; i++)
+                    for (String layerPair : layerPairs)
                     {
-                        String[] pair = TextUtils.parseString(layerPairs[i], ",");
+                        String[] pair = TextUtils.parseString(layerPair, ",");
                         if (pair.length != 2) continue;
                         if (nodeNames == null)
                         {
-                            DRCTemplate tmp = null;
+                            DRCTemplate tmp;
                             if (maxW == null)
                                 tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, null);
                             else
@@ -685,11 +706,12 @@ public class DRCTemplate
                         else
                         {
                             String[] names = TextUtils.parseString(nodeNames, ",");
-                            for (int j = 0; j < names.length; j++)
+                            for (String name : names)
                             {
                                 DRCTemplate tmp = null;
                                 if (maxW == null)
-                                    tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, names[j]);
+                                    tmp = new DRCTemplate(ruleName, when, type,
+                                            pair[0], pair[1], value, name);
                                 else
                                     System.out.println("When do I have this case?");
                                 current.drcRules.add(tmp);
@@ -706,18 +728,18 @@ public class DRCTemplate
 
             public void fatalError(SAXParseException e)
             {
-                System.out.println("Parser Fatal Error: '" + e.getMessage() + "'");
+                System.out.println("Parser Fatal Error: '" + e.getMessage() + "' in line " + e.getLineNumber() + " in '" + fileName + "'.");
                 passed = false;
             }
 
             public void warning(SAXParseException e)
             {
-                System.out.println("Parser Warning: '" + e.getMessage() + "'");
+                System.out.println("Parser Warning: '" + e.getMessage() + "' in line " + e.getLineNumber() + " in '" + fileName + "'.");
             }
 
             public void error(SAXParseException e)
             {
-                System.out.println("Parser Error: " + e.getMessage() + "'");
+                System.out.println("Parser Error: " + e.getMessage() + "' in line " + e.getLineNumber() + " in '" + fileName + "'.");
                 passed = false;
             }
         }

@@ -47,7 +47,7 @@ public class DesignRulesPanel extends JPanel
 {
     private Technology curTech;
 	private JList designRulesFromList, designRulesToList, designRulesNodeList;
-	private DefaultListModel designRulesFromModel, designRulesToModel, designRulesNodeModel;
+	private DefaultListModel designRulesToModel;
 	private DRCRules drRules;
 	private boolean designRulesUpdating = false;
 	private boolean designRulesFactoryReset = false;
@@ -82,8 +82,6 @@ public class DesignRulesPanel extends JPanel
 			drWidths.setEnabled(false);
 			drLengths.setEnabled(false);
 			drSpacings.setEnabled(false);
-			drMultiConnected.setEnabled(false);
-			drMultiConnectedRule.setEnabled(false);
 			drMultiUnconnected.setEnabled(false);
 			drMultiUnconnectedRule.setEnabled(false);
 			return;
@@ -95,31 +93,29 @@ public class DesignRulesPanel extends JPanel
 		for(int i=0; i<numLayers; i++) designRulesValidLayers[i] = false;
 		for(Iterator<PrimitiveNode> it = curTech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			if (np.isNotUsed()) continue;
 			Technology.NodeLayer [] layers = np.getLayers();
-			for(int i=0; i<layers.length; i++)
+			for(Technology.NodeLayer nl : layers)
 			{
-				Technology.NodeLayer nl = layers[i];
 				Layer layer = nl.getLayer();
 				designRulesValidLayers[layer.getIndex()] = true;
 			}
 		}
 		for(Iterator<ArcProto> it = curTech.getArcs(); it.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
+			ArcProto ap = it.next();
 			if (ap.isNotUsed()) continue;
 			Technology.ArcLayer [] layers = ap.getLayers();
-			for(int i=0; i<layers.length; i++)
+			for(Technology.ArcLayer al : layers)
 			{
-				Technology.ArcLayer al = layers[i];
 				Layer layer = al.getLayer();
 				designRulesValidLayers[layer.getIndex()] = true;
 			}
 		}
 
 		// build the "node" list
-		designRulesNodeModel = new DefaultListModel();
+		DefaultListModel designRulesNodeModel = new DefaultListModel();
 		designRulesNodeList = new JList(designRulesNodeModel);
 		designRulesNodeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		drNodeList.setViewportView(designRulesNodeList);
@@ -130,13 +126,13 @@ public class DesignRulesPanel extends JPanel
 		});
 		for(Iterator<PrimitiveNode> it = curTech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			designRulesNodeModel.addElement(np.getName());
 		}
 		designRulesNodeList.setSelectedIndex(0);
 
 		// build the "from" layer list
-		designRulesFromModel = new DefaultListModel();
+		DefaultListModel designRulesFromModel = new DefaultListModel();
 		designRulesFromList = new JList(designRulesFromModel);
 		designRulesFromList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		drFromList.setViewportView(designRulesFromList);
@@ -208,11 +204,7 @@ public class DesignRulesPanel extends JPanel
 		drSpacingsRule.getDocument().addDocumentListener(listener);
 		drSpacings.getDocument().addDocumentListener(listener);
 
-        listener = new DRCDocumentListener(this, drMultiConnected, DRCDocType.SPACING);
-		drMultiConnected.getDocument().addDocumentListener(listener);
-		drMultiConnectedRule.getDocument().addDocumentListener(listener);
-
-        listener = new DRCDocumentListener(this, drMultiConnected, DRCDocType.SPACING);
+        listener = new DRCDocumentListener(this, drMultiUnconnected, DRCDocType.SPACING);
 		drMultiUnconnected.getDocument().addDocumentListener(listener);
 		drMultiUnconnectedRule.getDocument().addDocumentListener(listener);
 
@@ -227,7 +219,7 @@ public class DesignRulesPanel extends JPanel
 	/**
 	 * Class to handle special changes to design rules.
 	 */
-    private enum DRCDocType {NODE, MINIMUM, SPACING};
+    private enum DRCDocType {NODE, MINIMUM, SPACING}
 
 	private static class DRCDocumentListener implements DocumentListener
 	{
@@ -294,7 +286,8 @@ public class DesignRulesPanel extends JPanel
 			width = TextUtils.atof(widthText);
 			height = TextUtils.atof(heightText);
 		}
-        DRCTemplate tmp = new DRCTemplate(drNodeRule.getText(), DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.NODSIZ,
+        DRCTemplate tmp = new DRCTemplate(drNodeRule.getText(),
+                DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.NODSIZ,
                 0, 0, null, null, width, -1);
         tmp.value2 = height;
         drRules.addRule(nodeIndex, tmp, DRCTemplate.DRCRuleType.NONE);
@@ -366,7 +359,8 @@ public class DesignRulesPanel extends JPanel
 
 		// get layer information
 		int layer1 = designRulesGetSelectedLayer(designRulesFromList);
-		if (layer1 < 0) return;;
+		if (layer1 < 0) return;
+
         int dindex = getLayerFromToIndex();
         if (dindex == -1) return;
 
@@ -388,20 +382,12 @@ public class DesignRulesPanel extends JPanel
                     0, 0, null, null, value, -1));
             drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.SPACING);
         }
-        else if (field == drMultiConnected)
-        {
-		    // get new multicut spacing values
-            value = TextUtils.atof(drMultiConnected.getText());
-            list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.CONSPA,
-                    0, 0, null, null, value, 1));
-            drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.CUTSPA);
-        }
         else if (field == drMultiUnconnected)
         {
             value = TextUtils.atof(drMultiUnconnected.getText());
-            list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA,
+            list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.mode(), DRCTemplate.DRCRuleType.UCONSPA2D,
                     0, 0, null, null, value, 1));
-            drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.CUTSPA);
+            drRules.setSpacingRules(dindex, list, DRCTemplate.DRCRuleType.UCONSPA2D);
         }
         else if (field == drNormalEdge)
         {
@@ -440,14 +426,15 @@ public class DesignRulesPanel extends JPanel
 	{
 		designRulesUpdating = true;
 		int nodeIndex = designRulesNodeList.getSelectedIndex();
-		DRCTemplate nr = drRules.getMinNodeSize(nodeIndex, foundry.mode());
-		drNodeWidth.setText("");
+		DRCTemplate nr = drRules.getRule(nodeIndex, DRCTemplate.DRCRuleType.NODSIZ);
+
+        drNodeWidth.setText("");
 	    drNodeHeight.setText("");
 		drNodeRule.setText("");
 		if (nr != null)
 		{
-			if (nr.value1 >= 0) drNodeWidth.setText(TextUtils.formatDouble(nr.value1));
-			if (nr.value2 >= 0) drNodeHeight.setText(TextUtils.formatDouble(nr.value2));
+			drNodeWidth.setText(TextUtils.formatDouble(nr.value1));
+			drNodeHeight.setText(TextUtils.formatDouble(nr.value2));
 			drNodeRule.setText(nr.ruleName);
 		}
 		designRulesUpdating = false;
@@ -567,7 +554,6 @@ public class DesignRulesPanel extends JPanel
 		designRulesUpdating = true;
 		drNormalConnected.setText("");    drNormalConnectedRule.setText("");
 		drNormalUnconnected.setText("");  drNormalUnconnectedRule.setText("");
-		drMultiConnected.setText("");     drMultiConnectedRule.setText("");
 		drMultiUnconnected.setText("");   drMultiUnconnectedRule.setText("");
 		drNormalEdge.setText("");         drNormalEdgeRule.setText("");
 
@@ -576,9 +562,8 @@ public class DesignRulesPanel extends JPanel
 		{
 //            double wideLimit = 0;
             List<DRCTemplate> spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACING);
-            for (int i = 0; i < spacingRules.size(); i++)
+            for (DRCTemplate tmp : spacingRules)
             {
-                DRCTemplate tmp = spacingRules.get(i);
                 if (tmp.ruleType == DRCTemplate.DRCRuleType.CONSPA)
                 {
                     drNormalConnected.setText(Double.toString(tmp.value1));
@@ -597,9 +582,8 @@ public class DesignRulesPanel extends JPanel
 			wideSpacingRules = new ArrayList<DRCTemplate>();
 			drSpacingsList.removeAllItems();
             // Not iterator otherwise the order is lost
-			for(int i = 0; i < spacingRules.size(); i++)
+			for (DRCTemplate tmp : spacingRules)
 			{
-				DRCTemplate tmp = spacingRules.get(i);
 	            if (tmp.ruleType != DRCTemplate.DRCRuleType.UCONSPA) continue;
 				wideSpacingRules.add(tmp);
                 drSpacingsList.addItem("Rule " + wideSpacingRules.size());
@@ -612,26 +596,17 @@ public class DesignRulesPanel extends JPanel
 			if (wideSpacingRules.size() != 0)
 				drSpacingsList.setSelectedIndex(0);
 			
-            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.CUTSPA);
-            for (int i = 0; i < spacingRules.size(); i++)
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.UCONSPA2D);
+            assert(spacingRules.size() <= 1);
+            if (spacingRules.size() == 1)
             {
-                DRCTemplate tmp = spacingRules.get(i);
-                if (tmp.ruleType == DRCTemplate.DRCRuleType.CONSPA)
-                {
-                    drMultiConnected.setText( Double.toString(tmp.value1));
-                    drMultiConnectedRule.setText(tmp.ruleName);
-                }
-                else if (tmp.ruleType == DRCTemplate.DRCRuleType.UCONSPA)
-                {
-                    drMultiUnconnected.setText(Double.toString(tmp.value1));
-                    drMultiUnconnectedRule.setText(tmp.ruleName);
-                }
+                DRCTemplate cutTmp = spacingRules.get(0);
+                drMultiUnconnected.setText(Double.toString(cutTmp.value1));
+                drMultiUnconnectedRule.setText(cutTmp.ruleName);
             }
-
             spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE);
-            for (int i = 0; i < spacingRules.size(); i++)
+            for (DRCTemplate tmp : spacingRules)
             {
-                DRCTemplate tmp = spacingRules.get(i);
                 // Any is fine
                 drNormalEdge.setText(Double.toString(tmp.value1));
                 drNormalEdgeRule.setText(tmp.ruleName);
@@ -658,27 +633,27 @@ public class DesignRulesPanel extends JPanel
 	{
 		boolean gotRule = false;
 		List<DRCTemplate> spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACING);
-		for (int i = 0; i < spacingRules.size(); i++)
+        for (DRCTemplate tmp : spacingRules)
 		{
-			DRCTemplate tmp = spacingRules.get(i);
 			if (tmp.value1 > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGW);
-		for (int i = 0; i < spacingRules.size(); i++)
+
+        spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGW);
+        for (DRCTemplate tmp : spacingRules)
 		{
-			DRCTemplate tmp = spacingRules.get(i);
 			if (tmp.value1 > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.CUTSPA);
-		for (int i = 0; i < spacingRules.size(); i++)
+
+        spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.UCONSPA2D);
+        assert(spacingRules.size() <= 1);
+        for (DRCTemplate tmp : spacingRules)
 		{
-			DRCTemplate tmp = spacingRules.get(i);
 			if (tmp.value1 > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE);
-		for (int i = 0; i < spacingRules.size(); i++)
+
+        spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.DRCRuleType.SPACINGE);
+		for (DRCTemplate tmp : spacingRules)
 		{
-			DRCTemplate tmp = spacingRules.get(i);
 			if (tmp.value1 > 0) gotRule = true;
 		}
 		if (onlyValid && !gotRule) return "";
@@ -690,33 +665,31 @@ public class DesignRulesPanel extends JPanel
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Design Rules tab.
 	 */
-	public void term()
-	{
-        // Getting last changes
-        designRulesEditChanged(null);
-	}
+//	public void term()
+//	{
+//        // Getting last changes
+//        designRulesEditChanged(null);
+//	}
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
+        jSplitPane1 = new javax.swing.JSplitPane();
         bottom = new javax.swing.JPanel();
         drMultiUnconnectedRule = new javax.swing.JTextField();
         drMultiUnconnected = new javax.swing.JTextField();
-        drMultiConnectedRule = new javax.swing.JTextField();
-        drMultiConnected = new javax.swing.JTextField();
         drNormalEdgeRule = new javax.swing.JTextField();
         drNormalEdge = new javax.swing.JTextField();
         drNormalUnconnected = new javax.swing.JTextField();
         drNormalConnectedRule = new javax.swing.JTextField();
         drNormalConnected = new javax.swing.JTextField();
         drMultiUnconnectedRuleLabel = new javax.swing.JLabel();
-        drMultiConnectedRuleLabel = new javax.swing.JLabel();
         multiCutNameLabel = new javax.swing.JLabel();
         drNormalEdgeLabel = new javax.swing.JLabel();
         drNormalUnconnectedLabel = new javax.swing.JLabel();
@@ -776,7 +749,7 @@ public class DesignRulesPanel extends JPanel
         setPreferredSize(new java.awt.Dimension(359, 556));
         bottom.setLayout(new java.awt.GridBagLayout());
 
-        bottom.setBorder(new javax.swing.border.TitledBorder("Layer Rules"));
+        bottom.setBorder(javax.swing.BorderFactory.createTitledBorder("Layer Rules"));
         bottom.setPreferredSize(new java.awt.Dimension(359, 452));
         drMultiUnconnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -795,24 +768,6 @@ public class DesignRulesPanel extends JPanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 0);
         bottom.add(drMultiUnconnected, gridBagConstraints);
-
-        drMultiConnectedRule.setColumns(9);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 0, 4);
-        bottom.add(drMultiConnectedRule, gridBagConstraints);
-
-        drMultiConnected.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
-        bottom.add(drMultiConnected, gridBagConstraints);
 
         drNormalEdgeRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -859,7 +814,6 @@ public class DesignRulesPanel extends JPanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 0);
         bottom.add(drNormalConnected, gridBagConstraints);
 
-        drMultiUnconnectedRuleLabel.setText("Not connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 19;
@@ -867,15 +821,7 @@ public class DesignRulesPanel extends JPanel
         gridBagConstraints.insets = new java.awt.Insets(0, 14, 4, 4);
         bottom.add(drMultiUnconnectedRuleLabel, gridBagConstraints);
 
-        drMultiConnectedRuleLabel.setText("When connected:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 18;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 14, 0, 4);
-        bottom.add(drMultiConnectedRuleLabel, gridBagConstraints);
-
-        multiCutNameLabel.setText("Multiple cuts:");
+        multiCutNameLabel.setText("Multiple via cuts:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 17;
@@ -1110,10 +1056,8 @@ public class DesignRulesPanel extends JPanel
         bottom.add(multiCutRuleLabel, gridBagConstraints);
 
         drAddRule.setText("Add Wide Rule");
-        drAddRule.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
+        drAddRule.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
                 drAddRuleActionPerformed(evt);
             }
         });
@@ -1217,7 +1161,7 @@ public class DesignRulesPanel extends JPanel
 
         top.setLayout(new java.awt.GridBagLayout());
 
-        top.setBorder(new javax.swing.border.TitledBorder("Node Rules"));
+        top.setBorder(javax.swing.BorderFactory.createTitledBorder("Node Rules"));
         top.setAlignmentX(0.0F);
         top.setAlignmentY(0.0F);
         top.setPreferredSize(new java.awt.Dimension(167, 104));
@@ -1297,7 +1241,7 @@ public class DesignRulesPanel extends JPanel
         gridBagConstraints.weighty = 0.5;
         add(top, gridBagConstraints);
 
-    }//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
     private void drDeleteRuleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drDeleteRuleActionPerformed
         widePopupChanged(true);
@@ -1346,9 +1290,6 @@ public class DesignRulesPanel extends JPanel
     private javax.swing.JTextField drLayerWidthRule;
     private javax.swing.JTextField drLengths;
     private javax.swing.JLabel drLengthsLabel;
-    private javax.swing.JTextField drMultiConnected;
-    private javax.swing.JTextField drMultiConnectedRule;
-    private javax.swing.JLabel drMultiConnectedRuleLabel;
     private javax.swing.JTextField drMultiUnconnected;
     private javax.swing.JTextField drMultiUnconnectedRule;
     private javax.swing.JLabel drMultiUnconnectedRuleLabel;
@@ -1377,6 +1318,7 @@ public class DesignRulesPanel extends JPanel
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JLabel multiCutNameLabel;
     private javax.swing.JLabel multiCutRuleLabel;
     private javax.swing.JLabel multiCutValueLabel;

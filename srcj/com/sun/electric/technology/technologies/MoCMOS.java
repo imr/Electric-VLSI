@@ -24,7 +24,6 @@
 package com.sun.electric.technology.technologies;
 
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
@@ -36,10 +35,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.technology.*;
-import com.sun.electric.technology.Technology.TechPref;
 
 import java.awt.Color;
 import java.util.Iterator;
@@ -67,8 +64,6 @@ public class MoCMOS extends Technology
             tech = (MoCMOS)obj;
         } catch (Exception e)
         {
-//            e.printStackTrace();
-
             if (Job.getDebug())
                 System.out.println("GNU Release without extra plugins");
             tech = new MoCMOS();
@@ -108,7 +103,6 @@ public class MoCMOS extends Technology
     /** metal 1->6 arc */						protected ArcProto[] metalArcs = new ArcProto[6];
 	/** polysilicon 1/2 arc */					protected ArcProto[] polyArcs = new ArcProto[2];
     /** P/N-active arc */                       protected ArcProto[] activeArcs = new ArcProto[2];
-	/** General active arc */					private ArcProto active_arc;
 
 	// nodes. Storing nodes only whe they are need in outside the constructor
     /** metal-1->6-pin */				        private PrimitiveNode[] metalPinNodes = new PrimitiveNode[6];
@@ -136,7 +130,7 @@ public class MoCMOS extends Technology
 	/** Metal-1 -> Metal-6 Nodes */			    protected PrimitiveNode[] metalNodes = new PrimitiveNode[6];
 
 	// design rule constants
-	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 100;
+//	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 100;
 
 	// -------------------- private and protected methods ------------------------
 
@@ -1292,7 +1286,7 @@ public class MoCMOS extends Technology
 		activeArcs[N_TYPE].setWidthOffset(12.0);
 
 		/** General active arc */
-		active_arc = ArcProto.newInstance(this, "Active", 3.0, new Technology.ArcLayer []
+		ArcProto active_arc = ArcProto.newInstance(this, "Active", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(activeLayers[P_TYPE], 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(activeLayers[N_TYPE], 0, Poly.Type.FILLED)
@@ -2390,66 +2384,11 @@ public class MoCMOS extends Technology
      */
     protected void resizeNodes()
     {
-        Technology.NodeLayer node = metal1PolyContactNodes[0].getLayers()[2]; // Cut
-        node.setPoints(Technology.TechPoint.makeIndented(1.5));
-        metal1PolyContactNodes[0].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-
-        // Active contacts
-        for (int i = 0; i < metalActiveContactNodes.length; i++)
-        {
-            node = metalActiveContactNodes[i].getLayers()[4]; // Cut
-            node.setPoints(Technology.TechPoint.makeIndented(7.5));
-//                node = metalActiveContactNodes[i].getLayers()[3]; // Select
-//                node.setPoints(Technology.TechPoint.makeIndented(4)); // back to Mosis default=4
-            metalActiveContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-        }
-
-        // Well contacts
-        for (int i = 0; i < metalWellContactNodes.length; i++)
-        {
-            node = metalWellContactNodes[i].getLayers()[4]; // Cut
-            node.setPoints(Technology.TechPoint.makeIndented(7.5));
-            metalWellContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-//                node = metalWellContactNodes[i].getLayers()[2]; // Well
-//                node.setPoints(Technology.TechPoint.makeIndented(3));
-        }
-
-        // Via1 -> Via4. Some values depend on original node size
-        double [] indentValues = {1.5, 2, 2, 2.5, 3};
-        double [] cutValues = {1, 1, 2, 1, 2};
-        double [] sizeValues = {2, 2, 2, 2, 3};
-        double [] spaceValues = {3, 3, 3, 3, 4};
-        for (int i = 0; i < 4; i++)
-        {
-            node = metalContactNodes[i].getLayers()[2];
-            node.setPoints(Technology.TechPoint.makeIndented(indentValues[i]));
-            metalContactNodes[i].setSpecialValues(new double [] {sizeValues[i], sizeValues[i], cutValues[i], cutValues[i], spaceValues[i], spaceValues[i]});
-        }
-
-        // Transistors
-        /* Poly -> 3.2 top/bottom extension */
-        for (int i = 0; i < 2; i++)
-        {
-            transistorWellLayers[i].getLeftEdge().setAdder(0); transistorWellLayers[i].getRightEdge().setAdder(0);
-            transistorSelectLayers[i].getLeftEdge().setAdder(4); transistorSelectLayers[i].getRightEdge().setAdder(-4);
-            transistorPolyLayers[i].getLeftEdge().setAdder(4); transistorPolyLayers[i].getRightEdge().setAdder(-4);
-            transistorPolyLLayers[i].getLeftEdge().setAdder(4);
-            transistorPolyRLayers[i].getRightEdge().setAdder(-4);
-            transistorPolyLayers[i].getBottomEdge().setAdder(10); transistorPolyLayers[i].getTopEdge().setAdder(-10);
-            transistorPolyLLayers[i].getBottomEdge().setAdder(10); transistorPolyLLayers[i].getTopEdge().setAdder(-10);
-            transistorPolyRLayers[i].getBottomEdge().setAdder(10); transistorPolyRLayers[i].getTopEdge().setAdder(-10);
-            transistorPolyCLayers[i].getBottomEdge().setAdder(10); transistorPolyCLayers[i].getTopEdge().setAdder(-10);
-            transistorSelectLayers[i].getBottomEdge().setAdder(5); transistorSelectLayers[i].getTopEdge().setAdder(-5);
-            transistorActiveLayers[i].getBottomEdge().setAdder(7); transistorActiveLayers[i].getTopEdge().setAdder(-7);
-            transistorActiveBLayers[i].getBottomEdge().setAdder(7); transistorActiveBLayers[i].getTopEdge().setAdder(10);
-            transistorActiveTLayers[i].getTopEdge().setAdder(-7); transistorActiveTLayers[i].getBottomEdge().setAdder(-10);
-            transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10, 10));
-        }
         //Scalable transistors
         for (int i = 0; i < 2; i++)
         {
             // polysilicon
-            node = scalableTransistorNodes[i].getLayers()[5];
+            Technology.NodeLayer node = scalableTransistorNodes[i].getLayers()[5];
             node.getTopEdge().setAdder(-12); node.getBottomEdge().setAdder(12);
             node.getLeftEdge().setAdder(5); node.getRightEdge().setAdder(-5);
             // select
@@ -2465,12 +2404,7 @@ public class MoCMOS extends Technology
             node.getLeftEdge().setAdder(7.5); node.getRightEdge().setAdder(9.5);
             scalableTransistorNodes[i].setSizeOffset(new SizeOffset(7, 7, 12.1, 12.1));
         }
-        // Channel length 2
-        polyArcs[0].setDefaultWidth(2.0);
-        polyPinNodes[0].setDefSize(2, 2);
-        PrimitivePort polyPort = (PrimitivePort)polyPinNodes[0].getPort(0);
-        polyPort.getLeft().setAdder(1); polyPort.getBottom().setAdder(1);
-        polyPort.getRight().setAdder(-1); polyPort.getTop().setAdder(-1);
+
         // Metal 6 arc width 4. Original value
         metalArcs[5].setDefaultWidth(4);
     }
@@ -2483,9 +2417,6 @@ public class MoCMOS extends Technology
 	 */
 	public void setState()
 	{
-		// set rules
-        cachedRules = getFactoryDesignRules(getSelectedFoundry());
-
 		// disable Metal-3/4/5/6-Pin, Metal-2/3/4/5-Metal-3/4/5/6-Con, Metal-3/4/5/6-Node, Via-2/3/4/5-Node
 		metalPinNodes[2].setNotUsed(true);
 		metalPinNodes[3].setNotUsed(true);
@@ -2562,7 +2493,10 @@ public class MoCMOS extends Technology
 			}
 		}
 
-		// now rewrite the description
+		// set rules
+        cachedRules = getFactoryDesignRules(getSelectedFoundry());
+        
+        // now rewrite the description
 		setTechDesc(describeState());
 	}
 
@@ -2632,7 +2566,7 @@ public class MoCMOS extends Technology
      * @param wnd
      * @param context
      * @param reasonable
-     * @return
+     * @return Array of Poly containing layers representing a Scalable Transistor
      */
     private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow0 wnd, VarContext context, boolean reasonable)
     {
@@ -2667,11 +2601,6 @@ public class MoCMOS extends Technology
 			String extra = var.describe(evalContext, ni);
 			Object o = evalContext.evalVar(var, ni);
 			if (o != null) extra = o.toString();
-// 			try
-// 			{
-// 				Object o = evalContext.evalVarRecurse(var, ni);
-// 				if (o != null) extra = o.toString();
-// 			} catch (VarContext.EvalException e) {}
 			double requestedWid = TextUtils.atof(extra);
 			if (requestedWid > activeWid)
 			{
@@ -2685,7 +2614,8 @@ public class MoCMOS extends Technology
 			}
 		}
 		double actInset = (nodeWid-activeWid) / 2;
-		double polyInset = actInset - cachedRules.getPolyOverhang();
+        double gateOverhang = getTransistorExtension(np, true, cachedRules);
+        double polyInset = actInset - gateOverhang; // cachedRules.getPolyOverhang();
 		double actContInset = 7 + extraInset;
 
 		// contacts must be 5 wide at a minimum
@@ -2810,11 +2740,12 @@ public class MoCMOS extends Technology
 	 * @return the "factory" design rules for this Technology.
 	 * Returns null if there is an error loading the rules.
 	 */
-	public DRCRules getFactoryDesignRules(Foundry foundry)
+	public XMLRules getFactoryDesignRules(Foundry foundry)
 	{
         List<DRCTemplate> theRules = foundry.getRules();
 
-		MOSRules rules = new MOSRules(this);
+//		MOSRules rules = new MOSRules(this);
+        XMLRules rules = new XMLRules(this);
 
         if (foundry == null) foundry = getSelectedFoundry();
 
@@ -2822,15 +2753,14 @@ public class MoCMOS extends Technology
         resizeNodes();
 
 		// load the DRC tables from the explanation table
-		rules.wideLimit = new Double(WIDELIMIT);
+//		rules.wideLimit = new Double(WIDELIMIT);
         int numMetals = getNumMetals();
+        int rulesMode = getRuleSet();
 
 		for(int pass=0; pass<2; pass++)
 		{
-			for(int i=0; i < theRules.size(); i++)
+			for(DRCTemplate rule : theRules)
 			{
-                DRCTemplate rule = theRules.get(i);
-
 				// see if the rule applies
 				if (pass == 0)
 				{
@@ -2844,7 +2774,7 @@ public class MoCMOS extends Technology
                 boolean goodrule = true;
 				if ((when&(DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode())) != 0)
 				{
-					switch (getRuleSet())
+					switch (rulesMode)
 					{
 						case DEEPRULES:  if ((when&DRCTemplate.DRCMode.DE.mode()) == 0) goodrule = false;   break;
 						case SUBMRULES:  if ((when&DRCTemplate.DRCMode.SU.mode()) == 0) goodrule = false;   break;
@@ -2881,69 +2811,11 @@ public class MoCMOS extends Technology
 					if (!isDisallowStackedVias()) continue;
 				}
 
-				// find the layer names
-				Layer lay1 = null;
-				int layert1 = -1;
-				if (rule.name1 != null)
-				{
-					lay1 = findLayer(rule.name1);
-					if (lay1 == null)
-					{
-						System.out.println("Warning: no layer '" + rule.name1 + "' in mocmos technology");
-						return null;
-					}
-					layert1 = lay1.getIndex();
-				}
-				Layer lay2 = null;
-				int layert2 = -1;
-				if (rule.name2 != null)
-				{
-					lay2 = findLayer(rule.name2);
-					if (lay2 == null)
-					{
-						System.out.println("Warning: no layer '" + rule.name2 + "' in mocmos technology");
-						return null;
-					}
-					layert2 = lay2.getIndex();
-				}
-
-				// find the index in a two-layer upper-diagonal table
-				int index = -1;
-				if (layert1 >= 0 && layert2 >= 0)
-				{
-					index = getRuleIndex(layert1, layert2);
-				}
-
-				// find the nodes and arcs associated with the rule
-				PrimitiveNode nty = null;
-				ArcProto aty = null;
-				if (rule.nodeName != null)
-				{
-					if (rule.ruleType == DRCTemplate.DRCRuleType.ASURROUND)
-					{
-						aty = this.findArcProto(rule.nodeName);
-						if (aty == null)
-						{
-							System.out.println("Warning: no arc '" + rule.nodeName + "' in mocmos technology");
-							return null;
-						}
-					} else if (rule.ruleType != DRCTemplate.DRCRuleType.SPACING)
-					{
-						nty = this.findNodeProto(rule.nodeName);
-						if (nty == null)
-						{
-							System.out.println("Warning: no node '" + rule.nodeName + "' in mocmos technology");
-							return null;
-						}
-					}
-				}
-
 				// get more information about the rule
-				double distance = rule.value1;
 				String proc = "";
 				if ((when&(DRCTemplate.DRCMode.DE.mode()|DRCTemplate.DRCMode.SU.mode()|DRCTemplate.DRCMode.SC.mode())) != 0)
 				{
-					switch (getRuleSet())
+					switch (rulesMode)
 					{
 						case DEEPRULES:  proc = "DEEP";   break;
 						case SUBMRULES:  proc = "SUBM";   break;
@@ -2969,115 +2841,120 @@ public class MoCMOS extends Technology
 					ruleName += ", " +  extraString;
 				rule.ruleName = new String(ruleName);
 
-				// set the rule
-				double [] specValues;
-				switch (rule.ruleType)
-				{
-					case MINWID:
-						rules.minWidth[layert1] = new Double(distance);
-						rules.minWidthRules[layert1] = ruleName;
-						setLayerMinWidth(rule.name1, rule.ruleName, distance);
-						break;
-                    case MINAREA:
-						rules.minArea[layert1] = new Double(distance);
-						rules.minAreaRules[layert1] = ruleName;
-						break;
-					case SLOTSIZE:
-						rules.slotSize[layert1] = new Double(distance);
-						rules.slotSizeRules[layert1] = ruleName;
-						break;
-                    case NODSIZ:
-						setDefNodeSize(nty, rule.ruleName, distance, distance, rules);
-						break;
-					case SURROUND:
-						setLayerSurroundLayer(rule.ruleName, nty, lay1, lay2, distance,
-						        rules.minWidth[lay1.getIndex()].doubleValue());
-						break;
-					case ASURROUND:
-						setArcLayerSurroundLayer(aty, lay1, lay2, distance);
-						break;
-					case VIASUR:
-						setLayerSurroundVia(nty, lay1, distance);
-						specValues = nty.getSpecialValues();
-						specValues[2] = distance;
-						specValues[3] = distance;
-						break;
-					case TRAWELL:
-						setTransistorWellSurround(distance);
-						break;
-					case TRAPOLY:
-						setTransistorPolyOverhang(distance);
-                        rules.transPolyOverhang = distance;
-						break;
-					case TRAACTIVE:
-						setTransistorActiveOverhang(distance);
-						break;
-					case SPACING:
-						rules.conList[index] = new Double(distance);
-						rules.unConList[index] = new Double(distance);
-						rules.conListRules[index] = ruleName;
-						rules.unConListRules[index] = ruleName;
-                        rules.conListNodes[index] = rule.nodeName;
-                        rules.unConListNodes[index] = rule.nodeName;
-						break;
-					case SPACINGM:
-						rules.conListMulti[index] = new Double(distance);
-						rules.unConListMulti[index] = new Double(distance);
-						rules.conListMultiRules[index] = ruleName;
-						rules.unConListMultiRules[index] = ruleName;
-						break;
-					case SPACINGW:
-						rules.conListWide[index] = new Double(distance);
-						rules.unConListWide[index] = new Double(distance);
-						rules.conListWideRules[index] = ruleName;
-						rules.unConListWideRules[index] = ruleName;
-						break;
-					case SPACINGE:
-						rules.edgeList[index] = new Double(distance);
-						rules.edgeListRules[index] = ruleName;
-						break;
-					case CONSPA:
-						rules.conList[index] = new Double(distance);
-						rules.conListRules[index] = ruleName;
-                        rules.conListNodes[index] = rule.nodeName;
-						break;
-					case UCONSPA:
-						rules.unConList[index] = new Double(distance);
-						rules.unConListRules[index] = ruleName;
-                        rules.unConListNodes[index] = rule.nodeName;
-						break;
-					case CUTSPA:
-						specValues = nty.getSpecialValues();
-						specValues[4] = distance;
-						break;
-					case CUTSPA2D:
-                        specValues = nty.getSpecialValues();
-						specValues[5] = distance;
-						break;
-					case CUTSIZE:
-						specValues = nty.getSpecialValues();
-						specValues[0] = specValues[1] = distance;
-                        int nodeIndex = nty.getPrimNodeIndexInTech();
-                        rules.cutNodeSize[nodeIndex] = new Double(distance);
-                        rules.cutNodeSizeRules[nodeIndex] = rule.ruleName;
-						break;
-					case CUTSUR:
-						specValues = nty.getSpecialValues();
-						specValues[2] = distance;
-						specValues[3] = distance;
-						break;
-                    default:
-                        System.out.println(rule.ruleName + " is an invalid rule type in " + this);
-				}
+                rules.loadDRCRules(this, foundry, rule);
 			}
 		}
-		rules.calculateNumberOfRules();
+//		rules.calculateNumberOfRules();
 
-        // Resize primitives according to the foundry
-//        resizeNodes();
+        // Resize primitives according to the foundry and existing rules.
+        resizeNodes(rules);
 
 		return rules;
 	}
+
+        /**
+     * Method to replace resizeNodes
+     */
+    private void resizeNodes(XMLRules rules)
+    {
+        for (PrimitiveNode metalContact : metalContactNodes)
+        {
+            Technology.NodeLayer node = metalContact.getLayers()[2]; //cut
+            Technology.NodeLayer m1Node = metalContact.getLayers()[0]; // first metal
+            Technology.NodeLayer m2Node = metalContact.getLayers()[1]; // second metal
+
+            rules.resizeContact(metalContact, node, m2Node);   // cur surround with respect to higher metal
+
+            SizeOffset so = metalContact.getProtoSizeOffset();
+            m1Node.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset()));
+            m2Node.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset()));
+        }
+
+        // Active contacts
+        rules.resizeContactsWithActive(metalActiveContactNodes);
+
+        // Well contacts
+        rules.resizeContactsWithActive(metalWellContactNodes);
+
+        // Poly contact
+        rules.resizeContact(metal1PolyContactNodes[0], metal1PolyContactNodes[0].getLayers()[2],
+                metal1PolyContactNodes[0].getLayers()[1]);
+
+        // Standard transistors
+        DRCTemplate polyWid = null;
+        for (PrimitiveNode primNode : transistorNodes)
+        {
+            // Not very elegant here
+            Technology.NodeLayer activeNode = primNode.getLayers()[0]; // active
+            Technology.NodeLayer activeTNode = primNode.getElectricalLayers()[0]; // active Top or Left
+            Technology.NodeLayer activeBNode = primNode.getElectricalLayers()[1]; // active Bottom or Right
+            Technology.NodeLayer polyNode = primNode.getLayers()[1]; // poly
+            Technology.NodeLayer polyCNode = primNode.getElectricalLayers()[2]; // poly center
+            Technology.NodeLayer polyLNode = primNode.getElectricalLayers()[3]; // poly left or Top
+            Technology.NodeLayer polyRNode = primNode.getElectricalLayers()[4]; // poly right or bottom
+            Technology.NodeLayer wellNode = primNode.getLayers()[2]; // well
+            Technology.NodeLayer selNode = primNode.getLayers()[3]; // select
+
+            // setting well-active actSurround
+            int index = tech.getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
+            DRCTemplate actSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
+            double length = primNode.getDefHeight();
+            if (polyWid == null)
+                polyWid = rules.getRule(polyNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // gate size
+            // active from poly
+            double actOverhang = getTransistorExtension(primNode, false, rules);
+            double lenValMax = DBMath.round(length /2 - (polyWid.value1/2));   // Y if poly gate is horizontal, X if poly is vertical
+            double lenValMin = DBMath.round(lenValMax - actOverhang);
+            // Active layer
+            activeNode.getBottomEdge().setAdder(lenValMin); activeNode.getTopEdge().setAdder(-lenValMin);
+            activeBNode.getBottomEdge().setAdder(lenValMin); activeBNode.getTopEdge().setAdder(lenValMax);
+            activeTNode.getTopEdge().setAdder(-lenValMin); activeTNode.getBottomEdge().setAdder(-lenValMax);
+
+            // poly from active
+            double gateOverhang = getTransistorExtension(primNode, true, rules);
+            double polyExten = actSurround.value1 - gateOverhang;
+
+            polyNode.getBottomEdge().setAdder(lenValMax); polyNode.getTopEdge().setAdder(-lenValMax);
+            polyLNode.getBottomEdge().setAdder(lenValMax); polyLNode.getTopEdge().setAdder(-lenValMax);
+            polyRNode.getBottomEdge().setAdder(lenValMax); polyRNode.getTopEdge().setAdder(-lenValMax);
+            polyCNode.getBottomEdge().setAdder(lenValMax); polyCNode.getTopEdge().setAdder(-lenValMax);
+            polyNode.getLeftEdge().setAdder(polyExten); polyNode.getRightEdge().setAdder(-polyExten);
+            polyNode.getLeftEdge().setAdder(polyExten);
+            polyNode.getRightEdge().setAdder(-polyExten);
+
+            // select
+            index = tech.getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
+            DRCTemplate selSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
+            index = tech.getRuleIndex(polyNode.getLayer().getIndex(), selNode.getLayer().getIndex());
+            DRCTemplate selPolySurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
+            double selExtenOppLen = actSurround.value1 - selPolySurround.value1;
+            double selExtenAlongLen = lenValMin - selSurround.value1;// only valid on active extension (Y axis in 180nm)
+
+            selNode.getLeftEdge().setAdder(selExtenOppLen); selNode.getRightEdge().setAdder(-selExtenOppLen);
+            selNode.getBottomEdge().setAdder(selExtenAlongLen); selNode.getTopEdge().setAdder(-selExtenAlongLen);
+
+            primNode.setSizeOffset(new SizeOffset(actSurround.value1, actSurround.value1,
+                    lenValMax, lenValMax));
+        }
+
+        // poly arcs
+        double width = DBMath.round(polyWid.value1/2);
+        double half = DBMath.round(width/2);
+        polyArcs[0].setDefaultWidth(width);
+        polyPinNodes[0].setDefSize(width, width);
+        PrimitivePort polyPort = polyPinNodes[0].getPort(0);
+        polyPort.getLeft().setAdder(half); polyPort.getBottom().setAdder(half);
+        polyPort.getRight().setAdder(-half); polyPort.getTop().setAdder(-half);
+
+        // resizing all pure layer nodes
+//        for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
+//        {
+//            PrimitiveNode pnp = it.next();
+//            if (pnp.isNotUsed()) continue;
+//            if (pnp.getFunction() != PrimitiveNode.Function.NODE) continue;
+//            rules.getRule(pnp.getElectricalLayers()[0].getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // gate size
+//        }
+    }
 
     /**
 	 * Method to compare a Rules set with the "factory" set and construct an override string.
@@ -3246,7 +3123,7 @@ public class MoCMOS extends Technology
 		int j = 0;
 		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			np.setMinSize(newRules.minNodeSize[j*2].doubleValue(), newRules.minNodeSize[j*2+1].doubleValue(),
 				newRules.minNodeSizeRules[j]);
 			j++;
@@ -3254,186 +3131,89 @@ public class MoCMOS extends Technology
 	}
 
 	/**
-	 * Method to implement rule 3.3 which specifies the amount of poly overhang
-	 * on a transistor.
-	 */
-	private void setTransistorPolyOverhang(double overhang)
-	{
-		// define the poly box in terms of the central transistor box
-		TechPoint [] pPolyPoints = transistorPolyLayers[P_TYPE].getPoints();
-		EdgeH pPolyLeft = pPolyPoints[0].getX();
-		EdgeH pPolyRight = pPolyPoints[1].getX();
-		pPolyLeft.setAdder(6-overhang);
-		pPolyRight.setAdder(-6+overhang);
-		transistorPolyLayers[P_TYPE].setSerpentineExtentT(overhang);
-		transistorPolyLayers[P_TYPE].setSerpentineExtentB(overhang);
-
-		TechPoint [] nPolyPoints = transistorPolyLayers[N_TYPE].getPoints();
-		EdgeH nPolyLeft = nPolyPoints[0].getX();
-		EdgeH nPolyRight = nPolyPoints[1].getX();
-		nPolyLeft.setAdder(6-overhang);
-		nPolyRight.setAdder(-6+overhang);
-		transistorPolyLayers[N_TYPE].setSerpentineExtentT(overhang);
-		transistorPolyLayers[N_TYPE].setSerpentineExtentB(overhang);
-
-		// for the electrical rule versions with split active
-		TechPoint [] pPolyLPoints = transistorPolyLLayers[P_TYPE].getPoints();
-		TechPoint [] pPolyRPoints = transistorPolyRLayers[P_TYPE].getPoints();
-		EdgeH pPolyLLeft = pPolyLPoints[0].getX();
-		EdgeH pPolyRRight = pPolyRPoints[1].getX();
-		pPolyLLeft.setAdder(6-overhang);
-		pPolyRRight.setAdder(-6+overhang);
-		transistorPolyLLayers[P_TYPE].setSerpentineExtentT(overhang);
-		transistorPolyRLayers[P_TYPE].setSerpentineExtentB(overhang);
-
-		TechPoint [] nPolyLPoints = transistorPolyLLayers[N_TYPE].getPoints();
-		TechPoint [] nPolyRPoints = transistorPolyRLayers[N_TYPE].getPoints();
-		EdgeH nPolyLLeft = nPolyLPoints[0].getX();
-		EdgeH nPolyRRight = nPolyRPoints[1].getX();
-		nPolyLLeft.setAdder(6-overhang);
-		nPolyRRight.setAdder(-6+overhang);
-		transistorPolyLLayers[N_TYPE].setSerpentineExtentT(overhang);
-		transistorPolyRLayers[N_TYPE].setSerpentineExtentB(overhang);
-	}
-
-	/**
 	 * Method to implement rule 3.4 which specifies the amount of active overhang
 	 * on a transistor.
 	 */
-	private void setTransistorActiveOverhang(double overhang)
-	{
-		TechPoint [] pActivePoints = transistorActiveLayers[P_TYPE].getPoints();
-		TechPoint [] nActivePoints = transistorActiveLayers[N_TYPE].getPoints();
-		TechPoint [] pActiveTPoints = transistorActiveTLayers[P_TYPE].getPoints();
-		TechPoint [] nActiveTPoints = transistorActiveTLayers[N_TYPE].getPoints();
-		TechPoint [] pActiveBPoints = transistorActiveBLayers[P_TYPE].getPoints();
-		TechPoint [] nActiveBPoints = transistorActiveBLayers[N_TYPE].getPoints();
-		TechPoint [] pWellPoints = transistorWellLayers[P_TYPE].getPoints();
-		TechPoint [] nWellPoints = transistorWellLayers[N_TYPE].getPoints();
-		TechPoint [] pSelectPoints = transistorSelectLayers[P_TYPE].getPoints();
-		TechPoint [] nSelectPoints = transistorSelectLayers[N_TYPE].getPoints();
-
-		// pickup extension of well about active (2.3)
-		EdgeH pActiveLeft = pActivePoints[0].getX();
-		EdgeH pWellLeft = pWellPoints[0].getX();
-		double wellOverhang = pActiveLeft.getAdder() - pWellLeft.getAdder();
-
-		// define the active box in terms of the central transistor box
-		EdgeV pActiveBottom = pActivePoints[0].getY();
-		EdgeV pActiveTop = pActivePoints[1].getY();
-		pActiveBottom.setAdder(10-overhang);
-		pActiveTop.setAdder(-10+overhang);
-		EdgeV nActiveBottom = nActivePoints[0].getY();
-		EdgeV nActiveTop = nActivePoints[1].getY();
-		nActiveBottom.setAdder(10-overhang);
-		nActiveTop.setAdder(-10+overhang);
-
-		// for the electrical rule versions with split active
-		EdgeV pActiveBBottom = pActiveBPoints[0].getY();
-		EdgeV pActiveTTop = pActiveTPoints[1].getY();
-		pActiveBBottom.setAdder(10-overhang);
-		pActiveTTop.setAdder(-10+overhang);
-		EdgeV nActiveBBottom = nActiveBPoints[0].getY();
-		EdgeV nActiveTTop = nActiveTPoints[1].getY();
-		nActiveBBottom.setAdder(10-overhang);
-		nActiveTTop.setAdder(-10+overhang);
-
-		// extension of select about active = 2 (4.2)
-		EdgeV pSelectBottom = pSelectPoints[0].getY();
-		EdgeV pSelectTop = pSelectPoints[1].getY();
-		pSelectBottom.setAdder(pActiveBottom.getAdder()-2);
-		pSelectTop.setAdder(pActiveTop.getAdder()+2);
-		EdgeV nSelectBottom = nSelectPoints[0].getY();
-		EdgeV nSelectTop = nSelectPoints[1].getY();
-		nSelectBottom.setAdder(nActiveBottom.getAdder()-2);
-		nSelectTop.setAdder(nActiveTop.getAdder()+2);
-
-		// extension of well about active (2.3)
-		EdgeV pWellBottom = pWellPoints[0].getY();
-		EdgeV pWellTop = pWellPoints[1].getY();
-		pWellBottom.setAdder(pActiveBottom.getAdder()-wellOverhang);
-		pWellTop.setAdder(pActiveTop.getAdder()+wellOverhang);
-		EdgeV nWellBottom = nWellPoints[0].getY();
-		EdgeV nWellTop = nWellPoints[1].getY();
-		nWellBottom.setAdder(nActiveBottom.getAdder()-wellOverhang);
-		nWellTop.setAdder(nActiveTop.getAdder()+wellOverhang);
-
-		// the serpentine active overhang
-		SizeOffset so = transistorNodes[P_TYPE].getProtoSizeOffset();
-		double halfPolyWidth = (transistorNodes[P_TYPE].getDefHeight() - so.getHighYOffset() - so.getLowYOffset()) / 2;
-		transistorActiveLayers[P_TYPE].setSerpentineLWidth(halfPolyWidth+overhang);
-		transistorActiveLayers[P_TYPE].setSerpentineRWidth(halfPolyWidth+overhang);
-		transistorActiveTLayers[P_TYPE].setSerpentineRWidth(halfPolyWidth+overhang);
-		transistorActiveBLayers[P_TYPE].setSerpentineLWidth(halfPolyWidth+overhang);
-		transistorActiveLayers[N_TYPE].setSerpentineLWidth(halfPolyWidth+overhang);
-		transistorActiveLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang);
-		transistorActiveTLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang);
-		transistorActiveBLayers[N_TYPE].setSerpentineLWidth(halfPolyWidth+overhang);
-
-		transistorSelectLayers[P_TYPE].setSerpentineLWidth(halfPolyWidth+overhang+2);
-		transistorSelectLayers[P_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+2);
-		transistorSelectLayers[N_TYPE].setSerpentineLWidth(halfPolyWidth+overhang+2);
-		transistorSelectLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+2);
-
-		transistorWellLayers[P_TYPE].setSerpentineLWidth(halfPolyWidth+overhang+wellOverhang);
-		transistorWellLayers[P_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+wellOverhang);
-		transistorWellLayers[N_TYPE].setSerpentineLWidth(halfPolyWidth+overhang+wellOverhang);
-		transistorWellLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+wellOverhang);
-	}
-
-	/**
-	 * Method to implement rule 2.3 which specifies the amount of well surround
-	 * about active on a transistor.
-	 */
-	private void setTransistorWellSurround(double overhang)
-	{
-		// define the well box in terms of the active box
-		TechPoint [] pActivePoints = transistorActiveLayers[P_TYPE].getPoints();
-		TechPoint [] nActivePoints = transistorActiveLayers[N_TYPE].getPoints();
-		TechPoint [] pWellPoints = transistorWellLayers[P_TYPE].getPoints();
-		TechPoint [] nWellPoints = transistorWellLayers[N_TYPE].getPoints();
-
-		EdgeH pWellLeft = pWellPoints[0].getX();
-		EdgeH pWellRight = pWellPoints[1].getX();
-		EdgeV pWellBottom = pWellPoints[0].getY();
-		EdgeV pWellTop = pWellPoints[1].getY();
-
-		EdgeH pActiveLeft = pActivePoints[0].getX();
-		EdgeH pActiveRight = pActivePoints[1].getX();
-		EdgeV pActiveBottom = pActivePoints[0].getY();
-		EdgeV pActiveTop = pActivePoints[1].getY();
-
-		EdgeH nWellLeft = nWellPoints[0].getX();
-		EdgeH nWellRight = nWellPoints[1].getX();
-		EdgeV nWellBottom = nWellPoints[0].getY();
-		EdgeV nWellTop = nWellPoints[1].getY();
-
-		EdgeH nActiveLeft = nActivePoints[0].getX();
-		EdgeH nActiveRight = nActivePoints[1].getX();
-		EdgeV nActiveBottom = nActivePoints[0].getY();
-		EdgeV nActiveTop = nActivePoints[1].getY();
-
-		pWellLeft.setAdder(pActiveLeft.getAdder()-overhang);
-		pWellRight.setAdder(pActiveRight.getAdder()+overhang);
-		pWellBottom.setAdder(pActiveBottom.getAdder()-overhang);
-		pWellTop.setAdder(pActiveTop.getAdder()+overhang);
-
-		nWellLeft.setAdder(nActiveLeft.getAdder()-overhang);
-		nWellRight.setAdder(nActiveRight.getAdder()+overhang);
-		nWellBottom.setAdder(nActiveBottom.getAdder()-overhang);
-		nWellTop.setAdder(nActiveTop.getAdder()+overhang);
-
-		// the serpentine poly overhang
-		transistorWellLayers[P_TYPE].setSerpentineLWidth(overhang+4);
-		transistorWellLayers[P_TYPE].setSerpentineRWidth(overhang+4);
-		transistorWellLayers[N_TYPE].setSerpentineLWidth(overhang+4);
-		transistorWellLayers[N_TYPE].setSerpentineRWidth(overhang+4);
-
-		transistorWellLayers[P_TYPE].setSerpentineExtentT(overhang);
-		transistorWellLayers[P_TYPE].setSerpentineExtentB(overhang);
-		transistorWellLayers[N_TYPE].setSerpentineExtentT(overhang);
-		transistorWellLayers[N_TYPE].setSerpentineExtentB(overhang);
-	}
+//	private void setTransistorActiveOverhang(double overhang)
+//	{
+//		TechPoint [] pActivePoints = transistorActiveLayers[P_TYPE].getPoints();
+//		TechPoint [] nActivePoints = transistorActiveLayers[N_TYPE].getPoints();
+//		TechPoint [] pActiveTPoints = transistorActiveTLayers[P_TYPE].getPoints();
+//		TechPoint [] nActiveTPoints = transistorActiveTLayers[N_TYPE].getPoints();
+//		TechPoint [] pActiveBPoints = transistorActiveBLayers[P_TYPE].getPoints();
+//		TechPoint [] nActiveBPoints = transistorActiveBLayers[N_TYPE].getPoints();
+//		TechPoint [] pWellPoints = transistorWellLayers[P_TYPE].getPoints();
+//		TechPoint [] nWellPoints = transistorWellLayers[N_TYPE].getPoints();
+//		TechPoint [] pSelectPoints = transistorSelectLayers[P_TYPE].getPoints();
+//		TechPoint [] nSelectPoints = transistorSelectLayers[N_TYPE].getPoints();
+//
+//		// pickup extension of well about active (2.3)
+//		EdgeH pActiveLeft = pActivePoints[0].getX();
+//		EdgeH pWellLeft = pWellPoints[0].getX();
+//		double wellOverhang = pActiveLeft.getAdder() - pWellLeft.getAdder();
+//
+//		// define the active box in terms of the central transistor box
+//		EdgeV pActiveBottom = pActivePoints[0].getY();
+//		EdgeV pActiveTop = pActivePoints[1].getY();
+//		pActiveBottom.setAdder(10-overhang);
+//		pActiveTop.setAdder(-10+overhang);
+//		EdgeV nActiveBottom = nActivePoints[0].getY();
+//		EdgeV nActiveTop = nActivePoints[1].getY();
+//		nActiveBottom.setAdder(10-overhang);
+//		nActiveTop.setAdder(-10+overhang);
+//
+//		// for the electrical rule versions with split active
+//		EdgeV pActiveBBottom = pActiveBPoints[0].getY();
+//		EdgeV pActiveTTop = pActiveTPoints[1].getY();
+//		pActiveBBottom.setAdder(10-overhang);
+//		pActiveTTop.setAdder(-10+overhang);
+//		EdgeV nActiveBBottom = nActiveBPoints[0].getY();
+//		EdgeV nActiveTTop = nActiveTPoints[1].getY();
+//		nActiveBBottom.setAdder(10-overhang);
+//		nActiveTTop.setAdder(-10+overhang);
+//
+//		// extension of select about active = 2 (4.2)
+//		EdgeV pSelectBottom = pSelectPoints[0].getY();
+//		EdgeV pSelectTop = pSelectPoints[1].getY();
+//		pSelectBottom.setAdder(pActiveBottom.getAdder()-2);
+//		pSelectTop.setAdder(pActiveTop.getAdder()+2);
+//		EdgeV nSelectBottom = nSelectPoints[0].getY();
+//		EdgeV nSelectTop = nSelectPoints[1].getY();
+//		nSelectBottom.setAdder(nActiveBottom.getAdder()-2);
+//		nSelectTop.setAdder(nActiveTop.getAdder()+2);
+//
+//		// extension of well about active (2.3)
+//		EdgeV pWellBottom = pWellPoints[0].getY();
+//		EdgeV pWellTop = pWellPoints[1].getY();
+//		pWellBottom.setAdder(pActiveBottom.getAdder()-wellOverhang);
+//		pWellTop.setAdder(pActiveTop.getAdder()+wellOverhang);
+//		EdgeV nWellBottom = nWellPoints[0].getY();
+//		EdgeV nWellTop = nWellPoints[1].getY();
+//		nWellBottom.setAdder(nActiveBottom.getAdder()-wellOverhang);
+//		nWellTop.setAdder(nActiveTop.getAdder()+wellOverhang);
+//
+//		// the serpentine active overhang
+//		SizeOffset so = transistorNodes[P_TYPE].getProtoSizeOffset();
+//		double halfPolyWidth = (transistorNodes[P_TYPE].getDefHeight() - so.getHighYOffset() - so.getLowYOffset()) / 2;
+//		transistorActiveLayers[P_TYPE].setSerpentineLWidth(halfPolyWidth+overhang);
+//		transistorActiveLayers[P_TYPE].setSerpentineRWidth(halfPolyWidth+overhang);
+//		transistorActiveTLayers[P_TYPE].setSerpentineRWidth(halfPolyWidth+overhang);
+//		transistorActiveBLayers[P_TYPE].setSerpentineLWidth(halfPolyWidth+overhang);
+//		transistorActiveLayers[N_TYPE].setSerpentineLWidth(halfPolyWidth+overhang);
+//		transistorActiveLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang);
+//		transistorActiveTLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang);
+//		transistorActiveBLayers[N_TYPE].setSerpentineLWidth(halfPolyWidth+overhang);
+//
+//		transistorSelectLayers[P_TYPE].setSerpentineLWidth(halfPolyWidth+overhang+2);
+//		transistorSelectLayers[P_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+2);
+//		transistorSelectLayers[N_TYPE].setSerpentineLWidth(halfPolyWidth+overhang+2);
+//		transistorSelectLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+2);
+//
+//		transistorWellLayers[P_TYPE].setSerpentineLWidth(halfPolyWidth+overhang+wellOverhang);
+//		transistorWellLayers[P_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+wellOverhang);
+//		transistorWellLayers[N_TYPE].setSerpentineLWidth(halfPolyWidth+overhang+wellOverhang);
+//		transistorWellLayers[N_TYPE].setSerpentineRWidth(halfPolyWidth+overhang+wellOverhang);
+//	}
 
     /******************** OVERRIDES ********************/
 
@@ -3487,7 +3267,17 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules (the default)<BR>
 	 * 2: Deep rules
 	 */
-	public static int getRuleSet() { return tech.getProjectSettings().getInteger("MOCMOS Rule Set"); }
+	public static int getRuleSet() { return cacheRuleSet.getInt(); }
+    private static DRCTemplate.DRCMode getRuleMode()
+    {
+        switch (getRuleSet())
+        {
+            case DEEPRULES: return DRCTemplate.DRCMode.DE;
+            case SUBMRULES: return DRCTemplate.DRCMode.SU;
+            case SCMOSRULES: return DRCTemplate.DRCMode.SC;
+        }
+        return null;
+    }
 	/**
 	 * Method to set the rule set for this Technology.
 	 * @param set the new rule set for this Technology:<BR>
@@ -3632,95 +3422,32 @@ public class MoCMOS extends Technology
         }
     }
 
-/******************** NODE DESCRIPTION (GRAPHICAL) ********************/
-
     /**
-	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
-	 * in node "nty" to "surround".  The array "minsize" is the minimum size of each layer.
-	 */
-	private void setLayerSurroundLayer(String ruleName, PrimitiveNode nty, Layer outerLayer, Layer innerLayer,
-	                                   double surround, double minSizeValue)
-	{
-		// find the inner layer
-		Technology.NodeLayer inLayer = nty.findNodeLayer(innerLayer, false);
-		if (inLayer == null)
-		{
-			System.out.println("Internal error in " + getTechDesc() + " surround computation. Layer '" +
-                    innerLayer.getName() + "' is not valid in '" + nty.getName() + "'");
-			return;
-		}
+     * Method to calculate extension of the poly gate from active layer or of the active from the poly gate.
+     * @param primNode
+     * @param poly true to calculate the poly extension
+     * @param rules
+     * @return value of the extension
+     */
+    private double getTransistorExtension(PrimitiveNode primNode, boolean poly, XMLRules rules)
+    {
+        if (!primNode.getFunction().isTransistor()) return 0.0;
 
-		// find the outer layer
-		Technology.NodeLayer outLayer = nty.findNodeLayer(outerLayer, false);
-		if (outLayer == null)
-		{
-            System.out.println("Internal error in " + getTechDesc() + " surround computation. Layer '" +
-                    outerLayer.getName() + "' is not valid in '" + nty.getName() + "'");
-			return;
-		}
+        Technology.NodeLayer activeNode = primNode.getLayers()[0]; // active
+        Technology.NodeLayer polyCNode = null;
 
-		// determine if minimum size design rules are met
-		TechPoint [] inPoints = inLayer.getPoints();
-		EdgeH inLeft = inPoints[0].getX();
-		EdgeH inRight = inPoints[1].getX();
-		EdgeV inBottom = inPoints[0].getY();
-		EdgeV inTop = inPoints[1].getY();
-		double leftIndent = inLeft.getAdder() - surround;
-		double rightIndent = inRight.getAdder() + surround;
-		double bottomIndent = inBottom.getAdder() - surround;
-		double topIndent = inTop.getAdder() + surround;
-		double xSize = nty.getDefWidth() - leftIndent - rightIndent;
-		double ySize = nty.getDefHeight() - bottomIndent - topIndent;
-		//int outerLayerIndex = outerLayer.getIndex();
-		//double minSizeValue = minSize[outerLayerIndex].doubleValue();
-        //double minSizeValue = minSize[outerLayerIndex].doubleValue();
-		if (xSize < minSizeValue || ySize < minSizeValue)
-		{
-			// make it irregular to force the proper minimum size
-			if (xSize < minSizeValue) rightIndent -= minSizeValue - xSize;
-			if (ySize < minSizeValue) topIndent -= minSizeValue - ySize;
-		}
-
-		TechPoint [] outPoints = outLayer.getPoints();
-		EdgeH outLeft = outPoints[0].getX();
-		EdgeH outRight = outPoints[1].getX();
-		EdgeV outBottom = outPoints[0].getY();
-		EdgeV outTop = outPoints[1].getY();
-		boolean hasChanged = false;
-		// describe the error
-		String errorMessage = "Layer surround error of outer layer '" + outerLayer.getName()
-		        + "' and inner layer '" + innerLayer.getName() + "'in '" + nty.getName() + "'('" +getTechDesc() + "'):";
-
-        leftIndent = DBMath.round(leftIndent);
-        rightIndent = DBMath.round(rightIndent);
-        topIndent = DBMath.round(topIndent);
-        bottomIndent = DBMath.round(bottomIndent);
-		if (!DBMath.areEquals(outLeft.getAdder(), leftIndent))
-		{
-			outLeft.setAdder(leftIndent);
-			hasChanged = true;
-			errorMessage += " left=" + leftIndent;
-		}
-		if (!DBMath.areEquals(outRight.getAdder(), rightIndent))
-		{
-			outRight.setAdder(rightIndent);
-			hasChanged = true;
-			errorMessage += " right=" + rightIndent;
-		}
-		if (!DBMath.areEquals(outTop.getAdder(), topIndent))
-		{
-			outTop.setAdder(topIndent);
-			hasChanged = true;
-			errorMessage += " top=" + topIndent;
-		}
-		if (!DBMath.areEquals(outBottom.getAdder(), bottomIndent))
-		{
-			outBottom.setAdder(bottomIndent);
-			hasChanged = true;
-			errorMessage += " bottom=" + bottomIndent;
-		}
-        errorMessage += "(rule " + ruleName + ")";
-        // Message printed only if developer turns local flag on
-		if (hasChanged && Job.LOCALDEBUGFLAG) System.out.println(errorMessage);
-	}
+        if (primNode == scalableTransistorNodes[P_TYPE] || primNode == scalableTransistorNodes[N_TYPE])
+        {
+            polyCNode = primNode.getLayers()[5]; // poly center
+        }
+        else
+        {
+            // Standard transistors
+            polyCNode = primNode.getElectricalLayers()[2]; // poly center
+        }
+        DRCTemplate overhang = (poly) ?
+                rules.getExtensionRule(tech, polyCNode.getLayer(), activeNode.getLayer(), false) :
+                rules.getExtensionRule(tech, activeNode.getLayer(), polyCNode.getLayer(), false);
+        return (overhang != null ? overhang.value1 : 0.0);
+    }
 }

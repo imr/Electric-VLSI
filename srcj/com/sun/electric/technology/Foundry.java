@@ -30,43 +30,59 @@ public class Foundry {
         this.type = mode;
     }
     public Type getType() { return type; }
-    /**
-     * Method to search rule names per node names.
-     * @param ruleName
-     * @param type
-     * @param mode
-     * @return
-     */
-    public DRCTemplate getRuleForNode(String ruleName, DRCTemplate.DRCRuleType type, int mode)
-    {
-        for (DRCTemplate tmp : rules)
-        {
-            if (tmp.ruleType == type)
-                if ((tmp.when == DRCTemplate.DRCMode.ALL.mode() || (tmp.when&mode) == mode) && tmp.nodeName.equals(ruleName))
-                return tmp;
-        }
-        return null;
-    }
-    /**
-     * Method to search rule names per layer names. If second layer is null, then it searches the rule for a particular layer.
-     * @param layer1Name
-     * @param layer2Name
-     * @param type
-     * @param mode
-     * @return
-     */
-    public DRCTemplate getRuleForLayers(String layer1Name, String layer2Name, DRCTemplate.DRCRuleType type, int mode)
-    {
-        for (DRCTemplate tmp : rules)
-        {
-            if (tmp.ruleType == type && (tmp.when == DRCTemplate.DRCMode.ALL.mode() || (tmp.when&mode) == mode))
-            {
-                if (tmp.name1.equals(layer1Name) && (layer2Name == null || tmp.name2.equals(layer2Name)))
-                return tmp;
-            }
-        }
-        return null;
-    }
+//    /**
+//     * Method to search rule names per node names.
+//     * @param ruleName
+//     * @param type
+//     * @param modes
+//     * @return
+//     */
+//    public DRCTemplate getRuleForNode(String ruleName, DRCTemplate.DRCRuleType type, int[] modes)
+//    {
+//        for (DRCTemplate tmp : rules)
+//        {
+//            if (tmp.ruleType == type && tmp.nodeName.equals(ruleName))
+//            {
+//                for (int i = 0; i < modes.length; i++)
+//                {
+//                    int mode = modes[i];
+//                    if (tmp.when == DRCTemplate.DRCMode.ALL.mode() || tmp.when == mode || (tmp.when&mode) == mode)
+//                        return tmp;
+//                }
+////                if ((tmp.when == DRCTemplate.DRCMode.ALL.mode() || (tmp.when&mode) == mode) && tmp.nodeName.equals(ruleName))
+//            }
+//        }
+//        return null;
+//    }
+//    /**
+//     * Method to search rule names per layer names. If second layer is null, then it searches the rule for a particular layer.
+//     * @param layer1Name
+//     * @param layer2Name
+//     * @param type
+//     * @param modes
+//     * @return
+//     */
+//    public DRCTemplate getRuleForLayers(String layer1Name, String layer2Name, DRCTemplate.DRCRuleType type, int[] modes)
+//    {
+//        for (DRCTemplate tmp : rules)
+//        {
+//            if (tmp.ruleType == type && (tmp.name1.equals(layer1Name) && (layer2Name == null || tmp.name2.equals(layer2Name))))
+//            {
+//                for (int i = 0; i < modes.length; i++)
+//                {
+//                    int mode = modes[i];
+//                    if (tmp.when == DRCTemplate.DRCMode.ALL.mode() || tmp.when == mode || (tmp.when&mode) == mode)
+//                        return tmp;
+//                }
+//            }
+////            if (tmp.ruleType == type && (tmp.when == DRCTemplate.DRCMode.ALL.mode() || (tmp.when&mode) == mode))
+////            {
+////                if (tmp.name1.equals(layer1Name) && (layer2Name == null || tmp.name2.equals(layer2Name)))
+////                return tmp;
+////            }
+//        }
+//        return null;
+//    }
     public List<DRCTemplate> getRules() { return rules; }
     public void setRules(List<DRCTemplate> list) { rules = list; }
     public String toString() { return type.name(); }
