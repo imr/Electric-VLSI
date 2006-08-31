@@ -982,7 +982,7 @@ public class XMLRules implements DRCRules {
         contact.setSpecialValues(new double [] {cutSize.value1, cutSize.value1,
                                                 cutSur.value1, cutSur.value1,
                                                 spacing1D.value1, spacing2D.value1});
-        contact.setMinSize(minNode.value1, minNode.value1, minNode.ruleName);
+//        contact.setMinSize(minNode.value1, minNode.value1, minNode.ruleName);
     }
 
     /**
