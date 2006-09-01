@@ -307,7 +307,7 @@ public class ProjectSettingsFrame extends EDialog
 
     private void helpActionPerformed()
 	{
-		ManualViewer.showPreferenceHelp(currentTabName);
+		ManualViewer.showProjectSettingHelp(currentTabName);
 		closeDialog(null);
 	}
 

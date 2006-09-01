@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (8/31/06, SMR) Attributes dialog no longer shows "ATTR_" prefix.
+
 IMP/MAN: (8/31/06, GVG) Refactoring of DRC decks. Old MOSRules decomissioned and TSMCRules class became
 the global under the name XMLRules. 180nm primitives are consistent resized according to rules
 provided. Similar work is being done for 90nm primitives.

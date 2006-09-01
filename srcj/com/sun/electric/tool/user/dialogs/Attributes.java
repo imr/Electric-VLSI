@@ -84,6 +84,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
     private String initialName;
     private String initialValue;
+	private boolean showAttrsOnly = !Job.getDebug();
 
     private TextAttributesPanel attrPanel;
     private TextInfoPanel textPanel;
@@ -142,29 +143,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             loadAttributesInfo(true);
 		}
     }
-//     /**
-//      * Reload if the database has changed in a way we care about
-//      * @param batch a batch of changes
-//      */
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         if (!isVisible()) return;
-
-//         boolean reload = false;
-//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-//             Undo.Change change = it.next();
-//             ElectricObject obj = change.getObject();
-//             if (obj == selectedObject) {
-//                 reload = true;
-//                 break;
-//             }
-//         }
-//         if (reload) {
-//             // update dialog
-//             loadAttributesInfo(true);
-//         }
-//     }
-//     public void databaseChanged(Undo.Change change) {}
-//     public boolean isGUIListener() { return true; }
 
     /**
      * Creates new form Attributes.
@@ -181,7 +159,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         listModel = new DefaultListModel();
         list = new JList(listModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        cellRenderer = new VariableCellRenderer(!Job.getDebug());
+        cellRenderer = new VariableCellRenderer();
         list.setCellRenderer(cellRenderer);
         listPane.setViewportView(list);
         list.addMouseListener(new MouseAdapter()
@@ -271,15 +249,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             initialValue = varValue;
         }
 	}
-
-    /**
-     * Set whether Attributes dialog shows attributes only
-     * or all variables. Showing all variables is useful for debug.
-     * @param b true to show attributes only (default), false to show everything.
-     */
-    public void setShowAttrOnly(boolean b) {
-        cellRenderer.setShowAttrOnly(b);
-    }
 
     /**
      * Method called when the user clicks on one of the top radio buttons.
@@ -422,10 +391,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         name.setEditable(true);
         value.setEditable(true);
-        //deleteButton.setEnabled(true);
-        //updateButton.setEnabled(true);
-        //renameButton.setEnabled(true);
-        //newButton.setEnabled(true);
 
         // show all attributes on the selected object
         updateList();
@@ -450,7 +415,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             return;
         }
 
-        if (cellRenderer.getShowAttrOnly())
+        if (showAttrsOnly)
             varName = "ATTR_" + varName;
 
         // try to find variable
@@ -460,7 +425,6 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             // make sure var is selected
             if (varKey != null)
             list.setSelectedValue(varKey, true);
-//            showSelectedAttribute(varKey);
         } else {
             // no such var, remove selection and enable new buttons
             newButton.setEnabled(true);
@@ -485,7 +449,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         {
             Variable var = it.next();
             String varName = var.getKey().getName();
-            if (cellRenderer.getShowAttrOnly()) {
+            if (showAttrsOnly) {
                 // if only showing Attributes, only add if it is an attribute
                 if (varName.startsWith("ATTR_")) {
                     listModel.addElement(var.getKey());
@@ -543,7 +507,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         // set the Name field
 		boolean oldLoading = loading;
 		loading = true;
-        initialName = cellRenderer.getVariableText(var);
+        initialName = getVariableText(var.getKey());
         String pt = initialName;
         name.setText(pt);
 
@@ -659,13 +623,13 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         public boolean doIt() throws JobException
         {
             Variable var = owner.renameVar(varName, newVarName);
-            if (var == null) {
+            if (var == null)
+            {
                 System.out.println("Rename of variable failed");
                 return false;
             }
             return true;
         }
-
     }
 
     /**
@@ -699,76 +663,60 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 				throw new JobException("Error updating Attribute " + varKey);
             return true;
         }
-
-//        public void terminateOK()
-//        {
-//            // queue it for redraw
-//        	Undo.redrawObject(owner);
-//        }
     }
 
-    /**
-     * Used to display Variables in the JList
-     */
-    private static class VariableCellRenderer extends JLabel implements ListCellRenderer {
+	/**
+	 * Used to display Variables in the JList
+	 */
+	private class VariableCellRenderer extends JLabel implements ListCellRenderer {
 
-        private boolean showAttrOnly;
+		private VariableCellRenderer() { }
 
-        private VariableCellRenderer(boolean showAttrOnly) {
-            this.showAttrOnly = showAttrOnly;
-        }
+		public Component getListCellRendererComponent(JList list, Object value, int index,
+			boolean isSelected, boolean cellHasFocus)
+		{
+			if (value instanceof Variable.Key)
+			{
+				setText(getVariableText((Variable.Key)value));
+			} else if (value instanceof Variable)
+			{
+				setText(getVariableText(((Variable)value).getKey()));
+			} else
+			{
+				setText(value.toString());
+			}
 
-        private void setShowAttrOnly(boolean b) { showAttrOnly = b; }
+			if (isSelected) {
+				setBackground(list.getSelectionBackground());
+				setForeground(list.getSelectionForeground());
+			} else {
+				setBackground(list.getBackground());
+				setForeground(list.getForeground());
+			}
+			setEnabled(list.isEnabled());
+			setFont(list.getFont());
+			setOpaque(true);
+			return this;
+		}
+	}
 
-        private boolean getShowAttrOnly() { return showAttrOnly; }
+	private String getVariableText(Variable.Key varKey)
+	{
+		String varName = varKey.getName();
 
-        private String getVariableText(Variable var) {
-            String varName = var.getKey().getName();
+		// two modes: show attributes only, and show everything
+		if (showAttrsOnly)
+		{
+			if (varName.startsWith("ATTR_"))
+				return varName.substring(5);
+		}
 
-            // two modes: show attributes only, and show everything
-            if (showAttrOnly) {
-                if (varName.startsWith("ATTR_")) {
-                    return varName.substring(5);
-                }
-            }
-            // else this is not an attribute
-            // see if any cell, node, or arc variables are available to the user
-            String betterName = Variable.betterVariableName(varName);
-            if (betterName != null)
-                return betterName;
-            else
-                return varName;
-        }
-
-        public Component getListCellRendererComponent(
-                JList list,
-                Object value,
-                int index,
-                boolean isSelected,
-                boolean cellHasFocus) {
-
-            if (!(value instanceof Variable)) {
-                // this is not a variable
-                setText(value.toString());
-            } else {
-                // this is a variable
-                Variable var = (Variable)value;
-                setText(getVariableText(var));
-            }
-
-            if (isSelected) {
-                setBackground(list.getSelectionBackground());
-                setForeground(list.getSelectionForeground());
-            } else {
-                setBackground(list.getBackground());
-                setForeground(list.getForeground());
-            }
-            setEnabled(list.isEnabled());
-            setFont(list.getFont());
-            setOpaque(true);
-            return this;
-        }
-    }
+		// else this is not an attribute
+		// see if any cell, node, or arc variables are available to the user
+		String betterName = Variable.betterVariableName(varName);
+		if (betterName != null) return betterName;
+		return varName;
+	}
 
     /** This method is called from within the constructor to
      * initialize the form.
@@ -1077,7 +1025,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         // if same name, ignore
         if (newName.equals(name.getText())) return;
 
-        if (cellRenderer.getShowAttrOnly())
+        if (showAttrsOnly)
             newName = "ATTR_" + newName;
 
         // check if variable name already exists
@@ -1090,7 +1038,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         RenameAttribute job = new RenameAttribute(getSelectedVariable().getKey().getName(), newName, selectedObject);
 
-        if (cellRenderer.getShowAttrOnly())
+        if (showAttrsOnly)
             newName = newName.substring(5);
 
         // set current name to renamed name
@@ -1117,7 +1065,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
                     "Invalid Input", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if (cellRenderer.getShowAttrOnly())
+        if (showAttrsOnly)
             varName = "ATTR_" + varName;
 
         // check if var of this name already exists on object
@@ -1132,9 +1080,11 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // Spawn a Job to create the Variable
         new CreateAttribute(varName, getVariableObject(val), selectedObject);
+
         // Spawn a Job to set the new Variable's text options
         // because the var has not been created yet, set the futureVarName for the panel
         textPanel.applyChanges(true);
+
         // same for text attributes panel
         attrPanel.applyChanges();
 
