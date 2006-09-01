@@ -15,16 +15,16 @@
 <!-- COMMAND File/Export/PNG (Portable Network Graphics)... -->
 <!-- COMMAND File/Export/ELIB (Version 6)... -->
 <!-- PREFERENCE I/O/Library -->
-<!-- PREFERENCE I/O/Copyright -->
+<!-- PROJECTSETTING Netlists -->
 
 Writing libraries to disk is done with the <B>Save Library</B> command (in menu <B>File</B>).
 <P>
-<TABLE><TR><TD>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-24.png" ALT="Figure 3.24"></CENTER></TD><TD>
 The <B>Save All Libraries</B> command writes all libraries that have changed.
 You can also use the save-libraries icon from the tool bar.
 To force all libraries to be saved, use the <B>Mark All Libraries for Saving</B> command,
 or use <B>Save All Libraries in Format</B> to specify how they are to be saved.
-</TD><TD><CENTER><IMG SRC="fig03-24.png" ALT="Figure 3.24"></CENTER></TD></TR></TABLE>
+</TD></TR></TABLE>
 <P>
 If a library was read from disk, it is written back to the same file.
 If, however, you wish to write the library to a new file
@@ -106,10 +106,15 @@ These files can be read by version 6 of Electric.
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-13.png" ALT="Figure 3.13"></CENTER></TD><TD VALIGN=TOP>
 The exported files from Electric are often considered to be proprietary information, and must be marked appropriately.
 Copyright information can be inserted into exported files with the
-"Copyright" preferences (in menu <B>File / Preferences...</B>, "General" section, "Copyright" tab).
+Copyright Project Settings (in menu <B>File / Project Settings...</B>, "Netlists" tab).
 Since each export file has a different format for comments, the copyright text should not contain any such characters.
 Instead, the system will insert the proper comment characters for the particular export format.
+<P>
+Most netlisters insert date and version information in the comments at the head of the generated file.
+You can request that this information be omitted by unchecking "Include date and version in output files".
 </TD></TR></TABLE>
+<P>
+Information about resistor ignoring can be found in <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>.
 <P>
 The copyright information will be inserted into decks exported for CIF, LEF, and PostScript,
 as well as in simulation netlists for

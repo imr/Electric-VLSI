@@ -7,6 +7,8 @@
 <!-- COMMAND Window/Adjust Position/Move to Other Display -->
 <!-- COMMAND Window/Adjust Position/Remember Location of Display -->
 
+<!-- PREFERENCE Display/Display Control -->
+
 Initially, there is only one editing window on the screen.
 Electric allows you to create multiple editing windows,
 each of which can show a different cell.
@@ -54,17 +56,35 @@ This command can also be used to start the system on a different display.</LI>
 <P>
 <H3>Display Considerations</H3>
 <P>
-Electric optimizes the display of circuitry by simplifying the display of objects when they get to be very small.
+Electric offers many settings for controlling the display, available in the Display Control Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Display Control" tab).
+<CENTER><IMG SRC="fig04-20.png" ALT="Figure 4.20"></CENTER>
+<P>
+The status area at the bottom of the screen shows current selection, cursor coordinates, etc.
+If "Show hierarchical cursor coordinates in status bar" is checked,
+it will also show global coordinates when traversing the hierarchy.
+<P>
+The side bar can be set to always show on the right by checking "Side Bar defaults to the right side".
+See <A HREF="chap01-07.html#chap01-07">Section 1-7</A> for more on the side bar.
+<P>
+When panning the window using menu commands, the distance to pan can be controlled with the
+"Panning distance" selection (see <A HREF="chap04-04-02.html#chap04-04-02">Section 4-4-2</A> for more on panning).
+<P>
+<H3>Display Algorithms</H3>
+<P>
+Electric has three different display algorithms.
+The oldest, which was the only display algorithm prior to version 8.04, is the "Pixel Display Algorithm".
+<P>
+A newer display algorithm, which is faster for panning and zooming, is the "Vector Display Algorithm".
+This algorithm optimizes the display of circuitry by simplifying the display of objects when they get to be very small.
 For example, when zoomed-out very far, a transistor may be only 1 screen pixel in size, and it does not make sense to carefully
 compute and draw all of its parts.
-In such cases, Electric "simplifies" the display of the object, usually drawing it as a single dot.
+In such cases, the algorithm "simplifies" display of the object, usually drawing it as a single dot.
 <P>
 Besides simplifying individual nodes and arcs, Electric also simplifies the display of entire cells
 if their contents are all too small to draw.
 Such simplification consists of keeping a small "image" of the cell, which can be quickly scaled and drawn in the proper place.
 <P>
-There are two controls available for display simplification, both available in the "General" preferences
-(in menu <B>File / Preferences...</B>, "General" section, "General" tab).
 The first control determines the size at which objects are simplified.
 The default is to "Simplify objects smaller than 3 pixels".
 Making this value smaller will cause more detailled drawing, but take longer.
@@ -74,4 +94,11 @@ Although a cell's contents may be small, the cell may be quite large on the scre
 The default limit is to "Do not simplify cells greater than 10 percent of the screen".
 Making this number smaller causes more cells to be drawn fully.
 Making this number zero turns off cell simplification.
+
+<P>
+The newest is the "Layer Display Algorithm".
+It has controls for the use of pattern displays, and has controls for Alpha blending (used in layer composition).
+When zoomed out below the "Alpha blending overcolor limit", standard alpha blending composition rule is used.
+When zoomed in above this limit, alphablending with overcolor composition rule is used.
+
 <!-- TRAILER -->

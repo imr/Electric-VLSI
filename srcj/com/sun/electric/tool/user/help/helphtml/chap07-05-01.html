@@ -69,7 +69,8 @@ and this is the correct way to treat it when doing low-level simulation such as 
 However, for higher-level simulations (such as Verilog)
 the resistor should be ignored and treated as if it connects its two networks.
 To make this happen, use the
-"Network" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab), and check "Ignore Resistors".
+Networks Project Settings (in menu <B>File / Project Settings...</B>, "Networks" tab),
+and check "Ignore Resistors when building netlists".
 Note that if resistors are being ignored, Spice deck generation will temporarily include them while the netlist is being created.
 <P>
 Some commands that analyze a schematic circuit need to know which layout technology will be used to fabricate the design.

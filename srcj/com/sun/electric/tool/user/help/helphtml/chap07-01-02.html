@@ -4,6 +4,8 @@
 <!-- COMMAND Edit/Technology Specific/Document Current Technology -->
 
 <!-- PREFERENCE Technology/Technology -->
+<!-- PROJECTSETTING Technology -->
+
 
 Electric has the concept of a <I>current technology</I> which is shown in the
 status bar.
@@ -23,29 +25,40 @@ use the <B>Describe this Technology</B> command (in menu <B>Edit / Technology Sp
 To see a detailled description of the current technology,
 use the <B>Document Current Technology</B> command.
 <P>
-The "Technology" preferences (in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab)
+<TABLE><TR><TD>
+The Technology Project Settings command (in menu <B>File / Project Settings...</B>, "Technology" tab)
 lets you control many general and specific technology settings.
+</TD><TD><CENTER><IMG SRC="fig07-29.png" ALT="Figure 7.29"></CENTER></TD></TR></TABLE>
+
+<UL>
+<LI>"Startup technology" controls the technology that is used when Electric first begins.
+It is also used when reading old libraries that are missing some technology information.</LI>
+<LI>"Layout technology to use for Schematics" sets the technology to use for real geometry
+(an integrated circuit technology, not a schematics or artwork technology).
+The default layout technology is used to give further information about schematics components.</LI>
+<LI>"Current foundry" sets specific rules that customize a technology for a given manufacturer.
+This field is currently not used.</LI>
+</UL>
+
+<TABLE><TR><TD><CENTER><IMG SRC="fig07-14.png" ALT="Figure 7.14"></CENTER></TD><TD>
+Some technologies have settings that further customize them.
+These settings are found in the Technology Project Settings dialog (above)
+and the Technology Preferences dialog
+(in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab)
+For the difference between Preferences and Project Settings, see
+<A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
 <P>
-You can change the default technology with the popup in the upper-left of this dialog.
-This default technology is the used when Electric first begins.
-It is also used when reading old libraries that are missing some technology information.
-<P>
-Besides remembering a startup technology, Electric also remembers a
-default "layout" technology.
-This is a technology with real geometry (an integrated circuit technology,
-not a schematics or artwork technology)
-The default layout technology is used to give further information about schematics components
-.
-It is listed in the "Schematics" section under "Use scale values from this technology".
-<P>
-<CENTER><IMG SRC="fig07-14.png" ALT="Figure 7.14"></CENTER>
-<P>
-Some technologies have settable options that further customize them.
-The "Technology" preferences dialog lets you control these options.
-More information about this dialog is available from the individual technology sections on
-MOSIS CMOS (<A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>),
-Schematics (<A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>
+The Project Settings dialog has controls for MOSIS CMOS
+(see <A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>).
+The Preferences dialog has controls for Schematics
+(see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>
 and <A HREF="chap03-11-02.html#chap03-11-02">Section 3-11-2</A>),
-and Artwork (<A HREF="chap07-06-01.html#chap07-06-01">Section 7-6-1</A>).
+Artwork
+(see <A HREF="chap07-06-01.html#chap07-06-01">Section 7-6-1</A>),
+and layout technologies
+(see <A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>).
+
+</TD></TR></TABLE>
+<P>
 
 <!-- TRAILER -->

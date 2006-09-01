@@ -760,7 +760,7 @@ public class CellProperties extends EDialog
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setBorder(new javax.swing.border.TitledBorder("Cell Frame"));
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Cell Frame"));
         jLabel14.setText("Size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -892,7 +892,7 @@ public class CellProperties extends EDialog
 
         textCells.setLayout(new java.awt.GridBagLayout());
 
-        textCells.setBorder(new javax.swing.border.TitledBorder("For Textual Cells:"));
+        textCells.setBorder(javax.swing.BorderFactory.createTitledBorder("For Textual Cells"));
         jLabel7.setText("Font:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -941,8 +941,7 @@ public class CellProperties extends EDialog
         getContentPane().add(textCells, gridBagConstraints);
 
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	private void textCellFontActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_textCellFontActionPerformed
 	{//GEN-HEADEREND:event_textCellFontActionPerformed

@@ -5,22 +5,15 @@
 <!-- COMMAND Edit/Text/Increase All Text Size -->
 <!-- COMMAND Edit/Text/Decrease All Text Size -->
 <!-- PREFERENCE Display/Text -->
+<!-- PREFERENCE Display/Smart Text -->
 
 To change the default size and anchor-point of all new text,
-use the "Text" preferences
+use the Text Preferences
 (in menu <B>File / Preferences...</B>, "Display" section, "Text" tab).
 The top part of the dialog controls how new text will appear.
 Select the type of text, and then its appearance (size, anchor-point, font, style, etc.)
 <P>
-Below the "Default Text Style" is a section that controls the fonts used to display textual cells.
-<P>
-Below that are controls for "smart placement" of text,
-which adjusts the grab point according to the environment of the text.
-This currently applies only to export names,
-which are placed relative to the arc connecting to the exported node.
-For example, if a node on the left end of a wire has an export,
-and the "Horizontal" placement is set to "Inside",
-then the export text will attach on the left side, causing the label to appear inside of the wire.
+The middle section is "For Textual Cells" and controls the fonts used to display textual cells.
 <P>
 <TABLE><TR><TD>
 The bottom part of the dialog controls text drawn in circuitry.
@@ -31,8 +24,20 @@ this field.
 You can also use the <B>Increase All Text Size</B>
 and <B>Decrease All Text Size</B> commands (in menu <B>Edit / Text</B>)
 to change this value, and alter the size of all displayed text.
-
-</TD><TD><CENTER><IMG SRC="fig06-08.png" ALT="Figure 6.8"></CENTER></TD></TR></TABLE>
+</TD><TD><CENTER><IMG SRC="fig06-08.png" ALT="Figure 6.8"></CENTER></TD></TR></TABLE>
 <P>
+The Smart Text Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Smart Text" tab)
+controls where new text will appear on Exports and Arcs.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-23.png" ALT="Figure 6.23"></CENTER></TD><TD>
+For arcs, you can choose to place the name on the inside of the arc (the default),
+or on one side of the arc, depending on whether it is vertical or horizontal.
+<P>
+For export names, you can control their offset relative to the arc attached to that export.
+For example, if a node on the left end of a wire has an export,
+and the "Horizontal" placement is set to "Inside",
+then the export text will attach on the left side, causing the label to appear inside of the wire.
+</TD></TR></TABLE>
 
 <!-- TRAILER -->

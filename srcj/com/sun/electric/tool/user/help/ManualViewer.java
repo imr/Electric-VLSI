@@ -170,7 +170,7 @@ public class ManualViewer extends EDialog
 	 */
 	public static void showPreferenceHelp(String preference)
 	{
-		showSettingHelp("PREF" + preference);
+		showSettingHelp("PREF", preference);
 	}
 
 	/**
@@ -180,24 +180,27 @@ public class ManualViewer extends EDialog
 	 */
 	public static void showProjectSettingHelp(String preference)
 	{
-		showSettingHelp("PROJ" + preference);
+		showSettingHelp("PROJ", preference);
 	}
 
 	/**
 	 * Internal method to show Preferences or Project Settings help.
 	 * @param str the help page requested.
 	 */
-	private static void showSettingHelp(String str)
+	private static void showSettingHelp(String dialog, String str)
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), str, ManualViewer.class, "helphtml");
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), dialog+str, ManualViewer.class, "helphtml");
 		} else
 		{
 			if (str != null)
 			{
-				String prefFileName = preferenceMap.get(str);
-			    if (prefFileName == null) System.out.println("No help for preference " + str); else
+				String prefFileName = preferenceMap.get(dialog+str);
+			    if (prefFileName == null)
+			    {
+			    	Job.getUserInterface().showErrorMessage("No help for " + str + " settings", "Missing documentation");
+			    } else
 				{
 					for(int i=0; i<theManual.pageSequence.size(); i++)
 					{
@@ -341,7 +344,8 @@ public class ManualViewer extends EDialog
         if (preference != null)
         {
             prefFileName = preferenceMap.get(preference);
-		    if (prefFileName == null) System.out.println("No help for preference " + preference);
+		    if (prefFileName == null)
+		    	Job.getUserInterface().showErrorMessage("No help for " + preference + " settings", "Missing documentation");
         }
 
 		// load the table of contents

@@ -1,20 +1,26 @@
 <!-- HEADER 9-10-1: Parasitic Extraction -->
 
 <!-- PREFERENCE Tools/Parasitic -->
+<!-- PROJECTSETTING Parasitic -->
 
 <P>
-The Parasitic Extraction tool is used by netlisters and other parts of the system that need to know
+Parasitic Extraction is used by netlisters and other parts of the system that need to know
 about geometric factors.
-To control Parasitic Extraction, use the
-"Parasitic" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Parasitic" tab).
+Control of parasitic extraction is done with the Parasitic preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Parasitic" tab) and the Parasitic Project Settings
+(in menu <B>File / Project Settings...</B>, "Parasitic" tab).
+For the difference between Preferences and Project Settings, see
+<A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
 <P>
-<CENTER><IMG SRC="fig09-26.png" ALT="Figure 9.26"></CENTER>
+<H3>Project Settings</H3>
+<P>
+<CENTER><IMG SRC="fig09-58.png" ALT="Figure 9.58"></CENTER>
 <P>
 Each layer of every technology is listed, and you can set its unit resistance,
 area capacitance, and edge capacitance.
 The "Factory Reset" buttons reverts values to the default shipped with Electric.
 <P>
-The middle section controls values for every layer in a technology.
+The bottom section controls values for every layer in a technology.
 You can set the minimum resistance and capacitance, as well as the maximum series resistance.
 The maximum series resistance breaks long single PI models into series of distributed PI models.
 "Include Gate In Resistance" requests that a transistor's gate area be included in overall
@@ -23,7 +29,11 @@ area calculations for resistance determination.
 The "Gate Length Shrink" is a compensation factor for gate lengths.
 Some process technologies shrink the gate length by a fixed amount.
 <P>
-The bottom part of the technology offers more controls:
+<H3>Preferences</H3>
+
+<CENTER><IMG SRC="fig09-26.png" ALT="Figure 9.26"></CENTER>
+<P>
+This dialog offers more controls:
 <UL>
 <LI>"Use Verbose Naming"
 The parasitic extractor inserts resistors,

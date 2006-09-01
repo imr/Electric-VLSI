@@ -15,7 +15,6 @@ This chapter covers many of the tools available in Electric.
 When a tool is running, it may take a long time.
 You can see it under the "JOBS" entry of the cell explorer
 (see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
-<P>
 After a tool has run, it may reports errors in the ERRORS section of the cell explorer.
 To browse these errors, use the <B>Show Next Error</B> and <B>Show Previous Error</B> commands
 (in menu <B>Edit / Selection</B>) or type the "&gt;" an "&lt;" keys.
@@ -24,16 +23,20 @@ A number of common tool controls are available from the
 "General" preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab),
 especially in the "I/O" and "Jobs" section.
 <P>
-Most netlisters insert date and version information in the comments at the head of the generated file.
-You can request that this information be omitted by unchecking "Include date and version in output files".
-<P>
 Most of the commands to generate an input deck for a simulator (a netlist) prompt the user for the desired file.
 If "Show file-selection dialog before writing netlists" is unchecked, however, the file is written (or overwritten)
 without prompt.
 This is useful in repetitive iterations of design/simulate, and saves the cumbersome file-selection dialog.
 However, it can be dangerous because it overwrites files without asking.
 <P>
-For more information about "Working directory", see <A HREF="chap03-09-01.html#chap03-09-01">Section 3-9-1</A>.
+When reading and writing files, Electric remembers the last directory and uses it in subsequent
+file selection dialogs.
+Since different types of files are often stored in different locations,
+the system remembers many different directories, organized by type.
+Thus, there may be a current directory for "Database" work (library files),
+for Spice simulation, etc.
+Choose the type of file to examine or change the directory associated with it.
+
 <P>
 <TABLE><TR><TD>
 In the "Jobs" section,
@@ -44,15 +47,13 @@ You can set the maximum number of errors that will be reported at once.
 By default, there is no limit to the number of errors.
 <P>
 For more information about "Maximum undo history", see <A HREF="chap06-07.html#chap06-07">Section 6-7</A>.
-<P>
-For more information about the "Display" section,
-see <A HREF="chap01-07.html#chap01-07">Section 1-7</A> ("Show hierarchical cursor coordinates in status bar"),
-<A HREF="chap04-08.html#chap04-08">Section 4-8</A> ("Side Bar defaults to the right side"),
-<A HREF="chap03-05.html#chap03-05">Section 3-5</A> ("Always prompt for index when descending into array nodes"),
-<A HREF="chap04-04-02.html#chap04-04-02">Section 4-4-2</A> ("Panning distance"),
-and <A HREF="chap04-03.html#chap04-03">Section 4-3</A> ("Simplification").
 </TD><TD><CENTER><IMG SRC="fig09-21.png" ALT="Figure 9.21"></CENTER></TD></TR></TABLE>
 <P>
 For more information about the "Memory" section, see <A HREF="chap01-03.html#chap01-03">Section 1-3</A>.
+<P>
+The "Database" section controls aspects of the Electric database that do not affect most users.
+By default, Electric runs as two processes: a client that manages the display and a server that manages the database.
+By unchecking "Use Client / Server interactions", Electric will do all of this in a single process.
+Checking "Snapshot Logging" requests debugging information on the client/server interactions.
 
 <!-- TRAILER -->
