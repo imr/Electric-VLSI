@@ -2938,7 +2938,7 @@ public class MoCMOS extends Technology
         }
 
         // poly arcs
-        double width = DBMath.round(polyWid.value1/2);
+        double width = DBMath.round(polyWid.value1);
         double half = DBMath.round(width/2);
         polyArcs[0].setDefaultWidth(width);
         polyPinNodes[0].setDefSize(width, width);
