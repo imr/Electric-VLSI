@@ -170,15 +170,34 @@ public class ManualViewer extends EDialog
 	 */
 	public static void showPreferenceHelp(String preference)
 	{
+		showSettingHelp("PREF" + preference);
+	}
+
+	/**
+	 * Method to show the help page for a particular panel in the "Project Settings" dialog.
+	 * @param preference the panel name, of the form "section/panel".
+	 * For example, the "CIF" panel in the "I/O" section will be named "I/O/CIF".
+	 */
+	public static void showProjectSettingHelp(String preference)
+	{
+		showSettingHelp("PROJ" + preference);
+	}
+
+	/**
+	 * Internal method to show Preferences or Project Settings help.
+	 * @param str the help page requested.
+	 */
+	private static void showSettingHelp(String str)
+	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), preference, ManualViewer.class, "helphtml");
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), str, ManualViewer.class, "helphtml");
 		} else
 		{
-			if (preference != null)
+			if (str != null)
 			{
-				String prefFileName = preferenceMap.get(preference);
-			    if (prefFileName == null) System.out.println("No help for preference " + preference); else
+				String prefFileName = preferenceMap.get(str);
+			    if (prefFileName == null) System.out.println("No help for preference " + str); else
 				{
 					for(int i=0; i<theManual.pageSequence.size(); i++)
 					{
@@ -547,7 +566,24 @@ public class ManualViewer extends EDialog
 						System.out.println("No end comment on line: "+pageLine);
 						continue;
 					}
-					String preferenceName = pageLine.substring(16, endPt).trim();
+					String preferenceName = "PREF" + pageLine.substring(16, endPt).trim();
+					String already = preferenceMap.get(preferenceName);
+					if (already != null && Job.getDebug())
+					{
+						System.out.println("ERROR: command " + preferenceName + " is keyed to both " + already + " and " + fileName);
+					}
+					preferenceMap.put(preferenceName, fileName);
+					continue;
+				}
+				if (pageLine.startsWith("<!-- PROJECTSETTING "))
+				{
+					int endPt = pageLine.indexOf("-->");
+					if (endPt < 0)
+					{
+						System.out.println("No end comment on line: "+pageLine);
+						continue;
+					}
+					String preferenceName = "PROJ" + pageLine.substring(20, endPt).trim();
 					String already = preferenceMap.get(preferenceName);
 					if (already != null && Job.getDebug())
 					{
@@ -1125,6 +1161,8 @@ public class ManualViewer extends EDialog
 
 			setTitle("Edit HTML");
 			setName("");
+			Dimension maxScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			setPreferredSize(new Dimension(maxScreenSize.width/2, maxScreenSize.height/2));
 			addWindowListener(new WindowAdapter()
 			{
 				public void windowClosing(WindowEvent evt) { closeDialog(evt); }
@@ -1152,6 +1190,8 @@ public class ManualViewer extends EDialog
 				is.read(buf, 0, length);
 				stream.close();
 				textArea.setText(new String(buf));
+				textArea.setSelectionStart(0);
+				textArea.setSelectionEnd(0);
 			} catch (IOException e)
 			{
 				System.out.println("Could not find file: " + file.getFile());
