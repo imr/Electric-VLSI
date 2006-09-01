@@ -574,7 +574,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			false, isExpanded(path), getModel().isLeaf(path.getLastPathComponent()), 0, false);
 		int wid = (int)pathRect.getWidth();
 		int hei = (int)pathRect.getHeight();
-		
+
 		subCells = false;
 		if (e.getTriggerEvent() instanceof MouseEvent)
 			subCells = ClickZoomWireListener.isRightMouse((MouseEvent)e.getTriggerEvent());
@@ -657,7 +657,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					(int)originalTree.dragImage.getWidth(), originalTree.dragImage.getHeight());
 
 				// Draw the ghost image
-				g2.drawImage(originalTree.dragImage, AffineTransform.getTranslateInstance(lastDrawn.getX(), lastDrawn.getY()), null);                
+				g2.drawImage(originalTree.dragImage, AffineTransform.getTranslateInstance(lastDrawn.getX(), lastDrawn.getY()), null);
 			}
 
 			// see what the drop is over
@@ -1088,7 +1088,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (didSomething) return;
 
 				// must have only 1 selection
-				if (numCurrentlySelectedObjects() != 1)
+                if (numCurrentlySelectedObjects() == 0)
+                    return;
+                if (numCurrentlySelectedObjects() != 1)
 				{
 					Job.getUserInterface().showErrorMessage("Must select just one entry in the explorer tree", "Too Much Selected");
 					return;
