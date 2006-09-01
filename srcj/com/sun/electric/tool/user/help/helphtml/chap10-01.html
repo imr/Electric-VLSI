@@ -1,7 +1,10 @@
-<!-- HEADER 10-1: JELIB File Format -->
+<!-- HEADER 10-1: JELIB and DELIB File Format -->
 
 This chapter describes Electric's native file format, which ends in "jelib".
 The earlier file format, which ends in "elib", remains undocumented and is no longer recommended.
+These files contain an entire library of cells.
+The "delib" variation is used when each cell is stored in its own file
+(useful when using CVS version control on a project).
 <P>
 JELIB files are text-readable files.
 Each line of a JELIB file starts with an identifying character that distinguishes the line.

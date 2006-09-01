@@ -9,7 +9,9 @@
 <!-- COMMAND Tool/Simulation (Verilog)/Set Verilog Wire/Default -->
 <!-- COMMAND Tool/Simulation (Verilog)/Transistor Strength/Weak -->
 <!-- COMMAND Tool/Simulation (Verilog)/Transistor Strength/Normal -->
-<!-- PREFERENCE Tools/Verilog -->
+<!-- PREFERENCE Tools/Verilog Model Files -->
+<!-- PROJECTSETTING Verilog -->
+
 
 Electric can produce input decks for Verilog simulation with <B>Write Verilog Deck...</B> command
 (in menu <B>Tool / Simulation (Verilog)</B>).
@@ -29,8 +31,10 @@ To add a Verilog declaration, select "Verilog Declaration" under the "Misc." ent
 These pieces of text can be manipulated like any other text object
 (see <A HREF="chap06-08-01.html#chap06-08-01">Section 6-8-1</A> on text).
 <P>
+
+<TABLE><TR><TD>
 Additional control of Verilog deck generation is accomplished with the
-"Verilog" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Verilog" tab).
+Verilog Project Settings (in menu <B>File / Project Settings...</B>, "Verilog" tab).
 A checkbox lets you choose whether or not to use the Verilog "assign" construct.
 You can control the type of Verilog declaration that will be used for wires ("wire" by default, "trireg" if checked).
 Note that this can be overridden with the <B>Set Verilog Wire</B> command (in menu <B>Tool / Simulation (Verilog)</B>).
@@ -39,13 +43,22 @@ Another properety that can be assigned to transistors is their strength.
 The <B>Weak</B> command (in menu <B>Tool / Simulation (Verilog) / Transistor Strength</B>)
 sets the transistor to be weak.
 The <B>Normal</B> command restores the transistor to be normal strength.
+</TD><TD><CENTER><IMG SRC="fig09-07.png" ALT="Figure 9.7"></CENTER></TD></TR></TABLE>
+
 <P>
-The Verilog preferences dialog also lets you attach disk files with Verilog code to any cell in the library.
+
+<TABLE><TR><TD>
+Additional Verilog settings can be found in the Verilog Model Files Preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Verilog Model Files" tab).
+<P>
+For the difference between Preferences and Project Settings, see
+<A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
+</TD><TD><CENTER><IMG SRC="fig09-39.png" ALT="Figure 9.39"></CENTER></TD></TR></TABLE>
+<P>
+This dialog lets you attach disk files with Verilog code to any cell in the library.
 Once attached, the generated Verilog will use the contents of that file instead of examining the cell contents.
 This allows you to create your own definitions in situations where the derived Verilog would be too complex or otherwise incorrect.
 For an example of Verilog layout and code, look at the cell "tool-SimulateVERILOG" in the Samples library
 (get this library with the <B>Load Library</B> command, in menu <B>Help / Samples</B>).
-<P>
-<CENTER><IMG SRC="fig09-07.png" ALT="Figure 9.7"></CENTER>
 
 <!-- TRAILER -->

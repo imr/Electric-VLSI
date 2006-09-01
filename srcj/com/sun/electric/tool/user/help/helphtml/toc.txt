@@ -129,7 +129,7 @@ Arcs
 Advanced Editing
  Making Copies                       =chap06-01
  Creation Defaults                   =chap06-02
- Preferences                         =chap06-03
+ Preferences and Project Settings    =chap06-03
  Making Arrays                       =chap06-04
  Spreading Circuitry                 =chap06-05
  Replacing Circuitry                 =chap06-06

@@ -3,20 +3,21 @@
 <!-- COMMAND File/Import/CIF (Caltech Intermediate Format)... -->
 <!-- COMMAND File/Export/CIF (Caltech Intermediate Format)... -->
 <!-- PREFERENCE I/O/CIF -->
-
+<!-- PROJECTSETTING CIF -->
 
 CIF (Caltech Intermediate Format) is used as an interchange between
 design systems and fabrication facilities.
 For information on reading and writing CIF, see
 <A HREF="chap03-09-02.html#chap03-09-02">Section 3-9-2</A> and
 <A HREF="chap03-09-03.html#chap03-09-03">Section 3-9-3</A>, respectively.
-CIF options are controlled with the "CIF" preferences
-(in menu <B>File / Preferences...</B>, "I/O" section, "CIF" tab).
 <P>
 <TABLE><TR><TD>
-This dialog controls the conversion between layers in Electric and layers in the CIF file.
-By clicking on an Electric layer, you can type a new CIF layer name into the dialog.
-</TD><TD><CENTER><IMG SRC="fig07-10.png" ALT="Figure 7.10"></CENTER></TD></TR></TABLE>
+Most CIF settings are found in the "CIF" Project Settings
+(in menu <B>File / Project Settings...</B>, "CIF" tab).
+Here you can assign CIF names to each layer in the technology.
+You can also control how CIF output is produced.
+</TD><TD><CENTER><IMG SRC="fig07-26.png" ALT="Figure 7.26"></CENTER></TD></TR></TABLE>
+
 <P>
 By default, CIF output writes the entire hierarchy below the current cell.
 If you check the "Output Mimics Display" item,
@@ -40,11 +41,21 @@ This causes the CIF file to display the current cell.
 If the CIF file is to be used as a library, with no current cell,
 then uncheck the "Output Instantiates Top Level" checkbox, and there will be no invocation of the current cell.
 <P>
-When reading CIF files, the CIF "wire" statements are assumed to have rounded geometry at the ends and corners.
-If you check the "Input Squares Wires" item, CIF input assumes that wire ends are square and extend by half of their width.
-<P>
 Be advised that the CIF format has a minimum resolution of 10 nanometers.
 Since nothing smaller can be accurately represented in the file, the CIF output of smaller geometries will
 generate errors.
+
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig07-10.png" ALT="Figure 7.10"></CENTER></TD><TD>
+Only one setting is unrelated to circuitry and found in the CIF Preferences
+(in menu <B>File / Preferences...</B>, "I/O" section, "CIF" tab).
+This controls how CIF is read.
+<P>
+When reading CIF files, the CIF "wire" statements are assumed to have rounded geometry at the ends and corners.
+If you check the "Input Squares Wires" item, CIF input assumes that wire ends are square and extend by half of their width.
+<P>
+For the difference between Preferences and Project Settings, see
+<A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
+</TD></TR></TABLE>
 
 <!-- TRAILER -->

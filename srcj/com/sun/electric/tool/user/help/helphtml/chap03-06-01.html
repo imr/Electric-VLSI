@@ -1,13 +1,18 @@
 <!-- HEADER 3-6-1: Export Creation -->
 
+<!-- COMMAND Cell/Merge Libraries/Add Exports from Library... -->
 <!-- COMMAND Export/Create Export... -->
 <!-- COMMAND Export/Re-Export Everything -->
 <!-- COMMAND Export/Re-Export Selected -->
 <!-- COMMAND Export/Re-Export Selected, With Wired Ports -->
+<!-- COMMAND Export/Re-Export Selected Port on All Nodes -->
+<!-- COMMAND Export/Re-Export Power and Ground -->
 <!-- COMMAND Export/Re-Export Highlighted Area -->
 <!-- COMMAND Export/Re-Export Highlighted Area, With Wired Ports -->
-<!-- COMMAND Export/Re-Export Power and Ground -->
+<!-- COMMAND Export/Re-Export Deep Highlighted Area -->
+<!-- COMMAND Export/Re-Export Deep Highlighted Area, With Wired Ports -->
 <!-- COMMAND Export/Show Ports on Node -->
+<!-- COMMAND Export/Manipulate Ports on Node... -->
 
 All nodes in Electric have connection sites, called <I>ports</I>,
 which indicate where wires may be attached.
@@ -59,24 +64,44 @@ This check box overrides the suppression.
 Another special check box, "Body only," requests that this export not appear when an icon is generated for the cell.
 This is useful for power and ground exports or duplicate connection sites on a single network.
 <P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-33.png" ALT="Figure 3.33"></CENTER></TD><TD VALIGN=TOP>
+You can control exporting of all of the ports on the currently highlighted node with the
+<B>Manipulate Ports on Node...</B> command (in menu <B>Export</B>).
+This dialog shows all ports, and lets you select sets of them for reexport.
+</TD></TR></TABLE>
+<P>
 There are many special exporting commands that are primarily used in array-based layout.
 If a cell instance is replicated many times and the instances are wired together,
 then ports on the edge of the array are the only ones that are not wired.
 These ports define the connections for the next level of hierarchy.
-What you want to do is to create exports for all unwired ports on all cell instances.
-To do this, use the <B>Re-Export Everything</B> command (in menu <B>Export</B>),
-which generates unique names as it exports all unwired ports on cell instances.
-To do this same function, but only on the currently highlighted nodes, use <B>Re-Export Selected</B>.
-To do this same function, but inside of the highlighted area, use <B>Re-Export Highlighted Area</B>.
-These two commands can also be run so that wired ports are re-exported, by using the
-<B>Re-Export Selected, With Wired Ports</B> and
-<B>Re-Export Highlighted Area, With Wired Ports</B>
-To do this same function, but only for Power and Ground exports, use <B>Re-Export Power and Ground</B>.
+What you want to do is to create exports for all unwired ports on all cell instances,
+automatically generating unique names.
+To do this, use these commands in menu <B>Export</B>:
+
+<UL>
+<LI><B>Re-Export Everything</B> reexports all ports on all nodes in the current cell.</LI>
+<LI><B>Re-Export Selected</B> reexports only ports on currently highlighted nodes.</LI>
+<LI><B>Re-Export Selected, With Wired Ports</B> reexports current nodes, but allows wired ports to be reexported.</LI>
+<LI><B>Re-Export Selected Port on All Nodes</B> reexports the selected port on the every node in the cell that
+is the same as the current one.</LI>
+<LI><B>Re-Export Power and Ground</B> reexports only Power and Ground exports.</LI>
+<LI><B>Re-Export Highlighted Area</B> reexports only ports inside the currently highlighted area
+(for precise area selection, see <A HREF="chap02-01-03.html#chap02-01-03">Section 2-1-3</A>).</LI>
+<LI><B>Re-Export Highlighted Area, With Wired Ports</B> reexports highlighted ports,
+but allows wired ports to be reexported.</LI>
+<LI><B>Re-Export Deep Highlighted Area</B> reexports only ports inside the currently highlighted area,
+but goes all the way down the hierarchy, reexporting from the lowest level.
+This causes unconnected exports deep down the hierarchy to become available for connection.</LI>
+<LI><B>Re-Export Deep Highlighted Area, With Wired Ports</B> reexports highlighted ports all the way
+down the hierarchy, and allows wired ports to be reexported.</LI>
+</UL>
+<P>
 Note that ports on primitive nodes are not exported with these commands.
 See <A HREF="chap06-04.html#chap06-04">Section 6-4</A> for more about arrays,
 and see <A HREF="chap09-06-01.html#chap09-06-01">Section 9-6-1</A> for more on automatic wiring.
 <P>
-Another special command for export creation is <B>Add Export from Library...</B>,
+Another special command for export creation is <B>Add Exports from Library...</B>
+(in menu <B>Cell / Merge Libraries</B>),
 which copies exports from another library to the current one.
 The other library is examined for cells whose names match ones in the current library.
 When a cell is found in the other library, all of its exports are copied to the cell in the current library

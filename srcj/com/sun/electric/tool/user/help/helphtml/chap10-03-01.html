@@ -9,9 +9,11 @@ Also, when there are multiple cells, their appearance in the file is sorted by t
 The syntax is:
 <P>
 <CENTER><TABLE BORDER=1 WIDTH="90%">
-<TR><TD COLSPAN=2><B>C&lt;name&gt; | &lt;tech&gt; | &lt;creation&gt; | &lt;revision&gt; |
+<TR><TD COLSPAN=2><B>C&lt;name&gt; | &lt;group&gt; | &lt;tech&gt; | &lt;creation&gt; | &lt;revision&gt; |
 &lt;flags&gt; [ | &lt;variable&gt; ]*</B></TD></TR>
 <TR><TD WIDTH="20%">&lt;name&gt;</TD><TD WIDTH="80%">the name of the cell in the form "NAME;VERSION{VIEW}".</TD></TR>
+<TR><TD>&lt;group&gt;</TD><TD>the name of this cell's group (if different than expected).
+This field may be omitted in earlier-format libraries.</TD></TR>
 <TR><TD>&lt;tech&gt;</TD><TD>the technology of the cell.</TD></TR>
 <TR><TD>&lt;creation&gt;</TD><TD>the creation date of the cell (Java format).</TD></TR>
 <TR><TD>&lt;revision&gt;</TD><TD>the revision date of the cell (Java format).</TD></TR>
@@ -34,7 +36,7 @@ The &lt;flags&gt; field consists of any of the following letters, (sorted alphab
 <P>
 Example:
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>CrxArray;1{lay}|mocmos|1092185029000|1092185060000|I</CODE>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>CrxArray;1{lay}||mocmos|1092185029000|1092185060000|I</CODE>
 <P>
 Declares cell "rxArray{lay}", version 1, associated with the "mocmos" technology.
 The cell was created at date 1092185029000 and last modified at date 1092185060000.

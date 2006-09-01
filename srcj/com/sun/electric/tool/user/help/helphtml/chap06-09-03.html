@@ -3,16 +3,17 @@
 <!-- HEADER 6-9-3: Bus Naming -->
 
 <!-- COMMAND Edit/Arc/Rip Bus -->
+<!-- COMMAND Edit/Properties/Parameterize Bus Name -->
+<!-- COMMAND Edit/Properties/Edit Bus Parameters... -->
 
 The Bus arc of the Schematics technology is a special arc that can carry multiple signals
 (see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>).
 When giving a network name to Bus arcs, it is possible to specify complex bus names.
 <UL>
-<LI><B>Lists</B> Bus names can be lists (for example, "clock,in1,out" which aggregates 3 signals into a 3-wide bus)
-.</LI>
+<LI><B>Simple arrays</B> Bus names can be arrays (for example, "A[0:7]" which defines an 8-wide bus).</LI>
 
-<LI><B>Simple arrays</B> Bus names can be arrays (for example, "A[0:7]" which defines an 8-wide bus).
-</LI>
+<LI><B>Lists</B> Bus names can be lists (for example,
+"clock,in1,out" which aggregates 3 signals into a 3-wide bus).</LI>
 
 <LI><B>Array index lists and ranges</B> Arrayed bus names can have lists of values (separated by commas)
 or ranges of values (using the colon).
@@ -42,8 +43,33 @@ As an aid in obtaining individual signals from a bus,
 the <B>Rip Bus</B> command (in menu <B>Edit / Arc</B>)
 will automatically create such wires for the selected bus arc.
 <P>
+<H3>Arrayed Nodes</H3>
+<P>
 Besides using array names on busses, you can also give array names to schematic nodes.
 Netlisters will create multiple copies of that node, named with the individual elements of the array.
-
+<P>
+<H3>Parameterized Bus Names</B>
+<P>
+<TABLE><TR><TD>
+It is possible to have variable-width busses by parameterizing their names.
+Electric maintains a list of global parameters, and these can be manipulated with the
+<B>Edit Bus Parameters...</B> command (in menu <B>Edit / Properties</B>).
+You can create and delete parameters, and can set values for each.
+</TD><TD><CENTER><IMG SRC="fig06-25.png" ALT="Figure 6.25"></CENTER></TD></TR></TABLE>
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-26.png" ALT="Figure 6.26"></CENTER></TD><TD>
+To use these parameters, you must add a template to an arc name or export name.
+This figure shows an export called "in", and an arc called "internal".
+Both the export name and the arc name were selected, and the command
+<B>Parameterize Bus Name</B> issued (in menu <B>Edit / Properties</B>).
+The templates are then shown near the original names.
+</TD></TR></TABLE>
+<P>
+You may type any text into the template.
+Wherever they string <CODE>$(par)</CODE> appears, it will be replaced
+with the parameter <CODE>par</CODE>.
+In this example, the parameter <CODE>x</CODE> has the value 7.
+When parameter values change, click the "Update All Templates" button to
+reevaluate all export and arc names.
 
 <!-- TRAILER -->
