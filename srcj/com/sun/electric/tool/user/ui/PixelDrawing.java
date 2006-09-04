@@ -1122,7 +1122,8 @@ class PixelDrawing
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
 	 * @param context the VarContext to this node in the hierarchy.
      */
-	public void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, Cell topCell, Rectangle2D drawLimitBounds, boolean fullInstantiate, boolean forceVisible, VarContext context)
+	public void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, Cell topCell, Rectangle2D drawLimitBounds,
+		boolean fullInstantiate, boolean forceVisible, VarContext context)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -1241,7 +1242,7 @@ class PixelDrawing
 				}
 
 				EditWindow0 nodeWnd = dummyWnd;
-				if (!canDrawText || !User.isTextVisibilityOnNode()) nodeWnd = null;
+				if (!forceVisible && (!canDrawText || !User.isTextVisibilityOnNode())) nodeWnd = null;
 				if (prim == Generic.tech.invisiblePinNode)
 				{
 					if (!User.isTextVisibilityOnAnnotation()) nodeWnd = null;

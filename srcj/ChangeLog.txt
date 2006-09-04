@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (9/4/06, SMR) Component menu doesn't show text.
+FIX: In PixelDrawing.drawNode(), always draw text if "forceVisible" is true.
+
 BUG: (9/4/06, DN) Text is invisible (Bug #1158).
 FIX: Add LayerDrawing.canDrawRelativeText threshold to smarter reject small text.
 
