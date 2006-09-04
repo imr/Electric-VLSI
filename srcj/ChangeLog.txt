@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (9/4/06, DN) Text is invisible (Bug #1158).
+FIX: Add LayerDrawing.canDrawRelativeText threshold to smarter reject small text.
+
 IMP: (8/31/06, SMR) Attributes dialog no longer shows "ATTR_" prefix.
 
 IMP/MAN: (8/31/06, GVG) Refactoring of DRC decks. Old MOSRules decomissioned and TSMCRules class became

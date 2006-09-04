@@ -40,7 +40,6 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -65,6 +64,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.SwingUtilities;
 
 /**
@@ -188,6 +188,7 @@ class LayerDrawing
 	private static final boolean TAKE_STATS = false;
 	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
+    private static Set<ExpandedCellKey> offscreensUsedSet = new HashSet<ExpandedCellKey>();
     private static int boxArrayCount, boxCount, boxDisplayCount, lineCount, polygonCount, crossCount, circleCount, discCount, arcCount;
     private static final boolean DEBUG = false;
 
@@ -247,6 +248,7 @@ class LayerDrawing
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
 	/** A List of NodeInsts to the cell being in-place edited. */private List<NodeInst> inPlaceNodePath;
 	/** true if text can be drawn (not too zoomed-out) */	private boolean canDrawText;
+    /** Threshold for relative text can be drawn */         private double canDrawRelativeText = Double.MAX_VALUE;
 	/** maximum size before an object is too small */		private static double maxObjectSize;
 	/** half of maximum object size */						private static double halfMaxObjectSize;
 	/** temporary objects (saves reallocation) */			private final Point tempPt1 = new Point(), tempPt2 = new Point();
@@ -400,7 +402,7 @@ class LayerDrawing
                 if (TAKE_STATS) {
                     long endTime = System.currentTimeMillis();
                     System.out.println((alphaBlendingOvercolor ? "alphaBlendingOvercolor took " : "alphaBlending took ")
-                    + (compositeTime - startTime) + " msec, textRendering took " + (endTime - compositeTime) + " msec");
+                    + (compositeTime - startTime) + " msec, textRendering " + renderText.length + "+" + greekText.length + "+" + crossText.length + " took " + (endTime - compositeTime) + " msec");
                 }
             } while (vImg.contentsLost());
         }
@@ -965,6 +967,7 @@ class LayerDrawing
 			initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
 			offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
+            offscreensUsedSet.clear();
             boxArrayCount = boxCount = boxDisplayCount = lineCount = polygonCount = crossCount = circleCount = discCount = arcCount = 0;
 		}
 
@@ -1001,6 +1004,7 @@ class LayerDrawing
         patternedDisplay = expandedScale > User.getPatternedScaleLimit();
         alphaBlendingOvercolor = expandedScale > User.getAlphaBlendingOvercolorLimit();
  		canDrawText = expandedScale > 1;
+        canDrawRelativeText = canDrawText ? 0 : MINIMUMTEXTSIZE;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
 
@@ -1072,7 +1076,7 @@ class LayerDrawing
 			long memConsumed = curUsed - initialUsed;
 			System.out.println("Took "+TextUtils.getElapsedTime(endTime-startTime) +
                 "(" + (clearTime-startTime) + "+" + (countTime - clearTime) + "+" + (endTime-countTime) + ")"+
-				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) cached cells, created "+
+				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) " + offscreensUsedSet.size() + "cached cells, created "+
 				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
 				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
@@ -1355,7 +1359,7 @@ class LayerDrawing
         drawList(oX, oY, vc.shapes);
             
 		// show cell variables if at the top level
-        if (canDrawText && topLevel)
+        if (topLevel)
             drawList(oX, oY, vc.topOnlyShapes);
 	}
     
@@ -1435,6 +1439,7 @@ class LayerDrawing
         gridToScreen(oX, oY, tempPt1);
 		copyBits(expandedCellCount.offscreen, tempPt1.x, tempPt1.y);
 		offscreensUsed++;
+        if (TAKE_STATS) offscreensUsedSet.add(expansionKey);
         offscreenPixelsUsed += expandedCellCount.offscreen.total;
 		return true;
 	}
@@ -2203,7 +2208,6 @@ class LayerDrawing
 	 * @param oX the X offset to draw the shapes (in database grid coordinates).
 	 * @param oY the Y offset to draw the shapes (in database grid coordinates).
 	 * @param shapes the List of shapes (VectorBase objects).
-	 * @param level: 0=top-level cell in window; 1=low level cell; -1=greeked cell.
 	 */
 	private void drawList(int oX, int oY, List<VectorCache.VectorBase> shapes)
 //		throws AbortRenderingException
@@ -2216,8 +2220,14 @@ class LayerDrawing
 			periodicRefresh();
             
             if (vb instanceof VectorCache.VectorText) {
-                if (!canDrawText) continue;
                 VectorCache.VectorText vt = (VectorCache.VectorText)vb;
+                TextDescriptor td = vt.descript;
+                if (td != null && !td.isAbsoluteSize()) {
+                    double size = td.getTrueSize(expandedScale);
+                    if (size <= canDrawRelativeText) continue;
+                } else {
+                    if (!canDrawText) continue;
+                }
                 switch (vt.textType) {
                     case VectorCache.VectorText.TEXTTYPEARC:
                         if (!User.isTextVisibilityOnArc()) continue;
