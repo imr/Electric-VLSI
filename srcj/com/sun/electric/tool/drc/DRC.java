@@ -416,9 +416,9 @@ public class DRC extends Listener
 	 * @param tech the Technology to examine.
 	 * @return a new Rules object with the design rules for the given Technology.
 	 */
-	public static XMLRules getRules(Technology tech)
+	public static DRCRules getRules(Technology tech)
 	{
-        XMLRules currentRules = tech.getCachedRules();
+        DRCRules currentRules = tech.getCachedRules();
 		if (currentRules != null && tech == currentTechnology) return currentRules;
 
 		// constructing design rules: start with factory rules

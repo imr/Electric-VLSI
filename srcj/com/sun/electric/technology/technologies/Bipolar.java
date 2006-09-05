@@ -1103,7 +1103,7 @@ public class Bipolar extends Technology
         nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
 	};
 
-	public DRCRules getFactoryDesignRules()
+	public DRCRules getFactoryDesignRules(Foundry foundry)
 	{
 		return MOSRules.makeSimpleRules(this, null, unConDist);
 	}

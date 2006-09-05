@@ -272,7 +272,8 @@ public class MOSRules implements DRCRules {
 				rules.unConList[i] = new Double(unConDist[i]);
 			}
 		}
-		return rules;
+        rules.calculateNumberOfRules();
+        return rules;
 	}
 
     /**
@@ -643,7 +644,7 @@ public class MOSRules implements DRCRules {
 	/**
 	 * Method to calculate final number of rules
 	 */
-	public void calculateNumberOfRules()
+	private void calculateNumberOfRules()
 	{
 		int count = 0;
 		for(int i = 0; i < uTSize; i++)

@@ -3429,7 +3429,7 @@ public class MoCMOS extends Technology
      * @param rules
      * @return value of the extension
      */
-    private double getTransistorExtension(PrimitiveNode primNode, boolean poly, XMLRules rules)
+    private double getTransistorExtension(PrimitiveNode primNode, boolean poly, DRCRules rules)
     {
         if (!primNode.getFunction().isTransistor()) return 0.0;
 

@@ -1359,7 +1359,7 @@ public class MoCMOSOld extends Technology
 	 * Method to return the "factory "design rules for this Technology.
 	 * @return the design rules for this Technology.
 	 */
-	public DRCRules getFactoryDesignRules()
+	public DRCRules getFactoryDesignRules(Foundry foundry)
 	{
 		return MOSRules.makeSimpleRules(this, conDist, unConDist);
 	}

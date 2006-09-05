@@ -4128,9 +4128,13 @@ public class Quick
 			for(Technology.NodeLayer l : layers)
 			{
 				Layer layer = l.getLayer();
-				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+                if (layer.isNonElectrical())
+                    continue; // such as pseudo
+                for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				{
 					Layer oLayer = lIt.next();
+                    if (oLayer.isNonElectrical())
+                        continue; // such as pseudo
                     if (DRC.isAnySpacingRule(layer, oLayer))
                         layersInNode[oLayer.getIndex()] = true;
 				}

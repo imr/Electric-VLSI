@@ -32,7 +32,6 @@ import java.util.List;
  */
 public interface DRCRules
 {
-//	public void setMinNodeSize(int index, String name, double width, double height);
 	public double getWorstSpacingDistance();
     public double getMaxSurround(Technology tech, Layer layer, double maxSize);
     public DRCTemplate getEdgeRule(Technology tech, Layer layer1, Layer layer2);
@@ -65,8 +64,8 @@ public interface DRCRules
     public void setMinValue(Layer layer, String name, double value, DRCTemplate.DRCRuleType type);
     public void applyDRCOverrides(String override, Technology tech);
     public boolean isForbiddenNode(int nodeIndex, DRCTemplate.DRCRuleType type);
+    
     /********************* For UI ***********************************/
-    //DRCTemplate getMinNodeSize(int index, int when);
     String[] getNodesWithRules();
     List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type);
     void addRule(int index, DRCTemplate rule);

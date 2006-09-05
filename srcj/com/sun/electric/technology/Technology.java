@@ -578,7 +578,7 @@ public class Technology implements Comparable<Technology>
 	/** To group elements for the component menu */         protected Object[][] nodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
-	/** Cached rules for the technology. */		            protected XMLRules cachedRules = null;
+	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
 
 	/****************************** CONTROL ******************************/
 
@@ -1213,7 +1213,7 @@ public class Technology implements Comparable<Technology>
 		Layer lastLayer = null;
 		if (negated)
 		{
-			for(int i = 0; i < primLayers.length; i++)
+			for( int i = 0; i < primLayers.length; i++)
 			{
 				// remove a gap for the negating bubble
 				double headX = headLoc.getX();   double headY = headLoc.getY();
@@ -1512,9 +1512,6 @@ public class Technology implements Comparable<Technology>
         double dW = width - oldWidth;
         double dL = length - oldLength;
 		ni.resize(dW, dL);
-//         if (ni.getXSizeWithMirror() < 0) dW = -dW;
-//         if (ni.getYSizeWithMirror() < 0) dL = -dL;
-//         ni.modifyInstance(0, 0, dW, dL, 0);
     }
 
     /**
@@ -3409,9 +3406,9 @@ public class Technology implements Comparable<Technology>
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
 	 */
-	public XMLRules getFactoryDesignRules(Foundry foundry)
+	public DRCRules getFactoryDesignRules(Foundry foundry)
 	{
-		return null;
+        return null;
 	}
 
 	/**
@@ -3429,7 +3426,7 @@ public class Technology implements Comparable<Technology>
 	 * Method to be called from DRC:setRules
 	 * @param newRules
 	 */
-	public void setRuleVariables(DRCRules newRules) {;}
+	public void setRuleVariables(DRCRules newRules) {}
 
 	/**
 	 * Method to create a set of Design Rules from some simple spacing arrays.
@@ -3788,52 +3785,30 @@ public class Technology implements Comparable<Technology>
     }
 
 	/**
-	* Method to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
-	*/
-	protected void setDefNodeSize(PrimitiveNode nty, String ruleName, double wid, double hei, DRCRules rules)
-	{
-		double xindent = (nty.getDefWidth() - wid) / 2;
-//		double yindent = (nty.getDefHeight() - hei) / 2;
-//		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));  // bug 1040
-//
-//		int index = 0;
-//		for(Iterator<PrimitiveNode> it = getNodes(); it.hasNext(); )
-//		{
-//			PrimitiveNode np = it.next();
-//			if (np == nty) break;
-//			index++;
-//		}
-//        //@TODO this index might overlap with layer indices.
-//        DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.DRCMode.ALL.mode(), DRCTemplate.DRCRuleType.NODSIZ, 0, 0, null, null, wid, -1);
-//        tmp.value2 = hei;
-//        rules.addRule(index, tmp, DRCTemplate.DRCRuleType.NONE);
-	}
-
-	/**
 	 * Method to set the surround distance of layer "layer" from the via in node "nodename" to "surround".
 	 */
-	protected void setLayerSurroundVia(PrimitiveNode nty, Layer layer, double surround)
-	{
-		// find the via size
-		double [] specialValues = nty.getSpecialValues();
-		double viasize = specialValues[0];
-		double layersize = viasize + surround*2;
-		double indent = (nty.getDefWidth() - layersize) / 2;
-
-		Technology.NodeLayer oneLayer = nty.findNodeLayer(layer, false);
-		if (oneLayer != null)
-		{
-			TechPoint [] points = oneLayer.getPoints();
-			EdgeH left = points[0].getX();
-			EdgeH right = points[1].getX();
-			EdgeV bottom = points[0].getY();
-			EdgeV top = points[1].getY();
-			left.setAdder(indent);
-			right.setAdder(-indent);
-			top.setAdder(-indent);
-			bottom.setAdder(indent);
-		}
-	}
+//	protected void setLayerSurroundVia(PrimitiveNode nty, Layer layer, double surround)
+//	{
+//		// find the via size
+//		double [] specialValues = nty.getSpecialValues();
+//		double viasize = specialValues[0];
+//		double layersize = viasize + surround*2;
+//		double indent = (nty.getDefWidth() - layersize) / 2;
+//
+//		Technology.NodeLayer oneLayer = nty.findNodeLayer(layer, false);
+//		if (oneLayer != null)
+//		{
+//			TechPoint [] points = oneLayer.getPoints();
+//			EdgeH left = points[0].getX();
+//			EdgeH right = points[1].getX();
+//			EdgeV bottom = points[0].getY();
+//			EdgeV top = points[1].getY();
+//			left.setAdder(indent);
+//			right.setAdder(-indent);
+//			top.setAdder(-indent);
+//			bottom.setAdder(indent);
+//		}
+//	}
 
     /********************* FOR GUI **********************/
 
@@ -3977,12 +3952,12 @@ public class Technology implements Comparable<Technology>
      * Method to retrieve cached rules
      * @return cached design rules.
      */
-    public XMLRules getCachedRules() {return cachedRules;}
+    public DRCRules getCachedRules() {return cachedRules;}
 
     /**
      * Method to set cached rules
      */
-    public void setCachedRules(XMLRules rules) {cachedRules = rules;}
+    public void setCachedRules(DRCRules rules) {cachedRules = rules;}
 
     /**
      * This method determines if one of the polysilicon polygons is covered by a vth layer. Only implemented in 90nm

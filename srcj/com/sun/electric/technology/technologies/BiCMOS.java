@@ -1711,8 +1711,9 @@ public class BiCMOS extends Technology
         nodeGroups[++count][0] = msc_node; nodeGroups[count][1] = nt0_node; nodeGroups[count][2] = nt_node;
         nodeGroups[++count][0] = ppc_node; nodeGroups[count][1] = n_node; nodeGroups[count][2] = p_node;
         nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
-	};
-	public DRCRules getFactoryDesignRules()
+	}
+
+    public DRCRules getFactoryDesignRules(Foundry foundry)
 	{
 		return MOSRules.makeSimpleRules(this, conDist, unConDist);
 	}

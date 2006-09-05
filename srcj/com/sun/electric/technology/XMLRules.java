@@ -919,12 +919,6 @@ public class XMLRules implements DRCRules {
             case COMBINATION:
                 addRule(index, theRule);
                 break;
-//            case CUTSPA:
-//            case CUTSIZE:
-//            case CUTSPA2D:
-//            case VIASUR:
-//                assert(false);
-//                break;
             case CUTSURX:
                 specValues = nty.getSpecialValues();
                 specValues[2] = distance;
@@ -935,17 +929,9 @@ public class XMLRules implements DRCRules {
                 specValues[3] = distance;
                 assert(false);
                 break;
-//            case TRAWELL:
-//            case TRAPOLY:
-//            case TRAACTIVE:
-//            case CUTSUR:
             case NODSIZ:
                 addRule(nty.getPrimNodeIndexInTech(), theRule);
                 break;
-                //setTransistorWellSurround(distance, errorLogger); TRAWELL
-                //setTransistorPolyOverhang(distance, errorLogger);  TRAPOLY
-                //setTransistorActiveOverhang(distance, errorLogger);   // TRAACTIVE
-//                tech.setDefNodeSize(nty, theRule.ruleName,distance, distance, this); NODSIZ
             case SURROUND:
                 addRule(index, theRule);
                 break;
