@@ -65,8 +65,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,9 +96,32 @@ import javax.swing.tree.TreeSelectionModel;
 
 /**
  * A Dialog for displaying the Electric users manual.
+ * 
+ * The html files in the user's manual have special lines that control them:
+ * <!-- HEADER 1-2: Chapter Title -->
+ * <!-- COMMAND Menu/Command -->
+ * <!-- PREFERENCE Section/Panel -->
+ * <!-- PROJECTSETTING Panel -->
+ * <!-- TRAILER -->
  */
 public class ManualViewer extends EDialog
 {
+	private static final String RUSSIANMANUALPATH = "plugins/manualRussian";
+
+	/** the menus that are not checked */
+	private static Set<String> excludeMenu = new HashSet<String>();
+	static
+	{
+		excludeMenu.add("Sun");
+		excludeMenu.add("Test");
+		excludeMenu.add("Steve");
+		excludeMenu.add("Russell");
+		excludeMenu.add("JonG");
+		excludeMenu.add("Gilda");
+		excludeMenu.add("Dima");
+		excludeMenu.add("Kon");
+	}
+
 	private static class PageInfo
 	{
 		String title;
@@ -109,8 +134,6 @@ public class ManualViewer extends EDialog
 		int level;
 		boolean newAtLevel;
 	};
-
-	private static final String RUSSIANMANUALPATH = "plugins/manualRussian";
 
 	private Class htmlBaseClass;
 	private String htmlDirectory;
@@ -611,7 +634,7 @@ public class ManualViewer extends EDialog
 			EMenuBar menuBar = top.getEMenuBar();
 			for (EMenuItem menu: menuBar.getItems())
 			{
-//				JMenu helpMenu = new JMenu(menu.getText());
+				if (Job.getDebug() && excludeMenu.contains(menu.getText())) continue;
 				checkMenu((EMenu)menu, menu.getText() + "/", menuMapCheck);
 			}
 
@@ -639,9 +662,7 @@ public class ManualViewer extends EDialog
 				String fileName = menuMap.get(commandName);
 				if (fileName == null && Job.getDebug())
 				{
-					if (!commandName.startsWith("Russell/") && !commandName.startsWith("JonG/") &&
-						!commandName.startsWith("Gilda/") && !commandName.startsWith("Dima/"))
-							System.out.println("No help for " + commandName);
+					System.out.println("No help for " + commandName);
 				} else
 				{
 					if (menuMapCheck != null) menuMapCheck.remove(commandName);
