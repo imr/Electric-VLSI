@@ -2,6 +2,10 @@
 
 <!-- COMMAND Tool/NCC/Schematic and Layout Views of Cell in Current Window -->
 <!-- COMMAND Tool/NCC/Cells from Two Windows -->
+<!-- COMMAND Tool/NCC/Copy Schematic User Names to Layout -->
+<!-- COMMAND Tool/NCC/Copy All Schematic Names to Layout -->
+<!-- COMMAND Tool/NCC/Highlight Equivalent -->
+<!-- COMMAND Tool/NCC/Run NCC for Schematic Cross-Probing -->
 
 <P>
 To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
@@ -30,17 +34,14 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
 </LI>
 
 <li>
-    <b>Copy Schematic Names to Layout</b>
+    <b>Copy Schematic User Names to Layout</b> and <b>Copy All Schematic Names to Layout</B>
     
-    For each pair of matching schematic and layout Cells, rename networks 
-    and nodes 
+    For each pair of matching schematic and layout Cells, rename networks and nodes 
     in the layout Cell to have the same name as the equivalent networks
-    in the schematic Cell. This command copies only user-assigned names
-    from the schematic to the layout. Furthermore, it only changes the names
-    of layout
-    networks and nodes 
-    that have no user-assigned names. If a layout network 
-    or node has
+    in the schematic Cell. The first command copies only user-assigned names
+    from the schematic to the layout; the second command copies all names.
+    Furthermore, it only changes the names of layout networks and nodes 
+    that have no user-assigned names. If a layout network or node has
     a user-assigned name that does not match the schematic then this 
     command prints a warning. This command also warns when non-equivalent
     networks or nodes have the same user-assigned name. 
@@ -48,11 +49,9 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
     Notes:
     <ul>
     <li>
-    This command uses the result 
-    generated
+    This command uses the result generated
     by the most recent run of NCC. That NCC run should be hierarchical 
-    without
-    size checking.
+    without size checking.
     </li><li>
     This command clears the saved result from the last run of NCC. 
     If you need to run a command that needs the last result, for example
@@ -63,10 +62,8 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
 </li>
 
 <li>
-	<b> Highlight Equivalent </b>
-
-	Highlight the network or node that is equivalent to the currently 
-	selected
+	<b>Highlight Equivalent</b>
+	Highlight the network or node that is equivalent to the currently selected
 	network or node. The user should be aware of a number of limitations:  
 	<ol>
 	<li>
@@ -114,13 +111,28 @@ To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
 </li>
 
 <li>
-	<b> Add NCC Annotation to Cell </b>
-
-	Bring up a sub menu that allows user to select which NCC annotation
+	<b>Add NCC Annotation to Cell</b>
+	Bring up a sub menu that allows user to select which NCC annotation
 	to add to a cell. Note that the designer should replace text surrounded 
 	by angle brackets: "&lt &gt". See the "NCC Annotations" section below
 	for a description of each NCC annotation.
 </li>
+
+<li>
+	<b>Run NCC for Schematic Cross-Probing</b>
+
+	This command runs NCC and saves the net associations between schematic and layout.
+	The user can generate a Spice netlist (for example) from an Electric layout Cell.
+	Simulating this netlist will result in a waveform file that uses layout hierarchy and net names.
+	If this waveform file is loaded into Electric, it cannot be cross-probed from the schematic.
+	It can be cross-probed from the layout, but that is often difficult to do.  
+	In this case, the user can run this NCC command,
+	which will save net associations between schematic and layout.
+	Then, the user can cross-probe from the schematic,
+	and Electric will automatically translate the schematic net to the appropriate layout net contained in the waveform file.
+
+</li>
+
 
 
 </UL>

@@ -6,17 +6,11 @@
 <!-- COMMAND Tool/Generation/ROM Generator... -->
 <!-- COMMAND Tool/Generation/MOSIS CMOS PLA Generator... -->
 <!-- COMMAND Tool/Generation/Generate gate layouts (MoCMOS) -->
+<!-- COMMAND Tool/Generation/Fill (MoCMOS)... -->
 
 There are other generators built into Electric.
 These commands (in menu <B>Tool / Generation</B>) may be used:
 <UL>
-<LI><B>Coverage Implants Generator</B>
-Although individual MOS nodes and arcs have the proper amount of implant around them,
-a collection of such objects may result in an irregular implant boundary.
-To clean this up, you can place pure-layer nodes of implant that neatly cover the implant area.
-This command does it automatically.
-It removes previous pieces of coverage implant before running, so that the result is a clean cover.
-</LI>
 
 <LI><B>ROM Generator...</B>
 The ROM generator constructs many cells to describe a ROM from a personality file.
@@ -29,26 +23,17 @@ The remaining lines of the file list the contents of each word.
 The parser is pretty picky.
 There should be a carriage return after the list word, but no other blank lines in the file.
 Here is a sample ROM file:
+<BR>
 <CODE>
-<BR>
-&nbsp;&nbsp;&nbsp;1
-<BR>
-&nbsp;&nbsp;&nbsp;010101
-<BR>
-&nbsp;&nbsp;&nbsp;011001
-<BR>
-&nbsp;&nbsp;&nbsp;100101
-<BR>
-&nbsp;&nbsp;&nbsp;101010
-<BR>
-&nbsp;&nbsp;&nbsp;4
-<BR>
-&nbsp;&nbsp;&nbsp;00000000
-<BR>
-&nbsp;&nbsp;&nbsp;10000000
-<BR>
-&nbsp;&nbsp;&nbsp;01000000
-<BR>
+&nbsp;&nbsp;&nbsp;1<BR>
+&nbsp;&nbsp;&nbsp;010101<BR>
+&nbsp;&nbsp;&nbsp;011001<BR>
+&nbsp;&nbsp;&nbsp;100101<BR>
+&nbsp;&nbsp;&nbsp;101010<BR>
+&nbsp;&nbsp;&nbsp;4<BR>
+&nbsp;&nbsp;&nbsp;00000000<BR>
+&nbsp;&nbsp;&nbsp;10000000<BR>
+&nbsp;&nbsp;&nbsp;01000000<BR>
 &nbsp;&nbsp;&nbsp;11000000
 </CODE>
 </LI>
@@ -68,18 +53,35 @@ Here is some sample PLA logic:
 <I>g</I> = (<I>a</I> <B>and</B> <I>c</I>) <B>or</B> ((<B>not</B> <I>a</I>) <B>and</B> (<B>not</B> <I>c</I>))
 </TD></TR></TABLE></CENTER>
 Here is the AND file for the above logic:
-<PRE>
-    4  3
-    1  1  0
-    0  0  X
-    1  X  1
-    0  X  0
-</PRE>
+<BR>
+<CODE>
+&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;3<BR>
+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;1&nbsp;&nbsp;0<BR>
+&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;0&nbsp;&nbsp;X<BR>
+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;X&nbsp;&nbsp;1<BR>
+&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;X&nbsp;&nbsp;0
+</CODE>
 </LI>
 
 <LI><B>Generate gate layouts (MoCMOS)</B>
 Generates a set of gates in the MOSIS CMOS technology.
 </LI>
+
+<LI><B>Coverage Implants Generator</B>
+Although individual MOS nodes and arcs have the proper amount of implant around them,
+a collection of such objects may result in an irregular implant boundary.
+To clean this up, you can place pure-layer nodes of implant that neatly cover the implant area.
+This command does it automatically.
+It removes previous pieces of coverage implant before running, so that the result is a clean cover.
+</LI>
+
+<LI><B>Fill (MoCMOS)...</B>
+<TABLE><TR><TD>
+Needs further explanation and dialog.
+</TD><TD><IMG SRC="fig09-59.png" ALT="Figure 9.59" BORDER=0></TD></TR></TABLE>
+
+</LI>
+
 
 </UL>
 
