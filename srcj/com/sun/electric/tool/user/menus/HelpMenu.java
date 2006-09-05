@@ -80,7 +80,7 @@ public class HelpMenu {
                     ManualViewer.animate3DSample("demo.j3d"); }}),
 
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
-            new EMenu("_3D ShowCase",
+            new EMenu("_3D Showcase",
                 new EMenuItem("_Load Library", KeyStroke.getKeyStroke(KeyEvent.VK_4, KeyEvent.ALT_MASK)) { public void run() {
                     ManualViewer.loadSamplesLibrary("floatingGates", "topCell"); }},
                 new EMenuItem("_3D View of Cage Cell", KeyStroke.getKeyStroke(KeyEvent.VK_5, KeyEvent.ALT_MASK)) { public void run() {

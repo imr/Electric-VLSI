@@ -172,9 +172,9 @@ public class ToolMenu {
                     importCalibreDrcErrors(); }},
 
                 SEPARATOR,
-		        new EMenuItem("Export DRC deck") { public void run() {
+		        new EMenuItem("Export DRC Deck...") { public void run() {
                     exportDRCDeck(); }},
-                new EMenuItem("Import DRC deck") { public void run() {
+                new EMenuItem("Import DRC Deck...") { public void run() {
                     importDRCDeck(); }}),
 
 		//------------------- Simulation (Built-in)
@@ -243,8 +243,8 @@ public class ToolMenu {
                     Simulation.setSpiceModel(); }},
 		        new EMenuItem("Add M_ultiplier") { public void run() {
                     addMultiplierCommand(); }},
-                new EMenuItem("Add flat code") { public void run() {
-                    makeTemplate(Spice.SPICE_CODE_FLAT_KEY); }},
+                Job.getDebug() ? new EMenuItem("Add flat code") { public void run() {
+                    makeTemplate(Spice.SPICE_CODE_FLAT_KEY); }} : null,
 
                 SEPARATOR,
 
@@ -513,7 +513,7 @@ public class ToolMenu {
                     ROMGenerator.generateROM(); }},
 		        new EMenuItem("MOSIS CMOS P_LA Generator...") { public void run() {
                     PLA.generate(); }},
-                new EMenuItem("Fill (MoCMOS)") { public void run() {
+                new EMenuItem("Fill (MoCMOS)...") { public void run() {
                     FillGen.openFillGeneratorDialog(MoCMOS.tech); }},
 		        new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
                     new GateLayoutGenerator(Tech.Type.MOCMOS); }},
