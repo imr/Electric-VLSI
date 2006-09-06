@@ -229,6 +229,8 @@ public class CellChangeJobs
 	 */
 	public static class GraphCells extends Job
 	{
+		private static final double TEXTHEIGHT = 2;
+
 		private Cell top;
         private Cell graphCell;
 
@@ -240,6 +242,8 @@ public class CellChangeJobs
 			double         y;
 			double         yoff;
 			NodeInst       pin;
+			NodeInst       topPin;
+			NodeInst       botPin;
 			CellGraphNode  main;
 		}
 
@@ -408,7 +412,7 @@ public class CellChangeJobs
 			// generate accurate X/Y coordinates
 			double xScale = 2.0 / 3.0;
 			double yScale = 20;
-			double yOffset = 0.5;
+			double yOffset = TEXTHEIGHT * 1.25;
 			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
 			{
 				Library lib = it.next();
@@ -420,7 +424,7 @@ public class CellChangeJobs
 					if (cgn.depth == -1) continue;
 					double x = cgn.x;   double y = cgn.y;
 					x = x * xScale;
-					y = -y * yScale + ((yoff[(int)cgn.y]++)%2) * yOffset;
+					y = -y * yScale + ((yoff[(int)cgn.y]++)%3) * yOffset;
 					cgn.x = x;   cgn.y = y;
 				}
 			}
@@ -445,7 +449,7 @@ public class CellChangeJobs
 						CellGraphNode trueCgn = cellGraphNodes.get(trueCell);
 						if (trueCgn.depth == -1) continue;
 		
-						cgn.pin = null;
+						cgn.pin = cgn.topPin = cgn.botPin = null;
 						cgn.main = trueCgn;
 						cgn.yoff += yOffset*2;
 						cgn.x = trueCgn.x;
@@ -482,13 +486,27 @@ public class CellChangeJobs
 					if (cgn.depth == -1) continue;
 
 					double x = cgn.x;   double y = cgn.y;
-					NodeInst ni = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y), 0, 0, graphCell);
-					if (ni == null) return false;
-					cgn.pin = ni;
+					cgn.pin = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y), 0, 0, graphCell);
+					if (cgn.pin == null) return false;
+					cgn.topPin = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y+TEXTHEIGHT/2), 0, 0, graphCell);
+					if (cgn.topPin == null) return false;
+					cgn.botPin = NodeInst.newInstance(Generic.tech.invisiblePinNode, new Point2D.Double(x, y-TEXTHEIGHT/2), 0, 0, graphCell);
+					if (cgn.botPin == null) return false;
+					PortInst pinPi = cgn.pin.getOnlyPortInst();
+					PortInst toppinPi = cgn.botPin.getOnlyPortInst();
+					PortInst botPinPi = cgn.topPin.getOnlyPortInst();
+					ArcInst link1 = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, toppinPi, pinPi);
+					ArcInst link2 = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, pinPi, botPinPi);
+					link1.setRigid(true);
+					link2.setRigid(true);
+					link1.setHardSelect(true);
+					link2.setHardSelect(true);
+					cgn.topPin.setHardSelect();
+					cgn.botPin.setHardSelect();
 
 					// write the cell name in the node
-                    TextDescriptor ctd = TextDescriptor.getNodeTextDescriptor().withRelSize(1);
-					ni.newVar(Artwork.ART_MESSAGE, cell.describe(false), ctd);
+                    TextDescriptor ctd = TextDescriptor.getNodeTextDescriptor().withRelSize(2);
+                    cgn.pin.newVar(Artwork.ART_MESSAGE, cell.describe(false), ctd);
 				}
 			}
 
@@ -510,6 +528,7 @@ public class CellChangeJobs
 					ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, 0, firstPi, firstPi);
 					if (ai == null) return false;
 					ai.setRigid(true);
+					ai.setHardSelect(true);
 
 					// set an invisible color on the arc
 					ai.newVar(Artwork.ART_COLOR, new Integer(0));
@@ -552,12 +571,14 @@ public class CellChangeJobs
 
 						// draw a line from cell "trueCell" to cell "truesubnp"
 						if (trueSubCgn.depth == -1) continue;
-						PortInst toppinPi = trueCgn.pin.getOnlyPortInst();
-						PortInst niBotPi = trueSubCgn.pin.getOnlyPortInst();
+						PortInst toppinPi = trueCgn.botPin.getOnlyPortInst();
+						PortInst niBotPi = trueSubCgn.topPin.getOnlyPortInst();
 						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultWidth(), toppinPi, niBotPi);
 						if (ai == null) return false;
                         ai.setRigid(false);
                         ai.setFixedAngle(false);
+                        ai.setSlidable(false);
+                        ai.setHardSelect(true);
 
 						// set an appropriate color on the arc (red for jumps of more than 1 level of depth)
 						int color = EGraphics.BLUE;
