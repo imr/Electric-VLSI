@@ -800,7 +800,10 @@ public class ELIB extends LibraryFiles
 				protoNames.put(protoName, protoName);
 			}
 			transitive.theseAreRelated(cell, protoName);
-			Cell otherCell = nodeProtoList[nextInCellGroup.get(cell).intValue()];
+            Cell otherCell = null;
+            Integer nextInCell = nextInCellGroup.get(cell);
+            if (nextInCell != null)
+                otherCell = nodeProtoList[nextInCell.intValue()];
 			if (otherCell != null && cell.getLibrary() == lib)
 				transitive.theseAreRelated(cell, otherCell);
 		}

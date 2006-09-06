@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (9/6/06, DN) Crash reading old ELIB libraries (MAGIC9 .. MAGIC11).
+FIX: In ELIB.readThLibrary check if nextInCell == null.
+
 BUG: (9/6/06, DN) Force quit and save does not save export name change (Bug #1175).
 FIX: In FileMenu.forceSave show message box with name of directory where libraries are saved.
 
