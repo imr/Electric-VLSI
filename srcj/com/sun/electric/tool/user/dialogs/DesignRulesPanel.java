@@ -261,7 +261,7 @@ public class DesignRulesPanel extends JPanel
 		if (layer1 < 0) return -1;
 		int layer2 = designRulesGetSelectedLayer(designRulesToList);
 		if (layer2 < 0) return -1;
-        return (curTech.getRuleIndex(layer1, layer2));
+        return (drRules.getRuleIndex(layer1, layer2));
     }
 
     /**
@@ -490,9 +490,7 @@ public class DesignRulesPanel extends JPanel
             for(int i=0; i<designRulesValidLayers.length; i++)
 			{
 				if (!designRulesValidLayers[i]) continue;
-				int layer1 = j;
-				int layer2 = i;
-                int dindex = curTech.getRuleIndex(layer1, layer2);
+                int dindex = drRules.getRuleIndex(j, i);
 				String line = drMakeToListLine(dindex, i, onlyvalid);
 
 				if (line.length() == 0) continue;

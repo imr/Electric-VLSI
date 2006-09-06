@@ -898,13 +898,13 @@ public class Technology implements Comparable<Technology>
 	 * @param index2 the second layer/node index.
 	 * @return the index in the array that corresponds to these two layers/nodes.
 	 */
-	public int getRuleIndex(int index1, int index2)
-	{
-		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
-		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
-		pIndex = index2 + (getNumLayers()) * index1 - pIndex;
-		return getNumLayers() + getNumNodes() + pIndex;
-	}
+//	public int getRuleIndex(int index1, int index2)
+//	{
+//		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
+//		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
+//		pIndex = index2 + (getNumLayers()) * index1 - pIndex;
+//		return getNumLayers() + getNumNodes() + pIndex;
+//	}
 
     /**
      * Method to determine index of layer or node involved in the rule

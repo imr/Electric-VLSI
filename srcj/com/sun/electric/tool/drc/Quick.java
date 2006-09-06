@@ -729,7 +729,7 @@ public class Quick
 			return (false);
 		nodesMap.put(ni, ni);
 
-        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(),
+        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), -1,
                 DRCTemplate.DRCRuleType.FORBIDDEN, tech))
         {
             reportError(DRCErrorType.FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
@@ -852,16 +852,11 @@ public class Quick
             // More than one type used.
             if (od2Layers.size() != 1)
             {
-//                Set set = od2Layers.keySet();
-//                Object[] keys = set.toArray();
                 for (Map.Entry<Layer,NodeInst> e : od2Layers.entrySet())
-//                for (int i = 0; i < set.size(); i++)
                 {
-//                    Layer lay1 = (Layer)keys[i];
                     Layer lay1 = e.getKey();
                     if (lay1 == layer) continue;
-                    int index = tech.getRuleIndex(lay1.getIndex(), layer.getIndex());
-                    if (DRC.isForbiddenNode(index, DRCTemplate.DRCRuleType.COMBINATION, tech))
+                    if (DRC.isForbiddenNode(lay1.getIndex(), layer.getIndex(), DRCTemplate.DRCRuleType.COMBINATION, tech))
                     {
                         NodeInst node = e.getValue(); // od2Layers.get(lay1);
                         String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +

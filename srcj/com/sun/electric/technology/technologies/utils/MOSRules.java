@@ -228,6 +228,21 @@ public class MOSRules implements DRCRules {
 	}
 
     /**
+	 * Method to determine the index in the upper-left triangle array for two layers/nodes. This function
+     * assumes no rules for primitives nor single layers are stored.
+	 * @param index1 the first layer/node index.
+	 * @param index2 the second layer/node index.
+	 * @return the index in the array that corresponds to these two layers/nodes.
+	 */
+	public int getRuleIndex(int index1, int index2)
+	{
+		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
+		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
+		pIndex = index2 + (tech.getNumLayers()) * index1 - pIndex;
+		return pIndex;
+	}
+
+    /**
      * Method to return overhang of poly in transistors along the gate
      * @return the overhang of poly in transistors along the gate.
      */
@@ -307,16 +322,16 @@ public class MOSRules implements DRCRules {
 		double worstLayerRule = -1;
 		int layerIndex = layer.getIndex();
 		int tot = tech.getNumLayers();
-	    double wide = wideLimit.doubleValue();
+	    double wide = wideLimit;
 
 		for(int i=0; i<tot; i++)
 		{
-			int pIndex = tech.getRuleIndex(layerIndex, i);
-			double dist = unConList[pIndex].doubleValue();
+			int pIndex = getRuleIndex(layerIndex, i);
+			double dist = unConList[pIndex];
 			if (dist > worstLayerRule) worstLayerRule = dist;
 			if (maxSize > wide)
 			{
-				dist = unConListWide[pIndex].doubleValue();
+				dist = unConListWide[pIndex];
 				if (dist > worstLayerRule) worstLayerRule = dist;
 			}
 		}
@@ -327,12 +342,12 @@ public class MOSRules implements DRCRules {
     /**
 	 * Method to find the extension rule between two layer.
 	 * @param layer1 the first layer.
-	 * @param layer2 the second layer.
+     * @param layer2 the second layer.
      * @param isGateExtension to decide between the rule EXTENSIONGATE or EXTENSION
-	 * @return the extension rule between the layers.
-	 * Returns null if there is no extension rule.
+     * @return the extension rule between the layers.
+     * Returns null if there is no extension rule.
 	 */
-	public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2, boolean isGateExtension)
+	public DRCTemplate getExtensionRule(Layer layer1, Layer layer2, boolean isGateExtension)
 	{
 		return null; //  not available for CMOS
 	}
@@ -340,14 +355,14 @@ public class MOSRules implements DRCRules {
     /**
 	 * Method to find the edge spacing rule between two layer.
 	 * @param layer1 the first layer.
-	 * @param layer2 the second layer.
-	 * @return the edge rule distance between the layers.
-	 * Returns null if there is no edge spacing rule.
+     * @param layer2 the second layer.
+     * @return the edge rule distance between the layers.
+     * Returns null if there is no edge spacing rule.
 	 */
-	public DRCTemplate getEdgeRule(Technology tech, Layer layer1, Layer layer2)
+	public DRCTemplate getEdgeRule(Layer layer1, Layer layer2)
 	{
-		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
-		double dist = edgeList[pIndex].doubleValue();
+		int pIndex = getRuleIndex(layer1.getIndex(), layer2.getIndex());
+		double dist = edgeList[pIndex];
 		if (dist < 0) return null;
 		return new DRCTemplate(edgeListRules[pIndex], DRCTemplate.DRCMode.ALL.mode(),
                 DRCTemplate.DRCRuleType.SPACINGE, 0, 0, null, null, dist, -1);
@@ -356,19 +371,19 @@ public class MOSRules implements DRCRules {
      /**
 	 * Method to find the spacing rule between two layer.
 	 * @param layer1 the first layer.
-	 * @param layer2 the second layer.
-	 * @param connected true to find the distance when the layers are connected.
-	 * @param multiCut 1 to find the distance when this is part of a multicut contact.
-     * @param wideS widest polygon
-     * @param length length of the intersection
-	 * @return the spacing rule between the layers.
-	 * Returns null if there is no spacing rule.
+      * @param layer2 the second layer.
+      * @param connected true to find the distance when the layers are connected.
+      * @param multiCut 1 to find the distance when this is part of a multicut contact.
+      * @param wideS widest polygon
+      * @param length length of the intersection
+      * @return the spacing rule between the layers.
+      * Returns null if there is no spacing rule.
 	 */
-	public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Geometric geo1,
+	public DRCTemplate getSpacingRule(Layer layer1, Geometric geo1,
                                       Layer layer2, Geometric geo2, boolean connected,
                                       int multiCut, double wideS, double length)
 	{
-		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
+		int pIndex = getRuleIndex(layer1.getIndex(), layer2.getIndex());
         String n1 = DRCTemplate.getSpacingCombinedName(layer1, geo1);
         String n2 = DRCTemplate.getSpacingCombinedName(layer2, geo2);
 		double bestDist = -1;
@@ -376,7 +391,7 @@ public class MOSRules implements DRCRules {
 
         if (connected)
         {
-            double dist = conList[pIndex].doubleValue();
+            double dist = conList[pIndex];
             boolean validName = true;
             if (conListNodes[pIndex] != null &&
                     (!n1.equals(conListNodes[pIndex]) && !n2.equals(conListNodes[pIndex])))
@@ -429,16 +444,16 @@ public class MOSRules implements DRCRules {
      * @param layer2 the second Layer to check.
      * @return true if there are design rules between the layers.
      */
-    public boolean isAnySpacingRule(Technology tech, Layer layer1, Layer layer2)
+    public boolean isAnySpacingRule(Layer layer1, Layer layer2)
     {
-        int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
-        if (conList[pIndex].doubleValue() >= 0) return true;
-        if (unConList[pIndex].doubleValue() >= 0) return true;
-        if (conListWide[pIndex].doubleValue() >= 0) return true;
-        if (unConListWide[pIndex].doubleValue() >= 0) return true;
-        if (conListMulti[pIndex].doubleValue() >= 0) return true;
-        if (unConListMulti[pIndex].doubleValue() >= 0) return true;
-        if (edgeList[pIndex].doubleValue() >= 0) return true;
+        int pIndex = getRuleIndex(layer1.getIndex(), layer2.getIndex());
+        if (conList[pIndex] >= 0) return true;
+        if (unConList[pIndex] >= 0) return true;
+        if (conListWide[pIndex] >= 0) return true;
+        if (unConListWide[pIndex] >= 0) return true;
+        if (conListMulti[pIndex] >= 0) return true;
+        if (unConListMulti[pIndex] >= 0) return true;
+        if (edgeList[pIndex] >= 0) return true;
         return false;
     }
 
@@ -449,7 +464,7 @@ public class MOSRules implements DRCRules {
      */
     public boolean doesAllowMultipleWideRules(int index)
     {
-        return (unConListWide[index].doubleValue() == MOSNORULE);
+        return (unConListWide[index] == MOSNORULE);
     }
 
 	/**
@@ -759,7 +774,7 @@ public class MOSRules implements DRCRules {
      * @param index the combined index of the two layers involved
      * @param type
      * @param nodeName name of the primitive
-     * @return
+     * @return null
      */
     public DRCTemplate getRule(int index, DRCTemplate.DRCRuleType type, String nodeName)
     {
@@ -827,46 +842,46 @@ public class MOSRules implements DRCRules {
 				endKey = override.indexOf(';', startKey);
 				if (endKey < 0) break;
 				String newValue = override.substring(startKey+1, endKey);
-				int index = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
+				int index = getRuleIndex(layer1.getIndex(), layer2.getIndex());
 				if (key.equals("c"))
 				{
-					conList[index] = new Double(TextUtils.atof(newValue));
+					conList[index] = TextUtils.atof(newValue);
 				} else if (key.equals("cr"))
 				{
 					conListRules[index] = newValue;
 				} else if (key.equals("u"))
 				{
-					unConList[index] = new Double(TextUtils.atof(newValue));
+					unConList[index] = TextUtils.atof(newValue);
 				} else if (key.equals("ur"))
 				{
 					unConListRules[index] = newValue;
 				} else if (key.equals("cw"))
 				{
-					conListWide[index] = new Double(TextUtils.atof(newValue));
+					conListWide[index] = TextUtils.atof(newValue);
 				} else if (key.equals("cwr"))
 				{
 					conListWideRules[index] = newValue;
 				} else if (key.equals("uw"))
 				{
-					unConListWide[index] = new Double(TextUtils.atof(newValue));
+					unConListWide[index] = TextUtils.atof(newValue);
 				} else if (key.equals("uwr"))
 				{
 					unConListWideRules[index] = newValue;
 				} else if (key.equals("cm"))
 				{
-					conListMulti[index] = new Double(TextUtils.atof(newValue));
+					conListMulti[index] = TextUtils.atof(newValue);
 				} else if (key.equals("cmr"))
 				{
 					conListMultiRules[index] = newValue;
 				} else if (key.equals("um"))
 				{
-					unConListMulti[index] = new Double(TextUtils.atof(newValue));
+					unConListMulti[index] = TextUtils.atof(newValue);
 				} else if (key.equals("umr"))
 				{
 					unConListMultiRules[index] = newValue;
 				} else if (key.equals("e"))
 				{
-					edgeList[index] = new Double(TextUtils.atof(newValue));
+					edgeList[index] = TextUtils.atof(newValue);
 				} else if (key.equals("er"))
 				{
 					edgeListRules[index] = newValue;
@@ -887,7 +902,7 @@ public class MOSRules implements DRCRules {
 				int index = layer.getIndex();
 				if (key.equals("m"))
 				{
-					minWidth[index] = new Double(TextUtils.atof(newValue));
+					minWidth[index] = TextUtils.atof(newValue);
 				} else if (key.equals("mr"))
 				{
 					minWidthRules[index] = newValue;
@@ -920,16 +935,15 @@ public class MOSRules implements DRCRules {
 					int otherEndKey = override.indexOf(';', startKey);
 					if (otherEndKey < 0) break;
 					String newValue2 = override.substring(endKey+1, otherEndKey);
-					minNodeSize[index*2] = new Double(TextUtils.atof(newValue1));
-					minNodeSize[index*2+1] = new Double(TextUtils.atof(newValue2));
+					minNodeSize[index*2] = TextUtils.atof(newValue1);
+					minNodeSize[index*2+1] = TextUtils.atof(newValue2);
 				} else if (key.equals("nr"))
 				{
 					startKey = override.indexOf('=', startKey);
 					if (startKey < 0) break;
 					endKey = override.indexOf(';', startKey);
 					if (endKey < 0) break;
-					String newValue = override.substring(startKey+1, endKey);
-					minNodeSizeRules[index] = newValue;
+					minNodeSizeRules[index] = override.substring(startKey+1, endKey);
 				}
 				pos = endKey + 1;
 				continue;
@@ -940,7 +954,7 @@ public class MOSRules implements DRCRules {
                 endKey = override.indexOf(';', startKey);
                 if (endKey < 0) break;
                 String newValue = override.substring(startKey, endKey);
-                wideLimit = new Double(TextUtils.atof(newValue));
+                wideLimit = TextUtils.atof(newValue);
                 pos = endKey + 1;
                 continue;
 			}

@@ -32,14 +32,15 @@ import java.util.List;
  */
 public interface DRCRules
 {
-	public double getWorstSpacingDistance();
+    public int getRuleIndex(int index1, int index2);
+    public double getWorstSpacingDistance();
     public double getMaxSurround(Technology tech, Layer layer, double maxSize);
-    public DRCTemplate getEdgeRule(Technology tech, Layer layer1, Layer layer2);
-    public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Geometric geo1,
+    public DRCTemplate getEdgeRule(Layer layer1, Layer layer2);
+    public DRCTemplate getSpacingRule(Layer layer1, Geometric geo1,
                                       Layer layer2, Geometric geo2, boolean connected,
                                       int multiCut, double wideS, double length);
-    public boolean isAnySpacingRule(Technology tech, Layer layer1, Layer layer2);
-    public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2,
+    public boolean isAnySpacingRule(Layer layer1, Layer layer2);
+    public DRCTemplate getExtensionRule(Layer layer1, Layer layer2,
                                         boolean isGateExtension);
 	public int getNumberOfRules();
     public DRCTemplate getMinValue(Layer layer, DRCTemplate.DRCRuleType type);

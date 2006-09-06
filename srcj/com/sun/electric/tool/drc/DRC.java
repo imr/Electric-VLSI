@@ -515,7 +515,7 @@ public class DRC extends Listener
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
 
-		return (rules.getEdgeRule(tech, layer1, layer2));
+		return (rules.getEdgeRule(layer1, layer2));
 	}
 
 	/**
@@ -537,7 +537,7 @@ public class DRC extends Listener
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
-        return (rules.getSpacingRule(tech, layer1, geo1, layer2, geo2, connected, multiCut, wideS, length));
+        return (rules.getSpacingRule(layer1, geo1, layer2, geo2, connected, multiCut, wideS, length));
 	}
 
 	/**
@@ -553,7 +553,7 @@ public class DRC extends Listener
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
-        return (rules.getExtensionRule(tech, layer1, layer2, isGateExtension));
+        return (rules.getExtensionRule(layer1, layer2, isGateExtension));
 	}
 
 	/**
@@ -567,7 +567,7 @@ public class DRC extends Listener
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return false;
-        return (rules.isAnySpacingRule(tech, layer1, layer2));
+        return (rules.isAnySpacingRule(layer1, layer2));
 	}
 
 	/**
@@ -591,11 +591,12 @@ public class DRC extends Listener
      * Determine if node represented by index in DRC mapping table is forbidden under
      * this foundry.
      */
-    public static boolean isForbiddenNode(int elemIndex, DRCTemplate.DRCRuleType type, Technology tech)
+    public static boolean isForbiddenNode(int index1, int index2, DRCTemplate.DRCRuleType type, Technology tech)
     {
         DRCRules rules = getRules(tech);
         if (rules == null) return false;
-        int index = elemIndex;
+        int index = index1; // In case of primitive nodes
+        if (index2 != -1 ) index = rules.getRuleIndex(index1, index2);
         if (type == DRCTemplate.DRCRuleType.FORBIDDEN) index += tech.getNumLayers();
         return (rules.isForbiddenNode(index, type));
     }

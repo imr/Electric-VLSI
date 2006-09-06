@@ -29,15 +29,29 @@ public class XMLRules implements DRCRules {
         this.tech = tech;
     }
 
+    /**
+	 * Method to determine the index in the upper-left triangle array for two layers/nodes. In this type of rules,
+     * the index starts after primitive nodes and single layers rules.
+	 * @param index1 the first layer/node index.
+	 * @param index2 the second layer/node index.
+	 * @return the index in the array that corresponds to these two layers/nodes.
+	 */
+	public int getRuleIndex(int index1, int index2)
+	{
+		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
+		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
+		pIndex = index2 + (tech.getNumLayers()) * index1 - pIndex;
+		return tech.getNumLayers() + tech.getNumNodes() + pIndex;
+	}
+
      /**
       * Method to find the edge spacing rule between two layer.
-      * @param tech
       * @param layer1 the first layer.
       * @param layer2 the second layer.
       * @return the edge rule distance between the layers.
       * Returns null if there is no edge spacing rule.
       */
-    public DRCTemplate getEdgeRule(Technology tech, Layer layer1, Layer layer2)
+    public DRCTemplate getEdgeRule(Layer layer1, Layer layer2)
     {
         return null;
     }
@@ -429,19 +443,19 @@ public class XMLRules implements DRCRules {
 	/**
 	 * Method to find the spacing rule between two layer.
 	 * @param layer1 the first layer.
-	 * @param layer2 the second layer.
-	 * @param connected true to find the distance when the layers are connected.
-	 * @param multiCut true to find the distance when this is part of a multicut contact.
+     * @param layer2 the second layer.
+     * @param connected true to find the distance when the layers are connected.
+     * @param multiCut true to find the distance when this is part of a multicut contact.
      * @param wideS widest polygon
      * @param length length of the intersection
-	 * @return the spacing rule between the layers.
-	 * Returns null if there is no spacing rule.
+     * @return the spacing rule between the layers.
+     * Returns null if there is no spacing rule.
 	 */
-	public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Geometric geo1,
+	public DRCTemplate getSpacingRule(Layer layer1, Geometric geo1,
                                       Layer layer2, Geometric geo2, boolean connected,
                                       int multiCut, double wideS, double length)
 	{
-		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
+		int pIndex = getRuleIndex(layer1.getIndex(), layer2.getIndex());
 		DRCTemplate.DRCRuleType type = (connected) ? DRCTemplate.DRCRuleType.CONSPA : DRCTemplate.DRCRuleType.UCONSPA;
 
         // Composing possible name if
@@ -475,14 +489,14 @@ public class XMLRules implements DRCRules {
     /**
 	 * Method to find the extension rule between two layer.
 	 * @param layer1 the first layer.
-	 * @param layer2 the second layer.
+     * @param layer2 the second layer.
      * @param isGateExtension to decide between the rule EXTENSIONGATE or EXTENSION
-	 * @return the extension rule between the layers.
-	 * Returns null if there is no extension rule.
+     * @return the extension rule between the layers.
+     * Returns null if there is no extension rule.
 	 */
-	public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2, boolean isGateExtension)
+	public DRCTemplate getExtensionRule(Layer layer1, Layer layer2, boolean isGateExtension)
 	{
-		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
+		int pIndex = getRuleIndex(layer1.getIndex(), layer2.getIndex());
         List<String> list = new ArrayList<String>(2);
         list.add(layer1.getName());
         list.add(layer2.getName());
@@ -496,9 +510,9 @@ public class XMLRules implements DRCRules {
      * @param layer2 the second Layer to check.
      * @return true if there are design rules between the layers.
      */
-    public boolean isAnySpacingRule(Technology tech, Layer layer1, Layer layer2)
+    public boolean isAnySpacingRule(Layer layer1, Layer layer2)
     {
-        int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
+        int pIndex = getRuleIndex(layer1.getIndex(), layer2.getIndex());
         HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map = matrix[pIndex];
         if (map == null) return false;
         for (XMLRule rule : map.values())
@@ -563,7 +577,7 @@ public class XMLRules implements DRCRules {
 
 		for(int i=0; i<tot; i++)
 		{
-			int pIndex = tech.getRuleIndex(layerIndex, i);
+			int pIndex = getRuleIndex(layerIndex, i);
             double dist = getMinRule(pIndex, DRCTemplate.DRCRuleType.UCONSPA, maxSize);
 			if (dist > worstLayerRule) worstLayerRule = dist;
 		}
@@ -606,7 +620,7 @@ public class XMLRules implements DRCRules {
 				endKey = override.indexOf(';', startKey);
 				if (endKey < 0) break;
 				String newValue = override.substring(startKey+1, endKey);
-				int index = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
+				int index = getRuleIndex(layer1.getIndex(), layer2.getIndex());
 				if (key.equals("c"))
 				{
                     XMLRule rule = getRule(index,  DRCTemplate.DRCRuleType.CONSPA);
@@ -861,7 +875,7 @@ public class XMLRules implements DRCRules {
         // find the index in a two-layer upper-diagonal table
         int index = -1;
         if (index1 >= 0 && index2 >= 0)
-            index = tech.getRuleIndex(index1, index2);
+            index = getRuleIndex(index1, index2);
 
         // get more information about the rule
         double distance = theRule.value1;
@@ -948,12 +962,12 @@ public class XMLRules implements DRCRules {
     public void resizeContact(PrimitiveNode contact, Technology.NodeLayer cutNode, Technology.NodeLayer cutSurNode)
     {
         DRCTemplate cutSize = getRule(cutNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // min and max for vias
-        int index = tech.getRuleIndex(cutSurNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
+        int index = getRuleIndex(cutSurNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
         DRCTemplate cutSur = getRule(index, DRCTemplate.DRCRuleType.SURROUND);
 
         assert(cutSize != null); assert(cutSur != null);
 
-        index = tech.getRuleIndex(cutNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
+        index = getRuleIndex(cutNode.getLayer().getIndex(), cutNode.getLayer().getIndex());
         DRCTemplate spacing1D = getRule(index, DRCTemplate.DRCRuleType.UCONSPA);
         assert(spacing1D != null);
         DRCTemplate spacing2D = getRule(index, DRCTemplate.DRCRuleType.UCONSPA2D);
@@ -988,10 +1002,10 @@ public class XMLRules implements DRCRules {
             Technology.NodeLayer sellNode = contact.getLayers()[3]; // select
 
             // setting well-active actSurround
-            int index = tech.getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
+            int index = getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
             DRCTemplate actSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contact.getName());
 
-            index = tech.getRuleIndex(activeNode.getLayer().getIndex(), sellNode.getLayer().getIndex());
+            index = getRuleIndex(activeNode.getLayer().getIndex(), sellNode.getLayer().getIndex());
             DRCTemplate selSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contact.getName());
 
             assert(actSurround != null); assert(selSurround != null);

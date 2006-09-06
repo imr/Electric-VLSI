@@ -56,7 +56,7 @@ public class MoCMOS extends Technology
     // Depending on plugins available
     private static MoCMOS initilizeMoCMOS()
     {
-        MoCMOS tech = null;
+        MoCMOS tech;
         try
         {
             Class tsmcClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC180");
@@ -2896,7 +2896,7 @@ public class MoCMOS extends Technology
             Technology.NodeLayer selNode = primNode.getLayers()[3]; // select
 
             // setting well-active actSurround
-            int index = tech.getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
+            int index = rules.getRuleIndex(activeNode.getLayer().getIndex(), wellNode.getLayer().getIndex());
             DRCTemplate actSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
             double length = primNode.getDefHeight();
             if (polyWid == null)
@@ -2923,9 +2923,9 @@ public class MoCMOS extends Technology
             polyNode.getRightEdge().setAdder(-polyExten);
 
             // select
-            index = tech.getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
+            index = rules.getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
             DRCTemplate selSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
-            index = tech.getRuleIndex(polyNode.getLayer().getIndex(), selNode.getLayer().getIndex());
+            index = rules.getRuleIndex(polyNode.getLayer().getIndex(), selNode.getLayer().getIndex());
             DRCTemplate selPolySurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
             double selExtenOppLen = actSurround.value1 - selPolySurround.value1;
             double selExtenAlongLen = lenValMin - selSurround.value1;// only valid on active extension (Y axis in 180nm)
@@ -2978,7 +2978,7 @@ public class MoCMOS extends Technology
 		for(int l1=0; l1<tech.getNumLayers(); l1++)
 			for(int l2=0; l2<=l1; l2++)
 		{
-			int i = tech.getRuleIndex(l2, l1);
+			int i = newRules.getRuleIndex(l2, l1);
 			if (!newRules.conList[i].equals(origRules.conList[i]))
 			{
 				changes.append("c:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conList[i]+";");
@@ -3434,7 +3434,7 @@ public class MoCMOS extends Technology
         if (!primNode.getFunction().isTransistor()) return 0.0;
 
         Technology.NodeLayer activeNode = primNode.getLayers()[0]; // active
-        Technology.NodeLayer polyCNode = null;
+        Technology.NodeLayer polyCNode;
 
         if (primNode == scalableTransistorNodes[P_TYPE] || primNode == scalableTransistorNodes[N_TYPE])
         {
@@ -3446,8 +3446,8 @@ public class MoCMOS extends Technology
             polyCNode = primNode.getElectricalLayers()[2]; // poly center
         }
         DRCTemplate overhang = (poly) ?
-                rules.getExtensionRule(tech, polyCNode.getLayer(), activeNode.getLayer(), false) :
-                rules.getExtensionRule(tech, activeNode.getLayer(), polyCNode.getLayer(), false);
+                rules.getExtensionRule(polyCNode.getLayer(), activeNode.getLayer(), false) :
+                rules.getExtensionRule(activeNode.getLayer(), polyCNode.getLayer(), false);
         return (overhang != null ? overhang.value1 : 0.0);
     }
 }

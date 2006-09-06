@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (9/6/06, GVG) DRC on old technologies not working since a long time ago.
+FIX: Correct index for a pair of layers.
+
 IMP: (9/6/06, GVG) Changes in Build.xml
 
 BUG: (9/4/06, SMR) Transistors in component menu doesn't show text.
