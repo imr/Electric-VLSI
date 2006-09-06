@@ -31,6 +31,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
@@ -352,7 +353,11 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     	if (User.isRotateLayoutTransistors()) rot = 900;
     	PrimitiveNode.Function fun = ni.getFunction();
     	if (fun.isTransistor())
-	        ni = Technology.makeNodeInst(ni.getProto(), fun, rot, false, null, 0);
+    	{
+	        NodeInst newNi = Technology.makeNodeInst(ni.getProto(), fun, rot, false, null, 0);
+	        newNi.copyVarsFrom(ni);
+	        ni = newNi;
+    	}
     	return ni;
     }
 
@@ -363,7 +368,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     {
         if (item != null)
         {
-            // checkinf if node is in used
+            // checking if node is in used
             if (item instanceof NodeInst && ((NodeInst)item).getProto() instanceof PrimitiveNode)
             {
                 PrimitiveNode p = (PrimitiveNode)((NodeInst)item).getProto();
