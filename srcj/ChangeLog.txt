@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (9/4/06, SMR) Transistors in component menu doesn't show text.
+FIX: In TechPalette.rotateTransistor(), copy variables.
+
+IMP: (9/6/06, SMR) Minor improvements to cell graphing.
+
 BUG: (9/6/06, DN) Crash reading old ELIB libraries (MAGIC9 .. MAGIC11).
 FIX: In ELIB.readThLibrary check if nextInCell == null.
 
