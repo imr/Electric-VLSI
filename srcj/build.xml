@@ -28,10 +28,61 @@
     <target name="init" description="Initialization">
         <property name="beanshell" value="packaging/bsh-2.0b2.jar"/>
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
-	<property name="JUnit" value="packaging/junit-4.0.jar"/>
-	<property name="lucene" value="packaging/lucene-1.4.3.jar"/>
-	<property name="prefuse" value="packaging/prefuse.jar"/>
+        <property name="JUnit" value="packaging/junit-4.0.jar"/>
+        <property name="lucene" value="packaging/lucene-1.4.3.jar"/>
+        <property name="prefuse" value="packaging/prefuse.jar"/>
     </target>
+
+    <!-- Patternset for 3D dependencies -->
+    <patternset id="exclusion3D">
+        <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
+        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
+        <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
+        <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
+        <!-- you don't include either Java3D plugin if 3D option is out -->
+        <!-- this is valid when Java3D is not installed -->
+        <exclude name="com/sun/electric/plugins/Java3D/*.*" if="NO3D"/>
+    </patternset>
+
+    <!-- Patternset for all tools that must be excluded from GNU -->
+    <patternset id="exclusionGNU">
+        <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/menus/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc/fill90nm/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc/gates90nm/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/dais/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/*/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie/*/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tests/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse/*/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/manualRussian/*.*" if="GNU"/>
+    </patternset>
+
+    <!-- Patternset for all exclusions -->
+    <patternset id="exclusion">
+        <patternset refid="exclusion3D" />
+        <patternset refid="exclusionGNU" />
+        <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
+        <exclude name="intervalsimulation/"/>
+    </patternset>
+
+    <!-- Path for minimum set of external jars -->
+    <path id="externalClassPath">
+        <pathelement location="packaging/bsh-2.0b2.jar"/>
+        <pathelement location="packaging/AppleJavaExtensions.jar"/>
+    </path>
+
+    <!-- Path for prefuse libraries -->
+    <path id="prefuseClassPath">
+        <!--<pathelement location="${lucene}"/>-->
+        <pathelement location="packaging/prefuse.jar"/>
+    </path>
 
 	<!-- Use -DGNU=true for GNU release -->
 	<!-- Use -Dsource=true to release the source  -->
@@ -40,30 +91,19 @@
         <javac debug="true" deprecation="true" destdir="." srcdir="."
 	    fork="true" memoryMaximumSize="256m">
 	    <!--compilerarg value="-Xlint:unchecked"/-->
-            <classpath><pathelement location="${beanshell}"/></classpath>
-            <classpath><pathelement location="${AppleJava}"/></classpath>
-            <classpath><pathelement location="${lucene}"/></classpath>
-            <classpath><pathelement location="${prefuse}"/></classpath>
-            <exclude name="intervalsimulation/"/>  
-            <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
-	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
-            <!-- you don't include either Java3D plugin if 3D option is out -->
-            <!-- this is valid when Java3D is not installed -->
-            <exclude name="com/sun/electric/plugins/Java3D/*.*" if="NO3D"/>
-	    <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
+            <exclude name="intervalsimulation/"/>
+            <patternset refid="exclusion" />
         </javac>
     </target>
 
     <target name="compileToBin" depends="init" description="Compile to 'bin' directory">
         <javac debug="true" deprecation="true" destdir="bin" srcdir="."
             fork="true" memoryMaximumSize="256m">
-            <classpath><pathelement location="${beanshell}"/></classpath>
-            <classpath><pathelement location="${AppleJava}"/></classpath>
-            <classpath><pathelement location="${lucene}"/></classpath>
-            <classpath><pathelement location="${prefuse}"/></classpath>
-            <exclude name="intervalsimulation/"/>
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
+            <patternset refid="exclusion" />
         </javac>
         <copy todir="bin/com">
             <fileset dir="com">
@@ -91,11 +131,9 @@
             fork="true" maxmemory="1024m">
             <classpath>
                 <pathelement location="bin"/>
-                <pathelement location="${beanshell}"/>
-                <pathelement location="${AppleJava}"/>
-                <pathelement location="${lucene}"/>
-                <pathelement location="${prefuse}"/>
            </classpath>
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
            <arg value="-debug"/>
         </java>
     </target>
@@ -105,11 +143,9 @@
 	    <jvmarg value="-enableassertions"/>
             <classpath>
                 <pathelement location="."/>
-                <pathelement location="${beanshell}"/>
-                <pathelement location="${AppleJava}"/>
-                <pathelement location="${lucene}"/>
-                <pathelement location="${prefuse}"/>
            </classpath>
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
             <arg value="-debug"/>
         </java>
     </target>
@@ -118,13 +154,11 @@
         <java classname="org.junit.runner.JUnitCore" failonerror="true" fork="true" maxmemory="1024m">
 	    <jvmarg value="-enableassertions"/>
             <classpath>
-		<pathelement location="${JUnit}"/>
+                <pathelement location="${JUnit}"/>
                 <pathelement location="."/>
-                <pathelement location="${beanshell}"/>
-                <pathelement location="${AppleJava}"/>
-                <pathelement location="${lucene}"/>
-                <pathelement location="${prefuse}"/>
            </classpath>
+            <classpath refid="externalClassPath" />
+            <classpath refid="prefuseClassPath" />
            <arg value="com.sun.electric.database.IdManagerTest"/>
            <arg value="com.sun.electric.database.SnapshotTest"/>
            <arg value="com.sun.electric.database.geomerty.GenMathTest"/>
@@ -133,9 +167,11 @@
     </target>
 
 	<!-- Not able to put if condition inside unjar -->
-	<target name="unjarBsh" unless="GNU">
+	<target name="unjarNoGNU" unless="GNU">
         <unjar dest="." src="${beanshell}"/>
-	</target>
+        <unjar dest="." src="${lucene}"/>
+        <unjar dest="." src="${prefuse}"/>
+    </target>
 
 	<target name="jarForGNUBinary" description="Make binary Jar file for GNU">
 	    <antcall target="jarWithVersion">
@@ -224,17 +260,16 @@
 	</target>
 
 	<target name="jarWithVersion" depends="init,compile" description="Make Jar file with version">
-        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
-        	<arg value="-v"/>
-        </java>
-	    <antcall target="unjarBsh"></antcall>
+        <!--<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">-->
+        	<!--<arg value="-v"/>-->
+        <!--</java>-->
+	    <antcall target="unjarNoGNU"></antcall>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <copy file="packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
-        	<exclude name="intervalsimulation/"/>
             <exclude name="nbproject/"/>
             <exclude name="packaging/*.jar"/>
             <exclude name="packaging/*.gif"/>
@@ -245,19 +280,7 @@
             <exclude name="electric-${version}.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-	        <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
-        	<exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
-        	<exclude name="com/sun/electric/plugins/menus/*.*" if="GNU"/>
-        	<exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc/fill90nm/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc/gates90nm/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/dais/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/sunRouter/*/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/sunRouter/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
-            <exclude name="com/sun/electric/plugins/Java3D/*.*" unless="Java3D"/>
-	    <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
+            <patternset refid="exclusion" />
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>
@@ -275,33 +298,20 @@
     </target>
 
     <target name="jar" depends="init,compileTests" description="Make binary Jar file">
-	    <antcall target="unjarBsh"></antcall>
+	    <antcall target="unjarNoGNU"></antcall>
         <unjar dest="." src="${AppleJava}"/>
         <unjar dest="." src="${JUnit}"/>
-        <unjar dest="." src="${lucene}"/>
-        <unjar dest="." src="${prefuse}"/>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
-            <exclude name="intervalsimulation/"/>
             <exclude name="packaging/"/>
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="electric*.jar"/>
             <exclude name="electric.mf"/>
-	        <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
-	        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
-	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc/fill90nm/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/tsmc/gates90nm/*.*" if="GNU"/>
-	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
-	    <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
+            <patternset refid="exclusion" />
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>
