@@ -65,17 +65,17 @@ public class EFIDO extends Technology
 
 		/** N layer */
 		Layer N_lay = Layer.newInstance(this, "Node",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 0,155,80, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 255,  0,  0,/*0,155,80,*/ 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** A layer */
 		Layer A_lay = Layer.newInstance(this, "Arc",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2,   0,  0,255,/*0,0,0,*/ 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** O layer */
 		Layer O_lay = Layer.newInstance(this, "Outpad",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3,   0,155, 80,/*0,0,0,*/ 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions

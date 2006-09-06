@@ -327,7 +327,7 @@ public class MoCMOS extends Technology
 
 		/** P active layer */
 		activeLayers[P_TYPE] = Layer.newInstance(this, "P-Active",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,204,0, 1,true,
+			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
 			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X
@@ -347,7 +347,7 @@ public class MoCMOS extends Technology
 
 		/** N active layer */
 		activeLayers[N_TYPE] = Layer.newInstance(this, "N-Active",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,204,0, 1,true,
+			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
 			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X
@@ -509,7 +509,7 @@ public class MoCMOS extends Technology
 
 		/** P act well layer */
 		pActiveWellLayer = Layer.newInstance(this, "P-Active-Well",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,204,0, 1,false,
+			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,false,
 			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X
@@ -530,7 +530,7 @@ public class MoCMOS extends Technology
 		/** Silicide block */
         /** Resist Protection Oxide (RPO) Same graphics as in 90nm tech */
 		silicideBlockLayer = Layer.newInstance(this, "Silicide-Block",
-            new EGraphics(true, true, null, EGraphics.TRANSPARENT_2, 192,255,255, 1,true,
+            new EGraphics(true, true, null, EGraphics.TRANSPARENT_2, 255,155,192,/*192,255,255,*/ 1,true,
             new int[] { 0x1010,  /*    X       X     */
                         0x2828,   /*   X X     X X    */
                         0x4444,   /*  X   X   X   X   */
@@ -731,7 +731,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo P active */
 		pseudoActiveLayers[P_TYPE] = Layer.newInstance(this, "Pseudo-P-Active",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,204,0, 1,true,
+			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
 			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X
@@ -751,7 +751,7 @@ public class MoCMOS extends Technology
 
 		/** pseudo N active */
 		pseudoActiveLayers[N_TYPE] = Layer.newInstance(this, "Pseudo-N-Active",
-			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,204,0, 1,true,
+			new EGraphics(false, true, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*107,204,0,*/ 1,true,
 			new int[] { 0x0000,   //
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X

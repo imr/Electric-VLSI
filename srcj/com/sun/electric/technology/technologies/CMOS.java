@@ -69,7 +69,7 @@ public class CMOS extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 0,255,0,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1,   0,  0,255,/*0,255,0,*/0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -89,7 +89,7 @@ public class CMOS extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 255,190,6,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 223,  0,  0,/*255,190,6,*/0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -109,7 +109,7 @@ public class CMOS extends Technology
 
 		/** D layer */
 		Layer D_lay = Layer.newInstance(this, "Diffusion",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 170,140,30,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3,   0,255,  0,/*170,140,30,*/0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -129,7 +129,7 @@ public class CMOS extends Technology
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "P+",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 0,0,0,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 255,190,  6,/*0,0,0,*/0.8,true,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -159,7 +159,7 @@ public class CMOS extends Technology
 
 		/** PW layer */
 		Layer PW_lay = Layer.newInstance(this, "P-Well",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 0,0,0,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 170,140, 30,/*0,0,0,*/0.8,true,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 
@@ -204,7 +204,7 @@ public class CMOS extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 0,255,0,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1,   0,  0,255,/*0,255,0,*/0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -224,7 +224,7 @@ public class CMOS extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 255,190,6,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 223,  0,  0,/*255,190,6,*/0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -244,7 +244,7 @@ public class CMOS extends Technology
 
 		/** PD layer */
 		Layer PD_lay = Layer.newInstance(this, "Pseudo-Diffusion",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 170,140,30,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3,   0,255,  0,/*170,140,30,*/0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -264,7 +264,7 @@ public class CMOS extends Technology
 
 		/** PP0 layer */
 		Layer PP0_lay = Layer.newInstance(this, "Pseudo-P+",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 0,0,0,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 255,190,  6,/*0,0,0,*/0.8,true,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -284,7 +284,7 @@ public class CMOS extends Technology
 
 		/** PPW layer */
 		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 0,0,0,0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 170,140, 30,/*0,0,0,*/0.8,true,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 

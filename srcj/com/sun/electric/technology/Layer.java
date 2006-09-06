@@ -27,8 +27,8 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.Job;
+import java.awt.Color;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -469,6 +469,13 @@ public class Layer
 	 */
 	public static Layer newInstance(Technology tech, String name, EGraphics graphics)
 	{
+        if (tech == null) throw new NullPointerException();
+        int transparent = graphics.getTransparentLayer();
+        if (transparent != 0) {
+            Color colorFromMap = tech.getColorMap()[1 << (transparent - 1)];
+            if ((colorFromMap.getRGB() & 0xFFFFFF) != graphics.getRGB())
+                throw new IllegalArgumentException();
+        }
 		Layer layer = new Layer(name, tech, graphics);
 		graphics.setLayer(layer);
 		tech.addLayer(layer);

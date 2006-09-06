@@ -108,7 +108,7 @@ public class BiCMOS extends Technology
 
 		/** NW layer */
 		Layer NW_lay = Layer.newInstance(this, "N_Well",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 240,221,181,/*0,0,0,*/ 0.8,true,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -168,7 +168,7 @@ public class BiCMOS extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo_Metal_1",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 107,226,96, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 96,209,255,/*107,226,96,*/ 0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -188,7 +188,7 @@ public class BiCMOS extends Technology
 
 		/** PM0 layer */
 		Layer PM0_lay = Layer.newInstance(this, "Pseudo_Metal_2",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 224, 95,255,/*0,0,0,*/ 0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -208,7 +208,7 @@ public class BiCMOS extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo_Polysilicon",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 224,95,255, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 255,155,192,/*224,95,255,*/ 0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -268,7 +268,7 @@ public class BiCMOS extends Technology
 
 		/** PNW layer */
 		Layer PNW_lay = Layer.newInstance(this, "Pseudo_N_Well",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 240,221,181,/*0,0,0,*/ 0.8,true,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -293,7 +293,7 @@ public class BiCMOS extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "M1",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 107,226,96, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 96,209,255,/*107,226,96,*/ 0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -313,7 +313,7 @@ public class BiCMOS extends Technology
 
 		/** M0 layer */
 		Layer M0_lay = Layer.newInstance(this, "M2",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 224, 95,255,/*0,0,0,*/ 0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -333,7 +333,7 @@ public class BiCMOS extends Technology
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "Poly1",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 224,95,255, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 255,155,192,/*224,95,255,*/ 0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -373,7 +373,7 @@ public class BiCMOS extends Technology
 
 		/** A layer */
 		Layer A_lay = Layer.newInstance(this, "Active",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 240,221,181, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -403,7 +403,7 @@ public class BiCMOS extends Technology
 
 		/** PA layer */
 		Layer PA_lay = Layer.newInstance(this, "Pseudo_Active",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 240,221,181, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -423,7 +423,7 @@ public class BiCMOS extends Technology
 
 		/** PBA layer */
 		Layer PBA_lay = Layer.newInstance(this, "P_Base_Active",
-			new EGraphics(true, true, EGraphics.Outline.PAT_S, EGraphics.TRANSPARENT_3, 240,221,181, 0.8,true,
+			new EGraphics(true, true, EGraphics.Outline.PAT_S, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
 			new int[] { 0x4444,   //  X   X   X   X  
 						0x2222,   //   X   X   X   X 
 						0x1111,   //    X   X   X   X
@@ -463,12 +463,12 @@ public class BiCMOS extends Technology
 
 		/** OS layer */
 		Layer OS_lay = Layer.newInstance(this, "Ohmic_Substrate",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 240,221,181, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** OW layer */
 		Layer OW_lay = Layer.newInstance(this, "Ohmic_Well",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 240,221,181, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 107,226, 96,/*240,221,181,*/ 0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions

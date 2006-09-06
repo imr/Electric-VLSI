@@ -68,7 +68,7 @@ public class Bipolar extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal1",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 115,255,82, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 255,  0,  0,/*115,255,82,*/ 0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -88,7 +88,7 @@ public class Bipolar extends Technology
 
 		/** M0 layer */
 		Layer M0_lay = Layer.newInstance(this, "Metal2",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4,  96,213,255,/*0,0,0,*/ 0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -148,7 +148,7 @@ public class Bipolar extends Technology
 
 		/** PD layer */
 		Layer PD_lay = Layer.newInstance(this, "Poly_Definition",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2, 96,213,255, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_2,  50, 50,200,/*96,213,255,*/ 0.8,true,
 			new int[] { 0x1111,   //    X   X   X   X
 						0x3030,   //   XX      XX    
 						0x7171,   //  XXX   X XXX   X
@@ -188,7 +188,7 @@ public class Bipolar extends Technology
 
 		/** I layer */
 		Layer I_lay = Layer.newInstance(this, "Isolation",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 205,205,205, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_3, 115,255, 82,/*205,205,205,*/ 0.8,true,
 			new int[] { 0x5555,   //  X X X X X X X X
 						0xaaaa,   // X X X X X X X X 
 						0x5555,   //  X X X X X X X X
@@ -248,7 +248,7 @@ public class Bipolar extends Technology
 
 		/** SE layer */
 		Layer SE_lay = Layer.newInstance(this, "Silicide_Exclusion",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_5, 205,205,205,/*0,0,0,*/ 0.8,true,
 			new int[] { 0xafaf,   // X X XXXXX X XXXX
 						0x8888,   // X   X   X   X   
 						0xfafa,   // XXXXX X XXXXX X 
@@ -348,7 +348,7 @@ public class Bipolar extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo_Metal1",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 115,255,82, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_1, 255,  0,  0,/*115,255,82,*/ 0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -368,7 +368,7 @@ public class Bipolar extends Technology
 
 		/** PM0 layer */
 		Layer PM0_lay = Layer.newInstance(this, "Pseudo_Metal2",
-			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4, 0,0,0, 0.8,true,
+			new EGraphics(false, false, null, EGraphics.TRANSPARENT_4,  96,213,255,/*0,0,0,*/ 0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
