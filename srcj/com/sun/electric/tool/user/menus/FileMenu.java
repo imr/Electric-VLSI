@@ -1562,7 +1562,12 @@ public class FileMenu {
         }
         // set libraries to save to panic dir
         Snapshot panicSnapshot = JobManager.findValidSnapshot();
-        return !Output.writePanicSnapshot(panicSnapshot, panicDir, false);
+        boolean ok = !Output.writePanicSnapshot(panicSnapshot, panicDir, false);
+        if (ok) {
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Libraries are saved to panic directory",
+                 panicDir.getAbsolutePath()}, "Libraries are saved", JOptionPane.INFORMATION_MESSAGE);
+        }
+        return ok;
     }
     
 //    public static boolean forceSave(boolean confirm) {
