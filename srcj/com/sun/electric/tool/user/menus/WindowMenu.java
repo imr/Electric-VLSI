@@ -88,6 +88,8 @@ public class WindowMenu {
                 KeyStroke.getKeyStroke(KeyEvent.VK_HOME, ctrlshift)};
         KeyStroke [] numpad0 = new KeyStroke [] { EMenuItem.shortcut('0'), EMenuItem.shortcut(KeyEvent.VK_NUMPAD0),
                 KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, ctrlshift)};
+        KeyStroke [] numpad5 = new KeyStroke [] { EMenuItem.shortcut('5'), EMenuItem.shortcut(KeyEvent.VK_NUMPAD5),
+                KeyStroke.getKeyStroke(KeyEvent.VK_BEGIN, ctrlshift)};
 
 
         // mnemonic keys available: A         K     Q  T    Y
@@ -104,7 +106,7 @@ public class WindowMenu {
 
 		// mnemonic keys available: ABCDEF  IJKLMNOPQRSTUV XY
             new EMenu("Special _Zoom",
-                new EMenuItem("Focus on _Highlighted", 'F', KeyEvent.VK_NUMPAD5) { public void run() {
+                new EMenuItem("Focus on _Highlighted", 'F') { public void run() {
                     focusOnHighlighted(); }},
                 new EMenuItem("_Zoom Box") { public void run() {
                     zoomBoxCommand(); }},
@@ -128,7 +130,7 @@ public class WindowMenu {
             new EMenu("Special _Pan",
                 new EMenuItem("Center _Selection") { public void run() {
                     ZoomAndPanListener.centerSelection(); }},
-                new EMenuItem("Center _Cursor", '5') { public void run() {
+                new EMenuItem("Center _Cursor", numpad5) { public void run() {
                     ZoomAndPanListener.centerCursor(); }},
                 new EMenuItem("Match Other Window in _X") { public void run() {
                     matchOtherWindowCommand(1); }},
