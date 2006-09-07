@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (9/7/06, SMR) Spice Trailer cards may duplicate the "." in the extension (Bug #1215).
+FIX: In Spice.writeTrailer(), removed extra ".".
+
 BUG: (9/7/06, SMR) Layers Preferences shows pseudo layers, confuses (Bug #1190).
 FIX: Psuedo layers no longer shown.  Also, opacity no longer just for printers.
 

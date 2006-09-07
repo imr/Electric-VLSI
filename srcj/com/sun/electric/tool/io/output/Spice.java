@@ -2794,6 +2794,7 @@ public class Spice extends Topology
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String trailerpath = TextUtils.getFilePath(TextUtils.makeURLToFile(filePath));
+                if (trailerFile.startsWith(".")) trailerFile = trailerFile.substring(1);
 				String filePart = cell.getName() + "." + trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
 				String fileName = trailerpath + filePart;
 				File test = new File(fileName);
