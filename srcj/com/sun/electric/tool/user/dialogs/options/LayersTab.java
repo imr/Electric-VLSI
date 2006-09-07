@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -152,6 +153,8 @@ public class LayersTab extends PreferencePanel
 			for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 			{
 				Layer layer = lIt.next();
+				if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0 &&
+					layer.getNonPseudoLayer() != layer) continue;
 				layerName.addItem(layer.getName());
                 ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
                 layerMap.put(layer, li);
@@ -188,7 +191,7 @@ public class LayersTab extends PreferencePanel
         // 3D Stuff
         try
         {
-                Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
             if (j3DUtilsClass != null)
             {
                 Method setMethod = j3DUtilsClass.getDeclaredMethod("get3DColorsInTab", new Class[] {HashMap.class});
@@ -223,6 +226,8 @@ public class LayersTab extends PreferencePanel
 		for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 		{
 			Layer layer = lIt.next();
+			if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0 &&
+				layer.getNonPseudoLayer() != layer) continue;
 			layerName.addItem(layer.getName());
 		}
 
@@ -273,7 +278,13 @@ public class LayersTab extends PreferencePanel
 			{
 				Layer layer = lIt.next();
 				ColorPatternPanel.Info li = layerMap.get(layer);
-				if (li.updateGraphics())
+				EGraphics graphics = layer.getGraphics();
+				if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0)
+				{
+					ColorPatternPanel.Info altLI = layerMap.get(layer.getNonPseudoLayer());
+					if (altLI != null) li = altLI;
+				}
+				if (li.updateGraphics(graphics))
 					changed = true;
 			}
 
@@ -345,7 +356,6 @@ public class LayersTab extends PreferencePanel
             System.out.println("Cannot call 3D plugin method set3DColorsInTab: " + e.getMessage());
             e.printStackTrace();
         }
-
 
 		// redisplay if changes were made
 		if (changed)
