@@ -192,6 +192,14 @@ public abstract class LibraryFiles extends Input
         errorLogger = ErrorLogger.newInstance("Library Read");
 
         File f = new File(fileURL.getPath());
+
+        // read project settings
+        if (f != null && f.exists()) {
+            File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
+            if (projsettings.exists())
+                ProjSettings.readSettings(projsettings);
+        }        
+
         if (f != null && f.exists()) {
             LibDirs.readLibDirs(f.getParent());
         }
@@ -247,13 +255,6 @@ public abstract class LibraryFiles extends Input
 			float finalTime = (endTime - startTime) / 1000F;
 			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
 		}
-
-        // read project settings
-        if (f != null && f.exists()) {
-            File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
-            if (projsettings.exists())
-                ProjSettings.readSettings(projsettings);
-        }
 
         // if CVS is enabled, get status of library
         if (CVS.isEnabled()) {
