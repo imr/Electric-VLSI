@@ -175,7 +175,7 @@ public class ArtworkLook extends EDialog implements HighlightListener
 	private void applyDialog()
 	{
 		if (li == null) return;
-		if (li.updateGraphics())
+		if (li.updateGraphics(li.graphics))
 		{
 			int transparent = li.graphics.getTransparentLayer();
 			Color newColor = li.graphics.getColor();
