@@ -328,19 +328,18 @@ public class ParasiticTab extends ProjSettingsPanel {
 	}
 
 	private void factoryResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_factoryResetActionPerformed
+        String techName = (String)techSelection.getSelectedItem();
+        Technology tech = Technology.findTechnology(techName);
+        if (tech == null) return;
 		int ret = JOptionPane.showConfirmDialog(this,
-			"Are you sure you want to reset all layers to their default resistance and capacitance values?",
-			"Factory Reset", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+			"Are you sure you want to reset all layers for technology "+techName+" to their default resistance and capacitance values?",
+            "Factory Reset", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
 		if (ret == JOptionPane.YES_OPTION) {
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = (Technology)it.next();
-				for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
-				{
-					Layer layer = (Layer)lIt.next();
-					layer.resetToFactoryParasitics();
-				}
-			}
+            for (Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
+            {
+                Layer layer = (Layer)lIt.next();
+                layer.resetToFactoryParasitics();
+            }
 			init();
 		}
 	}//GEN-LAST:event_factoryResetActionPerformed
