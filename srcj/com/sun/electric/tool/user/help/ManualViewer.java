@@ -102,6 +102,7 @@ import javax.swing.tree.TreeSelectionModel;
  * <!-- COMMAND Menu/Command -->
  * <!-- PREFERENCE Section/Panel -->
  * <!-- PROJECTSETTING Panel -->
+ * <!-- NEED 2in -->
  * <!-- TRAILER -->
  */
 public class ManualViewer extends EDialog
