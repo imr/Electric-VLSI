@@ -10,7 +10,8 @@ The Bus arc of the Schematics technology is a special arc that can carry multipl
 (see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>).
 When giving a network name to Bus arcs, it is possible to specify complex bus names.
 <UL>
-<LI><B>Simple arrays</B> Bus names can be arrays (for example, "A[0:7]" which defines an 8-wide bus).</LI>
+<LI><B>Simple arrays</B> Bus names can be arrays (for example, "A[0:7]" which defines an 8-wide bus).
+</LI>
 
 <LI><B>Lists</B> Bus names can be lists (for example,
 "clock,in1,out" which aggregates 3 signals into a 3-wide bus).</LI>
@@ -35,7 +36,7 @@ Some tools (such as simulation netlisters) need to name everything,
 and so use automatically-generated names.
 When this happens, the system must choose whether to number the bus ascending or descending.
 To resolve this issue,
-use the "Network" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab),
+use the Network Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab),
 and choose "Ascending" or "Descending".
 <P>
 Individual wires that connect to a bus must be named with names from that bus.
@@ -47,7 +48,8 @@ will automatically create such wires for the selected bus arc.
 <P>
 Besides using array names on busses, you can also give array names to schematic nodes.
 Netlisters will create multiple copies of that node, named with the individual elements of the array.
-<P>
+
+<P>
 <H3>Parameterized Bus Names</B>
 <P>
 <TABLE><TR><TD>

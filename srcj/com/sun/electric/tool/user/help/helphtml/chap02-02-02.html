@@ -4,10 +4,12 @@ As the introductory example showed, arcs are created by clicking the
 <I><A HREF="chap01-08.html#chap01-08">right</A></I> button.
 This can actually function in two different ways, depending on what is highlighted.
 <P>
+<H3>Segment Wiring</H3>
+<P>
 If one node is highlighted, <I>segment wiring</I> is done,
 in which an arc is drawn from the highlighted node to the location of the cursor.
 If there is nothing at that location, a pin is created, and it is left highlighted.
-Using the <I>right</I> button again runs an arc from the pin to another location.
+Using the <I>right</I> button again runs an arc from that pin to another location.
 By clicking and holding the <I>right</I> button,
 you can see the path that the new arc will follow.
 <P>
@@ -25,6 +27,8 @@ If the cursor is over another object when the <I>right</I> button is released,
 the new wire attaches to that object.
 If there are multiple objects under the cursor, press the <I>space bar</I> (while the right button is pressed)
 to cycle through the possible endpoints (including the possibility of connecting to none of them).
+<P>
+<H3>Two-Point Wiring</H3>
 <P>
 The other way that the creation button can operate is <I>two-point wiring</I>,
 in which two nodes are highlighted and one or more arcs are created to connect them.
@@ -44,10 +48,12 @@ Failing single arc placement,
 an attempt is made to connect with two arcs and an intermediate node.
 These two arcs can bend in one of two directions, determined by the location of the cursor.
 <P>
-<TABLE><TR><TD><CENTER><IMG SRC="fig02-05.png" ALT="Figure 2.5"></CENTER></TD><TD>
+<H3>Special Considerations</H3>
+<P>
+<TABLE><TR><TD>
 In addition to running an arc between two nodes,
 you can also use arcs as the starting or ending point of arc creation.
-</TD></TR></TABLE>
+</TD><TD><CENTER><IMG SRC="fig02-05.png" ALT="Figure 2.5"></CENTER></TD></TR></TABLE>
 <P>
 If it is sensible,
 the creation command actually uses one of the nodes on an end of the selected arc.

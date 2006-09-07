@@ -16,7 +16,7 @@ Note that the Electric distribution does not come with a Spice simulator: you mu
 Once Spice has been run,
 you can see a plot of the simulation by reading the Spice output file back into Electric.
 Since there are may formats of Spice output, you must first set the "Spice Engine" and the "Output format" fields of the
-"Spice" Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
+Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
 The "Output format" field is "Standard" for the default output of the Spice engine; "Raw" for rawfile dumps;
 and "Raw/Smart" for the rawfile dumps from SmartSpice.
 <P>
@@ -30,7 +30,7 @@ The Spice simulation information is shown in an analog waveform window
 There are many powerful facilities for running Spice with Electric.
 The example shown here illustrates some of these facilities.
 This example is available in the Samples library as cell "tool-SimulateSpice"
-(you can read the library with the <B>Load Library</B> command, in menu <B>Help / Samples</B>).
+(you can read the library with the <B>Sample Cells</B> command, in menu <B>Help / Load Built-in Libraries</B>).
 <P>
 <TABLE><TR><TD>
 All input values to Spice are controlled with special nodes,
@@ -42,7 +42,7 @@ so there may be a delay.
 The Spice primitives described here are for Electric's default set.
 However, additional sets can (and have) been written.
 To choose another set, use the
-"Spice" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
+Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
 Under the setting "Spice primitive set", choose another set.
 A second set, called "SpicePartsS3", is tailored towards special Spice3 primitives.
 <P>
@@ -81,7 +81,7 @@ Multipliers (also called "M" factors) scale the size of transistors inside of th
 <P>
 <!-- NEED 7in -->
 Some nongraphical information can also be given to the Spice simulator with the
-"Spice" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
+Spice Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
 <P>
 <CENTER><IMG SRC="fig09-03.png" ALT="Figure 9.3"></CENTER>
 <P>
@@ -136,10 +136,11 @@ Note also that schematics, although a technology in Electric, are not considered
 You can set the proper layout technology that you want to use when dealing with schematics by using the
 "Use Scale values from this Technology" popup.
 This popup can be found in the
-"Technology" preferences (in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab).
+Technology Preferences (in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab).
 <P>
 <CENTER><IMG SRC="fig09-11.png" ALT="Figure 9.11"></CENTER>
-<P>
+
+<P>
 Another set of controls can be found in the Spice Model Files Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Spice Model Files" tab).
 This dialog allows you to specify a disk file of Spice cards that will be used to describe any cell.

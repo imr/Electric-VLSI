@@ -16,11 +16,13 @@ After issuing this command, you can move the cursor to any location and click to
 While moving the cursor, an outline of the duplicated objects is shown (as well as the amount of motion).
 <P>
 If you have disabled "Move after Duplicate"
-(in the "Nodes" preferences, in menu <B>File / Preferences...</B>, "General" section, "Nodes" tab)
+(in the Nodes Preferences, in menu <B>File / Preferences...</B>, "General" section, "Nodes" tab)
 then the duplicated objects are placed immediately without dragging.
+Initially, they are moved by a predefined amount.
+However, Electric remembers motion that is made after a duplication and uses that offset in subsequent duplications.
 <P>
 If any of the nodes have exports on them, they are not duplicated
-(unless "Duplicate/Array/Paste copies exports" is set in "Nodes" tab).
+(unless "Duplicate/Array/Paste copies exports" is set in the Nodes Preferences).
 <P>
 The <B>Duplicate</B> command forces newly created nodes and arcs to have unique names.
 This means that if any nodes or arcs are named
@@ -41,7 +43,7 @@ You can right-click during the paste drag to affect the location, and to abort t
 Note that if you copy a node or arc and then select another before pasting,
 then the copied object will replace the selected object
 (changing its type and other properties,
-similar to the <B>Change...</B> command, in menu <B>Edit</B>, see <A HREF="chap06-06.html#chap06-06">Section 6-6</A>).
+similar to the <B>Change...</B> command, see <A HREF="chap06-06.html#chap06-06">Section 6-6</A>).
 If you want the <B>Paste</B> command to make a second copy,
 be sure that nothing is selected when you issue the command.
 Thus, duplicating an object cannot be done by issuing a <B>Copy</B> and then a <B>Paste</B>.

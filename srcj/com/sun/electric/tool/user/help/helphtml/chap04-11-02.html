@@ -5,13 +5,13 @@
 <!-- PREFERENCE Display/3D -->
 
 To control the 3D view,
-use the "3D" preferences (in menu <B>File / Preferences...</B>, "Display" section, "3D" tab).
+use the 3D Preferences (in menu <B>File / Preferences...</B>, "Display" section, "3D" tab).
 This provides access to most of the parameters that control 3D viewing.
 The only other controls available are the colors used to draw 3D features,
-which are available in the "Colors" preferences (see <A HREF="chap04-06-02.html">Section 4-6-2</A>).
+which are available in the Layers Preferences (see <A HREF="chap04-06-02.html">Section 4-6-2</A>).
 
 <P>
-In the 3D preferences, the thickness and Z distance (height) of each layer can be controlled as well as the view mode,
+In the 3D Preferences, the thickness and Z distance (height) of each layer can be controlled as well as the view mode,
 the Z-axis scale, and use of antialiasing.
 <P>
 <TABLE><TR><TD>
@@ -19,7 +19,7 @@ On the left side of this dialog is a list of layers in the current technology.
 On the right side is a cross sectional view of the chip, showing the relative position of each layer.
 You can select a layer by clicking on either side of the dialog.
 The currently selected layer is highlighted in the list on the left and shown in red in the right-hand view.
-Change the "3D HIGHLIGHTED INSTANCES" entry in the "Color" preferences to change the color used for
+Change the "3D HIGHLIGHTED INSTANCES" entry in the Layers Preferences to change the color used for
 highlighting layers in the 3D view and 
 in the preferences.
 
@@ -35,6 +35,8 @@ By default, a perspective view is shown.
 Uncheck "Use Perspective" to see a parallel display.
 Antialiasing can be turned on by checking "Use Antialiasing".
 Due to performance issues, antialiasing is not on by default.
+You can also control the display of cell bounds and axes.
+The limit on the number of nodes prevents massively large circuits from swamping the 3D system.
 <P>
 The transparency option controls whether you can see through layers, allowing finer control of the display.
 The transparency factor ranges from 0 (fully opaque: not transparent at all) 
@@ -59,18 +61,17 @@ The ambient light is always on, but the directional light can be enabled or disa
 The directional lights sit outside of the circuit and point in the given direction.
 The default directions of (-1, 1, -1) and (1, -1, -1) illuminate the 3D view from the front. 
 Although the lights have a default color of white, this can be changed by editing the
-"SPECIAL: 3D DIRECTIONAL LIGHT" entry in the "Color" preferences.
+"SPECIAL: 3D DIRECTIONAL LIGHT" entry in the Layers Preferences.
 <P>
-Ambient light is the background light that fills a room.
+Ambient light is the background light that fills a space.
 It is used to illuminate those areas that are not directly hit by the directional lights. 
 The default color of the ambient light is gray, but this can be changed by editing the
-"SPECIAL: 3D AMBIENT LIGHT" entry in the "Color" preferences.
+"SPECIAL: 3D AMBIENT LIGHT" entry in the Layers Preferences.
 <P>
 <TABLE><TR>
 <TD>
 If Java3D is not installed, the distance and the thickness can still be controlled.
-In such a situation, the 3D preferences
- dialog has much more limited information.
+In such a situation, the 3D Preferences dialog has much more limited information.
 </TD>
 <TD><CENTER><IMG SRC="fig04-19.png" ALT="Figure 4.19"></CENTER></TD></TR></TABLE>
 

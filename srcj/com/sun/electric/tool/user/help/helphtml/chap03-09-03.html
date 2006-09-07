@@ -25,7 +25,7 @@ Writing libraries to disk is done with the <B>Save Library</B> command (in menu 
 The <B>Save All Libraries</B> command writes all libraries that have changed.
 You can also use the save-libraries icon from the tool bar.
 To force all libraries to be saved, use the <B>Mark All Libraries for Saving</B> command,
-or use <B>Save All Libraries in Format</B> to specify how they are to be saved.
+or use <B>Save All Libraries in Format...</B> to specify how they are to be saved.
 </TD></TR></TABLE>
 <P>
 If a library was read from disk, it is written back to the same file.
@@ -33,7 +33,7 @@ If, however, you wish to write the library to a new file
 (thus preserving the original) then use the <B>Save Library As...</B> command.
 <P>
 <TABLE><TR><TD VALIGN=TOP>
-The "Library" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "Library" tab)
+The Library Preferences (in menu <B>File / Preferences...</B>, "I/O" section, "Library" tab)
 offers options for writing libraries to disk.
 By default, saved libraries overwrite the previous files and no backup is created.
 If you choose "Backup of last library file",
@@ -47,20 +47,20 @@ Electric can also write external format files with these commands in the <B>File
 <UL>
 <LI><B>CIF (Caltech Intermediate Format)</B> is used to describe integrated circuit layout.
 The output file contains only the current cell and any circuitry below that in the hierarchy.
-Use the "CIF" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "CIF" tab)
+Use the CIF Preferences (in menu <B>File / Preferences...</B>, "I/O" section, "CIF" tab)
  to affect how CIF is written.
 See <A HREF="chap07-03-02.html#chap07-03-02">Section 7-3-2</A> for more on CIF.
 </LI>
 
 <LI><B>GDS II (Stream)</B> is also used to describe integrated circuit layout.
 The output file contains only the current cell and any circuitry below that in the hierarchy.
-Use the "GDS" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab)
+Use the GDS Preferences (in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab)
  to affect how GDS is written.
 See <A HREF="chap07-03-03.html#chap07-03-03">Section 7-3-3</A> for more on GDS.</LI>
 
 <LI><B>EDIF (Electronic Design Interchange Format)</B> can write either the Netlist or the Schematic view of the circuit.
 Electric writes EDIF version 2 0 0.
-Use the "EDIF" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "EDIF" tab) to affect how EDIF is written.
+Use the EDIF Preferences (in menu <B>File / Preferences...</B>, "I/O" section, "EDIF" tab) to affect how EDIF is written.
 See <A HREF="chap07-03-04.html#chap07-03-04">Section 7-3-4</A> for more on EDIF.</LI>
 
 <LI><B>LEF (Library Exchange Format)</B> is an interchange format that describes the exports on cells in a library.</LI>
@@ -88,7 +88,7 @@ See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text windows
 The output file contains only a visual representation of the current cell
 (or part of that cell).
 PostScript options can be controlled with the
-"Printing" preferences (in menu <B>File / Preferences...</B>, "General" section, "Printing" tab).</LI>
+Printing Preferences (in menu <B>File / Preferences...</B>, "General" section, "Printing" tab).</LI>
 
 <LI><B>HPGL</B> is the Hewlett-Packard printing language.
 The output file contains only a visual representation of the current cell
@@ -97,7 +97,7 @@ The output file contains only a visual representation of the current cell
 <LI><B>PNG (Portable Network Graphics)</B> is an image format that captures the current window.</LI>
 
 <LI><B>DXF (AutoCAD)</B> is a solid-modeling interchange format.
-Use the "DXF" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "DXF" tab) to affect how DXF is written.
+Use the DXF Preferences (in menu <B>File / Preferences...</B>, "I/O" section, "DXF" tab) to affect how DXF is written.
 See <A HREF="chap07-03-07.html#chap07-03-07">Section 7-3-7</A> for more on DXF.</LI>
 
 <LI><B>ELIB (Version 6)</B> writes old-format binary files.
@@ -111,18 +111,18 @@ These files are useful for versions 8.03 and earlier.
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-13.png" ALT="Figure 3.13"></CENTER></TD><TD VALIGN=TOP>
 The exported files from Electric are often considered to be proprietary information, and must be marked appropriately.
 Copyright information can be inserted into exported files with the
-Copyright Project Settings (in menu <B>File / Project Settings...</B>, "Netlists" tab).
+Netlists Project Settings (in menu <B>File / Project Settings...</B>, "Netlists" tab).
 Since each export file has a different format for comments, the copyright text should not contain any such characters.
 Instead, the system will insert the proper comment characters for the particular export format.
-<P>
-Most netlisters insert date and version information in the comments at the head of the generated file.
-You can request that this information be omitted by unchecking "Include date and version in output files".
-</TD></TR></TABLE>
-<P>
-Information about resistor ignoring can be found in <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>.
 <P>
 The copyright information will be inserted into decks exported for CIF, LEF, and PostScript,
 as well as in simulation netlists for
 Verilog, Spice, Silos, ESIM/RSIM/RNL/COSMOS, FastHenry, Maxwell, and IRSIM.
+</TD></TR></TABLE>
+<P>
+Most netlisters insert date and version information in the comments at the head of the generated file.
+You can request that this information be omitted by unchecking "Include date and version in output files".
+<P>
+Information about resistor ignoring can be found in <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>.
 
 <!-- TRAILER -->

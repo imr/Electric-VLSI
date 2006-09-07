@@ -74,7 +74,7 @@ There are many special exporting commands that are primarily used in array-based
 If a cell instance is replicated many times and the instances are wired together,
 then ports on the edge of the array are the only ones that are not wired.
 These ports define the connections for the next level of hierarchy.
-What you want to do is to create exports for all unwired ports on all cell instances,
+What you want to do is to create exports for all unwired ports,
 automatically generating unique names.
 To do this, use these commands in menu <B>Export</B>:
 
@@ -102,7 +102,7 @@ and see <A HREF="chap09-06-01.html#chap09-06-01">Section 9-6-1</A> for more on a
 <P>
 Another special command for export creation is <B>Add Exports from Library...</B>
 (in menu <B>Cell / Merge Libraries</B>),
-which copies exports from another library to the current one.
+which copies exports from another library into the current one.
 The other library is examined for cells whose names match ones in the current library.
 When a cell is found in the other library, all of its exports are copied to the cell in the current library
 (if they don't already exist) and placed in the same location.

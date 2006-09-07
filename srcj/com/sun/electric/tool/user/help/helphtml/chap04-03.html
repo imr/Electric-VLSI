@@ -16,15 +16,16 @@ You can also have the same cell in more than one window to see it at different s
 <P>
 New windows are created by checking the appropriate checkbox in the <B>New Cell...</B> or <B>Edit Cell...</B>
 commands (in menu <B>Cell</B>).
-New windows can also be created from the cell explorer by using the context button on a cell name.
+New windows can also be created from the cell explorer by using the context menu on a cell name.
 <P>
 All of the windows are listed at the bottom of the <B>Window</B> pulldown menu,
 including the Messages Window.
 To bring a window to the top for editing, select its name from this list.
+To cycle through the different windows, type "q".
 <P>
 To delete a window, click its close box, or use the <B>Close Window</B> command (in menu <B>Window</B>).
-Note that you cannot delete the last window on UNIX systems,
-because the UNIX pulldown menus are part of the edit windows.
+Note that you cannot delete the last window on systems where the pulldown menu is inside of each window,
+because then the pulldown menus would become unavailable.
 <P>
 When there are many editing windows on the display,
 you can arrange them neatly with the <B>Window / Adjust Position</B> commands.
@@ -37,12 +38,12 @@ The <B>Cascade</B> command adjusts the windows so that they are all the same siz
 <P>
 <H3>Window Frames</H3>
 <P>
-When Electric runs under Windows, each editing window lives inside of a larger frame on the display.
+When Electric runs on the Windows operating systems, each editing window lives inside of a larger frame on the display.
 This is called an MDI (Multiple Document Interface) interaction.
 On non-Windows systems (UNIX/Linux, Macintosh, etc.) each editing window is a separate frame on the display.
 This is called an SDI (Single Document Interface) interaction.
-Note that Windows users can request an SDI interaction with the proper command-line switch
-(see <A HREF="chap01-04.html#chap01-04">Section 1-4</A>).
+Note that Windows users can request an SDI interaction, and non-Windows users can request MDI interaction.
+This is done with command-line switches (see <A HREF="chap01-04.html#chap01-04">Section 1-4</A>).
 <P>
 When running in SDI mode, there are two extra commands (in menu <B>Windows</B>) for controlling the frames:
 <UL>
@@ -58,6 +59,7 @@ This command can also be used to start the system on a different display.</LI>
 <P>
 Electric offers many settings for controlling the display, available in the Display Control Preferences
 (in menu <B>File / Preferences...</B>, "Display" section, "Display Control" tab).
+<P>
 <CENTER><IMG SRC="fig04-20.png" ALT="Figure 4.20"></CENTER>
 <P>
 The status area at the bottom of the screen shows current selection, cursor coordinates, etc.
@@ -72,10 +74,11 @@ When panning the window using menu commands, the distance to pan can be controll
 <P>
 <H3>Display Algorithms</H3>
 <P>
-Electric has three different display algorithms.
-The oldest, which was the only display algorithm prior to version 8.04, is the "Pixel Display Algorithm".
-<P>
-A newer display algorithm, which is faster for panning and zooming, is the "Vector Display Algorithm".
+Electric has three different display algorithms:
+<UL>
+<LI>The "Pixel Display Algorithm" is the oldest.
+It was the only display algorithm prior to version 8.04 of Electric.</LI>
+<LI>The "Vector Display Algorithm" is newer, and is faster for panning and zooming.
 This algorithm optimizes the display of circuitry by simplifying the display of objects when they get to be very small.
 For example, when zoomed-out very far, a transistor may be only 1 screen pixel in size, and it does not make sense to carefully
 compute and draw all of its parts.
@@ -85,6 +88,7 @@ Besides simplifying individual nodes and arcs, Electric also simplifies the disp
 if their contents are all too small to draw.
 Such simplification consists of keeping a small "image" of the cell, which can be quickly scaled and drawn in the proper place.
 <P>
+There are some controls for the Vector Display Algorithm.
 The first control determines the size at which objects are simplified.
 The default is to "Simplify objects smaller than 3 pixels".
 Making this value smaller will cause more detailled drawing, but take longer.
@@ -93,12 +97,11 @@ Although a cell's contents may be small, the cell may be quite large on the scre
 (this happens to top-level cells in a deep hierarchy).
 The default limit is to "Do not simplify cells greater than 10 percent of the screen".
 Making this number smaller causes more cells to be drawn fully.
-Making this number zero turns off cell simplification.
-
-<P>
-The newest is the "Layer Display Algorithm".
+Making this number zero turns off cell simplification.</LI>
+<LI>The "Layer Display Algorithm" is the most recent.
 It has controls for the use of pattern displays, and has controls for Alpha blending (used in layer composition).
 When zoomed out below the "Alpha blending overcolor limit", standard alpha blending composition rule is used.
-When zoomed in above this limit, alphablending with overcolor composition rule is used.
+When zoomed in above this limit, alphablending with overcolor composition rule is used.</LI>
+</UL>
 
 <!-- TRAILER -->

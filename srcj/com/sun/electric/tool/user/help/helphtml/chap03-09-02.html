@@ -6,12 +6,12 @@
 <!-- COMMAND File/Import/Readable Dump... -->
 
 The <B>Open Library...</B> command (in menu <B>File</B>) brings a new library into Electric from disk.
-These libraries may have the extension ".elib" or ".jelib" (the jelib format is the default,
+These libraries may have the extension ".elib", ".jelib", or ".delib" (the jelib format is the default,
 see <A HREF="chap10-01.html#chap10-01">Section 10-1</A>).
 <P>
-<TABLE><TR><TD>
+<TABLE><TR><TD><CENTER><IMG SRC="fig03-23.png" ALT="Figure 3.23"></CENTER></TD><TD>
 You can also use the open-library icon from the tool bar.
-</TD><TD><CENTER><IMG SRC="fig03-23.png" ALT="Figure 3.23"></CENTER></TD></TR></TABLE>
+</TD></TR></TABLE>
 <P>
 Electric users with very old ".elib" files may have difficulty reading them into Electric.
 If you have been using versions of Electric prior to 7.00, it may help to upgrade to that version and read the libraries.
@@ -40,19 +40,20 @@ It contains no connectivity, so after the library is read, it does not know abou
 just layers.
 You can use the node extractor to convert CIF to real Electric components
 (see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>).
-To affect how CIF is read, use the "CIF" preferences (in menu File / Preferences..., "I/O" section, "CIF" tab).
+To affect how CIF is read, use the CIF Preferences (in menu File / Preferences..., "I/O" section, "CIF" tab).
 See <A HREF="chap07-03-02.html#chap07-03-02">Section 7-3-2</A> for more on CIF.</LI>
 
 <LI><B>GDS II (Stream)</B> is also used to describe integrated circuit layout.
-It contains no connectivity, so after the library is read, it does not know about transistors and contacts: just layers.
+It contains no connectivity, so after the library is read, it does not know about transistors and contacts: just layers
+.
 You can use the node extractor to convert GDS to real Electric components
 (see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>).
-To affect how GDS is read, use the "GDS" preferences (in menu File / Preferences..., "I/O" section, "GDS" tab).
+To affect how GDS is read, use the GDS Preferences (in menu File / Preferences..., "I/O" section, "GDS" tab).
 See <A HREF="chap07-03-03.html#chap07-03-03">Section 7-3-3</A> for more on GDS.</LI>
 
 <LI><B>EDIF (Electronic Design Interchange Format)</B> is used to describe both schematics and layout.
 Electric reads EDIF version 2 0 0.
-Use the "EDIF" preferences (in menu File / Preferences..., "I/O" section, "EDIF" tab) to affect how EDIF is read
+Use the EDIF Preferences (in menu File / Preferences..., "I/O" section, "EDIF" tab) to affect how EDIF is read
 (see <A HREF="chap07-03-04.html#chap07-03-04">Section 7-3-4</A>).</LI>
 
 <LI><B>LEF (Library Exchange Format)</B> is an interchange format that describes the cells in a library.
@@ -60,18 +61,18 @@ The cells that are read in contain ports, but very little contents.</LI>
 
 <LI><B>DEF (Design Exchange Format)</B> is an interchange format that describes the contents of a library.
 DEF input often makes use of associated LEF files which must already have been read.
-Use the "DEF" preferences (in menu File / Preferences..., "I/O" section, "DEF" tab) to affect how DEF is read
+Use the DEF Preferences (in menu File / Preferences..., "I/O" section, "DEF" tab) to affect how DEF is read
 (see <A HREF="chap07-03-05.html#chap07-03-05">Section 7-3-5</A>).</LI>
 
 <LI><B>DXF (AutoCAD)</B> is a solid-modeling interchange format, and so it may contain 3D objects that cannot be read into Electric.
 Nevertheless, Electric creates a library of artwork primitives as well as it can.
-Use the "DXF" preferences (in menu File / Preferences..., "I/O" section, "DXF" tab) to affect how DXF is read
+Use the DXF Preferences (in menu File / Preferences..., "I/O" section, "DXF" tab) to affect how DXF is read
 (see <A HREF="chap07-03-07.html#chap07-03-07">Section 7-3-7</A>).</LI>
 
 <LI><B>SUE (Schematic User Environment)</B> is a schematic editor that captures a single cell in each file.
 The circuitry in SUE files is added to the current library instead of being placed in its own library
 (because many SUE files may have to be read to build up a single Electric library).
-Use the "SUE" preferences (in menu File / Preferences..., "I/O" section, "SUE" tab) to affect how SUE is read
+Use the SUE Preferences (in menu File / Preferences..., "I/O" section, "SUE" tab) to affect how SUE is read
 (see <A HREF="chap07-03-08.html#chap07-03-08">Section 7-3-8</A>).</LI>
 
 <LI><B>ELIB</B> is an older Electric library format that is in an undocumented binary format.

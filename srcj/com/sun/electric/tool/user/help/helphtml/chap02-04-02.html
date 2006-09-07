@@ -17,9 +17,9 @@ The dialog shows the location of the anchor-point of the node.
 The dialog also has a field for the node's name.
 This name is not related to network information, but it must be unique, and can be used for identification.
 If a schematic node is given an arrayed name (such as "and[0:3]") then it indicates that the node is arrayed that many times.
-Nodes (and arcs) are automatically be given unique names (such as "nmos@0").
+Nodes (and arcs) are automatically given unique names when first created (such as "nmos@0").
 <P>
-This dialog is modeless: it can remain on the screen while other editing is being done.
+The Object Properties dialog is modeless: it can remain on the screen while other editing is being done.
 If a different node is selected, the dialog updates to show that node's information.
 The "Apply" button changes the selected node to match the new values typed into the dialog.
 <P>
@@ -53,6 +53,7 @@ By default, a list of the node's ports is shown, including any exports, connecti
 If the "Attributes" button is selected, the list shows the attributes on the node.
 When "Attributes" is selected, the entries in the list let you modify individual values.
 Note that there is also an "Attributes" button, which brings up a full dialog for editing them.
+See <A HREF="chap06-08-05.html#chap06-08-05">Section 6-8-5</A> for more on Attributes.
 <P>
 <!-- NEED 4in -->
 If many objects are selected,
@@ -60,11 +61,11 @@ you can move them by a specific distance with the <B>Move Objects By...</B>
 command (in menu <B>Edit / Move</B>).
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig02-12.png" ALT="Figure 2.12"></CENTER></TD><TD>
-If many nodes are selected, the <B>Properties...</B> command will list all of them,
+If many nodes are selected, the <B>Object Properties...</B> command will list all of them,
 and allow appropriate changes to be made (depending on what is selected).
 <P>
 Changes are only made in the fields where you type a value.
-To remove an item from the list (not the circuit, just this list) use the "Remove" button.
+To remove an item from the list of selected objects, use the "Remove" button.
 To remove all but the selected item, use "Remove Others".
 If only two objects are selected, this dialog shows the distance between their centers.
 </TD></TR></TABLE>

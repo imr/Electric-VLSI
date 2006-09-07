@@ -87,8 +87,8 @@ Display
  The Tool Bar                        =chap04-01
  The Messages Window                 =chap04-02
  Creating and Deleting Editing Windows =chap04-03
- Scaling and Panning
-  Scaling                            =chap04-04-01
+ Zooming and Panning
+  Zooming                            =chap04-04-01
   Panning                            =chap04-04-02
   Focus                              =chap04-04-03
  Layer Visibility                    =chap04-05
@@ -104,9 +104,9 @@ Display
  Printing                            =chap04-09
  Text Windows                        =chap04-10
  3D Windows
-  Introduction                       =chap04-11-01
+  3D Introduction                    =chap04-11-01
   3D Preferences                     =chap04-11-02
-  Behaviors and Animation            =chap04-11-03
+  3D Behaviors and Animation         =chap04-11-03
  Waveform Windows
   Digital Waveform Windows           =chap04-12-01
   Analog Waveform Windows            =chap04-12-02

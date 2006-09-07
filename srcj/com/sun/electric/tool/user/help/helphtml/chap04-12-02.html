@@ -52,17 +52,7 @@ You can add a signal to the list by double-clicking on its name in the "SIGNALS"
 (or by dragging that name to the waveform part on the right).
 The signal will be added to the highlighted panel (the one with the bold vertical axis).
 You can create a new panel, with no signals in it, by clicking on the button in the upper-left of the waveform window
-(looks like: <IMG SRC="fig09-29.png" ALT="Figure 9.29"> a panel-with-waveform icon being dropped down).
-<P>
-If the simulation had sweeps, those values are shown in the cell explorer in the "SWEEPS" area.
-You can right-click on a sweep and choose to include or exclude it from the display
-(double-clicking on the sweep toggles its inclusion).
-Right-clicking on the "SWEEPS" icon lets you include or exclude all of them.
-<P>
-A single sweep can be highlighted to distinguish it on the display.
-Right-click on that sweep and choose "Highlight".
-To remove all highlighting, right-click on the "SWEEPS" icon and choose "Remove Highlighting".
-
+(<IMG SRC="fig09-29.png" ALT="Figure 9.29">).
 <P>
 If the layout or schematics cell that produced the simulation is being displayed in another window,
 and the currently selected network in that window is found in the simulation output,
@@ -77,7 +67,17 @@ You can also save the configuration of the waveform window with the
 (in menu <B>Window / Waveform Window</B>)
 and you can restore the configuration with the
 <B>Restore Waveform Window Configuration from Disk...</B> command.
-
+<P>
+<H3>Sweeps</H3>
+<P>
+If the simulation had sweeps, those values are shown in the cell explorer in the "SWEEPS" area.
+You can right-click on a sweep and choose to include or exclude it from the display
+(double-clicking on the sweep toggles its inclusion).
+Right-clicking on the "SWEEPS" icon lets you include or exclude all of them.
+<P>
+A single sweep can be highlighted to distinguish it on the display.
+Right-click on that sweep and choose "Highlight".
+To remove all highlighting, right-click on the "SWEEPS" icon and choose "Remove Highlighting".
 <P>
 <H3>Time Control</H3>
 <P>
@@ -117,7 +117,8 @@ then time is unlocked, and each panel has its own time scale.
 Now individual panels can show a different range of time than the rest.
 <P>
 A set of VCR buttons is available to animate the main time cursor.
-The play rate can be controlled by the "F" and "S" buttons which make it go faster or slower.
+The play rate can be controlled by the up-arrow and down-arrow buttons to the right of the VCR controls.
+These buttons make the playback run faster or slower.
 As the time cursor sweeps across the waveform window, the original circuit can be seen to change levels.
 <P>
 These window functions apply to the analog simulation windows:

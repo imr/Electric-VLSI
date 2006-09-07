@@ -42,17 +42,19 @@ To expand a bus, and show its individual signals in separate panels, double-clic
 To contract the bus (removing its individual signals), double-click on the bus name again.
 <P>
 Although the color of the waveforms is usually the same, it can vary with the strength of the signal.
-To enable such a display, check "Multistate display" in the "Simulators" preferences
+To enable such a display, check "Multistate display" in the Simulators Preferences
 (in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab).
-To control the actual colors used in multistate display, use the "Colors" preferences
-(in menu <B>File / Preferences...</B>, "Display" section, "Colors" tab)
+To control the actual colors used in multistate display, use the Layers Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Layers" tab)
 and set the colors for "WAVEFORM: OFF STRENGTH", "WAVEFORM: NODE (WEAK) STRENGTH",
 "WAVEFORM: GATE STRENGTH", and "WAVEFORM: POWER STRENGTH".
 <P>
 You can select a signal by selecting either its name or the actual waveform.
-A selected signal is highlighted, and the selected panel is marked with a bold white line (see the "out" signal).
+A selected signal is highlighted, and the selected panel is marked with a bold white line
+(see the "out" signal above).
 Note that when you click on a signal,
-the equivalent network in the associated schematic or layout window is also highlighted.
+the equivalent network in the associated schematic or layout window is also highlighted
+(more on this below).
 <P>
 You can rearrange the order of the signals by dragging their names to a new location.
 <P>
@@ -110,13 +112,14 @@ Wires are colored differently according to their high/low/X/Z value in the simul
 If you connect <I>Simulation Probe</I> nodes to any part of the circuit,
 those nodes light up with the appropriate color instead,
 which allows better visualization of activity patterns (see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
-You can control the colors used in crossprobing by using the "Colors" preferences
-(in menu <B>File / Preferences...</B>, "Display" section, "Colors" tab)
+You can control the colors used in crossprobing by using the Layers Preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Layers" tab)
 and setting the colors for "WAVEFORM: CROSSPROBE LOW", "WAVEFORM: CROSSPROBE HIGH",
 "WAVEFORM: CROSSPROBE UNDEFINED", and "WAVEFORM: CROSSPROBE FLOATING".
 <P>
 For best visualization of the simulation activity, there is a set of VCR buttons to control an animation of the main time cursor.
-The play rate can be controlled by the "F" and "S" buttons which make it go faster or slower.
+The play rate can be controlled by the up-arrow and down-arrow buttons, to the right of the VCR controls.
+These make the playback run faster or slower.
 As the time cursor sweeps across the waveform window, the original circuit can be seen to change levels.
 <P>
 These window functions apply to the digital simulation windows:
@@ -154,6 +157,11 @@ Use <B>Set Signal Low at Main Time</B> to set the selected signal "low", and use
 <B>Set Signal Undefined at Main Time</B> to set the selected signal "undefined" (X).
 Use the <B>Get Information about Selected Signals</B> command to show stimuli and
 other information on the selected signals.
+<P>
+To remove the selected stimulus, use the <B>Clear Selected Stimuli</B> command.
+To remove all stimuli on a the selected waveforms, use <B>Clear All Stimuli on Selected Signals</B>.
+To remove all stimuli in the simulation, use <B>Clear All Stimuli</B>.
+
 <!-- NEED 3in -->
 <P>
 <TABLE><TR><TD>
@@ -168,16 +176,12 @@ but Electric generates simulation events to fill only the current waveform windo
 If you want more clock events generated,
 zoom-out the waveform window before issuing the clock command.
 <P>
-To remove the selected stimulus, use the <B>Clear Selected Stimuli</B> command.
-To remove all stimuli on a the selected waveforms, use <B>Clear All Stimuli on Selected Signals</B>.
-To remove all stimuli in the simulation, use <B>Clear All Stimuli</B>.
-<P>
 Once a set of stimuli has been established, you can save it to disk with the
 <B>Save Stimuli to Disk...</B> command.
 These stimuli can be restored later with the <B>Restore Stimuli from Disk...</B> command.
 Each built-in simulator has its own format for saving stimuli.
 <P>
-The "Simulators" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab),
+The Simulators Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab),
 offers some controls for built-in simulators.
 <UL>
 <LI>"Auto advance time" requests that the main time cursor advance after each stimulus is added.

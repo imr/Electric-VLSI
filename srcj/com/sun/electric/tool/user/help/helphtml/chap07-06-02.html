@@ -120,48 +120,48 @@ Here is the code:
 <P>
 The Block Definition and Architecture sections define higher-level blocks composed of primitives.
 They looks like this:
-<PRE>
-(blockdef
-  (attributes
-    (name CHIPNAME)
-    (size X Y)
-    (wirecolor COLOR)
-    (repeatercolor COLOR)
-  )
-
-  (ports
-    (port
-      (name PORTNAME)
-      (position X Y)
-      (direction input | output | bidir)
-    )
-  )
-
-  (components
-    (instance
-      (attributes ATTPAIRS)
-      (type BLOCKTYPE)
-      (name BLOCKNAME)
-      (position X Y)
-      (rotation ROT)
-    )
-    (repeater
-      (name BLOCKNAME)
-      (porta X Y)
-      (portb X Y)
-      (direction vertical | horizontal)
-    )
-  )
-
-  (nets
-    (net
-      (name INTNAME)
-      (segment FROMPART TOPART)
-    )
-  )
-)
+<CODE>
+(blockdef<BR>
+&nbsp;&nbsp;(attributes<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(name CHIPNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(size X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(wirecolor COLOR)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeatercolor COLOR)<BR>
+&nbsp;&nbsp;)<BR>
+<BR>
+&nbsp;&nbsp;(ports<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name PORTNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input | output | bidir)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+<BR>
+&nbsp;&nbsp;(components<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(instance<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(attributes ATTPAIRS)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type BLOCKTYPE)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name BLOCKNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(rotation ROT)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeater<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name BLOCKNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(porta X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction vertical | horizontal)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+<BR>
+&nbsp;&nbsp;(nets<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name INTNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment FROMPART TOPART)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+)<BR>
+</CODE>
 <P>
-</PRE>
 The only difference between the Architecture section and the Block Definition section is that the
 Architecture section has the keyword <B>architecture</B> instead of <B>blockdef</B>.
 There can be only one <B>architecture</B> section, but there can be many <B>blockdef</B>s,
