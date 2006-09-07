@@ -178,6 +178,7 @@ public class LogicalEffortTab extends ProjSettingsPanel
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
+            if (!tech.isLayout()) continue;
 
 			Double dVal = (Double)gateCapacitance.get(tech);
 			if (tech.getGateCapacitance() != dVal.doubleValue()) tech.setGateCapacitance(dVal.doubleValue());
