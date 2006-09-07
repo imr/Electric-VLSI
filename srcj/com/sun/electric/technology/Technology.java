@@ -3985,20 +3985,40 @@ public class Technology implements Comparable<Technology>
             attachToObject(tech, location, description);
         }
 
-		public void setSideEffect()
+		protected void setSideEffect()
 		{
-			tech.setState();
-			SwingUtilities.invokeLater(new Runnable() {
-	            public void run() { technologyChanged(tech); }});
+			technologyChanged(tech);
 		}
 
-		public void technologyChanged(Technology tech)
+        private static void reloadUIData()
+        {
+			SwingUtilities.invokeLater(new Runnable()
+            {
+	            public void run()
+                {
+                    User.technologyChanged();
+                    UserInterface ui = Job.getUserInterface();
+                    ui.loadComponentMenuForTechnology();
+                    ui.repaintAllEditWindows();
+                }
+            });
+        }
+
+        public static void allTechnologiesChanged()
+        {
+            for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+            {
+                Technology tech = it.next();
+                tech.setState();
+            }
+            reloadUIData();
+        }
+
+        public static void technologyChanged(Technology tech)
 		{
-			User.technologyChanged(tech);
-			UserInterface ui = Job.getUserInterface();
-            ui.loadComponentMenuForTechnology();
-			ui.repaintAllEditWindows();
-		}
+            tech.setState();
+            reloadUIData();
+        }
 
 		public static Pref makeBooleanSetting(Technology tech, String name, String location, String description, boolean factory)
 		{

@@ -55,11 +55,6 @@ public class TechnologyTab extends ProjSettingsPanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Technology"; }
 
-//	private JList schemPrimList;
-//	private DefaultListModel schemPrimModel;
-//	private HashMap<PrimitiveNode,String> schemPrimMap;
-//	private boolean changingVHDL = false;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Technology tab.
@@ -209,7 +204,7 @@ public class TechnologyTab extends ProjSettingsPanel
                 curTech.setPrefFoundry(foundry.name());
                 // Primitives cached must be redrawn
                 // recache display information for all cells that use this
-                User.technologyChanged(curTech);
+                User.technologyChanged();
 //                for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
 //                {
 //                    Library lib = (Library)lIt.next();

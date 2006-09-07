@@ -30,11 +30,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +39,6 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -100,12 +95,12 @@ public class Pref
         private Preferences prefs;
         Group(Preferences prefs) { this.prefs = prefs; }
     }
-    
+
     public static Group groupForPackage(Class classFromPackage) {
         Preferences prefs = Preferences.userNodeForPackage(classFromPackage);
         return new Group(prefs);
     }
-    
+
 	/**
 	 * This class provides extra information for "meaning" options.
 	 */
@@ -254,7 +249,7 @@ public class Pref
             allPrefs.add(this);
         }
     }
-    
+
 	/**
 	 * The constructor for the Pref.
 	 * @param name the name of this Pref.
@@ -268,7 +263,7 @@ public class Pref
             allPrefs.add(this);
         }
     }
-    
+
     /**
      * Method used in regressions so it has to be public.
      * @param fileName
@@ -373,35 +368,6 @@ public class Pref
 		System.out.println("...preferences imported from " + fileURL.getFile());
 	}
 
-    /**
-     * Extended class of FileOutputStream to insert extra line breaks to make XML files
-     * more readable
-     */
-    private static class PrivateFileOutputStream extends FileOutputStream
-    {
-        public PrivateFileOutputStream(String s) throws FileNotFoundException
-        {
-            super(s);
-        }
-        public void write(byte[] bytes) throws IOException
-        {
-            new Error("Not implemented in PrivateFileOutputStream");
-            super.write(bytes);
-        }
-        public void write(byte[] bytes, int i, int i1) throws IOException
-        {
-            String sa = new String(bytes, i, i1);
-            sa = sa.replaceAll("<node", "\n<node");
-            super.write(sa.getBytes());
-//            super.write(bytes, i, i1);
-        }
-        public void write(int i) throws IOException
-        {
-            new Error("Not implemented in PrivateFileOutputStream");
-            super.write(i);
-        }
-    }
-
 	/**
 	 * Method to export the preferences to an XML file. This function is public due to the regressions.
 	 * @param fileName the file to write.
@@ -440,7 +406,6 @@ public class Pref
 	    	Transformer transformer = factory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			File file = new File(fileName);
 			ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			StreamResult result = new StreamResult(new OutputStreamWriter(bos, "utf-8"));
 			transformer.transform(source, result);
@@ -455,7 +420,7 @@ public class Pref
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
 			printWriter.print(xmlFormatted);
 			printWriter.close();
-			
+
 //			Preferences root = Preferences.userNodeForPackage(Main.class);
 //			FileOutputStream outputStream = new PrivateFileOutputStream(fileName);
 //			root.exportSubtree(outputStream);
@@ -497,7 +462,7 @@ public class Pref
 		pref.initBoolean(factory);
 		return pref;
 	}
-    
+
 	/**
 	 * Factory methods to create a boolean project setting objects.
 	 * @param name the name of this Pref.
@@ -512,7 +477,7 @@ public class Pref
         pref.attachToObject(ownerObj, location, description);
         return pref;
     }
-    
+
 	/**
 	 * Factory methods to create an integer Pref objects.
 	 * The proper way to create an integer Pref is with makeIntPref;
@@ -554,7 +519,7 @@ public class Pref
         pref.attachToObject(ownerObj, location, description);
         return pref;
     }
-    
+
 	/**
 	 * Factory methods to create a long Pref objects.
 	 * The proper way to create a long Pref is with makeLongPref;
@@ -596,7 +561,7 @@ public class Pref
         pref.attachToObject(ownerObj, location, description);
         return pref;
     }
-    
+
 	/**
 	 * Factory methods to create a double Pref objects.
 	 * The proper way to create a double Pref is with makeDoublePref;
@@ -638,7 +603,7 @@ public class Pref
         pref.attachToObject(ownerObj, location, description);
         return pref;
     }
-    
+
 	/**
 	 * Factory methods to create a string Pref objects.
 	 * The proper way to create a string Pref is with makeStringPref;
@@ -671,7 +636,7 @@ public class Pref
 		pref.initString(factory);
 		return pref;
     }
-    
+
 	/**
 	 * Factory methods to create a string project setting objects.
 	 * @param name the name of this Pref.
@@ -686,7 +651,7 @@ public class Pref
         pref.attachToObject(ownerObj, location, description);
         return pref;
     }
-    
+
 	/**
 	 * Method to get the boolean value on this Pref object.
 	 * The object must have been created as "boolean".
@@ -791,7 +756,7 @@ public class Pref
 	 * Method called when this Pref is changed.
 	 * This method is overridden in subclasses that want notification.
 	 */
-	public void setSideEffect() {}
+	protected void setSideEffect() {}
 
 	public static class PrefChangeBatch implements Serializable
 	{

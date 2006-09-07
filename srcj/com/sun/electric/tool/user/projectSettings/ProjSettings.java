@@ -38,7 +38,6 @@ import java.io.*;
 import java.util.Stack;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Iterator;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
@@ -77,11 +76,8 @@ public class ProjSettings {
             // first file read in, accept it
             settings = readNode;
             lastProjectSettingsFile = file;
-            // update any changes to technologies
-            for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
-                Technology tech = it.next();
-                tech.setState();
-            }
+            // update any changes to technologies including UI refresh
+            Technology.TechPref.allTechnologiesChanged();
         } else {
             // not first file read in, check for conflicts,
             // and do not use it

@@ -651,9 +651,8 @@ public class User extends Listener
 	/**
 	 * Method called when a technology's parameters change.
 	 * All cells that use the technology must be recached.
-	 * @param tech the technology that changed.
 	 */
-	public static void technologyChanged(Technology tech)
+	public static void technologyChanged()
 	{
         VectorCache.theCache.clearCache();
         EditWindow.clearSubCellCache();
