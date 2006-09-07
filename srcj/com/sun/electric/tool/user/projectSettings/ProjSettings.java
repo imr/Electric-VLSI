@@ -38,9 +38,11 @@ import java.io.*;
 import java.util.Stack;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Iterator;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.technology.Technology;
 
 /**
  * Created by IntelliJ IDEA.
@@ -118,6 +120,11 @@ public class ProjSettings {
         Reader rd = new Reader(TextUtils.makeURLToFile(file));
         if (!rd.read()) return null;
         System.out.println("Read Project Settings from "+file);
+        // update any changes to technologies
+        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
+            Technology tech = it.next();
+            tech.setState();
+        }
         return rd.getRootNode();
     }
 
