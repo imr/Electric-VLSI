@@ -71,25 +71,18 @@ public class HelpMenu {
                 MenuCommands.menuBar().keyBindingManager.printKeyBindings();; }},
 
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
-            new EMenu("_Samples",
-                new EMenuItem("_Load Library", KeyStroke.getKeyStroke(KeyEvent.VK_1, KeyEvent.ALT_MASK)) { public void run() {
-                    ManualViewer.loadSamplesLibrary("samples", "tech-MOSISCMOS"); }},
-                new EMenuItem("_3D View of Sample Cell", KeyStroke.getKeyStroke(KeyEvent.VK_2, KeyEvent.ALT_MASK)) { public void run() {
-                    ManualViewer.open3DSample("samples", "tech-MOSISCMOS", "Samples"); }},
-                new EMenuItem("_Animate Sample Cell", KeyStroke.getKeyStroke(KeyEvent.VK_3, KeyEvent.ALT_MASK)) { public void run() {
-                    ManualViewer.animate3DSample("demo.j3d"); }}),
-
-        // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
             new EMenu("_3D Showcase",
-                new EMenuItem("_Load Library", KeyStroke.getKeyStroke(KeyEvent.VK_4, KeyEvent.ALT_MASK)) { public void run() {
+                new EMenuItem("_Load Library") { public void run() {
                     ManualViewer.loadSamplesLibrary("floatingGates", "topCell"); }},
-                new EMenuItem("_3D View of Cage Cell", KeyStroke.getKeyStroke(KeyEvent.VK_5, KeyEvent.ALT_MASK)) { public void run() {
+                new EMenuItem("_3D View of Cage Cell") { public void run() {
                     ManualViewer.open3DSample("floatingGates" ,"topCell", "3D ShowCase"); }},
-                new EMenuItem("_Animate Cage Cell", KeyStroke.getKeyStroke(KeyEvent.VK_6, KeyEvent.ALT_MASK)) { public void run() {
+                new EMenuItem("_Animate Cage Cell") { public void run() {
                     ManualViewer.animate3DSample("demoCage.j3d"); }}),
 
-		// mnemonic keys available: ABCDEFGHIJKL NO QRSTUVWXYZ
+		// mnemonic keys available: ABCDEFGHIJKL NO QR TUVWXYZ
             new EMenu("_Load Built-in Libraries",
+                new EMenuItem("_Sample Cells") { public void run() {
+                    ManualViewer.loadSamplesLibrary("samples", "tech-MOSISCMOS"); }},
                 new EMenuItem("_MOSIS CMOS Pads") { public void run() {
                     loadBuiltInLibraryCommand("pads4u"); }},
                 new EMenuItem("MI_PS Cells") { public void run() {
