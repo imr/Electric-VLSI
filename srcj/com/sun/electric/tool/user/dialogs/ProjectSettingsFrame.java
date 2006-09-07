@@ -286,7 +286,7 @@ public class ProjectSettingsFrame extends EDialog
 
 	private void okActionPerformed()
 	{
-		new OKUpdate(this);
+		new OKUpdate(this, true);
 	}
 
     private void writeToDiskActionPerformed()
@@ -301,6 +301,7 @@ public class ProjectSettingsFrame extends EDialog
                     JOptionPane.YES_NO_OPTION);
             if (ret == JOptionPane.NO_OPTION) return;
         }
+        new OKUpdate(this, false);
         ProjSettings.writeSettings(outputFile);
     }
 
@@ -370,13 +371,15 @@ public class ProjectSettingsFrame extends EDialog
 	{
 		private transient ProjectSettingsFrame dialog;
 		private Pref.PrefChangeBatch changeBatch;
+        private boolean issueWarning;
 
-		private OKUpdate(ProjectSettingsFrame dialog)
+        private OKUpdate(ProjectSettingsFrame dialog, boolean issueWarning)
 		{
 			super("Update Project Settings", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
+            this.issueWarning = issueWarning;
 
-			// gather preference changes on the client
+            // gather preference changes on the client
 			Pref.gatherPrefChanges();
 			for(ProjSettingsPanel ti : dialog.optionPanes)
 			{
@@ -395,8 +398,10 @@ public class ProjectSettingsFrame extends EDialog
 
 		public void terminateOK()
 		{
-            Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
-            "\nTo save them permanently, use \"Write To Disk\"", "Warning");
+            if (issueWarning) {
+                Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
+                "\nTo save them permanently, use \"Write To Disk\"", "Warning");
+            }
             dialog.closeDialog(null);
 		}
 	}
