@@ -77,6 +77,11 @@ public class ProjSettings {
             // first file read in, accept it
             settings = readNode;
             lastProjectSettingsFile = file;
+            // update any changes to technologies
+            for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
+                Technology tech = it.next();
+                tech.setState();
+            }
         } else {
             // not first file read in, check for conflicts,
             // and do not use it
@@ -120,11 +125,6 @@ public class ProjSettings {
         Reader rd = new Reader(TextUtils.makeURLToFile(file));
         if (!rd.read()) return null;
         System.out.println("Read Project Settings from "+file);
-        // update any changes to technologies
-        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); ) {
-            Technology tech = it.next();
-            tech.setState();
-        }
         return rd.getRootNode();
     }
 
