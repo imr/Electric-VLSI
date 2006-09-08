@@ -13,15 +13,15 @@ In such a situation, the node attribute's value is the "actual" parameter to the
 and the cell attribute's value is the "formal", or default parameter value.
 <P>
 One example of the use of cell parameters is in the Spice primitives, where user-defined values (such as voltage)
-are communicated into the icon for generation in the Spice deck (see <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A>).
+are communicated into the icon for generation in the Spice deck
+(see <A HREF="chap09-04-04.html#chap09-04-04">Section 9-4-4</A>).
 <P>
 Another use of cell parameters is to parameterize the size of a transistor in a schematic
 (or to parameterize the scalable layout transistors in the MOSIS CMOS technology, see <A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>)
 The transistor width and length can be defined in terms of the parameter value,
 allowing a single cell to take on many different forms.
 By combining these parameters with the interpretive language facility,
-an arbitrary mathematical expression can be placed on the transistor which combines parameter values to form the exact transistor size
-.
+an arbitrary mathematical expression can be placed on the transistor which combines parameter values to form the exact transistor size.
 <P>
 Inside of the cell, the parameter is shown with its name and default value.
 To see the actual value from up the hierarchy, create a Java expression with the value "@PNAME" where PNAME is the parameter name.
@@ -29,14 +29,13 @@ For example, if a cell has an attribute called "heat", you might place a piece o
 (with the "Annotation Text" command under the "Misc" entry in the component menu)
 and name it "@heat".
 Make sure to set its Code to Java.
-When first defined, the parameter has no actual value, and so appears as "heat not found"
-.
+When first defined, the parameter has no actual value, and so appears as "heat not found".
 If an instance is created and its "heat" attribute is set to 7, then descending into that cell will show "7".
 <P>
 If a parameter is added to a cell, existing instances of that cell may not get properly updated.
 To do this, use the <B>Update Attributes Inheritance on Node</B> command (in menu <B>Edit / Properties</B>).
 To do this everywhere, use the <B>Update Attributes Inheritance all Libraries</B> command.
-<BR>
+<P>
 <H3>Parameter Text</H3>
 <P>
 Parameters on cells are not tied to any node or arc.

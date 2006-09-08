@@ -22,7 +22,7 @@ You can create a new attribute by typing its name in the "Name:"
 field, its value in the "Value:" field and then clicking the "Create New" button.
 The "Edit" button next to the "Value:" field lets you change the value in a separate dialog (useful for major changes).
 You can delete an attribute with the "Delete" button.
-An attribute's name can be changed with the "Rename" button.
+An attribute's name can be changed with the "Rename..." button.
 <P>
 Just below the name and value fields are a set of popups that control
 the attribute.
@@ -52,11 +52,13 @@ The "Invisible outside cell" requests that the attribute not be drawn when viewe
 <P>
 The "Done" button terminates this dialog.
 Note that there is no "Cancel" button: this dialog makes changes as they are entered.
-<BR>
+<P>
 <H3>Special Considerations</H3>
 <P>
 Attributes that are placed on cells or exports get <I>inherited</I> when the cell is instantiated.
-Each of these attributes is created on the instantiated node and port.
+This means that each cell or export attribute is copied to the cell instance or port instance.
+Cell attributes are actually parameters, discussed further in the
+<A HREF="chap06-08-06.html#chap06-08-06">next Section</A>
 It is often desirable for each inherited attribute to have unique names.
 If the value of a cell or export attribute has "++" in it,
 then the number before it will be incremented after inheritance.
@@ -64,7 +66,7 @@ Similarly, a "--" indicates that the number be decremented after inheritance.
 This allows an inherited attribute to be unique with each inheritance.
 <P>
 When there are too many visible attributes, the display can become cluttered.
-Use the "Layers" tab of the sidebar to control the text,
+Use the "Layers" tab of the sidebar to control the text
 (see <A HREF="chap04-05.html#chap04-05">Section 4-5</A> for more).
 Attributes on nodes are controlled by the "Node Text" checkbox; those on arcs with the "Arc Text" checkbox, etc.
 

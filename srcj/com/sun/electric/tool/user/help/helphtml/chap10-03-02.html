@@ -17,7 +17,6 @@ If &lt;technology&gt; is omitted, the technology of the cell is assumed.
 For cell instances, it has the form: [&lt;library&gt;:]&lt;cell&gt;;&lt;version&gt;{&lt;view&gt;}.
 If &lt;library&gt; is omitted, the library defined by this JELIB file is assumed.</TD></TR>
 <TR><TD>&lt;name&gt;</TD><TD>the name of the node instance.
-If there are multiple nodes with the same name, then the name is quoted, and a unique integer follows the close quote.</TD></TR>
 <TR><TD>&lt;nameTD&gt;</TD><TD>a text descriptor for the name (when displayed).</TD></TR>
 <TR><TD>&lt;x&gt;</TD><TD>the X coordinate of the anchor point of the node instance.</TD></TR>
 <TR><TD>&lt;y&gt;</TD><TD>the Y coordinate of the anchor point of the node instance.</TD></TR>
@@ -56,10 +55,10 @@ There is one attribute on the node, called "length", with the value "2" (a strin
 This attribute is displayed, anchored at its center ("D5"),
 is 1 half grid unit in size ("G0.5;"), and is offset (-0.5, -1) from the node center ("X-0.5;Y-1;").
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Ilow;1{lay}|"HAPPY"1||14|12|Y|A|D5G4;</CODE>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Ilow;1{lay}|HAPPY||14|12|Y|A|D5G4;</CODE>
 <P>
 Places an instance of cell "low{lay}" from the library defined in this JELIB file.
-The instance is named "HAPPY" (the name field is "HAPPY"1 which means this is the first instance with this name).
+The instance is named "HAPPY".
 It is at (14,12),mirrored in Y, and is rotated 0.
 The "A" means that the node is hard-to-select.
 Its name is described by D5G4;

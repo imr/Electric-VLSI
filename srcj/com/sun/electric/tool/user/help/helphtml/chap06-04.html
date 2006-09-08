@@ -34,23 +34,24 @@ Finally, the last measured distance can be used to determine the array spacing
 <P>
 <CENTER><IMG SRC="fig06-02.png" ALT="Figure 6.2"></CENTER>
 <P>
-The "Linear diagonal array" check box indicates that the array is linear
+Checkboxes at the bottom of the dialog are special cases:
+<UL>
+<LI>"Linear diagonal array" indicates that the array is linear
 (one of the repeat factors must be 1) but that both spacing rules will be applied.
-This therefore creates a single line that runs diagonally.
-<P>
-The "Generate array indices" check box
+This therefore creates a single line that runs diagonally.</LI>
+<LI>"Generate array indices"
 requests that the array entries be drawn with index information.
 When this is checked, array entries are labeled with the index of each entry.
 The original copy is labeled "0-0" and the copy to its right is labeled "1-0".
 These names are simply visual tags that have no bearing on the contents
-(use the <B>Object Properties...</B> command, in menu <B>Edit / Properties</B>, to set or remove these names).
-<P>
-The "Only place entries that are DRC correct" check box requests that array entries only be placed where they do not create design-rule violations.
+(use the <B>Object Properties...</B> command, in menu <B>Edit / Properties</B>, to set or remove these names).</LI>
+<LI>"Only place entries that are DRC correct" requests that array entries only be placed where they do not create design-rule violations.
 This option is only available if a single node is being arrayed.
-After the array is created, the design-rule checker is run on each entry, and if it causes an error, it is removed.
-<P>
-The "Transpose placement ordering" check box requests that array placement go by column instead of by row.
+After the array is created, the design-rule checker is run on each entry, and if it causes an error,
+it is removed.</LI>
+<LI>"Transpose placement ordering" requests that array placement go by column instead of by row.
 This is useful if the arraying includes names which are being auto-incremented in the array.
-By transposing the order of arraying, the names will run in the orthogonal direction.
+By transposing the order of arraying, the names will run in the orthogonal direction.</LI>
+</UL>
 
 <!-- TRAILER -->
