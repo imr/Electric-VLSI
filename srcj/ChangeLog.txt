@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+IMP: (9/7/06, SMR) Removed "Easy Selection of Annotation Text" from Selection Preferences
+     (It was never used...just an idle checkbox that does nothing).
+
 BUG: (9/7/06, GVG) Switching of metal numbers in TSMC90 was not working since proj preferences were introduced
 FIX: Call the TechPref.allTechnologiesChanged() or TechPref.technologyChanged(). These functions also included
 UI refresh calls.

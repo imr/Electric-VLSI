@@ -1021,19 +1021,6 @@ public class User extends Listener
 	 */
 	public static void setEasySelectionOfCellInstances(boolean on) { cacheEasySelectionOfCellInstances.setBoolean(on); }
 
-	private static Pref cacheEasySelectionOfAnnotationText = Pref.makeBooleanPref("EasySelectionOfAnnotationText", tool.prefs, true);
-	/**
-	 * Method to tell whether annotation text is easy-to-select.
-	 * The default is "true".
-	 * @return true if annotation text is easy-to-select.
-	 */
-	public static boolean isEasySelectionOfAnnotationText() { return cacheEasySelectionOfAnnotationText.getBoolean(); }
-	/**
-	 * Method to set whether annotation text is easy-to-select.
-	 * @param on true if annotation text is easy-to-select.
-	 */
-	public static void setEasySelectionOfAnnotationText(boolean on) { cacheEasySelectionOfAnnotationText.setBoolean(on); }
-
 	private static Pref cacheDraggingMustEncloseObjects = Pref.makeBooleanPref("DraggingMustEncloseObjects", tool.prefs, false);
 	/**
 	 * Method to tell whether dragging a selection rectangle must completely encose objects in order to select them.
