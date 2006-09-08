@@ -29,16 +29,15 @@ The file has these lines of text that control different aspects of conversion:
 A line starting with "P" controls how primitives are converted to EDIF.
 The line has this format:
 <BR>
-P <I>ElecTech</I> <I>ElecPrim</I> <I>ElecFunc</I> <I>ElecRot</I> <I>ElecPortOff</I>
-<I>EDIFTech</I> <I>EDIRPrim</I> <I>EDIFFunc</I> <I>EDIFPortOff</I>
+<CODE>&nbsp;&nbsp;P ElecTech ElecPrim ElecFunc ElecRot ElecPortOff EDIFTech EDIRPrim EDIFFunc EDIFPortOff</CODE>
 <BR>
 Where:
 <UL>
-<LI><I>ElecTech</I> is the Electric technology name (e.g. "schematic").</LI>
-<LI><I>ElecPrim</I> is the Electric primitive name (e.g. "Transistor").</LI>
-<LI><I>ElecFunc</I> is the Electric function (e.g. "CONPOWER").</LI>
-<LI><I>ElecRot</I> is the Electric rotation (e.g. "90").</LI>
-<LI><I>ElecPortOff</I> is the Electric port offsets, enclosed in braces (e.g. "{ g(-1,0) }").
+<LI><CODE>ElecTech</CODE> is the Electric technology name (e.g. "schematic").</LI>
+<LI><CODE>ElecPrim</CODE> is the Electric primitive name (e.g. "Transistor").</LI>
+<LI><CODE>ElecFunc</CODE> is the Electric function (e.g. "CONPOWER").</LI>
+<LI><CODE>ElecRot</CODE> is the Electric rotation (e.g. "90").</LI>
+<LI><CODE>ElecPortOff</CODE> is the Electric port offsets, enclosed in braces (e.g. "{ g(-1,0) }").
 Each port on the primitive must be listed, and an offset given.
 To ignore a port, use "NA" instead of "port(x,y)".
 You can also specify an ignored port as "NA(x,y)" if you want to affect how an attached wire's endpoint 
@@ -46,15 +45,15 @@ is modified.
 "NA" by itself is the same as "NA(0,0)".
 If the port's name is "NA", use "\NA(x,y)" to specify the name as NA, and not be ignored.
 </LI>
-<LI><I>EDIFTech</I> is the EDIF technology name (e.g. "tsmc18").</LI>
-<LI><I>EDIRPrim</I> is the EDIF primitive name (e.g. "pmos2v").</LI>
-<LI><I>EDIFFunc</I> is the EDIF function (e.g. "symbol").</LI>
-<LI><I>EDIFPortOff</I> is the EDIF port offsets, enclosed in braces (e.g. "{ G(0,0) }").
+<LI><CODE>EDIFTech</CODE> is the EDIF technology name (e.g. "tsmc18").</LI>
+<LI><CODE>EDIRPrim</CODE> is the EDIF primitive name (e.g. "pmos2v").</LI>
+<LI><CODE>EDIFFunc</CODE> is the EDIF function (e.g. "symbol").</LI>
+<LI><CODE>EDIFPortOff</CODE> is the EDIF port offsets, enclosed in braces (e.g. "{ G(0,0) }").
 Each port on the primitive must be listed, and an offset given.</LI>
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;P schematic Ground CONGROUND 0 { gnd(0,2) } basic gnd symbol { gnd!(0,0) }
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>P schematic Ground CONGROUND 0 { gnd(0,2) } basic gnd symbol { gnd!(0,0) }</CODE>
 <P>
 </LI>
 
@@ -62,26 +61,25 @@ For example:
 A line starting with "E" controls how exports are converted to EDIF.
 The line has this format:
 <BR>
-E <I>ElecTech</I> <I>ElecPrim</I> <I>ElecFunc</I> <I>ElecRot</I> <I>ElecPortOff</I>
-<I>EDIFTech</I> <I>EDIRPrim</I> <I>EDIFFunc</I> <I>EDIFPortOff</I>
+<CODE>&nbsp;&nbsp;E ElecTech ElecPrim ElecFunc ElecRot ElecPortOff EDIFTech EDIRPrim EDIFFunc EDIFPortOff</CODE>
 <BR>
 Where:
 <UL>
-<LI><I>ElecTech</I> is the Electric technology name (e.g. "schematic").</LI>
-<LI><I>ElecPrim</I> is the Electric primitive name (e.g. "Transistor").</LI>
-<LI><I>ElecFunc</I> is the Electric function (e.g. "CONNECT").</LI>
-<LI><I>ElecRot</I> is the Electric rotation (e.g. "90").</LI>
-<LI><I>ElecPortOff</I> is the Electric port offsets, enclosed in braces (e.g. "{ g(-1,0) }").
+<LI><CODE>ElecTech</CODE> is the Electric technology name (e.g. "schematic").</LI>
+<LI><CODE>ElecPrim</CODE> is the Electric primitive name (e.g. "Transistor").</LI>
+<LI><CODE>ElecFunc</CODE> is the Electric function (e.g. "CONNECT").</LI>
+<LI><CODE>ElecRot</CODE> is the Electric rotation (e.g. "90").</LI>
+<LI><CODE>ElecPortOff</CODE> is the Electric port offsets, enclosed in braces (e.g. "{ g(-1,0) }").
 Each port on the primitive must be listed, and an offset given.</LI>
-<LI><I>EDIFTech</I> is the EDIF technology name (e.g. "tsmc18").</LI>
-<LI><I>EDIRPrim</I> is the EDIF primitive name (e.g. "pmos2v").</LI>
-<LI><I>EDIFFunc</I> is the EDIF function (e.g. "symbol").</LI>
-<LI><I>EDIFPortOff</I> is the EDIF port offsets, enclosed in braces (e.g. "{ G(0,0) }").
+<LI><CODE>EDIFTech</CODE> is the EDIF technology name (e.g. "tsmc18").</LI>
+<LI><CODE>EDIRPrim</CODE> is the EDIF primitive name (e.g. "pmos2v").</LI>
+<LI><CODE>EDIFFunc</CODE> is the EDIF function (e.g. "symbol").</LI>
+<LI><CODE>EDIFPortOff</CODE> is the EDIF port offsets, enclosed in braces (e.g. "{ G(0,0) }").
 Each port on the primitive must be listed, and an offset given.</LI>
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;E schematic Off-Page CONNECT 0 input { a(-2,0), y(2,0) } basic ipin symbol { NA, NA }
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>E schematic Off-Page CONNECT 0 input { a(-2,0), y(2,0) } basic ipin symbol { NA, NA }</CODE>
 <P>
 </LI>
 
@@ -89,18 +87,18 @@ For example:
 A line starting with "V" controls how variables are converted to EDIF.
 The line has this format:
 <BR>
-V <I>ElecVarName</I> <I>EDIFVarName</I> <I>Scale</I> [<I>Append</I>]
+<CODE>&nbsp;&nbsp;V ElecVarName EDIFVarName Scale [Append]</CODE>
 <BR>
 Where:
 <UL>
-<LI><I>ElecVarName</I> is the Electric variable name (e.g. "ATTR_M").</LI>
-<LI><I>EDIFVarName</I> is the EDIF primitive name (e.g. "m").</LI>
-<LI><I>Scale</I> is a scale from Electric to EDIF (e.g. "1").</LI>
-<LI><I>Append</I> is an optional string to append to EDIF (e.g. "u").</LI>
+<LI><CODE>ElecVarName</CODE> is the Electric variable name (e.g. "ATTR_M").</LI>
+<LI><CODE>EDIFVarName</CODE> is the EDIF primitive name (e.g. "m").</LI>
+<LI><CODE>Scale</CODE> is a scale from Electric to EDIF (e.g. "1").</LI>
+<LI><CODE>Append</CODE> is an optional string to append to EDIF (e.g. "u").</LI>
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;V ATTR_length l 0.9 u
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>V ATTR_length l 0.9 u</CODE>
 <P>
 </LI>
 
@@ -108,16 +106,16 @@ For example:
 A line starting with "F" controls how figure groups are converted to EDIF.
 The line has this format:
 <BR>
-F <I>ElecName</I> <I>EDIFName</I>
+<CODE>&nbsp;&nbsp;F ElecName EDIFName</CODE>
 <BR>
 Where:
 <UL>
-<LI><I>ElecName</I> is the Electric technology name (e.g. "ARTWORK").</LI>
-<LI><I>EDIFName</I> is the EDIF figure group name (e.g. "DEVICE").</LI>
+<LI><CODE>ElecName</CODE> is the Electric technology name (e.g. "ARTWORK").</LI>
+<LI><CODE>EDIFName</CODE> is the EDIF figure group name (e.g. "DEVICE").</LI>
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;F ARTWORK DEVICE
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>F ARTWORK DEVICE</CODE>
 <P>
 </LI>
 
@@ -125,16 +123,16 @@ For example:
 A line starting with "G" controls how global names are converted to EDIF.
 The line has this format:
 <BR>
-G <I>ElecName</I> <I>EDIFName</I>
+<CODE>&nbsp;&nbsp;G ElecName EDIFName</CODE>
 <BR>
 Where:
 <UL>
-<LI><I>ElecName</I> is the Electric global name (e.g. "GND").</LI>
-<LI><I>EDIFName</I> is the EDIF global name (e.g. "gnd!").</LI>
+<LI><CODE>ElecName</CODE> is the Electric global name (e.g. "GND").</LI>
+<LI><CODE>EDIFName</CODE> is the EDIF global name (e.g. "gnd!").</LI>
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;G GND gnd!
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>G GND gnd!</CODE>
 <P>
 </LI>
 </UL>

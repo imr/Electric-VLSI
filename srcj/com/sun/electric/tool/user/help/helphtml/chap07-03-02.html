@@ -20,7 +20,7 @@ You can also control how CIF output is produced.
 
 <P>
 By default, CIF output writes the entire hierarchy below the current cell.
-If you check the "Output Mimics Display" item,
+If you check "Output Mimics Display",
 cell instances that are unexpanded will be represented as an outline in the CIF file.
 This is useful when the CIF output is intended for hardcopy display,
 and only the screen contents is desired.
@@ -30,16 +30,16 @@ This is an issue because of the duplication and overlap that occurs wherever arc
 The default action is to write each node and arc individually.
 This makes the file larger because of redundant box information,
 however it is faster to generate and uses simpler constructs.
-If you check the "Output Merges Boxes" item,
+If you check "Output Merges Boxes",
 all connecting regions on the same layer are merged into one complex polygon.
 This requires more processing, produces a smaller file, and generates more complex constructs.
 <P>
 Another option is whether or not to instantiate the circuit in the CIF.
 By default, the currently displayed cell becomes the top level of the CIF file,
-and is instantiated at the end of the CIF.
+and is instantiated at the end of the file.
 This causes the CIF file to display the current cell.
 If the CIF file is to be used as a library, with no current cell,
-then uncheck the "Output Instantiates Top Level" checkbox, and there will be no invocation of the current cell.
+then uncheck "Output Instantiates Top Level", and there will be no invocation of the current cell.
 <P>
 Be advised that the CIF format has a minimum resolution of 10 nanometers.
 Since nothing smaller can be accurately represented in the file, the CIF output of smaller geometries will
@@ -52,7 +52,7 @@ Only one setting is unrelated to circuitry and found in the CIF Preferences
 This controls how CIF is read.
 <P>
 When reading CIF files, the CIF "wire" statements are assumed to have rounded geometry at the ends and corners.
-If you check the "Input Squares Wires" item, CIF input assumes that wire ends are square and extend by half of their width.
+If you check "Input Squares Wires", CIF input assumes that wire ends are square and extend by half of their width.
 <P>
 For the difference between Preferences and Project Settings, see
 <A HREF="chap06-03.html#chap06-03">Section 6-3</A>.

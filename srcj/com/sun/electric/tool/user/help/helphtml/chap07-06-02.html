@@ -41,50 +41,51 @@ This avoids large FPGA Architecture files
 The Primitive Definition section defines the lowest-level blocks,
 which become primitive nodes in the FPGA technology.
 A primitive definition looks like this:
-<PRE>
-(primdef
-  (attributes
-    (name PRIMNAME)
-    (size X Y)
-  )
-  (ports
-    (port
-      (name PORTNAME)
-      (position X Y)
-      (direction input | output | bidir)
-    )
-  )
-  (components
-    (pip
-      (name PIPNAME)
-      (position X Y)
-      (connectivity NET1 NET2)
-    )
-  )
-  (nets
-    (net
-      (name INTNAME)
-      (segment FROMPART TOPART)
-    )
-  )
-)
-</PRE>
 <P>
-The <B>attributes</B> section defines general information about the block.
-The <B>ports</B> section defines external connections.
-The <B>components</B> section defines logic in the block (currently only PIPs).
-The <B>nets</B> section defines internal networks.
-There can be multiple <B>segment</B> entries in a net,
-each defining a straight wire that runs from the <B>FROMPART</B> to the <B>TOPART</B>.
-These parts can be either <B>port PORTNAME</B> or <B>coord X Y</B>,
+<CODE>
+(primdef<BR>
+&nbsp;&nbsp;(attributes<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(name PRIMNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(size X Y)<BR>
+&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;(ports<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name PORTNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input | output | bidir)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;(components<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(pip<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name PIPNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(connectivity NET1 NET2)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;(nets<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name INTNAME)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment FROMPART TOPART)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
+&nbsp;&nbsp;)<BR>
+)</CODE>
+<P>
+The <CODE>attributes</CODE> section defines general information about the block.
+The <CODE>ports</CODE> section defines external connections.
+The <CODE>components</CODE> section defines logic in the block (currently only PIPs).
+The <CODE>nets</CODE> section defines internal networks.
+There can be multiple <CODE>segment</CODE> entries in a net,
+each defining a straight wire that runs from the <CODE>FROMPART</CODE> to the <CODE>TOPART</CODE>.
+These parts can be either <CODE>port PORTNAME</CODE> or <CODE>coord X Y</CODE>,
 depending on whether the net ends at a port or at an arbitrary position inside of the primitive.
 <P>
-<TABLE><TR><TD VALIGN=TOP>
 For example, this block has two vertical nets and two horizontal nets.
 Four pips are placed at the intersections.
 Six ports are defined (two on the left, two on the top, and two on the bottom).
 Here is the code:
 <P>
+<TABLE><TR><TD VALIGN=TOP>
+<CODE>
 (primdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name sampleblock)<BR>
@@ -113,13 +114,15 @@ Here is the code:
 &nbsp;&nbsp;&nbsp;&nbsp;(net (name inth1) (segment port inleft2 coord 30 20 ) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(net (name inth2) (segment port inleft1 coord 30 40 ) )<BR>
 &nbsp;&nbsp;)<BR>
-)<BR>
+)</<CODE>
+<BR>
 </TD><TD><CENTER><IMG SRC="fig07-11.png" ALT="Figure 7.11"></CENTER></TD></TR></TABLE>
 <P>
 <H3>Block Definition and Architecture Sections</H3>
 <P>
 The Block Definition and Architecture sections define higher-level blocks composed of primitives.
 They looks like this:
+<P>
 <CODE>
 (blockdef<BR>
 &nbsp;&nbsp;(attributes<BR>
@@ -163,30 +166,31 @@ They looks like this:
 </CODE>
 <P>
 The only difference between the Architecture section and the Block Definition section is that the
-Architecture section has the keyword <B>architecture</B> instead of <B>blockdef</B>.
-There can be only one <B>architecture</B> section, but there can be many <B>blockdef</B>s,
+Architecture section has the keyword <CODE>architecture</CODE> instead of <CODE>blockdef</CODE>.
+There can be only one <CODE>architecture</CODE> section, but there can be many <CODE>blockdef</CODE>s,
 defining a complete hierarchy.
 <P>
-The <B>attributes</B> section defines general information about the block.
+The <CODE>attributes</CODE> section defines general information about the block.
 <P>
-The <B>ports</B> section defines external connections.
+The <CODE>ports</CODE> section defines external connections.
 <P>
-The <B>components</B> section defines logic in the block
+The <CODE>components</CODE> section defines logic in the block
 (currently instances of other blocks or repeaters).
-The <B>rotation</B> of an instance is the number of degrees counterclockwise, rotated about the center.
-The <B>attributes</B> section of the instance assigns name/value pairs
+The <CODE>rotation</CODE> of an instance is the number of degrees counterclockwise, rotated about the center.
+The <CODE>attributes</CODE> section of the instance assigns name/value pairs
 (this can be used to program the FPGA).
 <P>
-The <B>nets</B> section defines internal networks.
-There can be multiple <B>segment</B> entries in a net,
-each defining a straight wire that runs from the <B>FROMPART</B> to the <B>TOPART</B>.
-These parts can be either <B>component INSTNAME PORTNAME</B>, <B>port PORTNAME</B>,
-or <B>coord X Y</B>, depending on whether the net ends at a component,
+The <CODE>nets</CODE> section defines internal networks.
+There can be multiple <CODE>segment</CODE> entries in a net,
+each defining a straight wire that runs from the <CODE>FROMPART</CODE> to the <CODE>TOPART</CODE>.
+These parts can be either <CODE>component INSTNAME PORTNAME</CODE>, <CODE>port PORTNAME</CODE>,
+or <CODE>coord X Y</CODE>, depending on whether the net ends at a component,
 port or at an arbitrary position inside of the block.
 <P>
 <TABLE><TR><TD VALIGN=TOP>
 Here is an example of block definition code and its layout.
 <P>
+<CODE>
 (blockdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name testblock)<BR>
@@ -210,9 +214,10 @@ Here is an example of block definition code and its layout.
 &nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r3) (porta 10 30)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 30) (direction horizontal)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;)<BR>
-&nbsp;&nbsp;)
+&nbsp;&nbsp;)</CODE>
 </TD><TD><CENTER><IMG SRC="fig07-25.png" ALT="Figure 7.25"></CENTER></TD></TR></TABLE>
 <P>
+<CODE>
 &nbsp;&nbsp;(ports<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(port (name top0)  (position 40 150) (direction bidir) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(port (name top1)  (position 60 150) (direction bidir) )<BR>
@@ -254,7 +259,7 @@ Here is an example of block definition code and its layout.
 &nbsp;&nbsp;&nbsp;&nbsp;(net (name ih7)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component r3 b component block1 inleft2) )<BR>
 &nbsp;&nbsp;)<BR>
-)
+)</CODE>
 <P>
 <!-- NEED 3in -->
 <H3>Commands</H3>

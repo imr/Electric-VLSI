@@ -6,8 +6,7 @@ To obtain this technology,
 use the popup menu at the top of the component tab (in the side bar) and select "mocmos".
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig07-02.png" ALT="Figure 7.2"></CENTER></TD><TD>
-This technology defaults to 4 metal layers (shown here),
-but can also be changed so that it uses anywhere from 2 to 6 layers of metal.
+This technology can have from 2 to 6 layers of metal (4 are shown here, 6 is the default).
 It also has 1 polysilicon layer but can be changed to use 2.
 The technology can also be set to use either standard rules (SCMOS),
 submicron rules, or deep rules.
@@ -18,10 +17,16 @@ Technology Project Settings (in menu <B>File / Project Settings...</B>, "Technol
 The default orientation of transistors (both in the menu, and when first placed) can be rotated
 by checking "Rotate transistors in menu" in the Technology Preferences (in menu <B>File / Preferences...</B>,
 "Technology" section, "Technology" tab).
+<P>
+Users of Electric version 6.02 or earlier will have a different MOSIS CMOS technology called "mocmossub".
+This technology attempted to match the submicron rule set,
+but did not do so as accurately as the current "mocmos" technology.
+If you have designs in that technology,
+they will be automatically converted to the new "mocmos" when read in.
 </TD></TR></TABLE>
-
+<P>
 <H3>Scalable Transistors</H3>
-
+<P>
 The MOSIS CMOS technology also has two scalable transistor nodes that can be parameterized to have different widths.
 The scalable transistors have contacts built into them.
 When created and scaled, their maximum width is shown.
@@ -34,17 +39,12 @@ affecting constraints.
 The scalable transistor on the left is 3 wide, and the other two are 10 wide.
 However, the scalable transistor on the right has had the "width" attribute set to 8 and so it has shrunk.
 Note that this attribute can be derived from cell parameters, causing different instances of the same
-cell to have different size transistors in it.
+cell to have different size transistors in it
+see <A HREF="chap06-08-06.html#chap06-08-06">Section 6-8-6</A>).
 <P>
 <TABLE><TR><TD>
 If you get <B>Object Properties...</B> on a scalable transistor, there are extra controls
 that let you choose to have fewer contacts (1 or even none), and you can tighten the contact spacing.
-<P>
-Users of Electric version 6.02 or earlier will have a different MOSIS CMOS technology called "mocmossub".
-This technology attempted to match the submicron rule set,
-but did not do so as accurately as the current "mocmos" technology.
-If you have designs in that technology,
-they will be automatically converted to the new "mocmos" when read in.
 </TD><TD><CENTER><IMG SRC="fig07-24.png" ALT="Figure 7.24"></CENTER></TD></TR></TABLE>
 
 <!-- TRAILER -->

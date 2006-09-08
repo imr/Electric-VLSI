@@ -34,7 +34,7 @@ These dialog elements apply to writing GDS:
 <UL>
 <LI>"Output merges Boxes".
 This controls the merging of adjoining geometry.
-This is an issue because of the duplication and overlap that occurs wherever arcs and nodes meet.
+It is an issue because of the duplication and overlap that occurs wherever arcs and nodes meet.
 The default action is to write each node and arc individually.
 This makes the file larger because of redundant box information,
 however it is faster to generate and uses simpler constructs.
@@ -67,12 +67,12 @@ For the difference between Preferences and Project Settings, see
 <A HREF="chap06-03.html#chap06-03">Section 6-3</A>.
 </TD><TD><CENTER><IMG SRC="fig07-12.png" ALT="Figure 7.12"></CENTER></TD></TR></TABLE>
 <P>
-These dialog elements apply to reading and writing GDS:
+These dialog elements are available in the GDS Preferences:
 <UL>
-<LI>"Input merges boxes".
+<LI>"Input merges boxes (slow)".
 This requests GDS input to combine overlapping boxes into complex polygons.
 It takes more time, but produces a more compact database.</LI>
-<LI>"Input includes Text".
+<LI>"Input includes text".
 Text annotations in the GDS file can often clutter the display, so they are ignored during input.
 If you check this item, annotation text will be read and displayed.</LI>
 <LI>"Input expands cells".
@@ -81,7 +81,7 @@ By default, cell instances are not expanded (they appear as a simple box).
 If you check this item, cells are expanded so that their contents are displayed.
 Expansion of cells can always be changed after reading GDS by using the subcommands of the <B>Expand Cell Instances</B>
 and <B>Unexpand Cell Instances</B> commands of the <B>Cells</B> menu.</LI>
-<LI>"Input instantiates Arrays".
+<LI>"Input instantiates arrays".
 This controls whether or not arrays in the GDS file are instantiated.
 By default, arrays are instantiated fully, but this can consume excessive amounts of memory if there are large arrays.
 If you uncheck this item, only the upper-left and lower-right instance are actually placed.</LI>
@@ -92,7 +92,7 @@ By checking this item, the unknown layers are simply ignored.</LI>
 <LI>"Input simplifies contact vias".
 This requests GDS input to find combinations of metal and via cuts and replace them with Electric contacts.
 It takes time, and may simplify some GDS.</LI>
-<LI>"Use NCC annotations for Exports".
+<LI>"Use NCC annotations for exports".
 The network consistency checker (NCC)
 allows special circuit annotations to join two networks
 (see <A HREF="chap09-07-04.html#chap09-07-04">Section 9-7-4</A>).
