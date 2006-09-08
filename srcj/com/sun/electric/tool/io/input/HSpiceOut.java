@@ -225,10 +225,11 @@ public class HSpiceOut extends Simulate
 					lastLine = lineReader.readLine();
 					if (lastLine == null) break;
 					keywords = breakMTLine(lastLine);
-					if (keywords.length == 0) break;
-					if (keywords[0].length() != 0) break;
-					for(int i=1; i<keywords.length; i++)
-						measurementNames.add(keywords[i]);
+					if (keywords.length == 0) { lastLine = null;   break; }
+					if (TextUtils.isANumber(keywords[0])) break;
+					for(int i=0; i<keywords.length; i++)
+						if (keywords[i].length() > 0)
+							measurementNames.add(keywords[i]);
 				}
 				for(String mName : measurementNames)
 				{
@@ -241,24 +242,27 @@ public class HSpiceOut extends Simulate
 			int index = 0;
 			for(int i=0; i<keywords.length; i++)
 			{
+				if (keywords[i].length() == 0) continue;
 				String mName = measurementNames.get(index++);
 				List<Double> mData = measurementData.get(mName);
 				mData.add(new Double(TextUtils.atof(keywords[i])));
 			}
 			for(;;)
 			{
+				if (index >= measurementNames.size()) break;
 				lastLine = lineReader.readLine();
 				if (lastLine == null) break;
 				keywords = breakMTLine(lastLine);
 				if (keywords.length == 0) break;
-				if (keywords[0].length() != 0) break;
-				for(int i=1; i<keywords.length; i++)
+				for(int i=0; i<keywords.length; i++)
 				{
+					if (keywords[i].length() == 0) continue;
 					String mName = measurementNames.get(index++);
 					List<Double> mData = measurementData.get(mName);
 					mData.add(new Double(TextUtils.atof(keywords[i])));
 				}
 			}
+			lastLine = null;
 			continue;
 		}
 
@@ -280,13 +284,15 @@ public class HSpiceOut extends Simulate
 	private String[] breakMTLine(String line)
 	{
 		List<String> strings = new ArrayList<String>();
-		for(int i=1; ; i += 17)
+		for(int i=1; ; )
 		{
 			if (line.length() <= i+1) break;
 			int end = i+17;
 			if (end > line.length()) end = line.length();
+			while (end < line.length() && line.charAt(end-1) != ' ') end++;
 			String part = line.substring(i, end);
 			strings.add(part.trim());
+			i = end;
 		}
 		String [] retVal = new String[strings.size()];
 		for(int i=0; i<strings.size(); i++) retVal[i] = strings.get(i);
@@ -352,7 +358,8 @@ public class HSpiceOut extends Simulate
 		if (icURL != null && TextUtils.URLExists(icURL))
 		{
 			// can't process the DC data
-			System.out.println("WARNING: Cannot read old DC format file: " + fileBase + "." + icExtension);
+			System.out.println("WARNING: Cannot read old DC format file (." + icExtension +
+				")...must provide new format (." + swExtension + "): " + fileBase + "." + icExtension);
 			return;
 		}
 	}
