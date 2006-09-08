@@ -97,7 +97,7 @@ public class DRCTemplate
 //        /** a transistor poly rule */		TRAPOLY (6),
 //        /** a transistor active rule */		TRAACTIVE (7),
         /** a spacing rule */				SPACING (8),
-        /** a multi-cut spacing rule */		SPACINGM (9),
+//        /** a multi-cut spacing rule */		SPACINGM (9),
         /** a wide spacing rule */			SPACINGW (10),
         /** an edge spacing rule */			SPACINGE (11),
         /** a connected spacing rule */		CONSPA (12),
@@ -419,19 +419,11 @@ public class DRCTemplate
                                     + " value=\"" + rule.value1 + "\""
                                     + "/>");
                             break;
-//                        case VIASUR:
-//                            out.println("        <LayerRule ruleName=\"" + rule.ruleName + "\""
-//                                    + " layerName=\"" + rule.name1 + "\""
-//                                    + " type=\""+rule.ruleType+"\""
-//                                    + " when=\"" + whenName + "\""
-//                                    + " value=\"" + rule.value1 + "\""
-//                                    + " nodeName=\"" + rule.nodeName + "\""
-//                                    + "/>");
-//                            break;
                         case UCONSPA:
+                        case UCONSPA2D:
                         case CONSPA:
                         case SPACING:
-                        case SPACINGM:
+//                        case SPACINGM:
                         case SPACINGE:
                         case COMBINATION:
                             String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
@@ -446,16 +438,6 @@ public class DRCTemplate
                                     + noName
                                     + "/>");
                             break;
-//                        case SPACINGW:
-//                            out.println("        <LayersRule ruleName=\"" + rule.ruleName + "\""
-//                                    + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
-//                                    + " type=\""+rule.ruleType+"\""
-//                                    + " when=\"" + whenName + "\""
-//                                    + " value=\"" + rule.value1 + "\""
-//                                    + " maxW=\"" + rule.maxWidth + "\""
-//                                    + " minLen=\"" + rule.minLength + "\""
-//                                    + "/>");
-//                            break;
                         case SURROUND:
                         case ASURROUND:
                             out.println("        <NodeLayersRule ruleName=\"" + rule.ruleName + "\""
@@ -466,21 +448,7 @@ public class DRCTemplate
                                     + " nodeName=\"" + rule.nodeName + "\""
                                     + "/>");
                             break;
-//                        case TRAWELL:
-//                        case TRAPOLY:
-//                        case TRAACTIVE:
-//                            out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
-//                                    + " type=\""+rule.ruleType+"\""
-//                                    + " when=\"" + whenName + "\""
-//                                    + " value=\"" + rule.value1 + "\""
-//                                    + " nodeName=\"" + rule.nodeName + "\""
-//                                    + "/>");
-//                            break;
                         case NODSIZ:
-//                        case CUTSUR:
-//                        case CUTSPA:
-//                        case CUTSPA2D:
-////                        case CUTSIZE:
                             out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
                                     + " type=\""+rule.ruleType+"\""
                                     + " when=\"" + whenName + "\""

@@ -2857,8 +2857,15 @@ public class MoCMOS extends Technology
      */
     private void resizeNodes(XMLRules rules)
     {
+        int numMetals = getNumMetal();
         for (PrimitiveNode metalContact : metalContactNodes)
         {
+            metalContact.setNotUsed(true);
+        }
+        for (int i = 0; i < numMetals - 1; i++)
+        {
+            PrimitiveNode metalContact = metalContactNodes[i];
+            metalContact.setNotUsed(false);
             Technology.NodeLayer node = metalContact.getLayers()[2]; //cut
             Technology.NodeLayer m1Node = metalContact.getLayers()[0]; // first metal
             Technology.NodeLayer m2Node = metalContact.getLayers()[1]; // second metal
@@ -3267,18 +3274,20 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules (the default)<BR>
 	 * 2: Deep rules
 	 */
-	public static int getRuleSet() { return cacheRuleSet.getInt(); }
-    private static DRCTemplate.DRCMode getRuleMode()
-    {
-        switch (getRuleSet())
-        {
-            case DEEPRULES: return DRCTemplate.DRCMode.DE;
-            case SUBMRULES: return DRCTemplate.DRCMode.SU;
-            case SCMOSRULES: return DRCTemplate.DRCMode.SC;
-        }
-        return null;
-    }
-	/**
+	public static int getRuleSet() { return tech.getProjectSettings().getInteger("MOCMOS Rule Set"); }
+
+//    private static DRCTemplate.DRCMode getRuleMode()
+//    {
+//        switch (getRuleSet())
+//        {
+//            case DEEPRULES: return DRCTemplate.DRCMode.DE;
+//            case SUBMRULES: return DRCTemplate.DRCMode.SU;
+//            case SCMOSRULES: return DRCTemplate.DRCMode.SC;
+//        }
+//        return null;
+//    }
+
+    /**
 	 * Method to set the rule set for this Technology.
 	 * @param set the new rule set for this Technology:<BR>
 	 * 0: SCMOS rules<BR>

@@ -103,12 +103,11 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 */
 	public static Point2D [] makePoints(double lX, double hX, double lY, double hY)
 	{
-		Point2D [] points = new Point2D.Double[] {
+		return  new Point2D.Double[] {
 			new Point2D.Double(lX, lY),
 			new Point2D.Double(hX, lY),
 			new Point2D.Double(hX, hY),
 			new Point2D.Double(lX, hY)};
-		return points;
 	}
 
 	/**
@@ -122,12 +121,11 @@ public class PolyBase implements Shape, PolyNodeMerge
 		double hX = rect.getMaxX();
 		double lY = rect.getMinY();
 		double hY = rect.getMaxY();
-		Point2D [] points = new Point2D.Double[] {
+		return new Point2D.Double[] {
 			new Point2D.Double(lX, lY),
 			new Point2D.Double(hX, lY),
 			new Point2D.Double(hX, hY),
 			new Point2D.Double(lX, hY)};
-		return points;
 	}
 
 	/**
@@ -323,14 +321,13 @@ public class PolyBase implements Shape, PolyNodeMerge
 			}
 
 			// general polygon containment by summing angles to vertices
-			double ang = 0, angd = 0;
+			double ang = 0;
 			Point2D lastPoint = points[points.length-1];
             //if (pt.equals(lastPoint)) return true;
             if (DBMath.areEquals(pt, lastPoint)) return true;
 			int lastp = DBMath.figureAngle(pt, lastPoint);
-			for(int i=0; i<points.length; i++)
-			{
-				Point2D thisPoint = points[i];
+            for (Point2D thisPoint : points)
+            {
 				//if (pt.equals(thisPoint)) return true;
                 if (DBMath.areEquals(pt, thisPoint)) return true;
                 // Checking if point is along polygon edge
@@ -357,7 +354,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 		if (style == Poly.Type.CROSS || style == Poly.Type.BIGCROSS)
 		{
             if (DBMath.areEquals(getCenterX(), pt.getX()) && DBMath.areEquals(getCenterY(), pt.getY())) return true;
-			//if (getCenterX() == pt.getX() && getCenterY() == pt.getY()) return true;
 			return false;
 		}
 
@@ -367,8 +363,8 @@ public class PolyBase implements Shape, PolyNodeMerge
 			// first look for trivial inclusion by being a vertex
 			//for(int i=0; i<points.length; i++)
 			//	if (pt.equals(points[i])) return true;
-            for(int i=0; i<points.length; i++)
-                if (DBMath.areEquals(pt, points[i])) return true;
+            for (Point2D point : points)
+                if (DBMath.areEquals(pt, point)) return true;
 
 			// see if the point is on one of the edges
 			if (style == Poly.Type.VECTORS)
@@ -455,9 +451,9 @@ public class PolyBase implements Shape, PolyNodeMerge
 			//if (!bounds.contains(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad))) return false;
 			return true;
 		}
-		for(int i=0; i<points.length; i++)
+        for (Point2D p : points)
 		{
-            if (!DBMath.pointInRect(points[i], bounds)) return false;
+            if (!DBMath.pointInRect(p, bounds)) return false;
 			//if (!bounds.contains(points[i])) return false;
 		}
 		return true;
@@ -470,9 +466,9 @@ public class PolyBase implements Shape, PolyNodeMerge
 	 */
 	public boolean isPointOnCorner(Point2D point)
 	{
-		for (int i = 0; i < points.length; i++)
+        for (Point2D p : points)
 		{
-			if (DBMath.areEquals(point,points[i]))
+			if (DBMath.areEquals(point,p))
 				return (true);
 		}
 		return (false);
@@ -525,7 +521,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 		// determine the edge and center of the port polygon
 		double bx = portBounds.getMinX();     double ux = portBounds.getMaxX();
 		double by = portBounds.getMinY();     double uy = portBounds.getMaxY();
-		double cx = portBounds.getCenterX();  double cy = portBounds.getCenterY();
+//		double cx = portBounds.getCenterX();  double cy = portBounds.getCenterY();
 
 		// compute the area of the nodeinst
 		SizeOffset so = ni.getSizeOffset();
@@ -549,12 +545,12 @@ public class PolyBase implements Shape, PolyNodeMerge
 			// only clip in X if the port area is within of the reduced node X area
 			if (ux >= lx && bx <= hx)
 			{
-				for(int j=0; j<points.length; j++)
+                for (Point2D point : points)
 				{
-					double x = points[j].getX();
+					double x = point.getX();
 					if (x < lx)x = lx;
 					if (x > hx) x = hx;
-					points[j].setLocation(x, points[j].getY());
+					point.setLocation(x, point.getY());
 				}
 			}
 		}
@@ -569,12 +565,12 @@ public class PolyBase implements Shape, PolyNodeMerge
 			// only clip in Y if the port area is inside of the reduced node Y area
 			if (uy >= ly && by <= hy)
 			{
-				for(int j=0; j<points.length; j++)
+                for (Point2D point : points)
 				{
-					double y = points[j].getY();
+					double y = point.getY();
 					if (y < ly) y = ly;
 					if (y > hy) y = hy;
-					points[j].setLocation(points[j].getX(), y);
+					point.setLocation(point.getX(), y);
 				}
 			}
 		}
@@ -592,7 +588,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 		if (origType == Poly.Type.TEXTCENT || origType == Poly.Type.TEXTBOX) return origType;
 
 		// get node this sits on
-		NodeInst ni = null;
+		NodeInst ni;
 		if (eObj instanceof NodeInst)
 		{
 			ni = (NodeInst)eObj;
@@ -644,7 +640,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 		if (origType == Poly.Type.TEXTCENT || origType == Poly.Type.TEXTBOX) return origType;
 
 		// get node this sits on
-		NodeInst ni = null;
+		NodeInst ni;
 		if (eObj instanceof NodeInst)
 		{
 			ni = (NodeInst)eObj;
@@ -676,8 +672,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
 			((angle%1800) == 0 || (angle%1800) == 1350)) angle += 1800;
 		angle = (angle - xAngle + 3600) % 3600;
-		Poly.Type style = Poly.Type.getTextTypeFromAngle(angle);
-		return style;
+		return Poly.Type.getTextTypeFromAngle(angle);
 	}
 
 	/**
@@ -975,10 +970,10 @@ public class PolyBase implements Shape, PolyNodeMerge
 		}
 
 		// look at all points on polygon 2
-		for(int i=0; i<polyOther.points.length; i++)
+        for (Point2D point : polyOther.points)
 		{
-			Point2D c = closestPoint(polyOther.points[i]);
-			double pd = c.distance(polyOther.points[i]);
+			Point2D c = closestPoint(point);
+			double pd = c.distance(point);
 			if (pd <= 0) return 0;
 			if (pd < minPD) minPD = pd;
 		}
@@ -1212,7 +1207,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 		int count = points.length;
 		for(int i=0; i<count; i++)
 		{
-			Point2D p = null;
+			Point2D p;
 			if (i == 0)
 			{
 				if (style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 ||
@@ -1247,7 +1242,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 		int count = points.length;
 		for(int i=0; i<count; i++)
 		{
-			Point2D p2 = null;
+			Point2D p2;
 			if (i == 0)
 			{
 				if (style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 ||
@@ -1388,16 +1383,16 @@ public class PolyBase implements Shape, PolyNodeMerge
 				double area = bounds.getWidth() * bounds.getHeight();
 
 				/* now determine the sign of the area */
-				double sign = 0;
-				if (points[0].getX() == points[1].getX())
-				{
-					/* first line is vertical */
-					sign = (points[2].getX() - points[1].getX()) * (points[1].getY() - points[0].getY());
-				} else
-				{
-					/* first line is horizontal */
-					sign = (points[1].getX() - points[0].getX()) * (points[1].getY() - points[2].getY());
-				}
+//				double sign = 0;
+//				if (points[0].getX() == points[1].getX())
+//				{
+//					/* first line is vertical */
+//					sign = (points[2].getX() - points[1].getX()) * (points[1].getY() - points[0].getY());
+//				} else
+//				{
+//					/* first line is horizontal */
+//					sign = (points[1].getX() - points[0].getX()) * (points[1].getY() - points[2].getY());
+//				}
 				//if (sign < 0) area = -area;
 				return Math.abs(area);
 			}
@@ -1429,7 +1424,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 
     /**
      * Method to return the center of the bounding box containing this PolyBase
-     * @return
+     * @return EPoint representing the center of the PolyBase bounding box.
      */
     public EPoint getCenter()
     {
@@ -1505,9 +1500,8 @@ public class PolyBase implements Shape, PolyNodeMerge
 	public void roundPoints()
 	{
 		bounds = null;
-		for (int i = 0; i < points.length; i++)
+        for (Point2D point : points)
 		{
-			Point2D point = points[i];
 			point.setLocation(DBMath.round(point.getX()), DBMath.round(point.getY()));
 		}
 	}
@@ -1526,16 +1520,20 @@ public class PolyBase implements Shape, PolyNodeMerge
     }
 
     /**
-	 * Compares PolyBase objects based on area.
-	 * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
-     * @param o1 first object to be compared.
-     * @param o2 second object to be compared.
-	 * @return Returns a negative integer, zero, or a positive integer as the
-	 * first object has smaller than, equal to, or greater area than the second.
-     * @throws ClassCastException if the arguments' types are not PolyBase.
+     * Class to compare PolyBase objects
      */
-    private static Comparator<PolyBase> AREA_COMPARATOR = new Comparator<PolyBase>() {
-    	public int compare(PolyBase p1, PolyBase p2)
+    private static Comparator<PolyBase> AREA_COMPARATOR = new Comparator<PolyBase>()
+    {
+         /**
+         * Compares PolyBase objects based on area.
+         * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
+         * @param p1 first object to be compared.
+         * @param p2 second object to be compared.
+         * @return Returns a negative integer, zero, or a positive integer as the
+         * first object has smaller than, equal to, or greater area than the second.
+         * @throws ClassCastException if the arguments' types are not PolyBase.
+         */
+        public int compare(PolyBase p1, PolyBase p2)
 		{
 			double diff = p1.getArea() - p2.getArea();
 			if (diff < 0.0) return -1;
@@ -1585,11 +1583,8 @@ public class PolyBase implements Shape, PolyNodeMerge
 				toDelete.clear();
 				if (!simple && !isSingular)
 				{
-//					Iterator<PolyBase> it = polyList.iterator();
                     for (PolyBase pn : polyList)
-//					while (it.hasNext())
 					{
-//						PolyBase pn = it.next();
 						if (pn.contains(pointList.get(0)) ||
 						    poly.contains(pn.getPoints()[0]))
 						{
@@ -1639,7 +1634,6 @@ public class PolyBase implements Shape, PolyNodeMerge
             }
             else
             {
-                Stack s = new Stack();
                 PolyBase top = stack.pop();
                 Point2D [] points = new Point2D[top.getPoints().length+poly.getPoints().length + 2];
                 System.arraycopy(top.getPoints(), 0, points, 0, top.getPoints().length);
@@ -1648,6 +1642,7 @@ public class PolyBase implements Shape, PolyNodeMerge
                 System.arraycopy(poly.getPoints(), 0, points, top.getPoints().length+1, poly.getPoints().length);
                 points[points.length-1] = (Point2D)poly.getPoints()[0].clone();
                 PolyBase p = new PolyBase(points);
+                p.setLayer(poly.getLayer()); // they are supposed to belong to the same layer
                 stack.push(p);
             }
             level++;
@@ -1702,10 +1697,10 @@ public class PolyBase implements Shape, PolyNodeMerge
         if (polyList == null) polyList = new ArrayList<PolyBase>();
 		double [] coords = new double[6];
 		List<Point2D> pointList = new ArrayList<Point2D>();
-		List<PolyBase> toDelete = new ArrayList<PolyBase>();
         List<PolyBaseTree> roots = new ArrayList<PolyBaseTree>();
         List<PolyBase> list = new ArrayList<PolyBase>();
-		// Gilda: best practice note: System.arraycopy
+
+        // Gilda: best practice note: System.arraycopy
 		for(PathIterator pIt = area.getPathIterator(null); !pIt.isDone(); )
 		{
 			int type = pIt.currentSegment(coords);
@@ -1718,7 +1713,6 @@ public class PolyBase implements Shape, PolyNodeMerge
 				PolyBase poly = new PolyBase(points);
 				poly.setLayer(layer);
 				poly.setStyle(Poly.Type.FILLED);
-				toDelete.clear();
 
                 list.add(poly);
 
@@ -1759,7 +1753,6 @@ public class PolyBase implements Shape, PolyNodeMerge
             Stack<PolyBase> s = new Stack<PolyBase>();
             r.getLoops(count, s);
             polyList.addAll(s);
-for(PolyBase pb : s) pb.setLayer(layer);
         }
         return polyList;
 	}
@@ -1769,7 +1762,7 @@ for(PolyBase pb : s) pb.setLayer(layer);
 		int idx = 0;
 		AffineTransform trans;
 
-		public PolyPathIterator(PolyBase p, AffineTransform at)
+		public PolyPathIterator(AffineTransform at)
 		{
 			this.trans = at;
 		}
@@ -1828,7 +1821,7 @@ for(PolyBase pb : s) pb.setLayer(layer);
 	 */
 	public PathIterator getPathIterator(AffineTransform at)
 	{
-		return new PolyPathIterator(this, at);
+		return new PolyPathIterator(at);
 	}
 
 	/**
@@ -1950,7 +1943,7 @@ for(PolyBase pb : s) pb.setLayer(layer);
 	 * returns -1. If boxes don't overlap, returns -2.
 	 * Otherwise the box is cropped and zero is returned
 	 */
-	public static int cropBoxComplete(Rectangle2D bounds, Rectangle2D PUBox, boolean parasitic)
+	public static int cropBoxComplete(Rectangle2D bounds, Rectangle2D PUBox)
 	{
 		// if the two boxes don't touch, just return
 		double bX = PUBox.getMinX();    double uX = PUBox.getMaxX();
@@ -2065,7 +2058,7 @@ for(PolyBase pb : s) pb.setLayer(layer);
 		private double angle;
 		private double x, y;
 		AngleList(Point2D pt) { x = pt.getX();   y = pt.getY(); }
-	};
+	}
 		
 
     /**
@@ -2202,18 +2195,16 @@ for(PolyBase pb : s) pb.setLayer(layer);
 
     		// make sure the start of the arc is the first point
        		al0 = curveList.get(0);
-    		for(int i=0; i<curveList.size(); i++)
+            for (AngleList al : curveList)
     		{
-        		AngleList al = curveList.get(i);
     			if (al.angle > al0.angle)
     				al.angle -= Math.PI*2.0;
     		}
     	} else
     	{
     		// make sure all angles are negative
-    		for(int i=0; i<curveList.size(); i++)
+            for (AngleList al : curveList)
     		{
-        		AngleList al = curveList.get(i);
     			if (al.angle > 0.0) al.angle -= Math.PI*2.0;
     		}
     	}

@@ -27,9 +27,7 @@ import com.sun.electric.technology.Foundry;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Frame;
 import java.util.Iterator;
@@ -106,7 +104,7 @@ public class TechnologyTab extends ProjSettingsPanel
         try
         {
             Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC90Tab");
-            extraTechClass.getMethod("openTechnologyTab", new Class[]{JPanel.class}).invoke(null, new Object[]{jPanel3});
+            extraTechClass.getMethod("openTechnologyTab", JPanel.class).invoke(null, jPanel3);
         } catch (Exception e)
         {
             System.out.println("Exceptions while importing extra technologies");
@@ -119,10 +117,9 @@ public class TechnologyTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-		boolean redrawPalette = false;
-		boolean redrawWindows = false;
+        boolean changeInMoCMOS = false; // to determine if tech.setState() will be called
 
-		// MOCMOS
+        // MOCMOS
 		int currentNumMetals = techMOCMOSMetalLayers.getSelectedIndex() + 2;
 		int currentRules = MoCMOS.SCMOSRULES;
 		if (techMOCMOSSubmicronRules.isSelected()) currentRules = MoCMOS.SUBMRULES; else
@@ -155,21 +152,36 @@ public class TechnologyTab extends ProjSettingsPanel
 		}
 
 		if (currentNumMetals != MoCMOS.getNumMetal())
-			MoCMOS.setNumMetal(currentNumMetals);
-		if (currentRules != MoCMOS.getRuleSet())
-			MoCMOS.setRuleSet(currentRules);
+        {
+            MoCMOS.setNumMetal(currentNumMetals);
+            changeInMoCMOS = true;
+        }
+        if (currentRules != MoCMOS.getRuleSet())
+        {
+            MoCMOS.setRuleSet(currentRules);
+            changeInMoCMOS = true;
+        }
 
-		boolean currentSecondPolys = techMOCMOSSecondPoly.isSelected();
-		if (currentSecondPolys != MoCMOS.isSecondPolysilicon())
-			MoCMOS.setSecondPolysilicon(currentSecondPolys);
+		boolean newVal = techMOCMOSSecondPoly.isSelected();
+		if (newVal != MoCMOS.isSecondPolysilicon())
+        {
+            MoCMOS.setSecondPolysilicon(newVal);
+            changeInMoCMOS = true;
+        }
 
-		boolean currentNoStackedVias = techMOCMOSDisallowStackedVias.isSelected();
-		if (currentNoStackedVias != MoCMOS.isDisallowStackedVias())
-			MoCMOS.setDisallowStackedVias(currentNoStackedVias);
+		newVal = techMOCMOSDisallowStackedVias.isSelected();
+		if (newVal != MoCMOS.isDisallowStackedVias())
+        {
+            MoCMOS.setDisallowStackedVias(newVal);
+            changeInMoCMOS = true;
+        }
 
-		boolean currentAlternateContact = techMOCMOSAlternateContactRules.isSelected();
-		if (currentAlternateContact != MoCMOS.isAlternateActivePolyRules())
-			MoCMOS.setAlternateActivePolyRules(currentAlternateContact);
+		newVal = techMOCMOSAlternateContactRules.isSelected();
+		if (newVal != MoCMOS.isAlternateActivePolyRules())
+        {
+            MoCMOS.setAlternateActivePolyRules(newVal);
+            changeInMoCMOS = true;
+        }
 
 		// Technologies
 		String currentTechName = (String)technologyPopup.getSelectedItem();
@@ -202,18 +214,10 @@ public class TechnologyTab extends ProjSettingsPanel
             if (val != 2)
             {
                 curTech.setPrefFoundry(foundry.name());
+                changeInMoCMOS = false; // rules set already updated as side effect of changing the foundry name
                 // Primitives cached must be redrawn
                 // recache display information for all cells that use this
                 User.technologyChanged();
-//                for(Iterator<Library> lIt = Library.getLibraries(); lIt.hasNext(); )
-//                {
-//                    Library lib = (Library)lIt.next();
-//                    for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-//                    {
-//                        Cell cell = (Cell)cIt.next();
-//                        if (cell.getTechnology() == curTech) VectorDrawing.cellChanged(cell);
-//                    }
-//                }
             }
         }
 
@@ -227,17 +231,8 @@ public class TechnologyTab extends ProjSettingsPanel
             System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
         }
 
-
-		// update the display
-		if (redrawPalette)
-		{
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
-		}
-		if (redrawWindows)
-		{
-			EditWindow.repaintAllContents();
-		}
+        if (changeInMoCMOS)
+            Technology.TechPref.technologyChanged(MoCMOS.tech);  // including update of display
 	}
 
 	/** This method is called from within the constructor to

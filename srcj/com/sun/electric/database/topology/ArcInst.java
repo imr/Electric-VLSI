@@ -1904,7 +1904,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 				nPoly.transform(trans);
 				Rectangle2D nPolyBounds = nPoly.getBox();
 				if (nPolyBounds == null) continue;
-				int result = Poly.cropBoxComplete(polyBounds, nPolyBounds, true);
+				int result = Poly.cropBoxComplete(polyBounds, nPolyBounds);
 				if (result == 1)
 				{
 					// Empty polygon

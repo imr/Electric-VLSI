@@ -410,7 +410,6 @@ public class XMLRules implements DRCRules {
 //                    addRule(index*2+1, rule.ruleName, rule.value2, DRCTemplate.DRCRuleType.NODSIZ, 0, 0, -1, DRCTemplate.DRCMode.ALL.mode(), null, null);
 //                    return;
 			case SPACING:
-		    case SPACINGM:
 		    case SPACINGW:
 				internalType = DRCTemplate.DRCRuleType.UCONSPA;
 				addRule(index, rule.ruleName, rule.value1, DRCTemplate.DRCRuleType.CONSPA, rule.maxWidth, rule.minLength,
