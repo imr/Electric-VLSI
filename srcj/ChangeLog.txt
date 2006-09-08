@@ -4,8 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
-BUG: (9/8/06, GVG) Few issues with Technology preferences stored as project settings. Algo fixing a PolyBase bug
-affecting extraction code.
+IMP: (9/8/06, SMR) Redid Display Control Preferences to indicate status of algorithms.
+
+BUG: (9/8/06, GVG) Few issues with Technology preferences stored as project settings.
+     Also fixing a PolyBase bug affecting extraction code.
 FIX: Making sure TechPref.technologyChanged is called properly.
 
 BUG: (9/8/06, SMR) Crash when reading HSpice measurement files (Bug #1214).

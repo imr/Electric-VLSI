@@ -281,7 +281,7 @@ public class DisplayControlTab extends PreferencePanel
         general.add(jLabel7, gridBagConstraints);
 
         displayAlgorithm.add(pixelDisplay);
-        pixelDisplay.setText("Pixel Display Algorithm (older)");
+        pixelDisplay.setText("Pixel Display Algorithm (old)");
         pixelDisplay.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         pixelDisplay.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -301,7 +301,7 @@ public class DisplayControlTab extends PreferencePanel
         general.add(jSeparator1, gridBagConstraints);
 
         displayAlgorithm.add(vectorDisplay);
-        vectorDisplay.setText("Vector Display Algorithm (old)");
+        vectorDisplay.setText("Vector Display Algorithm (new)");
         vectorDisplay.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         vectorDisplay.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -313,7 +313,7 @@ public class DisplayControlTab extends PreferencePanel
         general.add(vectorDisplay, gridBagConstraints);
 
         displayAlgorithm.add(layerDisplay);
-        layerDisplay.setText("Layer Display Algorithm (new)");
+        layerDisplay.setText("Layer Display Algorithm (experimental)");
         layerDisplay.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         layerDisplay.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
