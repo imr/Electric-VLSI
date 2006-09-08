@@ -6,8 +6,8 @@ The syntax is:
 <P>
 <CENTER><TABLE BORDER=1 WIDTH="90%">
 <TR><TD COLSPAN=2><B>A&lt;type&gt; | &lt;name&gt; | &lt;nameTD&gt; | &lt;width&gt; | &lt;flags&gt; |
-&lt;headNode&gt; | &lt;headPort&gt; | &lt;headX&gt; | &lt;headY&gt;> | 
-&lt;tailNode&gt; | &lt;tailPort&gt; | &lt;tailX&gt; | &lt;tailY&gt;> [ | &lt;variable&gt; ]*</B></TD></TR>
+&lt;headNode&gt; | &lt;headPortID&gt; | &lt;headX&gt; | &lt;headY&gt; | 
+&lt;tailNode&gt; | &lt;tailPortID&gt; | &lt;tailX&gt; | &lt;tailY&gt; [ | &lt;variable&gt; ]*</B></TD></TR>
 <TR><TD WIDTH="20%">&lt;type&gt;</TD><TD WIDTH="80%">the type of the arc instance.  It has the form: [&lt;technology&gt;:]&lt;arc&gt;.
 If technology is omitted, the technology of the cell is assumed.</TD></TR>
 <TR><TD>&lt;name&gt;</TD><TD>the name of the arc instance.</TD></TR>
@@ -15,11 +15,11 @@ If technology is omitted, the technology of the cell is assumed.</TD></TR>
 <TR><TD>&lt;width&gt;</TD><TD>the width of the arc instance.</TD></TR>
 <TR><TD>&lt;flags&gt;</TD><TD>flags for the arc instance (see below).</TD></TR>
 <TR><TD>&lt;headNode&gt;</TD><TD>the name of the node at the head of the arc instance.</TD></TR>
-<TR><TD>&lt;headPort&gt;</TD><TD>the name of the port on the head node (may be blank if there are no choices).</TD></TR>
+<TR><TD>&lt;headPortID&gt;</TD><TD>the ID of the port on the head node (may be blank if there are no choices).</TD></TR>
 <TR><TD>&lt;headX&gt;</TD><TD>the X coordinate of the head of the arc instance.</TD></TR>
 <TR><TD>&lt;headY&gt;</TD><TD>the Y coordinate of the head of the arc instance.</TD></TR>
 <TR><TD>&lt;tailNode&gt;</TD><TD>the name of the node at the tail of the arc instance.</TD></TR>
-<TR><TD>&lt;tailPort&gt;</TD><TD>the name of the port on the tail node (may be blank if there are no choices).</TD></TR>
+<TR><TD>&lt;tailPortID&gt;</TD><TD>the ID of the port on the tail node (may be blank if there are no choices).</TD></TR>
 <TR><TD>&lt;tailX&gt;</TD><TD>the X coordinate of the tail of the arc instance.</TD></TR>
 <TR><TD>&lt;tailY&gt;</TD><TD>the Y coordinate of the tail of the arc instance.</TD></TR>
 <TR><TD>&lt;variable&gt;</TD><TD>a list of variables on the arc instance
