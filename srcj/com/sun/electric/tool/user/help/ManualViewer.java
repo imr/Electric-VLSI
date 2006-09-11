@@ -58,6 +58,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -86,6 +87,7 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
@@ -1195,6 +1197,7 @@ public class ManualViewer extends EDialog
 			});
 
 			textArea = new JTextArea();
+			textArea.getDocument().putProperty( DefaultEditorKit.EndOfLineStringProperty, System.getProperty("line.separator") );
 			JScrollPane scrollPane = new JScrollPane(textArea);
 			GridBagConstraints gridBagConstraints = new GridBagConstraints();
 			gridBagConstraints.gridx = 0;
@@ -1209,13 +1212,19 @@ public class ManualViewer extends EDialog
 			try
 			{
 				URLConnection con = file.openConnection();
-				int length = con.getContentLength();
 				InputStream stream = con.getInputStream();
 				InputStreamReader is = new InputStreamReader(stream);
-				char [] buf = new char[length];
-				is.read(buf, 0, length);
-				stream.close();
-				textArea.setText(new String(buf));
+				LineNumberReader ln = new LineNumberReader(is);
+				StringBuffer sb = new StringBuffer();
+				for(;;)
+				{
+					String aLine = ln.readLine();
+					if (aLine == null) break;
+					sb.append(aLine);
+					sb.append('\n');
+				}
+				ln.close();
+				textArea.setText(sb.toString());
 				textArea.setSelectionStart(0);
 				textArea.setSelectionEnd(0);
 			} catch (IOException e)
