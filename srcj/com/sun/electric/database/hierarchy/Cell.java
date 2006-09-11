@@ -1047,7 +1047,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ImmutableNodeInst d = newBackup.nodes.get(i);
             while (d.nodeId >= chronNodes.size()) chronNodes.add(null);
             NodeInst ni = chronNodes.get(d.nodeId);
-            if (ni != null) {
+            if (ni != null && ni.getProto().getId() == d.protoId) {
                 ni.setDInUndo(d);
                 if (ni.isCellInstance()) {
                     int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
@@ -1091,7 +1091,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ArcInst ai = chronArcs.get(d.arcId);
             PortInst headPi = getPortInst(d.headNodeId, d.headPortId);
             PortInst tailPi = getPortInst(d.tailNodeId, d.tailPortId);
-            if (ai != null && (!full || ai.getHeadPortInst() == headPi && ai.getTailPortInst() == tailPi)) {
+            if (ai != null && (/*!full ||*/ ai.getHeadPortInst() == headPi && ai.getTailPortInst() == tailPi)) {
                 ai.setDInUndo(d);
             } else {
                 ai = new ArcInst(this, d, headPi, tailPi);
@@ -2658,7 +2658,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return the PortProto.
 	 */
 	public Export getPort(PortProtoId portProtoId) {
-        if (portProtoId.getParentId() != getId()) throw new IllegalArgumentException();
+        if (portProtoId.getParentId() != getId())
+            throw new IllegalArgumentException();
         return chronExports[portProtoId.getChronIndex()];
     }
 

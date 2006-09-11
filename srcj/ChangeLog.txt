@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
+BUG: (9/11/06, DN) Exception when renaming library (Bug #1215).
+FIX: In Cell.update don't reuse old NodeInst when node prototype changed. 
+
 IMP: (9/8/06, SMR) Redid Display Control Preferences to indicate status of algorithms.
 
 BUG: (9/8/06, GVG) Few issues with Technology preferences stored as project settings.
