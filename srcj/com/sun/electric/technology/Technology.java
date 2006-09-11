@@ -3133,6 +3133,8 @@ public class Technology implements Comparable<Technology>
     protected void setFactoryResolution(double factory)
     {
         prefResolution = Pref.makeDoublePref("ResolutionValueFor"+techName, prefs, factory);
+        // use old pref as default (if pref missing, will use hard-coded default)
+        setResolution(prefResolution.getDouble());
     }
 
     /**
@@ -3142,8 +3144,7 @@ public class Technology implements Comparable<Technology>
      */
 	public void setResolution(double resolution)
 	{
-		if (prefResolution == null) setFactoryResolution(0);
-		prefResolution.setDouble(resolution);
+		getProjectSettings().putDouble("technology resolution", resolution);
 	}
 
     /**
@@ -3153,9 +3154,8 @@ public class Technology implements Comparable<Technology>
      */
     public double getResolution()
 	{
-        if (prefResolution == null) setFactoryResolution(0);
-		return prefResolution.getDouble();
-	}
+        return getProjectSettings().getDouble("technology resolution");
+    }
 
 	/**
 	 * Method to get foundry in Tech Palette. Different foundry can define different DRC rules.
@@ -3164,8 +3164,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public String getPrefFoundry()
     {
-        if (prefFoundry == null) return ""; // Nothing
-        return prefFoundry.getString().toUpperCase();
+        return getProjectSettings().getString("technology foundry");
     }
 
 	/**
@@ -3174,7 +3173,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setPrefFoundry(String t)
     {
-        prefFoundry.setString(t);
+        getProjectSettings().putString("technology foundry", t);
     }
 
     /**
@@ -3185,6 +3184,8 @@ public class Technology implements Comparable<Technology>
     {
         prefFoundry = TechPref.makeStringSetting(this, "SelectedFoundryFor"+techName,
         	"Technology/Design Rules (" + techName + ") tab", techName + " foundry", factoryName.toUpperCase());
+        // use old pref as default (if pref missing, will use hard-coded default)
+        setPrefFoundry(prefFoundry.getString());
     }
 
     /**
