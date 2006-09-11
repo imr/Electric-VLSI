@@ -1,10 +1,11 @@
 <!-- HEADER 10-1: JELIB and DELIB File Format -->
 
 This chapter describes Electric's native file format, which ends in "jelib".
-The earlier file format, which ends in "elib", remains undocumented and is no longer recommended.
 These files contain an entire library of cells.
 The "delib" variation is used when each cell is stored in its own file
-(useful when using CVS version control on a project).
+(useful when using CVS version control on a project,
+see <A HREF="chap06-13.html#chap06-13">Section 6-13</A>).
+The earlier file format, which ends in "elib", remains undocumented and is no longer recommended.
 <P>
 JELIB files are text-readable files.
 Each line of a JELIB file starts with an identifying character that distinguishes the line.
@@ -31,7 +32,7 @@ Each of the different types of lines in the file has a fixed set of fields that 
 Some line types also allow additional fields at the end to add variables
 (attribute/value pairs, see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>). 
 <P>
-The JELIB file has 3 parts: the header, cells, and trailer.
+The JELIB file has 3 parts: the <I>header</I>, <I>cells</I>, and <I>trailer</I>.
 <P>
 The header has these elements:
 <P>
@@ -42,7 +43,7 @@ The header has these elements:
 <TR><TD ALIGN=CENTER>R</TD><TD>External cell in the above external library</TD></TR>
 <TR><TD ALIGN=CENTER>F</TD><TD>External export in the above external cell</TD></TR>
 <TR><TD ALIGN=CENTER>T</TD><TD>Technology information; variable fields are allowed</TD></TR>
-<TR><TD ALIGN=CENTER>O</TD><TD>Tool information</TD></TR>
+<TR><TD ALIGN=CENTER>O</TD><TD>Tool information; variable fields are allowed</TD></TR>
 </TABLE></CENTER>
 <P>
 The cells have these elements:
@@ -68,7 +69,7 @@ nodes/arcs/exports in a cell, etc.
 Even the extra variables on a line are ordered.
 The ordering is usually a name sort.
 By ordering everything in the file, the exact same file is generated every time,
-and source-code comparison operations will accurately find differences between two files.
+and text comparison operations will accurately find differences between two files.
 Note, however, that the JELIB reader does not require any sorting, and can handle the data in any order. 
 
 <!-- TRAILER -->
