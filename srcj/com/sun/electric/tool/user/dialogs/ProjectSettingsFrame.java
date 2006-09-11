@@ -78,7 +78,6 @@ public class ProjectSettingsFrame extends EDialog
 	private JTree optionTree;
 	JButton cancel;
 	JButton ok;
-    JButton writeToDisk;
 
     List<ProjSettingsPanel> optionPanes = new ArrayList<ProjSettingsPanel>();
 
@@ -235,17 +234,6 @@ public class ProjectSettingsFrame extends EDialog
 
 		getRootPane().setDefaultButton(ok);
 
-        writeToDisk = new JButton("Write To Disk");
-        writeToDisk.addActionListener(new ActionListener()
-        {
-            public void actionPerformed(ActionEvent evt) { writeToDiskActionPerformed(); }
-        });
-        gbc = new GridBagConstraints();
-        gbc.gridx = 0;   gbc.gridy = 4;
-        gbc.insets = new Insets(4, 4, 4, 4);
-        gbc.gridwidth = 2;
-        leftPanel.add(writeToDisk, gbc);
-
         // build Project Settings framework
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
@@ -288,22 +276,6 @@ public class ProjectSettingsFrame extends EDialog
 	{
 		new OKUpdate(this, true);
 	}
-
-    private void writeToDiskActionPerformed()
-    {
-        int ret = JOptionPane.showConfirmDialog(this, "Changes to Project Settings may affect all users\n\nContinue Anyway?",
-                "Warning!", JOptionPane.YES_NO_OPTION);
-        if (ret == JOptionPane.NO_OPTION) return;
-
-        File outputFile = new File(User.getWorkingDirectory(), "projsettings.xml");
-        if (outputFile.exists()) {
-            ret = JOptionPane.showConfirmDialog(this, outputFile.getPath()+" exists. Overwrite?", "Output File",
-                    JOptionPane.YES_NO_OPTION);
-            if (ret == JOptionPane.NO_OPTION) return;
-        }
-        new OKUpdate(this, false);
-        ProjSettings.writeSettings(outputFile);
-    }
 
     private void helpActionPerformed()
 	{

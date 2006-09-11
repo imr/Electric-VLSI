@@ -67,6 +67,7 @@ import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.ProjectSettingsFrame;
@@ -152,7 +153,10 @@ public class FileMenu {
                 new EMenuItem("_Text Cell Contents...") { public void run() {
                     TextWindow.readTextCell(); }},
                 new EMenuItem("_Preferences...") { public void run() {
-                    Job.getUserInterface().importPrefs(); }}),
+                    Job.getUserInterface().importPrefs(); }},
+                new EMenuItem("Project Settings...") { public void run() {
+                    ProjSettings.importSettings(); }}
+            ),
 
             SEPARATOR,
 
@@ -206,7 +210,10 @@ public class FileMenu {
                 new EMenuItem(Job.getDebug() ? "_JELIB (Version 8.04k)" : "_JELIB (Version 8.03)") { public void run() {
                     saveOldJelib(); }},
                 new EMenuItem("P_references...") { public void run() { 
-                    Job.getUserInterface().exportPrefs(); }}),
+                    Job.getUserInterface().exportPrefs(); }},
+                new EMenuItem("Project Settigns...") { public void run() {
+                    ProjSettings.exportSettings(); }}
+            ),
 
             SEPARATOR,
 

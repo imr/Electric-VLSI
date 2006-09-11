@@ -197,8 +197,8 @@ public abstract class LibraryFiles extends Input
         if (f != null && f.exists()) {
             File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
             if (projsettings.exists())
-                ProjSettings.readSettings(projsettings);
-        }        
+                ProjSettings.readSettings(projsettings, false);
+        }
 
         if (f != null && f.exists()) {
             LibDirs.readLibDirs(f.getParent());

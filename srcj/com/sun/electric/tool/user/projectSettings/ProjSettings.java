@@ -41,6 +41,10 @@ import java.util.Set;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.technology.Technology;
 
 /**
@@ -68,11 +72,17 @@ public class ProjSettings {
         write(file.getPath(), getSettings());
     }
 
-    public static void readSettings(File file) {
+    /**
+     * Read project settings and apply them
+     * @param file the file to read
+     * @param allowOverride true to allow overriding current settings,
+     * false to disallow and warn if different.
+     */
+    public static void readSettings(File file, boolean allowOverride) {
         ProjSettingsNode readNode = read(file.getPath());
         if (readNode == null) return; // error reading file
 
-        if (lastProjectSettingsFile == null) {
+        if (lastProjectSettingsFile == null || allowOverride) {
             // first file read in, accept it
             settings = readNode;
             lastProjectSettingsFile = file;
@@ -88,6 +98,27 @@ public class ProjSettings {
                 System.out.println("Project Setting conflicts found: "+lastProjectSettingsFile.getPath()+" vs "+file.getPath());
             }
         }
+    }
+
+    /**
+     * Write settings to disk.  Pops up a dialog to prompt for file location
+     */
+    public static void exportSettings() {
+        int ret = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Changes to Project Settings may affect all users\n\nContinue Anyway?",
+                "Warning!", JOptionPane.YES_NO_OPTION);
+        if (ret == JOptionPane.NO_OPTION) return;
+
+        File outputFile = new File(FileType.LIBRARYFORMATS.getGroupPath(), "projsettings.xml");
+        String ofile = OpenFile.chooseOutputFile(FileType.XML, "Export Project Settings", outputFile.getPath());
+        outputFile = new File(ofile);
+
+        writeSettings(outputFile);
+    }
+
+    public static void importSettings() {
+        String ifile = OpenFile.chooseInputFile(FileType.XML, "Import Project Settings", false, FileType.LIBRARYFORMATS.getGroupPath(), false);
+        if (ifile == null) return;
+        readSettings(new File(ifile), true);
     }
 
     // ------------------------------ Utility -------------------------------

@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04x: *********************************
 
-IMP/MAN: (9/11/96, GVG) Changes to define selected foundry for MoCMOS and TSMC90 independently.
+IMP/MAN: (9/11/06, JKG) Added import/export command for project settings,
+removed "write to disk" button from dialog
+
+IMP/MAN: (9/11/06, GVG) Changes to define selected foundry for MoCMOS and TSMC90 independently.
 
 BUG: (9/11/06, DN) Exception when renaming library (Bug #1216).
 FIX: In Cell.update don't reuse old NodeInst when node prototype changed. 
