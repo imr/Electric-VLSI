@@ -1,45 +1,43 @@
-<!-- HEADER 9-2-1: Incremental DRC -->
+<!-- HEADER 9-2-1: Introduction to DRC -->
 
-<!-- PREFERENCE Tools/DRC -->
+<!-- COMMAND Tool/DRC/Check Hierarchically -->
+<!-- COMMAND Tool/DRC/Check Selection Area Hierarchically -->
 
-The incremental design-rule checker is always running, examining your work,
+There are three built-in design-rule checkers: <I>incremental</I>, <I>hierarchical</I>,
+and <I>schematic</I>.
+<P>
+The incremental design-rule checker is always running, examining your layout,
 and issuing error messages when an error is detected.
+It checks only the current cell, and does not consider the contents of cell instances,
+lower in the hierarchy.
+It therefore offers an instant analysis, but not a complete one.
 <P>
-To control the DRC,
-use the DRC Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "DRC" tab).
+The hierarchical design-rule checker uses the same rules and techniques as the incremental checker,
+but it checks all levels of hierarchy below the current cell.
+To run it, use the <B>Check Hierarchically</B> command (in menu <B>Tool / DRC</B>).
+To check only a selected subset of the current cell, use <B>Check Selection Area Hierarchically</B>.
 <P>
-<TABLE><TR><TD>
-By default, the incremental design-rule checker is on.
-To turn it off, uncheck the "On" checkbox in the "Incremental DRC" section.
-<P>
-The hierarchical checker can save time by reporting fewer errors.
-"Report just 1 error per cell" tells you which cells are clean and which have at least 1 error.
-You can then recheck those cells for a full report.
-"Report just 1 error per pair of geometries" stops checking when any part of a node or arc has an error.
-This is often sufficient for correcting other errors as well.
-</TD><TD><CENTER><IMG SRC="fig09-20.png" ALT="Figure 9.20"></CENTER></TD></TR></TABLE>
-<P>
-The design-rule checker remembers the date of the last clean check.
-If a cell has not changed since then, it does not need to be rechecked.
-This date information can be stored in the libraries (requiring them to be saved)
-or can be held only in Electric's memory (requiring them to be rechecked if Electric is restarted).
-You can also request that all date information be removed so that a full recheck is done.
-<P>
-MOS contact nodes automatically increase the number of cuts when they grow larger
-(see <A HREF="chap07-04-01.html#chap07-04-01">Section 7-4-1</A>).
-Because of this,
-very large contact nodes can create excessive work for the design-rule checker as it examines each of the cuts.
-To save time, check the "Ignore center cuts in large contacts" check box,
-which will examine only the cut layers around the edges of contact nodes.
-<P>
-DRC rules for new technologies might require special rules, which can be time consuming.
-To ignore these errors, check "Ignore area checking" (for minimum area rules) and
-"Ignore extension rules" (for special overlap rules).
+The schematic design-rule checker looks for issues that make drawing or editing of the cell difficult.
+These are the errors that is finds:
+<OL>
+<LI>Nodes:
+	<UL>
+	<LI>Nodes whose parameters don't match the cell definition (check export names, units, and visibility).</LI>
+	<LI>"Stranded" pins: with no connections, exports, or attached text.</LI>
+	<LI>"Inline" pins: those that sit in a line between two arcs (both of which could be replaced by a single straight arc).</LI>
+	<LI>Invisible pins with text that is offset from the node center (this is an internal consistency check).</LI>
+	</UL></LI>
+<LI>Arcs:
+	<UL>
+	<LI>Unnamed arcs that "dangle": one end is unconnected and unexported (does not apply to busses).</LI>
+	<LI>Bus arcs whose width is inconsistent with its two nodes.</LI>
+	<LI>Bus pins that "float": do not connect to bus arcs and are not exported.</LI>
+	<LI>Bus pins that connect to more than 1 wire.</LI>
+	</UL></LI>
+</OL>
 <P>
 After analysis of the circuit,
 you can review the errors by typing "&gt;" and "&lt;" to step to the next and previous error that was found.
 You can also see a list of errors in the cell explorer (see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
-If you wish to see errors while DRC is running, check "Interactive logging",
-and the errors will appear incrementally.
 
 <!-- TRAILER -->

@@ -61,23 +61,22 @@ node as well as taking into account feedback paths to the node.)
 A sample netlist describing an RS latch model is shown below.
 Note that the "#" character starts a comment.
 <P>
-<CENTER><TABLE><TR><TD><CENTER><IMG SRC="fig09-33.png" ALT="Figure 9.33"></CENTER></TD><TD>
-<PRE>
-      # model declaration for the figure
-      model main(set, reset, q, q_bar)
-      inst1: nor2(reset, q_bar, q)
-      inst2: nor2(q, set, q_bar)
-</PRE>
-<PRE>
-      # gate description of nor2
-      gate nor2(in1, in2, out)
-      t: delta=4.5e-9 + linear=5.0e-10
-      i: in1=L in2=L   o: out=H@2
-      i: in1=H         o: out=L@2
-      i: in2=H         o: out=L@2
-      i:               o: out=X@2
-</PRE>
-</TD></TR></TABLE></CENTER>
+<CENTER><TABLE><TR><TD><CENTER><IMG SRC="fig09-33.png" ALT="Figure 9.33"></CENTER></TD>
+<TD>&nbsp;&nbsp;&nbsp;</TD>
+<TD><CODE>
+# model declaration for the figure<BR>
+model main(set, reset, q, q_bar)<BR>
+inst1: nor2(reset, q_bar, q)<BR>
+inst2: nor2(q, set, q_bar)<BR>
+<BR>
+# gate description of nor2<BR>
+gate nor2(in1, in2, out)<BR>
+t: delta=4.5e-9 + linear=5.0e-10<BR>
+i: in1=L in2=L   o: out=H@2<BR>
+i: in1=H         o: out=L@2<BR>
+i: in2=H         o: out=L@2<BR>
+i:               o: out=X@2<BR>
+</CODE></TD></TR></TABLE></CENTER>
 <P>
 When combined, these entities represent a complete description of the circuit.
 Note that when a gate, function, or other model is referenced within a model description,

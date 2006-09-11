@@ -1,33 +1,17 @@
-<!-- NEED 2in -->
+<!-- HEADER 9-2-2: DRC Preferences -->
 
-<!-- HEADER 9-2-2: Hierarchical DRC -->
+<!-- PREFERENCE Tools/DRC -->
 
-<!-- COMMAND Tool/DRC/Check Hierarchically -->
-<!-- COMMAND Tool/DRC/Check Selection Area Hierarchically -->
-
-The hierarchical design-rule checker uses the same rules and techniques as the incremental checker,
-but it checks all levels of hierarchy below the current cell.
-To run it, use the <B>Check Hierarchically</B> command (in menu <B>Tool / DRC</B>).
-To check only a selected subset of the current cell, use <B>Check Selection Area Hierarchically</B>.
 <P>
-After analysis of the circuit,
-you can review the errors by typing "&gt;" and "&lt;" to step to the next and previous error that was found.
-You can also see a list of errors in the cell explorer (see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
+To control the DRC,
+use the DRC Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "DRC" tab).
 <P>
-After a cell has passed Hierarchical DRC with no errors, it is tagged with the current date.
-In subsequent runs of the Hierarchical DRC, if the cell has not been modified since that date,
-it is not rechecked.
-(However, if you change the DRC rules or the technology options, all date information is cleared.)
-If you wish to force all cells to be rechecked,
-use the "Clear valid DRC dates" button in the
-DRC Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "DRC" tab).
-To see which cells have passed Hierarchical DRC,
-use the <B>General Cell Lists...</B> command (in menu <B>Cell / Cell Info</B>)
-A "D" is shown in on the right for cells that are DRC current
-(see <A HREF="chap03-07-01.html#chap03-07-01">Section 3-7-1</A>).
+<TABLE><TR><TD>
+By default, the incremental design-rule checker is on.
+To turn it off, uncheck the "On" checkbox in the "Incremental DRC" section.
 <P>
-There are three levels of checking that can be requested in the DRC Preferences,
-each consuming more time and finding more errors.
+There are three levels of checking that can be requested for the Hierarchical DRC.
+Each level of checking consumes more time and finds more errors.
 <UL>
 <LI>"Report just 1 error per cell" tells the system to stop checking a cell
 after the first error has been found.
@@ -41,5 +25,31 @@ violation for a given pair is found in this mode.</LI>
 even if an error has already been found.
 This is the exhaustive mode and therefore time consuming that will report all violations found.</LI>
 </UL>
+</TD><TD><CENTER><IMG SRC="fig09-20.png" ALT="Figure 9.20"></CENTER></TD></TR></TABLE>
+<P>
+The design-rule checker remembers the date of the last clean check.
+If a cell has not changed since then, it does not need to be rechecked.
+This date information can be stored in the libraries (requiring them to be saved)
+or can be held only in Electric's memory (requiring them to be rechecked if Electric is restarted).
+You can also request that all date information be removed so that a full recheck is done.
+To see which cells have passed DRC,
+use the <B>General Cell Lists...</B> command (in menu <B>Cell / Cell Info</B>)
+A "D" is shown in on the right for cells that are DRC current
+(see <A HREF="chap03-07-01.html#chap03-07-01">Section 3-7-1</A>).
+<P>
+MOS contact nodes automatically increase the number of cuts when they grow larger
+(see <A HREF="chap07-04-01.html#chap07-04-01">Section 7-4-1</A>).
+Because of this,
+very large contact nodes can create excessive work for the design-rule checker as it examines each of the cuts.
+To save time, check the "Ignore center cuts in large contacts" check box,
+which will examine only the cut layers around the edges of contact nodes.
+<P>
+DRC rules for new technologies might require special rules, which can be time consuming.
+To ignore these errors, check "Ignore area checking" (for minimum area rules) and
+"Ignore extension rules" (for special overlap rules).
+<P>
+After DRC is complete, errors are available in the the cell explorer.
+If you wish to see errors while DRC is running, check "Interactive logging",
+and the errors will appear incrementally.
 
 <!-- TRAILER -->

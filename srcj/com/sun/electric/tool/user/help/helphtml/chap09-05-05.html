@@ -78,18 +78,18 @@ statements and can schedule events with values that are specified directly insid
 <P>
 The specification for a 3 bit shift register (edge triggered) is shown below.
 This circuit uses a function primitive to model the operation of a D flip-flop:
-<PRE>
-   model main(input, ck, q2, q1, q0)
-   stage0: DFFLOP(input, ck, q0)
-   stage1: DFFLOP(q0, ck, q1)
-   stage2: DFFLOP(q1, ck, q2)
-
-   function DFFLOP(data_in, clock, output)
-   i: clock
-   o: output
-   t: delta=10e-9
-   load clock=2.0
-</PRE>
+<P><CODE>
+&nbsp;&nbsp;&nbsp;model main(input, ck, q2, q1, q0)<BR>
+&nbsp;&nbsp;&nbsp;stage0: DFFLOP(input, ck, q0)<BR>
+&nbsp;&nbsp;&nbsp;stage1: DFFLOP(q0, ck, q1)<BR>
+&nbsp;&nbsp;&nbsp;stage2: DFFLOP(q1, ck, q2)<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;function DFFLOP(data_in, clock, output)<BR>
+&nbsp;&nbsp;&nbsp;i: clock<BR>
+&nbsp;&nbsp;&nbsp;o: output<BR>
+&nbsp;&nbsp;&nbsp;t: delta=10e-9<BR>
+&nbsp;&nbsp;&nbsp;load clock=2.0
+</CODE><P>
 It should be noted that the clock is the only event driving input for the flip-flop function.
 There is no need to call the function if the signal "data_in" will be sampled
 only when the event driving signal

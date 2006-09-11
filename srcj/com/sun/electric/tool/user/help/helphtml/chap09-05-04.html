@@ -31,13 +31,13 @@ statement represent one of many possible input conditions.
 If the logic states of all the input signals match the conditions specified in the <B>i:</B> statement,
 the simulator will schedule the outputs for updating (as specified in the corresponding <B>o:</B> statement).
 The logical truth table for a two input AND gate is shown below:
-<PRE>
-   gate and2(in1, in2, output)
-   i: in1=H in2=H  o: output=H
-   i: in1=L        o: output=L
-   i: in2=L        o: output=L
-   i:              o: output=X
-</PRE>
+<P><CODE>
+&nbsp;&nbsp;&nbsp;gate and2(in1, in2, output)<BR>
+&nbsp;&nbsp;&nbsp;i: in1=H in2=H  o: output=H<BR>
+&nbsp;&nbsp;&nbsp;i: in1=L        o: output=L<BR>
+&nbsp;&nbsp;&nbsp;i: in2=L        o: output=L<BR>
+&nbsp;&nbsp;&nbsp;i:              o: output=X
+</CODE><P>
 The last line of the truth table represents a default condition in the event that none
 of the previous conditions are valid
 (e.g. in1=H and in2=X).
@@ -125,14 +125,14 @@ statement in the gate description.
 Assuming that a 2 input NAND gate had timing characteristics of <I>t(lh)</I> = 1.0 nanoseconds and
 <I>t(hl)</I> = 3.0 nanoseconds,
 the gate description for the device would be as follows:
-<PRE>
-   gate nand2(in1, in2, output)
-   t: delta=3.0e-9
-   i: in1=H in2=H   o: output=L
-   t: delta=1.0e-9
-   i: in1=L         o: output=H
-   i: in2=L         o: output=H
-</PRE>
+<P><CODE>
+&nbsp;&nbsp;&nbsp;gate nand2(in1, in2, output)<BR>
+&nbsp;&nbsp;&nbsp;t: delta=3.0e-9<BR>
+&nbsp;&nbsp;&nbsp;i: in1=H in2=H   o: output=L<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-9<BR>
+&nbsp;&nbsp;&nbsp;i: in1=L         o: output=H<BR>
+&nbsp;&nbsp;&nbsp;i: in2=L         o: output=H
+</CODE><P>
 This example shows that when both inputs are high,
 the output will go low after a delay of 3.0 nanoseconds and that if either input is low,
 the output will go high after a delay of 1.0 nanosecond.
@@ -198,19 +198,19 @@ As an example, a system which models a communication channel that corrupts 1%
 of the data bytes that pass through it is shown below:
 <P>
 <CENTER><TABLE><TR><TD><CENTER><IMG SRC="fig09-35.png" ALT="Figure 9.35"></CENTER></TD><TD>
-<PRE>
-   model main(in, out)
-   trans1: good(in, out)
-   trans2: bad(in, out)
-
-   gate good(in, out)
-   t: delta=1.0e-6
-   i: in>0x00    o: out=in  in=0x00
-
-   gate bad(in, out)
-   t: delta=1.0e-6 + random=0.01
-   i: in>0x00    o: out=0xFF in=0x00
-</PRE>
+<P><CODE>
+&nbsp;&nbsp;&nbsp;model main(in, out)<BR>
+&nbsp;&nbsp;&nbsp;trans1: good(in, out)<BR>
+&nbsp;&nbsp;&nbsp;trans2: bad(in, out)<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;gate good(in, out)<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-6<BR>
+&nbsp;&nbsp;&nbsp;i: in>0x00    o: out=in  in=0x00<BR>
+<BR>
+&nbsp;&nbsp;&nbsp;gate bad(in, out)<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-6 + random=0.01<BR>
+&nbsp;&nbsp;&nbsp;i: in>0x00    o: out=0xFF in=0x00
+</CODE><P>
 </TD></TR></TABLE></CENTER>
 <P>
 The netlist describes a system where ASCII characters are represented by 0x01-0x7F.
