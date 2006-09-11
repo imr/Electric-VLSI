@@ -101,8 +101,8 @@ public class Quick
         SPACINGERROR, MINWIDTHERROR, NOTCHERROR, MINSIZEERROR, BADLAYERERROR, LAYERSURROUNDERROR,
         MINAREAERROR, ENCLOSEDAREAERROR, SURROUNDERROR, FORBIDDEN, RESOLUTION, CUTERROR, SLOTSIZEERROR,
 	    // Different types of warnings
-        ZEROLENGTHARCWARN, TECHMIXWARN;
-    };
+        ZEROLENGTHARCWARN, TECHMIXWARN
+    }
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -1388,8 +1388,6 @@ public class Quick
 
 						if (theRule != null)
                         {
-//                            System.out.println("Rule " + ni.getName() + " " + layer.getName() + " " +
-//                            geom + " " + nLayer.getName() + " " + j);
                             ret = checkDist(tech, topCell, topGlobalIndex,
                                 poly, layer, net, geom, trans, globalIndex,
                                 npoly, nLayer, nNet, nGeom, rTrans, cellGlobalIndex,
@@ -3840,34 +3838,34 @@ public class Quick
 			Technology tech = np.getTechnology();
             Poly [] cropArcPolyList = null;
             // No overlap means arc should be cropped to get away from other element
-            if (!overlap && np.getFunction() == PrimitiveNode.Function.PIN)
-            {
-                // Pins don't generate polygons
-                // Search for another arc and try to crop it with that geometry
-                List<Layer.Function> drcLayers = new ArrayList<Layer.Function>(1);
-                drcLayers.add(lay.getFunction());
-                List<Poly[]> arcPolys = new ArrayList<Poly[]>(1);
-                int totalPolys = 0;
-                for (Iterator it = ni.getConnections(); it.hasNext(); )
-                {
-                    Connection con = (Connection)it.next();
-                    ArcInst arc = con.getArc();
-                    if (arc == ai) continue;
-                    Poly[] polys = tech.getShapeOfArc(arc, null, null, drcLayers);
-                    arcPolys.add(polys);
-                    totalPolys += polys.length;
-                }
-                cropArcPolyList = new Poly[totalPolys];
-                int destPos = 0;
-                for (Poly[] arcs : arcPolys)
-//                for (int j = 0; j < arcPolys.size(); j++)
-                {
-//                    Poly[] arcs = arcPolys.get(j);
-                    System.arraycopy(arcs, 0, cropArcPolyList, destPos, arcs.length);
-                    destPos += arcs.length;
-                }
-            }
-            else
+//            if (!overlap && np.getFunction() == PrimitiveNode.Function.PIN)
+//            {
+//                // Pins don't generate polygons
+//                // Search for another arc and try to crop it with that geometry
+//                List<Layer.Function> drcLayers = new ArrayList<Layer.Function>(1);
+//                drcLayers.add(lay.getFunction());
+//                List<Poly[]> arcPolys = new ArrayList<Poly[]>(1);
+//                int totalPolys = 0;
+//                for (Iterator it = ni.getConnections(); it.hasNext(); )
+//                {
+//                    Connection con = (Connection)it.next();
+//                    ArcInst arc = con.getArc();
+//                    if (arc == ai) continue;
+//                    Poly[] polys = tech.getShapeOfArc(arc, null, null, drcLayers);
+//                    arcPolys.add(polys);
+//                    totalPolys += polys.length;
+//                }
+//                cropArcPolyList = new Poly[totalPolys];
+//                int destPos = 0;
+//                for (Poly[] arcs : arcPolys)
+////                for (int j = 0; j < arcPolys.size(); j++)
+//                {
+////                    Poly[] arcs = arcPolys.get(j);
+//                    System.arraycopy(arcs, 0, cropArcPolyList, destPos, arcs.length);
+//                    destPos += arcs.length;
+//                }
+//            }
+//            else
                 cropArcPolyList = tech.getShapeOfNode(ni, null, null, false, ignoreCenterCuts, null);
 			int tot = cropArcPolyList.length;
 			for(int j=0; j<tot; j++)
