@@ -58,15 +58,18 @@ nets file are extracted.  All nets connected to this net in subcircuits are also
 treated the same way.</LI>
 </UL>
 <P>
+<!-- NEED 3in -->
 Exempted Nets file format. One line per network. A network is specified by
-a library name, call name, and net name.  When nets are not extracted, a
+a library name, cell name, and net name.  When nets are not extracted, a
 lumped capacitance value may be specified to use on the network.  This last
 argument is optional (0 if not specified) and ignored when the exempted nets
 are the only nets extracted.
-<pre><code>
-libraryName cellName netName [replacementCapValue]
+<P><code>
+libraryName cellName netName [replacementCapValue]</code>
+<P>
 Example:
-myLib myCell{lay} net@0
+<P><code>
+myLib myCell{lay} net@0<BR>
 myLib myCell{lay} in_a
-</pre></code>
+</code>
 <!-- TRAILER -->

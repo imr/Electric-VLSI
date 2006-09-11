@@ -42,7 +42,7 @@ The Primitive Definition section defines the lowest-level blocks,
 which become primitive nodes in the FPGA technology.
 A primitive definition looks like this:
 <P>
-<CODE>
+<CODE><FONT SIZE="-1">
 (primdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name PRIMNAME)<BR>
@@ -68,7 +68,7 @@ A primitive definition looks like this:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment FROMPART TOPART)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;)<BR>
 &nbsp;&nbsp;)<BR>
-)</CODE>
+)</FONT></CODE>
 <P>
 The <CODE>attributes</CODE> section defines general information about the block.
 The <CODE>ports</CODE> section defines external connections.
@@ -84,8 +84,8 @@ Four pips are placed at the intersections.
 Six ports are defined (two on the left, two on the top, and two on the bottom).
 Here is the code:
 <P>
-<TABLE><TR><TD VALIGN=TOP>
-<CODE>
+<TABLE><TR><TD VALIGN=TOP WIDTH="65%">
+<CODE><FONT SIZE="-1">
 (primdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name sampleblock)<BR>
@@ -93,14 +93,21 @@ Here is the code:
 &nbsp;&nbsp;)<BR>
 
 &nbsp;&nbsp;(ports<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name inleft1) (position  0 40) (direction input) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name inleft2) (position  0 20) (direction input) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name outtop1) (position 10 60) (direction output) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name outtop2) (position 30 60) (direction output) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name outbot1) (position 10  0) (direction output) )<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port (name outbot2) (position 30  0) (direction output) )<BR>
-&nbsp;&nbsp;)<BR>
-<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name inleft1) (position  0 40)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name inleft2) (position  0 20)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name outtop1) (position 10 60)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name outtop2) (position 30 60)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name outbot1) (position 10  0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port (name outbot2) (position 30  0)<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction output) )<BR>
+&nbsp;&nbsp;)</FONT></CODE>
+</TD><TD WIDTH="35%"><CENTER><IMG SRC="fig07-11.png" ALT="Figure 7.11"></CENTER></TD></TR></TABLE>
+<CODE><FONT SIZE="-1">
 &nbsp;&nbsp;(components<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(pip (name pip1) (position 10 20) (connectivity intv1 inth1) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(pip (name pip2) (position 30 20) (connectivity intv2 inth1) )<BR>
@@ -114,16 +121,15 @@ Here is the code:
 &nbsp;&nbsp;&nbsp;&nbsp;(net (name inth1) (segment port inleft2 coord 30 20 ) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(net (name inth2) (segment port inleft1 coord 30 40 ) )<BR>
 &nbsp;&nbsp;)<BR>
-)</<CODE>
-<BR>
-</TD><TD><CENTER><IMG SRC="fig07-11.png" ALT="Figure 7.11"></CENTER></TD></TR></TABLE>
+)</FONT></CODE>
+
 <P>
 <H3>Block Definition and Architecture Sections</H3>
 <P>
 The Block Definition and Architecture sections define higher-level blocks composed of primitives.
 They looks like this:
 <P>
-<CODE>
+<CODE><FONT SIZE="-1">
 (blockdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name CHIPNAME)<BR>
@@ -163,7 +169,7 @@ They looks like this:
 &nbsp;&nbsp;&nbsp;&nbsp;)<BR>
 &nbsp;&nbsp;)<BR>
 )<BR>
-</CODE>
+</FONT></CODE>
 <P>
 The only difference between the Architecture section and the Block Definition section is that the
 Architecture section has the keyword <CODE>architecture</CODE> instead of <CODE>blockdef</CODE>.
@@ -187,17 +193,16 @@ These parts can be either <CODE>component INSTNAME PORTNAME</CODE>, <CODE>port P
 or <CODE>coord X Y</CODE>, depending on whether the net ends at a component,
 port or at an arbitrary position inside of the block.
 <P>
-<TABLE><TR><TD VALIGN=TOP>
+<TABLE><TR><TD VALIGN=TOP WIDTH="65%">
 Here is an example of block definition code and its layout.
 <P>
-<CODE>
+<CODE><FONT SIZE="-1">
 (blockdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name testblock)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(size 80 150)<BR>
 &nbsp;&nbsp;)<BR>
-
-&nbsp;&nbsp;(components<BR>
+&nbsp;&nbsp;(components<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(instance (type sampleblock) (name block0)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position 30 80) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(instance (type sampleblock) (name block1)<BR>
@@ -214,10 +219,10 @@ Here is an example of block definition code and its layout.
 &nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r3) (porta 10 30)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 30) (direction horizontal)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;)<BR>
-&nbsp;&nbsp;)</CODE>
-</TD><TD><CENTER><IMG SRC="fig07-25.png" ALT="Figure 7.25"></CENTER></TD></TR></TABLE>
+&nbsp;&nbsp;)</FONT></CODE>
+</TD><TD WIDTH="35%"><CENTER><IMG SRC="fig07-25.png" ALT="Figure 7.25"></CENTER></TD></TR></TABLE>
 <P>
-<CODE>
+<CODE><FONT SIZE="-1">
 &nbsp;&nbsp;(ports<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(port (name top0)  (position 40 150) (direction bidir) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(port (name top1)  (position 60 150) (direction bidir) )<BR>
@@ -259,7 +264,7 @@ Here is an example of block definition code and its layout.
 &nbsp;&nbsp;&nbsp;&nbsp;(net (name ih7)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component r3 b component block1 inleft2) )<BR>
 &nbsp;&nbsp;)<BR>
-)</CODE>
+)</FONT></CODE>
 <P>
 <!-- NEED 3in -->
 <H3>Commands</H3>

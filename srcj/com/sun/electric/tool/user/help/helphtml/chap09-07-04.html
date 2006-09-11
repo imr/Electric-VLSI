@@ -18,18 +18,17 @@ designer supplies this extra information by adding NCC annotations to
 layout and/or schematic cells.
 This is done with the subcommands of the <B>Tool / NCC / Add NCC Annotations to Cell</B> menu.
 <P>
-NCC annotation's are represented by
+NCC annotations are represented by
 attributes placed on cells
 (see <A HREF="chap06-08-05.html#chap06-08-05">Section 6-8-5</A>).
 The attribute's name is
-<i>NCC</i>. The attribute's value is one or more lines. Each line
-contains a separate NCC annotation. Thus, although a Cell can have at
-most one attribute named <i>NCC</i>, that attribute can contain any
-number of NCC annotations.
-<BR>
+<i>NCC</i>. The attribute's value is one or more lines.
+Each line contains a separate NCC annotation.
+Thus, although a cell can have at most one attribute named <i>NCC</i>,
+that attribute can contain any number of NCC annotations.
 
 <h3>exportsConnectedByParent <i>&lt;string or regular expression&gt;</i> </h3>
-
+<P>
 Layout cells sometimes contain multiple exports that are supposed to
 be connected by the parent cell. For example, a layout cell, A{lay},
 might export vdd, vdd_1, vdd_2, and vdd3. The designer expects the
@@ -42,7 +41,7 @@ networks such as <i>clock</i> or <i>precharge</i>.
 </p>
 <p>
 NCC allows the designer to add the annotation:
-exportsConnectedByParent to the cell to inform NCC which exports will
+<i>exportsConnectedByParent</i> to the cell to inform NCC which exports will
 be connected by the parent. The keyword is followed by a list of
 strings and/or regular expressions. A string matches an export name
 exactly, for example: vdd. Thus A{lay} can contain the NCC annotation:
@@ -59,18 +58,16 @@ contain the NCC annotation:
 exportsConnectedByParent vdd /vdd_[0-9]+/
 </p>
 <p>
-When NCC compares a cell with an <i> exportsConnectedByParent </i>
+When NCC compares a cell with an <i>exportsConnectedByParent</i>
 annotation it performs the comparison as if those exports were
 connected. It is safe for NCC to believe this annotation because NCC
 also checks the assertion. When NCC encounters an instance of a cell
-with an <i> exportsConnectedByParent </i> annotation NCC reports an
+with an <i>exportsConnectedByParent</i> annotation NCC reports an
 error whenever that assertion isn't satisfied.
 </p>
-<BR>
 
 <h3>skipNCC <i>&lt;comment&gt;</i> </h3>
-
-<P>
+<P>
 The skipNCC annotation should be added to a cell, say B, when:
 <ul>
 <li>
@@ -109,7 +106,6 @@ discarded when NCC flattens through cell B. Although not always
 possible, it's better to fix export mismatches, because fixing them
 will yield clearer mismatch diagnostics when there is a problem.
 </p>
-<BR>
 
 <h3>flattenInstances <i>&lt;string or regular expression&gt;</i> ... </h3>
 <P>
@@ -124,12 +120,10 @@ The list of strings and/or regular expressions are used to match
 instance names within the cell. Those cell instances that match are
 always flattened.  
 </p>
-<BR>
 
 <h3>notSubcircuit <i>&lt;comment&gt;</i>  </h3>
-
-<P>
-The designer should add the notSubcircuit annotation to a cell, say B,
+<P>
+The designer should add the <i>notSubcircuit</i> annotation to a cell, say B,
 if:
 <ul>
 <li>
@@ -154,10 +148,9 @@ When hierarchical NCC encounters a notSubcircuit annotation it prints
 a message that includes the comment in a manner similar to skipNCC.
 </p>
 <p>
-The notSubcircuit annotation only affects hierarchical NCCs, it is
-ignored by flat NCCs. 
+The notSubcircuit annotation only affects hierarchical NCC; it is
+ignored by flat NCC. 
 </p>
-<BR>
 
 <h3>joinGroup <i>&lt;cell name&gt;</i> </h3> 
 <p>
@@ -180,11 +173,10 @@ of a cell in the same cell group.  For example when layout is
 automatically generated from hand drawn schematics it may be better to
 place the layout in a different library than the schematics.
 </p>
-<BR>
 
 <h3>transistorType<i>&lt;type&gt;</i> </h3> 
 <p>
-All schematic transistors in this Cell are of type: <i>type</i>. 
+All schematic transistors in this cell are of type: <i>type</i>. 
 The <i>type</i> field may be one of the following: 
 N-Transistor, VTH-N-Transistor,
 VTL-N-Transistor, OD18-N-Transistor, OD25-N-Transistor,
@@ -194,13 +186,14 @@ VTH-P-Transistor, VTL-P-Transistor, OD18-P-Transistor,
 OD25-P-Transistor, or OD33-P-Transistor.
 <p>
 Warning: This annotation is used <i>very</i> infrequently. Typically
-it is used only inside special libraries such as the "red" library. Most
-designers simply instantiate transistors from those special libraries.
+it is used only inside special libraries such as the "red" library
+(see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
+Most designers simply instantiate transistors from those special libraries.
 </p>
 
 <h3>resistorType<i>&lt;type&gt;</i> </h3> 
 <p>
-All schematic polysilicon resistors in this Cell are of type: <i>type</i>. 
+All schematic polysilicon resistors in this cell are of type: <i>type</i>. 
 The <i>type</i> field may be one of the following: 
 N-Poly-RPO-Resistor, N-Poly-RPO-Resistor,
 P-Poly-RPO-Resistor, or P-Poly-RPO-Resistor. Unlike all other
@@ -209,41 +202,44 @@ by NCC. Instead, NCC tries to match these schematic polysilicon resistors with
 layout polysilicon resistors.
 <p>
 Warning: This annotation is used <i>very</i> infrequently. Typically
-it is used only inside special libraries such as the "red" library. Most
-designers simply instantiate resistors from those special libraries.
+it is used only inside special libraries such as the "red" library
+(see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
+Most designers simply instantiate resistors from those special libraries.
 </p>
-<h3>forcePartMatch <i>&lt;partName&gt;</i> </h3> 
-<p>
-Same as forceWireMatch except that this command works on Parts rather than
-Wires.
-</p>
+
 <h3>forceWireMatch <i>&lt;wireName&gt;</i> </h3> 
 <p>
-Force the Wire in the schematic named wireName to match the Wire in
-the layout named wireName
+Force the wire in the schematic named <i>wireName</i> to match the wire in
+the layout named <i>wireName</i>.
 </p>
 <p>
 The <i>forceWireMatch</i> annotation is useful when local partitioning
 fails to detect a mismatch but hash code partitioning does. In that case
-<i>forceWireMatch</i> can be used to tell NCC that certain Wires were
+<i>forceWireMatch</i> can be used to tell NCC that certain wires were
 intended to match. With luck, a strategically placed <i>forceWireMatch</i>
 can cause NCC to display fewer hash code mismatches and help the user
 narrow in on the actual error.
 </p>
 <p>
-After the user has fixed the problem he should try to 
+After fixing the problem, you should try to 
 remove all <i>forceWireMatch</i> annotations. 
+</p>
+
+<h3>forcePartMatch <i>&lt;partName&gt;</i> </h3> 
+<p>
+Same as <i>forceWireMatch</i> except that this command works on parts rather than
+wires.
 </p>
 
 <h3>blackBox <i>&lt;comment&gt;</i> </h3> 
 <p>
-Don't compare the Cells in this Cell group; just
+Don't compare the cells in this cell group; just
 assume they are topologically equivalent.
 </p>
 <p>
 The <i>blackBox</i> annotation is useful when a particular arrangement of layout 
 geometry implemements a construct that Electric doesn't
-understand. For example, we have used this construct to handle
+understand. For example, to handle
 resistors and parasitic bipolar transistors in the layout.
 </p>
 <p>
@@ -251,7 +247,6 @@ The <i>blackBox</i> annotation should be used with care because
 unlike the other annotations; NCC has no way of double checking
 this assertion should the user make a mistake.
 </p>
-
 
 <!-- TRAILER -->
 

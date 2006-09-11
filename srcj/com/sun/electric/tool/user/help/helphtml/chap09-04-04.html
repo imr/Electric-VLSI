@@ -16,8 +16,7 @@ Spice even has a predefined set of primitives, available from the "Spice" entry 
 <P>
 Users can define their own Spice or Verilog elements by creating new icons in this or a new library.
 The icon should have graphics, exports, optional parameters, and a template.
-Parameters are created with the <B>Attribute Properties...</B> command (in menu <B>Edit / Attributes</B>
-).
+Parameters are created with the <B>Attribute Properties...</B> command (in menu <B>Edit / Attributes</B>).
 See <A HREF="chap06-08-06.html#chap06-08-06">Section 6-8-6</A> for more on parameters.
 The Spice template is created with the <B>Set Generic Spice Template</B> command (in menu <B>Tool / Simulation (Spice)</B>).
 If the template is specific to a particular version of Spice, use the appropriate template command
@@ -33,9 +32,9 @@ To explain the format of a template, a DC Voltage Source primitive is used as an
 Graphics is placed to describe the look of the symbol (a "battery" look).
 Exports are created at the top and bottom of the battery with the names "plus" and "minus".
 A single parameter is defined called "Voltage" with a default value of "0V".
-Finally, a Spice template is created that has the string
-<BR><CENTER><CODE>V$(node_name) $(plus) $(minus) DC $(Voltage)</CODE></CENTER><BR>
+Finally, a Spice template is created that has the string:
 </TD><TD><CENTER><IMG SRC="fig09-23.png" ALT="Figure 9.23"></CENTER></TD></TR></TABLE>
+<BR><CODE>V$(node_name) $(plus) $(minus) DC $(Voltage)</CODE>
 <P>
 This string contains substitution expressions of the form <CODE>$(SOMETHING)</CODE>
 where <CODE>SOMETHING</CODE> can be an export name, a variable, or "node_name".

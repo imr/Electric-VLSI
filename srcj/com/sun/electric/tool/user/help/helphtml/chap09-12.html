@@ -8,8 +8,8 @@
 Electric has a silicon compiler called QUISC
 (the Queen's University Interactive Silicon Compiler).
 It is a powerful tool that can do placement and routing of standard cells from a schematic or a structural VHDL description.
-When placing and routing VHDL, it is compiled into a netlist which is then used to drive placement and routing.
-When placing and routing a schematic, it is converted into VHDL, compiled to a netlist, and laid-out.
+The VHDL is compiled into a netlist which is then used to drive placement and routing.
+Schematics are first converted into VHDL, then compiled to a netlist and laid-out.
 Thus, a byproduct of silicon compilation will be a {net.quisc} view of a cell, and potentially a {vhdl} view.
 <P>
 Be warned that the silicon compiler is rather old,

@@ -23,7 +23,7 @@ schematic transistor may depend upon the instance path.
 <p>
 The best way to use NCC is to initially perform all your comparisons
 hierarchically. This will typically require many iterations.  Once you
-have gotten your Cell to pass a hierarchical comparison, turn on size
+have gotten your cell to pass a hierarchical comparison, turn on size
 checking.  This will report transistor size mismatches.
 
 <h3> Size Checking Section </h3>
@@ -38,43 +38,40 @@ of matching transistors, that the widths and lengths are approximately
 equal.
 </p>
 <p>
-The two tolerance boxes allow the user to specify how much more the
+The two tolerance values allow the user to specify how much more the
 larger of the two matched transistors may be than the smaller before
-NCC reports a size mismatch. The "Relative size tolerance" box
-specifies the difference in percentage. The "Absolute size tolerance"
-box specifies the difference in units.  NCC reports a size mismatch
+NCC reports a size mismatch. The "Relative size tolerance"
+is the difference in percentage. The "Absolute size tolerance"
+is the difference in units.  NCC reports a size mismatch
 when both tolerances are exceeded.
 <p>
-If you enable "Size Checking" and "Hierarchical Comparison"
-simultaneously then NCC restricts which Cells it treats
+If you choose "Check transistor sizes" and "Hierarchical Comparison"
+simultaneously then NCC restricts which cells it treats
 hierarchically to ensure a correct answer in the presence of
-automatically sized transistors. For this case it compares a pair of Cells
-hierarchically if and only if each Cell is instantiated exactly once.
+automatically sized transistors. For this case it compares a pair of cells
+hierarchically if and only if each cell is instantiated exactly once.
 </p>
 
 <h3> Checking All Cells Section </h3>
 
-In hierarchical mode NCC attempts to compare all cells in the design
+In hierarchical mode, NCC attempts to compare all cells in the design
 starting with those at the leaves and working it's way toward the root.
 For that mode it is often best if NCC stops as soon as it finds an
-Export or topology mismatch. To get this behavior the user should 
-check the box: "Halt after finding the first mismatched cell". Note that
+export or topology mismatch. To get this behavior the user should 
+check "Halt after finding the first mismatched cell". Note that
 size mismatches never cause NCC to stop.
 <p>
-It is occasionally useful to continue checking even after
-mismatches have been detected.  For example, the designer might find
-that although cell ABC mismatches, she is unable to fix ABC because
-someone else designed it.  When asked to continue, NCC will do the
-following when comparing cells that use ABC: 
+It is occasionally useful to continue checking even after mismatches have been detected.
+For example, the designer might find that although a cell mismatches,
+it cannot be fixed because someone else designed it.
+When asked to continue, NCC will do the following when comparing cells that use the mismatched one: 
 <ul>
 <li>
-If NCC found no export mismatches when comparing ABC then NCC will use
-the export names to identify corresponding ports in the layout and
-schematic. 
+If NCC found no export mismatches when comparing the mismatched cell then NCC will use
+the export names to identify corresponding ports in the layout and schematic. 
 </li>
-<li> If NCC found export mismatches when comparing ABC then NCC will
-flatten the one level of hierarchy: ABC, before performing the
-comparison.
+<li> If NCC found export mismatches when comparing the mismatched cell then NCC will
+flatten that one level of hierarchy before performing the comparison.
 </li>
 </ul>
 <p>
@@ -88,8 +85,8 @@ sophisticated.
 
 <h3> Reporting Progress Section</h3>
 
-This panel controls how verbose NCC is in reporting its progress. Most
-users should leave this at 0.
+This panel controls how verbose NCC is in reporting its progress.
+Most users should leave this at 0.
 
 <h3> Error Reporting Section</h3>
 
@@ -99,4 +96,4 @@ but the Gemini algorithm has.  Most users will want to leave these at
 the default setting of 10.
 
 <!-- TRAILER -->
-
+

@@ -17,23 +17,23 @@ The syntax is:
 &lt;name&gt; and &lt;value&gt; fields may be enclosed in quotation marks.
 Backslash character can be used inside enclosed strings to denote special characters.
 <P>
-The &lt;type&gt; field can be one of these:
+The &lt;type&gt; field can be one of these:<BR>
 "B" Boolean ("T" or "F")<BR>
-"C" Cell (of the form &lt;library&gt; : &lt;cell&gt;).<BR>
-"D" Double.<BR>
-"E" Export (of the form &lt;library&gt; : &lt;cell&gt; : &lt;exportID&gt;).<BR>
-"F" Float.<BR>
-"G" Long.<BR>
-"H" Short.<BR>
-"I" Integer.<BR>
-"L" Library name.<BR>
-"O" Tool name.<BR>
-"P" Primitive Node prototype (of the form &lt;technology&gt; : &lt;node name&gt;).<BR>
-"R" Arc prototype (of the form &lt;technology&gt; : &lt;arc name&gt;).<BR>
-"S" String.<BR>
-"T" Technology name.<BR>
-"V" Point2D (of the form &lt;x&gt; / &lt;y&gt;).<BR>
-"Y" Byte (0-255).
+"C" Cell (of the form &lt;library&gt; : &lt;cell&gt;)<BR>
+"D" Double<BR>
+"E" Export (of the form &lt;library&gt; : &lt;cell&gt; : &lt;exportID&gt;)<BR>
+"F" Float<BR>
+"G" Long<BR>
+"H" Short<BR>
+"I" Integer<BR>
+"L" Library name<BR>
+"O" Tool name<BR>
+"P" Primitive Node prototype (of the form &lt;technology&gt; : &lt;node name&gt;)<BR>
+"R" Arc prototype (of the form &lt;technology&gt; : &lt;arc name&gt;)<BR>
+"S" String<BR>
+"T" Technology name<BR>
+"V" Point2D (of the form &lt;x&gt; / &lt;y&gt;)<BR>
+"Y" Byte (0-255)
 <P>
 Examples:
 <P>
@@ -48,7 +48,8 @@ Adds a variable called "ART_degrees" with an array of 2 floating point values: 0
 <P>
 &nbsp;&nbsp;&nbsp;&nbsp;<CODE>EXPORTS()E[ccc:gate;1{sch}:a,"ccc:hate;1{sch}:b[0:4]"]</CODE>
 <P>
-Adds a variable called "EXPORTS" with an array of 2 exports of the cell "ccc:gate;1{sch}": "a" and "b[0:4]".
+Adds a variable called "EXPORTS" with an array of 2 exports: export "a" of cell "ccc:gate{sch}"
+and export "b[0:4]" from the cell "ccc:hate{sch}".
 <P>
 &nbsp;&nbsp;&nbsp;&nbsp;<CODE>ATTR_z0(D5G0.5;NPY1;)I50</CODE>
 <P>

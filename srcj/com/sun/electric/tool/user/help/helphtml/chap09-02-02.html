@@ -1,17 +1,20 @@
+<!-- NEED 3in -->
+
 <!-- HEADER 9-2-2: DRC Preferences -->
 
 <!-- PREFERENCE Tools/DRC -->
 
-<P>
+<TABLE><TR><TD>
 To control the DRC,
 use the DRC Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "DRC" tab).
 <P>
-<TABLE><TR><TD>
 By default, the incremental design-rule checker is on.
 To turn it off, uncheck the "On" checkbox in the "Incremental DRC" section.
 <P>
 There are three levels of checking that can be requested for the Hierarchical DRC.
 Each level of checking consumes more time and finds more errors.
+</TD><TD><CENTER><IMG SRC="fig09-20.png" ALT="Figure 9.20"></CENTER></TD></TR></TABLE>
+<P>
 <UL>
 <LI>"Report just 1 error per cell" tells the system to stop checking a cell
 after the first error has been found.
@@ -25,8 +28,6 @@ violation for a given pair is found in this mode.</LI>
 even if an error has already been found.
 This is the exhaustive mode and therefore time consuming that will report all violations found.</LI>
 </UL>
-</TD><TD><CENTER><IMG SRC="fig09-20.png" ALT="Figure 9.20"></CENTER></TD></TR></TABLE>
-<P>
 The design-rule checker remembers the date of the last clean check.
 If a cell has not changed since then, it does not need to be rechecked.
 This date information can be stored in the libraries (requiring them to be saved)

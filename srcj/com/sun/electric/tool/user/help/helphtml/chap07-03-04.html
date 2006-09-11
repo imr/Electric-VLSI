@@ -1,3 +1,5 @@
+<!-- NEED 6in -->
+
 <!-- HEADER 7-3-4: EDIF Control -->
 
 <!-- COMMAND File/Import/EDIF (Electronic Design Interchange Format)... -->
@@ -29,7 +31,7 @@ The file has these lines of text that control different aspects of conversion:
 A line starting with "P" controls how primitives are converted to EDIF.
 The line has this format:
 <BR>
-<CODE>&nbsp;&nbsp;P ElecTech ElecPrim ElecFunc ElecRot ElecPortOff EDIFTech EDIRPrim EDIFFunc EDIFPortOff</CODE>
+<CODE><FONT SIZE="-1">&nbsp;P ElecTech ElecPrim ElecFunc ElecRot ElecPortOff EDIFTech EDIRPrim EDIFFunc EDIFPortOff</FONT></CODE>
 <BR>
 Where:
 <UL>
@@ -43,8 +45,7 @@ To ignore a port, use "NA" instead of "port(x,y)".
 You can also specify an ignored port as "NA(x,y)" if you want to affect how an attached wire's endpoint 
 is modified.
 "NA" by itself is the same as "NA(0,0)".
-If the port's name is "NA", use "\NA(x,y)" to specify the name as NA, and not be ignored.
-</LI>
+If the port's name is "NA", use "\NA(x,y)" to specify the name as NA, and not be ignored.</LI>
 <LI><CODE>EDIFTech</CODE> is the EDIF technology name (e.g. "tsmc18").</LI>
 <LI><CODE>EDIRPrim</CODE> is the EDIF primitive name (e.g. "pmos2v").</LI>
 <LI><CODE>EDIFFunc</CODE> is the EDIF function (e.g. "symbol").</LI>
@@ -53,15 +54,14 @@ Each port on the primitive must be listed, and an offset given.</LI>
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>P schematic Ground CONGROUND 0 { gnd(0,2) } basic gnd symbol { gnd!(0,0) }</CODE>
-<P>
+&nbsp;&nbsp;<CODE><FONT SIZE="-1">P schematic Ground CONGROUND 0 { gnd(0,2) } basic gnd symbol { gnd!(0,0) }</FONT></CODE>
 </LI>
 
 <LI><B>Exports</B>
 A line starting with "E" controls how exports are converted to EDIF.
 The line has this format:
 <BR>
-<CODE>&nbsp;&nbsp;E ElecTech ElecPrim ElecFunc ElecRot ElecPortOff EDIFTech EDIRPrim EDIFFunc EDIFPortOff</CODE>
+<CODE><FONT SIZE="-1">&nbsp;E ElecTech ElecPrim ElecFunc ElecRot ElecPortOff EDIFTech EDIRPrim EDIFFunc EDIFPortOff</FONT></CODE>
 <BR>
 Where:
 <UL>
@@ -79,15 +79,14 @@ Each port on the primitive must be listed, and an offset given.</LI>
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>E schematic Off-Page CONNECT 0 input { a(-2,0), y(2,0) } basic ipin symbol { NA, NA }</CODE>
-<P>
+&nbsp;&nbsp;<CODE><FONT SIZE="-1">E schematic Off-Page CONNECT 0 input { a(-2,0), y(2,0) } basic ipin symbol { NA, NA }</FONT></CODE>
 </LI>
 
 <LI><B>Variables</B>
 A line starting with "V" controls how variables are converted to EDIF.
 The line has this format:
 <BR>
-<CODE>&nbsp;&nbsp;V ElecVarName EDIFVarName Scale [Append]</CODE>
+<CODE><FONT SIZE="-1">&nbsp;V ElecVarName EDIFVarName Scale [Append]</FONT></CODE>
 <BR>
 Where:
 <UL>
@@ -98,15 +97,14 @@ Where:
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>V ATTR_length l 0.9 u</CODE>
-<P>
+&nbsp;&nbsp;<CODE><FONT SIZE="-1">V ATTR_length l 0.9 u</FONT></CODE>
 </LI>
 
 <LI><B>FigureGroups</B>
 A line starting with "F" controls how figure groups are converted to EDIF.
 The line has this format:
 <BR>
-<CODE>&nbsp;&nbsp;F ElecName EDIFName</CODE>
+<CODE><FONT SIZE="-1">&nbsp;F ElecName EDIFName</FONT></CODE>
 <BR>
 Where:
 <UL>
@@ -115,15 +113,14 @@ Where:
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>F ARTWORK DEVICE</CODE>
-<P>
+&nbsp;&nbsp;<CODE><FONT SIZE="-1">F ARTWORK DEVICE</FONT></CODE>
 </LI>
 
 <LI><B>Globals</B>
 A line starting with "G" controls how global names are converted to EDIF.
 The line has this format:
 <BR>
-<CODE>&nbsp;&nbsp;G ElecName EDIFName</CODE>
+<CODE><FONT SIZE="-1">&nbsp;G ElecName EDIFName</FONT></CODE>
 <BR>
 Where:
 <UL>
@@ -132,8 +129,7 @@ Where:
 </UL>
 For example:
 <BR>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>G GND gnd!</CODE>
-<P>
+&nbsp;&nbsp;<CODE><FONT SIZE="-1">G GND gnd!</FONT></CODE>
 </LI>
 </UL>
 
