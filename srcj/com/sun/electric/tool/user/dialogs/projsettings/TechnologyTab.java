@@ -53,7 +53,23 @@ public class TechnologyTab extends ProjSettingsPanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Technology"; }
 
-	/**
+    public static void setFoundrySelected(Technology tech, javax.swing.JComboBox pulldown)
+    {
+        String selectedFoundry = tech.getPrefFoundry();
+    	Foundry.Type foundry = Foundry.Type.NONE;
+
+        for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
+        {
+            Foundry factory = itF.next();
+            Foundry.Type type = factory.getType();
+            pulldown.addItem(type);
+            if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
+        }
+        pulldown.setEnabled(foundry != Foundry.Type.NONE);
+        pulldown.setSelectedItem(foundry);
+    }
+
+    /**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Technology tab.
 	 */
@@ -85,19 +101,8 @@ public class TechnologyTab extends ProjSettingsPanel
         defaultTechPulldown.setSelectedItem(User.getDefaultTechnology());
 		technologyPopup.setSelectedItem(User.getSchematicTechnology().getTechName());
 
-        // Foundry
-        String selectedFoundry = curTech.getPrefFoundry();
-    	Foundry.Type foundry = Foundry.Type.NONE;
-
-        for (Iterator<Foundry> itF = curTech.getFoundries(); itF.hasNext();)    
-        {
-            Foundry factory = itF.next();
-            Foundry.Type type = factory.getType();
-            defaultFoundryPulldown.addItem(type);
-            if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
-        }
-        defaultFoundryPulldown.setEnabled(foundry != Foundry.Type.NONE);
-        defaultFoundryPulldown.setSelectedItem(foundry);
+        // Foundry for MoCMOS
+        setFoundrySelected(MoCMOS.tech, techMOCMOSDefaultFoundryPulldown);
 
         // Tabs for extra technologies if available
         jPanel3.remove(tsmc90Panel);
@@ -117,10 +122,10 @@ public class TechnologyTab extends ProjSettingsPanel
 	 */
 	public void term()
 	{
-        boolean changeInMoCMOS = false; // to determine if tech.setState() will be called
 
         // MOCMOS
-		int currentNumMetals = techMOCMOSMetalLayers.getSelectedIndex() + 2;
+        boolean changeInMoCMOS = false; // to determine if tech.setState() will be called
+        int currentNumMetals = techMOCMOSMetalLayers.getSelectedIndex() + 2;
 		int currentRules = MoCMOS.SCMOSRULES;
 		if (techMOCMOSSubmicronRules.isSelected()) currentRules = MoCMOS.SUBMRULES; else
 			if (techMOCMOSDeepRules.isSelected()) currentRules = MoCMOS.DEEPRULES;
@@ -193,56 +198,87 @@ public class TechnologyTab extends ProjSettingsPanel
 		if (!defaultTech.equals(User.getDefaultTechnology()))
 			User.setDefaultTechnology(defaultTech);
 
-        Foundry.Type foundry = (Foundry.Type)defaultFoundryPulldown.getSelectedItem();
-        if (foundry == null) return; // technology without design rules.
-        if (!foundry.name().equalsIgnoreCase(curTech.getPrefFoundry()))
-        {
-            // only valid for 180nm so far
-            int val = -1;
-            if (curTech == MoCMOS.tech)
-            {
-                String [] messages = {
-                    "Primitives in database might be resized according to values provided by " + foundry + ".",
-                    "If you do not resize now, arc widths might not be optimal for " + foundry + ".",
-                    "If you cancel the operation, the foundry will not be changed.",
-                    "Do you want to resize the database?"};
-                Object [] options = {"Yes", "No", "Cancel"};
-                val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
-                    "Resize Primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-            }
-            if (val != 2)
-            {
-                curTech.setPrefFoundry(foundry.name());
-                changeInMoCMOS = false; // rules set already updated as side effect of changing the foundry name
-                // Primitives cached must be redrawn
-                // recache display information for all cells that use this
-                User.technologyChanged();
-            }
-        }
+        // Foundry for MoCMOS
+        if (changeInMoCMOS || checkFoundry((Foundry.Type)techMOCMOSDefaultFoundryPulldown.getSelectedItem(), MoCMOS.tech))
+            Technology.TechPref.technologyChanged(MoCMOS.tech);  // including update of display
+
+//        Foundry.Type foundry = (Foundry.Type)techMOCMOSDefaultFoundryPulldown.getSelectedItem();
+//        if (foundry == null) return; // technology without design rules.
+//        if (!foundry.name().equalsIgnoreCase(MoCMOS.tech.getPrefFoundry()))
+//        {
+//            // only valid for 180nm so far
+//            int val = -1;
+//            String [] messages = {
+//                "180nm primitives in database might be resized according to values provided by " + foundry + ".",
+//                "If you do not resize now, arc widths might not be optimal for " + foundry + ".",
+//                "If you cancel the operation, the foundry will not be changed.",
+//                "Do you want to resize the database?"};
+//            Object [] options = {"Yes", "No", "Cancel"};
+//            val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
+//                "Resize 180nm primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
+//                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+//            if (val != 2)
+//            {
+//                MoCMOS.tech.setPrefFoundry(foundry.name());
+//                changeInMoCMOS = false; // rules set already updated as side effect of changing the foundry name
+//                // Primitives cached must be redrawn
+//                // recache display information for all cells that use this
+//                User.technologyChanged();
+//            }
+//        }
 
         // Tabs for extra technologies if available
         try
         {
             Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC90Tab");
-            extraTechClass.getMethod("closeTechnologyTab", new Class[]{}).invoke(null, new Object[]{});
+            extraTechClass.getMethod("closeTechnologyTab").invoke(null);
         } catch (Exception e)
         {
             System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
         }
-
-        if (changeInMoCMOS)
-            Technology.TechPref.technologyChanged(MoCMOS.tech);  // including update of display
 	}
 
-	/** This method is called from within the constructor to
+    /**
+     * Method to check whether the foundry value has been changed. If changed, primitives might need resizing.
+     * @param foundry
+     * @param tech
+     */
+    public static boolean checkFoundry(Foundry.Type foundry, Technology tech)
+    {
+        if (foundry == null) return false; // technology without design rules.
+        boolean changed = false;
+
+        if (!foundry.name().equalsIgnoreCase(tech.getPrefFoundry()))
+        {
+            changed = true;
+            String [] messages = {
+                tech.getTechShortName()+" primitives in database might be resized according to values provided by " + foundry + ".",
+                "If you do not resize now, arc widths might not be optimal for " + foundry + ".",
+                "If you cancel the operation, the foundry will not be changed.",
+                "Do you want to resize the database?"};
+            Object [] options = {"Yes", "No", "Cancel"};
+            int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
+                "Resize primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
+                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            if (val != 2)
+            {
+                tech.setPrefFoundry(foundry.name());
+                changed = false; // rules set already updated as side effect of changing the foundry name
+                // Primitives cached must be redrawn
+                // recache display information for all cells that use this
+                User.technologyChanged();
+            }
+        }
+        return changed;
+    }
+
+    /** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         techMOCMOSRules = new javax.swing.ButtonGroup();
@@ -252,9 +288,7 @@ public class TechnologyTab extends ProjSettingsPanel
         defaultTechPulldown = new javax.swing.JComboBox();
         jLabel59 = new javax.swing.JLabel();
         technologyPopup = new javax.swing.JComboBox();
-        defaultFoundryLabel = new javax.swing.JLabel();
-        defaultFoundryPulldown = new javax.swing.JComboBox();
-        jPanel1 = new javax.swing.JPanel();
+        mosisPanel = new javax.swing.JPanel();
         jLabel49 = new javax.swing.JLabel();
         techMOCMOSMetalLayers = new javax.swing.JComboBox();
         techMOCMOSSCMOSRules = new javax.swing.JRadioButton();
@@ -263,19 +297,21 @@ public class TechnologyTab extends ProjSettingsPanel
         techMOCMOSSecondPoly = new javax.swing.JCheckBox();
         techMOCMOSDisallowStackedVias = new javax.swing.JCheckBox();
         techMOCMOSAlternateContactRules = new javax.swing.JCheckBox();
+        techMOCMOSDefaultFoundryLabel = new javax.swing.JLabel();
+        techMOCMOSDefaultFoundryPulldown = new javax.swing.JComboBox();
         jPanel3 = new javax.swing.JPanel();
         tsmc90Panel = new javax.swing.JPanel();
         tsmc90MetalLabel = new javax.swing.JLabel();
         tsmc90MetalLayers = new javax.swing.JComboBox();
+        tsmc90FoundryLabel = new javax.swing.JLabel();
+        tsmc90FoundryPulldown = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("Edit Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
@@ -317,23 +353,6 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         jPanel2.add(technologyPopup, gridBagConstraints);
 
-        defaultFoundryLabel.setText("Current foundry:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        jPanel2.add(defaultFoundryLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
-        jPanel2.add(defaultFoundryPulldown, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -341,16 +360,16 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         technology.add(jPanel2, gridBagConstraints);
 
-        jPanel1.setLayout(new java.awt.GridBagLayout());
+        mosisPanel.setLayout(new java.awt.GridBagLayout());
 
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("MOSIS CMOS"));
+        mosisPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("MOSIS CMOS"));
         jLabel49.setText("Metal layers:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(jLabel49, gridBagConstraints);
+        mosisPanel.add(jLabel49, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -360,70 +379,87 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(techMOCMOSMetalLayers, gridBagConstraints);
+        mosisPanel.add(techMOCMOSMetalLayers, gridBagConstraints);
 
         techMOCMOSRules.add(techMOCMOSSCMOSRules);
         techMOCMOSSCMOSRules.setText("SCMOS rules (4 metal or less)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel1.add(techMOCMOSSCMOSRules, gridBagConstraints);
+        mosisPanel.add(techMOCMOSSCMOSRules, gridBagConstraints);
 
         techMOCMOSRules.add(techMOCMOSSubmicronRules);
         techMOCMOSSubmicronRules.setText("Submicron rules");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel1.add(techMOCMOSSubmicronRules, gridBagConstraints);
+        mosisPanel.add(techMOCMOSSubmicronRules, gridBagConstraints);
 
         techMOCMOSRules.add(techMOCMOSDeepRules);
         techMOCMOSDeepRules.setText("Deep rules (5 metal or more)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        jPanel1.add(techMOCMOSDeepRules, gridBagConstraints);
-
-        techMOCMOSSecondPoly.setText("Second Polysilicon Layer");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        jPanel1.add(techMOCMOSSecondPoly, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        mosisPanel.add(techMOCMOSDeepRules, gridBagConstraints);
 
-        techMOCMOSDisallowStackedVias.setText("Disallow stacked vias");
+        techMOCMOSSecondPoly.setText("Second Polysilicon Layer");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        jPanel1.add(techMOCMOSDisallowStackedVias, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        mosisPanel.add(techMOCMOSSecondPoly, gridBagConstraints);
 
-        techMOCMOSAlternateContactRules.setText("Alternate Active and Poly contact rules");
+        techMOCMOSDisallowStackedVias.setText("Disallow stacked vias");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        mosisPanel.add(techMOCMOSDisallowStackedVias, gridBagConstraints);
+
+        techMOCMOSAlternateContactRules.setText("Alternate Active and Poly contact rules");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        jPanel1.add(techMOCMOSAlternateContactRules, gridBagConstraints);
+        mosisPanel.add(techMOCMOSAlternateContactRules, gridBagConstraints);
+
+        techMOCMOSDefaultFoundryLabel.setText("Current foundry:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        mosisPanel.add(techMOCMOSDefaultFoundryLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        mosisPanel.add(techMOCMOSDefaultFoundryPulldown, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        technology.add(jPanel1, gridBagConstraints);
+        technology.add(mosisPanel, gridBagConstraints);
 
         tsmc90Panel.setLayout(new java.awt.GridBagLayout());
 
@@ -446,6 +482,23 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         tsmc90Panel.add(tsmc90MetalLayers, gridBagConstraints);
 
+        tsmc90FoundryLabel.setText("Current foundry:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        tsmc90Panel.add(tsmc90FoundryLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        tsmc90Panel.add(tsmc90FoundryPulldown, gridBagConstraints);
+
         jPanel3.add(tsmc90Panel);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -467,17 +520,17 @@ public class TechnologyTab extends ProjSettingsPanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel defaultFoundryLabel;
-    private javax.swing.JComboBox defaultFoundryPulldown;
     private javax.swing.JLabel defaultTechLabel;
     private javax.swing.JComboBox defaultTechPulldown;
     private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel59;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel mosisPanel;
     private javax.swing.JCheckBox techMOCMOSAlternateContactRules;
     private javax.swing.JRadioButton techMOCMOSDeepRules;
+    private javax.swing.JLabel techMOCMOSDefaultFoundryLabel;
+    private javax.swing.JComboBox techMOCMOSDefaultFoundryPulldown;
     private javax.swing.JCheckBox techMOCMOSDisallowStackedVias;
     private javax.swing.JComboBox techMOCMOSMetalLayers;
     private javax.swing.ButtonGroup techMOCMOSRules;
@@ -486,6 +539,8 @@ public class TechnologyTab extends ProjSettingsPanel
     private javax.swing.JRadioButton techMOCMOSSubmicronRules;
     private javax.swing.JPanel technology;
     private javax.swing.JComboBox technologyPopup;
+    private javax.swing.JLabel tsmc90FoundryLabel;
+    private javax.swing.JComboBox tsmc90FoundryPulldown;
     private javax.swing.JLabel tsmc90MetalLabel;
     private javax.swing.JComboBox tsmc90MetalLayers;
     private javax.swing.JPanel tsmc90Panel;
