@@ -3357,6 +3357,8 @@ public class EditWindow extends JPanel
 					WindowFrame.CellHistory foundHistory = wf.getCellHistoryList().get(historyIndex);
 					pi = foundHistory.getDisplayAttributes().selPort;
 					foundHistory.setContext(context);
+					if (selectedExport != null)
+						foundHistory.getDisplayAttributes().selPort = no.getNodeInst().findPortInstFromProto(selectedExport);
 					wf.setCellByHistory(historyIndex);
 				} else
 				{
