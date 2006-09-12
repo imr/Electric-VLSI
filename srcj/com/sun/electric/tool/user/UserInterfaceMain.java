@@ -30,13 +30,17 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.tool.*;
+import com.sun.electric.database.variable.EditWindow_;
+import com.sun.electric.tool.AbstractUserInterface;
+import com.sun.electric.tool.Client;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ErrorLoggerTree;
@@ -52,12 +56,9 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Toolkit;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -65,6 +66,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -186,11 +188,11 @@ public class UserInterfaceMain extends AbstractUserInterface
                     }
                 } catch (ClassNotFoundException e) {}
             }
-            
+
             //runThreadStatusTimer();
-            
+
             if (showSplash)
-                sw = new SplashWindow();
+                sw = new SplashWindow(mode);
             
             TopLevel.OSInitialize(mode);
         }
@@ -302,6 +304,7 @@ public class UserInterfaceMain extends AbstractUserInterface
     public String reportLog(ErrorLogger.MessageLog log, boolean showhigh, Geometric [] gPair)
     {
         EDatabase database = EDatabase.clientDatabase();
+
         // if two highlights are requested, find them
         if (gPair != null)
         {
@@ -714,7 +717,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 	 */
 	private static class SplashWindow extends JFrame
 	{
-		public SplashWindow()
+		public SplashWindow(Mode mode)
 		{
 			super();
 			setUndecorated(true);
@@ -725,7 +728,8 @@ public class UserInterfaceMain extends AbstractUserInterface
 			whole.setBorder(BorderFactory.createLineBorder(new Color(0, 170, 0), 5));
 			whole.setLayout(new BorderLayout());
 
-			JLabel l = new JLabel(Resources.getResource(TopLevel.class, "SplashImage.gif"));
+			ImageIcon splashImage = Resources.getResource(TopLevel.class, "SplashImage.gif");
+			JLabel l = new JLabel(splashImage);
 			whole.add(l, BorderLayout.CENTER);
 			JLabel v = new JLabel("Version " + Version.getVersion(), JLabel.CENTER);
 			whole.add(v, BorderLayout.SOUTH);
@@ -734,7 +738,8 @@ public class UserInterfaceMain extends AbstractUserInterface
 			v.setForeground(Color.BLACK);
 			v.setBackground(Color.WHITE);
 
-			getContentPane().add(whole, BorderLayout.SOUTH);
+			getContentPane().add(whole, BorderLayout.SOUTH);			
+
 			pack();
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 			Dimension labelSize = getPreferredSize();
@@ -743,34 +748,35 @@ public class UserInterfaceMain extends AbstractUserInterface
 //			addWindowListener(new WindowsEvents(this));
 			setVisible(true);
 			toFront();
+			paint(getGraphics());
 		}
 	}
 
-	/**
-	 * This class handles deactivation of the splash screen and forces it back to the top.
-	 */
-	private static class WindowsEvents implements WindowListener
-	{
-		SplashWindow sw;
-
-		WindowsEvents(SplashWindow sw)
-		{
-			super();
-			this.sw = sw;
-		}
-
-		public void windowActivated(WindowEvent e) {}
-		public void windowClosed(WindowEvent e) {}
-		public void windowClosing(WindowEvent e) {}
-		public void windowDeiconified(WindowEvent e) {}
-		public void windowIconified(WindowEvent e) {}
-		public void windowOpened(WindowEvent e) {}
-
-		public void windowDeactivated(WindowEvent e)
-		{
-			sw.toFront();
-		}
-	}
+//	/**
+//	 * This class handles deactivation of the splash screen and forces it back to the top.
+//	 */
+//	private static class WindowsEvents implements WindowListener
+//	{
+//		SplashWindow sw;
+//
+//		WindowsEvents(SplashWindow sw)
+//		{
+//			super();
+//			this.sw = sw;
+//		}
+//
+//		public void windowActivated(WindowEvent e) {}
+//		public void windowClosed(WindowEvent e) {}
+//		public void windowClosing(WindowEvent e) {}
+//		public void windowDeiconified(WindowEvent e) {}
+//		public void windowIconified(WindowEvent e) {}
+//		public void windowOpened(WindowEvent e) {}
+//
+//		public void windowDeactivated(WindowEvent e)
+//		{
+//			sw.toFront();
+//		}
+//	}
 
     /**
      * Places a custom event processor on the event queue in order to
