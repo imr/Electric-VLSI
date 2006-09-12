@@ -1624,7 +1624,7 @@ public class ToolMenu {
 			startJob();
 		}
 
-        public static boolean performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities) throws JobException
+        public static Cell performTaskNoJob(Cell cell, List<Cell> textCellsToRedraw, int activities) throws JobException
         {
             Library destLib = cell.getLibrary();
 			textCellsToRedraw = new ArrayList<Cell>();
@@ -1642,7 +1642,7 @@ public class ToolMenu {
 				if (vhdlCell == null)
 				{
 					vhdlCell = Cell.makeInstance(cell.getLibrary(), cellName);
-					if (vhdlCell == null) return false;
+					if (vhdlCell == null) return null;
 				}
 				String [] array = new String[vhdlStrings.size()];
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
@@ -1669,7 +1669,7 @@ public class ToolMenu {
 				if (netlistCell == null)
 				{
 					netlistCell = Cell.makeInstance(cell.getLibrary(), cellName);
-					if (netlistCell == null) return false;
+					if (netlistCell == null) return null;
 				}
 				String [] array = new String[netlistStrings.size()];
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
@@ -1711,11 +1711,11 @@ public class ToolMenu {
 					if (Technology.getCurrent() == Schematics.tech)
 						throw new JobException("Should switch to a layout technology first (currently in Schematics)");
 				}
-				if (!(result instanceof Cell)) return true;
+				if (!(result instanceof Cell)) return null;
 				cell = (Cell)result;
 				System.out.println("Created " + cell);
 			}
-		    return true;
+		    return cell;
         }
 
 		public boolean doIt() throws JobException
@@ -1723,7 +1723,8 @@ public class ToolMenu {
 			fieldVariableChanged("cell");
 			textCellsToRedraw = new ArrayList<Cell>();
 			fieldVariableChanged("textCellsToRedraw");
-            return performTaskNoJob(cell, textCellsToRedraw, activities);
+			cell = performTaskNoJob(cell, textCellsToRedraw, activities);
+            return true;
 		}
 
         public void terminateOK()
