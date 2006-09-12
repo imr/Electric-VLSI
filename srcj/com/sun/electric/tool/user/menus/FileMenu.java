@@ -211,7 +211,7 @@ public class FileMenu {
                     saveOldJelib(); }},
                 new EMenuItem("P_references...") { public void run() { 
                     Job.getUserInterface().exportPrefs(); }},
-                new EMenuItem("Project Settigns...") { public void run() {
+                new EMenuItem("Project Settings...") { public void run() {
                     ProjSettings.exportSettings(); }}
             ),
 
