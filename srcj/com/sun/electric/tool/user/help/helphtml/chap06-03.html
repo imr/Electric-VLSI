@@ -11,7 +11,7 @@
 There are two commands for controlling settings in Electric: <B>Preferences...</B> and <B>Project Settings...</B>
 (both in menu <B>File</B>.  You can also get Preferences with this icon on the tool bar.
 </TD></TR></TABLE>
-
+<P>
 These two dialogs contain many panels for controling different aspects of the system.
 The differences between these two dialogs is:
 <UL>
@@ -20,10 +20,8 @@ Examples are printer control, display colors, and keyboard bindings.
 Each user may have different preferences, and it does not impact the design being done.</LI>
 <LI><B>Project Settings</B> affect the actual circuitry being edited
 (and so should be the same for every user who is editing that circuitry).
-Examples are GDS layer mappings and technology scaling.
-Project settings are saved with the libraries and checked when those libraries are read back in.</LI>
+Examples are GDS layer mappings and technology scaling.</LI>
 </UL>
-
 <P>
 <CENTER><IMG SRC="fig06-24.png" ALT="Figure 6.24"></CENTER>
 <P>
@@ -54,6 +52,10 @@ These will write an XML file with preference information.
 This XML file can be read back into Electric's preferences with the
 "Import" button, or with the <B>Preferences...</B> command (in menu <B>File / Import</B>).
 <P>
+Project settings are saved in a special XML file that is kept with a set of libraries.
+They used to be saved inside of libraries, but this caused trouble when their values were
+inconsistent in different libraries.
+<P>
 Project settings can be exported with the <B>Project Settings...</B> command (in menu <B>File / Export</B>).
 This writes an XML file with project setting information.
 This XML file can be read back into Electric with the
@@ -62,14 +64,11 @@ This XML file can be read back into Electric with the
 <!-- NEED 2in -->
 
 <P>
-Electric stores Project Settings in every library file so that,
-when read back in, these settings can be reconciled with current settings.
-When a library is read that has different Project Settings, this dialog appears:
+When Electric finds Project Settings that are inconsistent with the current values, this dialog appears:
 <P>
-
 <CENTER><IMG SRC="fig07-19.png" ALT="Figure 19"></CENTER>
 <P>
-You must choose whether you want to use the setting value from the library (recommended)
+You must choose whether you want to use the new setting values (recommended)
 or the current setting.
 This can be done on an individual-setting basis, or for all settings that conflict.
 

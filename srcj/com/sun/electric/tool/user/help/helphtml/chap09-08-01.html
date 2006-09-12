@@ -4,10 +4,9 @@
 
 The Pad Frame generator reads a disk file and places a ring of pads around your chip.
 The pads are contained in a separate library, and are copied into the current library to construct the pad frame.
-<P>
 The format of the pad frame disk file is as follows:
 
-<CENTER><TABLE>
+<CENTER><TABLE WIDTH="90%">
 <TR><TD><CODE><FONT SIZE="-1">celllibrary LIBRARYFILE [copy]</FONT></CODE></TD><TD>; Identifies the file with the pads</TD></TR>
 <TR><TD><CODE><FONT SIZE="-1">cell PADFRAMECELL</FONT></CODE></TD><TD>; Creates a cell to hold the pad frame</TD></TR>
 <TR><TD><CODE><FONT SIZE="-1">views VIEWS</FONT></CODE></TD><TD>; A list of views to generate</TD></TR>
@@ -40,14 +39,14 @@ Each pad that is placed with a <U><CODE>place</CODE></U>
 statement is aligned with the previous pad according to the alignment factor.
 A <U><CODE>gap</CODE></U> can be given in the placement that spreads the two pads by the specified distance.
 For example, the statement:
-<CENTER><CODE>place padIn gap=100</CODE></CENTER>
-requests that the "padIn" pad be placed so that its input port is 100 units away from the previous pad's output port.
+<CENTER><CODE><FONT SIZE="-1">place padIn gap=100</FONT></CODE></CENTER>
+requests that pad "padIn" be placed so that its input port is 100 units from the previous pad's output port.
 <P>
 If a core cell has been given, you can also indicate wiring between the pads and the core ports.
 This is done by having one or more <I>port associations</I> in the <U><CODE>place</CODE></U> statements.
 The format of a port association is simply <U><CODE>PADPORT = COREPORT</CODE></U>.
 For example, the statement:
-<CENTER><CODE>place padOut tap=y</CODE></CENTER>
+<CENTER><CODE><FONT SIZE="-1">place padOut tap=y</FONT></CODE></CENTER>
 indicates that the "tap" port on the placed pad will connect to the "y" port on the core cell.
 <P>
 The port association can also create an export on the pad.
@@ -57,9 +56,9 @@ creates two exports on the pad, "o7" on its "io" port, and "core_o7" on its "tap
 For many instances of this pad type, this notation can be condensed
 with the use of the <U><CODE>name</CODE></U> keyword in conjunction
 with exports defined for the pad at the start of the file.  For example, defining the IO ports as
-<CENTER><CODE>export padOut io tap</CODE></CENTER>
+<CENTER><CODE><FONT SIZE="-1">export padOut io tap</FONT></CODE></CENTER>
 and then changing the place statement to
-<CENTER><CODE>place padOut name=o7</CODE></CENTER>
+<CENTER><CODE><FONT SIZE="-1">place padOut name=o7</FONT></CODE></CENTER>
 results in the same ports being exported with the same names.  This shorted notation always
 prepends name with "core_" on the core port export.
 <P>
