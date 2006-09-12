@@ -1,5 +1,5 @@
 # header information:
-Hsamples|8.02p|USER_electrical_units()I70464
+Hsamples|8.04y|USER_electrical_units()I70464
 
 # Views:
 Vunknown|""
@@ -11,27 +11,15 @@ VVHDL|vhdl
 # External Libraries and cells:
 
 Lspiceparts|file:/C:/DevelE/Electric/bin/com/sun/electric/lib/spiceparts.txt
-RDCVoltage;1{ic}|5|9|-4|3|1006816118000|1006988902000
-Fminus|7|-4
-Fplus|7|3
-RPulse;1{ic}|4|10|-3|3|1006816118000|1006988357000
-Fminus|7|-3
-Fplus|7|3
+RDCVoltage;1{ic}||||
+Fminus||
+Fplus||
+RPulse;1{ic}||||
+Fminus||
+Fplus||
 
-# Technologies:
-Tartwork
-Tbipolar
-Tefido
-Tgem
-Tgeneric
-Tmocmos
-Tnmos
-Tpcb
-Trcmos
-Tschematic
-
-# Cell tech-Artwork{}
-Ctech-Artwork;1{}|artwork|0|1103139255171|
+# Cell tech-Artwork;1{}
+Ctech-Artwork;1{}||artwork|0|1103139255171|
 NThick-Circle|art@0||-72|62|10|10|RRR||ART_degrees()F[0.0,1.570796]
 NThick-Circle|art@1||-72|62|10|10|R||ART_degrees()F[0.0,1.570796]
 NCircle|art@2||-72|62|10|10|1950||ART_degrees()F[0.0,1.047198]
@@ -92,17 +80,17 @@ Ngeneric:Invisible-Pin|pin@15||-9.8|54.6|0|0|||ART_message(A16;D5)S[16 Points ]
 Ngeneric:Invisible-Pin|pin@16||-9.8|50.6|0|0|||ART_message(A18;D5)S[18 Points ]
 Ngeneric:Invisible-Pin|pin@17||-9.8|46.6|0|0|||ART_message(A20;D5)S[20 Points ]
 Ngeneric:Invisible-Pin|pin@18||-9.8|78.6|0|0|||ART_message(A4;D5)S[4 Points ]
-NPin|pin@19||-48|31|2|2||W
-NPin|pin@20||-56|31|2|2||W
-NPin|pin@21||-67|27|2|2|450|W
-NPin|pin@22||-71|23|2|2||W
-NPin|pin@23||-2|21|2|2||W
-NPin|pin@24||-7|21|2|2||W
-NPin|pin@25||-36|21|2|2||W|ART_color()I14
-NPin|pin@26||-7|19|2|2||W
-NPin|pin@27||-2|19|2|2||W
-NPin|pin@28||-77|11|2|2||W
-NPin|pin@29||-77|7|2|2||W
+NPin|pin@19||-48|31|2|2||
+NPin|pin@20||-56|31|2|2||
+NPin|pin@21||-67|27|2|2|450|
+NPin|pin@22||-71|23|2|2||
+NPin|pin@23||-2|21|2|2||
+NPin|pin@24||-7|21|2|2||
+NPin|pin@25||-36|21|2|2|||ART_color()I14
+NPin|pin@26||-7|19|2|2||
+NPin|pin@27||-2|19|2|2||
+NPin|pin@28||-77|11|2|2||
+NPin|pin@29||-77|7|2|2||
 Ngeneric:Invisible-Pin|pin@30||-38|70|0|0|||ART_message(D5G3;)S[3 Lambda]
 Ngeneric:Invisible-Pin|pin@31||-38|62|0|0|||ART_message(D5G4;)S[4 Lambda]
 Ngeneric:Invisible-Pin|pin@32||-38|52|0|0|||ART_message(D5G5;)S[5 Lambda]
@@ -118,8 +106,8 @@ Ngeneric:Invisible-Pin|pin@41||36|52|0|0|||ART_message(D3G2;)S[grab point,is in 
 Ngeneric:Invisible-Pin|pin@42||24|64|0|0|||ART_message(D5G2;)S[grab point,is in the,center]
 ASolid|net@0||0|F900|pin@29||-77|7|art@20||-77|1
 ASolid|net@1||0|F2700|pin@28||-77|11|art@17||-77|17
-ADashed|net@2||0|F457|pin@22||-71|23|art@15||-75.643|18.234
-ADashed|net@3||0|F2221|pin@21||-67|27|art@13||-61.793|31.707
+ADashed|net@2||0|F457|pin@22||-71|23|art@15||-75.6425|18.235
+ADashed|net@3||0|F2221|pin@21||-67|27|art@13||-61.7925|31.7075
 ADotted|net@4||0|F1800|pin@19||-48|31|art@11||-45|31
 ADotted|net@5||0|F0|pin@20||-56|31|art@12||-59|31
 AThicker|net@6||0|F0|pin@27||-2|19|pin@26||-7|19
@@ -127,8 +115,8 @@ AThicker|net@7||0|F0|pin@23||-2|21|pin@24||-7|21
 ASolid|net@8||0|FS1800|pin@25||-36|21|art@14||-33|21|ART_color()I14
 X
 
-# Cell tech-Bipolar{ic}
-Ctech-Bipolar;1{ic}|artwork|1103139265687|1103139265718|E
+# Cell tech-Bipolar;1{ic}
+Ctech-Bipolar;1{ic}||artwork|1103139265687|1103139265718|E
 Ngeneric:Facet-Center|art@0||0|0|0|0||AV
 NBox|art@1||0|0|6|10|||ART_color()I10|SCHEM_function(D5G1;)Stech-Bipolar
 Ngeneric:Universal-Pin|pin@0||-5|4|0|0||
@@ -155,18 +143,18 @@ Aschematic:wire|net@4||0|0|pin@9||-3|0|pin@8||-5|0
 Aschematic:wire|net@5||0|0|pin@11||-3|-2|pin@10||-5|-2
 Aschematic:wire|net@6||0|1800|pin@13||3|0|pin@12||5|0
 Aschematic:wire|net@7||0|0|pin@15||-3|-4|pin@14||-5|-4
-EVBB|D5G2;|pin@0||U
-EVCC|D5G2;|pin@2||G
-EVCS|D5G2;|pin@4||I
-EVEE|D5G2;|pin@6||P
-Ei1|D5G2;|pin@8||I
-Ei2|D5G2;|pin@10||I
-Ey|D5G2;|pin@12||O
-Ey_bar|D5G2;|pin@14||U
+EVBB||D5G2;|pin@0||U
+EVCC||D5G2;|pin@2||G
+EVCS||D5G2;|pin@4||I
+EVEE||D5G2;|pin@6||P
+Ei1||D5G2;|pin@8||I
+Ei2||D5G2;|pin@10||I
+Ey||D5G2;|pin@12||O
+Ey_bar||D5G2;|pin@14||U
 X
 
-# Cell tech-Bipolar{lay}
-Ctech-Bipolar;1{lay}|bipolar|648800749000|1103143091937|
+# Cell tech-Bipolar;1{lay}
+Ctech-Bipolar;1{lay}||bipolar|648800749000|1103143091937|
 NM1_NP_Contact|conn@0||-2|22|12|6||
 NM1_PP_Contact|conn@1||-22|-15.5|6|6||
 NM1_PP_Contact|conn@2||-9|-15.5|6|6||
@@ -203,18 +191,18 @@ APPPoly|net@11||4|IJS900|npn@2|b|-21.75|-12|conn@1||-21.75|-15.5
 ANPPoly|net@16||7|IJS0|npn@0|c|-8.5|-2|npn@2|c|-21.5|-2
 ANPPoly|net@17||7|IJS0|npn@0|c|-8.5|-2|conn@6||-8.5|-2
 ANPPoly|net@18||4|IJS0|npn@1|c|4.5|-2|conn@7||4.5|-2
-EVBB|D5G3;|conn@3||I
-EVCC|D5G3;|conn@0||G
-EVCS|D5G3;|conn@4||I
-EVEE|D5G3;|conn@5||P
-Ei1|D5G3;|conn@1||I
-Ei2|D5G3;|conn@2||I
-Ey|D5G3;|conn@7||O
-Ey_bar|D5G3;|conn@6||O
+EVBB||D5G3;|conn@3||I
+EVCC||D5G3;|conn@0||G
+EVCS||D5G3;|conn@4||I
+EVEE||D5G3;|conn@5||P
+Ei1||D5G3;|conn@1||I
+Ei2||D5G3;|conn@2||I
+Ey||D5G3;|conn@7||O
+Ey_bar||D5G3;|conn@6||O
 X
 
-# Cell tech-Bipolar{sch}
-Ctech-Bipolar;1{sch}|schematic|649061938000|1103139267781|
+# Cell tech-Bipolar;1{sch}
+Ctech-Bipolar;1{sch}||schematic|649061938000|1103139267781|
 NTransistor|npn@0||4|10|4|4|R|3
 NTransistor|npn@1||-8|20|4|4|R|3
 NTransistor|npn@2||0|20|4|4|R|3
@@ -240,7 +228,7 @@ NWire_Pin|pin@17||2|18|0.5|0.5||
 NResistor|res@0||6|0|6|2|R|
 NResistor|res@1||-3|34|6|2|R|
 NResistor|res@2||10|34|6|2|R|
-Itech-Bipolar;1{ic}|tech-Bip@0||38.5|38.5||E|D5G4;
+Itech-Bipolar;1{ic}|tech-Bip@0||38.5|38.5|||D5G4;
 Awire|net@0||0|2700|res@1|b|-3|36|pin@1||-3|41
 Awire|net@1||0|900|pin@2||10|41|res@2|b|10|36
 Awire|net@2||0|900|pin@5||-4|20|pin@6||-4|15
@@ -267,18 +255,18 @@ Awire|net@22||0|1800|pin@17||2|18|pin@0||6|18
 Awire|net@23||0|1800|npn@1|s|-6|18|pin@17||2|18
 Awire|net@24||0|900|pin@17||2|18|npn@2|s|2|18
 Awire|net@25||0|1800|npn@1|d|-6|22|pin@3||-3|22
-EVBB|D6G3;|pin@4||U
-EVCC|D3G3;|pin@9||G
-EVCS|D4G3;|pin@7||I
-EVEE|D9G3;|pin@8||P
-Ei1|D4G3;|pin@15||I
-Ei2|D4G3;|pin@16||I
-Ey|D6G3;|pin@11||O
-Ey_bar|D6G3;|pin@13||U
+EVBB||D6G3;|pin@4||U
+EVCC||D3G3;|pin@9||G
+EVCS||D4G3;|pin@7||I
+EVEE||D9G3;|pin@8||P
+Ei1||D4G3;|pin@15||I
+Ei2||D4G3;|pin@16||I
+Ey||D6G3;|pin@11||O
+Ey_bar||D6G3;|pin@13||U
 X
 
-# Cell tech-DigitalFilter{}
-Ctech-DigitalFilter;1{}|efido|0|975707807000|
+# Cell tech-DigitalFilter;1{}
+Ctech-DigitalFilter;1{}||efido|0|975707807000|
 Nadder|node@0||-12|18|8|8||
 Nmultiplier|node@1||-28|18|8|8||
 Nadder|node@2||-18|6|8|8||
@@ -335,44 +323,44 @@ Awire|net@25||0|S1800|pin@18||-35|-18|node@5|in3|-32|-18
 Awire|net@26||0|S1800|node@6|out|-14|-18|pin@19||-12|-18
 Awire|net@27||0|S2700|pin@19||-12|-18|node@0|in5|-12|14
 Awire|net@28||0|S0|node@6|in3|-22|-18|node@5|out|-24|-18
-Ea-imag|D3G2;|pin@5||I
-Ea-real|D3G2;|pin@0||I
-Eb-imag|D3G2;|pin@15||I
-Eb-real|D3G2;|pin@10||I
-Eout-imag|D7G2;|pin@8||O
-Eout-real|D7G2;|pin@3||O
+Ea-imag||D3G2;|pin@5||I
+Ea-real||D3G2;|pin@0||I
+Eb-imag||D3G2;|pin@15||I
+Eb-real||D3G2;|pin@10||I
+Eout-imag||D7G2;|pin@8||O
+Eout-real||D7G2;|pin@3||O
 X
 
-# Cell tech-GEM{}
-Ctech-GEM;1{}|gem|902530672000|1098717188000|
+# Cell tech-GEM;1{}
+Ctech-GEM;1{}||gem|902530672000|1098717188000|
 NElement|node@0||49|31|8|8|||GEM_element()SPour Foundation|GEM_event1()SSteel|GEM_event2()SConcrete|GEM_event3()S |GEM_event4()S 
 NElement|node@1||22|19|8|8|||GEM_element()SBuild Skeleton|GEM_event1()SFooters|GEM_event2()SWalls|GEM_event3()SRoof|GEM_event4()S 
 NElement|node@2||31|31|8|8|||GEM_element()SPrepare Site|GEM_event1()SAccess|GEM_event2()SDemolish|GEM_event3()SLevel|GEM_event4()S 
 NElement|node@3||40|19|8|8|||GEM_element()SServices|GEM_event1()SElectricity|GEM_event2()SPlumbing|GEM_event3()SDuctwork|GEM_event4()S 
 NElement|node@4||58|19|8|8|||GEM_element()SFinishing|GEM_event1()SDrywall|GEM_event2()SRoofing|GEM_event3()SExterior Wall|GEM_event4()SPainting
-NPrereq-Pin|pin@0||24|31|2|2||W
-NPrereq-Pin|pin@1||24|30|2|2||W
-NFork-Pin|pin@2||20|12|2|2||W
-NFork-Pin|pin@3||32|12|2|2||W
-NFork-Pin|pin@4||32|18.5|2|2||W
-NFork-Pin|pin@5||38|12|2|2||W
-NFork-Pin|pin@6||50|12|2|2||W
-NFork-Pin|pin@7||50|18|2|2||W
-NPrereq-Pin|pin@8||41.8|31|2|2||W
-NPrereq-Pin|pin@9||39|28.5|2|2||W
-NPrereq-Pin|pin@10||39|32|2|2||W
-NPrereq-Pin|pin@11||47|25|2|2||W
-NPrereq-Pin|pin@12||15|25|2|2||W
-NPrereq-Pin|pin@13||15|20|2|2||W
-NPrereq-Pin|pin@14||15|19|2|2||W
-NPrereq-Pin|pin@15||15|18|2|2||W
+NPrereq-Pin|pin@0||24|31|2|2||
+NPrereq-Pin|pin@1||24|30|2|2||
+NFork-Pin|pin@2||20|12|2|2||
+NFork-Pin|pin@3||32|12|2|2||
+NFork-Pin|pin@4||32|18.5|2|2||
+NFork-Pin|pin@5||38|12|2|2||
+NFork-Pin|pin@6||50|12|2|2||
+NFork-Pin|pin@7||50|18|2|2||
+NPrereq-Pin|pin@8||41.8|31|2|2||
+NPrereq-Pin|pin@9||39|28.5|2|2||
+NPrereq-Pin|pin@10||39|32|2|2||
+NPrereq-Pin|pin@11||47|25|2|2||
+NPrereq-Pin|pin@12||15|25|2|2||
+NPrereq-Pin|pin@13||15|20|2|2||
+NPrereq-Pin|pin@14||15|19|2|2||
+NPrereq-Pin|pin@15||15|18|2|2||
 APrerequisite|net@0||0|FS57|node@2|port1|29|31.5|pin@0||24|31
-APrerequisite|net@1||0|FS1742|pin@0||24|31|node@2|port2|29|30.5
+APrerequisite|net@1||0|FS1743|pin@0||24|31|node@2|port2|29|30.5
 APrerequisite|net@2||0|FS57|node@2|port2|29|30.5|pin@1||24|30
-APrerequisite|net@3||0|FS1742|pin@1||24|30|node@2|port3|29|29.5
+APrerequisite|net@3||0|FS1743|pin@1||24|30|node@2|port3|29|29.5
 ANondeterministic-fork|net@4||0|FS1800|pin@2||20|12|pin@3||32|12
 ANondeterministic-fork|net@5||0|FS2700|pin@3||32|12|pin@4||32|18.5
-ANondeterministic-fork|net@6||0|FS1894|pin@4||32|18.5|node@3|port1|38|19.5
+ANondeterministic-fork|net@6||0|FS1895|pin@4||32|18.5|node@3|port1|38|19.5
 ANondeterministic-fork|net@7||0|FS1800|pin@4||32|18.5|node@3|port2|38|18.5
 ANondeterministic-fork|net@8||0|FS1705|pin@4||32|18.5|node@3|port3|38|17.5
 ANondeterministic-fork|net@9||0|FS900|node@1|port4|20|16.5|pin@2||20|12
@@ -380,10 +368,10 @@ ANondeterministic-fork|net@10||0|FS900|node@3|port4|38|16.5|pin@5||38|12
 ANondeterministic-fork|net@11||0|FS1800|pin@5||38|12|pin@6||50|12
 ANondeterministic-fork|net@12||0|FS2700|pin@6||50|12|pin@7||50|18
 ANondeterministic-fork|net@13||0|FS1940|pin@7||50|18|node@4|port1|56|19.5
-ANondeterministic-fork|net@14||0|FS1847|pin@7||50|18|node@4|port2|56|18.5
+ANondeterministic-fork|net@14||0|FS1848|pin@7||50|18|node@4|port2|56|18.5
 ANondeterministic-fork|net@15||0|FS1752|pin@7||50|18|node@4|port3|56|17.5
-ANondeterministic-fork|net@16||0|FS1659|pin@7||50|18|node@4|port4|56|16.5
-APrerequisite|net@17||0|FS54|node@0|port1|47|31.5|pin@8||41.8|31
+ANondeterministic-fork|net@16||0|FS1660|pin@7||50|18|node@4|port4|56|16.5
+APrerequisite|net@17||0|FS55|node@0|port1|47|31.5|pin@8||41.8|31
 APrerequisite|net@18||0|FS1745|pin@8||41.8|31|node@0|port2|47|30.5
 APrerequisite|net@19||0|FS1800|node@2|port4|29|28.5|pin@9||39|28.5
 APrerequisite|net@20||0|FS2700|pin@9||39|28.5|pin@10||39|32
@@ -391,15 +379,15 @@ APrerequisite|net@21||0|FS1764|pin@10||39|32|node@0|port1|47|31.5
 APrerequisite|net@22||0|FS900|node@0|port3|47|29.5|pin@11||47|25
 APrerequisite|net@23||0|FS0|pin@11||47|25|pin@12||15|25
 APrerequisite|net@24||0|FS900|pin@12||15|25|pin@13||15|20
-APrerequisite|net@25||0|FS1742|pin@13||15|20|node@1|port1|20|19.5
+APrerequisite|net@25||0|FS1743|pin@13||15|20|node@1|port1|20|19.5
 APrerequisite|net@26||0|FS57|node@1|port1|20|19.5|pin@14||15|19
-APrerequisite|net@27||0|FS1742|pin@14||15|19|node@1|port2|20|18.5
+APrerequisite|net@27||0|FS1743|pin@14||15|19|node@1|port2|20|18.5
 APrerequisite|net@28||0|FS57|node@1|port2|20|18.5|pin@15||15|18
-APrerequisite|net@29||0|FS1742|pin@15||15|18|node@1|port3|20|17.5
+APrerequisite|net@29||0|FS1743|pin@15||15|18|node@1|port3|20|17.5
 X
 
-# Cell tech-MOSISCMOS{lay}
-Ctech-MOSISCMOS;1{lay}|mocmos|901321855000|1007930129000|
+# Cell tech-MOSISCMOS;1{lay}
+Ctech-MOSISCMOS;1{lay}||mocmos|901321855000|1007930129000|
 NMetal-1-P-Active-Con|contact@0||-190|4.5|17|17||
 NMetal-3-Metal-4-Con|contact@1||-141.5|52|6|6||
 NMetal-1-P-Active-Con|contact@2||-190|27.5|17|17||
@@ -412,27 +400,27 @@ NMetal-2-Metal-3-Con|contact@8||-152.5|39|6|6||
 NMetal-1-Polysilicon-1-2-Con|contact@9||-135|-5|15|15||
 NN-Transistor|nmos@0||-197.5|44.5|15|22|RRR|
 NN-Transistor|nmos@1||-182.5|44.5|15|22|RRR|
-NMetal-2-Pin|pin@0||-129|28|3|3||W
-NMetal-3-Pin|pin@1||-129|39|3|3||W
-NMetal-4-Pin|pin@2||-129|52|6|6||W
-NMetal-3-Pin|pin@3||-141.5|39|3|3||W
-NMetal-1-Pin|pin@4||-129|21.5|3|3||W
-NMetal-1-Pin|pin@5||-164|36.5|3|3||W
-NPolysilicon-1-Pin|pin@6||-210.5|12|2|2||W
-NPolysilicon-1-Pin|pin@7||-210.5|21|2|2||W
-NMetal-1-Pin|pin@8||-190|36.5|3|3||W
-NPolysilicon-1-Pin|pin@9||-182.5|12|2|2||W
-NPolysilicon-1-Pin|pin@10||-197.5|21|2|2||W
-NN-Active-Pin|pin@11||-203|51.5|15|15||W
-NN-Active-Pin|pin@12||-178|51.5|15|15||W
-NN-Active-Pin|pin@13||-203|44.5|15|15||W
-NN-Active-Pin|pin@14||-178|44.5|15|15||W
-NMetal-1-Pin|pin@15||-164|11|3|3||W
-NMetal-1-Pin|pin@16||-164|-4.5|3|3||W
-NMetal-1-Pin|pin@17||-164|28|3|3||W
-NMetal-2-Pin|pin@18||-152.5|28|3|3||W
-NMetal-1-Pin|pin@19||-135|21.5|3|3||W
-NPolysilicon-2-Pin|pin@20||-135|11|3|3||W
+NMetal-2-Pin|pin@0||-129|28|3|3||
+NMetal-3-Pin|pin@1||-129|39|3|3||
+NMetal-4-Pin|pin@2||-129|52|6|6||
+NMetal-3-Pin|pin@3||-141.5|39|3|3||
+NMetal-1-Pin|pin@4||-129|21.5|3|3||
+NMetal-1-Pin|pin@5||-164|36.5|3|3||
+NPolysilicon-1-Pin|pin@6||-210.5|12|2|2||
+NPolysilicon-1-Pin|pin@7||-210.5|21|2|2||
+NMetal-1-Pin|pin@8||-190|36.5|3|3||
+NPolysilicon-1-Pin|pin@9||-182.5|12|2|2||
+NPolysilicon-1-Pin|pin@10||-197.5|21|2|2||
+NN-Active-Pin|pin@11||-203|51.5|15|15||
+NN-Active-Pin|pin@12||-178|51.5|15|15||
+NN-Active-Pin|pin@13||-203|44.5|15|15||
+NN-Active-Pin|pin@14||-178|44.5|15|15||
+NMetal-1-Pin|pin@15||-164|11|3|3||
+NMetal-1-Pin|pin@16||-164|-4.5|3|3||
+NMetal-1-Pin|pin@17||-164|28|3|3||
+NMetal-2-Pin|pin@18||-152.5|28|3|3||
+NMetal-1-Pin|pin@19||-135|21.5|3|3||
+NPolysilicon-2-Pin|pin@20||-135|11|3|3||
 NP-Transistor|pmos@0||-190|12|15|22||
 NP-Transistor|pmos@1||-190|21|15|22||
 NMetal-1-N-Well-Con|substr@0||-190|-5|17|17||
@@ -477,18 +465,18 @@ AMetal-1|net@36||3|S2700|contact@9||-135|-4.5|pin@19||-135|21.5
 AMetal-1|net@37||3|S900|pin@17||-164|28|pin@15||-164|11
 APolysilicon-2|net@38||7|S2700|contact@9||-135|-5|pin@20||-135|11
 APolysilicon-2|net@39||7|S0|pin@20||-135|11|contact@5||-155|11
-Ea1|D4G3;X-1;|pin@7||I
-Ea2|D4G3;X-1;|pin@6||I
-Egnd|D6G3;X2;|substr@0||G
-Eout1|D5G3;|pin@4||O
-Eout2|D5G3;|pin@0||O
-Eout3|D5G3;|pin@1||O
-Eout4|D5G3;|pin@2||O
-Evdd|D6G3;X2;|well@0||P
+Ea1||D4G3;X-1;|pin@7||I
+Ea2||D4G3;X-1;|pin@6||I
+Egnd||D6G3;X2;|substr@0||G
+Eout1||D5G3;|pin@4||O
+Eout2||D5G3;|pin@0||O
+Eout3||D5G3;|pin@1||O
+Eout4||D5G3;|pin@2||O
+Evdd||D6G3;X2;|well@0||P
 X
 
-# Cell tech-PCB{sch}
-Ctech-PCB;1{sch}|schematic|0|1103143008000|
+# Cell tech-PCB;1{sch}
+Ctech-PCB;1{sch}||schematic|0|1103143008000|
 Npcb:Signal-1-Pin|pin@0||-20.75|-39.75|2|2||
 Npcb:Signal-1-Pin|pin@1||-20.75|-50.75|2|2||
 Npcb:Signal-1-Pin|pin@2||-48.35|14.25|2|2||
@@ -636,18 +624,18 @@ Apcb:Signal-2|net@80||0.5|S900|pin@58||61.25|14.25|pin@59||61.25|-27.75
 Apcb:Signal-2|net@81||0.5|S0|pin@59||61.25|-27.75|tech-PCB@3|-CLK23/1|56.25|-27.75
 Apcb:Signal-1|net@82||0.5|S1800|pin@9||-13.85|22.25|tech-PCB@1|TIP1/0|4.25|22.25
 Apcb:Signal-3|net@83||0.5|S900|pin@49||-1.85|18.25|pin@48||-1.85|-15.75
-Emaster-clock|D3G3;|pin@44||C/A
-Emsb|D9G3;|pin@19||U/B
-Epc|D7G3;|pin@47||U
-Ephi-f/r|D9G3;|pin@20||U/B
-Ephi-r/f|D9G3;|pin@1||U/B
-Eucad0-q|D7G3;|pin@7||U
-Eucad1|D7G3;|pin@33||U
-Eucld|D7G3;|pin@23||U/B
+Emaster-clock||D3G3;|pin@44||C/A
+Emsb||D9G3;|pin@19||U/B
+Epc||D7G3;|pin@47||U
+Ephi-f/r||D9G3;|pin@20||U/B
+Ephi-r/f||D9G3;|pin@1||U/B
+Eucad0-q||D7G3;|pin@7||U
+Eucad1||D7G3;|pin@33||U
+Eucld||D7G3;|pin@23||U/B
 X
 
-# Cell tech-PCB7404{sch}
-Ctech-PCB7404;1{sch}|schematic|0|1103139903156|
+# Cell tech-PCB7404;1{sch}
+Ctech-PCB7404;1{sch}||schematic|0|1103139903156|
 NBuffer|buf@0||-2.92|10.42|1.58|1.42|R|
 NBuffer|buf@1||2.08|5.42|1.58|1.42|RRR|
 NBuffer|buf@2||-2.92|2.42|1.58|1.42|R|
@@ -714,24 +702,24 @@ Ageneric:Universal|net@24||0|S1800|pin@4||2.08|4|pin@24||6|4
 Ageneric:Universal|net@25||0|S0|pin@2||-2.92|8|pin@25||-6|8
 Ageneric:Universal|net@26||0|S1800|pin@3||2.08|8|pin@26||6|8
 Ageneric:Universal|net@27||0|1800|pin@0||2.79|12|pin@27||6|12
-EG|D6G1;|pin@15||U
-ETIP1/0|D6G1;|pin@14||U
-ETIP1/1|D6G1;|pin@23||U
-ETIP1/2|D6G1;|pin@19||U
-ETIP1/3|D4G1;|pin@18||U
-ETIP1/4|D4G1;|pin@22||U
-ETIP1/5|D4G1;|pin@26||U
-ETO2/0|D6G1;|pin@25||U
-ETO2/1|D6G1;|pin@21||U
-ETO2/2|D6G1;|pin@17||U
-ETO2/3|D4G1;|pin@16||U
-ETO2/4|D4G1;|pin@20||U
-ETO2/5|D4G1;|pin@24||U
-ETV|D4G1;|pin@27||U
+EG||D6G1;|pin@15||U
+ETIP1/0||D6G1;|pin@14||U
+ETIP1/1||D6G1;|pin@23||U
+ETIP1/2||D6G1;|pin@19||U
+ETIP1/3||D4G1;|pin@18||U
+ETIP1/4||D4G1;|pin@22||U
+ETIP1/5||D4G1;|pin@26||U
+ETO2/0||D6G1;|pin@25||U
+ETO2/1||D6G1;|pin@21||U
+ETO2/2||D6G1;|pin@17||U
+ETO2/3||D4G1;|pin@16||U
+ETO2/4||D4G1;|pin@20||U
+ETO2/5||D4G1;|pin@24||U
+ETV||D4G1;|pin@27||U
 X
 
-# Cell tech-PCB7411{sch}
-Ctech-PCB7411;1{sch}|pcb|0|612141511000|
+# Cell tech-PCB7411;1{sch}
+Ctech-PCB7411;1{sch}||pcb|0|612141511000|
 NDrill-Pin|pin@0||-6|0|0.5|0.5||
 NDrill-Pin|pin@1||6|-12|0.5|0.5||
 NDrill-Pin|pin@2||-6|-12|0.5|0.5||
@@ -748,24 +736,24 @@ NDrill-Pin|pin@12||-6|12|0.5|0.5||
 NDrill-Pin|pin@13||6|12|0.5|0.5||
 NTop-Silk-Node|plnode@0||0|-14|0.5|0.5||
 NTop-Silk-Node|plnode@1||0|14|0.5|0.5||
-EG|D6G1;|pin@2||U
-ETISP1/0|D6G1;|pin@11||U
-ETISP1/1|D6G1;|pin@9||U
-ETISP1/2|D4G1;|pin@7||U
-ETISP2/0|D6G1;|pin@12||U
-ETISP2/1|D6G1;|pin@0||U
-ETISP2/2|D4G1;|pin@5||U
-ETISP3/0|D4G1;|pin@10||U
-ETISP3/1|D6G1;|pin@6||U
-ETISP3/2|D4G1;|pin@3||U
-ETO4/0|D4G1;|pin@8||U
-ETO4/1|D6G1;|pin@4||U
-ETO4/2|D4G1;|pin@1||U
-ETV|D4G1;|pin@13||U
+EG||D6G1;|pin@2||U
+ETISP1/0||D6G1;|pin@11||U
+ETISP1/1||D6G1;|pin@9||U
+ETISP1/2||D4G1;|pin@7||U
+ETISP2/0||D6G1;|pin@12||U
+ETISP2/1||D6G1;|pin@0||U
+ETISP2/2||D4G1;|pin@5||U
+ETISP3/0||D4G1;|pin@10||U
+ETISP3/1||D6G1;|pin@6||U
+ETISP3/2||D4G1;|pin@3||U
+ETO4/0||D4G1;|pin@8||U
+ETO4/1||D6G1;|pin@4||U
+ETO4/2||D4G1;|pin@1||U
+ETV||D4G1;|pin@13||U
 X
 
-# Cell tech-PCB7474{sch}
-Ctech-PCB7474;1{sch}|pcb|0|612141511000|
+# Cell tech-PCB7474;1{sch}
+Ctech-PCB7474;1{sch}||pcb|0|612141511000|
 NDrill-Pin|pin@0||-6|12|0.5|0.5||
 NDrill-Pin|pin@1||6|-12|0.5|0.5||
 NDrill-Pin|pin@2||-6|-12|0.5|0.5||
@@ -782,24 +770,24 @@ NDrill-Pin|pin@12||-6|8|0.5|0.5||
 NDrill-Pin|pin@13||6|12|0.5|0.5||
 NTop-Silk-Node|plnode@0||0|14|0.5|0.5||
 NTop-Silk-Node|plnode@1||0|-14|0.5|0.5||
-E-CLK13/0|D6G1;|pin@10||U
-E-CLK23/1|D4G1;|pin@7||U
-E-CLR11/0|D6G1;|pin@0||U
-E-CLR21/1|D4G1;|pin@11||U
-E-Q16/0|D6G1;|pin@4||U
-E-Q26/1|D4G1;|pin@1||U
-E-SET4/0|D6G1;|pin@8||U
-E-SET24/1|D4G1;|pin@5||U
-ED12/0|D6G1;|pin@12||U
-ED22/1|D4G1;|pin@9||U
-EG|D6G1;|pin@2||U
-EQ15/0|D6G1;|pin@6||U
-EQ25/1|D4G1;|pin@3||U
-ETV|D4G1;|pin@13||U
+E-CLK13/0||D6G1;|pin@10||U
+E-CLK23/1||D4G1;|pin@7||U
+E-CLR11/0||D6G1;|pin@0||U
+E-CLR21/1||D4G1;|pin@11||U
+E-Q16/0||D6G1;|pin@4||U
+E-Q26/1||D4G1;|pin@1||U
+E-SET4/0||D6G1;|pin@8||U
+E-SET24/1||D4G1;|pin@5||U
+ED12/0||D6G1;|pin@12||U
+ED22/1||D4G1;|pin@9||U
+EG||D6G1;|pin@2||U
+EQ15/0||D6G1;|pin@6||U
+EQ25/1||D4G1;|pin@3||U
+ETV||D4G1;|pin@13||U
 X
 
-# Cell tech-PCB74393{sch}
-Ctech-PCB74393;1{sch}|pcb|0|612141511000|
+# Cell tech-PCB74393;1{sch}
+Ctech-PCB74393;1{sch}||pcb|0|612141511000|
 NDrill-Pin|pin@0||-6|-8|0.5|0.5||
 NDrill-Pin|pin@1||6|-12|0.5|0.5||
 NDrill-Pin|pin@2||-6|-12|0.5|0.5||
@@ -816,24 +804,24 @@ NDrill-Pin|pin@12||6|12|0.5|0.5||
 NDrill-Pin|pin@13||-6|12|0.5|0.5||
 NTop-Silk-Node|plnode@0||0|14|0.5|0.5||
 NTop-Silk-Node|plnode@1||0|-14|0.5|0.5||
-E1A1/0|D6G1;|pin@13||U
-E1CLEAR2/0|D6G1;|pin@11||U
-E1QA3/0|D6G1;|pin@9||U
-E1QB4/0|D6G1;|pin@7||U
-E1QC5/0|D6G1;|pin@5||U
-E1QD6/0|D6G1;|pin@0||U
-E2A1/1|D4G1;|pin@10||U
-E2CLEAR2/1|D4G1;|pin@8||U
-E2QA3/1|D4G1;|pin@6||U
-E2QB4/1|D4G1;|pin@4||U
-E2QC5/1|D4G1;|pin@3||U
-E2QD6/1|D4G1;|pin@1||U
-EG|D6G1;|pin@2||U
-ETV|D4G1;|pin@12||U
+E1A1/0||D6G1;|pin@13||U
+E1CLEAR2/0||D6G1;|pin@11||U
+E1QA3/0||D6G1;|pin@9||U
+E1QB4/0||D6G1;|pin@7||U
+E1QC5/0||D6G1;|pin@5||U
+E1QD6/0||D6G1;|pin@0||U
+E2A1/1||D4G1;|pin@10||U
+E2CLEAR2/1||D4G1;|pin@8||U
+E2QA3/1||D4G1;|pin@6||U
+E2QB4/1||D4G1;|pin@4||U
+E2QC5/1||D4G1;|pin@3||U
+E2QD6/1||D4G1;|pin@1||U
+EG||D6G1;|pin@2||U
+ETV||D4G1;|pin@12||U
 X
 
-# Cell tech-RoundCMOS{lay}
-Ctech-RoundCMOS;1{lay}|rcmos|902347845000|1119379347000||prototype_center()I[-24000,72000]
+# Cell tech-RoundCMOS;1{lay}
+Ctech-RoundCMOS;1{lay}||rcmos|902347845000|1119379347000||prototype_center()I[-24000,72000]
 NMetal-1-Polysilicon-Con|contact@0||7|19|6|6||
 NMetal-1-D-Active-Con|contact@1||-23|18|14|14||
 NPolysilicon-Pin|pin@0||-21|-3|2|2||
@@ -844,13 +832,13 @@ NMetal-1-Metal-2-Con|well@0||-7|29|4|4||
 APolysilicon|net@0||2|FS2120|pin@0||-21|-3|pin@1||-5|7|ARC_radius()I26163
 AD-Active|net@1||10|FS1534|pin@1||-5|7|pin@2||7|1|ARC_radius()I17046
 APolysilicon|net@2||2|FS450|contact@0||7|19|pin@1||-5|7|ARC_radius()I29000
-AD-Active|net@3||10|FS3285|pin@1||-5|7|contact@1||-23|18|ARC_radius()I35500
-AMetal-1|net@4||3|FS1444|well@0||-7|29|contact@0||7|19|ARC_radius()I28000
-AMetal-2|net@5||3|FS41|well@0||-7|29|pin@3||-27.5|27.5|ARC_radius()I34000
+AD-Active|net@3||10|FS3286|pin@1||-5|7|contact@1||-23|18|ARC_radius()I35500
+AMetal-1|net@4||3|FS1445|well@0||-7|29|contact@0||7|19|ARC_radius()I28000
+AMetal-2|net@5||3|FS42|well@0||-7|29|pin@3||-27.5|27.5|ARC_radius()I34000
 X
 
-# Cell tech-SchematicsAnalog{sch}
-Ctech-SchematicsAnalog;1{sch}|schematic|902438908000|1039120309000|
+# Cell tech-SchematicsAnalog;1{sch}
+Ctech-SchematicsAnalog;1{sch}||schematic|902438908000|1039120309000|
 NResistor|TR3|D8G1;Y1;|51.2|58.1|6|1|||SCHEM_resistance(D5G1;UR)F0.0
 NResistor|TR4|D8G1;Y1;|65.2|58.1|6|1|||SCHEM_resistance(D5G1;UR)F0.0
 Nartwork:Opened-Dashed-Polygon|art@0||65.2|41.1|24|12|||trace()V[-12/6,12/6,12/-6,-12/-6,-12/6]
@@ -1021,8 +1009,8 @@ Awire|net@90||0|2700|node@3|y|10.2|33.1|npn@8|s|10.2|38.1
 Awire|net@91||0|2700|node@4|y|4.2|33.1|npn@9|s|4.2|38.1
 X
 
-# Cell tech-SchematicsDigital{sch}
-Ctech-SchematicsDigital;1{sch}|schematic|0|1012002960000|
+# Cell tech-SchematicsDigital;1{sch}
+Ctech-SchematicsDigital;1{sch}||schematic|0|1012002960000|
 NAnd|and@0||-2|4|8|6||
 NAnd|and@1||-2|-3|8|6||
 NAnd|and@2||-2|-10|8|6||
@@ -1270,20 +1258,20 @@ Awire|net@132||0|1800|pin@70||18|-81|ffRSms@3|i2|28|-81
 Awire|net@133||0|1800|pin@52||18|-57|ffRSms@2|i2|28|-57
 Awire|net@134||0|1800|pin@34||18|-33|ffRSms@1|i2|28|-33
 Awire|net@135||0|1800|pin@15||18|-9|ffRSms@0|i2|28|-9
-EQA|D6G3;|pin@7||O
-EQB|D6G3;|pin@29||O
-EQC|D6G3;|pin@46||O
-EQD|D6G3;|pin@63||O
-Edata-a|D4G3;|pin@5||I
-Edata-b|D4G3;|pin@27||I
-Edata-c|D4G3;|pin@44||I
-Edata-d|D4G3;|pin@61||I
-Eload|D4G3;|pin@19||I
-Eserial|D4G3;|pin@0||I
+EQA||D6G3;|pin@7||O
+EQB||D6G3;|pin@29||O
+EQC||D6G3;|pin@46||O
+EQD||D6G3;|pin@63||O
+Edata-a||D4G3;|pin@5||I
+Edata-b||D4G3;|pin@27||I
+Edata-c||D4G3;|pin@44||I
+Edata-d||D4G3;|pin@61||I
+Eload||D4G3;|pin@19||I
+Eserial||D4G3;|pin@0||I
 X
 
-# Cell tech-nMOS{lay}
-Ctech-nMOS;1{lay}|nmos|0|976904012000|
+# Cell tech-nMOS;1{lay}
+Ctech-nMOS;1{lay}||nmos|0|976904012000|
 NBuried-Con-Cross|conn@0||114|3|6|4|R|
 NBuried-Con-Cross|conn@1||61|1|6|4|R|
 NBuried-Con-Cross|conn@2||109|-5|6|4|R|
@@ -1350,67 +1338,67 @@ NTransistor|nmos@14||121.5|-32|7|6||
 NTransistor|nmos@15||44.5|-33|7|6||
 NTransistor|nmos@16||64|-33|10|6||
 NTransistor|nmos@17||129.5|-34|7|6||
-NPolysilicon-Pin|pin@0||101|14|2|2||W
-NPolysilicon-Pin|pin@1||85|14|2|2||W
-NDiffusion-Pin|pin@2||125|6|2|2||W
-NDiffusion-Pin|pin@3||122|6|2|2||W
-NDiffusion-Pin|pin@4||120|6|2|2||W
-NDiffusion-Pin|pin@5||109|6|2|2||W
-NDiffusion-Pin|pin@6||106|6|2|2||W
-NDiffusion-Pin|pin@7||98|5|2|2||W
-NDiffusion-Pin|pin@8||95|5|2|2||W
-NDiffusion-Pin|pin@9||47|5|2|2||W
-NDiffusion-Pin|pin@10||45|5|2|2||W
-NDiffusion-Pin|pin@11||42|5|2|2||W
-NMetal-Pin|pin@12||55|5|3|3||W
-NMetal-Pin|pin@13||94|4.5|3|3||W
-NDiffusion-Pin|pin@14||74|4|2|2||W
-NDiffusion-Pin|pin@15||73|4|2|2||W
-NDiffusion-Pin|pin@16||98|1|2|2||W
-NDiffusion-Pin|pin@17||104|1|2|2||W
-NDiffusion-Pin|pin@18||82|1|2|2||W
-NDiffusion-Pin|pin@19||81|1|2|2||W
-NDiffusion-Pin|pin@20||97|-4|2|2||W
-NDiffusion-Pin|pin@21||98|-4|2|2||W
-NDiffusion-Pin|pin@22||26|-5|2|2||W
-NDiffusion-Pin|pin@23||103|-5|2|2||W
-NDiffusion-Pin|pin@24||104|-5|2|2||W
-NDiffusion-Pin|pin@25||29|-5|2|2||W
-NPolysilicon-Pin|pin@26||65|-7|2|2||W
-NPolysilicon-Pin|pin@27||93|-8|2|2||W
-NDiffusion-Pin|pin@28||108|-10|2|2||W
-NDiffusion-Pin|pin@29||109|-10|2|2||W
-NMetal-Pin|pin@30||131.5|-9.5|3|3||W
-NMetal-Pin|pin@31||78.5|-9.5|3|3||W
-NDiffusion-Pin|pin@32||73|-11|2|2||W
-NDiffusion-Pin|pin@33||74|-11|2|2||W
-NDiffusion-Pin|pin@34||69|-11|2|2||W
-NPolysilicon-Pin|pin@35||68|-15|2|2||W
-NDiffusion-Pin|pin@36||113|-15|2|2||W
-NDiffusion-Pin|pin@37||114|-15|2|2||W
-NDiffusion-Pin|pin@38||42|-17|2|2||W
-NDiffusion-Pin|pin@39||44|-17|2|2||W
-NMetal-Pin|pin@40||118.5|-16.5|3|3||W
-NMetal-Pin|pin@41||85.5|-16.5|3|3||W
-NMetal-Pin|pin@42||78.5|-17.5|3|3||W
-NDiffusion-Pin|pin@43||64|-20|2|2||W
-NDiffusion-Pin|pin@44||61|-20|2|2||W
-NDiffusion-Pin|pin@45||60|-20|2|2||W
-NDiffusion-Pin|pin@46||38.5|-22|2|2||W
-NDiffusion-Pin|pin@47||37|-22|2|2||W
-NMetal-Pin|pin@48||85.5|-23.5|3|3||W
-NPolysilicon-Pin|pin@49||89|-24|2|2||W
-NDiffusion-Pin|pin@50||125|-27|2|2||W
-NDiffusion-Pin|pin@51||122|-27|2|2||W
-NDiffusion-Pin|pin@52||35|-30|2|2||W
-NDiffusion-Pin|pin@53||73|-30|2|2||W
-NDiffusion-Pin|pin@54||82|-30|2|2||W
-NDiffusion-Pin|pin@55||29|-30|2|2||W
-NPolysilicon-Pin|pin@56||126|-32|2|2||W
-NPolysilicon-Pin|pin@57||49|-33|2|2||W
-NPolysilicon-Pin|pin@58||69|-33|2|2||W
-NPolysilicon-Pin|pin@59||132|-34|2|2||W
-NPolysilicon-Pin|pin@60||126|-34|2|2||W
+NPolysilicon-Pin|pin@0||101|14|2|2||
+NPolysilicon-Pin|pin@1||85|14|2|2||
+NDiffusion-Pin|pin@2||125|6|2|2||
+NDiffusion-Pin|pin@3||122|6|2|2||
+NDiffusion-Pin|pin@4||120|6|2|2||
+NDiffusion-Pin|pin@5||109|6|2|2||
+NDiffusion-Pin|pin@6||106|6|2|2||
+NDiffusion-Pin|pin@7||98|5|2|2||
+NDiffusion-Pin|pin@8||95|5|2|2||
+NDiffusion-Pin|pin@9||47|5|2|2||
+NDiffusion-Pin|pin@10||45|5|2|2||
+NDiffusion-Pin|pin@11||42|5|2|2||
+NMetal-Pin|pin@12||55|5|3|3||
+NMetal-Pin|pin@13||94|4.5|3|3||
+NDiffusion-Pin|pin@14||74|4|2|2||
+NDiffusion-Pin|pin@15||73|4|2|2||
+NDiffusion-Pin|pin@16||98|1|2|2||
+NDiffusion-Pin|pin@17||104|1|2|2||
+NDiffusion-Pin|pin@18||82|1|2|2||
+NDiffusion-Pin|pin@19||81|1|2|2||
+NDiffusion-Pin|pin@20||97|-4|2|2||
+NDiffusion-Pin|pin@21||98|-4|2|2||
+NDiffusion-Pin|pin@22||26|-5|2|2||
+NDiffusion-Pin|pin@23||103|-5|2|2||
+NDiffusion-Pin|pin@24||104|-5|2|2||
+NDiffusion-Pin|pin@25||29|-5|2|2||
+NPolysilicon-Pin|pin@26||65|-7|2|2||
+NPolysilicon-Pin|pin@27||93|-8|2|2||
+NDiffusion-Pin|pin@28||108|-10|2|2||
+NDiffusion-Pin|pin@29||109|-10|2|2||
+NMetal-Pin|pin@30||131.5|-9.5|3|3||
+NMetal-Pin|pin@31||78.5|-9.5|3|3||
+NDiffusion-Pin|pin@32||73|-11|2|2||
+NDiffusion-Pin|pin@33||74|-11|2|2||
+NDiffusion-Pin|pin@34||69|-11|2|2||
+NPolysilicon-Pin|pin@35||68|-15|2|2||
+NDiffusion-Pin|pin@36||113|-15|2|2||
+NDiffusion-Pin|pin@37||114|-15|2|2||
+NDiffusion-Pin|pin@38||42|-17|2|2||
+NDiffusion-Pin|pin@39||44|-17|2|2||
+NMetal-Pin|pin@40||118.5|-16.5|3|3||
+NMetal-Pin|pin@41||85.5|-16.5|3|3||
+NMetal-Pin|pin@42||78.5|-17.5|3|3||
+NDiffusion-Pin|pin@43||64|-20|2|2||
+NDiffusion-Pin|pin@44||61|-20|2|2||
+NDiffusion-Pin|pin@45||60|-20|2|2||
+NDiffusion-Pin|pin@46||38.5|-22|2|2||
+NDiffusion-Pin|pin@47||37|-22|2|2||
+NMetal-Pin|pin@48||85.5|-23.5|3|3||
+NPolysilicon-Pin|pin@49||89|-24|2|2||
+NDiffusion-Pin|pin@50||125|-27|2|2||
+NDiffusion-Pin|pin@51||122|-27|2|2||
+NDiffusion-Pin|pin@52||35|-30|2|2||
+NDiffusion-Pin|pin@53||73|-30|2|2||
+NDiffusion-Pin|pin@54||82|-30|2|2||
+NDiffusion-Pin|pin@55||29|-30|2|2||
+NPolysilicon-Pin|pin@56||126|-32|2|2||
+NPolysilicon-Pin|pin@57||49|-33|2|2||
+NPolysilicon-Pin|pin@58||69|-33|2|2||
+NPolysilicon-Pin|pin@59||132|-34|2|2||
+NPolysilicon-Pin|pin@60||126|-34|2|2||
 Itech-nMOSPullup;1{lay}|tech-nMO@0||17|-4|||D0G6;
 Itech-nMOSPullup;1{lay}|tech-nMO@1||41|-4|||D0G6;
 Itech-nMOSPullup;1{lay}|tech-nMO@2||61|-4|||D0G6;
@@ -1590,42 +1578,42 @@ AMetal|net@163||4|S0|contact@39||108|-38|contact@38||96|-38
 AMetal|net@164||4|S0|contact@40||113|-38|contact@39||108|-38
 AMetal|net@165||4|S1800|contact@40||113|-38|contact@41||122|-38
 AMetal|net@166||4|S1800|contact@41||122|-38|contact@42||129.5|-38
-Ea|A10;D6|pin@30||I
-Eb|A10;D6|pin@59||I
-Ecarryin|D2G3;Y-1;|pin@49||I
-Ecarryout|A10;D6|pin@1||O
-Egndin|D2G3;Y-2;|contact@42||G
-Egndout|D2G3;Y-2;|contact@32||G/B
-Esum|D2G3;X-1;|pin@22||O
-Evddin|D8G3;Y2;|contact@0||P/A
-Evddout|D8G3;Y2;|contact@11||P/A/B
+Ea||A10;D6|pin@30||I
+Eb||A10;D6|pin@59||I
+Ecarryin||D2G3;Y-1;|pin@49||I
+Ecarryout||A10;D6|pin@1||O
+Egndin||D2G3;Y-2;|contact@42||G
+Egndout||D2G3;Y-2;|contact@32||G/B
+Esum||D2G3;X-1;|pin@22||O
+Evddin||D8G3;Y2;|contact@0||P/A
+Evddout||D8G3;Y2;|contact@11||P/A/B
 X
 
-# Cell tech-nMOSPullup{lay}
-Ctech-nMOSPullup;1{lay}|nmos|0|612141470000|
+# Cell tech-nMOSPullup;1{lay}
+Ctech-nMOSPullup;1{lay}||nmos|0|612141470000|
 NBuried-Con-Cross-S|conn@0||12|13|4|4|R|
 NImplant-Transistor|dmos@0||12|18|6|14||
-NPolysilicon-Pin|pin@0||12|18|2|2||W
+NPolysilicon-Pin|pin@0||12|18|2|2||
 APolysilicon|net@0||2|S0|pin@0||12|18|dmos@0|imp-trans-poly-left|10|18
 APolysilicon|net@1||2|S2700|conn@0|bur-end-right|12|14|pin@0||12|18
 ADiffusion|net@2||2|S2700|conn@0|bur-diff-left|12|12|dmos@0|imp-trans-diff-bottom|12|12
-Ein|D5G4;|dmos@0|imp-trans-diff-top|U
-Eout|D5G1;|dmos@0|imp-trans-diff-bottom|U
-Epoly|D5G1;|pin@0||U
+Ein||D5G4;|dmos@0|imp-trans-diff-top|U
+Eout||D5G1;|dmos@0|imp-trans-diff-bottom|U
+Epoly||D5G1;|pin@0||U
 X
 
-# Cell tool-Compaction{}
-Ctool-Compaction;1{}|mocmos|902439421000|1119541140468|
+# Cell tool-Compaction;1{lay}
+Ctool-Compaction;1{lay}||mocmos|902439421000|1158097516687|
 NMetal-1-Polysilicon-1-Con|contact@0||-698.5|-282.5|5|5||
 NMetal-1-Polysilicon-1-Con|contact@1||-629.5|-284.5|5|5||
 NMetal-1-P-Active-Con|contact@2||-647.5|-350.5|17|17||
 NMetal-1-N-Active-Con|contact@3||-675.5|-350.5|17|17||
 NN-Transistor|nmos@0||-675.5|-283|15|22||
 NN-Transistor|nmos@1||-675.5|-310|15|22||
-NMetal-1-Pin|pin@0||-624|-350|3|3||W
-NMetal-1-Pin|pin@1||-624|-285|3|3||W
-NMetal-1-Pin|pin@2||-699|-350|3|3||W
-NMetal-1-Pin|pin@3||-699|-283|3|3||W
+NMetal-1-Pin|pin@0||-624|-350|3|3||
+NMetal-1-Pin|pin@1||-624|-285|3|3||
+NMetal-1-Pin|pin@2||-699|-350|3|3||
+NMetal-1-Pin|pin@3||-699|-283|3|3||
 NP-Transistor|pmos@0||-647.5|-284|15|22||
 NP-Transistor|pmos@1||-647.5|-310|15|22||
 AMetal-1|net@0||3|S0|pin@0||-624|-350|contact@2||-647|-350
@@ -1643,8 +1631,8 @@ AN-Active|net@11||15|S900|nmos@1|n-trans-diff-bottom|-675.5|-314|contact@3||-675
 APolysilicon-1|net@12||2|S0|pmos@1|p-trans-poly-left|-651|-310|nmos@1|n-trans-poly-right|-672|-310
 X
 
-# Cell tool-PadFrame{lay}
-Ctool-PadFrame;1{lay}|mocmos|979330051000|985890961000||prototype_center()I[-24000,8400]
+# Cell tool-PadFrame;1{lay}
+Ctool-PadFrame;1{lay}||mocmos|979330051000|985890961000||prototype_center()I[-24000,8400]
 Ngeneric:Facet-Center|art@0||0|0|0|0||AV
 NMetal-1-Metal-2-Con|contact@0||-49|28|5|5||
 NMetal-1-Polysilicon-1-Con|contact@1||-42|28|5|5||
@@ -1682,29 +1670,29 @@ NN-Transistor|nmos@2||15.5|-4|26|22||
 NN-Transistor|nmos@3||11|4.5|17|22||
 NN-Transistor|nmos@4||-11|4.5|17|22||
 NN-Transistor|nmos@5||-15.5|-4|26|22||
-NPolysilicon-1-Pin|pin@0||-42|47|2|2||W
-NPolysilicon-1-Pin|pin@1||0|-12|2|2||W
-NPolysilicon-1-Pin|pin@2||7|-23.5|2|2||W
-NPolysilicon-1-Pin|pin@3||11|-23.5|2|2||W
-NPolysilicon-1-Pin|pin@4||-7|-23.5|2|2||W
-NPolysilicon-1-Pin|pin@5||-11|-23.5|2|2||W
-NMetal-1-Pin|pin@6||0|-29|3|3||W
-NMetal-1-Pin|pin@7||0|34.5|3|3||W
-NPolysilicon-1-Pin|pin@8||-2.5|33.5|2|2||W
-NPolysilicon-1-Pin|pin@9||-6.5|33.5|2|2||W
-NPolysilicon-1-Pin|pin@10||2.5|33.5|2|2||W
-NPolysilicon-1-Pin|pin@11||6.5|33.5|2|2||W
-NPolysilicon-1-Pin|pin@12||-24.5|17.5|2|2||W
-NPolysilicon-1-Pin|pin@13||24.5|17.5|2|2||W
-NMetal-1-Pin|pin@14||11|17.5|3|3||W
-NMetal-1-Pin|pin@15||-11|17.5|3|3||W
-NMetal-1-Pin|pin@16||-35|-29|3|3||W
-NMetal-1-Pin|pin@17||27|-8|3|3||W
-NMetal-1-Pin|pin@18||27|43|3|3||W
-NMetal-1-Pin|pin@19||-27|43|3|3||W
-NPolysilicon-1-Pin|pin@20||-2.5|47|2|2||W
-NPolysilicon-1-Pin|pin@21||2.5|53.5|2|2||W
-NMetal-1-Pin|pin@22||-27|-8|3|3||W
+NPolysilicon-1-Pin|pin@0||-42|47|2|2||
+NPolysilicon-1-Pin|pin@1||0|-12|2|2||
+NPolysilicon-1-Pin|pin@2||7|-23.5|2|2||
+NPolysilicon-1-Pin|pin@3||11|-23.5|2|2||
+NPolysilicon-1-Pin|pin@4||-7|-23.5|2|2||
+NPolysilicon-1-Pin|pin@5||-11|-23.5|2|2||
+NMetal-1-Pin|pin@6||0|-29|3|3||
+NMetal-1-Pin|pin@7||0|34.5|3|3||
+NPolysilicon-1-Pin|pin@8||-2.5|33.5|2|2||
+NPolysilicon-1-Pin|pin@9||-6.5|33.5|2|2||
+NPolysilicon-1-Pin|pin@10||2.5|33.5|2|2||
+NPolysilicon-1-Pin|pin@11||6.5|33.5|2|2||
+NPolysilicon-1-Pin|pin@12||-24.5|17.5|2|2||
+NPolysilicon-1-Pin|pin@13||24.5|17.5|2|2||
+NMetal-1-Pin|pin@14||11|17.5|3|3||
+NMetal-1-Pin|pin@15||-11|17.5|3|3||
+NMetal-1-Pin|pin@16||-35|-29|3|3||
+NMetal-1-Pin|pin@17||27|-8|3|3||
+NMetal-1-Pin|pin@18||27|43|3|3||
+NMetal-1-Pin|pin@19||-27|43|3|3||
+NPolysilicon-1-Pin|pin@20||-2.5|47|2|2||
+NPolysilicon-1-Pin|pin@21||2.5|53.5|2|2||
+NMetal-1-Pin|pin@22||-27|-8|3|3||
 NN-Well-Node|plnode@0||0|34|60|34||A
 NP-Well-Node|plnode@1||0|-6.25|60|46.5||A
 NP-Transistor|pmos@0||11|30|17|22|YRR|
@@ -1787,17 +1775,17 @@ AN-Active|net@70||15|RS900|contact@21||11|8.5|nmos@3|n-trans-diff-top|11|8
 AN-Active|net@71||15|RS2700|contact@20||15.5|0|nmos@2|n-trans-diff-top|15.5|0
 AN-Active|net@72||15|RS900|contact@22||-11|8.5|nmos@4|n-trans-diff-top|-11|8
 AN-Active|net@73||15|RS2700|contact@23||-15.5|0|nmos@5|n-trans-diff-top|-15.5|0
-Egnd|D5G5;|contact@26||G
-Ein1|D5G5;|contact@0||I
-Ein2|D5G5;|contact@2||I
-Eout1|D5G5;|contact@27||O
-Eout2|D5G5;|contact@28||O
-Epulse|D5G5;|contact@25||I
-Evdd|D5G5;|contact@29||P
+Egnd||D5G5;|contact@26||G
+Ein1||D5G5;|contact@0||I
+Ein2||D5G5;|contact@2||I
+Eout1||D5G5;|contact@27||O
+Eout2||D5G5;|contact@28||O
+Epulse||D5G5;|contact@25||I
+Evdd||D5G5;|contact@29||P
 X
 
-# Cell tool-RoutingMaze{}
-Ctool-RoutingMaze;1{}|mocmos|900909520000|1103139402187|
+# Cell tool-RoutingMaze;1{lay}
+Ctool-RoutingMaze;1{lay}||mocmos|900909520000|1158097523390|
 NMetal-1-Polysilicon-1-Con|contact@0||206.5|191.5|5|5||
 NMetal-1-Polysilicon-1-Con|contact@1||85.5|138.5|5|5||
 NN-Transistor|nmos@0||132.5|137|15|22||
@@ -1807,43 +1795,43 @@ NN-Transistor|nmos@3||175|187.5|15|22||
 NN-Transistor|nmos@4||199|162.5|15|22|R|
 NN-Active-Pin|pin@0||113.5|161.5|15|15||
 Ageneric:Unrouted|net@2||0|FS1328|pin@0||113.5|161.5|nmos@0|n-trans-diff-top|132.5|141
-Ageneric:Unrouted|net@3||0|FS233|contact@0||206.5|191.5|contact@1||85|139
+Ageneric:Unrouted|net@3||0|FS234|contact@0||206.5|191.5|contact@1||85|139
 Ageneric:Unrouted|net@4||0|FS1350|nmos@1|n-trans-diff-bottom|172.5|155|nmos@2|n-trans-diff-top|195.5|132
 Ageneric:Unrouted|net@5||0|FS3136|nmos@4|n-trans-diff-top|195|162.5|nmos@3|n-trans-diff-bottom|175|183.5
 X
 
-# Cell tool-RoutingRiver{}
-Ctool-RoutingRiver;1{}|mocmos|902349456000|902349531000|
-Itool-RoutingRiverTop;1{}|tool-Rou@0||1|-5|||D0G6;
-Itool-RoutingRiverBottom;1{}|tool-Rou@1||-16|-47|||D0G6;
+# Cell tool-RoutingRiver;1{lay}
+Ctool-RoutingRiver;1{lay}||mocmos|902349456000|1158097528281|
+Itool-RoutingRiverTop;1{lay}|tool-Rou@0||1|-5|||D0G6;
+Itool-RoutingRiverBottom;1{lay}|tool-Rou@1||-16|-47|||D0G6;
 Ageneric:Unrouted|net@0||0|FS1298|tool-Rou@0|a8|-133.5|63.5|tool-Rou@1|b8|-108.5|33.5
-Ageneric:Unrouted|net@1||0|FS1236|tool-Rou@0|a7|-143.5|63.5|tool-Rou@1|b7|-123.5|33.5
-Ageneric:Unrouted|net@2||0|FS1165|tool-Rou@0|a6|-153.5|63.5|tool-Rou@1|b6|-138.5|33.5
+Ageneric:Unrouted|net@1||0|FS1237|tool-Rou@0|a7|-143.5|63.5|tool-Rou@1|b7|-123.5|33.5
+Ageneric:Unrouted|net@2||0|FS1166|tool-Rou@0|a6|-153.5|63.5|tool-Rou@1|b6|-138.5|33.5
 Ageneric:Unrouted|net@3||0|FS1084|tool-Rou@0|a5|-163.5|63.5|tool-Rou@1|b5|-153.5|33.5
-Ageneric:Unrouted|net@4||0|FS994|tool-Rou@0|a4|-173.5|63.5|tool-Rou@1|b4|-168.5|33.5
+Ageneric:Unrouted|net@4||0|FS995|tool-Rou@0|a4|-173.5|63.5|tool-Rou@1|b4|-168.5|33.5
 Ageneric:Unrouted|net@5||0|FS900|tool-Rou@0|a3|-183.5|63.5|tool-Rou@1|b3|-183.5|33.5
 Ageneric:Unrouted|net@6||0|FS805|tool-Rou@0|a2|-193.5|63.5|tool-Rou@1|b2|-198.5|33.5
-Ageneric:Unrouted|net@7||0|FS715|tool-Rou@0|a1|-203.5|63.5|tool-Rou@1|b1|-213.5|33.5
+Ageneric:Unrouted|net@7||0|FS716|tool-Rou@0|a1|-203.5|63.5|tool-Rou@1|b1|-213.5|33.5
 X
 
-# Cell tool-RoutingRiverBottom{}
-Ctool-RoutingRiverBottom;1{}|mocmos|902349361000|902349444000|
-NMetal-1-Pin|pin@0||-92.5|61.5|3|3||W
-NMetal-1-Pin|pin@1||-107.5|61.5|3|3||W
-NMetal-1-Pin|pin@2||-122.5|61.5|3|3||W
-NMetal-1-Pin|pin@3||-137.5|61.5|3|3||W
-NMetal-1-Pin|pin@4||-152.5|61.5|3|3||W
-NMetal-1-Pin|pin@5||-167.5|61.5|3|3||W
-NMetal-1-Pin|pin@6||-182.5|61.5|3|3||W
-NMetal-1-Pin|pin@7||-197.5|61.5|3|3||W
-NMetal-1-Pin|pin@8||-92.5|80.5|3|3||W
-NMetal-1-Pin|pin@9||-107.5|80.5|3|3||W
-NMetal-1-Pin|pin@10||-122.5|80.5|3|3||W
-NMetal-1-Pin|pin@11||-137.5|80.5|3|3||W
-NMetal-1-Pin|pin@12||-152.5|80.5|3|3||W
-NMetal-1-Pin|pin@13||-167.5|80.5|3|3||W
-NMetal-1-Pin|pin@14||-182.5|80.5|3|3||W
-NMetal-1-Pin|pin@15||-197.5|80.5|3|3||W
+# Cell tool-RoutingRiverBottom;1{lay}
+Ctool-RoutingRiverBottom;1{lay}||mocmos|902349361000|1158097532531|
+NMetal-1-Pin|pin@0||-92.5|61.5|3|3||
+NMetal-1-Pin|pin@1||-107.5|61.5|3|3||
+NMetal-1-Pin|pin@2||-122.5|61.5|3|3||
+NMetal-1-Pin|pin@3||-137.5|61.5|3|3||
+NMetal-1-Pin|pin@4||-152.5|61.5|3|3||
+NMetal-1-Pin|pin@5||-167.5|61.5|3|3||
+NMetal-1-Pin|pin@6||-182.5|61.5|3|3||
+NMetal-1-Pin|pin@7||-197.5|61.5|3|3||
+NMetal-1-Pin|pin@8||-92.5|80.5|3|3||
+NMetal-1-Pin|pin@9||-107.5|80.5|3|3||
+NMetal-1-Pin|pin@10||-122.5|80.5|3|3||
+NMetal-1-Pin|pin@11||-137.5|80.5|3|3||
+NMetal-1-Pin|pin@12||-152.5|80.5|3|3||
+NMetal-1-Pin|pin@13||-167.5|80.5|3|3||
+NMetal-1-Pin|pin@14||-182.5|80.5|3|3||
+NMetal-1-Pin|pin@15||-197.5|80.5|3|3||
 AMetal-1|net@0||3|S900|pin@8||-92.5|80.5|pin@0||-92.5|61.5
 AMetal-1|net@1||3|S900|pin@9||-107.5|80.5|pin@1||-107.5|61.5
 AMetal-1|net@2||3|S900|pin@10||-122.5|80.5|pin@2||-122.5|61.5
@@ -1852,34 +1840,34 @@ AMetal-1|net@4||3|S900|pin@12||-152.5|80.5|pin@4||-152.5|61.5
 AMetal-1|net@5||3|S900|pin@13||-167.5|80.5|pin@5||-167.5|61.5
 AMetal-1|net@6||3|S900|pin@14||-182.5|80.5|pin@6||-182.5|61.5
 AMetal-1|net@7||3|S900|pin@15||-197.5|80.5|pin@7||-197.5|61.5
-Eb1|D5G4;|pin@15||U
-Eb2|D5G4;|pin@14||U
-Eb3|D5G4;|pin@13||U
-Eb4|D5G4;|pin@12||U
-Eb5|D5G4;|pin@11||U
-Eb6|D5G4;|pin@10||U
-Eb7|D5G4;|pin@9||U
-Eb8|D5G4;|pin@8||U
+Eb1||D5G4;|pin@15||U
+Eb2||D5G4;|pin@14||U
+Eb3||D5G4;|pin@13||U
+Eb4||D5G4;|pin@12||U
+Eb5||D5G4;|pin@11||U
+Eb6||D5G4;|pin@10||U
+Eb7||D5G4;|pin@9||U
+Eb8||D5G4;|pin@8||U
 X
 
-# Cell tool-RoutingRiverTop{}
-Ctool-RoutingRiverTop;1{}|mocmos|902349268000|902349348000|
-NMetal-1-Pin|pin@0||-134.5|84.5|3|3||W
-NMetal-1-Pin|pin@1||-144.5|84.5|3|3||W
-NMetal-1-Pin|pin@2||-154.5|84.5|3|3||W
-NMetal-1-Pin|pin@3||-164.5|84.5|3|3||W
-NMetal-1-Pin|pin@4||-174.5|84.5|3|3||W
-NMetal-1-Pin|pin@5||-184.5|84.5|3|3||W
-NMetal-1-Pin|pin@6||-194.5|84.5|3|3||W
-NMetal-1-Pin|pin@7||-204.5|84.5|3|3||W
-NMetal-1-Pin|pin@8||-134.5|68.5|3|3||W
-NMetal-1-Pin|pin@9||-144.5|68.5|3|3||W
-NMetal-1-Pin|pin@10||-154.5|68.5|3|3||W
-NMetal-1-Pin|pin@11||-164.5|68.5|3|3||W
-NMetal-1-Pin|pin@12||-174.5|68.5|3|3||W
-NMetal-1-Pin|pin@13||-184.5|68.5|3|3||W
-NMetal-1-Pin|pin@14||-194.5|68.5|3|3||W
-NMetal-1-Pin|pin@15||-204.5|68.5|3|3||W
+# Cell tool-RoutingRiverTop;1{lay}
+Ctool-RoutingRiverTop;1{lay}||mocmos|902349268000|1158097535984|
+NMetal-1-Pin|pin@0||-134.5|84.5|3|3||
+NMetal-1-Pin|pin@1||-144.5|84.5|3|3||
+NMetal-1-Pin|pin@2||-154.5|84.5|3|3||
+NMetal-1-Pin|pin@3||-164.5|84.5|3|3||
+NMetal-1-Pin|pin@4||-174.5|84.5|3|3||
+NMetal-1-Pin|pin@5||-184.5|84.5|3|3||
+NMetal-1-Pin|pin@6||-194.5|84.5|3|3||
+NMetal-1-Pin|pin@7||-204.5|84.5|3|3||
+NMetal-1-Pin|pin@8||-134.5|68.5|3|3||
+NMetal-1-Pin|pin@9||-144.5|68.5|3|3||
+NMetal-1-Pin|pin@10||-154.5|68.5|3|3||
+NMetal-1-Pin|pin@11||-164.5|68.5|3|3||
+NMetal-1-Pin|pin@12||-174.5|68.5|3|3||
+NMetal-1-Pin|pin@13||-184.5|68.5|3|3||
+NMetal-1-Pin|pin@14||-194.5|68.5|3|3||
+NMetal-1-Pin|pin@15||-204.5|68.5|3|3||
 AMetal-1|net@0||3|S2700|pin@8||-134.5|68.5|pin@0||-134.5|84.5
 AMetal-1|net@1||3|S2700|pin@9||-144.5|68.5|pin@1||-144.5|84.5
 AMetal-1|net@2||3|S2700|pin@10||-154.5|68.5|pin@2||-154.5|84.5
@@ -1888,22 +1876,22 @@ AMetal-1|net@4||3|S2700|pin@12||-174.5|68.5|pin@4||-174.5|84.5
 AMetal-1|net@5||3|S2700|pin@13||-184.5|68.5|pin@5||-184.5|84.5
 AMetal-1|net@6||3|S2700|pin@14||-194.5|68.5|pin@6||-194.5|84.5
 AMetal-1|net@7||3|S2700|pin@15||-204.5|68.5|pin@7||-204.5|84.5
-Ea1|D5G4;|pin@15||U
-Ea2|D5G4;|pin@14||U
-Ea3|D5G4;|pin@13||U
-Ea4|D5G4;|pin@12||U
-Ea5|D5G4;|pin@11||U
-Ea6|D5G4;|pin@10||U
-Ea7|D5G4;|pin@9||U
-Ea8|D5G4;|pin@8||U
+Ea1||D5G4;|pin@15||U
+Ea2||D5G4;|pin@14||U
+Ea3||D5G4;|pin@13||U
+Ea4||D5G4;|pin@12||U
+Ea5||D5G4;|pin@11||U
+Ea6||D5G4;|pin@10||U
+Ea7||D5G4;|pin@9||U
+Ea8||D5G4;|pin@8||U
 X
 
-# Cell tool-SiliconCompiler{vhdl}
-Ctool-SiliconCompiler;1{vhdl}|artwork|676840842000|902688574000||FACET_message()S[-- VHDL design of Automobile Cruise Control,-- for 1988 CMC Workshop,--,"-- Written by: D. Luke, A. Jost, & R. Hobson",-- Revised to IEEE syntax by A. Jost,"-- Latest revision date: Jan 3, 1989",-- *********************************************,"",--BUS STRUCTURE DEFINITION,"",package buses is,        type BUS8 is array (0 to 7) of BIT;,end buses;,"",--**********************,"",--TOP LEVEL ENTITY ACC,"",use buses.all;,"","entity ACC is port(DR_SPEED, CONTROL : in BIT; FASTER, SLOWER : out BIT;",                REF_SPEED: in BUS8)  ;,end ACC;,"",-- how it is constructed:,"",architecture ACC_BODY of ACC is,"","    component   SENSOR_BOX port(pulses,reset : in BIT; refer: in BUS8;",                        equal : out BIT);,    end component;,"","    component   TRANSMITTER_BOX1 port( eq, ck: in BIT;","                        su, sd: out BIT);",    end component;,"",    signal      EQUAL: BIT;,"",begin,"","SENSOR:         SENSOR_BOX port map( DR_SPEED, CONTROL, REF_SPEED, EQUAL);","TRANSMITTER:    TRANSMITTER_BOX1 port map( EQUAL, CONTROL, FASTER, SLOWER);","",end ACC_BODY;,"",--*******************************************************,"",--ENTITY SENSOR_BOX,"",use buses.all;,"","entity SENSOR_BOX is port(pulses, reset: in BIT; refer: in BUS8;",                          equal: out BIT) ;,end SENSOR_BOX;,"",architecture SENSOR_BODY of SENSOR_BOX is,     ,"        component COUNTER_8 port(pulses,reset: in BIT; c: out BUS8);",	end component;,"","        component COMPARATOR_8 port(ina,inb: in BUS8;eql: out BIT);",	end component;,"",        signal C: BUS8;,"",begin,"","COUNTER:        COUNTER_8 port map(pulses,reset,C);","COMPARATOR:     COMPARATOR_8 port map(C,refer,equal);","",end SENSOR_BODY;,"",--***********************************************,"",-- ENTITY TRANSMITTER_BOX,"","entity TRANSMITTER_BOX1 is port( eq, ck: in BIT; su, sd: out BIT) ;",end TRANSMITTER_BOX1;,"",architecture TRANSMITTER_BODY1 of TRANSMITTER_BOX1 is,"","        component rdff port(d,ck,cb,reset: in BIT; q,qb: out BIT);",	end component;,"",        component inverter port(a: in BIT; y: out BIT);,	end component;,"","        component nor2 port(a1,a2: in BIT; y: out BIT);",	end component;,"","        component nor3 port(a1,a2,a3: in BIT; y: out BIT);",	end component;,"","        signal ckbar,q1b,power,q2,q2b: BIT;","",begin,"","FF1:    rdff port map(power,ck,ckbar,eq,open,q1b);","FF21:   nor2 port map(eq,q2b,q2);","FF22:   nor2 port map(q2,ck,q2b);","NOR3X:  nor3 port map(q2b,ck,su,sd);","INV:    inverter port map(ck,ckbar);","NORX:   nor2 port map(ck,q1b,su);","",end TRANSMITTER_BODY1;,"",--********************************************,"",--ENTITY COUNTER_8,"",use buses.all;,"","entity COUNTER_8 is port(pulses, reset: in BIT; c:out BUS8);",end COUNTER_8;,"",architecture COUNTER_BODY of COUNTER_8 is,"","    component    rdff port(d, ck, cb, reset : in BIT; q, qb: out BIT);",    end component;,"",    component    inverter port(a: in BIT; y: out BIT);,    end component;,"",    signal       CBAR: BUS8;,    signal       DSBAR: BIT;,    signal       HOLD: BIT;,"",begin,"",RIPPLEADD:  for i in 1 to 7 generate,"    RIPPLE:  rdff port map(CBAR(i), CBAR(i-1), C(i-1), HOLD, C(i), CBAR(i));",            end generate RIPPLEADD;,"","RIPPLEIN:   rdff port map(CBAR(0), pulses, DSBAR, HOLD, C(0), CBAR(0));","DS_INVERT:  inverter port map(pulses, DSBAR);","R_INVERT:   inverter port map(RESET, HOLD);","",end COUNTER_BODY;,"",--*************************************************,"",-- ENTITY COMPARATOR_8,"",use buses.all;,"","entity COMPARATOR_8 is port(ina, inb:in BUS8; eql: out BIT);",end COMPARATOR_8;,"",architecture COMPARATOR_BODY of COMPARATOR_8 is,"","        component xor2 port(a1,a2: in BIT; y,yb: out BIT);",	end component;,"","        component nor2 port(a1,a2: in BIT; y: out BIT);",	end component;,"","        component nand4 port(a1,a2,a3,a4: in BIT; y : out BIT);",	end component;,"",        signal comp: BUS8;,"        signal p,q: BIT;","",begin,"",XORG:   for i in 0 to 7 generate,"           XORX: xor2 port map(ina(i),inb(i),open,comp(i));",        end generate XORG;,"NANDX1: nand4 port map(comp(0),comp(1),comp(2),comp(3),p);","NANDX2: nand4 port map(comp(4),comp(5),comp(6),comp(7),q);","NORX:   nor2 port map(p,q,eql);","",end COMPARATOR_BODY;,"",--***************************************************************,""]
+# Cell tool-SiliconCompiler;1{vhdl}
+Ctool-SiliconCompiler;1{vhdl}||artwork|676840842000|902688574000||FACET_message()S[-- VHDL design of Automobile Cruise Control,-- for 1988 CMC Workshop,--,"-- Written by: D. Luke, A. Jost, & R. Hobson",-- Revised to IEEE syntax by A. Jost,"-- Latest revision date: Jan 3, 1989",-- *********************************************,"",--BUS STRUCTURE DEFINITION,"",package buses is,        type BUS8 is array (0 to 7) of BIT;,end buses;,"",--**********************,"",--TOP LEVEL ENTITY ACC,"",use buses.all;,"","entity ACC is port(DR_SPEED, CONTROL : in BIT; FASTER, SLOWER : out BIT;",                REF_SPEED: in BUS8)  ;,end ACC;,"",-- how it is constructed:,"",architecture ACC_BODY of ACC is,"","    component   SENSOR_BOX port(pulses,reset : in BIT; refer: in BUS8;",                        equal : out BIT);,    end component;,"","    component   TRANSMITTER_BOX1 port( eq, ck: in BIT;","                        su, sd: out BIT);",    end component;,"",    signal      EQUAL: BIT;,"",begin,"","SENSOR:         SENSOR_BOX port map( DR_SPEED, CONTROL, REF_SPEED, EQUAL);","TRANSMITTER:    TRANSMITTER_BOX1 port map( EQUAL, CONTROL, FASTER, SLOWER);","",end ACC_BODY;,"",--*******************************************************,"",--ENTITY SENSOR_BOX,"",use buses.all;,"","entity SENSOR_BOX is port(pulses, reset: in BIT; refer: in BUS8;",                          equal: out BIT) ;,end SENSOR_BOX;,"",architecture SENSOR_BODY of SENSOR_BOX is,     ,"        component COUNTER_8 port(pulses,reset: in BIT; c: out BUS8);",	end component;,"","        component COMPARATOR_8 port(ina,inb: in BUS8;eql: out BIT);",	end component;,"",        signal C: BUS8;,"",begin,"","COUNTER:        COUNTER_8 port map(pulses,reset,C);","COMPARATOR:     COMPARATOR_8 port map(C,refer,equal);","",end SENSOR_BODY;,"",--***********************************************,"",-- ENTITY TRANSMITTER_BOX,"","entity TRANSMITTER_BOX1 is port( eq, ck: in BIT; su, sd: out BIT) ;",end TRANSMITTER_BOX1;,"",architecture TRANSMITTER_BODY1 of TRANSMITTER_BOX1 is,"","        component rdff port(d,ck,cb,reset: in BIT; q,qb: out BIT);",	end component;,"",        component inverter port(a: in BIT; y: out BIT);,	end component;,"","        component nor2 port(a1,a2: in BIT; y: out BIT);",	end component;,"","        component nor3 port(a1,a2,a3: in BIT; y: out BIT);",	end component;,"","        signal ckbar,q1b,power,q2,q2b: BIT;","",begin,"","FF1:    rdff port map(power,ck,ckbar,eq,open,q1b);","FF21:   nor2 port map(eq,q2b,q2);","FF22:   nor2 port map(q2,ck,q2b);","NOR3X:  nor3 port map(q2b,ck,su,sd);","INV:    inverter port map(ck,ckbar);","NORX:   nor2 port map(ck,q1b,su);","",end TRANSMITTER_BODY1;,"",--********************************************,"",--ENTITY COUNTER_8,"",use buses.all;,"","entity COUNTER_8 is port(pulses, reset: in BIT; c:out BUS8);",end COUNTER_8;,"",architecture COUNTER_BODY of COUNTER_8 is,"","    component    rdff port(d, ck, cb, reset : in BIT; q, qb: out BIT);",    end component;,"",    component    inverter port(a: in BIT; y: out BIT);,    end component;,"",    signal       CBAR: BUS8;,    signal       DSBAR: BIT;,    signal       HOLD: BIT;,"",begin,"",RIPPLEADD:  for i in 1 to 7 generate,"    RIPPLE:  rdff port map(CBAR(i), CBAR(i-1), C(i-1), HOLD, C(i), CBAR(i));",            end generate RIPPLEADD;,"","RIPPLEIN:   rdff port map(CBAR(0), pulses, DSBAR, HOLD, C(0), CBAR(0));","DS_INVERT:  inverter port map(pulses, DSBAR);","R_INVERT:   inverter port map(RESET, HOLD);","",end COUNTER_BODY;,"",--*************************************************,"",-- ENTITY COMPARATOR_8,"",use buses.all;,"","entity COMPARATOR_8 is port(ina, inb:in BUS8; eql: out BIT);",end COMPARATOR_8;,"",architecture COMPARATOR_BODY of COMPARATOR_8 is,"","        component xor2 port(a1,a2: in BIT; y,yb: out BIT);",	end component;,"","        component nor2 port(a1,a2: in BIT; y: out BIT);",	end component;,"","        component nand4 port(a1,a2,a3,a4: in BIT; y : out BIT);",	end component;,"",        signal comp: BUS8;,"        signal p,q: BIT;","",begin,"",XORG:   for i in 0 to 7 generate,"           XORX: xor2 port map(ina(i),inb(i),open,comp(i));",        end generate XORG;,"NANDX1: nand4 port map(comp(0),comp(1),comp(2),comp(3),p);","NANDX2: nand4 port map(comp(4),comp(5),comp(6),comp(7),q);","NORX:   nor2 port map(p,q,eql);","",end COMPARATOR_BODY;,"",--***************************************************************,""]
 X
 
-# Cell tool-SimulateALS{sch}
-Ctool-SimulateALS;1{sch}|schematic|676677107000|1012003037000|
+# Cell tool-SimulateALS;1{sch}
+Ctool-SimulateALS;1{sch}||schematic|676677107000|1012003037000|
 NAnd|and@0||1|20|8|6||
 NAnd|and@1||-4|6|8|6||
 NBuffer|buf@0||-13|20|6|6||
@@ -1952,20 +1940,20 @@ Awire|net@20||0|FS0|and@1|a|-8|4|buf@1|y|-25|4
 Awire|net@21||0|FS0|buf@1|a|-30|4|pin@15||-40|4
 Awire|net@22||0|FS0|or@1|a|-29.5|9|pin@16||-40|9
 Awire|net@23||0|FS0|or@1|a|-29.5|13|pin@17||-40|13
-Ea|D9G2;|pin@17||I
-Eb|D9G2;|pin@16||I
-Ec|D9G2;|pin@15||I
-Ed|D9G2;|pin@13||I
-Ee|D9G2;|pin@11||I
-Ef|D9G2;|pin@12||I
-Ey|D7G2;|pin@2||O
-Ez|D7G2;|pin@14||O
+Ea||D9G2;|pin@17||I
+Eb||D9G2;|pin@16||I
+Ec||D9G2;|pin@15||I
+Ed||D9G2;|pin@13||I
+Ee||D9G2;|pin@11||I
+Ef||D9G2;|pin@12||I
+Ey||D7G2;|pin@2||O
+Ez||D7G2;|pin@14||O
 X
 
-# Cell tool-SimulateSPICE{lay}
-Ctool-SimulateSPICE;1{lay}|mocmos|0|1103139946656|
-Ispiceparts:DCVoltage;1{ic}|DCVoltag@0||-311.5|-60.25||E|D0G4;|ATTR_Voltage(D5G3;NT)S5V
-Ispiceparts:Pulse;1{ic}|Pulse@0||-235|-60.5||E|D0G4;|ATTR_DelayTime(D5G3;NTY5;)S0ns|ATTR_FallTime(D5G3;NTY-5;)S200ps|ATTR_InitialVoltage(D5G3;NTY15;)I0|ATTR_Period(D5G3;NTY-15;)S6ns|ATTR_PulseVoltage(D5G3;NTY10;)S3V|ATTR_PulseWidth(D5G3;NTY-10;)S3ns|ATTR_RiseTime(D5G3;NT)S200ps
+# Cell tool-SimulateSPICE;1{lay}
+Ctool-SimulateSPICE;1{lay}||mocmos|0|1103139946656|
+Ispiceparts:DCVoltage;1{ic}|DCVoltag@0||-311.5|-60.25|||D0G4;|ATTR_Voltage(D5G3;NT)S5V
+Ispiceparts:Pulse;1{ic}|Pulse@0||-235|-60.5|||D0G4;|ATTR_DelayTime(D5G3;NTY5;)S0ns|ATTR_FallTime(D5G3;NTY-5;)S200ps|ATTR_InitialVoltage(D5G3;NTY15;)I0|ATTR_Period(D5G3;NTY-15;)S6ns|ATTR_PulseVoltage(D5G3;NTY10;)S3V|ATTR_PulseWidth(D5G3;NTY-10;)S3ns|ATTR_RiseTime(D5G3;NT)S200ps
 NMetal-1-Metal-2-Con|contact@0||-251.67|-60.5|5|5||
 NMetal-1-P-Active-Con|contact@1||-258.17|-49.5|17|17||
 NMetal-1-P-Active-Con|contact@2||-269.17|-49.5|17|17||
@@ -1975,37 +1963,37 @@ NMetal-1-P-Active-Con|contact@5||-279.67|-49.5|17|17||
 NN-Transistor|nmos@0||-265.67|-79|17|22|R|
 NN-Transistor|nmos@1||-270.67|-79|17|22|R|
 Ngeneric:Invisible-Pin|pin@0||-241|-98|0|0|||SIM_spice_card(D6G2;)S[* My own SPICE cards,* That get stuffed into the deck]
-NMetal-1-Pin|pin@1||-280.17|-36.5|3|3||W
-NMetal-1-Pin|pin@2||-280.17|-37|3|3||W
-NMetal-1-Pin|pin@3||-277.17|-91.5|3|3||W
-NPolysilicon-1-Pin|pin@4||-265.67|-94|2|2||W
-NPolysilicon-1-Pin|pin@5||-270.67|-94|2|2||W
-NPolysilicon-1-Pin|pin@6||-273.67|-34|2|2||W
-NPolysilicon-1-Pin|pin@7||-263.67|-34|2|2||W
-NMetal-1-Pin|pin@8||-268.67|-61|3|3||W
-NMetal-1-Pin|pin@9||-260.67|-71|3|3||W
-NMetal-1-Pin|pin@10||-259.17|-71|3|3||W
-NMetal-1-Pin|pin@11||-259.17|-61|3|3||W
-NMetal-1-Pin|pin@12||-249.17|-91.5|3|3||W
-NMetal-2-Pin|pin@13||-251.67|-93.5|3|3||W
-NMetal-2-Pin|pin@14||-251.67|-34.5|3|3||W
-NMetal-1-Pin|pin@15||-276.67|-91.5|3|3||W
-NMetal-1-Pin|pin@16||-258.17|-36.5|3|3||W
-NMetal-1-Pin|pin@17||-279.67|-36.5|3|3||W
-NPolysilicon-1-Pin|pin@18||-263.67|-65.5|2|2||W
-NPolysilicon-1-Pin|pin@19||-265.67|-65.5|2|2||W
-NPolysilicon-1-Pin|pin@20||-273.67|-65.5|2|2||W
-NPolysilicon-1-Pin|pin@21||-270.67|-65.5|2|2||W
-NMetal-1-Pin|pin@23||-249.17|-36.5|3|3||W
-NMetal-1-Pin|pin@24||-284.67|-36.5|3|3||W
-NPolysilicon-1-Pin|pin@26||-273.67|-27.5|2|2||W
-NPolysilicon-1-Pin|pin@28||-263.67|-25|2|2||W
-NMetal-1-Pin|pin@31||-284.67|-36.75|3|3||W
-NPolysilicon-1-Pin|pin@37||-304.5|-27.5|2|2||W
-NMetal-1-Pin|pin@38||-304.5|-91.5|3|3||W
-NMetal-1-Pin|pin@39||-228|-66.5|3|3||W
-NMetal-1-Pin|pin@40||-228|-91.5|3|3||W
-NPolysilicon-1-Pin|pin@41||-228|-25|2|2||W
+NMetal-1-Pin|pin@1||-280.17|-36.5|3|3||
+NMetal-1-Pin|pin@2||-280.17|-37|3|3||
+NMetal-1-Pin|pin@3||-277.17|-91.5|3|3||
+NPolysilicon-1-Pin|pin@4||-265.67|-94|2|2||
+NPolysilicon-1-Pin|pin@5||-270.67|-94|2|2||
+NPolysilicon-1-Pin|pin@6||-273.67|-34|2|2||
+NPolysilicon-1-Pin|pin@7||-263.67|-34|2|2||
+NMetal-1-Pin|pin@8||-268.67|-61|3|3||
+NMetal-1-Pin|pin@9||-260.67|-71|3|3||
+NMetal-1-Pin|pin@10||-259.17|-71|3|3||
+NMetal-1-Pin|pin@11||-259.17|-61|3|3||
+NMetal-1-Pin|pin@12||-249.17|-91.5|3|3||
+NMetal-2-Pin|pin@13||-251.67|-93.5|3|3||
+NMetal-2-Pin|pin@14||-251.67|-34.5|3|3||
+NMetal-1-Pin|pin@15||-276.67|-91.5|3|3||
+NMetal-1-Pin|pin@16||-258.17|-36.5|3|3||
+NMetal-1-Pin|pin@17||-279.67|-36.5|3|3||
+NPolysilicon-1-Pin|pin@18||-263.67|-65.5|2|2||
+NPolysilicon-1-Pin|pin@19||-265.67|-65.5|2|2||
+NPolysilicon-1-Pin|pin@20||-273.67|-65.5|2|2||
+NPolysilicon-1-Pin|pin@21||-270.67|-65.5|2|2||
+NMetal-1-Pin|pin@23||-249.17|-36.5|3|3||
+NMetal-1-Pin|pin@24||-284.67|-36.5|3|3||
+NPolysilicon-1-Pin|pin@26||-273.67|-27.5|2|2||
+NPolysilicon-1-Pin|pin@28||-263.67|-25|2|2||
+NMetal-1-Pin|pin@31||-284.67|-36.75|3|3||
+NPolysilicon-1-Pin|pin@37||-304.5|-27.5|2|2||
+NMetal-1-Pin|pin@38||-304.5|-91.5|3|3||
+NMetal-1-Pin|pin@39||-228|-66.5|3|3||
+NMetal-1-Pin|pin@40||-228|-91.5|3|3||
+NPolysilicon-1-Pin|pin@41||-228|-25|2|2||
 NN-Well-Node|plnode@0||-267.5|-44.67|45|31||
 NP-Well-Node|plnode@1||-267.5|-83|45|31||
 NP-Transistor|pmos@0||-263.67|-49.5|17|22|R|
@@ -2061,13 +2049,13 @@ AMetal-1|net@54||3|S900|Pulse@0|minus|-228|-63.5|pin@39||-228|-66.5
 AMetal-1|net@56||3|S900|Pulse@0|minus|-228|-63.5|pin@40||-228|-91.5
 APolysilicon-1|net@58||2|S2700|Pulse@0|plus|-228|-57.5|pin@41||-228|-25
 AN-Active|probeA|D5G2;|15|S1800|nmos@0|n-trans-diff-top|-269.17|-79|nmos@1|n-trans-diff-bottom|-266.67|-79
-Egnd|D5G2;|well@0||G
-Evdd|D5G2;|substr@0||P
+Egnd||D5G2;|well@0||G
+Evdd||D5G2;|substr@0||P
 X
 
-# Cell tool-SimulateVERILOG{sch}
-Ctool-SimulateVERILOG;1{sch}|schematic|923075962000|1103142957968|
-Itool-SimulateVerilogAnd;1{ic}|And[0:3]|D5G1;|-29.5|-10||E|D5G4;
+# Cell tool-SimulateVERILOG;1{sch}
+Ctool-SimulateVERILOG;1{sch}||schematic|923075962000|1103142957968|
+Itool-SimulateVerilogAnd;1{ic}|And[0:3]|D5G1;|-29.5|-10|||D5G4;
 NBuffer|buf@0||-24.5|-22|6|6||
 NOr|or@0||-34|-22|10|6||
 NBus_Pin|pin@2||-16|-10|2|2||
@@ -2116,43 +2104,43 @@ Awire|net@25||0|0|or@0|a|-37.25|-22|pin@27||-47|-22
 Awire|z[0]|D8G1;|0|1800|xor@0|y|-31.5|-30|pin@21||-26|-30
 Awire|z[1]|D8G1;|0|0|pin@13||-17|-22|buf@0|y|-22.5|-22
 Awire|z[3]|D8G1;X-0.5;|0|0|pin@20||-45|-24|pin@12||-47|-24
-Ea|D9G1;|pin@11||I
-Em[0:3]|D5G2;|pin@25||O
-Ez[0:3]|D5G2;|pin@26||O
-Ez[2]|D5G1;|pin@27||O
+Ea||D9G1;|pin@11||I
+Em[0:3]||D5G2;|pin@25||O
+Ez[0:3]||D5G2;|pin@26||O
+Ez[2]||D5G1;|pin@27||O
 X
 
-# Cell tool-SimulateVerilogAnd{ic}
-Ctool-SimulateVerilogAnd;1{ic}|artwork|1103140052281|1103141258890|E
+# Cell tool-SimulateVerilogAnd;1{ic}
+Ctool-SimulateVerilogAnd;1{ic}||artwork|1103140052281|1103141258890|E
 Ngeneric:Facet-Center|art@0||0|0|0|0||AV
 NOpened-Thicker-Polygon|art@2||-1.5|0|3|4|||trace()V[1.5/2,-1.5/2,-1.5/-2,1.5/-2]
 NThick-Circle|art@3||0|0|4|4|RRR||ART_degrees()F[0.0,3.1415927]
 Ngeneric:Universal-Pin|pin@0||-3|1|0|0||
 Ngeneric:Universal-Pin|pin@2||-3|-1|0|0||
 Ngeneric:Universal-Pin|pin@4||2|0|0|0||
-Ein1|D5G2;|pin@0||I
-Ein2|D5G2;|pin@2||I
-Eout|D5G2;|pin@4||O
+Ein1||D5G2;|pin@0||I
+Ein2||D5G2;|pin@2||I
+Eout||D5G2;|pin@4||O
 X
 
-# Cell tool-SimulateVerilogAnd{sch}
-Ctool-SimulateVerilogAnd;1{sch}|schematic|1103140018109|1103142863640|
+# Cell tool-SimulateVerilogAnd;1{sch}
+Ctool-SimulateVerilogAnd;1{sch}||schematic|1103140018109|1103142863640|
 NAnd|and@0||-2|6|8|6||
 Ngeneric:Facet-Center|art@0||0|0|0|0||AV
 NBus_Pin|pin@0||-12|8|2|2||
 NBus_Pin|pin@1||-12.5|4|2|2||
 NBus_Pin|pin@2||10.5|6|2|2||
-Itool-SimulateVerilogAnd;1{ic}|tool-Sim@0||15.5|14||E|D5G4;
+Itool-SimulateVerilogAnd;1{ic}|tool-Sim@0||15.5|14|||D5G4;
 Abus|net@0||1|0|and@0|a|-6|8|pin@0||-12|8
 Abus|net@1||1|0|and@0|a|-6|4|pin@1||-12.5|4
 Abus|net@2||1|IJ1800|and@0|y|1.5|6|pin@2||10.5|6
-Ein1|D5G2;|pin@0||I
-Ein2|D5G2;|pin@1||I
-Eout|D5G2;|pin@2||O
+Ein1||D5G2;|pin@0||I
+Ein2||D5G2;|pin@1||I
+Eout||D5G2;|pin@2||O
 X
 
-# Cell tool_NCC{lay}
-Ctool_NCC;1{lay}|mocmos|986396021000|987906611000||prototype_center()I[0,0]
+# Cell tool_NCC;1{lay}
+Ctool_NCC;1{lay}||mocmos|986396021000|987906611000||prototype_center()I[0,0]
 Ngeneric:Facet-Center|art@0||0|0|0|0||AV
 NMetal-1-N-Active-Con|contact@0||8|8.5|17|27|YRR|
 NMetal-1-Polysilicon-1-Con|contact@1||16|24.5|5|5||
@@ -2172,29 +2160,29 @@ NN-Transistor|nmos@0||-7|15|15|27|R|
 NN-Transistor|nmos@1||-20|6.5|32|22|YRRR|
 NN-Transistor|nmos@2||12|6.5|32|22|YRRR|
 NN-Transistor|nmos@3||4|6.5|32|22|YRRR|
-NN-Active-Pin|pin@0||-16|15|15|15||W
-NMetal-1-Pin|pin@1||-16|14|3|3||W
-NMetal-1-Pin|pin@2||0|0|3|3||W
-NMetal-1-Pin|pin@3||0|51|3|3||W
-NMetal-1-Pin|pin@4||-9|14|3|3||W
-NMetal-1-Pin|pin@5||-9|10.5|3|3||W
-NPolysilicon-1-Pin|pin@6||-5.5|21|2|2||W
-NMetal-1-Pin|pin@7||16|24.5|3|3||W
-NMetal-1-Pin|pin@8||-17|24.5|3|3||W
-NPolysilicon-1-Pin|pin@9||15.5|23|2|2||W
-NPolysilicon-1-Pin|pin@10||12|23|2|2||W
-NMetal-1-Pin|pin@11||-9.5|14|3|3||W
-NN-Active-Pin|pin@12||-16|15|15|15||W
-NPolysilicon-1-Pin|pin@13||-17|23|2|2||W
-NPolysilicon-1-Pin|pin@14||-20|23|2|2||W
-NMetal-1-Pin|pin@15||-9.5|29|3|3||W
-NMetal-1-Pin|pin@16||-9.5|41.5|3|3||W
-NMetal-1-Pin|pin@17||16|-3.5|3|3||W
-NMetal-1-Pin|pin@18||-24|14|3|3||W
-NMetal-2-Pin|pin@19||0|42|3|3||W
-NMetal-2-Pin|pin@20||0|0|3|3||W
-NMetal-1-Pin|pin@21||8|21.5|3|3||W
-NPolysilicon-1-Pin|pin@22||4|28.5|2|2||W
+NN-Active-Pin|pin@0||-16|15|15|15||
+NMetal-1-Pin|pin@1||-16|14|3|3||
+NMetal-1-Pin|pin@2||0|0|3|3||
+NMetal-1-Pin|pin@3||0|51|3|3||
+NMetal-1-Pin|pin@4||-9|14|3|3||
+NMetal-1-Pin|pin@5||-9|10.5|3|3||
+NPolysilicon-1-Pin|pin@6||-5.5|21|2|2||
+NMetal-1-Pin|pin@7||16|24.5|3|3||
+NMetal-1-Pin|pin@8||-17|24.5|3|3||
+NPolysilicon-1-Pin|pin@9||15.5|23|2|2||
+NPolysilicon-1-Pin|pin@10||12|23|2|2||
+NMetal-1-Pin|pin@11||-9.5|14|3|3||
+NN-Active-Pin|pin@12||-16|15|15|15||
+NPolysilicon-1-Pin|pin@13||-17|23|2|2||
+NPolysilicon-1-Pin|pin@14||-20|23|2|2||
+NMetal-1-Pin|pin@15||-9.5|29|3|3||
+NMetal-1-Pin|pin@16||-9.5|41.5|3|3||
+NMetal-1-Pin|pin@17||16|-3.5|3|3||
+NMetal-1-Pin|pin@18||-24|14|3|3||
+NMetal-2-Pin|pin@19||0|42|3|3||
+NMetal-2-Pin|pin@20||0|0|3|3||
+NMetal-1-Pin|pin@21||8|21.5|3|3||
+NPolysilicon-1-Pin|pin@22||4|28.5|2|2||
 NP-Well-Node|plnode@0||0|7|72|35||A
 NN-Well-Node|plnode@1||0|42|72|35||A
 NP-Transistor|pmos@0||-6|42|15|25|R|
@@ -2250,17 +2238,17 @@ AMetal-1|net@45||3|S1800|contact@10||-2.5|21.5|pin@21||8|21.5
 AMetal-1|net@46||3|S2700|pin@21||8|21.5|contact@12||8|38
 APolysilicon-1|net@47||2|S1800|contact@9||1.5|28.5|pin@22||4|28.5
 APolysilicon-1|net@48||2|S900|pmos@1|p-trans-poly-left|4|30.5|pin@22||4|28.5
-Ec[4]|D5G2;Y3;|pin@7||I
-Ec[5]|D5G2;Y3;|pin@8||I
-Egnd|D5G2;Y-3;|pin@20||G
-Ein|D5G2;Y1;|pin@18||I
-Eout|D5G2;|pin@17||O
-Ev[1]|D5G2;|pin@5||I
-Evdd|D5G2;Y3;|pin@19||P
+Ec[4]||D5G2;Y3;|pin@7||I
+Ec[5]||D5G2;Y3;|pin@8||I
+Egnd||D5G2;Y-3;|pin@20||G
+Ein||D5G2;Y1;|pin@18||I
+Eout||D5G2;|pin@17||O
+Ev[1]||D5G2;|pin@5||I
+Evdd||D5G2;Y3;|pin@19||P
 X
 
-# Cell tool_NCC{sch}
-Ctool_NCC;1{sch}|schematic|985703749000|1012003077000||prototype_center()I[8000,0]
+# Cell tool_NCC;1{sch}
+Ctool_NCC;1{sch}||schematic|985703749000|1012003077000||prototype_center()I[8000,0]
 Ngeneric:Facet-Center|art@0||0|0|0|0||AV
 NGround|gnd@0||15.5|-14|3|4||
 NTransistor|nmos@0||1.5|-2|4|4|Y||ATTR_length(D5G1;Y-1.5;)I2|ATTR_width(D5G1;Y-0.5;)I20
@@ -2326,11 +2314,11 @@ Awire|net@30||0|2700|pin@20||1|6|pin@9||1|7
 Awire|net@31||0|900|pmos@1|d|8|9|pin@21||8|6
 Awire|net@32||0|900|pin@21||8|6|pin@18||8|4
 Awire|net@33||0|1800|pin@20||1|6|pin@21||8|6
-Ec[4]|D5G2;Y-1;|pin@8||I
-Ec[5]|D5G2;Y-1;|pin@10||I
-Ein|D5G2;X-1;|pin@3||I
-Eout|D5G2;X1;|pin@7||O
-Ev[1]|D5G2;Y1;|pin@9||I
+Ec[4]||D5G2;Y-1;|pin@8||I
+Ec[5]||D5G2;Y-1;|pin@10||I
+Ein||D5G2;X-1;|pin@3||I
+Eout||D5G2;X1;|pin@7||O
+Ev[1]||D5G2;Y1;|pin@9||I
 X
 
 # Groups:
@@ -2349,12 +2337,12 @@ Gtech-SchematicsAnalog;1{sch}
 Gtech-SchematicsDigital;1{sch}
 G|tech-nMOS;1{lay}
 G|tech-nMOSPullup;1{lay}
-G|tool-Compaction;1{}
+G|tool-Compaction;1{lay}
 G|tool-PadFrame;1{lay}
-G|tool-RoutingMaze;1{}
-G|tool-RoutingRiver;1{}
-G|tool-RoutingRiverBottom;1{}
-G|tool-RoutingRiverTop;1{}
+G|tool-RoutingMaze;1{lay}
+G|tool-RoutingRiver;1{lay}
+G|tool-RoutingRiverBottom;1{lay}
+G|tool-RoutingRiverTop;1{lay}
 G|tool-SiliconCompiler;1{vhdl}
 Gtool-SimulateALS;1{sch}
 G|tool-SimulateSPICE;1{lay}
