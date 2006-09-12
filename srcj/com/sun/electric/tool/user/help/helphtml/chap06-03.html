@@ -3,7 +3,9 @@
 <!-- COMMAND File/Preferences... -->
 <!-- COMMAND File/Project Settings... -->
 <!-- COMMAND File/Export/Preferences... -->
+<!-- COMMAND File/Export/Project Settings... -->
 <!-- COMMAND File/Import/Preferences... -->
+<!-- COMMAND File/Import/Project Settings... -->
 
 <TABLE><TR><TD><CENTER><IMG SRC="fig06-07.png" ALT="Figure 6.7"></CENTER></TD><TD>
 There are two commands for controlling settings in Electric: <B>Preferences...</B> and <B>Project Settings...</B>
@@ -45,14 +47,21 @@ In your home directory, under Library/Preferences.  Look at: ~/Library/Preferenc
 </UL>
 You can delete the appropriate data to reset Electric to its "factory" state.
 <P>
-You can also export your preferences with the "Export" button in the dialog,
-or with the <B>Preferences...</B> command (in menu <B>File / Export</B>).
+You can export your preferences to disk for ease of saving and transporting.
+Use the "Export" button in the dialog,
+or with the <B>Preferences...</B> command (in menu <B>File / Export</B>).
 These will write an XML file with preference information.
 This XML file can be read back into Electric's preferences with the
 "Import" button, or with the <B>Preferences...</B> command (in menu <B>File / Import</B>).
+<P>
+Project settings can be exported with the <B>Project Settings...</B> command (in menu <B>File / Export</B>).
+This writes an XML file with project setting information.
+This XML file can be read back into Electric with the
+<B>Project Settings...</B> command (in menu <B>File / Import</B>).
 
 <!-- NEED 2in -->
-<P>
+
+<P>
 Electric stores Project Settings in every library file so that,
 when read back in, these settings can be reconciled with current settings.
 When a library is read that has different Project Settings, this dialog appears:

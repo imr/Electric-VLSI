@@ -32,7 +32,8 @@ In addition to GDS numbers to use for layout, there are also two other types of 
 <P>
 These dialog elements apply to writing GDS:
 <UL>
-<LI>"Output merges Boxes".
+<LI>
+"Output merges Boxes".
 This controls the merging of adjoining geometry.
 It is an issue because of the duplication and overlap that occurs wherever arcs and nodes meet.
 The default action is to write each node and arc individually.
@@ -40,26 +41,37 @@ This makes the file larger because of redundant box information,
 however it is faster to generate and uses simpler constructs.
 If you check this item,
 all connecting regions on the same layer are merged into one complex polygon.
-This requires more processing, produces a smaller file, and generates more complex constructs.</LI>
-<LI>"Output writes export Pins".
+This requires more processing, produces a smaller file, and generates more complex constructs.
+</LI>
+<LI>
+"Output writes export Pins".
 This controls whether pins are written to the GDS file for each export.
-If checked, and there is a valid pin layer, then it is written.</LI>
-<LI>"Output all upper case".
+If checked, and there is a valid pin layer, then it is written.
+</LI>
+<LI>
+"Output all upper case".
 This controls whether the GDS file uses all upper case.
-The default is to mix upper and lower case, but some systems insist on upper-case GDS.</LI>
-<LI>"Output converts brackets in exports".
+The default is to mix upper and lower case, but some systems insist on upper-case GDS.
+</LI>
+<LI>
+"Output converts brackets in exports".
 This controls whether the square brackets used in array specifications should be converted (to underscores).
-Some GDS readers cannot handle the square bracket characters.</LI>
-<LI>"Max chars in output cell name".
+Some GDS readers cannot handle the square bracket characters.
+</LI>
+<LI>
+"Max chars in output cell name".
 This limits the number of characters in a cell name.
-Names longer than this are truncated, and adjusted to ensure uniqueness.</LI>
+Names longer than this are truncated, and adjusted to ensure uniqueness.
+</LI>
 <LI>"Output default text layer".
 This is the layer number to use when writing text.
 When exports are being written, and there is a text layer number associated with the appropriate Electric layer,
 then that layer number is used instead of this default number.</LI>
 
-</UL>
-<P>
+
+</UL>
+
+<P>
 <TABLE><TR><TD>
 You can also use the GDS Preferences
 (in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab) to control GDS input and output.

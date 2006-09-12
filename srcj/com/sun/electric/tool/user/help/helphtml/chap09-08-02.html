@@ -34,15 +34,24 @@ There should be a carriage return after the list word, but no other blank lines 
 Here is a sample ROM file:
 <BR>
 <CODE>
-&nbsp;&nbsp;&nbsp;1<BR>
-&nbsp;&nbsp;&nbsp;010101<BR>
-&nbsp;&nbsp;&nbsp;011001<BR>
-&nbsp;&nbsp;&nbsp;100101<BR>
-&nbsp;&nbsp;&nbsp;101010<BR>
-&nbsp;&nbsp;&nbsp;4<BR>
-&nbsp;&nbsp;&nbsp;00000000<BR>
-&nbsp;&nbsp;&nbsp;10000000<BR>
-&nbsp;&nbsp;&nbsp;01000000<BR>
+&nbsp;&nbsp;&nbsp;1
+<BR>
+&nbsp;&nbsp;&nbsp;010101
+<BR>
+&nbsp;&nbsp;&nbsp;011001
+<BR>
+&nbsp;&nbsp;&nbsp;100101
+<BR>
+&nbsp;&nbsp;&nbsp;101010
+<BR>
+&nbsp;&nbsp;&nbsp;4
+<BR>
+&nbsp;&nbsp;&nbsp;00000000
+<BR>
+&nbsp;&nbsp;&nbsp;10000000
+<BR>
+&nbsp;&nbsp;&nbsp;01000000
+<BR>
 &nbsp;&nbsp;&nbsp;11000000
 </CODE>
 </LI>
@@ -63,26 +72,34 @@ Here is some sample PLA logic:
 Here is the AND file for the above logic:
 <BR>
 <CODE>
-&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;3<BR>
-&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;1&nbsp;&nbsp;0<BR>
-&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;0&nbsp;&nbsp;X<BR>
-&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;X&nbsp;&nbsp;1<BR>
+&nbsp;&nbsp;&nbsp;4&nbsp;&nbsp;3
+<BR>
+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;1&nbsp;&nbsp;0
+<BR>
+&nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;0&nbsp;&nbsp;X
+<BR>
+&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;X&nbsp;&nbsp;1
+<BR>
 &nbsp;&nbsp;&nbsp;0&nbsp;&nbsp;X&nbsp;&nbsp;0
 </CODE>
 </LI>
 
 <LI><B>Fill (MoCMOS)...</B>
-Fill cells are used in certain fabrication processes that demand that all layers be filled to
-a specified capacity.
-There are commands to evaluate the coverage (see <A HREF="chap09-02-04.html#chap09-02-04">Section 9-2-4</A>).
-This command generates fill.
-<TABLE><TR><TD>
-The fill generator creates cells that have specified layers in them.
-The cells are then placed to create the desired fill.
+Fill cells are used in certain fabrication processes that require all layers to be filled
+with a particular amount of geometry.
+Electric has coverage facilities to evaluate the amount of fill
+(see <A HREF="chap09-02-04.html#chap09-02-04">Section 9-2-4</A>).
+This command generates fill cells.
+<P>
+The fill cell generator creates cells that have specified layers in them.
+It also arrays the cells to form large fill planes.
+You can then place these cells to create the desired fill.
+<P>
+<CENTER><IMG SRC="fig09-59.png" ALT="Figure 9.59" BORDER=0></CENTER>
 <P>
 The Fill Cell Generator dialog has two tabs: "Floorplan" and "Tiling".
-The Floorplan section specifies what is inside of the fill cells.
-The Tiling section specifies how those cells are arrayed to produce a larger fill.
+The Floorplan section specifies what is inside of a single fill cell.
+The Tiling section specifies how those cells are arrayed to produce larger fill cells.
 <P>
 The Floorplan section uses a <I>Template Fill</I> technique
 (another <I>Fill Cell</I> technique is in preparation but not yet available).
@@ -90,7 +107,23 @@ Template Fill generates fill cells of a given width and height.
 The "Reserved Space" section lets you specify which layers of metal will be in the fill cells.
 These metal layers alternate running horizontally and vertically (the "Even layer orientation"
 controls which layer runs horizontally first).
-</TD><TD><IMG SRC="fig09-59.png" ALT="Figure 9.59" BORDER=0></TD></TR></TABLE>
+<P>
+<TABLE><TR><TD>
+The fill cell will have four metal wires running in each direction:
+the outer two are Ground and the inner two are Power.
+The spacing between the inner two is given in the "Vdd Space" section next
+to the selected metal layer.
+The spacing between the ground wires and the edge is half of the "Gnd Space"
+value.
+The spacing between the power and ground wires takes up the remaining space
+in the cell.
+</TD><TD><IMG SRC="fig09-62.png" ALT="Figure 9.62" BORDER=0></TD></TR></TABLE>
+<P>
+<TABLE><TR><TD><IMG SRC="fig09-61.png" ALT="Figure 9.61" BORDER=0></TD><TD>
+The Tiling section lets you request arrays of fill cells to be generated.
+Check the desired sizes and they will be generated.
+</TD></TR></TABLE>
+<P>
 </LI>
 
 <LI><B>Generate gate layouts (MoCMOS)</B>
