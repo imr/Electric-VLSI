@@ -1076,7 +1076,7 @@ public class Simulation extends Tool
     }
 
     private static Pref cacheVerilogUseAssign = Pref.makeBooleanSetting("VerilogUseAssign", tool.prefs, tool,
-		"Tools/Verilog tab", "Verilog uses Assign construct", false);
+		"Verilog tab", "Verilog uses Assign construct", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use the Assign statement.
 	 * The default is false.
@@ -1090,7 +1090,7 @@ public class Simulation extends Tool
 	public static void setVerilogUseAssign(boolean use) { getVerilogNode().putBoolean("VerilogUseAssign", use); }
 
 	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanSetting("VerilogUseTrireg", tool.prefs, tool,
-		"Tools/Verilog tab", "Verilog presumes wire is Trireg", false);
+		"Verilog tab", "Verilog presumes wire is Trireg", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.

@@ -3095,7 +3095,7 @@ public class Technology implements Comparable<Technology>
 	protected void setFactoryScale(double factory, boolean scaleRelevant)
 	{
 		this.scaleRelevant = scaleRelevant;
-		prefScale = Pref.makeDoubleSetting(getScaleVariableName(), prefs, this, "Technology/Scale tab", getTechShortName() + " scale", factory);
+		prefScale = Pref.makeDoubleSetting(getScaleVariableName(), prefs, this, "Scale tab", getTechShortName() + " scale", factory);
 		Pref.Meaning meaning = prefScale.getMeaning();
 		meaning.setValidOption(isScaleRelevant());
         // use old pref as default (if pref missing, will use hard-coded default)
@@ -3183,7 +3183,7 @@ public class Technology implements Comparable<Technology>
     protected void setFactoryPrefFoundry(String factoryName)
     {
         prefFoundry = TechPref.makeStringSetting(this, "SelectedFoundryFor"+techName,
-        	"Technology/Design Rules (" + techName + ") tab", techName + " foundry", factoryName.toUpperCase());
+        	"Technology tab", techName + " foundry", factoryName.toUpperCase());
         // use old pref as default (if pref missing, will use hard-coded default)
         setPrefFoundry(prefFoundry.getString());
     }

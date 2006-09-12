@@ -1840,7 +1840,7 @@ public class User extends Listener
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
     private static Pref cacheDefaultTechnology = Pref.makeStringSetting("DefaultTechnology", tool.prefs, tool,
-        "Technology/Technology tab", "Default Technology for editing", "mocmos");
+        "Technology tab", "Default Technology for editing", "mocmos");
 	/**
 	 * Method to get default technique in Tech Palette.
 	 * The default is "mocmos".
@@ -1854,7 +1854,7 @@ public class User extends Listener
 	public static void setDefaultTechnology(String t) { ProjSettings.getSettings().putString("defaultTechnology", t);}
 
     private static Pref cacheSchematicTechnology = Pref.makeStringSetting("SchematicTechnology", tool.prefs, tool,
-        "Technology/Technology tab", "Schematics use scale values from this technology", "mocmos");
+        "Technology tab", "Schematics use scale values from this technology", "mocmos");
 	/**
 	 * Method to choose the layout Technology to use when schematics are found.
 	 * This is important in Spice deck generation (for example) because the Spice primitives may
@@ -2129,7 +2129,7 @@ public class User extends Listener
 	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { cachePlayClickSoundsWhenCreatingArcs.setBoolean(on); }
 
 	private static Pref cacheIncludeDateAndVersionInOutput = Pref.makeBooleanSetting("IncludeDateAndVersionInOutput", tool.prefs, tool,
-		"General/General tab", "Include date and version in output", true);
+		"Netlists tab", "Include date and version in output", true);
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.
 	 * The default is "true".
