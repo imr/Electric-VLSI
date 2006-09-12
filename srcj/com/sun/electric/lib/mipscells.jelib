@@ -8,10 +8,8 @@ Vschematic|sch
 
 # Technologies:
 Tartwork
-Tfpga|ScaleFORfpga()D1000.0
 Tgeneric
 Tmocmos|MoCMOSAlternateActivePolyRules()I1|MoCMOSNumberOfMetalLayers()I3|ScaleFORmocmos()D300.0
-Trcmos|ScaleFORrcmos()D1000.0
 Tschematic
 
 # Cell alu{ic}
