@@ -320,7 +320,7 @@ public class TechnologyTab extends ProjSettingsPanel
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Technology and Foundry"));
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Defaults"));
         defaultTechLabel.setText("Startup technology:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
