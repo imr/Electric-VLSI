@@ -42,7 +42,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
@@ -2364,7 +2363,7 @@ public class Quick
     /**
      * Method to determine if neighbor would help to cover the minimum conditions
      * @return true if error was found (not warning)
-     */ 
+     */
     private boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly, Layer layer, Rectangle2D bounds,
                                                 DRCTemplate minWidthRule, int dir, boolean onlyOne)
     {
@@ -2430,7 +2429,7 @@ public class Quick
                 (onlyOne) ? null : poly, geom, layer, null, null, null);
         return !overlapLayer;
     }
-    
+
 	/**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum width rules.  If it is too narrow, other layers
@@ -2596,7 +2595,7 @@ public class Quick
 
 				// isGreaterThan doesn't consider equals condition therefore negate condition is used
 				if (!DBMath.isGreaterThan(minRule.value1, area)) continue;
-                
+
 				errorFound++;
 				DRCErrorType errorType = (minRule == minAreaRule) ? DRCErrorType.MINAREAERROR : DRCErrorType.ENCLOSEDAREAERROR;
                 if (errorType == DRCErrorType.MINAREAERROR) minAreaDone = false;
@@ -2692,7 +2691,7 @@ public class Quick
 
         // remember number of errors before the min area checking
         errorFound = errorLogger.getNumErrors();
-        
+
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rule
         QuickAreaEnumerator quickArea = new QuickAreaEnumerator(cp.netlist, selectMerge, notExportedNodes, checkedNodes,
                     mergeMode);
@@ -3006,7 +3005,7 @@ public class Quick
 
 		return false;
 	}
-	
+
 	/**
 	 * Method to examine cell "cell" in the area (lx<=X<=hx, ly<=Y<=hy) for objects
 	 * on layer "layer".  Apply transformation "moreTrans" to the objects.  If polygons are
