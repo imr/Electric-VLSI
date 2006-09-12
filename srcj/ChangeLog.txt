@@ -5,7 +5,8 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.04y: *********************************
 
 BUG: (9/12/06, SMR) Fixed Silicon Compiler to show results; fixed compile
-     bug in Routing Preferences; fixed Splash screen in MDI mode.
+     bug in Routing Preferences; fixed Splash screen in MDI mode; removed
+     separate TSMC180 gate generation.
 
 BUG: (9/11/06, GVG) drc missing metal notch violations (bug #1145)
 FIX: Attempts to fix #483 broke the notch violations.
