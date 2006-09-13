@@ -574,7 +574,8 @@ public class EDatabase {
             check();
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("**** Check Invariants took " + finalTime + " seconds");
+            if (Job.getDebug())
+                System.out.println("**** Check Invariants took " + finalTime + " seconds");
 			return true;
 		} catch (Throwable e)
 		{

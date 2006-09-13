@@ -532,7 +532,7 @@ public class Snapshot {
 	 * @throws AssertionError if invariant is broken.
 	 */
     public void check() {
-        long startTime = System.currentTimeMillis();
+//        long startTime = System.currentTimeMillis();
         for (LibraryBackup libBackup: libBackups) {
             if (libBackup == null) continue;
             libBackup.check();
@@ -567,8 +567,8 @@ public class Snapshot {
                 cui.checkUsage(cellBackups.get(subCellIndex));
             }
         }
-        long endTime = System.currentTimeMillis();
-        System.out.println("Checking snapshot invariants took: " + (endTime - startTime) + " msec");
+//        long endTime = System.currentTimeMillis();
+//        System.out.println("Checking snapshot invariants took: " + (endTime - startTime) + " msec");
     }
     
     /*

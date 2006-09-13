@@ -399,7 +399,7 @@ public class Input
 	 * @return the previous value of the "quiet" state.
 	 */
 	public static boolean changesQuiet(boolean quiet) {
-		EDatabase.serverDatabase().checkInvariants();
+//		EDatabase.serverDatabase().checkInvariants();
         Layout.changesQuiet(quiet);
 //		NetworkTool.changesQuiet(quiet);
 		boolean formerQuiet = doChangesQuietly;
