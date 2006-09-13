@@ -567,6 +567,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		Point pt = e.getDragOrigin();
 		TreePath path = getPathForLocation(pt.x, pt.y);
 		Rectangle pathRect = getPathBounds(path);
+		if (pathRect == null) return;
 		dragOffset = new Point(pt.x-pathRect.x, pt.y-pathRect.y);
 
 		// render the dragged stuff
