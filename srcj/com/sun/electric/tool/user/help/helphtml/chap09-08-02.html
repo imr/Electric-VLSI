@@ -127,7 +127,30 @@ Check the desired sizes and they will be generated.
 </LI>
 
 <LI><B>Generate gate layouts (MoCMOS)</B>
-Generates a set of gates in the MOSIS CMOS technology.
+Generates the layout for certain standard cells.
+To use this command you must have a schematic open in the current window.
+Then when you invoke this command,
+the gate generator scans the schematic looking for instances of commonly used cells
+from the Purple and Red libraries (see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
+When it finds such instances it generates layout for those instances and places them
+in a library called "autoGenLibMOCMOS".
+If the cell already exists, it is not regenerated.
+<P>
+The gate layout generator generates layout for the following gates from the Purple and Red libraries:
+<P>
+<CENTER><TABLE>
+<TR><TD>inv</TD><TD>mullerC_sy</TD><TD>nand2HTen</TD><TD>nms2K</TD></TR>
+<TR><TD>inv2i</TD><TD>nand2</TD><TD>nand3</TD><TD>nms2_sy</TD></TR>
+<TR><TD>inv2iKn</TD><TD>nand2HLT_sy&nbsp;&nbsp;</TD><TD>nand3LT</TD><TD>nms3_sy3</TD></TR>
+<TR><TD>inv2iKp</TD><TD>nand2LT</TD><TD>nand3LT_sy3&nbsp;&nbsp;</TD><TD>nor2</TD></TR>
+<TR><TD>invCLK</TD><TD>nand2LT_sy</TD><TD>nand3LTen</TD><TD>nor2kresetV</TD></TR>
+<TR><TD>invCTLn</TD><TD>nand2PH</TD><TD>nand3MLT</TD><TD>pms1</TD></TR>
+<TR><TD>invHT</TD><TD>nand2_sy</TD><TD>nand3en</TD><TD>pms1K</TD></TR>
+<TR><TD>invK</TD><TD>nand2en</TD><TD>nms1</TD><TD>pms2</TD></TR>
+<TR><TD>invLT</TD><TD>nand2k</TD><TD>nms1K</TD><TD>pms2_sy</TD></TR>
+<TR><TD>inv_passgate&nbsp;&nbsp;</TD><TD>nand2LTen</TD><TD>nms2</TD><TD>&nbsp;</TD></TR>
+</TABLE></CENTER>
+
 </LI>
 
 </UL>
