@@ -355,7 +355,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getNodeTextDescriptor();
         if (protoDescriptor == null) protoDescriptor = TextDescriptor.getInstanceTextDescriptor();
         
-        ImmutableNodeInst d = ImmutableNodeInst.newInstance(parentId.newNodeId(), protoType.getId(), nameKey, nameDescriptor,
+        // search for spare nodeId
+        int nodeId;
+        do {
+            nodeId = parentId.newNodeId();
+        } while (parent.getNodeById(nodeId) != null);
+        ImmutableNodeInst d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), nameKey, nameDescriptor,
                 orient, anchor, width, height, flags, techBits, protoDescriptor);
 
         NodeInst ni = newInstance(parent, d);

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
+BUG: (9/13/06, DN) AssertionError in Cell.addNode after library rename (Bug #1220).
+FIX: In NodeInst.newInstance/ArcInst.newInstance search for spare nodeId/arcId.
+
 IMP/MAN: (9/12/06, GVG) 3 new dummy layers in TSMC90. RPDMY was added into rpo poly resistors.
 
 BUG: (9/12/06, GVG) More fixes for foundry setting and project settings.

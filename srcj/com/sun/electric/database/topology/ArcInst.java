@@ -392,7 +392,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			width = protoType.getWidth();
        
         CellId parentId = (CellId)parent.getId();
-        ImmutableArcInst d = ImmutableArcInst.newInstance(parentId.newArcId(), protoType, nameKey, nameDescriptor,
+        // search for spare arcId
+        int arcId;
+        do {
+            arcId = parentId.newArcId();
+        } while (parent.getArcById(arcId) != null);
+        ImmutableArcInst d = ImmutableArcInst.newInstance(arcId, protoType, nameKey, nameDescriptor,
                 tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
                 width, angle, flags);
