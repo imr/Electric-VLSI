@@ -77,7 +77,7 @@
             </Component>
             <Component class="javax.swing.JCheckBox" name="routMimicInteractive">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Interactive mimicing"/>
+                <Property name="text" type="java.lang.String" value="Interactive mimicking"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

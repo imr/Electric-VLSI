@@ -273,7 +273,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
         jPanel7.add(routMimicPortsMustMatch, gridBagConstraints);
 
-        routMimicInteractive.setText("Interactive mimicing");
+        routMimicInteractive.setText("Interactive mimicking");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
