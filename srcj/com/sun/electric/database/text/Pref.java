@@ -1122,7 +1122,7 @@ public class Pref
                 case STRING:  pref.setString((String)obj);                       break;
                 default: continue;
             }
-            System.out.println("Meaning variable "+meaning.pref.name+" on " + meaning.ownerObj+" changed to "+obj);
+            System.out.println("Project Setting "+meaning.pref.name+" on " + meaning.ownerObj+" changed to "+obj);
         }
 
         // resume flushing, and save everything just set
