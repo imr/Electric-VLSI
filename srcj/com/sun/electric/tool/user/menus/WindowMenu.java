@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.MessagesStream;
@@ -334,11 +335,11 @@ public class WindowMenu {
         if (wnd == null) return;
         Rectangle2D displayable = wnd.displayableBounds();
         Dimension sz = wnd.getSize();
-        double scaleX = wnd.getGridXSpacing() * sz.width / 5 / displayable.getWidth();
-        double scaleY = wnd.getGridYSpacing() * sz.height / 5 / displayable.getHeight();
+        double scaleX = wnd.getGridXSpacing() * sz.width / 5.01 / displayable.getWidth();
+        double scaleY = wnd.getGridYSpacing() * sz.height / 5.01 / displayable.getHeight();
         double scale = Math.min(scaleX, scaleY);
         wnd.setScale(wnd.getScale() / scale);
-        wnd.repaintContents(null, false);
+        wnd.setGrid(true);
     }
 
     /**
