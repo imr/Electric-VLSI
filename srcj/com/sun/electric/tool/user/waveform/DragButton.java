@@ -42,6 +42,7 @@ import java.awt.dnd.DragSourceDropEvent;
 import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DragSourceListener;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JButton;
@@ -66,7 +67,9 @@ public class DragButton extends JButton implements DragGestureListener, DragSour
 	{
 		Cursor style = DragSource.DefaultMoveDrop;
 		String command = "MOVEBUTTON";
-		if (ClickZoomWireListener.isRightMouse(e.getTriggerEvent()))
+
+		if ((e.getTriggerEvent().getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
+//		if (ClickZoomWireListener.isRightMouse(e.getTriggerEvent()))
 		{
 			style = DragSource.DefaultCopyDrop;
 			command = "COPYBUTTON";
