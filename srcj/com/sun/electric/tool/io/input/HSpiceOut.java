@@ -197,6 +197,7 @@ public class HSpiceOut extends Simulate
 		if (mtURL == null) return;
         if (!TextUtils.URLExists(mtURL)) return;
 		if (openTextInput(mtURL)) return;
+        System.out.println("Reading HSpice measurements '" + mtURL.getFile() + "'");
 
 		Analysis an = new Analysis(sd, Analysis.ANALYSIS_MEAS);
 		List<String> measurementNames = new ArrayList<String>();
@@ -441,7 +442,7 @@ public class HSpiceOut extends Simulate
 
 		Analysis an = new Analysis(sd, analysisType);
 		startProgressDialog("HSpice " + analysisType.toString() + " analysis", fileURL.getFile());
-        System.out.print("\nReading HSpice " + analysisType.toString() + " analysis '" + fileURL.getFile() + "'") ;
+        System.out.println("Reading HSpice " + analysisType.toString() + " analysis '" + fileURL.getFile() + "'");
 
 		// get number of nodes
 		int nodcnt = getHSpiceInt();
@@ -465,7 +466,7 @@ public class HSpiceOut extends Simulate
 
         if (numSignals <= 0)
         {
-            System.out.println(".... Error reading " + fileURL.getFile());
+            System.out.println("Error reading " + fileURL.getFile());
             closeInput();
             stopProgressDialog();
             return;
@@ -563,7 +564,7 @@ public class HSpiceOut extends Simulate
 				if (paList == null)
 				{
 					if (!paMissingWarned)
-						System.out.println("ERROR: there should be a ." + paExtension + " file with extra signal names");
+						System.out.println("Warning: there should be a ." + paExtension + " file with extra signal names");
 					paMissingWarned = true;
 				} else
 				{
@@ -650,7 +651,7 @@ public class HSpiceOut extends Simulate
 		}
 		if (!line.toString().equals("$&%#"))
 		{
-			System.out.println("..... HSpice header improperly terminated (got "+line.toString()+")");
+			System.out.println("HSpice header improperly terminated (got "+line.toString()+")");
 			closeInput();
 			stopProgressDialog();
 			return;
@@ -735,7 +736,7 @@ public class HSpiceOut extends Simulate
 		}
 		an.setBoundsDirty();
 		stopProgressDialog();
-        System.out.println("... Done");
+        System.out.println("Done reading " + analysisType.toString() + " analysis");
 	}
 
 	/*
