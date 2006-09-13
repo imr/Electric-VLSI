@@ -127,17 +127,16 @@ Check the desired sizes and they will be generated.
 </LI>
 
 <LI><B>Generate gate layouts (MoCMOS)</B>
-Generates the layout for certain standard cells.
-To use this command you must have a schematic open in the current window.
-Then when you invoke this command,
-the gate generator scans the schematic looking for instances of commonly used cells
-from the Purple and Red libraries (see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
-When it finds such instances it generates layout for those instances and places them
+Generates the layout for schematic cells in the Purple and Red libraries
+(see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
+To use this command you must have a schematic in the current window.
+The command then hierarchically scans the schematic looking for instances of the
+Purple and Red library cells.
+When it finds such instances it generates layout for them and places the layout
 in a library called "autoGenLibMOCMOS".
 If the cell already exists, it is not regenerated.
 <P>
-The gate layout generator generates layout for the following gates from the Purple and Red libraries:
-<P>
+The gate layout generator recognizes these gates from the Purple and Red libraries:
 <CENTER><TABLE>
 <TR><TD>inv</TD><TD>mullerC_sy</TD><TD>nand2HTen</TD><TD>nms2K</TD></TR>
 <TR><TD>inv2i</TD><TD>nand2</TD><TD>nand3</TD><TD>nms2_sy</TD></TR>
