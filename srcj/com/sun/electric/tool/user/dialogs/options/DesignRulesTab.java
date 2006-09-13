@@ -131,7 +131,7 @@ public class DesignRulesTab extends PreferencePanel
 		if (designRulesFactoryReset)
 		{
 			DRC.resetDRCDates(true);
-            drRules = curTech.getFactoryDesignRules(curTech.getSelectedFoundry());
+            drRules = curTech.getFactoryDesignRules(true);
 		}
 		DRC.setRules(curTech, drRules);
 

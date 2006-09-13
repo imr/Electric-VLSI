@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
+IMP/MAN: (9/12/06, GVG) 3 new dummy layers in TSMC90. RPDMY was added into rpo poly resistors.
+
+BUG: (9/12/06, GVG) More fixes for foundry setting and project settings.
+
 BUG: (9/12/06, SMR) Going up hierarchy may show wrong export (Bug #1217).
 FIX: In EditWindow.upHierarchy() change history if port is selected.
 

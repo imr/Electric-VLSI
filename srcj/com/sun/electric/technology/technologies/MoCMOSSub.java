@@ -2142,8 +2142,11 @@ public class MoCMOSSub extends Technology
 	/**
 	 * Method to return the "factory "design rules for this Technology.
 	 * @return the design rules for this Technology.
-	 */
-	public DRCRules getFactoryDesignRules(Foundry foundry)
+     * @param resizeNodes
+
+
+     */
+	public DRCRules getFactoryDesignRules(boolean resizeNodes)
 	{
 		return MOSRules.makeSimpleRules(this, conDist, unConDist);
 	}

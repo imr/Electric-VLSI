@@ -713,8 +713,9 @@ public class Technology implements Comparable<Technology>
 	/**
 	 * Method to set state of a technology.
 	 * It gets overridden by individual technologies.
-	 */
-	public void setState() {}
+     * @param resizeNodes
+     */
+	public void setState(boolean resizeNodes) {}
 
 	/**
 	 * Method to initialize a technology. This will check and restore
@@ -728,7 +729,7 @@ public class Technology implements Comparable<Technology>
 		{
 			ArcProto ap = it.next();
 			double width = ap.getDefaultWidth();
-			arcWidths.put(ap, new Double(width));
+			arcWidths.put(ap, width); // autoboxing
 		}
 
 		// remember the node sizes as specified by previous defaults
@@ -742,7 +743,7 @@ public class Technology implements Comparable<Technology>
 		}
 
 		// initialize all design rules in the technology (overwrites arc widths)
-		setState();
+		setState(true);
 
 		// now restore arc width defaults if they are wider than what is set
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
@@ -751,7 +752,7 @@ public class Technology implements Comparable<Technology>
 			Double origWidth = arcWidths.get(ap);
 			if (origWidth == null) continue;
 			double width = ap.getDefaultWidth();
-			if (origWidth.doubleValue() > width) ap.setDefaultWidth(origWidth.doubleValue());
+			if (origWidth > width) ap.setDefaultWidth(origWidth); //autoboxing
 		}
 
 		// now restore node size defaults if they are larger than what is set
@@ -3164,7 +3165,15 @@ public class Technology implements Comparable<Technology>
 	 */
 	public String getPrefFoundry()
     {
-        return getProjectSettings().getString("technology foundry");
+        String pref = getProjectSettings().getString("technology foundry");
+        assert(pref != null);
+        // pref should never been null
+        // prefFoundry will be null in non-layout ones.
+        if (pref.equals("") && prefFoundry != null)
+        {
+            pref = prefFoundry.getString();
+        }
+        return pref;
     }
 
 	/**
@@ -3177,6 +3186,18 @@ public class Technology implements Comparable<Technology>
     }
 
     /**
+     * Method to set the foundry for DRC rules and call the side effects
+     * @param t
+     * @param resize
+     */
+    public void setPrefFoundryAndResize(String t, boolean resize)
+    {
+        setPrefFoundry(t);
+        // Call side effect
+        TechPref.technologyChanged(this, resize);
+    }
+
+    /**
      * Method to set default preference for foundry.
      * It takes the first elemenet on the foundries list
      */
@@ -3184,8 +3205,6 @@ public class Technology implements Comparable<Technology>
     {
         prefFoundry = TechPref.makeStringSetting(this, "SelectedFoundryFor"+techName,
         	"Technology tab", techName + " foundry", factoryName.toUpperCase());
-        // use old pref as default (if pref missing, will use hard-coded default)
-        setPrefFoundry(prefFoundry.getString());
     }
 
     /**
@@ -3406,8 +3425,9 @@ public class Technology implements Comparable<Technology>
 	 * Individual technologies subclass this to create their own rules.
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
-	 */
-	public DRCRules getFactoryDesignRules(Foundry foundry)
+     * @param resizeNodes
+     */
+	public DRCRules getFactoryDesignRules(boolean resizeNodes)
 	{
         return null;
 	}
@@ -3988,7 +4008,7 @@ public class Technology implements Comparable<Technology>
 
 		protected void setSideEffect()
 		{
-			technologyChanged(tech);
+			technologyChanged(tech, true);
 		}
 
         private static void reloadUIData()
@@ -3997,6 +4017,8 @@ public class Technology implements Comparable<Technology>
             {
 	            public void run()
                 {
+                // Primitives cached must be redrawn
+                // recache display information for all cells that use this
                     User.technologyChanged();
                     UserInterface ui = Job.getUserInterface();
                     ui.loadComponentMenuForTechnology();
@@ -4010,14 +4032,14 @@ public class Technology implements Comparable<Technology>
             for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
             {
                 Technology tech = it.next();
-                tech.setState();
+                tech.setState(true);
             }
             reloadUIData();
         }
 
-        public static void technologyChanged(Technology tech)
+        public static void technologyChanged(Technology tech, boolean resizeNodes)
 		{
-            tech.setState();
+            tech.setState(resizeNodes);
             reloadUIData();
         }
 

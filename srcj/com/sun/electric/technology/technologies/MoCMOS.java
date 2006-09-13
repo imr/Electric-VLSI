@@ -64,6 +64,7 @@ public class MoCMOS extends Technology
             tech = (MoCMOS)obj;
         } catch (Exception e)
         {
+//            e.printStackTrace();
             if (Job.getDebug())
                 System.out.println("GNU Release without extra plugins");
             tech = new MoCMOS();
@@ -2414,8 +2415,9 @@ public class MoCMOS extends Technology
     /**
 	 * Method to set the technology to state "newstate", which encodes the number of metal
 	 * layers, whether it is a deep process, and other rules.
-	 */
-	public void setState()
+     * @param resizeNodes
+     */
+	public void setState(boolean resizeNodes)
 	{
 		// disable Metal-3/4/5/6-Pin, Metal-2/3/4/5-Metal-3/4/5/6-Con, Metal-3/4/5/6-Node, Via-2/3/4/5-Node
 		metalPinNodes[2].setNotUsed(true);
@@ -2457,21 +2459,21 @@ public class MoCMOS extends Technology
 				metalNodes[5].setNotUsed(false);
 				viaNodes[4].setNotUsed(false);
 				metalArcs[5].setNotUsed(false);
-				// FALLTHROUGH 
+				// FALLTHROUGH
 			case 5:
 				metalPinNodes[4].setNotUsed(false);
 				metalContactNodes[3].setNotUsed(false);
 				metalNodes[4].setNotUsed(false);
 				viaNodes[3].setNotUsed(false);
 				metalArcs[4].setNotUsed(false);
-				// FALLTHROUGH 
+				// FALLTHROUGH
 			case 4:
 				metalPinNodes[3].setNotUsed(false);
 				metalContactNodes[2].setNotUsed(false);
 				metalNodes[3].setNotUsed(false);
 				viaNodes[2].setNotUsed(false);
 				metalArcs[3].setNotUsed(false);
-				// FALLTHROUGH 
+				// FALLTHROUGH
 			case 3:
 				metalPinNodes[2].setNotUsed(false);
 				metalContactNodes[1].setNotUsed(false);
@@ -2494,8 +2496,8 @@ public class MoCMOS extends Technology
 		}
 
 		// set rules
-        cachedRules = getFactoryDesignRules(getSelectedFoundry());
-        
+        cachedRules = getFactoryDesignRules(resizeNodes);
+
         // now rewrite the description
 		setTechDesc(describeState());
 	}
@@ -2739,15 +2741,16 @@ public class MoCMOS extends Technology
 	 * Method to build "factory" design rules, given the current technology settings.
 	 * @return the "factory" design rules for this Technology.
 	 * Returns null if there is an error loading the rules.
-	 */
-	public XMLRules getFactoryDesignRules(Foundry foundry)
+     * @param resizeNodes
+     */
+	public XMLRules getFactoryDesignRules(boolean resizeNodes)
 	{
+        Foundry foundry = getSelectedFoundry();
         List<DRCTemplate> theRules = foundry.getRules();
-
-//		MOSRules rules = new MOSRules(this);
         XMLRules rules = new XMLRules(this);
 
-        if (foundry == null) foundry = getSelectedFoundry();
+        assert(foundry != null);
+//        if (foundry == null) foundry = getSelectedFoundry();
 
         // Resize primitives according to the foundry
         resizeNodes();
@@ -2847,6 +2850,7 @@ public class MoCMOS extends Technology
 //		rules.calculateNumberOfRules();
 
         // Resize primitives according to the foundry and existing rules.
+        if (resizeNodes)
         resizeNodes(rules);
 
 		return rules;

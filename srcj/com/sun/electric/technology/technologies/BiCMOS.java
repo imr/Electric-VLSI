@@ -1713,7 +1713,7 @@ public class BiCMOS extends Technology
         nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
 	}
 
-    public DRCRules getFactoryDesignRules(Foundry foundry)
+    public DRCRules getFactoryDesignRules(boolean resizeNodes)
 	{
 		return MOSRules.makeSimpleRules(this, conDist, unConDist);
 	}

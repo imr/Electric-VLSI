@@ -422,7 +422,7 @@ public class DRC extends Listener
 		if (currentRules != null && tech == currentTechnology) return currentRules;
 
 		// constructing design rules: start with factory rules
-		currentRules = tech.getFactoryDesignRules(tech.getSelectedFoundry());
+		currentRules = tech.getFactoryDesignRules(true);
 		if (currentRules != null)
 		{
 			// add overrides
@@ -444,7 +444,7 @@ public class DRC extends Listener
 	public static void setRules(Technology tech, DRCRules newRules)
 	{
 		// get factory design rules
-		DRCRules factoryRules = tech.getFactoryDesignRules(tech.getSelectedFoundry());
+		DRCRules factoryRules = tech.getFactoryDesignRules(true);
 
 		// determine override differences from the factory rules
 		StringBuffer changes = Technology.getRuleDifferences(factoryRules, newRules);

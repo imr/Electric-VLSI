@@ -1101,9 +1101,9 @@ public class Bipolar extends Technology
         nodeGroups[++count][0] = NPPoly_arc; nodeGroups[count][1] = np_node; nodeGroups[count][2] = mnc_node;
         nodeGroups[++count][0] = n0_node; nodeGroups[count][1] = n_node; nodeGroups[count][2] = p_node;
         nodeGroups[++count][0] = "Pure"; nodeGroups[count][1] = "Misc."; nodeGroups[count][2] = "Cell";
-	};
+	}
 
-	public DRCRules getFactoryDesignRules(Foundry foundry)
+	public DRCRules getFactoryDesignRules(boolean resizeNodes)
 	{
 		return MOSRules.makeSimpleRules(this, null, unConDist);
 	}

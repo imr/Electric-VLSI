@@ -267,9 +267,9 @@ public class Tech {
 			// My "TSMC180" really uses Electric's MoCMOS Technology in
 			// combination with the TSMC foundry.
             if (isTsmc180)
-			    tech.setPrefFoundry(Foundry.Type.TSMC.name());
+			    tech.setPrefFoundryAndResize(Foundry.Type.TSMC.name(), true);
             else // Make sure MOSIS is set as foundry. Doesn' rely on preferences
-                tech.setPrefFoundry(Foundry.Type.MOSIS.name());
+                tech.setPrefFoundryAndResize(Foundry.Type.MOSIS.name(), true);
 		} else {
 			tech = Technology.findTechnology(techNm.name());
 		}

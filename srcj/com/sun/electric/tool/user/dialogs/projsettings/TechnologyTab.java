@@ -200,32 +200,7 @@ public class TechnologyTab extends ProjSettingsPanel
 
         // Foundry for MoCMOS
         if (changeInMoCMOS || checkFoundry((Foundry.Type)techMOCMOSDefaultFoundryPulldown.getSelectedItem(), MoCMOS.tech))
-            Technology.TechPref.technologyChanged(MoCMOS.tech);  // including update of display
-
-//        Foundry.Type foundry = (Foundry.Type)techMOCMOSDefaultFoundryPulldown.getSelectedItem();
-//        if (foundry == null) return; // technology without design rules.
-//        if (!foundry.name().equalsIgnoreCase(MoCMOS.tech.getPrefFoundry()))
-//        {
-//            // only valid for 180nm so far
-//            int val = -1;
-//            String [] messages = {
-//                "180nm primitives in database might be resized according to values provided by " + foundry + ".",
-//                "If you do not resize now, arc widths might not be optimal for " + foundry + ".",
-//                "If you cancel the operation, the foundry will not be changed.",
-//                "Do you want to resize the database?"};
-//            Object [] options = {"Yes", "No", "Cancel"};
-//            val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
-//                "Resize 180nm primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
-//                JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-//            if (val != 2)
-//            {
-//                MoCMOS.tech.setPrefFoundry(foundry.name());
-//                changeInMoCMOS = false; // rules set already updated as side effect of changing the foundry name
-//                // Primitives cached must be redrawn
-//                // recache display information for all cells that use this
-//                User.technologyChanged();
-//            }
-//        }
+            Technology.TechPref.technologyChanged(MoCMOS.tech, true);  // including update of display
 
         // Tabs for extra technologies if available
         try
@@ -262,11 +237,9 @@ public class TechnologyTab extends ProjSettingsPanel
                 JOptionPane.WARNING_MESSAGE, null, options, options[0]);
             if (val != 2)
             {
-                tech.setPrefFoundry(foundry.name());
+                boolean modifyNodes = val == 0; // user wants to resize the nodes
+                tech.setPrefFoundryAndResize(foundry.name(), modifyNodes);
                 changed = false; // rules set already updated as side effect of changing the foundry name
-                // Primitives cached must be redrawn
-                // recache display information for all cells that use this
-                User.technologyChanged();
             }
         }
         return changed;
