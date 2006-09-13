@@ -23,12 +23,16 @@ attributes placed on cells
 (see <A HREF="chap06-08-05.html#chap06-08-05">Section 6-8-5</A>).
 The attribute's name is
 <i>NCC</i>. The attribute's value is one or more lines.
-Each line contains a separate NCC annotation.
-Thus, although a cell can have at most one attribute named <i>NCC</i>,
-that attribute can contain any number of NCC annotations.
+Each line
+ contains a separate NCC annotation.
+Thus, although a cell can have at
+ most one attribute named <i>NCC</i>,
+that attribute can contain any
+ number of NCC annotations.
 
 <h3>exportsConnectedByParent <i>&lt;string or regular expression&gt;</i> </h3>
-<P>
+
+<P>
 Layout cells sometimes contain multiple exports that are supposed to
 be connected by the parent cell. For example, a layout cell, A{lay},
 might export vdd, vdd_1, vdd_2, and vdd3. The designer expects the
@@ -67,7 +71,8 @@ error whenever that assertion isn't satisfied.
 </p>
 
 <h3>skipNCC <i>&lt;comment&gt;</i> </h3>
-<P>
+
+<P>
 The skipNCC annotation should be added to a cell, say B, when:
 <ul>
 <li>
@@ -122,7 +127,8 @@ always flattened.
 </p>
 
 <h3>notSubcircuit <i>&lt;comment&gt;</i>  </h3>
-<P>
+
+<P>
 The designer should add the <i>notSubcircuit</i> annotation to a cell, say B,
 if:
 <ul>
@@ -188,7 +194,8 @@ OD25-P-Transistor, or OD33-P-Transistor.
 Warning: This annotation is used <i>very</i> infrequently. Typically
 it is used only inside special libraries such as the "red" library
 (see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
-Most designers simply instantiate transistors from those special libraries.
+Most
+ designers simply instantiate transistors from those special libraries.
 </p>
 
 <h3>resistorType<i>&lt;type&gt;</i> </h3> 
@@ -204,13 +211,15 @@ layout polysilicon resistors.
 Warning: This annotation is used <i>very</i> infrequently. Typically
 it is used only inside special libraries such as the "red" library
 (see <A HREF="chap09-09.html#chap09-09">Section 9-9</A>).
-Most designers simply instantiate resistors from those special libraries.
+Most
+ designers simply instantiate resistors from those special libraries.
 </p>
 
 <h3>forceWireMatch <i>&lt;wireName&gt;</i> </h3> 
 <p>
 Force the wire in the schematic named <i>wireName</i> to match the wire in
-the layout named <i>wireName</i>.
+the layout named <i>wireName
+</i>.
 </p>
 <p>
 The <i>forceWireMatch</i> annotation is useful when local partitioning
@@ -238,7 +247,7 @@ assume they are topologically equivalent.
 </p>
 <p>
 The <i>blackBox</i> annotation is useful when a particular arrangement of layout 
-geometry implemements a construct that Electric doesn't
+geometry implements a construct that Electric doesn't
 understand. For example, to handle
 resistors and parasitic bipolar transistors in the layout.
 </p>
@@ -247,6 +256,7 @@ The <i>blackBox</i> annotation should be used with care because
 unlike the other annotations; NCC has no way of double checking
 this assertion should the user make a mistake.
 </p>
+
 
 <!-- TRAILER -->
 

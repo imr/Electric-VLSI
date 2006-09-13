@@ -23,18 +23,18 @@ To turn on the mimic-stitcher, use the <B>Enable Mimic-Stitching</B> command
 (in menu <B>Tool / Routing</B>).
 To disable the stitcher, use the command to uncheck it.
 You can also request that the mimic-stitcher run just once
-(mimicing the very last wire that was created or deleted) by using the <B>Mimic-Stitch Now</B> command.
-Finally, you can request that the mimic-stitcher run just once, mimicing the currently selected arc,
+(mimicking the very last wire that was created or deleted) by using the <B>Mimic-Stitch Now</B> command.
+Finally, you can request that the mimic-stitcher run just once, mimicking the currently selected arc,
 by using the <B>Mimic Selected</B> command.
 <P>
 A set of restrictions applies to the mimic stitcher.
-These restrictions prevent mimicing from happening.
+These restrictions prevent mimicking from happening.
 Use Routing Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Routing" tab)
-to control these exact conditions in which arc creation and deletion will be mimiced.
+to control these exact conditions in which arc creation and deletion will be mimicked.
 <P>
 <TABLE><TR>
 <TD><CENTER><IMG SRC="fig09-05.png" ALT="Figure 9.5"></CENTER></TD><TD>
-When "Interactive mimicing" is checked, the mimic stitcher will ignore the restrictions,
+When "Interactive mimicking" is checked, the mimic stitcher will ignore the restrictions,
 and present all possible mimic situations for your approval.
 These situations will be organized by the restrictions that apply to them,
 in order of increasingly relaxed acceptance criteria.
@@ -50,7 +50,7 @@ When running noninteractively, these are the restrictions that may be applied:
 <LI>"Number of existing arcs must match" counts the number of arcs already connected to the other ports
 and ensures that they match.</LI>
 <LI>"Node sizes must match" applies to primitives, and forces their sizes to be equal.</LI>
-<LI>"Node types must match" demands that the mimiced connections be on the same type of node.</LI>
+<LI>"Node types must match" demands that the mimicked connections be on the same type of node.</LI>
 <LI>"Cannot have other arcs in the same direction" prevents arc creation when there are existing arcs
 wired in the same location as the proposed new arcs.</LI>
 </UL>

@@ -18,7 +18,7 @@ FPGA primitives, build FPGA structures, and program them.
 The FPGA Architecture file contains all of the information needed to define a specific FPGA chip.
 It has three sections:
 the <I>Primitive Definition</I> section,
-the <I>Block Definition</I> section, and the <I>Arcitecture</I> section.
+the <I>Block Definition</I> section, and the <I>Architecture</I> section.
 The Primitive Definition section describes the basic blocks for a family of FPGA chips
 (these are primitives in the FPGA technology).
 The Block Definition section builds upon the primitives to create higher-level blocks.
@@ -42,7 +42,8 @@ The Primitive Definition section defines the lowest-level blocks,
 which become primitive nodes in the FPGA technology.
 A primitive definition looks like this:
 <P>
-<CODE><FONT SIZE="-1">
+<CODE>
+<FONT SIZE="-1">
 (primdef<BR>
 &nbsp;&nbsp;(attributes<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(name PRIMNAME)<BR>
@@ -129,46 +130,86 @@ Here is the code:
 The Block Definition and Architecture sections define higher-level blocks composed of primitives.
 They looks like this:
 <P>
-<CODE><FONT SIZE="-1">
-(blockdef<BR>
-&nbsp;&nbsp;(attributes<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(name CHIPNAME)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(size X Y)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(wirecolor COLOR)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(repeatercolor COLOR)<BR>
-&nbsp;&nbsp;)<BR>
-<BR>
-&nbsp;&nbsp;(ports<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(port<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name PORTNAME)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input | output | bidir)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
-&nbsp;&nbsp;)<BR>
-<BR>
-&nbsp;&nbsp;(components<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(instance<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(attributes ATTPAIRS)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type BLOCKTYPE)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name BLOCKNAME)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(rotation ROT)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(repeater<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name BLOCKNAME)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(porta X Y)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb X Y)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction vertical | horizontal)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
-&nbsp;&nbsp;)<BR>
-<BR>
-&nbsp;&nbsp;(nets<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;(net<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name INTNAME)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment FROMPART TOPART)<BR>
-&nbsp;&nbsp;&nbsp;&nbsp;)<BR>
-&nbsp;&nbsp;)<BR>
-)<BR>
+<CODE>
+<FONT SIZE="-1">
+(blockdef
+<BR>
+&nbsp;&nbsp;(attributes
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(name CHIPNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(size X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(wirecolor COLOR)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeatercolor COLOR)
+<BR>
+&nbsp;&nbsp;)
+<BR>
+
+<BR>
+&nbsp;&nbsp;(ports
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(port
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name PORTNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction input | output | bidir)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+<BR>
+&nbsp;&nbsp;)
+<BR>
+
+<BR>
+&nbsp;&nbsp;(components
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(instance
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(attributes ATTPAIRS)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(type BLOCKTYPE)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name BLOCKNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(rotation ROT)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(repeater
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name BLOCKNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(porta X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb X Y)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(direction vertical | horizontal)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+<BR>
+&nbsp;&nbsp;)
+<BR>
+
+<BR>
+&nbsp;&nbsp;(nets
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;(net
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(name INTNAME)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment FROMPART TOPART)
+<BR>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+<BR>
+&nbsp;&nbsp;)
+<BR>
+)
+<BR>
 </FONT></CODE>
 <P>
 The only difference between the Architecture section and the Block Definition section is that the
@@ -202,7 +243,8 @@ Here is an example of block definition code and its layout.
 &nbsp;&nbsp;&nbsp;&nbsp;(name testblock)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(size 80 150)<BR>
 &nbsp;&nbsp;)<BR>
-&nbsp;&nbsp;(components<BR>
+
+&nbsp;&nbsp;(components<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(instance (type sampleblock) (name block0)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(position 30 80) )<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;(instance (type sampleblock) (name block1)<BR>
@@ -219,7 +261,8 @@ Here is an example of block definition code and its layout.
 &nbsp;&nbsp;&nbsp;&nbsp;(repeater (name r3) (porta 10 30)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(portb 20 30) (direction horizontal)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;)<BR>
-&nbsp;&nbsp;)</FONT></CODE>
+&nbsp;&nbsp;)</FONT>
+</CODE>
 </TD><TD WIDTH="35%"><CENTER><IMG SRC="fig07-25.png" ALT="Figure 7.25"></CENTER></TD></TR></TABLE>
 <P>
 <CODE><FONT SIZE="-1">
@@ -264,7 +307,8 @@ Here is an example of block definition code and its layout.
 &nbsp;&nbsp;&nbsp;&nbsp;(net (name ih7)<BR>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(segment component r3 b component block1 inleft2) )<BR>
 &nbsp;&nbsp;)<BR>
-)</FONT></CODE>
+)
+</FONT></CODE>
 <P>
 <!-- NEED 3in -->
 <H3>Commands</H3>
