@@ -114,12 +114,14 @@ public class TextWindow implements WindowContent
 	private void setCellFont(Cell cell)
 	{
         String fontName = User.getDefaultTextCellFont();
-        Variable var = cell.getVar(Cell.TEXT_CELL_FONT_NAME, String.class);
-        if (var != null) fontName = (String)var.getObject();
-
         int fontSize = User.getDefaultTextCellSize();
-        var = cell.getVar(Cell.TEXT_CELL_FONT_SIZE, Integer.class);
-        if (var != null) fontSize = ((Integer)var.getObject()).intValue();
+        if (cell != null)
+        {
+	        Variable var = cell.getVar(Cell.TEXT_CELL_FONT_NAME, String.class);
+	        if (var != null) fontName = (String)var.getObject();
+	        var = cell.getVar(Cell.TEXT_CELL_FONT_SIZE, Integer.class);
+	        if (var != null) fontSize = ((Integer)var.getObject()).intValue();
+        }
 
         textArea.setFont(new Font(fontName, 0, fontSize));
 	}
@@ -290,7 +292,7 @@ public class TextWindow implements WindowContent
 
 		public boolean doIt() throws JobException
 		{
-			cell.setTextViewContents(strings);
+			if (cell != null) cell.setTextViewContents(strings);
 			return true;
 		}
 
