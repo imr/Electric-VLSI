@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
-IMP/MAN: (9/14/06, GVG) Improvements in FillGenerator dialog to give access to fills with cap transistors.
+BUG: (9/14/06, SMR) Interactive sizing fails on rotated nodes (Bug #1225)
+FIX: In SizeListener.getNewNodeSize(), reallocate farthest point.
+
+IMP: (9/14/06, GVG) Improvements in FillGenerator dialog to give access to fills with cap transistors.
 
 IMP: (9/14/06, SMR) Layers preferences warns you when changing the color of
      a layer that is transparent...it will affect other layers.
@@ -21,7 +24,7 @@ FIX: getting the correct DRC value.
 BUG: (9/13/06, DN) AssertionError in Cell.addNode after library rename (Bug #1220).
 FIX: In NodeInst.newInstance/ArcInst.newInstance search for spare nodeId/arcId.
 
-IMP/MAN: (9/12/06, GVG) 3 new dummy layers in TSMC90. RPDMY was added into rpo poly resistors.
+IMP: (9/12/06, GVG) 3 new dummy layers in TSMC90. RPDMY was added into rpo poly resistors.
 
 BUG: (9/12/06, GVG) More fixes for foundry setting and project settings.
 
