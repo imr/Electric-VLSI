@@ -480,7 +480,6 @@ public class SizeListener
 		Poly nodePoly = new Poly((nodeLowX+nodeHighX)/2, (nodeLowY+nodeHighY)/2, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
 		AffineTransform trans = ni.rotateOutAboutTrueCenter();
 		nodePoly.transform(trans);
-
 		// determine the closest point on the outline
 		Point2D [] points = nodePoly.getPoints();
 		Point2D closest = null;
@@ -511,7 +510,7 @@ public class SizeListener
 				}
 			}
 		}
-		farthestPoint = farthest;
+		farthestPoint = new Point2D.Double(farthest.getX(), farthest.getY());
 
 		// if Shift is held, use center-based sizing
 		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
