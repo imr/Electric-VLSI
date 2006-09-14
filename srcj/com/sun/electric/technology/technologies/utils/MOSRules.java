@@ -98,8 +98,8 @@ public class MOSRules implements DRCRules {
 	private void setMinNodeSize(int index, String name, double width, double height)
 	{
         minNodeSizeRules[index] = name;
-        minNodeSize[index*2] = new Double(width);
-        minNodeSize[index*2+1] = new Double(height);
+        minNodeSize[index*2] = width; // autoboxing
+        minNodeSize[index*2+1] = height; // autoboxing
 	}
 
     /**
@@ -112,8 +112,8 @@ public class MOSRules implements DRCRules {
     {
         // That division by 2 might be a problem
         DRCTemplate rule = new DRCTemplate(minNodeSizeRules[index], when, DRCTemplate.DRCRuleType.NODSIZ, 0, 0, null, null,
-                minNodeSize[index*2].doubleValue(), -1);
-        rule.value2 = minNodeSize[index*2+1].doubleValue(); // height
+                minNodeSize[index*2], -1);
+        rule.value2 = minNodeSize[index*2+1]; // height
         return (rule);
     }
 
@@ -127,7 +127,7 @@ public class MOSRules implements DRCRules {
         //uTSize = (numLayers * numLayers + numLayers) / 2;
 
 		// initialize the width limit
-		wideLimit = new Double(0);
+		wideLimit = 0.0; // auto-boxing
 
 		// add names
 		this.tech = tech;
@@ -135,14 +135,14 @@ public class MOSRules implements DRCRules {
 		int j = 0;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
-			Layer layer = (Layer)it.next();
+			Layer layer = it.next();
 			layerNames[j++] = layer.getName();
 		}
 		nodeNames = new String[numNodes];
 		j = 0;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			nodeNames[j++] = np.getName();
 		}
 
@@ -179,7 +179,7 @@ public class MOSRules implements DRCRules {
 		// clear all tables
 		for(int i=0; i<uTSize; i++)
 		{
-			conList[i] = new Double(MOSNORULE);         conListRules[i] = "";
+            conList[i] = new Double(MOSNORULE);         conListRules[i] = "";
 			unConList[i] = new Double(MOSNORULE);       unConListRules[i] = "";
 
 			conListWide[i] = new Double(MOSNORULE);     conListWideRules[i] = "";
@@ -212,8 +212,8 @@ public class MOSRules implements DRCRules {
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
-			minNodeSize[j*2] = new Double(np.getMinWidth());
-			minNodeSize[j*2+1] = new Double(np.getMinHeight());
+			minNodeSize[j*2] = np.getMinWidth();  // autoboxing
+			minNodeSize[j*2+1] = np.getMinHeight(); // autoboxing
 			minNodeSizeRules[j] = np.getMinSizeRule();
             cutNodeSizeRules[j] = "";
             cutNodeSize[j] = new Double(MOSNORULE);
@@ -277,14 +277,14 @@ public class MOSRules implements DRCRules {
 		{
 			for(int i=0; i<conDist.length; i++)
 			{
-				rules.conList[i] = new Double(conDist[i]);
+				rules.conList[i] = (conDist[i]);  // autoboxing
 			}
 		}
 		if (unConDist != null)
 		{
 			for(int i=0; i<unConDist.length; i++)
 			{
-				rules.unConList[i] = new Double(unConDist[i]);
+				rules.unConList[i] = (unConDist[i]);   // autoboxing
 			}
 		}
         rules.calculateNumberOfRules();
@@ -295,18 +295,20 @@ public class MOSRules implements DRCRules {
 	 * Method to find the worst spacing distance in the design rules.
 	 * Finds the largest spacing rule in the Technology.
 	 * @return the largest spacing distance in the Technology. Zero if nothing found
-	 */
-	public double getWorstSpacingDistance()
+     * @param lastMetal
+     */
+	public double getWorstSpacingDistance(int lastMetal)
 	{
-		double worstInteractionDistance = 0;
+        assert(lastMetal == -1); // not implemented for only metals yet
+        double worstInteractionDistance = 0;
 
 		for(int i = 0; i < uTSize; i++)
 		{
-			double dist = unConList[i].doubleValue();
+			double dist = unConList[i];
 			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
-			dist = unConListWide[i].doubleValue();
+			dist = unConListWide[i];
 			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
-			dist = unConListMulti[i].doubleValue();
+			dist = unConListMulti[i];
 			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
 		}
 		return worstInteractionDistance;
@@ -399,7 +401,7 @@ public class MOSRules implements DRCRules {
             if (validName && dist >= 0) { bestDist = dist;   rule = conListRules[pIndex]; }
         } else
         {
-            double dist = unConList[pIndex].doubleValue();
+            double dist = unConList[pIndex];  // autoboxing
             boolean validName = true;
             if (unConListNodes[pIndex] != null &&
                     (!n1.equals(unConListNodes[pIndex]) && !n2.equals(unConListNodes[pIndex])))
@@ -407,15 +409,15 @@ public class MOSRules implements DRCRules {
             if (validName && dist >= 0) { bestDist = dist;   rule = unConListRules[pIndex]; }
          }
 
-		if (wideS > wideLimit.doubleValue())
+		if (wideS > wideLimit)  // autoboxing
 		{
 			if (connected)
 			{
-				double dist = conListWide[pIndex].doubleValue();
+				double dist = conListWide[pIndex]; // autoboxing
 				if (dist >= 0) { bestDist = dist;   rule = conListWideRules[pIndex]; }
 			} else
 			{
-				double dist = unConListWide[pIndex].doubleValue();
+				double dist = unConListWide[pIndex]; // autoboxing
 				if (dist >= 0) { bestDist = dist;   rule = unConListWideRules[pIndex]; }
 			}
 		}
@@ -424,11 +426,11 @@ public class MOSRules implements DRCRules {
 		{
 			if (connected)
 			{
-				double dist = conListMulti[pIndex].doubleValue();
+				double dist = conListMulti[pIndex]; // autoboxing
 				if (dist >= 0) { bestDist = dist;   rule = conListMultiRules[pIndex]; }
 			} else
 			{
-				double dist = unConListMulti[pIndex].doubleValue();
+				double dist = unConListMulti[pIndex]; // autoboxing
 				if (dist >= 0) { bestDist = dist;   rule = unConListMultiRules[pIndex]; }
 			}
 		}
@@ -505,21 +507,21 @@ public class MOSRules implements DRCRules {
                     switch (spacingCase)
                     {
                         case SPACING:
-                            conList[index] = new Double(rule.value1);
+                            conList[index] = (rule.value1); // autoboxing
                             conListRules[index] = rule.ruleName;
-                            if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
+                            if (rule.maxWidth > 0) wideLimit = (rule.maxWidth); // autoboxing
                             break;
                         case SPACINGW:
-                            conListWide[index] = new Double(rule.value1);
+                            conListWide[index] = (rule.value1); // autoboxing
                             conListWideRules[index] = rule.ruleName;
-                            if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
+                            if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);
                             break;
                         case UCONSPA2D:
-                            conListMulti[index] = new Double(rule.value1);
+                            conListMulti[index] = (rule.value1); // autoboxing
                             conListMultiRules[index] = rule.ruleName;
                             break;
                         case SPACINGE: // edge rules
-                            edgeList[index] = new Double(rule.value1);
+                            edgeList[index] = (rule.value1); // autoboxing
                             edgeListRules[index] = rule.ruleName;
                             break;
                          default:
@@ -532,17 +534,17 @@ public class MOSRules implements DRCRules {
                     switch (spacingCase)
                     {
                         case SPACING:
-                            unConList[index] = new Double(rule.value1);
+                            unConList[index] = (rule.value1); // autoboxing
                             unConListRules[index] = rule.ruleName;
-                            if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
+                            if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);// autoboxing
                             break;
                         case SPACINGW:
-                            unConListWide[index] = new Double(rule.value1);
+                            unConListWide[index] = (rule.value1); // autoboxing
                             unConListWideRules[index] = rule.ruleName;
-                            if (rule.maxWidth > 0) wideLimit = new Double(rule.maxWidth);
+                            if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);// autoboxing
                             break;
                         case UCONSPA2D:
-                            unConListMulti[index] = new Double(rule.value1);
+                            unConListMulti[index] = (rule.value1); // autoboxing
                             unConListMultiRules[index] = rule.ruleName;
                             break;
                         default:
@@ -578,9 +580,8 @@ public class MOSRules implements DRCRules {
      */
     public void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase)
     {
-        for (int i = 0; i < newRules.size(); i++)
+        for (DRCTemplate rule : newRules)
         {
-            DRCTemplate rule = (DRCTemplate)newRules.get(i);
             addRule(index, rule, spacingCase);
         }
     }
@@ -601,12 +602,12 @@ public class MOSRules implements DRCRules {
         {
             case SPACING: // normal rules
             {
-                double dist = conList[index].doubleValue();
+                double dist = conList[index];  // autoboxing
                 if (dist >= 0)
                     list.add(new DRCTemplate(conListRules[index], DRCTemplate.DRCMode.ALL.mode(),
                             DRCTemplate.DRCRuleType.CONSPA,
                             0, 0, null, null, dist, -1));
-                dist = unConList[index].doubleValue();
+                dist = unConList[index];  // autoboxing
                 if (dist >= 0)
                     list.add(new DRCTemplate(unConListRules[index], DRCTemplate.DRCMode.ALL.mode(),
                             DRCTemplate.DRCRuleType.UCONSPA,
@@ -615,26 +616,26 @@ public class MOSRules implements DRCRules {
            break;
            case SPACINGW: // wide rules
            {
-                double dist = conListWide[index].doubleValue();
+                double dist = conListWide[index];  // autoboxing
                 if (dist >= 0)
                     list.add(new DRCTemplate(conListWideRules[index], DRCTemplate.DRCMode.ALL.mode(),
                             DRCTemplate.DRCRuleType.CONSPA,
-                            wideLimit.doubleValue(), 0, null, null, dist, -1));
-                dist = unConListWide[index].doubleValue();
+                            wideLimit, 0, null, null, dist, -1)); // autoboxing
+                dist = unConListWide[index];
                 if (dist >= 0)
                     list.add(new DRCTemplate(unConListWideRules[index], DRCTemplate.DRCMode.ALL.mode(),
                             DRCTemplate.DRCRuleType.UCONSPA,
-                            wideLimit.doubleValue(), 0, null, null, dist, -1));
+                            wideLimit, 0, null, null, dist, -1));    // autoboxing
            }
            break;
            case UCONSPA2D: // multi contact rules
            {
-                double dist = conListMulti[index].doubleValue();
+                double dist = conListMulti[index];  // autoboxing
                 if (dist >= 0)
                     list.add(new DRCTemplate(conListMultiRules[index], DRCTemplate.DRCMode.ALL.mode(),
                             DRCTemplate.DRCRuleType.CONSPA,
                             0, 0, null, null, dist, 1));
-                dist = unConListMulti[index].doubleValue();
+                dist = unConListMulti[index];  // autoboxing
                 if (dist >= 0)
                     list.add(new DRCTemplate(unConListMultiRules[index], DRCTemplate.DRCMode.ALL.mode(),
                             DRCTemplate.DRCRuleType.UCONSPA,
@@ -643,7 +644,7 @@ public class MOSRules implements DRCRules {
            break;
            case SPACINGE: // edge rules
            {
-                double dist = edgeList[index].doubleValue();
+                double dist = edgeList[index];  // autoboxing
                 if (dist >= 0)
                     list.add(new DRCTemplate(edgeListRules[index], DRCTemplate.DRCMode.ALL.mode(),
                             DRCTemplate.DRCRuleType.SPACINGE,
@@ -662,26 +663,27 @@ public class MOSRules implements DRCRules {
 	private void calculateNumberOfRules()
 	{
 		int count = 0;
+        // autoboxing was applied below
 		for(int i = 0; i < uTSize; i++)
 		{
-			//Uncon
-			if (unConList[i].doubleValue() > MOSNORULE) count++;
-			if (unConListWide[i].doubleValue() > MOSNORULE) count++;;
-			if (unConListMulti[i].doubleValue() > MOSNORULE) count++;
+            //Uncon
+			if (unConList[i] > MOSNORULE) count++;
+			if (unConListWide[i] > MOSNORULE) count++;
+			if (unConListMulti[i] > MOSNORULE) count++;
 			// Con
-			if (conList[i].doubleValue() > MOSNORULE) count++;
-			if (conListWide[i].doubleValue() > MOSNORULE) count++;;
-			if (conListMulti[i].doubleValue() > MOSNORULE) count++;
+			if (conList[i] > MOSNORULE) count++;
+			if (conListWide[i] > MOSNORULE) count++;
+			if (conListMulti[i] > MOSNORULE) count++;
 			// Edge rules
-			if (edgeList[i].doubleValue() > MOSNORULE) count++;
+			if (edgeList[i] > MOSNORULE) count++;
 		}
 		for(int i=0; i<numLayers; i++)
 		{
-			if (minWidth[i].doubleValue() > MOSNORULE) count++;
+			if (minWidth[i] > MOSNORULE) count++;
 		}
 		for(int i=0; i<minNodeSize.length; i++)
 		{
-			if (minNodeSize[i].doubleValue() > MOSNORULE) count++;
+			if (minNodeSize[i] > MOSNORULE) count++;
 		}
 		numberOfRules = count;
 	}
@@ -701,7 +703,7 @@ public class MOSRules implements DRCRules {
         {
             case MINWID:
             {
-                double dist = minWidth[index].doubleValue();
+                double dist = minWidth[index]; // autoboxing
 
                 if (dist < 0) return null;
                 return (new DRCTemplate(minWidthRules[index], DRCTemplate.DRCMode.ALL.mode(),
@@ -709,7 +711,7 @@ public class MOSRules implements DRCRules {
             }
             case MINAREA:
             {
-                double dist = minArea[index].doubleValue();
+                double dist = minArea[index]; // autoboxing
 
                 if (dist < 0) return null;
                 return (new DRCTemplate(minAreaRules[index], DRCTemplate.DRCMode.ALL.mode(),
@@ -717,7 +719,7 @@ public class MOSRules implements DRCRules {
             }
             case SLOTSIZE:
             {
-                double dist = slotSize[index].doubleValue();
+                double dist = slotSize[index]; // autoboxing
 
                 if (dist < 0) return null;
                 return (new DRCTemplate(slotSizeRules[index], DRCTemplate.DRCMode.ALL.mode(),
@@ -739,31 +741,15 @@ public class MOSRules implements DRCRules {
         switch(type)
         {
             case MINWID:
-                double minSize = minWidth[index].doubleValue();
+                double minSize = minWidth[index]; // autoboxing
                 if (minSize < 0) return null;
                 return (new DRCTemplate(minWidthRules[index], DRCTemplate.DRCMode.ALL.mode(),
                         type, 0, 0, null, null, minSize, -1));
-//            case CUTSIZE:
-//                double cutSize = cutNodeSize[index].doubleValue();
-//                if (cutSize < 0) return null;
-//                return (new DRCTemplate(cutNodeSizeRules[index], DRCTemplate.DRCMode.ALL.mode(),
-//                        type, 0, 0, null, null, cutSize, -1));
-//            case VIASUR:
-//            case CUTSUR:
-//                double cutSur = cutNodeSurround[index].doubleValue();
-//                if (cutSur < 0) return null;
-//                return (new DRCTemplate(cutNodeSurroundRules[index], DRCTemplate.DRCMode.ALL.mode(),
-//                        type, 0, 0, null, null, cutSur, -1));
             case UCONSPA2D:
-                 double cutSpa = cutNodeSpa1D[index].doubleValue();
+                 double cutSpa = cutNodeSpa1D[index]; // autoboxing
                 if (cutSpa < 0) return null;
                 return (new DRCTemplate(cutNodeSpa1DRules[index], DRCTemplate.DRCMode.ALL.mode(),
                         type, 0, 0, null, null, cutSpa, -1));
-//            case CUTSPA2D:
-//                 double cutSpa2D = cutNodeSpa2D[index].doubleValue();
-//                if (cutSpa2D < 0) return null;
-//                return (new DRCTemplate(cutNodeSpa2DRules[index], DRCTemplate.DRCMode.ALL.mode(),
-//                        type, 0, 0, null, null, cutSpa2D, -1));
 
         }
         return null;
@@ -798,11 +784,11 @@ public class MOSRules implements DRCRules {
         switch (type)
         {
             case MINWID:
-                minWidth[index] = new Double(value);
+                minWidth[index] = (value); // autoboxing
                 minWidthRules[index] = name;
                 break;
             case MINAREA:
-                minArea[index] = new Double(value);
+                minArea[index] = (value); // autoboxing
                 minAreaRules[index] = name;
                 break;
             default:
@@ -921,7 +907,7 @@ public class MOSRules implements DRCRules {
 				int index = 0;
 				for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 				{
-					PrimitiveNode oNp = (PrimitiveNode)it.next();
+					PrimitiveNode oNp = it.next();
 					if (oNp == np) break;
 					index++;
 				}

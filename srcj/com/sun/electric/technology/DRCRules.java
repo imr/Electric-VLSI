@@ -33,7 +33,7 @@ import java.util.List;
 public interface DRCRules
 {
     public int getRuleIndex(int index1, int index2);
-    public double getWorstSpacingDistance();
+    public double getWorstSpacingDistance(int lastMetal);
     public double getMaxSurround(Technology tech, Layer layer, double maxSize);
     public DRCTemplate getEdgeRule(Layer layer1, Layer layer2);
     public DRCTemplate getSpacingRule(Layer layer1, Geometric geo1,

@@ -22,7 +22,6 @@ public class XMLRules implements DRCRules {
     public XMLRules (Technology tech)
     {
         int numLayers = tech.getNumLayers();
-//        int numIndices = tech.getNumLayers() + tech.getNumNodes();
         int uTSize = (numLayers * numLayers + numLayers) / 2 + numLayers + tech.getNumNodes();
 
         this.matrix = new HashMap[uTSize];
@@ -69,9 +68,10 @@ public class XMLRules implements DRCRules {
 	{
         // This function is better not to be cached
         int numberOfRules = 0;
-        for(int i=0; i<matrix.length; i++)
+
+        for (HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map : matrix)
         {
-            if (matrix[i] != null) numberOfRules++;
+            if (map != null) numberOfRules++;
         }
 		return numberOfRules;
 	}
@@ -426,7 +426,7 @@ public class XMLRules implements DRCRules {
      /**
       * Method to return min value rule depending on type and wire length
       */
-    public double getMinRule(int index, DRCTemplate.DRCRuleType type, double maxW)
+    private double getMinRule(int index, DRCTemplate.DRCRuleType type, double maxW)
     {
         HashMap<XMLRules.XMLRule, XMLRules.XMLRule> map = matrix[index];
         if (map == null) return (0.0);
@@ -474,15 +474,6 @@ public class XMLRules implements DRCRules {
 //        }
 
         return (r);
-	}
-
-
-    private int getRuleIndex(int index1, int index2, Technology tech)
-	{
-		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
-		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
-		pIndex = index2 + (tech.getNumLayers() + tech.getNumNodes()) * index1 - pIndex;
-		return pIndex;
 	}
 
     /**
@@ -550,17 +541,46 @@ public class XMLRules implements DRCRules {
 	 * Method to find the worst spacing distance in the design rules.
 	 * Finds the largest spacing rule in the Technology.
 	 * @return the largest spacing distance in the Technology. Zero if nothing found
-	 */
-    public double getWorstSpacingDistance()
+     * @param lastMetal last metal to check if only metal values are requested
+     */
+    public double getWorstSpacingDistance(int lastMetal)
 	{
 		double worstDistance = 0;
 
-		for(int i = 0; i < matrix.length; i++)
-		{
-			double worstValue = getMinRule(i, DRCTemplate.DRCRuleType.UCONSPA, Double.MAX_VALUE);
-			if (worstValue > worstDistance) worstDistance = worstValue;
-		}
-		return worstDistance;
+        if (lastMetal != -1)
+        {
+            int numM = tech.getNumMetals();
+            assert(numM >= lastMetal);
+            numM = lastMetal;
+            List<Layer> layers = new ArrayList<Layer>(numM);
+            for (Iterator<Layer> itL = tech.getLayers(); itL.hasNext();)
+            {
+                Layer l = itL.next(); // skipping pseudo layers
+                if (l != l.getNonPseudoLayer())
+                    continue;
+                if (l.getFunction().isMetal())
+                    layers.add(l);
+            }
+            for (int i = 0; i < numM; i++)
+            {
+                Layer l1 = layers.get(i);
+                for (int j = i; j < numM; j++) // starts from i so metal1-metal2(default one) can be checked
+                {
+                    int index = getRuleIndex(l1.getIndex(), layers.get(j).getIndex());
+                    double worstValue = getMinRule(index, DRCTemplate.DRCRuleType.UCONSPA, Double.MAX_VALUE);
+                    if (worstValue > worstDistance) worstDistance = worstValue;
+                }
+            }
+        }
+        else
+        {
+            for(int i = 0; i < matrix.length; i++)
+            {
+                double worstValue = getMinRule(i, DRCTemplate.DRCRuleType.UCONSPA, Double.MAX_VALUE);
+                if (worstValue > worstDistance) worstDistance = worstValue;
+            }
+        }
+        return worstDistance;
 	}
 
     /**

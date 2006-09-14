@@ -28,10 +28,13 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.generator.layout.FillGenerator;
 import com.sun.electric.tool.generator.layout.FillGeneratorTool;
+import com.sun.electric.tool.generator.layout.Tech;
 
 import java.awt.Component;
 import java.awt.Container;
@@ -743,7 +746,6 @@ public class FillGen extends EDialog {
         boolean flatSelected = isFlatSelected();
         boolean value = !flatSelected && isCreateOptionSelected() || templateButton.isSelected();
         setEnabledInHierarchy(masterDimPanel, value);
-//        setEnabledInHierarchy(fillTypeComboBox, flatSelected);
         setEnabledInHierarchy(masterComboBox, !flatSelected);
 
         value = value || flatSelected;
@@ -781,7 +783,6 @@ public class FillGen extends EDialog {
         boolean hierarchy = (!isFlatSelected());
         boolean useMaster = hierarchy && !isCreateOptionSelected();
         boolean even = (jComboBox1.getModel().getSelectedItem().equals("horiz"));
-        double drcSpacingRule = 6;               //@TODO this value should be calculated!!!
 
         FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
         FillGenerator.Units TRACKS = FillGenerator.TRACKS;
@@ -809,6 +810,8 @@ public class FillGen extends EDialog {
             return;
         }
 
+        // This assumes the wires are long enough for wide values are going to be retrieved
+        double drcSpacingRule = DRC.getWorstSpacingDistance(tech, lastMetal); // only metals
         double width = TextUtils.atof(jTextField1.getText());
         double height = TextUtils.atof(jTextField2.getText());
 
@@ -825,17 +828,25 @@ public class FillGen extends EDialog {
         for (int i = 0; i < tiledCells.length; i++)
         {
             if (tiledCells[i].getModel().isSelected())
-                items.add(new Integer(i+2));
+                items.add((i+2));
         }
         int[] cells = null;
         if (items.size() > 0)
         {
             cells = new int[items.size()];
             for (int i = 0; i < items.size(); i++)
-                cells[i] = items.get(i).intValue();
+                cells[i] = items.get(i);
+        }
+        Tech.Type techNm = Tech.Type.TSMC90; // putting one possible value
+
+        if (tech == MoCMOS.tech)
+        {
+            techNm = (tech.getSelectedFoundry().getType() == Foundry.Type.TSMC) ?
+                    Tech.Type.TSMC180 :
+                    Tech.Type.MOCMOS;
         }
 
-        FillGenerator.FillGeneratorConfig config = new FillGenerator.FillGeneratorConfig(tech, "autoFillLib",
+        FillGenerator.FillGeneratorConfig config = new FillGenerator.FillGeneratorConfig(techNm, "autoFillLib",
                 FillGenerator.PERIMETER, firstMetal, lastMetal, width, height,
                 even, cells, hierarchy, 0.1, drcSpacingRule,
                 fillTypeComboBox.getSelectedItem() == FillGeneratorTool.FillCellMode.BINARY,
@@ -886,7 +897,7 @@ public class FillGen extends EDialog {
         FillGeneratorTool.FillCellMode mode = (FillGeneratorTool.FillCellMode)fillTypeComboBox.getSelectedItem();
         FillGeneratorTool.setFillCellMode(mode);
         FillGeneratorTool.setFillCellCreateMasterOn(isCreateOptionSelected());
-        setVisible(false);;
+        setVisible(false);
     }//GEN-LAST:event_okButtonActionPerformed
 
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed

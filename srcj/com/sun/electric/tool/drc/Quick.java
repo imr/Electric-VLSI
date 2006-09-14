@@ -278,7 +278,7 @@ public class Quick
 	    instanceInteractionList.clear();
 
 		// determine maximum DRC interaction distance
-		worstInteractionDistance = DRC.getWorstSpacingDistance(tech);
+		worstInteractionDistance = DRC.getWorstSpacingDistance(tech, -1);
 
 	    // determine if min area must be checked (if any layer got valid data)
 	    minAreaLayerMap.clear();

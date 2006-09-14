@@ -234,7 +234,7 @@ if (--limitLoops <= 0) change = false;
 			this.curAxis = curAxis;
 
 			// determine maximum drc surround for entire technology
-			maxBoundary = DRC.getWorstSpacingDistance(Technology.getCurrent());
+			maxBoundary = DRC.getWorstSpacingDistance(Technology.getCurrent(), -1);
 
 			if (curAxis == Axis.HORIZONTAL) System.out.println("Compacting horizontally"); else
 				System.out.println("Compacting vertically");

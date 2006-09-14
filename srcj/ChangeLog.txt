@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
+BUG: (9/13/06, GVG) AFG not working properly with min spacing distance between metals
+FIX: getting the correct DRC value.
+
 BUG: (9/13/06, DN) AssertionError in Cell.addNode after library rename (Bug #1220).
 FIX: In NodeInst.newInstance/ArcInst.newInstance search for spare nodeId/arcId.
 

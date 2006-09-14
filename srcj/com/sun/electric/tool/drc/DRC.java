@@ -474,20 +474,18 @@ public class DRC extends Listener
 	 * Method to find the worst spacing distance in the design rules.
 	 * Finds the largest spacing rule in the Technology.
 	 * @param tech the Technology to examine.
-	 * @return the largest spacing distance in the Technology. Zero if nothing found
+     * @param lastMetal
+     * @return the largest spacing distance in the Technology. Zero if nothing found
 	 */
-	public static double getWorstSpacingDistance(Technology tech)
+	public static double getWorstSpacingDistance(Technology tech, int lastMetal)
 	{
 		DRCRules rules = getRules(tech);
 		if (rules == null)
-        {
-            //if (Main.getDebug()) System.out.println("Is -1 a valid number? in DRC::getWorstSpacingDistance. Zero now!");
             return 0;
-        }
-		return (rules.getWorstSpacingDistance());
+		return (rules.getWorstSpacingDistance(lastMetal));
 	}
 
-	/**
+    /**
 	 * Method to find the maximum design-rule distance around a layer.
 	 * @param layer the Layer to examine.
 	 * @return the maximum design-rule distance around the layer. -1 if nothing found.

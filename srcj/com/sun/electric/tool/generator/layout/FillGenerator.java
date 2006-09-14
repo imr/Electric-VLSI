@@ -42,7 +42,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 
 // ---------------------------- Fill Cell Globals -----------------------------
@@ -231,7 +230,7 @@ class ExportBar
         ports = new PortInst[2];
         ports[0] = p1;
         ports[1] = p2;
-        center = new Double(c);
+        center = (c);  // autoboxing
     }
 }
 
@@ -346,14 +345,14 @@ class MetalLayer implements VddGndStraps {
     public boolean isHorizontal() {return plan.horizontal;}
     public int numVdd() {return vddBars.size();}
     public double getVddCenter(int n) {
-		return (vddBars.get(n).center.doubleValue());
+		return (vddBars.get(n).center); // autoboxing
 	}
     public PortInst getVdd(int n, int pos)
     {return vddBars.get(n).ports[pos];}
     public double getVddWidth(int n) {return plan.vddWidth;}
     public int numGnd() {return gndBars.size();}
     public double getGndCenter(int n) {
-		return (gndBars.get(n).center.doubleValue());
+		return (gndBars.get(n).center); // autoboxing
 	}
     public PortInst getGnd(int n, int pos) {return gndBars.get(n).ports[pos];}
     public double getGndWidth(int n) {return (plan).gndWidth;}
@@ -1760,7 +1759,7 @@ class TiledCell {
      * Method to calculate number of master sizes to cover using binary division or the intersection approach
      * @param size
      * @param binary
-     * @return
+     * @return number of master cells
      */
     private static int getFillDimension(int size, boolean binary)
     {
@@ -1928,7 +1927,7 @@ public class FillGenerator {
      * conflicts while detecting collisions.
      * @param master
      * @param cell
-     * @return
+     * @return true if cell is used in master cell
      */
     private static boolean searchSubCellInMasterCell(Cell master, Cell cell)
     {
@@ -1954,7 +1953,7 @@ public class FillGenerator {
      * @param ignores NodeInst instances to ignore
      * @param master
      * @param theNet
-     * @return
+     * @return true if a collision was found
      */
     protected static boolean searchCollision(Cell parent, Rectangle2D nodeBounds, List<Layer.Function> theseLayers,
                                              PortConfig p, Object[] ignores, Cell master, Network theNet)
@@ -2077,7 +2076,6 @@ public class FillGenerator {
 	private static final double m6via = 5;
 	private static final double m6sp = 4;
 	private static final double m6SP = 8;
-    private static final double drcRules[] = {m1SP, m1SP, m1SP, m1SP, m1SP, m1SP, m6SP};
 
     protected FillGeneratorConfig config;
 	private Library lib;
@@ -2130,7 +2128,10 @@ public class FillGenerator {
         }
 		boolean evenHor = config.evenLayersHorizontal;
         boolean alignedMetals = true;
-        double[] spacing = drcRules;
+//        double[] spacing1 = drcRules;
+        double[] spacing = {config.drcSpacingRule,config.drcSpacingRule,
+                config.drcSpacingRule,config.drcSpacingRule,
+                config.drcSpacingRule,config.drcSpacingRule,config.drcSpacingRule};
 
         if (alignedMetals)
         {
@@ -2150,7 +2151,7 @@ public class FillGenerator {
                 }
                 if (gndOK || vddOK) // checking max spacing rule
                 {
-                    if (maxSpacing < drcRules[i]) maxSpacing = drcRules[i];
+                    if (maxSpacing < config.drcSpacingRule) maxSpacing = config.drcSpacingRule; //drcRules[i];
                 }
                 if (maxVddW < vddW[i])
                     maxVddW = vddW[i];
@@ -2349,7 +2350,7 @@ public class FillGenerator {
 	}
 
     /** Similar to standardMakeFillCell but it generates hierarchical fills with a qTree
-     * @return
+     * @return Top fill cell
      */
     protected Cell treeMakeFillCell(FillGeneratorConfig config, Cell topCell,
                                     List<Cell> givenMasters, List<Rectangle2D> topBoxList, Area area)
@@ -2484,7 +2485,7 @@ public class FillGenerator {
         int level; // to control the level of hierarchy in case of onlyAround option
         Job job;
 
-        public FillGeneratorConfig(Technology tech, String lib, ExportConfig perim, int first, int last,
+        public FillGeneratorConfig(Tech.Type tech, String lib, ExportConfig perim, int first, int last,
                                    double w, double h, boolean even,
                                    int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
                                    boolean binary, boolean useMaster, boolean onlyAround, double gap, boolean onlySkill,
@@ -2500,14 +2501,8 @@ public class FillGenerator {
             evenLayersHorizontal = even;
             this.useMaster = useMaster;
 
-            if (tech == MoCMOS.tech)
-            {
-                techNm = (tech.getSelectedFoundry().getType() == Foundry.Type.TSMC) ?
-                        Tech.Type.TSMC180 :
-                        Tech.Type.MOCMOS;
-            }
-            else
-                techNm = Tech.Type.TSMC90;
+            techNm = tech;
+
             LayoutLib.error((techNm != Tech.Type.MOCMOS && techNm != Tech.Type.TSMC180),
                 "FillGenerator only recognizes the technologies: "+
                 Tech.Type.MOCMOS+" and "+Tech.Type.TSMC180+".\n"+
