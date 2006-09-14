@@ -230,6 +230,7 @@ public class Pref
 	private   Meaning     meaning;
 	private   Object      cachedObj;
 	private   Object      factoryObj;
+    private   boolean changed = false;
 
 	private static final List<Pref> allPrefs = new ArrayList<Pref>();
 	private static boolean doFlushing = true;
@@ -237,7 +238,7 @@ public class Pref
 	private static Set<Preferences> queueForFlushing;
     private static boolean allPreferencesCreated = false;
 
-	/**
+    /**
 	 * The constructor for the Pref.
 	 * @param name the name of this Pref.
 	 */
@@ -835,7 +836,34 @@ public class Pref
 	{
 	}
 
-	/**
+    /**
+     * Mark all preferences as "unchanged"
+     */
+    public static void clearChangedAllPrefs() {
+        synchronized (allPrefs) {
+            for (Pref pref : allPrefs)
+                pref.changed = false;
+        }
+    }
+
+    /**
+     * Return true if any pref has changed since the last
+     * call to clearChangedAllPrefs()
+     * @return true if any pref has changed since changes were cleared
+     */
+    public static boolean anyPrefChanged() {
+        boolean changed = false;
+        synchronized (allPrefs) {
+            for (Pref pref : allPrefs) {
+                if (pref.changed) {
+                    changed = true; break;
+                }
+            }
+        }
+        return changed;
+    }
+
+    /**
 	 * Method to delay the saving of preferences to disk.
 	 * Since individual saving is time-consuming, batches of preference
 	 * changes are wrapped with this, and "resumePrefFlushing()".
@@ -870,7 +898,8 @@ public class Pref
 		if (v != cachedBool)
 		{
 			cachedObj = new Integer(v ? 1 : 0);
-			if (prefs != null)
+            changed = true;
+            if (prefs != null)
 			{
 				prefs.putBoolean(name, v);
 				if (doFlushing) flushOptions(prefs); else
@@ -890,6 +919,7 @@ public class Pref
 		if (v != cachedInt)
 		{
 			cachedObj = new Integer(v);
+            changed = true;
 			if (prefs != null)
 			{
 				prefs.putInt(name, v);
@@ -910,6 +940,7 @@ public class Pref
 		if (v != cachedLong)
 		{
 			cachedObj = new Long(v);
+            changed = true;
 			if (prefs != null)
 			{
 				prefs.putLong(name, v);
@@ -933,6 +964,7 @@ public class Pref
 		if (v != cachedDouble)
 		{
 			cachedObj = new Double(v);
+            this.changed = true;
 			if (prefs != null)
 			{
 				prefs.putDouble(name, v);
@@ -955,7 +987,8 @@ public class Pref
 		if (!str.equals(cachedString))
 		{
 			cachedObj = new String(str);
-			if (prefs != null)
+            changed = true;
+            if (prefs != null)
 			{
 				prefs.put(name, str);
 				if (doFlushing) flushOptions(prefs); else

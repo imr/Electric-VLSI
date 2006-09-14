@@ -24,10 +24,12 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
 import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
@@ -55,6 +57,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Iterator;
 import java.io.File;
 
 import javax.swing.JButton;
@@ -353,12 +356,14 @@ public class ProjectSettingsFrame extends EDialog
 
             // gather preference changes on the client
 			Pref.gatherPrefChanges();
-			for(ProjSettingsPanel ti : dialog.optionPanes)
+            Pref.clearChangedAllPrefs();
+            for(ProjSettingsPanel ti : dialog.optionPanes)
 			{
 				if (ti.isInited())
 					ti.term();
 			}
-			changeBatch = Pref.getPrefChanges();
+            if (Pref.anyPrefChanged()) this.issueWarning = true;
+            changeBatch = Pref.getPrefChanges();
 			startJob();
 		}
 
@@ -371,8 +376,22 @@ public class ProjectSettingsFrame extends EDialog
 		public void terminateOK()
 		{
             if (issueWarning) {
-                Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
-                "\nTo save them permanently, use File -> Export -> Project Settings", "Warning");
+                if (ProjSettings.getLastProjectSettingsFile() != null) {
+                    Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
+                    "\nTo save them permanently, use File -> Export -> Project Settings", "Warning");
+                } else {
+                    String curLib = Library.getCurrent().getName();
+                    String [] options = new String [] { "Mark All Libs", "Mark Lib \""+curLib+"\"", "Write to file", "Do nothing"};
+                    int i = JOptionPane.showOptionDialog(dialog, "Warning: Changed settings must be saved to Library or Project Settings file.\nPlease choose which Libraries to mark for saving, or write project settings file:", "Warning",
+                            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+                    if (i == 0) {
+                        CircuitChangeJobs.markAllLibrariesForSavingCommand();
+                    } else if (i == 1) {
+                        CircuitChangeJobs.markCurrentLibForSavingCommand();
+                    } else if (i == 2) {
+                        ProjSettings.exportSettings();
+                    }
+                }
             }
             dialog.closeDialog(null);
 		}

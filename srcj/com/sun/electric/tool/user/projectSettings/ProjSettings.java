@@ -69,6 +69,10 @@ public class ProjSettings {
         write(file.getPath(), getSettings());
     }
 
+    public static File getLastProjectSettingsFile() {
+        return lastProjectSettingsFile;
+    }
+
     /**
      * Read project settings and apply them
      * @param file the file to read
@@ -94,12 +98,14 @@ public class ProjSettings {
      * Write settings to disk.  Pops up a dialog to prompt for file location
      */
     public static void exportSettings() {
+/*
         int ret = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Changes to Project Settings may affect all users\n\nContinue Anyway?",
                 "Warning!", JOptionPane.YES_NO_OPTION);
         if (ret == JOptionPane.NO_OPTION) return;
-
+*/
         File outputFile = new File(FileType.LIBRARYFORMATS.getGroupPath(), "projsettings.xml");
         String ofile = OpenFile.chooseOutputFile(FileType.XML, "Export Project Settings", outputFile.getPath());
+        if (ofile == null) return;
         outputFile = new File(ofile);
 
         writeSettings(outputFile);
@@ -114,9 +120,12 @@ public class ProjSettings {
     // ----------------------------- Private -------------------------------
 
     private static void write(String file, ProjSettingsNode node) {
-        Writer wr = new Writer(new File(file));
-        if (wr.write("ProjectSettings", node))
+        File ofile = new File(file);
+        Writer wr = new Writer(ofile);
+        if (wr.write("ProjectSettings", node)) {
             System.out.println("Wrote Project Settings to "+file);
+            lastProjectSettingsFile = ofile; 
+        }
         wr.close();
     }
 
