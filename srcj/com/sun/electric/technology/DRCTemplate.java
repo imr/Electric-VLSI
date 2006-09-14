@@ -98,7 +98,7 @@ public class DRCTemplate
 //        /** a transistor active rule */		TRAACTIVE (7),
         /** a spacing rule */				SPACING (8),
 //        /** a multi-cut spacing rule */		SPACINGM (9),
-        /** a wide spacing rule */			SPACINGW (10),
+//        /** a wide spacing rule */			SPACINGW (10),
         /** an edge spacing rule */			SPACINGE (11),
         /** a connected spacing rule */		CONSPA (12),
         /** an unconnected spacing rule */	UCONSPA (13),

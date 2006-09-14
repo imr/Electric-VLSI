@@ -68,10 +68,10 @@ public interface DRCRules
     
     /********************* For UI ***********************************/
     String[] getNodesWithRules();
-    List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type);
+    List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type, boolean wideRules);
     void addRule(int index, DRCTemplate rule);
-    void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase);
+    void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase, boolean wideRules);
     void deleteRule(int index, DRCTemplate rule);
-    void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase);
+    void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase, boolean wideRules);
     boolean doesAllowMultipleWideRules(int index);
 }

@@ -98,9 +98,10 @@ public class XMLRules implements DRCRules {
      * SPACINGE (edge values) and CUTSPA (multi cuts)
      * @param index
      * @param spacingCase
+     * @param wideRules
      * @return list of rules subdivided in UCONSPA and CONSPA
      */
-    public List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType spacingCase)
+    public List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType spacingCase, boolean wideRules)
     {
         List<DRCTemplate> list = new ArrayList<DRCTemplate>(2);
 
@@ -108,14 +109,17 @@ public class XMLRules implements DRCRules {
         {
             case SPACING: // normal rules
             {
-		        list = getRuleForRange(index, DRCTemplate.DRCRuleType.CONSPA, -1, -1, 0, list);
-		        list = getRuleForRange(index, DRCTemplate.DRCRuleType.UCONSPA, -1, -1, 0, list);
-            }
-            break;
-            case SPACINGW: // wide rules
-            {
-                list = getRuleForRange(index, DRCTemplate.DRCRuleType.CONSPA, -1, 0, Double.MAX_VALUE, list);
-		        list = getRuleForRange(index, DRCTemplate.DRCRuleType.UCONSPA, -1, 0, Double.MAX_VALUE, list);
+                double maxLimit = 0;
+                int multi = -1;
+
+                if (wideRules)
+                {
+                    multi = 0;
+                    maxLimit = Double.MAX_VALUE;
+                }
+
+                list = getRuleForRange(index, DRCTemplate.DRCRuleType.CONSPA, -1, multi, maxLimit, list);
+                list = getRuleForRange(index, DRCTemplate.DRCRuleType.UCONSPA, -1, multi, maxLimit, list);
             }
             break;
             case UCONSPA2D: // multi contact rule
@@ -134,8 +138,9 @@ public class XMLRules implements DRCRules {
      * @param index
      * @param newRules
      * @param spacingCase SPACING for normal case, SPACINGW for wide case, CUTSPA for multi cuts
+     * @param wideRules
      */
-    public void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase)
+    public void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase, boolean wideRules)
     {
         List<DRCTemplate> list = new ArrayList<DRCTemplate>(0);
         HashMap<XMLRules.XMLRule,XMLRules.XMLRule> map = matrix[index];
@@ -150,12 +155,16 @@ public class XMLRules implements DRCRules {
             {
                 case SPACING: // normal rules
                 {
-                    list = getRuleForRange(index, rule.ruleType, -1, -1, 0, list);
-                }
-                break;
-                case SPACINGW: // wide rules
-                {
-                    list = getRuleForRange(index, rule.ruleType, -1, 0, Double.MAX_VALUE, list);
+                    double maxLimit = 0;
+                    int multi = -1;
+
+                    if (wideRules) // wide rules
+                    {
+                        multi = 0;
+                        maxLimit = Double.MAX_VALUE;
+                    }
+
+                    list = getRuleForRange(index, rule.ruleType, -1, multi, maxLimit, list);
                 }
                 break;
                 case UCONSPA2D: // multi contact rule
@@ -381,7 +390,7 @@ public class XMLRules implements DRCRules {
     }
 
     /** OLD FUNCTION*/
-    public void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase)
+    public void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase, boolean wideRules)
     {
         new Error("Not implemented");
     }
@@ -410,7 +419,7 @@ public class XMLRules implements DRCRules {
 //                    addRule(index*2+1, rule.ruleName, rule.value2, DRCTemplate.DRCRuleType.NODSIZ, 0, 0, -1, DRCTemplate.DRCMode.ALL.mode(), null, null);
 //                    return;
 			case SPACING:
-		    case SPACINGW:
+//		    case SPACINGW:
 				internalType = DRCTemplate.DRCRuleType.UCONSPA;
 				addRule(index, rule.ruleName, rule.value1, DRCTemplate.DRCRuleType.CONSPA, rule.maxWidth, rule.minLength,
                         rule.multiCuts, rule.when, list, rule.nodeName);
@@ -945,7 +954,7 @@ public class XMLRules implements DRCRules {
                     addRule(index, theRule);
                 break;
             case SPACING:
-            case SPACINGW:
+//            case SPACINGW:
             case CONSPA:
             case UCONSPA:
             case UCONSPA2D:

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
+BUG: (9/14/06, GVG) Design Rules dialog not working properly for TSMC90 and many wide rules
+FIX: designRulesEditChanged fixed. 
+
 BUG: (9/14/06, SMR) Interactive sizing fails on rotated nodes (Bug #1201)
 FIX: In SizeListener.getNewNodeSize(), reallocate farthest point.
 

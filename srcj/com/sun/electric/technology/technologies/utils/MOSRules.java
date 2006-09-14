@@ -489,10 +489,11 @@ public class MOSRules implements DRCRules {
     }
     /**
 	 * Method to add a rule based on template
-	 * @param index
-     @param rule
+     @param index
+      * @param rule
+     * @param wideRules
      */
-	public void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase)
+	public void addRule(int index, DRCTemplate rule, DRCTemplate.DRCRuleType spacingCase, boolean wideRules)
 	{
         if (rule.ruleType == DRCTemplate.DRCRuleType.NODSIZ)
             setMinNodeSize(index, rule.ruleName, rule.value1, rule.value2);
@@ -507,14 +508,20 @@ public class MOSRules implements DRCRules {
                     switch (spacingCase)
                     {
                         case SPACING:
-                            conList[index] = (rule.value1); // autoboxing
-                            conListRules[index] = rule.ruleName;
-                            if (rule.maxWidth > 0) wideLimit = (rule.maxWidth); // autoboxing
-                            break;
-                        case SPACINGW:
-                            conListWide[index] = (rule.value1); // autoboxing
-                            conListWideRules[index] = rule.ruleName;
-                            if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);
+                        {
+                            if (!wideRules)
+                            {
+                                conList[index] = (rule.value1); // autoboxing
+                                conListRules[index] = rule.ruleName;
+                                if (rule.maxWidth > 0) wideLimit = (rule.maxWidth); // autoboxing
+                            }
+                            else
+                            {
+                                conListWide[index] = (rule.value1); // autoboxing
+                                conListWideRules[index] = rule.ruleName;
+                                if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);
+                            }
+                        }
                             break;
                         case UCONSPA2D:
                             conListMulti[index] = (rule.value1); // autoboxing
@@ -534,15 +541,21 @@ public class MOSRules implements DRCRules {
                     switch (spacingCase)
                     {
                         case SPACING:
-                            unConList[index] = (rule.value1); // autoboxing
-                            unConListRules[index] = rule.ruleName;
-                            if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);// autoboxing
+                        {
+                            if (!wideRules)
+                            {
+                                unConList[index] = (rule.value1); // autoboxing
+                                unConListRules[index] = rule.ruleName;
+                                if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);// autoboxing
+                            }
+                            else
+                            {
+                                unConListWide[index] = (rule.value1); // autoboxing
+                                unConListWideRules[index] = rule.ruleName;
+                                if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);// autoboxing
+                            }
                             break;
-                        case SPACINGW:
-                            unConListWide[index] = (rule.value1); // autoboxing
-                            unConListWideRules[index] = rule.ruleName;
-                            if (rule.maxWidth > 0) wideLimit = (rule.maxWidth);// autoboxing
-                            break;
+                        }
                         case UCONSPA2D:
                             unConListMulti[index] = (rule.value1); // autoboxing
                             unConListMultiRules[index] = rule.ruleName;
@@ -577,12 +590,13 @@ public class MOSRules implements DRCRules {
      * @param index
      * @param newRules
      * @param spacingCase SPACING for normal case, SPACINGW for wide case, CUTSPA for multi cuts
+     * @param wideRules
      */
-    public void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase)
+    public void setSpacingRules(int index, List<DRCTemplate> newRules, DRCTemplate.DRCRuleType spacingCase, boolean wideRules)
     {
         for (DRCTemplate rule : newRules)
         {
-            addRule(index, rule, spacingCase);
+            addRule(index, rule, spacingCase, false);
         }
     }
 
@@ -591,9 +605,10 @@ public class MOSRules implements DRCRules {
      * @param index the index of the layer being queried.
      * @param type SPACING (normal values), SPACINGW (wide values),
      * SPACINGE (edge values) and CUTSPA (multi cuts).
+     * @param wideRules
      * @return list of rules subdivided in UCONSPA and CONSPA
      */
-    public List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type)
+    public List<DRCTemplate> getSpacingRules(int index, DRCTemplate.DRCRuleType type, boolean wideRules)
     {
         List<DRCTemplate> list = new ArrayList<DRCTemplate>(2);
 
@@ -602,30 +617,32 @@ public class MOSRules implements DRCRules {
         {
             case SPACING: // normal rules
             {
-                double dist = conList[index];  // autoboxing
-                if (dist >= 0)
-                    list.add(new DRCTemplate(conListRules[index], DRCTemplate.DRCMode.ALL.mode(),
-                            DRCTemplate.DRCRuleType.CONSPA,
-                            0, 0, null, null, dist, -1));
-                dist = unConList[index];  // autoboxing
-                if (dist >= 0)
-                    list.add(new DRCTemplate(unConListRules[index], DRCTemplate.DRCMode.ALL.mode(),
-                            DRCTemplate.DRCRuleType.UCONSPA,
-                            0, 0, null, null, dist, -1));
-           }
-           break;
-           case SPACINGW: // wide rules
-           {
-                double dist = conListWide[index];  // autoboxing
-                if (dist >= 0)
-                    list.add(new DRCTemplate(conListWideRules[index], DRCTemplate.DRCMode.ALL.mode(),
-                            DRCTemplate.DRCRuleType.CONSPA,
-                            wideLimit, 0, null, null, dist, -1)); // autoboxing
-                dist = unConListWide[index];
-                if (dist >= 0)
-                    list.add(new DRCTemplate(unConListWideRules[index], DRCTemplate.DRCMode.ALL.mode(),
-                            DRCTemplate.DRCRuleType.UCONSPA,
-                            wideLimit, 0, null, null, dist, -1));    // autoboxing
+                if (!wideRules)
+                {
+                    double dist = conList[index];  // autoboxing
+                    if (dist >= 0)
+                        list.add(new DRCTemplate(conListRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                                DRCTemplate.DRCRuleType.CONSPA,
+                                0, 0, null, null, dist, -1));
+                    dist = unConList[index];  // autoboxing
+                    if (dist >= 0)
+                        list.add(new DRCTemplate(unConListRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                                DRCTemplate.DRCRuleType.UCONSPA,
+                                0, 0, null, null, dist, -1));
+                }
+                else
+                {
+                    double dist = conListWide[index];  // autoboxing
+                    if (dist >= 0)
+                        list.add(new DRCTemplate(conListWideRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                                DRCTemplate.DRCRuleType.CONSPA,
+                                wideLimit, 0, null, null, dist, -1)); // autoboxing
+                    dist = unConListWide[index];
+                    if (dist >= 0)
+                        list.add(new DRCTemplate(unConListWideRules[index], DRCTemplate.DRCMode.ALL.mode(),
+                                DRCTemplate.DRCRuleType.UCONSPA,
+                                wideLimit, 0, null, null, dist, -1));    // autoboxing
+                }
            }
            break;
            case UCONSPA2D: // multi contact rules
