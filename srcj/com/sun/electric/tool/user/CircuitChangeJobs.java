@@ -3126,6 +3126,58 @@ public class CircuitChangeJobs
         }
     }
 
+    /**
+     * Method to implement the "Mark All Libraries for Saving" command.
+     */
+    public static void markCurrentLibForSavingCommand()
+    {
+        new MarkCurrentLibForSaving();
+    }
+
+    private static class MarkCurrentLibForSaving extends Job
+    {
+        MarkCurrentLibForSaving()
+        {
+            super("Making Current Lib", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            startJob();
+        }
+        public boolean doIt() throws JobException
+        {
+            Library lib = Library.getCurrent();
+            if (lib.isHidden()) return true;
+
+            // make sure all old format library extensions are converted
+            String ext = TextUtils.getExtension(lib.getLibFile());
+            // I don't think this should change the file format: only "save as" should
+            // JKG 29 Oct 2004
+            /*
+            if (OpenFile.Type.DEFAULTLIB == OpenFile.Type.JELIB)
+            {
+                if (ext.equals("elib"))
+                {
+                    String fullName = lib.getLibFile().getFile();
+                    int len = fullName.length();
+                    fullName = fullName.substring(0, len-4) + "jelib";
+                    lib.setLibFile(TextUtils.makeURLToFile(fullName));
+                }
+            }*/
+
+            // do not mark readable dump files for saving
+            if (ext.equals("txt")) return true;
+
+            lib.setChanged();
+            if (OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB) {
+                // set all cells as changed as well
+                for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
+                    it2.next().madeRevision(System.currentTimeMillis(), null);
+                }
+            }
+
+            System.out.println("Library "+lib.getName()+" now needs to be saved");
+            return true;
+        }
+    }
+
 	/**
 	 * This class implement the command to repair libraries.
 	 */
