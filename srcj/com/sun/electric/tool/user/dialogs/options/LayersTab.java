@@ -255,13 +255,32 @@ public class LayersTab extends PreferencePanel
 
 		String name = (String)layerName.getSelectedItem();
 		ColorPatternPanel.Info li = transAndSpecialMap.get(name);
+		Layer layer = null;
 		if (li == null)
 		{
-			Layer layer = tech.findLayer(name);
+			layer = tech.findLayer(name);
 			li = layerMap.get(layer);
 		}
 		if (li == null) return;
 		colorAndPatternPanel.setColorPattern(li);
+
+		// see if this layer is transparent and shares with another layer
+		String otherLayers = null;
+		if (li.transparentLayer > 0 && layer != null)
+		{
+			for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
+			{
+				Layer oLayer = it.next();
+				if (oLayer == layer) continue;
+				ColorPatternPanel.Info oLi = layerMap.get(oLayer);
+				if (oLi != null && oLi.transparentLayer == li.transparentLayer)
+				{
+					if (otherLayers == null) otherLayers = oLayer.getName(); else
+						otherLayers += ", " + oLayer.getName();
+				}
+			}
+		}
+		colorAndPatternPanel.setOtherTransparentLayerNames(otherLayers);
 	}
 
 	/**

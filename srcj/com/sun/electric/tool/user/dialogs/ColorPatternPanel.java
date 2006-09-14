@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EGraphics.Outline;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 
@@ -173,6 +174,8 @@ public class ColorPatternPanel extends JPanel
 	private Color [] colorMap;
 	private JColorChooser colorChooser;
 	private MyPreviewPanel colorPreviewPanel;
+	private boolean warnedOfTransparentLayerSharing;
+	private String otherTransparentLayers;
 
 	/**
 	 * Create a Panel for editing color and pattern information.
@@ -182,6 +185,7 @@ public class ColorPatternPanel extends JPanel
 		initComponents();
 
 		this.showPrinter = showPrinter;
+		warnedOfTransparentLayerSharing = false;
 
 		useStipplePatternDisplay.addActionListener(new ActionListener()
 		{
@@ -391,6 +395,8 @@ public class ColorPatternPanel extends JPanel
         }
 	}
 
+	public void setOtherTransparentLayerNames(String names) { otherTransparentLayers = names; }
+
 	/**
 	 * Method to update the panel to reflect the given Info.
 	 * @param li the Info structure with data for this panel.
@@ -454,6 +460,16 @@ public class ColorPatternPanel extends JPanel
 		currentLI.blue = col.getBlue();
 		layerInfoChanged();
 		colorPreviewPanel.setPreviewColor(col);
+
+		// if there are other transparent layers, warn (first time only)
+		if (otherTransparentLayers != null)
+		{
+			if (!warnedOfTransparentLayerSharing)
+				Job.getUserInterface().showInformationMessage("WARNING: changing this color also affects " +
+					otherTransparentLayers + " because they share the same transparent layer",
+					"Change to Transparent Layer Color");
+			warnedOfTransparentLayerSharing = true;
+		}
 	}
 
 	private void transparentLayerChanged()
