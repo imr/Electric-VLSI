@@ -2914,7 +2914,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGlobalFanout(double fo)
 	{
-		cacheGlobalFanout = getLESetting("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
+		cacheGlobalFanout = getLESetting("GlobalFanout", cacheGlobalFanout, fo);
 		cacheGlobalFanout.setDouble(fo);
 	}
 
@@ -2934,7 +2934,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setConvergenceEpsilon(double ep)
 	{
-		cacheConvergenceEpsilon = getLESetting("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
+		cacheConvergenceEpsilon = getLESetting("ConvergenceEpsilon", cacheConvergenceEpsilon, ep);
 		cacheConvergenceEpsilon.setDouble(ep);
 	}
 
@@ -2954,7 +2954,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setMaxIterations(int it)
 	{
-		cacheMaxIterations = getLESetting("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
+		cacheMaxIterations = getLESetting("MaxIterations", cacheMaxIterations, it);
 		cacheMaxIterations.setInt(it);
 	}
 
@@ -2974,7 +2974,7 @@ public class Technology implements Comparable<Technology>
      */
     public void setKeeperRatio(double kr)
     {
-        cacheKeeperRatio = getLESetting("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
+        cacheKeeperRatio = getLESetting("KeeperRatio", cacheKeeperRatio, kr);
         cacheKeeperRatio.setDouble(kr);
     }
 
@@ -2996,7 +2996,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGateCapacitance(double gc)
 	{
-		cacheGateCapacitance = getLESetting("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
+		cacheGateCapacitance = getLESetting("GateCapacitance", cacheGateCapacitance, gc);
 		cacheGateCapacitance.setDouble(gc);
 	}
 
@@ -3016,7 +3016,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setWireRatio(double wr)
 	{
-		cacheWireRatio = getLESetting("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
+		cacheWireRatio = getLESetting("WireRatio", cacheWireRatio, wr);
 		cacheWireRatio.setDouble(wr);
 	}
 
@@ -3036,7 +3036,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setDiffAlpha(double da)
 	{
-		cacheDiffAlpha = getLESetting("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
+		cacheDiffAlpha = getLESetting("DiffAlpha", cacheDiffAlpha, da);
 		cacheDiffAlpha.setDouble(da);
 	}
 
