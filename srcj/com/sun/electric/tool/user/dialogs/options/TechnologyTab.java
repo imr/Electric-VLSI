@@ -97,7 +97,7 @@ public class TechnologyTab extends PreferencePanel
 		schemPrimMap = new HashMap<PrimitiveNode,String>();
 		for(Iterator<PrimitiveNode> it = Schematics.tech.getNodes(); it.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
+			PrimitiveNode np = it.next();
 			if (np != Schematics.tech.andNode && np != Schematics.tech.orNode &&
 				np != Schematics.tech.xorNode && np != Schematics.tech.muxNode &&
 				np != Schematics.tech.bufferNode) continue;
@@ -124,7 +124,7 @@ public class TechnologyTab extends PreferencePanel
 		changingVHDL = true;
 		PrimitiveNode np = getSelectedPrim();
 		if (np == null) return;
-		String vhdlNames = (String)schemPrimMap.get(np);
+		String vhdlNames = schemPrimMap.get(np);
 		int slashPos = vhdlNames.indexOf('/');
 		if (slashPos < 0)
 		{
