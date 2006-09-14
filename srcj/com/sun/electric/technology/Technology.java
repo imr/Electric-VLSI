@@ -2697,7 +2697,7 @@ public class Technology implements Comparable<Technology>
 		{
 			pref = Pref.makeDoubleSetting(what + "IN" + getTechName(), prefs, this,
                     getProjectSettings(), what,
-                    "Tools/Parasitic tab", getTechShortName() + " " + what, factory);
+                    "Parasitic tab", getTechShortName() + " " + what, factory);
 		}
 		return pref;
 	}
@@ -2708,7 +2708,7 @@ public class Technology implements Comparable<Technology>
 		{
 			pref = Pref.makeBooleanSetting(what + "IN" + getTechName(), prefs, this,
                     getProjectSettings(), what,
-                    "Tools/Parasitic tab", getTechShortName() + " " + what, factory);
+                    "Parasitic tab", getTechShortName() + " " + what, factory);
 		}
 		return pref;
 	}
@@ -2836,7 +2836,7 @@ public class Technology implements Comparable<Technology>
      */
     public double getGateLengthSubtraction()
     {
-        prefGateLengthSubtraction = getParasiticSetting("Gate Length Subtraction (microns) ", prefGateLengthSubtraction, 0.0);
+        prefGateLengthSubtraction = getParasiticSetting("GateLengthSubtraction", prefGateLengthSubtraction, 0.0);
         return prefGateLengthSubtraction.getDouble();
     }
 
@@ -2881,7 +2881,7 @@ public class Technology implements Comparable<Technology>
         {
             pref = Pref.makeDoubleSetting(what + "IN" + getTechName(), prefs, this,
                 getLESettingsNode(), what,
-                "Tools/Logical Effort tab", getTechShortName() + " " + what, factory);
+                "Logical Effort tab", getTechShortName() + " " + what, factory);
         }
         return pref;
     }
@@ -2892,7 +2892,7 @@ public class Technology implements Comparable<Technology>
 		{
 			pref = Pref.makeIntSetting(what + "IN" + getTechName(), prefs, this,
                 getLESettingsNode(), what,
-				"Tools/Logical Effort tab", getTechShortName() + " " + what, factory);
+				"Logical Effort tab", getTechShortName() + " " + what, factory);
 		}
 		return pref;
 	}
