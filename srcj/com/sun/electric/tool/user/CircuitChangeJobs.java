@@ -3113,7 +3113,7 @@ public class CircuitChangeJobs
                 if (ext.equals("txt")) continue;
 
                 lib.setChanged();
-                if (OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB) {
+                if (lib.getLibFile() != null && OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB) {
                     // set all cells as changed as well
                     for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
                         it2.next().madeRevision(System.currentTimeMillis(), null);
@@ -3166,7 +3166,7 @@ public class CircuitChangeJobs
             if (ext.equals("txt")) return true;
 
             lib.setChanged();
-            if (OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB) {
+            if (lib.getLibFile() != null && OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB) {
                 // set all cells as changed as well
                 for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
                     it2.next().madeRevision(System.currentTimeMillis(), null);
