@@ -3256,21 +3256,27 @@ public class MoCMOS extends Technology
 	/******************** OPTIONS ********************/
 
     private static Pref cacheNumberOfMetalLayers = TechPref.makeIntSetting(tech, "MoCMOSNumberOfMetalLayers",
-    	"Technology tab", "MOSIS CMOS: Number of Metal Layers", 6);
+    	"Technology tab", "MOSIS CMOS: Number of Metal Layers", tech.getProjectSettings(), "NumMetalLayers", 6);
 	/**
 	 * Method to tell the number of metal layers in the MoCMOS technology.
 	 * The default is "4".
 	 * @return the number of metal layers in the MoCMOS technology (from 2 to 6).
 	 */
-	public static int getNumMetal() { return tech.getProjectSettings().getInteger("NumMetalLayers"); }
+	public static int getNumMetal() { return cacheNumberOfMetalLayers.getInt(); }
 	/**
 	 * Method to set the number of metal layers in the MoCMOS technology.
 	 * @param num the number of metal layers in the MoCMOS technology (from 2 to 6).
 	 */
-	public static void setNumMetal(int num) { tech.getProjectSettings().putInteger("NumMetalLayers", num); }
+	public static void setNumMetal(int num) { cacheNumberOfMetalLayers.setInt(num); }
 
     private static Pref cacheRuleSet = TechPref.makeIntSetting("MoCMOSRuleSet", getTechnologyPreferences(), tech,
+        tech.getProjectSettings(), "MOCMOS Rule Set",
         "Technology tab", "MOSIS CMOS rule set", 1);
+    static
+    {
+    	Pref.Meaning meaning = cacheRuleSet.getMeaning();
+    	meaning.setTrueMeaning(new String[] {"SCMOS", "Submicron", "Deep"});
+	}
 	/**
 	 * Method to tell the current rule set for this Technology if Mosis is the foundry.
 	 * @return the current rule set for this Technology:<BR>
@@ -3278,7 +3284,7 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules (the default)<BR>
 	 * 2: Deep rules
 	 */
-	public static int getRuleSet() { return tech.getProjectSettings().getInteger("MOCMOS Rule Set"); }
+    public static int getRuleSet() { return cacheRuleSet.getInt(); }
 
 //    private static DRCTemplate.DRCMode getRuleMode()
 //    {
@@ -3298,59 +3304,50 @@ public class MoCMOS extends Technology
 	 * 1: Submicron rules<BR>
 	 * 2: Deep rules
 	 */
-	public static void setRuleSet(int set) { tech.getProjectSettings().putInteger("MOCMOS Rule Set", set); }
+	public static void setRuleSet(int set) { cacheRuleSet.setInt(set); }
 
 	private static Pref cacheSecondPolysilicon = TechPref.makeBooleanSetting("MoCMOSSecondPolysilicon", getTechnologyPreferences(),
-		tech, "Technology tab", "MOSIS CMOS: Second Polysilicon Layer", true);
+		tech, tech.getProjectSettings(), "UseSecondPolysilicon", "Technology tab", "MOSIS CMOS: Second Polysilicon Layer", true);
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
 	 * The default is false.
 	 * @return true if there are 2 polysilicon layers in this Technology.
 	 * If false, there is only 1 polysilicon layer.
 	 */
-	public static boolean isSecondPolysilicon() { return tech.getProjectSettings().getBoolean("UseSecondPolysilicon"); }
+	public static boolean isSecondPolysilicon() { return cacheSecondPolysilicon.getBoolean(); }
 	/**
 	 * Method to set a second polysilicon layer in this Technology.
 	 * @param on true if there are 2 polysilicon layers in this Technology.
 	 */
-	public static void setSecondPolysilicon(boolean on) { tech.getProjectSettings().putBoolean("UseSecondPolysilicon", on); }
+	public static void setSecondPolysilicon(boolean on) { cacheSecondPolysilicon.setBoolean(on); }
 
 	private static Pref cacheDisallowStackedVias = TechPref.makeBooleanSetting("MoCMOSDisallowStackedVias", getTechnologyPreferences(),
-		tech, "Technology tab", "MOSIS CMOS: Disallow Stacked Vias", false);
+		tech, tech.getProjectSettings(), "DisallowStackedVias", "Technology tab", "MOSIS CMOS: Disallow Stacked Vias", false);
 	/**
 	 * Method to determine whether this Technology disallows stacked vias.
 	 * The default is false (they are allowed).
 	 * @return true if the MOCMOS technology disallows stacked vias.
 	 */
-	public static boolean isDisallowStackedVias() { return tech.getProjectSettings().getBoolean("DisallowStackedVias"); }
+	public static boolean isDisallowStackedVias() { return cacheDisallowStackedVias.getBoolean(); }
 	/**
 	 * Method to set whether this Technology disallows stacked vias.
 	 * @param on true if the MOCMOS technology will allow disallows vias.
 	 */
-	public static void setDisallowStackedVias(boolean on) { tech.getProjectSettings().putBoolean("DisallowStackedVias", on); }
+	public static void setDisallowStackedVias(boolean on) { cacheDisallowStackedVias.setBoolean(on); }
 
 	private static Pref cacheAlternateActivePolyRules = TechPref.makeBooleanSetting("MoCMOSAlternateActivePolyRules", getTechnologyPreferences(),
-		tech, "Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules", false);
+		tech, tech.getProjectSettings(), "UseAlternativeActivePolyRules", "Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules", false);
 	/**
 	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.
 	 * The default is false.
 	 * @return true if the MOCMOS technology is using alternate Active and Poly contact rules.
 	 */
-	public static boolean isAlternateActivePolyRules() { return tech.getProjectSettings().getBoolean("UseAlternateActivePolyRules"); }
+	public static boolean isAlternateActivePolyRules() { return cacheAlternateActivePolyRules.getBoolean(); }
 	/**
 	 * Method to set whether this Technology is using alternate Active and Poly contact rules.
 	 * @param on true if the MOCMOS technology is to use alternate Active and Poly contact rules.
 	 */
-	public static void setAlternateActivePolyRules(boolean on) { tech.getProjectSettings().putBoolean("UseAlternateActivePolyRules", on); }
-
-    static {
-        // initial settings are either old preferences or defaults
-        setNumMetal(cacheNumberOfMetalLayers.getInt());
-        setRuleSet(cacheRuleSet.getInt());
-        setSecondPolysilicon(cacheSecondPolysilicon.getBoolean());
-        setDisallowStackedVias(cacheDisallowStackedVias.getBoolean());
-        setAlternateActivePolyRules(cacheAlternateActivePolyRules.getBoolean());
-    }
+	public static void setAlternateActivePolyRules(boolean on) { cacheAlternateActivePolyRules.setBoolean(on); }
 
     /** set if no stacked vias allowed */			private static final int MOCMOSNOSTACKEDVIAS =   01;
 //	/** set for stick-figure display */				private static final int MOCMOSSTICKFIGURE =     02;
@@ -3385,7 +3382,7 @@ public class MoCMOS extends Technology
 		int oldBits = ((Integer)value).intValue();
 
         HashMap<String,Object> meanings = new HashMap<String,Object>();
-        
+
 		boolean oldNoStackedVias = (oldBits&MOCMOSNOSTACKEDVIAS) != 0;
 		meanings.put(cacheDisallowStackedVias.getPrefName(), new Integer(oldNoStackedVias?1:0));
 
@@ -3414,13 +3411,13 @@ public class MoCMOS extends Technology
 
 		boolean secondPoly = (oldBits&MOCMOSTWOPOLY) != 0;
 		meanings.put(cacheSecondPolysilicon.getPrefName(), new Integer(secondPoly?1:0));
-        
+
 		return meanings;
 	}
 /******************** OVERRIDES ********************/
     /**
      * Method to set the size of a transistor NodeInst in this Technology.
-     * Override because for MOCMOS sense of "width" and "length" are 
+     * Override because for MOCMOS sense of "width" and "length" are
      * different for resistors and transistors.
      * @param ni the NodeInst
      * @param width the new width (positive values only)

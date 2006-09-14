@@ -274,7 +274,7 @@ public class ProjectSettingsFrame extends EDialog
 
 	private void okActionPerformed()
 	{
-		new OKUpdate(this, true);
+		new OKUpdate(this, false);
 	}
 
     private void helpActionPerformed()
@@ -372,7 +372,7 @@ public class ProjectSettingsFrame extends EDialog
 		{
             if (issueWarning) {
                 Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
-                "\nTo save them permanently, use \"Write To Disk\"", "Warning");
+                "\nTo save them permanently, use File -> Export -> Project Settings", "Warning");
             }
             dialog.closeDialog(null);
 		}

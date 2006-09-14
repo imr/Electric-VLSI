@@ -36,6 +36,8 @@ import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.extract.Extract;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.extract.LayerCoverageTool;
@@ -278,6 +280,10 @@ public class Tool implements Comparable
 	 * @return true if this Tool does synthesis.
 	 */
 	public boolean isSynthesis() { return (toolState & TOOLSYNTHESIS) != 0; }
+
+    public ProjSettingsNode getProjectSettings() {
+        return ProjSettings.getSettings().getNode(toolName+"Tool");
+    }
 
     /**
      * Compares Tools by their definition order.

@@ -48,6 +48,7 @@ import com.sun.electric.tool.user.ui.VectorCache;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -1840,20 +1841,22 @@ public class User extends Listener
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
     private static Pref cacheDefaultTechnology = Pref.makeStringSetting("DefaultTechnology", tool.prefs, tool,
+            tool.getProjectSettings(), null,
         "Technology tab", "Default Technology for editing", "mocmos");
 	/**
 	 * Method to get default technique in Tech Palette.
 	 * The default is "mocmos".
 	 * @return the default technology to use in Tech Palette
 	 */
-	public static String getDefaultTechnology() { return ProjSettings.getSettings().getString("defaultTechnology"); }
+	public static String getDefaultTechnology() { return cacheDefaultTechnology.getString(); }
 	/**
 	 * Method to set default technique in Tech Palette.
 	 * @param t the default technology to use in Tech Palette.
 	 */
-	public static void setDefaultTechnology(String t) { ProjSettings.getSettings().putString("defaultTechnology", t);}
+	public static void setDefaultTechnology(String t) { cacheDefaultTechnology.setString(t); }
 
     private static Pref cacheSchematicTechnology = Pref.makeStringSetting("SchematicTechnology", tool.prefs, tool,
+            tool.getProjectSettings(), null,
         "Technology tab", "Schematics use scale values from this technology", "mocmos");
 	/**
 	 * Method to choose the layout Technology to use when schematics are found.
@@ -1865,7 +1868,7 @@ public class User extends Listener
 	 */
 	public static Technology getSchematicTechnology()
 	{
-        String t = ProjSettings.getSettings().getString("schematicTechnology");
+        String t = cacheSchematicTechnology.getString();
 		Technology tech = Technology.findTechnology(t);
         if (tech == null) return MoCMOS.tech;
         return tech;
@@ -1880,13 +1883,7 @@ public class User extends Listener
 	public static void setSchematicTechnology(Technology t)
 	{
         if (t == null) return;
-        ProjSettings.getSettings().putString("schematicTechnology", t.getTechName());
-	}
-
-    static {
-        // initial settings - come either from hard-coded defaults, or last user prefs
-        setDefaultTechnology(cacheDefaultTechnology.getString());
-        setSchematicTechnology(Technology.findTechnology(cacheSchematicTechnology.getString()));
+        cacheSchematicTechnology.setString(t.getTechName());
     }
 
 //    public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
@@ -2129,6 +2126,7 @@ public class User extends Listener
 	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { cachePlayClickSoundsWhenCreatingArcs.setBoolean(on); }
 
 	private static Pref cacheIncludeDateAndVersionInOutput = Pref.makeBooleanSetting("IncludeDateAndVersionInOutput", tool.prefs, tool,
+            tool.getProjectSettings(), null,
 		"Netlists tab", "Include date and version in output", true);
 	/**
 	 * Method to tell whether to include the date and Electric version in output files.

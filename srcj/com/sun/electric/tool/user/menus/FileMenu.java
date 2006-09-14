@@ -444,8 +444,14 @@ public class FileMenu {
 
         public void terminateOK()
         {
-            Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
-            meaningVariables = null;
+            // read project settings
+            File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
+            if (projsettings.exists()) {
+                ProjSettings.readSettings(projsettings, false);
+            } else {
+                Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
+                meaningVariables = null;
+            }
 
             Cell showThisCell = (cellName != null) ?
                     lib.findNodeProto(cellName) :

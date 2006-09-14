@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -56,15 +57,11 @@ import com.sun.electric.technology.Technology;
  */
 public class ProjSettings {
 
-    private static ProjSettingsNode settings;
+    private static ProjSettingsNode settings = new ProjSettingsNode();
     private static File lastProjectSettingsFile = null;
     private static final String entry = "e";
 
     public static ProjSettingsNode getSettings() {
-        if (settings == null) {
-            settings = new ProjSettingsNode();
-            lastProjectSettingsFile = null;
-        }
         return settings;
     }
 
@@ -79,25 +76,18 @@ public class ProjSettings {
      * false to disallow and warn if different.
      */
     public static void readSettings(File file, boolean allowOverride) {
-        ProjSettingsNode readNode = read(file.getPath());
-        if (readNode == null) return; // error reading file
+        if (lastProjectSettingsFile == null) allowOverride = true;
 
-        if (lastProjectSettingsFile == null || allowOverride) {
-            // first file read in, accept it
-            settings = readNode;
-            lastProjectSettingsFile = file;
-            // update any changes to technologies including UI refresh
-            Technology.TechPref.allTechnologiesChanged();
-        } else {
-            // not first file read in, check for conflicts,
-            // and do not use it
-            if (getSettings().printDifferences(readNode)) {
-                SwingUtilities.invokeLater(new Runnable() { public void run() {
-                    Job.getUserInterface().showInformationMessage("Warning: Project Settings conflicts; ignoring new settings. See messages window", "Project Settings Conflict"); }
-                });
-                System.out.println("Project Setting conflicts found: "+lastProjectSettingsFile.getPath()+" vs "+file.getPath());
-            }
+        ReadResult result = read(file.getPath(), allowOverride);
+        if (result == ReadResult.ERROR) return;
+
+        if (result == ReadResult.CONFLICTS && lastProjectSettingsFile != null) {
+            SwingUtilities.invokeLater(new Runnable() { public void run() {
+                Job.getUserInterface().showInformationMessage("Warning: Project Settings conflicts; ignoring new settings. See messages window", "Project Settings Conflict"); }
+            });
+            System.out.println("Project Setting conflicts found: "+lastProjectSettingsFile.getPath()+" vs "+file.getPath());
         }
+        lastProjectSettingsFile = file;
     }
 
     /**
@@ -121,24 +111,6 @@ public class ProjSettings {
         readSettings(new File(ifile), true);
     }
 
-    // ------------------------------ Utility -------------------------------
-
-    /**
-     * Returns true if the project settings reader/writer/storage supports
-     * the class type of the object.  Currently, only Integer, Long, Double,
-     * Boolean, String, and ProjSettingsNode classes are supported.
-     * @param object
-     * @return true if supported, false otherwise
-     */
-    public static boolean isSupportedClass(Object object) {
-        if ((object instanceof Boolean) || (object instanceof Double) ||
-            (object instanceof Integer) || (object instanceof String) ||
-            (object instanceof Long) || (object instanceof ProjSettingsNode)) {
-            return true;
-        }
-        return false;
-    }
-
     // ----------------------------- Private -------------------------------
 
     private static void write(String file, ProjSettingsNode node) {
@@ -148,11 +120,12 @@ public class ProjSettings {
         wr.close();
     }
 
-    private static ProjSettingsNode read(String file) {
+    // return false if error reading file
+    private static ReadResult read(String file, boolean allowOverride) {
         Reader rd = new Reader(TextUtils.makeURLToFile(file));
-        if (!rd.read()) return null;
+        ReadResult r = rd.read(allowOverride);
         System.out.println("Read Project Settings from "+file);
-        return rd.getRootNode();
+        return r;
     }
 
     // ------------------------- ProjSettings Writer ----------------------------
@@ -199,9 +172,11 @@ public class ProjSettings {
             visited.add(node);
 
             String classDef = "";
+/*
             if (node.getClass() != ProjSettingsNode.class) {
                 classDef = " class=\""+node.getClass().getName()+"\">";
             }
+*/
 
             if (node.getKeys().size() == 0) {
                 // if nothing in node, skip
@@ -221,21 +196,31 @@ public class ProjSettings {
             if (value instanceof ProjSettingsNode) {
                 ProjSettingsNode node = (ProjSettingsNode)value;
                 writeNode(key, node);
-            } else if (isSupportedClass(value)) {
-                if (value instanceof Integer) {
-                    prIndent("<"+entry+" key=\""+key+"\"\t int=\""+value.toString()+"\" />");
-                } else if (value instanceof Double) {
-                    prIndent("<"+entry+" key=\""+key+"\"\t double=\""+value.toString()+"\" />");
-                } else if (value instanceof Long) {
-                    prIndent("<"+entry+" key=\""+key+"\"\t long=\""+value.toString()+"\" />");
-                } else if (value instanceof Boolean) {
-                    prIndent("<"+entry+" key=\""+key+"\"\t boolean=\""+value.toString()+"\" />");
-                } else {
-                    prIndent("<"+entry+" key=\""+key+"\"\t string=\""+value.toString()+"\" />");
-                }
+            } else if (value instanceof Pref) {
+                Pref pref = (Pref)value;
+                Object val = pref.getValue();
+                if (pref.getType() == Pref.PrefType.BOOLEAN) val = new Boolean(pref.getBoolean());
+                writeValue(key, val);
+            } else if (value instanceof ProjSettingsNode.UninitializedPref) {
+                ProjSettingsNode.UninitializedPref pref = (ProjSettingsNode.UninitializedPref)value;
+                writeValue(key, pref.value);
             } else {
                 System.out.println("Ignoring unsupported class "+value.getClass().getName()+" for key "+key+
                         " in project settings");
+            }
+        }
+
+        private void writeValue(String key, Object value) {
+            if (value instanceof Integer) {
+                prIndent("<"+entry+" key=\""+key+"\"\t int=\""+value.toString()+"\" />");
+            } else if (value instanceof Double) {
+                prIndent("<"+entry+" key=\""+key+"\"\t double=\""+value.toString()+"\" />");
+            } else if (value instanceof Long) {
+                prIndent("<"+entry+" key=\""+key+"\"\t long=\""+value.toString()+"\" />");
+            } else if (value instanceof Boolean) {
+                prIndent("<"+entry+" key=\""+key+"\"\t boolean=\""+value.toString()+"\" />");
+            } else {
+                prIndent("<"+entry+" key=\""+key+"\"\t string=\""+value+"\" />");
             }
         }
 
@@ -246,11 +231,14 @@ public class ProjSettings {
 
     // ------------------------- ProjSettings Reader ----------------------------
 
+    private enum ReadResult { OK, CONFLICTS, ERROR };
+
     private static class Reader extends DefaultHandler {
         private URL url;
         private Stack<ProjSettingsNode> context;
         private Locator locator;
-        private ProjSettingsNode lastPopped;
+        private boolean allowOverride;
+        private boolean differencesFound;
 
         private static final boolean DEBUG = false;
 
@@ -258,10 +246,12 @@ public class ProjSettings {
             this.url = url;
             this.context = new Stack<ProjSettingsNode>();
             this.locator = null;
-            lastPopped = null;
+            allowOverride = true;
+            differencesFound = false;
         }
 
-        private boolean read() {
+        private ReadResult read(boolean allowOverride) {
+            this.allowOverride = allowOverride;
             try {
                 SAXParserFactory factory = SAXParserFactory.newInstance();
                 factory.setValidating(true);
@@ -269,7 +259,8 @@ public class ProjSettings {
                 URLConnection conn = url.openConnection();
                 InputStream is = conn.getInputStream();
                 factory.newSAXParser().parse(is, this);
-                return true;
+                if (differencesFound) return ReadResult.CONFLICTS;
+                return ReadResult.OK;
             } catch (IOException e) {
                 System.out.println("Error reading file "+url.toString()+": "+e.getMessage());
             } catch (SAXParseException e) {
@@ -280,7 +271,7 @@ public class ProjSettings {
             } catch (SAXException e) {
                 System.out.println("Exception reading file "+url.toString()+": "+e.getMessage());
             }
-            return false;
+            return ReadResult.ERROR;
         }
 
         public void startElement(String uri, String localName, String qName, Attributes attributes)
@@ -294,23 +285,15 @@ public class ProjSettings {
 
             // see if this is a project settings node
             if (qName.equals("node")) {
-                String nodeClassStr = attributes.getValue("class");
-                if (nodeClassStr == null)
-                    nodeClassStr = ProjSettingsNode.class.getName();
-                try {
-                    Class nodeClass = Class.forName(nodeClassStr);
-                    ProjSettingsNode node = (ProjSettingsNode)nodeClass.newInstance();
-                    if (!context.isEmpty()) {
-                        ProjSettingsNode parent = context.peek();
-                        parent.put(key, node);
-                    }
-                    context.push(node);
-                } catch (ClassNotFoundException e) {
-                    throw parseException(e.getMessage());
-                } catch (InstantiationException e) {
-                    throw parseException(e.getMessage());
-                } catch (IllegalAccessException e) {
-                    throw parseException(e.getMessage());
+                if (context.isEmpty()) {
+                    // first node is root node
+                    context.push(ProjSettings.getSettings());
+                } else {
+                    ProjSettingsNode node = context.peek().getNode(key);
+                    if (node == null)
+                        System.out.println("Error: No Project Settings Node named "+key+" in Electric");
+                    else
+                        context.push(node);
                 }
             } else if (qName.equals(entry)) {
 
@@ -320,19 +303,49 @@ public class ProjSettings {
                 }
                 ProjSettingsNode currentNode = context.peek();
                 String value = null;
+                Pref pref = currentNode.getValue(key);
                 try {
                     if ((value = attributes.getValue("string")) != null) {
-                        currentNode.put(key, value);
+                        if (pref != null) {
+                            prDiff(pref, pref.getValue(), value, allowOverride);
+                            if (allowOverride) pref.setString(value);
+                        } else if (allowOverride)
+                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(value));
+
                     } else if ((value = attributes.getValue("int")) != null) {
-                        currentNode.put(key, Integer.parseInt(value));
+                        Integer i = new Integer(value);
+                        if (pref != null) {
+                            prDiff(pref, new Integer(pref.getInt()), i, allowOverride);
+                            if (allowOverride) pref.setInt(i.intValue());
+                        } else if (allowOverride)
+                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(i));
+
                     } else if ((value = attributes.getValue("double")) != null) {
-                        currentNode.put(key, Double.parseDouble(value));
+                        Double d = new Double(value);
+                        if (pref != null) {
+                            prDiff(pref, new Double(pref.getDouble()), d, allowOverride);
+                            if (allowOverride) pref.setDouble(d.doubleValue());
+                        } else if (allowOverride)
+                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(d));
+
                     } else if ((value = attributes.getValue("boolean")) != null) {
-                        currentNode.put(key, Boolean.parseBoolean(value));
+                        Boolean b = new Boolean(value);
+                        if (pref != null) {
+                            prDiff(pref, new Boolean(pref.getBoolean()), b, allowOverride);
+                            if (allowOverride) pref.setBoolean(b.booleanValue());
+                        } else if (allowOverride)
+                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(b));
+
                     } else if ((value = attributes.getValue("long")) != null) {
-                        currentNode.put(key, Long.parseLong(value));
+                        Long l = new Long(value);
+                        if (pref != null) {
+                            prDiff(pref, new Long(pref.getLong()), l, allowOverride);
+                            if (allowOverride) pref.setLong(l.longValue());
+                        } else if (allowOverride)
+                            currentNode.put(key, new ProjSettingsNode.UninitializedPref(l));
+
                     } else {
-                        System.out.println("Error: Unsupported value for key "+key+", at line "+locator.getLineNumber()+".");
+                        System.out.println("Error: Unsupported value for key "+key+", at line "+locator.getLineNumber()+": must be string, int, double, boolean, or long");
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("Error converting "+value+" to a number at line "+locator.getLineNumber()+": "+e.getMessage());
@@ -348,21 +361,28 @@ public class ProjSettings {
             }
         }
 
+        private void prDiff(Pref pref, Object prefVal, Object xmlVal, boolean allowOverride) {
+            if (!ProjSettingsNode.equal(xmlVal, pref)) {
+                differencesFound = true;
+                if (allowOverride)
+                    System.out.println("Warning: Setting \""+pref.getPrefName()+"\" set to "+xmlVal+", overrides current val of "+prefVal);
+                else
+                    System.out.println("Warning: Setting \""+pref.getPrefName()+"\" retains current val of "+prefVal+", while ignoring projectsettings.xml value of "+xmlVal);
+            }
+        }
+
         public void endElement(String uri, String localName, String qName) throws SAXException {
             if (qName.equals("node")) {
                 // pop node context
                 if (context.isEmpty()) {
                     throw parseException("Empty context, too many closing </> brackets");
                 }
-                lastPopped = context.pop();
+                context.pop();
             }
-
             if (DEBUG) {
                 System.out.println("End "+qName);
             }
         }
-
-        public ProjSettingsNode getRootNode() { return lastPopped; }
 
         public void setDocumentLocator(Locator locator) {
             this.locator = locator;
@@ -372,6 +392,19 @@ public class ProjSettings {
         }
     }
 
+    public static String describeContext(Stack<String> context) {
+        StringBuffer buf = new StringBuffer();
+        boolean first = true;
+        for (String name : context) {
+            if (first)
+                first = false;
+            else
+                buf.append(".");
+            buf.append(name);
+        }
+        if (buf.length() == 0) return "RootContext";
+        return buf.toString();
+    }
 
     // ------------------------------ Testing -------------------------------
 
@@ -381,27 +414,10 @@ public class ProjSettings {
 
     public static void test() {
         write("/tmp/projsettings.xml", getSettings());
-        ProjSettingsNode readNode = read("/tmp/projsettings.xml");
-        if (getSettings().printDifferences(readNode)) {
-            System.out.println("Node read does not match node written");
-        } else {
-            System.out.println("Node read matches node written");
-        }
-        // write-read a couple times, make sure no cumulative error in doubles
-        write("/tmp/projsettings.xml", readNode);
-        readNode = read("/tmp/projsettings.xml");
-        write("/tmp/projsettings.xml", readNode);
-        readNode = read("/tmp/projsettings.xml");
-        write("/tmp/projsettings.xml", readNode);
-        readNode = read("/tmp/projsettings.xml");
-
-        if (getSettings().printDifferences(readNode)) {
-            System.out.println("Node read does not match node written");
-        } else {
-            System.out.println("Node read matches node written");
-        }
+        read("/tmp/projsettings.xml", false);
     }
 
+/*
     public static void test2() {
         ProjSettingsNode node = new ProjSettingsNode();
         node.putInteger("an int", 1);
@@ -423,6 +439,7 @@ public class ProjSettings {
             System.out.println("Node read matches node written");
         }
     }
+*/
 
     protected static class TestExtendNode extends ProjSettingsNode {
 

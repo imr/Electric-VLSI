@@ -1071,47 +1071,39 @@ public class Simulation extends Tool
 
 	/****************************** VERILOG OPTIONS ******************************/
 
-    public static ProjSettingsNode getVerilogNode() {
-        return ProjSettings.getSettings().getNode("Verilog");
-    }
-
     private static Pref cacheVerilogUseAssign = Pref.makeBooleanSetting("VerilogUseAssign", tool.prefs, tool,
-		"Verilog tab", "Verilog uses Assign construct", false);
+            tool.getProjectSettings(), null,
+        "Verilog tab", "Verilog uses Assign construct", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use the Assign statement.
 	 * The default is false.
 	 * @return true if Verilog deck generation should use the Assign statement.
 	 */
-	public static boolean getVerilogUseAssign() { return getVerilogNode().getBoolean("VerilogUseAssign"); }
+	public static boolean getVerilogUseAssign() { return cacheVerilogUseAssign.getBoolean(); }
 	/**
 	 * Method to set whether Verilog deck generation should use the Assign statement.
 	 * @param use true if Verilog deck generation should use the Assign statement.
 	 */
-	public static void setVerilogUseAssign(boolean use) { getVerilogNode().putBoolean("VerilogUseAssign", use); }
+	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
 
 	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanSetting("VerilogUseTrireg", tool.prefs, tool,
-		"Verilog tab", "Verilog presumes wire is Trireg", false);
+            tool.getProjectSettings(), null,
+        "Verilog tab", "Verilog presumes wire is Trireg", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.
 	 * The default is false.
 	 * @return true if Verilog deck generation should use Trireg by default.
 	 */
-	public static boolean getVerilogUseTrireg() { return getVerilogNode().getBoolean("UseTrireg"); }
+	public static boolean getVerilogUseTrireg() { return cacheVerilogUseTrireg.getBoolean(); }
 	/**
 	 * Method to set whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.
 	 * @param use true if Verilog deck generation should use Trireg by default.
 	 */
-	public static void setVerilogUseTrireg(boolean use) { getVerilogNode().putBoolean("UseTrireg", use); }
+	public static void setVerilogUseTrireg(boolean use) { cacheVerilogUseTrireg.setBoolean(use); }
 
-    static {
-        // defaults
-        setVerilogUseAssign(false);
-        setVerilogUseTrireg(false);
-    }
-
-    /****************************** CDL OPTIONS ******************************/
+	/****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", tool.prefs, "");
 //    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }

@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -472,9 +473,12 @@ public class Pref
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Pref makeBooleanSetting(String name, Group group, Object ownerObj, String location, String description, boolean factory) {
+    public static Pref makeBooleanSetting(String name, Group group, Object ownerObj,
+                                          ProjSettingsNode xmlNode, String xmlName,
+                                          String location, String description, boolean factory) {
         Pref pref = makeBooleanPref(name, group, factory);
         pref.attachToObject(ownerObj, location, description);
+        pref.linkProjectSettings(xmlNode, name, xmlName);
         return pref;
     }
 
@@ -514,9 +518,12 @@ public class Pref
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Pref makeIntSetting(String name, Group group, Object ownerObj, String location, String description, int factory) {
+    public static Pref makeIntSetting(String name, Group group, Object ownerObj,
+                                      ProjSettingsNode xmlNode, String xmlName,
+                                      String location, String description, int factory) {
         Pref pref = makeIntPref(name, group, factory);
         pref.attachToObject(ownerObj, location, description);
+        pref.linkProjectSettings(xmlNode, name, xmlName);
         return pref;
     }
 
@@ -556,9 +563,12 @@ public class Pref
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Pref makeLongSetting(String name, Group group, Object ownerObj, String location, String description, long factory) {
+    public static Pref makeLongSetting(String name, Group group, Object ownerObj,
+                                       ProjSettingsNode xmlNode, String xmlName,
+                                       String location, String description, long factory) {
         Pref pref = makeLongPref(name, group, factory);
         pref.attachToObject(ownerObj, location, description);
+        pref.linkProjectSettings(xmlNode, name, xmlName);
         return pref;
     }
 
@@ -598,9 +608,12 @@ public class Pref
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Pref makeDoubleSetting(String name, Group group, Object ownerObj, String location, String description, double factory) {
+    public static Pref makeDoubleSetting(String name, Group group, Object ownerObj,
+                                         ProjSettingsNode xmlNode, String xmlName,
+                                         String location, String description, double factory) {
         Pref pref = makeDoublePref(name, group, factory);
         pref.attachToObject(ownerObj, location, description);
+        pref.linkProjectSettings(xmlNode, name, xmlName);
         return pref;
     }
 
@@ -646,13 +659,22 @@ public class Pref
 	 * @param description the description of this meaning option.
 	 * @param factory the "factory" default value (if nothing is stored).
 	 */
-    public static Pref makeStringSetting(String name, Group group, Object ownerObj, String location, String description, String factory) {
+    public static Pref makeStringSetting(String name, Group group, Object ownerObj,
+                                         ProjSettingsNode xmlNode, String xmlName,
+                                         String location, String description, String factory) {
         Pref pref = makeStringPref(name, group, factory);
         pref.attachToObject(ownerObj, location, description);
+        pref.linkProjectSettings(xmlNode, name, xmlName);
         return pref;
     }
 
-	/**
+    protected void linkProjectSettings(ProjSettingsNode node, String name, String xmlName) {
+        if (node == null) return;
+        if (xmlName == null) xmlName = name;
+        node.putValue(xmlName, this);
+    }
+
+    /**
 	 * Method to get the boolean value on this Pref object.
 	 * The object must have been created as "boolean".
 	 * @return the boolean value on this Pref object.
@@ -752,7 +774,7 @@ public class Pref
 	 */
 	public Meaning getMeaning() { return meaning; }
 
-	/**
+    /**
 	 * Method called when this Pref is changed.
 	 * This method is overridden in subclasses that want notification.
 	 */
@@ -761,7 +783,7 @@ public class Pref
 	public static class PrefChangeBatch implements Serializable
 	{
         private HashMap<String,HashMap<String,Object>> changesForNodes = new HashMap<String,HashMap<String,Object>>();
-        
+
         private void add(Pref pref, Object newValue) {
             String nodeName = pref.prefs.absolutePath();
             HashMap<String,Object> changesForTheNode = changesForNodes.get(nodeName);
@@ -1075,10 +1097,10 @@ public class Pref
             for(Pref pref : allPrefs) {
                 if (pref.meaning == null) continue;
                 if (pref.meaning.marked) continue;
-                
+
                 // this one is not mentioned in the library: make sure it is at factory defaults
                 if (DBMath.objectsReallyEqual(pref.cachedObj, pref.factoryObj)) continue;
-                
+
 //System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
                 pref.meaning.setDesiredValue(pref.factoryObj);
                 if (!pref.meaning.isValidOption()) continue;

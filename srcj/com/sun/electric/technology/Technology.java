@@ -554,26 +554,27 @@ public class Technology implements Comparable<Technology>
     /** resolution for this Technology */                   private Pref prefResolution;
     /** default foundry for this Technology */              private Pref prefFoundry;
     /** static list of all Manufacturers in Electric */     protected List<Foundry> foundries;
-//	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
-//	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
-//    /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
-//    /** Include gate in Resistance calculation */           private Pref prefIncludeGate;
-//    /** Include ground network in parasitics calculation */ private Pref prefIncludeGnd;
-//	/** Logical effort global fanout preference. */			private Pref cacheGlobalFanout;
-//	/** Logical effort convergence (epsilon) preference. */	private Pref cacheConvergenceEpsilon;
-//	/** Logical effort maximum iterations preference. */	private Pref cacheMaxIterations;
-//	/** Logical effort gate capacitance preference. */		private Pref cacheGateCapacitance;
-//	/** Logical effort wire ratio preference. */			private Pref cacheWireRatio;
-//	/** Logical effort diff alpha preference. */			private Pref cacheDiffAlpha;
-//	/** Logical effort keeper ratio preference. */			private Pref cacheKeeperRatio;
+	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
+	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
+    /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
+    /** Include gate in Resistance calculation */           private Pref prefIncludeGate;
+    /** Include ground network in parasitics calculation */ private Pref prefIncludeGnd;
+    /** Include ground network in parasitics calculation */ private Pref prefMaxSeriesResistance;
+	/** Logical effort global fanout preference. */			private Pref cacheGlobalFanout;
+	/** Logical effort convergence (epsilon) preference. */	private Pref cacheConvergenceEpsilon;
+	/** Logical effort maximum iterations preference. */	private Pref cacheMaxIterations;
+	/** Logical effort gate capacitance preference. */		private Pref cacheGateCapacitance;
+	/** Logical effort wire ratio preference. */			private Pref cacheWireRatio;
+	/** Logical effort diff alpha preference. */			private Pref cacheDiffAlpha;
+	/** Logical effort keeper ratio preference. */			private Pref cacheKeeperRatio;
 
-//	/** Default Logical effort global fanout. */			private static double DEFAULT_GLOBALFANOUT = 4.7;
-//	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
-//	/** Default Logical effort maximum iterations. */		private static int    DEFAULT_MAXITER      = 30;
-//	/** Default Logical effort gate capacitance. */			private static double DEFAULT_GATECAP      = 0.4;
-//	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = 0.16;
-//	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
-//	/** Default Logical effort keeper ratio. */				private static double DEFAULT_KEEPERRATIO  = 0.1;
+	/** Default Logical effort global fanout. */			private static double DEFAULT_GLOBALFANOUT = 4.7;
+	/** Default Logical effort convergence (epsilon). */	private static double DEFAULT_EPSILON      = 0.001;
+	/** Default Logical effort maximum iterations. */		private static int    DEFAULT_MAXITER      = 30;
+	/** Default Logical effort gate capacitance. */			private static double DEFAULT_GATECAP      = 0.4;
+	/** Default Logical effort wire ratio. */				private static double DEFAULT_WIRERATIO    = 0.16;
+	/** Default Logical effort diff alpha. */				private static double DEFAULT_DIFFALPHA    = 0.7;
+	/** Default Logical effort keeper ratio. */				private static double DEFAULT_KEEPERRATIO  = 0.1;
 
 	/** To group elements for the component menu */         protected Object[][] nodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
@@ -2690,6 +2691,28 @@ public class Technology implements Comparable<Technology>
 
 	/*********************** PARASITIC SETTINGS ***************************/
 
+	private Pref getParasiticSetting(String what, Pref pref, double factory)
+	{
+		if (pref == null)
+		{
+			pref = Pref.makeDoubleSetting(what + "IN" + getTechName(), prefs, this,
+                    getProjectSettings(), what,
+                    "Tools/Parasitic tab", getTechShortName() + " " + what, factory);
+		}
+		return pref;
+	}
+
+    private Pref getParasiticSetting(String what, Pref pref, boolean factory)
+	{
+		if (pref == null)
+		{
+			pref = Pref.makeBooleanSetting(what + "IN" + getTechName(), prefs, this,
+                    getProjectSettings(), what,
+                    "Tools/Parasitic tab", getTechShortName() + " " + what, factory);
+		}
+		return pref;
+	}
+
 	/**
 	 * Method to return the Pref object associated with all Technologies.
 	 * The Pref object is used to save option information.
@@ -2706,7 +2729,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getMinResistance()
 	{
-        return getProjectSettings().getDouble("MinimumResistance");
+		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, 10.0);
+		return prefMinResistance.getDouble();
 	}
 
 	/**
@@ -2715,7 +2739,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setMinResistance(double minResistance)
 	{
-        getProjectSettings().putDouble("MinimumResistance", minResistance);
+		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, minResistance);
+		prefMinResistance.setDouble(minResistance);
 	}
 
 	/**
@@ -2725,7 +2750,9 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getMinCapacitance()
 	{
-        return getProjectSettings().getDouble("MinimumCapacitance");
+        // 0.0 is the default value
+		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, 0.0);
+		return prefMinCapacitance.getDouble();
 	}
 
 	/**
@@ -2734,7 +2761,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setMinCapacitance(double minCapacitance)
 	{
-        getProjectSettings().putDouble("MinimumCapacitance", minCapacitance);
+		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, minCapacitance);
+		prefMinCapacitance.setDouble(minCapacitance);
 	}
 
     /**
@@ -2744,7 +2772,8 @@ public class Technology implements Comparable<Technology>
      */
     public double getMaxSeriesResistance()
     {
-        return getProjectSettings().getDouble("MaxSeriesResistance");
+        prefMaxSeriesResistance = getParasiticSetting("MaxSeriesResistance", prefMaxSeriesResistance, 10.0);
+        return prefMaxSeriesResistance.getDouble();
     }
 
     /**
@@ -2753,7 +2782,8 @@ public class Technology implements Comparable<Technology>
      */
     public void setMaxSeriesResistance(double maxSeriesResistance)
     {
-        getProjectSettings().putDouble("MaxSeriesResistance", maxSeriesResistance);
+        prefMaxSeriesResistance = getParasiticSetting("MaxSeriesResistance", prefMaxSeriesResistance, maxSeriesResistance);
+        prefMaxSeriesResistance.setDouble(maxSeriesResistance);
     }
 
 	/**
@@ -2762,7 +2792,9 @@ public class Technology implements Comparable<Technology>
 	 */
 	public boolean isGateIncluded()
 	{
-        return getProjectSettings().getBoolean("Gate Inclusion");
+        // False is the default
+		prefIncludeGate = getParasiticSetting("Gate Inclusion", prefIncludeGate, false);
+		return prefIncludeGate.getBoolean();
 	}
 
     /**
@@ -2771,7 +2803,8 @@ public class Technology implements Comparable<Technology>
      */
     public void setGateIncluded(boolean set)
     {
-        getProjectSettings().putBoolean("Gate Inclusion", set);
+        prefIncludeGate = getParasiticSetting("Gate Inclusion", prefIncludeGate, set);
+        prefIncludeGate.setBoolean(set);
     }
 
 	/**
@@ -2780,7 +2813,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGroundNetIncluded(boolean set)
 	{
-        getProjectSettings().putBoolean("Ground Net Inclusion", set);
+		prefIncludeGnd = getParasiticSetting("Ground Net Inclusion", prefIncludeGnd, set);
+		prefIncludeGnd.setBoolean(set);
 	}
 
     /**
@@ -2789,7 +2823,9 @@ public class Technology implements Comparable<Technology>
      */
     public boolean isGroundNetIncluded()
     {
-        return getProjectSettings().getBoolean("Ground Net Inclusion");
+        // False is the default
+        prefIncludeGnd = getParasiticSetting("Ground Net Inclusion", prefIncludeGnd, false);
+        return prefIncludeGnd.getBoolean();
     }
 
     /**
@@ -2800,7 +2836,8 @@ public class Technology implements Comparable<Technology>
      */
     public double getGateLengthSubtraction()
     {
-        return getProjectSettings().getDouble("Gate Length Subtraction (microns) ");
+        prefGateLengthSubtraction = getParasiticSetting("Gate Length Subtraction (microns) ", prefGateLengthSubtraction, 0.0);
+        return prefGateLengthSubtraction.getDouble();
     }
 
     /**
@@ -2811,7 +2848,8 @@ public class Technology implements Comparable<Technology>
      */
     public void setGateLengthSubtraction(double value)
     {
-        getProjectSettings().putDouble("Gate Length Subtraction (microns) ", value);
+        getGateLengthSubtraction();
+        prefGateLengthSubtraction.setDouble(value);
     }
 
 	/**
@@ -2822,8 +2860,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setFactoryParasitics(double minResistance, double minCapacitance)
 	{
-        setMinResistance(minResistance);
-        setMinCapacitance(minCapacitance);
+		prefMinResistance = getParasiticSetting("MininumResistance", prefMinResistance, minResistance);
+		prefMinCapacitance = getParasiticSetting("MininumCapacitance", prefMinCapacitance, minCapacitance);
 	}
 
     /*********************** LOGICAL EFFORT SETTINGS ***************************/
@@ -2837,6 +2875,111 @@ public class Technology implements Comparable<Technology>
         return node;
     }
 
+    private Pref getLESetting(String what, Pref pref, double factory)
+    {
+        if (pref == null)
+        {
+            pref = Pref.makeDoubleSetting(what + "IN" + getTechName(), prefs, this,
+                getLESettingsNode(), what,
+                "Tools/Logical Effort tab", getTechShortName() + " " + what, factory);
+        }
+        return pref;
+    }
+
+	private Pref getLESetting(String what, Pref pref, int factory)
+	{
+		if (pref == null)
+		{
+			pref = Pref.makeIntSetting(what + "IN" + getTechName(), prefs, this,
+                getLESettingsNode(), what,
+				"Tools/Logical Effort tab", getTechShortName() + " " + what, factory);
+		}
+		return pref;
+	}
+
+    // ************************ tech specific?  - start *****************************
+    /**
+	 * Method to get the Global Fanout for Logical Effort.
+	 * The default is DEFAULT_GLOBALFANOUT.
+	 * @return the Global Fanout for Logical Effort.
+	 */
+	public double getGlobalFanout()
+	{
+		cacheGlobalFanout = getLESetting("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
+		return cacheGlobalFanout.getDouble();
+	}
+	/**
+	 * Method to set the Global Fanout for Logical Effort.
+	 * @param fo the Global Fanout for Logical Effort.
+	 */
+	public void setGlobalFanout(double fo)
+	{
+		cacheGlobalFanout = getLESetting("GlobalFanout", cacheGlobalFanout, DEFAULT_GLOBALFANOUT);
+		cacheGlobalFanout.setDouble(fo);
+	}
+
+	/**
+	 * Method to get the Convergence Epsilon value for Logical Effort.
+	 * The default is DEFAULT_EPSILON.
+	 * @return the Convergence Epsilon value for Logical Effort.
+	 */
+	public double getConvergenceEpsilon()
+	{
+		cacheConvergenceEpsilon = getLESetting("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
+		return cacheConvergenceEpsilon.getDouble();
+	}
+	/**
+	 * Method to set the Convergence Epsilon value for Logical Effort.
+	 * @param ep the Convergence Epsilon value for Logical Effort.
+	 */
+	public void setConvergenceEpsilon(double ep)
+	{
+		cacheConvergenceEpsilon = getLESetting("ConvergenceEpsilon", cacheConvergenceEpsilon, DEFAULT_EPSILON);
+		cacheConvergenceEpsilon.setDouble(ep);
+	}
+
+	/**
+	 * Method to get the maximum number of iterations for Logical Effort.
+	 * The default is DEFAULT_MAXITER.
+	 * @return the maximum number of iterations for Logical Effort.
+	 */
+	public int getMaxIterations()
+	{
+		cacheMaxIterations = getLESetting("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
+		return cacheMaxIterations.getInt();
+	}
+	/**
+	 * Method to set the maximum number of iterations for Logical Effort.
+	 * @param it the maximum number of iterations for Logical Effort.
+	 */
+	public void setMaxIterations(int it)
+	{
+		cacheMaxIterations = getLESetting("MaxIterations", cacheMaxIterations, DEFAULT_MAXITER);
+		cacheMaxIterations.setInt(it);
+	}
+
+    /**
+     * Method to get the keeper size ratio for Logical Effort.
+     * The default is DEFAULT_KEEPERRATIO.
+     * @return the keeper size ratio for Logical Effort.
+     */
+    public double getKeeperRatio()
+    {
+        cacheKeeperRatio = getLESetting("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
+        return cacheKeeperRatio.getDouble();
+    }
+    /**
+     * Method to set the keeper size ratio for Logical Effort.
+     * @param kr the keeper size ratio for Logical Effort.
+     */
+    public void setKeeperRatio(double kr)
+    {
+        cacheKeeperRatio = getLESetting("KeeperRatio", cacheKeeperRatio, DEFAULT_KEEPERRATIO);
+        cacheKeeperRatio.setDouble(kr);
+    }
+
+    // ************************ tech specific?  - end *****************************
+
 	/**
 	 * Method to get the Gate Capacitance for Logical Effort.
 	 * The default is DEFAULT_GATECAP.
@@ -2844,7 +2987,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getGateCapacitance()
 	{
-        return getLESettingsNode().getDouble("GateCapacitance");
+		cacheGateCapacitance = getLESetting("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
+		return cacheGateCapacitance.getDouble();
 	}
 	/**
 	 * Method to set the Gate Capacitance for Logical Effort.
@@ -2852,7 +2996,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setGateCapacitance(double gc)
 	{
-        getLESettingsNode().putDouble("GateCapacitance", gc);
+		cacheGateCapacitance = getLESetting("GateCapacitance", cacheGateCapacitance, DEFAULT_GATECAP);
+		cacheGateCapacitance.setDouble(gc);
 	}
 
 	/**
@@ -2862,7 +3007,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getWireRatio()
 	{
-        return getLESettingsNode().getDouble("WireRatio");
+		cacheWireRatio = getLESetting("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
+		return cacheWireRatio.getDouble();
 	}
 	/**
 	 * Method to set the wire capacitance ratio for Logical Effort.
@@ -2870,7 +3016,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setWireRatio(double wr)
 	{
-        getLESettingsNode().putDouble("WireRatio", wr);
+		cacheWireRatio = getLESetting("WireRatio", cacheWireRatio, DEFAULT_WIRERATIO);
+		cacheWireRatio.setDouble(wr);
 	}
 
 	/**
@@ -2880,7 +3027,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getDiffAlpha()
 	{
-        return getLESettingsNode().getDouble("DiffAlpha");
+		cacheDiffAlpha = getLESetting("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
+		return cacheDiffAlpha.getDouble();
 	}
 	/**
 	 * Method to set the diffusion to gate capacitance ratio for Logical Effort.
@@ -2888,7 +3036,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setDiffAlpha(double da)
 	{
-        getLESettingsNode().putDouble("DiffAlpha", da);
+		cacheDiffAlpha = getLESetting("DiffAlpha", cacheDiffAlpha, DEFAULT_DIFFALPHA);
+		cacheDiffAlpha.setDouble(da);
 	}
 
     // ================================================================
@@ -3071,7 +3220,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public double getScale()
 	{
-        return getProjectSettings().getDouble("technology scale");
+		return prefScale.getDouble();
 	}
 
 	/**
@@ -3096,11 +3245,10 @@ public class Technology implements Comparable<Technology>
 	protected void setFactoryScale(double factory, boolean scaleRelevant)
 	{
 		this.scaleRelevant = scaleRelevant;
-		prefScale = Pref.makeDoubleSetting(getScaleVariableName(), prefs, this, "Scale tab", getTechShortName() + " scale", factory);
+		prefScale = Pref.makeDoubleSetting(getScaleVariableName(), prefs, this,
+                getProjectSettings(), "Scale", "Scale tab", getTechShortName() + " scale", factory);
 		Pref.Meaning meaning = prefScale.getMeaning();
 		meaning.setValidOption(isScaleRelevant());
-        // use old pref as default (if pref missing, will use hard-coded default)
-        setScale(prefScale.getDouble());
     }
 
 	/**
@@ -3112,7 +3260,7 @@ public class Technology implements Comparable<Technology>
 	public void setScale(double scale)
 	{
 		if (scale == 0) return;
-        getProjectSettings().putDouble("technology scale", scale);
+		prefScale.setDouble(scale);
 	}
 
 	/**
@@ -3134,8 +3282,6 @@ public class Technology implements Comparable<Technology>
     protected void setFactoryResolution(double factory)
     {
         prefResolution = Pref.makeDoublePref("ResolutionValueFor"+techName, prefs, factory);
-        // use old pref as default (if pref missing, will use hard-coded default)
-        setResolution(prefResolution.getDouble());
     }
 
     /**
@@ -3145,7 +3291,8 @@ public class Technology implements Comparable<Technology>
      */
 	public void setResolution(double resolution)
 	{
-		getProjectSettings().putDouble("technology resolution", resolution);
+		if (prefResolution == null) setFactoryResolution(0);
+		prefResolution.setDouble(resolution);
 	}
 
     /**
@@ -3155,8 +3302,9 @@ public class Technology implements Comparable<Technology>
      */
     public double getResolution()
 	{
-        return getProjectSettings().getDouble("technology resolution");
-    }
+        if (prefResolution == null) setFactoryResolution(0);
+		return prefResolution.getDouble();
+	}
 
 	/**
 	 * Method to get foundry in Tech Palette. Different foundry can define different DRC rules.
@@ -3165,15 +3313,8 @@ public class Technology implements Comparable<Technology>
 	 */
 	public String getPrefFoundry()
     {
-        String pref = getProjectSettings().getString("technology foundry");
-        assert(pref != null);
-        // pref should never been null
-        // prefFoundry will be null in non-layout ones.
-        if (pref.equals("") && prefFoundry != null)
-        {
-            pref = prefFoundry.getString();
-        }
-        return pref;
+        if (prefFoundry == null) setFactoryPrefFoundry("");
+        return prefFoundry.getString().toUpperCase();
     }
 
 	/**
@@ -3182,7 +3323,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public void setPrefFoundry(String t)
     {
-        getProjectSettings().putString("technology foundry", t);
+        prefFoundry.setString(t);
     }
 
     /**
@@ -3204,7 +3345,7 @@ public class Technology implements Comparable<Technology>
     protected void setFactoryPrefFoundry(String factoryName)
     {
         prefFoundry = TechPref.makeStringSetting(this, "SelectedFoundryFor"+techName,
-        	"Technology tab", techName + " foundry", factoryName.toUpperCase());
+        	"Technology tab", techName + " foundry", getProjectSettings(), "Foundry", factoryName.toUpperCase());
     }
 
     /**
@@ -4043,24 +4184,33 @@ public class Technology implements Comparable<Technology>
             reloadUIData();
         }
 
-		public static Pref makeBooleanSetting(Technology tech, String name, String location, String description, boolean factory)
+		public static Pref makeBooleanSetting(Technology tech, String name, String location, String description,
+                                              ProjSettingsNode xmlNode, String xmlName,
+                                              boolean factory)
 		{
 			TechPref pref = new TechPref(tech, location, description, name);
 			pref.initBoolean(factory);
+            pref.linkProjectSettings(xmlNode, name, xmlName);
 			return pref;
 		}
 
-		public static Pref makeIntSetting(Technology tech, String name, String location, String description, int factory)
+		public static Pref makeIntSetting(Technology tech, String name, String location, String description,
+                                          ProjSettingsNode xmlNode, String xmlName,
+                                          int factory)
 		{
 			TechPref pref = new TechPref(tech, location, description, name);
 			pref.initInt(factory);
+            pref.linkProjectSettings(xmlNode, name, xmlName);
 			return pref;
 		}
 
-        public static Pref makeStringSetting(Technology tech, String name, String location, String description, String factory)
+        public static Pref makeStringSetting(Technology tech, String name, String location, String description,
+                                             ProjSettingsNode xmlNode, String xmlName,
+                                             String factory)
 		{
 			TechPref pref = new TechPref(tech, location, description, name);
 			pref.initString(factory);
+            pref.linkProjectSettings(xmlNode, name, xmlName);
 			return pref;
 		}
 	}

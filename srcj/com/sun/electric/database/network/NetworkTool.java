@@ -38,6 +38,9 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
+
 import java.util.Iterator;
 import java.util.Set;
 import java.util.HashSet;
@@ -319,7 +322,8 @@ public class NetworkTool extends Tool
 	/****************************** OPTIONS ******************************/
 
     private static Pref cacheIgnoreResistors = Pref.makeBooleanSetting("IgnoreResistors", NetworkTool.tool.prefs, NetworkTool.tool,
-		"Netlists tab", "Networks ignore Resistors", false);
+            tool.getProjectSettings(), null,
+        "Netlists tab", "Networks ignore Resistors", false);
     /**
 	 * Method to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.

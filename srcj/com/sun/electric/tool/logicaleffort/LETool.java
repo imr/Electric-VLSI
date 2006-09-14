@@ -702,32 +702,22 @@ public class LETool extends Tool {
 //    private static double DEFAULT_DIFFALPHA    = 0.7;
     private static double DEFAULT_KEEPERRATIO  = 0.1;
 
-    private static ProjSettingsNode getLESettingsNode() {
-        ProjSettingsNode node = ProjSettings.getSettings().getNode("LogicalEffort");
-        if (node == null) {
-            node = new ProjSettingsNode();
-            ProjSettings.getSettings().putNode("LogicalEffort", node);
-        }
-        return node;
-    }
+	private static Pref cacheUseLocalSettings = Pref.makeBooleanSetting("UseLocalSettings", LETool.tool.prefs, tool,
+            tool.getProjectSettings(), null,
+            "Logical Effort Tab", "Use Local Settings from Cell",
+            true);
 
 	/**
 	 * Method to tell whether to use local settings for Logical Effort.
 	 * The default is true.
 	 * @return true to use local settings for Logical Effort
 	 */
-	public static boolean isUseLocalSettings() {
-        if (getLESettingsNode().get("UseLocalSettings") == null)
-            getLESettingsNode().putBoolean("UseLocalSettings", true);
-        return getLESettingsNode().getBoolean("UseLocalSettings");
-    }
+	public static boolean isUseLocalSettings() { return cacheUseLocalSettings.getBoolean(); }
 	/**
 	 * Method to set whether to use local settings for Logical Effort
 	 * @param on whether to use local settings for Logical Effort
 	 */
-	public static void setUseLocalSettings(boolean on) {
-        getLESettingsNode().putBoolean("UseLocalSettings", on);
-    }
+	public static void setUseLocalSettings(boolean on) { cacheUseLocalSettings.setBoolean(on); }
 
 //	private static Pref cacheHighlightComponents = Pref.makeBooleanPref("HighlightComponents", LETool.tool.prefs, false);
 //	/**
@@ -755,59 +745,58 @@ public class LETool extends Tool {
 //	 */
 //	public static void setShowIntermediateCapacitances(boolean on) { cacheShowIntermediateCapacitances.setBoolean(on); }
 
+    private static Pref cacheGlobalFanout = Pref.makeDoubleSetting("GlobalFanout", LETool.tool.prefs, tool,
+        tool.getProjectSettings(), null,
+        "Logical Effort Tab", "Global Fanout",
+        DEFAULT_GLOBALFANOUT);
+
 	/**
 	 * Method to get the Global Fanout for Logical Effort.
 	 * The default is DEFAULT_GLOBALFANOUT.
 	 * @return the Global Fanout for Logical Effort.
 	 */
-	public static double getGlobalFanout() {
-        if (getLESettingsNode().get("GlobalFanout") == null)
-            getLESettingsNode().putDouble("GlobalFanout", DEFAULT_GLOBALFANOUT);
-        return getLESettingsNode().getDouble("GlobalFanout");
-    }
+	public static double getGlobalFanout() { return cacheGlobalFanout.getDouble(); }
+
 	/**
      * Method to set the Global Fanout for Logical Effort.
 	 * @param fo the Global Fanout for Logical Effort.
 	 */
-	public static void setGlobalFanout(double fo) {
-        getLESettingsNode().putDouble("GlobalFanout", fo);
-    }
+	public static void setGlobalFanout(double fo) { cacheGlobalFanout.setDouble(fo); }
+
+    private static Pref cacheConvergenceEpsilon = Pref.makeDoubleSetting("ConvergenceEpsilon", LETool.tool.prefs, tool,
+        tool.getProjectSettings(), null,
+        "Logical Effort Tab", "Convergence Epsilon",
+        DEFAULT_EPSILON);
 
 	/**
 	 * Method to get the Convergence Epsilon value for Logical Effort.
 	 * The default is DEFAULT_EPSILON.
 	 * @return the Convergence Epsilon value for Logical Effort.
 	 */
-	public static double getConvergenceEpsilon() {
-        if (getLESettingsNode().get("ConvergenceEpsilon") == null)
-            getLESettingsNode().putDouble("ConvergenceEpsilon", DEFAULT_EPSILON);
-        return getLESettingsNode().getDouble("ConvergenceEpsilon");
-    }
+	public static double getConvergenceEpsilon() { return cacheConvergenceEpsilon.getDouble(); }
+
 	/**
 	 * Method to set the Convergence Epsilon value for Logical Effort.
 	 * @param ep the Convergence Epsilon value for Logical Effort.
 	 */
-	public static void setConvergenceEpsilon(double ep) {
-        getLESettingsNode().putDouble("ConvergenceEpsilon", ep);
-    }
+	public static void setConvergenceEpsilon(double ep) { cacheConvergenceEpsilon.setDouble(ep); }
 
-	/**
+    private static Pref cacheMaxIterations = Pref.makeIntSetting("MaxIterations", LETool.tool.prefs, tool,
+        tool.getProjectSettings(), null,
+        "Logical Effort Tab", "Maximum Iterations",
+        DEFAULT_MAXITER);
+
+    /**
 	 * Method to get the maximum number of iterations for Logical Effort.
 	 * The default is DEFAULT_MAXITER.
 	 * @return the maximum number of iterations for Logical Effort.
 	 */
-	public static int getMaxIterations() {
-        if (getLESettingsNode().get("MaxIterations") == null)
-            getLESettingsNode().putInteger("MaxIterations", DEFAULT_MAXITER);
-        return getLESettingsNode().getInteger("MaxIterations");
-    }
+	public static int getMaxIterations() { return cacheMaxIterations.getInt(); }
 	/**
 	 * Method to set the maximum number of iterations for Logical Effort.
 	 * @param it the maximum number of iterations for Logical Effort.
 	 */
-	public static void setMaxIterations(int it) {
-        getLESettingsNode().putInteger("MaxIterations", it);
-    }
+	public static void setMaxIterations(int it) { cacheMaxIterations.setInt(it); }
 
 //	private static Pref cacheGateCapacitance = Pref.makeDoublePref("GateCapfFPerLambda", LETool.tool.prefs, DEFAULT_GATECAP);
 //	/**
@@ -848,22 +837,22 @@ public class LETool extends Tool {
 //	 */
 //	public static void setDiffAlpha(double da) { cacheDiffAlpha.setDouble(da); }
 
+    private static Pref cacheKeeperRatio = Pref.makeDoubleSetting("KeeperRatio", LETool.tool.prefs, tool,
+        tool.getProjectSettings(), null,
+        "Logical Effort Tab", "Keeper Ratio",
+        DEFAULT_KEEPERRATIO);
+
 	/**
 	 * Method to get the keeper size ratio for Logical Effort.
 	 * The default is DEFAULT_KEEPERRATIO.
 	 * @return the keeper size ratio for Logical Effort.
 	 */
-	public static double getKeeperRatio() {
-        if (getLESettingsNode().get("KeeperRatio") == null)
-            getLESettingsNode().putDouble("KeeperRatio", DEFAULT_KEEPERRATIO);
-        return getLESettingsNode().getDouble("KeeperRatio");
-    }
+	public static double getKeeperRatio() { return cacheKeeperRatio.getDouble(); }
+
 	/**
 	 * Method to set the keeper size ratio for Logical Effort.
 	 * @param kr the keeper size ratio for Logical Effort.
 	 */
-	public static void setKeeperRatio(double kr) {
-        getLESettingsNode().putDouble("KeeperRatio", kr);
-    }
+	public static void setKeeperRatio(double kr) { cacheKeeperRatio.setDouble(kr); }
 
 }

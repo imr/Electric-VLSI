@@ -168,9 +168,15 @@ public abstract class LibraryFiles extends Input
         if (Job.BATCHMODE) 
             meaningVariables = new HashMap<Object,Map<String,Object>>();
         Library lib = readLibrary(fileURL, libName, type, quick, meaningVariables);
-        if (meaningVariables != null)
-            Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
-	    return lib;
+
+        File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
+        if (projsettings.exists()) {
+            ProjSettings.readSettings(projsettings, false);
+        } else {
+            if (meaningVariables != null)
+                Pref.reconcileMeaningVariables(lib.getName(), meaningVariables);
+        }
+        return lib;
     }
     
 	/**
@@ -192,13 +198,6 @@ public abstract class LibraryFiles extends Input
         errorLogger = ErrorLogger.newInstance("Library Read");
 
         File f = new File(fileURL.getPath());
-
-        // read project settings
-        if (f != null && f.exists()) {
-            File projsettings = new File(User.getWorkingDirectory(), "projsettings.xml");
-            if (projsettings.exists())
-                ProjSettings.readSettings(projsettings, false);
-        }
 
         if (f != null && f.exists()) {
             LibDirs.readLibDirs(f.getParent());

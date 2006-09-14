@@ -23,10 +23,9 @@
  */
 package com.sun.electric.tool.user.projectSettings;
 
-import java.util.Set;
-import java.util.LinkedHashMap;
-import java.util.Stack;
-import java.util.TreeSet;
+import com.sun.electric.database.text.Pref;
+
+import java.util.*;
 import java.io.Serializable;
 
 /**
@@ -58,15 +57,20 @@ import java.io.Serializable;
  */
 public class ProjSettingsNode implements Serializable {
 
-    private LinkedHashMap<String,Object> data;
-    private LinkedHashMap<String,Object> dataInitial;
+    private LinkedHashMap<String, Object> data;
+
+    public static class UninitializedPref {
+        public final Object value;
+        public UninitializedPref(Object value) {
+            this.value = value;
+        }
+    }
 
     /**
      * Create a new default proj settings node
      */
     public ProjSettingsNode() {
         data = new LinkedHashMap<String,Object>();
-        dataInitial = new LinkedHashMap<String,Object>();
     }
 
     /**
@@ -78,86 +82,93 @@ public class ProjSettingsNode implements Serializable {
         return data.keySet();
     }
 
-    public Object get(String key) {
+    /**
+     * Set the value for a key.
+     * @param key a string key
+     * @param pref a value
+     */
+    public void putValue(String key, Pref pref) {
+        Object v = data.get(key);
+        Object previousVal = null;
+        if (v instanceof UninitializedPref) {
+            // this overrides pref value, when pref was uninitialized so we couldn't set it before
+            previousVal = ((UninitializedPref)v).value;
+        }
+        data.put(key, pref);
+
+        if (previousVal != null && !equal(previousVal, pref)) {
+            System.out.println("Warning: For key "+key+": project setting value of "+previousVal+" overrides default of "+pref.getValue());
+            if (previousVal instanceof Boolean)
+                pref.setBoolean(((Boolean)previousVal).booleanValue());
+            else if (previousVal instanceof Integer)
+                pref.setInt(((Integer)previousVal).intValue());
+            else if (previousVal instanceof Double)
+                pref.setDouble(((Double)previousVal).doubleValue());
+            else if (previousVal instanceof String)
+                pref.setString(previousVal.toString());
+            else if (previousVal instanceof Long)
+                pref.setLong(((Long)previousVal).longValue());
+        }
+    }
+
+    public Pref getValue(String key) {
+        Object obj = data.get(key);
+        if (obj instanceof Pref)
+            return (Pref)obj;
+        if (obj == null) return null;
+        prIllegalRequestError(key);
+        return null;
+    }
+
+    public void putNode(String key, ProjSettingsNode node) {
+        data.put(key, node);
+    }
+
+    public ProjSettingsNode getNode(String key) {
+        Object obj = data.get(key);
+        if (obj == null) {
+            obj = new ProjSettingsNode();
+            data.put(key, obj);
+        }
+        if (obj instanceof ProjSettingsNode)
+            return (ProjSettingsNode)obj;
+        prIllegalRequestError(key);
+        return null;
+    }
+
+    private void prIllegalRequestError(String key) {
+        System.out.println("ERROR! Project Settings key conflict: "+key);
+    }
+
+    // ----------------------------- Protected --------------------------------
+
+    protected Object get(String key) {
         return data.get(key);
     }
 
-    private Object getInitial(String key) {
-        return dataInitial.get(key);
+    protected void put(String key, Object node) {
+        data.put(key, node);
     }
-
-    /**
-     * Set the value for a key. Throws an exception if the value is
-     * not a supported class.
-     * @throws IllegalArgumentException if the class of value is not supported.
-     * @param key a string key
-     * @param value a value
-     * @see ProjSettings#isSupportedClass(Object)
-     */
-    protected void put(String key, Object value) {
-        if (ProjSettings.isSupportedClass(value)) {
-            if ((value instanceof ProjSettingsNode) && data.containsKey(key)) {
-                System.out.println("ERROR!!!! Trying to insert a ProjSettingsNode using key "+key+
-                        ", which is already in use by object "+data.get(key).toString());
-                return;
-            }
-            data.put(key, value);
-            if (!dataInitial.containsKey(key)) {
-                dataInitial.put(key, value);
-            }
-        } else {
-            throw new IllegalArgumentException("Unsupported class "+value.getClass().getName()+" in ProjSettingsNode");
-        }
-    }
-
-    // ------------------------ Supported Types -------------------------------
-
-    public void putBoolean(String key, boolean value) { put(key, new Boolean(value)); }
-    public boolean getBoolean(String key) {
-        if (!(get(key) instanceof Boolean)) return false;
-        return ((Boolean)get(key)).booleanValue();
-    }
-    public boolean getInitialBoolean(String key) { return ((Boolean)getInitial(key)).booleanValue(); }
-
-    public void putDouble(String key, double value) { put(key, new Double(value)); }
-    public double getDouble(String key) {
-        if (!(get(key) instanceof Double)) return 0;
-        return ((Double)get(key)).doubleValue();
-    }
-    public double getInitialDouble(String key) { return ((Double)getInitial(key)).doubleValue(); }
-
-    public void putInteger(String key, int value) { put(key, new Integer(value)); }
-    public int getInteger(String key) {
-        if (!(get(key) instanceof Integer)) return 0;
-        return ((Integer)get(key)).intValue();
-    }
-    public int getInitialInteger(String key) { return ((Integer)getInitial(key)).intValue(); }
-
-    public void putLong(String key, long value) { put(key, new Long(value)); }
-    public long getLong(String key) {
-        if (!(get(key) instanceof Long)) return 0;
-        return ((Long)get(key)).longValue();
-    }
-    public long getInitialLong(String key) { return ((Long)getInitial(key)).longValue(); }
-
-    public void putString(String key, String value) { put(key, value); }
-    public String getString(String key) {
-        if (!(get(key) instanceof String)) return "";
-        return (String)get(key);
-    }
-    public String getInitialString(String key) { return (String)getInitial(key); }
-
-    public void putNode(String key, ProjSettingsNode node) { put(key, node); }
-    public ProjSettingsNode getNode(String key) {
-        if (!(get(key) instanceof ProjSettingsNode)) {
-            ProjSettingsNode node = new ProjSettingsNode();
-            putNode(key, node);
-        }
-        return (ProjSettingsNode)get(key);
-    }
-
 
     // ----------------------------- Utility ----------------------------------
+
+    /**
+     * Compare a project settings value against a prefValue object value.
+     * You can't just use .equals() because the prefValue object does
+     * not store booleans as Booleans.
+     * @param value
+     * @param pref
+     * @return true if values equal, false otherwise
+     */
+    public static boolean equal(Object value, Pref pref) {
+        if (value == null || pref.getValue() == null)
+            return false;
+        if (pref.getType() == Pref.PrefType.BOOLEAN && (value instanceof Boolean))
+            return pref.getBoolean() == ((Boolean)value).booleanValue();
+        if (value.getClass() != pref.getValue().getClass())
+            return false;
+        return value.equals(pref.getValue());
+    }
 
     public boolean equals(Object node) {
         if (!(node instanceof ProjSettingsNode)) return false;
