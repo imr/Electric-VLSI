@@ -159,6 +159,7 @@ public class NetlistsTab extends ProjSettingsPanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         copyright.add(jLabel4, gridBagConstraints);
 
+        copyrightGroup.add(copyrightNone);
         copyrightNone.setText("No copyright message");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -167,6 +168,7 @@ public class NetlistsTab extends ProjSettingsPanel
         gridBagConstraints.insets = new java.awt.Insets(4, 10, 4, 4);
         copyright.add(copyrightNone, gridBagConstraints);
 
+        copyrightGroup.add(copyrightUse);
         copyrightUse.setText("Use this copyright message:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;

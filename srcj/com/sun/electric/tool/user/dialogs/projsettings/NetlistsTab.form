@@ -75,6 +75,9 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="copyrightNone">
               <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="copyrightGroup"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="No copyright message"/>
               </Properties>
               <Constraints>
@@ -85,6 +88,9 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="copyrightUse">
               <Properties>
+                <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
+                  <ComponentRef name="copyrightGroup"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Use this copyright message:"/>
               </Properties>
               <Constraints>
