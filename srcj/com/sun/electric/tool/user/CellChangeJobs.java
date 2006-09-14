@@ -1102,7 +1102,7 @@ public class CellChangeJobs
 
 	/**
 	 * Method to recursively copy cells between libraries.
-	 * @param fromCell the original cell being copied.
+	 * @param fromCells the original cells being copied.
 	 * @param toLib the destination library to copy the cell.
 	 * @param verbose true to display extra information.
 	 * @param move true to move instead of copy.
@@ -1111,17 +1111,25 @@ public class CellChangeJobs
 	 * @param copySubCells true to recursively copy sub-cells.  If true, "useExisting" must be true.
 	 * @param useExisting true to use any existing cells in the destination library
 	 * instead of creating a cross-library reference.  False to copy everything needed.
+	 * @return address of a copied cell (null on failure).
 	 */
-	public static Cell copyRecursively(Cell fromCell, Library toLib, boolean verbose, boolean move,
+	public static Cell copyRecursively(List<Cell> fromCells, Library toLib, boolean verbose, boolean move,
         boolean allRelatedViews, boolean copySubCells, boolean useExisting)
     {
+		Cell copiedCell = null;
         Cell.setAllowCircularLibraryDependences(true);
         try {
-            return copyRecursively(fromCell, toLib, verbose, move, "", true,
-                allRelatedViews, allRelatedViews, copySubCells, useExisting, new HashSet<Cell>());
+        	HashSet<Cell> existing = new HashSet<Cell>();
+        	for(Cell fromCell : fromCells)
+        	{
+        		copiedCell = copyRecursively(fromCell, toLib, verbose, move, "", true,
+	                allRelatedViews, allRelatedViews, copySubCells, useExisting, existing);
+        		if (copiedCell == null) break;
+        	}
         } finally {
             Cell.setAllowCircularLibraryDependences(false);
         }
+        return copiedCell;
     }
     
 	/**

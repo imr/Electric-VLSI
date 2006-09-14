@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
+BUG: (9/14/06, SMR) Cross-library copy may copy too many cells (Bug #1222).
+FIX: When multiple items are selected, send them all for copying at once.
+
 BUG: (9/13/06, DN) ExceptionInInitializerError in initAllTechnologies due to custom user preferences (Bug #1219).
 FIX: In Layer.newInstance check only factory colors.
 

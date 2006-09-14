@@ -807,7 +807,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		public boolean doIt() throws JobException
 		{
 			// do the copy
-			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, false, copyRelated, copySubs, true);
+			List<Cell> fromCells = new ArrayList<Cell>();
+			fromCells.add(fromCell);
+			CellChangeJobs.copyRecursively(fromCells, toLibrary, true, false, copyRelated, copySubs, true);
 			return true;
 		}
 	}

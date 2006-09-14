@@ -327,18 +327,17 @@ public class CrossLibCopy extends EDialog
 
 	private static class CrossLibraryCopyJob extends Job
 	{
-		private Cell fromCell;
+		private List<Cell> fromCells;
 		private Library toLibrary;
 		private transient CrossLibCopy dialog;
 		private boolean deleteAfter, copyRelated, copySubs, useExisting;
-//		private List<Cell> deletedCells;
 		private int index;
 
-		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
+		protected CrossLibraryCopyJob(List<Cell> fromCells, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
 			boolean copyRelated, boolean copySubs, boolean useExisting)
 		{
 			super("Cross-Library copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.fromCell = fromCell;
+			this.fromCells = fromCells;
 			this.toLibrary = toLibrary;
 			this.dialog = dialog;
 			this.deleteAfter = deleteAfter;
@@ -354,20 +353,12 @@ public class CrossLibCopy extends EDialog
 		public boolean doIt() throws JobException
 		{
 			// do the copy
-//			deletedCells = new ArrayList<Cell>();
-			CellChangeJobs.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting /*,deletedCells*/);
-//			fieldVariableChanged("deletedCells");
-
+			CellChangeJobs.copyRecursively(fromCells, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting);
 			return true;
 		}
 
         public void terminateOK()
         {
-//        	for(Cell cell : deletedCells)
-//        	{
-//        		CircuitChanges.cleanCellRef(cell);
-//        	}
-
 			// reload the dialog
 			dialog.showCells(false);
 
@@ -682,14 +673,16 @@ public class CrossLibCopy extends EDialog
 
 	private void copyRightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyRightActionPerformed
 	{//GEN-HEADEREND:event_copyRightActionPerformed
+		List<Cell> fromCells = new ArrayList<Cell>();
         for (Object cellObj : listLeft.getSelectedValues())
         {
             String cellName = (String)cellObj;
             Cell fromCell = curLibLeft.findNodeProto(cellName);
             if (fromCell == null) return;
-            new CrossLibraryCopyJob(fromCell, curLibRight, this, deleteAfterCopy.isSelected(),
-                copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
+            fromCells.add(fromCell);
         }
+        new CrossLibraryCopyJob(fromCells, curLibRight, this, deleteAfterCopy.isSelected(),
+            copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
 	}//GEN-LAST:event_copyRightActionPerformed
 
 	private void doneActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_doneActionPerformed
@@ -699,14 +692,16 @@ public class CrossLibCopy extends EDialog
 
 	private void copyLeftActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_copyLeftActionPerformed
 	{//GEN-HEADEREND:event_copyLeftActionPerformed
+		List<Cell> fromCells = new ArrayList<Cell>();
         for (Object cellObj : listRight.getSelectedValues())
         {
             String cellName = (String)cellObj;
             Cell fromCell = curLibRight.findNodeProto(cellName);
             if (fromCell == null) return;
-            new CrossLibraryCopyJob(fromCell, curLibLeft, this, deleteAfterCopy.isSelected(),
-                copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
+            fromCells.add(fromCell);
         }
+        new CrossLibraryCopyJob(fromCells, curLibLeft, this, deleteAfterCopy.isSelected(),
+            copyRelatedViews.isSelected(), copySubcells.isSelected(), useExistingSubcells.isSelected());
 	}//GEN-LAST:event_copyLeftActionPerformed
 
 	/** Closes the dialog */
