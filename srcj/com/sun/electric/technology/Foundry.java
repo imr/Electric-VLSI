@@ -120,7 +120,7 @@ public class Foundry {
             if (factory == null) factory = "";
             pref = Pref.makeStringSetting(what + "LayerFor" + layer.getName() + "IN" + techName, Technology.getTechnologyPreferences(),
                     layer.getTechnology(), getGDSNode(layer.getTechnology()), layer.getName(),
-                "IO/" + what + " in " + techName + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factory);
+                what + " tab", what + " for layer " + layer.getName() + " in technology " + techName, factory);
             map.put(key, pref);
         }
         return pref;

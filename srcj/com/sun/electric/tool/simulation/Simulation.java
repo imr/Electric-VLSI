@@ -1321,7 +1321,7 @@ public class Simulation extends Tool
 	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", tool.prefs, SpiceEngine.SPICE_ENGINE_H.code());
 //	static
 //	{
-//		Pref.Meaning m = cacheSpiceEngine.attachToObject(tool, "Tools/Spice tab", "Spice engine");
+//		Pref.Meaning m = cacheSpiceEngine.attachToObject(tool, "Spice tab", "Spice engine");
 //		m.setTrueMeaning(new String[] {"Spice 2", "Spice 3", "HSpice", "PSpice", "GNUCap", "SmartSpice"});
 //	}
 	/**

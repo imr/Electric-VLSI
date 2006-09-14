@@ -696,7 +696,7 @@ public class Layer
             if (factory == null) factory = "";
             pref = Pref.makeStringSetting(what + "LayerFor" + name + "IN" + techName, Technology.getTechnologyPreferences(), tech,
                 getSubNode(what), name,
-                "IO/" + what + " in " + techName + " tab", what + " for layer " + name + " in technology " + techName, factory);
+                what + " tab", what + " for layer " + name + " in technology " + techName, factory);
             map.put(key, pref);
         }
         return pref;
@@ -710,7 +710,7 @@ public class Layer
             pref = Pref.makeDoubleSetting(what + "ParasiticFor" + name + "IN" + tech.getTechName(),
                 Technology.getTechnologyPreferences(), tech,
                 getSubNode(what), name,
-                "Tools/Spice tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name, factory);
+                "Parasitic tab", "Technology " + tech.getTechName() + ", " + what + " for layer " + name, factory);
             map.put(this, pref);
         }
         return pref;
