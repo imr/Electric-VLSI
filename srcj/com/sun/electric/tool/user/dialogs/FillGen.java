@@ -108,8 +108,8 @@ public class FillGen extends EDialog {
         // top group
         topGroup.add(templateButton);
         topGroup.add(cellButton);
-        cellButton.setSelected(FillGeneratorTool.isFillCell());
-        if (cellToFill == null)
+
+//        if (cellToFill == null)
         {
             // you can't select it if cell is null.
             templateButton.setSelected(true);
@@ -120,7 +120,7 @@ public class FillGen extends EDialog {
         int numMetals = (tech == null) ? 6 : tech.getNumMetals();
         String[] units = new String[] { "lambda", "tracks" };
 
-        for (int i = 1; i < numMetals; i++)
+        for (int i = 0; i < numMetals; i++)
         {
             int metal = i+1;
             Layer metalLayer = tech.findLayer("Metal-"+(i+1)); // @TODO not very elegant
@@ -130,7 +130,7 @@ public class FillGen extends EDialog {
             metalOptions.add(button);
             GridBagConstraints gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 0;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             gridBagConstraints.insets = new Insets(0, 5, 0, 0);
             metalPanel.add(button, gridBagConstraints);
             button.addActionListener(new ActionListener() {
@@ -149,7 +149,7 @@ public class FillGen extends EDialog {
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 1;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             metalPanel.add(text, gridBagConstraints);
 
             // vdd space unit
@@ -158,7 +158,7 @@ public class FillGen extends EDialog {
             combox.setModel(new javax.swing.DefaultComboBoxModel(units));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 2;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             metalPanel.add(combox, gridBagConstraints);
 
             // Gnd space
@@ -170,7 +170,7 @@ public class FillGen extends EDialog {
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 3;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             gridBagConstraints.insets = new Insets(0, 10, 0, 0);
             metalPanel.add(text, gridBagConstraints);
 
@@ -180,7 +180,7 @@ public class FillGen extends EDialog {
             combox.setModel(new DefaultComboBoxModel(units));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 4;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             metalPanel.add(combox, gridBagConstraints);
 
             // Min size rule
@@ -195,7 +195,7 @@ public class FillGen extends EDialog {
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 5;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             gridBagConstraints.insets = new Insets(0, 5, 0, 0);
             metalPanel.add(text, gridBagConstraints);
 
@@ -205,7 +205,7 @@ public class FillGen extends EDialog {
             combox.setModel(new DefaultComboBoxModel(units));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 6;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             metalPanel.add(combox, gridBagConstraints);
 
             // Gnd width
@@ -217,7 +217,7 @@ public class FillGen extends EDialog {
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 7;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             gridBagConstraints.insets = new Insets(0, 5, 0, 0);
             metalPanel.add(text, gridBagConstraints);
 
@@ -227,7 +227,7 @@ public class FillGen extends EDialog {
             combox.setModel(new DefaultComboBoxModel(units));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 8;
-            gridBagConstraints.gridy = i;
+            gridBagConstraints.gridy = metal;
             metalPanel.add(combox, gridBagConstraints);
         }
 
@@ -319,10 +319,11 @@ public class FillGen extends EDialog {
 
         jTabbedPane1.setTabLayoutPolicy(javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT);
         jTabbedPane1.setMaximumSize(new java.awt.Dimension(327670, 327670));
+        jTabbedPane1.setMinimumSize(new java.awt.Dimension(600, 325));
         floorplanPanel.setLayout(new java.awt.GridBagLayout());
 
         floorplanPanel.setMinimumSize(new java.awt.Dimension(550, 300));
-        floorplanPanel.setPreferredSize(new java.awt.Dimension(550, 300));
+        floorplanPanel.setPreferredSize(new java.awt.Dimension(630, 350));
         metalPanel.setLayout(new java.awt.GridBagLayout());
 
         metalPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Reserved Space"));
@@ -356,8 +357,8 @@ public class FillGen extends EDialog {
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 10;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 9;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         floorplanPanel.add(metalPanel, gridBagConstraints);
@@ -454,10 +455,7 @@ public class FillGen extends EDialog {
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         floorplanPanel.add(templateButton, gridBagConstraints);
 

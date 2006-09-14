@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
+IMP/MAN: (9/14/06, GVG) Improvements in FillGenerator dialog to give access to fills with cap transistors.
+
 IMP: (9/14/06, SMR) Layers preferences warns you when changing the color of
      a layer that is transparent...it will affect other layers.
 

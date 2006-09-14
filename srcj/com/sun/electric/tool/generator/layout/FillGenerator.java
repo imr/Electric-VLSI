@@ -2530,7 +2530,7 @@ public class FillGenerator {
                                                  double gndReserved, Units gndUnits)
         {
             int numMetals = tech.getNumMetals();
-            LayoutLib.error(layer<2 || layer>numMetals,
+            LayoutLib.error(layer<1 || layer>numMetals,
 						"Bad layer. Layers must be between 2 and "+numMetals+ " inclusive: "+
 						layer);
             ReserveConfig config = new ReserveConfig(layer, vddReserved, gndReserved, vddUnits, gndUnits);

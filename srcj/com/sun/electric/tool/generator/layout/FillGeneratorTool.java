@@ -46,19 +46,6 @@ public class FillGeneratorTool extends Tool {
 
     /****************************** PREFERENCES ******************************/
 
-    private static Pref cacheFillCell = Pref.makeBooleanPref("FillCell", tool.prefs, true);
-    /**
-     * Method to tell whether FillGenerator will fill a given cell instead of create fill templates.
-     * The default is "true".
-     * @return true if FillGenerator should fill a given cell instead of create fill templates.
-     */
-    public static boolean isFillCell() { return cacheFillCell.getBoolean(); }
-    /**
-     * Method to set whether FillGenerator will fill a given cell instead of create fill templates.
-     * @param on true if FillGenerator should fill a given cell instead of create fill templates.
-     */
-    public static void setFillCell(boolean on) { cacheFillCell.setBoolean(on); }
-
     public enum FillCellMode
     {
         NONE(-1),
@@ -75,7 +62,7 @@ public class FillGeneratorTool extends Tool {
             }
             return NONE;
         }
-    };
+    }
     private static Pref cacheFillCellMode = Pref.makeIntPref("FillCellMode", tool.prefs, FillCellMode.FLAT.mode);
     /**
      * Method to retrieve mode when a given cell must filled.
@@ -353,9 +340,10 @@ public class FillGeneratorTool extends Tool {
 
             fillGenConfig.job = this; // to abort job.
 
-            boolean result = (topCell == null) ?
-                    doTemplateFill(fillGen) :
-                    doFillOnCell(fillGen);
+//            boolean result = (topCell == null) ?
+//                    doTemplateFill(fillGen) :
+//                    doFillOnCell(fillGen);
+             boolean result = doTemplateFill(fillGen);
             return result;
         }
 
