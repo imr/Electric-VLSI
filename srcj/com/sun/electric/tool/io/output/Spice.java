@@ -2717,9 +2717,23 @@ public class Spice extends Topology
 			multiLinePrint(true, "*** Written by Electric VLSI Design System\n");
 		}
 
-		multiLinePrint(true, "*** UC SPICE *** , MIN_RESIST " + layoutTechnology.getMinResistance() +
+        String foundry = layoutTechnology.getSelectedFoundry() == null ? "" : (", foundry "+layoutTechnology.getSelectedFoundry().toString());
+        multiLinePrint(true, "*** Layout tech: "+layoutTechnology.getTechName()+foundry+"\n");
+        multiLinePrint(true, "*** UC SPICE *** , MIN_RESIST " + layoutTechnology.getMinResistance() +
 			", MIN_CAPAC " + layoutTechnology.getMinCapacitance() + "FF\n");
-		multiLinePrint(false, ".OPTIONS NOMOD NOPAGE\n");
+        boolean useParasitics = useNewParasitics && (!useCDL) &&
+                Simulation.isSpiceUseParasitics() && (cell.getView() == View.LAYOUT);
+        if (useParasitics) {
+            for (Layer layer : layoutTechnology.getLayersSortedByHeight()) {
+                double edgecap = layer.getEdgeCapacitance();
+                double areacap = layer.getCapacitance();
+                double res = layer.getResistance();
+                if (edgecap != 0 || areacap != 0 || res != 0) {
+                    multiLinePrint(true, "***    "+layer.getName()+":\tareacap="+areacap+"FF/um^2,\tedgecap="+edgecap+"FF/um,\tres="+res+"ohms/sq\n");
+                }
+            }
+        }
+        multiLinePrint(false, ".OPTIONS NOMOD NOPAGE\n");
 
 		// if sizes to be written in lambda, tell spice conversion factor
 		if (Simulation.isSpiceWriteTransSizeInLambda())
