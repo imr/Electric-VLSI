@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
+BUG: (9/13/06, DN) ExceptionInInitializerError in initAllTechnologies due to custom user preferences (Bug #1219).
+FIX: In Layer.newInstance check only factory colors.
+
 BUG: (9/13/06, GVG) AFG not working properly with min spacing distance between metals
 FIX: getting the correct DRC value.
 

@@ -470,9 +470,9 @@ public class Layer
 	public static Layer newInstance(Technology tech, String name, EGraphics graphics)
 	{
         if (tech == null) throw new NullPointerException();
-        int transparent = graphics.getTransparentLayer();
+        int transparent = graphics.getFactoryTransparentLayer();
         if (transparent != 0) {
-            Color colorFromMap = tech.getColorMap()[1 << (transparent - 1)];
+            Color colorFromMap = tech.getFactoryColorMap()[1 << (transparent - 1)];
             if ((colorFromMap.getRGB() & 0xFFFFFF) != graphics.getRGB())
                 throw new IllegalArgumentException();
         }
