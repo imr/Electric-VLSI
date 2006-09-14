@@ -84,13 +84,13 @@ For a contact such as this, arcs may connect at any angle,
 so the default values are correct.
 </TD></TR></TABLE>
 <P>
+<TABLE><TR><TD>
 When all of the geometry, highlighting, and ports have been placed,
 you can double-check your work with the <B>Identify Primitive Layers</B> command
 (in menu <B>Edit / Technology Specific</B>),
 which will display this information
 (note that the port name "Center" has been moved away for clarity):
-<P>
-<CENTER><IMG SRC="fig08-21.png" ALT="Figure 8.21"></CENTER>
+</TD><TD><CENTER><IMG SRC="fig08-21.png" ALT="Figure 8.21"></CENTER></TD></TR></TABLE>
 <P>
 The final step in the definition of this node is to create three more copies that illustrate scaling in both axes.
 This is done simply by selecting all five objects and using the <B>Duplicate</B>
@@ -101,11 +101,10 @@ Thus, when stretched horizontally or vertically, there are two cuts,
 and when stretched in both directions there are four cuts.
 The technology editor will determine precise multicut rules from the cut spacing and the amount of stretch,
 so that even more cuts will appear as the node grows larger.
-The finished node definition is shown below:
+The finished node definition is shown below.
+All that is necessary is to convert this library back to a technology, and the new technology will have this node.
 <P>
 <CENTER><IMG SRC="fig08-22.png" ALT="Figure 8.22"></CENTER>
-<P>
-All that is necessary is to convert this library back to a technology, and the new technology will have this node.
 <P>
 Of course, the newly created technology is valid only during the current session.
 Therefore, to preserve this technology, save the library to disk.

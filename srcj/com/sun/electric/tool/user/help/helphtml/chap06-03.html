@@ -56,14 +56,17 @@ This XML file can be read back into Electric's preferences with the
 <P>
 <H3>Where Project Settings Are Stored</H3>
 <P>
-Project settings are saved in an XML file called "projsettings.xml", in the same directory as
-your libraries.
-In earlier versions of Electric, the settings were saved inside of libraries,
-but this caused trouble when their values were inconsistent between different libraries.
+Project settings are stored permanently on your computer in the same place as Preferences.
+However, they are also saved with your circuitry so that the values will be correct when
+the circuits are read back in.
 <P>
-Project settings can be exported with the <B>Project Settings...</B> command (in menu <B>File / Export</B>).
-This writes an XML file with project setting information.
-This XML file can be read back into Electric with the
+By default, project settings are saved in each library that is saved to disk.
+However, for multiple-library projects, this can be troublesome if some libraries have
+different settings than others.
+The solution is to create a file, in the same directory as the libraries, called "projsettings.xml".
+If this file exists, then settings are taken from it (and ignored if found in the libraries).
+To write this file, use the the <B>Project Settings...</B> command (in menu <B>File / Export</B>).
+To override current settings and explicitly read a project settings file, use the
 <B>Project Settings...</B> command (in menu <B>File / Import</B>).
 
 <!-- NEED 2in -->

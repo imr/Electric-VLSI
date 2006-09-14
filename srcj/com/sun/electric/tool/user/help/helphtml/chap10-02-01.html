@@ -39,10 +39,11 @@ Example:
 <P>
 Declares view with abbreviation name "lay" and full name "layout".
 <P>
+<!-- NEED 3in -->
 <H3>Tools</H3>
 <P>
 There is no need to declare all tools in the header.
-The only reason for a tool declaration to exist is if the tool has old-style project setting variables stored on it.
+The only reason for a tool declaration to exist is if the tool has project setting variables stored on it.
 If there are multiple tool lines, they are sorted by the tool name. The syntax is:
 <P>
 <CENTER><TABLE BORDER=1 WIDTH="90%">
@@ -55,10 +56,9 @@ If there are multiple tool lines, they are sorted by the tool name. The syntax i
 <P>
 Example:
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Osimulation|SpiceEngine()I2|SpiceLevel()I1</CODE>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Ologeffort|GlobalFanout()D12.0</CODE>
 <P>
-Declares two preferences on the "simulation" tool object.
-The first is called "SpiceEngine" and is set to the integer value 2.
-The second is called "SpiceLevel" and is set to the integer value 1.
+Declares a project setting on the "Logical Effort" tool object.
+The "GlobalFanout" is set to the floating point value 12.
 
 <!-- TRAILER -->

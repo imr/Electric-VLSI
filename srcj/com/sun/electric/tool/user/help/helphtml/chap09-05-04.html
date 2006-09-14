@@ -32,12 +32,13 @@ If the logic states of all the input signals match the conditions specified in t
 the simulator will schedule the outputs for updating (as specified in the corresponding <B>o:</B> statement).
 The logical truth table for a two input AND gate is shown below:
 <P><CODE>
-&nbsp;&nbsp;&nbsp;gate and2(in1, in2, output)<BR>
-&nbsp;&nbsp;&nbsp;i: in1=H in2=H  o: output=H<BR>
-&nbsp;&nbsp;&nbsp;i: in1=L        o: output=L<BR>
-&nbsp;&nbsp;&nbsp;i: in2=L        o: output=L<BR>
+&nbsp;&nbsp;&nbsp;gate and2(in1, in2, output)<BR>
+&nbsp;&nbsp;&nbsp;i: in1=H in2=H  o: output=H<BR>
+&nbsp;&nbsp;&nbsp;i: in1=L        o: output=L<BR>
+&nbsp;&nbsp;&nbsp;i: in2=L        o: output=L<BR>
 &nbsp;&nbsp;&nbsp;i:              o: output=X
-</CODE><P>
+</CODE>
+<P>
 The last line of the truth table represents a default condition in the event that none
 of the previous conditions are valid
 (e.g. in1=H and in2=X).
@@ -60,7 +61,6 @@ The format of a signal references, which follow the <B>i:</B> statement, is show
 <TR><TD></TD><TD>&gt;  Test if greater than</TD></TR>
 <TR><TD><B>Example:</B></TD><TD>node1 = H</TD></TR>
 <TR><TD></TD><TD>input1 ! input2</TD></TR>
-<TR><TD></TD><TD>node3 &lt; 16</TD></TR>
 </TABLE></CENTER>
 <P>
 There is no limit on the number of signal tests that can follow an <B>i:</B> statement.
@@ -89,7 +89,6 @@ The format for signal references which follow the <B>o:</B> statement is shown b
 <TR><TD><B>Example:</B></TD><TD>qbar = H@3</TD></TR>
 <TR><TD></TD><TD>out1 + 3</TD></TR>
 <TR><TD></TD><TD>out + out1@4</TD></TR>
-<TR><TD></TD><TD>node1 % modulus_node</TD></TR>
 </TABLE></CENTER>
 <P>
 It should be noted that the logic state of the operand can be directly specified
@@ -126,11 +125,16 @@ Assuming that a 2 input NAND gate had timing characteristics of <I>t(lh)</I> = 1
 <I>t(hl)</I> = 3.0 nanoseconds,
 the gate description for the device would be as follows:
 <P><CODE>
-&nbsp;&nbsp;&nbsp;gate nand2(in1, in2, output)<BR>
-&nbsp;&nbsp;&nbsp;t: delta=3.0e-9<BR>
-&nbsp;&nbsp;&nbsp;i: in1=H in2=H   o: output=L<BR>
-&nbsp;&nbsp;&nbsp;t: delta=1.0e-9<BR>
-&nbsp;&nbsp;&nbsp;i: in1=L         o: output=H<BR>
+&nbsp;&nbsp;&nbsp;gate nand2(in1, in2, output)
+<BR>
+&nbsp;&nbsp;&nbsp;t: delta=3.0e-9
+<BR>
+&nbsp;&nbsp;&nbsp;i: in1=H in2=H   o: output=L
+<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-9
+<BR>
+&nbsp;&nbsp;&nbsp;i: in1=L         o: output=H
+<BR>
 &nbsp;&nbsp;&nbsp;i: in2=L         o: output=H
 </CODE><P>
 This example shows that when both inputs are high,
@@ -199,16 +203,26 @@ of the data bytes that pass through it is shown below:
 <P>
 <CENTER><TABLE><TR><TD WIDTH="40%"><CENTER><IMG SRC="fig09-35.png" ALT="Figure 9.35"></CENTER></TD><TD WIDTH="60%">
 <P><CODE>
-&nbsp;&nbsp;&nbsp;model main(in, out)<BR>
-&nbsp;&nbsp;&nbsp;trans1: good(in, out)<BR>
-&nbsp;&nbsp;&nbsp;trans2: bad(in, out)<BR>
-<BR>
-&nbsp;&nbsp;&nbsp;gate good(in, out)<BR>
-&nbsp;&nbsp;&nbsp;t: delta=1.0e-6<BR>
-&nbsp;&nbsp;&nbsp;i: in>0x00    o: out=in  in=0x00<BR>
-<BR>
-&nbsp;&nbsp;&nbsp;gate bad(in, out)<BR>
-&nbsp;&nbsp;&nbsp;t: delta=1.0e-6 + random=0.01<BR>
+&nbsp;&nbsp;&nbsp;model main(in, out)
+<BR>
+&nbsp;&nbsp;&nbsp;trans1: good(in, out)
+<BR>
+&nbsp;&nbsp;&nbsp;trans2: bad(in, out)
+<BR>
+
+<BR>
+&nbsp;&nbsp;&nbsp;gate good(in, out)
+<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-6
+<BR>
+&nbsp;&nbsp;&nbsp;i: in>0x00    o: out=in  in=0x00
+<BR>
+
+<BR>
+&nbsp;&nbsp;&nbsp;gate bad(in, out)
+<BR>
+&nbsp;&nbsp;&nbsp;t: delta=1.0e-6 + random=0.01
+<BR>
 &nbsp;&nbsp;&nbsp;i: in>0x00    o: out=0xFF in=0x00
 </CODE><P>
 </TD></TR></TABLE></CENTER>
