@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.04z: *********************************
+
 ************************* Version 8.04y: *********************************
 
 BUG: (9/15/06, SMR) Technology editor cannot handle PCB technology.
@@ -11,7 +13,7 @@ BUG: (9/14/06, DN) Assertion error in layer drawing (Bug #1224)
 FIX: In LayerDrawing.drawList combine both VectorCircle cases.
 
 BUG: (9/14/06, GVG) Design Rules dialog not working properly for TSMC90 and many wide rules
-FIX: designRulesEditChanged fixed. 
+FIX: designRulesEditChanged fixed.
 
 BUG: (9/14/06, SMR) Interactive sizing fails on rotated nodes (Bug #1201)
 FIX: In SizeListener.getNewNodeSize(), reallocate farthest point.
