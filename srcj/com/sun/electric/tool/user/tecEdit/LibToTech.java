@@ -1998,7 +1998,7 @@ public class LibToTech
 					pointList = new Point2D[2+minFactor];
 					pointFactor = new int[2+minFactor];
 					pointList[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
-					pointList[0] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getCenterY());
+					pointList[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getCenterY());
 					trueCount = 2;
 				} else
 				{
