@@ -2322,13 +2322,6 @@ class LayerDrawing
                 }
                 Point [] clippedPoints = GenMath.clipPoly(intPoints, clipLX, clipHX, clipLY, clipHY);
                 drawPolygon(clippedPoints, raster);
-            } else if (vb instanceof VectorCache.VectorCircle) {
-                discCount++;
-                VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
-                gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
-                gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
-                assert vci.nature == 2;
-                drawDisc(tempPt1, tempPt2, raster);
             } else if (vb instanceof VectorCache.VectorLine) {
                 lineCount++;
                 VectorCache.VectorLine vl = (VectorCache.VectorLine)vb;
@@ -2346,14 +2339,32 @@ class LayerDrawing
                 int size = vcr.small ? 3 : 5;
                 drawCross(tempPt1.x, tempPt1.y, size, raster);
             } else if (vb instanceof VectorCache.VectorCircle) {
-                circleCount++;
                 VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
                 gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
                 gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
                 switch (vci.nature) {
-                    case 0: drawCircle(tempPt1, tempPt2, raster);        break;
-                    case 1: drawThickCircle(tempPt1, tempPt2, raster);   break;
+                    case 0:
+                        circleCount++;
+                        drawCircle(tempPt1, tempPt2, raster);
+                        break;
+                    case 1:
+                        circleCount++;
+                        drawThickCircle(tempPt1, tempPt2, raster);
+                        break;
+                    case 2:
+                        discCount++;
+                        drawDisc(tempPt1, tempPt2, raster);
+                        break;
                 }
+                
+            } else if (vb instanceof VectorCache.VectorCircle) {
+                discCount++;
+                VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
+                gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+                gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+                assert vci.nature == 2;
+                
+                
             } else if (vb instanceof VectorCache.VectorCircleArc) {
                 arcCount++;
                 VectorCache.VectorCircleArc vca = (VectorCache.VectorCircleArc)vb;
