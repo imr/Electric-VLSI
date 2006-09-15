@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04y: *********************************
 
+BUG: (9/15/06, SMR) Technology editor cannot handle PCB technology.
+FIX: Fixed conversion from tech-to-lib and from lib-to-tech to handle circles and dots.
+
 BUG: (9/14/06, DN) Assertion error in layer drawing (Bug #1224)
 FIX: In LayerDrawing.drawList combine both VectorCircle cases.
 
