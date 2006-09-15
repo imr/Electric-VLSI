@@ -51,10 +51,10 @@ import java.net.URL;
  */
 public class MoCMOS extends Technology
 {
-	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = initilizeMoCMOS();
+	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = initializeMoCMOS();
 
     // Depending on plugins available
-    private static MoCMOS initilizeMoCMOS()
+    private static MoCMOS initializeMoCMOS()
     {
         MoCMOS tech;
         try
