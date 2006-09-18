@@ -2349,10 +2349,10 @@ public class User extends Listener
 	 */
 	public static void setUseTwoJVMs(boolean on) { cacheUseTwoJVMs.setBoolean(on); }
 
-	private static Pref cacheUseClientServer = Pref.makeBooleanPref("UseClientServer", tool.prefs, true);
+	private static Pref cacheUseClientServer = Pref.makeBooleanPref("UseClientServer", tool.prefs, false);
 	/**
 	 * Method to tell whether to use a separate client and server for Electric.
-	 * The default is "true".
+	 * The default is "false".
 	 * @return true to use a separate client and server for Electric
 	 */
 	public static boolean isUseClientServer() { return cacheUseClientServer.getBoolean(); }

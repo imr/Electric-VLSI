@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04z: *********************************
 
+IMP: (9/18/06, DN) Default value of useClientServer option is off.
+
 ************************* Version 8.04y: *********************************
 
 BUG: (9/15/06, SMR) Technology editor cannot handle PCB technology.
