@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04z: *********************************
 
+BUG: (9/18/06, SMR) Auto-stitch may connect contact to wrong side of transistor (Bug #1226).
+FIX: Prevent arc-to-node routing on well layers.
+
 IMP: (9/18/06, DN) Default value of useClientServer option is off.
 
 ************************* Version 8.04y: *********************************

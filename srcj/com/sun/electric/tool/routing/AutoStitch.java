@@ -1076,6 +1076,8 @@ public class AutoStitch
 		{
 			Poly poly1 = polys1[i1];
 			Layer layer1 = poly1.getLayer();
+			Layer.Function fun = layer1.getFunction();
+			if (!fun.isMetal() && !fun.isDiff() && !fun.isPoly()) continue;
 			Rectangle2D bounds1 = poly1.getBounds2D();
 
 			// compare them against all of the polygons in the second arcinst
@@ -1130,6 +1132,8 @@ public class AutoStitch
 		{
 			Poly arcPoly = arcPolys[i];
 			Layer arcLayer = arcPoly.getLayer();
+			Layer.Function fun = arcLayer.getFunction();
+			if (!fun.isMetal() && !fun.isDiff() && !fun.isPoly()) continue;
 			Rectangle2D arcBounds = arcPoly.getBounds2D();
 			double aCX = arcBounds.getCenterX();
 			double aCY = arcBounds.getCenterY();
