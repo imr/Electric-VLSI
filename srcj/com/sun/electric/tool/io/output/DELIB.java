@@ -298,7 +298,7 @@ public class DELIB extends JELIB {
      * Cell subdirectory name. This is the directory inside the
      * .delib directory containing the Cell files for the specified cell.
      * @param cellBackup
-     * @return
+     * @return the Cell subdirectory name.
      */
     public static String getCellSubDir(CellBackup cellBackup) {
         if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
@@ -335,8 +335,8 @@ public class DELIB extends JELIB {
      * This is the path, relative to the .delib directory
      * path, of the file for the specified cell.  Note it is a relative path,
      * not an absolute path. Ex: LEsettings.sch or LEsettings/LEsettings.sch
-     * @param cell
-     * @return
+     * @param cell the Cell.
+     * @return the file with the Cell in it.
      */
     public static String getCellFile(Cell cell) {
         Library lib = cell.getLibrary();
@@ -358,7 +358,7 @@ public class DELIB extends JELIB {
 
     /**
      * Get relative path to header file from .delib directory
-     * @return
+     * @return the name of the header file in the .delib directory.
      */
     public static final String getHeaderFile() {
         return "header";

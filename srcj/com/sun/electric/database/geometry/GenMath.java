@@ -39,10 +39,10 @@ public class GenMath
 {
     /**
      * General method to obtain quadrant for a given box in a qTree based on the qTree center
-     * @param centerX
-     * @param centerY
-     * @param box
-     * @return
+     * @param centerX the X center of the qTree.
+     * @param centerY the Y center of the qTree.
+     * @param box the given box.
+     * @return the quadrant number.
      */
     public static int getQuadrants(double centerX, double centerY, Rectangle2D box)
     {
@@ -110,8 +110,8 @@ public class GenMath
 
     /**
      * Method to extract 3-value vector in an array of 3
-     * @param vector
-     * @return
+     * @param vector the input vector.
+     * @return the 3-long array.
      */
     public static double[] transformVectorIntoValues(String vector)
     {
@@ -292,8 +292,8 @@ public class GenMath
 
     /**
      * Method to detect if rotation represents a 90 degree rotation in Electric
-     * @param rotation
-     * @return
+     * @param rotation the rotation amount.
+     * @return true if it is a 90-degree rotation.
      */
     public static boolean isNinetyDegreeRotation(int rotation)
     {
@@ -578,15 +578,17 @@ public class GenMath
     }
 
     /**
-     * Method to calcute Euclidean distance between 2 points.
-     * @param p1
-     * @param p2
-     * @return
+     * Method to calcute Euclidean distance between two points.
+     * @param p1 the first point.
+     * @param p2 the second point.
+     * @return the distance between the points.
      */
     public static double distBetweenPoints(Point2D p1, Point2D p2)
     {
         double deltaX = p1.getX() - p2.getX();
         double deltaY = p1.getY() - p2.getY();
+
+        // TODO: use Math.hypot instead
         return (Math.sqrt(deltaX*deltaX + deltaY*deltaY));
     }
 

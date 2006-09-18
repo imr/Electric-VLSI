@@ -417,10 +417,10 @@ public class Output
 	 * also include the hierarchy below it.
 	 * The alternative is to write the entire library, regardless of
 	 * hierarchical structure (use "WriteLibrary").
-     * @param cell: the Cell to be written.
-     * @param context: the VarContext of the Cell (its position in the hierarchy above it).
-     * @param filePath: the path to the disk file to be written.
-     * @param type: the format of the output file. 
+     * @param cell the Cell to be written.
+     * @param context the VarContext of the Cell (its position in the hierarchy above it).
+     * @param filePath the path to the disk file to be written.
+     * @param type the format of the output file. 
      * @param override a list of overriding polygons to write.
      * NOTE: Keep public for regressions
      */

@@ -101,12 +101,11 @@ public class DBMath extends GenMath {
     }
 
     /**
-     * Method to determine if x value is between two given values including
-     * the boundary.
-     * @param x
-     * @param a
-     * @param b
-     * @return
+     * Method to determine if a value is between two given values including the boundary.
+     * @param x the value to test.
+     * @param a one end of the boundary.
+     * @param b the other end of the boundary.
+     * @return true if the value is inside of the boundary.
      */
     public static boolean isInBetween(double x, double a, double b)
     {

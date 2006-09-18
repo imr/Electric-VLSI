@@ -115,7 +115,7 @@ public class Poly extends PolyBase {
 	/**
 	 * Method to set the DisplayedText associated with this Poly.
 	 * This only applies to text Polys which display a message.
-	 * @param var the DisplayedText associated with this Poly.
+	 * @param dt the DisplayedText associated with this Poly.
 	 */
 	public void setDisplayedText(DisplayedText dt) { this.dt = dt; }
 

@@ -720,13 +720,15 @@ public class Clipboard
 
 	/**
 	 * Method to copy the list of Geometrics to a new Cell.
-	 * @param wnd the EditWindow in which this is happening (if null, do not highlight copied Geometrics).
-	 * @param list the list of Geometrics to copy.
-	 * @param fromCell the source cell of the Geometrics.
 	 * @param toCell the destination cell of the Geometrics.
+	 * @param geomList the list of Geometrics to copy.
+	 * @param textList the list of text to copy.
+	 * @param newGeomList the list of Geometrics that were created.
+	 * @param newTextList the list of text objects that were created.
 	 * @param delta an offset for all of the copied Geometrics.
 	 * @param copyExports true to copy exports.
 	 * @param uniqueArcs true to generate unique arc names.
+	 * @param alignment the grid alignment to use (0 for none).
 	 * @param inPlace the transformation to use which accounts for "down in place" editing.
 	 * @param inPlaceOrient the orientation to use which accounts for "down in place" editing.
 	 * @return the last NodeInst that was created.

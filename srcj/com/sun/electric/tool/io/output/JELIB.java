@@ -85,7 +85,7 @@ public class JELIB extends Output
 
 	/**
 	 * Method to write a Library in Electric Library (.jelib) format.
-	 * @param lib the Library to be written.
+	 * @param libId the Library to be written.
 	 * @return true on error.
 	 */
 	protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles, boolean oldRevision)

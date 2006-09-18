@@ -748,8 +748,8 @@ public class ErrorLogger implements Serializable
     }
 
     /**
-     * Method to retrieve general information about the errorLogger
-     * @return
+     * Method to retrieve general information about the errorLogger.
+     * @returngeneral information about the errorLogger.
      */
     public String getInfo()
     {
