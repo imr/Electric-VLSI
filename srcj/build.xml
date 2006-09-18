@@ -35,39 +35,57 @@
 
     <!-- Patternset for 3D dependencies -->
     <patternset id="exclusion3D">
+        <exclude name="com/sun/electric/plugins/JMF" unless="JMF"/>
         <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
+        <exclude name="com/sun/electric/plugins/j3d" if="NO3D"/>
         <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
-        <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
-        <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
+        <exclude name="com/sun/electric/plugins/j3d/*" if="NO3D"/>
+        <exclude name="com/sun/electric/plugins/j3d/*/*.*" if="NO3D"/>
         <!-- you don't include either Java3D plugin if 3D option is out -->
         <!-- this is valid when Java3D is not installed -->
+        <exclude name="com/sun/electric/plugins/Java3D" if="NO3D"/>
         <exclude name="com/sun/electric/plugins/Java3D/*.*" if="NO3D"/>
     </patternset>
 
     <!-- Patternset for all tools that must be excluded from GNU -->
     <patternset id="exclusionGNU">
+        <exclude name="com/sun/electric/plugins/calibre" if="GNU"/>
         <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/menus/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc/fill90nm/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc/gates90nm/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/dais" if="GNU"/>
         <exclude name="com/sun/electric/plugins/dais/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter/*/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie/*/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tests/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse/*/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/irsim" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/manualRussian" if="GNU"/>
         <exclude name="com/sun/electric/plugins/manualRussian/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/menus" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/menus/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie/*/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse/*/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/skill" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/*/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tests" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tests/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc/*/*.*" if="GNU"/>
     </patternset>
 
     <!-- Patternset for all exclusions -->
     <patternset id="exclusion">
         <patternset refid="exclusion3D" />
         <patternset refid="exclusionGNU" />
+        <exclude name="com/sun/electric/plugins/jogl" unless="JOGL"/>
         <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
         <exclude name="intervalsimulation/"/>
     </patternset>
@@ -260,9 +278,11 @@
 	</target>
 
 	<target name="jarWithVersion" depends="init,compile" description="Make Jar file with version">
-        <!--<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">-->
-        	<!--<arg value="-v"/>-->
-        <!--</java>-->
+        <!-- -->
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
+		<!-- -->
 	    <antcall target="unjarNoGNU"></antcall>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
@@ -278,6 +298,7 @@
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="electric-${version}.jar"/>
+            <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
             <patternset refid="exclusion" />
@@ -288,6 +309,7 @@
         <delete file="electric.mf"/>
         <delete file="COPYING.txt"/>
         <delete dir="bsh"/>
+        <delete dir="org"/>
         <delete quiet="true">
             <fileset dir="com">
                 <include name="**/*.class"/>
@@ -310,6 +332,7 @@
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="electric*.jar"/>
+            <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
             <patternset refid="exclusion" />
             <exclude name="**/*.java" unless="source"/>
@@ -320,15 +343,15 @@
         <delete dir="bsh"/>
         <delete dir="com/apple"/>
         <delete dir="junit"/>
-        <delete dir="org"/>
         <delete dir="junit4.0"/>
+        <delete dir="org"/>
         <delete quiet="true">
-	    <fileset dir=".">
-	        <include name="to-do.txt"/>
-		<include name="done.txt"/>
-		<include name=".temp$junit.arx"/>
-		<include name="stylesheet.css"/>
-	    </fileset>
+		    <fileset dir=".">
+		        <include name="to-do.txt"/>
+				<include name="done.txt"/>
+				<include name=".temp$junit.arx"/>
+				<include name="stylesheet.css"/>
+		    </fileset>
             <fileset dir="com">
                 <include name="**/*.class"/>
             </fileset>
@@ -336,9 +359,11 @@
     </target>
 
     <target name="mac-app" description="Build Macintosh Application">
-<!--        <java classpath="." classname="com.sun.electric.Main" fork="true" outputproperty="version">-->
-<!--        	<arg value="-v"/>-->
-<!--        </java>-->
+    	<!--
+        <java classpath="." classname="com.sun.electric.Main" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
+    	-->
         <java jar="electric.jar" fork="true" outputproperty="version">
         	<arg value="-v"/>
             <jvmarg value="-Xmx1000m"/>
