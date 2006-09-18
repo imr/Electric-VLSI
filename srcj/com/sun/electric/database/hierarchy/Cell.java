@@ -42,7 +42,6 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
