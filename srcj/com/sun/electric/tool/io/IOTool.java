@@ -598,24 +598,24 @@ public class IOTool extends Tool
 	/**
 	 * Method to tell whether GDS Input simplifies contact vias.
 	 * The default is "false".
-	 * @return true if GDS Input simplifies contact vias
+	 * @return true if GDS Input simplifies contact vias.
 	 */
 	public static boolean isGDSInSimplifyCells() { return cacheGDSInSimplifyCells.getBoolean(); }
 	/**
-	 * Method to set whether GDS Input simplifies contact vias
-	 * @param on true if GDS Input simplifies contact vias
+	 * Method to set whether GDS Input simplifies contact vias.
+	 * @param on true if GDS Input simplifies contact vias.
 	 */
 	public static void setGDSInSimplifyCells(boolean on) { cacheGDSInSimplifyCells.setBoolean(on); }
 
     private static Pref cacheGDSColapseVddGndPinNames = Pref.makeBooleanPref("cacheGDSColapseVddGndPinNames", IOTool.tool.prefs, false);
     /**
-     * Method to tell whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice
-     * @return
+     * Method to tell whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice.
+     * @return true if GDS Input colapses vdd/gnd names.
      */
     public static boolean isGDSColapseVddGndPinNames() { return cacheGDSColapseVddGndPinNames.getBoolean(); }
     /**
-     * Method to set whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice
-     * @param on true if GDS Input colapses vdd/gnd names
+     * Method to set whether Vdd_* and Gnd_* export pins must be colapsed. This is for extraction in Fire/Ice.
+     * @param on true if GDS Input colapses vdd/gnd names.
      */
     public static void setGDSColapseVddGndPinNames(boolean on) { cacheGDSColapseVddGndPinNames.setBoolean(on); }
 

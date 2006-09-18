@@ -180,9 +180,11 @@ public class NccJob extends Job {
     /** Call this if you modify the design since the last NCC */
     public static void invalidateLastNccResult() {lastResults=null;}
 
-	/**@param numWindows may be 1 or 2. 1 means compare the schematic and layout 
-	 * views of the current window. 2 means compare the 2 Cells open in 2 
-	 * Windows. */
+	/**
+	 * Run a NCC job.
+	 * @param numWind may be 1 or 2. 1 means compare the schematic and layout 
+	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.
+	 */
 	public NccJob(int numWind) {
 		super("Run NCC", NetworkTool.getNetworkTool(), Job.Type.REMOTE_EXAMINE, null, 
 			  null, Job.Priority.ANALYSIS);

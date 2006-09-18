@@ -465,7 +465,7 @@ public class EquivRecord implements EquivRecReportable {
 	 * @param matched list of list of NetObjects from matched EquivRecords
 	 * indexed as: [circuitIndex][netObjectIndex]. NetObjects at the same
 	 * index in each list match.
-	 * @param notmatched list of list of NetObjects from not matched
+	 * @param notMatched list of list of NetObjects from not matched
 	 * EquivRecords indexed as [circuitIndex][netObjectIndex] */
 	public void getNetObjsFromEntireTree(List<List<NetObject>> matched,
 			                             List<List<NetObject>> notMatched) {

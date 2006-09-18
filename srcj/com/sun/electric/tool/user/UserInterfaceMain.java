@@ -903,8 +903,8 @@ public class UserInterfaceMain extends AbstractUserInterface
     }
 
     /**
-     * Method to get text message in the progress dialgo.
-     * @return
+     * Method to get text message in the progress dialog.
+     * @return text message in the progress dialog.
      */
     public String getProgressNote() { return progress.getNote(); }
 }

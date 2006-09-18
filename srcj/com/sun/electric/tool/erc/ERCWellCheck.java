@@ -112,9 +112,9 @@ public class ERCWellCheck
 
     /**
      * Method used by the regressions
-     * @param cell
-     * @param newAlgorithm
-     * @return
+     * @param cell the Cell to well-check.
+     * @param newAlgorithm the geometry algorithm to use.
+     * @return the success of running well-check.
      */
     public static int checkERCWell(Cell cell, GeometryHandler.GHMode newAlgorithm)
     {

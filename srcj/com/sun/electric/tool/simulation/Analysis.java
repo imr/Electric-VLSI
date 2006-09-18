@@ -247,9 +247,9 @@ public class Analysis
 	public int getNumSweeps() { return (sweeps != null) ? sweeps.size() : 0; }
 
     /**
-     * Method to return sweep object in position i
-     * @param i
-     * @return
+     * Method to return sweep object in a given position.
+     * @param i the position to get.
+     * @return the sweep object for that position.
      */
     public Object getSweep(int i)
     {

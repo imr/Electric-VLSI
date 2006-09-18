@@ -105,8 +105,6 @@ public class Layout extends Constraints
 	/**
 	 * Method to start a batch of changes.
      * @param initialSnapshot snapshot before job changes.
-	 * @param tool the tool that generated the changes.
-	 * @param undoRedo true if these changes are from an undo or redo command.
 	 */
 	public void startBatch(Snapshot initialSnapshot)
 	{

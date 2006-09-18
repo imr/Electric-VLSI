@@ -672,7 +672,7 @@ public class VectorCache {
 	 * @param lY the low Y of the manhattan rectangle.
 	 * @param hX the high X of the manhattan rectangle.
 	 * @param hY the high Y of the manhattan rectangle.
-	 * @param cell the Cell in which to insert the rectangle.
+	 * @param cellId the Cell in which to insert the rectangle.
 	 */
 	public void addInstanceToCell(double lX, double lY, double hX, double hY, CellId cellId)
 	{

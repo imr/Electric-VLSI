@@ -110,17 +110,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Private constructor of ArcInst.
      * @param parent the parent Cell of this ArcInst
      * @param d persistent data of ArcIInst
-	 * @param protoType the ArcProto of this ArcInst.
-	 * @param name the name of this ArcInst
-	 * @param duplicate duplicate index of this ArcInst
-     * @param nameDescriptor text descriptor of name of this ArcInst
 	 * @param headPort the head end PortInst.
 	 * @param tailPort the tail end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
-	 * @param tailPt the coordinate of the tail end PortInst.
-	 * @param width the width of this ArcInst.
-     * @param angle angle in tenth-degrees
-     * @param flags flag bits
 	 */
 	public ArcInst(Cell parent, ImmutableArcInst d, PortInst headPort, PortInst tailPort)
 	{

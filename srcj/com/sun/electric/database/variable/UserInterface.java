@@ -190,13 +190,13 @@ public interface UserInterface
 
     /**
      * Method to set a text message in the progress dialog.
-     * @param message
+     * @param message the new progress message.
      */
     public void setProgressNote(String message);
 
     /**
      * Method to get text message in the progress dialgo.
-     * @return
+     * @return the current progress message.
      */
     public String getProgressNote();
 }

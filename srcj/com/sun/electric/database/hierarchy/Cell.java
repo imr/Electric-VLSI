@@ -689,8 +689,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
-	 * Method to replace subcells of a Cell by cells with similar name in Cell's  Library.
-	 * @return the new Cell in the destination Library.
+	 * Method to replace subcells of a Cell by cells with similar name in Cell's Library.
 	 */
     public void replaceSubcellsByExisting() {
         // scan all subcells to see if they are found in the new library

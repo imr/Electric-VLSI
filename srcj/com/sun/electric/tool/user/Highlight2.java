@@ -247,10 +247,11 @@ public abstract class Highlight2 implements Cloneable{
     public String getInfo() { return null;}
 
     /**
+     * Method to load an array of counts with the number of highlighted objects in a list.
      * arc = 0, node = 1, export = 2, text = 3, graphics = 4
-     * @param list
-     * @param counts
-     * @return
+     * @param list the list of highlighted objects.
+     * @param counts the array of counts to set.
+     * @return a NodeInst, if it is in the list.
      */
     public static NodeInst getInfoCommand(List<Highlight2> list, int[] counts)
     {

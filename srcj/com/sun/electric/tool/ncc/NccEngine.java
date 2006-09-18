@@ -268,16 +268,12 @@ public class NccEngine {
 	/** 
 	 * Check to see if all cells are electrically equivalent.  Note that
 	 * the NCC engine can compare any number of Cells at the same time.
-	 * @param hierCompInfo Information needed to perform hierarchical
-	 * netlist comparison. For flat comparisons pass null.
 	 * @param cells a list of cells to compare.
 	 * @param contexts a list of VarContexts for the corresponding Cell. The
 	 * VarContxt is used to evaluate schematic 
 	 * variables. Use null if variables don't need to be evaluated. 
-	 * @param netlists a list of Netlists for each Cell. This is needed when
-	 * the caller wants a netlist with a particular model of connectivity, for
-	 * example treat resistors as shorted. Use null if you want to
-	 * use the Cell's current netlist. 
+	 * @param hierCompInfo Information needed to perform hierarchical
+	 * netlist comparison. For flat comparisons pass null.
 	 * @param options NCC options
 	 */
 	public static NccResult compare(List<Cell> cells, List<VarContext> contexts,

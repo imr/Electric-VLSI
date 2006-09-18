@@ -110,9 +110,9 @@ public class CVSLibrary {
     /**
      * Check the specified libraries and cells are in cvs.
      * Return any libs and cells that are not in cvs
-     * @param libs
-     * @param cells
-     * @return
+     * @param libs a List of Libraries to check.
+     * @param cells a List of Cells to check.
+     * @return Libraries and Cells that are not in CVS.
      */
     public static LibsCells getNotInCVS(List<Library> libs, List<Cell> cells) {
         if (libs == null) libs = new ArrayList<Library>();
@@ -159,9 +159,9 @@ public class CVSLibrary {
     /**
      * Remove cells from cell list if they are part of any library in libs list.
      * Return the consolidated list of libs and cells.
-     * @param libs
-     * @param cells
-     * @return
+     * @param libs the List of Libraries to consolidate.
+     * @param cells the List of Cells to consolidate.
+     * @return a LibsCells with the all desired Libraries and Cells.
      */
     public static LibsCells consolidate(List<Library> libs, List<Cell> cells) {
         LibsCells consolidated = new LibsCells();
@@ -174,8 +174,8 @@ public class CVSLibrary {
 
     /**
      * Get cells from passed in list of cells that are not from DELIB libraries.
-     * @param cells
-     * @return
+     * @param cells a List of Cells to examine.
+     * @return LibsCells of cells that are not from DELIB libraries.
      */
     public static LibsCells notFromDELIB(List<Cell> cells) {
         if (cells == null) cells = new ArrayList<Cell>();
@@ -189,8 +189,8 @@ public class CVSLibrary {
     /**
      * Only for DELIBs, check if there are any cells in
      * library that have state "UNKNOWN", and need to be added to CVS.
-     * @param lib
-     * @return
+     * @param lib the Library to examine.
+     * @return true if such cells exist.
      */
     public static boolean hasUnknownCells(Library lib) {
         CVSLibrary cvslib = CVSLibraries.get(lib);

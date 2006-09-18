@@ -140,7 +140,7 @@ public class Routing extends Listener
      * Handles database changes of a Job.
      * @param oldSnapshot database snapshot before Job.
      * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @undoRedo true if Job was Undo/Redo job.
+     * @param undoRedo true if Job was Undo/Redo job.
      */
     public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
@@ -558,7 +558,6 @@ public class Routing extends Listener
 
 	/**
 	 * Method to invoke the Sun Router via reflection.
-	 * @param cell the Cell to route.
 	 */
 	public static void sunRouteCurrentCell()
 	{

@@ -409,7 +409,6 @@ public class ALS extends Engine
 	 * Method to simulate the a Cell, given its context and the Cell with the real netlist.
 	 * @param netlistCell the Cell with the real ALS netlist.
 	 * @param cell the original Cell being simulated.
-	 * @param context the context to the Cell being simulated.
 	 */
 	public static void simulateNetlist(Cell netlistCell, Cell cell)
 	{
@@ -421,7 +420,6 @@ public class ALS extends Engine
 	 * Method to restart a simulation and reload the circuit.
 	 * @param netlistCell the cell with the netlist.
 	 * @param cell the cell being simulated.
-	 * @param context the VarContext of the cell being simulated.
 	 * @param prevALS the simulation that is being reloaded.
 	 */
 	public static void restartSimulation(Cell netlistCell, Cell cell, ALS prevALS)

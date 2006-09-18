@@ -79,9 +79,7 @@ public abstract class Constraints
 
 	/**
 	 * Method to handle the start of a batch of changes.
-     * @param currentSnapshot snapshot before job changes.
-	 * @param tool the tool that generated the changes.
-	 * @param undoRedo true if these changes are from an undo or redo command.
+     * @param initialSnapshot snapshot before job changes.
 	 */
 	public void startBatch(Snapshot initialSnapshot) {}
 	/**

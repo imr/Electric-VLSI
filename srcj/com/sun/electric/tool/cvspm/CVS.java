@@ -219,10 +219,9 @@ public class CVS {
     }
 
     /**
-     * Get the file for the given Cell, assuming the library is
-     * in DELIB format.  If not, returns null.
-     * @param cell
-     * @return
+     * Get the file for the given Cell, assuming the library is in DELIB format.
+     * @param cell the Cell being examined.
+     * @return the File for the Cell.  If its library is not in DELIB format, returns null.
      */
     public static File getCellFile(Cell cell) {
         if (isDELIB(cell.getLibrary())) {

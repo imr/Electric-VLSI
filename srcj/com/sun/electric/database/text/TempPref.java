@@ -168,7 +168,6 @@ public class TempPref {
 	/**
 	 * Method to set a new double value on this TempPref object.
 	 * @param v the new double value of this TempPref object.
-	 * @return true if preference was really changed.
 	 */
 	public void setDouble(double v) { cachedObj = Double.valueOf(v); }
 

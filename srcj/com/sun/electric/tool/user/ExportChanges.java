@@ -605,7 +605,7 @@ public final class ExportChanges
         private HashMap<PortInst,Export> originalExports;
 
         /**
-         * @see ExportChanges#reExportPorts(java.util.List, boolean, boolean, boolean, java.util.HashMap)
+         * Constructor.
          */
         public ReExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
                              boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)

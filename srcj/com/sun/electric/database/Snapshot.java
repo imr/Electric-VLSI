@@ -76,10 +76,9 @@ public class Snapshot {
      * Creates a new instance of Snapshot which differs from this Snapshot.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
      * @param tool tool which initiated database changes/
-     * @param cellBackups list indexed by cellIndex of new CellBackups.
-     * @param cellGroups array indexed by cellIndex of cellGroups numbers.
-     * @param cellBounds list indexed by cellIndex of cell bounds.
-     * @param libBackups list indexed by cellIndex of LibraryBackups.
+     * @param cellBackupsArray list indexed by cellIndex of new CellBackups.
+     * @param cellBoundsArray list indexed by cellIndex of cell bounds.
+     * @param libBackupsArray list indexed by cellIndex of LibraryBackups.
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.

@@ -134,7 +134,6 @@ public class PLA
 	 * @param orFileName the disk file with the OR plane.
 	 * @param inputsOnTop true to place inputs on the top of the plane.
 	 * @param outputsOnBottom true to place outputs on the bottom of the plane.
-	 * @param completion runnable to invoke when the generation has finished.
 	 */
 	public static void generate(Library destLib, String cellName, String andFileName, String orFileName,
                                 boolean inputsOnTop, boolean outputsOnBottom)

@@ -44,7 +44,7 @@ public class WeakReferences<E> {
     /**
      * Appends the specified element to the pool.
      * @param o specified element.
-     * @retrun always true.
+     * @return always true.
      */
     public boolean add(E o) {
         references.add(new WeakReference<E>(o));

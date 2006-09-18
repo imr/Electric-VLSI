@@ -663,7 +663,7 @@ public class EDatabase {
     
     /**
      * Checks that Electric database has the expected state.
-     * @expectedSnapshot expected state.
+     * @param expectedSnapshot expected state.
      */
     public void checkFresh(Snapshot expectedSnapshot) {
         assert snapshotFresh && snapshot == expectedSnapshot;

@@ -323,7 +323,7 @@ public class CellBackup {
     /**
      * Gather useages of libraries/cells/exports.
      * @param usedLibs bitset where LibIds used in variables are accumulates.
-     * @param cells/exports Map from CellId to ExportId set, where used cells/expors are accumulated.
+     * @param usedExports Map from CellId to ExportId set, where used cells/expors are accumulated.
      */
     public void gatherUsages(BitSet usedLibs, Map<CellId,BitSet> usedExports) {
         usedLibs.or(this.usedLibs);

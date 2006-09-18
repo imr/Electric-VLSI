@@ -59,10 +59,6 @@ public interface EditWindow_ extends EditWindow0 {
 
 	// *************************************************** NEW METHODS FROM STEVE ***************************************************
 
-	/**
-	 * Method to 
-	 * @return
-	 */
 	public Point getScreenLocationOfCorner();
 	public Rectangle2D getDisplayedBounds();
 	public Point2D getOffset();

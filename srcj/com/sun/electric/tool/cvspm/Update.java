@@ -324,9 +324,9 @@ public class Update {
 
     /**
      * Update the given file in the given directory.
-     * @param file
-     * @param dir
-     * @return
+     * @param file the name of the file.
+     * @param dir the directory.
+     * @return parsed output from running CVS.
      */
     protected static StatusResult update(String file, String dir, int type) {
         String command = "-q update -d -P ";

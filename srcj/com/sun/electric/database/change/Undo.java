@@ -165,8 +165,7 @@ public class Undo
     }
 
     /**
-     * Method to return snapshotId for undo.
-     * @return snapshotId or -1.
+     * Method to undo a change.
      */
     public static void undo() {
         if (!doneList.isEmpty())
@@ -176,8 +175,7 @@ public class Undo
     }
     
     /**
-     * Method to return snapshotId for redo.
-     * @return snapshotId or -1.
+     * Method to redo a change.
      */
     public static void redo() {
         if (!undoneList.isEmpty())

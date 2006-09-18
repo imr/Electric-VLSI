@@ -336,10 +336,9 @@ public abstract class LibraryFiles extends Input
 
     /**
      * Reload a library from disk.  Note this is different from calling
-     * {@see #reloadLibraryCells(List<Cell>)} with a list of Cells in the library,
-     * because it also reloads new
-     * cells from disk that are not currently in memory.
-     * @param lib
+     * reloadLibraryCells(List<Cell>) with a list of Cells in the library,
+     * because it also reloads new cells from disk that are not currently in memory.
+     * @param lib the Library to reload.
 	 * @return mapping of Library/Cell/Export ids, null if the library was renamed.
      */
     public static IdMapper reloadLibrary(Library lib) {

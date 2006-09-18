@@ -50,8 +50,8 @@ public class Edit {
 
     /**
      * Mark the current user as an editor of the cell
-     * @param cell
-     * @return
+     * @param cell the Cell to mark.
+     * @return true if successful.
      */
     public static boolean edit(Cell cell) {
         File file = CVS.getCellFile(cell);

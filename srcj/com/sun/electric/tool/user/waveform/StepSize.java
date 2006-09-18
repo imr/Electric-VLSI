@@ -69,7 +69,7 @@ public class StepSize
 	 * @param h the high value in the range.
 	 * @param l the low value in the range.
 	 * @param n the number of steps in the range.
-	 * @return a structure that contains the adjusted values of "l" and "h"
+	 * This object contains the adjusted values of "l" and "h"
 	 * as well as the integers rangeScale and stepScale, which are the
 	 * powers of 10 that belong to the largest value in the interval and the step size.
 	 */

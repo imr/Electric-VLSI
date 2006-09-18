@@ -173,7 +173,7 @@ public class Project extends Listener
    /**
      * Handles database changes of a Job.
      * @param oldSnapshot database snapshot before Job.
-     * @undoRedo true if Job was Undo/Redo job.
+     * @param undoRedo true if Job was Undo/Redo job.
      */
     public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{

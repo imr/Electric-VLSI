@@ -202,7 +202,7 @@ public class ForceMatch {
 	 * all the Wires are in a single, root partition; and that all Parts are
 	 * in a single, root partition.
 	 * @param forcedMatchParts Parts that were matched
-	 * @param forcedMatchWire Wires that were matched
+	 * @param forcedMatchWires Wires that were matched
 	 * @param g Ncc Globals */
 	public static void doYourJob(Set<Part> forcedMatchParts, 
 			                     Set<Wire> forcedMatchWires, NccGlobals g) {
