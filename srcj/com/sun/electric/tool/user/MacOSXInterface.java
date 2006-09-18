@@ -23,10 +23,19 @@
  */
 package com.sun.electric.tool.user;
 
+/*
+ * HAVING TROUBLE COMPILING THIS MODULE?
+ *
+ * If the following import statements are failing to compile,
+ * you are probably building Electric on a non-Macintosh system.
+ * To solve the errors, simply delete this entire module from the build.
+ *
+ * See http://www.staticfreesoft.com/jmanual/mchap01-03.html for details.
+ */
 import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationAdapter;
 import com.apple.eawt.ApplicationEvent;
-import com.sun.electric.*;
+import com.sun.electric.Main;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
@@ -100,7 +109,6 @@ class MacOSXInterface extends ApplicationAdapter
 
         // First open
         if (!UserInterfaceMain.initializationFinished)
-//        if (initJob == null || !initJob.isFinished())
         {
             argsList.add(filename);
         }
