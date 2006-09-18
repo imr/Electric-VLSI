@@ -378,18 +378,45 @@ public class ProjectSettingsFrame extends EDialog
             if (issueWarning) {
                 if (ProjSettings.getLastProjectSettingsFile() != null) {
                     Job.getUserInterface().showInformationMessage("Warning: These changes are only valid for this session of Electric."+
-                    "\nTo save them permanently, use File -> Export -> Project Settings", "Warning");
+                    "\nTo save them permanently, use File -> Export -> Project Settings", "Saving Project Setting Changes");
                 } else {
-                    String curLib = Library.getCurrent().getName();
-                    String [] options = new String [] { "Mark All Libs", "Mark Lib \""+curLib+"\"", "Write to file", "Do nothing"};
-                    int i = JOptionPane.showOptionDialog(dialog, "Warning: Changed settings must be saved to Library or Project Settings file.\nPlease choose which Libraries to mark for saving, or write project settings file:", "Warning",
-                            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-                    if (i == 0) {
-                        CircuitChangeJobs.markAllLibrariesForSavingCommand();
-                    } else if (i == 1) {
-                        CircuitChangeJobs.markCurrentLibForSavingCommand();
-                    } else if (i == 2) {
-                        ProjSettings.exportSettings();
+                	// see if any libraries are not marked for saving
+                	boolean saveAny = false;
+                    for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+                    {
+                        Library lib = it.next();
+                        if (lib.isHidden()) continue;
+                        if (!lib.isChanged()) saveAny = true;
+                    }
+                    if (saveAny)
+                    {
+                    	// some libraries may need to be marked for saving
+	                    Library curLib = Library.getCurrent();
+	                    String [] options;
+	                    String defaultOption;
+	                    int markCurrent, saveSettings;
+	                    if (curLib.isChanged())
+	                    {
+	                    	options = new String [] { "Mark All Libs", "Write Proj Settings file", "Do nothing"};
+	                      	defaultOption = options[2];
+	                      	markCurrent = 1000;
+	                      	saveSettings = 1;
+	                    } else
+	                    {
+	                      	options = new String [] { "Mark All Libs", "Mark Lib \""+curLib.getName()+"\"", "Write Proj Settings file", "Do nothing"};
+	                      	defaultOption = options[0];
+	                      	markCurrent = 1;
+	                      	saveSettings = 2;
+	                    }
+	                    int i = JOptionPane.showOptionDialog(dialog, "Warning: Changed settings must be saved to Library or Project Settings file.\nPlease choose which Libraries to mark for saving, or write project settings file:",
+	                    	"Saving Project Setting Changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, defaultOption);
+	                    if (i == 0) {
+	                        CircuitChangeJobs.markAllLibrariesForSavingCommand();
+	                    } else if (i == markCurrent) {
+	                        CircuitChangeJobs.markCurrentLibForSavingCommand();
+	                    } else if (i == saveSettings) {
+	                        ProjSettings.exportSettings();
+	                    }
                     }
                 }
             }
