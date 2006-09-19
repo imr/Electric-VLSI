@@ -43,7 +43,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -60,8 +59,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
-import com.sun.electric.tool.io.output.Topology.CellNetInfo;
-import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 
 import java.awt.geom.AffineTransform;
@@ -2760,9 +2757,12 @@ public class Spice extends Topology
 				{
 					multiLinePrint(true, "* Model cards are described in this file:\n");
 					addIncludeFile(filePart);
-					return;
+                    System.out.println("Spice Header Card '" + fileName + "' is included");
+                    return;
 				}
-			} else
+                else
+                    System.out.println("Spice Header Card '" + fileName + "' cannot be loaded");
+            } else
 			{
 				// normal header file specified
 				File test = new File(headerFile);
@@ -2808,8 +2808,9 @@ public class Spice extends Topology
 			{
 				// extension specified: look for a file with the cell name and that extension
 				String trailerpath = TextUtils.getFilePath(TextUtils.makeURLToFile(filePath));
-                if (trailerFile.startsWith(".")) trailerFile = trailerFile.substring(1);
-				String filePart = cell.getName() + "." + trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
+                String ext = trailerFile.substring(SPICE_EXTENSION_PREFIX.length());
+                if (ext.startsWith(".")) ext = ext.substring(1);
+				String filePart = cell.getName() + "." + ext;
 				String fileName = trailerpath + filePart;
 				File test = new File(fileName);
 				if (test.exists())
