@@ -344,6 +344,7 @@
         <delete dir="com/apple"/>
         <delete dir="junit"/>
         <delete dir="junit4.0"/>
+        <delete dir="prefuse"/>
         <delete dir="org"/>
         <delete quiet="true">
 		    <fileset dir=".">
