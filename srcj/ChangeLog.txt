@@ -2,6 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.05a: *********************************
+
+IMP: (9/20/06, GVG) Detecting if format of measurement files is wrong and priting an error message (Bug#1228)
+
 ************************* Everything below here was announced in the 8.04 release *********************************
 
 ************************* Version 8.04z: *********************************
@@ -69,7 +73,7 @@ removed "write to disk" button from dialog
 IMP: (9/11/06, GVG) Changes to define selected foundry for MoCMOS and TSMC90 independently.
 
 BUG: (9/11/06, DN) Exception when renaming library (Bug #1216).
-FIX: In Cell.update don't reuse old NodeInst when node prototype changed. 
+FIX: In Cell.update don't reuse old NodeInst when node prototype changed.
 
 IMP: (9/8/06, SMR) Redid Display Control Preferences to indicate status of algorithms.
 

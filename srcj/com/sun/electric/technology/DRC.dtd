@@ -30,7 +30,7 @@
     ruleName CDATA #REQUIRED
     layerNames CDATA #REQUIRED
     nodeName CDATA #REQUIRED
-    type (SURROUND | ASURROUND | TRAWELL) #REQUIRED
+    type (SURROUND | ASURROUND) #REQUIRED
     when CDATA #REQUIRED
     value CDATA #REQUIRED
  >
