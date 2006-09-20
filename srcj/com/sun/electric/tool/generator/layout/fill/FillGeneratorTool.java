@@ -962,14 +962,6 @@ class FillCell {
 		gndNm = stdCell.getGndExportName();
 		vddNm = stdCell.getVddExportName();
 	}
-//	public static Cell makeFillCell(Library lib, Floorplan[] plans,
-//                                    int botLayer, int topLayer, CapCell capCell,
-//                                    boolean wireLowest, StdCellParams stdCell, boolean metalFlex, boolean hierFlex) {
-//		FillCell fc = new FillCell(stdCell);
-//
-//		return fc.makeFillCell1(lib, plans, botLayer, topLayer, capCell,
-//		                        wireLowest, stdCell, metalFlex, hierFlex);
-//	}
 }
 
 class FillRouter {
@@ -1051,8 +1043,6 @@ public class FillGeneratorTool extends Tool {
         return tool;
     }
 
-
-    // Deprecated: Keep this for backwards compatibility
     public FillGeneratorTool() {
         super("Fill Generator");
         Tech.setTechnology(Tech.Type.MOCMOS);
