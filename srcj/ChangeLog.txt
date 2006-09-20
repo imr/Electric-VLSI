@@ -2,9 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Everything below here was announced in the 8.04 release *********************************
+
 ************************* Version 8.04z: *********************************
 
-IMP/MAN: (9/19/06, GVG) Refactorization in Fill generator. Build.xml was also updated.
+IMP: (9/19/06, GVG) Refactorization in Fill generator. Build.xml was also updated.
 
 BUG: (9/19/06, GVG) Fixing again Bug #1215.
 FIX: Trailer and Header writers used the exactly the same code.
@@ -118,7 +120,7 @@ FIX: Add LayerDrawing.canDrawRelativeText threshold to smarter reject small text
 
 IMP: (8/31/06, SMR) Attributes dialog no longer shows "ATTR_" prefix.
 
-IMP/MAN: (8/31/06, GVG) Refactoring of DRC decks. Old MOSRules decomissioned and TSMCRules class became
+IMP: (8/31/06, GVG) Refactoring of DRC decks. Old MOSRules decomissioned and TSMCRules class became
 the global under the name XMLRules. 180nm primitives are consistent resized according to rules
 provided. Similar work is being done for 90nm primitives.
 Surround distances are taken from decks, not from the Java code. Rules such as CUTSPA, CUTSPA2D

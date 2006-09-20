@@ -36,50 +36,46 @@
     <!-- Patternset for 3D dependencies -->
     <patternset id="exclusion3D">
         <exclude name="com/sun/electric/plugins/JMF" unless="JMF"/>
-        <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
+        <exclude name="com/sun/electric/plugins/JMF/*" unless="JMF"/>
         <exclude name="com/sun/electric/plugins/j3d" if="NO3D"/>
-        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
         <exclude name="com/sun/electric/plugins/j3d/*" if="NO3D"/>
-        <exclude name="com/sun/electric/plugins/j3d/*/*.*" if="NO3D"/>
+        <exclude name="com/sun/electric/plugins/j3d/*/*" if="NO3D"/>
         <!-- you don't include either Java3D plugin if 3D option is out -->
         <!-- this is valid when Java3D is not installed -->
         <exclude name="com/sun/electric/plugins/Java3D" if="NO3D"/>
-        <exclude name="com/sun/electric/plugins/Java3D/*.*" if="NO3D"/>
+        <exclude name="com/sun/electric/plugins/Java3D/*" if="NO3D"/>
     </patternset>
 
     <!-- Patternset for all tools that must be excluded from GNU -->
     <patternset id="exclusionGNU">
         <exclude name="com/sun/electric/plugins/calibre" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/calibre/*" if="GNU"/>
         <exclude name="com/sun/electric/plugins/dais" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/dais/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/irsim" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/manualRussian" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/manualRussian/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/menus" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/menus/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie/*/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse/*/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/skill" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter/*/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tests" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tests/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc/*/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/dais/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/generator" if="GNU"/>
         <exclude name="com/sun/electric/plugins/generator/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/irsim" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/irsim/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/manualRussian" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/manualRussian/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/menus" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/menus/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie/*/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse/*/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/skill" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/skill/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/*/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tests" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tests/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/tsmc/*/*" if="GNU"/>
     </patternset>
 
     <!-- Patternset for all exclusions -->
@@ -87,8 +83,7 @@
         <patternset refid="exclusion3D" />
         <patternset refid="exclusionGNU" />
         <exclude name="com/sun/electric/plugins/jogl" unless="JOGL"/>
-        <exclude name="com/sun/electric/plugins/jogl/*.*" unless="JOGL"/>
-        <exclude name="intervalsimulation/"/>
+        <exclude name="com/sun/electric/plugins/jogl/*" unless="JOGL"/>
     </patternset>
 
     <!-- Path for minimum set of external jars -->
@@ -186,7 +181,7 @@
     </target>
 
     <!-- Delete Electric packages -->
-    <target name="deleteElectric">
+    <target name="deleteElectric" description="Delete .class files after build">
         <delete quiet="true">
             <fileset dir=".">
                 <include name="**/*.class"/>
@@ -195,7 +190,7 @@
     </target>
 
     <!-- Delete jar files in packages -->
-     <target name="deleteExternalJars">
+     <target name="deleteExternalJars" description="Delete extracted Jar files to cleanup after build">
         <delete dir="bsh"/>   <!-- beanshell -->
         <delete dir="org"/>   <!-- lucene -->
         <delete dir="prefuse"/>   <!-- prefuse -->
@@ -205,7 +200,7 @@
     </target>
 
     <!-- Not able to put if condition inside unjar -->
-	<target name="unjarNoGNU" unless="GNU">
+	<target name="unjarNoGNU" unless="GNU" description="Extract Jar files used in non-GNU build">
         <unjar dest="." src="${beanshell}"/>
         <unjar dest="." src="${lucene}"/>
         <unjar dest="." src="${prefuse}"/>
@@ -289,22 +284,22 @@
         <copy file="packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
-            <exclude name="bin/"/>
-            <exclude name="nbproject/"/>
-            <exclude name="packaging/*.jar"/>
-            <exclude name="packaging/*.gif"/>
-            <exclude name="packaging/MakePDF.book"/>
-            <exclude name="xml/"/>
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
-            <exclude name="electric-${version}.jar"/>
+            <exclude name="classes/" unless="source"/>
+            <exclude name="dotClasspath.txt"/>
+            <exclude name="dotProject.txt"/>
+            <exclude name="electric*.jar"/>
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
-            <exclude name="Hack_stack.txt"/>
+            <exclude name="packaging/*.jar"/>
+            <exclude name="packaging/*.gif"/>
+            <exclude name="packaging/LicenseGNU.txt"/>
+            <exclude name="packaging/MakePDF.book"/>
+            <exclude name="xml/"/>
             <patternset refid="exclusion" />
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
-            <exclude name="classes/" unless="source"/>
         </jar>
         <delete file="electric.mf"/>
         <delete file="COPYING.txt"/>
@@ -322,17 +317,19 @@
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <jar basedir="." compress="true" jarfile="electric.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
-            <exclude name="bin/"/>
-            <exclude name="packaging/"/>
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
+            <exclude name="classes/" unless="source"/>
+            <exclude name="dotClasspath.txt"/>
+            <exclude name="dotProject.txt"/>
             <exclude name="electric*.jar"/>
             <exclude name="electric.log"/>
             <exclude name="electric.mf"/>
+            <exclude name="packaging/"/>
+            <exclude name="xml/"/>
             <patternset refid="exclusion" />
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
-            <exclude name="classes/" unless="source"/>
         </jar>
         <delete file="electric.mf"/>
         <antcall target="deleteExternalJars"></antcall>
