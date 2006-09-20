@@ -1058,11 +1058,10 @@ public class FillGeneratorTool extends Tool {
         Tech.setTechnology(Tech.Type.MOCMOS);
     }
 
-//    public FillGeneratorTool(FillGenConfig config)
     public void setConfig(FillGenConfig config)
     {
-//        super("Fill Generator");
         this.config = config;
+        this.libInitialized = false;
         /** Set technology */
         Tech.setTechnology(config.techNm);
     }
@@ -1230,13 +1229,13 @@ public class FillGeneratorTool extends Tool {
         libInitialized = true;
     }
 
-    private void changeWarning() {
-        LayoutLib.error(libInitialized,
-                        "fill cells with different widths, heights, orientations, "+
-                        "or space reservations must be placed in a different library.\n"+
-                        "change the library first before changing any of these fill cell "+
-                        "characteristics.");
-    }
+//    private void changeWarning() {
+//        LayoutLib.error(libInitialized,
+//                        "fill cells with different widths, heights, orientations, "+
+//                        "or space reservations must be placed in a different library.\n"+
+//                        "change the library first before changing any of these fill cell "+
+//                        "characteristics.");
+//    }
 
     private void makeTiledCells(Cell cell, Floorplan[] plans, Library lib,
                                 int[] tiledSizes, StdCellParams stdCell) {
