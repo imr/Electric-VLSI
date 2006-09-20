@@ -355,7 +355,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	Cell(EDatabase database, ImmutableCell d) {
         this.database = database;
         this.d = d;
-        this.lib = database.getLib(d.libId);
+        lib = database.getLib(d.libId);
+        assert lib != null;
 	}
 
     private Object writeReplace() throws ObjectStreamException { return new CellKey(this); }
