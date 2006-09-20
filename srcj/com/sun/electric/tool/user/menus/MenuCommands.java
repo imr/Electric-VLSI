@@ -86,12 +86,13 @@ public final class MenuCommands
         // Adding developers menus. They are accessed by DevelopersMenus
         try {
             Class menuClass = Class.forName("com.sun.electric.plugins.tests.DevelopersMenus");
-            java.lang.reflect.Method makeMenus = menuClass.getMethod("makeMenus", new Class[] {});
-            Object menus = makeMenus.invoke(null, new Object [] {});
+            java.lang.reflect.Method makeMenus = menuClass.getMethod("makeMenus"); // varargs
+            Object menus = makeMenus.invoke(null); // varargs
             if (menus != null)
                 list.addAll((List<EMenuItem>)menus);
         } catch (Exception e) {
-            e.printStackTrace();
+            if (Job.getDebug())
+                System.out.println("GNU Release can't find developers menus");
         }
         return list;
     }

@@ -641,7 +641,8 @@ public class Technology implements Comparable<Technology>
 				extraTechClass.getMethod("setItUp", (Class[])null).invoke(null, (Object[])null);
 			} catch (ClassNotFoundException e)
             {
-				 System.out.println("GNU Release without extra plugins");
+                if (Job.getDebug())
+                 System.out.println("GNU Release can't find extra technologies");
 	 		} catch (Exception e)
             {
                 System.out.println("Exceptions while importing extra technologies");

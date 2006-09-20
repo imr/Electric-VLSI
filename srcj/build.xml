@@ -79,6 +79,7 @@
         <exclude name="com/sun/electric/plugins/tsmc/*.*" if="GNU"/>
         <exclude name="com/sun/electric/plugins/tsmc/*" if="GNU"/>
         <exclude name="com/sun/electric/plugins/tsmc/*/*.*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/generator/*" if="GNU"/>
     </patternset>
 
     <!-- Patternset for all exclusions -->
@@ -398,10 +399,16 @@
     <target name="clean" depends="init" description="Clean all build products">
         <antcall target="deleteElectric"></antcall>
         <antcall target="deleteExternalJars"></antcall>
-        <delete quiet="false" file="electric*.jar"/>
         <delete dir="apidoc"/>
         <delete dir="bin/com"/>
         <delete file="electric.mf"/>
+
+        <!--<delete file="electric*.jar"/>-->   <!-- doesn't work on Linux at least -->
+        <delete quiet="false">
+            <fileset dir=".">
+                <include name="electric*.jar"/>
+            </fileset>
+        </delete>
     </target>
 
 </project>

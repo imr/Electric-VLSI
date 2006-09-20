@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04z: *********************************
 
+IMP/MAN: (9/19/06, GVG) Refactorization in Fill generator. Build.xml was also updated.
+
 BUG: (9/19/06, GVG) Fixing again Bug #1215.
 FIX: Trailer and Header writers used the exactly the same code.
- 
+
 BUG: (9/18/06, SMR) Auto-stitch may connect contact to wrong side of transistor (Bug #1226).
 FIX: Prevent arc-to-node routing on well layers.
 

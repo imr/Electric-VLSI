@@ -115,7 +115,7 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
-import com.sun.electric.tool.user.dialogs.FillGen;
+import com.sun.electric.tool.user.dialogs.FillGenDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ncc.HighlightEquivalent;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -514,7 +514,7 @@ public class ToolMenu {
 		        new EMenuItem("MOSIS CMOS P_LA Generator...") { public void run() {
                     PLA.generate(); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
-                    FillGen.openFillGeneratorDialog(MoCMOS.tech); }},
+                    FillGenDialog.openFillGeneratorDialog(MoCMOS.tech); }},
 		        new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
                     new GateLayoutGenerator(Tech.Type.MOCMOS); }},
                 Technology.getTSMC90Technology() != null ? new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
@@ -1843,7 +1843,7 @@ public class ToolMenu {
 //        Cell cell = WindowFrame.getCurrentCell();
 //        if (cell == null) return;
 //
-//        FillGenerator.generateAutoFill(cell, hierarchy, binary, false);
+//        FillGeneratorTool.generateAutoFill(cell, hierarchy, binary, false);
 //    }
 
 }

@@ -64,9 +64,8 @@ public class MoCMOS extends Technology
             tech = (MoCMOS)obj;
         } catch (Exception e)
         {
-//            e.printStackTrace();
             if (Job.getDebug())
-                System.out.println("GNU Release without extra plugins");
+                System.out.println("GNU Release can't find TSMC180nm plugin");
             tech = new MoCMOS();
         }
         return tech;
