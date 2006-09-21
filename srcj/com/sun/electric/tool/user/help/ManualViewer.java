@@ -1157,6 +1157,26 @@ public class ManualViewer extends EDialog
 					printWriter.println("</TR></TABLE></CENTER>");
 					continue;
 				}
+
+				// convert references to other chapters
+				for(;;)
+				{
+					int x = line.indexOf("\"chap");
+					if (x >= 0)
+					{
+						line = line.substring(0, x+1) + "m" + line.substring(x+1);
+						continue;
+					}
+					x = line.indexOf("#chap");
+					if (x >= 0)
+					{
+						line = line.substring(0, x+1) + "m" + line.substring(x+1);
+						continue;
+					}
+					break;
+				}
+
+				// write the line
 				printWriter.println(line);
 			}
 			printWriter.close();
