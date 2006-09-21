@@ -254,7 +254,7 @@ public abstract class InteractiveRouter extends Router {
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      * @param stayInside the area in which to route (null if not applicable).
-     * @param extendArc
+     * @param extendArc true to use default arc extension; false to force no arc extension.
      * @return a List of RouteElements denoting route
      */
     public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
@@ -296,6 +296,9 @@ public abstract class InteractiveRouter extends Router {
         ArcProto endArc = vroute.getEndArc();
         double startArcWidth = getArcWidthToUse(startObj, startArc);
         double endArcWidth = (endObj == null) ? startArcWidth : getArcWidthToUse(endObj, endArc);
+
+        // if extension not supressed, use defaults from arcs
+        if (extendArc) extendArc = startArc.isExtended() || endArc.isExtended();
 
         // get valid connecting sites for start and end objects based on the objects
         // themselves, the point the user clicked, and the width of the wire that will

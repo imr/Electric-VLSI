@@ -243,7 +243,7 @@ public class VerticalRoute {
             } else {
                 width = Router.getArcWidthToUse(startRE, startArc);
                 RouteElement arc1 = RouteElementArc.newArc(cell, startArc, width, startRE, vertRoute.getStart(),
-                        startLoc, location, null, null, null, true, null);
+                        startLoc, location, null, null, null, startArc.isExtended(), null);
                 route.add(arc1);
             }
         }
@@ -254,7 +254,7 @@ public class VerticalRoute {
             } else {
                 width = Router.getArcWidthToUse(endRE, endArc);
                 RouteElement arc2 = RouteElementArc.newArc(cell, endArc, width, endRE, vertRoute.getEnd(),
-                        endLoc, location, null, null, null, true, null);
+                        endLoc, location, null, null, null, endArc.isExtended(), null);
                 route.add(arc2);
             }
         } else {
@@ -321,7 +321,8 @@ public class VerticalRoute {
 
             // create arc
             double arcWidth = Router.getArcWidthToUse(node, ap);
-            RouteElementArc arc = RouteElementArc.newArc(cell, ap, arcWidth, node, newNode, location, location, null, null, null, true, null);
+            RouteElementArc arc = RouteElementArc.newArc(cell, ap, arcWidth, node, newNode, location, location,
+            	null, null, null, ap.isExtended(), null);
             arc.setArcAngle(arcAngle);
             route.add(arc);
 
