@@ -439,7 +439,8 @@ public class ColorPatternPanel extends JPanel
 			useStipplePatternPrinter.setSelected(li.useStipplePrinter);
 			opacity.setText(TextUtils.formatDouble(li.opacity));
 		}
-		transparentLayer.setSelectedIndex(li.transparentLayer);
+		if (li.transparentLayer < transparentLayer.getItemCount())
+			transparentLayer.setSelectedIndex(li.transparentLayer);
 		Color initialColor = new Color(li.red, li.green, li.blue);
 		colorChooser.setColor(initialColor);
 		colorPreviewPanel.setPreviewColor(initialColor);
