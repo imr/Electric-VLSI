@@ -549,9 +549,11 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 
 		public void closeEditInPlace()
 		{
+			tc.removeKeyListener(this);
 			WindowFrame.setListener(oldListener);
 			wnd.removeInPlaceTextObject(this);
 			wnd.repaint();
+			wnd.requestFocus();
 			mb.setIgnoreTextEditKeys(false);
 
 			String currentText = tc.getText();
