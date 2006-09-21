@@ -24,10 +24,10 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.Client;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Client;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -46,13 +46,9 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-import java.util.StringTokenizer;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -66,7 +62,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
@@ -79,18 +74,14 @@ import javax.swing.SwingUtilities;
  * the methods of this class directly.
  */
 public class MessagesWindow
-	implements Observer, ActionListener, MouseListener, KeyListener, Runnable, ClipboardOwner
+	implements Observer, MouseListener, Runnable, ClipboardOwner
 {
-    private static final String[] NULL_STRING_ARRAY = {};
-    private static final int STACK_SIZE = Client.isOSMac()?0:8*1024;
+	private static final int STACK_SIZE = Client.isOSMac()?0:8*1024;
 
-    private ArrayList<String> history;
-	private JTextField entry;
 	private JTextArea info;
 	private Container contentFrame;
-	private int histidx = 0;
 	private final Thread ticker = new Thread(null, this, "MessagesTicker", STACK_SIZE);
-    private boolean dumpInvoked = false;
+	private boolean dumpInvoked = false;
 	private StringBuilder buffer = new StringBuilder();
 	private Container jf;
 
@@ -99,13 +90,14 @@ public class MessagesWindow
 	{
 		Dimension scrnSize = TopLevel.getScreenSize();
 		Dimension msgSize = new Dimension(scrnSize.width/3*2, scrnSize.height/100*15);
+		Point msgPos = new Point(150, scrnSize.height/100*85);
 		if (TopLevel.isMDIMode())
 		{
 			JInternalFrame jInternalFrame = new JInternalFrame("Electric Messages", true, false, true, true);
 			jf = jInternalFrame;
 			contentFrame = jInternalFrame.getContentPane();
 			jInternalFrame.setFrameIcon(TopLevel.getFrameIcon());
-			jf.setLocation(150, scrnSize.height/100*80);
+			jf.setLocation(msgPos);
 		} else
 		{
 			JFrame jFrame = new JFrame("Electric Messages");
@@ -114,22 +106,16 @@ public class MessagesWindow
 			contentFrame = jFrame.getContentPane();
 			jFrame.setIconImage(TopLevel.getFrameIcon().getImage());
 			Point pt = User.getDefaultMessagesPos();
-			if (pt == null) pt = new Point(150, scrnSize.height/100*80);
+			if (pt == null) pt = msgPos;
 			jf.setLocation(pt);
 			Dimension override = User.getDefaultMessagesSize();
 			if (override != null) jf.setPreferredSize(override);
 		}
 		contentFrame.setLayout(new BorderLayout());
-		history = new ArrayList<String>();
-
-		entry = new JTextField();
-		entry.addActionListener(this);
-		entry.addKeyListener(this);
-		contentFrame.add(entry, BorderLayout.SOUTH);
 
 		info = new JTextArea(20, 110);
 		info.setLineWrap(false);
-        info.setFont(new Font("Monospaced", 0, 12));
+		info.setFont(new Font("Monospaced", 0, 12));
 		info.addMouseListener(this);
 		JScrollPane scrollPane = new JScrollPane(info,
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -137,12 +123,10 @@ public class MessagesWindow
 		scrollPane.setPreferredSize(msgSize);
 		contentFrame.add(scrollPane, BorderLayout.CENTER);
 
-        ticker.start();
-//		jf.setLocation(150, scrnSize.height/100*80);
+		ticker.start();
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)jf).pack();
-			//((JInternalFrame)jf).show();
 			TopLevel.addToDesktop((JInternalFrame)jf);
 		} else
 		{
@@ -156,58 +140,48 @@ public class MessagesWindow
 		return jf;
 	}
 
-    public boolean isFocusOwner()
-    {
+	public boolean isFocusOwner()
+	{
 		if (TopLevel.isMDIMode())
 		{
-	        return ((JInternalFrame)jf).isSelected();
+			return ((JInternalFrame)jf).isSelected();
 		} else
 		{
-	        return jf.isFocusOwner();
+			return jf.isFocusOwner();
 		}
-    }
+	}
 
-    /**
-     * Method to request focus on this window
-     */
-    public void requestFocus() {
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() { requestFocusUnsafe(); }
-            });
-            return;
-        }
-        requestFocusUnsafe();
-    }
+	/**
+	 * Method to request focus on this window
+	 */
+	public void requestFocus() {
+		if (!SwingUtilities.isEventDispatchThread()) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() { requestFocusUnsafe(); }
+			});
+			return;
+		}
+		requestFocusUnsafe();
+	}
 
-    private void requestFocusUnsafe()
-    {
+	private void requestFocusUnsafe()
+	{
 		if (TopLevel.isMDIMode())
 		{
 			((JInternalFrame)jf).toFront();
-            try {
-            	((JInternalFrame)jf).setSelected(true);
-            } catch (java.beans.PropertyVetoException e) {}
-        } else
-        {
-        	((JFrame)jf).toFront();
-            jf.requestFocus();
-        }
-    }
+			try {
+				((JInternalFrame)jf).setSelected(true);
+			} catch (java.beans.PropertyVetoException e) {}
+		} else
+		{
+			((JFrame)jf).toFront();
+			jf.requestFocus();
+		}
+	}
 
 	public Rectangle getMessagesLocation()
 	{
 		return jf.getBounds();
-	}
-
-	public void flush()
-	{
-		// no need to do anything.
-	}
-
-	public void close()
-	{
-		// don't close!
 	}
 
 	/**
@@ -218,50 +192,57 @@ public class MessagesWindow
 		info.setText("");
 	}
 
-    public void update(Observable obs, Object str)
-    {
-        String mess = (String)str;
-        appendString(mess);
-    }
+	public void update(Observable obs, Object str)
+	{
+		String mess = (String)str;
+		appendString(mess);
+	}
 
 	private void appendString(String str)
 	{
-        if (str.length() == 0) return;
+		if (str.length() == 0) return;
 
 		synchronized (buffer)
 		{
-            if (buffer.length() == 0)
-                buffer.notify();
+			if (buffer.length() == 0)
+				buffer.notify();
 			buffer.append(str);
 		}
 	}
 
-    public void run() {
-        for (;;) {
-            synchronized (buffer) {
-                try {
-                    while (dumpInvoked || buffer.length() == 0)
-                        buffer.wait();
-                } catch (InterruptedException ie) {
-                }
-                dumpInvoked = true;
-            }
-            try {
-                Thread.sleep(200);
-            } catch (InterruptedException ie) {}
-            SwingUtilities.invokeLater(new Runnable() {
-                public void run() {
-                    String s;
-                    synchronized (buffer) {
-                        s = buffer.toString();
-                        buffer.setLength(0);
-                        dumpInvoked = false;
-                    }
-                    dump(s);
-                }
-            });
-        }
-    }
+	public void run()
+	{
+		for (;;)
+		{
+			synchronized (buffer)
+			{
+				try
+				{
+					while (dumpInvoked || buffer.length() == 0)
+						buffer.wait();
+				} catch (InterruptedException ie) {}
+				dumpInvoked = true;
+			}
+			try
+			{
+				Thread.sleep(200);
+			} catch (InterruptedException ie) {}
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run()
+				{
+					String s;
+					synchronized (buffer)
+					{
+						s = buffer.toString();
+						buffer.setLength(0);
+						dumpInvoked = false;
+					}
+					dump(s);
+				}
+			});
+		}
+	}
 
 	protected void dump(String str)
 	{
@@ -275,39 +256,6 @@ public class MessagesWindow
 		{
 		}
 	}
-
-	public void keyPressed(KeyEvent evt)
-	{
-		int code = evt.getKeyCode();
-		if (code == KeyEvent.VK_UP)
-		{
-			if (histidx > 0)
-			{
-				histidx--;
-			}
-			if (histidx < history.size())
-			{
-				entry.setText((String) history.get(histidx));
-			}
-		} else if (code == KeyEvent.VK_DOWN)
-		{
-			if (histidx < history.size())
-			{
-				histidx++;
-				if (histidx < history.size())
-				{
-					entry.setText((String) history.get(histidx));
-				} else
-				{
-					entry.setText("");
-				}
-			}
-		}
-	}
-
-	public void keyReleased(KeyEvent evt) {}
-
-	public void keyTyped(KeyEvent evt) {}
 
 	public void mouseClicked(MouseEvent e) {}
 
@@ -383,46 +331,21 @@ public class MessagesWindow
 		}
 	}
 
-	public void actionPerformed(ActionEvent evt)
-	{
-		String msg = entry.getText();
-		history.add(msg);
-		histidx = history.size();
-		entry.setText("");
-		info.append("=================== " + msg + " =================\n");
-
-		// split msg into strings
-		StringTokenizer st = new StringTokenizer(msg);
-		String cmds[] = new String[st.countTokens()];
-        if (cmds.length == 0) return;
-		for (int i = 0; i < cmds.length; i++)
-		{
-			cmds[i] = st.nextToken();
-		}
-
-		if (cmds[0].equals("mem"))
-		{
-			Runtime rt = Runtime.getRuntime();
-			System.out.println("Total memory: " + rt.totalMemory());
-			System.out.println("Free memory: " + rt.freeMemory());
-		}
-	}
-
-    /************************************ MESSAGES WINDOW FONT SETTING ************************************/
+	/************************************ MESSAGES WINDOW FONT SETTING ************************************/
 
 	/**
 	 * Method to interactively select the messages window font.
 	 */
-    public void selectFont()
+	public void selectFont()
 	{
-         if (TopLevel.isMDIMode())
-        {
-            JFrame jf = TopLevel.getCurrentJFrame();
-            new FontSelectDialog(jf);
-        } else
-        {
-            new FontSelectDialog(null);
-        }
+		if (TopLevel.isMDIMode())
+		{
+			JFrame jf = TopLevel.getCurrentJFrame();
+			new FontSelectDialog(jf);
+		} else
+		{
+			new FontSelectDialog(null);
+		}
 	}
 
 	private class FontSelectDialog extends EDialog
@@ -438,7 +361,7 @@ public class MessagesWindow
 		{
 			super(parent, true);
 			setTitle("Set Messages Window Font");
-	        getContentPane().setLayout(new java.awt.GridBagLayout());
+			getContentPane().setLayout(new java.awt.GridBagLayout());
 
 			// get the current messages window font
 			initialFont = info.getFont();
@@ -452,9 +375,9 @@ public class MessagesWindow
 			gbc.gridy = 0;
 			gbc.anchor = java.awt.GridBagConstraints.WEST;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(fontLabel, gbc);
+			getContentPane().add(fontLabel, gbc);
 
-	        // the font column
+			// the font column
 			Toolkit toolkit = Toolkit.getDefaultToolkit();
 			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			String [] fontNames = ge.getAvailableFontFamilyNames();
@@ -483,18 +406,18 @@ public class MessagesWindow
 			gbc.fill = GridBagConstraints.BOTH;
 			gbc.anchor = java.awt.GridBagConstraints.WEST;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(fontNamePane, gbc);
+			getContentPane().add(fontNamePane, gbc);
 
-	        // the title of the font size column
-	        JLabel sizeLabel = new JLabel("Size:");
+			// the title of the font size column
+			JLabel sizeLabel = new JLabel("Size:");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;
 			gbc.gridy = 0;
 			gbc.anchor = java.awt.GridBagConstraints.WEST;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(sizeLabel, gbc);
+			getContentPane().add(sizeLabel, gbc);
 
-	        // the font size column
+			// the font size column
 			JScrollPane fontSizePane = new JScrollPane();
 			DefaultListModel fontSizeListModel = new DefaultListModel();
 			fontSizeList = new JList(fontSizeListModel);
@@ -528,11 +451,11 @@ public class MessagesWindow
 			gbc.fill = GridBagConstraints.BOTH;
 			gbc.anchor = java.awt.GridBagConstraints.WEST;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(fontSizePane, gbc);
+			getContentPane().add(fontSizePane, gbc);
 
-	        // the sample text
+			// the sample text
 			sampleText = new JLabel("The Electric VLSI Design System");
-	        sampleText.setBorder(javax.swing.BorderFactory.createTitledBorder("Sample text"));
+			sampleText.setBorder(javax.swing.BorderFactory.createTitledBorder("Sample text"));
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;
 			gbc.gridy = 2;
@@ -540,40 +463,40 @@ public class MessagesWindow
 			gbc.fill = GridBagConstraints.HORIZONTAL;
 			gbc.anchor = java.awt.GridBagConstraints.WEST;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(sampleText, gbc);
-	        sampleText.setFont(initialFont);
+			getContentPane().add(sampleText, gbc);
+			sampleText.setFont(initialFont);
 
-	        // the "OK" button
+			// the "OK" button
 			JButton okButton = new JButton("OK");
 			okButton.addActionListener(new java.awt.event.ActionListener()
 			{
-	            public void actionPerformed(java.awt.event.ActionEvent evt) { OK(); }
-	        });
+				public void actionPerformed(java.awt.event.ActionEvent evt) { OK(); }
+			});
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;
 			gbc.gridy = 3;
 			gbc.anchor = java.awt.GridBagConstraints.WEST;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(okButton, gbc);
+			getContentPane().add(okButton, gbc);
 
-	        // the "Cancel" button
-	        JButton cancelButton = new JButton("Cancel");
+			// the "Cancel" button
+			JButton cancelButton = new JButton("Cancel");
 			cancelButton.addActionListener(new java.awt.event.ActionListener()
 			{
-	            public void actionPerformed(java.awt.event.ActionEvent evt) { cancel(); }
-	        });
+				public void actionPerformed(java.awt.event.ActionEvent evt) { cancel(); }
+			});
 			gbc = new GridBagConstraints();
 			gbc.gridx = 1;
 			gbc.gridy = 3;
 			gbc.anchor = java.awt.GridBagConstraints.WEST;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(cancelButton, gbc);
+			getContentPane().add(cancelButton, gbc);
 
-	        pack();
-	        addWindowListener(new java.awt.event.WindowAdapter()
-	        {
-	            public void windowClosing(java.awt.event.WindowEvent evt) { cancel(); }
-	        });
+			pack();
+			addWindowListener(new java.awt.event.WindowAdapter()
+			{
+				public void windowClosing(java.awt.event.WindowEvent evt) { cancel(); }
+			});
 			setVisible(true);
 		}
 
