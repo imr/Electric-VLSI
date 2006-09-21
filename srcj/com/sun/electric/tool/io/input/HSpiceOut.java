@@ -623,8 +623,8 @@ public class HSpiceOut extends Simulate
             signalNames[l] = line.toString();
         }
 
-        // read sweep information
-        if (cndcnt != 0)
+        // read (and ignore) condition information
+        for(int c=0; c<cndcnt; c++)
         {
             int j = 0;
             line = new StringBuffer();

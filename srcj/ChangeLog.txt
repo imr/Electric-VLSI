@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+BUG: (9/21/06, SMR) HSpice output with multiple conditions read badly.
+FIX: In HSpiceOut.readTRDCACFile(), read a name for every "cndcnt".
+
 BUG: (9/21/06, SMR) After editing text in-place, focus is lost (Bug #1221).
 FIX: In GetInfoText.EditInPlaceListener.closeEditInPlace(), remove the
      key listener and do "wnd.requestFocus();".
