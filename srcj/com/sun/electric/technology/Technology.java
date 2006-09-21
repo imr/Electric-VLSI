@@ -1213,7 +1213,6 @@ public class Technology implements Comparable<Technology>
 		int polyNum = 0;
 
 		// construct the polygons that describe the basic arc
-		Layer lastLayer = null;
 		if (negated)
 		{
 			for( int i = 0; i < primLayers.length; i++)
@@ -1241,7 +1240,7 @@ public class Technology implements Comparable<Technology>
 				points[1] = tailLoc = new Point2D.Double(tailX, tailY);
 				polys[polyNum] = new Poly(points);
 				polys[polyNum].setStyle(Poly.Type.OPENED);
-				lastLayer = layerOverride;
+				Layer lastLayer = layerOverride;
 				if (lastLayer == null)
 				{
 					Technology.ArcLayer primLayer = primLayers[i];
@@ -1257,7 +1256,7 @@ public class Technology implements Comparable<Technology>
 				Technology.ArcLayer primLayer = primLayers[i];
 				polys[polyNum] = ai.makePoly(ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
 				if (polys[polyNum] == null) return null;
-				lastLayer = layerOverride;
+				Layer lastLayer = layerOverride;
 				if (lastLayer == null) lastLayer = primLayer.getLayer();
 				polys[polyNum].setLayer(lastLayer);
 				polyNum++;
@@ -1277,7 +1276,7 @@ public class Technology implements Comparable<Technology>
 				points[1] = new Point2D.Double(tailX, tailY);
 				polys[polyNum] = new Poly(points);
 				polys[polyNum].setStyle(Poly.Type.VECTORS);
-				polys[polyNum].setLayer(lastLayer);
+				polys[polyNum].setLayer(Generic.tech.glyphLay);
 				polyNum++;
 			}
 			if (ai.isTailArrowed())
@@ -1292,7 +1291,7 @@ public class Technology implements Comparable<Technology>
 				points[3] = new Point2D.Double(tailX + DBMath.cos(backAngle2), tailY + DBMath.sin(backAngle2));
 				polys[polyNum] = new Poly(points);
 				polys[polyNum].setStyle(Poly.Type.VECTORS);
-				polys[polyNum].setLayer(lastLayer);
+				polys[polyNum].setLayer(Generic.tech.glyphLay);
 				polyNum++;
 			}
 			if (ai.isHeadArrowed())
@@ -1308,7 +1307,7 @@ public class Technology implements Comparable<Technology>
 				points[3] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
 				polys[polyNum] = new Poly(points);
 				polys[polyNum].setStyle(Poly.Type.VECTORS);
-				polys[polyNum].setLayer(lastLayer);
+				polys[polyNum].setLayer(Generic.tech.glyphLay);
 				polyNum++;
 			}
 		}
