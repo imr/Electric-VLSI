@@ -571,7 +571,7 @@ public class ColorPatternPanel extends JPanel
 			}
 
 			g.setColor(Color.BLACK);
-			if (lInfo.justColor) return;
+			if (lInfo == null || lInfo.justColor) return;
 			for(int y=0; y<16; y++)
 			{
 				int bits = lInfo.pattern[y];

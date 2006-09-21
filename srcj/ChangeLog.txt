@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+BUG: (9/21/06, GVG) Null Exception in Color Pattern dialog after unselecting highlighted object (Bug#1230).
+FIX: PatternView.Info is null if you unselect an object and leaving the ColorPattern dialog open.
+
 IMP: (9/21/06, SMR) Made "Describe This Technology" more readable.
 
 IMP/MAN: (9/21/06, SMR) Removed text input field from bottom of messages window.
