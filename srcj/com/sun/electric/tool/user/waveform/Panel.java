@@ -492,7 +492,7 @@ public class Panel extends JPanel
 
 	public void removeSignal(JButton but)
 	{
-		signalButtons.remove(but);
+		if (signalButtons != null) signalButtons.remove(but);
 		waveSignals.remove(but);
 	}
 

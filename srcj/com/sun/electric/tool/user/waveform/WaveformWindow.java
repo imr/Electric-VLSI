@@ -1279,8 +1279,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				break;
 			}
 		}
-		wp.getSignalButtons().validate();
-		wp.getSignalButtons().repaint();
+		if (wp.getSignalButtons() != null)
+		{
+			wp.getSignalButtons().validate();
+			wp.getSignalButtons().repaint();
+		}
 		wp.repaintContents();
 		saveSignalOrder();
 	}
