@@ -4,7 +4,36 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
-IMP: (9/20/06, GVG) Detecting if format of measurement files is wrong and priting an error message (Bug#1228)
+BUG: (9/21/06, SMR) After editing text in-place, focus is lost (Bug #1221).
+FIX: In GetInfoText.EditInPlaceListener.closeEditInPlace(), remove the
+     key listener and do "wnd.requestFocus();".
+
+BUG: (9/21/06, SMR) Directional arrows are not visible (Bug #1229).
+FIX: In Technology.getShapeOfArc(), change last 3 mentions of "lastLayer" to
+     be "Generic.tech.glyphLay".
+
+BUG: (9/21/06, SMR) Crashes in digital waveform viewer.
+FIX: In Panel.removeSignal(), change:
+		signalButtons.remove(but);
+     to:
+		if (signalButtons != null) signalButtons.remove(but);
+     And in WaveformWindow.deleteSignalFromPanel(), change:
+		wp.getSignalButtons().validate();
+		wp.getSignalButtons().repaint();
+     to:
+		if (wp.getSignalButtons() != null)
+		{
+			wp.getSignalButtons().validate();
+			wp.getSignalButtons().repaint();
+		}
+
+BUG: (9/21/06, SMR) Artwork with transparent layers crashes in wrong technology.
+FIX: In ColorPatternPanel.setColorPattern(), before:
+		transparentLayer.setSelectedIndex(li.transparentLayer);
+     insert:
+		if (li.transparentLayer < transparentLayer.getItemCount())
+
+IMP: (9/20/06, GVG) Detecting if format of measurement files is wrong and printing an error message (Bug #1228)
 
 ************************* Everything below here was announced in the 8.04 release *********************************
 
