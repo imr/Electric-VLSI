@@ -1412,6 +1412,7 @@ public class EditMenu {
 
     public static void describeTechnologyCommand()
     {
+    	int pageWidth = TopLevel.getMessagesWindow().getMessagesCharWidth();
         Technology tech = Technology.getCurrent();
         System.out.println("Technology " + tech.getTechName());
         System.out.println("    Full name: " + tech.getTechDesc());
@@ -1428,11 +1429,19 @@ public class EditMenu {
         }
         StringBuffer sb = new StringBuffer();
         sb.append("    Has " + arcCount + " arcs (wires):");
+        int newLineIndent = sb.length();
         for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
         {
             ArcProto ap = it.next();
             if (ap.isNotUsed()) continue;
-            sb.append(" " + ap.getName());
+            String addThis = " " + ap.getName();
+            if (sb.length() + addThis.length() > pageWidth)
+            {
+                System.out.println(sb.toString());
+            	sb = new StringBuffer();
+            	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+            }
+            sb.append(addThis);
         }
         System.out.println(sb.toString());
 
@@ -1450,27 +1459,45 @@ public class EditMenu {
         if (pinCount > 0)
         {
             sb = new StringBuffer();
-            sb.append("    Has " + pinCount + " pin nodes for making bends in arcs:");
+            sb.append("    Has " + pinCount + " pin nodes:");
+            newLineIndent = sb.length();
             for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
-                if (fun == PrimitiveNode.Function.PIN) sb.append(" " + np.getName());
+                if (fun != PrimitiveNode.Function.PIN) continue;
+                String addThis = " " + np.getName();
+                if (sb.length() + addThis.length() > pageWidth)
+                {
+                    System.out.println(sb.toString());
+                	sb = new StringBuffer();
+                	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                }
+                sb.append(addThis);
             }
             System.out.println(sb.toString());
         }
         if (contactCount > 0)
         {
             sb = new StringBuffer();
-            sb.append("    Has " + contactCount + " contact nodes for joining different arcs:");
+            sb.append("    Has " + contactCount + " contact nodes:");
+            newLineIndent = sb.length();
             for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
-                if (fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.CONNECT)
-                    sb.append(" " + np.getName());
+                if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.CONNECT)
+                	continue;
+                String addThis = " " + np.getName();
+                if (sb.length() + addThis.length() > pageWidth)
+                {
+                    System.out.println(sb.toString());
+                	sb = new StringBuffer();
+                	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                }
+                sb.append(addThis);
             }
             System.out.println(sb.toString());
         }
@@ -1478,27 +1505,45 @@ public class EditMenu {
         {
             sb = new StringBuffer();
             sb.append("    Has " + (totalCount-pinCount-contactCount-pureCount) + " regular nodes:");
+            newLineIndent = sb.length();
             for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
-                if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
-                    fun != PrimitiveNode.Function.CONNECT && fun != PrimitiveNode.Function.NODE)
-                        sb.append(" " + np.getName());
+                if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.CONTACT ||
+                    fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.NODE)
+                	continue;
+                String addThis = " " + np.getName();
+                if (sb.length() + addThis.length() > pageWidth)
+                {
+                    System.out.println(sb.toString());
+                	sb = new StringBuffer();
+                	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                }
+                sb.append(addThis);
             }
             System.out.println(sb.toString());
         }
         if (pureCount > 0)
         {
             sb = new StringBuffer();
-            sb.append("    Has " + pureCount + " pure-layer nodes for creating custom geometry:");
+            sb.append("    Has " + pureCount + " pure-layer nodes:");
+            newLineIndent = sb.length();
             for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
             {
                 PrimitiveNode np = it.next();
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
-                if (fun == PrimitiveNode.Function.NODE) sb.append(" " + np.getName());
+                if (fun != PrimitiveNode.Function.NODE) continue;
+                String addThis = " " + np.getName();
+                if (sb.length() + addThis.length() > pageWidth)
+                {
+                    System.out.println(sb.toString());
+                	sb = new StringBuffer();
+                	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                }
+                sb.append(addThis);
             }
             System.out.println(sb.toString());
         }

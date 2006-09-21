@@ -184,6 +184,11 @@ public class MessagesWindow
 		return jf.getBounds();
 	}
 
+	public int getMessagesCharWidth()
+	{
+		return info.getColumns();
+	}
+
 	/**
 	 * Method to erase everything in the messages window.
 	 */

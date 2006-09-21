@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+IMP: (9/21/06, SMR) Made "Describe This Technology" more readable.
+
 IMP/MAN: (9/21/06, SMR) Removed text input field from bottom of messages window.
 
 IMP: (9/21/06, SMR) Using Math.hypot() where appropriate.
