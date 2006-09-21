@@ -1,27 +1,43 @@
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: NccCrossProbing.java
+ *
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 package com.sun.electric.tool.ncc;
 
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.tool.ncc.result.NccResults;
-import com.sun.electric.tool.ncc.result.NccResult;
-import com.sun.electric.tool.io.output.Spice;
-import com.sun.electric.tool.io.output.CellModelPrefs;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.output.CellModelPrefs;
+import com.sun.electric.tool.ncc.result.NccResult;
+import com.sun.electric.tool.ncc.result.NccResults;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
-/**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 20, 2006
- * Time: 6:20:18 PM
- * To change this template use File | Settings | File Templates.
- */
 public class NccCrossProbing extends HierarchyEnumerator.Visitor {
 
     private Map<Cell,Integer> visitedCells = new HashMap<Cell,Integer>();
