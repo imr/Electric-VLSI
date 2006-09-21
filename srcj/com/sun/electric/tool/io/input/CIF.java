@@ -642,7 +642,7 @@ public class CIF extends Input
 				while(Math.abs(pt.y/facty) > 1000) facty *= 10.0;
 				double fact = (factx > facty) ? facty : factx;
 				double fx = pt.x / fact;		  double fy = pt.y / fact;
-				double vlen = fact * Math.sqrt(fx*fx + fy*fy);
+				double vlen = fact * Math.hypot(fx, fy);
 				double vang = (deg + GenMath.figureAngle(new Point2D.Double(0, 0), new Point2D.Double(pt.x, pt.y))) / 10.0 / (45.0 / Math.atan(1.0));
 				pt.x = (int)(vlen * Math.cos(vang));
 				pt.y = (int)(vlen * Math.sin(vang));

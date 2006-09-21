@@ -941,7 +941,7 @@ public class PolyBase implements Shape, PolyNodeMerge
         double pdy = Math.max(lY2-hY1, lY1-hY2);
 
         double pd = (pdx > 0 && pdy > 0) ? // Diagonal
-                Math.sqrt(pdx*pdx + pdy*pdy) :
+                Math.hypot(pdx, pdy) :
                 Math.max(pdx, pdy);
         return pd;
     }
@@ -2309,7 +2309,7 @@ public class PolyBase implements Shape, PolyNodeMerge
     	if (segx == icx && segy == icy)
     	{
     		double fx = isx - icx;   double fy = isy - icy;
-    		double radius = Math.sqrt(fx*fx + fy*fy);
+    		double radius = Math.hypot(fx, fy);
     		fx = lx2 - lx1;   fy = ly2 - ly1;
     		if (fx == 0.0 && fy == 0.0)
     		{
@@ -2327,9 +2327,9 @@ public class PolyBase implements Shape, PolyNodeMerge
     		// The unknown point is (ix1, iy1), the intersection of the line and the circle.
     		// To find it, determine the angle at the point (icx, icy)
     		double fx = isx - icx;   double fy = isy - icy;
-    		double radius = Math.sqrt(fx*fx + fy*fy);
+    		double radius = Math.hypot(fx, fy);
     		fx = segx - icx;   fy = segy - icy;
-    		double adjacent = Math.sqrt(fx*fx + fy*fy);
+    		double adjacent = Math.hypot(fx, fy);
 
     		// if they are within tolerance, accept
     		if (Math.abs(adjacent - radius) < tolerance)

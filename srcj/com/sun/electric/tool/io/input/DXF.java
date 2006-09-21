@@ -1015,7 +1015,7 @@ public class DXF extends Input
 						double x01 = x1;   double y01 = y1;
 						double x02 = x2;   double y02 = y2;
 						double dx = x02 - x01;   double dy = y02 - y01;
-						double dist = Math.sqrt(dx*dx + dy*dy);
+						double dist = Math.hypot(dx, dy);
 
 						// compute radius of arc (bulge is tangent of 1/4 of included arc angle)
 						double incAngle = Math.atan(lastPp.bulge) * 4.0;

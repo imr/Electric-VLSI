@@ -587,9 +587,7 @@ public class GenMath
     {
         double deltaX = p1.getX() - p2.getX();
         double deltaY = p1.getY() - p2.getY();
-
-        // TODO: use Math.hypot instead
-        return (Math.sqrt(deltaX*deltaX + deltaY*deltaY));
+        return (Math.hypot(deltaX, deltaY));
     }
 
     /**

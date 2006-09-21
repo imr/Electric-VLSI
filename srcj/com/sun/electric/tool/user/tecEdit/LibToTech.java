@@ -2073,7 +2073,7 @@ public class LibToTech
 						{
 							double dX = points[i].getX() - oPoints[(i+offset)%numPoints].getX();
 							double dY = points[i].getY() - oPoints[(i+offset)%numPoints].getY();
-							dist += Math.sqrt(dX*dX + dY*dY);
+							dist += Math.hypot(dX, dY);
 						}
 						if (dist < bestDist)
 						{

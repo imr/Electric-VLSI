@@ -847,7 +847,7 @@ public class EDIF extends Input
 
 		double dx = ixc - x[0];
 		double dy = iyc - y[0];
-		double r = Math.sqrt(dx * dx + dy * dy);
+		double r = Math.hypot(dx, dy);
 
 		// now calculate the angle to the start and endpoint
 		dx = x[0] - ixc;  dy = y[0] - iyc;

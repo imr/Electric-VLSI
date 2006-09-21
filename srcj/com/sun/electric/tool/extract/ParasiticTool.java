@@ -353,7 +353,7 @@ public class ParasiticTool extends Tool {
                 // Two elements
                 ParasiticValue newValue1 = new ParasiticValue();
                 ParasiticValue newValue2 = new ParasiticValue();
-                newValue1.distance = newValue2.distance = Math.sqrt(pdx*pdx + pdy*pdy);
+                newValue1.distance = newValue2.distance = Math.hypot(pdx, pdy);
                 newValue1.angle = newValue2.angle = true;
 
                 // Poly1:X v/s Poly2:Y
