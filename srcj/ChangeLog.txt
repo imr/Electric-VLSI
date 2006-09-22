@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+IMP: (9/22/06, SMR) Node type in Node Preferences is now selectable (Bug #1218).
+
+BUG: (9/22/06, SMR) "Document Current Technology" crashes.
+FIX: In Manipulate.describeTechnology(), remove the lines:
+		ai.setExtended(ArcInst.HEADEND, false);
+		ai.setExtended(ArcInst.TAILEND, false);
+     and change:
+		double area = poly.getArea() / ai.getLength();
+     to:
+		Rectangle2D bounds = poly.getBounds2D();
+		double area = Math.min(bounds.getWidth(), bounds.getHeight());
+
 IMP: (9/22/06, GVG) Detecting if zero length arc is covered by other polygon of the same layer and
 avoid DRC warning (Bug#1174). Regression data updated.
 

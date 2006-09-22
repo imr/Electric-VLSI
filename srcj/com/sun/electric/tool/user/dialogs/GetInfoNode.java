@@ -48,9 +48,9 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Client;
 import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
@@ -61,6 +61,10 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -71,7 +75,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
-
+import javax.swing.UIManager;
 
 /**
  * Class to handle the "Node Get-Info" dialog.
@@ -165,35 +169,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		}
     }
 
-//     /**
-//      * Respond to database changes
-//      * @param batch a batch of changes completed
-//      */
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         if (!isVisible()) return;
-
-//         // check if we care about the changes
-//         boolean reload = false;
-//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-//             Undo.Change change = it.next();
-//             ElectricObject obj = change.getObject();
-//             if (obj == shownNode || obj == shownPort) {
-//                 reload = true;
-//                 break;
-//             }
-//         }
-//         if (reload) {
-//             // update dialog
-//             loadInfo();
-//         }
-//     }
-
-//     /** Don't do anything on little database changes, only after all database changes */
-//     public void databaseChanged(Undo.Change change) {}
-
-//     /** This is a GUI listener */
-//     public boolean isGUIListener() { return true; }
-
 	/** Creates new form Node Get-Info */
 	private GetInfoNode(Frame parent, boolean modal)
 	{
@@ -203,6 +178,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
         UserInterfaceMain.addDatabaseChangeListener(this);
         Highlighter.addHighlightListener(this);
+
+        // make type a selectable but not editable field
+        type.setEditable(false);
+        type.setBorder(null);
+        type.setForeground(UIManager.getColor("Label.foreground"));
+        type.setFont(UIManager.getFont("Label.font"));
 
         bigger = prefs.getBoolean("GetInfoNode-bigger", false);
         int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
@@ -223,9 +204,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		list = new JList(listModel);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listPane.setViewportView(list);
-		list.addMouseListener(new java.awt.event.MouseAdapter()
+		list.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(java.awt.event.MouseEvent evt) { listClick(); }
+			public void mouseClicked(MouseEvent evt) { listClick(); }
 		});
 		allAttributes = new ArrayList<AttributesTable.AttValPair>();
 		portObjects = new ArrayList<ArcInst>();
@@ -328,7 +309,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 		shownNode = ni;
 		shownPort = pp;
-        //ActivityLogger.logMessage("GetInfoNode loadInfo on "+ni+" or "+pp);
 
         focusClearOnTextField(name);
 
@@ -348,35 +328,27 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		initialYPos = ni.getAnchorCenterY();
         double initXSize = ni.getXSize();
         double initYSize = ni.getYSize();
-//        double initXSize = ni.getXSizeWithMirror();
-//        double initYSize = ni.getYSizeWithMirror();
         initialRotation = ni.getAngle();
         swapXY = false;
         if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
 
-        type.setText(np.describe(true));
+        type.setText(np.describe(false));
         name.setText(initialName);
         xPos.setText(TextUtils.formatDouble(initialXPos));
         yPos.setText(TextUtils.formatDouble(initialYPos));
         boolean realMirrorX = ni.isXMirrored();
         boolean realMirrorY = ni.isYMirrored();
-//        boolean realMirrorX = (initXSize < 0);
-//        boolean realMirrorY = (initYSize < 0);
         SizeOffset so = ni.getSizeOffset();
         if (swapXY)
         {
             xSize.setText(TextUtils.formatDouble(initYSize - so.getLowYOffset() - so.getHighYOffset()));
             ySize.setText(TextUtils.formatDouble(initXSize - so.getLowXOffset() - so.getHighXOffset()));
-//            xSize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
-//            ySize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
             initialMirrorX = realMirrorY;
             initialMirrorY = realMirrorX;
         } else
         {
             xSize.setText(TextUtils.formatDouble(initXSize - so.getLowXOffset() - so.getHighXOffset()));
             ySize.setText(TextUtils.formatDouble(initYSize - so.getLowYOffset() - so.getHighYOffset()));
-//            xSize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
-//            ySize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
             initialMirrorX = realMirrorX;
             initialMirrorY = realMirrorY;
         }
@@ -455,11 +427,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		popup.setEnabled(false);
 
 		// see if this node has outline information
-//		boolean holdsOutline = false;
 		Point2D [] outline = ni.getTrace();
 		if (outline != null)
 		{
-//			holdsOutline = true;
             sizeEditable = false;
 		}
 
@@ -511,13 +481,12 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         PrimitiveNode.Function fun = ni.getFunction();
 		if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 		{
-            if (!ni.isFET()) {
+            if (!ni.isFET())
+            {
                 textField.setEditable(true);
                 textFieldLabel.setText("Area:");
 
                 Variable var = ni.getVar(Schematics.ATTR_AREA);
-//                TransistorSize d = ni.getTransistorSize(null);
-//                initialTextField = Double.toString(d.getDoubleWidth());
 
                 textField.setText(var.getPureValue(-1));
 
@@ -572,7 +541,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
+		if (fun.isResistor())
 		{
             if (fun == PrimitiveNode.Function.PRESIST)
 				textFieldLabel.setText("Poly resistance:"); else
@@ -585,7 +554,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun.isCapacitor()) // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
+		if (fun.isCapacitor())
 		{
 			if (fun == PrimitiveNode.Function.ECAPAC)
 				textFieldLabel.setText("Electrolytic cap:"); else
@@ -1002,11 +971,13 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 currYSize = TextUtils.atof(currentXSize, new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
                 initXSize = TextUtils.atof(initialYSize, new Double(currXSize));
                 initYSize = TextUtils.atof(initialXSize, new Double(currYSize));
+
                 // bloat by offset
                 currXSize += (so.getLowXOffset() + so.getHighXOffset());
                 currYSize += (so.getLowYOffset() + so.getHighYOffset());
                 initXSize += (so.getLowXOffset() + so.getHighXOffset());
                 initYSize += (so.getLowYOffset() + so.getHighYOffset());
+
                 // mirror
 				if (currentMirrorX) currYSize = -currYSize;
 				if (currentMirrorY) currXSize = -currXSize;
@@ -1018,11 +989,13 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 currYSize = TextUtils.atof(currentYSize, new Double(ni.getYSize() - (so.getLowYOffset() + so.getHighYOffset())));
                 initXSize = TextUtils.atof(initialXSize, new Double(currXSize));
                 initYSize = TextUtils.atof(initialYSize, new Double(currYSize));
+
                 // bloat by offset
                 currXSize += (so.getLowXOffset() + so.getHighXOffset());
                 currYSize += (so.getLowYOffset() + so.getHighYOffset());
                 initXSize += (so.getLowXOffset() + so.getHighXOffset());
                 initYSize += (so.getLowYOffset() + so.getHighYOffset());
+
                 // mirror
                 if (currentMirrorX) currXSize = -currXSize;
                 if (currentMirrorY) currYSize = -currYSize;
@@ -1045,18 +1018,22 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					{
                         // see if we can convert width and length to a Number
                         double w = TextUtils.atof(currentXSize, null);
-                        if (w == 0) {
+                        if (w == 0)
+                        {
                             // set width to whatever text is there
                             width = currentXSize;
-                        } else {
+                        } else
+                        {
                             width = new Double(w);
                         }
 
                         double l = TextUtils.atof(currentYSize, null);
-                        if (l == 0) {
+                        if (l == 0)
+                        {
                             // set length to whatever text is there
                             length = currentYSize;
-                        } else {
+                        } else
+                        {
                             length = new Double(l);
                         }
                         ni.setPrimitiveNodeSize(width, length);
@@ -1064,13 +1041,15 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 } else // transistors or resistors
                 {
                     // this is a layout transistor
-                    if (ni.isSerpentineTransistor()) {
+                    if (ni.isSerpentineTransistor())
+                    {
                         // serpentine transistors can only set length
                         double initialLength = ni.getSerpentineTransistorLength();
                         double length = TextUtils.atof(currentYSize, new Double(initialLength));
                         if (length != initialLength)
                             ni.setSerpentineTransistorLength(length);
-                    } else {
+                    } else
+                    {
                         // set length and width by node size for layout transistors
                         double initialWidth = size.getDoubleWidth();
                         double initialLength = size.getDoubleLength();
@@ -1087,7 +1066,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 // ignore size change, but retain mirroring change (sign)
                 currXSize = initXSize = ni.getXSize();
                 currYSize = initYSize = ni.getYSize();
-                if (swapXY) {
+                if (swapXY)
+                {
                     if (currentMirrorX) currYSize = -currYSize;
                     if (currentMirrorY) currXSize = -currXSize;
                     if (initialMirrorX) initYSize = -initYSize;
@@ -1135,7 +1115,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         name = new javax.swing.JTextField();
         cancel = new javax.swing.JButton();
         ok = new javax.swing.JButton();
-        type = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         xsizeLabel = new javax.swing.JLabel();
         xSize = new javax.swing.JTextField();
@@ -1168,6 +1147,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         attributesButton = new javax.swing.JButton();
         colorAndPattern = new javax.swing.JButton();
         listPane = new javax.swing.JScrollPane();
+        type = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -1178,11 +1158,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             public void windowClosing(java.awt.event.WindowEvent evt)
             {
                 closeDialog(evt);
-            }
-
-            public void windowActivated(java.awt.event.WindowEvent evt)
-            {
-//                System.out.println("DD");
             }
         });
 
@@ -1232,16 +1207,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.gridy = 5;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
-
-        type.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(type, gridBagConstraints);
 
         jLabel3.setText("Name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1563,9 +1528,17 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         getContentPane().add(listPane, gridBagConstraints);
 
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(type, gridBagConstraints);
+
         pack();
-    }
-    // </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>//GEN-END:initComponents
 
 	private void colorAndPatternActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_colorAndPatternActionPerformed
 	{//GEN-HEADEREND:event_colorAndPatternActionPerformed
@@ -1582,30 +1555,30 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		bigger = !bigger;
 		if (bigger)
 		{
-			java.awt.GridBagConstraints gridBagConstraints;
-			gridBagConstraints = new java.awt.GridBagConstraints();
+			GridBagConstraints gridBagConstraints;
+			gridBagConstraints = new GridBagConstraints();
 			gridBagConstraints.gridx = 0;
 			gridBagConstraints.gridy = 6;
 			gridBagConstraints.gridwidth = 4;
-			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
 			gridBagConstraints.weightx = 1.0;
 			getContentPane().add(moreStuffTop, gridBagConstraints);
 
-			gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints = new GridBagConstraints();
 			gridBagConstraints.gridx = 0;
 			gridBagConstraints.gridy = 7;
 			gridBagConstraints.gridwidth = 4;
-			gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-			gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
+			gridBagConstraints.fill = GridBagConstraints.BOTH;
+			gridBagConstraints.insets = new Insets(0, 4, 4, 4);
 			gridBagConstraints.weightx = 1.0;
 			gridBagConstraints.weighty = 1.0;
 			getContentPane().add(listPane, gridBagConstraints);
 
-			gridBagConstraints = new java.awt.GridBagConstraints();
+			gridBagConstraints = new GridBagConstraints();
 			gridBagConstraints.gridx = 0;
 			gridBagConstraints.gridy = 8;
 			gridBagConstraints.gridwidth = 4;
-			gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
 			gridBagConstraints.weightx = 1.0;
 			getContentPane().add(moreStuffBottom, gridBagConstraints);
 
@@ -1739,7 +1712,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     private javax.swing.ButtonGroup selection;
     private javax.swing.JTextField textField;
     private javax.swing.JLabel textFieldLabel;
-    private javax.swing.JLabel type;
+    private javax.swing.JTextField type;
     private javax.swing.JRadioButton unexpanded;
     private javax.swing.JTextField xPos;
     private javax.swing.JTextField xSize;
