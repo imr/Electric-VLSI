@@ -2466,7 +2466,8 @@ public class Manipulate
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
-			NodeInst ni = NodeInst.makeDummyInstance(np);
+            if (np.isNotUsed()) continue; // not need of reporting it. Valid when foundry is not Mosis in 180nm,
+            NodeInst ni = NodeInst.makeDummyInstance(np);
 			Poly [] polys = tech.getShapeOfNode(ni);
 			int l = 0;
 			for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
@@ -2504,7 +2505,8 @@ public class Manipulate
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
-			int base = tot;
+            if (np.isNotUsed()) continue; // not need of reporting it. Valid when foundry is not Mosis in 180nm,
+            int base = tot;
 			nodeNames[tot] = np.getName();
 			nodeFuncs[tot] = np.getFunction().getName();
 

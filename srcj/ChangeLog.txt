@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+IMP: (9/22/06, GVG) Not printing NotInUsed nodes in Document Current Technology".
+
 BUG: (9/22/06, DN) AlphaBlender crashes on narrow images.
 FIX: In AlphaBlender.composeLine add return when minInt == maxInt.
 
