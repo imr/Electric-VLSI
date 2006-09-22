@@ -80,6 +80,7 @@ public class DisplayControlTab extends PreferencePanel
 		generalGreekLimit.setText(Double.toString(User.getGreekSizeLimit()));
 		generalGreekCellLimit.setText(Double.toString(User.getGreekCellSizeLimit() * 100.0));
 		patternScaleLimit.setText(Double.toString(User.getPatternedScaleLimit()));
+		useNewBlending.setSelected(!User.isLegacyComposite());
         alphaBlendingOvercolorLimit.setText(Double.toString(User.getAlphaBlendingOvercolorLimit()));
 	}
 
@@ -126,6 +127,10 @@ public class DisplayControlTab extends PreferencePanel
 		if (currDouble != User.getPatternedScaleLimit())
 			User.setPatternedScaleLimit(currDouble);
 
+		currBoolean = !useNewBlending.isSelected();
+		if (currBoolean != User.isLegacyComposite())
+			User.setLegacyComposite(currBoolean);
+
 		currDouble = TextUtils.atof(alphaBlendingOvercolorLimit.getText());
 		if (currDouble != User.getAlphaBlendingOvercolorLimit())
 			User.setAlphaBlendingOvercolorLimit(currDouble);
@@ -171,9 +176,10 @@ public class DisplayControlTab extends PreferencePanel
         layerDisplay = new javax.swing.JRadioButton();
         jLabel8 = new javax.swing.JLabel();
         patternScaleLimit = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
+        alphaBlendingLimitLabel = new javax.swing.JLabel();
         alphaBlendingOvercolorLimit = new javax.swing.JTextField();
         resetOpacity = new javax.swing.JButton();
+        useNewBlending = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -340,18 +346,18 @@ public class DisplayControlTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(patternScaleLimit, gridBagConstraints);
 
-        jLabel2.setText("Alpha blending overcolor limit");
+        alphaBlendingLimitLabel.setText("Alpha blending overcolor limit");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 30, 2, 4);
-        general.add(jLabel2, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(2, 40, 2, 4);
+        general.add(alphaBlendingLimitLabel, gridBagConstraints);
 
         alphaBlendingOvercolorLimit.setColumns(5);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         general.add(alphaBlendingOvercolorLimit, gridBagConstraints);
@@ -367,16 +373,41 @@ public class DisplayControlTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 30, 4, 4);
         general.add(resetOpacity, gridBagConstraints);
 
+        useNewBlending.setText("Use newer blending algorithm");
+        useNewBlending.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        useNewBlending.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        useNewBlending.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                useNewBlendingActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 30, 2, 4);
+        general.add(useNewBlending, gridBagConstraints);
+
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void useNewBlendingActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_useNewBlendingActionPerformed
+    {//GEN-HEADEREND:event_useNewBlendingActionPerformed
+    	alphaBlendingLimitLabel.setEnabled(useNewBlending.isSelected());
+    	alphaBlendingOvercolorLimit.setEditable(useNewBlending.isSelected());
+    }//GEN-LAST:event_useNewBlendingActionPerformed
 
     private void resetOpacityActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_resetOpacityActionPerformed
     {//GEN-HEADEREND:event_resetOpacityActionPerformed
@@ -392,6 +423,7 @@ public class DisplayControlTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel alphaBlendingLimitLabel;
     private javax.swing.JTextField alphaBlendingOvercolorLimit;
     private javax.swing.ButtonGroup displayAlgorithm;
     private javax.swing.JPanel general;
@@ -401,7 +433,6 @@ public class DisplayControlTab extends PreferencePanel
     private javax.swing.JCheckBox generalShowCursorCoordinates;
     private javax.swing.JCheckBox generalUseGreekImages;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
@@ -413,6 +444,7 @@ public class DisplayControlTab extends PreferencePanel
     private javax.swing.JRadioButton pixelDisplay;
     private javax.swing.JButton resetOpacity;
     private javax.swing.JCheckBox sideBarOnRight;
+    private javax.swing.JCheckBox useNewBlending;
     private javax.swing.JRadioButton vectorDisplay;
     // End of variables declaration//GEN-END:variables
 
