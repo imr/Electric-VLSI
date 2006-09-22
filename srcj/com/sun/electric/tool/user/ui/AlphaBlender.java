@@ -163,17 +163,17 @@ class AlphaBlender {
         if (minInt == maxInt) {
             int mask = (1 << ((maxX&31) + 1)) - (1 << (minX&31));
             composeBits(inputOffset + minInt, mask, opaqueOffset + (minInt<<5));
-        } else {
-            if ((minX&31) != 0) {
-                int headMask = -(1 << (minX&31));
-                composeBits(inputOffset + minInt, headMask, opaqueOffset + (minInt<<5));
-                minInt++;
-            }
-            if ((maxX&31) != 31) {
-                int tailMask = (1 << ((maxX&31) + 1)) - 1;
-                composeBits(inputOffset + maxInt, tailMask, opaqueOffset + (maxInt<<5));
-                maxInt--;
-            }
+            return;
+        }
+        if ((minX&31) != 0) {
+            int headMask = -(1 << (minX&31));
+            composeBits(inputOffset + minInt, headMask, opaqueOffset + (minInt<<5));
+            minInt++;
+        }
+        if ((maxX&31) != 31) {
+            int tailMask = (1 << ((maxX&31) + 1)) - 1;
+            composeBits(inputOffset + maxInt, tailMask, opaqueOffset + (maxInt<<5));
+            maxInt--;
         }
         opaqueOffset += minInt<<5;
         for (int index = minInt; index <= maxInt; index++) {

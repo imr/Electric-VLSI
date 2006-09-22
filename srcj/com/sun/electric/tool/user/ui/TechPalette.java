@@ -846,6 +846,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         int wid = (int)size.getWidth();
         int hei = (int)size.getHeight();
         entrySize = Math.min(wid / menuX - 1, hei / menuY - 1);
+        if (wid <= 0 || hei <= 0) return;
 
         // show the image
         // copying from the image (here, gScreen is the Graphics
@@ -857,7 +858,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 returnCode = VolatileImage.IMAGE_RESTORED;
             } else {
                 returnCode = paletteImage.validate(getGraphicsConfiguration());
-                if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE) {
+                if (returnCode == VolatileImage.IMAGE_INCOMPATIBLE || paletteImage.getWidth() != wid || paletteImage.getHeight() != hei) {
+                    returnCode = VolatileImage.IMAGE_INCOMPATIBLE;
                     // old paletteImage doesn't work with new GraphicsConfig; re-create it
                     paletteImage.flush();
                     paletteImage = createVolatileImage(getWidth(), getHeight());
@@ -916,6 +918,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     
     private void renderPaletteImage() {
         // draw the menu entries
+        if (entrySize < 2) return;
         entryRect = new Rectangle(new Dimension(entrySize-2, entrySize-2));
         offscreen = new PixelDrawing(new Dimension(entrySize, entrySize));
         
