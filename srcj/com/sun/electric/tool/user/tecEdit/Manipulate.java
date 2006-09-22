@@ -2432,15 +2432,14 @@ public class Manipulate
 			arcAntennas[tot] = TextUtils.formatDouble(ERC.getERCTool().getAntennaRatio(ap));
 
 			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
-			ai.setExtended(ArcInst.HEADEND, false);
-			ai.setExtended(ArcInst.TAILEND, false);
 			Poly [] polys = tech.getShapeOfArc(ai);
 			for(int k=0; k<polys.length; k++)
 			{
 				Poly poly = polys[k];
 				arcLayers[tot] = poly.getLayer().getName();
-				double area = poly.getArea() / ai.getLength();
-				arcLayerSizes[tot] = TextUtils.formatDouble(area);
+				Rectangle2D bounds = poly.getBounds2D();
+				double width = Math.min(bounds.getWidth(), bounds.getHeight());
+				arcLayerSizes[tot] = TextUtils.formatDouble(width);
 				if (k > 0)
 				{
 					arcNames[tot] = "";
@@ -2521,7 +2520,8 @@ public class Manipulate
 				}
 				nodeLayers[tot] = poly.getLayer().getName();
 				Rectangle2D polyBounds = poly.getBounds2D();
-				nodeLayerSizes[tot] = polyBounds.getWidth() + " x " + polyBounds.getHeight();
+				nodeLayerSizes[tot] = TextUtils.formatDouble(polyBounds.getWidth()) + " x " +
+					TextUtils.formatDouble(polyBounds.getHeight());
 				if (k > 0)
 				{
 					nodeNames[tot] = "";
@@ -2535,7 +2535,8 @@ public class Manipulate
 				nodePorts[base] = pp.getName();
 				Poly portPoly = ni.getShapeOfPort(pp);
 				Rectangle2D portRect = portPoly.getBounds2D();
-				nodePortSizes[base] = portRect.getWidth() + " x " + portRect.getHeight();
+				nodePortSizes[base] = TextUtils.formatDouble(portRect.getWidth()) + " x " +
+					TextUtils.formatDouble(portRect.getHeight());
 				if (pp.getAngleRange() == 180) nodePortAngles[base] = ""; else
 					nodePortAngles[base] = "" + pp.getAngle();
 				int m = 0;
