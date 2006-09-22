@@ -2331,7 +2331,7 @@ public class Manipulate
 	{
 		// ***************************** dump layers ******************************
 
-		// allocate space for all layer fields
+        // allocate space for all layer fields
 		int layerCount = tech.getNumLayers();
 		String [] layerNames = new String[layerCount+1];
 		String [] layerColors = new String[layerCount+1];
@@ -2359,7 +2359,9 @@ public class Manipulate
 			layerNames[i+1] = layer.getName();
 
 			EGraphics gra = layer.getGraphics();
-			if (gra.getTransparentLayer() > 0) layerColors[i+1] = "Transparent " + gra.getTransparentLayer(); else
+			if (gra.getTransparentLayer() > 0)
+                layerColors[i+1] = "Transparent " + gra.getTransparentLayer();
+            else
 			{
 				Color col = gra.getColor();
 				layerColors[i+1] = "(" + col.getRed() + "," + col.getGreen() + "," + col.getBlue() + ")";
@@ -2388,7 +2390,113 @@ public class Manipulate
 		fields[0] = layerNames;     fields[1] = layerColors;   fields[2] = layerStyles;
 		fields[3] = layerCifs;      fields[4] = layerGdss;     fields[5] = layerFuncs;
 		fields[6] = layerCoverage;
-		dumpFields(fields, layerCount+1, "LAYERS IN " + tech.getTechName().toUpperCase());
+
+        class DocColumn
+        {
+            List<String> elements;
+            String header;
+            int maxWid = 0;
+
+            DocColumn(String header, int numE)
+            {
+                this.header = header;
+                this.maxWid = header.length();
+                elements = new ArrayList<String>(numE);
+            }
+            void add(String el)
+            {
+                elements.add(el);
+                int len = el.length();
+                if (maxWid < len) maxWid = len;
+            }
+            private String getColumn(String s)
+            {
+                StringBuffer val = new StringBuffer(s);
+                val.ensureCapacity(maxWid);
+                int fillS = val.length();
+                for (int i = fillS; i < maxWid; i++)
+                    val.append(" "); // add the remaind spaces
+                return val.toString();
+            }
+            String getHeader()
+            {
+                return getColumn(header);
+            }
+            String get(int pos)
+            {
+                return getColumn(elements.get(pos));
+            }
+        }
+
+        DocColumn[] cols = new DocColumn[7];
+        cols[0] = new DocColumn("Layer", layerCount);
+        cols[1] = new DocColumn("Color", layerCount);
+        cols[2] = new DocColumn("Style", layerCount);
+        cols[3] = new DocColumn("CIF", layerCount);
+        cols[4] = new DocColumn("GDS", layerCount);
+        cols[5] = new DocColumn("Function", layerCount);
+        cols[6] = new DocColumn("Coverage", layerCount);
+
+        // Adding the layers
+        for (Iterator<Layer> it = tech.getLayers(); it.hasNext();)
+        {
+            Layer layer = it.next();
+
+            // Name
+            cols[0].add(layer.getName());
+
+            // Transparency
+            EGraphics gra = layer.getGraphics();
+			if (gra.getTransparentLayer() > 0)
+                cols[1].add("Transparent " + gra.getTransparentLayer());
+            else
+			{
+				Color col = gra.getColor();
+				cols[1].add("(" + col.getRed() + "," + col.getGreen() + "," + col.getBlue() + ")");
+			}
+
+            // Style
+            String tmp = "?";
+            if (gra.isPatternedOnDisplay())
+			{
+				if (gra.getOutlined() != EGraphics.Outline.NOPAT)
+                    tmp = "pat/outl";
+                else
+					tmp = "pat";
+			} else
+			{
+				tmp = "solid";
+			}
+            cols[2].add(tmp);
+
+            // CIF
+            cols[3].add(layer.getCIFLayer());
+
+            // GDS
+            cols[4].add((foundry != null)?foundry.getGDSLayer(layer):"");
+
+            // Function
+            cols[5].add(layer.getFunction().toString());
+
+            // Coverage
+            cols[6].add(TextUtils.formatDouble(layer.getAreaCoverage()));
+        }
+
+//        System.out.println("LAYERS IN " + tech.getTechName().toUpperCase());
+//        // print headers
+//        for (DocColumn col : cols)
+//        {
+//            System.out.print(col.getHeader());
+//        }
+//        System.out.println();
+//        for (int i = 0; i < layerCount; i++)
+//        {
+//            for (DocColumn col : cols)
+//                System.out.print(col.get(i));
+//        }
+//        System.out.println();
+//        System.out.println("----------");
+        dumpFields(fields, layerCount+1, "LAYERS IN " + tech.getTechName().toUpperCase());
 
 		// ****************************** dump arcs ******************************
 
