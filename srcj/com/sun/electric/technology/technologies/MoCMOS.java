@@ -1209,7 +1209,7 @@ public class MoCMOS extends Technology
 		metalArcs[2].setFactoryAngleIncrement(90);
 
 		/** metal 4 arc */
-		metalArcs[3] = ArcProto.newInstance(this, "Metal-4", 6.0, new Technology.ArcLayer []
+		metalArcs[3] = ArcProto.newInstance(this, "Metal-4", 3.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metalLayers[3], 0, Poly.Type.FILLED)
 		});
@@ -1229,7 +1229,7 @@ public class MoCMOS extends Technology
 		metalArcs[4].setFactoryAngleIncrement(90);
 
 		/** metal 6 arc */
-		metalArcs[5] = ArcProto.newInstance(this, "Metal-6", 4.0, new Technology.ArcLayer []
+		metalArcs[5] = ArcProto.newInstance(this, "Metal-6", 5.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metalLayers[5], 0, Poly.Type.FILLED)
 		});
@@ -2406,7 +2406,7 @@ public class MoCMOS extends Technology
         }
 
         // Metal 6 arc width 4. Original value
-        metalArcs[5].setDefaultWidth(4);
+//        metalArcs[5].setDefaultWidth(4);
     }
 
 	/******************** SUPPORT METHODS ********************/
@@ -2749,13 +2749,11 @@ public class MoCMOS extends Technology
         XMLRules rules = new XMLRules(this);
 
         assert(foundry != null);
-//        if (foundry == null) foundry = getSelectedFoundry();
 
         // Resize primitives according to the foundry
         resizeNodes();
 
 		// load the DRC tables from the explanation table
-//		rules.wideLimit = new Double(WIDELIMIT);
         int numMetals = getNumMetals();
         int rulesMode = getRuleSet();
 
@@ -2846,16 +2844,15 @@ public class MoCMOS extends Technology
                 rules.loadDRCRules(this, foundry, rule);
 			}
 		}
-//		rules.calculateNumberOfRules();
 
         // Resize primitives according to the foundry and existing rules.
         if (resizeNodes)
-        resizeNodes(rules);
+            resizeNodes(rules);
 
 		return rules;
 	}
-
-        /**
+   
+    /**
      * Method to replace resizeNodes
      */
     private void resizeNodes(XMLRules rules)

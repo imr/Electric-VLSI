@@ -2407,13 +2407,15 @@ public class Quick
 
         boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
                 left1, left2, left3, pointsFound); //) return false;
-        if (overlapLayer && !zeroWide) return false;
+//        if (overlapLayer && !zeroWide) return false;
+        if (overlapLayer) return false;
 
         // Try the other corner
         pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
         overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
                 right1, right2, right3, pointsFound); //) return false;
-        if (overlapLayer && !zeroWide) return false;
+//        if (overlapLayer && !zeroWide) return false;
+        if (overlapLayer) return false;
 
         DRCErrorType errorType = DRCErrorType.MINWIDTHERROR;
         String extraMsg = msg;

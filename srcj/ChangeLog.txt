@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+IMP: (9/22/06, GVG) Detecting if zero length arc is covered by other polygon of the same layer and
+avoid DRC warning (Bug#1174). Regression data updated.
+
+IMP: (9/22/06, GVG) default M4 arc width = 3(old=4) and M6 arc width = 5(old=4).
+
 IMP/MAN: (9/22/06, SMR) Added control for legacy blending.
 
 BUG: (9/22/06, DN) Drawing in the TechPalette doesn't match the actual primitives in the EditWindow (Bug #1213).
