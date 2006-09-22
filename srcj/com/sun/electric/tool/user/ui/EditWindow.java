@@ -1211,7 +1211,7 @@ public class EditWindow extends JPanel
             g.setFont(f);
             g.setColor(new Color(User.getColorText()));
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.drawString("No cell in this window", (sz.width - g.getFontMetrics(f).stringWidth(msg))/2, sz.height/2);
+            g.drawString(msg, (sz.width - g.getFontMetrics(f).stringWidth(msg))/2, sz.height/2);
             return;
         }
 
@@ -1614,7 +1614,7 @@ public class EditWindow extends JPanel
             layerColors.add(new LayerColor(layer, red, green, blue, inverseAlpha));
         }
         final LayerTab layerTab = getWindowFrame().getLayersTab();
-        final boolean showOpacity = true;
+        final boolean showOpacity = !User.isLegacyComposite();
         if (layerTab != null)
             SwingUtilities.invokeLater(new Runnable() { public void run() { layerTab.setDisplayAlgorithm(showOpacity); }});
             return layerColors;

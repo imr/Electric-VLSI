@@ -27,6 +27,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -40,6 +41,8 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.ui.EditWindow.LayerColor;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -62,6 +65,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -272,7 +276,7 @@ class LayerDrawing
 	/** the EditWindow being drawn */						private EditWindow wnd;
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
-    /** draw layers patterned (depends on scale). */        private static boolean patternedDisplay;
+    /** draw layers patterned (depends on scale). */        private boolean patternedDisplay;
     /** Alpha blending with overcolor (depends on scale). */private static boolean alphaBlendingOvercolor;           
 	/** list of cell expansions. */							private static HashMap<ExpandedCellKey,ExpandedCellInfo> expandedCells = null;
     /** Set of changed cells. */                            private static final HashSet<CellId> changedCells = new HashSet<CellId>();
@@ -379,7 +383,10 @@ class LayerDrawing
                 }
                 long startTime = System.currentTimeMillis();
                 Graphics2D g = vImg.createGraphics();
-                layerComposite(g);
+                if (User.isLegacyComposite())
+                    legacyLayerComposite(g);
+                else
+                    layerComposite(g);
 //                if (alphaBlendingComposite) {
 //                    boolean TRY_OVERBLEND = false;
 //                    if (TRY_OVERBLEND) {
@@ -416,7 +423,7 @@ class LayerDrawing
             HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
             for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
                 layerBits.put(e.getKey(), e.getValue().layerBitMap);
-            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), patternedDisplay, alphaBlendingOvercolor);
+            List<EditWindow.LayerColor> blendingOrder = wnd.getBlendingOrder(layerBits.keySet(), offscreen.patternedDisplay, alphaBlendingOvercolor);
             if (TAKE_STATS) {
                 System.out.print("BlendingOrder:");
                 for (EditWindow.LayerColor lc: blendingOrder) {
@@ -445,136 +452,136 @@ class LayerDrawing
             }
         }
         
-//        /**
-//         * Method to complete rendering by combining the transparent and opaque imagery.
-//         * This is called after all rendering is done.
-//         * @return the offscreen Image with the final display.
-//         */
-//        private void layerCompositeCompatable(Graphics2D g) {
-//            wnd.getBlendingOrder(layerRasters.keySet(), false);
-//            
-//            Technology curTech = Technology.getCurrent();
-//            if (curTech == null) {
-//                for (Layer layer: layerRasters.keySet()) {
-//                    int transparentDepth = layer.getGraphics().getTransparentLayer();
-//                    if (transparentDepth != 0 && layer.getTechnology() != null)
-//                        curTech = layer.getTechnology();
-//                }
-//            }
-//            if (curTech == null)
-//                curTech = Generic.tech;
-//            
-//            // get the technology's color map
-//            Color [] colorMap = curTech.getColorMap();
-//            
-//            // adjust the colors if any of the transparent layers are dimmed
-//            boolean dimmedTransparentLayers = false;
-//            for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
-//                Layer layer = it.next();
-//                if (!layer.isDimmed()) continue;
-//                if (layer.getGraphics().getTransparentLayer() == 0) continue;
-//                dimmedTransparentLayers = true;
-//                break;
-//            }
-//            if (dimmedTransparentLayers) {
-//                Color [] newColorMap = new Color[colorMap.length];
-//                int numTransparents = curTech.getNumTransparentLayers();
-//                boolean [] dimLayer = new boolean[numTransparents];
-//                for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
-//                for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
-//                    Layer layer = it.next();
-//                    if (layer.isDimmed()) continue;
-//                    int tIndex = layer.getGraphics().getTransparentLayer();
-//                    if (tIndex == 0) continue;
-//                    dimLayer[tIndex-1] = false;
-//                }
-//                
-//                for(int i=0; i<colorMap.length; i++) {
-//                    newColorMap[i] = colorMap[i];
-//                    if (i == 0) continue;
-//                    boolean dimThisEntry = true;
-//                    for(int j=0; j<numTransparents; j++) {
-//                        if ((i & (1<<j)) != 0) {
-//                            if (!dimLayer[j]) {
-//                                dimThisEntry = false;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    if (dimThisEntry) {
-//                        newColorMap[i] = new Color(offscreen.dimColor(colorMap[i].getRGB()));
-//                    } else {
-//                        newColorMap[i] = new Color(offscreen.brightenColor(colorMap[i].getRGB()));
-//                    }
-//                }
-//                colorMap = newColorMap;
-//            }
-//            
-//            int numTransparent = 0, numOpaque = 0;
-//            int deepestTransparentDepth = 0;
-//            for (Layer layer: layerRasters.keySet()) {
-//                if (!layer.isVisible()) continue;
-//                if (layer.getGraphics().getTransparentLayer() == 0) {
-//                    numOpaque++;
-//                } else {
-//                    numTransparent++;
-//                }
-//            }
-//            TransparentRaster[] transparentRasters = new TransparentRaster[numTransparent];
-//            int[] transparentMasks = new int[numTransparent];
-//            TransparentRaster[] opaqueRasters = new TransparentRaster[numOpaque];
-//            int[] opaqueCols = new int[numOpaque];
-//            
-//            numTransparent = numOpaque = 0;
-//            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet()) {
-//                Layer layer = e.getKey();
-//                if (!layer.isVisible()) continue;
-//                TransparentRaster raster = e.getValue();
-//                int transparentNum = layer.getGraphics().getTransparentLayer();
-//                if (transparentNum != 0) {
-//                    transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
-//                    transparentRasters[numTransparent++] = raster;
-//                } else {
-//                    opaqueCols[numOpaque] = offscreen.getTheColor(layer.getGraphics(), layer.isDimmed());
-//                    opaqueRasters[numOpaque++] = raster;
-//                }
-//            }
-//            
-//            // determine range
-//            Dimension sz = offscreen.sz;
-//            int numIntsPerRow = offscreen.numIntsPerRow;
-//            int backgroundColor = User.getColorBackground() & 0xFFFFFF;
-//            int lx = 0, hx = sz.width-1;
-//            int ly = 0, hy = sz.height-1;
-//            
-//            for(int y=ly; y<=hy; y++) {
-//                int baseByteIndex = y*numIntsPerRow;
-//                int baseIndex = y * sz.width;
-//                for(int x=0; x<=hx; x++) {
-//                    int entry = baseByteIndex + (x>>5);
-//                    int maskBit = 1 << (x & 31);
-//                    int opaqueIndex = -1;
-//                    for (int i = 0; i < opaqueRasters.length; i++) {
-//                        if ((opaqueRasters[i].layerBitMap[entry] & maskBit) != 0)
-//                            opaqueIndex = i;
-//                    }
-//                    int pixelValue;
-//                    if (opaqueIndex >= 0) {
-//                        pixelValue = opaqueCols[opaqueIndex];
-//                    } else {
-//                        int bits = 0;
-//                        for (int i = 0; i < transparentRasters.length; i++) {
-//                            if ((transparentRasters[i].layerBitMap[entry] & maskBit) != 0)
-//                                bits |= transparentMasks[i];
-//                        }
-//                        pixelValue = bits != 0 ? colorMap[bits].getRGB() & 0xFFFFFF : backgroundColor;
-//                    }
-//                    smallOpaqueData[x] = pixelValue;
-//                }
-//                g.drawImage(smallImg, 0, y, null);
-//            }
-//        }
-//        
+        /**
+         * Method to complete rendering by combining the transparent and opaque imagery.
+         * This is called after all rendering is done.
+         * @return the offscreen Image with the final display.
+         */
+        private void legacyLayerComposite(Graphics2D g) {
+            wnd.getBlendingOrder(layerRasters.keySet(), false, false);
+            
+            Technology curTech = Technology.getCurrent();
+            if (curTech == null) {
+                for (Layer layer: layerRasters.keySet()) {
+                    int transparentDepth = layer.getGraphics().getTransparentLayer();
+                    if (transparentDepth != 0 && layer.getTechnology() != null)
+                        curTech = layer.getTechnology();
+                }
+            }
+            if (curTech == null)
+                curTech = Generic.tech;
+            
+            // get the technology's color map
+            Color [] colorMap = curTech.getColorMap();
+            
+            // adjust the colors if any of the transparent layers are dimmed
+            boolean dimmedTransparentLayers = false;
+            for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
+                Layer layer = it.next();
+                if (!layer.isDimmed()) continue;
+                if (layer.getGraphics().getTransparentLayer() == 0) continue;
+                dimmedTransparentLayers = true;
+                break;
+            }
+            if (dimmedTransparentLayers) {
+                Color [] newColorMap = new Color[colorMap.length];
+                int numTransparents = curTech.getNumTransparentLayers();
+                boolean [] dimLayer = new boolean[numTransparents];
+                for(int i=0; i<numTransparents; i++) dimLayer[i] = true;
+                for(Iterator<Layer> it = curTech.getLayers(); it.hasNext(); ) {
+                    Layer layer = it.next();
+                    if (layer.isDimmed()) continue;
+                    int tIndex = layer.getGraphics().getTransparentLayer();
+                    if (tIndex == 0) continue;
+                    dimLayer[tIndex-1] = false;
+                }
+                
+                for(int i=0; i<colorMap.length; i++) {
+                    newColorMap[i] = colorMap[i];
+                    if (i == 0) continue;
+                    boolean dimThisEntry = true;
+                    for(int j=0; j<numTransparents; j++) {
+                        if ((i & (1<<j)) != 0) {
+                            if (!dimLayer[j]) {
+                                dimThisEntry = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (dimThisEntry) {
+                        newColorMap[i] = new Color(offscreen.dimColor(colorMap[i].getRGB()));
+                    } else {
+                        newColorMap[i] = new Color(offscreen.brightenColor(colorMap[i].getRGB()));
+                    }
+                }
+                colorMap = newColorMap;
+            }
+            
+            int numTransparent = 0, numOpaque = 0;
+            int deepestTransparentDepth = 0;
+            for (Layer layer: layerRasters.keySet()) {
+                if (!layer.isVisible()) continue;
+                if (layer.getGraphics().getTransparentLayer() == 0) {
+                    numOpaque++;
+                } else {
+                    numTransparent++;
+                }
+            }
+            TransparentRaster[] transparentRasters = new TransparentRaster[numTransparent];
+            int[] transparentMasks = new int[numTransparent];
+            TransparentRaster[] opaqueRasters = new TransparentRaster[numOpaque];
+            int[] opaqueCols = new int[numOpaque];
+            
+            numTransparent = numOpaque = 0;
+            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet()) {
+                Layer layer = e.getKey();
+                if (!layer.isVisible()) continue;
+                TransparentRaster raster = e.getValue();
+                int transparentNum = layer.getGraphics().getTransparentLayer();
+                if (transparentNum != 0) {
+                    transparentMasks[numTransparent] = (1 << (transparentNum - 1)) & (colorMap.length - 1);
+                    transparentRasters[numTransparent++] = raster;
+                } else {
+                    opaqueCols[numOpaque] = offscreen.getTheColor(layer.getGraphics(), layer.isDimmed());
+                    opaqueRasters[numOpaque++] = raster;
+                }
+            }
+            
+            // determine range
+            Dimension sz = offscreen.sz;
+            int numIntsPerRow = offscreen.numIntsPerRow;
+            int backgroundColor = User.getColorBackground() & 0xFFFFFF;
+            int lx = 0, hx = sz.width-1;
+            int ly = 0, hy = sz.height-1;
+            
+            for(int y=ly; y<=hy; y++) {
+                int baseByteIndex = y*numIntsPerRow;
+                int baseIndex = y * sz.width;
+                for(int x=0; x<=hx; x++) {
+                    int entry = baseByteIndex + (x>>5);
+                    int maskBit = 1 << (x & 31);
+                    int opaqueIndex = -1;
+                    for (int i = 0; i < opaqueRasters.length; i++) {
+                        if ((opaqueRasters[i].layerBitMap[entry] & maskBit) != 0)
+                            opaqueIndex = i;
+                    }
+                    int pixelValue;
+                    if (opaqueIndex >= 0) {
+                        pixelValue = opaqueCols[opaqueIndex];
+                    } else {
+                        int bits = 0;
+                        for (int i = 0; i < transparentRasters.length; i++) {
+                            if ((transparentRasters[i].layerBitMap[entry] & maskBit) != 0)
+                                bits |= transparentMasks[i];
+                        }
+                        pixelValue = bits != 0 ? colorMap[bits].getRGB() & 0xFFFFFF : backgroundColor;
+                    }
+                    smallOpaqueData[x] = pixelValue;
+                }
+                g.drawImage(smallImg, 0, y, null);
+            }
+        }
+        
 //        private void layerCompositeSlow(Graphics2D g) {
 //            HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
 //            for (Map.Entry<Layer,TransparentRaster> e: layerRasters.entrySet())
@@ -876,6 +883,121 @@ class LayerDrawing
 //            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
 //            public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {}
 //        }
+    }
+    
+    static void drawTechPalette(Graphics2D g, int imgX, int imgY, Rectangle entrySize, double scale, VectorCache.VectorBase[] shapes) {
+        BufferedImage smallImg = new BufferedImage(entrySize.width, Drawing.SMALL_IMG_HEIGHT, BufferedImage.TYPE_INT_RGB);
+        DataBufferInt smallDbi = (DataBufferInt)smallImg.getRaster().getDataBuffer();
+        int[] smallOpaqueData = smallDbi.getData();
+        
+        LayerDrawing offscreen = new LayerDrawing(new Dimension(entrySize.width, entrySize.height));
+            
+		// set colors to use
+        offscreen.textColor = new Color(User.getColorText());
+		offscreen.textGraphics.setColor(offscreen.textColor);
+        
+		// initialize the cache of expanded cell displays
+//        varContext = wnd.getVarContext();
+        offscreen.initOrigin(scale, EPoint.ORIGIN);
+        offscreen.renderedWindow = true;
+        offscreen.patternedDisplay = true;
+ 		offscreen.canDrawText = true;
+        offscreen.canDrawRelativeText = 0;
+
+		// remember the true window size (since recursive calls may cache individual cells that are smaller)
+//		topSz = sz;
+
+		// initialize rendering into the offscreen image
+        offscreen.clipLX = 0;
+        offscreen.clipHX = offscreen.sz.width - 1;
+        offscreen.clipLY = 0;
+        offscreen.clipHY = offscreen.sz.height - 1;
+		offscreen.clearImage(null);
+
+        // now render it all
+        offscreen.renderTextList.clear();
+        offscreen.greekTextList.clear();
+        offscreen.crossTextList.clear();
+        ArrayList<VectorCache.VectorBase> shapeList = new ArrayList<VectorCache.VectorBase>();
+        for (VectorCache.VectorBase shape: shapes)
+            shapeList.add(shape);
+        offscreen.drawList(0, 0, shapeList);
+        
+        
+        AlphaBlender alphaBlender = new AlphaBlender();
+        HashMap<Layer,int[]> layerBits = new HashMap<Layer,int[]>();
+        for (Map.Entry<Layer,TransparentRaster> e: offscreen.layerRasters.entrySet())
+            layerBits.put(e.getKey(), e.getValue().layerBitMap);
+        List<EditWindow.LayerColor> blendingOrder = getBlendingOrder(layerBits.keySet());
+        if (TAKE_STATS) {
+            System.out.print("BlendingOrder:");
+            for (EditWindow.LayerColor lc: blendingOrder) {
+                int alpha = (int)((1 - lc.inverseAlpha) * 100 + 0.5);
+                System.out.print(" " + lc.layer.getName() + ":" + alpha);
+            }
+            System.out.println();
+        }
+        alphaBlender.init(User.getColorBackground(), blendingOrder, layerBits);
+        
+        int width = offscreen.sz.width;
+        int height = offscreen.sz.height, clipLY = 0, clipHY = height - 1;
+        int numIntsPerRow = offscreen.numIntsPerRow;
+        int baseByteIndex = 0;
+        int y = 0;
+        while (y < height) {
+            int h = Math.min(Drawing.SMALL_IMG_HEIGHT, height - y);
+            int baseIndex = 0;
+            for (int k = 0; k < h; k++) {
+                alphaBlender.composeLine(baseByteIndex, 0, width - 1, smallOpaqueData, baseIndex);
+                baseByteIndex += numIntsPerRow;
+                baseIndex += width;
+            }
+            g.drawImage(smallImg, imgX, imgY + y, null);
+            y += h;
+        }
+        
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        for (RenderTextInfo textInfo: offscreen.renderTextList) {
+            textInfo.offX += imgX;
+            textInfo.offY += imgY;
+            textInfo.draw(g);
+        }
+//        needComposite = true;
+//        layerRasters = new HashMap<Layer,TransparentRaster>(offscreen.layerRasters);
+//        greekText = offscreen.greekTextList.toArray(new GreekTextInfo[offscreen.greekTextList.size()]);
+//        crossText = offscreen.crossTextList.toArray(new CrossTextInfo[offscreen.crossTextList.size()]);
+//        renderText = offscreen.renderTextList.toArray(new RenderTextInfo[offscreen.renderTextList.size()]);
+    }
+    
+    private static List<EditWindow.LayerColor> getBlendingOrder(Set<Layer> layersAvailable) {
+        boolean alphaBlendingOvercolor = true;
+        ArrayList<EditWindow.LayerColor> layerColors = new ArrayList<EditWindow.LayerColor>();
+        ArrayList<Layer> sortedLayers = new ArrayList<Layer>(layersAvailable);
+        Collections.sort(sortedLayers, Technology.LAYERS_BY_HEIGHT_LIFT_CONTACTS);
+        float[] backgroundComps = (new Color(User.getColorBackground())).getRGBColorComponents(null);
+        float bRed = backgroundComps[0];
+        float bGreen = backgroundComps[1];
+        float bBlue = backgroundComps[2];
+        for(Layer layer : sortedLayers) {
+            Color color = new Color(layer.getGraphics().getRGB());
+            float[] compArray = color.getRGBComponents(null);
+            float red = compArray[0];
+            float green = compArray[1];
+            float blue = compArray[2];
+            float opacity = 0.7f;
+            float inverseAlpha = 1 - opacity;
+            if (alphaBlendingOvercolor) {
+                red -= bRed*inverseAlpha;
+                green -= bGreen*inverseAlpha;
+                blue -= bBlue*inverseAlpha;
+            } else {
+                red *= opacity;
+                green *= opacity;
+                blue *= opacity;
+            }
+            layerColors.add(new LayerColor(layer, red, green, blue, inverseAlpha));
+        }
+        return layerColors;
     }
     
     // ************************************* TOP LEVEL *************************************
@@ -2356,14 +2478,6 @@ class LayerDrawing
                         drawDisc(tempPt1, tempPt2, raster);
                         break;
                 }
-                
-            } else if (vb instanceof VectorCache.VectorCircle) {
-                discCount++;
-                VectorCache.VectorCircle vci = (VectorCache.VectorCircle)vb;
-                gridToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
-                gridToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
-                assert vci.nature == 2;
-                
                 
             } else if (vb instanceof VectorCache.VectorCircleArc) {
                 arcCount++;

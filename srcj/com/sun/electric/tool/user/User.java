@@ -2241,6 +2241,19 @@ public class User extends Listener
 	 */
 	public static void setPatternedScaleLimit(double l) { cachePatternedScaleLimit.setDouble(l); }
 
+	private static Pref cacheLegacyComposite = Pref.makeBooleanPref("LegacyComposite", tool.prefs, false);
+	/**
+	 * Method to tell whether to use lagacy composite in LayerDrawing.
+	 * The default is false, meaning that use (overcolor) alpha blending.
+	 * @return true to use lagacy composite in LayerDrawing.
+	 */
+	public static boolean isLegacyComposite() { return cacheLegacyComposite.getBoolean(); }
+	/**
+	 * Method to set whether to use lagacy composite in LayerDrawing.
+	 * @param on true to use lagacy composite in LayerDrawing.
+	 */
+	public static void setLegacyComposite(boolean on) { cacheLegacyComposite.setBoolean(on); }
+    
 	private static Pref cacheAlphaBlendingLimit = Pref.makeDoublePref("AlphaBlendingLimit", tool.prefs, 0.6);
 	/**
 	 * Method to tell the scale of EditWindow when use overcolor in alpha blending color composite.

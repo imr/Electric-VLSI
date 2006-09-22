@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.GenMath.MutableDouble;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
@@ -49,7 +48,7 @@ import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -213,6 +212,47 @@ class VectorDrawing
 		}
 	}
 
+	/**
+	 * Main entry point for drawing a tech menu entry.
+     * @param offscreen offscreen buffer
+     * @param scale edit window scale
+     * @param offset the offset factor for this window
+     * @param shapes shapes of tech menu
+	 */
+	public void render(PixelDrawing offscreen, double scale, Point2D offset, VectorCache.VectorBase[] shapes)
+	{
+		// set colors to use
+		textGraphics.setColor(new Color(User.getColorText()));
+		textColor = new Color(User.getColorText() & 0xFFFFFF);
+
+		// see if any layers are being highlighted/dimmed
+		this.offscreen = offscreen;
+
+		// set size limit
+		Dimension sz = offscreen.getSize();
+		this.scale = (float)scale;
+        scale_ = (float)(scale/DBMath.GRID);
+
+		// draw recursively
+		szHalfWidth = sz.width / 2;
+		szHalfHeight = sz.height / 2;
+		screenLX = 0;   screenHX = sz.width;
+		screenLY = 0;   screenHY = sz.height;
+		factorX = (float)(offset.getX()*DBMath.GRID - szHalfWidth/scale_);
+		factorY = (float)(offset.getY()*DBMath.GRID + szHalfHeight/scale_);
+        factorX_ = (int)factorX;
+        factorY_ = (int)factorY;
+        scale_int = (int)(scale_ * (1 << SCALE_SH));
+
+		// draw the screen, starting with the top cell
+		try
+		{
+            List<VectorCache.VectorBase> shapeList = Arrays.asList(shapes);
+            drawList(0, 0, shapeList, 0);
+		} catch (AbortRenderingException e)
+		{
+		}
+	}
 
 	/**
 	 * Class to define a signal to abort rendering.

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+BUG: (9/22/06, DN) Drawing in the TechPalette doesn't match the actual primitives in the EditWindow (Bug #1213).
+FIX: TechPalette.drawShapes uses either VectorDrawing or LayerDrawing depending on preferences.
+
 IMP: (9/21/06, SMR) Added copyright notices.
 
 BUG: (9/21/06, GVG) Null Exception in Color Pattern dialog after unselecting highlighted object (Bug#1230).

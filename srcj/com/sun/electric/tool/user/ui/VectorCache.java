@@ -33,6 +33,7 @@ import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -495,6 +496,12 @@ public class VectorCache {
             updateBounds();
 		}
         
+        // Constructor for TechPalette
+        private VectorCell() {
+            vcg = null;
+            orient = null;
+        }
+        
         private void init(Cell cell) {
             vcg.init();
             updateBounds();
@@ -549,7 +556,7 @@ public class VectorCache {
             
             valid = true;
         }
-        
+
         private void updateBounds() {
             lX = lY = Integer.MAX_VALUE;
             hX = hY = Integer.MIN_VALUE;
@@ -641,6 +648,34 @@ public class VectorCache {
         }
 		return vc;
 	}
+    
+    static VectorBase[] drawNode(NodeInst ni) {
+        VectorCache cache = new VectorCache(EDatabase.clientDatabase());
+        VectorCell vc = cache.newDummyVectorCell();
+        cache.drawNode(ni, GenMath.MATID, vc);
+        
+        ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
+        allShapes.addAll(vc.filledShapes);
+        allShapes.addAll(vc.shapes);
+        allShapes.addAll(vc.topOnlyShapes);
+        Collections.sort(allShapes, shapeByLayer);
+        return allShapes.toArray(new VectorBase[allShapes.size()]);
+    }
+    
+    static VectorBase[] drawArc(ArcInst ai) {
+        VectorCache cache = new VectorCache(EDatabase.clientDatabase());
+        VectorCell vc = cache.newDummyVectorCell();
+        cache.drawArc(ai, GenMath.MATID, vc);
+        
+        ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
+        allShapes.addAll(vc.filledShapes);
+        allShapes.addAll(vc.shapes);
+        allShapes.addAll(vc.topOnlyShapes);
+        Collections.sort(allShapes, shapeByLayer);
+        return allShapes.toArray(new VectorBase[allShapes.size()]);
+    }
+    
+    private VectorCell newDummyVectorCell() { return new VectorCell(); }
     
 	/**
 	 * Method to insert a manhattan rectangle into the vector cache for a Cell.
@@ -937,15 +972,6 @@ public class VectorCache {
      */
 	private void drawArc(ArcInst ai, AffineTransform trans, VectorCell vc)
 	{
-		// if the arc is tiny, just approximate it with a single dot
-		Rectangle2D arcBounds = ai.getBounds();
-
-        // see if the arc is completely clipped from the screen
-        Rectangle2D dbBounds = new Rectangle2D.Double(arcBounds.getX(), arcBounds.getY(), arcBounds.getWidth(), arcBounds.getHeight());
-        Poly p = new Poly(dbBounds);
-        p.transform(trans);
-        dbBounds = p.getBounds2D();
-
 		// draw the arc
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
@@ -1010,7 +1036,7 @@ public class VectorCache {
                 int layerIndex = -1;
 				if (layer != null)
 				{
-                    if (layer.getTechnology() == vc.vcg.cellBackup.d.tech)
+                    if (vc.vcg != null && layer.getTechnology() == vc.vcg.cellBackup.d.tech)
                         layerIndex = layer.getIndex();
 					Layer.Function fun = layer.getFunction();
 					if (!pureLayer && (fun.isImplant() || fun.isSubstrate()))

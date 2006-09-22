@@ -295,7 +295,6 @@ class PixelDrawing
     /** Set of changed cells. */                            private static final HashSet<CellId> changedCells = new HashSet<CellId>();
 	/** scale of cell expansions. */						private static double expandedScale = 0;
 	/** number of extra cells to render this time */		private static int numberToReconcile;
-	/** TextDescriptor for empty window text. */			private static TextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
     private static Color textColor;
 	private static EGraphics textGraphics = new EGraphics(false, false, null, 0, 0,0,0, 1.0,true,
@@ -1122,7 +1121,7 @@ class PixelDrawing
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
 	 * @param context the VarContext to this node in the hierarchy.
      */
-	public void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, Cell topCell, Rectangle2D drawLimitBounds,
+	private void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, Cell topCell, Rectangle2D drawLimitBounds,
 		boolean fullInstantiate, boolean forceVisible, VarContext context)
 	{
 		NodeProto np = ni.getProto();
@@ -1307,7 +1306,7 @@ class PixelDrawing
      * @param trans the transformation of the ArcInst to the display.
      * @param forceVisible true to ignore layer visibility and draw all layers.
      */
-	public void drawArc(ArcInst ai, AffineTransform trans, boolean forceVisible)
+	private void drawArc(ArcInst ai, AffineTransform trans, boolean forceVisible)
 	{
 		// if the arc is tiny, just approximate it with a single dot
 		Rectangle2D arcBounds = ai.getBounds();
@@ -2859,19 +2858,6 @@ class PixelDrawing
 	}
 
 	// ************************************* TEXT DRAWING *************************************
-
-    /**
-     * Method to draw a text on the off-screen buffer with default values
-     * @param s
-     */
-    public void drawText(String s, Rectangle rect)
-    {
-        if (noCellTextDescriptor == null)
-            noCellTextDescriptor = TextDescriptor.EMPTY.withAbsSize(18).withBold(true);
-        textColor = new Color(User.getColorText());
-		textGraphics.setColor(textColor);
-        drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, s, null, textGraphics, false);
-    }
 
 	/**
 	 * Method to draw a text on the off-screen buffer
