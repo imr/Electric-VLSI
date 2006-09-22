@@ -969,7 +969,6 @@ public class XMLRules implements DRCRules {
                     addRule(index, theRule);
                 break;
             case SPACING:
-//            case SPACINGW:
             case CONSPA:
             case UCONSPA:
             case UCONSPA2D:
