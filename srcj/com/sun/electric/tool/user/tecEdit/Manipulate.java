@@ -2323,7 +2323,88 @@ public class Manipulate
 		}
 	}
 
-	/**
+    static class DocColumn
+    {
+        List<String> elements;
+        String header;
+        int maxWid = 0;
+
+        DocColumn(String header, int numE)
+        {
+            this.header = header;
+            this.maxWid = header.length();
+            elements = new ArrayList<String>(numE);
+        }
+        void add(String el)
+        {
+            elements.add(el);
+            int len = el.length();
+            if (maxWid < len) maxWid = len;
+        }
+        private String getColumn(String s)
+        {
+            StringBuffer val = new StringBuffer(s);
+            val.ensureCapacity(maxWid);
+            int fillS = val.length();
+            for (int i = fillS; i < maxWid+2; i++) // add 2 extra spaces for better formatting
+                val.append(" "); // add the remaind spaces
+            return val.toString();
+        }
+        String getUnderlying()
+        {
+            StringBuffer s = new StringBuffer();
+            s.ensureCapacity(maxWid);
+            for (int i = 0; i < maxWid; i++)
+                s.append("-");
+            s.append("  "); // two extra spaces
+            return s.toString();
+        }
+        String getHeader()
+        {
+            return getColumn(header);
+        }
+        String get(int pos)
+        {
+            if (pos >= elements.size())
+                return "";
+            return getColumn(elements.get(pos));
+        }
+
+        static void printColumns(DocColumn[] cols, String title)
+        {
+            // print headers
+            StringBuffer header = new StringBuffer();
+            StringBuffer under = new StringBuffer();
+            int totalNumEls = 0;
+
+            for (DocColumn col : cols)
+            {
+                header.append(col.getHeader());
+                under.append(col.getUnderlying());
+                int numEls = col.elements.size();
+                if (numEls > totalNumEls) totalNumEls = numEls;
+            }
+            int numLine = header.length();
+            int stars = (numLine - title.length() - 4) / 2;
+            for(int i=0; i<stars; i++) System.out.print("*");
+            System.out.print(" " + title + " ");
+            for(int i=0; i<stars; i++) System.out.print("*");
+            System.out.println();
+
+            System.out.println(header.toString());
+            System.out.println(under.toString());
+
+            for (int i = 0; i < totalNumEls; i++)
+            {
+                for (DocColumn col : cols)
+                    System.out.print(col.get(i));
+                System.out.println();
+            }
+            System.out.println();
+        }
+    }
+
+    /**
 	 * Method to print detailled information about a given technology.
 	 * @param tech the technology to describe.
 	 */
@@ -2333,100 +2414,7 @@ public class Manipulate
 
         // allocate space for all layer fields
 		int layerCount = tech.getNumLayers();
-		String [] layerNames = new String[layerCount+1];
-		String [] layerColors = new String[layerCount+1];
-		String [] layerStyles = new String[layerCount+1];
-		String [] layerCifs = new String[layerCount+1];
-		String [] layerGdss = new String[layerCount+1];
-		String [] layerFuncs = new String[layerCount+1];
-		String [] layerCoverage = new String[layerCount+1];
-
-		// load the header
-		layerNames[0] = "Layer";
-		layerColors[0] = "Color";
-		layerStyles[0] = "Style";
-		layerCifs[0] = "CIF";
-		layerGdss[0] = "GDS";
-		layerFuncs[0] = "Function";
-		layerCoverage[0] = "Coverage";
-
         Foundry foundry = tech.getSelectedFoundry();
-
-		// compute each layer
-		for(int i=0; i<layerCount; i++)
-		{
-			Layer layer = tech.getLayer(i);
-			layerNames[i+1] = layer.getName();
-
-			EGraphics gra = layer.getGraphics();
-			if (gra.getTransparentLayer() > 0)
-                layerColors[i+1] = "Transparent " + gra.getTransparentLayer();
-            else
-			{
-				Color col = gra.getColor();
-				layerColors[i+1] = "(" + col.getRed() + "," + col.getGreen() + "," + col.getBlue() + ")";
-			}
-
-			layerStyles[i+1] = "?";
-			if (gra.isPatternedOnDisplay())
-			{
-				if (gra.getOutlined() != EGraphics.Outline.NOPAT) layerStyles[i+1] = "pat/outl"; else
-					layerStyles[i+1] = "pat";
-			} else
-			{
-				layerStyles[i+1] = "solid";
-			}
-
-			layerCifs[i+1] = layer.getCIFLayer();
-//			layerGdss[i+1] = layer.getGDSLayer();
-            if (foundry != null)
-                layerGdss[i+1] = foundry.getGDSLayer(layer);
-			layerFuncs[i+1] = layer.getFunction().toString();
-			layerCoverage[i+1] = TextUtils.formatDouble(layer.getAreaCoverage());
-		}
-
-		// write the layer information
-		String [][] fields = new String[7][];
-		fields[0] = layerNames;     fields[1] = layerColors;   fields[2] = layerStyles;
-		fields[3] = layerCifs;      fields[4] = layerGdss;     fields[5] = layerFuncs;
-		fields[6] = layerCoverage;
-
-        class DocColumn
-        {
-            List<String> elements;
-            String header;
-            int maxWid = 0;
-
-            DocColumn(String header, int numE)
-            {
-                this.header = header;
-                this.maxWid = header.length();
-                elements = new ArrayList<String>(numE);
-            }
-            void add(String el)
-            {
-                elements.add(el);
-                int len = el.length();
-                if (maxWid < len) maxWid = len;
-            }
-            private String getColumn(String s)
-            {
-                StringBuffer val = new StringBuffer(s);
-                val.ensureCapacity(maxWid);
-                int fillS = val.length();
-                for (int i = fillS; i < maxWid; i++)
-                    val.append(" "); // add the remaind spaces
-                return val.toString();
-            }
-            String getHeader()
-            {
-                return getColumn(header);
-            }
-            String get(int pos)
-            {
-                return getColumn(elements.get(pos));
-            }
-        }
 
         DocColumn[] cols = new DocColumn[7];
         cols[0] = new DocColumn("Layer", layerCount);
@@ -2441,10 +2429,8 @@ public class Manipulate
         for (Iterator<Layer> it = tech.getLayers(); it.hasNext();)
         {
             Layer layer = it.next();
-
             // Name
             cols[0].add(layer.getName());
-
             // Transparency
             EGraphics gra = layer.getGraphics();
 			if (gra.getTransparentLayer() > 0)
@@ -2454,7 +2440,6 @@ public class Manipulate
 				Color col = gra.getColor();
 				cols[1].add("(" + col.getRed() + "," + col.getGreen() + "," + col.getBlue() + ")");
 			}
-
             // Style
             String tmp = "?";
             if (gra.isPatternedOnDisplay())
@@ -2468,108 +2453,84 @@ public class Manipulate
 				tmp = "solid";
 			}
             cols[2].add(tmp);
-
             // CIF
             cols[3].add(layer.getCIFLayer());
-
             // GDS
             cols[4].add((foundry != null)?foundry.getGDSLayer(layer):"");
-
             // Function
             cols[5].add(layer.getFunction().toString());
-
             // Coverage
             cols[6].add(TextUtils.formatDouble(layer.getAreaCoverage()));
         }
 
-//        System.out.println("LAYERS IN " + tech.getTechName().toUpperCase());
-//        // print headers
-//        for (DocColumn col : cols)
-//        {
-//            System.out.print(col.getHeader());
-//        }
-//        System.out.println();
-//        for (int i = 0; i < layerCount; i++)
-//        {
-//            for (DocColumn col : cols)
-//                System.out.print(col.get(i));
-//        }
-//        System.out.println();
-//        System.out.println("----------");
-        dumpFields(fields, layerCount+1, "LAYERS IN " + tech.getTechName().toUpperCase());
+        DocColumn.printColumns(cols, "LAYERS IN " + tech.getTechName().toUpperCase());
+        //dumpFields(fields, layerCount+1, "LAYERS IN " + tech.getTechName().toUpperCase());
 
 		// ****************************** dump arcs ******************************
+        cols = new DocColumn[8];
+        int numArcs = tech.getNumArcs();
+        cols[0] = new DocColumn("Arc", numArcs);
+        cols[1] = new DocColumn("Layer", numArcs);
+        cols[2] = new DocColumn("Size", numArcs);
+        cols[3] = new DocColumn("Extend", numArcs);
+        cols[4] = new DocColumn("Angle", numArcs);
+        cols[5] = new DocColumn("Wipes", numArcs);
+        cols[6] = new DocColumn("Function", numArcs);
+        cols[7] = new DocColumn("Antenna", numArcs);
 
-		// allocate space for all arc fields
-		int tot = 1;
-		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
+        for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
 			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
 			Poly [] polys = tech.getShapeOfArc(ai);
-			tot += polys.length;
-		}
-		String [] arcNames = new String[tot];
-		String [] arcLayers = new String[tot];
-		String [] arcLayerSizes = new String[tot];
-		String [] arcExtensions = new String[tot];
-		String [] arcAngles = new String[tot];
-		String [] arcWipes = new String[tot];
-		String [] arcFuncs = new String[tot];
-		String [] arcAntennas = new String[tot];
 
-		// load the header
-		arcNames[0] = "Arc";
-		arcLayers[0] = "Layer";
-		arcLayerSizes[0] = "Size";
-		arcExtensions[0] = "Extend";
-		arcAngles[0] = "Angle";
-		arcWipes[0] = "Wipes";
-		arcFuncs[0] = "Function";
-		arcAntennas[0] = "Antenna";
-
-		tot = 1;
-		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = it.next();
-			arcNames[tot] = ap.getName();
-			arcExtensions[tot] = (ap.isExtended() ? "yes" : "no");
-			arcAngles[tot] = "" + ap.getAngleIncrement();
-			arcWipes[tot] = (ap.isWipable() ? "yes" : "no");
-			arcFuncs[tot] = ap.getFunction().toString();
-			arcAntennas[tot] = TextUtils.formatDouble(ERC.getERCTool().getAntennaRatio(ap));
-
-			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
-			Poly [] polys = tech.getShapeOfArc(ai);
-			for(int k=0; k<polys.length; k++)
+            for(int k=0; k<polys.length; k++)
 			{
-				Poly poly = polys[k];
-				arcLayers[tot] = poly.getLayer().getName();
+                String name = "", extend = "", increment = "", wipe = "", func = "", antenna = "";
+                if (k == 0) // first time only
+                {
+                    // Arc name
+                    name = ap.getName();
+                    // Extended
+                    extend = ap.isExtended() ? "yes" : "no";
+                    // Increment
+                    increment = String.valueOf(ap.getAngleIncrement());
+                    // Wipable
+                    wipe = ap.isWipable() ? "yes" : "no";
+                    // Function
+                    func = ap.getFunction().toString();
+                    // Antenna
+                    antenna = TextUtils.formatDouble(ERC.getERCTool().getAntennaRatio(ap));
+                }
+
+                // Arc name
+                cols[0].add(name);
+                // Extended
+                cols[3].add(extend);
+                // Increment
+                cols[4].add(increment);
+                // Wipable
+                cols[5].add(wipe);
+                // Function
+                cols[6].add(func);
+                // Antenna
+                cols[7].add(antenna);
+
+                Poly poly = polys[k];
+                // Layer name
+                cols[1].add(poly.getLayer().getName());
 				Rectangle2D bounds = poly.getBounds2D();
 				double width = Math.min(bounds.getWidth(), bounds.getHeight());
-				arcLayerSizes[tot] = TextUtils.formatDouble(width);
-				if (k > 0)
-				{
-					arcNames[tot] = "";
-					arcExtensions[tot] = "";
-					arcAngles[tot] = "";
-					arcWipes[tot] = "";
-					arcFuncs[tot] = "";
-				}
-				tot++;
+                cols[2].add(TextUtils.formatDouble(width));
 			}
 		}
 
-		// write the arc information
-		fields = new String[8][];
-		fields[0] = arcNames;        fields[1] = arcLayers;    fields[2] = arcLayerSizes;
-		fields[3] = arcExtensions;   fields[4] = arcAngles;    fields[5] = arcWipes;
-		fields[6] = arcFuncs;        fields[7] = arcAntennas;
-		dumpFields(fields, tot, "ARCS IN " + tech.getTechName().toUpperCase());
+        DocColumn.printColumns(cols, "ARCS IN " + tech.getTechName().toUpperCase());
+//        dumpFields(fields, tot, "ARCS IN " + tech.getTechName().toUpperCase());
 
 		// ****************************** dump nodes ******************************
 
-		// allocate space for all node fields
+        // allocate space for all node fields
 		int total = 1;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
@@ -2599,7 +2560,111 @@ public class Manipulate
 		String [] nodePortAngles = new String[total];
 		String [] nodeConnections = new String[total];
 
-		// load the header
+        cols = new DocColumn[8];
+        int numNodes = tech.getNumNodes();
+        cols[0] = new DocColumn("Node", numNodes);
+        cols[1] = new DocColumn("Function", numNodes);
+        cols[2] = new DocColumn("Layers", numNodes);
+        cols[3] = new DocColumn("Size", numNodes);
+        cols[4] = new DocColumn("Ports", numNodes);
+        cols[5] = new DocColumn("Size", numNodes);
+        cols[6] = new DocColumn("Angle", numNodes);
+        cols[7] = new DocColumn("Connections", numNodes);
+
+        for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
+        {
+            PrimitiveNode np = it.next();
+            if (np.isNotUsed()) continue; // not need of reporting it. Valid when foundry is not Mosis in 180nm,
+
+
+            NodeInst ni = NodeInst.makeDummyInstance(np);
+            Poly [] polys = tech.getShapeOfNode(ni);
+
+            for(int k=0; k<polys.length; k++)
+            {
+                Poly poly = polys[k];
+                String name = "", function = "";
+
+                if (k == 0)
+                {
+                    name = np.getName();
+                    function = np.getFunction().getName();
+                }
+                // Name
+                cols[0].add(name);
+                // Function
+                cols[1].add(function);
+                // Layer name
+                cols[2].add(poly.getLayer().getName());
+                Rectangle2D polyBounds = poly.getBounds2D();
+                // Layer Size
+                cols[3].add(TextUtils.formatDouble(polyBounds.getWidth()) + " x " +
+                    TextUtils.formatDouble(polyBounds.getHeight()));
+            }
+            int countPorts = 0, extra = 0;
+            int numLayers = polys.length;
+            for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
+            {
+                PrimitivePort pp = (PrimitivePort)pIt.next();
+
+                if (countPorts >= numLayers)
+                {
+                    // need to add empty strings to previous columns
+                    cols[0].add("");
+                    cols[1].add("");
+                    cols[2].add("");
+                    cols[3].add("");
+                }
+                // Port Name
+                cols[4].add(pp.getName());
+                Poly portPoly = ni.getShapeOfPort(pp);
+                Rectangle2D portRect = portPoly.getBounds2D();
+                // Port Size
+                cols[5].add(TextUtils.formatDouble(portRect.getWidth()) + " x " +
+                    TextUtils.formatDouble(portRect.getHeight()));
+                // Port Angle
+                cols[6].add((pp.getAngleRange() == 180) ? "" : String.valueOf(pp.getAngle()));
+
+                int m = 0;
+                ArcProto [] conList = pp.getConnections();
+                for(ArcProto proto : conList)
+                {
+                    if (proto.getTechnology() != tech) continue;
+
+                    if (m > countPorts)
+                    {
+                        // adding empty strings to previous columns
+                        if (m >= numLayers)
+                        {
+                            cols[0].add("");
+                            cols[1].add("");
+                            cols[2].add("");
+                            cols[3].add("");
+                        }
+                        cols[4].add("");
+                        cols[5].add("");
+                        cols[6].add("");
+                        extra++;
+                    }
+
+                    // Connection
+                    cols[7].add(proto.getName());
+                    m++;
+                }
+                if (m == 0)
+                    cols[7].add("<NONE>");
+                countPorts++;
+            }
+            for (int i = (countPorts+extra); i < numLayers; i++)
+            {
+                cols[4].add("");
+                cols[5].add("");
+                cols[6].add("");
+                cols[7].add("");
+            }
+        }
+
+        // load the header
 		nodeNames[0] = "Node";
 		nodeFuncs[0] = "Function";
 		nodeLayers[0] = "Layers";
@@ -2609,7 +2674,7 @@ public class Manipulate
 		nodePortAngles[0] = "Angle";
 		nodeConnections[0] = "Connections";
 
-		tot = 1;
+		int tot = 1;
 		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = it.next();
@@ -2683,11 +2748,12 @@ public class Manipulate
 		}
 
 		// write the node information */
-		fields = new String[8][];
+		String[][]fields = new String[8][];
 		fields[0] = nodeNames;        fields[1] = nodeFuncs;       fields[2] = nodeLayers;
 		fields[3] = nodeLayerSizes;   fields[4] = nodePorts;       fields[5] = nodePortSizes;
 		fields[6] = nodePortAngles;   fields[7] = nodeConnections;
-		dumpFields(fields, tot, "NODES IN " + tech.getTechName().toUpperCase());
+//        DocColumn.printColumns(cols, "NODES IN " + tech.getTechName().toUpperCase());
+        dumpFields(fields, tot, "NODES IN " + tech.getTechName().toUpperCase());
 	}
 
 	private static void dumpFields(String [][] fields, int length, String title)
