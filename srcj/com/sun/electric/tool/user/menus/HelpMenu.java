@@ -41,10 +41,8 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.waveform.WaveSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
-import javax.swing.*;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.awt.event.KeyEvent;
 
 /**
  * Class to handle the commands in the "Help" pulldown menu.
@@ -68,7 +66,7 @@ public class HelpMenu {
                 ManualViewer.userManualRussianCommand(); }} : null,
 
             new EMenuItem("Show _Key Bindings") { public void run() {
-                MenuCommands.menuBar().keyBindingManager.printKeyBindings();; }},
+                MenuCommands.menuBar().keyBindingManager.printKeyBindings(); }},
 
         // mnemonic keys available:  BCDEFGHIJK MNOPQRSTUVWXYZ
             new EMenu("_3D Showcase",
@@ -116,7 +114,7 @@ public class HelpMenu {
 	{
 		if (Library.findLibrary(libName) != null) return;
 		URL url = LibFile.getLibFile(libName + ".jelib");
-		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null, null);
+		new FileMenu.ReadLibrary(url, FileType.JELIB, null, null);
 	}
     
 	// ---------------------- Help Menu additions -----------------
@@ -127,10 +125,10 @@ public class HelpMenu {
         try
         {
             Class makeFakeCircuitry = Class.forName("com.sun.electric.plugins.tests.MakeFakeCircuitry");
-            Method makeMethod = makeFakeCircuitry.getDeclaredMethod("makeFakeCircuitryCommand", new Class[] {String.class, String.class, Boolean.class});
-            makeMethod.invoke(null, new Object[] {"noname", tech, new Boolean(asJob)});
+            Method makeMethod = makeFakeCircuitry.getDeclaredMethod("makeFakeCircuitryCommand", String.class, String.class, Boolean.class);
+            makeMethod.invoke(null, "noname", tech, asJob); // varargs + autoboxing
         }
-        catch (Exception ex) {};
+        catch (Exception ex) {}
     }
 
 	/**
@@ -170,7 +168,7 @@ public class HelpMenu {
 			for(int j=0; j<(i+1)*3; j++)
 			{
 				AnalogSignal as = (AnalogSignal)an.getSignals().get(j);
-				WaveSignal wsig = new WaveSignal(wp, as);
+				new WaveSignal(wp, as);
 			}
 		}
 	}
@@ -220,7 +218,7 @@ public class HelpMenu {
         final double timeStep = 0.0000000001;
 		for(int i=0; i<6; i++)
 		{
-			AnalogSignal as = new IntervalAnalogSignal(an, timeStep, i);
+			new IntervalAnalogSignal(an, timeStep, i);
 		}
 		sd.setCell(null);
 
@@ -240,7 +238,7 @@ public class HelpMenu {
 			for(int j=0; j<=i; j++)
 			{
 				AnalogSignal as = (AnalogSignal)an.getSignals().get(k++);
-				WaveSignal wsig = new WaveSignal(wp, as);
+				new WaveSignal(wp, as);
 			}
 		}
 	}
