@@ -294,7 +294,8 @@ public class EvalJavaBsh
             targetErrorClass = Class.forName("bsh.TargetError");
         } catch (ClassNotFoundException e)
         {
-            System.out.println("GNU Release can't find the Bean Shell: " + e.getMessage());
+            if (Job.getDebug())
+            	System.out.println("GNU Release can't find the Bean Shell: " + e.getMessage());
             interpreterClass = null;
             return;
         }
