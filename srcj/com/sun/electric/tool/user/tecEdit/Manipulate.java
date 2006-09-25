@@ -26,9 +26,7 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.CellId;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
@@ -60,11 +58,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -2463,6 +2457,7 @@ public class Manipulate
             cols[6].add(TextUtils.formatDouble(layer.getAreaCoverage()));
         }
 
+        // write the layer information */
         DocColumn.printColumns(cols, "LAYERS IN " + tech.getTechName().toUpperCase());
         //dumpFields(fields, layerCount+1, "LAYERS IN " + tech.getTechName().toUpperCase());
 
@@ -2525,47 +2520,17 @@ public class Manipulate
 			}
 		}
 
+        // write the arc information */
         DocColumn.printColumns(cols, "ARCS IN " + tech.getTechName().toUpperCase());
 //        dumpFields(fields, tot, "ARCS IN " + tech.getTechName().toUpperCase());
 
 		// ****************************** dump nodes ******************************
-
-        // allocate space for all node fields
-		int total = 1;
-		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = it.next();
-            if (np.isNotUsed()) continue; // not need of reporting it. Valid when foundry is not Mosis in 180nm,
-            NodeInst ni = NodeInst.makeDummyInstance(np);
-			Poly [] polys = tech.getShapeOfNode(ni);
-			int l = 0;
-			for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
-			{
-				PrimitivePort pp = (PrimitivePort)pIt.next();
-				int m = 0;
-				ArcProto [] apArray = pp.getConnections();
-				for(int k=0; k<apArray.length; k++)
-					if (apArray[k].getTechnology() == tech) m++;
-				if (m == 0) m = 1;
-				l += m;
-			}
-			total += Math.max(polys.length, l);
-		}
-		String [] nodeNames = new String[total];
-		String [] nodeFuncs = new String[total];
-		String[] nodeLayers = new String[total];
-		String [] nodeLayerSizes = new String[total];
-		String [] nodePorts = new String[total];
-		String [] nodePortSizes = new String[total];
-		String [] nodePortAngles = new String[total];
-		String [] nodeConnections = new String[total];
-
         cols = new DocColumn[8];
         int numNodes = tech.getNumNodes();
         cols[0] = new DocColumn("Node", numNodes);
         cols[1] = new DocColumn("Function", numNodes);
         cols[2] = new DocColumn("Layers", numNodes);
-        cols[3] = new DocColumn("Size", numNodes);
+        cols[3] = new DocColumn("Size (#instances)", numNodes);
         cols[4] = new DocColumn("Ports", numNodes);
         cols[5] = new DocColumn("Size", numNodes);
         cols[6] = new DocColumn("Angle", numNodes);
@@ -2576,45 +2541,75 @@ public class Manipulate
             PrimitiveNode np = it.next();
             if (np.isNotUsed()) continue; // not need of reporting it. Valid when foundry is not Mosis in 180nm,
 
-
             NodeInst ni = NodeInst.makeDummyInstance(np);
             Poly [] polys = tech.getShapeOfNode(ni);
 
-            for(int k=0; k<polys.length; k++)
-            {
-                Poly poly = polys[k];
-                String name = "", function = "";
+            Map<Layer, List<Poly>> map = new HashMap<Layer,List<Poly>>();
 
-                if (k == 0)
+            for (Poly p : polys)
+            {
+                List<Poly> list = map.get(p.getLayer());
+                if (list == null)
                 {
-                    name = np.getName();
-                    function = np.getFunction().getName();
+                    list = new ArrayList<Poly>(1);
+                    map.put(p.getLayer(), list);
                 }
-                // Name
-                cols[0].add(name);
-                // Function
-                cols[1].add(function);
-                // Layer name
-                cols[2].add(poly.getLayer().getName());
-                Rectangle2D polyBounds = poly.getBounds2D();
-                // Layer Size
-                cols[3].add(TextUtils.formatDouble(polyBounds.getWidth()) + " x " +
-                    TextUtils.formatDouble(polyBounds.getHeight()));
+                list.add(p);
+            }
+
+            boolean firstTime = true;
+            int numLayers = 0;
+            for (Layer layer : map.keySet())
+//            for(int k=0; k<polys.length; k++)
+            {
+                Set<Rectangle2D> set = new HashSet<Rectangle2D>();
+                List<Poly> list = map.get(layer);
+                for (Poly p : list)
+                {
+                    Rectangle2D bound = p.getBounds2D();
+                    ERectangle size = new ERectangle(0, 0, bound.getWidth(), bound.getHeight());
+                    set.add(size);
+                }
+                // only if all are identical
+                int size = list.size();
+                boolean allIdentical = set.size() == 1;
+                if (allIdentical)
+                {
+                    Poly p = list.get(0);
+                    list.clear();
+                    list.add(p); // leaves only 1
+                }
+                for (Poly poly : list)
+                {
+                    String name = "", function = "";
+
+                    if (firstTime)
+                    {
+                        firstTime = false;
+                        name = np.getName();
+                        function = np.getFunction().getName();
+                    }
+                    // Name
+                    cols[0].add(name);
+                    // Function
+                    cols[1].add(function);
+                    // Layer name
+                    cols[2].add(poly.getLayer().getName());
+                    Rectangle2D polyBounds = poly.getBounds2D();
+                    // Layer Size
+                    String sizeLabel = TextUtils.formatDouble(polyBounds.getWidth()) + " x " +
+                        TextUtils.formatDouble(polyBounds.getHeight());
+                    if (allIdentical && size > 1)
+                        sizeLabel += " ("+size+")";
+                    cols[3].add(sizeLabel);
+                    numLayers++;
+                }
             }
             int countPorts = 0, extra = 0;
-            int numLayers = polys.length;
             for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
             {
                 PrimitivePort pp = (PrimitivePort)pIt.next();
 
-                if (countPorts >= numLayers)
-                {
-                    // need to add empty strings to previous columns
-                    cols[0].add("");
-                    cols[1].add("");
-                    cols[2].add("");
-                    cols[3].add("");
-                }
                 // Port Name
                 cols[4].add(pp.getName());
                 Poly portPoly = ni.getShapeOfPort(pp);
@@ -2631,10 +2626,10 @@ public class Manipulate
                 {
                     if (proto.getTechnology() != tech) continue;
 
-                    if (m > countPorts)
+                    if (m > 0)
                     {
                         // adding empty strings to previous columns
-                        if (m >= numLayers)
+                        if ((countPorts+extra+m) >= numLayers)
                         {
                             cols[0].add("");
                             cols[1].add("");
@@ -2664,149 +2659,10 @@ public class Manipulate
             }
         }
 
-        // load the header
-		nodeNames[0] = "Node";
-		nodeFuncs[0] = "Function";
-		nodeLayers[0] = "Layers";
-		nodeLayerSizes[0] = "Size";
-		nodePorts[0] = "Ports";
-		nodePortSizes[0] = "Size";
-		nodePortAngles[0] = "Angle";
-		nodeConnections[0] = "Connections";
-
-		int tot = 1;
-		for(Iterator<PrimitiveNode> it = tech.getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = it.next();
-            if (np.isNotUsed()) continue; // not need of reporting it. Valid when foundry is not Mosis in 180nm,
-            int base = tot;
-			nodeNames[tot] = np.getName();
-			nodeFuncs[tot] = np.getFunction().getName();
-
-			NodeInst ni = NodeInst.makeDummyInstance(np);
-			Poly [] polys = tech.getShapeOfNode(ni);
-			for(int k=0; k<polys.length; k++)
-			{
-				Poly poly = polys[k];
-				if (tot >= total)
-				{
-					System.out.println("ARRAY OVERFLOW: LIMIT IS " + total);
-					break;
-				}
-				nodeLayers[tot] = poly.getLayer().getName();
-				Rectangle2D polyBounds = poly.getBounds2D();
-				nodeLayerSizes[tot] = TextUtils.formatDouble(polyBounds.getWidth()) + " x " +
-					TextUtils.formatDouble(polyBounds.getHeight());
-				if (k > 0)
-				{
-					nodeNames[tot] = "";
-					nodeFuncs[tot] = "";
-				}
-				tot++;
-			}
-			for(Iterator<PortProto> pIt = np.getPorts(); pIt.hasNext(); )
-			{
-				PrimitivePort pp = (PrimitivePort)pIt.next();
-				nodePorts[base] = pp.getName();
-				Poly portPoly = ni.getShapeOfPort(pp);
-				Rectangle2D portRect = portPoly.getBounds2D();
-				nodePortSizes[base] = TextUtils.formatDouble(portRect.getWidth()) + " x " +
-					TextUtils.formatDouble(portRect.getHeight());
-				if (pp.getAngleRange() == 180) nodePortAngles[base] = ""; else
-					nodePortAngles[base] = "" + pp.getAngle();
-				int m = 0;
-				ArcProto [] conList = pp.getConnections();
-				for(int k=0; k<conList.length; k++)
-				{
-					if (conList[k].getTechnology() != tech) continue;
-					nodeConnections[base] = conList[k].getName();
-					if (m != 0)
-					{
-						nodePorts[base] = "";
-						nodePortSizes[base] = "";
-						nodePortAngles[base] = "";
-					}
-					m++;
-					base++;
-				}
-				if (m == 0) nodeConnections[base++] = "<NONE>";
-			}
-			for( ; base < tot; base++)
-			{
-				nodePorts[base] = "";
-				nodePortSizes[base] = "";
-				nodePortAngles[base] = "";
-				nodeConnections[base] = "";
-			}
-			for( ; tot < base; tot++)
-			{
-				nodeNames[tot] = "";
-				nodeFuncs[tot] = "";
-				nodeLayers[tot] = "";
-				nodeLayerSizes[tot] = "";
-			}
-		}
-
 		// write the node information */
-		String[][]fields = new String[8][];
-		fields[0] = nodeNames;        fields[1] = nodeFuncs;       fields[2] = nodeLayers;
-		fields[3] = nodeLayerSizes;   fields[4] = nodePorts;       fields[5] = nodePortSizes;
-		fields[6] = nodePortAngles;   fields[7] = nodeConnections;
-//        DocColumn.printColumns(cols, "NODES IN " + tech.getTechName().toUpperCase());
-        dumpFields(fields, tot, "NODES IN " + tech.getTechName().toUpperCase());
-	}
-
-	private static void dumpFields(String [][] fields, int length, String title)
-	{
-		int totWid = 0;
-		int [] widths = new int[fields.length];
-		for(int i=0; i<fields.length; i++)
-		{
-			widths[i] = 0;
-			for(int j=0; j<length; j++)
-			{
-				if (fields[i][j] == null) continue;
-				int len = fields[i][j].length();
-				if (len > widths[i]) widths[i] = len;
-			}
-			widths[i] += 2;
-			totWid += widths[i];
-		}
-
-		int stars = (totWid - title.length() - 4) / 2;
-		for(int i=0; i<stars; i++) System.out.print("*");
-		System.out.print(" " + title + " ");
-		for(int i=0; i<stars; i++) System.out.print("*");
-		System.out.println();
-
-		for(int j=0; j<length; j++)
-		{
-			for(int i=0; i<fields.length; i++)
-			{
-				int len = 0;
-				if (fields[i][j] != null)
-				{
-					System.out.print(fields[i][j]);
-					len = fields[i][j].length();
-				}
-				if (i == fields.length-1) continue;
-				for(int k=len; k<widths[i]; k++) System.out.print(" ");
-			}
-			System.out.println();
-
-			if (j == 0)
-			{
-				// underline the header
-				for(int i=0; i<fields.length; i++)
-				{
-					for(int k=2; k<widths[i]; k++) System.out.print("-");
-					System.out.print("  ");
-				}
-				System.out.println();
-			}
-		}
-		System.out.println();
-	}
+        DocColumn.printColumns(cols, "NODES IN " + tech.getTechName().toUpperCase());
+//        dumpFields(fields, tot, "NODES IN " + tech.getTechName().toUpperCase());
+    }
 
 //	/**
 //	 * the entry Method for all technology editing
