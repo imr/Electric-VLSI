@@ -310,7 +310,7 @@
         <property name="version" value=""/>
     </target>
 
-    <target name="jar" depends="init,compileTests" description="Make binary Jar file">
+    <target name="jar" depends="clean,init,compileTests" description="Make binary Jar file">
 	    <antcall target="unjarNoGNU"></antcall>
         <unjar dest="." src="${AppleJava}"/>
         <unjar dest="." src="${JUnit}"/>
