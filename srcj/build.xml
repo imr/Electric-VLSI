@@ -234,7 +234,8 @@
         	<arg value="-v"/>
         </java>
         <jar basedir="." compress="true" jarfile="electricPIE-${version}.jar">
-        	<include name="com/sun/electric/plugins/pie/*.*"/>
+        	<include name="com/sun/electric/plugins/pie/*"/>
+        	<include name="com/sun/electric/plugins/pie/*/*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
 	</target>
