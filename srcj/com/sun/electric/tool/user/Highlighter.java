@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -33,9 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -44,10 +42,12 @@ import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.routing.Router;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -90,11 +90,11 @@ public class Highlighter implements DatabaseChangeListener {
 
     /** List of HighlightListeners */                           private static Set<HighlightListener> highlightListeners = new HashSet<HighlightListener>();
 
-    /** the selection highlighter type */       public static final int SELECT_HIGHLIGHTER = 0;
-    /** the mouse over highlighter type */      public static final int MOUSEOVER_HIGHLIGHTER = 1;
-    /** the "measurement" highlighter type */   public static final int RULER_HIGHLIGHTER = 2;
+    /** the selection highlighter type */       				public static final int SELECT_HIGHLIGHTER = 0;
+    /** the mouse over highlighter type */      				public static final int MOUSEOVER_HIGHLIGHTER = 1;
+    /** the "measurement" highlighter type */   				public static final int RULER_HIGHLIGHTER = 2;
 
-    public static final int EXACTSELECTDISTANCE = 5;
+    /** the max pixel distance that's acceptable selection */	public static final int EXACTSELECTDISTANCE = 5;
 
     /**
      * Create a new Highlighter object
@@ -118,7 +118,8 @@ public class Highlighter implements DatabaseChangeListener {
     /**
      * Destructor
      */
-    public void delete() {
+    public void delete()
+    {
         UserInterfaceMain.removeDatabaseChangeListener(this);
     }
 
@@ -365,10 +366,13 @@ public class Highlighter implements DatabaseChangeListener {
 	public void finished()
 	{
         // only do something if highlights changed
-        synchronized(this) {
+        synchronized(this)
+        {
             // check to see if any highlights are now invalid
-            for (Highlight2 h : getHighlights()) {
-                if (!h.isValid()) {
+            for (Highlight2 h : getHighlights())
+            {
+                if (!h.isValid())
+                {
                     // remove
                     remove(h); // we can do this because iterator is iterating over copy
                     changed = true;
@@ -402,11 +406,14 @@ public class Highlighter implements DatabaseChangeListener {
 		    if (foundArcProto != null && !mixedArc) User.getUserTool().setCurrentArcProto(foundArcProto);
 
         // notify all listeners that highlights have changed (changes committed).
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(new Runnable() {
+        if (!SwingUtilities.isEventDispatchThread())
+        {
+            SwingUtilities.invokeLater(new Runnable()
+            {
                 public void run() { fireHighlightChanged(); }
             });
-        } else {
+        } else
+        {
             fireHighlightChanged();
         }
 	}
@@ -490,6 +497,9 @@ public class Highlighter implements DatabaseChangeListener {
 		}
 	}
 
+	/**
+	 * Class to temporarily "flash" a selection that is otherwise hard to see.
+	 */
 	private static class FlashActionListener implements ActionListener
 	{
 		private Highlighter hl;
@@ -522,8 +532,9 @@ public class Highlighter implements DatabaseChangeListener {
      * @param underCursor a list of Highlights underCursor.
      * @return the last object that was selected
      */
-    private synchronized Highlight2 getLastSelected(List<Highlight2> underCursor) {
-        List<Highlight2> currentHighlights = getHighlights();               // not that this is a copy
+    private synchronized Highlight2 getLastSelected(List<Highlight2> underCursor)
+    {
+        List<Highlight2> currentHighlights = getHighlights();	// not that this is a copy
 
         // check underCursor list
         for (Highlight2 h : underCursor) {
@@ -553,6 +564,7 @@ public class Highlighter implements DatabaseChangeListener {
             Highlight2 copy = (Highlight2)h.clone();
             addHighlight(copy);
         }
+
         // don't inherit offset, messes up mouse over highlighter
         //highOffX = highlighter.highOffX;
         //highOffY = highlighter.highOffY;
@@ -572,7 +584,6 @@ public class Highlighter implements DatabaseChangeListener {
         }
 
         List<Highlight2> list = highlightList; //getHighlights();
-//        long start = System.currentTimeMillis();
 
         Color colorH = new Color(User.getColorHighlight());
         Color colorM = new Color(User.getColorMouseOverHighlight());
@@ -603,17 +614,20 @@ public class Highlighter implements DatabaseChangeListener {
 	public WindowFrame getWindowFrame() { return wf; }
 
     /** Add a Highlight listener */
-    public static synchronized void addHighlightListener(HighlightListener l) {
+    public static synchronized void addHighlightListener(HighlightListener l)
+    {
         highlightListeners.add(l);
     }
 
     /** Remove a Highlight listener */
-    public static synchronized void removeHighlightListener(HighlightListener l) {
+    public static synchronized void removeHighlightListener(HighlightListener l)
+    {
         highlightListeners.remove(l);
     }
 
     /** Notify listeners that highlights have changed */
-    private void fireHighlightChanged() {
+    private void fireHighlightChanged()
+    {
     	if (type == SELECT_HIGHLIGHTER)
     	{
 	        List<HighlightListener> listenersCopy;
@@ -630,7 +644,8 @@ public class Highlighter implements DatabaseChangeListener {
     }
 
     /** Notify listeners that the current Highlighter has changed */
-    private synchronized void fireHighlighterLostFocus(Highlighter highlighterGainedFocus) {
+    private synchronized void fireHighlighterLostFocus(Highlighter highlighterGainedFocus)
+    {
     	if (type == SELECT_HIGHLIGHTER)
     	{
 	        List<HighlightListener> listenersCopy;
@@ -732,7 +747,8 @@ public class Highlighter implements DatabaseChangeListener {
      * Removes a Highlight object from the current set of highlights.
      * @param h the Highlight to remove
      */
-    public synchronized void remove(Highlight2 h) {
+    public synchronized void remove(Highlight2 h)
+    {
         highlightList.remove(h);
     }
 
@@ -1039,45 +1055,64 @@ public class Highlighter implements DatabaseChangeListener {
 	}
 
     /**
-	 * Method to convert the Variable to a series of points that describes the text.
+	 * Method to describe an object/variable-key pair.
+	 * @param wnd the EditWindow in which the object/variable-key is displayed.
+	 * @param eObj the object.
+	 * @param varKey the variable-key.
+	 * @param bounds gets filled with the bounds of the text on the screen (in object space).
+	 * @return the style of the text (null on error).
+	 */
+	private static Poly.Type getHighlightTextStyleBounds(EditWindow wnd, ElectricObject eObj, Variable.Key varKey, Rectangle2D bounds)
+	{
+        Poly poly = eObj.computeTextPoly(wnd, varKey);
+        if (poly == null) return null;
+        bounds.setRect(poly.getBounds2D());
+        Poly.Type style = poly.getStyle();
+		if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTBOX)
+		{
+            style = Poly.rotateType(style, eObj);
+			TextDescriptor td = poly.getTextDescriptor();
+			if (td != null)
+			{
+				int rotation = td.getRotation().getIndex();
+				if (rotation != 0)
+				{
+					int angle = style.getTextAngle();
+					style = Poly.Type.getTextTypeFromAngle((angle+900*rotation) % 3600);
+				}
+			}
+		}
+        if (style == Poly.Type.TEXTBOX && (eObj instanceof Geometric))
+        {
+            bounds.setRect(((Geometric)eObj).getBounds());
+        }
+        return style;
+	}
+
+    /**
+	 * Method to describe an object/variable-key pair as a set of points to draw.
+	 * @param wnd the EditWindow in which the object/variable-key is displayed.
+	 * @param eObj the object.
+	 * @param varKey the variable-key.
+	 * @return the set of points to draw, two points per line.
+	 * Returns null on error.
 	 */
 	public static Point2D [] describeHighlightText(EditWindow wnd, ElectricObject eObj, Variable.Key varKey)
 	{
+		Rectangle2D bounds = new Rectangle2D.Double();
+		Poly.Type style = null;
         if (!Job.acquireExamineLock(false)) return null;
-        Poly.Type style = null;
-        Point2D[] points = null;
-        Rectangle2D bounds = null;
-        try {
-            Poly poly = eObj.computeTextPoly(wnd, varKey);
-            if (poly == null) {
-                Job.releaseExamineLock();
-                return null;
-            }
-            bounds = poly.getBounds2D();
-            style = poly.getStyle();
-			if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTBOX)
-			{
-	            style = Poly.rotateType(style, eObj);
-				TextDescriptor td = poly.getTextDescriptor();
-				if (td != null)
-				{
-					int rotation = td.getRotation().getIndex();
-					if (rotation != 0)
-					{
-						int angle = style.getTextAngle();
-						style = Poly.Type.getTextTypeFromAngle((angle+900*rotation) % 3600);
-					}
-				}
-			}
-            if (style == Poly.Type.TEXTBOX && (eObj instanceof Geometric))
-            {
-                bounds = ((Geometric)eObj).getBounds();
-            }
+        try
+        {
+    		style = getHighlightTextStyleBounds(wnd, eObj, varKey, bounds);
             Job.releaseExamineLock();
-        } catch (Error e) {
+        } catch (Error e)
+        {
             Job.releaseExamineLock();
             throw e;
         }
+		if (style == null) return null;  
+        Point2D[] points = null;
         if (style == Poly.Type.TEXTCENT)
         {
             points = new Point2D.Double[4];
@@ -1226,7 +1261,6 @@ public class Highlighter implements DatabaseChangeListener {
         Highlight2 lastSelected = getLastSelected(underCursor);
 
         if (lastSelected != null) {
-            //printHighlightList(underCursor);
             // sort under cursor by relevance to lastSelected. first object is most relevant.
             List<Highlight2> newUnderCursor = new ArrayList<Highlight2>();
             while (!underCursor.isEmpty()) {
@@ -1296,15 +1330,7 @@ public class Highlighter implements DatabaseChangeListener {
 		return found;
 	}
 
-//    private void printHighlightList(List<Highlight> highs) {
-//        int i = 0;
-//        for (Highlight h : highs) {
-//            System.out.println("highlight "+i+": "+h.getElectricObject());
-//            i++;
-//        }
-//    }
-
-    /**
+	/**
 	 * Method to search a Cell for all objects at a point.
 	 * @param cell the cell to search.
 	 * @param exclusively true if the currently selected object must remain selected.
@@ -1326,23 +1352,24 @@ public class Highlighter implements DatabaseChangeListener {
 	{
 		// make a list of things under the cursor
 		List<Highlight2> list = new ArrayList<Highlight2>();
-		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
-
-		// this is the distance from an object that is necessary for a "direct hit"
-		double directHitDist = Double.MIN_VALUE;
-		if (wnd != null)
-		{
-			Point2D extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
-			directHitDist = Math.abs(extra.getX()); // + 0.4;
-		}
-
         if (!Job.acquireExamineLock(false)) return list;
 
-        try {
-            // look for text if a window was given
+        try
+        {
+    		// this is the distance from an object that is necessary for a "direct hit"
+    		double directHitDist = Double.MIN_VALUE;
+    		if (wnd != null)
+    		{
+    			Point2D extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
+    			directHitDist = Math.abs(extra.getX()); // + 0.4;
+    		}
+
+    		// look for text if a window was given
             if (findText && wnd != null)
             {
-                // start by examining all text on this Cell
+        		Rectangle2D textBounds = new Rectangle2D.Double();
+
+        		// start by examining all text on this Cell
                 if (User.isTextVisibilityOnCell())
                 {
                     Poly [] polys = cell.getAllText(findSpecial, wnd);
@@ -1354,18 +1381,9 @@ public class Highlighter implements DatabaseChangeListener {
                             if (poly == null) continue;
                             if (poly.setExactTextBounds(wnd, cell)) continue;
 
-                            // ignore areaMustEnclose if bounds is size 0,0
-                            if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-                            {
-                                if (!poly.isInside(bounds)) continue;
-                            } else
-                            {
-                                if (poly.polyDistance(bounds) >= directHitDist) continue;
-                            }
-                            HighlightText h = new HighlightText(cell, cell, poly.getDisplayedText().getVariableKey());
-//                            Highlight h = new Highlight(Highlight.Type.TEXT, cell, cell);
-//                            h.setVar(poly.getVariable());
-                            list.add(h);
+                            textBounds.setRect(poly.getBounds2D());
+                    		if (boundsIsHit(textBounds, bounds, directHitDist))
+                    			list.add(new HighlightText(cell, cell, poly.getDisplayedText().getVariableKey()));
                         }
                     }
                 }
@@ -1379,78 +1397,169 @@ public class Highlighter implements DatabaseChangeListener {
                         System.out.println("Something is wrong in Highlighter:findAllInArea");
                         continue;
                     }
-                    AffineTransform trans = ni.rotateOut();
-                    EditWindow subWnd = wnd;
-                    Poly [] polys = ni.getAllText(findSpecial, wnd);
-                    if (polys == null) continue;
-                    for(int i=0; i<polys.length; i++)
-                    {
-                        Poly poly = polys[i];
-                        if (poly == null) continue;
 
-                        // "transform" used to follow "setExactTextBounds"
-                        poly.transform(trans);
-                        if (poly.setExactTextBounds(wnd, ni)) continue;
-//						poly.transform(trans);
+            		// check out node text
+                	if (User.isTextVisibilityOnNode())
+                	{
+                    	// first see if cell name text is selectable
+                		if (ni.isCellInstance() && !ni.isExpanded() && findSpecial && User.isTextVisibilityOnInstance())
+                		{
+                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_PROTO, textBounds);
+                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+	                			list.add(new HighlightText(ni, cell, NodeInst.NODE_PROTO));
+                		}
 
-                        // ignore areaMustEnclose if bounds is size 0,0
-                        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-                        {
-                            if (!poly.isInside(bounds)) continue;
-                        } else
-                        {
-                            double hitdist = poly.polyDistance(bounds);
-                            if (hitdist >= directHitDist) continue;
-                        }
-                        ElectricObject obj = ni;
-                        if (poly.getPort() != null)
-                        {
-                            PortProto pp = poly.getPort();
-							if (pp instanceof Export)
-                               obj = (Export)pp;
-                            for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
-                            {
-                                PortInst pi = pIt.next();
-                                if (pi.getPortProto() == pp)
-                                {
-                                    obj = pi;
-                                    break;
-                                }
-                            }
-                        }
-                        HighlightText h = new HighlightText(obj, cell, poly.getDisplayedText().getVariableKey());
-                        list.add(h);
-                    }
+                		// now see if node is named
+                		if (ni.isUsernamed())
+                		{
+                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, NodeInst.NODE_NAME, textBounds);
+                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+	                			list.add(new HighlightText(ni, cell, NodeInst.NODE_NAME));
+                		}
+
+                		// look at all variables on the node
+                		if (ni.getProto() != Generic.tech.invisiblePinNode || User.isTextVisibilityOnAnnotation())
+                		{
+	                		for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+	                    	{
+	                    		Variable var = vIt.next();
+	                    		if (!var.isDisplay()) continue;
+	                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ni, var.getKey(), textBounds);
+	                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+		                    		list.add(new HighlightText(ni, cell, var.getKey()));
+	                    	}
+                		}
+
+                		// look at variables on ports on the node
+                		if (User.isTextVisibilityOnPort())
+                		{
+	                		for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
+	                		{
+	                			PortInst pi = pIt.next();
+		                		for(Iterator<Variable> vIt = pi.getVariables(); vIt.hasNext(); )
+		                    	{
+		                    		Variable var = vIt.next();
+		                    		if (!var.isDisplay()) continue;
+		                    		Poly.Type style = getHighlightTextStyleBounds(wnd, pi, var.getKey(), textBounds);
+		                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+		                    			list.add(new HighlightText(pi, cell, var.getKey()));
+		                    	}
+	                		}
+                		}
+                	}
+
+            		// add export text
+            		if (User.isTextVisibilityOnExport())
+            		{
+            			for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
+            			{
+            				Export pp = eIt.next();
+                    		Poly.Type style = getHighlightTextStyleBounds(wnd, pp, Export.EXPORT_NAME, textBounds);
+                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+	                    		list.add(new HighlightText(pp, cell, Export.EXPORT_NAME));
+
+            				// add in variables on the exports
+                    		for(Iterator<Variable> vIt = pp.getVariables(); vIt.hasNext(); )
+                        	{
+                        		Variable var = vIt.next();
+                        		if (!var.isDisplay()) continue;
+                        		style = getHighlightTextStyleBounds(wnd, pp, var.getKey(), textBounds);
+                        		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+	                        		list.add(new HighlightText(pp, cell, var.getKey()));
+                        	}
+                		}
+            		}
+// 					the old way to find node text
+//                  AffineTransform trans = ni.rotateOut();
+//                  EditWindow subWnd = wnd;
+//                  Poly [] polys = ni.getAllText(findSpecial, wnd);
+//                  if (polys == null) continue;
+//                  for(int i=0; i<polys.length; i++)
+//                  {
+//                      Poly poly = polys[i];
+//                      if (poly == null) continue;
+//
+//                      // "transform" used to follow "setExactTextBounds"
+//                      poly.transform(trans);
+//                      if (poly.setExactTextBounds(wnd, ni)) continue;
+//
+//                      // ignore areaMustEnclose if bounds is size 0,0
+//                      if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
+//                      {
+//                          if (!poly.isInside(bounds)) continue;
+//                      } else
+//                      {
+//                          double hitdist = poly.polyDistance(bounds);
+//                          if (hitdist >= directHitDist) continue;
+//                      }
+//                      ElectricObject obj = ni;
+//                      if (poly.getPort() != null)
+//                      {
+//                          PortProto pp = poly.getPort();
+//							if (pp instanceof Export)
+//                            obj = (Export)pp;
+//                          for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
+//                          {
+//                              PortInst pi = pIt.next();
+//                              if (pi.getPortProto() == pp)
+//                              {
+//                                  obj = pi;
+//                                  break;
+//                              }
+//                          }
+//                      }
+//                      HighlightText h = new HighlightText(obj, cell, poly.getDisplayedText().getVariableKey());
+//                      list.add(h);
+//                  }
                 }
 
                 // next examine all text on arcs in the cell
-                for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+                if (User.isTextVisibilityOnArc())
                 {
-                    ArcInst ai = it.next();
-                    if (User.isTextVisibilityOnArc())
-                    {
-                        Poly [] polys = ai.getAllText(findSpecial, wnd);
-                        if (polys == null) continue;
-                        for(int i=0; i<polys.length; i++)
-                        {
-                            Poly poly = polys[i];
-                            if (poly.setExactTextBounds(wnd, ai)) continue;
+	                for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+	                {
+	                    ArcInst ai = it.next();
 
-                            // ignore areaMustEnclose if bounds is size 0,0
-                            if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-                            {
-                                if (!poly.isInside(bounds)) continue;
-                            } else
-                            {
-                                if (poly.polyDistance(bounds) >= directHitDist) continue;
-                            }
-                            HighlightText h = new HighlightText(ai, cell, poly.getDisplayedText().getVariableKey());
-                            list.add(h);
-                        }
+	                    // now see if arc is named
+                		if (ai.isUsernamed())
+                		{
+                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ai, ArcInst.ARC_NAME, textBounds);
+                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+	                			list.add(new HighlightText(ai, cell, ArcInst.ARC_NAME));
+                		}
+
+                		// look at all variables on the arc
+                		for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+                    	{
+                    		Variable var = vIt.next();
+                    		if (!var.isDisplay()) continue;
+                    		Poly.Type style = getHighlightTextStyleBounds(wnd, ai, var.getKey(), textBounds);
+                    		if (style != null && boundsIsHit(textBounds, bounds, directHitDist))
+	                    		list.add(new HighlightText(ai, cell, var.getKey()));
+                    	}
+//     					the old way to find arc text
+//                      Poly [] polys = ai.getAllText(findSpecial, wnd);
+//                      if (polys == null) continue;
+//                      for(int i=0; i<polys.length; i++)
+//                      {
+//                          Poly poly = polys[i];
+//                          if (poly.setExactTextBounds(wnd, ai)) continue;
+//
+//                          // ignore areaMustEnclose if bounds is size 0,0
+//                          if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
+//                          {
+//                              if (!poly.isInside(bounds)) continue;
+//                          } else
+//                          {
+//                              if (poly.polyDistance(bounds) >= directHitDist) continue;
+//                          }
+//                          list.add(new HighlightText(ai, cell, poly.getDisplayedText().getVariableKey()));
+//                      }
                     }
                 }
             }
 
+    		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
             if (exclusively)
             {
                 // special case: only review what is already highlighted
@@ -1476,9 +1585,6 @@ public class Highlighter implements DatabaseChangeListener {
             // now do 3 phases of examination: cells, arcs, then primitive nodes
             for(int phase=0; phase<3; phase++)
             {
-                // ignore cells if requested
-//                if (phase == 0 && !findSpecial && !User.isEasySelectionOfCellInstances()) continue;
-
                 // examine everything in the area
                 for(Iterator<Geometric> it = cell.searchIterator(searchArea); it.hasNext(); )
                 {
@@ -1515,7 +1621,36 @@ public class Highlighter implements DatabaseChangeListener {
         return list;
 	}
 
-    /**
+	/**
+	 * Method to see if a bound is within a given distance of a selection.
+	 * @param bounds the bounds being tested.
+	 * @param selection the selection area/point.
+	 * @param directHitDist the required distance.
+	 * @return true if the bound is close enough to the selection.
+	 */
+	private static boolean boundsIsHit(Rectangle2D bounds, Rectangle2D selection, double directHitDist)
+	{
+		// ignore areaMustEnclose if bounds is size 0,0
+		boolean areaMustEnclose = User.isDraggingMustEncloseObjects();
+	    if (areaMustEnclose && (selection.getHeight() > 0 || selection.getWidth() > 0))
+	    {
+	    	if (bounds.getMaxX() > selection.getMaxX()) return false;
+	    	if (bounds.getMinX() < selection.getMinX()) return false;
+	    	if (bounds.getMaxY() > selection.getMaxY()) return false;
+	    	if (bounds.getMinY() < selection.getMinY()) return false;
+	    } else
+	    {
+	    	double dist1 = selection.getMinX() - bounds.getMaxX();
+	    	double dist2 = bounds.getMinX() - selection.getMaxX();
+	    	double dist3 = selection.getMinY() - bounds.getMaxY();
+	    	double dist4 = bounds.getMinY() - selection.getMaxY();
+	    	double worstDist = Math.max(Math.max(dist1, dist2), Math.max(dist3, dist4));
+	    	if (worstDist > directHitDist) return false;
+	    }
+	    return true;
+	}
+
+	/**
 	 * Method to determine whether an object is in a bounds.
 	 * @param geom the Geometric being tested for selection.
 	 * @param findPort true if a port should be selected with a NodeInst.
@@ -1557,7 +1692,6 @@ public class Highlighter implements DatabaseChangeListener {
 	        	Poly poly = Highlight2.getNodeInstOutline(ni);
 	            if (poly == null) return null;
 	   			if (!poly.isInside(bounds)) return null;
-//				return new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
                 return new HighlightEOBJ(geom, geom.getParent(), true, -1);
 			}
 
@@ -1567,7 +1701,6 @@ public class Highlighter implements DatabaseChangeListener {
 			// direct hit
 			if (dist <= directHitDist)
 			{
-//				Highlight h = new Highlight(Highlight.Type.EOBJ, null, geom.getParent());
                 HighlightEOBJ h = new HighlightEOBJ(null, geom.getParent(), true, -1);
 				ElectricObject eobj = geom;
 
@@ -1635,7 +1768,6 @@ public class Highlighter implements DatabaseChangeListener {
 	        	Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
 	            if (poly == null) return null;
 	   			if (!poly.isInside(bounds)) return null;
-//				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
                 Highlight2 h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
 				return h;
 			}
@@ -1646,7 +1778,6 @@ public class Highlighter implements DatabaseChangeListener {
 			// direct hit
 			if (dist <= directHitDist)
 			{
-//				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
                 Highlight2 h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
 				return h;
 			}
@@ -1673,8 +1804,10 @@ public class Highlighter implements DatabaseChangeListener {
                 sameTypes.add(h);
             }
         }
+
         // if only one, just return it
         if (sameTypes.size() == 1) return sameTypes.get(0);
+
         // if none of same type, just return first in list of all highlights
         if (sameTypes.size() == 0) return highlights.get(0);
 
@@ -1687,6 +1820,7 @@ public class Highlighter implements DatabaseChangeListener {
                 if (h.getElectricObject().getClass() == exampleHigh.getElectricObject().getClass())
                     sameEObj.add(h);
             }
+
             // if only one of same object, return it
             if (sameEObj.size() == 1) return sameEObj.get(0);
 
@@ -1784,14 +1918,6 @@ public class Highlighter implements DatabaseChangeListener {
 					Layer.Function lf = layer.getFunction();
 					if (!lf.isPoly() && !lf.isDiff()) continue;
 					poly.transform(trans);
-                    // ignore areaMustEnclose if bounds is size 0,0
-//					if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-//					{
-//						if (!poly.isInside(bounds)) continue;
-//					} else
-//					{
-//						if (poly.polyDistance(bounds) >= directHitDist) continue;
-//					}
 					double dist = poly.polyDistance(bounds);
 					if (dist < bestDist) bestDist = dist;
 				}
@@ -1875,15 +2001,4 @@ public class Highlighter implements DatabaseChangeListener {
         // see if anything we care about changed
         finished();
     }
-
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         // see if anything we care about changed
-//         finished();
-//     }
-
-//     public void databaseChanged(Undo.Change evt) {}
-
-//     public boolean isGUIListener() {
-//         return true;
-//     }
 }

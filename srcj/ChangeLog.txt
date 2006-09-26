@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+BUG: (9/26/06, SMR) Rotated nodes with text on them select badly (Bug #1202).
+FIX: In Highlighter.findAllInArea(), use same code to select as to display.
+
 IMP: (9/25/06, GVG) Reporting number of layer instances whose geometries are identical in Document Current Technology.
 Using DocColumn class to handle the printing on standard output.
 

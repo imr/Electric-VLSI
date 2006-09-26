@@ -933,14 +933,12 @@ public class Clipboard
 					// special case for displayable text on invisible pins
 					if (ni.isInvisiblePinWithText())
 					{
-						Poly [] polys = ni.getAllText(false, wnd);
-						if (polys == null) continue;
-						for(int i=0; i<polys.length; i++)
-						{
-							Poly poly = polys[i];
-							if (poly == null) continue;
-							Highlight2 h = highlighter.addText(ni, cell, poly.getDisplayedText().getVariableKey());
-						}
+                		for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+                    	{
+                    		Variable var = vIt.next();
+                    		if (!var.isDisplay()) continue;
+							Highlight2 h = highlighter.addText(ni, cell, var.getKey());
+                    	}
 						continue;
 					}
 				}

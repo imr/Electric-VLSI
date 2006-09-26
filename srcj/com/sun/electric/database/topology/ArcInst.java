@@ -821,21 +821,21 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		return poly;
 	}
 
-	/**
-	 * Method to return a list of Polys that describes all text on this ArcInst.
-	 * @param hardToSelect is true if considering hard-to-select text.
-	 * @param wnd the window in which the text will be drawn.
-	 * @return an array of Polys that describes the text.
-	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd)
-	{
-		int dispVars = numDisplayableVariables(false);
-		int totalText = dispVars;
-		if (totalText == 0) return null;
-		Poly [] polys = new Poly[totalText];
-		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
-		return polys;
-	}
+//	/**
+//	 * Method to return a list of Polys that describes all text on this ArcInst.
+//	 * @param hardToSelect is true if considering hard-to-select text.
+//	 * @param wnd the window in which the text will be drawn.
+//	 * @return an array of Polys that describes the text.
+//	 */
+//	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd)
+//	{
+//		int dispVars = numDisplayableVariables(false);
+//		int totalText = dispVars;
+//		if (totalText == 0) return null;
+//		Poly [] polys = new Poly[totalText];
+//		addDisplayableVariables(getBounds(), polys, 0, wnd, false);
+//		return polys;
+//	}
 
 	/**
 	 * Method to return the number of displayable Variables on this ArcInst.

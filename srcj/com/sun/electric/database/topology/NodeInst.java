@@ -1266,93 +1266,93 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		d.computeBounds(this, visBounds);
 	}
 
-	/**
-	 * Method to return a list of Polys that describes all text on this NodeInst.
-	 * @param hardToSelect is true if considering hard-to-select text.
-	 * @param wnd the window in which the text will be drawn.
-	 * @return an array of Polys that describes the text.
-	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd)
-	{
-		int cellInstanceNameText = 0;
-		if (protoType instanceof Cell && !isExpanded() && hardToSelect) cellInstanceNameText = 1;
-		if (!User.isTextVisibilityOnInstance()) cellInstanceNameText = 0;
-		int dispVars = numDisplayableVariables(false);
-		int numExports = 0;
-		int numExportVariables = 0;
-		if (User.isTextVisibilityOnExport())
-		{
-			numExports = getNumExports();
-			for(Iterator<Export> it = getExports(); it.hasNext(); )
-			{
-				Export pp = it.next();
-				numExportVariables += pp.numDisplayableVariables(false);
-			}
-		}
-		if (protoType == Generic.tech.invisiblePinNode &&
-			!User.isTextVisibilityOnAnnotation())
-		{
-			dispVars = numExports = numExportVariables = 0;
-		}
-		if (!User.isTextVisibilityOnNode())
-		{
-			cellInstanceNameText = dispVars = numExports = numExportVariables = 0;
-		}
-		int totalText = cellInstanceNameText + dispVars + numExports + numExportVariables;
-		if (totalText == 0) return null;
-		Poly [] polys = new Poly[totalText];
-		int start = 0;
-
-		// add in the cell name if appropriate
-		if (cellInstanceNameText != 0)
-		{
-			double cX = getTrueCenterX();
-			double cY = getTrueCenterY();
-			TextDescriptor td = getTextDescriptor(NodeInst.NODE_PROTO);
-			double offX = td.getXOff();
-			double offY = td.getYOff();
-			TextDescriptor.Position pos = td.getPos();
-			Poly.Type style = pos.getPolyType();
-			Point2D [] pointList = new Point2D.Double[1];
-			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
-			polys[start] = new Poly(pointList);
-			polys[start].setStyle(style);
-			polys[start].setString(getProto().describe(false));
-			polys[start].setTextDescriptor(td);
-			polys[start].setDisplayedText(new DisplayedText(this, NODE_PROTO));
-			start++;
-		}
-
-		// add in the exports
-		if (numExports > 0)
-		{
-			AffineTransform unTrans = rotateIn();
-			for(Iterator<Export> it = getExports(); it.hasNext(); )
-			{
-				Export pp = it.next();
-				polys[start] = pp.getNamePoly();
-				polys[start].transform(unTrans);
-				start++;
-
-				// add in variables on the exports
-				Poly poly = pp.getOriginalPort().getPoly();
-				int numadded = pp.addDisplayableVariables(poly.getBounds2D(), polys, start, wnd, false);
-				for(int i=0; i<numadded; i++)
-				{
-					polys[start+i].setPort(pp);
-					polys[start+i].transform(unTrans);
-				}
-				start += numadded;
-			}
-		}
-
-		// add in the displayable variables
-		if (dispVars > 0)
-		{
-			addDisplayableVariables(getUntransformedBounds(), polys, start, wnd, false);
-		}
-		return polys;
-	}
+//	/**
+//	 * Method to return a list of Polys that describes all text on this NodeInst.
+//	 * @param hardToSelect is true if considering hard-to-select text.
+//	 * @param wnd the window in which the text will be drawn.
+//	 * @return an array of Polys that describes the text.
+//	 */
+//	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd)
+//	{
+//		int cellInstanceNameText = 0;
+//		if (protoType instanceof Cell && !isExpanded() && hardToSelect) cellInstanceNameText = 1;
+//		if (!User.isTextVisibilityOnInstance()) cellInstanceNameText = 0;
+//		int dispVars = numDisplayableVariables(false);
+//		int numExports = 0;
+//		int numExportVariables = 0;
+//		if (User.isTextVisibilityOnExport())
+//		{
+//			numExports = getNumExports();
+//			for(Iterator<Export> it = getExports(); it.hasNext(); )
+//			{
+//				Export pp = it.next();
+//				numExportVariables += pp.numDisplayableVariables(false);
+//			}
+//		}
+//		if (protoType == Generic.tech.invisiblePinNode &&
+//			!User.isTextVisibilityOnAnnotation())
+//		{
+//			dispVars = numExports = numExportVariables = 0;
+//		}
+//		if (!User.isTextVisibilityOnNode())
+//		{
+//			cellInstanceNameText = dispVars = numExports = numExportVariables = 0;
+//		}
+//		int totalText = cellInstanceNameText + dispVars + numExports + numExportVariables;
+//		if (totalText == 0) return null;
+//		Poly [] polys = new Poly[totalText];
+//		int start = 0;
+//
+//		// add in the cell name if appropriate
+//		if (cellInstanceNameText != 0)
+//		{
+//			double cX = getTrueCenterX();
+//			double cY = getTrueCenterY();
+//			TextDescriptor td = getTextDescriptor(NodeInst.NODE_PROTO);
+//			double offX = td.getXOff();
+//			double offY = td.getYOff();
+//			TextDescriptor.Position pos = td.getPos();
+//			Poly.Type style = pos.getPolyType();
+//			Point2D [] pointList = new Point2D.Double[1];
+//			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
+//			polys[start] = new Poly(pointList);
+//			polys[start].setStyle(style);
+//			polys[start].setString(getProto().describe(false));
+//			polys[start].setTextDescriptor(td);
+//			polys[start].setDisplayedText(new DisplayedText(this, NODE_PROTO));
+//			start++;
+//		}
+//
+//		// add in the exports
+//		if (numExports > 0)
+//		{
+//			AffineTransform unTrans = rotateIn();
+//			for(Iterator<Export> it = getExports(); it.hasNext(); )
+//			{
+//				Export pp = it.next();
+//				polys[start] = pp.getNamePoly();
+//				polys[start].transform(unTrans);
+//				start++;
+//
+//				// add in variables on the exports
+//				Poly poly = pp.getOriginalPort().getPoly();
+//				int numadded = pp.addDisplayableVariables(poly.getBounds2D(), polys, start, wnd, false);
+//				for(int i=0; i<numadded; i++)
+//				{
+//					polys[start+i].setPort(pp);
+//					polys[start+i].transform(unTrans);
+//				}
+//				start += numadded;
+//			}
+//		}
+//
+//		// add in the displayable variables
+//		if (dispVars > 0)
+//		{
+//			addDisplayableVariables(getUntransformedBounds(), polys, start, wnd, false);
+//		}
+//		return polys;
+//	}
 
 	/**
 	 * Method to return the bounds of this NodeInst before it is transformed.
