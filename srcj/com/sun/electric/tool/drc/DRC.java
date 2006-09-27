@@ -594,8 +594,10 @@ public class DRC extends Listener
         DRCRules rules = getRules(tech);
         if (rules == null) return false;
         int index = index1; // In case of primitive nodes
-        if (index2 != -1 ) index = rules.getRuleIndex(index1, index2);
-        if (type == DRCTemplate.DRCRuleType.FORBIDDEN) index += tech.getNumLayers();
+        if (index2 != -1 )
+            index = rules.getRuleIndex(index1, index2);
+        else
+            index += tech.getNumLayers(); // Node forbidden
         return (rules.isForbiddenNode(index, type));
     }
 

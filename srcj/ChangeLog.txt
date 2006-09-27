@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+BUG: (9/27/06, GVG) Cropping of poly arcs over transistor poly not working (Bug #501)
+FIX: The order in which arcs and nodes are cropped is important.
+
+IMP: (9/27/06, GVG) Cleaning XML DRC according to memo published. One 180nm wide spacing rule fixed.
+
 IMP: (9/27/06, DN) LibId/CellId/ExportId contains "external" names. IdManager maintains
     uniqueness of these names. This will be used for reading isolated CellBackups for DELIB library/cell updates.
     Artifact: Renamed cells and cells of renamed libraries are not linked to the database. New objects are created instead.

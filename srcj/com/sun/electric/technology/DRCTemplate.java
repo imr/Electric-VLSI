@@ -104,7 +104,7 @@ public class DRCTemplate
         /** enclosed area rule */			MINENCLOSEDAREA (22),
         /** extension rule */               EXTENSION (23),
         /** forbidden rule */               FORBIDDEN (24),
-        /** layer combination rule */       COMBINATION (25),
+//        /** layer combination rule */       COMBINATION (25),
         /** extension gate rule */          EXTENSIONGATE (26),
         /** slot size rule */               SLOTSIZE (27);
 
@@ -413,9 +413,7 @@ public class DRCTemplate
                         case UCONSPA2D:
                         case CONSPA:
                         case SPACING:
-//                        case SPACINGM:
                         case SPACINGE:
-                        case COMBINATION:
                             String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
                             String wideValues = (rule.maxWidth > 0) ? (" maxW=\"" + rule.maxWidth + "\""
                                     + " minLen=\"" + rule.minLength + "\"") : "";
@@ -446,6 +444,7 @@ public class DRCTemplate
                                     + " nodeName=\"" + rule.nodeName + "\""
                                     + "/>");
                             break;
+                        case FORBIDDEN:
                         default:
                             System.out.println("Case not implemented " + rule.ruleType);
                     }

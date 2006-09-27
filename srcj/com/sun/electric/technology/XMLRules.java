@@ -957,7 +957,10 @@ public class XMLRules implements DRCRules {
                 addRule(index1, theRule);
                 break;
             case FORBIDDEN:
-                addRule(nty.getPrimNodeIndexInTech(), theRule);
+                if (nty != null) // node forbidden
+                    addRule(nty.getPrimNodeIndexInTech(), theRule);
+                else
+                    addRule(index, theRule);
                 break;
             case MINAREA:
             case MINENCLOSEDAREA:
@@ -972,7 +975,7 @@ public class XMLRules implements DRCRules {
             case CONSPA:
             case UCONSPA:
             case UCONSPA2D:
-            case COMBINATION:
+//            case COMBINATION:
                 addRule(index, theRule);
                 break;
             case CUTSURX:

@@ -836,7 +836,7 @@ public class Quick
     /**
      * Method to check which combination of OD2 layers are allowed
      * @param layer
-     * @return
+     * @return true if there is an invalid combination of OD2 layers
      */
     private boolean checkOD2Combination(Technology tech, NodeInst ni, Layer layer)
     {
@@ -855,7 +855,7 @@ public class Quick
                 {
                     Layer lay1 = e.getKey();
                     if (lay1 == layer) continue;
-                    if (DRC.isForbiddenNode(lay1.getIndex(), layer.getIndex(), DRCTemplate.DRCRuleType.COMBINATION, tech))
+                    if (DRC.isForbiddenNode(lay1.getIndex(), layer.getIndex(), DRCTemplate.DRCRuleType.FORBIDDEN, tech))
                     {
                         NodeInst node = e.getValue(); // od2Layers.get(lay1);
                         String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
@@ -1727,8 +1727,8 @@ public class Quick
 			// manhattan
 			double pdx = Math.max(trueBox2.getMinX()-trueBox1.getMaxX(), trueBox1.getMinX()-trueBox2.getMaxX());
 			double pdy = Math.max(trueBox2.getMinY()-trueBox1.getMaxY(), trueBox1.getMinY()-trueBox2.getMaxY());
-			pd = Math.max(pdx, pdy);
-			if (pdx == 0 && pdy == 0) pd = 0; // touching
+			pd = DBMath.round(Math.max(pdx, pdy));
+			if (DBMath.areEquals(pdx, 0) && DBMath.areEquals(pdy,0)) pd = 0; // touching
 			overlap = (pd < 0);
 			if (maytouch)
 			{
@@ -1742,26 +1742,39 @@ public class Quick
 			// crop out parts of any arc that is covered by an adjoining node
 			trueBox1 = new Rectangle2D.Double(trueBox1.getMinX(), trueBox1.getMinY(), trueBox1.getWidth(), trueBox1.getHeight());
 			trueBox2 = new Rectangle2D.Double(trueBox2.getMinX(), trueBox2.getMinY(), trueBox2.getWidth(), trueBox2.getHeight());
+            // first to crop arcs since node cropping crops arcs too!
+            boolean geom1IsNode = (geom1 instanceof NodeInst);
+            boolean geom2IsNode = (geom2 instanceof NodeInst);
 
-			if (geom1 instanceof NodeInst)
+            if (!geom1IsNode) // arc -> crop it first
+            {
+                if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1, overlap))
+					return errorFound;
+            }
+            if (!geom2IsNode)
+            {
+                if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2, overlap))
+					return errorFound;
+            }
+            if (geom1IsNode)
 			{
 				if (cropNodeInst((NodeInst)geom1, globalIndex1, trans1,
 				        layer2, net2, geom2, trueBox2))
 					return errorFound;
-			} else
-			{
-				if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1, overlap))
-					return errorFound;
+//			} else
+//			{
+//				if (cropArcInst((ArcInst)geom1, layer1, trans1, trueBox1, overlap))
+//					return errorFound;
 			}
 			if (geom2 instanceof NodeInst)
 			{
 				if (cropNodeInst((NodeInst)geom2, globalIndex2, trans2,
 				        layer1, net1, geom1, trueBox1))
 					return errorFound;
-			} else
-			{
-				if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2, overlap))
-					return errorFound;
+//			} else
+//			{
+//				if (cropArcInst((ArcInst)geom2, layer2, trans2, trueBox2, overlap))
+//					return errorFound;
 			}
 			poly1 = new Poly(trueBox1);
 			poly1.setStyle(Poly.Type.FILLED);
