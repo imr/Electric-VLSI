@@ -1441,34 +1441,34 @@ class HighlightText extends Highlight2
         }
     }
 
-    /**
-	 * Method to tell whether this Highlight is text that stays with its node.
-	 * The two possibilities are (1) text on invisible pins
-	 * (2) export names, when the option to move exports with their labels is requested.
-	 * @return true if this Highlight is text that should move with its node.
-	 */
-    public boolean nodeMovesWithText()
-	{
-		if (varKey != null)
-		{
-			// moving variable text
-			if (!(eobj instanceof NodeInst)) return false;
-			NodeInst ni = (NodeInst)eobj;
-			if (ni.isInvisiblePinWithText()) return true;
-		} else
-		{
-			// moving export text
-			if (!(eobj instanceof Export)) return false;
-			Export pp = (Export)eobj;
-			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech.invisiblePinNode) return true;
-			if (User.isMoveNodeWithExport()) return true;
-		}
-		return false;
-	}
+//    /**
+//	 * Method to tell whether this Highlight is text that stays with its node.
+//	 * The two possibilities are (1) text on invisible pins
+//	 * (2) export names, when the option to move exports with their labels is requested.
+//	 * @return true if this Highlight is text that should move with its node.
+//	 */
+//    public boolean nodeMovesWithText()
+//	{
+//		if (varKey != null)
+//		{
+//			// moving variable text
+//			if (!(eobj instanceof NodeInst)) return false;
+//			NodeInst ni = (NodeInst)eobj;
+//			if (ni.isInvisiblePinWithText()) return true;
+//		} else
+//		{
+//			// moving export text
+//			if (!(eobj instanceof Export)) return false;
+//			Export pp = (Export)eobj;
+//			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech.invisiblePinNode) return true;
+//			if (User.isMoveNodeWithExport()) return true;
+//		}
+//		return false;
+//	}
 
     public Geometric getGeometric()
     {
-        if (nodeMovesWithText())
+        if (DisplayedText.objectMovesWithText(eobj, varKey))
         {
             if (eobj instanceof Export) eobj = ((Export)eobj).getOriginalPort().getNodeInst();
             if (eobj instanceof Geometric) return (Geometric)eobj;

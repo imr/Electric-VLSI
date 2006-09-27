@@ -24,10 +24,10 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
+
 import java.io.Serializable;
 
 /**
@@ -44,26 +44,6 @@ public class DisplayedText implements Serializable
 		this.key = key;
 	}
 
-//	public static DisplayedText makeDisplayedExport(Export e)
-//	{
-//		return new DisplayedText(e, Export.EXPORT_NAME);
-//	}
-//
-//	public static DisplayedText makeDisplayedArcName(ArcInst ai)
-//	{
-//		return new DisplayedText(ai, ArcInst.ARC_NAME);
-//	}
-//
-//	public static DisplayedText makeDisplayedNodeName(NodeInst ni)
-//	{
-//		return new DisplayedText(ni, NodeInst.NODE_NAME);
-//	}
-
-//	public static DisplayedText makeDisplayedNodeProtoName(NodeInst ni)
-//	{
-//		return new DisplayedText(ni, NodeInst.NODE_PROTO);
-//	}
-
 	public ElectricObject getElectricObject() { return eObj; }
 
 	public Variable.Key getVariableKey() { return key; }
@@ -78,12 +58,25 @@ public class DisplayedText implements Serializable
 	 */
 	public boolean movesWithText()
 	{
+		return objectMovesWithText(eObj, key);
+	}
+
+    /**
+	 * Method to tell whether text stays with its node.
+	 * The two possibilities are (1) text on invisible pins
+	 * (2) export names, when the option to move exports with their labels is requested.
+	 * @param eObj the ElectricObject with text on it.
+	 * @param key the Variable Key of the text on the object.
+	 * @return true if the text should move with its node.
+	 */
+	public static boolean objectMovesWithText(ElectricObject eObj, Variable.Key key)
+	{
 		if (eObj instanceof NodeInst)
 		{
 			// moving variable text
 			NodeInst ni = (NodeInst)eObj;
 			if (ni.isInvisiblePinWithText()) return true;
-		} else if (eObj instanceof Export)
+		} else if (eObj instanceof Export && key == Export.EXPORT_NAME)
 		{
 			// moving export text
 			Export pp = (Export)eObj;

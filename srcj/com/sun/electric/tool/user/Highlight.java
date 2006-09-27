@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -207,7 +208,7 @@ public class Highlight
 			if (eobj instanceof Geometric) return (Geometric)eobj;
 		} else if (getType() == Highlight.Type.TEXT)
 		{
-			if (nodeMovesWithText())
+			if (DisplayedText.objectMovesWithText(eobj, varKey))
 			{
 				ElectricObject eobj = getElectricObject();
 				if (eobj instanceof Export) eobj = ((Export)eobj).getOriginalPort().getNodeInst();
@@ -492,31 +493,31 @@ public class Highlight
 		throw new UnsupportedOperationException();
 	}
 
-    /**
-	 * Method to tell whether this Highlight is text that stays with its node.
-	 * The two possibilities are (1) text on invisible pins
-	 * (2) export names, when the option to move exports with their labels is requested.
-	 * @return true if this Highlight is text that should move with its node.
-	 */
-	public boolean nodeMovesWithText()
-	{
-		if (type != Type.TEXT) return false;
-		if (varKey != null)
-		{
-			// moving variable text
-			if (!(eobj instanceof NodeInst)) return false;
-			NodeInst ni = (NodeInst)eobj;
-			if (ni.isInvisiblePinWithText()) return true;
-		} else
-		{
-			// moving export text
-			if (!(eobj instanceof Export)) return false;
-			Export pp = (Export)eobj;
-			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech.invisiblePinNode) return true;
-			if (User.isMoveNodeWithExport()) return true;
-		}
-		return false;
-	}
+//    /**
+//	 * Method to tell whether this Highlight is text that stays with its node.
+//	 * The two possibilities are (1) text on invisible pins
+//	 * (2) export names, when the option to move exports with their labels is requested.
+//	 * @return true if this Highlight is text that should move with its node.
+//	 */
+//	public boolean nodeMovesWithText()
+//	{
+//		if (type != Type.TEXT) return false;
+//		if (varKey != null)
+//		{
+//			// moving variable text
+//			if (!(eobj instanceof NodeInst)) return false;
+//			NodeInst ni = (NodeInst)eobj;
+//			if (ni.isInvisiblePinWithText()) return true;
+//		} else
+//		{
+//			// moving export text
+//			if (!(eobj instanceof Export)) return false;
+//			Export pp = (Export)eobj;
+//			if (pp.getOriginalPort().getNodeInst().getProto() == Generic.tech.invisiblePinNode) return true;
+//			if (User.isMoveNodeWithExport()) return true;
+//		}
+//		return false;
+//	}
 
     /**
 	 * Method to display this Highlight in a window.

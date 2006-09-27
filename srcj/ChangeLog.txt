@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+BUG: (9/27/06, SMR) When "Node Moves With Export" is selected, all export
+     text moves the export (Bug #1232).
+FIX: In DisplayedText.objectMovesWithText(), only test export name.
+
+BUG: (9/27/06, SMR) IRSIM "vector" and "set" commands don't work.
+FIX: In Analyzer.setIn(), add "case '1':" after "case 'h':" and add
+     "case '0':" after "case 'l':".
+
 BUG: (9/27/06, GVG) Cropping of poly arcs over transistor poly not working (Bug #501)
 FIX: The order in which arcs and nodes are cropped is important.
 
