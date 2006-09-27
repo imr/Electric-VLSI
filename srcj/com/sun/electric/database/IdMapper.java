@@ -45,10 +45,28 @@ public class IdMapper implements Serializable {
         idMapper.libIdMap.put(oldLibId, newLibId);
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
-            if (cellBackup.d.libId != oldLibId) continue;
+            if (cellBackup.d.getLibId() != oldLibId) continue;
+            CellId newCellId = newLibId.newCellId(cellBackup.d.cellId.cellName);
+            idMapper.moveCell(cellBackup, newCellId);
+        }
+        return idMapper;
+    }
+
+    public static IdMapper renameCell(Snapshot snapshot, CellId oldCellId, CellId newCellId) {
+        IdMapper idMapper = new IdMapper();
+        CellBackup cellBackup = snapshot.getCell(oldCellId);
+        idMapper.moveCell(cellBackup, newCellId);
+        return idMapper;
+    }
+
+    /**
+     * Add to this idMapper mapping from old cellBackup to new cellId together with all exports.
+     * @param cellBackup old cellBackup
+     * @param newCellId new CellId.
+     */
+    public void moveCell(CellBackup cellBackup, CellId newCellId) {
             CellId oldCellId = cellBackup.d.cellId;
-            CellId newCellId = newLibId.newCellId(null);
-            idMapper.cellIdMap.put(oldCellId, newCellId);
+            cellIdMap.put(oldCellId, newCellId);
             String[] externalIds = new String[cellBackup.exports.size()];
             for (int i = 0; i < externalIds.length; i++) {
                 ImmutableExport e = cellBackup.exports.get(i);
@@ -56,12 +74,10 @@ public class IdMapper implements Serializable {
             }
             newCellId.newExportIds(externalIds);
             for (int i = 0; i < externalIds.length; i++) {
-                idMapper.exportIdMap.put(cellBackup.exports.get(i).exportId, newCellId.findExportId(externalIds[i]));
+                exportIdMap.put(cellBackup.exports.get(i).exportId, newCellId.findExportId(externalIds[i]));
             }
-        }
-        return idMapper;
     }
-
+    
     /**
      * Get mappinmg of LibId.
      * @param key key LibId.

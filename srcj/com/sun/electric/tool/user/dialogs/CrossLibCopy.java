@@ -23,12 +23,12 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CellChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Frame;
@@ -332,6 +332,7 @@ public class CrossLibCopy extends EDialog
 		private transient CrossLibCopy dialog;
 		private boolean deleteAfter, copyRelated, copySubs, useExisting;
 		private int index;
+        private IdMapper idMapper; 
 
 		protected CrossLibraryCopyJob(List<Cell> fromCells, Library toLibrary, CrossLibCopy dialog, boolean deleteAfter,
 			boolean copyRelated, boolean copySubs, boolean useExisting)
@@ -353,12 +354,15 @@ public class CrossLibCopy extends EDialog
 		public boolean doIt() throws JobException
 		{
 			// do the copy
-			CellChangeJobs.copyRecursively(fromCells, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting);
+			idMapper = CellChangeJobs.copyRecursively(fromCells, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting);
+            fieldVariableChanged("idMapper");
 			return true;
 		}
 
         public void terminateOK()
         {
+            User.fixStaleCellReferences(idMapper);
+            
 			// reload the dialog
 			dialog.showCells(false);
 

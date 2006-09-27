@@ -808,13 +808,13 @@ public class ELIB extends LibraryFiles
 				transitive.theseAreRelated(cell, otherCell);
 		}
 
-		// link the cells
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell == null) continue;
-			cell.lowLevelLink();
-		}
+//		// link the cells
+//		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
+//		{
+//			Cell cell = nodeProtoList[cellIndex];
+//			if (cell == null) continue;
+//			cell.lowLevelLink();
+//		}
 
 		// join the cell groups
 		for (Iterator<Set<Object>> git = transitive.getSetsOfRelatives(); git.hasNext();)
@@ -1622,7 +1622,7 @@ public class ELIB extends LibraryFiles
 			if (v == null) v = View.UNKNOWN;
 			int version = readBigInteger();
 			theProtoName += ";" + version + "{" + v.getAbbreviation() + "}";
-            cell = Cell.lowLevelAllocate(lib, theProtoName);
+            cell = Cell.newInstance(lib, theProtoName);
             if (nextInCell != null)
                 nextInCellGroup.put(cell, nextInCell);
 			int creationDate = readBigInteger();
@@ -1633,7 +1633,7 @@ public class ELIB extends LibraryFiles
 		{
 			// versions 8 and earlier read a cell name
 			theProtoName = readString();
-            cell = Cell.lowLevelAllocate(lib, theProtoName);
+            cell = Cell.newInstance(lib, theProtoName);
 		}
         nodeProtoList[cellIndex] = cell;
         assert cell.getCellName() != null;

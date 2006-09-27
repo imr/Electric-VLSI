@@ -27,11 +27,15 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.LibId;
+import com.sun.electric.database.LibraryBackup;
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.network.Netlist;
@@ -70,6 +74,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -263,24 +268,25 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		private void setMainSchematics(boolean undo)
 		{
+            if (cells.isEmpty()) {
+                groupName = null;
+                mainSchematic = null;
+                return;
+            }
 			// not set: see if it is obvious
+            ArrayList<CellName> cellNames = new ArrayList<CellName>();
             String bestName = null;
             Cell mainSchematic = null;
 			for (Cell cell: cells) {
-				if (cell.isSchematic()) {
+				if (cell.isSchematic())
                     mainSchematic = cell;
-                    bestName = cell.getName();
-                    break;
-                }
-                String name = cell.getName();
-                if (bestName == null || name.length() < bestName.length())
-                    bestName = name;
+                cellNames.add(cell.getCellName());
 			}
+            groupName = Snapshot.makeCellGroupName(cellNames);
             this.mainSchematic = mainSchematic;
-            groupName = CellName.parseName(bestName + "{sch}");
 			for (Cell cell: cells) {
                 if (undo) {
-                    cell.d.groupName.equals(groupName);
+                    assert cell.d.groupName.equals(groupName);
                 } else {
                     cell.setD(cell.d.withGroupName(groupName));
                 }
@@ -355,7 +361,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	Cell(EDatabase database, ImmutableCell d) {
         this.database = database;
         this.d = d;
-        lib = database.getLib(d.libId);
+        lib = database.getLib(d.getLibId());
         assert lib != null;
 	}
 
@@ -421,9 +427,43 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	public static Cell newInstance(Library lib, String name)
 	{
 		lib.checkChanging();
-		Cell cell = lowLevelAllocate(lib, name);
-		if (cell.lowLevelLink()) return null;
+        EDatabase database = lib.getDatabase();
+        
+		CellName cellName = CellName.parseName(name);
+		if (cellName == null) return null;
 
+		// check name for legal characters
+		String protoName = cellName.getName();
+		String original = null;
+		for(int i=0; i<protoName.length(); i++)
+		{
+			char chr = protoName.charAt(i);
+			if (Character.isWhitespace(chr) || chr == ':' || chr == ';' || chr == '{' || chr == '}')
+			{
+				if (original == null) original = protoName;
+				protoName = protoName.substring(0, i) + '_' + protoName.substring(i+1);
+			}
+		}
+		if (original != null)
+		{
+			System.out.println("Cell name changed from '" + original + "' to '" + protoName + "'");
+			cellName = CellName.newName(protoName, cellName.getView(), cellName.getVersion());
+		}
+        cellName = makeUnique(lib, cellName);
+		
+        Date creationDate = new Date();
+        CellId cellId = lib.getId().newCellId(cellName);
+		Cell cell = new Cell(lib.getDatabase(), ImmutableCell.newInstance(cellId, creationDate.getTime()));
+        
+		// add ourselves to the library
+		cell.lowLevelLinkCellName();
+
+		// success
+        database.addCell(cell);
+        
+		// handle change control, constraint, and broadcast
+        database.unfreshSnapshot();
+		Constraints.getCurrent().newObject(cell);
 		return cell;
 	}
 
@@ -689,8 +729,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
-	 * Method to replace subcells of a Cell by cells with similar name in Cell's Library.
-	 */
+	 * Method to replace subcells of a Cell by cells with similar name in Cell's  	 */
     public void replaceSubcellsByExisting() {
         // scan all subcells to see if they are found in the new library
 		HashMap<NodeInst,Cell> nodePrototypes = new HashMap<NodeInst,Cell>();
@@ -742,62 +781,77 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	/**
 	 * Method to rename this Cell.
 	 * @param newName the new name of this cell.
+     * @param newGroupName the name of cell in a group to put the rename cell to.
 	 */
-	public void rename(String newName)
+	public IdMapper rename(String newName, String newGroupName)
 	{
-		rename(CellName.parseName(newName + ";" + getVersion() + "{" + getView().getAbbreviation() + "}"));
+		return rename(CellName.parseName(newName + ";" + getVersion() + "{" + getView().getAbbreviation() + "}"), newGroupName);
 	}
 
 	/**
 	 * Method to rename this Cell.
 	 * @param cellName the new name of this cell.
 	 */
-	private void rename(CellName cellName)
+	private IdMapper rename(CellName cellName, String newGroupName)
 	{
 		checkChanging();
 		assert isLinked();
-		if (cellName == null) return;
-		if (getCellName().equals(cellName)) return;
+		if (cellName == null) return null;
+		if (getCellName().equals(cellName)) return null;
 
-		// remove temporarily from the library and from cell group
-		lib.removeCell(this);
-		cellGroup.remove(this);
+//		// remove temporarily from the library and from cell group
+//		lib.removeCell(this);
+//		cellGroup.remove(this);
 
 		// do the rename
-        setD(getD().withCellName(cellName));
-
-        // add again to the library and to possibly to new cell group
-		lowLevelLinkCellName(true);
-        notifyRename();
+        cellName = makeUnique(lib, cellName);
+//        setD(getD().withCellName(cellName));
+        EDatabase database = getDatabase();
+        Snapshot oldSnapshot = database.backup();
+        CellId newCellId = lib.getId().newCellId(cellName);
+        IdMapper idMapper = IdMapper.renameCell(oldSnapshot, d.cellId, newCellId);
+        Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, d.cellId, newGroupName);
+        
+        database.lowLevelSetCanUndoing(true);
+        database.undo(newSnapshot);
+        database.lowLevelSetCanUndoing(false);
+        Constraints.getCurrent().renameIds(idMapper);
+        
+        return idMapper;
+//        
+//        // add again to the library and to possibly to new cell group
+//		lowLevelLinkCellName();
+//        notifyRename();
+//        return new IdMapper();
 	}
     
-	/**
-	 * Method to move this Cell to another library.
-	 * @param newLib the new library of this cell.
-     * @throws IlleagalArgumentException if this cell or new library is not linked to database.
-	 */
-	public void move(Library newLib)
-	{
-		checkChanging();
-        if (!isLinked())
-            throw new IllegalArgumentException();
-        if (!newLib.isLinked())
-            throw new IllegalArgumentException("newLib");
-		if (newLib == lib) return;
-
-		// remove temporarily from the library and from cell group
-		lib.removeCell(this);
-		cellGroup.remove(this);
-        cellGroup = null;
-
-		// do the rename
-        setD(getD().withLibrary(newLib.getId()));
-        lib = newLib;
-
-        // add again to the library and to possibly to new cell group
-		lowLevelLinkCellName(true);
-        notifyRename();
-	}
+//	/**
+//	 * Method to move this Cell to another library.
+//	 * @param newLib the new library of this cell.
+//     * @throws IlleagalArgumentException if this cell or new library is not linked to database.
+//	 */
+//	public void move(Library newLib)
+//	{
+//		checkChanging();
+//        if (!isLinked())
+//            throw new IllegalArgumentException();
+//        if (!newLib.isLinked())
+//            throw new IllegalArgumentException("newLib");
+//		if (newLib == lib) return;
+//
+//		// remove temporarily from the library and from cell group
+//		lib.removeCell(this);
+//		cellGroup.remove(this);
+//        cellGroup = null;
+//
+//		// do the rename
+//        setD(getD().withLibrary(newLib.getId()));
+//        lib = newLib;
+//
+//        // add again to the library and to possibly to new cell group
+//		lowLevelLinkCellName(true);
+//        notifyRename();
+//	}
     
     /**
      * Signal parent cell about renaming or moving of this subcell.
@@ -812,97 +866,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
-	/**
-	 * Low-level access method to create a cell in library "lib".
-	 * Unless you know what you are doing, do not use this method.
-	 * @param lib library in which to place this cell.
-	 * @param name the name of this cell.
-	 * Cell names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
-	 * @return the newly created cell or null on error.
-	 */
-	public static Cell lowLevelAllocate(Library lib, String name)
+	private void lowLevelLinkCellName()
 	{
-		lib.checkChanging();
-		CellName n = CellName.parseName(name);
-		if (n == null) return null;
-
-		// check name for legal characters
-		String cellName = n.getName();
-		String original = null;
-		for(int i=0; i<cellName.length(); i++)
-		{
-			char chr = cellName.charAt(i);
-			if (Character.isWhitespace(chr) || chr == ':' || chr == ';' || chr == '{' || chr == '}')
-			{
-				if (original == null) original = cellName;
-				cellName = cellName.substring(0, i) + '_' + cellName.substring(i+1);
-			}
-		}
-		if (original != null)
-		{
-			System.out.println("Cell name changed from '" + original + "' to '" + cellName + "'");
-			n = CellName.newName(cellName, n.getView(), n.getVersion());
-		}
-		
-        Date creationDate = new Date();
-        CellId cellId = lib.getId().newCellId(n);
-		Cell c = new Cell(lib.getDatabase(), ImmutableCell.newInstance(cellId, lib.getId(), n, creationDate.getTime()));
-		return c;
-	}
-
-	/**
-	 * Low-level access method to link this Cell into its library.
-	 * @return true on error.
-	 */
-	public boolean lowLevelLink()
-	{
-		lib.checkChanging();
-		assert !isLinked();
-		if (getCellName() == null)
-		{
-			System.out.println(this+" has bad name");
-			return true;
-		}
-
-		// add ourselves to the library
-		lowLevelLinkCellName(true);
-
-		// success
-        database.addCell(this);
-        
-		// handle change control, constraint, and broadcast
-        database.unfreshSnapshot();
-		Constraints.getCurrent().newObject(this);
-		return false;
-	}
-
-	private void lowLevelLinkCellName(boolean canResolveConflict)
-	{
-		// ensure unique cell name
-		String protoName = getName();
-		View view = getView();
-		int version = getVersion();
-		int greatestVersion = 0;
-		boolean conflict = version <= 0;
-		for (Iterator<Cell> it = lib.getCells(); it.hasNext(); )
-		{
-			Cell c = it.next();
-			if (c.getName().equalsIgnoreCase(protoName) && c.getView() == view)
-			{
-				if (c.getVersion() == getVersion()) conflict = true;
-				if (c.getVersion() > greatestVersion)
-					greatestVersion = c.getVersion();
-			}
-		}
-		if (conflict)
-		{
-            assert canResolveConflict;
-			if (getVersion() > 0)
-				System.out.println("Already have cell " + getCellName() + " with version " + getVersion() + ", generating a new version");
-			CellName cn = CellName.newName(getName(), getView(), greatestVersion + 1);
-            setD(getD().withCellName(cn));
-		}
-
 		// determine the cell group
 		for (Iterator<Cell> it = getViewsTail(); it.hasNext(); )
 		{
@@ -918,6 +883,33 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		cellGroup.add(this);
 
 	}
+    
+    private static CellName makeUnique(Library lib, CellName cellName) {
+		// ensure unique cell name
+		String protoName = cellName.getName();
+		View view = cellName.getView();
+		int version = cellName.getVersion();
+		int greatestVersion = 0;
+		boolean conflict = version <= 0;
+		for (Iterator<Cell> it = lib.getCells(); it.hasNext(); )
+		{
+			Cell c = it.next();
+			if (c.getName().equalsIgnoreCase(protoName) && c.getView() == view)
+			{
+				if (c.getVersion() == version) conflict = true;
+				if (c.getVersion() > greatestVersion)
+					greatestVersion = c.getVersion();
+			}
+		}
+		if (conflict)
+		{
+			if (version > 0)
+				System.out.println("Already have cell " + cellName + " with version " + version + ", generating a new version");
+            int newVersion = greatestVersion + 1;
+			cellName = CellName.newName(protoName, view, newVersion);
+		}
+        return cellName;
+    }
 
 	/**
 	 * Low-level method to get the user bits.
@@ -1033,7 +1025,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
         checkUndoing();
      	this.d = newBackup.d;
-        lib = database.getLib(newBackup.d.libId);
+        lib = database.getLib(newBackup.d.getLibId());
         this.revisionDate = newBackup.revisionDate;
         this.modified = newBackup.modified;
        // Update NodeInsts
@@ -2734,7 +2726,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to return the CellName object describing this Cell.
 	 * @return the CellName object describing this Cell.
 	 */
-	public CellName getCellName() { return getD().cellName; }
+	public CellName getCellName() { return getD().cellId.cellName; }
 
 	/**
 	 * Method to return the pure name of this Cell, without
@@ -3530,15 +3522,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		setCellGroup(otherCell.getCellGroup());
 	}
 
-	/**
-	 * Method to Cell together with all its versions and views into its own CellGroup.
-	 * If there is no already Cells withs other names in its CellGroup, nothing is done.
-	 */
-	public void putInOwnCellGroup()
-	{
-		setCellGroup(null);
-	}
-
+//	/**
+//	 * Method to Cell together with all its versions and views into its own CellGroup.
+//	 * If there is no already Cells withs other names in its CellGroup, nothing is done.
+//	 */
+//	public void putInOwnCellGroup()
+//	{
+//		setCellGroup(null);
+//	}
+    
 	/**
 	 * Method to put this Cell together with all its versions and views into the given CellGroup.
 	 * @param cellGroup the CellGroup that this cell belongs to or null to put int own cell group
@@ -3576,9 +3568,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to change the view of this Cell.
 	 * @param newView the new View.
 	 */
-	public void setView(View newView)
+	public IdMapper setView(View newView)
 	{
-		rename(CellName.newName(getName(), newView, getVersion()));
+		return rename(CellName.newName(getName(), newView, getVersion()), null);
 	}
 
 	/**
@@ -4178,7 +4170,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         CellId cellId = getD().cellId;
         super.check();
         assert database.getCell(cellId) == this;
-        assert database.getLib(getD().libId) == lib;
+        assert database.getLib(getD().getLibId()) == lib;
         assert getCellName() != null;
         assert getVersion() > 0;
         

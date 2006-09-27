@@ -44,8 +44,10 @@ public final class CellId implements NodeProtoId, Serializable {
     /** Empty CellId array for initialization. */
     public static final CellId[] NULL_ARRAY = {};
     
-    /** IdManager which owns this CellId. */
+    /** IdManager which owns this LibId. */
     public final IdManager idManager;
+    /** LibId which owns this CellId. */
+    public final LibId libId;
     /** CellName of this CellId. */
     public final CellName cellName;
     /** Unique index of this cell in the database. */
@@ -54,7 +56,7 @@ public final class CellId implements NodeProtoId, Serializable {
      * Usages of other proto subcells in this parent cell.
      * CellUsages are in chronological order by time of their creation.
      */
-    private transient volatile CellUsage[] usagesIn = CellUsage.NULL_ARRAY;
+    private volatile CellUsage[] usagesIn = CellUsage.NULL_ARRAY;
     /**
 	 * Hash of usagesIn.
 	 * The size of nonempty hash is a prime number.
@@ -63,19 +65,19 @@ public final class CellId implements NodeProtoId, Serializable {
 	 * Invariant hashUsagesIn.length >= usagesIn.length*2 + 1 guaranties that there is at least one empty entry
 	 * in the search sequence. 
 	 */
-    private transient volatile CellUsage[] hashUsagesIn = EMPTY_USAGE_HASH;
+    private volatile CellUsage[] hashUsagesIn = EMPTY_USAGE_HASH;
     
     /** 
      * Usages of this proto cell in other parent cells.
      * CellUsages are in chronological order by time of their creation.
      */
-    private transient volatile CellUsage[] usagesOf = CellUsage.NULL_ARRAY;
+    private volatile CellUsage[] usagesOf = CellUsage.NULL_ARRAY;
     
     /**
      * ExportIds of this cell. ExportIds have unique naems.
      * ExportIds are in cronological order by time of its creation.
      */
-    private transient volatile ExportId[] exportIds = ExportId.NULL_ARRAY;
+    private volatile ExportId[] exportIds = ExportId.NULL_ARRAY;
     /**
 	 * Hash of ExportIds.
 	 * The size of nonempty hash is a prime number.
@@ -84,17 +86,17 @@ public final class CellId implements NodeProtoId, Serializable {
 	 * Invariant hashExportIds.length >= exportIds.length*2 + 1 guaranties that there is at least one empty entry
 	 * in the search sequence. 
 	 */
-    private transient volatile int[] hashExportIds = EMPTY_EXPORT_HASH; 
+    private volatile int[] hashExportIds = EMPTY_EXPORT_HASH; 
     
     /**
      * Number of nodeIds returned by newNodeId.
      **/
-    private transient volatile int numNodeIds = 0;
+    private volatile int numNodeIds = 0;
     
     /**
      * Number of arcIds returned by newArcId.
      **/
-    private transient volatile int numArcIds = 0;
+    private volatile int numArcIds = 0;
     
     /** Empty usage hash for initialization. */
     private static final CellUsage[] EMPTY_USAGE_HASH = { null };
@@ -104,8 +106,11 @@ public final class CellId implements NodeProtoId, Serializable {
     /**
      * CellId constructor.
      */
-    CellId(IdManager idManager, CellName cellName, int cellIndex) {
-        this.idManager = idManager;
+    CellId(LibId libId, CellName cellName, int cellIndex) {
+        if (cellName.getVersion() <= 0)
+            throw new IllegalArgumentException("cell version");
+        idManager = libId.idManager;
+        this.libId = libId;
         this.cellName = cellName;
         this.cellIndex = cellIndex;
     }
@@ -125,6 +130,12 @@ public final class CellId implements NodeProtoId, Serializable {
         }
     }
          
+    /**
+     * Returns IdManager which is owner of this CellId.
+     * @Return IdManager which is owner of this CellId.
+     */
+    public IdManager getIdManager() { return idManager; }
+    
     /**
      * Returns a number CellUsages with this CellId as a parent cell.
      * This number may grow in time.
@@ -322,10 +333,7 @@ public final class CellId implements NodeProtoId, Serializable {
 	 * @return a printable version of this CellId.
 	 */
     public String toString() {
-        String s = "CellId#" + cellIndex;
-        Cell cell = Cell.inCurrentThread(this);
-        if (cell != null) s += "(" + cell.libDescribe() + ")";
-        return s;
+        return libId + ":" + cellName.toString();
     }
 
     /**
@@ -503,7 +511,11 @@ public final class CellId implements NodeProtoId, Serializable {
 	 */
     void check() {
         checkLinked();
-
+        assert idManager == libId.idManager;
+        cellName.check();
+        assert cellName.getVersion() > 0;
+        assert libId.getCellId(cellName) == this;
+        
         CellUsage[] usagesIn = this.usagesIn;
         for (int k = 0; k < usagesIn.length; k++) {
             CellUsage u = usagesIn[k];
@@ -512,7 +524,7 @@ public final class CellId implements NodeProtoId, Serializable {
             // This also guarantees that all elements of usagesIn are distinct.
             assert u.parentId == this;
             assert u.indexInParent == k;
-            assert u.parentId.idManager == idManager;
+            assert u.parentId.getIdManager() == getIdManager();
             u.protoId.checkLinked();
             
             // Check the CellUsage invariants.
@@ -535,7 +547,7 @@ public final class CellId implements NodeProtoId, Serializable {
             
             // Check that this CellUsage is properly owned by its parentId and
             // the parentId is in static list of all CellIds.
-            assert u.protoId.idManager == idManager;
+            assert u.protoId.getIdManager() == getIdManager();
             u.parentId.checkLinked();
             assert u == u.parentId.usagesIn[u.indexInParent];
         }
@@ -595,6 +607,6 @@ public final class CellId implements NodeProtoId, Serializable {
      * @throws AssertionError if this CellId is not linked.
      */
     private void checkLinked() {
-        assert this == idManager.getCellId(cellIndex);
+        assert this == getIdManager().getCellId(cellIndex);
     }
 }

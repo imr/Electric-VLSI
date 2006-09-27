@@ -27,6 +27,7 @@ import com.sun.electric.database.text.CellName;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -54,11 +55,9 @@ public class IdManager {
      * @param libName library name.
      * @return LibId with specified libName.
      */
-    public LibId newLibId(String libName) {
-        synchronized(libIds) {
-            LibId libId = libIdsByName.get(libName);
-            return libId != null ? libId : newLibIdInternal(libName);
-        }
+    public synchronized LibId newLibId(String libName) {
+        LibId libId = libIdsByName.get(libName);
+        return libId != null ? libId : newLibIdInternal(libName);
     }
     
     /**
@@ -66,10 +65,8 @@ public class IdManager {
      * @param libIndex given index.
      * @return LibId with given index.
      */
-    public LibId getLibId(int libIndex) {
-        synchronized(libIds) {
-           return libIds.get(libIndex);
-        }
+    public synchronized LibId getLibId(int libIndex) {
+        return libIds.get(libIndex);
     }
     
     private LibId newLibIdInternal(String libName) {
@@ -83,12 +80,14 @@ public class IdManager {
     
     /**
      * Returns new CellId with cellIndex unique in this IdManager.
+     * @param libId library to which the Cell belongs
+     * @param cellName name of the Cell.
      * @return new CellId.
      */
-    CellId newCellId(CellName cellName) {
-        synchronized(cellIds) {
-            return newCellIdInternal(cellName);
-        }
+    synchronized CellId newCellId(LibId libId, CellName cellName) {
+        assert libId.idManager == this;
+        CellId cellId = libId.getCellId(cellName);
+        return cellId != null ? cellId : newCellIdInternal(libId, cellName);
     }
     
     /**
@@ -96,16 +95,15 @@ public class IdManager {
      * @param cellIndex given index.
      * @return CellId with given index.
      */
-    public CellId getCellId(int cellIndex) {
-        synchronized (cellIds) {
-           return cellIds.get(cellIndex);
-        }
+    public synchronized CellId getCellId(int cellIndex) {
+        return cellIds.get(cellIndex);
     }
     
-    private CellId newCellIdInternal(CellName cellName) {
+    private CellId newCellIdInternal(LibId libId, CellName cellName) {
         int cellIndex = cellIds.size();
-        CellId cellId = new CellId(this, cellName, cellIndex);
+        CellId cellId = new CellId(libId, cellName, cellIndex);
         cellIds.add(cellId);
+        libId.putCellId(cellId);
         return cellId;
     }
     
@@ -116,10 +114,8 @@ public class IdManager {
     void writeDiffs(SnapshotWriter writer) throws IOException {
         LibId[] libIdsArray;
         CellId[] cellIdsArray;
-        synchronized (libIds) {
+        synchronized (this) {
             libIdsArray = libIds.toArray(LibId.NULL_ARRAY);
-        }
-        synchronized (cellIds) {
             cellIdsArray = cellIds.toArray(CellId.NULL_ARRAY);
         }
         writer.writeInt(libIdsArray.length);
@@ -131,6 +127,7 @@ public class IdManager {
         writer.writeInt(cellIdsArray.length);
         for (int cellIndex = writer.exportCounts.length; cellIndex < cellIdsArray.length; cellIndex++) {
             CellId cellId = cellIdsArray[cellIndex];
+            writer.writeLibId(cellId.libId);
             writer.writeString(cellId.cellName.toString());
         }
         writer.setCellCount(cellIdsArray.length);
@@ -152,15 +149,18 @@ public class IdManager {
     }
     
     void readDiffs(SnapshotReader reader) throws IOException {
-        int libIdsCount = reader.readInt();
-        synchronized (libIds) {
-           while (libIdsCount > libIds.size())
-               newLibIdInternal(reader.readString());
+        int oldLibIdsCount, oldCellIdsCount;
+        synchronized (this) {
+            oldLibIdsCount = libIds.size();
+            oldCellIdsCount = cellIds.size();
         }
+        int libIdsCount = reader.readInt();
+        for (int libIndex = oldLibIdsCount; libIndex < libIdsCount; libIndex++)
+            newLibId(reader.readString());
         int cellIdsCount = reader.readInt();
-        synchronized (cellIds) {
-           while (cellIdsCount > cellIds.size())
-               newCellIdInternal(CellName.parseName(reader.readString()));
+        for (int cellIndex = oldCellIdsCount; cellIndex < cellIdsCount; cellIndex++) {
+            LibId libId = reader.readLibId();
+            newCellId(libId, CellName.parseName(reader.readString()));
         }
         for (;;) {
             int cellIndex = reader.readInt();
@@ -179,21 +179,31 @@ public class IdManager {
 	 */
 	public void checkInvariants() {
         int numLibIds;
-        synchronized (libIds) {
+        int numCellIds;
+        synchronized (this) {
             numLibIds = libIds.size();
             assert numLibIds == libIdsByName.size();
+            for (int libIndex = 0; libIndex < numLibIds; libIndex++) {
+                LibId libId = getLibId(libIndex);
+                assert libId.idManager == this;
+                assert libId.libIndex == libIndex;
+                libId.check();
+                assert libIdsByName.get(libId.libName) == libId;
+            }
+            for (Map.Entry<String,LibId> e: libIdsByName.entrySet()) {
+                LibId libId = e.getValue();
+                assert libId.idManager == this;
+                assert libId.libName == e.getKey();
+                assert getLibId(libId.libIndex) == libId;
+            }
+            
+            numCellIds = cellIds.size();
         }
-        for (int i = 0; i < numLibIds; i++) {
-            LibId libId;
-            synchronized (libIds) { libId = (LibId)libIds.get(i); }
-            libId.check();
-        }
-        int numCellIds;
-        synchronized (cellIds) { numCellIds = cellIds.size(); }
-        for (int i = 0; i < numCellIds; i++) {
-            CellId cellId;
-            synchronized (cellIds) { cellId = (CellId)cellIds.get(i); }
-            assert cellId.cellIndex == i;
+        for (int cellIndex = 0; cellIndex < numCellIds; cellIndex++) {
+            CellId cellId = getCellId(cellIndex);
+            assert cellId.idManager == this;
+            assert cellId.cellIndex == cellIndex;
+            assert cellId.libId.getCellId(cellId.cellName) == cellId;
             cellId.check();
         }
     }

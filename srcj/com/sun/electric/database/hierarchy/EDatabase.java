@@ -406,19 +406,19 @@ public class EDatabase {
                 CellBackup newBackup = snapshot.getCell(cellIndex);
                 if (oldBackup == newBackup) continue;
                 if (oldBackup == null) {
-                    cellNamesChangedInLibrary.set(newBackup.d.libId.libIndex);
+                    cellNamesChangedInLibrary.set(newBackup.d.getLibId().libIndex);
                     assert cellGroupsChanged;
                 } else if (newBackup == null) {
-                    cellNamesChangedInLibrary.set(oldBackup.d.libId.libIndex);
+                    cellNamesChangedInLibrary.set(oldBackup.d.getLibId().libIndex);
                     assert cellGroupsChanged;
-                } else {
-                    boolean moved = oldBackup.d.libId != newBackup.d.libId;
-                    if (moved || oldBackup.d.cellName != newBackup.d.cellName) {
-                        cellNamesChangedInLibrary.set(newBackup.d.libId.libIndex);
-                        cellNamesChangedInLibrary.set(oldBackup.d.libId.libIndex);
-                    }
-                    if (moved)
-                        cellGroupsChanged = true;
+//                } else {
+//                    boolean moved = oldBackup.d.getLibId() != newBackup.d.getLibId();
+//                    if (moved || oldBackup.d.cellName != newBackup.d.cellName) {
+//                        cellNamesChangedInLibrary.set(newBackup.d.getLibId().libIndex);
+//                        cellNamesChangedInLibrary.set(oldBackup.d.getLibId().libIndex);
+//                    }
+//                    if (moved)
+//                        cellGroupsChanged = true;
                 }
             }
         } else {
@@ -616,17 +616,18 @@ public class EDatabase {
         for (int cellIndex = 0; cellIndex < linkedCells.size(); cellIndex++) {
             Cell cell = linkedCells.get(cellIndex);
             if (cell == null) {
-                if (snapshotFresh) assert snapshot.cellBounds.get(cellIndex) == null;
+                if (snapshotFresh) assert snapshot.cellBackups.get(cellIndex) == null;
                 continue;
             }
-            assert cell.getId() == idManager.getCellId(cellIndex);
+            CellId cellId = cell.getId();
+            assert cellId == idManager.getCellId(cellIndex);
             Library lib = cell.getLibrary();
             assert lib.cells.get(cell.getCellName()) == cell;
             cell.check();
             if (snapshotFresh) {
                 assert cell.cellBackupFresh;
                 assert cell.backup == snapshot.cellBackups.get(cellIndex);
-                assert cell.getBounds() == snapshot.cellBounds.get(cellIndex);
+                assert cell.getBounds() == snapshot.getCellBounds(cellId);
             }
         }
         

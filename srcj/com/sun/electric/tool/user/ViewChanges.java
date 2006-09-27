@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
@@ -30,6 +31,7 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -205,6 +207,7 @@ public class ViewChanges
 	{
 		private Cell cell;
 		private View newView;
+        private IdMapper idMapper;
 
 		protected ChangeCellView(Cell cell, View newView)
 		{
@@ -217,21 +220,27 @@ public class ViewChanges
 
 		public boolean doIt() throws JobException
 		{
-			cell.setView(newView);
-			cell.setTechnology(null);
+            EDatabase database = cell.getDatabase();
+			idMapper = cell.setView(newView);
+            fieldVariableChanged("idMapper");
+            if (idMapper != null) {
+                cell = idMapper.get(cell.getId()).inDatabase(database);
+    			cell.setTechnology(null);
+            }
 			return true;
 		}
 
         public void terminateOK()
         {
-			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = it.next();
-				if (wf.getContent().getCell() == cell)
-				{
-					wf.getContent().setCell(cell, VarContext.globalContext, null);
-				}
-			}
+            User.fixStaleCellReferences(idMapper);
+//			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+//			{
+//				WindowFrame wf = it.next();
+//				if (wf.getContent().getCell() == cell)
+//				{
+//					wf.getContent().setCell(cell, VarContext.globalContext, null);
+//				}
+//			}
 			EditWindow.repaintAll();
         }
 	}

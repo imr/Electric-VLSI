@@ -104,6 +104,6 @@ public final class ExportId implements PortProtoId, Serializable
 
     @Override
     public String toString() {
-        return externalId;
+        return parentId + ":" + externalId;
     }
 }

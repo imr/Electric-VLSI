@@ -22,6 +22,8 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -100,6 +102,7 @@ public class CellChangeJobs
 		private Cell cell;
 		private String newName;
 		private String newGroupCell;
+        private IdMapper idMapper;
 
 		public RenameCell(Cell cell, String newName, String newGroupCell)
 		{
@@ -112,14 +115,22 @@ public class CellChangeJobs
 
 		public boolean doIt() throws JobException
 		{
-			cell.rename(newName);
-			if (newGroupCell != null)
-			{
-                Cell.CellGroup newGroup = cell.getLibrary().findNodeProto(newGroupCell).getCellGroup();
-				cell.setCellGroup(newGroup);
-			}
+            Library lib = cell.getLibrary();
+			idMapper = cell.rename(newName, newGroupCell);
+            fieldVariableChanged("idMapper");
+//			if (newGroupCell != null)
+//			{
+//                Cell.CellGroup newGroup = lib.findNodeProto(newGroupCell).getCellGroup();
+//                CellId cellId = idMapper.get(cell.getId());
+//				lib.getDatabase().getCell(cellId).setCellGroup(newGroup);
+//			}
 			return true;
 		}
+        
+        public void terminateOK()
+        {
+            User.fixStaleCellReferences(idMapper);
+        }
 	}
 
 	/**
@@ -157,17 +168,26 @@ public class CellChangeJobs
 			ArrayList<Cell> cells = new ArrayList<Cell>();
 			for(Iterator<Cell> it = cellInGroup.getCellGroup().getCells(); it.hasNext(); )
 				cells.add(it.next());
-			Cell.CellGroup newGroup = null;
+            Library lib = cellInGroup.getLibrary();
+            String newGroupCell = null;
 			for(Cell cell : cells)
 			{
+                IdMapper idMapper;
 				if (allSameName)
 				{
-					cell.rename(newName);
+					idMapper = cell.rename(newName, newName);
 				} else
 				{
-					cell.rename(newName+cell.getName());
-		            if (newGroup != null) cell.setCellGroup(newGroup);
-		            newGroup = cell.getCellGroup();
+                    if (newGroupCell == null)
+                        newGroupCell = newName + cell.getName();
+					idMapper = cell.rename(newName+cell.getName(), newGroupCell);
+//                    cell = lib.getDatabase().getCell(idMapper.get(cell.getId()));
+//                    if (newGroupCell != null) {
+//                        Cell.CellGroup newGroup = lib.findNodeProto(newGroupCell).getCellGroup();
+//                        if (newGroup != null) cell.setCellGroup(newGroup);
+//                    } else {
+//                        newGroupCell = cell.getCellName().toString();
+//                    }
 				}
 			}
 			return true;
@@ -1113,23 +1133,23 @@ public class CellChangeJobs
 	 * instead of creating a cross-library reference.  False to copy everything needed.
 	 * @return address of a copied cell (null on failure).
 	 */
-	public static Cell copyRecursively(List<Cell> fromCells, Library toLib, boolean verbose, boolean move,
+	public static IdMapper copyRecursively(List<Cell> fromCells, Library toLib, boolean verbose, boolean move,
         boolean allRelatedViews, boolean copySubCells, boolean useExisting)
     {
-		Cell copiedCell = null;
+		IdMapper idMapper = new IdMapper();
         Cell.setAllowCircularLibraryDependences(true);
         try {
         	HashSet<Cell> existing = new HashSet<Cell>();
         	for(Cell fromCell : fromCells)
         	{
-        		copiedCell = copyRecursively(fromCell, toLib, verbose, move, "", true,
-	                allRelatedViews, allRelatedViews, copySubCells, useExisting, existing);
+        		Cell copiedCell = copyRecursively(fromCell, toLib, verbose, move, "", true,
+	                allRelatedViews, allRelatedViews, copySubCells, useExisting, existing, idMapper);
         		if (copiedCell == null) break;
         	}
         } finally {
             Cell.setAllowCircularLibraryDependences(false);
         }
-        return copiedCell;
+        return idMapper;
     }
     
 	/**
@@ -1154,7 +1174,7 @@ public class CellChangeJobs
 	 */
 	private static Cell copyRecursively(Cell fromCell, Library toLib,
 		boolean verbose, boolean move, String subDescript, boolean schematicRelatedView, boolean allRelatedViews,
-		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, HashSet<Cell> existing)
+		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, HashSet<Cell> existing, IdMapper idMapper)
 	{
 		// check for sensibility
 		if (copySubCells && !useExisting)
@@ -1198,7 +1218,7 @@ public class CellChangeJobs
 					if (ni.isIconOfParent()) doCopySchematicView = false;
 					Cell oNp = copyRecursively(cell, toLib, verbose,
 						move, "subcell ", doCopySchematicView, allRelatedViews, allRelatedViewsThisLevel,
-						copySubCells, useExisting, existing);
+						copySubCells, useExisting, existing, idMapper);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of sub" + cell + " failed"); else
@@ -1232,7 +1252,7 @@ public class CellChangeJobs
 
 						// copy equivalent view if not already there
 						Cell oNp = copyRecursively(np, toLib, verbose,
-							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
+							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper);
 						if (oNp == null)
 						{
 							if (move) System.out.println("Move of schematic view " + np + " failed"); else
@@ -1262,7 +1282,7 @@ public class CellChangeJobs
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, toLib, verbose,
-						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -1289,7 +1309,7 @@ public class CellChangeJobs
 
 					// copy equivalent view if not already there
 					Cell oNp = copyRecursively(np, toLib, verbose,
-						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing, idMapper);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -1314,18 +1334,18 @@ public class CellChangeJobs
 			newName = toName + "{" + toView.getAbbreviation() + "}";
 		}
         Cell newFromCell;
-        if (move) {
-            fromCell.move(toLib);
-            if (useExisting)
-                fromCell.replaceSubcellsByExisting();
-            newFromCell = fromCell;
-        } else {
+//        if (move) {
+//            fromCell.move(toLib);
+//            if (useExisting)
+//                fromCell.replaceSubcellsByExisting();
+//            newFromCell = fromCell;
+//        } else {
             newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, useExisting);
             if (newFromCell == null) {
                 System.out.println("Copy of " + subDescript + fromCell + " failed");
                 return null;
             }
-        }
+//        }
 
         // remember that this cell was copied
         existing.add(newFromCell);
@@ -1346,52 +1366,53 @@ public class CellChangeJobs
 			}
 		}
 
-//		// if moving, adjust pointers and kill original cell
-//		if (move)
-//		{
-//			// clear highlighting if the current node is being replaced
-////			list = us_gethighlighted(WANTNODEINST, 0, 0);
-////			for(i=0; list[i] != NOGEOM; i++)
-////			{
-////				if (!list[i]->entryisnode) continue;
-////				ni = list[i]->entryaddr.ni;
-////				if (ni->proto == fromCell) break;
-////			}
-////			if (list[i] != NOGEOM) us_clearhighlightcount();
-//
-//			// now replace old instances with the moved one
-//			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		// if moving, adjust pointers and kill original cell
+		if (move)
+		{
+			// clear highlighting if the current node is being replaced
+//			list = us_gethighlighted(WANTNODEINST, 0, 0);
+//			for(i=0; list[i] != NOGEOM; i++)
 //			{
-//				Library lib = it.next();
-//				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-//				{
-//					Cell np = cIt.next();
-//					boolean found = true;
-//					while (found)
-//					{
-//						found = false;
-//						for(Iterator<NodeInst> nIt = np.getNodes(); nIt.hasNext(); )
-//						{
-//							NodeInst ni = nIt.next();
-//							if (ni.getProto() == fromCell)
-//							{
-//								NodeInst replacedNi = ni.replace(newFromCell, false, false);
-//								if (replacedNi == null)
-//                                {
-//									System.out.println("Error moving " + ni + " in " + np);
-//                                    found = false;
-//                                }
-//								else
-//                                    found = true;
-//								break;
-//							}
-//						}
-//					}
-//				}
+//				if (!list[i]->entryisnode) continue;
+//				ni = list[i]->entryaddr.ni;
+//				if (ni->proto == fromCell) break;
 //			}
+//			if (list[i] != NOGEOM) us_clearhighlightcount();
+
+			// now replace old instances with the moved one
+			for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library lib = it.next();
+				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
+				{
+					Cell np = cIt.next();
+					boolean found = true;
+					while (found)
+					{
+						found = false;
+						for(Iterator<NodeInst> nIt = np.getNodes(); nIt.hasNext(); )
+						{
+							NodeInst ni = nIt.next();
+							if (ni.getProto() == fromCell)
+							{
+								NodeInst replacedNi = ni.replace(newFromCell, false, false);
+								if (replacedNi == null)
+                                {
+									System.out.println("Error moving " + ni + " in " + np);
+                                    found = false;
+                                }
+								else
+                                    found = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+            idMapper.moveCell(fromCell.backup(), newFromCell.getId());
 //			if (deletedCells != null) deletedCells.add(fromCell);
-//			fromCell.kill();
-//		}
+			fromCell.kill();
+		}
 		return newFromCell;
 	}
 

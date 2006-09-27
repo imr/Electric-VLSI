@@ -30,6 +30,8 @@ import com.sun.electric.database.text.CellName;
 import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The LibId immutable class identifies library independently of threads.
@@ -46,11 +48,15 @@ public final class LibId implements Serializable {
     public final String libName;
     /** Unique index of this lib in the database. */
     public final int libIndex;
+    /** HashMap of CellIds in this library by their cell name. */
+    private final HashMap<CellName,CellId> cellIdsByCellName = new HashMap<CellName,CellId>();
     
     /**
      * LibId constructor.
      */
     LibId(IdManager idManager, String libName, int libIndex) {
+        if (libName == null)
+            throw new NullPointerException();
         if (legalLibraryName(libName) != libName)
             throw new IllegalArgumentException(libName);
         this.idManager = idManager;
@@ -78,7 +84,7 @@ public final class LibId implements Serializable {
      * @return new CellId.
      */
     public CellId newCellId(CellName cellName) {
-        return idManager.newCellId(cellName);
+        return idManager.newCellId(this, cellName);
     }
     
     /**
@@ -95,13 +101,22 @@ public final class LibId implements Serializable {
 	 */
     public String toString() { return libName; }
     
+    CellId getCellId(CellName cellName) { return cellIdsByCellName.get(cellName); }
+    void putCellId(CellId cellId) { cellIdsByCellName.put(cellId.cellName, cellId); }
+    
 	/**
 	 * Checks invariants in this LibId.
      * @exception AssertionError if invariants are not valid
 	 */
     void check() {
         assert this == idManager.getLibId(libIndex);
-        assert legalLibraryName(libName) == libName;
+        assert libName != null && legalLibraryName(libName) == libName;
+        for (Map.Entry<CellName,CellId> e: cellIdsByCellName.entrySet()) {
+            CellId cellId = e.getValue();
+            assert cellId.libId == this;
+            assert cellId.cellName == e.getKey();
+            assert idManager.getCellId(cellId.cellIndex) == cellId;
+        }
     }
 
     

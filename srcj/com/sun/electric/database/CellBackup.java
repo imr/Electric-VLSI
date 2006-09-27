@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
@@ -85,10 +86,6 @@ public class CellBackup {
         this(d, 0, false,
                 ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
                 EMPTY_BITSET, NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
-        if (d.cellName == null)
-            throw new NullPointerException("cellName");
-        if (d.cellName.getVersion() <= 0)
-            throw new IllegalArgumentException("cellVersion");
         if (d.tech == null)
             throw new NullPointerException("tech");
     }
@@ -118,10 +115,6 @@ public class CellBackup {
         
         CellId cellId = d.cellId;
         if (this.d != d) {
-            if (d.cellName == null)
-                throw new NullPointerException("cellName");
-            if (d.cellName.getVersion() <= 0)
-                throw new IllegalArgumentException("cellVersion");
             if (d.tech == null)
                 throw new NullPointerException("tech");
 //            if (cellId != this.d.cellId)
@@ -212,8 +205,8 @@ public class CellBackup {
 	 * @param idMapper a map from old Ids to new Ids.
      * @return CellBackup with renamed Ids.
 	 */
-    CellBackup withRenamedIds(IdMapper idMapper) {
-        ImmutableCell d = this.d.withRenamedIds(idMapper);
+    CellBackup withRenamedIds(IdMapper idMapper, CellName newGroupName) {
+        ImmutableCell d = this.d.withRenamedIds(idMapper).withGroupName(newGroupName);
         
         ImmutableNodeInst[] nodesArray = null;
         for (int i = 0; i < nodes.size(); i++) {
@@ -396,7 +389,6 @@ public class CellBackup {
     public void check() {
         d.check();
         checkVars(d);
-        assert d.cellName.getVersion() > 0;
         assert d.tech != null;
         CellId cellId = d.cellId;
         int[] checkCellUsages = getInstCounts();
@@ -574,4 +566,7 @@ public class CellBackup {
                 assert usedExports == EMPTY_BITSET;
         }
     }
+    
+    @Override
+    public String toString() { return d.toString(); }
 }

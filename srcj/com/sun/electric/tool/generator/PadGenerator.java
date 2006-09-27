@@ -691,7 +691,16 @@ public class PadGenerator
 				{
 					List<Cell> fromCells = new ArrayList<Cell>();
 					fromCells.add(existing);
-					cell = CellChangeJobs.copyRecursively(fromCells, destLib, false, false, false, true, true);
+					CellChangeJobs.copyRecursively(fromCells, destLib, false, false, false, true, true);
+                    for(Iterator<Cell> cIt = destLib.getCells(); cIt.hasNext(); )
+                    {
+                        Cell thereCell = cIt.next();
+                        if (thereCell.getName().equals(existing.getName()) && thereCell.getView() == existing.getView())
+                        {
+                            cell = thereCell;
+                            break;
+                        }
+                    }
 	                if (cell == null)
 					{
 	                    err("Could not copy in pad Cell " + cellname);

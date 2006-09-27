@@ -77,8 +77,6 @@ public class DatabaseChangeEvent {
             if (oldBackup.modified != newBackup.modified) return true;
             ImmutableCell oldD = oldBackup.d;
             ImmutableCell newD = newBackup.d;
-            if (oldD.libId != newD.libId) return true;
-            if (oldD.cellName != newD.cellName) return true;
             if (oldD.groupName != newD.groupName) return true;
             if (oldD.getVar(Cell.MULTIPAGE_COUNT_KEY) != newD.getVar(Cell.MULTIPAGE_COUNT_KEY)) return true;
         }

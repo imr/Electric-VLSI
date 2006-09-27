@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+IMP: (9/27/06, DN) LibId/CellId/ExportId contains "external" names. IdManager maintains
+    uniqueness of these names. This will be used for reading isolated CellBackups for DELIB library/cell updates.
+    Artifact: Renamed cells and cells of renamed libraries are not linked to the database. New objects are created instead.
+
 BUG: (9/26/06, SMR) Rotated nodes with text on them select badly (Bug #1202).
 FIX: In Highlighter.findAllInArea(), use same code to select as to display.
 

@@ -159,7 +159,7 @@ public class Layout extends Constraints
             // Mark libraries with killed cells as changed
             for (CellBackup cellBackup: oldSnapshot.cellBackups) {
                 if (cellBackup != null && EDatabase.serverDatabase().getCell(cellBackup.d.cellId) == null) {
-                    Library lib = EDatabase.serverDatabase().getLib(cellBackup.d.libId);
+                    Library lib = EDatabase.serverDatabase().getLib(cellBackup.d.getLibId());
                     if (lib != null)
                         lib.setChanged();
                 }

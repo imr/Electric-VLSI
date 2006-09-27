@@ -86,6 +86,8 @@ public class JELIB extends Output
 	/**
 	 * Method to write a Library in Electric Library (.jelib) format.
 	 * @param libId the Library to be written.
+     * @param libFiles new locations of lib files
+     * @param oldRevision true to write library in format prior to "8.04l".
 	 * @return true on error.
 	 */
 	protected boolean writeLib(Snapshot snapshot, LibId libId, Map<LibId,URL> libFiles, boolean oldRevision)
@@ -117,8 +119,8 @@ public class JELIB extends Output
         TreeMap<CellName,CellBackup> sortedCells = new TreeMap<CellName,CellBackup>();
         libBackup.gatherUsages(usedLibs, usedExports);
         for (CellBackup cellBackup: snapshot.cellBackups) {
-            if (cellBackup == null || cellBackup.d.libId != libId) continue;
-            sortedCells.put(cellBackup.d.cellName, cellBackup);
+            if (cellBackup == null || cellBackup.d.getLibId() != libId) continue;
+            sortedCells.put(cellBackup.d.cellId.cellName, cellBackup);
             cellBackup.gatherUsages(usedLibs, usedExports);
         }
         gatherLibs(usedLibs, usedExports);
@@ -134,8 +136,8 @@ public class JELIB extends Output
         HashSet<View> usedViews = new HashSet<View>();
         for (CellBackup cellBackup: snapshot.cellBackups) {
             if (cellBackup == null) continue;
-            if (cellBackup.d.libId != libId && !usedExports.containsKey(cellBackup.d.cellId)) continue;
-            usedViews.add(cellBackup.d.cellName.getView());
+            if (cellBackup.d.getLibId() != libId && !usedExports.containsKey(cellBackup.d.cellId)) continue;
+            usedViews.add(cellBackup.d.cellId.cellName.getView());
         }
         for(Iterator<View> it = View.getViews(); it.hasNext(); ) {
             View view = it.next();
@@ -205,7 +207,7 @@ public class JELIB extends Output
         ArrayList<CellGroup> chronGroups = new ArrayList<CellGroup>();
         ArrayList<CellGroup> sortedGroups = new ArrayList<CellGroup>();
         for (CellBackup cellBackup: sortedCells.values()) {
-            CellName cellName = cellBackup.d.cellName;
+            CellName cellName = cellBackup.d.cellId.cellName;
 			cellNames.put(cellBackup.d.cellId, convertString(cellName.toString()));
             
             int groupIndex = snapshot.cellGroups[cellBackup.d.cellId.cellIndex];
@@ -303,12 +305,12 @@ public class JELIB extends Output
         ImmutableCell d = cellBackup.d;
         // write the Cell name
         printWriter.println();
-        printWriter.println("# Cell " + d.cellName);
-        printWriter.print("C" + convertString(d.cellName.toString()));
+        printWriter.println("# Cell " + d.cellId.cellName);
+        printWriter.print("C" + convertString(d.cellId.cellName.toString()));
         if (!oldRevision) {
             printWriter.print("|");
             String cellGroupName = d.groupName.getName();
-            if (!cellGroupName.equals(d.cellName.getName()))
+            if (!cellGroupName.equals(d.cellId.cellName.getName()))
                 printWriter.print(convertString(cellGroupName));
         }
         printWriter.print("|" + convertString(d.tech.getTechName()));
@@ -316,7 +318,7 @@ public class JELIB extends Output
         printWriter.print("|" + cellBackup.revisionDate);
         StringBuilder cellBits = new StringBuilder();
         if ((d.flags & Cell.INCELLLIBRARY) != 0) cellBits.append("C");
-        if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellName.getView() == View.ICON) cellBits.append("E");
+        if ((d.flags & Cell.WANTNEXPAND) != 0 || d.cellId.cellName.getView() == View.ICON) cellBits.append("E");
         if ((d.flags & Cell.NPILOCKED) != 0) cellBits.append("I");
         if ((d.flags & Cell.NPLOCKED) != 0) cellBits.append("L");
         if ((d.flags & Cell.TECEDITCELL) != 0) cellBits.append("T");
@@ -476,15 +478,15 @@ public class JELIB extends Output
             TreeMap<CellName,CellBackup> sortedCells = new TreeMap<CellName,CellBackup>();
             for (CellBackup cellBackup: snapshot.cellBackups) {
                 if (cellBackup == null) continue;
-                if (cellBackup.d.libId != l.d.libId) continue;
+                if (cellBackup.d.getLibId() != l.d.libId) continue;
                 if (usedExports.get(cellBackup.d.cellId) != null)
-                    sortedCells.put(cellBackup.d.cellName, cellBackup);
+                    sortedCells.put(cellBackup.d.cellId.cellName, cellBackup);
             }
             for (CellBackup cellBackup: sortedCells.values()) {
                 CellId cellId = cellBackup.d.cellId;
                 BitSet exportsUsedInCell = usedExports.get(cellId);
                 ERectangle bounds = snapshot.getCellBounds(cellId);
-                printWriter.print("R" + convertString(cellBackup.d.cellName.toString()) + "||||");
+                printWriter.print("R" + convertString(cellId.cellName.toString()) + "||||");
                 if (oldRevision)
                     printWriter.print("|" + cellBackup.d.creationDate + "|" + cellBackup.revisionDate);
                 printWriter.println();
@@ -499,7 +501,7 @@ public class JELIB extends Output
 
     void gatherLibs(BitSet usedLibs, Map<CellId,BitSet> usedExports) {
         for (CellId cellId: usedExports.keySet())
-            usedLibs.set(snapshot.getCell(cellId).d.libId.libIndex);
+            usedLibs.set(snapshot.getCell(cellId).d.getLibId().libIndex);
     }
 
 	/**
@@ -782,8 +784,8 @@ public class JELIB extends Output
     
 	private String getFullCellName(CellId cellId) {
         ImmutableCell d = snapshot.getCell(cellId).d;
-        LibraryBackup libBackup = snapshot.getLib(d.libId);
-		return convertString(libBackup.d.libId.libName + ":" + d.cellName);
+        LibraryBackup libBackup = snapshot.getLib(d.getLibId());
+		return convertString(libBackup.d.libId.libName + ":" + d.cellId.cellName);
 	}
 
 	/**

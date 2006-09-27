@@ -427,7 +427,11 @@ public abstract class LibraryFiles extends Input
             }
 
             // rename oldCell
-            oldCell.rename("___old___"+oldCell.getName());      // must not contain version or view info
+            String renamedName = "___old___"+oldCell.getName();
+            IdMapper idMapper = oldCell.rename(renamedName, renamedName);      // must not contain version or view info
+            if (idMapper == null) continue;
+            oldCell = idMapper.get(oldCell.getId()).inDatabase(EDatabase.serverDatabase());
+            
             // copy newCell over with oldCell's name
             newCell = Cell.copyNodeProto(newCell, lib, cellName, true);
 

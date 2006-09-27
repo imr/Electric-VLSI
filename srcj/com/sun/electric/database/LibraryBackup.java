@@ -131,4 +131,7 @@ public class LibraryBackup {
         for (LibId libId: referencedLibs)
             assert libId != null;
     }
+    
+    @Override
+    public String toString() { return d.toString(); }
 }

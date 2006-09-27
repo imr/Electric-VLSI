@@ -923,7 +923,7 @@ public class Library extends ElectricObject implements Comparable<Library>
         Snapshot oldSnapshot = database.backup();
         LibId newLibId = oldSnapshot.idManager.newLibId(libName);
         IdMapper idMapper = IdMapper.renameLibrary(oldSnapshot, d.libId, newLibId);
-        Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper);
+        Snapshot newSnapshot = oldSnapshot.withRenamedIds(idMapper, null, null);
         LibraryBackup[] libBackups = newSnapshot.libBackups.toArray(new LibraryBackup[newSnapshot.libBackups.size()]);
         LibraryBackup libBackup = libBackups[newLibId.libIndex];
         

@@ -36,8 +36,6 @@ import java.io.IOException;
 public class ImmutableCell extends ImmutableElectricObject {
     
 	/** CellId of this ImmutableCell. */                        public final CellId cellId;
-	/** The library this ImmutableCell belongs to. */			public final LibId libId;
-	/** The CellName of this ImmutableCell. */					public final CellName cellName;
     /** The group name of this ImmutableCell. */                public final CellName groupName;
 	/** The date this ImmutableCell was created. */				public final long creationDate;
 	/** This ImmutableCell's Technology. */						public final Technology tech;
@@ -45,8 +43,6 @@ public class ImmutableCell extends ImmutableElectricObject {
 	/**
 	 * The private constructor of ImmutableCell. Use the factory "newInstance" instead.
      * @param cellId id of this ImmutableCell.
-     * @param libId library of this ImmutableCell.
-     * @param cellName cell name of this ImmutableCell.
      * @param groupName group name of this ImmutableCell.
      * @param creationDate the date this ImmutableCell was created.
      * @param revisionDate the date this ImmutableCell was last modified.
@@ -54,12 +50,10 @@ public class ImmutableCell extends ImmutableElectricObject {
      * @param flags flags of this ImmutableCell.
      * @param vars array of Variables of this ImmutableCell
 	 */
-     private ImmutableCell(CellId cellId, LibId libId, CellName cellName, CellName groupName,
+     private ImmutableCell(CellId cellId, CellName groupName,
              long creationDate, Technology tech, int flags, Variable[] vars) {
         super(vars, flags);
         this.cellId = cellId;
-        this.libId = libId;
-        this.cellName = cellName;
         this.groupName = groupName;
         this.creationDate = creationDate;
         this.tech = tech;
@@ -69,44 +63,15 @@ public class ImmutableCell extends ImmutableElectricObject {
 	/**
 	 * Returns new ImmutableCell object.
      * @param cellId id of this ImmutableCell.
-     * @param libId library of this ImmutableCell.
      * @param cellName cell name of this ImmutableCell.
-     * @param creationDate date of this ImmutableCell.
+     * @param creationDate creation date of this ImmutableCell.
 	 * @return new ImmutableCell object.
 	 * @throws NullPointerException if cellId or libId is null.
 	 */
-    public static ImmutableCell newInstance(CellId cellId, LibId libId, CellName cellName, long creationDate) {
+    public static ImmutableCell newInstance(CellId cellId, long creationDate) {
         if (cellId == null) throw new NullPointerException("cellId");
-        if (libId == null) throw new NullPointerException("libId");
-        if (cellName == null) throw new NullPointerException("cellName");
-		return new ImmutableCell(cellId, libId, cellName, null, creationDate, null, 0, Variable.NULL_ARRAY);
+		return new ImmutableCell(cellId, CellName.newName(cellId.cellName.getName(), View.SCHEMATIC, 0), creationDate, null, 0, Variable.NULL_ARRAY);
     }
-
-	/**
-	 * Returns ImmutableCell which differs from this ImmutableCell by library id.
-	 * @param libId new library id.
-	 * @return ImmutableCell which differs from this ImmutableCell by library id.
-	 * @throws NullPointerException if libId is null.
-	 */
-	public ImmutableCell withLibrary(LibId libId) {
-        if (this.libId == libId) return this;
-        if (libId == null) throw new NullPointerException("libId");
-		return new ImmutableCell(this.cellId, libId, this.cellName, this.groupName,
-                this.creationDate, this.tech, this.flags, getVars());
-	}
-
-	/**
-	 * Returns ImmutableCell which differs from this ImmutableCell by cell name.
-	 * @param cellName new cell name.
-	 * @return ImmutableCell which differs from this ImmutableCell by cell name.
-	 */
-	public ImmutableCell withCellName(CellName cellName) {
-        if (this.cellName == cellName) return this;
-        if (cellName == null) throw new NullPointerException("cellName");
-        if (this.cellName.equals(cellName)) return this;
-		return new ImmutableCell(this.cellId, this.libId, cellName, this.groupName,
-                this.creationDate, this.tech, this.flags, getVars());
-	}
 
 	/**
 	 * Returns ImmutableCell which differs from this ImmutableCell by group name.
@@ -115,11 +80,10 @@ public class ImmutableCell extends ImmutableElectricObject {
      * @throws IllegalArgumentException if groupName is not schematic view and zero version.
 	 */
 	public ImmutableCell withGroupName(CellName groupName) {
-        if (this.groupName == groupName) return this;
-        if (this.groupName != null && this.groupName.equals(groupName)) return this;
-        if (groupName != null && (groupName.getVersion() != 0 || groupName.getView() != View.SCHEMATIC))
+        if (this.groupName.equals(groupName)) return this;
+        if (groupName.getVersion() != 0 || groupName.getView() != View.SCHEMATIC)
             throw new IllegalArgumentException(groupName.toString());
-        return new ImmutableCell(this.cellId, this.libId, this.cellName, groupName,
+        return new ImmutableCell(this.cellId, groupName,
                 this.creationDate, this.tech, this.flags, getVars());
 	}
 
@@ -130,7 +94,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
 	public ImmutableCell withCreationDate(long creationDate) {
         if (this.creationDate == creationDate) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
+		return new ImmutableCell(this.cellId, this.groupName,
                 creationDate, this.tech, this.flags, getVars());
 	}
 
@@ -141,7 +105,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
 	public ImmutableCell withTech(Technology tech) {
         if (this.tech == tech) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
+		return new ImmutableCell(this.cellId, this.groupName,
                 this.creationDate, tech, this.flags, getVars());
 	}
 
@@ -152,7 +116,7 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
 	public ImmutableCell withFlags(int flags) {
         if (this.flags == flags) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
+		return new ImmutableCell(this.cellId, this.groupName,
                 this.creationDate, this.tech, flags, getVars());
 	}
 
@@ -167,7 +131,7 @@ public class ImmutableCell extends ImmutableElectricObject {
     public ImmutableCell withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var);
         if (this.getVars() == vars) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
+		return new ImmutableCell(this.cellId, this.groupName,
                 this.creationDate, this.tech, this.flags, vars);
     }
     
@@ -181,7 +145,7 @@ public class ImmutableCell extends ImmutableElectricObject {
     public ImmutableCell withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
+		return new ImmutableCell(this.cellId, this.groupName,
                 this.creationDate, this.tech, this.flags, vars);
     }
     
@@ -193,9 +157,8 @@ public class ImmutableCell extends ImmutableElectricObject {
     ImmutableCell withRenamedIds(IdMapper idMapper) {
         Variable[] vars = arrayWithRenamedIds(idMapper);
         CellId cellId = idMapper.get(this.cellId);
-        LibId libId = idMapper.get(this.libId);
-        if (getVars() == vars && this.cellId == cellId && this.libId == libId) return this;
-		return new ImmutableCell(cellId, libId, this.cellName, this.groupName,
+        if (getVars() == vars && this.cellId == cellId) return this;
+		return new ImmutableCell(cellId, this.groupName,
                 this.creationDate, this.tech, this.flags, vars);
     }
     
@@ -206,9 +169,14 @@ public class ImmutableCell extends ImmutableElectricObject {
 	 */
     public ImmutableCell withoutVariables() {
         if (this.getNumVariables() == 0) return this;
-		return new ImmutableCell(this.cellId, this.libId, this.cellName, this.groupName,
+		return new ImmutableCell(this.cellId, this.groupName,
                 this.creationDate, this.tech, this.flags, Variable.NULL_ARRAY);
     }
+    
+    /**
+     * Returns LibId of the Library to which this ImmutableCell belongs.
+     */
+    public LibId getLibId() { return cellId.libId; }
     
     /**
      * Writes this ImmutableCell to SnapshotWriter.
@@ -216,11 +184,7 @@ public class ImmutableCell extends ImmutableElectricObject {
      */
     void write(SnapshotWriter writer) throws IOException {
         writer.writeNodeProtoId(cellId);
-        writer.writeLibId(libId);
-        writer.writeString(cellName.toString());
-        writer.writeBoolean(groupName != null);
-        if (groupName != null)
-            writer.writeString(groupName.toString());
+        writer.writeString(groupName.toString());
         writer.writeLong(creationDate);
         writer.writeBoolean(tech != null);
         if (tech != null)
@@ -235,22 +199,15 @@ public class ImmutableCell extends ImmutableElectricObject {
      */
     static ImmutableCell read(SnapshotReader reader) throws IOException {
         CellId cellId = (CellId)reader.readNodeProtoId();
-        LibId libId = reader.readLibId();
-        String cellNameString = reader.readString();
-        CellName cellName = CellName.parseName(cellNameString);
-        CellName groupName = null;
-        boolean hasGroupName = reader.readBoolean();
-        if (hasGroupName) {
-            String groupNameString = reader.readString();
-            groupName = CellName.parseName(groupNameString);
-        }
+        String groupNameString = reader.readString();
+        CellName groupName = CellName.parseName(groupNameString);
         long creationDate = reader.readLong();
         boolean hasTech = reader.readBoolean();
         Technology tech = hasTech ? reader.readTechnology() : null;
         int flags = reader.readInt();
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        return new ImmutableCell(cellId, libId, cellName, groupName, creationDate, tech, flags, vars);
+        return new ImmutableCell(cellId, groupName, creationDate, tech, flags, vars);
     }
     
     /**
@@ -269,7 +226,7 @@ public class ImmutableCell extends ImmutableElectricObject {
         if (this == o) return true;
         if (!(o instanceof ImmutableCell)) return false;
         ImmutableCell that = (ImmutableCell)o;
-        return this.cellId == that.cellId && this.libId == that.libId && this.cellName == that.cellName && this.groupName == that.groupName &&
+        return this.cellId == that.cellId && this.groupName == that.groupName &&
                 this.creationDate == that.creationDate && this.tech == that.tech && this.flags == that.flags;
     }
     
@@ -280,11 +237,10 @@ public class ImmutableCell extends ImmutableElectricObject {
 	public void check() {
         check(true);
         assert cellId != null;
-        assert libId != null;
-        cellName.check();
-        if (groupName != null) {
-            assert groupName.getVersion() == 0;
-            assert groupName.getView() == View.SCHEMATIC;
-        }
+        assert groupName.getVersion() == 0;
+        assert groupName.getView() == View.SCHEMATIC;
 	}
+    
+    @Override
+    public String toString() { return cellId.toString(); }
 }

@@ -24,14 +24,17 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Tool;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -47,38 +50,45 @@ public class Snapshot {
     public final Tool tool;
     public final ImmutableArrayList<CellBackup> cellBackups;
     public final int[] cellGroups;
-    public final ImmutableArrayList<ERectangle> cellBounds;
     public final ImmutableArrayList<LibraryBackup> libBackups;
+    private final ERectangle[] cellBounds;
 
     /** Creates a new instance of Snapshot */
     private Snapshot(IdManager idManager, int snapshotId, Tool tool,
             ImmutableArrayList<CellBackup> cellBackups,
             int[] cellGroups,
-            ImmutableArrayList<ERectangle> cellBounds,
-            ImmutableArrayList<LibraryBackup> libBackups) {
+            ImmutableArrayList<LibraryBackup> libBackups,
+            ERectangle[] cellBounds) {
         this.idManager = idManager;
         this.snapshotId = snapshotId;
         this.tool = tool;
         this.cellBackups = cellBackups;
         this.cellGroups = cellGroups;
-        this.cellBounds = cellBounds;
         this.libBackups = libBackups;
+        this.cellBounds = new ERectangle[cellBackups.size()];
+        for (int cellIndex = 0; cellIndex < cellBounds.length; cellIndex++) {
+            ERectangle r = cellBounds[cellIndex];
+            if (r == null) continue;
+            if (cellBackups.get(cellIndex) == null)
+                throw new IllegalArgumentException();
+            this.cellBounds[cellIndex] = r;
+        }
     }
     
     /**
      * Creates empty snapshot.
      */
     Snapshot(IdManager idManager) {
-        this(idManager, 0, null, CellBackup.EMPTY_LIST, new int[0], ERectangle.EMPTY_LIST, LibraryBackup.EMPTY_LIST);
+        this(idManager, 0, null, CellBackup.EMPTY_LIST, new int[0], LibraryBackup.EMPTY_LIST, ERectangle.NULL_ARRAY);
     }
     
     /**
      * Creates a new instance of Snapshot which differs from this Snapshot.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
      * @param tool tool which initiated database changes/
-     * @param cellBackupsArray list indexed by cellIndex of new CellBackups.
-     * @param cellBoundsArray list indexed by cellIndex of cell bounds.
-     * @param libBackupsArray list indexed by cellIndex of LibraryBackups.
+     * @param cellBackupArray array indexed by cellIndex of new CellBackups.
+     * @param cellBoundsArray array indexed by cellIndex of cell bounds.
+     * @param libBackupsArray array indexed by libIndex of LibraryBackups.
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
      * @throws IllegalArgumentException on invariant violation.
      * @throws ArrayOutOfBoundsException on some invariant violations.
@@ -86,11 +96,18 @@ public class Snapshot {
     public Snapshot with(Tool tool, CellBackup[] cellBackupsArray, ERectangle[] cellBoundsArray, LibraryBackup[] libBackupsArray) {
 //        long startTime = System.currentTimeMillis();
         ImmutableArrayList<CellBackup> cellBackups = copyArray(cellBackupsArray, this.cellBackups);
-        ImmutableArrayList<ERectangle> cellBounds = copyArray(cellBoundsArray, this.cellBounds);
         ImmutableArrayList<LibraryBackup> libBackups = copyArray(libBackupsArray, this.libBackups);
-        boolean namesChanged = this.cellGroups != cellGroups || this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
-        if (!namesChanged && this.cellBackups == cellBackups && this.cellBounds == cellBounds)
+        boolean namesChanged = this.libBackups != libBackups || this.cellBackups.size() != cellBackups.size();
+        if (!namesChanged && this.cellBackups == cellBackups) {
+            if (cellBoundsArray != null) {
+                for (int cellIndex = 0; cellIndex < cellBoundsArray.length; cellIndex++) {
+                    ERectangle r = cellBoundsArray[cellIndex];
+                    if (r == null) continue;
+                    setCellBounds(cellBackups.get(cellIndex).d.cellId, r);
+                }
+            }
             return this;
+        }
         
         // Check usages in libs
         for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
@@ -106,9 +123,7 @@ public class Snapshot {
             CellBackup oldBackup = getCell(cellIndex);
             CellId cellId;
             if (newBackup != null) {
-                if (oldBackup == null ||
-                        newBackup.d.libId != oldBackup.d.libId ||
-                        newBackup.d.cellName != oldBackup.d.cellName)
+                if (oldBackup == null || newBackup.d.groupName != oldBackup.d.groupName)
                     namesChanged = true;
                 
                 // Check lib usages.
@@ -162,10 +177,31 @@ public class Snapshot {
                 cellGroups = this.cellGroups;
         }
         
-        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, cellBounds, libBackups);
+        if (cellBoundsArray == null)
+            cellBoundsArray = this.cellBounds;
+        Snapshot snapshot = new Snapshot(idManager, idManager.newSnapshotId(), tool, cellBackups, cellGroups, libBackups, cellBoundsArray);
 //        long endTime = System.currentTimeMillis();
 //        System.out.println("Creating snapshot took: " + (endTime - startTime) + " msec");
         return snapshot;
+    }
+    
+    /**
+     * Sets cell bounds for a cell with given CellId
+     * @param cellId given CellId
+     * @param r cell boubds
+     * @throws IllegalArgumentException if snapshot has not cell with given cellId or on bounds conflict.
+     */
+    public void setCellBounds(CellId cellId, ERectangle r) {
+        if (r == null)
+            throw new NullPointerException();
+        CellBackup cellBackup = getCell(cellId);
+        if (cellBackup == null)
+            throw new IllegalArgumentException();
+        int cellIndex = cellId.cellIndex;
+        ERectangle oldR = cellBounds[cellIndex];
+        if (oldR != null && oldR != r)
+            throw new IllegalArgumentException();
+        cellBounds[cellIndex] = r;
     }
     
     private void checkUsedLibs(BitSet usedLibs) {
@@ -225,7 +261,7 @@ public class Snapshot {
 	 * @param idMapper a map from old Ids to new Ids.
      * @return Snapshot with renamed Ids.
 	 */
-    public Snapshot withRenamedIds(IdMapper idMapper) {
+    public Snapshot withRenamedIds(IdMapper idMapper, CellId fromGroup, String toGroup) {
         int maxCellIndex = -1;
         for (CellBackup cellBackup: cellBackups) {
             if (cellBackup == null) continue;
@@ -243,17 +279,69 @@ public class Snapshot {
         
         boolean cellBackupsChanged = false;
         boolean cellIdsChanged = false;
+        BitSet fromGroupCellIds = new BitSet();
+        BitSet toGroupCellIds = new BitSet();
+        CellName fromGroupName = null;
+        CellName toGroupName = null;
+        if (fromGroup != null) {
+            assert getCell(fromGroup) != null;
+            CellId toGroupCellId = idMapper.get(fromGroup);
+            assert toGroupCellId != null;
+            assert getCell(toGroupCellId) == null;
+            int fromGroupIndex = cellGroups[fromGroup.cellIndex];
+            assert fromGroupIndex >= 0;
+            int toGroupIndex1 = -1, toGroupIndex2 = -1;
+            if (toGroup == null)
+                toGroupIndex2 = fromGroupIndex;
+            for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
+                CellBackup cellBackup = cellBackups.get(cellIndex);
+                if (cellBackup == null) continue;
+                if (cellBackup.d.cellId.libId == fromGroup.libId) {
+                    if (cellBackup.d.cellId.cellName.getName().equals(toGroupCellId.cellName.getName()))
+                        toGroupIndex1 = cellGroups[cellIndex];
+                    if (toGroup != null && cellBackup.d.cellId.cellName.getName().equals(toGroup))
+                        toGroupIndex2 = cellGroups[cellIndex];
+                }
+            }
+            ArrayList<CellName> fromCellNames = new ArrayList<CellName>();
+            ArrayList<CellName> toCellNames = new ArrayList<CellName>();
+            toGroupCellIds.set(toGroupCellId.cellIndex);
+            toCellNames.add(toGroupCellId.cellName);
+            for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
+                CellBackup cellBackup = cellBackups.get(cellIndex);
+                if (cellBackup == null || cellIndex == fromGroup.cellIndex) continue;
+                if (cellGroups[cellIndex] == fromGroupIndex) {
+                    fromGroupCellIds.set(cellIndex);
+                    fromCellNames.add(cellBackup.d.cellId.cellName);
+                }
+                if (cellGroups[cellIndex] == toGroupIndex1 || cellGroups[cellIndex] == toGroupIndex2) {
+                    toGroupCellIds.set(cellIndex);
+                    toCellNames.add(cellBackup.d.cellId.cellName);
+                }
+            }
+            if (!fromCellNames.isEmpty())
+                fromGroupName = makeCellGroupName(fromCellNames);
+            if (!toCellNames.isEmpty())
+                toGroupName = makeCellGroupName(toCellNames);
+        }
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup oldCellBackup = cellBackups.get(cellIndex);
             if (oldCellBackup == null) continue;
-            CellBackup newCellBackup = oldCellBackup.withRenamedIds(idMapper);
+            CellName newGroupName = oldCellBackup.d.groupName;
+            if (fromGroup != null) {
+                if (toGroupCellIds.get(cellIndex) || cellIndex == fromGroup.cellIndex)
+                    newGroupName = toGroupName;
+                else if (fromGroupCellIds.get(cellIndex))
+                    newGroupName = fromGroupName;
+            }
+            CellBackup newCellBackup = oldCellBackup.withRenamedIds(idMapper, newGroupName);
             if (newCellBackup != oldCellBackup)
                 cellBackupsChanged = true;
             int newCellIndex = newCellBackup.d.cellId.cellIndex;
             if (newCellIndex != cellIndex)
                 cellIdsChanged = true;
             cellBackupsArray[newCellIndex] = newCellBackup;
-            cellBoundsArray[newCellIndex] = cellBounds.get(cellIndex);
+            cellBoundsArray[newCellIndex] = this.cellBounds[cellIndex];
         }
         if (!cellBackupsChanged)
             cellBackupsArray = null;
@@ -309,7 +397,11 @@ public class Snapshot {
         return changed;
     }
     
-    public CellBackup getCell(CellId cellId) { return getCell(cellId.cellIndex); }
+    public CellBackup getCell(CellId cellId) {
+        if (cellId.getIdManager() != idManager)
+            throw new IllegalArgumentException();
+        return getCell(cellId.cellIndex);
+    }
     
     public CellBackup getCell(int cellIndex) {
         return cellIndex < cellBackups.size() ? cellBackups.get(cellIndex) : null; 
@@ -327,28 +419,50 @@ public class Snapshot {
 //    public String getCellGroupName(CellId cellId) {
 //        int groupIndex = cellId.cellIndex < cellGroups.length ? cellGroups[cellId.cellIndex] : -1;
 //        if (groupIndex < 0) return null;
-//        String bestName = null;
+//        ArrayList<CellName> cellNames = new ArrayList<CellName>();
 //        for (CellBackup cellBackup: cellBackups) {
 //            if (cellBackup == null) continue;
 //            if (cellGroups[cellBackup.d.cellId.cellIndex] != groupIndex) continue;
-//            String name = cellBackup.d.cellName.getName();
-//            if (cellBackup.isMainSchematics) return name;
-//            if (bestName == null) {
-//                bestName = name;
-//                continue;
-//            }
-//            if (name.length() > bestName.length()) continue;
-//            if (name.length() < bestName.length() || TextUtils.STRING_NUMBER_ORDER.compare(name, bestName) < 0)
-//                bestName = name;
+//            cellNames.add(cellBackup.d.cellId.cellName);
 //        }
-//        assert bestName != null;
-//        return bestName;
+//        if (cellNames.isEmpty()) return null;
+//        return makeCellGroupName(cellNames).getName();
 //    }
-
+    
+    /**
+     * Returns group name of group with specified CellNames.
+     * Name of cell group is a base name of main schematics cell if any.
+     * Otherwise it is a shortest base name among cells in the group.
+     * @param cellNames collection of CellNames in a group.
+     * @return name of cell group.
+     * @throws InvalidArgumentException if cellNames is empty
+     */
+    public static CellName makeCellGroupName(Collection<CellName> cellNames) {
+        if (cellNames.isEmpty())
+            throw new IllegalArgumentException();
+        String groupName = null;
+        for (CellName cellName: cellNames) {
+            if (cellName.getView() != View.SCHEMATIC) continue;
+            String name = cellName.getName();
+            if (groupName == null || TextUtils.STRING_NUMBER_ORDER.compare(name, groupName) < 0)
+                groupName = name;
+        }
+        if (groupName == null) {
+            for (CellName cellName: cellNames) {
+                String name = cellName.getName();
+                if (groupName == null || name.length() < groupName.length() ||
+                        name.length() == groupName.length() && TextUtils.STRING_NUMBER_ORDER.compare(name, groupName) < 0)
+                    groupName = name;
+            }
+        }
+        assert groupName != null;
+        return CellName.parseName(groupName + "{sch}");
+    }
+    
     public ERectangle getCellBounds(CellId cellId) { return getCellBounds(cellId.cellIndex); }
     
     public ERectangle getCellBounds(int cellIndex) {
-        return cellIndex < cellBounds.size() ? cellBounds.get(cellIndex) : null; 
+        return cellIndex < cellBounds.length ? cellBounds[cellIndex] : null; 
     }
     
     public LibraryBackup getLib(LibId libId) { return getLib(libId.libIndex); }
@@ -357,14 +471,16 @@ public class Snapshot {
         return libIndex < libBackups.size() ? libBackups.get(libIndex) : null; 
     }
     
-    private boolean equals(Snapshot that) {
-        return this.cellBackups.equals(that.cellBackups) &&
-                this.libBackups.equals(that.libBackups) &&
-                Arrays.equals(this.cellGroups, that.cellGroups) &&
-                this.cellBounds.equals(that.cellBounds);
-    }
+//    private boolean equals(Snapshot that) {
+//        return this.cellBackups.equals(that.cellBackups) &&
+//                this.libBackups.equals(that.libBackups) &&
+//                Arrays.equals(this.cellGroups, that.cellGroups) &&
+//                this.cellBounds.equals(that.cellBounds);
+//    }
     
     public void writeDiffs(SnapshotWriter writer, Snapshot oldSnapshot) throws IOException {
+        assert oldSnapshot.cellBoundsDefined();
+        assert cellBoundsDefined();
         idManager.writeDiffs(writer);
         writer.writeInt(snapshotId);
         writer.writeBoolean(tool != null);
@@ -392,7 +508,11 @@ public class Snapshot {
         }
 
         writer.writeInt(cellBackups.size());
-        boolean boundsChanged = oldSnapshot.cellBounds != cellBounds;
+        boolean boundsChanged = oldSnapshot.cellBounds.length != cellBounds.length;
+        for (int cellIndex = 0; cellIndex < cellBounds.length; cellIndex++) {
+            if (cellBackups.get(cellIndex) == null) continue;
+            boundsChanged = boundsChanged || cellBounds[cellIndex] != oldSnapshot.cellBounds[cellIndex];
+        }
         writer.writeBoolean(boundsChanged);
         for (int i = 0; i < cellBackups.size(); i++) {
             CellBackup oldBackup = oldSnapshot.getCell(i);
@@ -438,6 +558,7 @@ public class Snapshot {
     }
     
     public static Snapshot readSnapshot(SnapshotReader reader, Snapshot oldSnapshot) throws IOException {
+        assert oldSnapshot.cellBoundsDefined();
         oldSnapshot.idManager.readDiffs(reader);
         int snapshotId = reader.readInt();
         boolean hasTool = reader.readBoolean();
@@ -470,12 +591,11 @@ public class Snapshot {
         for (int cellIndex = 0; cellIndex < cellMax; cellIndex++)
             cellBackupsArray[cellIndex] = oldSnapshot.cellBackups.get(cellIndex);
         boolean boundsChanged = reader.readBoolean();
-        ImmutableArrayList<ERectangle> cellBounds = oldSnapshot.cellBounds;
-        ERectangle[] cellBoundsArray = null;
+        ERectangle[] cellBoundsArray = oldSnapshot.cellBounds;
         if (boundsChanged) {
             cellBoundsArray = new ERectangle[cellLen];
-            for (int cellIndex = 0, numCells = Math.min(oldSnapshot.cellBounds.size(), cellLen); cellIndex < numCells; cellIndex++)
-                cellBoundsArray[cellIndex] = oldSnapshot.cellBounds.get(cellIndex);
+            for (int cellIndex = 0, numCells = Math.min(oldSnapshot.cellBounds.length, cellLen); cellIndex < numCells; cellIndex++)
+                cellBoundsArray[cellIndex] = oldSnapshot.cellBounds[cellIndex];
         }
         for (;;) {
             int cellIndex = reader.readInt();
@@ -505,7 +625,6 @@ public class Snapshot {
                 ERectangle newBounds = new ERectangle(x, y, width, height);
                 cellBoundsArray[cellIndex] = newBounds;
             }
-            cellBounds = new ImmutableArrayList<ERectangle>(cellBoundsArray);
         }
         
         int[] cellGroups = oldSnapshot.cellGroups;;
@@ -517,10 +636,23 @@ public class Snapshot {
                 cellGroups[i] = reader.readInt();
         }
         for (int i = 0; i < cellBackups.size(); i++) {
-            assert (cellBackups.get(i) != null) == (cellBounds.get(i) != null);
+            assert (cellBackups.get(i) != null) == (cellBoundsArray[i] != null);
             assert (cellBackups.get(i) != null) == (cellGroups[i] >= 0);
         }
-        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups, cellGroups, cellBounds, libBackups);
+        return new Snapshot(oldSnapshot.idManager, snapshotId, tool, cellBackups, cellGroups, libBackups, cellBoundsArray);
+    }
+    
+    /**
+     * Checks if all cell bounds are defined.
+     * @returns true if all cell bounds are defined.
+     */
+    public boolean cellBoundsDefined() {
+        assert cellBackups.size() == cellBounds.length;
+        for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
+            if (cellBackups.get(cellIndex) == null) continue;
+            if (cellBounds[cellIndex] == null) return false;
+        }
+        return true;
     }
     
     /**
@@ -548,14 +680,14 @@ public class Snapshot {
         int[] cellGroups = new int[cellBackups.size()];
         checkNames(idManager, cellBackups, cellGroups, libBackups);
         assert Arrays.equals(this.cellGroups, cellGroups);
-        assert cellBackups.size() == cellBounds.size();
+        assert cellBackups.size() == cellBounds.length;
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup cellBackup = cellBackups.get(cellIndex);
             if (cellBackup == null) {
-                assert cellBounds.get(cellIndex) == null;
+                assert cellBounds[cellIndex] == null;
                 continue;
             }
-            assert cellBounds.get(cellIndex) != null;
+//            assert cellBounds.get(cellIndex) != null;
             checkUsedLibs(cellBackup.usedLibs);
             CellId cellId = cellBackup.d.cellId;
             for (int i = 0; i < cellBackup.cellUsages.length; i++) {
@@ -613,14 +745,14 @@ public class Snapshot {
             CellId cellId = d.cellId;
             if (cellId != idManager.getCellId(cellIndex))
                 throw new IllegalArgumentException("CellId");
-            LibId libId = d.libId;
+            LibId libId = d.getLibId();
             int libIndex = libId.libIndex;
             if (libId != libBackups.get(libIndex).d.libId)
                 throw new IllegalArgumentException("LibId in ImmutableCell");
             HashMap<String,CellName> cellNameToGroupNameInLibrary = protoNameToGroupName.get(libId.libIndex);
             HashSet<CellName> cellNamesInLibrary = cellNames.get(libId.libIndex);
             HashMap<CellName,Integer> groupNameToGroupIndexInLibrary = groupNameToGroupIndex.get(libId.libIndex);
-            String protoName = d.cellName.getName();
+            String protoName = cellId.cellName.getName();
             CellName groupName = cellNameToGroupNameInLibrary.get(protoName);
             if (groupName == null) {
                 groupName = d.groupName;
@@ -633,7 +765,7 @@ public class Snapshot {
                 groupNameToGroupIndexInLibrary.put(groupName, gn);
             }
             cellGroups[cellIndex] = gn.intValue();
-            if (!cellNamesInLibrary.add(d.cellName))
+            if (!cellNamesInLibrary.add(cellId.cellName))
                 throw new IllegalArgumentException("duplicate CellName in library");
         }
     }
