@@ -474,9 +474,15 @@ public abstract class ElectricObject implements Serializable
 			Poly.Type rotStyle = style;
 			if (this instanceof NodeInst)
 			{
+				NodeInst ni = (NodeInst)this;
+				AffineTransform offsetTrans = ni.pureRotateIn();
+				Point2D off = new Point2D.Double(lineOffX, lineOffY);
+				offsetTrans.transform(off, off);
+				lineOffX = off.getX();
+				lineOffY = off.getY();
+
 				if (style != Poly.Type.TEXTCENT && style != Poly.Type.TEXTBOX)
 				{
-					NodeInst ni = (NodeInst)this;
 					trans = ni.rotateIn();
 					int origAngle = style.getTextAngle();
 					if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() &&
