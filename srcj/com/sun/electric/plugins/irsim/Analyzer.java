@@ -2400,7 +2400,7 @@ public class Analyzer extends Engine
 			List list = listTbl[Sim.inputNumber((int)n.nFlags)];
 			switch (wChar)
 			{
-				case 'h':
+				case 'h':   case '1':
 					if (list != null && list != hInputs)
 					{
 						n.nFlags = n.nFlags & ~Sim.INPUT_MASK;
@@ -2413,7 +2413,7 @@ public class Analyzer extends Engine
 					}
 					break;
 
-				case 'l':
+				case 'l':   case '0':
 					if (list != null && list != lIinputs)
 					{
 						n.nFlags = n.nFlags & ~Sim.INPUT_MASK;
