@@ -59,7 +59,7 @@ public class ImmutableCellTest {
         fooName = CellName.parseName("foo;1{lay}");
         cellId = libId.newCellId(fooName);
         groupName = CellName.parseName("foo{sch}");
-        d = ImmutableCell.newInstance(cellId, libId, fooName, 12345).withGroupName(groupName).withTech(Generic.tech);
+        d = ImmutableCell.newInstance(cellId, 12345).withGroupName(groupName).withTech(Generic.tech);
         var = Variable.newInstance(Variable.newKey("A"), "foo", TextDescriptor.EMPTY.withParam(true) );
     }
     
@@ -74,69 +74,9 @@ public class ImmutableCellTest {
         System.out.println("newInstance");
         
         long creationDate = 0L;
-        ImmutableCell.newInstance(null, libId, fooName, creationDate).check();
+        ImmutableCell.newInstance(null, creationDate).check();
     }
 
-    /**
-     * Test of withLibrary method, of class com.sun.electric.database.ImmutableCell.
-     */
-    @Test public void testWithLibrary() {
-        System.out.println("withLibrary");
-        
-        assertSame(d, d.withLibrary(libId));
-        
-        LibId libId1 = idManager.newLibId("libId1");
-        ImmutableCell d1 = d.withLibrary(libId1);
-        d1.check();
-        assertSame(d.cellId, d1.cellId );
-        assertSame(libId1, d1.libId );
-        assertSame(d.cellName, d1.cellName);
-        assertSame(d.groupName, d1.groupName);
-        assertEquals(d.creationDate, d1.creationDate);
-        assertSame(d.tech, d1.tech);
-        assertSame(d.getVars(), d1.getVars());
-        assertEquals(d.flags, d1.flags);
-    }
-
-    /**
-     * Test of withLibrary method, of class com.sun.electric.database.ImmutableCell.
-     */
-    @Test(expected=NullPointerException.class) public void testWithLibraryNull() {
-        System.out.println("withLibraryNull");
-        
-        d.withLibrary(null);
-    }
-
-    /**
-     * Test of withCellName method, of class com.sun.electric.database.ImmutableCell.
-     */
-    @Test public void testWithCellName() {
-        System.out.println("withCellName");
-      
-        assertSame(d, d.withCellName(CellName.parseName("foo;1{lay}")));
-        
-        CellName cellName = CellName.parseName("bar{lay}");
-        ImmutableCell d1 = d.withCellName(cellName);
-        d1.check();
-        assertSame(d.cellId, d1.cellId);
-        assertSame(d.libId, d1.libId);
-        assertSame(cellName, d1.cellName);
-        assertSame(d.groupName, d1.groupName);
-        assertEquals(d.creationDate, d1.creationDate);
-        assertSame(d.tech, d1.tech);
-        assertSame(d.getVars(), d1.getVars());
-        assertEquals(d.flags, d1.flags);
-    }
-
-    /**
-     * Test of withCellName method, of class com.sun.electric.database.ImmutableCell.
-     */
-    @Test(expected=NullPointerException.class) public void testWithCellNameNull() {
-        System.out.println("withCellNameNull");
-        
-        d.withLibrary(null);
-    }
-    
     /**
      * Test of withGroupName method, of class com.sun.electric.database.ImmutableCell.
      */
@@ -149,15 +89,20 @@ public class ImmutableCellTest {
         ImmutableCell d1 = d.withGroupName(groupName);
         d1.check();
         assertSame(d.cellId, d1.cellId);
-        assertSame(d.libId, d1.libId);
-        assertSame(d.cellName, d1.cellName);
         assertSame(groupName, d1.groupName);
         assertEquals(d.creationDate, d1.creationDate);
         assertSame(d.tech, d1.tech);
         assertSame(d.getVars(), d1.getVars());
         assertEquals(d.flags, d1.flags);
-        
-        assertNull( d.withGroupName(null).groupName );
+    }
+
+    /**
+     * Test of withGroupName method, of class com.sun.electric.database.ImmutableCell.
+     */
+    @Test(expected= NullPointerException.class) public void testWithGroupNameNull() {
+        System.out.println("withGroupNameNull");
+      
+        d.withGroupName(CellName.parseName(null));
     }
 
     /**
@@ -181,8 +126,6 @@ public class ImmutableCellTest {
         ImmutableCell d1 = d.withCreationDate(creationDate);
         d1.check();
         assertSame(d.cellId, d1.cellId);
-        assertSame(d.libId, d1.libId);
-        assertSame(d.cellName, d1.cellName);
         assertSame(d.groupName, d1.groupName);
         assertEquals(creationDate, d1.creationDate);
         assertSame(d.tech, d1.tech);
@@ -202,8 +145,6 @@ public class ImmutableCellTest {
         ImmutableCell d1 = d.withTech(tech);
         d1.check();
         assertSame(d.cellId, d1.cellId);
-        assertSame(d.libId, d1.libId);
-        assertSame(d.cellName, d1.cellName);
         assertSame(d.groupName, d1.groupName);
         assertEquals(d.creationDate, d1.creationDate);
         assertSame(tech, d1.tech);
@@ -225,8 +166,6 @@ public class ImmutableCellTest {
         ImmutableCell d1 = d.withFlags(flags);
         d1.check();
         assertSame(d.cellId, d1.cellId);
-        assertSame(d.libId, d1.libId);
-        assertSame(d.cellName, d1.cellName);
         assertSame(d.groupName, d1.groupName);
         assertEquals(d.creationDate, d1.creationDate);
         assertSame(d.tech, d1.tech);
@@ -243,8 +182,6 @@ public class ImmutableCellTest {
         ImmutableCell d1 = d.withVariable(var);
         d1.check();
         assertSame(d.cellId, d1.cellId);
-        assertSame(d.libId, d1.libId);
-        assertSame(d.cellName, d1.cellName);
         assertSame(d.groupName, d1.groupName);
         assertEquals(d.creationDate, d1.creationDate);
         assertSame(d.tech, d1.tech);
@@ -294,8 +231,6 @@ public class ImmutableCellTest {
             ImmutableCell d1 = ImmutableCell.read(reader);
             d1.check();
             assertSame(d.cellId, d1.cellId);
-            assertSame(d.libId, d1.libId);
-            assertEquals(d.cellName, d1.cellName);
             assertEquals(d.groupName, d1.groupName);
             assertEquals(d.creationDate, d1.creationDate);
             assertSame(d.tech, d1.tech);
@@ -322,8 +257,6 @@ public class ImmutableCellTest {
         System.out.println("equalsExceptVariables");
         
         assertTrue( d.equalsExceptVariables(d) );
-        assertFalse( d.equalsExceptVariables(d.withLibrary(idManager.newLibId("libId1"))) );
-        assertFalse( d.equalsExceptVariables(d.withCellName(CellName.parseName("bar{lay}"))) );
         assertFalse( d.equalsExceptVariables(d.withGroupName(CellName.parseName("bar{sch}"))) );
         assertFalse( d.equalsExceptVariables(d.withCreationDate(1)) );
         assertFalse( d.equalsExceptVariables(d.withTech(Schematics.tech)) );

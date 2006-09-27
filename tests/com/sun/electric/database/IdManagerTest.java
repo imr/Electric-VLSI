@@ -139,7 +139,7 @@ public class IdManagerTest {
     }
     
     private void assertCellId(int cellIndex, CellId cellId) {
-        assertSame(idManager, cellId.idManager);
+        assertSame(idManager, cellId.getIdManager());
         assertEquals(cellIndex, cellId.cellIndex);
     }
 
@@ -153,7 +153,7 @@ public class IdManagerTest {
         assertEquals(0, initialSnapshot.snapshotId);
         assertSame(CellBackup.EMPTY_LIST, initialSnapshot.cellBackups);
         assertEquals(0, initialSnapshot.cellGroups.length);
-        assertSame(ERectangle.EMPTY_LIST, initialSnapshot.cellBounds);
+//        assertSame(ERectangle.EMPTY_LIST, initialSnapshot.cellBounds);
         assertSame(LibraryBackup.EMPTY_LIST, initialSnapshot.libBackups);
         
         assertSame(initialSnapshot, idManager.getInitialSnapshot());
@@ -208,7 +208,7 @@ public class IdManagerTest {
             // Add new staff to database
             assertEquals( 2, idManager.newLibId("libId2").libIndex );
             assertEquals( 3, idManager.newLibId("libId3").libIndex );
-            assertEquals( 2, libId1.newCellId(CellName.parseName("cellId2")).cellIndex );
+            assertEquals( 2, libId1.newCellId(CellName.parseName("cellId2;1")).cellIndex );
             String nameB = "B";
             idManager.getCellId(1).newExportId(nameB);
             String nameC = "C";

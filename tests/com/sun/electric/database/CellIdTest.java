@@ -310,7 +310,7 @@ public class CellIdTest {
         
         CellId instance = cellId0;
         
-        String expResult = "CellId#0";
+        String expResult = "lib:cell0;1{sch}";
         String result = instance.toString();
         assertEquals(expResult, result);
     }
