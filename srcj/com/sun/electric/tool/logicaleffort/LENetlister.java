@@ -153,6 +153,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
      * @return the netlister constants settings, or null if none found
      */
     protected NetlisterConstants getSettings(Cell cell) {
+        if (!LETool.isUseLocalSettings()) return null;
         for (Iterator<NodeInst> instIt = cell.getNodes(); instIt.hasNext();) {
             NodeInst ni = (NodeInst)instIt.next();
             if (ni.isIconOfParent()) continue;
