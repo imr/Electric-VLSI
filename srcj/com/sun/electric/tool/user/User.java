@@ -47,8 +47,6 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.VectorCache;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -594,14 +592,14 @@ public class User extends Listener
 	 * @param wnd the EditWindow in question.
 	 * @param changedArea the area (in database coordinates) that has changed in the window.
 	 */
-	private static void setChangedInWindow(EditWindow wnd, Rectangle2D changedArea)
-	{
-//		Rectangle2D lastChanged = changedWindowRects.get(wnd);
-//		if (lastChanged == null) changedWindowRects.put(wnd, changedArea); else
-//		{
-//			Rectangle2D.union(lastChanged, changedArea, lastChanged);
-//		}
-	}
+//	private static void setChangedInWindow(EditWindow wnd, Rectangle2D changedArea)
+//	{
+////		Rectangle2D lastChanged = changedWindowRects.get(wnd);
+////		if (lastChanged == null) changedWindowRects.put(wnd, changedArea); else
+////		{
+////			Rectangle2D.union(lastChanged, changedArea, lastChanged);
+////		}
+//	}
 
 	/**
 	 * Method to recurse flag all windows showing a cell to redraw.
@@ -1102,7 +1100,6 @@ public class User extends Listener
 	 */
 	public static void setDefGridYBoldFrequency(int dist) { cacheDefGridYBoldFrequency.setInt(dist); }
 
-//	private static Pref cacheAlignmentToGrid = Pref.makeDoublePref("AlignmentToGrid", tool.prefs, 1);
 	/**
 	 * Method to return the default alignment of objects to the grid.
 	 * The default is 1, meaning that placement and movement should land on whole grid units.
@@ -1117,15 +1114,7 @@ public class User extends Listener
         }
         assert(false); // should never reach this point.
         return -1;
-//        return cacheAlignmentToGrid.getDouble();
     }
-
-//	/**
-//	 * Method to set the default alignment of objects to the grid.
-//	 * @param dist the default alignment of objects to the grid.
-//	 */
-//	public static void setAlignmentToGrid(double dist) { cacheAlignmentToGrid.setDouble(dist); }
-
     private static Pref cacheAlignmentToGridVector = Pref.makeStringPref("AlignmentToGridVector", tool.prefs, "(-1 0.5 0.25)");
     /**
      * Method to return the default alignment of objects to the grid.
