@@ -278,7 +278,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             String bestName = null;
             Cell mainSchematic = null;
 			for (Cell cell: cells) {
-				if (cell.isSchematic())
+				if (cell.isSchematic() && mainSchematic == null)
                     mainSchematic = cell;
                 cellNames.add(cell.getCellName());
 			}
@@ -4144,6 +4144,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         if (repair && list.size() > 0)
         {
         	CircuitChangeJobs.eraseObjectsInList(this, list, false);
+        }
+        
+        if (isSchematic() && getNewestVersion() == this && getCellGroup().getMainSchematics() != this) {
+            String mainSchemMsg = "Extraneous schematic cell " + describe(false) + " in cell group " + lib.getName() + ":" + getCellGroup().getName();
+            System.out.println(mainSchemMsg);
+            if (errorLogger != null)
+                errorLogger.logWarning(mainSchemMsg, this, 1);
         }
         
         Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);

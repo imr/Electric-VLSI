@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 BUG: (9/28/06, DN) NCC regressions fail when cell group has multiple schematics.
 FIX: In Cell.CellGroup.setMainSchematic use first schematic cell.
-     In Cell.checkAndRepair issue earnings about extraneous schematic cells.
+     In Cell.checkAndRepair issue warnings about extraneous schematic cells.
 
 BUG: (9/28/06, DN) A lot of warnings during Nodable deserialization.
 FIX: In EObjectOutputStream.ENodable.readResolve use getNetlist() instead of getUserNetlist().

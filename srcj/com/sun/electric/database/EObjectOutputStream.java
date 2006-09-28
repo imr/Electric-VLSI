@@ -293,7 +293,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         }
         
         private Object readResolve() throws ObjectStreamException {
-            Netlist netlist = cell.getUserNetlist();
+            Netlist netlist = cell.getNetlist(false);
             Nodable nodable = null;
             for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
                 Nodable no = it.next();
