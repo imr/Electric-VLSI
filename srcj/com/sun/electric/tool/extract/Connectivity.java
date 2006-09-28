@@ -101,6 +101,14 @@ public class Connectivity
 	 */
 	public static void extractCurCell(boolean recursive)
 	{
+//Point2D [] points = new Point2D[5];
+//points[0] = new Point2D.Double(4400,  165.685);
+//points[1] = new Point2D.Double( 400, 4165.685);
+//points[2] = new Point2D.Double( 400, 4166);
+//points[3] = new Point2D.Double(4400,  166);
+//points[4] = new Point2D.Double(4400,  165.685);
+//double area = GenMath.getAreaOfPoints(points);
+
 //double low = 147.85, high = 150.45;
 //double d = high-low;
 //System.out.println("distance between "+low+" and "+high+" is "+d);
@@ -1521,8 +1529,8 @@ public class Connectivity
 			double activeSize = cl.width;
 			double cX = (cl.start.getX() + cl.end.getX()) / 2;
 			double cY = (cl.start.getY() + cl.end.getY()) / 2;
-			double sX = polySize + so.getLowXOffset() + so.getHighXOffset();
-			double sY = activeSize + so.getLowYOffset() + so.getHighYOffset();
+			double sX = polySize + scaleUp(so.getLowXOffset() + so.getHighXOffset());
+			double sY = activeSize + scaleUp(so.getLowYOffset() + so.getHighYOffset());
 			realizeNode(transistor, cX, cY, sX, sY, cl.angle, null, merge, newCell);
 			return;
 		}
@@ -1544,40 +1552,42 @@ public class Connectivity
 			for(Centerline cl : lines)
 			{
 				if (cl.handled) continue;
-				if (cl.start.equals(points[0]))
+				EPoint start = new EPoint(cl.start.getX(), cl.start.getY());
+				EPoint end = new EPoint(cl.end.getX(), cl.end.getY());
+				if (start.equals(points[0]))
 				{
 					// insert "end" point at start
 					for(int i=pointsSeen; i>0; i--)
 						points[i] = points[i-1];
-					points[0] = new EPoint(cl.end.getX(), cl.end.getY());
+					points[0] = end;
 					pointsSeen++;
 					cl.handled = true;
 					added = true;
 					break;
 				}
-				if (cl.end.equals(points[0]))
+				if (end.equals(points[0]))
 				{
 					// insert "start" point at start
 					for(int i=pointsSeen; i>0; i--)
 						points[i] = points[i-1];
-					points[0] = new EPoint(cl.start.getX(), cl.start.getY());
+					points[0] = start;
 					pointsSeen++;
 					cl.handled = true;
 					added = true;
 					break;
 				}
-				if (cl.start.equals(points[pointsSeen-1]))
+				if (start.equals(points[pointsSeen-1]))
 				{
 					// add "end" at the end
-					points[pointsSeen++] = new EPoint(cl.end.getX(), cl.end.getY());
+					points[pointsSeen++] = end;
 					cl.handled = true;
 					added = true;
 					break;
 				}
-				if (cl.end.equals(points[pointsSeen-1]))
+				if (end.equals(points[pointsSeen-1]))
 				{
 					// add "start" at the end
-					points[pointsSeen++] = new EPoint(cl.start.getX(), cl.start.getY());
+					points[pointsSeen++] = start;
 					cl.handled = true;
 					added = true;
 					break;
@@ -1993,7 +2003,7 @@ public class Connectivity
 				{
 					if (cl.width < minWidth) continue;
 					if (lastWidth < 0) lastWidth = cl.width;
-					if (cl.width != lastWidth) break;
+					if (Math.abs(cl.width - lastWidth) > 1) break;
 
 					// make the polygon to describe the centerline
 					double length = cl.start.distance(cl.end);
@@ -2076,21 +2086,30 @@ public class Connectivity
 							Math.min(distToStart, distToEnd) > both[b].width/2;
 
 						// adjust the centerline to end at the intersection point
-						double extendStart = 0, extendEnd = 0, extendAltStart = 0, extendAltEnd = 0;
+						double extendStart = 0, extendEnd = 0, extendAltStart = 0, extendAltEnd = 0, betterExtension = 0;
 						Point2D altNewStart = new Point2D.Double(0,0), altNewEnd = new Point2D.Double(0,0);
 						if (distToStart < distToEnd)
 						{
+							betterExtension = newStart.distance(intersect);
 							altNewStart.setLocation(newStart);   altNewEnd.setLocation(intersect);
 							newStart = intersect;
 							extendAltEnd = extendStart = both[b].width / 2;							
 						} else
 						{
+							betterExtension = newEnd.distance(intersect);
 							altNewStart.setLocation(intersect);   altNewEnd.setLocation(newEnd);
 							newEnd = intersect;
 							extendAltStart = extendEnd = both[b].width / 2;
 						}
 						Poly extended = Poly.makeEndPointPoly(newStart.distance(newEnd), both[b].width, both[b].angle,
 							newStart, extendStart, newEnd, extendEnd, Poly.Type.FILLED);
+						if (!originalMerge.contains(layer, extended))
+						{
+							if (extendStart > 0) extendStart = betterExtension;
+							if (extendEnd > 0) extendEnd = betterExtension;
+							extended = Poly.makeEndPointPoly(newStart.distance(newEnd), both[b].width, both[b].angle,
+								newStart, extendStart, newEnd, extendEnd, Poly.Type.FILLED);
+						}
 						if (originalMerge.contains(layer, extended))
 						{
 							both[b].setStart(newStart.getX(), newStart.getY());
@@ -2157,7 +2176,9 @@ public class Connectivity
 			Point2D lastPt = points[lastI];
 			Point2D thisPt = points[i];
 			if (lastPt.equals(thisPt)) continue;
-			int angle = GenMath.figureAngle(thisPt, lastPt) % 1800;
+			double angle = GenMath.figureAngleRadians(thisPt, lastPt);
+			while (angle < -Math.PI/2) angle += Math.PI;
+			while (angle > Math.PI/2) angle -= Math.PI;
 
 			// now find another line parallel to this one
 			for(int j=i+2; j<points.length; j++)
@@ -2165,21 +2186,23 @@ public class Connectivity
 				Point2D oLastPt = points[j-1];
 				Point2D oThisPt = points[j];
 				if (oLastPt.equals(oThisPt)) continue;
-				int oAngle = GenMath.figureAngle(oThisPt, oLastPt) % 1800;
-				if (oAngle == angle)
+				double oAngle = GenMath.figureAngleRadians(oThisPt, oLastPt);
+				while (oAngle < -Math.PI/2) oAngle += Math.PI;
+				while (oAngle > Math.PI/2) oAngle -= Math.PI;
+				if (Math.abs(oAngle - angle) < 0.01)
 				{
 					// parallel lines: find the center line
-					int perpAngle = angle + 900;
+					double perpAngle = angle + Math.PI/2;
 					Point2D oneSide = thisPt;
-					Point2D otherSide = GenMath.intersect(thisPt, perpAngle, oThisPt, oAngle);
+					Point2D otherSide = intersectRadians(thisPt, perpAngle, oThisPt, oAngle);
 					Point2D centerPt = new Point2D.Double((oneSide.getX()+otherSide.getX()) / 2, (oneSide.getY()+otherSide.getY()) / 2);
 					double width = oneSide.distance(otherSide);
 
 					// now determine range along that centerline
-					Point2D lastPtCL = GenMath.intersect(lastPt, perpAngle, centerPt, angle);
-					Point2D thisPtCL = GenMath.intersect(thisPt, perpAngle, centerPt, angle);
-					Point2D oLastPtCL = GenMath.intersect(oLastPt, perpAngle, centerPt, angle);
-					Point2D oThisPtCL = GenMath.intersect(oThisPt, perpAngle, centerPt, angle);
+					Point2D lastPtCL = intersectRadians(lastPt, perpAngle, centerPt, angle);
+					Point2D thisPtCL = intersectRadians(thisPt, perpAngle, centerPt, angle);
+					Point2D oLastPtCL = intersectRadians(oLastPt, perpAngle, centerPt, angle);
+					Point2D oThisPtCL = intersectRadians(oThisPt, perpAngle, centerPt, angle);
 
 					// find the bounding box of the range lines
 					double minX = Math.min(Math.min(lastPtCL.getX(), thisPtCL.getX()), Math.min(oLastPtCL.getX(), oThisPtCL.getX()));
@@ -2266,8 +2289,12 @@ public class Connectivity
 					for(int p=0; p<4; p++)
 					{
 						double length = possibleStart[p].distance(possibleEnd[p]);
-						Poly clPoly = Poly.makeEndPointPoly(length, width, angle,
-							possibleStart[p], 0, possibleEnd[p], 0, Poly.Type.FILLED);
+						Poly clPoly = makeEndPointPoly(length, width, angle,
+							possibleStart[p], possibleEnd[p]);
+//clPoly.roundPoints();
+//Point2D [] ps = clPoly.getPoints();
+//System.out.print("TRY (ANGLE="+angle+")");
+//for(int t=0; t<ps.length; t++) System.out.print(" ("+ps[t].getX()+","+ps[t].getY()+")"); System.out.println();
 						if (originalMerge.contains(poly.getLayer(), clPoly))
 						{
 							// if the width is greater than the length, rotate the centerline 90 degrees
@@ -2351,6 +2378,54 @@ public class Connectivity
 		}
 		return centerlines;
 	}
+
+	private static Point2D intersectRadians(Point2D thisPt, double perpAngle, Point2D oThisPt, double oAngle)
+	{
+		Point2D res2 = GenMath.intersect(thisPt, (int)(perpAngle/Math.PI*1800), oThisPt, (int)(oAngle/Math.PI*1800));
+//		Point2D res1 = GenMath.intersectRadians(thisPt, perpAngle, oThisPt, oAngle);
+//		res1.setLocation(Math.round(res1.getX()), Math.round(res1.getY()));
+//		if (!res1.equals(res2))
+//		{
+//			System.out.println("RADIANS SEZ ("+res1.getX()+","+res1.getY()+") BUT RIGHT ANSWER IS ("+res2.getX()+","+res2.getY()+")");
+//		}
+		return res2;
+	}
+
+	public static Poly makeEndPointPoly(double len, double wid, double angle, Point2D endH, Point2D endT)
+	{
+		double w2 = wid / 2;
+		double x1 = endH.getX();   double y1 = endH.getY();
+		double x2 = endT.getX();   double y2 = endT.getY();
+		double xextra, yextra, xe1, ye1, xe2, ye2;
+		if (len == 0)
+		{
+			double sa = Math.sin(angle);
+			double ca = Math.cos(angle);
+			xe1 = x1;
+			ye1 = y1;
+			xe2 = x2;
+			ye2 = y2;
+			xextra = ca * w2;
+			yextra = sa * w2;
+		} else
+		{
+			xe1 = x1;
+			ye1 = y1;
+			xe2 = x2;
+			ye2 = y2;
+			xextra = w2 * (x2-x1) / len;
+			yextra = w2 * (y2-y1) / len;
+		}
+		Point2D.Double [] points = new Point2D.Double[] {
+			new Point2D.Double(yextra + xe1, ye1 - xextra),
+			new Point2D.Double(xe1 - yextra, xextra + ye1),
+			new Point2D.Double(xe2 - yextra, xextra + ye2),
+			new Point2D.Double(yextra + xe2, ye2 - xextra)};
+		Poly poly = new Poly(points);
+		poly.setStyle(Poly.Type.FILLED);
+		return poly;
+	}
+
 
 	/**
 	 * Class to sort Centerline objects by their width (and within that, by their length).
@@ -2709,9 +2784,32 @@ public class Connectivity
 	private List<PolyBase> getMergePolys(PolyMerge merge, Layer layer)
 	{
 		List<PolyBase> polyList = merge.getMergedPoints(layer, true);
-//		if (polyList != null)
-//			for(PolyBase poly : polyList) poly.roundPoints();
-		return polyList;
+		if (polyList == null) return polyList;
+		List<PolyBase> properPolyList = new ArrayList<PolyBase>();
+		for(PolyBase poly : polyList)
+		{
+			// reduce common points
+			Point2D [] origPoints = poly.getPoints();
+			Point2D [] points = new Point2D[origPoints.length];
+			int len = origPoints.length;
+			for (int i=0; i<len; i++) points[i] = origPoints[i];
+			for (int i=1; i<len; i++)
+			{
+				if (points[i].distance(points[i-1]) < 1)
+				{
+					for(int j=i; j<len; j++) points[j-1] = points[j];
+					len--;
+					i--;
+				}
+			}
+			if (len > 1 && points[0].distance(points[len-1]) < 1) len--;
+
+			// ignore polygons with no size
+			if (len <= 2) continue;
+
+			properPolyList.add(poly);
+		}
+		return properPolyList;
 	}
 
 	/**
