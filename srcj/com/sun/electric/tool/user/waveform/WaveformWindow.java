@@ -635,7 +635,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	private static class WaveTableModel extends AbstractTableModel
 	{
-		WaveformWindow ww;
+		private WaveformWindow ww;
 
 		public WaveTableModel(WaveformWindow ww) { this.ww = ww; }
 
