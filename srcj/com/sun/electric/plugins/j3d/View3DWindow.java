@@ -118,15 +118,8 @@ public class View3DWindow extends JPanel
 	protected TransformGroup objTrans;
     private BranchGroup scene;
     private OrbitBehavior orbit;
-////    //private BranchGroup axes;
-//	private JMouseRotate rotateB;
-//	private JMouseZoom zoomB;
-//	private JMouseTranslate translateB;
-	//private J3DUtils.OffScreenCanvas3D offScreenCanvas3D;
 
     // For demo cases
-    //KBRotPosScaleSplinePathInterpolator kbSplineInter;
-    //RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
     private Map<TransformGroup,Interpolator> interpolatorMap = new HashMap<TransformGroup,Interpolator>();
     private J3DKeyCollision keyBehavior;
 
@@ -173,14 +166,16 @@ public class View3DWindow extends JPanel
         {
             View3DWindow window = new View3DWindow(cell, windowFrame, view2D, transPerNode, this);
             windowFrame.finishWindowFrameInformation(window, cell);
+            for (Component comp : windowFrame.getFrame().getToolBar().getComponents())
+            {
+                comp.setEnabled(false);
+            }
         }
     }
 
     public static void create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
     {
         new View3DWindowJob(cell, wf, view2D, transPerNode);
-//        View3DWindow window = new View3DWindow(cell, wf, view2D, transPerNode, this);
-//        wf.finishWindowFrameInformation(window, cell);
     }
 
     public void getObjTransform(Transform3D trans)
@@ -229,7 +224,7 @@ public class View3DWindow extends JPanel
 	{
 		this.cell = cell;
         this.wf = wf;
-		this.view2D = (EditWindow)view2D;
+        this.view2D = (EditWindow)view2D;
         // Adding observer
         this.view2D.getWindowFrame().addObserver(this);
         this.oneTransformPerNode = transPerNode;
@@ -242,10 +237,10 @@ public class View3DWindow extends JPanel
         GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
         if (config == null)
         {
-        GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
-		gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
-		GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
-        config = gd[0].getBestConfiguration( gc3D );
+            GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
+            gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
+            GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
+            config = gd[0].getBestConfiguration( gc3D );
         }
 
 		canvas = new J3DCanvas3D(config);
@@ -267,9 +262,6 @@ public class View3DWindow extends JPanel
 		// Have Java 3D perform optimizations on this scene graph.
 	    scene.compile();
 
-		//ViewingPlatform viewingPlatform = new ViewingPlatform(4);
-		//viewingPlatform.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
-		//Viewer viewer = new Viewer(canvas);
 		u = new SimpleUniverse(canvas); // viewingPlatform, viewer);
 
         // lights on ViewPlatform geometry group
@@ -277,33 +269,6 @@ public class View3DWindow extends JPanel
         J3DUtils.createLights(pg);
 
         ViewingPlatform viewingPlatform = u.getViewingPlatform();
-
-//        JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
-//        //translate.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
-//        translate.setSchedulingBounds(J3DUtils.infiniteBounds);
-//		double scale = (cell.getDefWidth() < cell.getDefHeight()) ? cell.getDefWidth() : cell.getDefHeight();
-//        translate.setFactor(0.01 * scale); // default 0.02
-//        BranchGroup translateBG = new BranchGroup();
-//        translateBG.addChild(translate);
-//        //viewingPlatform.addChild(translateBG);
-//		translateB = translate;
-
-//        JMouseZoom zoom = new JMouseZoom(canvas, MouseZoom.INVERT_INPUT);
-//        //zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
-//        zoom.setSchedulingBounds(J3DUtils.infiniteBounds);
-//        zoom.setFactor(0.7);    // default 0.4
-//        BranchGroup zoomBG = new BranchGroup();
-//        zoomBG.addChild(zoom);
-//        //viewingPlatform.addChild(zoomBG);
-//		zoomB = zoom;
-
-//        JMouseRotate rotate = new JMouseRotate(MouseRotate.INVERT_INPUT);
-//        //rotate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(0));
-//        BranchGroup rotateBG = new BranchGroup();
-//        rotateBG.addChild(rotate);
-//        //viewingPlatform.addChild(rotateBG);
-//        rotate.setSchedulingBounds(J3DUtils.infiniteBounds);
-//		rotateB = rotate;
 
 		// This will move the ViewPlatform back a bit so the
         // objects in the scene can be viewed.
@@ -1276,12 +1241,6 @@ public class View3DWindow extends JPanel
 	public void keyTyped(KeyEvent evt) {
 		System.out.println("Here keyTyped");WindowFrame.curKeyListener.keyTyped(evt); }
 
-//    public void highlightChanged(Highlighter which) {
-//        repaint();
-//    }
-
-//    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
-
 	public Point getLastMousePosition()
 	{
 		//return new Point(lastXPosition, lastYPosition);
@@ -1372,24 +1331,6 @@ public class View3DWindow extends JPanel
     /*****************************************************************************
      *          Demo Stuff                                                       *
      *****************************************************************************/
-    /**
-     * Method to set view point of the camera and move to this point
-     * by interpolator
-     * @param mode 0 if KB spline, 1 if TCB spline
-     */
-//    public void set3DCamera(int mode)
-//    {
-////        if (mode == 0)
-////        {
-////            boolean state = kbSplineInter.getEnable();
-////            kbSplineInter.setEnable(!state);
-////        }
-////        else
-////        {
-////            boolean state = tcbSplineInter.getEnable();
-////            tcbSplineInter.setEnable(!state);
-////        }
-//    }
 
     /**
      * Method to create spline interpolator for demo mode
@@ -1445,21 +1386,12 @@ public class View3DWindow extends JPanel
             keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(polys.size()-1)), knot);
         }
 
-//        kbSplineInter = new KBRotPosScaleSplinePathInterpolator(jAlpha, objTrans,
-//                                                  yAxis, splineKeyFrames);
-//        kbSplineInter.setSchedulingBounds(infiniteBounds);
-//        //behaviorBranch.addChild(kbSplineInter);
-//        kbSplineInter.setEnable(false);
-
         Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(J3DUtils.jAlpha, objTrans,
                                                   yAxis, keyFrames);
         tcbSplineInter.setSchedulingBounds(J3DUtils.infiniteBounds);
-        //behaviorBranch.addChild(tcbSplineInter);
         tcbSplineInter.setEnable(false);
         interpolatorMap.put(objTrans, tcbSplineInter);
 
-        //objTrans.addChild(behaviorBranch);
-        //objTrans.addChild(kbSplineInter);
         objTrans.addChild(tcbSplineInter);
     }
 
@@ -1521,7 +1453,7 @@ public class View3DWindow extends JPanel
      * @param knotList
      * @param grp
      * @param interMap
-     * @return
+     * @return Map with interpolation groups
      */
     public Map<TransformGroup,BranchGroup> addInterpolatorPerGroup(List<J3DUtils.ThreeDDemoKnot> knotList, TransformGroup grp, Map<TransformGroup,BranchGroup> interMap, boolean useView)
     {
@@ -1625,7 +1557,7 @@ public class View3DWindow extends JPanel
     /**
      * Method to detect if give x, y location in the world collides with geometry
      * @param worldCoord
-     * @return
+     * @return true if vector collides
      */
 	protected boolean isCollision( Vector3d worldCoord )
 	{

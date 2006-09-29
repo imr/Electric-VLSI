@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
+IMP/MAN: (9/28/GVG) Enable zoom via selection area (bug #135). Indeed, entire tool bar was disabled
+because the scenegraph is displayed in its own frame and it is not worth it to hack it.
+
 BUG: (9/28/06, DN) NCC regressions fail when cell group has multiple schematics.
 FIX: In Cell.CellGroup.setMainSchematic use first schematic cell.
      In Cell.checkAndRepair issue warnings about extraneous schematic cells.
