@@ -23,6 +23,8 @@
  */
 package com.sun.electric.tool.generator.layout;
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.HashMap;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -48,14 +50,17 @@ public class GateLayoutGenerator extends Job {
     private Tech.Type technology;
     private Cell cell;
     private VarContext context;
+    private Map<Nodable,Cell> generatedCells;
 
-	// specify which gates shouldn't be surrounded by DRC rings
+    // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
 		public boolean skip(NodeInst ni) {
 			// well tie cells don't pass DRC with DrcRings
 	        return ni.getProto().getName().indexOf("mosWellTie_") != -1;
 		}
 	};
+
+    public Map<Nodable,Cell> getGeneratedCells() { return generatedCells; }
 
 //	private static void error(boolean pred, String msg) {
 //		LayoutLib.error(pred, msg);
@@ -67,8 +72,9 @@ public class GateLayoutGenerator extends Job {
 //		return c;
 //	}
 	
-	private Library generateLayout(Library outLib, Cell cell, 
-			                       VarContext context, Tech.Type technology) {
+	public Library generateLayout(Library outLib, Cell cell,
+			                       VarContext context, Tech.Type technology,
+                                   boolean topLevelOnly) {
         StdCellParams stdCell;
         Tech.setTechnology(technology);
         Technology tsmc90 = Technology.getTSMC90Technology();
@@ -81,9 +87,10 @@ public class GateLayoutGenerator extends Job {
         }
 
 		GenerateLayoutForGatesInSchematic visitor =
-			new GenerateLayoutForGatesInSchematic(stdCell);
+			new GenerateLayoutForGatesInSchematic(stdCell, topLevelOnly);
 		HierarchyEnumerator.enumerateCell(cell, context, visitor);
 //		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
+        this.generatedCells = visitor.getGeneratedCells();
 
         Cell gallery = Gallery.makeGallery(outLib);
         DrcRings.addDrcRings(gallery, FILTER, stdCell);
@@ -161,7 +168,7 @@ public class GateLayoutGenerator extends Job {
 		System.out.println("Output goes to library: " + outLibNm);
 		//Library outLib = cell.getLibrary();
 
-		generateLayout(outLib, cell, context, technology);
+		generateLayout(outLib, cell, context, technology, false);
 
 		System.out.println("done.");
 		return true;
@@ -178,8 +185,6 @@ public class GateLayoutGenerator extends Job {
 
 		cell = wnd.getCell();
 		context = wnd.getVarContext();
-
-		startJob();
 	}
 }
 
@@ -187,7 +192,9 @@ public class GateLayoutGenerator extends Job {
 class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	private final StdCellParams stdCell;
 	private final boolean DEBUG = false;
-	private void trace(String s) {
+    private final boolean topLevelOnly;
+    private Map<Nodable,Cell> generatedCells;
+    private void trace(String s) {
 		if (DEBUG) System.out.println(s);
 	}
 	private void traceln(String s) {
@@ -201,9 +208,11 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	 * which we want to generate layout. For example: "redFour" or "purpleFour".
 	 * param cellNames the names of the Cells for which we want to generate layout
 	 */
-	public GenerateLayoutForGatesInSchematic(StdCellParams stdCell) {
+	public GenerateLayoutForGatesInSchematic(StdCellParams stdCell, boolean topLevelOnly) {
 		this.stdCell = stdCell;
-	}
+        this.topLevelOnly = topLevelOnly;
+        this.generatedCells = new HashMap<Nodable,Cell>();
+    }
 	/** @return value of strength attribute "ATTR_X" or -1 if no such
 	 * attribute or -2 if attribute exists but has no value. */
 	private static double getStrength(Nodable no, VarContext context) {
@@ -212,12 +221,12 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		Object val = context.evalVar(var, no);
 		if (val==null) return -2;
 		//LayoutLib.error(val==null, "strength is null?");
-		LayoutLib.error(!(val instanceof Number), 
+		LayoutLib.error(!(val instanceof Number),
 				        "strength not number?");
 		return ((Number)val).doubleValue();
 	}
-	
-	private void generateCell(Nodable iconInst, CellInfo info) {
+
+	private Cell generateCell(Nodable iconInst, CellInfo info) {
 		VarContext context = info.getContext();
 		String pNm = iconInst.getProto().getName();
 		double x = getStrength(iconInst, context);
@@ -229,7 +238,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 //		System.out.println("Try : "+pNm+" X="+x+" for instance: "+
 //                           info.getUniqueNodableName(iconInst, "/"));
 		
-		if (x<0) return;
+		if (x<0) return null;
 
 		int pwr = pNm.indexOf("_pwr");
 		if (pwr!=-1) pNm = pNm.substring(0, pwr);
@@ -266,7 +275,8 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 			System.out.println("Use: "+pNm+" X="+x+" for instance: "+
 			                   info.getUniqueNodableName(iconInst, "/"));
 		}
-	}
+        return c;
+    }
 
 	public boolean enterCell(CellInfo info) {
 		VarContext ctxt = info.getContext();
@@ -290,10 +300,14 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 		if (libNm.equals("redFour") || libNm.equals("purpleFour") ||
 			libNm.equals("power2_gates")) {
 			traceln("generate");
-			generateCell(no, info);	
-			return false;
+			Cell c = generateCell(no, info);
+            if (c != null) generatedCells.put(no, c);
+            return false;
 		}
 		traceln("descend");
-		return true;
+        if (topLevelOnly) return false;
+        return true;
 	}
+
+    public Map<Nodable,Cell> getGeneratedCells() { return generatedCells; }
 }

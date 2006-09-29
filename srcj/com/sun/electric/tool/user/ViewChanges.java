@@ -35,6 +35,8 @@ import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -42,6 +44,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -54,6 +57,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
@@ -61,6 +65,8 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
+import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -74,6 +80,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JOptionPane;
 
@@ -155,7 +162,7 @@ public class ViewChanges
 					geomList.add(aIt.next());
 				Clipboard.copyListToCell(destCell, geomList, textList, null, null, new Point2D.Double(0, dY),
 					true, true, alignment, null, null);
-	
+
 				// also copy any variables on the cell
 				for(Iterator<Variable> vIt = cell.getVariables(); vIt.hasNext(); )
 				{
@@ -169,7 +176,7 @@ public class ViewChanges
 //						cellVar.setOff(cellVar.getXOff(), cellVar.getYOff() + dY);
 //					}
 				}
-	
+
 				// delete the original
 				cell.kill();
 			}
@@ -921,7 +928,7 @@ public class ViewChanges
 				System.out.println("Creating new cell: " + cellName);
 		return newCell;
 	}
-	
+
 	private static void buildSchematicNodes(Cell cell, Cell newCell, HashMap<NodeInst,NodeInst> newNodes)
 	{
 		// for each node, create a new node in the newcell, of the correct logical type.
@@ -985,10 +992,10 @@ public class ViewChanges
 					}
 				}
 			}
-	
+
 			// store the new node in the old node
 			newNodes.put(mosNI, schemNI);
-	
+
 			// reexport ports
 			if (schemNI != null)
 			{
@@ -1139,7 +1146,7 @@ public class ViewChanges
 
 	/**
 	 * Method to figure out if a NodeInst is a MOS component
-	 * (a wire or transistor).  If it's a transistor, return its function; 
+	 * (a wire or transistor).  If it's a transistor, return its function;
 	 * if it's a passive connector, return PrimitiveNode.Function.PIN;
 	 * if it's a cell, return null; else return PrimitiveNode.Function.UNKNOWN.
 	 */
@@ -1162,10 +1169,14 @@ public class ViewChanges
 	 */
 	public static void makeLayoutView()
 	{
-		Cell oldCell = WindowFrame.needCurCell();
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
+        Cell oldCell = wnd.getCell();
 		if (oldCell == null) return;
-		
-		// find out which technology they want to convert to
+        VarContext context = wnd.getVarContext();
+        if (context == null) context = VarContext.globalContext;
+
+        // find out which technology they want to convert to
 		Technology oldTech = oldCell.getTechnology();
 		int numTechs = 0;
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
@@ -1182,7 +1193,7 @@ public class ViewChanges
 		}
 		String selectedValue = (String)JOptionPane.showInputDialog(null,
 			"New technology to create", "Technology conversion",
-			JOptionPane.INFORMATION_MESSAGE, null, techNames, User.getSchematicTechnology());
+			JOptionPane.INFORMATION_MESSAGE, null, techNames, User.getSchematicTechnology().getTechName());
 		if (selectedValue == null) return;
 		Technology newTech = Technology.findTechnology(selectedValue);
 		if (newTech == null) return;
@@ -1192,7 +1203,7 @@ public class ViewChanges
 			return;
 		}
 
-		new MakeLayoutView(oldCell, newTech);
+		new MakeLayoutView(oldCell, newTech, context);
 	}
 
 	private static class MakeLayoutView extends Job
@@ -1200,23 +1211,25 @@ public class ViewChanges
 		private Cell oldCell;
 		private Technology newTech;
 		private Cell newCell;
-		private HashMap<NodeInst,NodeInst> convertedNodes;
+        private VarContext context;
 
-		protected MakeLayoutView(Cell oldCell, Technology newTech)
+        protected MakeLayoutView(Cell oldCell, Technology newTech, VarContext context)
 		{
 			super("Make Alternate Layout", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oldCell = oldCell;
 			this.newTech = newTech;
-			startJob();
+            this.context = context;
+            startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			// convert the cell and all subcells
 			Technology oldTech = oldCell.getTechnology();
-			HashMap<Cell,Cell> convertedCells = new HashMap<Cell,Cell>();
-			newCell = makeLayoutCells(oldCell, oldCell.getName(), oldTech, newTech, oldCell.getView(), convertedCells);
-			fieldVariableChanged("newCell");
+            MakeLayoutVisitor visitor = new MakeLayoutVisitor(newTech, oldCell.getLibrary());
+            HierarchyEnumerator.enumerateCell(oldCell, context, visitor, true);
+            newCell = visitor.convertedCells.get(oldCell);
+            fieldVariableChanged("newCell");
 			return true;
 		}
 
@@ -1230,381 +1243,761 @@ public class ViewChanges
         	}
         }
 
-		/**
-		 * Method to recursively descend from cell "oldCell" and find subcells that
-		 * have to be converted.  When all subcells have been converted, convert this
-		 * one into a new one called "newcellname".  The technology for the old cell
-		 * is "oldtech" and the technology to use for the new cell is "newtech".  The
-		 * old view type is "oldview" and the new view type is "nView".
-		 */
-		private Cell makeLayoutCells(Cell oldCell, String newCellName,
-			Technology oldTech, Technology newTech, View nView, HashMap<Cell,Cell> convertedCells)
-		{
-			// first convert the sub-cells
-			for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
+        private static class Info extends HierarchyEnumerator.CellInfo {
+            private Map<Nodable,Cell> generatedCells;
+            public Info() {
+                generatedCells = new HashMap<Nodable,Cell>();
+            }
+        }
+        private static class MakeLayoutVisitor extends HierarchyEnumerator.Visitor {
+            private Technology newTech;
+            private Library defaultLib;
+            private Map<Cell,Cell> convertedCells;
 
-				// ignore primitives
-				if (!ni.isCellInstance()) continue;
+            private MakeLayoutVisitor(Technology newTech, Library defaultLib) {
+                this.newTech = newTech;
+                this.defaultLib = defaultLib;
+                convertedCells = new HashMap<Cell,Cell>();
+            }
 
-				// ignore recursive references (showing icon in contents)
-				if (ni.isIconOfParent()) continue;
+            public HierarchyEnumerator.CellInfo newCellInfo() { return new Info(); }
 
-				Cell subCell = (Cell)ni.getProto();
-				if (convertedCells.containsKey(subCell)) continue;
+            private static class Conn {
+                private Nodable no;
+                private PortProto pp;
+                private int index;
+                private Name portName;
+                private Conn(Nodable no, PortProto pp, int index, Name portName) {
+                    this.no = no; this.pp = pp; this.index = index; this.portName = portName;
+                }
+            }
 
-				// see if it already exists
-				String searchCellName = subCell.getName() + "{lay}";
-				Cell existing = oldCell.getLibrary().findNodeProto(searchCellName);
-				if (existing != null)
-				{
-					convertedCells.put(oldCell, existing);
-					continue;
-				}
-				makeLayoutCells(subCell, subCell.getName(), oldTech, newTech, nView, convertedCells);
-			}
+            public boolean enterCell(HierarchyEnumerator.CellInfo info)
+            {
+                Cell oldCell = info.getCell();
+                VarContext context = info.getContext();
+                Info myInfo = (Info)info;
+                if (convertedCells.containsKey(oldCell)) return false;
 
-			// create the cell and fill it with parts
-			Cell newCell = makeNewCell(newCellName, View.LAYOUT, oldCell);
-			if (newCell == null) return null;
-			makeLayoutParts(oldCell, newCell, oldTech, newTech, nView, convertedCells);
+                Tech.Type type = null;
+                if      (newTech == Technology.findTechnology("MoCMOS")) type = Tech.Type.MOCMOS;
+                else if (newTech == Technology.findTechnology("TSMC180")) type = Tech.Type.TSMC180;
+                else if (newTech == Technology.findTechnology("TSMC90")) type = Tech.Type.TSMC90;
 
-			// adjust for maximum Manhattan-ness
-			makeArcsManhattan(newCell);
+                if (type != null) {
+                    GateLayoutGenerator gen = new GateLayoutGenerator(type);
+                    gen.generateLayout(oldCell.getLibrary(), oldCell, context, type, true);
+                    myInfo.generatedCells = gen.getGeneratedCells();
+                }
+                return true;
+            }
 
-			convertedCells.put(oldCell, newCell);
-			return newCell;
-		}
+            public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
+                Cell layCell = getLayoutCell(ni, (Info)info);
+                if (layCell == null) return true;
+                return false;
+            }
 
-		/**
-		 * Method to create a new cell in "newcell" from the contents of an old cell
-		 * in "oldcell".  The technology for the old cell is "oldtech" and the
-		 * technology to use for the new cell is "newTech".
-		 */
-		private void makeLayoutParts(Cell oldCell, Cell newCell,
-			Technology oldTech, Technology newTech, View nView, HashMap<Cell,Cell> convertedCells)
-		{
-			// first convert the nodes
-			convertedNodes = new HashMap<NodeInst,NodeInst>();
-			for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
-				// handle sub-cells
-				if (ni.isCellInstance())
-				{
-					Cell newCellType = (Cell)convertedCells.get(ni.getProto());
-					if (newCellType == null)
-					{
-						System.out.println("No equivalent cell for " + ni.getProto());
-						continue;
-					}
-					placeLayoutNode(ni, newCellType, newCell);
-					continue;
-				}
+            private Cell getLayoutCell(Nodable no, Info myInfo) {
+                if (!no.isCellInstance()) return null;
+                Cell layCell = null;
+                Cell subCell = (Cell)no.getProto();
+                layCell = myInfo.generatedCells.get(no);
+                if (layCell == null)
+                    layCell = convertedCells.get(subCell);
+                if (layCell == null) {
+                    // see if it already exists
+                    String searchCellName = subCell.getName() + "{lay}";
+                    layCell = defaultLib.findNodeProto(searchCellName);
+                }
+                if (layCell != null) {
+                    convertedCells.put(subCell, layCell);
+                }
+                return layCell;
+            }
 
-				// handle primitives
-				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
-				NodeProto newNp = figureNewNodeProto(ni, newTech);
-				if (newNp != null)
-					placeLayoutNode(ni, newNp, newCell);
-			}
+            public void exitCell(HierarchyEnumerator.CellInfo info) {
+                Cell oldCell = info.getCell();
+                String newCellName = oldCell.getName();
+                boolean isSch = oldCell.getView() == View.SCHEMATIC;
 
-			/*
-			 * for each arc in cell, find the ends in the new technology, and
-			 * make a new arc to connect them in the new cell
-			 */
-			int badArcs = 0;
-			for(Iterator<ArcInst> it = oldCell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = it.next();
-				// get the nodes and ports on the two ends of the arc
-				NodeInst oldHeadNi = ai.getHeadPortInst().getNodeInst();
-				NodeInst oldTailNi = ai.getTailPortInst().getNodeInst();
+                // create the cell
+                Cell newCell = makeNewCell(newCellName, View.LAYOUT, oldCell);
+                if (newCell == null) return;
 
-				NodeInst newHeadNi = (NodeInst)convertedNodes.get(oldHeadNi);
-				NodeInst newTailNi = (NodeInst)convertedNodes.get(oldTailNi);
-				if (newHeadNi == null || newTailNi == null) continue;
-				PortProto oldHeadPp = ai.getHeadPortInst().getPortProto();
-				PortProto oldTailPp = ai.getTailPortInst().getPortProto();
-				PortProto newHeadPp = convertPortProto(oldHeadNi, newHeadNi, oldHeadPp);
-				PortProto newTailPp = convertPortProto(oldTailNi, newTailNi, oldTailPp);
-				if (newHeadPp == null || newTailPp == null) continue;
+                HashMap<Network,List<Conn>> connections = new HashMap<Network,List<Conn>>();
+                HashMap<Nodable,NodeInst> convertedNodes = new HashMap<Nodable,NodeInst>();
+                //HashMap<NodeInst,Nodable> convertedNodesReverse = new HashMap<NodeInst,Nodable>();
 
-				// compute arc type and see if it is acceptable
-				ArcProto newAp = figureNewArcProto(ai.getProto(), newTech, newHeadPp, newTailPp);
+                // create node placement tree and network connections list
+                PlacerGrid placer = new PlacerGrid();
+                for (Iterator<Nodable> it = info.getNetlist().getNodables(); it.hasNext(); ) {
+                    Nodable no = it.next();
+                    NodeProto np = null;
 
-				// determine new arc width
-				boolean fixAng = ai.isFixedAngle();
-				double newWid = 0;
-				if (newAp == Generic.tech.universal_arc) fixAng = false; else
-				{
-					double defwid = ai.getProto().getDefaultWidth() - ai.getProto().getWidthOffset();
-					double curwid = ai.getWidth() - ai.getProto().getWidthOffset();
-					newWid = (newAp.getDefaultWidth() - newAp.getWidthOffset()) * curwid / defwid + newAp.getWidthOffset();
-					if (newWid <= 0) newWid = newAp.getDefaultWidth();
-				}
+                    if (no.isCellInstance()) {
+                        np = getLayoutCell(no, (Info)info);
+                        if (np == null) {
+                            System.out.println("Warning: Unable to find layout version of cell "+no.getProto().describe(false));
+                        }
+                    } else {
+                        np = figureNewNodeProto(no.getNodeInst(), newTech);
+                    }
+                    if (np != null) {
+                        if (!isSch) {
+                            // layout Conversion
+                            NodeInst newNi = placeLayoutNode(no, np, newCell, info.getContext());
+                            convertedNodes.put(no, newNi);
+                        } else {
 
-				// find the endpoints of the arc
-				Point2D pHead = ai.getHeadLocation();
-				Point2D pTail = ai.getTailLocation();
-				PortInst newHeadPi = newHeadNi.findPortInstFromProto(newHeadPp);
-				PortInst newTailPi = newTailNi.findPortInstFromProto(newTailPp);
-				Poly newHeadPoly = newHeadPi.getPoly();
-				Poly newTailPoly = newTailPi.getPoly();
+                            if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
+                            if (np.getFunction() == PrimitiveNode.Function.CONNECT) continue;
 
-				// see if the new arc can connect without end adjustment
-				if (!newHeadPoly.contains(pHead) || !newTailPoly.contains(pTail))
-				{
-					// arc cannot be run exactly ... presume port centers
-					if (!newHeadPoly.contains(pHead)) pHead = new EPoint(newHeadPoly.getCenterX(), newHeadPoly.getCenterY());
-					if (fixAng)
-					{
-						// old arc was fixed-angle so look for a similar-angle path
-						Rectangle2D headBounds = newHeadPoly.getBounds2D();
-						Rectangle2D tailBounds = newTailPoly.getBounds2D();
-						Point2D [] newPoints = GenMath.arcconnects(ai.getAngle(), headBounds, tailBounds);
-						if (newPoints != null)
-						{
-							pHead = new EPoint(newPoints[0].getX(), newPoints[0].getY());
-							pTail = new EPoint(newPoints[1].getX(), newPoints[1].getY());
-						}
-					}
-				}
+                            placer.insert(new Leaf(no, info.getContext(), np, newCell));
 
-				// create the new arc
-				ArcInst newAi = ArcInst.makeInstance(newAp, newWid, newHeadPi, newTailPi, pHead, pTail, ai.getName());
-				if (newAi == null)
-				{
-					System.out.println("Cell " + newCell.describe(true) + ": can't run " + newAp + " from " +
-						newHeadNi + " " + newHeadPp + " at (" + pHead.getX() + "," + pHead.getY() + ") to " +
-						newTailNi + " " + newTailPp + " at (" + pTail.getX() + "," + pTail.getY() + ")");
-					continue;
-				}
-				newAi.copyPropertiesFrom(ai);
-				if (newAp == Generic.tech.universal_arc)
-				{
-					ai.setFixedAngle(false);
-					ai.setRigid(false);
-				}
-			}
-		}
+                            // record connections on ports
+                            for (Iterator<PortProto> itp = no.getProto().getPorts(); itp.hasNext(); ) {
+                                PortProto pp = itp.next();
+                                Name ppname = pp.getNameKey();
+                                for (int i=0; i<ppname.busWidth(); i++) {
+                                    Name subname = ppname.subname(i);
+                                    Conn conn = new Conn(no, pp, i, subname);
+                                    Network net = info.getNetlist().getNetwork(no, pp, i);
+                                    List<Conn> list = connections.get(net);
+                                    if (list == null) {
+                                        list = new ArrayList<Conn>();
+                                        connections.put(net, list);
+                                    }
+                                    // if port on same node already connects to this network, skip it
+                                    boolean add = true;
+                                    for (Conn aconn : list) {
+                                        if (aconn.no == conn.no) { add = false; break; }
+                                    }
+                                    if (add) list.add(conn);
+                                }
+                            }
+                        }
+                    }
+                }
 
-		/**
-		 * Method to determine the equivalent prototype in technology "newtech" for
-		 * node prototype "oldnp".
-		 */
-		private NodeProto figureNewNodeProto(NodeInst oldni, Technology newTech)
-		{
-			// easy translation if complex or already in the proper technology
-			NodeProto oldNp = oldni.getProto();
-			if (oldni.isCellInstance() || oldNp.getTechnology() == newTech) return oldNp;
+                if (isSch) {
+                    // place all new nodes
+                    placer.place(this, convertedNodes);
 
-			// if this is a layer node, check the layer functions
-			PrimitiveNode.Function type = oldni.getFunction();
-			if (type == PrimitiveNode.Function.NODE)
-			{
-				// get the polygon describing the first box of the old node
-				PrimitiveNode np = (PrimitiveNode)oldNp;
-				Technology.NodeLayer [] nodeLayers = np.getLayers();
-				Layer layer = nodeLayers[0].getLayer();
-				Layer.Function fun = layer.getFunction();
+                    // create rats nest of connections
+                    ArcProto ratArc = Generic.tech.unrouted_arc;
+                    for (Iterator<Network> it = info.getNetlist().getNetworks(); it.hasNext(); ) {
+                        Network network = it.next();
+                        List<Conn> list = connections.get(network);
+                        if (list == null) continue;
+                        if (list.size() == 0) continue;
+                        Conn conn = list.get(0);
+                        PortInst pi = getLayoutPortInst(conn, convertedNodes);
+                        if (pi == null) {
+                            System.out.println("Cannot find port "+conn.portName+" on "+conn.no);
+                            continue;
+                        }
+                        for (int i=1; i<list.size(); i++) {
+                            Conn nextConn = list.get(i);
+                            PortInst nextPi = getLayoutPortInst(nextConn, convertedNodes);
+                            if (nextPi == null) {
+                                System.out.println("Cannot find port "+nextConn.portName+" on "+nextConn.no);
+                                continue;
+                            }
 
-				// now search for that function in the other technology
-				for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
-				{
-					PrimitiveNode oNp = it.next();
-					if (oNp.getFunction() != PrimitiveNode.Function.NODE) continue;
-					Technology.NodeLayer [] oNodeLayers = oNp.getLayers();
-					Layer oLayer = oNodeLayers[0].getLayer();
-					Layer.Function oFun = oLayer.getFunction();
-					if (fun == oFun) return oNp;
-				}
-			}
+                            ArcInst newAi = ArcInst.makeInstance(ratArc, 1, pi, nextPi, pi.getCenter(), nextPi.getCenter(), null);
+                            if (newAi == null)
+                            {
+                                System.out.println("Cell " + newCell.describe(true) + ": can't run " + ratArc + " from " +
+                                    pi.getNodeInst() + " " + pi + " at (" + pi.getCenter().getX() + "," + pi.getCenter().getY() + ") to " +
+                                    nextPi.getNodeInst() + " " + nextPi + " at (" + nextPi.getCenter().getX() + "," + nextPi.getCenter().getY() + ")");
+                                continue;
+                            }
+                            newAi.setFixedAngle(false);
+                            newAi.setRigid(false);
+                        }
+                    }
+                    convertedCells.put(oldCell, newCell);
+                } else {
+                    makeLayoutParts(oldCell, newCell, oldCell.getTechnology(), newTech, View.LAYOUT, convertedCells, convertedNodes);
+                }
+            }
 
-			// see if one node in the new technology has the same function
-			int i = 0;
-			PrimitiveNode rNp = null;
-			for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = it.next();
-				if (np.getFunction() == type)
-				{
-					rNp = np;   i++;
-				}
-			}
-			if (i == 1) return rNp;
+            private PortInst getLayoutPortInst(Conn schConn, HashMap<Nodable,NodeInst> convertedNodes) {
+                NodeInst layNi = convertedNodes.get(schConn.no);
+                if (layNi == null) return null;
+                PortInst pi = layNi.findPortInst(schConn.portName.toString());
+                if (pi != null) return pi;
 
-			// if there are too many matches, determine which is proper from arcs
-			if (i > 1)
-			{
-				// see if this node has equivalent arcs
-				PrimitiveNode pOldNp = (PrimitiveNode)oldNp;
-				PrimitivePort pOldPp = (PrimitivePort)pOldNp.getPort(0);
-				ArcProto [] oldConnections = pOldPp.getConnections();
+                // if each has only 1 port, they match
+                int numNewPorts = layNi.getProto().getNumPorts();
+                if (numNewPorts == 0) return null;
+                if (numNewPorts == 1)
+                {
+                    return layNi.getPortInst(0);
+                }
 
-				for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
-				{
-					PrimitiveNode pNewNp = it.next();
-					if (pNewNp.getFunction() != type) continue;
-					PrimitivePort pNewPp = (PrimitivePort)pNewNp.getPort(0);
-					ArcProto [] newConnections = pNewPp.getConnections();
+                if (schConn.no.getNodeInst().getFunction().isTransistor()) {
+                    if (schConn.portName.toString().equals("g")) return layNi.getPortInst(0);
+                    if (schConn.portName.toString().equals("s")) return layNi.getPortInst(1);
+                    if (schConn.portName.toString().equals("d")) return layNi.getPortInst(3);
+                }
 
-					boolean oldMatches = true;
-					for(int j=0; j<oldConnections.length; j++)
-					{
-						ArcProto oap = oldConnections[j];
-						if (oap.getTechnology() == Generic.tech) continue;
+                // associate by position in port list
+                for (int i=0; i<schConn.no.getNodeInst().getNumPortInsts() && i<layNi.getNumPortInsts(); i++) {
+                    PortInst api = schConn.no.getNodeInst().getPortInst(i);
+                    if (api.getPortProto() == schConn.pp) {
+                        //System.out.println("Associated port "+i+": "+schConn.no.getProto().getName()+"."+schConn.pp.getName()+" to "+
+                        //                    layNi.getProto().getName()+"."+layNi.getProto().getPort(i).getName());
+                        return layNi.getPortInst(i);
+                    }
+                }
 
-						boolean foundNew = false;
-						for(int k=0; k<newConnections.length; k++)
-						{
-							ArcProto ap = newConnections[k];
-							if (ap.getTechnology() == Generic.tech) continue;
-							if (ap.getFunction() == oap.getFunction()) { foundNew = true;   break; }
-						}
-						if (!foundNew) { oldMatches = false;   break; }
-					}
-					if (oldMatches) { rNp = pNewNp;   i = 1;   break; }
-				}
-			}
+                // special case again: one-port capacitors are OK
+                PrimitiveNode.Function oldFun = schConn.no.getNodeInst().getFunction();
+                PrimitiveNode.Function newFun = layNi.getFunction();
+                if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC) return layNi.getPortInst(0);
 
-			// give up if it still cannot be determined
-			return rNp;
-		}
+                // association has failed: assume the first port
+                System.out.println("No port association between " + schConn.no.getName() + ", "
+                    + schConn.pp.getName() + " and " + layNi.getProto());
+                return layNi.getPortInst(0);
+            }
 
-		private void placeLayoutNode(NodeInst ni, NodeProto newNp, Cell newCell)
-		{
-			// scale edge offsets if this is a primitive
-			double newXSize = 0, newYSize = 0;
-			if (newNp instanceof PrimitiveNode)
-			{
-				// get offsets for new node type
-				PrimitiveNode pNewNp = (PrimitiveNode)newNp;
-				PrimitiveNode pOldNp = (PrimitiveNode)ni.getProto();
-				newXSize = pNewNp.getDefWidth() + ni.getXSize() - pOldNp.getDefWidth();
-				newYSize = pNewNp.getDefHeight() + ni.getYSize() - pOldNp.getDefHeight();
-			} else
-			{
-				Cell np = (Cell)newNp;
-				Rectangle2D bounds = np.getBounds();
-				newXSize = bounds.getWidth();
-				newYSize = bounds.getHeight();
-			}
-//			if (ni.isXMirrored()) newXSize = -newXSize;
-//			if (ni.isYMirrored()) newYSize = -newYSize;
+            /**
+             * Method to create a new cell in "newcell" from the contents of an old cell
+             * in "oldcell".  The technology for the old cell is "oldtech" and the
+             * technology to use for the new cell is "newTech".
+             */
+            private void makeLayoutParts(Cell oldCell, Cell newCell,
+                Technology oldTech, Technology newTech, View nView, Map<Cell,Cell> convertedCells,
+                Map<Nodable,NodeInst> convertedNodes)
+            {
+                // first convert the nodes
+                for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
+                {
+                    NodeInst ni = it.next();
+                    // handle sub-cells
+                    if (ni.isCellInstance())
+                    {
+                        Cell newCellType = (Cell)convertedCells.get((Cell)ni.getProto());
+                        if (newCellType == null)
+                        {
+                            System.out.println("No equivalent cell for " + ni.getProto());
+                            continue;
+                        }
+                        placeLayoutNode(ni, newCellType, newCell, VarContext.globalContext);
+                        continue;
+                    }
 
-			// create the node
-			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getOrient(), ni.getName(), ni.getTechSpecific());
-//			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
-			if (newNi == null)
-			{
-				System.out.println("Could not create " + newNp + " in " + newCell);
-				return;
-			}
-			convertedNodes.put(ni, newNi);
-			newNi.copyStateBits(ni);
-			newNi.copyVarsFrom(ni);
+                    // handle primitives
+                    if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+                    NodeProto newNp = figureNewNodeProto(ni, newTech);
+                    if (newNp != null)
+                        placeLayoutNode(ni, newNp, newCell, VarContext.globalContext);
+                }
 
-			// re-export any ports on the node
-			for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
-			{
-				Export e = it.next();
-				PortProto pp = convertPortProto(ni, newNi, e.getOriginalPort().getPortProto());
-				PortInst pi = newNi.findPortInstFromProto(pp);
-				Export pp2 = Export.newInstance(newCell, pi, e.getName());
-				if (pp2 == null) return;
-				pp2.setCharacteristic(e.getCharacteristic());
-				pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
-				pp2.copyVarsFrom(e);
-			}
-		}
+                /*
+                 * for each arc in cell, find the ends in the new technology, and
+                 * make a new arc to connect them in the new cell
+                 */
+                int badArcs = 0;
+                for(Iterator<ArcInst> it = oldCell.getArcs(); it.hasNext(); )
+                {
+                    ArcInst ai = it.next();
+                    // get the nodes and ports on the two ends of the arc
+                    NodeInst oldHeadNi = ai.getHeadPortInst().getNodeInst();
+                    NodeInst oldTailNi = ai.getTailPortInst().getNodeInst();
 
-		/**
-		 * Method to determine the equivalent prototype in technology "newTech" for
-		 * node prototype "oldnp".
-		 */
-		private ArcProto figureNewArcProto(ArcProto oldAp, Technology newTech, PortProto headPp, PortProto tailPp)
-		{
-			// schematic wires become universal arcs
-			if (oldAp != Schematics.tech.wire_arc)
-			{
-				// determine the proper association of this node
-				ArcProto.Function type = oldAp.getFunction();
-				for(Iterator<ArcProto> it = newTech.getArcs(); it.hasNext(); )
-				{
-					ArcProto newAp = it.next();
-					if (newAp.getFunction() == type) return newAp;
-				}
-			}
+                    NodeInst newHeadNi = (NodeInst)convertedNodes.get(oldHeadNi);
+                    NodeInst newTailNi = (NodeInst)convertedNodes.get(oldTailNi);
+                    if (newHeadNi == null || newTailNi == null) continue;
+                    PortProto oldHeadPp = ai.getHeadPortInst().getPortProto();
+                    PortProto oldTailPp = ai.getTailPortInst().getPortProto();
+                    PortProto newHeadPp = convertPortProto(oldHeadNi, newHeadNi, oldHeadPp);
+                    PortProto newTailPp = convertPortProto(oldTailNi, newTailNi, oldTailPp);
+                    if (newHeadPp == null || newTailPp == null) continue;
 
-			// cannot figure it out from the function: find anything that can connect
-			HashSet<ArcProto> possibleArcs = new HashSet<ArcProto>();
-			ArcProto [] headArcs = headPp.getBasePort().getConnections();
-			ArcProto [] tailArcs = tailPp.getBasePort().getConnections();
-			for(int i=0; i < headArcs.length; i++)
-			{
-				if (headArcs[i].getTechnology() == Generic.tech) continue;
-				for(int j=0; j < tailArcs.length; j++)
-				{
-					if (tailArcs[j].getTechnology() == Generic.tech) continue;
-					if (headArcs[i] != tailArcs[j]) continue;
-					possibleArcs.add(headArcs[i]);
-					break;
-				}
-			}
-			for(Iterator<ArcProto> it = newTech.getArcs(); it.hasNext(); )
-			{
-				ArcProto ap = it.next();
-				if (possibleArcs.contains(ap)) return ap;
-			}
-			System.out.println("No equivalent arc for " + oldAp);
-			return Generic.tech.universal_arc;
-		}
+                    // compute arc type and see if it is acceptable
+                    ArcProto newAp = figureNewArcProto(ai.getProto(), newTech, newHeadPp, newTailPp);
 
-		/**
-		 * Method to determine the port to use on node "newni" assuming that it should
-		 * be the same as port "oldPp" on equivalent node "ni"
-		 */
-		private PortProto convertPortProto(NodeInst ni, NodeInst newNi, PortProto oldPp)
-		{
-			if (newNi.isCellInstance())
-			{
-				// cells can associate by comparing names
-				PortProto pp = newNi.getProto().findPortProto(oldPp.getName());
-				if (pp != null) return pp;
-				System.out.println("Cannot find export " + oldPp.getName() + " in " + newNi.getProto());
-				return newNi.getProto().getPort(0);
-			}
+                    // determine new arc width
+                    boolean fixAng = ai.isFixedAngle();
+                    double newWid = 0;
+                    if (newAp == Generic.tech.universal_arc) fixAng = false; else
+                    {
+                        double defwid = ai.getProto().getDefaultWidth() - ai.getProto().getWidthOffset();
+                        double curwid = ai.getWidth() - ai.getProto().getWidthOffset();
+                        newWid = (newAp.getDefaultWidth() - newAp.getWidthOffset()) * curwid / defwid + newAp.getWidthOffset();
+                        if (!(newWid > 0)) newWid = newAp.getDefaultWidth();
+                    }
 
-			// if each has only 1 port, they match
-			int numNewPorts = newNi.getProto().getNumPorts();
-			if (numNewPorts == 0) return null;
-			if (numNewPorts == 1)
-			{
-				return newNi.getProto().getPort(0);
-			}
+                    // find the endpoints of the arc
+                    Point2D pHead = ai.getHeadLocation();
+                    Point2D pTail = ai.getTailLocation();
+                    PortInst newHeadPi = newHeadNi.findPortInstFromProto(newHeadPp);
+                    PortInst newTailPi = newTailNi.findPortInstFromProto(newTailPp);
+                    Poly newHeadPoly = newHeadPi.getPoly();
+                    Poly newTailPoly = newTailPi.getPoly();
 
-			// associate by position in port list
-			Iterator<PortProto> oldPortIt = ni.getProto().getPorts();
-			Iterator<PortProto> newPortIt = newNi.getProto().getPorts();
-			while (oldPortIt.hasNext() && newPortIt.hasNext())
-			{
-				PortProto pp = oldPortIt.next();
-				PortProto newPp = newPortIt.next();
-				if (pp == oldPp) return newPp;
-			}
+                    // see if the new arc can connect without end adjustment
+                    if (!newHeadPoly.contains(pHead) || !newTailPoly.contains(pTail))
+                    {
+                        // arc cannot be run exactly ... presume port centers
+                        if (!newHeadPoly.contains(pHead)) pHead = new EPoint(newHeadPoly.getCenterX(), newHeadPoly.getCenterY());
+                        if (fixAng)
+                        {
+                            // old arc was fixed-angle so look for a similar-angle path
+                            Rectangle2D headBounds = newHeadPoly.getBounds2D();
+                            Rectangle2D tailBounds = newTailPoly.getBounds2D();
+                            Point2D [] newPoints = GenMath.arcconnects(ai.getAngle(), headBounds, tailBounds);
+                            if (newPoints != null)
+                            {
+                                pHead = new EPoint(newPoints[0].getX(), newPoints[0].getY());
+                                pTail = new EPoint(newPoints[1].getX(), newPoints[1].getY());
+                            }
+                        }
+                    }
 
-			// special case again: one-port capacitors are OK
-			PrimitiveNode.Function oldFun = ni.getFunction();
-			PrimitiveNode.Function newFun = newNi.getFunction();
-			if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC) return newNi.getProto().getPort(0);
+                    // create the new arc
+                    ArcInst newAi = ArcInst.makeInstance(newAp, newWid, newHeadPi, newTailPi, pHead, pTail, ai.getName());
+                    if (newAi == null)
+                    {
+                        System.out.println("Cell " + newCell.describe(true) + ": can't run " + newAp + " from " +
+                            newHeadNi + " " + newHeadPp + " at (" + pHead.getX() + "," + pHead.getY() + ") to " +
+                            newTailNi + " " + newTailPp + " at (" + pTail.getX() + "," + pTail.getY() + ")");
+                        continue;
+                    }
+                    newAi.copyPropertiesFrom(ai);
+                    if (newAp == Generic.tech.universal_arc)
+                    {
+                        ai.setFixedAngle(false);
+                        ai.setRigid(false);
+                    }
+                }
+            }
 
-			// association has failed: assume the first port
-			System.out.println("No port association between " + ni.getProto() + ", "
-				+ oldPp + " and " + newNi.getProto());
-			return newNi.getProto().getPort(0);
-		}
-	}
+            /**
+             * Method to determine the equivalent prototype in technology "newtech" for
+             * node prototype "oldnp".
+             */
+            private NodeProto figureNewNodeProto(NodeInst oldni, Technology newTech)
+            {
+                // easy translation if complex or already in the proper technology
+                NodeProto oldNp = oldni.getProto();
+                if (oldni.isCellInstance() || oldNp.getTechnology() == newTech) return oldNp;
+
+                // if this is a layer node, check the layer functions
+                PrimitiveNode.Function type = oldni.getFunction();
+
+                if (oldni.getParent().getView() == View.SCHEMATIC && type.isTransistor()) {
+                    for (Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); ) {
+                        PrimitiveNode node = it.next();
+                        if (type == node.getFunction())
+                            return node;
+                    }
+                }
+
+                if (type == PrimitiveNode.Function.NODE)
+                {
+                    // get the polygon describing the first box of the old node
+                    PrimitiveNode np = (PrimitiveNode)oldNp;
+                    Technology.NodeLayer [] nodeLayers = np.getLayers();
+                    Layer layer = nodeLayers[0].getLayer();
+                    Layer.Function fun = layer.getFunction();
+
+                    // now search for that function in the other technology
+                    for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
+                    {
+                        PrimitiveNode oNp = it.next();
+                        if (oNp.getFunction() != PrimitiveNode.Function.NODE) continue;
+                        Technology.NodeLayer [] oNodeLayers = oNp.getLayers();
+                        Layer oLayer = oNodeLayers[0].getLayer();
+                        Layer.Function oFun = oLayer.getFunction();
+                        if (fun == oFun) return oNp;
+                    }
+                }
+
+                // see if one node in the new technology has the same function
+                int i = 0;
+                PrimitiveNode rNp = null;
+                for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
+                {
+                    PrimitiveNode np = it.next();
+                    if (np.getFunction() == type)
+                    {
+                        rNp = np;   i++;
+                    }
+                }
+                if (i == 1) return rNp;
+
+                // if there are too many matches, determine which is proper from arcs
+                if (i > 1)
+                {
+                    // see if this node has equivalent arcs
+                    PrimitiveNode pOldNp = (PrimitiveNode)oldNp;
+                    PrimitivePort pOldPp = (PrimitivePort)pOldNp.getPort(0);
+                    ArcProto [] oldConnections = pOldPp.getConnections();
+
+                    for(Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
+                    {
+                        PrimitiveNode pNewNp = it.next();
+                        if (pNewNp.getFunction() != type) continue;
+                        PrimitivePort pNewPp = (PrimitivePort)pNewNp.getPort(0);
+                        ArcProto [] newConnections = pNewPp.getConnections();
+
+                        boolean oldMatches = true;
+                        for(int j=0; j<oldConnections.length; j++)
+                        {
+                            ArcProto oap = oldConnections[j];
+                            if (oap.getTechnology() == Generic.tech) continue;
+
+                            boolean foundNew = false;
+                            for(int k=0; k<newConnections.length; k++)
+                            {
+                                ArcProto ap = newConnections[k];
+                                if (ap.getTechnology() == Generic.tech) continue;
+                                if (ap.getFunction() == oap.getFunction()) { foundNew = true;   break; }
+                            }
+                            if (!foundNew) { oldMatches = false;   break; }
+                        }
+                        if (oldMatches) { rNp = pNewNp;   i = 1;   break; }
+                    }
+                }
+
+                // give up if it still cannot be determined
+                return rNp;
+            }
+
+            private NodeInst placeLayoutNode(Nodable no, NodeProto newNp, Cell newCell, VarContext context)
+            {
+                NodeInst ni = no.getNodeInst();
+                // scale edge offsets if this is a primitive
+                double newXSize = 0, newYSize = 0;
+                if (newNp instanceof PrimitiveNode)
+                {
+                    // get offsets for new node type
+                    PrimitiveNode pNewNp = (PrimitiveNode)newNp;
+                    PrimitiveNode pOldNp = (PrimitiveNode)ni.getProto();
+                    newXSize = pNewNp.getDefWidth() + ni.getXSize() - pOldNp.getDefWidth();
+                    newYSize = pNewNp.getDefHeight() + ni.getYSize() - pOldNp.getDefHeight();
+                    if (no.getParent().getView() == View.SCHEMATIC && pNewNp.getFunction().isTransistor()) {
+                        Variable width = no.getVar(Variable.newKey("ATTR_width"));
+                        SizeOffset offset = newNp.getProtoSizeOffset();
+                        if (width != null) {
+                            newXSize = VarContext.objectToDouble(context.evalVar(width, no), newXSize);
+                            newXSize = newXSize + offset.getHighXOffset() + offset.getLowXOffset();
+                        }
+                        Variable length = no.getVar(Variable.newKey("ATTR_length"));
+                        if (length != null) {
+                            newYSize = VarContext.objectToDouble(context.evalVar(length, no), newYSize);
+                            newYSize = newYSize + offset.getHighYOffset() + offset.getLowYOffset();
+                        }
+                    }
+                } else
+                {
+                    Cell np = (Cell)newNp;
+                    Rectangle2D bounds = np.getBounds();
+                    newXSize = bounds.getWidth();
+                    newYSize = bounds.getHeight();
+                }
+    //			if (ni.isXMirrored()) newXSize = -newXSize;
+    //			if (ni.isYMirrored()) newYSize = -newYSize;
+
+                // create the node
+                NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getOrient(), no.getName(), ni.getTechSpecific());
+    //			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
+                if (newNi == null)
+                {
+                    System.out.println("Could not create " + newNp + " in " + newCell);
+                    return null;
+                }
+                newNi.copyStateBits(ni);
+                if (no.getParent().getView() != View.SCHEMATIC)
+                    newNi.copyVarsFrom(ni);
+
+                // re-export any ports on the node
+                for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
+                {
+                    Export e = it.next();
+                    PortProto pp = convertPortProto(ni, newNi, e.getOriginalPort().getPortProto());
+                    PortInst pi = newNi.findPortInstFromProto(pp);
+                    Export pp2 = Export.newInstance(newCell, pi, e.getName());
+                    if (pp2 == null) return newNi;
+                    pp2.setCharacteristic(e.getCharacteristic());
+                    pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
+                    pp2.copyVarsFrom(e);
+                }
+                return newNi;
+            }
+
+            private static class PlacerGrid {
+                private Leaf node = null;
+                private PlacerGrid aboveNode = null;
+                private PlacerGrid belowNode = null;
+                private PlacerGrid leftNode = null;
+                private PlacerGrid rightNode = null;
+                private PlacerGrid() {}
+
+                protected PlacerGrid insert(Leaf leafnode) {
+                    if (node == null) {
+                        node = leafnode;
+                        return this;
+                    }
+                    Location loc = getRelativeLocation(leafnode.getCenter(false), node.getCenter(false));
+                    switch (loc) {
+                        case ABOVE: {
+                            if (aboveNode == null)
+                                aboveNode = leafnode;
+                            else
+                                aboveNode = aboveNode.insert(leafnode);
+                            break;
+                        }
+                        case BELOW: {
+                            if (belowNode == null)
+                                belowNode = leafnode;
+                            else
+                                belowNode = belowNode.insert(leafnode);
+                            break;
+                        }
+                        case LEFT:  {
+                            if (leftNode == null)
+                                leftNode = leafnode;
+                            else
+                                leftNode  = leftNode.insert(leafnode);
+                            break;
+                        }
+                        case RIGHT: {
+                            if (rightNode == null)
+                                rightNode = leafnode;
+                            else
+                                rightNode = rightNode.insert(leafnode);
+                            break;
+                        }
+                    }
+                    return this;
+                }
+
+                public enum Location { RIGHT, LEFT, ABOVE, BELOW };
+
+                private static Location getRelativeLocation(Point2D p, Point2D referenceP) {
+                    double xDist = p.getX() - referenceP.getX();
+                    double yDist = p.getY() - referenceP.getY();
+                    if (Math.abs(xDist) >= Math.abs(yDist)) {
+                        if (xDist < 0) return Location.LEFT;
+                        return Location.RIGHT;
+                    } else {
+                        if (yDist < 0) return Location.BELOW;
+                        return Location.ABOVE;
+                    }
+                }
+                protected Point2D getCenter(boolean lay) {
+                    Rectangle2D bounds;
+                    if (lay) bounds = getLayBounds();
+                    else bounds = getSchBounds();
+                    if (bounds == null) return null;
+                    return new EPoint(bounds.getCenterX(), bounds.getCenterY());
+                }
+                protected Rectangle2D getLayBounds() {
+                    if (node == null) return null;
+                    Rectangle2D bounds = node.getLayBounds();
+                    if (aboveNode != null) bounds = bounds.createUnion(aboveNode.getLayBounds());
+                    if (belowNode != null) bounds = bounds.createUnion(belowNode.getLayBounds());
+                    if (leftNode != null) bounds = bounds.createUnion(leftNode.getLayBounds());
+                    if (rightNode != null) bounds = bounds.createUnion(rightNode.getLayBounds());
+                    return bounds;
+                }
+                protected Rectangle2D getSchBounds() {
+                    if (node == null) return null;
+                    Rectangle2D bounds = node.getSchBounds();
+                    if (aboveNode != null) bounds = bounds.createUnion(aboveNode.getSchBounds());
+                    if (belowNode != null) bounds = bounds.createUnion(belowNode.getSchBounds());
+                    if (leftNode != null) bounds = bounds.createUnion(leftNode.getSchBounds());
+                    if (rightNode != null) bounds = bounds.createUnion(rightNode.getSchBounds());
+                    return bounds;
+                }
+                protected void place(MakeLayoutVisitor visitor, HashMap<Nodable,NodeInst> convertedNodes) {
+                    if (node == null) return;
+                    node.place(visitor, convertedNodes);
+                    if (aboveNode != null) placeRelative(aboveNode, node, Location.ABOVE, visitor, convertedNodes);
+                    if (belowNode != null) placeRelative(belowNode, node, Location.BELOW, visitor, convertedNodes);
+                    if (leftNode != null)  placeRelative(leftNode,  node, Location.LEFT,  visitor, convertedNodes);
+                    if (rightNode != null) placeRelative(rightNode, node, Location.RIGHT, visitor, convertedNodes);
+                }
+                private void placeRelative(PlacerGrid placeNode, PlacerGrid refNode,
+                                           Location schRelLoc,
+                                           MakeLayoutVisitor visitor,
+                                           HashMap<Nodable,NodeInst> convertedNodes) {
+                    placeNode.place(visitor, convertedNodes);
+                    Location layRelLoc = getRelativeLocation(placeNode.getCenter(true), refNode.getCenter(true));
+                    if (schRelLoc != layRelLoc || placeNode.getLayBounds().intersects(refNode.getLayBounds())) {
+                        // move placed node to abut to reference node
+                        abut(placeNode, refNode, schRelLoc);
+                    }
+                }
+                private void abut(PlacerGrid abutNode, PlacerGrid refNode, Location relativeLocation) {
+                    double dx = 0;
+                    double dy = 0;
+                    Rectangle2D referenceBounds = refNode.getLayBounds();
+                    Rectangle2D niBounds = abutNode.getLayBounds();
+                    if (relativeLocation == Location.RIGHT) {
+                        dx = referenceBounds.getMaxX() - niBounds.getMinX();
+                    } else if (relativeLocation == Location.LEFT) {
+                        dx = referenceBounds.getMinX() - niBounds.getMaxX();
+                    } else if (relativeLocation == Location.ABOVE) {
+                        dy = referenceBounds.getMaxY() - niBounds.getMinY();
+                    } else if (relativeLocation == Location.BELOW) {
+                        dy = referenceBounds.getMinY() - niBounds.getMaxY();
+                    }
+                    if (dx != 0 || dy != 0) {
+                        abutNode.move(dx, dy);
+                    }
+                }
+                protected void move(double dx, double dy) {
+                    node.move(dx, dy);
+                    if (aboveNode != null) aboveNode.move(dx, dy);
+                    if (belowNode != null) belowNode.move(dx, dy);
+                    if (leftNode != null) leftNode.move(dx, dy);
+                    if (rightNode != null) rightNode.move(dx, dy);
+                }
+                protected void print(int indent) {
+
+                }
+                public void prindent(int ident) {
+                    for (int i=0; i<ident; i++) System.out.print(" ");
+                }
+            }
+
+            private static class Leaf extends PlacerGrid {
+                private Nodable schNo;
+                private VarContext context;
+                private NodeProto layNp;
+                private NodeInst layNi;
+                private Cell newCell;
+                private Leaf(Nodable schNo, VarContext context, NodeProto layNp, Cell newCell) {
+                    this.schNo = schNo;
+                    this.layNp = layNp;
+                    this.newCell = newCell;
+                    this.context = context;
+                }
+                protected Point2D getCenter(boolean lay) {
+                    if (lay) return layNi.getAnchorCenter();
+                    return schNo.getNodeInst().getAnchorCenter();
+                }
+                protected PlacerGrid insert(Leaf node) {
+                    PlacerGrid gridnode = new PlacerGrid();
+                    gridnode.insert(this);
+                    gridnode.insert(node);
+                    return gridnode;
+                }
+                protected Rectangle2D getLayBounds() {
+                    assert(layNi != null);
+                    return layNi.getBounds();
+                }
+                protected Rectangle2D getSchBounds() {
+                    return schNo.getNodeInst().getBounds();
+                }
+                protected void place(MakeLayoutVisitor visitor, HashMap<Nodable,NodeInst> convertedNodes) {
+                    layNi = visitor.placeLayoutNode(schNo, layNp, newCell, context);
+                    convertedNodes.put(schNo, layNi);
+                }
+                protected void move(double dx, double dy) {
+                    layNi.modifyInstance(dx, dy, 0, 0, Orientation.IDENT);
+                    System.out.println("Moved "+layNi.getName()+" ("+dx+","+dy+")");
+                }
+                protected void print(int indent) {
+                    prindent(indent);
+                    System.out.println("node "+schNo.getName()+" at "+getCenter(false));
+                }
+            }
+
+            /**
+             * Method to determine the equivalent prototype in technology "newTech" for
+             * node prototype "oldnp".
+             */
+            private ArcProto figureNewArcProto(ArcProto oldAp, Technology newTech, PortProto headPp, PortProto tailPp)
+            {
+                // schematic wires become universal arcs
+                if (oldAp != Schematics.tech.wire_arc)
+                {
+                    // determine the proper association of this node
+                    ArcProto.Function type = oldAp.getFunction();
+                    for(Iterator<ArcProto> it = newTech.getArcs(); it.hasNext(); )
+                    {
+                        ArcProto newAp = it.next();
+                        if (newAp.getFunction() == type) return newAp;
+                    }
+                }
+
+                // cannot figure it out from the function: find anything that can connect
+                HashSet<ArcProto> possibleArcs = new HashSet<ArcProto>();
+                ArcProto [] headArcs = headPp.getBasePort().getConnections();
+                ArcProto [] tailArcs = tailPp.getBasePort().getConnections();
+                for(int i=0; i < headArcs.length; i++)
+                {
+                    if (headArcs[i].getTechnology() == Generic.tech) continue;
+                    for(int j=0; j < tailArcs.length; j++)
+                    {
+                        if (tailArcs[j].getTechnology() == Generic.tech) continue;
+                        if (headArcs[i] != tailArcs[j]) continue;
+                        possibleArcs.add(headArcs[i]);
+                        break;
+                    }
+                }
+                for(Iterator<ArcProto> it = newTech.getArcs(); it.hasNext(); )
+                {
+                    ArcProto ap = it.next();
+                    if (possibleArcs.contains(ap)) return ap;
+                }
+                System.out.println("No equivalent arc for " + oldAp);
+                return Generic.tech.universal_arc;
+            }
+
+            /**
+             * Method to determine the port to use on node "newni" assuming that it should
+             * be the same as port "oldPp" on equivalent node "ni"
+             */
+            private PortProto convertPortProto(NodeInst ni, NodeInst newNi, PortProto oldPp)
+            {
+                if (newNi.isCellInstance())
+                {
+                    // cells can associate by comparing names
+                    PortProto pp = newNi.getProto().findPortProto(oldPp.getName());
+                    if (pp != null) return pp;
+                    System.out.println("Cannot find export " + oldPp.getName() + " in " + newNi.getProto());
+                    return newNi.getProto().getPort(0);
+                }
+
+                // if each has only 1 port, they match
+                int numNewPorts = newNi.getProto().getNumPorts();
+                if (numNewPorts == 0) return null;
+                if (numNewPorts == 1)
+                {
+                    return newNi.getProto().getPort(0);
+                }
+
+                // associate by position in port list
+                Iterator<PortProto> oldPortIt = ni.getProto().getPorts();
+                Iterator<PortProto> newPortIt = newNi.getProto().getPorts();
+                while (oldPortIt.hasNext() && newPortIt.hasNext())
+                {
+                    PortProto pp = oldPortIt.next();
+                    PortProto newPp = newPortIt.next();
+                    if (pp == oldPp) return newPp;
+                }
+
+                // special case again: one-port capacitors are OK
+                PrimitiveNode.Function oldFun = ni.getFunction();
+                PrimitiveNode.Function newFun = newNi.getFunction();
+                if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC) return newNi.getProto().getPort(0);
+
+                // association has failed: assume the first port
+                System.out.println("No port association between " + ni.getProto() + ", "
+                    + oldPp + " and " + newNi.getProto());
+                return newNi.getProto().getPort(0);
+            }
+
+        }
+    }
 
 }
