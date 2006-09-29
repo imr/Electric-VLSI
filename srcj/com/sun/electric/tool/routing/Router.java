@@ -151,6 +151,30 @@ public abstract class Router {
             }
         }
 
+        if (arcsCreatedMap.get(Generic.tech.unrouted_arc) == null) {
+            // update current unrouted arcs
+            for (Iterator<Connection> it = route.getStart().getPortInst().getConnections(); it.hasNext(); ) {
+                Connection conn = it.next();
+                ArcInst ai = conn.getArc();
+                if (ai.getProto() == Generic.tech.unrouted_arc) {
+                    Connection oconn = (ai.getHead() == conn ? ai.getTail() : ai.getHead());
+                    // make new unrouted arc from end of route to arc end point,
+                    // otherwise just get rid of it
+                    if (oconn.getPortInst() != route.getEnd().getPortInst()) {
+                        RouteElementPort newEnd = RouteElementPort.existingPortInst(oconn.getPortInst(), oconn.getLocation());
+                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech.unrouted_arc,
+                                Generic.tech.unrouted_arc.getDefaultWidth(), route.getEnd(), newEnd,
+                                route.getEnd().getLocation(), newEnd.getLocation(), null,
+                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, null);
+                        newArc.doAction();
+                    }
+                    if (conn.getArc().isLinked()) {
+                        conn.getArc().kill();
+                    }
+                }
+            }
+        }
+
         if (verbose)
         {
             List<ArcProto> arcEntries = new ArrayList<ArcProto>(arcsCreatedMap.keySet());
