@@ -51,11 +51,7 @@ import com.sun.electric.tool.user.Highlight2;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.ElectricPrinter;
-import com.sun.electric.tool.user.ui.StatusBar;
-import com.sun.electric.tool.user.ui.WindowContent;
-import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.*;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
@@ -166,9 +162,10 @@ public class View3DWindow extends JPanel
         {
             View3DWindow window = new View3DWindow(cell, windowFrame, view2D, transPerNode, this);
             windowFrame.finishWindowFrameInformation(window, cell);
-            for (Component comp : windowFrame.getFrame().getToolBar().getComponents())
+            if (!TopLevel.isMDIMode())
             {
-                comp.setEnabled(false);
+                for (Component comp : windowFrame.getFrame().getToolBar().getComponents())
+                    comp.setVisible(false);
             }
         }
     }
