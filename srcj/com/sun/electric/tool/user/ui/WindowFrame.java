@@ -224,7 +224,7 @@ public class WindowFrame extends Observable
         setCurrentWindowFrame(this);
         populateJFrame();
         // Adding into WindowMenu
-        WindowMenu.addDynamicMenu(this);
+        WindowMenu.setDynamicMenus();
     }
 
     /*****************************************************************************
@@ -579,7 +579,7 @@ public class WindowFrame extends Observable
         currentCellChanged();
 
         // Adding into WindowMenu
-        WindowMenu.addDynamicMenu(this);
+        WindowMenu.setDynamicMenus();
         if (history == null) addToHistory(cell, VarContext.globalContext, null);
 	}
 
@@ -899,7 +899,7 @@ public class WindowFrame extends Observable
         // tell EditWindow it's finished
         content.finished();
 		explorerTab.setModel(null);
-        WindowMenu.deleteDynamicMenu(this);
+        WindowMenu.setDynamicMenus();
 
         if (!TopLevel.isMDIMode()) {
             // if SDI mode, TopLevel enclosing frame is closing, dispose of it

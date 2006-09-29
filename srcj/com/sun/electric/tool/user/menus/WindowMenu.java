@@ -26,7 +26,6 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.MessagesStream;
@@ -230,14 +229,6 @@ public class WindowMenu {
         }
         return hiddenWindowCycleMenuItem;
     }
-    
-    public static void addDynamicMenu(WindowFrame wf) {
-        setDynamicMenus();
-    }
-    
-    public static void deleteDynamicMenu(WindowFrame wf) {
-        setDynamicMenus();
-    }
 
     private static DynamicEMenuItem messageDynamicMenu = null;
 
@@ -430,10 +421,8 @@ public class WindowMenu {
         Rectangle [] areas = getWindowAreas();
 
         // tile the windows in each area
-        for(int j=0; j<areas.length; j++)
+        for (Rectangle area : areas)
         {
-        	Rectangle area = areas[j];
-
         	// see how many windows are on this screen
         	int count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -475,10 +464,8 @@ public class WindowMenu {
 		Rectangle [] areas = getWindowAreas();
 
 		// tile the windows in each area
-		for(int j=0; j<areas.length; j++)
+        for (Rectangle area : areas)
 		{
-			Rectangle area = areas[j];
-
 			// see how many windows are on this screen
 			int count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -520,10 +507,8 @@ public class WindowMenu {
 		Rectangle [] areas = getWindowAreas();
 
 		// tile the windows in each area
-		for(int j=0; j<areas.length; j++)
+		for (Rectangle area : areas)
 		{
-			Rectangle area = areas[j];
-
 			// see how many windows are on this screen
 			int count = 0;
 			for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
@@ -581,40 +566,40 @@ public class WindowMenu {
 		curWF.finished();
 	}
 
-	private static void nextWindowCommand()
-	{
-		Object cur = null;
-		List<Object> frames = new ArrayList<Object>();
-		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-		{
-			WindowFrame wf = it.next();
-			if (wf.isFocusOwner()) cur = wf;
-			frames.add(wf);
-		}
-		MessagesWindow mw = TopLevel.getMessagesWindow();
-		if (mw.isFocusOwner()) cur = mw;
-		frames.add(mw);
-
-		// find current frame in the list
-		int found = -1;
-		for(int i=0; i<frames.size(); i++)
-		{
-			if (cur == frames.get(i))
-			{
-				found = i;
-				break;
-			}
-		}
-		if (found >= 0)
-		{
-			found++;
-			if (found >= frames.size()) found = 0;
-			Object newCur = frames.get(found);
-			if (newCur instanceof WindowFrame)
-				((WindowFrame)newCur).requestFocus(); else
-					((MessagesWindow)newCur).requestFocus();
-		}
-	}
+//	private static void nextWindowCommand()
+//	{
+//		Object cur = null;
+//		List<Object> frames = new ArrayList<Object>();
+//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
+//		{
+//			WindowFrame wf = it.next();
+//			if (wf.isFocusOwner()) cur = wf;
+//			frames.add(wf);
+//		}
+//		MessagesWindow mw = TopLevel.getMessagesWindow();
+//		if (mw.isFocusOwner()) cur = mw;
+//		frames.add(mw);
+//
+//		// find current frame in the list
+//		int found = -1;
+//		for(int i=0; i<frames.size(); i++)
+//		{
+//			if (cur == frames.get(i))
+//			{
+//				found = i;
+//				break;
+//			}
+//		}
+//		if (found >= 0)
+//		{
+//			found++;
+//			if (found >= frames.size()) found = 0;
+//			Object newCur = frames.get(found);
+//			if (newCur instanceof WindowFrame)
+//				((WindowFrame)newCur).requestFocus(); else
+//					((MessagesWindow)newCur).requestFocus();
+//		}
+//	}
 
 	private static Rectangle [] getWindowAreas()
     {
@@ -649,12 +634,14 @@ public class WindowMenu {
     {
 		int cX = occluding.x + occluding.width/2;
 		int cY = occluding.y + occluding.height/2;
-    	for(int i=0; i<areas.length; i++)
+
+
+        for (Rectangle area : areas)
     	{
-			int lX = (int)areas[i].getMinX();
-			int hX = (int)areas[i].getMaxX();
-			int lY = (int)areas[i].getMinY();
-			int hY = (int)areas[i].getMaxY();
+			int lX = (int)area.getMinX();
+			int hX = (int)area.getMaxX();
+			int lY = (int)area.getMinY();
+			int hY = (int)area.getMaxY();
 			if (cX > lX && cX < hX && cY > lY && cY < hY)
 			{
 		        if (occluding.width > occluding.height)
@@ -681,8 +668,8 @@ public class WindowMenu {
 		                hX = (int)occluding.getMinX();
 		            }
 		        }
-				areas[i].x = lX;   areas[i].width = hX - lX;
-				areas[i].y = lY;   areas[i].height = hY - lY;
+				area.x = lX;   area.width = hX - lX;
+				area.y = lY;   area.height = hY - lY;
 			}
     	}
     }
@@ -787,9 +774,9 @@ public class WindowMenu {
 
         // get all screens
         GraphicsDevice[] gs = getAllGraphicsDevices();
-        for (int j=0; j<gs.length; j++) {
-            //System.out.println("Found GraphicsDevice: "+gs[j]+", type: "+gs[j].getType());
-        }
+//        for (int j=0; j<gs.length; j++) {
+//            //System.out.println("Found GraphicsDevice: "+gs[j]+", type: "+gs[j].getType());
+//        }
         // find screen after current screen
         int i;
         for (i=0; i<gs.length; i++) {

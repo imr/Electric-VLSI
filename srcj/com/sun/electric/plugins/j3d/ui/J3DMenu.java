@@ -35,6 +35,8 @@ import com.sun.electric.tool.user.menus.EMenu;
 import com.sun.electric.tool.user.menus.EMenuItem;
 import com.sun.electric.tool.Job;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.MoCMOS;
 
 import java.lang.reflect.Method;
 
@@ -55,7 +57,7 @@ public class J3DMenu {
         // mnemonic keys available: AB  EFGHIJKLMNOPQ S U WXYZ
         /** 3D view */
             new EMenuItem("_3D View") { public void run() {
-                create3DViewCommand(new Boolean(false)); }},
+                create3DViewCommand(false); }},
             new EMenuItem("_Capture Frame/Animate") { public void run() {
                 J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame(), null); }},
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
@@ -98,6 +100,12 @@ public class J3DMenu {
     {
 	    Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
+        Technology tech = curCell.getTechnology();
+        if (tech != MoCMOS.tech && tech != Technology.getTSMC90Technology())
+        {
+            System.out.println("3D View only available for 180nm and 90nm technologies.");
+            return;
+        }
 
         WindowContent view2D = WindowFrame.getCurrentWindowFrame(false).getContent();
 
@@ -105,7 +113,7 @@ public class J3DMenu {
         if (!(view2D instanceof EditWindow)) return;
         WindowFrame frame = new WindowFrame();
 
-        View3DWindow.create3DWindow(curCell, frame, view2D, transPerNode.booleanValue());
+        View3DWindow.create3DWindow(curCell, frame, view2D, transPerNode); // autoboxing
     }
 
     /**
@@ -116,8 +124,8 @@ public class J3DMenu {
         Class app3DClass = Resources.getJMFJ3DClass("J3DQueryProperties");
         try
         {
-            Method queryClass = app3DClass.getDeclaredMethod("queryHardwareAcceleration", new Class[] {});
-            queryClass.invoke(queryClass, new Object[]{});
+            Method queryClass = app3DClass.getDeclaredMethod("queryHardwareAcceleration"); // varargs
+            queryClass.invoke(queryClass); // varargs
         } catch (Exception e) {
             if (Job.getDebug()) e.printStackTrace();
             System.out.println("Cannot call 3D plugin method queryHardwareAcceleration: ");

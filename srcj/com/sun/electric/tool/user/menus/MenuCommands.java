@@ -100,8 +100,8 @@ public final class MenuCommands
     static EMenu makeExtraMenu(String plugin) {
         try {
             Class menuClass = Class.forName("com.sun.electric.plugins."+plugin);
-            java.lang.reflect.Method makeMenu = menuClass.getMethod("makeMenu", new Class[] {});
-            return (EMenu)makeMenu.invoke(null, new Object [] {});
+            java.lang.reflect.Method makeMenu = menuClass.getMethod("makeMenu"); // varargs
+            return (EMenu)makeMenu.invoke(null); // varargs
         } catch (Exception e) {
 //            e.printStackTrace();
             return null;
