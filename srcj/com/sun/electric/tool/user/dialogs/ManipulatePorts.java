@@ -299,7 +299,7 @@ public class ManipulatePorts extends EDialog
 					queuedExports.add(e);
 				}
 			}
-			new ExportChanges.DeleteExports(ni.getParent(), queuedExports);
+			ExportChanges.deleteExports(ni.getParent(), queuedExports);
 		}
 
 		public void showSelected()

@@ -33,8 +33,6 @@ import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.LibId;
-import com.sun.electric.database.LibraryBackup;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.*;
@@ -48,6 +46,7 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow0;
@@ -74,7 +73,6 @@ import java.awt.geom.Rectangle2D;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -226,7 +224,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
          * @param cell the Cell in question.
          * @return true if the Cell is in this CellGroup.
          */
-        public boolean containsCell(Cell cell) { return cells.contains(cell); }
+        public boolean containsCell(Cell cell) { return cell != null && cells.contains(cell); }
         
 		/**
 		 * Returns a printable version of this CellGroup.
@@ -940,6 +938,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     public CellBackup backup() {
         if (cellBackupFresh) return backup;
         return doBackup();
+    }
+    
+    public void refreshExports() {
+//        if (cellBackupFresh) return;
+//        System.out.println(this + " refreshBackup");
+//        doBackup();
     }
     
     private CellBackup doBackup() {
@@ -2577,6 +2581,90 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     }
     
 	/**
+	 * Method to unlink a set of these Export from this Cell.
+     * @param killedExports a set of Exports to kill.
+	 */
+	public void killExports(Set<Export> killedExports) {
+		checkChanging();
+        if (killedExports.isEmpty()) return;
+        
+        Export[] killedExportsArray = killedExports.toArray(Export.NULL_ARRAY);
+        for (Iterator<CellUsage> uit = getUsagesOf(); uit.hasNext(); ) {
+            CellUsage u = uit.next();
+            Cell higherCell = database.getCell(u.parentId);
+            
+            // collect the arcs attached to the connections to these port instance.
+            ArrayList<ArcInst> arcsToKill = new ArrayList<ArcInst>();
+            for (ArcInst ai: higherCell.arcs) {
+                PortInst tail = ai.getTailPortInst();
+                PortInst head = ai.getHeadPortInst();
+                if (tail.getNodeInst().getProto() == this && killedExports.contains(tail.getPortProto()) ||
+                        head.getNodeInst().getProto() == this && killedExports.contains(head.getPortProto()))
+                    arcsToKill.add(ai);
+            }
+            // collect reexports
+            HashSet<Export> higherExportsToKill = null;
+            for (Export higherExport: higherCell.exports) {
+                PortInst pi = higherExport.getOriginalPort();
+                if (pi.getNodeInst().getProto() != this) continue;
+                Export lowerExport = (Export)pi.getPortProto();
+                assert lowerExport.getParent() == this;
+                if (!killedExports.contains(lowerExport)) continue;
+                if (higherExportsToKill == null) higherExportsToKill = new HashSet<Export>();
+                higherExportsToKill.add(higherExport);
+            }
+            
+            // delete variables on port instances
+            for (NodeInst ni: higherCell.nodes) {
+                if (ni.getProto() != this) continue;
+                for (Export e: killedExportsArray)
+                    ni.findPortInstFromProto(e).delVars();
+            }
+            // delete connected arcs
+            for (ArcInst ai: arcsToKill)
+                ai.kill();
+			// recurse up the hierarchy deleting rexports
+            if (higherExportsToKill != null)
+                higherCell.killExports(higherExportsToKill);
+        }
+        
+        // kill exports themselves
+        for (Export e: killedExports) {
+            e.lowLevelUnlink();
+    		// handle change control, constraint, and broadcast
+        	Constraints.getCurrent().killObject(e);
+        }
+	}
+
+	/**
+	 * Method to recursively alter the state bit fields of these Exports.
+     * @param changedExports changed exports of this Cell.
+	 */
+	void recursivelyChangeAllPorts(Set<Export> changedExports) {
+		// look at all usages of this cell
+        for (Iterator<CellUsage> cit = getUsagesOf(); cit.hasNext(); ) {
+            CellUsage u = cit.next();
+            Cell higherCell = database.getCell(u.parentId);
+            HashSet<Export> changedHigherExports = null;
+            // see reexports of these ports
+            for (Export higherExport: higherCell.exports) {
+                PortInst pi = higherExport.getOriginalPort();
+                if (pi.getNodeInst().getProto() != this) continue;
+                Export lowerExport = (Export)pi.getPortProto();
+                assert lowerExport.getParent() == this;
+                if (!changedExports.contains(lowerExport)) continue;
+                if (changedHigherExports == null) changedHigherExports = new HashSet<Export>();
+                changedHigherExports.add(higherExport);
+				// change this port
+                higherExport.copyStateBits(lowerExport);
+            }
+			// recurse up the hierarchy
+            if (changedHigherExports != null)
+                higherCell.recursivelyChangeAllPorts(changedHigherExports);
+        }
+	}
+
+	/**
 	 * Method to find the PortProto that has a particular name.
 	 * @return the PortProto, or null if there is no PortProto with that name.
 	 */
@@ -4152,7 +4240,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             if (errorLogger != null)
                 errorLogger.logWarning(mainSchemMsg, this, 1);
         }
-        
+
         Variable var = getVar(NccCellAnnotations.NCC_ANNOTATION_KEY);
         if (var != null && var.isInherit()) {
             // cleanup NCC cell annotations which were inheritable

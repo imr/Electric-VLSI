@@ -59,7 +59,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.user.CircuitChangeJobs;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -71,6 +70,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
@@ -133,6 +133,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/** the shrinkage is from 0 to 90 (for pins only)*/     byte shrink;
     
 	/** bounds after transformation. */						private final Rectangle2D.Double visBounds = new Rectangle2D.Double(0, 0, 0, 0);
+    /** True, if visBounds are valid. */                    private boolean validVisBounds;
 
     
     // --------------------- private and protected methods ---------------------
@@ -430,11 +431,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
 
 		// remove any exports
-		while (exports.length != 0)
-		{
-			Export pp = exports[exports.length - 1];
-			pp.kill();
-		}
+        HashSet<Export> exportsToKill = new HashSet<Export>();
+        for (Iterator<Export> it = parent.getExports(); it.hasNext(); )
+            exportsToKill.add(it.next());
+        parent.killExports(exportsToKill);
 
 		// remove the node
 		lowLevelUnlink();
@@ -1187,7 +1187,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
 	 * @return the bounds of this NodeInst.
 	 */
-	public Rectangle2D getBounds() { return visBounds; }
+	public Rectangle2D getBounds() {
+        if (!validVisBounds) {
+            d.computeBounds(this, visBounds);
+            validVisBounds = true;
+        }
+        return visBounds;
+    }
 
 	/**
 	 * Method to return the starting and ending angle of an arc described by this NodeInst.
@@ -1263,7 +1269,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public void redoGeometric()
 	{
-		d.computeBounds(this, visBounds);
+        validVisBounds = false;
+//		d.computeBounds(this, visBounds);
 	}
 
 //	/**
@@ -2173,19 +2180,38 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Returns true of there are Exports on this NodeInst.
 	 * @return true if there are Exports on this NodeInst.
 	 */
-	public boolean hasExports() { return exports.length != 0; }
+	public boolean hasExports() {
+        if (parent == null) return false;
+        refreshExports();
+        return exports.length != 0;
+    }
     
     /**
 	 * Method to return an Iterator over all Exports on this NodeInst.
 	 * @return an Iterator over all Exports on this NodeInst.
 	 */
-	public Iterator<Export> getExports() { return ArrayIterator.iterator(exports); }
+	public Iterator<Export> getExports() {
+        if (parent == null) {
+            Iterator<Export> it = ArrayIterator.emptyIterator();
+            return it;
+        }
+        refreshExports();
+        return ArrayIterator.iterator(exports);
+    }
 
 	/**
 	 * Method to return the number of Exports on this NodeInst.
 	 * @return the number of Exports on this NodeInst.
 	 */
-	public int getNumExports() { return exports.length; }
+	public int getNumExports() {
+        if (parent == null) return 0;
+        refreshExports();
+        return exports.length;
+    }
+    
+    private void refreshExports() {
+        parent.refreshExports();
+    }
 
 	/**
 	 * Method to associate the ports between two NodeInsts.

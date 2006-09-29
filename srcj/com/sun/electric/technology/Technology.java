@@ -1824,8 +1824,10 @@ public class Technology implements Comparable<Technology>
 					int portIndex = primLayer.getPortNum();
 					if (portIndex >= 0) polys[0].setPort(np.getPort(portIndex));
 				}
-				Rectangle2D rect = ni.getBounds();
-				if (wnd != null) ni.addDisplayableVariables(rect, polys, 1, wnd, true);
+				if (wnd != null) {
+                    Rectangle2D rect = ni.getBounds();
+                    ni.addDisplayableVariables(rect, polys, 1, wnd, true);
+                }
 				return polys;
 			}
 		}

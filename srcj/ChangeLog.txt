@@ -4,7 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
-IMP/MAN: (9/28/GVG) Enable zoom via selection area (bug #135). Indeed, entire tool bar was disabled
+BUG: (9/28/06, DN) Exception in cellGroup.contains(Cell) in duplicateGroupAction (Bug #1234).
+FIX: cellGroup.contains(Cell) returns false when Cell argument is null.
+
+BUG: (9/28/06, DN) ExportChanges.DeleteExports job calls GUI in doIt.
+FIX: Move cantEdit calls out of ExportChanges.DeleteExports.doIt.
+
+IMP: (9/28/06, DN) Remove some calls of "NodeInst.hasExports()", "NodeInst.getNumExports()", "NodeInst.getExports()" out
+   of crytical database modification loops. Future refactoring for memory saving will make these methods slower when called after
+   Cell modification.
+
+IMP/MAN: (9/28/06, GVG) Enable zoom via selection area (bug #135). Indeed, entire tool bar was disabled
 because the scenegraph is displayed in its own frame and it is not worth it to hack it.
 Solution only valid for SDI mode.
 

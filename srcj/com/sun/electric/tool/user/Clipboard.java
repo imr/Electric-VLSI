@@ -62,6 +62,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EventListener;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -691,13 +692,14 @@ public class Clipboard
 		}
 
 		// delete all exports in the clipboard
-		List<Export> exportsToDelete = new ArrayList<Export>();
+		HashSet<Export> exportsToDelete = new HashSet<Export>();
 		for(Iterator<Export> it = clipCell.getExports(); it.hasNext(); )
 			exportsToDelete.add(it.next());
-		for(Export pp : exportsToDelete)
-		{
-			pp.kill();
-		}
+        clipCell.killExports(exportsToDelete);
+//		for(Export pp : exportsToDelete)
+//		{
+//			pp.kill();
+//		}
 
 		// delete all nodes in the clipboard
 		List<NodeInst> nodesToDelete = new ArrayList<NodeInst>();

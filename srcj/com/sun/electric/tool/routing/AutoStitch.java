@@ -1713,7 +1713,8 @@ public class AutoStitch
 					}
 				}
 			}
-			if (!gotOne && ni.getNumExports() == 0)
+			if (!gotOne && !ni.hasExports())
+//			if (!gotOne && ni.getNumExports() == 0)
 			{
 				if (coverage == null) return new Poly[0];
 

@@ -87,6 +87,14 @@ public class PortInst extends ElectricObject
 	 * @param key the key of the Variable to delete.
 	 */
 	public void delVar(Variable.Key key) { nodeInst.delVar(portProto.getId(), key); }
+
+	/**
+	 * Method to delete all Variables of this PortInst.
+	 */
+    public void delVars() {
+        nodeInst.delVars(portProto.getId());
+		assert getNumVariables() == 0;
+    }
     
 	// ------------------------ public methods -------------------------
 
@@ -159,34 +167,6 @@ public class PortInst extends ElectricObject
 				exports.add(e);
 		}
 		return exports.iterator();
-	}
-
-	/**
-	 * Method to prepare this PortInst to deletion.
-	 * All variables are deleted.
-	 * All connected arcs and exports are killed.
-	 */
-	public void disconnect()
-	{
-        nodeInst.delVars(portProto.getId());
-		assert getNumVariables() == 0;
-		
-		// kill the arcs attached to the connections to this port instance.
-		// This will also remove the connections themselves
-		for (Iterator<Connection> it = getConnections(); it.hasNext(); )
-		{
-			Connection con = it.next();
-			ArcInst ai = con.getArc();
-			// arcs that connect from a port to itself will cause the number of connections to shrink more quickly
-			if (ai.isLinked()) ai.kill();
-		}
-
-		// remove connected exports
-		for (Iterator<Export> it = getExports(); it.hasNext(); )
-		{
-			Export export = it.next();
-			export.kill();
-		}
 	}
 
 	/**

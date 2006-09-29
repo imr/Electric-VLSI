@@ -58,6 +58,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -74,6 +75,8 @@ import java.util.Iterator;
  */
 public class Export extends ElectricObject implements PortProto, Comparable<Export>
 {
+    /** Empty Export array for initialization. */
+    public static final Export[] NULL_ARRAY = {};
 	/** Key of text descriptor of export name */            public static final Variable.Key EXPORT_NAME = Variable.newKey("EXPORT_name");
 	/** Key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = Variable.newKey("EXPORT_reference_name");
 
@@ -314,27 +317,8 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	/**
 	 * Method to unlink this Export from its Cell.
 	 */
-	public void kill()
-	{
-		if (!isLinked())
-		{
-			System.out.println("Export already killed");
-			return;
-		}
-		checkChanging();
-
-		// disconnect arcs end exports from PortInsts of this Export
-		for(Iterator<NodeInst> it = parent.getInstancesOf(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			PortInst pi = ni.findPortInstFromProto(this);
-			pi.disconnect();
-		}
-		
-		lowLevelUnlink();
-
-		// handle change control, constraint, and broadcast
-		Constraints.getCurrent().killObject(this);
+	public void kill() {
+        parent.killExports(Collections.singleton(this));
 	}
 
 	/**
@@ -1175,29 +1159,9 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	/**
 	 * Method to recursively alter the state bit fields of this Export.
 	 */
-	private void recursivelyChangeAllPorts()
-	{
-		// look at all instances of the cell that had port motion
-		for(Iterator<NodeInst> it = parent.getInstancesOf(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			// see if an instance reexports the port
-			for(Iterator<Export> pIt = ni.getExports(); pIt.hasNext(); )
-			{
-				Export upPP = (Export)pIt.next();
-				if (upPP.getOriginalPort().getPortProto() != this) continue;
-
-				// change this port and recurse up the hierarchy
-                upPP.copyStateBits(this);
-//				if (upPP.lowLevelGetUserbits() != lowLevelGetUserbits())
-//				{
-//					// Should use change control here !!!
-//					upPP.lowLevelSetUserbits(lowLevelGetUserbits());
-//				}
-				upPP.recursivelyChangeAllPorts();
-			}
-		}
-	}
+	private void recursivelyChangeAllPorts() {
+        parent.recursivelyChangeAllPorts(Collections.singleton(this));
+    }
 
     /**
      * This function is to compare Export elements. Initiative CrossLibCopy
