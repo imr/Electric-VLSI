@@ -51,7 +51,16 @@ public class EdgeH
 		this.adder = adder;
 	}
 
-	/**
+    /**
+     * Returns a clone of this Object
+     * @return a new pointer with the same value of this Object
+     */
+    public EdgeH duplicate()
+    {
+        return new EdgeH(multiplier, adder);
+    }
+
+    /**
 	 * Returns the multiplier.
 	 * This is the amount to scale a NodeInst width.
 	 * @return the multiplier.

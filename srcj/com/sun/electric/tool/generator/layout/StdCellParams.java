@@ -596,7 +596,7 @@ public class StdCellParams {
      */
     public double getMinDifContWid() {
         SizeOffset so = Tech.ndm1.getProtoSizeOffset();
-        return (Tech.ndm1.getMinHeight() - so.getHighYOffset() - so.getLowYOffset());
+        return (Tech.ndm1.getMinSizeRule().getHeight() - so.getHighYOffset() - so.getLowYOffset());
     }
 
     public double getWellOverhangDiff() {

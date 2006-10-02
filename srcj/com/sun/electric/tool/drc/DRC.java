@@ -102,23 +102,7 @@ public class DRC extends Listener
 
     /****************************** DESIGN RULES ******************************/
 
-	/**
-	 * Class to define a single rule on a node.
-	 */
-    public static class NodeSizeRule
-	{
-		public double sizeX, sizeY;
-		public String rule;
-
-		NodeSizeRule(double sizeX, double sizeY, String rule)
-		{
-			this.sizeX = sizeX;
-			this.sizeY = sizeY;
-			this.rule = rule;
-		}
-	}
-
-	/****************************** TOOL CONTROL ******************************/
+    /****************************** TOOL CONTROL ******************************/
 
 	/**
 	 * The constructor sets up the DRC tool.
@@ -159,16 +143,16 @@ public class DRC extends Listener
 		}
     }
 
-	private static void removeGeometric(Geometric geom)
-	{
-		if (!isIncrementalDRCOn()) return;
-		Cell cell = geom.getParent();
-		synchronized (cellsToCheck)
-		{
-			HashSet<Geometric> cellSet = cellsToCheck.get(cell);
-			if (cellSet != null) cellSet.remove(geom);
-		}
-	}
+//	private static void removeGeometric(Geometric geom)
+//	{
+//		if (!isIncrementalDRCOn()) return;
+//		Cell cell = geom.getParent();
+//		synchronized (cellsToCheck)
+//		{
+//			HashSet<Geometric> cellSet = cellsToCheck.get(cell);
+//			if (cellSet != null) cellSet.remove(geom);
+//		}
+//	}
 
 	private static void doIncrementalDRCTask()
 	{
@@ -607,12 +591,11 @@ public class DRC extends Listener
 	 * @return the minimum size rule for the NodeProto.
 	 * Returns null if there is no minimum size rule.
 	 */
-	public static NodeSizeRule getMinSize(NodeProto np)
+	public static PrimitiveNode.NodeSizeRule getMinSize(NodeProto np)
 	{
 		if (np instanceof Cell) return null;
 		PrimitiveNode pnp = (PrimitiveNode)np;
-		if (pnp.getMinWidth() < 0 && pnp.getMinHeight() < 0) return null;
-		return new NodeSizeRule(pnp.getMinWidth(), pnp.getMinHeight(), pnp.getMinSizeRule());
+        return pnp.getMinSizeRule();
 	}
 
 	/****************************** SUPPORT FOR DESIGN RULES ******************************/
@@ -755,7 +738,6 @@ public class DRC extends Listener
                 thisByte = ((Integer)varBits.getObject()).intValue();
             data.bits = thisByte;
             data.date = lastDRCDateInMilliseconds;
-//            data = new StoreDRCInfo(lastDRCDateInMilliseconds, thisByte);
         }
         else
         {
@@ -808,7 +790,7 @@ public class DRC extends Listener
 
         // If in memory, date doesn't matter
         Date revisionDate = cell.getRevisionDate();
-        Date lastDRCDate = lastDRCDate = new Date(data.date);
+        Date lastDRCDate = new Date(data.date);
         return (lastDRCDate.after(revisionDate)) ? lastDRCDate : null;
     }
 
@@ -1042,7 +1024,7 @@ public class DRC extends Listener
             {
                 for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
                 {
-                    Library lib = (Library)it.next();
+                    Library lib = it.next();
                     for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
                     {
                         Cell cell = cIt.next();
@@ -1074,7 +1056,7 @@ public class DRC extends Listener
             // Only works for layout with in memory dates -> no need of adding the job into the queue
             if (isDatesStoredInMemory() && (newVariables == null || newVariables.isEmpty()))
             {
-                try {doIt();} catch (Exception e) {e.printStackTrace();};
+                try {doIt();} catch (Exception e) {e.printStackTrace();}
             }
             else // put it into the queue
 			    startJob();

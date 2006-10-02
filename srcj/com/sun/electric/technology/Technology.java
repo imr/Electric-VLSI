@@ -245,7 +245,33 @@ public class Technology implements Comparable<Technology>
 					new Technology.TechPoint(EdgeH.fromRight(amount), EdgeV.fromTop(amount))};
 		}
 
-		/**
+        /**
+         * Method similat to makeIndented(double amount) where the X and Y specified amounts are different
+         * @param amountX the amount to indent the box along X.
+         * @param amountY the amount to indent the box along Y.
+         * @return a new TechPoint array that describes this indented box.
+         */
+        public static TechPoint [] makeIndented(double amountX, double amountY)
+		{
+			return new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromLeft(amountX), EdgeV.fromBottom(amountY)),
+					new Technology.TechPoint(EdgeH.fromRight(amountX), EdgeV.fromTop(amountY))};
+		}
+
+        /**
+         * Method to make a 2-long TechPoint array that describes indentation from the center by a specified amount.
+         * @param amountX the amount to indent from the center the box along X.
+         * @param amountY the amount to indent from the center the box along Y.
+         * @return a new TechPoint array that describes this indented box.
+         */
+        public static TechPoint [] makeIndentedFromCenter(double amountX, double amountY)
+		{
+			return new Technology.TechPoint [] {
+					new Technology.TechPoint(EdgeH.fromCenter(-amountX), EdgeV.fromCenter(-amountY)),
+					new Technology.TechPoint(EdgeH.fromCenter(amountX), EdgeV.fromCenter(amountY))};
+		}
+
+        /**
 		 * Returns the EdgeH that converts a NodeInst into an X coordinate on that NodeInst.
 		 * @return the EdgeH that converts a NodeInst into an X coordinate on that NodeInst.
 		 */

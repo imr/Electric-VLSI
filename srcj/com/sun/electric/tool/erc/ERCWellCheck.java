@@ -80,7 +80,7 @@ public class ERCWellCheck
 		PolyBase    poly;
 		int         netNum;
 		int         index;
-	};
+	}
 
 	// well contacts
 	private static class WellCon
@@ -89,7 +89,7 @@ public class ERCWellCheck
 		int                    netNum;
 		boolean                onProperRail;
 		PrimitiveNode.Function fun;
-	};
+	}
 
 	private ERCWellCheck(Cell cell, WellCheckJob job, GeometryHandler.GHMode newAlgorithm)
 	{
@@ -197,7 +197,7 @@ public class ERCWellCheck
 	{
 		long startTime = System.currentTimeMillis();
 		errorLogger = ErrorLogger.newInstance("ERC Well Check ");
-        long initialMemory = 0;
+//        long initialMemory = 0;
 
 		System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
 		// announce start of analysis
@@ -406,13 +406,14 @@ public class ERCWellCheck
 							rulesNonCon.put(waLayer, rule);
 					}
 					//DRCTemplate rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
-					if (rule == null || rule.value1 < 0) continue;
-					if (wa.poly.getBounds2D().getMinX() > oWa.poly.getBounds2D().getMaxX()+rule.value1 ||
-						oWa.poly.getBounds2D().getMinX() > wa.poly.getBounds2D().getMaxX()+rule.value1 ||
-						wa.poly.getBounds2D().getMinY() > oWa.poly.getBounds2D().getMaxY()+rule.value1 ||
-						oWa.poly.getBounds2D().getMinY() > wa.poly.getBounds2D().getMaxY()+rule.value1) continue;
+                    double ruleValue = rule.getValue(0);
+                    if (rule == null || ruleValue < 0) continue;
+					if (wa.poly.getBounds2D().getMinX() > oWa.poly.getBounds2D().getMaxX()+ruleValue ||
+						oWa.poly.getBounds2D().getMinX() > wa.poly.getBounds2D().getMaxX()+ruleValue ||
+						wa.poly.getBounds2D().getMinY() > oWa.poly.getBounds2D().getMaxY()+ruleValue ||
+						oWa.poly.getBounds2D().getMinY() > wa.poly.getBounds2D().getMaxY()+ruleValue) continue;
 					double dist = wa.poly.separation(oWa.poly); // dist == 0 -> intersect or inner loops
-					if (dist > 0 && dist < rule.value1)
+					if (dist > 0 && dist < ruleValue)
 					{
 						int layertype = getWellLayerType(waLayer);
 						if (layertype == ERCPSEUDO) continue;
@@ -422,7 +423,7 @@ public class ERCWellCheck
 						polyList.add(oWa.poly);
 						errorLogger.logError(waLayer.getName() + " areas too close (are "
 							+ TextUtils.formatDouble(dist, 1) + ", should be "
-							+ TextUtils.formatDouble(rule.value1, 1) + ")", null, null, null, null, polyList, cell, 0);
+							+ TextUtils.formatDouble(ruleValue, 1) + ")", null, null, null, null, polyList, cell, 0);
 					}
 				}
 			}

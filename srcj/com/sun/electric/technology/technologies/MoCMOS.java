@@ -2855,37 +2855,19 @@ public class MoCMOS extends Technology
     /**
      * Method to replace resizeNodes
      */
-    private void resizeNodes(XMLRules rules)
+    protected void resizeNodes(XMLRules rules)
     {
         int numMetals = getNumMetal();
-        for (PrimitiveNode metalContact : metalContactNodes)
-        {
-            metalContact.setNotUsed(true);
-        }
-        for (int i = 0; i < numMetals - 1; i++)
-        {
-            PrimitiveNode metalContact = metalContactNodes[i];
-            metalContact.setNotUsed(false);
-            Technology.NodeLayer node = metalContact.getLayers()[2]; //cut
-            Technology.NodeLayer m1Node = metalContact.getLayers()[0]; // first metal
-            Technology.NodeLayer m2Node = metalContact.getLayers()[1]; // second metal
-
-            rules.resizeContact(metalContact, node, m2Node);   // cur surround with respect to higher metal
-
-            SizeOffset so = metalContact.getProtoSizeOffset();
-            m1Node.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset()));
-            m2Node.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset()));
-        }
+        rules.resizeMetalContacts(metalContactNodes, numMetals);
 
         // Active contacts
-        rules.resizeContactsWithActive(metalActiveContactNodes);
+        rules.resizeContactsWithActive(metalActiveContactNodes, false);
 
         // Well contacts
-        rules.resizeContactsWithActive(metalWellContactNodes);
+        rules.resizeContactsWithActive(metalWellContactNodes, false);
 
         // Poly contact
-        rules.resizeContact(metal1PolyContactNodes[0], metal1PolyContactNodes[0].getLayers()[2],
-                metal1PolyContactNodes[0].getLayers()[1]);
+        rules.resizePolyContact(metal1PolyContactNodes[0]);
 
         // Standard transistors
         DRCTemplate polyWid = null;
@@ -2910,7 +2892,7 @@ public class MoCMOS extends Technology
                 polyWid = rules.getRule(polyNode.getLayer().getIndex(), DRCTemplate.DRCRuleType.MINWID); // gate size
             // active from poly
             double actOverhang = getTransistorExtension(primNode, false, rules);
-            double lenValMax = DBMath.round(length /2 - (polyWid.value1/2));   // Y if poly gate is horizontal, X if poly is vertical
+            double lenValMax = DBMath.round(length /2 - (polyWid.getValue(0)/2));   // Y if poly gate is horizontal, X if poly is vertical
             double lenValMin = DBMath.round(lenValMax - actOverhang);
             // Active layer
             activeNode.getBottomEdge().setAdder(lenValMin); activeNode.getTopEdge().setAdder(-lenValMin);
@@ -2919,7 +2901,7 @@ public class MoCMOS extends Technology
 
             // poly from active
             double gateOverhang = getTransistorExtension(primNode, true, rules);
-            double polyExten = actSurround.value1 - gateOverhang;
+            double polyExten = actSurround.getValue(0) - gateOverhang;
 
             polyNode.getBottomEdge().setAdder(lenValMax); polyNode.getTopEdge().setAdder(-lenValMax);
             polyLNode.getBottomEdge().setAdder(lenValMax); polyLNode.getTopEdge().setAdder(-lenValMax);
@@ -2934,18 +2916,18 @@ public class MoCMOS extends Technology
             DRCTemplate selSurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
             index = rules.getRuleIndex(polyNode.getLayer().getIndex(), selNode.getLayer().getIndex());
             DRCTemplate selPolySurround = rules.getRule(index, DRCTemplate.DRCRuleType.SURROUND, primNode.getName());
-            double selExtenOppLen = actSurround.value1 - selPolySurround.value1;
-            double selExtenAlongLen = lenValMin - selSurround.value1;// only valid on active extension (Y axis in 180nm)
+            double selExtenOppLen = actSurround.getValue(0) - selPolySurround.getValue(0);
+            double selExtenAlongLen = lenValMin - selSurround.getValue(0);// only valid on active extension (Y axis in 180nm)
 
             selNode.getLeftEdge().setAdder(selExtenOppLen); selNode.getRightEdge().setAdder(-selExtenOppLen);
             selNode.getBottomEdge().setAdder(selExtenAlongLen); selNode.getTopEdge().setAdder(-selExtenAlongLen);
 
-            primNode.setSizeOffset(new SizeOffset(actSurround.value1, actSurround.value1,
+            primNode.setSizeOffset(new SizeOffset(actSurround.getValue(0), actSurround.getValue(0),
                     lenValMax, lenValMax));
         }
 
         // poly arcs
-        double width = DBMath.round(polyWid.value1);
+        double width = DBMath.round(polyWid.getValue(0));
         double half = DBMath.round(width/2);
         polyArcs[0].setDefaultWidth(width);
         polyPinNodes[0].setDefSize(width, width);
@@ -3454,6 +3436,6 @@ public class MoCMOS extends Technology
         DRCTemplate overhang = (poly) ?
                 rules.getExtensionRule(polyCNode.getLayer(), activeNode.getLayer(), false) :
                 rules.getExtensionRule(activeNode.getLayer(), polyCNode.getLayer(), false);
-        return (overhang != null ? overhang.value1 : 0.0);
+        return (overhang != null ? overhang.getValue(0) : 0.0);
     }
 }

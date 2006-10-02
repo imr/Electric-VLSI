@@ -481,7 +481,7 @@ if (--limitLoops <= 0) change = false;
 					// see how close they can get
 					double dist = -1;
 					DRCTemplate rule = DRC.getSpacingRule(nLayer, null, layer, null, con, -1, 0, 0);
-					if (rule != null) dist = rule.value1;
+					if (rule != null) dist = rule.getValue(0);
 					if (dist < 0) continue;
 
 					/*

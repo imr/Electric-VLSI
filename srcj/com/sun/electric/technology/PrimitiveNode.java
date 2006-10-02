@@ -500,8 +500,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
     /** Index of this PrimitiveNode per tech */     private int techPrimNodeIndex = -1;
 	/** special type of unusual primitives */		private int specialType;
 	/** special factors for unusual primitives */	private double[] specialValues;
-	/** minimum width and height */					private double minWidth, minHeight;
-	/** minimum width and height rule */			private String minSizeRule;
+    /** minimum width and height rule */            private NodeSizeRule minNodeSize;
 	/** offset from database to user */				private SizeOffset offset;
 	/** amount to automatically grow to fit arcs */	private Dimension2D autoGrowth;
 
@@ -534,8 +533,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 		if (offset == null) offset = new SizeOffset(0,0,0,0);
 		this.offset = offset;
 		this.autoGrowth = null;
-		this.minWidth = this.minHeight = -1;
-		this.minSizeRule = "";
+		this.minNodeSize = null;
 		globalPrimNodeIndex = primNodeNumber++;
 
 		// add to the nodes in this technology
@@ -856,23 +854,23 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 */
 	public SizeOffset getProtoSizeOffset() { return offset; }
 
-	/**
-	 * Method to return the minimum width of this PrimitiveNode.
-	 * @return the minimum width of this PrimitiveNode.
-	 */
-	public double getMinWidth() { return minWidth; }
-
-	/**
-	 * Method to return the minimum height of this PrimitiveNode.
-	 * @return the minimum height of this PrimitiveNode.
-	 */
-	public double getMinHeight() { return minHeight; }
+//	/**
+//	 * Method to return the minimum width of this PrimitiveNode.
+//	 * @return the minimum width of this PrimitiveNode.
+//	 */
+//	public double getMinWidth() { return minNodeSize.getWidth(); }
+//
+//	/**
+//	 * Method to return the minimum height of this PrimitiveNode.
+//	 * @return the minimum height of this PrimitiveNode.
+//	 */
+//	public double getMinHeight() { return minNodeSize.getHeight(); }
 
 	/**
 	 * Method to return the minimum size rule for this PrimitiveNode.
 	 * @return the minimum size rule for this PrimitiveNode.
 	 */
-	public String getMinSizeRule() { return minSizeRule; }
+	public NodeSizeRule getMinSizeRule() { return minNodeSize; }
 
 	/**
 	 * Method to set the minimum height of this PrimitiveNode.
@@ -880,10 +878,8 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	 */
 	public void setMinSize(double minWidth, double minHeight, String minSizeRule)
 	{
-		this.minWidth = minWidth;
-		this.minHeight = minHeight;
-		this.minSizeRule = minSizeRule;
-	}
+        minNodeSize = new NodeSizeRule(minWidth, minHeight, minSizeRule);
+    }
 
 	/**
 	 * Method to set the size offset of this PrimitiveNode.
@@ -1502,4 +1498,24 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	}
 
 	private void checkChanging() {}
+
+    /**
+     * Class to define a single rule on a node.
+     */
+    public static class NodeSizeRule
+    {
+        double sizeX, sizeY;
+        String rule;
+
+        public NodeSizeRule(double sizeX, double sizeY, String rule)
+        {
+            this.sizeX = sizeX;
+            this.sizeY = sizeY;
+            this.rule = rule;
+        }
+
+        public String getRuleName() { return rule; }
+        public double getWidth() { return sizeX; }
+        public double getHeight() { return sizeY; }
+    }
 }

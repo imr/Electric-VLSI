@@ -425,8 +425,7 @@ public class Tech {
 		viaMap.put(new Integer(p1.hashCode() * m1.hashCode()), p1m1);
 
         PrimitiveNode wellCon = tech.findNodeProto("Metal-1-N-Well-Con");
-        wellCon.getMinWidth();
-        wellWidth = wellCon.getMinWidth();
+        wellWidth = wellCon.getMinSizeRule().getWidth();
 
 		// initialize design rules (RKao first cut)
 		if (isTsmc90) {

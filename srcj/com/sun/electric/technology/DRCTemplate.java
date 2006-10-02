@@ -88,33 +88,32 @@ public class DRCTemplate
     public enum DRCRuleType
     {
     // the meaning of "ruletype" in the DRC table
-        /** nothing chosen */			    NONE (-1),
-        /** a minimum-width rule */			MINWID (1),
-        /** a node size rule */				NODSIZ (2),
-        /** a general surround rule */		SURROUND (3),
-        /** a spacing rule */				SPACING (8),
-        /** an edge spacing rule */			SPACINGE (11),
-        /** a connected spacing rule */		CONSPA (12),
-        /** an unconnected spacing rule */	UCONSPA (13),
-        /** a spacing rule for 2D cuts*/	UCONSPA2D (28), // get rid of mode()?
-        /** X contact cut surround rule */	CUTSURX (18),
-        /** Y contact cut surround rule */	CUTSURY (19),
-        /** arc surround rule */			ASURROUND (20),
-        /** minimum area rule */			MINAREA (21),
-        /** enclosed area rule */			MINENCLOSEDAREA (22),
-        /** extension rule */               EXTENSION (23),
-        /** forbidden rule */               FORBIDDEN (24),
-//        /** layer combination rule */       COMBINATION (25),
-        /** extension gate rule */          EXTENSIONGATE (26),
-        /** slot size rule */               SLOTSIZE (27);
+        /** nothing chosen */			    NONE,
+        /** a minimum-width rule */			MINWID,
+        /** a node size rule */				NODSIZ,
+        /** a general surround rule */		SURROUND,
+        /** a spacing rule */				SPACING,
+        /** an edge spacing rule */			SPACINGE,
+        /** a connected spacing rule */		CONSPA,
+        /** an unconnected spacing rule */	UCONSPA,
+        /** a spacing rule for 2D cuts*/	UCONSPA2D,
+        /** X contact cut surround rule */	CUTSURX,
+        /** Y contact cut surround rule */	CUTSURY,
+        /** arc surround rule */			ASURROUND,
+        /** minimum area rule */			MINAREA,
+        /** enclosed area rule */			MINENCLOSEDAREA,
+        /** extension rule */               EXTENSION,
+        /** forbidden rule */               FORBIDDEN,
+        /** extension gate rule */          EXTENSIONGATE,
+        /** slot size rule */               SLOTSIZE
 
-        private final int mode;
-
-        DRCRuleType(int mode)
-        {
-            this.mode = mode;
-        }
-        public int mode() { return this.mode; }
+//        private final int mode;
+//
+//        DRCRuleType(int mode)
+//        {
+//            this.mode = mode;
+//        }
+//        public int mode() { return this.mode; }
     }
 
     // For sorting
@@ -124,13 +123,29 @@ public class DRCTemplate
     public int when;				/* when the rule is used */
     public DRCRuleType ruleType;			/* the type of the rule */
     public String name1, name2;	/* two layers/nodes that are used by the rule */
-    public double value1;		/* value1 is distance for spacing rule or width for node rule */
-    public double value2;		/* value2 is height for node rule if available */
+    public double[] values;
     public double maxWidth;         /* max length where spacing is valid */
     public double minLength;       /* min paralell distance for spacing rule */
     public String nodeName;		/* the node that is used by the rule */
 	public int multiCuts;         /* -1=dont care, 0=no cuts, 1=with cuts multi cut rule */
 
+    private void copyValues(double[] vals)
+    {
+        int len = vals.length;
+        assert(len == 1 || len == 2);
+        this.values = new double[len];
+        System.arraycopy(vals, 0, this.values, 0, len);
+    }
+
+    public double getValue(int i)
+    {
+        return values[i];
+    }
+
+    public void setValue(int i, double val)
+    {
+        values[i] = val;
+    }
 
     public DRCTemplate(DRCTemplate rule)
     {
@@ -139,22 +154,21 @@ public class DRCTemplate
         this.ruleType = rule.ruleType;
         this.name1 = rule.name1;
         this.name2 = rule.name2;
-        this.value1 = rule.value1;
-        this.value2 = rule.value2;
+        copyValues(rule.values);
         this.maxWidth = rule.maxWidth;
         this.minLength = rule.minLength;
         this.nodeName = rule.nodeName;
         this.multiCuts = rule.multiCuts;
     }
 
-    public DRCTemplate(String rule, int when, DRCRuleType ruleType, String name1, String name2, double distance, String nodeName)
+    public DRCTemplate(String rule, int when, DRCRuleType ruleType, String name1, String name2, double[] vals, String nodeName)
     {
         this.ruleName = rule;
         this.when = when;
         this.ruleType = ruleType;
         this.name1 = name1;
         this.name2 = name2;
-        this.value1 = this.value2 = distance; // same value for now
+        copyValues(vals);
         this.nodeName = nodeName;
         this.multiCuts = -1; // don't care
 
@@ -176,12 +190,12 @@ public class DRCTemplate
 	/**
 	 * For different spacing depending on wire length and multi cuts.
 	 */
-    public DRCTemplate(String rule, int when, DRCRuleType ruleType, double maxW, double minLen, double distance, int multiCut)
+    public DRCTemplate(String rule, int when, DRCRuleType ruleType, double maxW, double minLen, double[] vals, int multiCut)
     {
         this.ruleName = rule;
         this.when = when;
         this.ruleType = ruleType;
-        this.value1 = distance;
+        copyValues(vals);
         this.maxWidth = maxW;
         this.minLength = minLen;
 		this.multiCuts = multiCut;
@@ -190,14 +204,15 @@ public class DRCTemplate
 	/**
 	 * For different spacing depending on wire length and multi cuts.
 	 */
-    public DRCTemplate(String rule, int when, DRCRuleType ruleType, double maxW, double minLen, String name1, String name2, double distance, int multiCut)
+    public DRCTemplate(String rule, int when, DRCRuleType ruleType, double maxW, double minLen, String name1, String name2,
+                       double[] vals, int multiCut)
     {
         this.ruleName = rule;
         this.when = when;
         this.ruleType = ruleType;
         this.name1 = name1;
         this.name2 = name2;
-        this.value1 = distance;
+        copyValues(vals);
         this.maxWidth = maxW;
         this.minLength = minLen;
 		this.multiCuts = multiCut;
@@ -216,95 +231,6 @@ public class DRCTemplate
         }
     }
 
-	/**
-	 * Method for spacing rules in single layers.
-	 */
-    public static List<DRCTemplate> makeRuleTemplates(String name, int when, DRCRuleType type, double maxW, double minLen,
-                                                      double value, String arrayL[])
-	{
-		// Clone same rule for different layers
-		int length = arrayL.length;
-		List<DRCTemplate> list = new ArrayList<DRCTemplate>(length);
-		for (int i = 0; i < length; i++)
-		{
-			String layer = arrayL[i];
-			DRCTemplate r = new DRCTemplate(name, when, type, maxW, minLen, layer, null, value, -1);
-			list.add(r);
-		}
-		return list;
-	}
-
-    /**
-     *  Create same rules for different foundries. In this case, primitive nodes are involved
-     *  Matrix contains triple pair: layer1, layer2, primitiveNode
-     */
-    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, DRCRuleType type,
-                                                      double value, String matrix[][])
-	{
-        List<DRCTemplate> list = new ArrayList<DRCTemplate>(names.length * matrix.length);
-
-        for (int i = 0; i < names.length; i++)
-        {
-            for (int j = 0; j < matrix.length; j++)
-            {
-                DRCTemplate r = new DRCTemplate(names[i], when[i], type, matrix[j][0], matrix[j][1], value,
-                        (matrix[j].length>2)?matrix[j][2]:null);
-			    list.add(r);
-            }
-        }
-		return list;
-	}
-
-    /**
-     * For same rules but with different names depending on the foundry
-     */
-    public static List<DRCTemplate> makeRuleTemplates(String[] names, int[] when, DRCRuleType type, double maxW, double value, String arrayL[][])
-	{
-        List<DRCTemplate> list = new ArrayList<DRCTemplate>(names.length);
-
-        for (int i = 0; i < names.length; i++)
-        {
-            list.addAll(makeRuleTemplates(names[i], when[i], type, maxW, 0, value, arrayL, -1));
-        }
-		return list;
-	}
-
-	/**
-	 * For multi cuts as well.
-	 */
-    public static List<DRCTemplate> makeRuleTemplates(String name, int when, DRCRuleType type, double maxW, double minLen, double value, String arrayL[][], int multiCut)
-	{
-		// Clone same rule for different layers
-		int l = arrayL.length;
-		List<DRCTemplate> list = new ArrayList<DRCTemplate>(l);
-		for (int i = 0; i < l; i++)
-		{
-			String []layers = arrayL[i];
-			if (layers.length != 2)
-				System.out.println("Invalid number of layers in DRC::makeRuleTemplates");
-			DRCTemplate r = new DRCTemplate(name, when, type, maxW, minLen, layers[0], layers[1], value, multiCut);
-			list.add(r);
-		}
-		return list;
-	}
-
-    /**
-     * For primitive node rules.
-     */
-	public static List<DRCTemplate> makeRuleTemplates(String name, int when, DRCRuleType type, double value, String arrayL[])
-	{
-		// Clone same rule for different layers
-		int length = arrayL.length;
-		List<DRCTemplate> list = new ArrayList<DRCTemplate>(length);
-		for (int i = 0; i < length; i++)
-		{
-			String primitiveNode = arrayL[i];
-			DRCTemplate r = new DRCTemplate(name, when, type, null, null, value, primitiveNode);
-			list.add(r);
-		}
-		return list;
-	}
-
     /**
      * Auxiliar class to sort areas in array
      */
@@ -312,8 +238,8 @@ public class DRCTemplate
     {
     	public int compare(DRCTemplate d1, DRCTemplate d2)
         {
-    		double bb1 = d1.value1;
-    		double bb2 = d2.value1;
+    		double bb1 = d1.getValue(0);
+    		double bb2 = d2.getValue(0); // not checking valueX
 
             if (bb1 < bb2) return -1;
             else if (bb1 > bb2) return 1;
@@ -334,28 +260,6 @@ public class DRCTemplate
         parser.process(fileURL, verbose);
         return parser;
     }
-
-    /**
-     * Method to determine if rule is valid for this foundry, regarless if the bit is turn on
-     * @param tech
-     * @param foundry
-     * @param rule
-     * @return true if the rule is valid under this foundry
-     */
-    /** TODO This function should be removed */
-//    private static boolean isRuleValidInFoundry(Technology tech, Foundry foundry, DRCTemplate rule)
-//    {
-//        // Direct reference in rule, then rule is valid
-//        if ((rule.when & foundry.getType().mode()) != 0) return true;
-//        // if not direct reference, see if rule is for another foundry. If yes, then rule is not valid
-//        for (Iterator<Foundry> it = tech.getFoundries(); it.hasNext();)
-//        {
-//            Foundry f = it.next();
-//            if (f == foundry) continue;
-//            if ((rule.when & f.getType().mode()) != 0) return false; // belong to another foundry
-//        }
-//        return true;
-//    }
 
     public static void exportDRCDecks(String fileName, Technology tech)
     {
@@ -406,7 +310,7 @@ public class DRCTemplate
                                     + " layerName=\"" + rule.name1 + "\""
                                     + " type=\""+rule.ruleType+"\""
                                     + " when=\"" + whenName + "\""
-                                    + " value=\"" + rule.value1 + "\""
+                                    + " value=\"" + rule.getValue(0) + "\""
                                     + "/>");
                             break;
                         case UCONSPA:
@@ -414,6 +318,7 @@ public class DRCTemplate
                         case CONSPA:
                         case SPACING:
                         case SPACINGE:
+                        case EXTENSION:
                             String noName = (rule.nodeName != null) ? (" nodeName=\"" + rule.nodeName + "\"") : "";
                             String wideValues = (rule.maxWidth > 0) ? (" maxW=\"" + rule.maxWidth + "\""
                                     + " minLen=\"" + rule.minLength + "\"") : "";
@@ -421,26 +326,45 @@ public class DRCTemplate
                                     + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
                                     + " type=\""+rule.ruleType+"\""
                                     + " when=\"" + whenName + "\""
-                                    + " value=\"" + rule.value1 + "\""
+                                    + " value=\"" + rule.getValue(0) + "\""
                                     + wideValues
                                     + noName
                                     + "/>");
                             break;
-                        case SURROUND:
+                        case SURROUND: // if nodeName==null -> LayersRule
                         case ASURROUND:
-                            out.println("        <NodeLayersRule ruleName=\"" + rule.ruleName + "\""
+                            String ruleType = "NodeLayersRule";
+                            String value = " value=\"" + rule.getValue(0) + "\"";
+
+                            if (rule.getValue(0) != rule.getValue(1)) // x and y values
+                            {
+                                value = " valueX=\"" + rule.getValue(0) + "\"" + " valueY=\"" + rule.getValue(1) + "\"";
+                            }
+                            noName = " nodeName=\"" + rule.nodeName + "\"";
+                            if (rule.nodeName == null)  // LayersRule
+                            {
+                                noName = "";
+                                ruleType = "LayersRule";
+                            }
+                            out.println("        <" + ruleType + " ruleName=\"" + rule.ruleName + "\""
                                     + " layerNames=\"{" + rule.name1 + "," + rule.name2 + "}\""
                                     + " type=\""+rule.ruleType+"\""
                                     + " when=\"" + whenName + "\""
-                                    + " value=\"" + rule.value1 + "\""
-                                    + " nodeName=\"" + rule.nodeName + "\""
+                                    + value
+                                    + noName
                                     + "/>");
                             break;
                         case NODSIZ:
+                            value = " value=\"" + rule.getValue(0) + "\"";
+
+                            if (rule.getValue(0) != rule.getValue(1)) // x and y values
+                            {
+                                value = " valueX=\"" + rule.getValue(0) + "\"" + " valueY=\"" + rule.getValue(1) + "\"";
+                            }
                             out.println("        <NodeRule ruleName=\"" + rule.ruleName + "\""
                                     + " type=\""+rule.ruleType+"\""
                                     + " when=\"" + whenName + "\""
-                                    + " value=\"" + rule.value1 + "\""
+                                    + value
                                     + " nodeName=\"" + rule.nodeName + "\""
                                     + "/>");
                             break;
@@ -570,7 +494,7 @@ public class DRCTemplate
                 String ruleName = "", layerNames = "", nodeNames = null;
                 int when = DRCTemplate.DRCMode.ALL.mode();
                 DRCTemplate.DRCRuleType type = DRCTemplate.DRCRuleType.NONE;
-                double value = Double.NaN;
+                double[] values = new double[2];
                 Double maxW = null, minLen = null;
 
                 for (int i = 0; i < attributes.getLength(); i++)
@@ -593,7 +517,11 @@ public class DRCTemplate
                         }
                     }
                     else if (attributes.getQName(i).equals("value"))
-                        value = Double.parseDouble(attributes.getValue(i));
+                        values[0] = values[1] = Double.parseDouble(attributes.getValue(i));
+                    else if (attributes.getQName(i).equals("valueX"))
+                        values[0] = Double.parseDouble(attributes.getValue(i));
+                    else if (attributes.getQName(i).equals("valueY"))
+                        values[1] = Double.parseDouble(attributes.getValue(i));
                     else if (attributes.getQName(i).equals("maxW"))
                         maxW = Double.parseDouble(attributes.getValue(i));
                     else if (attributes.getQName(i).equals("minLen"))
@@ -611,7 +539,7 @@ public class DRCTemplate
                         if (nodeNames == null)
                         {
                             DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layer,
-                                    null, value, null);
+                                    null, values, null);
                             current.drcRules.add(tmp);
                         }
                         else
@@ -620,7 +548,7 @@ public class DRCTemplate
                             for (String name : names)
                             {
                                 DRCTemplate tmp = new DRCTemplate(ruleName, when, type, layer,
-                                        null, value, name);
+                                        null, values, name);
                                 current.drcRules.add(tmp);
                             }
                         }
@@ -630,7 +558,7 @@ public class DRCTemplate
                 {
                     if (nodeNames == null)
                     {
-                        DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, value, null);
+                        DRCTemplate tmp = new DRCTemplate(ruleName, when, type, null, null, values, null);
                         current.drcRules.add(tmp);
                     }
                     else
@@ -639,7 +567,7 @@ public class DRCTemplate
                         for (String name : names)
                         {
                             DRCTemplate tmp = new DRCTemplate(ruleName, when, type,
-                                    null, null, value, name);
+                                    null, null, values, name);
                             current.drcRules.add(tmp);
                         }
                     }
@@ -655,9 +583,9 @@ public class DRCTemplate
                         {
                             DRCTemplate tmp;
                             if (maxW == null)
-                                tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], value, null);
+                                tmp = new DRCTemplate(ruleName, when, type, pair[0], pair[1], values, null);
                             else
-                                tmp = new DRCTemplate(ruleName, when, type, maxW, minLen, pair[0], pair[1], value, -1);
+                                tmp = new DRCTemplate(ruleName, when, type, maxW, minLen, pair[0], pair[1], values, -1);
                             current.drcRules.add(tmp);
                         }
                         else
@@ -668,7 +596,7 @@ public class DRCTemplate
                                 DRCTemplate tmp = null;
                                 if (maxW == null)
                                     tmp = new DRCTemplate(ruleName, when, type,
-                                            pair[0], pair[1], value, name);
+                                            pair[0], pair[1], values, name);
                                 else
                                     System.out.println("When do I have this case?");
                                 current.drcRules.add(tmp);

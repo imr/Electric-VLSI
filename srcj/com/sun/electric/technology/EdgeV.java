@@ -51,7 +51,16 @@ public class EdgeV
 		this.adder = adder;
 	}
 
-	/**
+    /**
+     * Returns a clone of this Object
+     * @return a new pointer with the same value of this Object
+     */
+    public EdgeV duplicate()
+    {
+        return new EdgeV(multiplier, adder);
+    }
+
+    /**
 	 * Returns the multiplier.
 	 * This is the amount to scale a NodeInst height.
 	 * @return the multiplier.
