@@ -1307,6 +1307,15 @@ public class ViewChanges
                     layCell = convertedCells.get(subCell);
                 if (layCell == null) {
                     // see if it already exists
+                    for (Iterator<Cell> it = subCell.getCellGroup().getCells(); it.hasNext(); ) {
+                        Cell c = it.next();
+                        if (c.getView() == View.LAYOUT) {
+                            layCell = c;
+                            break;
+                        }
+                    }
+                }
+                if (layCell == null) {
                     String searchCellName = subCell.getName() + "{lay}";
                     layCell = defaultLib.findNodeProto(searchCellName);
                 }
@@ -1350,8 +1359,10 @@ public class ViewChanges
                             convertedNodes.put(no, newNi);
                         } else {
 
-                            if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
-                            if (np.getFunction() == PrimitiveNode.Function.CONNECT) continue;
+                            if (np.getFunction() == PrimitiveNode.Function.PIN &&
+                                no.getNodeInst().getFunction() != PrimitiveNode.Function.CONNECT)
+                                continue;
+                            if (no.getName().startsWith("fill") || no.getName().startsWith("tfill")) continue;
 
                             placer.insert(new Leaf(no, info.getContext(), np, newCell));
 
@@ -1394,14 +1405,14 @@ public class ViewChanges
                         Conn conn = list.get(0);
                         PortInst pi = getLayoutPortInst(conn, convertedNodes);
                         if (pi == null) {
-                            System.out.println("Cannot find port "+conn.portName+" on "+conn.no);
+                            System.out.println("Cannot find port "+conn.portName+" on "+conn.no.getName()+" in cell "+newCell.describe(false));
                             continue;
                         }
                         for (int i=1; i<list.size(); i++) {
                             Conn nextConn = list.get(i);
                             PortInst nextPi = getLayoutPortInst(nextConn, convertedNodes);
                             if (nextPi == null) {
-                                System.out.println("Cannot find port "+nextConn.portName+" on "+nextConn.no);
+                                System.out.println("Cannot find port "+nextConn.portName+" on "+nextConn.no.getName()+" in cell "+newCell.describe(false));
                                 continue;
                             }
 
@@ -1514,8 +1525,8 @@ public class ViewChanges
                     if (newHeadNi == null || newTailNi == null) continue;
                     PortProto oldHeadPp = ai.getHeadPortInst().getPortProto();
                     PortProto oldTailPp = ai.getTailPortInst().getPortProto();
-                    PortProto newHeadPp = convertPortProto(oldHeadNi, newHeadNi, oldHeadPp);
-                    PortProto newTailPp = convertPortProto(oldTailNi, newTailNi, oldTailPp);
+                    PortProto newHeadPp = convertPortName(oldHeadNi, newHeadNi, oldHeadPp.getNameKey());
+                    PortProto newTailPp = convertPortName(oldTailNi, newTailNi, oldTailPp.getNameKey());
                     if (newHeadPp == null || newTailPp == null) continue;
 
                     // compute arc type and see if it is acceptable
@@ -1616,6 +1627,14 @@ public class ViewChanges
                         Layer.Function oFun = oLayer.getFunction();
                         if (fun == oFun) return oNp;
                     }
+                }
+
+                if (type == PrimitiveNode.Function.CONNECT) {
+                    if (oldni.getExports().hasNext()) {
+                        // off-page connector on schematic which has an export, translate to unrouted pin node
+                        return Generic.tech.unroutedPinNode;
+                    } else
+                        return null;
                 }
 
                 // see if one node in the new technology has the same function
@@ -1720,13 +1739,18 @@ public class ViewChanges
                 for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
                 {
                     Export e = it.next();
-                    PortProto pp = convertPortProto(ni, newNi, e.getOriginalPort().getPortProto());
-                    PortInst pi = newNi.findPortInstFromProto(pp);
-                    Export pp2 = Export.newInstance(newCell, pi, e.getName());
-                    if (pp2 == null) return newNi;
-                    pp2.setCharacteristic(e.getCharacteristic());
-                    pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
-                    pp2.copyVarsFrom(e);
+                    for (int i=0; i<e.getNameKey().busWidth(); i++) {
+                        Name portName = e.getOriginalPort().getPortProto().getNameKey().subname(i);
+                        Name exportName = e.getNameKey().subname(i);
+                        PortProto pp = convertPortName(ni, newNi, portName);
+                        if (pp == null) continue;
+                        PortInst pi = newNi.findPortInstFromProto(pp);
+                        Export pp2 = Export.newInstance(newCell, pi, exportName.toString());
+                        if (pp2 == null) continue;
+                        pp2.setCharacteristic(e.getCharacteristic());
+                        pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
+                        pp2.copyVarsFrom(e);
+                    }
                 }
                 return newNi;
             }
@@ -1903,7 +1927,7 @@ public class ViewChanges
                 }
                 protected void move(double dx, double dy) {
                     layNi.modifyInstance(dx, dy, 0, 0, Orientation.IDENT);
-                    System.out.println("Moved "+layNi.getName()+" ("+dx+","+dy+")");
+                    //System.out.println("Moved "+layNi.getName()+" ("+dx+","+dy+")");
                 }
                 protected void print(int indent) {
                     prindent(indent);
@@ -1957,15 +1981,15 @@ public class ViewChanges
              * Method to determine the port to use on node "newni" assuming that it should
              * be the same as port "oldPp" on equivalent node "ni"
              */
-            private PortProto convertPortProto(NodeInst ni, NodeInst newNi, PortProto oldPp)
+/*            private PortProto convertPortProto(NodeInst ni, NodeInst newNi, PortProto oldPp)
             {
                 if (newNi.isCellInstance())
                 {
                     // cells can associate by comparing names
                     PortProto pp = newNi.getProto().findPortProto(oldPp.getName());
                     if (pp != null) return pp;
-                    System.out.println("Cannot find export " + oldPp.getName() + " in " + newNi.getProto());
-                    return newNi.getProto().getPort(0);
+                    // System.out.println("Cannot find export " + oldPp.getName() + " in " + newNi.getProto());
+                    return null;
                 }
 
                 // if each has only 1 port, they match
@@ -1995,8 +2019,52 @@ public class ViewChanges
                 System.out.println("No port association between " + ni.getProto() + ", "
                     + oldPp + " and " + newNi.getProto());
                 return newNi.getProto().getPort(0);
-            }
+            }*/
 
+            /**
+             * Method to determine the port to use on node "newNi" assuming that it should
+             * be the same as port "portName" on equivalent node "ni"
+             */
+            private PortProto convertPortName(NodeInst ni, NodeInst newNi, Name portName) {
+
+                if (newNi.isCellInstance()) {
+                    PortProto pp = newNi.getProto().findPortProto(portName);
+                    if (pp == null)
+                        System.out.println("Cannot find export " + portName + " in " + newNi.getProto());
+                    return pp;
+                }
+
+                // if each has only 1 port, they match
+                int numNewPorts = newNi.getProto().getNumPorts();
+                if (numNewPorts == 0) return null;
+                if (numNewPorts == 1)
+                {
+                    return newNi.getProto().getPort(0);
+                }
+
+                // associate by position in port list
+                PortProto pp = ni.getProto().findPortProto(portName);
+                if (pp != null) {
+                    int i = 0;
+                    for (i=0; i<ni.getProto().getNumPorts(); i++) {
+                        if (ni.getProto().getPort(i) == pp) break;
+                    }
+                    if (i < ni.getProto().getNumPorts()) {
+                        return newNi.getProto().getPort(i);
+                    }
+                }
+
+                // special case again: one-port capacitors are OK
+                PrimitiveNode.Function oldFun = ni.getFunction();
+                PrimitiveNode.Function newFun = newNi.getFunction();
+                if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC)
+                    return newNi.getProto().getPort(0);
+
+                // association has failed: assume the first port
+                System.out.println("No port association between " + ni.getProto() + ", "
+                    + portName + " and " + newNi.getProto());
+                return newNi.getProto().getPort(0);
+            }
         }
     }
 
