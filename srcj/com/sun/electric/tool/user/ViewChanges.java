@@ -1359,9 +1359,8 @@ public class ViewChanges
                             convertedNodes.put(no, newNi);
                         } else {
 
-                            if (np.getFunction() == PrimitiveNode.Function.PIN &&
-                                no.getNodeInst().getFunction() != PrimitiveNode.Function.CONNECT)
-                                continue;
+                            if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
+                            if (np.getFunction() == PrimitiveNode.Function.CONNECT) continue;
                             if (no.getName().startsWith("fill") || no.getName().startsWith("tfill")) continue;
 
                             placer.insert(new Leaf(no, info.getContext(), np, newCell));
@@ -1408,6 +1407,12 @@ public class ViewChanges
                             System.out.println("Cannot find port "+conn.portName+" on "+conn.no.getName()+" in cell "+newCell.describe(false));
                             continue;
                         }
+                        String exportName = null;
+                        Export e = null;
+                        if (network.isExported()) {
+                            exportName = network.getName();
+                            e = network.getExports().next();
+                        }
                         for (int i=1; i<list.size(); i++) {
                             Conn nextConn = list.get(i);
                             PortInst nextPi = getLayoutPortInst(nextConn, convertedNodes);
@@ -1426,6 +1431,22 @@ public class ViewChanges
                             }
                             newAi.setFixedAngle(false);
                             newAi.setRigid(false);
+
+                            // create export if name matches
+                            if (exportName != null && nextPi.getPortProto().getName().equals(exportName)) {
+                                Export pp2 = Export.newInstance(newCell, nextPi, exportName);
+                                pp2.setCharacteristic(e.getCharacteristic());
+                                pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
+                                pp2.copyVarsFrom(e);
+                                exportName = null;
+                            }
+                        }
+                        if (exportName != null) {
+                            Export pp2 = Export.newInstance(newCell, pi, exportName);
+                            pp2.setCharacteristic(e.getCharacteristic());
+                            pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
+                            pp2.copyVarsFrom(e);
+                            exportName = null;
                         }
                     }
                     convertedCells.put(oldCell, newCell);
@@ -1627,14 +1648,6 @@ public class ViewChanges
                         Layer.Function oFun = oLayer.getFunction();
                         if (fun == oFun) return oNp;
                     }
-                }
-
-                if (type == PrimitiveNode.Function.CONNECT) {
-                    if (oldni.getExports().hasNext()) {
-                        // off-page connector on schematic which has an export, translate to unrouted pin node
-                        return Generic.tech.unroutedPinNode;
-                    } else
-                        return null;
                 }
 
                 // see if one node in the new technology has the same function
