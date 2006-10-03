@@ -353,16 +353,6 @@ public class GenMath
 	public static double getAreaOfPoints(Point2D [] points)
 	{
 		double area = 0.0;
-
-//		simpler algorithm?
-//		for (int i=0; i<points.length; i++)
-//		{
-//			int j = i + 1;  if (j >= points.length) j = 0;
-//			area += points[i].getX() * points[j].getY();
-//			area -= points[i].getY() * points[j].getX();
-//		}
-//		area /= 2.0;
-
 		double x0 = points[0].getX();
 		double y0 = points[0].getY();
 		double y1 = 0;
