@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+BUG: (10/3/06, SMR) Routing node to arc may crash.  Reporting sometimes bad.
+FIX: Moved reporting from Routing.createRouteNoJob() to Routing.reportRoutingResults().
+
 ************************* Version 8.05a: *********************************
 
 BUG: (10/03/06, DN) Ports disappearing with wire deletion (Bug #1236).

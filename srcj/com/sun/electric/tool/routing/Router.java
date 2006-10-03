@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Parent Class for all Routers.  I really have no idea what this
@@ -108,20 +109,18 @@ public abstract class Router {
      * must be called from within a Job context, however.
      * @param route the route to create
      * @param cell the cell in which to create the route
-     * @param verbose if true, prints objects created
      * @param highlightRouteEnd highlights end of route (last object) if true, otherwise leaves
      * highlights alone.
+     * @param arcsCreatedMap a map of arcs to integers which is updated to indicate the number of each arc type created.
+     * @param nodesCreatedMap a map of nodes to integers which is updated to indicate the number of each node type created.
      */
-    public static PortInst createRouteNoJob(Route route, Cell cell, boolean verbose,
-                                           boolean highlightRouteEnd)
+    public static PortInst createRouteNoJob(Route route, Cell cell,
+    	boolean highlightRouteEnd, Map<ArcProto,Integer> arcsCreatedMap, Map<NodeProto,Integer> nodesCreatedMap)
     {
         EDatabase.serverDatabase().checkChanging();
 
         // check if we can edit this cell
         if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return null;
-
-        HashMap<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
-        HashMap<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
 
         // pass 1: build all newNodes
         for (RouteElement e : route)
@@ -151,60 +150,35 @@ public abstract class Router {
             }
         }
 
-        if (arcsCreatedMap.get(Generic.tech.unrouted_arc) == null) {
-            // update current unrouted arcs
-            for (Iterator<Connection> it = route.getStart().getPortInst().getConnections(); it.hasNext(); ) {
-                Connection conn = it.next();
-                ArcInst ai = conn.getArc();
-                if (ai.getProto() == Generic.tech.unrouted_arc) {
-                    Connection oconn = (ai.getHead() == conn ? ai.getTail() : ai.getHead());
-                    // make new unrouted arc from end of route to arc end point,
-                    // otherwise just get rid of it
-                    if (oconn.getPortInst() != route.getEnd().getPortInst()) {
-                        RouteElementPort newEnd = RouteElementPort.existingPortInst(oconn.getPortInst(), oconn.getLocation());
-                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech.unrouted_arc,
-                                Generic.tech.unrouted_arc.getDefaultWidth(), route.getEnd(), newEnd,
-                                route.getEnd().getLocation(), newEnd.getLocation(), null,
-                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, null);
-                        newArc.doAction();
-                    }
-                    if (conn.getArc().isLinked()) {
-                        conn.getArc().kill();
-                    }
-                }
-            }
-        }
-
-        if (verbose)
+        if (arcsCreatedMap.get(Generic.tech.unrouted_arc) == null)
         {
-            List<ArcProto> arcEntries = new ArrayList<ArcProto>(arcsCreatedMap.keySet());
-            List<NodeProto> nodeEntries = new ArrayList<NodeProto>(nodesCreatedMap.keySet());
-            if (arcEntries.size() == 0 && nodeEntries.size() == 0) {
-                System.out.println("Nothing wired");
-            } else if (arcEntries.size() == 1 && nodeEntries.size() == 0) {
-                ArcProto ap = arcEntries.iterator().next();
-                Integer i = arcsCreatedMap.get(ap);
-                System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs");
-            } else if (arcEntries.size() == 1 && nodeEntries.size() == 1) {
-                ArcProto ap = arcEntries.iterator().next();
-                NodeProto np = nodeEntries.iterator().next();
-                Integer i = arcsCreatedMap.get(ap);
-                Integer i2 = nodesCreatedMap.get(np);
-                System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs, "+i2+" "+np.describe(true)+" nodes");
-            } else {
-                System.out.println("Wiring added:");
-                Collections.sort(arcEntries, new TextUtils.ObjectsByToString());
-                Collections.sort(nodeEntries, new TextUtils.ObjectsByToString());
-                for (ArcProto ap : arcEntries) {
-                    Integer i = arcsCreatedMap.get(ap);
-                    System.out.println("    "+i+" "+ap.describe()+" arcs");
-                }
-                for (NodeProto np : nodeEntries) {
-                    Integer i = nodesCreatedMap.get(np);
-                    System.out.println("    "+i+" "+np.describe(true)+" nodes");
-                }
-            }
-			User.playSound();
+            // update current unrouted arcs
+        	PortInst pi = route.getStart().getPortInst();
+        	if (pi != null)
+        	{
+	            for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); )
+	            {
+	                Connection conn = it.next();
+	                ArcInst ai = conn.getArc();
+	                if (ai.getProto() == Generic.tech.unrouted_arc)
+	                {
+	                    Connection oconn = (ai.getHead() == conn ? ai.getTail() : ai.getHead());
+	                    // make new unrouted arc from end of route to arc end point,
+	                    // otherwise just get rid of it
+	                    if (oconn.getPortInst() != route.getEnd().getPortInst())
+	                    {
+	                        RouteElementPort newEnd = RouteElementPort.existingPortInst(oconn.getPortInst(), oconn.getLocation());
+	                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech.unrouted_arc,
+	                                Generic.tech.unrouted_arc.getDefaultWidth(), route.getEnd(), newEnd,
+	                                route.getEnd().getLocation(), newEnd.getLocation(), null,
+	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, null);
+	                        newArc.doAction();
+	                    }
+	                    if (conn.getArc().isLinked())
+	                        conn.getArc().kill();
+	                }
+	            }
+        	}
         }
 
         PortInst created = null;
@@ -215,6 +189,51 @@ public abstract class Router {
         }
         return created;
     }
+
+	public static void reportRoutingResults(String prefix, Map<ArcProto,Integer> arcsCreatedMap, Map<NodeProto,Integer> nodesCreatedMap)
+	{
+		List<ArcProto> arcEntries = new ArrayList<ArcProto>(arcsCreatedMap.keySet());
+		List<NodeProto> nodeEntries = new ArrayList<NodeProto>(nodesCreatedMap.keySet());
+		if (arcEntries.size() == 0 && nodeEntries.size() == 0)
+		{
+			System.out.println(prefix + ": nothing added");
+		} else
+		{
+			System.out.print(prefix + " added: ");
+			Collections.sort(arcEntries, new TextUtils.ObjectsByToString());
+			Collections.sort(nodeEntries, new TextUtils.ObjectsByToString());
+			int total = arcEntries.size() + nodeEntries.size();
+			int sofar = 0;
+			for (ArcProto ap : arcEntries)
+			{
+				Integer i = arcsCreatedMap.get(ap);
+				sofar++;
+				if (sofar > 1 && total > 1)
+				{
+					if (sofar < total) System.out.print(", "); else
+						System.out.print(" and ");
+				}
+				System.out.print(i.intValue() + " " + ap.describe());
+				if (i.intValue() > 1) System.out.print(" arcs"); else
+					System.out.print(" arc");
+			}
+			for (NodeProto np : nodeEntries)
+			{
+				Integer i = nodesCreatedMap.get(np);
+				sofar++;
+				if (sofar > 1 && total > 1)
+				{
+					if (sofar < total) System.out.print(", "); else
+						System.out.print(" and ");
+				}
+				System.out.print(i.intValue() + " " + np.describe(false));
+				if (i.intValue() > 1) System.out.print(" nodes"); else
+					System.out.print(" node");
+			}
+			System.out.println();
+		}
+		User.playSound();
+	}
 
     /** Method to set the tool associated with this router */
     public void setTool(Tool tool) { this.tool = tool; }
@@ -244,7 +263,10 @@ public abstract class Router {
         public boolean doIt() throws JobException {
             if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
 
-            portToHighlight = createRouteNoJob(route, cell, verbose, true);
+            Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
+            Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
+            portToHighlight = createRouteNoJob(route, cell, verbose, arcsCreatedMap, nodesCreatedMap);
+            reportRoutingResults("Wiring", arcsCreatedMap, nodesCreatedMap);
 			fieldVariableChanged("portToHighlight");
             return true;
        }

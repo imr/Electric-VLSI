@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -60,6 +61,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -839,10 +841,7 @@ public class MimicStitch
 			count += total;
 		}
 
-		if (count != 0)
-		{
-			System.out.println("MIMIC ROUTING: " +  (deletion ? "Deleted " : "Created ") + count + " arcs");
-		} else
+		if (count == 0)
 		{
 			if (forced)
 			{
@@ -871,13 +870,16 @@ public class MimicStitch
 	{
 		// create the routes
 		List<PortInst> portsToHighlight = new ArrayList<PortInst>();
+        Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
+        Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();
 		for (Route route : allRoutes)
 		{
 			RouteElement re = (RouteElement)route.get(0);
 			Cell c = re.getCell();
-			PortInst showThis = Router.createRouteNoJob(route, c, false, false);
+			PortInst showThis = Router.createRouteNoJob(route, c, false, arcsCreatedMap, nodesCreatedMap);
 			if (showThis != null) portsToHighlight.add(showThis);
 		}
+		Router.reportRoutingResults("MIMIC ROUTING", arcsCreatedMap, nodesCreatedMap);
 		return portsToHighlight;
 	}
 
@@ -920,13 +922,11 @@ public class MimicStitch
 					// also delete freed pin nodes
 					if (h.getProto().getFunction() == PrimitiveNode.Function.PIN &&
 						!h.hasConnections() && !h.hasExports() && !keepPins)
-//						h.getNumConnections() == 0 && h.getNumExports() == 0 && !keepPins)
 					{
 						h.kill();
 					}
 					if (t.getProto().getFunction() == PrimitiveNode.Function.PIN &&
 						!t.hasConnections() && !t.hasExports() && !keepPins)
-//						t.getNumConnections() == 0 && t.getNumExports() == 0 && !keepPins)
 					{
 						t.kill();
 					}
