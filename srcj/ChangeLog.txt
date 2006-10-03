@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05a: *********************************
 
-IMP/MANL (10/02/06, GVG) Adding nodes that meet min rules in TSMC180.
+BUG: (10/03/06, DN) Ports disappearing with wire deletion (Bug #1236).
+FIX: In NodeInst.kill mark for deletion only exports connected to this NodeInst.
+
+IMP/MAN: (10/02/06, GVG) Adding nodes that meet min rules in TSMC180.
 
 IMP/MAN: (9/28/06, GVG) Warning if you try to bring a 3D view from technologies without 3D factory
 values.

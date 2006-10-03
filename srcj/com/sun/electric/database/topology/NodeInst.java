@@ -432,8 +432,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		// remove any exports
         HashSet<Export> exportsToKill = new HashSet<Export>();
-        for (Iterator<Export> it = parent.getExports(); it.hasNext(); )
-            exportsToKill.add(it.next());
+        for (Iterator<Export> it = parent.getExports(); it.hasNext(); ) {
+            Export e = it.next();
+            if (e.getOriginalPort().getNodeInst() == this)
+                exportsToKill.add(e);
+        }
         parent.killExports(exportsToKill);
 
 		// remove the node
