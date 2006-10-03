@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.05b: *********************************
+
 ************************* Version 8.05a: *********************************
 
 BUG: (10/03/06, DN) Ports disappearing with wire deletion (Bug #1236).
