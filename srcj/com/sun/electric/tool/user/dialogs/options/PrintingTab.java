@@ -63,16 +63,17 @@ public class PrintingTab extends PreferencePanel
 	 */
 	public void init()
 	{
+		// general printing
 		switch (IOTool.getPlotArea())
 		{
 			case 0: printPlotEntireCell.setSelected(true);        break;
 			case 1: printPlotHighlightedArea.setSelected(true);   break;
 			case 2: printPlotDisplayedWindow.setSelected(true);   break;
 		}
-
-		printPlotDateInCorner.setSelected(IOTool.isPlotDate());
-		printEncapsulated.setSelected(IOTool.isPrintEncapsulated());
 		printResolution.setText(Integer.toString(IOTool.getPrintResolution()));
+
+		printEncapsulated.setSelected(IOTool.isPrintEncapsulated());
+		printPlotDateInCorner.setSelected(IOTool.isPlotDate());
 
 		if (IOTool.isPrintForPlotter()) printUsePlotter.setSelected(true); else
 			printUsePrinter.setSelected(true);
@@ -133,12 +134,18 @@ public class PrintingTab extends PreferencePanel
 	 */
 	public void term()
 	{
+		// general printing
 		int currInt = 0;
 		if (printPlotHighlightedArea.isSelected()) currInt = 1; else
 			if (printPlotDisplayedWindow.isSelected()) currInt = 2;
 		if (currInt != IOTool.getPlotArea())
 			IOTool.setPlotArea(currInt);
 
+		currInt = TextUtils.atoi(printResolution.getText());
+		if (currInt != IOTool.getPrintResolution())
+			IOTool.setPrintResolution(currInt);
+
+		// postScript
 		boolean currBoolean = printPlotDateInCorner.isSelected();
 		if (currBoolean != IOTool.isPlotDate())
 			IOTool.setPlotDate(currBoolean);
@@ -146,10 +153,6 @@ public class PrintingTab extends PreferencePanel
 		currBoolean = printEncapsulated.isSelected();
 		if (currBoolean != IOTool.isPrintEncapsulated())
 			IOTool.setPrintEncapsulated(currBoolean);
-
-		currInt = TextUtils.atoi(printResolution.getText());
-		if (currInt != IOTool.getPrintResolution())
-			IOTool.setPrintResolution(currInt);
 
 		currBoolean = printUsePlotter.isSelected();
 		if (currBoolean != IOTool.isPrintForPlotter())
@@ -207,7 +210,6 @@ public class PrintingTab extends PreferencePanel
         printing = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         printPlotEntireCell = new javax.swing.JRadioButton();
-        printPlotDateInCorner = new javax.swing.JCheckBox();
         printPlotHighlightedArea = new javax.swing.JRadioButton();
         printPlotDisplayedWindow = new javax.swing.JRadioButton();
         jLabel19 = new javax.swing.JLabel();
@@ -235,6 +237,7 @@ public class PrintingTab extends PreferencePanel
         jLabel1 = new javax.swing.JLabel();
         printLineWidth = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        printPlotDateInCorner = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -259,16 +262,8 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         jPanel4.add(printPlotEntireCell, gridBagConstraints);
-
-        printPlotDateInCorner.setText("Plot Date In Corner");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
-        jPanel4.add(printPlotDateInCorner, gridBagConstraints);
 
         printingPlotArea.add(printPlotHighlightedArea);
         printPlotHighlightedArea.setText("Plot only Highlighted Area");
@@ -276,7 +271,7 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel4.add(printPlotHighlightedArea, gridBagConstraints);
 
         printingPlotArea.add(printPlotDisplayedWindow);
@@ -285,25 +280,23 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel4.add(printPlotDisplayedWindow, gridBagConstraints);
 
         jLabel19.setText("Print resolution (DPI):");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel4.add(jLabel19, gridBagConstraints);
 
         printResolution.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel4.add(printResolution, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -365,6 +358,7 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printWidth, gridBagConstraints);
@@ -374,12 +368,14 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         jPanel6.add(jLabel22, gridBagConstraints);
 
         printHeight.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printHeight, gridBagConstraints);
@@ -389,12 +385,14 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         jPanel6.add(jLabel23, gridBagConstraints);
 
         printMargin.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printMargin, gridBagConstraints);
@@ -402,7 +400,7 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -482,6 +480,7 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel6.add(printLineWidth, gridBagConstraints);
 
@@ -490,6 +489,15 @@ public class PrintingTab extends PreferencePanel
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         jPanel6.add(jLabel2, gridBagConstraints);
+
+        printPlotDateInCorner.setText("Plot Date In Corner");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        jPanel6.add(printPlotDateInCorner, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;

@@ -256,14 +256,14 @@ public class IOTool extends Tool
 
 	private static Pref cachePlotDate = Pref.makeBooleanPref("PlotDate", IOTool.tool.prefs, false);
 	/**
-	 * Method to tell whether to plot the date in PostScript/HPGL output.
+	 * Method to tell whether to plot the date in PostScript output.
 	 * The default is "false".
-	 * @return whether to plot the date in PostScript/HPGL output.
+	 * @return whether to plot the date in PostScript output.
 	 */
 	public static boolean isPlotDate() { return cachePlotDate.getBoolean(); }
 	/**
-	 * Method to set whether to plot the date in PostScript/HPGL output.
-	 * @param pd true to plot the date in PostScript/HPGL output.
+	 * Method to set whether to plot the date in PostScript output.
+	 * @param pd true to plot the date in PostScript output.
 	 */
 	public static void setPlotDate(boolean pd) { cachePlotDate.setBoolean(pd); }
 
