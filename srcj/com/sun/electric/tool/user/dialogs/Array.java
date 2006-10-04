@@ -341,22 +341,6 @@ public class Array extends EDialog
 
 	private void makeArray()
 	{
-		Cell cell = null;
-
-		// disallow arraying if lock is on
-//		for(Iterator<Geometric> it = selected.keySet().iterator(); it.hasNext(); )
-//		{
-//			Geometric geom = it.next();
-//			cell = geom.getParent();
-//			if (geom instanceof NodeInst)
-//			{
-//				if (CircuitChangeJobs.cantEdit(cell, (NodeInst)geom, true) != 0) return;
-//			} else
-//			{
-//				if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return;
-//			}
-//		}
-
 		// check for nonsense
 		int xRepeat = Math.abs(lastXRepeat);
 		int yRepeat = Math.abs(lastYRepeat);
@@ -377,6 +361,7 @@ public class Array extends EDialog
 		List<NodeInst> nodeList = new ArrayList<NodeInst>();
 		List<ArcInst> arcList = new ArrayList<ArcInst>();
 		List<Export> exportList = new ArrayList<Export>();
+		Cell cell = null;
 		for(Geometric geom : selected.keySet())
 		{
 			cell = geom.getParent();
@@ -409,11 +394,11 @@ public class Array extends EDialog
 		double cX = bounds.getCenterX();
 		double cY = bounds.getCenterY();
 
-		// TODO: should be here
-//		for(NodeInst ni : nodeList)
-//		{
-//			if (CircuitChangeJobs.cantEdit(cell, ni, true) != 0) return;
-//		}
+		// disallow arraying if lock is on
+		for(NodeInst ni : nodeList)
+		{
+			if (CircuitChangeJobs.cantEdit(cell, ni, true, false) != 0) return;
+		}
 
 		// create the array
 		new ArrayStuff(nodeList, arcList, exportList, xRepeat, yRepeat, xOverlap, yOverlap, cX, cY,
@@ -452,14 +437,6 @@ public class Array extends EDialog
 		public boolean doIt() throws JobException
 		{
 			Cell cell = null;
-
-			// disallow arraying if lock is on
-			// TODO: should NOT be here
-			for(NodeInst ni : nodeList)
-			{
-				cell = ni.getParent();
-				if (CircuitChangeJobs.cantEdit(cell, ni, true) != 0) return false;
-			}
 
 			// if only arraying where DRC clean, make an array of newly created nodes
 			Geometric [] geomsToCheck = null;

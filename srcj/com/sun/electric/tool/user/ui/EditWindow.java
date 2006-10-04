@@ -3754,9 +3754,9 @@ public class EditWindow extends JPanel
 			if (scaleFactor <= 0) scaleFactor = 1;
 		int pageWid = (int)pageFormat.getImageableWidth() * scaleFactor;
 		int pageHei = (int)pageFormat.getImageableHeight() * scaleFactor;
-		overall.setSize(pageWid, pageHei);
-		overall.validate();
-		overall.repaint();
+		setSize(pageWid, pageHei);
+		validate();
+		repaint();
         return true;
     }
 
@@ -3788,10 +3788,10 @@ public class EditWindow extends JPanel
 			if (cs.getValue() == 0) printMode = 2;
 			offscreen.setPrintingMode(printMode);
 			offscreen.setBackgroundColor(Color.WHITE);
-//			int oldBackgroundColor = User.getColorBackground();
-//			User.setColorBackground(0xFFFFFF);
+			int oldBackgroundColor = User.getColorBackground();
+			User.setColorBackground(0xFFFFFF);
 
-			// draw int
+			// initialize drawing
             Rectangle2D cellBounds = getBoundsInWindow();
     		double width = cellBounds.getWidth();
         	double height = cellBounds.getHeight();
@@ -3806,19 +3806,44 @@ public class EditWindow extends JPanel
 			img = offscreen.getBufferedImage();
 			ep.setBufferedImage(img);
 
-//			// restore display state
-//			offscreen.setPrintingMode(0);
-//			User.setColorBackground(oldBackgroundColor);
+			// restore display state
+			offscreen.setPrintingMode(0);
+			User.setColorBackground(oldBackgroundColor);
 		}
 
 		// copy the image to the page if graphics is not null
 		Graphics2D g2d = (Graphics2D)ep.getGraphics();
 		if (g2d != null)
 		{
+			AffineTransform saveAT = g2d.getTransform();
 			int ix = (int)ep.getPageFormat().getImageableX() * scaleFactor;
 			int iy = (int)ep.getPageFormat().getImageableY() * scaleFactor;
 			g2d.scale(1.0 / scaleFactor, 1.0 / scaleFactor);
 			g2d.drawImage(img, ix, iy, null);
+			g2d.setTransform(saveAT);
+
+//			// draw frame
+//    		Point2D saveOffset = getOffset();
+//    		double saveScale = getScale();
+//            Rectangle2D cellBounds = getBoundsInWindow();
+//    		double width = cellBounds.getWidth();
+//        	double height = cellBounds.getHeight();
+//            if (width == 0) width = 2;
+//            if (height == 0) height = 2;
+//            double scalex = sz.width/width * 0.9;
+//            double scaley = sz.height/height * 0.9;
+//            scale = Math.min(scalex, scaley)/scaleFactor;
+//    		offx = cellBounds.getCenterX()+ix/scale;
+//    		offy = cellBounds.getCenterY()-iy/scale;
+//    		szHalfWidth = sz.width * scaleFactor / 2;
+//    		szHalfHeight = sz.height * scaleFactor / 2;
+//
+//    		drawCellFrame(g2d);
+//System.out.println("ix="+ix+" iy="+iy+" scaleFactor="+scaleFactor+" sz="+sz.width+"x"+sz.height+" scale="+scale+
+//	" off=("+offx+","+offy+") cell="+cellBounds.getWidth()+"x"+cellBounds.getHeight());
+//			scale = saveScale;
+//			offx = saveOffset.getX();
+//			offy = saveOffset.getY();
 		}
 		return img;
 	}

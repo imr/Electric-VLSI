@@ -343,7 +343,7 @@ public class NewExport extends EDialog
 			}
 
 			// make sure the export is possible
-	        if (CircuitChangeJobs.cantEdit(cell, ni, true) != 0) return false;
+	        if (CircuitChangeJobs.cantEdit(cell, ni, true, true) != 0) return false;
 
 			PortInst pi = ni.findPortInstFromProto(pp);
 			e = Export.newInstance(cell, pi, name);

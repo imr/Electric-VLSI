@@ -120,7 +120,7 @@ public abstract class Router {
         EDatabase.serverDatabase().checkChanging();
 
         // check if we can edit this cell
-        if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return null;
+        if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return null;
 
         // pass 1: build all newNodes
         for (RouteElement e : route)
@@ -261,7 +261,7 @@ public abstract class Router {
         }
 
         public boolean doIt() throws JobException {
-            if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+            if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 
             Map<ArcProto,Integer> arcsCreatedMap = new HashMap<ArcProto,Integer>();
             Map<NodeProto,Integer> nodesCreatedMap = new HashMap<NodeProto,Integer>();

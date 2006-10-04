@@ -1184,18 +1184,17 @@ public class FileMenu {
     public static void printCommand()
     {
     	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-        Cell cell = WindowFrame.getCurrentCell();
-    	if (wf == null || cell == null)
+    	if (wf == null)
     	{
     		System.out.println("No current window to print");
     		return;
     	}
-        if (cell.getView() == View.DOC)
+        Cell cell = WindowFrame.needCurCell();
+        if (cell == null) return;
+        if (cell.getView().isTextView())
         {
-            String message = "Document cells can't be printed as postscript.";
-            System.out.println(message);
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), message,
-                    "Printing Cell", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Text cells can't be printed yet",
+                "Printing Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -1203,9 +1202,17 @@ public class FileMenu {
         pj.setJobName(wf.getTitle());
 	    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
 
+	    PrintService [] printers = new PrintService[0];
+	    try
+	    {
+		    SecurityManager secman = System.getSecurityManager();
+	    	secman.checkPrintJobAccess();
+//	    	printers = PrinterJob.lookupPrintServices();
+	    	printers = PrintServiceLookup.lookupPrintServices(null, null);
+	    } catch(Exception e) {}
+
         // see if a default printer should be mentioned
         String pName = IOTool.getPrinterName();
-        PrintService [] printers = PrintServiceLookup.lookupPrintServices(null, null);
         PrintService printerToUse = null;
         for(PrintService printer : printers)
         {
@@ -1222,7 +1229,7 @@ public class FileMenu {
                 pj.setPrintService(printerToUse);
             } catch (PrinterException e)
             {
-                System.out.println("Printing error "+e);
+                System.out.println("Printing error " + e);
             }
         }
 

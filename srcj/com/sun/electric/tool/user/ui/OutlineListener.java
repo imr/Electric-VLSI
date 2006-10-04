@@ -392,7 +392,7 @@ public class OutlineListener
 		public boolean doIt() throws JobException
 		{
 			// make sure outline adjustment is allowed
-			if (CircuitChangeJobs.cantEdit(ni.getParent(), ni, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(ni.getParent(), ni, true, true) != 0) return false;
 
 			// get the extent of the data
 			Point2D [] points = new Point2D[x.length];

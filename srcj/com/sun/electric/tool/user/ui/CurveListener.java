@@ -291,7 +291,7 @@ public class CurveListener
 		public boolean doIt() throws JobException
 		{
 			// make sure changing the arc is allowed
-			if (CircuitChangeJobs.cantEdit(curveAI.getParent(), null, true) != 0) return false;
+			if (CircuitChangeJobs.cantEdit(curveAI.getParent(), null, true, true) != 0) return false;
 
 			if (curvature == 0)
 			{

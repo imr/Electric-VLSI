@@ -537,7 +537,7 @@ public final class ExportChanges
         public boolean doIt() throws JobException
         {
             // disallow port action if lock is on
-            if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+            if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 
             int num = reExportNodes(cell, nodeInsts, includeWiredPorts, onlyPowerGround, ignorePrimitives);
             System.out.println(num+" ports exported.");
@@ -623,7 +623,7 @@ public final class ExportChanges
         public boolean doIt() throws JobException
         {
     		// disallow port action if lock is on
-    		if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+    		if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 
     		int num = reExportPorts(cell, portInsts, sort, includeWiredPorts, onlyPowerGround, originalExports);
             System.out.println(num+" ports exported.");
@@ -683,7 +683,7 @@ public final class ExportChanges
         public boolean doIt() throws JobException
         {
     		// disallow port action if lock is on
-    		if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+    		if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 
     		reExportInBounds(cell, bounds, deep, includeWiredPorts, true);
             return true;
@@ -810,7 +810,7 @@ public final class ExportChanges
         for (PortInst pi : portInstsFiltered)
         {
             // disallow port action if lock is on
-			int errorCode = CircuitChangeJobs.cantEdit(cell, pi.getNodeInst(), true);
+			int errorCode = CircuitChangeJobs.cantEdit(cell, pi.getNodeInst(), true, true);
 			if (errorCode < 0) return total;
 			if (errorCode > 0) continue;
 
@@ -972,11 +972,11 @@ public final class ExportChanges
 
     public static void deleteExports(Cell cell, List<Export> exportsToDelete) {
         // disallow port action if lock is on
-        if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return;
+        if (CircuitChangeJobs.cantEdit(cell, null, true, false) != 0) return;
         
         HashSet<Export> exportsConfirmed = new HashSet<Export>();
         for(Export e : exportsToDelete) {
-            int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true);
+            int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true, false);
             if (errorCode < 0) break;
             if (errorCode > 0) continue;
             exportsConfirmed.add(e);
@@ -1007,12 +1007,12 @@ public final class ExportChanges
 			System.out.println(exportsToDelete.size() + " exports deleted");
             
 //			// disallow port action if lock is on
-//			if (CircuitChangeJobs.cantEdit(cell, null, true) != 0) return false;
+//			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 //
 //			int total = 0;
 //			for(Export e : exportsToDelete)
 //			{
-//				int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true);
+//				int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true, true);
 //				if (errorCode < 0) break;
 //				if (errorCode > 0) continue;
 //				e.kill();

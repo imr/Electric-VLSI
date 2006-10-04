@@ -1308,7 +1308,7 @@ public class EditMenu {
 
             public boolean doIt() throws JobException
             {
-                if (CircuitChangeJobs.cantEdit(ai.getParent(), null, true) != 0) return false;
+                if (CircuitChangeJobs.cantEdit(ai.getParent(), null, true, true) != 0) return false;
 
                 // create the break pins
                 ArcProto ap = ai.getProto();
