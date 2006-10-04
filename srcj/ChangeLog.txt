@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP/MAN: (10/4/06, SMR) Added "Window / Waveform Window / Export Simulation Data" to
+     write tab-separated file of simulation data.
+
+IMP/MAN: (10/3/06, SMR) Moved "Plot Date In Corner" to the PostScript
+     section of the Printing Preferences.
+
 BUG: (10/3/06, SMR) Routing node to arc may crash.  Reporting sometimes bad.
 FIX: Moved reporting from Routing.createRouteNoJob() to Routing.reportRoutingResults().
 

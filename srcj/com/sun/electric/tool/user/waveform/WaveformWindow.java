@@ -131,6 +131,7 @@ import javax.swing.JTable;
 import javax.swing.Timer;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
@@ -164,7 +165,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** left panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
 	/** the table with panels and labels */					private JTable table;
-	/** the table with panels and labels */					private TableModel tableModel;
+	/** the table with panels and labels */					TableModel tableModel;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta, diskLabel;
 	/** buttons for centering the X-axis cursors. */		private JButton centerMain, centerExt;
 	/** a list of panels in this window */					private List<Panel> wavePanels;
@@ -263,7 +264,17 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			tableModel = new WaveTableModel(this);
 			table = new WaveTable(tableModel);
 			table.setDefaultRenderer(Object.class, new WaveCellRenderer());
+//			table.setTableHeader(null);
+			TableColumn column1 = table.getColumnModel().getColumn(0);
+			column1.setHeaderValue("Controls");
+			column1.setPreferredWidth(100);
+			TableColumn column2 = table.getColumnModel().getColumn(1);
+			column2.setHeaderValue("Waveforms");
+			column2.setPreferredWidth(500);
 			scrollAll = new JScrollPane(table);
+			int height = getPanelSizeDigital();
+			if (sd.isAnalog()) height = getPanelSizeAnalog();
+			table.setRowHeight(height);
 		} else
 		{
 			// the left half has signal names; the right half has waveforms
@@ -995,6 +1006,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public JPanel getSignalNamesPanel() { return left; }
 
 	public JPanel getSignalTracesPanel() { return right; }
+
+	public JTable getWaveformTable() { return table; }
 
 	public Engine getSimEngine() { return se; }
 
@@ -2927,7 +2940,147 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public Stimuli getSimData() { return sd; }
 
-    /**
+	/**
+	 * Method to write the simulation data as a tab-separated file.
+	 */
+	public static void exportSimulationData()
+	{
+        WindowFrame current = WindowFrame.getCurrentWindowFrame();
+        WindowContent content = current.getContent();
+        if (!(content instanceof WaveformWindow))
+        {
+            System.out.println("Must select a Waveform window first");
+            return;
+        }
+        WaveformWindow ww = (WaveformWindow)content;
+
+        String configurationFileName = OpenFile.chooseOutputFile(FileType.TEXT, "Waveform Export File", "wavedata.txt");
+		if (configurationFileName == null) return;
+		try
+		{
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(configurationFileName)));
+
+			List<Signal> dumpSignals = new ArrayList<Signal>();
+			List<Integer> dumpSweeps = new ArrayList<Integer>();
+			int total = ww.right.getComponentCount();
+			for(int i=0; i<total; i++)
+			{
+				JPanel rightPart = (JPanel)ww.right.getComponent(i);
+				for(Panel wp : ww.wavePanels)
+				{
+					if (wp.getRightHalf() != rightPart) continue;
+					Signal signalInX = ww.xAxisSignalAll;
+					if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
+					if (signalInX != null) addSignalSweep(signalInX, -1, dumpSignals, dumpSweeps);
+					for(WaveSignal ws : wp.getSignals())
+					{
+						Signal sig = ws.getSignal();
+						if (sig instanceof AnalogSignal)
+						{
+							AnalogSignal as = (AnalogSignal)sig;
+			                Analysis an = as.getAnalysis();
+			                int numSweeps = as.getNumSweeps();
+			                if (numSweeps <= 1)
+			                {
+			                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps);
+			                } else
+			                {
+				                for (int s = 0; s < numSweeps; s++)
+								{
+				                    if (!ww.isSweepSignalIncluded(an, s)) continue;
+				                    addSignalSweep(sig, s, dumpSignals, dumpSweeps);
+								}
+			                }
+						} else
+						{
+		                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps);
+						}
+					}
+				}
+			}
+			int numEntries = dumpSignals.size() + 1;
+			String [] entries = new String[numEntries];
+			entries[0] = "TIME";
+			for(int i=1; i<numEntries; i++)
+			{
+				Signal sig = dumpSignals.get(i-1);
+				entries[i] = sig.getFullName();
+				int s = dumpSweeps.get(i-1).intValue();
+				if (s >= 0)
+				{
+					Analysis an = sig.getAnalysis();
+					Object sweepObj = an.getSweep(s);
+					entries[i] += "/S=" + sweepObj;
+				}
+			}
+			for(int i=0; i<numEntries; i++)
+			{
+				if (i > 0) printWriter.print("\t");
+				printWriter.print(entries[i]);
+			}
+			printWriter.println();
+			double result[] = new double[3];
+			for(int j=0; ; j++)
+			{
+				// get signal values for this iteration
+				boolean haveData = false;
+				entries[0] = null;
+				for(int i=1; i<numEntries; i++)
+				{
+					entries[i] = "";
+					Signal sig = dumpSignals.get(i-1);
+					if (sig instanceof AnalogSignal)
+					{
+						AnalogSignal as = (AnalogSignal)sig;
+						int s = dumpSweeps.get(i-1).intValue();
+						if (s < 0) s = 0;
+						if (j < as.getNumEvents(s))
+						{
+							as.getEvent(s, j, result);
+							if (entries[0] == null) entries[0] = "" + result[0];
+							entries[i] = "" + result[1];
+							haveData = true;
+						}
+					} else if (sig instanceof DigitalSignal)
+					{
+						DigitalSignal ds = (DigitalSignal)sig;
+						if (j < ds.getNumEvents())
+						{
+							if (entries[0] == null) entries[0] = "" + ds.getTime(j);
+							entries[i] = "" + ds.getState(j);
+							haveData = true;
+						}
+					}
+				}
+				if (!haveData) break;
+				if (entries[0] == null) entries[0] = "";
+				for(int i=0; i<numEntries; i++)
+				{
+					if (i > 0) printWriter.print("\t");
+					printWriter.print(entries[i]);
+				}
+				printWriter.println();
+			}
+			printWriter.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error writing configuration");
+			return;
+		}
+		System.out.println("Wrote " + configurationFileName);
+	}
+
+	private static void addSignalSweep(Signal sig, int s, List<Signal> dumpSignals, List<Integer> dumpSweeps)
+	{
+		for(int i=0; i<dumpSignals.size(); i++)
+		{
+			if (dumpSignals.get(i) == sig && dumpSweeps.get(i).intValue() == s) return;
+		}
+		dumpSignals.add(sig);
+		dumpSweeps.add(new Integer(s));
+	}
+
+	/**
      * Method to refresh simulation data by menu in ToolMenu. This would allow to attach a KeyBinding
      */
     public static void refreshSimulationData()

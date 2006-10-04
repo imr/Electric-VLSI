@@ -395,15 +395,22 @@ public class Panel extends JPanel
 		gbc.insets = new Insets(0, 0, 0, 0);
 		rightHalf.add(this, gbc);
 
+		// add to list of wave panels
+		int index = waveWindow.getNumPanels();
+		waveWindow.addPanel(this);
+
 		// put the left and right sides into the window
-		if (!WaveformWindow.USETABLES)
+		if (WaveformWindow.USETABLES)
+		{
+//			waveWindow.getWaveformTable().setRowHeight(index, height);
+			waveWindow.getWaveformTable().repaint();
+			waveWindow.getWaveformTable().doLayout();
+			waveWindow.getWaveformTable().updateUI();
+		} else
 		{
 			waveWindow.getSignalNamesPanel().add(leftHalf);
 			waveWindow.getSignalTracesPanel().add(rightHalf);
 		}
-
-		// add to list of wave panels
-		waveWindow.addPanel(this);
 
 		// rebuild list of panels
 		waveWindow.rebuildPanelList();
@@ -953,8 +960,11 @@ public class Panel extends JPanel
 		{
 			repaintOffscreenImage();
 		}
-		Point screenLoc = getLocationOnScreen();
-		waveWindow.setScreenXSize(screenLoc.x, screenLoc.x + wid);
+		if (!WaveformWindow.USETABLES)
+		{
+			Point screenLoc = getLocationOnScreen();
+			waveWindow.setScreenXSize(screenLoc.x, screenLoc.x + wid);
+		}
 
 		g.drawImage(offscreen, 0, 0, null);
 	}

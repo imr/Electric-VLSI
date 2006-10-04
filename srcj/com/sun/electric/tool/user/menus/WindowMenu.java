@@ -187,7 +187,7 @@ public class WindowMenu {
                 new EMenuItem("_White Background Colors") { public void run() {
                     whiteBackgroundCommand(); }}),
 
-		// mnemonic keys available: ABC EFGHIJKLMNOPQ  TUVWXYZ
+		// mnemonic keys available: ABC  FGHIJKLMNOPQ  TUVWXYZ
             new EMenu("W_aveform Window",
 		        new EMenuItem("_Save Waveform Window Configuration to Disk...") { public void run() {
                     WaveformWindow.saveConfiguration(); }},
@@ -195,7 +195,11 @@ public class WindowMenu {
                     WaveformWindow.restoreConfiguration(); }},
                 SEPARATOR,
                 new EMenuItem("Refresh Simulation _Data") { public void run() {
-                    WaveformWindow.refreshSimulationData(); }}),
+                    WaveformWindow.refreshSimulationData(); }},
+                SEPARATOR,
+                new EMenuItem("_Export Simulation Data") { public void run() {
+                    WaveformWindow.exportSimulationData(); }}
+                ),
 
 		// mnemonic keys available: AB DE GHIJKLMNOPQR TUVWXYZ
             new EMenu("_Messages Window",
