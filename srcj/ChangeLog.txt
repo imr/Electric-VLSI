@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+BUG: (10/4/06, SMR) Narrow non-manhattan polygons not detected by DRC.
+FIX: Fixed GenMath.intersectRadians() and Quick.checkMinWidth().
+
 IMP/MAN: (10/4/06, SMR) Added "Window / Waveform Window / Export Simulation Data" to
      write tab-separated file of simulation data.
 

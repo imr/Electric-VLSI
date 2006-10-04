@@ -803,12 +803,16 @@ public class GenMath
     public static Point2D intersectRadians(Point2D p1, double ang1, Point2D p2, double ang2)
     {
         // cannot handle lines if they are at the same angle
-        if (doublesEqual(ang1, ang2)) return null;
+    	while (ang1 > Math.PI) ang1 -= Math.PI;
+    	while (ang1 < 0) ang1 += Math.PI;
+    	while (ang2 > Math.PI) ang2 -= Math.PI;
+    	while (ang2 < 0) ang2 += Math.PI;
+        if (doublesClose(ang1, ang2)) return null;
 
         // also at the same angle if off by 180 degrees
         double fMin = ang2, fMax = ang2;
         if (ang1 < ang2) { fMin = ang1; fMax = ang2; }
-        if (doublesEqual(fMin + Math.PI, fMax)) return null;
+        if (doublesClose(fMin + Math.PI, fMax)) return null;
 
         double fa1 = Math.sin(ang1);
         double fb1 = -Math.cos(ang1);
@@ -823,7 +827,7 @@ public class GenMath
             fswap = fc1;   fc1 = fc2;   fc2 = fswap;
         }
         double fy = (fa2 * fc1 / fa1 - fc2) / (fb2 - fa2*fb1/fa1);
-        return new Point2D.Double(fy, (-fb1 * fy - fc1) / fa1);
+        return new Point2D.Double((-fb1 * fy - fc1) / fa1, fy);
     }
 
 	/**

@@ -2507,7 +2507,7 @@ public class Quick
 				double oAng = DBMath.figureAngleRadians(oFrom, oTo);
 				double rAng = ang;   while (rAng > Math.PI) rAng -= Math.PI;
 				double rOAng = oAng;   while (rOAng > Math.PI) rOAng -= Math.PI;
-				if (DBMath.doublesEqual(oAng, rOAng))
+				if (DBMath.doublesEqual(rAng, rOAng))
 				{
 					// lines are parallel: see if they are colinear
 					if (DBMath.isOnLine(from, to, oFrom)) continue;
@@ -2522,9 +2522,6 @@ public class Quick
 				double fdx = center.getX() - inter.getX();
 				double fdy = center.getY() - inter.getY();
 				actual = DBMath.round(Math.sqrt(fdx*fdx + fdy*fdy));
-
-				// becuase this is done in integer, accuracy may suffer
-//				actual += 2;
 
 				if (actual < minWidthValue)
 				{
@@ -4369,7 +4366,7 @@ public class Quick
                     errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
 					break;
 				case MINWIDTHERROR:
-                    errorMessage.append("Minimum width/heigh error" + ((msg != null) ? ("(" + msg + "):") : ""));
+                    errorMessage.append("Minimum width/height error" + ((msg != null) ? ("(" + msg + "):") : ""));
 					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
 					errorMessagePart2.append(" LESS THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
                     break;
