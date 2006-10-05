@@ -223,10 +223,13 @@
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
         </java>
+        <copy file="packaging/LicenseIRSIM.txt" tofile="LicenseIRSIM.txt"/>
         <jar basedir="." compress="true" jarfile="electricIRSIM-${version}.jar">
+        	<include name="LicenseIRSIM.txt"/>
         	<include name="com/sun/electric/plugins/irsim/*.*"/>
         </jar>
         <antcall target="deleteElectric"></antcall>
+        <delete file="LicenseIRSIM.txt"/>
 	</target>
 
 	<target name="jarForPIE" depends="init,compile" description="Make source Jar file for Port Interchange Experiment">
@@ -283,6 +286,7 @@
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
         <copy file="packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
+        <copy file="packaging/ReadmeGNUSrcDwn.txt" tofile="README.txt"/>
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="build.xml" unless="source"/>
@@ -295,7 +299,7 @@
             <exclude name="electric.mf"/>
             <exclude name="packaging/*.jar"/>
             <exclude name="packaging/*.gif"/>
-            <exclude name="packaging/LicenseGNU.txt"/>
+            <exclude name="packaging/*.txt"/>
             <exclude name="packaging/MakePDF.book"/>
             <exclude name="xml/"/>
             <patternset refid="exclusion" />
@@ -304,6 +308,7 @@
         </jar>
         <delete file="electric.mf"/>
         <delete file="COPYING.txt"/>
+        <delete file="README.txt"/>
         <antcall target="deleteExternalJars"></antcall>
         <antcall target="deleteElectric"></antcall>
 	    <!-- Don't move this property definition up -->
