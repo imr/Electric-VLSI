@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+BUG: (10/6/06, SMR) Variables on exports on rotated nodes don't move right (Bug #1232).
+FIX: In CircuitChangeJobs.ManyMove.moveSelectedText(), only transform Export text
+     if it is the export name.
+
 IMP: (10/6/06, SMR) Generalized routing to handle individual end extension.
 
 BUG: (10/4/06, SMR) Narrow non-manhattan polygons not detected by DRC.

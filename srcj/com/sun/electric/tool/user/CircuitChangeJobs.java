@@ -22,10 +22,14 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -45,7 +49,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -55,13 +58,12 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.LibraryFiles;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -233,161 +235,6 @@ public class CircuitChangeJobs
 
 			return true;
 		}
-    
-//		public boolean doIt()
-//		{
-//			// disallow rotating if lock is on
-//			if (cantEdit(cell, null, true) != 0) return false;
-//
-//			// figure out which nodes get rotated/mirrored
-//			HashSet markObj = new HashSet();
-//			int nicount = 0;
-//			NodeInst theNi = null;
-//			Rectangle2D selectedBounds = new Rectangle2D.Double();
-//			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
-//			{
-//				Geometric geom = it.next();
-//				if (!(geom instanceof NodeInst)) continue;
-//				NodeInst ni = (NodeInst)geom;
-//				if (cantEdit(cell, ni, true) != 0)
-//				{
-//					return false;
-//				}
-//				markObj.add(ni);
-//				if (nicount == 0)
-//				{
-//					selectedBounds.setRect(ni.getBounds());
-//				} else
-//				{
-//					Rectangle2D.union(selectedBounds, ni.getBounds(), selectedBounds);
-//				}
-//				theNi = ni;
-//				nicount++;
-//			}
-//
-//			// must be at least 1 node
-//			if (nicount <= 0)
-//			{
-//				System.out.println("Must select at least 1 node for rotation");
-//				return false;
-//			}
-//
-//			// if multiple nodes, find the center one
-//			if (nicount > 1)
-//			{
-//				Point2D center = new Point2D.Double(selectedBounds.getCenterX(), selectedBounds.getCenterY());
-//				theNi = null;
-//				double bestdist = Integer.MAX_VALUE;
-//				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-//				{
-//					NodeInst ni = it.next();
-//					if (!markObj.contains(ni)) continue;
-//					double dist = center.distance(ni.getTrueCenter());
-//
-//					// LINTED "bestdist" used in proper order
-//					if (theNi == null || dist < bestdist)
-//					{
-//						theNi = ni;
-//						bestdist = dist;
-//					}
-//				}
-//			}
-//
-//			// see which nodes already connect to the main rotation/mirror node (theNi)
-//			markObj.clear();
-//			markObj.add(theNi);
-//			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
-//			{
-//				Geometric geom = it.next();
-//				if (!(geom instanceof ArcInst)) continue;
-//				ArcInst ai = (ArcInst)geom;
-//				markObj.add(ai);
-//			}
-//			spreadRotateConnection(theNi, markObj);
-//
-//			// now make sure that it is all connected
-//			List<NodeInst> niList = new ArrayList<NodeInst>();
-//			List<ArcInst> aiList = new ArrayList<ArcInst>();
-//			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
-//			{
-//				Geometric geom = it.next();
-//				if (!(geom instanceof NodeInst)) continue;
-//				NodeInst ni = (NodeInst)geom;
-//				if (ni == theNi) continue;
-//				if (markObj.contains(ni)) continue;
-//
-//				if (theNi.getNumPortInsts() == 0)
-//				{
-//					// no port on the cell: create one
-//					Cell subCell = (Cell)theNi.getProto();
-//					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, subCell);
-//					if (subni == null) break;
-//					Export thepp = Export.newInstance(subCell, subni.getOnlyPortInst(), "temp");
-//					if (thepp == null) break;
-//
-//					// add to the list of temporary nodes
-//					niList.add(subni);
-//				}
-//				PortInst thepi = theNi.getPortInst(0);
-//				if (ni.getNumPortInsts() != 0)
-//				{
-//					ArcInst ai = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, ni.getPortInst(0), thepi);
-//					if (ai == null) break;
-//					ai.setRigid(true);
-//					aiList.add(ai);
-//					spreadRotateConnection(ni, markObj);
-//				}
-//			}
-//
-//			// make all selected arcs temporarily rigid
-//			for(Iterator<Geometric> it = highs.iterator(); it.hasNext(); )
-//			{
-//				Geometric geom = it.next();
-//				if (!(geom instanceof ArcInst)) continue;
-//				Layout.setTempRigid((ArcInst)geom, true);
-//			}
-//
-//			// do the rotation/mirror
-//            Orientation dOrient;
-//			if (mirror)
-//			{
-//				// do mirroring
-//                dOrient = mirrorH ? Orientation.Y : Orientation.X;
-////				if (mirrorH)
-////				{
-////					// mirror horizontally (flip Y)
-////					double sY = theNi.getYSizeWithMirror();
-////					theNi.modifyInstance(0, 0, 0, -sY - sY, 0);
-////				} else
-////				{
-////					// mirror vertically (flip X)
-////					double sX = theNi.getXSizeWithMirror();
-////					theNi.modifyInstance(0, 0, -sX - sX, 0, 0);
-////				}
-//			} else
-//			{
-//				// do rotation
-//                dOrient = Orientation.fromAngle(amount);
-////				theNi.modifyInstance(0, 0, 0, 0, amount);
-//			}
-//            theNi.rotate(dOrient);
-//
-//			// delete intermediate arcs used to constrain
-//			for(Iterator<ArcInst> it = aiList.iterator(); it.hasNext(); )
-//			{
-//				ArcInst ai = it.next();
-//				ai.kill();
-//			}
-//
-//			// delete intermediate nodes used to constrain
-//			for(Iterator<NodeInst> it = niList.iterator(); it.hasNext(); )
-//			{
-//				NodeInst ni = it.next();
-////				(void)killportproto(niList[i]->parent, niList[i]->firstportexpinst->exportproto);
-//				ni.kill();
-//			}
-//			return true;
-//		}
 	}
 
 	/**
@@ -404,8 +251,6 @@ public class CircuitChangeJobs
 			ArcInst ai = con.getArc();
 			if (!markObj.contains(ai)) continue;
             int otherEnd = 1 - con.getEndIndex();
-//			Connection other = ai.getTail();
-//			if (other == con) other = ai.getHead();
 			NodeInst ni = ai.getPortInst(otherEnd).getNodeInst();
 			if (markObj.contains(ni)) continue;
 			markObj.add(ni);
@@ -451,8 +296,6 @@ public class CircuitChangeJobs
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
 
-				// ignore pins
-//				if (ni.getFunction() == PrimitiveNode.Function.PIN) continue;
 				Point2D center = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				DBMath.gridAlign(center, alignment);
 				double bodyXOffset = center.getX() - ni.getAnchorCenterX();
@@ -524,8 +367,6 @@ public class CircuitChangeJobs
 						if (ai.isRigid()) constr |= 1;
 						if (ai.isFixedAngle()) constr |= 2;
 						constraints.put(ai, new Integer(constr));
-//						ai.setRigid(false);
-//						ai.setFixedAngle(false);
 					}
 					ni.move(bodyXOffset, bodyYOffset);
 					adjustedNodes++;
@@ -613,20 +454,13 @@ public class CircuitChangeJobs
 		private NodeInst [] nis;
 		private double [] dCX;
 		private double [] dCY;
-//		private double [] dSX;
-//		private double [] dSY;
-//		private int [] dRot;
 
 		public AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY)
-//		protected AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
 		{
 			super("Align objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.nis = nis;
 			this.dCX = dCX;
 			this.dCY = dCY;
-//			this.dSX = dSX;
-//			this.dSY = dSY;
-//			this.dRot = dRot;
 			startJob();
 		}
 
@@ -652,9 +486,6 @@ public class CircuitChangeJobs
 				NodeInst [] nnis = new NodeInst[newSize];
 				double [] nCX = new double[newSize];
 				double [] nCY = new double[newSize];
-//				double [] nSX = new double[newSize];
-//				double [] nSY = new double[newSize];
-//				int [] nRot = new int[newSize];
 				int fill = 0;
 				for(int i=0; i<nis.length; i++)
 				{
@@ -662,21 +493,14 @@ public class CircuitChangeJobs
 					nnis[fill] = nis[i];
 					nCX[fill] = dCX[i];
 					nCY[fill] = dCY[i];
-//					nSX[fill] = dSX[i];
-//					nSY[fill] = dSY[i];
-//					nRot[fill] = dRot[i];
                     fill++;
 				}
 				nis = nnis;
 				dCX = nCX;
 				dCY = nCY;
-//				dSX = nSX;
-//				dSY = nSY;
-//				dRot = nRot;
 			}
 
 			NodeInst.modifyInstances(nis, dCX, dCY, null, null);
-//			NodeInst.modifyInstances(nis, dCX, dCY, dSX, dSY, dRot);
 			return true;
 		}
 	}
@@ -1099,51 +923,6 @@ public class CircuitChangeJobs
 			// make sure deletion is allowed
 			if (cantEdit(cell, null, true, true) != 0) return false;
 
-//			List<Geometric> deleteList = new ArrayList<Geometric>();
-//			Geometric oneGeom = null;
-//			for(Geometric geom : highlighted)
-//			{
-//				Geometric geom = h.getGeometric();
-//				if (h.isHighlightText())
-//				{
-//					ElectricObject eobj = h.getElectricObject();
-//					if (eobj instanceof Export) continue;
-//				}
-//				if (geom == null) continue;
-//
-//				if (cell != h.getCell())
-//				{
-//					throw new JobException("All objects to be deleted must be in the same cell");
-//				}
-//				if (geom instanceof NodeInst)
-//				{
-//					int errCode = cantEdit(cell, (NodeInst)geom, true, true);
-//					if (errCode < 0) return false;
-//					if (errCode > 0) continue;
-//				}
-//				deleteList.add(geom);
-//			}
-
-			// clear the highlighting
-			//Highlighter.global.clear();
-			//Highlighter.global.finished();
-
-/*			// if just one node is selected, see if it can be deleted with "pass through"
-			if (deleteList.size() == 1 && oneGeom instanceof NodeInst)
-			{
-				Reconnect re = Reconnect.erasePassThru((NodeInst)oneGeom, false);
-				if (re != null)
-				{
-					List arcs = re.reconnectArcs();
-                    for (Iterator it = arcs.iterator(); it.hasNext(); ) {
-                        ArcInst ai = it.next();
-					    Highlight.addElectricObject(ai, cell);
-					    Highlight.finished();
-                    }
-					//return true;
-				}
-			}*/
-
 			// delete the text
 			for(DisplayedText dt : highlightedText)
 			{
@@ -1359,13 +1138,11 @@ public class CircuitChangeJobs
 				// also delete freed pin nodes
 				if (h.getProto().getFunction() == PrimitiveNode.Function.PIN &&
 					!h.hasConnections() && !h.hasExports())
-//					h.getNumConnections() == 0 && h.getNumExports() == 0)
 				{
 					h.kill();
 				}
 				if (t.getProto().getFunction() == PrimitiveNode.Function.PIN &&
 					!t.hasConnections() && !t.hasExports())
-//					t.getNumConnections() == 0 && t.getNumExports() == 0)
 				{
 					t.kill();
 				}
@@ -1412,16 +1189,6 @@ public class CircuitChangeJobs
 			alsoDeleteTheseNodes.add(ai.getHeadPortInst().getNodeInst());
 			alsoDeleteTheseNodes.add(ai.getTailPortInst().getNodeInst());
 		}
-
-//		// also mark all nodes on arcs that will be erased
-//		for(Iterator it = list.iterator(); it.hasNext(); )
-//		{
-//			Object obj = it.next();
-//			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
-//			if (!(obj instanceof NodeInst)) continue;
-//			NodeInst ni = (NodeInst)obj;
-//			alsoDeleteTheseNodes.add(ni);
-//		}
 
 		// also mark all nodes on the other end of arcs connected to erased nodes
 		for(NodeInst ni : nodesToDelete)
@@ -1494,7 +1261,6 @@ public class CircuitChangeJobs
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 				if (ni.hasConnections() || ni.hasExports()) continue;
-//				if (ni.getNumConnections() != 0 || ni.getNumExports() != 0) continue;
 				deleteTheseNodes.add(ni);
 			}
 		}
@@ -1511,7 +1277,6 @@ public class CircuitChangeJobs
 			{
 				if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
 				if (ni.hasExports()) continue;
-//				if (ni.getNumExports() != 0) continue;
                 if (!ni.isInlinePin()) continue;
 				nodesToPassThru.add(ni);
 			}
@@ -1549,7 +1314,6 @@ public class CircuitChangeJobs
 	{
 		// erase all connecting ArcInsts on this NodeInst
 		if (ni.hasConnections())
-//		if (ni.getNumConnections() > 0)
 		{
 			HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 			for(Iterator<Connection> it = ni.getConnections(); it.hasNext(); )
@@ -2169,7 +1933,7 @@ public class CircuitChangeJobs
 				NodeInst ni = null;
 				if (eobj instanceof NodeInst) ni = (NodeInst)eobj; else
 					if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst(); else
-						if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
+						if (eobj instanceof Export && varKey == Export.EXPORT_NAME) ni = ((Export)eobj).getOriginalPort().getNodeInst();
 				if (ni != null)
 				{
 					Point2D curLoc = new Point2D.Double(ni.getAnchorCenterX()+td.getXOff(), ni.getAnchorCenterY()+td.getYOff());
@@ -2185,17 +1949,6 @@ public class CircuitChangeJobs
 				}
 			}
 		}
-
-// 		private void adjustTextDescriptor(TextDescriptor td, NodeInst ni)
-// 		{
-// 			Point2D curLoc = new Point2D.Double(ni.getAnchorCenterX()+td.getXOff(), ni.getAnchorCenterY()+td.getYOff());
-// 			AffineTransform rotateOut = ni.rotateOut();
-// 			rotateOut.transform(curLoc, curLoc);
-// 			curLoc.setLocation(curLoc.getX()+dX, curLoc.getY()+dY);
-// 			AffineTransform rotateIn = ni.rotateIn();
-// 			rotateIn.transform(curLoc, curLoc);
-// 			td.setOff(curLoc.getX()-ni.getAnchorCenterX(), curLoc.getY()-ni.getAnchorCenterY());
-// 		}
 	}
 
 
@@ -2231,7 +1984,6 @@ public class CircuitChangeJobs
 	
 			// if the pin is an export, save it
 			if (ni.hasExports()) continue;
-//			if (ni.getNumExports() > 0) continue;
 	
 			// if the pin is connected to two arcs along the same slope, delete it
 			if (ni.isInlinePin())
@@ -2269,7 +2021,6 @@ public class CircuitChangeJobs
 			// disallow erasing if lock is on
 			Cell cell = ni.getParent();
 			if (checkPermission && cantEdit(cell, ni, true, true) != 0) return null;
-			// Netlist netlist = cell.getUserNetlist(); Commented 07.01.04 by DN to avoid Netlist recalculation
 
             Reconnect recon = new Reconnect();
             recon.ni = ni;
@@ -2400,9 +2151,6 @@ public class CircuitChangeJobs
 		 */
 		public List<ArcInst> reconnectArcs()
 		{
-			// kill the intermediate pin
-			//eraseNodeInst(ni);
-
             List<ArcInst> newArcs = new ArrayList<ArcInst>();
 
 			// reconnect the arcs
@@ -2735,41 +2483,10 @@ public class CircuitChangeJobs
                         newNi.delVar(var.getKey());
                     }
                 }
-			} else
-			{
-				// remove parameters that don't exist on the new object d
-/*				Cell newCell = (Cell)newNp;
-				List varList = new ArrayList();
-				for(Iterator<Variable> it = newNi.getVariables(); it.hasNext(); )
-					varList.add(it.next());
-				for(Iterator<Variable> it = varList.iterator(); it.hasNext(); )
-				{
-					Variable var = it.next();
-					if (!var.isParam()) continue;
-
-					// see if this parameter exists on the new prototype
-					Cell cNp = newCell.contentsView();
-					if (cNp == null) cNp = newCell;
-					for(Iterator<Variable> cIt = cNp.getVariables(); it.hasNext(); )
-					{
-						Variable cVar = cIt.next();
-						if (!(var.getKey().equals(cVar.getKey()))) continue;
-						if (cVar.isParam())
-						{
-							newNi.delVar(var.getKey());
-							break;
-						}
-					}
-				}*/
 			}
 
 			// now inherit parameters that now do exist
 			inheritAttributes(newNi, true);
-
-			// remove node name if it is not visible
-			//Variable var = newNi.getVar(NodeInst.NODE_NAME, String.class);
-			//if (var != null && !var.isDisplay())
-			//	newNi.delVar(NodeInst.NODE_NAME);
 		}
 		return newNi;
 	}
@@ -2841,16 +2558,15 @@ public class CircuitChangeJobs
 				{
 					Variable var = it.next();
 					if (!ni.isParam(var.getKey())) continue;
-//					if (!var.isParam()) continue;
 					Variable oVar = null;
-                    // try to find equivalent in all parameters on prototype
+
+					// try to find equivalent in all parameters on prototype
                     Iterator<Variable> oIt = cNp.getVariables();
                     boolean delete = true;
 					while (oIt.hasNext())
 					{
 						oVar = oIt.next();
 						if (!cNp.isParam(oVar.getKey())) continue;
-//						if (!oVar.isParam()) continue;
 						if (oVar.getKey().equals(var.getKey())) { delete = false; break; }
 					}
 					if (delete)
@@ -3085,6 +2801,7 @@ public class CircuitChangeJobs
             super("Making all libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			startJob();
         }
+
         public boolean doIt() throws JobException
         {
             // mark all libraries as "changed"
@@ -3093,29 +2810,16 @@ public class CircuitChangeJobs
                 Library lib = it.next();
                 if (lib.isHidden()) continue;
 
-                // make sure all old format library extensions are converted
-                String ext = TextUtils.getExtension(lib.getLibFile());
-                // I don't think this should change the file format: only "save as" should
-                // JKG 29 Oct 2004
-                /*
-                if (OpenFile.Type.DEFAULTLIB == OpenFile.Type.JELIB)
-                {
-                    if (ext.equals("elib"))
-                    {
-                        String fullName = lib.getLibFile().getFile();
-                        int len = fullName.length();
-                        fullName = fullName.substring(0, len-4) + "jelib";
-                        lib.setLibFile(TextUtils.makeURLToFile(fullName));
-                    }
-                }*/
-
                 // do not mark readable dump files for saving
+                String ext = TextUtils.getExtension(lib.getLibFile());
                 if (ext.equals("txt")) continue;
 
                 lib.setChanged();
-                if (lib.getLibFile() != null && OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB) {
+                if (lib.getLibFile() != null && OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB)
+                {
                     // set all cells as changed as well
-                    for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
+                    for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); )
+                    {
                         it2.next().madeRevision(System.currentTimeMillis(), null);
                     }
                 }
@@ -3146,29 +2850,16 @@ public class CircuitChangeJobs
             Library lib = Library.getCurrent();
             if (lib.isHidden()) return true;
 
-            // make sure all old format library extensions are converted
-            String ext = TextUtils.getExtension(lib.getLibFile());
-            // I don't think this should change the file format: only "save as" should
-            // JKG 29 Oct 2004
-            /*
-            if (OpenFile.Type.DEFAULTLIB == OpenFile.Type.JELIB)
-            {
-                if (ext.equals("elib"))
-                {
-                    String fullName = lib.getLibFile().getFile();
-                    int len = fullName.length();
-                    fullName = fullName.substring(0, len-4) + "jelib";
-                    lib.setLibFile(TextUtils.makeURLToFile(fullName));
-                }
-            }*/
-
             // do not mark readable dump files for saving
+            String ext = TextUtils.getExtension(lib.getLibFile());
             if (ext.equals("txt")) return true;
 
             lib.setChanged();
-            if (lib.getLibFile() != null && OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB) {
+            if (lib.getLibFile() != null && OpenFile.getOpenFileType(lib.getLibFile().getFile(), FileType.JELIB) == FileType.DELIB)
+            {
                 // set all cells as changed as well
-                for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); ) {
+                for (Iterator<Cell> it2 = lib.getCells(); it2.hasNext(); )
+                {
                     it2.next().madeRevision(System.currentTimeMillis(), null);
                 }
             }
