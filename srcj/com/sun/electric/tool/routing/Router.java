@@ -231,8 +231,8 @@ public abstract class Router {
 					System.out.print(" node");
 			}
 			System.out.println();
+			User.playSound();
 		}
-		User.playSound();
 	}
 
     /** Method to set the tool associated with this router */
