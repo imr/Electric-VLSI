@@ -55,6 +55,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -257,7 +258,6 @@ public class Connectivity
 			return null;
 		}
 		convertedCells.put(oldCell, newCell);
-		exportNumbers.put(newCell, new GenMath.MutableInteger(1));
 
 		// create a merge for the geometry in the cell
 		PolyMerge merge = new PolyMerge();
@@ -557,121 +557,6 @@ public class Connectivity
 		return ni.getOnlyPortInst();
 	}
 
-	private List<PortInst> findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell)
-	{
-		List<PortInst> touchingNodes = new ArrayList<PortInst>();
-		Rectangle2D checkBounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		for(Iterator<Geometric> it = newCell.searchIterator(checkBounds); it.hasNext(); )
-		{
-			Geometric geom = it.next();
-			if (!(geom instanceof NodeInst)) continue;
-			NodeInst ni = (NodeInst)geom;
-			if (ni.isCellInstance())
-			{
-				Cell subCell = (Cell)ni.getProto();
-				boolean found = false;
-				for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
-				{
-					PortInst pi = pIt.next();
-					Poly portPoly = pi.getPoly();
-					if (portPoly.contains(pt))
-					{
-						touchingNodes.add(pi);
-						found = true;
-						break;
-					}
-				}
-				if (found) continue;
-
-				// can we create an export on the cell?
-				PortInst pi = makePort(ni, layer, pt);
-				if (pi != null) touchingNodes.add(pi);
-				continue;
-			}
-			Poly [] polys = tech.getShapeOfNode(ni, null, null, true, true, null);
-			AffineTransform trans = ni.rotateOut();
-			for(int i=0; i<polys.length; i++)
-			{
-				Poly oPoly = polys[i];
-				Layer oLayer = geometricLayer(oPoly.getLayer());
-				if (layer != oLayer) continue;
-				oPoly.transform(trans);
-
-				// do the polys touch?
-				if (oPoly.contains(pt))
-				{
-					PortInst touchingPi = findPortInstClosestToPoly(ni, (PrimitivePort)oPoly.getPort(), pt);
-					if (touchingPi == null)
-					{
-						System.out.println("Can't find port for "+ni+" and "+oPoly.getPort());
-						continue;
-					}
-					touchingNodes.add(touchingPi);
-					break;
-				}
-			}
-		}
-		return touchingNodes;
-	}
-
-
-	/**
-	 * Method to create an export so that a node can connect to a layer.
-	 * @param ni the node that needs to connect.
-	 * @param layer the layer on which to connect.
-	 * @param pt the location on the node for the connection.
-	 * @return the PortInst on the node (null if it cannot be created).
-	 */
-	private PortInst makePort(NodeInst ni, Layer layer, Point2D pt)
-	{
-		Cell subCell = (Cell)ni.getProto();
-		GenMath.MutableInteger exportNumber = exportNumbers.get(subCell);
-		if (exportNumber == null) return null;
-		AffineTransform transIn = ni.rotateIn(ni.translateIn());
-		Point2D inside = new Point2D.Double();
-		transIn.transform(pt, inside);
-		Rectangle2D bounds = new Rectangle2D.Double(inside.getX(), inside.getY(), 0, 0);
-		for(Iterator<Geometric> it = subCell.searchIterator(bounds); it.hasNext(); )
-		{
-			Geometric geom = it.next();
-			if (geom instanceof ArcInst) continue;
-			NodeInst subNi = (NodeInst)geom;
-			PortInst foundPi = null;
-			if (subNi.isCellInstance())
-			{
-				PortInst pi = makePort(subNi, layer, inside);
-				if (pi != null) foundPi = pi;
-			} else
-			{
-				Technology tech = subNi.getProto().getTechnology();
-				AffineTransform trans = subNi.rotateOut();
-				Poly [] polyList = tech.getShapeOfNode(subNi, null, null, true, true, null);
-				for(int i=0; i<polyList.length; i++)
-				{
-					Poly poly = polyList[i];
-					if (poly.getPort() == null) continue;
-					if (geometricLayer(poly.getLayer()) != layer) continue;
-					poly.transform(trans);
-					if (poly.contains(inside))
-					{
-						// found polygon that touches the point.  Make the export
-						foundPi = findPortInstClosestToPoly(subNi, (PrimitivePort)poly.getPort(), inside);
-						break;
-					}
-				}
-			}
-			if (foundPi != null)
-			{
-				String exportName = "E" + exportNumber.intValue();
-				exportNumber.increment();
-				Export e = Export.newInstance(subCell, foundPi, exportName);
-				return ni.findPortInstFromProto(e);
-			}
-
-		}
-		return null;
-	}
-
 	/**
 	 * Method to find the PortInst on a NodeInst that connects to a given PortProto and is closest to a given point.
 	 * Because some primitive nodes (transistors) may have multiple ports that connect to each other
@@ -783,6 +668,12 @@ public class Connectivity
 					}
 				} else
 				{
+					if (portPoly.contains(startPoint))
+					{
+						loc1.setLocation(startPoint);
+						piRet = pi;
+						break;						
+					}
 					for(int i=0; i<points.length; i++)
 					{
 						int last = i-1;
@@ -863,6 +754,144 @@ public class Connectivity
 		}
 		NodeInst ni = NodeInst.makeInstance(pin, pt, size, size, newCell);
 		return ni;
+	}
+
+	private List<PortInst> findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell)
+	{
+		List<PortInst> touchingNodes = new ArrayList<PortInst>();
+		boolean mightCreateExports = false;
+		Rectangle2D checkBounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
+		for(Iterator<Geometric> it = newCell.searchIterator(checkBounds); it.hasNext(); )
+		{
+			Geometric geom = it.next();
+			if (!(geom instanceof NodeInst)) continue;
+			NodeInst ni = (NodeInst)geom;
+			if (ni.isCellInstance())
+			{
+				Cell subCell = (Cell)ni.getProto();
+				boolean found = false;
+				for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = pIt.next();
+					Poly portPoly = pi.getPoly();
+					if (portPoly.contains(pt))
+					{
+						touchingNodes.add(pi);
+						found = true;
+						break;
+					}
+				}
+				if (found) continue;
+
+				// remember that a cell was found...might have to create exports on it
+				mightCreateExports = true;
+				continue;
+			}
+			Poly [] polys = tech.getShapeOfNode(ni, null, null, true, true, null);
+			AffineTransform trans = ni.rotateOut();
+			for(int i=0; i<polys.length; i++)
+			{
+				Poly oPoly = polys[i];
+				Layer oLayer = geometricLayer(oPoly.getLayer());
+				if (layer != oLayer) continue;
+				oPoly.transform(trans);
+
+				// do the polys touch?
+				if (oPoly.contains(pt))
+				{
+					PortInst touchingPi = findPortInstClosestToPoly(ni, (PrimitivePort)oPoly.getPort(), pt);
+					if (touchingPi == null)
+					{
+						System.out.println("Can't find port for "+ni+" and "+oPoly.getPort());
+						continue;
+					}
+					touchingNodes.add(touchingPi);
+					break;
+				}
+			}
+		}
+
+		// if no ports were found but there were cells, should create new exports in the cells
+		if (touchingNodes.size() == 0 && mightCreateExports)
+		{
+			for(Iterator<Geometric> it = newCell.searchIterator(checkBounds); it.hasNext(); )
+			{
+				Geometric geom = it.next();
+				if (!(geom instanceof NodeInst)) continue;
+				NodeInst ni = (NodeInst)geom;
+				if (!ni.isCellInstance()) continue;
+
+				// can we create an export on the cell?
+				PortInst pi = makePort(ni, layer, pt);
+				if (pi != null)
+				{
+					touchingNodes.add(pi);
+					break;
+				}
+			}
+		}
+		return touchingNodes;
+	}
+
+	/**
+	 * Method to create an export so that a node can connect to a layer.
+	 * @param ni the node that needs to connect.
+	 * @param layer the layer on which to connect.
+	 * @param pt the location on the node for the connection.
+	 * @return the PortInst on the node (null if it cannot be created).
+	 */
+	private PortInst makePort(NodeInst ni, Layer layer, Point2D pt)
+	{
+		Cell subCell = (Cell)ni.getProto();
+
+		AffineTransform transIn = ni.rotateIn(ni.translateIn());
+		Point2D inside = new Point2D.Double();
+		transIn.transform(pt, inside);
+		Rectangle2D bounds = new Rectangle2D.Double(inside.getX(), inside.getY(), 0, 0);
+		for(Iterator<Geometric> it = subCell.searchIterator(bounds); it.hasNext(); )
+		{
+			Geometric geom = it.next();
+			if (geom instanceof ArcInst) continue;
+			NodeInst subNi = (NodeInst)geom;
+			PortInst foundPi = null;
+			if (subNi.isCellInstance())
+			{
+				PortInst pi = makePort(subNi, layer, inside);
+				if (pi != null) foundPi = pi;
+			} else
+			{
+				Technology tech = subNi.getProto().getTechnology();
+				AffineTransform trans = subNi.rotateOut();
+				Poly [] polyList = tech.getShapeOfNode(subNi, null, null, true, true, null);
+				for(int i=0; i<polyList.length; i++)
+				{
+					Poly poly = polyList[i];
+					if (poly.getPort() == null) continue;
+					if (geometricLayer(poly.getLayer()) != layer) continue;
+					poly.transform(trans);
+					if (poly.contains(inside))
+					{
+						// found polygon that touches the point.  Make the export
+						foundPi = findPortInstClosestToPoly(subNi, (PrimitivePort)poly.getPort(), inside);
+						break;
+					}
+				}
+			}
+			if (foundPi != null)
+			{
+				GenMath.MutableInteger exportNumber = exportNumbers.get(subCell);
+				if (exportNumber == null)
+				{
+					exportNumber = new GenMath.MutableInteger(1);
+					exportNumbers.put(subCell, exportNumber);
+				}
+				String exportName = "E" + exportNumber.intValue();
+				exportNumber.increment();
+				Export e = Export.newInstance(subCell, foundPi, exportName);
+				return ni.findPortInstFromProto(e);
+			}
+		}
+		return null;
 	}
 
 	/********************************************** VIA/CONTACT EXTRACTION **********************************************/
@@ -1328,9 +1357,23 @@ public class Connectivity
 			if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.WELL &&
 				fun != PrimitiveNode.Function.SUBSTRATE) continue;
 
+			// TODO do we really need to vet each contact?
+			Technology.NodeLayer [] nLayers = pNp.getLayers();
+			boolean bogus = false;
+			for(int i=0; i<nLayers.length; i++)
+			{
+				Technology.NodeLayer nLay = nLayers[i];
+				TechPoint [] debugPoints = nLay.getPoints();
+				if (debugPoints == null || debugPoints.length <= 0)
+				{
+					bogus = true;
+					break;
+				}
+			}
+			if (bogus) continue;
+
 			// create a PossibleVia object to test for them
 			PossibleVia pv = new PossibleVia(pNp);
-			Technology.NodeLayer [] nLayers = pNp.getLayers();
 			pv.layers = new Layer[nLayers.length-1];
 			pv.shrink = new double[nLayers.length-1];
 			pv.minWidth = scaleUp(pNp.getDefWidth());
