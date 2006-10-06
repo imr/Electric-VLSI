@@ -28,6 +28,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.PrimitiveNode;
 
@@ -131,11 +132,12 @@ public class Route extends ArrayList<RouteElement> {
      * replaceExistingRedundantPin for details.
      * @param pin the pin to replace
      * @param replacement the replacement
+     * @param stayInside a polygonal area in which the new arc must reside (if not null).
      * @return true if any replacement done, false otherwise.
      */
-    public boolean replacePin(RouteElementPort pin, RouteElementPort replacement) {
+    public boolean replacePin(RouteElementPort pin, RouteElementPort replacement, PolyMerge stayInside) {
         if (replaceBisectPin(pin, replacement)) return true;
-        if (replaceExistingRedundantPin(pin, replacement)) return true;
+        if (replaceExistingRedundantPin(pin, replacement, stayInside)) return true;
         return false;
     }
 
@@ -174,9 +176,10 @@ public class Route extends ArrayList<RouteElement> {
      * replacementRE.
      * @param pinRE the pin to replace
      * @param replacementRE the replacement
+     * @param stayInside a polygonal area in which the new arc must reside (if not null).
      * @return true if replacement done, false otherwise.
      */
-    public boolean replaceExistingRedundantPin(RouteElementPort pinRE, RouteElementPort replacementRE) {
+    public boolean replaceExistingRedundantPin(RouteElementPort pinRE, RouteElementPort replacementRE, PolyMerge stayInside) {
         // only replace existing pins
         if (pinRE.getAction() != RouteElement.RouteElementAction.existingPortInst) return false;
 
@@ -219,7 +222,7 @@ public class Route extends ArrayList<RouteElement> {
                     RouteElementArc newArc = RouteElementArc.newArc(cell, ai.getProto(),
                             ai.getWidth(), otherPort, replacementRE,
                             ai.getLocation(otherEnd), conn.getLocation(), ai.getName(),
-                            ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, null);
+                            ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, stayInside);
                     RouteElementArc delArc = RouteElementArc.deleteArc(ai);
                     newElements.add(newArc);
                     newElements.add(delArc);

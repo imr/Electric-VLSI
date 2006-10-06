@@ -171,7 +171,7 @@ public abstract class Router {
 	                        RouteElementArc newArc = RouteElementArc.newArc(cell, Generic.tech.unrouted_arc,
 	                                Generic.tech.unrouted_arc.getDefaultWidth(), route.getEnd(), newEnd,
 	                                route.getEnd().getLocation(), newEnd.getLocation(), null,
-	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, null);
+	                                ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, null);
 	                        newArc.doAction();
 	                    }
 	                    if (conn.getArc().isLinked())

@@ -90,7 +90,7 @@ public abstract class InteractiveRouter extends Router {
 
     protected abstract boolean planRoute(Route route, Cell cell, RouteElementPort endRE,
                                 Point2D startLoc, Point2D endLoc, Point2D clicked, PolyMerge stayInside, VerticalRoute vroute,
-                                boolean contactsOnEndObject, boolean extendArc);
+                                boolean contactsOnEndObject, boolean extendArcHead, boolean extendArcTail);
 
     // ----------------------- Interactive Route Control --------------------------
 
@@ -136,7 +136,7 @@ public abstract class InteractiveRouter extends Router {
     public void makeRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute(wnd);
         // plan the route
-        Route route = planRoute(cell, startObj, endObj, clicked, null, true);
+        Route route = planRoute(cell, startObj, endObj, clicked, null, true, true);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
         wnd.clearHighlighting();
@@ -176,7 +176,7 @@ public abstract class InteractiveRouter extends Router {
             cancelInteractiveRoute();
             return false;
         }
-        vroute.buildRoute(route, startRE.getCell(), startRE, null, startLoc, startLoc, startLoc);
+        vroute.buildRoute(route, startRE.getCell(), startRE, null, startLoc, startLoc, startLoc, null);
         // restore highlights at start of planning, so that
         // they will correctly show up if this job is undone.
         wnd.finishedHighlighting();
@@ -224,7 +224,7 @@ public abstract class InteractiveRouter extends Router {
     public void highlightRoute(EditWindow wnd, Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked) {
         if (!started) startInteractiveRoute(wnd);
         // highlight route
-        Route route = planRoute(cell, startObj, endObj, clicked, null, true);
+        Route route = planRoute(cell, startObj, endObj, clicked, null, true, true);
         highlightRoute(wnd, route, cell);
     }
 
@@ -254,11 +254,12 @@ public abstract class InteractiveRouter extends Router {
      * if the user is drawing to empty space.
      * @param clicked the point where the user clicked
      * @param stayInside the area in which to route (null if not applicable).
-     * @param extendArc true to use default arc extension; false to force no arc extension.
+     * @param extendArcHead true to use default arc extension; false to force no arc extension.
+     * @param extendArcTail true to use default arc extension; false to force no arc extension.
      * @return a List of RouteElements denoting route
      */
     public Route planRoute(Cell cell, ElectricObject startObj, ElectricObject endObj, Point2D clicked, PolyMerge stayInside,
-                           boolean extendArc) {
+                           boolean extendArcHead, boolean extendArcTail) {
 
         Route route = new Route();               // hold the route
         if (cell == null) return route;
@@ -298,7 +299,8 @@ public abstract class InteractiveRouter extends Router {
         double endArcWidth = (endObj == null) ? startArcWidth : getArcWidthToUse(endObj, endArc);
 
         // if extension not supressed, use defaults from arcs
-        if (extendArc) extendArc = startArc.isExtended() || endArc.isExtended();
+        if (extendArcHead) extendArcHead = startArc.isExtended() || endArc.isExtended();
+        if (extendArcTail) extendArcTail = startArc.isExtended() || endArc.isExtended();
 
         // get valid connecting sites for start and end objects based on the objects
         // themselves, the point the user clicked, and the width of the wire that will
@@ -329,7 +331,7 @@ public abstract class InteractiveRouter extends Router {
         }
         if (startObj instanceof ArcInst) {
             // arc: figure out where on arc to start
-            startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint);
+            startRE = findArcConnectingPoint(route, (ArcInst)startObj, startPoint, stayInside);
             contactsOnEndObject = false;
         }
         if (startRE == null) {
@@ -350,7 +352,7 @@ public abstract class InteractiveRouter extends Router {
             if (endObj instanceof ArcInst) {
                 // arc: figure out where on arc to end
                 // use startRE location when possible if connecting to arc
-                endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint);
+                endRE = findArcConnectingPoint(route, (ArcInst)endObj, endPoint, stayInside);
                 contactsOnEndObject = true;
             }
             if (endRE == null) {
@@ -392,7 +394,7 @@ public abstract class InteractiveRouter extends Router {
 
         // Tell Router to route between startRE and endRE
         if (planRoute(route, cell, endRE, startPoint, endPoint, clicked, stayInside, vroute, contactsOnEndObject,
-                extendArc)) {
+                extendArcHead, extendArcTail)) {
             return route;
         } else
             return new Route();             // error, return empty route
@@ -628,11 +630,12 @@ public abstract class InteractiveRouter extends Router {
      * @param route the route so far
      * @param arc the arc to draw from/to
      * @param point point on or near arc
+     * @param stayInside the area in which to route (null if not applicable).
      * @return a RouteElement holding the new pin at the bisection
      * point, or a RouteElement holding an existingPortInst if
      * drawing from either end of the ArcInst.
      */
-    protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D point) {
+    protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D point, PolyMerge stayInside) {
 
         EPoint head = arc.getHeadLocation();
         EPoint tail = arc.getTailLocation();
@@ -658,7 +661,7 @@ public abstract class InteractiveRouter extends Router {
             // line is vertical, see if point point bisects
             if (point.getY() > minY && point.getY() < maxY) {
                 Point2D location = new Point2D.Double(head.getX(), point.getY());
-                startRE = bisectArc(route, arc, location);
+                startRE = bisectArc(route, arc, location, stayInside);
             }
             // not within Y bounds, choose closest pin
             else if (point.getY() <= minY) {
@@ -672,7 +675,7 @@ public abstract class InteractiveRouter extends Router {
             // line is horizontal, see if point bisects
             if (point.getX() > minX && point.getX() < maxX) {
                 Point2D location = new Point2D.Double(point.getX(), head.getY());
-                startRE = bisectArc(route, arc, location);
+                startRE = bisectArc(route, arc, location, stayInside);
             }
             // not within X bounds, choose closest pin
             else if (point.getX() <= minX) {
@@ -701,9 +704,10 @@ public abstract class InteractiveRouter extends Router {
      * @param route the current route
      * @param arc the arc to split
      * @param bisectPoint point on arc from which to split it
+     * @param stayInside the area in which to route (null if not applicable).
      * @return the RouteElement from which to continue the route
      */
-    protected RouteElementPort bisectArc(Route route, ArcInst arc, Point2D bisectPoint) {
+    protected RouteElementPort bisectArc(Route route, ArcInst arc, Point2D bisectPoint, PolyMerge stayInside) {
 
         Cell cell = arc.getParent();
         EPoint head = arc.getHeadLocation();
@@ -734,9 +738,9 @@ public abstract class InteractiveRouter extends Router {
             name2 = arc.getName();
         // add two arcs to rebuild old startArc
         RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getWidth(), headRE, newPinRE,
-                head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, null);
+                head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, true, stayInside);
         RouteElement newTailArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getWidth(), newPinRE, tailRE,
-                bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, null);
+                bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc, true, true, stayInside);
         newHeadArcRE.setShowHighlight(false);
         newTailArcRE.setShowHighlight(false);
         // delete old arc

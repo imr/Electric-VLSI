@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: (10/6/06, SMR) Generalized routing to handle individual end extension.
+
 BUG: (10/4/06, SMR) Narrow non-manhattan polygons not detected by DRC.
 FIX: Fixed GenMath.intersectRadians() and Quick.checkMinWidth().
 

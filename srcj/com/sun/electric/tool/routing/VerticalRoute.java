@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -208,9 +209,10 @@ public class VerticalRoute {
      * @param route the route to append with the new RouteElements
      * @param cell the cell in which to create the vertical route
      * @param location where to create the route (database units)
+     * @param stayInside a polygonal area in which the new arc must reside (if not null).
      */
     public void buildRoute(Route route, Cell cell, RouteElementPort startRE, RouteElementPort endRE,
-                           Point2D startLoc, Point2D endLoc, Point2D location) {
+                           Point2D startLoc, Point2D endLoc, Point2D location, PolyMerge stayInside) {
 
         if (specifiedRoute == null) {
             System.out.println("Error: Trying to build VerticalRoute without a call to specifyRoute() first");
@@ -231,30 +233,30 @@ public class VerticalRoute {
         }
 
         // create Route, using default contact size
-        Route vertRoute = buildRoute(cell, location, new Dimension2D.Double(-1,-1), arcAngle);
+        Route vertRoute = buildRoute(cell, location, new Dimension2D.Double(-1,-1), arcAngle, stayInside);
 
         // remove startRE and endRE if they are bisect arc pins and at same location,
         // otherwise, connect them to start and end of vertical route
         double width;
         if (startRE != null) {
-            if (route.replacePin(startRE, vertRoute.getStart())) {
+            if (route.replacePin(startRE, vertRoute.getStart(), stayInside)) {
                 route.remove(startRE);
                 if (route.getStart() == startRE) route.setStart(vertRoute.getStart());
             } else {
                 width = Router.getArcWidthToUse(startRE, startArc);
                 RouteElement arc1 = RouteElementArc.newArc(cell, startArc, width, startRE, vertRoute.getStart(),
-                        startLoc, location, null, null, null, startArc.isExtended(), null);
+                        startLoc, location, null, null, null, startArc.isExtended(), startArc.isExtended(), stayInside);
                 route.add(arc1);
             }
         }
         if (endRE != null) {
-            if (route.replacePin(endRE, vertRoute.getEnd())) {
+            if (route.replacePin(endRE, vertRoute.getEnd(), stayInside)) {
                 route.remove(endRE);
                 if (route.getEnd() == endRE) route.setEnd(vertRoute.getEnd());
             } else {
                 width = Router.getArcWidthToUse(endRE, endArc);
                 RouteElement arc2 = RouteElementArc.newArc(cell, endArc, width, endRE, vertRoute.getEnd(),
-                        endLoc, location, null, null, null, endArc.isExtended(), null);
+                        endLoc, location, null, null, null, endArc.isExtended(), endArc.isExtended(), stayInside);
                 route.add(arc2);
             }
         } else {
@@ -283,10 +285,11 @@ public class VerticalRoute {
      * @param location where in the database the vertical route is to be created
      * @param contactSize the size of contacts
      * @param arcAngle angle of zero length arcs created between contacts (usually zero)
+     * @param stayInside a polygonal area in which the new arc must reside (if not null).
      * @return a Route whose start can connect to startRE and whose end
      * can connect to endRE. Returns null if no specification for the route exists.
      */
-    public Route buildRoute(Cell cell, Point2D location, Dimension2D contactSize, int arcAngle) {
+    public Route buildRoute(Cell cell, Point2D location, Dimension2D contactSize, int arcAngle, PolyMerge stayInside) {
         if (specifiedRoute == null) {
             System.out.println("Error: Trying to build VerticalRoute without a call to specifyRoute() first");
             return null;
@@ -322,7 +325,7 @@ public class VerticalRoute {
             // create arc
             double arcWidth = Router.getArcWidthToUse(node, ap);
             RouteElementArc arc = RouteElementArc.newArc(cell, ap, arcWidth, node, newNode, location, location,
-            	null, null, null, ap.isExtended(), null);
+            	null, null, null, ap.isExtended(), ap.isExtended(), stayInside);
             arc.setArcAngle(arcAngle);
             route.add(arc);
 

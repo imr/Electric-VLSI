@@ -46,6 +46,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.plugins.sunRouter.SunRouter.MutableBoolean;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -362,16 +363,20 @@ public class AutoStitch
 		                    ArcProto ap = reArc.getArcProto();
 			            	Layer arcLayer = ap.getLayers()[0].getLayer();
 		                    double width = ap.getDefaultWidth();
-
-		                    if (!arcInMerge(head, tail, reArc.getArcWidth(), stayInside, arcLayer))
+		                    MutableBoolean headExtend = new MutableBoolean(reArc.getHeadExtension());
+		                    MutableBoolean tailExtend = new MutableBoolean(reArc.getTailExtension());
+		                    if (!stayInside.arcPolyFits(arcLayer, head, tail, reArc.getArcWidth(),
+		                		headExtend, tailExtend))
 		                    {
 			                    // current arc doesn't fit, try reducing by a small amount
 		                    	double tinyAmountLess = reArc.getArcWidth() - DBMath.getEpsilon();
-			                    if (arcInMerge(head, tail, tinyAmountLess, stayInside, arcLayer))
+			                    if (!stayInside.arcPolyFits(arcLayer, head, tail, tinyAmountLess,
+			                		headExtend, tailExtend))
 			                    {
 				                    // smaller width works: set it
 		                    		reArc.setArcWidth(tinyAmountLess);
-			                    } else if (arcInMerge(head, tail, ap.getDefaultWidth(), stayInside, arcLayer))
+			                    } else if (!stayInside.arcPolyFits(arcLayer, head, tail, ap.getDefaultWidth(),
+			                		headExtend, tailExtend))
 			                    {
 				                    // default size arc fits, use it
 			                    	reArc.setArcWidth(ap.getDefaultWidth());
@@ -381,6 +386,8 @@ public class AutoStitch
 		                    		reArc.setArcWidth(ap.getWidthOffset());
 			                    }
 		                    }
+		                    reArc.setHeadExtension(headExtend.booleanValue());
+		                    reArc.setTailExtension(tailExtend.booleanValue());
 	                    }
 	                }
 	            }
@@ -514,34 +521,6 @@ public class AutoStitch
 			if (ai.getWidth() <= tNi.getXSize() && ai.getWidth() <= tNi.getYSize()) tailTooWide = false;
 
 		return headTooWide || tailTooWide;
-	}
-
-	/**
-	 * Method to tell whether or not a proposed arc fits into a PolyMerge area.
-	 * @param head the coordinate of the head of the arc
-	 * @param tail the coordinate of the tail of the arc.
-	 * @param width the width of the arc.
-     * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param layer the layer in the PolyMerge to test.
-	 * @return true if the proposed arc is completely contained in the merge area.
-	 * False if any part of the arc is not in the merge area.
-	 */
-	private static boolean arcInMerge(Point2D head, Point2D tail, double width, PolyMerge stayInside, Layer layer)
-	{
-	    // first see if the arc is zero-length
-	    if (head.equals(tail))
-	    {
-	    	// degenerate arc: make a square
-	    	Rectangle2D arcRect = new Rectangle2D.Double(head.getX()-width/2, head.getY()-width/2, width, width);
-	    	if (stayInside.contains(layer, arcRect)) return true;
-	    } else
-	    {
-	    	// normal arc: construct it
-			Poly arcPoly = Poly.makeEndPointPoly(head.distance(tail), width, GenMath.figureAngle(head, tail),
-				head, width/2, tail, width/2, Poly.Type.FILLED);
-	    	if (stayInside.contains(layer, arcPoly)) return true;
-	    }
-	    return false;
 	}
 
 	/**
@@ -1173,7 +1152,7 @@ public class AutoStitch
 		if (eobj2 instanceof NodeInst) ni2 = (NodeInst)eobj2; else
 			if (eobj2 instanceof PortInst) ni2 = ((PortInst)eobj2).getNodeInst();
 
-        Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true);
+        Route route = router.planRoute(cell, eobj1, eobj2, ctr, stayInside, true, true);
         if (route.size() == 0)
         {
 //        	System.out.println("Unable to route from "+eobj1+" to "+eobj2);

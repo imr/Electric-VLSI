@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.plugins.sunRouter.SunRouter.MutableBoolean;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -65,7 +66,8 @@ public class RouteElementArc extends RouteElement {
     /** Text descriptor of name */                  private TextDescriptor arcNameDescriptor;
     /** Angle of arc */                             private int arcAngle;
     /** inherit properties from this arc */         private ArcInst inheritFrom;
-    /** set the arc extension if inheritFrom is null */ private boolean extendArc;
+    /** set the arc extension if inheritFrom is null */ private boolean extendArcHead;
+    /** set the arc extension if inheritFrom is null */ private boolean extendArcTail;
 
     /** This contains the newly create instance, or the instance to delete */ private ArcInst arcInst;
 
@@ -82,45 +84,30 @@ public class RouteElementArc extends RouteElement {
      * @param tailRE RouteElement (must be newNode or existingPortInst) at tail or arc
      * @param nameTextDescriptor
      * @param inheritFrom
-     * @param extendArc only applied if inheritFrom is null
+     * @param extendArcHead only applied if inheritFrom is null
+     * @param extendArcTail only applied if inheritFrom is null
      * @param stayInside a polygonal area in which the new arc must reside (if not null).
      * The arc is narrowed and has its ends extended in an attempt to stay inside this area.
      */
     public static RouteElementArc newArc(Cell cell, ArcProto ap, double arcWidth, RouteElementPort headRE, RouteElementPort tailRE,
                                          Point2D headConnPoint, Point2D tailConnPoint, String name, TextDescriptor nameTextDescriptor,
-                                         ArcInst inheritFrom, boolean extendArc, PolyMerge stayInside) {
+                                         ArcInst inheritFrom, boolean extendArcHead, boolean extendArcTail, PolyMerge stayInside) {
     	EPoint headEP = EPoint.snap(headConnPoint);
     	EPoint tailEP = EPoint.snap(tailConnPoint);
+    	MutableBoolean headExtend = new MutableBoolean(extendArcHead);
+    	MutableBoolean tailExtend = new MutableBoolean(extendArcTail);
     	if (stayInside != null)
     	{
     		double length = headEP.distance(tailEP);
-    		int angle = 0;
-    		if (headEP.getX() != tailEP.getX() || headEP.getY() != tailEP.getY())
-    			angle = GenMath.figureAngle(headEP, tailEP);
         	Layer layer = ap.getLayers()[0].getLayer();
-        	double extension = extendArc ? arcWidth/2 : 0;
-			Poly poly = Poly.makeEndPointPoly(length, arcWidth, angle,
-				headEP, extension, tailEP, extension, Poly.Type.FILLED);
-        	boolean good = stayInside.contains(layer, poly);
+        	
+        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth, headExtend, tailExtend);
 
         	// try reducing to default width if it doesn't fit
         	if (!good && arcWidth > ap.getDefaultWidth())
         	{
         		arcWidth = ap.getDefaultWidth();
-        		extension = extendArc ? arcWidth/2 : 0;
-    			poly = Poly.makeEndPointPoly(length, arcWidth, angle,
-    				headEP, extension, tailEP, extension, Poly.Type.FILLED);
-            	good = stayInside.contains(layer, poly);
-        	}
-
-        	// try turning off end extension if it doesn't fit
-        	if (!good && extendArc)
-        	{
-            	extension = 0;
-            	extendArc = false;
-    			poly = Poly.makeEndPointPoly(length, arcWidth, angle,
-    				headEP, extension, tailEP, extension, Poly.Type.FILLED);
-            	good = stayInside.contains(layer, poly);
+            	good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth, headExtend, tailExtend);
         	}
 
         	// make it zero-width if it doesn't fit
@@ -151,7 +138,8 @@ public class RouteElementArc extends RouteElement {
         e.arcAngle = 0;
         e.arcInst = null;
         e.inheritFrom = inheritFrom;
-        e.extendArc = extendArc;
+        e.extendArcHead = headExtend.booleanValue();
+        e.extendArcTail = tailExtend.booleanValue();
         return e;
     }
 
@@ -172,7 +160,7 @@ public class RouteElementArc extends RouteElement {
         e.arcAngle = 0;
         e.arcInst = arcInstToDelete;
         e.inheritFrom = null;
-        e.extendArc = true;
+        e.extendArcHead = e.extendArcTail = true;
         return e;
     }
 
@@ -186,6 +174,8 @@ public class RouteElementArc extends RouteElement {
     public RouteElementPort getTail() { return tailRE; }
     public Point2D getHeadConnPoint() { return headConnPoint; }
     public Point2D getTailConnPoint() { return tailConnPoint; }
+    public boolean getHeadExtension() { return extendArcHead; }
+    public boolean getTailExtension() { return extendArcTail; }
 
     /**
      * Return arc width
@@ -228,6 +218,10 @@ public class RouteElementArc extends RouteElement {
         if (getAction() == RouteElementAction.newArc)
             arcAngle = angle;
     }
+
+    public void setHeadExtension(boolean e) { extendArcHead = e; }
+
+    public void setTailExtension(boolean e) { extendArcTail = e; }
 
     /**
      * Return true if the new arc is a vertical arc, false otherwise
@@ -384,8 +378,8 @@ public class RouteElementArc extends RouteElement {
             arcInst.copyPropertiesFrom(inheritFrom);
             if (inheritFrom == null)
             {
-                arcInst.setHeadExtended(extendArc);
-                arcInst.setTailExtended(extendArc);
+                arcInst.setHeadExtended(extendArcHead);
+                arcInst.setTailExtended(extendArcTail);
             }
             return newAi;
         }
