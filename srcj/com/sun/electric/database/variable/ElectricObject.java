@@ -424,7 +424,7 @@ public abstract class ElectricObject implements Serializable
 	}
 
 	/**
-	 * Method to create an array of Poly objects that describes a displayable Variables on this Electric object.
+	 * Method to create an array of Poly objects that describes a displayable Variable on this Electric object.
 	 * @param var the Variable on this ElectricObject to describe.
 	 * @param cX the center X coordinate of the ElectricObject.
 	 * @param cY the center Y coordinate of the ElectricObject.
@@ -434,6 +434,7 @@ public abstract class ElectricObject implements Serializable
 	 */
 	public Poly [] getPolyList(Variable var, double cX, double cY, EditWindow0 wnd, boolean multipleStrings)
 	{
+		if (var == null) return new Poly[0];
 		double offX = var.getXOff();
 		double offY = var.getYOff();
 		int varLength = var.getLength();
