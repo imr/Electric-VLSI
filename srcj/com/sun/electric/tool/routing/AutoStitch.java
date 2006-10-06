@@ -549,7 +549,10 @@ public class AutoStitch
 		Rectangle2D searchBounds = new Rectangle2D.Double(geomBounds.getMinX()-epsilon, geomBounds.getMinY()-epsilon,
 			geomBounds.getWidth()+epsilon*2, geomBounds.getHeight()+epsilon*2);
 		for(Iterator<Geometric> it = cell.searchIterator(searchBounds); it.hasNext(); )
-			geomsInArea.add(it.next());
+		{
+			Geometric oGeom = it.next();
+			if (oGeom != geom) geomsInArea.add(oGeom);
+		}
 		for(Geometric oGeom : geomsInArea)
 		{
 			// find another node in this area
@@ -1079,7 +1082,7 @@ public class AutoStitch
 				if (nodeLayer != null) nodeLayer = nodeLayer.getNonPseudoLayer();
 				if (nodeLayer != arcLayer) continue;
 				double polyDist = arcPoly.separation(nodePoly);
-				if (polyDist > 0) continue;
+				if (polyDist >= DBMath.getEpsilon()) continue;
 
 				// only want electrically connected polygons
 				if (nodePoly.getPort() == null) continue;
@@ -1507,7 +1510,7 @@ public class AutoStitch
 	 * @param net the Network responsible for the second polygon.
 	 * @param ap the type of arc to use when stitching the nodes.
      * @param stayInside is the area in which to route (null to route arbitrarily).
-	 * @param netlist
+	 * @param netlist the netlist for the Cell with the polygons.
 	 * @param limitBound if not null, only consider errors that occur in this area.
 	 * @return true if the connection is made.
 	 */
@@ -1516,7 +1519,7 @@ public class AutoStitch
 		ArcProto ap, PolyMerge stayInside, Netlist netlist, Rectangle2D limitBound)
 	{
 		// find the bounding boxes of the polygons
-		if (poly.separation(oPoly) > 0) return false;
+		if (poly.separation(oPoly) >= DBMath.getEpsilon()) return false;
 
 		// be sure the closest ports are being used
 		Poly portPoly = ni.getShapeOfPort(pp);
