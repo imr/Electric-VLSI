@@ -41,7 +41,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -57,19 +57,16 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
-import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1175,6 +1172,7 @@ public class ELIB extends LibraryFiles
 		// finish initializing the Exports in the cell
 		int startPort = firstPortIndex[cellIndex];
 		int endPort = startPort + portCounts[cellIndex];
+        CellId cellId = cell.getId();
 		for(int i=startPort; i<endPort; i++)
 		{
 //			if (exportList[i] instanceof Cell)
@@ -1230,7 +1228,8 @@ public class ELIB extends LibraryFiles
             boolean alwaysDrawn = Export.alwaysDrawnFromElib(exportUserbits[i]);
             boolean bodyOnly = Export.bodyOnlyFromElib(exportUserbits[i]);
             PortCharacteristic characteristic = Export.portCharacteristicFromElib(exportUserbits[i]);
-            Export pp = Export.newInstance(cell, exportName, null, exportNameDescriptors[i], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
+            ExportId exportId = cellId.newExportId(Name.findName(exportName).toString());
+            Export pp = Export.newInstance(cell, exportId, null, exportNameDescriptors[i], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
             exportList[i] = pp;
             if (pp == null) continue;
 			realizeVariables(pp, exportVariables[i]);

@@ -178,6 +178,9 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                     ", making new export named "+protoName);
             assert(parent.findExport(protoName) == null);
 		}
+        ExportId exportId = parent.getD().cellId.newExportId(protoName);
+        if (exportId.inDatabase(parent.getDatabase()) != null)
+            exportId = parent.getD().cellId.randomExportId(protoName);
         PortProto originalProto = portInst.getPortProto();
         boolean alwaysDrawn = false;
         boolean bodyOnly = false;
@@ -187,7 +190,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
             alwaysDrawn = e.isAlwaysDrawn();
             bodyOnly = e.isBodyOnly();
         }
-		Export pp = newInstance(parent, protoName, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, originalProto.getCharacteristic(), null);
+		Export pp = newInstance(parent, exportId, protoName, smartPlacement(portInst), portInst, alwaysDrawn, bodyOnly, originalProto.getCharacteristic(), null);
 
 		if (createOnIcon)
 		{
@@ -256,35 +259,37 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * @param errorLogger error logger to report errors.
 	 * @return created Export or null on error.
 	 */
-    public static Export newInstance(Cell parent, String id, String name, TextDescriptor nameTextDescriptor, PortInst originalPort,
+    public static Export newInstance(Cell parent, ExportId exportId, String name, TextDescriptor nameTextDescriptor, PortInst originalPort,
             boolean alwaysDrawn, boolean bodyOnly, PortCharacteristic characteristic, ErrorLogger errorLogger)
     {
+        assert parent.isLinked();
+        String errorMsg = null;
+        if (exportId.inDatabase(parent.getDatabase()) != null) {
+            errorMsg = parent + " already has exportId " + exportId.externalId;
+            System.out.println(errorMsg);
+            errorLogger.logError(errorMsg, parent, 1);
+            return null;
+        }
+        if (name == null)
+            name = exportId.externalId;
+        
 		// initialize this object
 		if (originalPort == null || !originalPort.isLinked())
 		{
 			System.out.println("Null port on Export " + name + " in " + parent);
 			return null;
 		}
-		NodeInst ni = originalPort.getNodeInst();
+		NodeInst originalNode = originalPort.getNodeInst();
 		PortProto subpp = originalPort.getPortProto();
-		if (ni.getParent() != parent || subpp.getParent() != ni.getProto())
+		if (originalNode.getParent() != parent || subpp.getParent() != originalNode.getProto())
 		{
 			System.out.println("Bad port on Export " + name + " in " + parent);
 			return null;
 		}
 
-        Name nameKey;
-        if (name == null || id.equals(name)) {
-            nameKey = Name.findName(id);
-            assert id.equals(nameKey.toString());
-            id = nameKey.toString();
-        } else {
-            nameKey = Name.findName(name);
-        }
-        String errorMsg = null;
-        if (ImmutableExport.validExportName(nameKey.toString()) == null) {
-            errorMsg = parent + " has bad export name " + nameKey + " ";
-            String newName = repairExportName(parent, nameKey.toString());
+        if (ImmutableExport.validExportName(name) == null) {
+            errorMsg = parent + " has bad export name " + name + " ";
+            String newName = repairExportName(parent, name);
             if (newName == null)
                 newName = repairExportName(parent, "X");
             if (newName == null) {
@@ -293,16 +298,16 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 errorLogger.logError(errorMsg, parent, 1);
                 return null;
             }
-            nameKey = Name.findName(newName);
-            errorMsg += " renamed to " + nameKey;
+            errorMsg += " renamed to " + newName;
+            name = newName;
         }
-        ExportId exportId = parent.getD().cellId.newExportId(id);
         if (nameTextDescriptor == null) nameTextDescriptor = TextDescriptor.getExportTextDescriptor();
-        ImmutableExport d = ImmutableExport.newInstance(exportId, nameKey, nameTextDescriptor,
-                ni.getD().nodeId, subpp.getId(), alwaysDrawn, bodyOnly, characteristic);
+        ImmutableExport d = ImmutableExport.newInstance(exportId, Name.findName(name), nameTextDescriptor,
+                originalNode.getD().nodeId, subpp.getId(), alwaysDrawn, bodyOnly, characteristic);
         Export e = new Export(d, parent);
         assert e.originalPort == originalPort;
-		if (e.lowLevelLink()) return null;
+		originalNode.addExport(e);
+		parent.addExport(e);
         if (errorMsg != null) {
             System.out.println(errorMsg);
             if (errorLogger != null)
@@ -403,30 +408,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	}
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
-
-	/**
-	 * Low-level access method to link this Export into its cell.
-	 * @return true on error.
-	 */
-	public boolean lowLevelLink()
-	{
-		assert parent.isLinked();
-		NodeInst originalNode = originalPort.getNodeInst();
-		originalNode.addExport(this);
-		parent.addExport(this);
-		return false;
-	}
-
-	/**
-	 * Low-level access method to unlink this Export from its cell.
-	 */
-	public void lowLevelUnlink()
-	{
-		assert isLinked();
-		NodeInst originalNode = originalPort.getNodeInst();
-		originalNode.removeExport(this);
-		parent.removeExport(this);
-	}
 
 	/**
 	 * Method to change the origin of this Export to another place in the Cell.

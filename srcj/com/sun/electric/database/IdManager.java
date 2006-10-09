@@ -133,16 +133,16 @@ public class IdManager {
         writer.setCellCount(cellIdsArray.length);
         for (int cellIndex = 0; cellIndex < cellIdsArray.length; cellIndex++) {
             CellId cellId = cellIdsArray[cellIndex];
-            ExportId[] exportIds = cellId.getExportIds();
+            int numExportIds = cellId.numExportIds();
             int exportCount = writer.exportCounts[cellIndex];
-            if (exportIds.length != exportCount) {
+            if (numExportIds != exportCount) {
                 writer.writeInt(cellIndex);
-                int numNewExportIds = exportIds.length - exportCount;
+                int numNewExportIds = numExportIds - exportCount;
                 assert numNewExportIds > 0;
                 writer.writeInt(numNewExportIds);
                 for (int i = 0; i < numNewExportIds; i++)
-                    writer.writeString(exportIds[exportCount + i].externalId);
-                writer.exportCounts[cellIndex] = exportIds.length;
+                    writer.writeString(cellId.getPortId(exportCount + i).externalId);
+                writer.exportCounts[cellIndex] = numExportIds;
             }
         }
         writer.writeInt(-1);
@@ -162,15 +162,19 @@ public class IdManager {
             LibId libId = reader.readLibId();
             newCellId(libId, CellName.parseName(reader.readString()));
         }
+        synchronized (this) {
+            assert libIdsCount == libIds.size();
+            assert cellIdsCount == cellIds.size();
+        }
         for (;;) {
             int cellIndex = reader.readInt();
             if (cellIndex == -1) break;
             CellId cellId = getCellId(cellIndex);
             int numNewExportIds = reader.readInt();
-            String[] newExportIds = new String[numNewExportIds];
-            for (int i = 0; i < newExportIds.length; i++)
-                newExportIds[i] = reader.readString();
-            cellId.newExportIds(newExportIds);
+            for (int i = 0; i < numNewExportIds; i++) {
+                String exportIdString = reader.readString();
+                cellId.newExportId(exportIdString);
+            }
         }
     }
     

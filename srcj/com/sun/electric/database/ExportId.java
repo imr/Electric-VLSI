@@ -39,8 +39,7 @@ import java.io.Serializable;
  * It differs from Export objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method .
  */
-public final class ExportId implements PortProtoId, Serializable
-{
+public final class ExportId implements PortProtoId, Serializable {
     /** Empty ExportId array for initialization. */
     public static final ExportId[] NULL_ARRAY = {};
     
@@ -53,39 +52,50 @@ public final class ExportId implements PortProtoId, Serializable
     /** representation of ExportId in disk files.
      * This name isn't chaged when Export is renamed.
      */
-    public final transient String externalId;
+    public final String externalId;
     
     /**
      * ExportId constructor.
      */
     ExportId(CellId parentId, int chronIndex, String externalId) {
+        assert parentId != null;
+        if (externalId.length() == 0)
+            throw new IllegalArgumentException("ExportId");
         this.parentId = parentId;
         this.chronIndex = chronIndex;
         this.externalId = externalId;
     }
     
-    /*
-     * Resolve method for deserialization.
-     */
-    private Object readResolve() throws ObjectStreamException {
-        ExportId exportId = parentId.getPortId(chronIndex);
-        if (exportId == null) throw new InvalidObjectException("ExportId");
-        return exportId;
+    private Object writeReplace() throws ObjectStreamException { return new ExportIdKey(this); }
+    private Object readResolve() throws ObjectStreamException { throw new InvalidObjectException("ExportId"); }
+    
+    private static class ExportIdKey extends EObjectInputStream.Key {
+        private final int cellIndex;
+        private final int chronIndex;
+        
+        private ExportIdKey(ExportId exportId) {
+            cellIndex = exportId.parentId.cellIndex;
+            chronIndex = exportId.chronIndex;
+        }
+        
+        protected Object readResolveInDatabase(EDatabase database) throws InvalidObjectException {
+            return database.getIdManager().getCellId(cellIndex).getPortId(chronIndex);
+        }
     }
     
-	/**
-	 * Method to return the parent NodeProtoId of this ExportId.
-	 * @return the parent NodeProtoId of this ExportId.
-	 */
-	public CellId getParentId() { return parentId; }
-
+    /**
+     * Method to return the parent NodeProtoId of this ExportId.
+     * @return the parent NodeProtoId of this ExportId.
+     */
+    public CellId getParentId() { return parentId; }
+    
     /**
      * Method to return chronological index of this ExportId in parent.
      * @return chronological index of this ExportId in parent.
      */
     public int getChronIndex() { return chronIndex; }
     
-   /**
+    /**
      * Method to return the Export representing ExportId in the specified EDatabase.
      * @param database EDatabase where to get from.
      * @return the Export representing ExportId in the specified database.
@@ -96,14 +106,22 @@ public final class ExportId implements PortProtoId, Serializable
         if (cell == null) return null;
         return cell.getExportChron(chronIndex);
     }
-
+    
     @Override
     public int hashCode() {
         return externalId.hashCode();
     }
-
+    
     @Override
     public String toString() {
         return parentId + ":" + externalId;
     }
+    
+    /**
+     * Check invariants of this ExportId.
+     * @throws AssertionError if this ExportId is not valid.
+     */
+     void check() {
+         assert externalId.length() > 0;
+     }
 }

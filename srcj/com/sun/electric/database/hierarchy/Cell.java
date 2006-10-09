@@ -2630,7 +2630,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         
         // kill exports themselves
         for (Export e: killedExports) {
-            e.lowLevelUnlink();
+            assert e.isLinked();
+            NodeInst originalNode = e.getOriginalPort().getNodeInst();
+            originalNode.removeExport(e);
+            removeExport(e);
     		// handle change control, constraint, and broadcast
         	Constraints.getCurrent().killObject(e);
         }

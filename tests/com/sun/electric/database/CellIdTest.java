@@ -69,6 +69,19 @@ public class CellIdTest {
     }
 
     /**
+     * Test of getIdManager method, of class com.sun.electric.database.CellId.
+     */
+    @Test public void testGetIdManager() {
+        System.out.println("getIdManager");
+        
+        CellId instance = cellId0;
+        
+        IdManager expResult = idManager;
+        IdManager result = instance.getIdManager();
+        assertSame(expResult, result);
+    }
+
+    /**
      * Test of numUsagesIn method, of class com.sun.electric.database.CellId.
      */
     @Test public void testNumUsagesIn() {
@@ -90,7 +103,7 @@ public class CellIdTest {
         
         CellUsage expResult = u0_2;
         CellUsage result = instance.getUsageIn(i);
-        assertEquals(expResult, result);
+        assertSame(expResult, result);
     }
 
     /**
@@ -117,48 +130,9 @@ public class CellIdTest {
         
         CellUsage expResult = u1_2;
         CellUsage result = instance.getUsageOf(i);
-        assertEquals(expResult, result);
+        assertSame(expResult, result);
     }
 
-    /**
-     * Test of findExportId method, of class com.sun.electric.database.CellId.
-     */
-    @Test public void testFindExportId() {
-        System.out.println("findExportId");
-        
-        String name = nameA;
-        CellId instance = cellId1;
-        
-        ExportId expResult = e1_A;
-        ExportId result = instance.findExportId(name);
-        assertEquals(expResult, result);
-        
-        assertNull( instance.findExportId("B") );
-        assertEquals( 1, cellId1.numExportIds() );
-    }
-    
-//    /**
-//     * Test of findExportId method, of class com.sun.electric.database.CellId.
-//     */
-//    public void testConcurrentFindExportId() {
-//        System.out.println("findExportId concurrently");
-//        
-//        Thread writer = new Thread() {
-//            public void run() {
-//                for (;;) {
-//                    cellId1.newExportId(nameA);
-//                }
-//            }
-//        };
-//        
-//        writer.start();
-//        
-//        Name nameB = Name.findName("B");
-//        for (;;) {
-//            assertNull( cellId1.findExportId(nameB) );
-//        }
-//    }
-    
     /**
      * Test of numExportIds method, of class com.sun.electric.database.CellId.
      */
@@ -183,20 +157,7 @@ public class CellIdTest {
         
         ExportId expResult = e1_A;
         ExportId result = instance.getPortId(chronIndex);
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of getExportIds method, of class com.sun.electric.database.CellId.
-     */
-    @Test public void testGetExportIds() {
-        System.out.println("getExportIds");
-        
-        CellId instance = cellId1;
-        
-        ExportId[] expResult = new ExportId[] { e1_A };
-        ExportId[] result = instance.getExportIds();
-        assertTrue(Arrays.equals(expResult, result));
+        assertSame(expResult, result);
     }
 
     /**
@@ -205,63 +166,58 @@ public class CellIdTest {
     @Test public void testNewExportId() {
         System.out.println("newExportId");
         
-        String suggestedName = "B";
+        String name = nameA;
         CellId instance = cellId1;
+        assertEquals(1, instance.numExportIds());
         
-        ExportId result = instance.newExportId(suggestedName);
-        assertSame(cellId1, result.parentId);
-        assertSame(suggestedName, result.externalId);
-        assertEquals(1, result.chronIndex);
+        ExportId expResult = e1_A;
+        ExportId result = instance.newExportId(name);
+        assertSame(expResult, result);
+        assertEquals(1, instance.numExportIds());
         
+        String nameB = "B";
+        ExportId idB = instance.newExportId(nameB);
+        assertSame(instance, idB.parentId);
+        assertEquals(1, idB.chronIndex);
+        assertSame( nameB, idB.externalId );
         assertEquals(2, cellId1.numExportIds());
-        assertSame(e1_A, cellId1.getPortId(0));
-        assertSame(result, cellId1.getPortId(1));
+        
+        idManager.checkInvariants();
     }
 
     /**
-     * Test of newExportId method, of class com.sun.electric.database.CellId.
+     * Test of newExportIds method, of class com.sun.electric.database.CellId.
      */
-    @Test public void testDuplicateExporId() {
-        System.out.println("duplicateExportId");
+    @Test(expected = NullPointerException.class) public void testNewExportIdNull() {
+        System.out.println("newExportId null");
         
-        String suggestedName = "bus[1:2]";
+        cellId0.newExportId(null);
+    }
+
+    /**
+     * Test of randomExportId method, of class com.sun.electric.database.CellId.
+     */
+    @Test public void testRandomExportId() {
+        System.out.println("randomExportId");
+        
+        String suggestedId = "A";
         CellId instance = cellId1;
+        assertEquals(1, instance.numExportIds());
         
-        ExportId result = instance.newExportId(suggestedName);
-        ExportId result1 = instance.newExportId(suggestedName);
-        assertSame(cellId1, result.parentId);
-        assertEquals(1, result.chronIndex);
-        assertSame(suggestedName, result.externalId);
-        assertNotSame(suggestedName, result1.externalId);
+        ExportId result = instance.randomExportId(suggestedId);
+        assertNotSame(e1_A, result );
+        assertEquals(2, instance.numExportIds());
+        assertSame(instance.getPortId(1), result);
+        assertTrue(result.externalId.startsWith("A@"));
+        
+        int numCopies = 100000;
+        for (int i = 0; i < numCopies; i++)
+            instance.randomExportId(suggestedId);
+        assertEquals(numCopies + 2, instance.numExportIds() );
+        
+        idManager.checkInvariants();
     }
-
-    /**
-     * Test of newExportIds method, of class com.sun.electric.database.CellId.
-     */
-    @Test public void testNewExportIds() {
-        System.out.println("newExportIds");
-        
-        String[] externalIds = { "C", "B"};
-        cellId1.newExportIds(externalIds);
-        
-        assertEquals( 3, cellId1.numExportIds() );
-        assertSame(e1_A, cellId1.getPortId(0));
-        ExportId e1_C = cellId1.getPortId(1);
-        ExportId e1_B = cellId1.getPortId(2);
-        assertSame(externalIds[0], e1_C.externalId );
-        assertSame(externalIds[1], e1_B.externalId );
-    }
-
-    /**
-     * Test of newExportIds method, of class com.sun.electric.database.CellId.
-     */
-    @Test(expected = IllegalArgumentException.class) public void testDuplicateExportIds() {
-        System.out.println("newExportIds");
-        
-        String[] externalIds = { "C", "C" };
-        cellId1.newExportIds(externalIds);
-    }
-
+    
     /**
      * Test of newNodeId method, of class com.sun.electric.database.CellId.
      */

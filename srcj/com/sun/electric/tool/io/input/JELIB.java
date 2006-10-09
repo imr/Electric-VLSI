@@ -40,6 +40,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -979,6 +980,7 @@ public class JELIB extends LibraryFiles
 		}
 
 		// place all exports
+        CellId cellId = cell.getId();
 		for(int line=0; line<numStrings; line++)
 		{
 			String cellString = cc.cellStrings.get(line);
@@ -991,7 +993,7 @@ public class JELIB extends LibraryFiles
             if (revision >= 2 && pieces.size() == 1) {
                 // Unused ExportId
                 String exportName = unQuote(pieces.get(0));
-                cell.getId().newExportId(exportName);
+                cellId.newExportId(exportName);
                 continue;
             }
 			int numPieces = revision >= 2 ? 6 : revision == 1 ? 5 : 7;
@@ -1009,6 +1011,9 @@ public class JELIB extends LibraryFiles
                 if (s.length() != 0)
                     exportUserName = unQuote(s);
             }
+            if (exportUserName == null || exportName.equals(exportUserName))
+                exportName = Name.findName(exportName).toString(); // save memory using String from Name
+            ExportId exportId = cellId.newExportId(exportName);
 			// get text descriptor in field 1
 			String textDescriptorInfo = pieces.get(fieldIndex++);
 			String nodeName = revision >= 1 ? pieces.get(fieldIndex++) : unQuote(pieces.get(fieldIndex++));
@@ -1047,7 +1052,7 @@ public class JELIB extends LibraryFiles
             if (ch == null) ch = PortCharacteristic.UNKNOWN;
             
 			// create the export
-			Export pp = Export.newInstance(cell, exportName, exportUserName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch, errorLogger);
+			Export pp = Export.newInstance(cell, exportId, exportUserName, nameTextDescriptor, pi, alwaysDrawn, bodyOnly, ch, errorLogger);
 			if (pp == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +

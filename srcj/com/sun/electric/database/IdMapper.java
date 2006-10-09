@@ -67,14 +67,10 @@ public class IdMapper implements Serializable {
     public void moveCell(CellBackup cellBackup, CellId newCellId) {
             CellId oldCellId = cellBackup.d.cellId;
             cellIdMap.put(oldCellId, newCellId);
-            String[] externalIds = new String[cellBackup.exports.size()];
-            for (int i = 0; i < externalIds.length; i++) {
-                ImmutableExport e = cellBackup.exports.get(i);
-                externalIds[i] = e.exportId.externalId;
-            }
-            newCellId.newExportIds(externalIds);
-            for (int i = 0; i < externalIds.length; i++) {
-                exportIdMap.put(cellBackup.exports.get(i).exportId, newCellId.findExportId(externalIds[i]));
+            for (int i = 0, numExportIds = cellBackup.exports.size(); i < numExportIds; i++) {
+                ExportId oldExportId = cellBackup.exports.get(i).exportId;
+                ExportId newExportId = newCellId.newExportId(oldExportId.externalId);
+                exportIdMap.put(oldExportId, newExportId);
             }
     }
     

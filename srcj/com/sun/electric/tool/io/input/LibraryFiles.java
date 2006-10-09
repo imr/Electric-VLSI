@@ -1120,9 +1120,8 @@ public abstract class LibraryFiles extends Input
         PortProto pp = null;
         if (np instanceof Cell) {
             Cell cell = (Cell)np;
-            ExportId exportId = cell.getId().findExportId(portId);
-            if (exportId != null)
-                return cell.getExportChron(exportId.chronIndex);
+            ExportId exportId = cell.getId().newExportId(portId);
+            return cell.getExportChron(exportId.chronIndex);
         } else {
             pp = np.findPortProto(portId);
             if (pp == null) {

@@ -58,35 +58,39 @@ public final class CellId implements NodeProtoId, Serializable {
      */
     private volatile CellUsage[] usagesIn = CellUsage.NULL_ARRAY;
     /**
-	 * Hash of usagesIn.
-	 * The size of nonempty hash is a prime number.
-	 * i-th entry of entry search sequence for a given protoId is ((protoId.hashCode() & 0x7FFFFFFF) + i*i) % hashUsagesIn.length .
-	 * This first (1 + hashUsagesIn.length/2) entries of this sequence are unique.
-	 * Invariant hashUsagesIn.length >= usagesIn.length*2 + 1 guaranties that there is at least one empty entry
-	 * in the search sequence. 
-	 */
+     * Hash of usagesIn.
+     * The size of nonempty hash is a prime number.
+     * i-th entry of entry search sequence for a given protoId is ((protoId.hashCode() & 0x7FFFFFFF) + i*i) % hashUsagesIn.length .
+     * This first (1 + hashUsagesIn.length/2) entries of this sequence are unique.
+     * Invariant hashUsagesIn.length >= usagesIn.length*2 + 1 guaranties that there is at least one empty entry
+     * in the search sequence.
+     */
     private volatile CellUsage[] hashUsagesIn = EMPTY_USAGE_HASH;
     
-    /** 
+    /**
      * Usages of this proto cell in other parent cells.
      * CellUsages are in chronological order by time of their creation.
      */
     private volatile CellUsage[] usagesOf = CellUsage.NULL_ARRAY;
     
     /**
+     * Number of exportIds allocated so far.
+     */
+    private volatile int numExportIds = 0;
+    /**
      * ExportIds of this cell. ExportIds have unique naems.
      * ExportIds are in cronological order by time of its creation.
      */
-    private volatile ExportId[] exportIds = ExportId.NULL_ARRAY;
+    private volatile ExportId[] exportIds = new ExportId[10];
     /**
-	 * Hash of ExportIds.
-	 * The size of nonempty hash is a prime number.
-	 * i-th entry of entry search sequence for a given exportId is ((exportId.hashCode() & 0x7FFFFFFF) + i*i) % hashExportIds.length .
-	 * This first (1 + hashExportIds.length/2) entries of this sequence are unique.
-	 * Invariant hashExportIds.length >= exportIds.length*2 + 1 guaranties that there is at least one empty entry
-	 * in the search sequence. 
-	 */
-    private volatile int[] hashExportIds = EMPTY_EXPORT_HASH; 
+     * Hash of ExportIds.
+     * The size of nonempty hash is a prime number.
+     * i-th entry of entry search sequence for a given exportId is ((exportId.hashCode() & 0x7FFFFFFF) + i*i) % hashExportIds.length .
+     * This first (1 + hashExportIds.length/2) entries of this sequence are unique.
+     * Invariant hashExportIds.length >= exportIds.length*2 + 1 guaranties that there is at least one empty entry
+     * in the search sequence.
+     */
+    private volatile int[] hashExportIds = EMPTY_EXPORT_HASH;
     
     /**
      * Number of nodeIds returned by newNodeId.
@@ -129,7 +133,7 @@ public final class CellId implements NodeProtoId, Serializable {
             return database.getIdManager().getCellId(cellIndex);
         }
     }
-         
+    
     /**
      * Returns IdManager which is owner of this CellId.
      * @Return IdManager which is owner of this CellId.
@@ -145,7 +149,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // synchronized because usagesIn is volatile.
         return usagesIn.length;
     }
-
+    
     /**
      * Returns the i-th in cronological order CellUsage with this CellId as a parent cell.
      * @param i chronological number of CellUsage.
@@ -194,10 +198,10 @@ public final class CellId implements NodeProtoId, Serializable {
      * @return a number of ExportIds.
      */
     public int numExportIds() {
-        // synchronized because exportIds is volatile.
-        return exportIds.length;
+        // synchronized because numExportIds is volatile.
+        return numExportIds;
     }
-
+    
     /**
      * Returns ExportId in this parent cell with specified chronological index.
      * @param chronIndex chronological index of ExportId.
@@ -211,101 +215,37 @@ public final class CellId implements NodeProtoId, Serializable {
     
     /**
      * Returns ExportId in this parent cell with specified external id.
-     * If such ExportId doesn't exist returns null.
+     * If this external id was requested earlier, the previously created ExportId returned,
+     * otherwise the new ExportId is created.
      * @param externalId external id of ExportId.
-     * @return ExportId with specified external id or null.
-     * @throws ArrayIndexOutOfBoundsException if no such ExportId.
+     * @return ExportId with specified external id.
+     * @throws NullPointerException if externalId is null.
      */
-    public ExportId findExportId(String externalId) {
-        // The hashExportIds array is created in "rehashExportIds" method inside synchronized block.
-        // "rehash" fills some entries leaving -1 in others.
-        // All entries filled in rehashExportIds() are final.
-        // However other threads may change initially -1 entries to positive value.
-        // This positive value is final.
-        // First we scan a sequence of positive entries out of synchronized block.
-        // It is guaranteed that we see the correct values of positive entries.
-        // All entries in exportIds are final
-
-        // Get pointer to hash array locally once to avoid many reads of volatile variable.
-        int[] hash = hashExportIds;
-        ExportId[] exportIds = this.exportIds;
-        // We shall try to search a sequence of non-null entries for CellUsage with our protoId.
-        int i = externalId.hashCode() & 0x7FFFFFFF;
-        i %= hash.length;
-        try {
-            for (int j = 1; hash[i] >= 0; j += 2) {
-                ExportId exportId = exportIds[hash[i]];
-                if (exportId.externalId.equals(externalId)) return exportId;
-                i += j;
-                if (i >= hash.length) i -= hash.length;
-            }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // This may happen if some hash entries were concurrently filled with index out of ExportId range.
-        }
-        synchronized (this) {
-            if (hash == hashExportIds && hash[i] == -1) {
-                // There we no rehash during our search and the last -1 entry is really -1.
-                // So we are sure that there is not ExportId with specified external id.
-                return null;
-            }
-            // retry in synchronized mode.
-            return findExportId(externalId);
-        }
-    }
+    public ExportId newExportId(String externalId) { return newExportId(externalId, true); }
     
     /**
-     * Package private method to snap array of ExportIds.
-     * synchronized because exportIds is volatile and its entries are final.
-     * @return array of ExportIds.
-     */
-    ExportId[] getExportIds() { return exportIds; }
-    
-    /**
-     * Creates new exportId unique for this parent CellId.
+     * Creates new random exportId, unique in this session for this parent CellId.
      * @param suggestedId suggested external id
      * @return new exportId.
      */
-     public ExportId newExportId(String suggestedId) {
-        ExportId[] oldExportIds = exportIds;
-        ExportId[] newExportIds = new ExportId[oldExportIds.length + 1];
-        System.arraycopy(oldExportIds, 0, newExportIds, 0, oldExportIds.length);
-        ExportId e = newExportId(suggestedId, newExportIds, oldExportIds.length);
-        if (e == null) {
-            // Create random id
-            String prefix = suggestedId;
-            int ind = prefix.indexOf('@');
-            if (ind >= 0)
-                prefix = prefix.substring(0, ind);
-            Random random = new Random();
-            String s = null;
-            do {
-                int suffix = random.nextInt() & 0x3FFFFFFF;
-                e = newExportId(prefix + '@' + suffix, newExportIds, oldExportIds.length);
-            } while (e == null);
-        }
-        exportIds = newExportIds;
-        return e;
-    }
-    
-    /**
-     * Creates new exportId to increase number of exportIds to specified amount.
-     * @param externalIds external ids of new exportIds.
-     * @throws IllegalArgumentException if export ids have duplicates.
-     */
-    synchronized void newExportIds(String[] externalIds) {
-        ExportId[] oldExportIds = exportIds;
-        ExportId[] newExportIds = new ExportId[oldExportIds.length + externalIds.length];
-        System.arraycopy(oldExportIds, 0, newExportIds, 0, oldExportIds.length);
-        for (int i = 0; i < externalIds.length; i++) {
-            int chronIndex = oldExportIds.length + i;
-            ExportId e = newExportId(externalIds[i], newExportIds, chronIndex);
-            if (e == null) {
-                rehashExportIds(oldExportIds, oldExportIds.length);
-                throw new IllegalArgumentException("Duplicate export id " + externalIds[i]);
+    public ExportId randomExportId(String suggestedId) {
+        // Create random id
+        String prefix = suggestedId;
+        int ind = prefix.indexOf('@');
+        if (ind >= 0)
+            prefix = prefix.substring(0, ind + 1);
+        else
+            prefix = prefix + '@';
+        Random random = new Random();
+        for (;;) {
+            int suffix = random.nextInt() & 0x3FFFFFFF;
+            String s = prefix + suffix;
+            synchronized (this) {
+                if (newExportId(s, false) == null) {
+                    return newExportId(s, true);
+                }
             }
-            newExportIds[chronIndex] = e;
         }
-        exportIds = newExportIds;
     }
     
     /**
@@ -328,14 +268,14 @@ public final class CellId implements NodeProtoId, Serializable {
      */
     public Cell inDatabase(EDatabase database) { return database.getCell(this); }
     
-	/**
-	 * Returns a printable version of this CellId.
-	 * @return a printable version of this CellId.
-	 */
+    /**
+     * Returns a printable version of this CellId.
+     * @return a printable version of this CellId.
+     */
     public String toString() {
         return libId + ":" + cellName.toString();
     }
-
+    
     /**
      * Returns CellUsage with this CellId as a parent cell and with given
      * CellId as a proto subcell. If CellUsage with this pair of cells was already created,
@@ -353,7 +293,7 @@ public final class CellId implements NodeProtoId, Serializable {
         // This non-null value is final.
         // First we scan a sequence of non-null entries out of synchronized block.
         // It is guaranteed that we see the correct values of non-null entries.
-
+        
         // Get poiner to hash array locally once to avoid many reads of volatile variable.
         CellUsage[] hash = hashUsagesIn;
         
@@ -388,7 +328,7 @@ public final class CellId implements NodeProtoId, Serializable {
                     check();
                     return u;
                 }
-                // enlarge hash if not 
+                // enlarge hash if not
                 rehashUsagesIn();
             }
             // retry in synchronized mode.
@@ -419,37 +359,70 @@ public final class CellId implements NodeProtoId, Serializable {
         hashUsagesIn = newHash;
         check();
     }
-
+    
     /**
-     * Creates ExportId with specified id Name.
-     * If another ExportId with sucn id exists, returns null.
-     * Otherwise new ExportId is inserted into speciefied array entry and into hash.
-     * @param externalId external id of new ExportId.
-     * @param newExportIds array which stores ExportIds in chronological order.
-     * @param chronIndex index of an entry in ExportIds array.
-     * @return new ExportId or null.
+     * Returns ExportId in this parent cell with specified external id.
+     * If such ExportId doesn't exist returns null.
+     * @param externalId external id of ExportId.
+     * @return ExportId with specified external id or null.
+     * @throws ArrayIndexOutOfBoundsException if no such ExportId.
      */
-    private ExportId newExportId(String externalId, ExportId[] newExportIds, int chronIndex) {
-        if (externalId.length() == 0) return null;
-        int[] hash = hashExportIds; // less volatile access
+    private ExportId newExportId(String externalId, boolean create) {
+        // The hashExportIds array is created in "rehashExportIds" method inside synchronized block.
+        // "rehash" fills some entries leaving -1 in others.
+        // All entries filled in rehashExportIds() are final.
+        // However other threads may change initially -1 entries to positive value.
+        // This positive value is final.
+        // First we scan a sequence of positive entries out of synchronized block.
+        // It is guaranteed that we see the correct values of positive entries.
+        // All entries in exportIds are final
+        
+        // Get pointer to hash array locally once to avoid many reads of volatile variable.
+        int[] hash = hashExportIds;
+        ExportId[] exportIds = this.exportIds;
+        // We shall try to search a sequence of non-null entries for CellUsage with our protoId.
         int i = externalId.hashCode() & 0x7FFFFFFF;
         i %= hash.length;
-        for (int j = 1; hash[i] >= 0; j += 2) {
-            ExportId exportId = newExportIds[hash[i]];
-            if (exportId.externalId.equals(externalId)) return null;
-            i += j;
-            if (i >= hash.length) i -= hash.length;
+        try {
+            for (int j = 1; hash[i] >= 0; j += 2) {
+                ExportId exportId = exportIds[hash[i]];
+                if (exportId.externalId.equals(externalId)) return exportId;
+                i += j;
+                if (i >= hash.length) i -= hash.length;
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            // This may happen if some hash entries were concurrently filled with index out of ExportId range.
         }
-        
-        if (exportIds.length*2 <= hash.length - 3) {
-            hash[i] = chronIndex;
-            ExportId e = new ExportId(this, chronIndex, externalId);
-            newExportIds[chronIndex] = e;
-            return e;
+        synchronized (this) {
+            if (hash == hashExportIds && hash[i] == -1) {
+                // There we no rehash during our search and the last -1 entry is really -1.
+                // So we are sure that there is not ExportId with specified external id.
+                if (!create) return null;
+                
+                int chronIndex = numExportIds;
+                exportIds = this.exportIds;
+                if (chronIndex*2 <= hash.length - 3) {
+                    ExportId e = new ExportId(this, chronIndex, externalId);
+                    hash[i] = chronIndex;
+                    if (chronIndex >= exportIds.length) {
+                        assert chronIndex == exportIds.length;
+                        int newLength = (int)Math.min(exportIds.length*3L/2 + 1, Integer.MAX_VALUE);
+                        ExportId[] newExportIds = new ExportId[newLength];
+                        System.arraycopy(exportIds, 0, newExportIds, 0, chronIndex);
+                        exportIds = newExportIds;
+                    }
+                    exportIds[chronIndex] = e;
+                    this.exportIds = exportIds;
+                    hashExportIds = hash;
+                    numExportIds = chronIndex + 1;
+                    return e;
+                }
+                // enlarge hash if not
+                rehashExportIds(exportIds, numExportIds);
+            }
+            // retry in synchronized mode.
+            return newExportId(externalId, create);
         }
-        
-        rehashExportIds(newExportIds, chronIndex);
-        return newExportId(externalId, newExportIds, chronIndex);
     }
     
     /**
@@ -481,17 +454,17 @@ public final class CellId implements NodeProtoId, Serializable {
      * Append usage to the end of array.
      * @param usages array of usages.
      * @param newUsage new CellUsage.
-     * @return array with new usage appended. 
+     * @return array with new usage appended.
      */
     private static CellUsage[] appendUsage(CellUsage[] usages, CellUsage newUsage) {
         CellUsage[] newUsages = new CellUsage[usages.length + 1];
         System.arraycopy(usages, 0, newUsages, 0, usages.length);
         newUsages[usages.length] = newUsage;
         return newUsages;
-      }
-
-	/**
-	 * Checks invariants in this CellId.
+    }
+    
+    /**
+     * Checks invariants in this CellId.
      * ALL i: usagesIn[i].parentId == this;
      * ALL i: usagesIn[i].indexInParent == i;
      * ALL i, j: i != j IMPLIES usagesIn[i].protoId != usagesIn[i].protoId;
@@ -508,7 +481,7 @@ public final class CellId implements NodeProtoId, Serializable {
      *    static list of all CellIds;
      *
      * @exception AssertionError if invariants are not valid
-	 */
+     */
     void check() {
         checkLinked();
         assert idManager == libId.idManager;
@@ -541,7 +514,7 @@ public final class CellId implements NodeProtoId, Serializable {
         
         // Check CellUsages in usagesOf array.
         // No need synchronization because usagesOf is volatile field.
-        CellUsage[] usagesOf = this.usagesOf; 
+        CellUsage[] usagesOf = this.usagesOf;
         for (int k = 0; k < usagesOf.length; k++) {
             CellUsage u = usagesOf[k];
             
@@ -552,14 +525,16 @@ public final class CellId implements NodeProtoId, Serializable {
             assert u == u.parentId.usagesIn[u.indexInParent];
         }
         
-        ExportId[] exportIds = this.exportIds;
-        for (int k = 0; k < exportIds.length; k++) {
-            ExportId e = exportIds[k];
+        int numExportIds = this.numExportIds;
+        for (int chronIndex = 0; chronIndex < numExportIds; chronIndex++) {
+            ExportId e = exportIds[chronIndex];
             assert e.parentId == this;
-            assert e.chronIndex == k;
+            assert e.chronIndex == chronIndex;
+            assert newExportId(e.externalId, false) == e;
+            e.check();
         }
     }
-
+    
     /**
      * Check that usagesIn and hashUsagesIn contains the same number of CellUsages.
      * It checks also that each CellUsage from hashUsagesIn is in usagesIn.
@@ -599,7 +574,7 @@ public final class CellId implements NodeProtoId, Serializable {
             assert k >= 0 && k < exportIds.length;
             count++;
         }
-        assert exportIds.length == count;
+        assert numExportIds == count;
     }
     
     /**
@@ -608,5 +583,27 @@ public final class CellId implements NodeProtoId, Serializable {
      */
     private void checkLinked() {
         assert this == getIdManager().getCellId(cellIndex);
+    }
+    
+    public static void main(String[] args) {
+        IdManager idManager = new IdManager();
+        LibId libId = idManager.newLibId("lib");
+        CellName cellName = CellName.parseName("cell;1{sch}");
+        CellId cellId = libId.newCellId(cellName);
+        cellId.hashExportIds = new int[8];
+        Arrays.fill(cellId.hashExportIds, -1);
+        cellId.newExportId("A");
+        String s = "B";
+        cellId.newExportId(s);
+        
+        long startTime = System.currentTimeMillis();
+        int numTries = 100*1000*1000;
+        int k = 0;
+        for (int i = 0; i < numTries; i++) {
+            ExportId eId = cellId.newExportId(s);
+            k += eId.chronIndex;
+        }
+        long stopTime = System.currentTimeMillis();
+        System.out.println("k=" + k + " t=" + (stopTime - startTime));
     }
 }

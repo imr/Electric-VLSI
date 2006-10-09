@@ -41,6 +41,7 @@ import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -540,6 +541,7 @@ public class ReadableDump extends LibraryFiles
 		ExportList el = exportList[cellIndex];
 		int numExports = 0;
 		if (el != null) numExports = el.exportList.length;
+        CellId cellId = cell.getId();
 		for(int j=0; j<numExports; j++)
 		{
             NodeInst subNi = nodeInstList[cellIndex].theNode[el.exportSubNode[j]];
@@ -548,7 +550,8 @@ public class ReadableDump extends LibraryFiles
             boolean alwaysDrawn = Export.alwaysDrawnFromElib(userBits);
             boolean bodyOnly = Export.bodyOnlyFromElib(userBits);
             PortCharacteristic characteristic = Export.portCharacteristicFromElib(userBits);
-            Export pp = Export.newInstance(cell, el.exportName[j], null, exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
+            ExportId exportId = cellId.newExportId(Name.findName(el.exportName[j]).toString());
+            Export pp = Export.newInstance(cell, exportId, null, exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
 			el.exportList[j] = pp;
             if (pp == null) continue;
             realizeVariables(pp, el.exportVars[j]);
