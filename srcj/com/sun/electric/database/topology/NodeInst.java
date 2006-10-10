@@ -157,9 +157,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		}
 
         expanded = isCellInstance() && ((Cell)protoType).isWantExpanded();
-        
-		// fill in the geometry
-		redoGeometric();
     }
     
     private Object writeReplace() throws ObjectStreamException { return new NodeInstKey(this); }
@@ -404,7 +401,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 		NodeInst ni = new NodeInst(d, parent);
 
 		if (ni.checkAndRepair(true, null, null) > 0) return null;
-		if (ni.lowLevelLink()) return null;
+
+		// add to linked lists
+		if (parent.addNode(ni)) return null;
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().newObject(ni);
@@ -439,8 +438,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
         parent.killExports(exportsToKill);
 
-		// remove the node
-		lowLevelUnlink();
+		// remove this node from the cell
+		parent.removeNode(this);
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().killObject(this);
@@ -931,6 +930,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     public void setDInUndo(ImmutableNodeInst newD) {
         checkUndoing();
         d = newD;
+        validVisBounds = false;
     }
 
     /**
@@ -990,29 +990,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         setD(d.withPortInst(portProtoId, ImmutablePortInst.EMPTY), true);
 	}
     
-    /**
-	 * Low-level access method to link the NodeInst into its Cell.
-	 * @return true on error.
-	 */
-	public boolean lowLevelLink() {
-        assert getDatabase() != null;
-
-		// add to linked lists
-		if (parent.addNode(this)) return true;
-		parent.linkNode(this);
-		return false;
-	}
-
-	/**
-	 * Low-level method to unlink the NodeInst from its Cell.
-	 */
-	public void lowLevelUnlink()
-	{
-		// remove this node from the cell
-		parent.removeNode(this);
-		parent.unLinkNode(this);
-	}
-
 	/**
 	 * Method to adjust this NodeInst by the specified deltas.
 	 * This method does not go through change control, and so should not be used unless you know what you are doing.
@@ -1023,8 +1000,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
         if (parent != null) {
             checkChanging();
-            // remove from the R-Tree structure
-            parent.unLinkNode(this);
             boolean renamed = this.d.name != d.name;
             if (renamed)
                 parent.removeNodeName(this);
@@ -1036,10 +1011,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             
             // fill in the Geometric fields
             redoGeometric();
-            
-            // link back into the R-Tree
-            parent.linkNode(this);
-            parent.setDirty();
        } else {
             this.d = d;
     		redoGeometric();
@@ -1190,12 +1161,36 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
 	 * @return the bounds of this NodeInst.
 	 */
-	public Rectangle2D getBounds() {
-        if (!validVisBounds) {
-            d.computeBounds(this, visBounds);
-            validVisBounds = true;
-        }
+    public Rectangle2D getBounds() {
+        if (validVisBounds)
+            return visBounds;
+        EDatabase database = getDatabase();
+        if (database != null && !database.canComputeBounds())
+            return visBounds;
+        computeBounds();
+        validVisBounds = true;
         return visBounds;
+    }
+    
+    private void computeBounds() {
+        double oldX = visBounds.x;
+        double oldY = visBounds.y;
+        double oldWidth = visBounds.width;
+        double oldHeight = visBounds.height;
+        d.computeBounds(this, visBounds);
+        if ((oldX != visBounds.x || oldY != visBounds.y || oldWidth != visBounds.width || oldHeight != visBounds.height) &&
+                parent != null) {
+            parent.setDirty();
+        }
+    }
+
+    /**
+     * Method to recalculate the Geometric bounds for this NodeInst.
+     */
+    public void redoGeometric() {
+        if (parent != null)
+            parent.setGeomDirty();
+        validVisBounds = false;
     }
 
 	/**
@@ -1265,15 +1260,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	{
 		Technology tech = protoType.getTechnology();
 		return tech.getNodeInstSizeOffset(this);
-	}
-
-	/**
-	 * Method to recalculate the Geometric bounds for this NodeInst.
-	 */
-	public void redoGeometric()
-	{
-        validVisBounds = false;
-//		d.computeBounds(this, visBounds);
 	}
 
 //	/**
@@ -3332,6 +3318,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             lastPortIndex = portIndex;
         }
         assert lastPortIndex < portInsts.length;
+        if (validVisBounds) {
+            Rectangle2D.Double bounds = new Rectangle2D.Double();
+            d.computeBounds(this, bounds);
+            assert bounds.equals(visBounds);
+        }
+            
 	}
 
 	/**

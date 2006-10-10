@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: (10/10/06, DN) Lazy computation of Cell's RTree.
+
 BUG: (10/9/06, DN) Random ExportIds are created too often.
 FIX: Create them only when there is another export with the same externalId.
 
@@ -33,7 +35,7 @@ FIX: In NodeInst.kill mark for deletion only exports connected to this NodeInst.
 IMP/MAN: (10/02/06, GVG) Adding nodes that meet min rules in TSMC180.
 
 IMP/MAN: (9/28/06, GVG) Warning if you try to bring a 3D view from technologies without 3D factory
-values (Bug #991)
+values.
 
 BUG: (9/28/06, DN) Exception in cellGroup.contains(Cell) in duplicateGroupAction (Bug #1234).
 FIX: cellGroup.contains(Cell) returns false when Cell argument is null.

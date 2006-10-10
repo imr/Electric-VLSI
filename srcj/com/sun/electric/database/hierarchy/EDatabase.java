@@ -327,6 +327,7 @@ public class EDatabase {
 			if (cell != null) {
 				cellBackups[cellIndex] = cell.backup();
                 cellBounds[cellIndex] = cell.getBounds();
+                cell.getRTree(); // construct RTree in database thread, so that other thread can use something
             }
             cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
             cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);

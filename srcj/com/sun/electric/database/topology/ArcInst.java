@@ -97,6 +97,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
     /** persistent data of this ArcInst. */             ImmutableArcInst d;
 	/** bounds after transformation. */					private final Rectangle2D visBounds = new Rectangle2D.Double();
+    /** True, if visBounds are valid. */                private boolean validVisBounds;
 
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
 	/** tail connection of this arc instance */			private final TailConnection tailEnd;
@@ -220,8 +221,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
                 niH.getD().nodeId, piH.getPortProto().getId(), xPH,
                 ap.getDefaultWidth(), 0, 0);
  		ArcInst ai = new ArcInst(null, d, piH, piT);
-
-        ai.updateGeometric();
 		return ai;
 	}
 
@@ -340,6 +339,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, TextDescriptor nameDescriptor,
         PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int angle, int flags)
 	{
+        parent.checkChanging();
+        
 		// make sure fields are valid
 		if (protoType == null || headPort == null || tailPort == null || !headPort.isLinked() || !tailPort.isLinked()) return null;
         if (headPt == null || tailPt == null) return null;
@@ -393,7 +394,13 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
                 width, angle, flags);
         ArcInst ai = new ArcInst(parent, d, headPort, tailPort);
-		ai.lowLevelLink();
+        
+		// attach this arc to the two nodes it connects
+		headPort.getNodeInst().addConnection(ai.headEnd);
+		tailPort.getNodeInst().addConnection(ai.tailEnd);
+
+		// add this arc to the cell
+		parent.addArc(ai);
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().newObject(ai);
@@ -410,8 +417,14 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			System.out.println("ArcInst already killed");
 			return;
 		}
-		// remove the arc
-		lowLevelUnlink();
+        checkChanging();
+        
+		// remove this arc from the two nodes it connects
+		headPortInst.getNodeInst().removeConnection(headEnd);
+		tailPortInst.getNodeInst().removeConnection(tailEnd);
+
+		// remove this arc from the cell
+		parent.removeArc(this);
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().killObject(this);
@@ -509,6 +522,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public void setDInUndo(ImmutableArcInst newD) {
         checkUndoing();
         d = newD;
+        validVisBounds = false;
     }
 
     /**
@@ -553,41 +567,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	}
     
 	/**
-	 * Low-level method to link the ArcInst into its Cell.
-	 */
-	public void lowLevelLink()
-	{
-        assert getDatabase() != null;
-        checkChanging();
-
-		// attach this arc to the two nodes it connects
-		headPortInst.getNodeInst().addConnection(headEnd);
-		tailPortInst.getNodeInst().addConnection(tailEnd);
-
-		// fill in the geometry
-		updateGeometric();
-
-		// add this arc to the cell
-		parent.addArc(this);
-		parent.linkArc(this);
-	}
-
-	/**
-	 * Low-level method to unlink the ArcInst from its Cell.
-	 */
-	public void lowLevelUnlink()
-	{
-        checkChanging();
-		// remove this arc from the two nodes it connects
-		headPortInst.getNodeInst().removeConnection(headEnd);
-		tailPortInst.getNodeInst().removeConnection(tailEnd);
-
-		// remove this arc from the cell
-		parent.removeArc(this);
-		parent.unLinkArc(this);
-	}
-
-	/**
 	 * Low-level method to change the width and end locations of this ArcInst.
      * New persistent data may differ from old one only by width and end locations 
 	 * @param d the new persistent data of this ArcInst.
@@ -595,7 +574,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	public void lowLevelModify(ImmutableArcInst d)
 	{
 		// first remove from the R-Tree structure
-		parent.unLinkArc(this);
         boolean renamed = this.d.name != d.name;
         if (renamed)
             parent.removeArc(this);
@@ -604,14 +582,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         setD(d, false);
         if (renamed)
             parent.addArc(this);
-		updateGeometric();
+        
+        redoGeometric();
 
 		// update end shrinkage information
 		headPortInst.getNodeInst().updateShrinkage();
 		tailPortInst.getNodeInst().updateShrinkage();
-
-		// reinsert in the R-Tree structure
-		parent.linkArc(this);
 	}
 
 	/****************************** GRAPHICS ******************************/
@@ -649,12 +625,38 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (parent != null) Constraints.getCurrent().modifyArcInst(this, oldD);
     }
 
-	/**
-	 * Method to return the bounds of this ArcInst.
-	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
-	 * @return the bounds of this ArcInst.
-	 */
-	public Rectangle2D getBounds() { return visBounds; }
+    /**
+     * Method to return the bounds of this ArcInst.
+     * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
+     * @return the bounds of this ArcInst.
+     */
+    public Rectangle2D getBounds() {
+        if (validVisBounds)
+            return visBounds;
+        EDatabase database = getDatabase();
+        if (database != null && !database.canComputeBounds())
+            return visBounds;
+        computeBounds();
+        validVisBounds = true;
+        return visBounds;
+    }
+    
+    private void computeBounds() {
+		Poly poly = makePoly(d.width, Poly.Type.FILLED);
+        Rectangle2D newBounds = poly.getBounds2D();
+        if (!visBounds.equals(newBounds) && parent != null)
+            parent.setDirty();
+		visBounds.setRect(newBounds);
+    }
+
+    /**
+     * Method to recalculate the Geometric bounds for this NodeInst.
+     */
+    public void redoGeometric() {
+        if (parent != null)
+            parent.setGeomDirty();
+        validVisBounds = false;
+    }
 
 	/**
 	 * Method to create a Poly object that describes an ArcInst.
@@ -916,28 +918,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		return width * 50 / extendFactor[extend];
 	}
 
-	/**
-	 * Method to recompute the Geometric information on this ArcInst.
-	 */
-	public void updateGeometric()
-	{
-		checkChanging();
-
-		// compute the bounds
-		Poly poly = makePoly(d.width, Poly.Type.FILLED);
-		visBounds.setRect(poly.getBounds2D());
-
-		// the cell must recompute its bounds
-		if (parent != null) parent.setDirty();
-	}
-	
-    public void updateGeometricInUndo() {
-        checkUndoing();
-		// compute the bounds
-		Poly poly = makePoly(d.width, Poly.Type.FILLED);
-		visBounds.setRect(poly.getBounds2D());
-    }
-    
 	/****************************** CONNECTIONS ******************************/
 
 	/**
@@ -1676,6 +1656,18 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		return errorCount;
 	}
 
+	/**
+	 * Method to check invariants in this ArcInst.
+	 * @exception AssertionError if invariants are not valid
+	 */
+	public void check() {
+        if (validVisBounds) {
+    		Poly poly = makePoly(d.width, Poly.Type.FILLED);
+            Rectangle2D bounds = poly.getBounds2D();
+            assert bounds.equals(visBounds);
+        }
+    }
+    
 	/**
 	 * Method to set an index of this ArcInst in Cell arcs.
 	 * This is a zero-based index of arcs on the Cell.
