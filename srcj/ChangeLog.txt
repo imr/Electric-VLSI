@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: (10/11/06, GVG) More min contact primitives for node extraction.
+
 IMP: (10/11/06, DN) "CellBackup" has index of exports sorted by original node.
     It will be used in Geometry calculations in immuable data base.
     "NodeInst.exports" field is no more necessary.
