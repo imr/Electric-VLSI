@@ -306,7 +306,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
                 originalNode.getD().nodeId, subpp.getId(), alwaysDrawn, bodyOnly, characteristic);
         Export e = new Export(d, parent);
         assert e.originalPort == originalPort;
-		originalNode.addExport(e);
+		originalNode.redoGeometric();
 		parent.addExport(e);
         if (errorMsg != null) {
             System.out.println(errorMsg);
@@ -421,7 +421,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		// remove the old linkage
         if (moved) {
             NodeInst origNode = getOriginalPort().getNodeInst();
-            origNode.removeExport(this);
+            origNode.redoGeometric();
         }
         if (renamed)
             parent.moveExport(portIndex, d.name.toString());
@@ -431,7 +431,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 		// create the new linkage
         if (moved) {
             originalPort = parent.getPortInst(d.originalNodeId, d.originalPortId);
-            originalPort.getNodeInst().addExport(this);
+            originalPort.getNodeInst().redoGeometric();
         }
 	}
 

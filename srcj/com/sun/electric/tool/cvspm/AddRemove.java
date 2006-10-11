@@ -251,7 +251,7 @@ public class AddRemove {
             if (libraryFile == null) return;
             String libfile = libraryFile.getPath();
             // get cell directory if not already added before
-            File celldirFile = new File(libfile, DELIB.getCellSubDir(cell.backup()));
+            File celldirFile = new File(libfile, DELIB.getCellSubDir(cell.getId()));
             String celldir = celldirFile.getPath();
             if (!addedCellDirs.containsKey(celldir) && !libfile.equals(celldir)) {
                 if (celldirFile.exists())

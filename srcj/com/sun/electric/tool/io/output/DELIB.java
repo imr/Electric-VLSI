@@ -94,7 +94,7 @@ public class DELIB extends JELIB {
         // decide what files should be written
         for (CellBackup cellBackup : snapshot.cellBackups) {
             if (cellBackup == null || cellBackup.d.getLibId() != libId) continue;
-            String cellFile = getCellFile(cellBackup);
+            String cellFile = getCellFile(cellBackup.d.cellId);
             String file = filePath + File.separator + cellFile;
             // different cells are in different files, with the exception of
             // different versions of the same cell, which map to the same file name
@@ -168,7 +168,7 @@ public class DELIB extends JELIB {
             // new way, no subdir
         } else {
             // old way, subdir
-            String cellDir = getCellSubDir(cellBackup);
+            String cellDir = getCellSubDir(cellBackup.d.cellId);
             File cellFD = new File(filePath + File.separator + cellDir);
             if (cellFD.exists()) {
                 if (!cellFD.isDirectory()) {
@@ -188,7 +188,7 @@ public class DELIB extends JELIB {
         }
 
         // create cell file in directory
-        String cellFile = getCellFile(cellBackup);
+        String cellFile = getCellFile(cellBackup.d.cellId);
         String cellFileAbs = filePath + File.separator + cellFile;
         // save old printWriter
         CellFileState state = cellFileMap.get(cellFileAbs);
@@ -297,34 +297,34 @@ public class DELIB extends JELIB {
     /**
      * Cell subdirectory name. This is the directory inside the
      * .delib directory containing the Cell files for the specified cell.
-     * @param cellBackup
+     * @param cellId
      * @return the Cell subdirectory name.
      */
-    public static String getCellSubDir(CellBackup cellBackup) {
+    public static String getCellSubDir(CellId cellId) {
         if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             return "";
         } else
-            return cellBackup.d.cellId.cellName.getName();
+            return cellId.cellName.getName();
     }
 
     /**
      * Cell file name.  This is the path, relative to the .delib directory
      * path, of the file for the specified cell.  Note it is a relative path,
      * not an absolute path. Ex: LEsettings/LEsettings.sch
-     * @param cellBackup
+     * @param cellId
      * @return the file with the Cellin it.
      */
-    private static String getCellFile(CellBackup cellBackup) {
+    private static String getCellFile(CellId cellId) {
         if (Version.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             // versions 8.04n and above write files to .delib dir
-            String cellName = cellBackup.d.cellId.cellName.getName();
-            View view = cellBackup.d.cellId.cellName.getView();
+            String cellName = cellId.cellName.getName();
+            View view = cellId.cellName.getView();
             return cellName + "." + view.getAbbreviation();
         } else {
-            String dir = getCellSubDir(cellBackup);
-            String cellName = cellBackup.d.cellId.cellName.getName();
-            //int version = cellBackup.d.cellName.getVersion();
-            View view = cellBackup.d.cellId.cellName.getView();
+            String dir = getCellSubDir(cellId);
+            String cellName = cellId.cellName.getName();
+            //int version = cellId.cellName.getVersion();
+            View view = cellId.cellName.getView();
             //if (version > 1) cellName = cellName + "_" + version;
             return dir + File.separator + cellName + "." + view.getAbbreviation();
         }
@@ -339,18 +339,18 @@ public class DELIB extends JELIB {
      * @return the file with the Cell in it.
      */
     public static String getCellFile(Cell cell) {
+        CellId cellId = cell.getId();
         Library lib = cell.getLibrary();
-        if (lib.getVersion() == null) return getCellFile(cell.backup());
+        if (lib.getVersion() == null) return getCellFile(cellId);
         if (lib.getVersion().compareTo(Version.parseVersion(lastSubdirVersion)) > 0) {
             // library version is greater than 8.04m
-            return getCellFile(cell.backup());
+            return getCellFile(cellId);
         } else {
             // in version 8.04m and earlier, cell files were in subdirs
-            CellBackup cellBackup = cell.backup();
-            String dir = cellBackup.d.cellId.cellName.getName();
-            String cellName = cellBackup.d.cellId.cellName.getName();
-            //int version = cellBackup.d.cellName.getVersion();
-            View view = cellBackup.d.cellId.cellName.getView();
+            String dir = cellId.cellName.getName();
+            String cellName = cellId.cellName.getName();
+            //int version = cellId.cellName.getVersion();
+            View view = cellId.cellName.getView();
             //if (version > 1) cellName = cellName + "_" + version;
             return dir + File.separator + cellName + "." + view.getAbbreviation();
         }

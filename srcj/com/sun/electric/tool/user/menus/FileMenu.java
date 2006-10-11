@@ -843,7 +843,7 @@ public class FileMenu {
                  oldJelibDir.getAbsolutePath()}, "Error creating oldJelib directory", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        Output.writePanicSnapshot(EDatabase.clientDatabase().backup(), oldJelibDir, true);
+        Output.writePanicSnapshot(EDatabase.clientDatabase().backupUnsafe(), oldJelibDir, true);
     }
 
 //    public static boolean saveLibraryNoJob(String newName, Library lib, FileType type, boolean compatibleWith6)

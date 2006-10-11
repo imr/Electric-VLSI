@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
@@ -34,6 +35,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -45,13 +48,15 @@ public class CellBackup {
 
     private static final int[] NULL_INT_ARRAY = {};
     static final CellUsageInfo[] NULL_CELL_USAGE_INFO_ARRAY = {};
-
+    static int cellBackupsCreated = 0;
+    static int cellBackupsIndexByOriginalPortCreated = 0;
     /** Cell persistent data. */                                    public final ImmutableCell d;
 	/** The date this ImmutableCell was last modified. */           public final long revisionDate;
     /** "Modified" flag of the Cell. */                             public final boolean modified;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
+    /** ImmutableExports sorted by original PortInst. */            private volatile ImmutableExport[] exportIndexByOriginalPort; 
     /** Bitmap of libraries used in vars. */                        final BitSet usedLibs;
     /** CellUsageInfos indexed by CellUsage.indefInParent */        final CellUsageInfo[] cellUsages;
     /** definedExport == [0..definedExportLength) - deletedExports . */
@@ -78,6 +83,7 @@ public class CellBackup {
         this.definedExports = definedExports;
         this.definedExportsLength = definedExportsLength;
         this.deletedExports = deletedExports;
+        cellBackupsCreated++;
 //        check();
     }
     
@@ -334,6 +340,93 @@ public class CellBackup {
         }
     }
     
+    private static final Comparator<ImmutableExport> BY_ORIGINAL_PORT = new Comparator<ImmutableExport>() {
+        public int compare(ImmutableExport e1, ImmutableExport e2) {
+            int result = e1.originalNodeId - e2.originalNodeId;
+            if (result != 0) return result;
+            result = e1.originalPortId.getChronIndex() - e2.originalPortId.getChronIndex();
+            if (result != 0) return result;
+            return e1.exportId.chronIndex - e2.exportId.chronIndex;
+        }
+    };
+
+	/**
+	 * Returns true of there are Exports on specified NodeInst.
+     * @param originalNodeId nodeId of specified NodeInst.
+	 * @return true if there are Exports on specified NodeInst.
+	 */
+    public boolean hasExports(int originalNodeId) {
+        ImmutableExport[] exportIndexByOriginalPort = getExportIndexByOriginalPort();
+        int startIndex = searchExportByOriginalPort(exportIndexByOriginalPort, originalNodeId, 0);
+        if (startIndex >= exportIndexByOriginalPort.length) return false;
+        ImmutableExport e = exportIndexByOriginalPort[startIndex];
+        return e.originalNodeId == originalNodeId;
+    }
+    
+	/**
+	 * Method to return the number of Exports on specified NodeInst.
+     * @param originalNodeId nodeId of specified NodeInst.
+	 * @return the number of Exports on specified NodeInst.
+	 */
+    public int getNumExports(int originalNodeId) {
+        ImmutableExport[] exportIndexByOriginalPort = getExportIndexByOriginalPort();
+        int startIndex = searchExportByOriginalPort(exportIndexByOriginalPort, originalNodeId, 0);
+        int j = startIndex;
+        for (; j < exportIndexByOriginalPort.length; j++) {
+            ImmutableExport e = exportIndexByOriginalPort[j];
+            if (e.originalNodeId != originalNodeId) break;
+        }
+        return j - startIndex;
+    }
+    
+    /**
+	 * Method to return an Iterator over all ImmutableExports on specified NodeInst.
+     * @param originalNodeId nodeId of specified NodeInst.
+	 * @return an Iterator over all ImmutableExports on specified NodeInst.
+	 */
+    public Iterator<ImmutableExport> getExports(int originalNodeId) {
+        ImmutableExport[] exportIndexByOriginalPort = getExportIndexByOriginalPort();
+        int startIndex = searchExportByOriginalPort(exportIndexByOriginalPort, originalNodeId, 0);
+        int j = startIndex;
+        for (; j < exportIndexByOriginalPort.length; j++) {
+            ImmutableExport e = exportIndexByOriginalPort[j];
+            if (e.originalNodeId != originalNodeId) break;
+        }
+        return ArrayIterator.iterator(exportIndexByOriginalPort, startIndex, j);
+    }
+    
+    private static int searchExportByOriginalPort(ImmutableExport[] exportIndexByOriginalPort, int originalNodeId, int originalPortIndex) {
+        int low = 0;
+        int high = exportIndexByOriginalPort.length-1;
+		while (low <= high) {
+			int mid = (low + high) >> 1; // try in a middle
+			ImmutableExport e = exportIndexByOriginalPort[mid];
+			int cmp = e.originalNodeId - originalNodeId;
+            if (cmp == 0)
+                cmp = e.originalPortId.getChronIndex() >= originalPortIndex ? 1 : -1;
+
+			if (cmp < 0)
+				low = mid + 1;
+			else
+				high = mid - 1;
+		}
+		return low;
+    }
+    
+    private ImmutableExport[] getExportIndexByOriginalPort() {
+        ImmutableExport[] exportIndexByOriginalPort = this.exportIndexByOriginalPort;
+        if (exportIndexByOriginalPort != null) return exportIndexByOriginalPort;
+        createExportIndexByOriginalPort();
+        return this.exportIndexByOriginalPort;
+    }
+    
+    private void createExportIndexByOriginalPort() {
+        cellBackupsIndexByOriginalPortCreated++;
+        ImmutableExport[] exportIndexByOriginalPort = exports.toArray(new ImmutableExport[exports.size()]);
+        Arrays.sort(exportIndexByOriginalPort, BY_ORIGINAL_PORT);
+        this.exportIndexByOriginalPort = exportIndexByOriginalPort;
+    }
+    
     /**
      * Writes this CellBackup to SnapshotWriter.
      * @param writer where to write.
@@ -484,6 +577,17 @@ public class CellBackup {
         for (CellUsageInfo cui: cellUsages) {
             if (cui != null)
                 cui.check();
+        }
+        
+        if (exportIndexByOriginalPort != null) {
+            assert exportIndexByOriginalPort.length == exports.size();
+            ImmutableExport prevE = null;
+            for (ImmutableExport e: exportIndexByOriginalPort) {
+                if (prevE != null)
+                    assert BY_ORIGINAL_PORT.compare(prevE, e) < 0;
+                assert e == exports.get(exportIndex[e.exportId.chronIndex]);
+                prevE = e;
+            }
         }
     }
     

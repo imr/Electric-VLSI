@@ -23,9 +23,11 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.constraint.Constraints;
@@ -127,7 +129,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
 	/** List of connections belonging to this NodeInst. It is sorted by portIndex.*/private ArrayList<Connection> connections = new ArrayList<Connection>(2);
-	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
 	/** True, if this NodeInst is wiped. */                 private boolean wiped;
     /** If True, draw NodeInst expanded. */                 private boolean expanded;
 	/** the shrinkage is from 0 to 90 (for pins only)*/     byte shrink;
@@ -2115,64 +2116,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     }
 
 	/**
-	 * Method to add an Export to this NodeInst.
-	 * @param e the Export to add.
-	 */
-	public void addExport(Export e)
-	{
-		Export[] newExports = new Export[exports.length + 1];
-		System.arraycopy(exports, 0, newExports, 0, exports.length);
-		newExports[newExports.length - 1] = e;
-		exports = newExports;
-		redoGeometric();
-	}
-
-	/**
-	 * Method to remove an Export from this NodeInst.
-	 * @param e the Export to remove.
-	 */
-	public void removeExport(Export e)
-	{
-		int i = 0;
-		while (i < exports.length && exports[i] != e) i++;
-		if (i >= exports.length)
-			throw new RuntimeException("Tried to remove a non-existant export");
-		Export[] newExports = exports.length > 1 ? new Export[exports.length - 1] : NULL_EXPORT_ARRAY;
-		System.arraycopy(exports, 0, newExports, 0, i);
-		System.arraycopy(exports, i + 1, newExports, i, newExports.length - i);
-		exports = newExports;
-		redoGeometric();
-	}
-
-    /**
-     * Low-level method to allocate Exports array.
-     * @param numExports size of Exports array.
-     */
-    public void lowLevelAllocExports(int numExports) {
-        if (numExports == exports.length)
-            Arrays.fill(exports, null);
-        else
-            exports = numExports > 0 ? new Export[numExports] : NULL_EXPORT_ARRAY;
-    }
-    
-    /**
-     * Low-level method to put Export into exports array.
-     * @param index index where to put.
-     * @param export Export to put.
-     */
-    public void lowLevelSetExport(int index, Export export) {
-        assert exports[index] == null;
-        exports[index] = export;
-    }
-    
-	/**
 	 * Returns true of there are Exports on this NodeInst.
 	 * @return true if there are Exports on this NodeInst.
 	 */
 	public boolean hasExports() {
-        if (parent == null) return false;
-        refreshExports();
-        return exports.length != 0;
+        return parent != null && parent.backupUnsafe().hasExports(getD().nodeId);
     }
     
     /**
@@ -2180,12 +2128,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return an Iterator over all Exports on this NodeInst.
 	 */
 	public Iterator<Export> getExports() {
-        if (parent == null) {
-            Iterator<Export> it = ArrayIterator.emptyIterator();
-            return it;
+        Iterator<Export> eit = ArrayIterator.emptyIterator();
+        if (parent != null) {
+            Iterator<ImmutableExport> it = parent.backupUnsafe().getExports(getD().nodeId);
+            if (it.hasNext())
+                eit = new ExportIterator(it);
         }
-        refreshExports();
-        return ArrayIterator.iterator(exports);
+        return eit;
+    }
+    
+    private class ExportIterator implements Iterator<Export> {
+        private final Iterator<ImmutableExport> it;
+        ExportIterator(Iterator<ImmutableExport> it) { this.it = it; }
+        public boolean hasNext() { return it.hasNext(); }
+        public Export next() { return parent.getExportChron(it.next().exportId.chronIndex); }
+        public void remove() { throw new UnsupportedOperationException(); }
     }
 
 	/**
@@ -2193,15 +2150,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the number of Exports on this NodeInst.
 	 */
 	public int getNumExports() {
-        if (parent == null) return 0;
-        refreshExports();
-        return exports.length;
+        return parent != null ? parent.backupUnsafe().getNumExports(getD().nodeId) : 0;
     }
     
-    private void refreshExports() {
-        parent.refreshExports();
-    }
-
 	/**
 	 * Method to associate the ports between two NodeInsts.
 	 * @param ni1 the first NodeInst to associate.
@@ -3268,7 +3219,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Method to check invariants in this NodeInst.
 	 * @exception AssertionError if invariants are not valid
 	 */
-	public void check(BitSet exportSet, BitSet tailSet, BitSet headSet) {
+	public void check(BitSet tailSet, BitSet headSet) {
         assert isLinked();
         super.check();
         
@@ -3278,16 +3229,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             assert pi.getNodeInst() == this;
             PortProto pp = pi.getPortProto();
             assert pp == protoType.getPort(i);
-        }
-        
-        for (int i = 0; i < exports.length; i++) {
-            Export e = exports[i];
-            assert e.getParent() == parent && e.isLinked();
-            PortInst pi = e.getOriginalPort();
-            assert pi.getNodeInst() == this;
-            int exportIndex = e.getPortIndex();
-            assert exportSet.get(exportIndex);
-            exportSet.clear(exportIndex);
         }
         
         int lastPortIndex = -1;

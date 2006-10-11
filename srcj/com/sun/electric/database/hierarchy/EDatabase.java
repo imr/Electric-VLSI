@@ -80,6 +80,7 @@ public class EDatabase {
     public EDatabase(IdManager idManager) {
         this.idManager = idManager;
         snapshot = getInitialSnapshot();
+        snapshotFresh = true;
         networkManager = new NetworkManager(this);
     }
     
@@ -297,12 +298,25 @@ public class EDatabase {
         snapshotFresh = false;
     }
     
-   /**
+    /**
      * Create Snapshot from the current state of Electric database.
      * @return snapshot of the current state of Electric database.
+     * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
      */
     public Snapshot backup() {
         if (snapshotFresh) return snapshot;
+        if (!canComputeBounds())
+            throw new IllegalStateException();
+        return doBackup();
+    }
+    
+    /**
+     * Create Snapshot from the current state of Electric database.
+     * If there is no fresh snapshot for this database and thread is not enabled to calculate snspshot, returns the latest snapshot.
+     * @return snapshot of the current state of Electric database.
+     */
+    public Snapshot backupUnsafe() {
+        if (snapshotFresh || !canComputeBounds()) return snapshot;
         return doBackup();
     }
         

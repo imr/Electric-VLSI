@@ -233,7 +233,7 @@ public class Output
         String properOutputName = TextUtils.getFilePath(libURL) + TextUtils.getFileNameWithoutExtension(libURL) + ".jelib";
         JELIB jelib = new JELIB();
         if (jelib.openTextOutputStream(properOutputName) ||
-                jelib.writeLib(lib.getDatabase().backup(), lib.getId(), libFiles, false) ||
+                jelib.writeLib(lib.getDatabase().backupUnsafe(), lib.getId(), libFiles, false) ||
                 jelib.closeTextOutputStream()) {
             System.out.println("Error saving "+lib.getName());
             error = true;

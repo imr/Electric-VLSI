@@ -937,16 +937,24 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	/*
 	 * Low-level method to backup this Cell to CellBackup.
      * @return CellBackup which is the backup of this Cell.
+     * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
 	 */
     public CellBackup backup() {
         if (cellBackupFresh) return backup;
+        if (!database.canComputeBounds())
+            throw new IllegalStateException();
         return doBackup();
     }
     
-    public void refreshExports() {
-//        if (cellBackupFresh) return;
-//        System.out.println(this + " refreshBackup");
-//        doBackup();
+	/*
+	 * Low-level method to backup this Cell to CellBackup.
+     * If there is no fresh backup for this database and thread is not enabled to calculate snspshot, returns the latest backup.
+     * @return CellBackup which is the backup of this Cell.
+     * @throws IllegalStateException if recalculation of Snapshot is requred in thread which is not enabled to do it.
+	 */
+    public CellBackup backupUnsafe() {
+        if (cellBackupFresh || !database.canComputeBounds()) return backup;
+        return doBackup();
     }
     
     private CellBackup doBackup() {
@@ -1159,22 +1167,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert exportCount == exports.length;
 
-        int[] exportsCounts = new int[nodes.size()];
-        for (int i = 0; i < exports.length; i++) {
-            Export e = exports[i];
-            exportsCounts[e.getOriginalPort().getNodeInst().getNodeIndex()]++;
-        }
-        for (int i = 0; i < nodes.size(); i++) {
-            nodes.get(i).lowLevelAllocExports(exportsCounts[i]);
-            exportsCounts[i] = 0;
-        }
-        for (int i = 0; i < exports.length; i++) {
-            Export e = exports[i];
-            int nodeIndex = e.getOriginalPort().getNodeInst().getNodeIndex();
-            NodeInst ni = nodes.get(nodeIndex);
-            ni.lowLevelSetExport(exportsCounts[nodeIndex]++, e);
-        }
-        
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             if (ni.isCellInstance()) {
@@ -2626,7 +2618,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         for (Export e: killedExports) {
             assert e.isLinked();
             NodeInst originalNode = e.getOriginalPort().getNodeInst();
-            originalNode.removeExport(e);
+            originalNode.redoGeometric();
             removeExport(e);
     		// handle change control, constraint, and broadcast
         	Constraints.getCurrent().killObject(e);
@@ -4324,9 +4316,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         
         // check nodes
-        BitSet exportSet = new BitSet();
-        if (exports.length > 0)  // Bug in BitSet.set(int,int) on Sun JDK
-            exportSet.set(0, exports.length);
         BitSet tailSet = new BitSet();
         BitSet headSet = new BitSet();
         if (arcs.size() > 0) {  // Bug in BitSet.set(int,int) on Sun JDK
@@ -4353,10 +4342,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 CellUsage u = cellId.getUsageIn(subCell.getId());
                 usages[u.indexInParent]++;
             }
-            ni.check(exportSet, tailSet, headSet);
+            ni.check(tailSet, headSet);
             prevNi = ni;
         }
-        assert exportSet.isEmpty();
         assert tailSet.isEmpty() && headSet.isEmpty();
         for (int nodeId = 0; nodeId < chronNodes.size(); nodeId++) {
             NodeInst ni = chronNodes.get(nodeId);
