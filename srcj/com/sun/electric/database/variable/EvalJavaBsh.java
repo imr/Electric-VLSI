@@ -352,7 +352,9 @@ public class EvalJavaBsh
                 VarContext.EvalException ee = getEvalException((InvocationTargetException)e);
                 if (ee != null) throw ee;
             }
-            handleInvokeException(e, "Bean shell error evaluating "+line);
+            if (!handleInvokeException(e, "Bean shell error evaluating "+line)) {
+                throw new VarContext.EvalException(e.getMessage(), e);
+            }
         }
         return returnVal;
     }
@@ -379,18 +381,18 @@ public class EvalJavaBsh
                 sourceMethod.invoke(envObject, new Object[] {file});
             }
         } catch (Exception e) {
-            handleInvokeException(e, "Bean shell error sourcing '" + file +"'");
+            handleInvokeException(e, "Java Bean shell error sourcing '" + file +"'");
         }
     }
 
     private static Throwable doGetTarget(Object ex)
     {
         Throwable returnVal = null;
-        if (interpreterClass != null) {
+        if (interpreterClass != null && targetErrorClass.isInstance(ex)) {
             try {
                 returnVal = (Throwable)getTargetMethod.invoke(ex, (Object[])null);
             } catch (Exception e) {
-                handleInvokeException(e, "Bean shell error getting exception target");
+                handleInvokeException(e, "Java Bean shell error getting exception target");
             }
         }
         return returnVal;
@@ -418,13 +420,14 @@ public class EvalJavaBsh
      * @param e The exception thrown by the invoked method or constructor.
      * @param description a description of the event to be printed with the error message.
      */
-    private static void handleInvokeException(Exception e, String description) {
+    private static boolean handleInvokeException(Exception e, String description) {
 
+        boolean handled = false;
         if (e instanceof InvocationTargetException) {
             // This wraps an exception thrown by the method invoked.
             Throwable t = e.getCause();
             if (t != null)
-                handleBshError((Exception)t, description);
+                handled = handleBshError((Exception)t, description);
         }
         else if (e instanceof IllegalArgumentException) {
             System.out.println(description+": "+e.getMessage());
@@ -438,11 +441,13 @@ public class EvalJavaBsh
             System.out.println("Unhandled Exception: ");
             System.out.println(description+": "+e.getMessage());
             e.printStackTrace(System.out);
+            handled = false;
         }
 
 	    // Finishing session
 		if (Job.BATCHMODE)
 			System.exit(1);
+        return handled;
     }
 
     /**
@@ -450,7 +455,7 @@ public class EvalJavaBsh
      * @param e the TargetError exception thrown.
      * @param description a description of the event that caused the error to be thrown.
      */
-    private static void handleBshError(Exception e, String description)
+    private static boolean handleBshError(Exception e, String description)
     {
         if (targetErrorClass.isInstance(e)) {
             // The Bean Shell had an error
@@ -458,7 +463,7 @@ public class EvalJavaBsh
             if (t != null) {
                 if (t instanceof VarContext.EvalException) {
                     if (DEBUG) {
-                        System.out.println("EvalException: "+description+": "+t.getMessage());
+                        System.out.println("Java EvalException: "+description+": "+t.getMessage());
                         if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
                     }
                 } else {
@@ -473,9 +478,11 @@ public class EvalJavaBsh
                 }
             }
         } else {
-            System.out.println("Unhandled Bsh Exception: "+description+": "+e.getMessage());
+            System.out.println("Unhandled Java Bsh Exception: "+description+": "+e.getMessage());
             if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
+            return false;
         }
+        return true;
     }
 
 }

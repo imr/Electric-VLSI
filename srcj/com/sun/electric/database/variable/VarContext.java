@@ -400,6 +400,13 @@ public class VarContext implements Serializable
         try {
             return evalVarRecurse(var, info);
         } catch (EvalException e) {
+            String msg = "Exception caught evaluating "+var.getTextDescriptor().getCode()+" var "+var.getTrueName();
+            if (info instanceof Nodable) {
+                NodeInst ni = ((Nodable)info).getNodeInst();
+                System.out.println("In Cell "+ni.getParent().describe(false)+", on Node "+ni.describe(false)+": "+msg);
+            } else {
+                System.out.println(msg);
+            }
             return null;
         }
     }
