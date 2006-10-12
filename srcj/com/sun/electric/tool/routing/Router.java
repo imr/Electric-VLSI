@@ -153,9 +153,10 @@ public abstract class Router {
         if (arcsCreatedMap.get(Generic.tech.unrouted_arc) == null)
         {
             // update current unrouted arcs
-        	PortInst pi = route.getStart().getPortInst();
-        	if (pi != null)
+        	RouteElementPort rep = route.getStart();
+        	if (rep != null && rep.getPortInst() != null)
         	{
+        		PortInst pi = rep.getPortInst();
 	            for (Iterator<Connection> it = pi.getConnections(); it.hasNext(); )
 	            {
 	                Connection conn = it.next();
