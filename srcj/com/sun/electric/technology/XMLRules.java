@@ -1188,9 +1188,9 @@ public class XMLRules implements DRCRules {
                 basic = name2 == null || name2.equals(a.name2);
             return (basic);
 		}
-		public int hashCode()
+
+        public int hashCode()
 		{
-//			return ruleType.mode();
             return ruleType.hashCode();
         }
 	}

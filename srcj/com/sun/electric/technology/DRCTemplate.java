@@ -106,14 +106,6 @@ public class DRCTemplate
         /** forbidden rule */               FORBIDDEN,
         /** extension gate rule */          EXTENSIONGATE,
         /** slot size rule */               SLOTSIZE
-
-//        private final int mode;
-//
-//        DRCRuleType(int mode)
-//        {
-//            this.mode = mode;
-//        }
-//        public int mode() { return this.mode; }
     }
 
     // For sorting
