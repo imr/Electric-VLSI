@@ -400,13 +400,7 @@ public class VarContext implements Serializable
         try {
             return evalVarRecurse(var, info);
         } catch (EvalException e) {
-            String msg = "Exception caught evaluating "+var.getTextDescriptor().getCode()+" var "+var.getTrueName();
-            if (info instanceof Nodable) {
-                NodeInst ni = ((Nodable)info).getNodeInst();
-                System.out.println("In Cell "+ni.getParent().describe(false)+", on Node "+ni.describe(false)+": "+msg);
-            } else {
-                System.out.println(msg);
-            }
+            printException(e, var, this, info);
             return null;
         }
     }
@@ -416,6 +410,20 @@ public class VarContext implements Serializable
         public EvalException(String message) { super(message); }
         public EvalException(String message, Throwable cause) { super(message, cause); }
         public EvalException(Throwable cause) { super(cause); }
+    }
+
+    public static void printException(EvalException e, Variable var, VarContext context, Object info) {
+        // If cause is null, this was an error in electric (var lookup etc)
+        if (e.getCause() == null) return;
+        // otherwise, this is an error in the bean shell
+        String msg = "Exception caught evaluating "+var.getTextDescriptor().getCode()+
+                " var "+var.getTrueName()+(e.getMessage() == null ? "" : ": "+e.getMessage());
+        if (info instanceof Nodable) {
+            NodeInst ni = ((Nodable)info).getNodeInst();
+            System.out.println("In Cell "+ni.getParent().describe(false)+", on Node "+ni.describe(false)+": "+msg);
+        } else {
+            System.out.println(msg);
+        }
     }
 
     /**

@@ -780,13 +780,7 @@ public class Variable implements Serializable
             try {
                 val = context.evalVarRecurse(this, eobj);
             } catch (VarContext.EvalException e) {
-                String msg = "Exception caught evaluating "+getTextDescriptor().getCode()+" attribute "+getTrueName();
-                if (eobj instanceof Nodable) {
-                    NodeInst ni = ((Nodable)eobj).getNodeInst();
-                    System.out.println("In Cell "+ni.getParent().describe(false)+", on Node "+ni.describe(false)+": "+msg);
-                } else {
-                    System.out.println(msg);
-                }
+                VarContext.printException(e, this, context, eobj);
                 val = e.getMessage();
             }
             if (val == null) val = "?";

@@ -419,6 +419,7 @@ public class EvalJavaBsh
      * Handle exceptions thrown by attempting to invoke a reflected method or constructor.
      * @param e The exception thrown by the invoked method or constructor.
      * @param description a description of the event to be printed with the error message.
+     * @return true if exception handled (error message printed), false if not
      */
     private static boolean handleInvokeException(Exception e, String description) {
 
