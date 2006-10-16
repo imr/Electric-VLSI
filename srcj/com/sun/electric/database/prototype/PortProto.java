@@ -55,6 +55,12 @@ public interface PortProto
      */
     public PortProtoId getId();
     
+    /**
+     * Method to return chronological index of this PortProto in parent.
+     * @return chronological index of this PortProto in parent.
+     */
+    public int getChronIndex();
+    
 	/**
 	 * Method to get the index of this PortProto.
 	 * This is a zero-based index of ports on the NodeProto.

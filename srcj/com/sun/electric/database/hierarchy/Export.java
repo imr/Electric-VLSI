@@ -615,6 +615,12 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 */
 	public NodeProto getParent() { return parent; }
 
+    /**
+     * Method to return chronological index of this Export in parent.
+     * @return chronological index of this Export in parent.
+     */
+    public int getChronIndex() { return d.exportId.chronIndex; }
+    
 	/**
 	 * Method to get the index of this Export.
 	 * This is a zero-based index of ports on the Cell.

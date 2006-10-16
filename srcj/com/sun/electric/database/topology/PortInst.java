@@ -132,26 +132,14 @@ public class PortInst extends ElectricObject
 	 * Returns true of there are Connections on this PortInst.
 	 * @return true if there are Connections on this PortInst.
 	 */
-	public boolean hasConnections() {
-        Iterator<Connection> it = nodeInst.getConnections(getPortIndex());
-        return it.hasNext() && it.next().getPortInst() == this;
-    }
+	public boolean hasConnections() { return nodeInst.hasConnections(portProto.getChronIndex()); }
     
 	/**
 	 * Get iterator of all Connections
 	 * that connect to this PortInst
 	 * @return an iterator over associated Connections
 	 */
-	public Iterator<Connection> getConnections() {
-		List<Connection> connections = new ArrayList<Connection>();
-		// get connections on NodeInst
-		for (Iterator<Connection> it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
-			Connection c = it.next();
-			if (c.getPortInst() != this) break;
-			connections.add(c);
-		}
-		return connections.iterator();
-	}
+	public Iterator<Connection> getConnections() { return nodeInst.getConnections(portProto.getChronIndex()); }
 
 	/**
 	 * Get iterator of all Exports
@@ -338,5 +326,4 @@ public class PortInst extends ElectricObject
             poly.setExactTextBounds(wnd, this);
         return poly;
     }
-
 }

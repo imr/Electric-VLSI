@@ -340,6 +340,7 @@ public class EDatabase {
             Cell cell = getCell(cellIndex);
 			if (cell != null) {
 				cellBackups[cellIndex] = cell.backup();
+                cell.getMemoization();
                 cellBounds[cellIndex] = cell.getBounds();
                 cell.getRTree(); // construct RTree in database thread, so that other thread can use something
             }

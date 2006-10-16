@@ -26,6 +26,7 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectInputStream;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
@@ -41,8 +42,8 @@ import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
+import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -69,12 +70,13 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.TreeMap;
 
 /**
@@ -128,10 +130,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/** prototype of this NodeInst. */						private final NodeProto protoType;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
-	/** List of connections belonging to this NodeInst. It is sorted by portIndex.*/private ArrayList<Connection> connections = new ArrayList<Connection>(2);
-	/** True, if this NodeInst is wiped. */                 private boolean wiped;
     /** If True, draw NodeInst expanded. */                 private boolean expanded;
-	/** the shrinkage is from 0 to 90 (for pins only)*/     byte shrink;
     
 	/** bounds after transformation. */						private final Rectangle2D.Double visBounds = new Rectangle2D.Double(0, 0, 0, 0);
     /** True, if visBounds are valid. */                    private boolean validVisBounds;
@@ -424,11 +423,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			return;
 		}
 		// kill the arcs attached to the connections.  This will also remove the connections themselves
-		while (connections.size() > 0)
-		{
-			Connection con = connections.get(connections.size() - 1);
-			con.getArc().kill();
-		}
+        ArrayList<ArcInst> arcsToKill = new ArrayList<ArcInst>();
+        for (Iterator<ArcInst> it = parent.getArcs(); it.hasNext(); ) {
+            ArcInst ai = it.next();
+            if (ai.getTailPortInst().getNodeInst() == this || ai.getHeadPortInst().getNodeInst() == this)
+                arcsToKill.add(ai);
+        }
+        for (ArcInst ai: arcsToKill)
+            ai.kill();
 
 		// remove any exports
         HashSet<Export> exportsToKill = new HashSet<Export>();
@@ -2084,26 +2086,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         portInsts = newPortInsts;
     }
     
-	/**
-	 * Method to move Connections on this NodeInst.
-	 * @param pp PortProto whose connections to move.
-	 */
-	public void moveConnections(PortProto pp)
-	{
-        ArrayList<Connection> savedConnections = new ArrayList<Connection>();
-        for (Iterator<Connection> it = connections.iterator(); it.hasNext(); ) {
-            Connection con = it.next();
-            if (con.getPortInst().getPortProto() == pp) {
-                savedConnections.add(con);
-                it.remove();
-            }
-        }
-        for (int i = 0; i < savedConnections.size(); i++) {
-            Connection con = savedConnections.get(i);
-            addConnection(con);
-        }
-	}
-
     /** 
      * Method to get the Schematic Cell from a NodeInst icon
      * @return the equivalent view of the prototype, or null if none
@@ -2120,7 +2102,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return true if there are Exports on this NodeInst.
 	 */
 	public boolean hasExports() {
-        return parent != null && parent.backupUnsafe().hasExports(getD().nodeId);
+        return parent != null && parent.getMemoization().hasExports(getD().nodeId);
     }
     
     /**
@@ -2130,7 +2112,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public Iterator<Export> getExports() {
         Iterator<Export> eit = ArrayIterator.emptyIterator();
         if (parent != null) {
-            Iterator<ImmutableExport> it = parent.backupUnsafe().getExports(getD().nodeId);
+            Iterator<ImmutableExport> it = parent.getMemoization().getExports(getD().nodeId);
             if (it.hasNext())
                 eit = new ExportIterator(it);
         }
@@ -2150,7 +2132,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the number of Exports on this NodeInst.
 	 */
 	public int getNumExports() {
-        return parent != null ? parent.backupUnsafe().getNumExports(getD().nodeId) : 0;
+        return parent != null ? parent.getMemoization().getNumExports(getD().nodeId) : 0;
     }
     
 	/**
@@ -2261,39 +2243,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 	/****************************** CONNECTIONS ******************************/
 
-//	/**
-//	 * sanity check function, used by Connection.checkobj
-//	 */
-//	private boolean containsConnection(Connection c)
-//	{
-//		return connections.contains(c);
-//	}
-
-	/**
-	 * Method to recomputes the "Wiped" flag bit on this NodeInst.
-	 * The Wiped flag is set if the NodeInst is "wipable" and if it is connected to
-	 * ArcInsts that wipe.  Wiping means erasing.  Typically, pin NodeInsts can be wiped.
-	 * This means that when an arc connects to the pin, it is no longer drawn.
-	 */
-	public void computeWipeState()
-	{
-        wiped = false;
-		NodeProto np = getProto();
-		if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe())
-		{
-			for(Iterator<Connection> it = getConnections(); it.hasNext(); )
-			{
-				Connection con = it.next();
-				ArcInst ai = con.getArc();
-				if (ai.getProto().isWipable())
-				{
-					wiped = true;
-					break;
-				}
-			}
-		}
-	}
-
 	/**
 	 * Method to determine whether the display of this pin NodeInst should be supressed.
 	 * In Schematics technologies, pins are not displayed if there are 1 or 2 connections,
@@ -2302,64 +2251,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public boolean pinUseCount()
 	{
-		if (connections.size() > 2) return false;
+        int numConnections = getNumConnections();
+		if (numConnections > 2) return false;
 		if (hasExports()) return true;
-//		if (getNumExports() != 0) return true;
-		if (connections.size() == 0) return false;
+		if (numConnections == 0) return false;
 		return true;
 	}
 
-	/**
-	 * Method to update the "end shrink" factors on all arcs on a PortInst.
-	 * This is a number from 0 to 90, where
-	 * 0 indicates no shortening (extend the arc by half its width) and greater values
-	 * indicate that the end should be shortened to account for this angle of connection.
-	 * Small values are shortened almost to nothing, whereas large values are shortened
-	 * very little (and a value of 90 indicates no shortening at all).
-	 */
- 	public void updateShrinkage()
-	{
-		// quit now if we don't have to worry about this kind of nodeinst
-		if (!(protoType instanceof PrimitiveNode) || !((PrimitiveNode)protoType).isArcsShrink()) return;
-        assert getNumPortInsts() == 1;
-
-        int ang0 = -1;
-        int ang1 = -1;
-
-		// gather the angles of the nodes/arcs
-		for (Iterator<Connection> it = getConnections(); it.hasNext(); ) {
-			Connection con = it.next();
-			ArcInst ai = con.getArc();
-
-			// ignore zero-size arcs
-			if (ai.getWidth() == 0) continue;
-
-			// compute the angle
-			int angle = ai.getAngle();
-			angle %= 1800;
-            if (angle == ang0 || angle == ang1) continue;
-            if (ang0 < 0)
-                ang0 = angle;
-            else if (ang1 < 0)
-                ang1 = angle;
-            else {
-                shrink = 0;
-                return;		// give up if too many angles
-            }
-		}
-
-        // only one angle
-        if (ang1 < 0) {
-            shrink = 0;
-            return;
-        }
-        
-        int ang = Math.abs(ang0 - ang1);
-        if (ang > 900) ang = 1800 - ang;
-        shrink = (byte)((ang + 5) / 10);
-        if (shrink == 0 && ang != 0) shrink = 1;
-	}
-    
 	/**
 	 * Method to tell whether this NodeInst is a pin that is "inline".
 	 * An inline pin is one that connects in the middle between two arcs.
@@ -2439,135 +2337,142 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	}
 
 	/**
-	 * Method to add an Connection to this NodeInst.
-	 * @param c the Connection to add.
-	 */
-	public void addConnection(Connection c)
-	{
-        PortInst pi = c.getPortInst();
-        assert pi.getNodeInst() == this;
-        int portIndex = pi.getPortIndex();
-        int pos = searchConnections(portIndex + 1);
-		connections.add(pos, c);
-        
-		computeWipeState();
-        updateShrinkage();
-		redoGeometric();
-	}
-    
-	/**
-	 * Method to remove an Connection from this NodeInst.
-	 * @param c the Connection to remove.
-	 */
-	public void removeConnection(Connection c)
-	{
-        PortInst pi = c.getPortInst();
-        assert pi.getNodeInst() == this;
-        int portIndex = pi.getPortIndex();
-        int pos = searchConnections(portIndex);
-        while (!c.equals(connections.get(pos)))
-            pos++;
-		connections.remove(pos);
-        
-		computeWipeState();
-        updateShrinkage();
-		redoGeometric();
-	}
-    
-    /**
-     * Low-level method to clear all Connections.
-     */
-    public void lowLevelClearConnections() {
-        connections.clear();
-    }
-
-    /**
-     * Low-level method to add an Connection to this NodeInst.
-     * This method doesn't keep proper order of Connections.
-     * Connections should be sorted later.
-     * @param c the Connection to add.
-     */
-    public void lowLevelAddConnection(Connection c) {
-        PortInst pi = c.getPortInst();
-        assert pi.getNodeInst() == this;
-        connections.add(c);
-    }
-    
-    /**
-     * Repair proper order of Connections after low-level manipulations.
-     */
-    public void sortConnections() {
-        if (connectionsSorted()) return;
-        Collections.sort(connections, TextUtils.CONNECTIONS_ORDER);
-    }
-
-    /**
-     * Returns true if connections are sorted by port index.
-     */
-    private boolean connectionsSorted() {
-        int prevPortIndex = -1;
-        for (int i = 0; i < connections.size(); i++) {
-            int portIndex = connections.get(i).getPortInst().getPortIndex();
-            if (portIndex < prevPortIndex)
-                return false;
-            prevPortIndex = portIndex;
-        }
-        return true;
-    }
-    
-	/**
 	 * Method to return an Iterator over all Connections on this NodeInst.
 	 * @return an Iterator over all Connections on this NodeInst.
 	 */
-	public Iterator<Connection> getConnections()
-	{
-		return connections.iterator();
-	}
+    public Iterator<Connection> getConnections() {
+        if (parent == null) {
+            Iterator<Connection> cit = ArrayIterator.emptyIterator();
+            return cit;
+        }
+        return new ConnectionIterator(parent.getMemoization(), getD().nodeId);
+    }
 
 	/**
 	 * Method to return an Iterator over Connections on this NodeInst since portIndex.
-     * @param portIndex port index to start iterator from/
+     * @param chronIndex port index to start iterator from/
 	 * @return an Iterator over Connections on this NodeInst since portIndex.
 	 */
-    Iterator<Connection> getConnections(int portIndex) {
-        return connections.listIterator(searchConnections(portIndex));
+    Iterator<Connection> getConnections(int chronIndex) {
+        if (parent == null) {
+            Iterator<Connection> cit = ArrayIterator.emptyIterator();
+            return cit;
+        }
+        return new ConnectionIterator(parent.getMemoization(), getD().nodeId, chronIndex);
     }
     
 	/**
 	 * Returns true of there are Connections on this NodeInst.
 	 * @return true if there are Connections on this NodeInst.
 	 */
-	public boolean hasConnections() { return !connections.isEmpty(); }
+	public boolean hasConnections() {
+        if (parent == null) return false;
+        CellBackup.Memoization m = parent.getMemoization();
+        int i = m.searchConnectionByPort(getD().nodeId, 0);
+        if (i >= m.connections.length) return false;
+        int con = m.connections[i];
+        ImmutableArcInst a = m.getArcs().get(con >>> 1);
+        boolean end = (con & 1) != 0;
+        int nodeId = end ? a.headNodeId : a.tailNodeId;
+        return nodeId == getD().nodeId;
+    }
+    
+	/**
+	 * Returns true of there are Connections on this NodeInst.
+	 * @return true if there are Connections on this NodeInst.
+	 */
+	public boolean hasConnections(int chronIndex) {
+        if (parent == null) return false;
+        CellBackup.Memoization m = parent.getMemoization();
+        int i = m.searchConnectionByPort(getD().nodeId, chronIndex);
+        if (i >= m.connections.length) return false;
+        int con = m.connections[i];
+        ImmutableArcInst a = m.getArcs().get(con >>> 1);
+        boolean end = (con & 1) != 0;
+        int nodeId = end ? a.headNodeId : a.tailNodeId;
+        if (nodeId != getD().nodeId) return false;
+        PortProtoId portId = end ? a.headPortId : a.tailPortId;
+        return portId.getChronIndex() == chronIndex;
+    }
     
 	/**
 	 * Method to return the number of Connections on this NodeInst.
 	 * @return the number of Connections on this NodeInst.
 	 */
-	public int getNumConnections() { return connections.size(); }
-
-    /**
-     * Searches the connections for the specified portIndex using the binary
-     * search algorithm.
-     * @param portIndex the port index to be searched.
-     * @return index in the connections list. All connections con below this index
-     * have con.portIndex < portIndex. All connections at this index and above have
-     * con.portIndex >= portIndex.
-     */
-    private int searchConnections(int portIndex) {
-        int low = 0;
-		int high = connections.size()-1;
-
-		while (low <= high) {
-			int mid = (low + high) >> 1;
-			Connection con = connections.get(mid);
-			if (con.getPortInst().getPortIndex() < portIndex)
-				low = mid + 1;
-			else
-				high = mid - 1;
-		}
-        return low;
+	public int getNumConnections() {
+        if (parent == null) return 0;
+        CellBackup.Memoization m = parent.getMemoization();
+        int i = m.searchConnectionByPort(getD().nodeId, 0);
+        int j = i;
+        int myNodeId = getD().nodeId;
+        for (; j < m.connections.length; j++) {
+            int con = m.connections[j];
+            ImmutableArcInst a = m.getArcs().get(con >>> 1);
+            boolean end = (con & 1) != 0;
+            int nodeId = end ? a.headNodeId : a.tailNodeId;
+            if (nodeId != myNodeId) break;
+        }
+        return j - i;
     }
-    
+
+    private class ConnectionIterator implements Iterator<Connection> {
+        private final CellBackup.Memoization m;
+        private final ImmutableArrayList<ImmutableArcInst> arcs;
+        private final int nodeId;
+        private final int chronIndex;
+        int i;
+        ArcInst nextAi;
+        int nextConnIndex;
+        
+        ConnectionIterator(CellBackup.Memoization m, int nodeId) {
+            this.m = m;
+            arcs = m.getArcs();
+            chronIndex = -1;
+            this.nodeId = nodeId;
+            i = m.searchConnectionByPort(nodeId, 0);
+            findNext();
+        }
+        ConnectionIterator(CellBackup.Memoization m, int nodeId, int chronIndex) {
+            this.m = m;
+            arcs = m.getArcs();
+            this.nodeId = nodeId;
+            this.chronIndex = chronIndex;
+            i = m.searchConnectionByPort(nodeId, chronIndex);
+            findNext();
+        }
+        public boolean hasNext() { return nextAi != null; }
+        public Connection next() {
+            if (nextAi == null)
+                throw new NoSuchElementException();
+            Connection con = nextAi.getConnection(nextConnIndex);
+            findNext();
+            return con;
+        }
+        public void remove() { throw new UnsupportedOperationException(); }
+        
+        private void findNext() {
+            for (; i < m.connections.length; i++) {
+                int con = m.connections[i];
+                ImmutableArcInst a = arcs.get(con >>> 1);
+                int endIndex = con & 1;
+                int endNodeId = endIndex != 0 ? a.headNodeId : a.tailNodeId;
+                if (endNodeId != nodeId) break;
+                if (chronIndex >= 0) {
+                    PortProtoId endProtoId = endIndex != 0 ? a.headPortId : a.tailPortId;
+                    if (endProtoId.getChronIndex() != chronIndex) break;
+                }
+                ArcInst ai = parent.getArcById(a.arcId);
+                if (ai != null) {
+                    nextAi = ai;
+                    nextConnIndex = endIndex;
+                    i++;
+                    return;
+                }
+            }
+            nextAi = null;
+        }
+    }
+
     /****************************** TEXT ******************************/
 
 	/**
@@ -3219,7 +3124,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Method to check invariants in this NodeInst.
 	 * @exception AssertionError if invariants are not valid
 	 */
-	public void check(BitSet tailSet, BitSet headSet) {
+	public void check() {
         assert isLinked();
         super.check();
         
@@ -3231,34 +3136,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             assert pp == protoType.getPort(i);
         }
         
-        int lastPortIndex = -1;
-        for (int i = 0; i < connections.size(); i++) {
-            Connection con = connections.get(i);
-            ArcInst ai = con.getArc();
-            assert ai.getParent() == parent && ai.isLinked();
-            PortInst pi = con.getPortInst();
-            assert pi.getNodeInst() == this;
-            int arcIndex = ai.getArcIndex();
-            switch (con.getEndIndex()) {
-                case ArcInst.TAILEND:
-                    assert ai.getTail() == con;
-                    assert tailSet.get(arcIndex);
-                    tailSet.clear(arcIndex);
-                    break;
-                case ArcInst.HEADEND:
-                    assert ai.getHead() == con;
-                    assert headSet.get(arcIndex);
-                    headSet.clear(arcIndex);
-                    break;
-                default:
-                    assert false;
-            }
-            
-            int portIndex = pi.getPortIndex();
-            assert lastPortIndex <= portIndex;
-            lastPortIndex = portIndex;
-        }
-        assert lastPortIndex < portInsts.length;
         if (validVisBounds) {
             Rectangle2D.Double bounds = new Rectangle2D.Double();
             d.computeBounds(this, bounds);
@@ -3334,8 +3211,26 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 * @return true if this NodeInst is wiped.
 	 */
-	public boolean isWiped() { return wiped; }
-
+    public boolean isWiped() {
+        if (parent == null || !(protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isArcsWipe()))
+            return false;
+        return parent.getMemoization().isWiped(getD().nodeId);
+    }
+    
+	/**
+	 * Method to update the "end shrink" factors on all arcs on a PortInst.
+	 * This is a number from 0 to 90, where
+	 * 0 indicates no shortening (extend the arc by half its width) and greater values
+	 * indicate that the end should be shortened to account for this angle of connection.
+	 * Small values are shortened almost to nothing, whereas large values are shortened
+	 * very little (and a value of 90 indicates no shortening at all).
+	 */
+ 	public byte getShrinkage() {
+        if (parent == null || !(protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isArcsShrink()))
+            return 0;
+        return parent.getMemoization().getShrinkage(getD().nodeId);
+    }
+    
 	/**
 	 * Method to set this NodeInst to be hard-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.

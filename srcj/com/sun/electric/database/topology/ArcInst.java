@@ -100,10 +100,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     /** True, if visBounds are valid. */                private boolean validVisBounds;
 
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
-	/** tail connection of this arc instance */			private final TailConnection tailEnd;
+//	/** tail connection of this arc instance */			private final TailConnection tailEnd;
 
 	/** PortInst on head end of this arc instance */	/*package*/final PortInst headPortInst;
-	/** head connection of this arc instance */			private final HeadConnection headEnd;
+//	/** head connection of this arc instance */			private final HeadConnection headEnd;
 
 	/** 0-based index of this ArcInst in cell. */		private int arcIndex = -1;
 
@@ -130,10 +130,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
 		// create node/arc connections and place them properly
 		tailPortInst = tailPort;
-		tailEnd = new TailConnection(this);
+//		tailEnd = new TailConnection(this);
 
 		headPortInst = headPort;
-		headEnd = new HeadConnection(this);
+//		headEnd = new HeadConnection(this);
 	}
 
     private Object writeReplace() throws ObjectStreamException { return new ArcInstKey(this); }
@@ -396,8 +396,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         ArcInst ai = new ArcInst(parent, d, headPort, tailPort);
         
 		// attach this arc to the two nodes it connects
-		headPort.getNodeInst().addConnection(ai.headEnd);
-		tailPort.getNodeInst().addConnection(ai.tailEnd);
+		headPort.getNodeInst().redoGeometric();
+		tailPort.getNodeInst().redoGeometric();
 
 		// add this arc to the cell
 		parent.addArc(ai);
@@ -420,8 +420,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         checkChanging();
         
 		// remove this arc from the two nodes it connects
-		headPortInst.getNodeInst().removeConnection(headEnd);
-		tailPortInst.getNodeInst().removeConnection(tailEnd);
+		headPortInst.getNodeInst().redoGeometric();
+		tailPortInst.getNodeInst().redoGeometric();
 
 		// remove this arc from the cell
 		parent.removeArc(this);
@@ -585,9 +585,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         
         redoGeometric();
 
-		// update end shrinkage information
-		headPortInst.getNodeInst().updateShrinkage();
-		tailPortInst.getNodeInst().updateShrinkage();
+		// update end shrinkage information ?????????????????????
+//		headPortInst.getNodeInst().updateShrinkage();
+//		tailPortInst.getNodeInst().updateShrinkage();
 	}
 
 	/****************************** GRAPHICS ******************************/
@@ -708,7 +708,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		if (real.isHeadExtended())
 		{
 			extendH = width/2;
-            byte headShrink = real.getHeadPortInst().getNodeInst().shrink;
+            byte headShrink = real.getHeadPortInst().getNodeInst().getShrinkage();
 			if (headShrink != 0)
 				extendH = getExtendFactor(width, headShrink);
 		}
@@ -716,7 +716,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		if (real.isTailExtended())
 		{
 			extendT = width/2;
-            byte tailShrink = real.getTailPortInst().getNodeInst().shrink;
+            byte tailShrink = real.getTailPortInst().getNodeInst().getShrinkage();
 			if (tailShrink != 0)
 				extendT = getExtendFactor(width, tailShrink);
 		}
@@ -924,13 +924,15 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Method to return the Connection on the tail end of this ArcInst.
 	 * @return the Connection on the tail end of this ArcInst.
 	 */
-	public TailConnection getTail() { return tailEnd; }
+	public TailConnection getTail() { return new TailConnection(this); }
+//	public TailConnection getTail() { return tailEnd; }
 
 	/**
 	 * Method to return the Connection on the head end of this ArcInst.
 	 * @return the Connection on the head end of this ArcInst.
 	 */
-	public HeadConnection getHead() { return headEnd; }
+	public HeadConnection getHead() { return new HeadConnection(this); }
+//	public HeadConnection getHead() { return headEnd; }
 
 	/**
 	 * Method to return the connection at an end of this ArcInst.
@@ -940,8 +942,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	{
 		switch (connIndex)
 		{
-			case TAILEND: return tailEnd;
-			case HEADEND: return headEnd;
+			case TAILEND: return new TailConnection(this);
+			case HEADEND: return new HeadConnection(this);
+//			case TAILEND: return tailEnd;
+//			case HEADEND: return headEnd;
 			default: throw new IllegalArgumentException("Bad end " + connIndex);
 		}
 	}

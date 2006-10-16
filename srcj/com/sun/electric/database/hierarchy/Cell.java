@@ -74,6 +74,7 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Date;
@@ -957,6 +958,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return doBackup();
     }
     
+    /**
+     * Returns data for size computation (connectivity etc).
+     * @return data for size computation.
+     */
+    public CellBackup.Memoization getMemoization() {
+        return backupUnsafe().getMemoization();
+    }
+    
     private CellBackup doBackup() {
         if (backup == null) {
             getTechnology();
@@ -1059,7 +1068,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                     if (full || exportsModified != null && exportsModified.get(subCellIndex))
                         ni.updatePortInsts(full);
                 }
-                ni.lowLevelClearConnections();
+//                ni.lowLevelClearConnections();
             } else {
                 ni = new NodeInst(d, this);
                 chronNodes.set(d.nodeId, ni);
@@ -1104,8 +1113,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             }
             ai.setArcIndex(i);
             arcs.add(ai);
-            tailPi.getNodeInst().lowLevelAddConnection(ai.getTail());
-            headPi.getNodeInst().lowLevelAddConnection(ai.getHead());
+//            tailPi.getNodeInst().lowLevelAddConnection(ai.getTail());
+//            headPi.getNodeInst().lowLevelAddConnection(ai.getHead());
             if (!ai.isUsernamed()) {
                 Name name = ai.getNameKey();
                 assert name.getBasename() == ImmutableArcInst.BASENAME;
@@ -1127,10 +1136,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert arcCount == arcs.size();
 
-        for (int i = 0; i < nodes.size(); i++) {
-            NodeInst ni = nodes.get(i);
-            ni.sortConnections();
-        }
+//        for (int i = 0; i < nodes.size(); i++) {
+//            NodeInst ni = nodes.get(i);
+//            ni.sortConnections();
+//        }
 
         exports = new Export[newBackup.exports.size()];
         for (int i = 0; i < newBackup.exports.size(); i++) {
@@ -1167,20 +1176,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert exportCount == exports.length;
 
-        for (int i = 0; i < nodes.size(); i++) {
-            NodeInst ni = nodes.get(i);
-            if (ni.isCellInstance()) {
-                 if (full || exportsModified != null && exportsModified.get(((Cell)ni.getProto()).getCellIndex()))
-                    ni.sortConnections();
-            }
-            ni.computeWipeState();
-            ni.updateShrinkage();
-        }
-        
         backup = newBackup;
         cellBackupFresh = true;
         cellContentsFresh = true;
 
+        getMemoization();
         boundsDirty = BOUNDS_RECOMPUTE;
         ERectangle newBounds = computeBounds();
         assert newBounds == cellBounds;
@@ -1196,7 +1196,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
             if (exportsModified != null && exportsModified.get(subCellIndex)) {
                 ni.updatePortInsts(false);
-                ni.sortConnections();
+//                ni.sortConnections();
             }
             if (boundsModified != null && boundsModified.get(subCellIndex))
                 ni.redoGeometric();
@@ -2038,7 +2038,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	{
 		allowCirDep = val;
 	}
-
+    
 	/**
 	 * Method to add a new NodeInst to the cell.
 	 * @param ni the NodeInst to be included in the cell.
@@ -2529,9 +2529,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 		export.setPortIndex(newPortIndex);
 		exports[newPortIndex] = export;
-//		for (int i = 0; i < exports.length; i++)
-//			System.out.print(" " + exports[i].getPortIndex() + ":" + exports[i].getName());
-//		System.out.println();
 
         // move PortInst for every instance of this Cell.
         if (getId().numUsagesOf() == 0) return;
@@ -2543,13 +2540,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         else
             for (int i = oldPortIndex; i > newPortIndex; i--) pattern[i] = i - 1;
         updatePortInsts(pattern);
-        
-        // move connections for every instance of this Cell.
-		for(Iterator<NodeInst> it = getInstancesOf(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			ni.moveConnections(export);
-		}
 	}
 
 	/**
@@ -4316,13 +4306,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         
         // check nodes
-        BitSet tailSet = new BitSet();
-        BitSet headSet = new BitSet();
-        if (arcs.size() > 0) {  // Bug in BitSet.set(int,int) on Sun JDK
-            tailSet.set(0, arcs.size());
-            headSet.set(0, arcs.size());
-        }
-        int connectionCount = 0;
         NodeInst prevNi = null;
         int[] usages = new int[cellId.numUsagesIn()];
         for(int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
@@ -4342,10 +4325,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 CellUsage u = cellId.getUsageIn(subCell.getId());
                 usages[u.indexInParent]++;
             }
-            ni.check(tailSet, headSet);
+            ni.check();
             prevNi = ni;
         }
-        assert tailSet.isEmpty() && headSet.isEmpty();
         for (int nodeId = 0; nodeId < chronNodes.size(); nodeId++) {
             NodeInst ni = chronNodes.get(nodeId);
             if (ni == null) continue;

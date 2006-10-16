@@ -24,12 +24,17 @@
 package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,14 +54,15 @@ public class CellBackup {
     private static final int[] NULL_INT_ARRAY = {};
     static final CellUsageInfo[] NULL_CELL_USAGE_INFO_ARRAY = {};
     static int cellBackupsCreated = 0;
-    static int cellBackupsIndexByOriginalPortCreated = 0;
+    static int cellBackupsMemoized = 0;
     /** Cell persistent data. */                                    public final ImmutableCell d;
 	/** The date this ImmutableCell was last modified. */           public final long revisionDate;
     /** "Modified" flag of the Cell. */                             public final boolean modified;
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
-    /** ImmutableExports sorted by original PortInst. */            private volatile ImmutableExport[] exportIndexByOriginalPort; 
+    /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
+    /** True, if this CellBackup has computed connection index. */  public boolean connectionIndexComputed;  
     /** Bitmap of libraries used in vars. */                        final BitSet usedLibs;
     /** CellUsageInfos indexed by CellUsage.indefInParent */        final CellUsageInfo[] cellUsages;
     /** definedExport == [0..definedExportLength) - deletedExports . */
@@ -340,93 +346,6 @@ public class CellBackup {
         }
     }
     
-    private static final Comparator<ImmutableExport> BY_ORIGINAL_PORT = new Comparator<ImmutableExport>() {
-        public int compare(ImmutableExport e1, ImmutableExport e2) {
-            int result = e1.originalNodeId - e2.originalNodeId;
-            if (result != 0) return result;
-            result = e1.originalPortId.getChronIndex() - e2.originalPortId.getChronIndex();
-            if (result != 0) return result;
-            return e1.exportId.chronIndex - e2.exportId.chronIndex;
-        }
-    };
-
-	/**
-	 * Returns true of there are Exports on specified NodeInst.
-     * @param originalNodeId nodeId of specified NodeInst.
-	 * @return true if there are Exports on specified NodeInst.
-	 */
-    public boolean hasExports(int originalNodeId) {
-        ImmutableExport[] exportIndexByOriginalPort = getExportIndexByOriginalPort();
-        int startIndex = searchExportByOriginalPort(exportIndexByOriginalPort, originalNodeId, 0);
-        if (startIndex >= exportIndexByOriginalPort.length) return false;
-        ImmutableExport e = exportIndexByOriginalPort[startIndex];
-        return e.originalNodeId == originalNodeId;
-    }
-    
-	/**
-	 * Method to return the number of Exports on specified NodeInst.
-     * @param originalNodeId nodeId of specified NodeInst.
-	 * @return the number of Exports on specified NodeInst.
-	 */
-    public int getNumExports(int originalNodeId) {
-        ImmutableExport[] exportIndexByOriginalPort = getExportIndexByOriginalPort();
-        int startIndex = searchExportByOriginalPort(exportIndexByOriginalPort, originalNodeId, 0);
-        int j = startIndex;
-        for (; j < exportIndexByOriginalPort.length; j++) {
-            ImmutableExport e = exportIndexByOriginalPort[j];
-            if (e.originalNodeId != originalNodeId) break;
-        }
-        return j - startIndex;
-    }
-    
-    /**
-	 * Method to return an Iterator over all ImmutableExports on specified NodeInst.
-     * @param originalNodeId nodeId of specified NodeInst.
-	 * @return an Iterator over all ImmutableExports on specified NodeInst.
-	 */
-    public Iterator<ImmutableExport> getExports(int originalNodeId) {
-        ImmutableExport[] exportIndexByOriginalPort = getExportIndexByOriginalPort();
-        int startIndex = searchExportByOriginalPort(exportIndexByOriginalPort, originalNodeId, 0);
-        int j = startIndex;
-        for (; j < exportIndexByOriginalPort.length; j++) {
-            ImmutableExport e = exportIndexByOriginalPort[j];
-            if (e.originalNodeId != originalNodeId) break;
-        }
-        return ArrayIterator.iterator(exportIndexByOriginalPort, startIndex, j);
-    }
-    
-    private static int searchExportByOriginalPort(ImmutableExport[] exportIndexByOriginalPort, int originalNodeId, int originalPortIndex) {
-        int low = 0;
-        int high = exportIndexByOriginalPort.length-1;
-		while (low <= high) {
-			int mid = (low + high) >> 1; // try in a middle
-			ImmutableExport e = exportIndexByOriginalPort[mid];
-			int cmp = e.originalNodeId - originalNodeId;
-            if (cmp == 0)
-                cmp = e.originalPortId.getChronIndex() >= originalPortIndex ? 1 : -1;
-
-			if (cmp < 0)
-				low = mid + 1;
-			else
-				high = mid - 1;
-		}
-		return low;
-    }
-    
-    private ImmutableExport[] getExportIndexByOriginalPort() {
-        ImmutableExport[] exportIndexByOriginalPort = this.exportIndexByOriginalPort;
-        if (exportIndexByOriginalPort != null) return exportIndexByOriginalPort;
-        createExportIndexByOriginalPort();
-        return this.exportIndexByOriginalPort;
-    }
-    
-    private void createExportIndexByOriginalPort() {
-        cellBackupsIndexByOriginalPortCreated++;
-        ImmutableExport[] exportIndexByOriginalPort = exports.toArray(new ImmutableExport[exports.size()]);
-        Arrays.sort(exportIndexByOriginalPort, BY_ORIGINAL_PORT);
-        this.exportIndexByOriginalPort = exportIndexByOriginalPort;
-    }
-    
     /**
      * Writes this CellBackup to SnapshotWriter.
      * @param writer where to write.
@@ -579,16 +498,8 @@ public class CellBackup {
                 cui.check();
         }
         
-        if (exportIndexByOriginalPort != null) {
-            assert exportIndexByOriginalPort.length == exports.size();
-            ImmutableExport prevE = null;
-            for (ImmutableExport e: exportIndexByOriginalPort) {
-                if (prevE != null)
-                    assert BY_ORIGINAL_PORT.compare(prevE, e) < 0;
-                assert e == exports.get(exportIndex[e.exportId.chronIndex]);
-                prevE = e;
-            }
-        }
+        if (m != null)
+            m.check();
     }
     
     private void checkVars(ImmutableElectricObject d) {
@@ -673,4 +584,295 @@ public class CellBackup {
     
     @Override
     public String toString() { return d.toString(); }
+
+    /**
+     * Returns data for size computation (connectivity etc).
+     * @return data for size computation.
+     */
+    public Memoization getMemoization() {
+        Memoization m = this.m;
+        if (m != null) return m;
+        return this.m = new Memoization();
+    }
+    
+    /**
+     * Class which memoizes data for size computation (connectivity etc).
+     */
+    public class Memoization {
+//        /**
+//         * ImmutableNodeInsts accessed by their nodeId.
+//         */
+//        private final int[] nodesById;
+        public final int[] connections;
+        /** ImmutableExports sorted by original PortInst. */
+        private final ImmutableExport[] exportIndexByOriginalPort;
+        private final BitSet wiped;
+        private final byte[] shrink;
+        
+        Memoization() {
+            cellBackupsMemoized++;
+            int maxNodeId = -1;
+            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++)
+                maxNodeId = Math.max(maxNodeId, nodes.get(nodeIndex).nodeId);
+//            int[] nodesById = new int[maxNodeId + 1];
+//            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
+//                ImmutableNodeInst n = nodes.get(nodeIndex);
+//                nodesById[n.nodeId] = nodeIndex;
+//            }
+//            this.nodesById = nodesById;
+
+            int[] connections = new int[arcs.size()*2];
+            for (int i = 0; i < connections.length; i++) connections[i] = i;
+            sortConnections(connections, 0, connections.length - 1);
+            this.connections = connections;
+            
+            ImmutableExport[] exportIndexByOriginalPort = exports.toArray(new ImmutableExport[exports.size()]);
+            Arrays.sort(exportIndexByOriginalPort, BY_ORIGINAL_PORT);
+            this.exportIndexByOriginalPort = exportIndexByOriginalPort;
+            
+            BitSet wiped = new BitSet();
+            short[] angles = new short[(maxNodeId+1)*2];
+            Arrays.fill(angles, (short)-1);
+            for (ImmutableArcInst a: arcs) {
+                // wipe status
+                if (a.protoType.isWipable()) {
+                    wiped.set(a.tailNodeId);
+                    wiped.set(a.headNodeId);
+                }
+                // shrinkage
+                if (a.width != 0) {
+                    short angle = (short)a.angle;
+                    if (angle >= 1800)
+                        angle -= 1800;
+                    assert angle >= 0 && angle < 1800;
+                    
+                    int tailNodeId = a.tailNodeId;
+                    int tailAng0 = angles[tailNodeId*2];
+                    int tailAng1 = angles[tailNodeId*2 + 1];
+                    if (angle != tailAng0 && angle != tailAng1) {
+                        if (tailAng0 < 0)
+                            angles[tailNodeId*2] = angle;
+                        else if (tailAng1 < 0)
+                            angles[tailNodeId*2 + 1] = angle;
+                        else
+                            angles[tailNodeId*2 + 1] = Short.MAX_VALUE;
+                    }
+                    
+                    int headNodeId = a.headNodeId;
+                    int headAng0 = angles[headNodeId*2];
+                    int headAng1 = angles[headNodeId*2 + 1];
+                    if (angle != headAng0 && angle != headAng1) {
+                        if (headAng0 < 0)
+                            angles[headNodeId*2] = angle;
+                        else if (headAng1 < 0)
+                            angles[headNodeId*2 + 1] = angle;
+                        else
+                            angles[headNodeId*2] = Short.MAX_VALUE;
+                    }
+                    
+                }
+            }
+            byte[] shrink = new byte[maxNodeId + 1];
+            for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
+                ImmutableNodeInst n = nodes.get(nodeIndex);
+                NodeProtoId np = n.protoId;
+                if (!(np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe()))
+                    wiped.clear(n.nodeId);
+                if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsShrink()) {
+                    short ang0 = angles[nodeIndex*2];
+                    short ang1 = angles[nodeIndex*2 + 1];
+                    if (ang1 < 0 || ang1 >= 1800) continue;
+                    int ang = Math.abs(ang0 - ang1);
+                    if (ang > 900) ang = 1800 - ang;
+                    byte s = (byte)((ang + 5) / 10);
+                    if (s == 0 && ang != 0) s = 1;
+                    shrink[n.nodeId] = s;
+                }
+                
+            }
+            this.wiped = wiped;
+            this.shrink = shrink;
+        }
+    
+        /**
+         * Returns true of there are Exports on specified NodeInst.
+         * @param originalNodeId nodeId of specified NodeInst.
+         * @return true if there are Exports on specified NodeInst.
+         */
+        public boolean hasExports(int originalNodeId) {
+            int startIndex = searchExportByOriginalPort(originalNodeId, 0);
+            if (startIndex >= exportIndexByOriginalPort.length) return false;
+            ImmutableExport e = exportIndexByOriginalPort[startIndex];
+            return e.originalNodeId == originalNodeId;
+        }
+        
+        /**
+         * Method to return the number of Exports on specified NodeInst.
+         * @param originalNodeId nodeId of specified NodeInst.
+         * @return the number of Exports on specified NodeInst.
+         */
+        public int getNumExports(int originalNodeId) {
+            int startIndex = searchExportByOriginalPort(originalNodeId, 0);
+            int j = startIndex;
+            for (; j < exportIndexByOriginalPort.length; j++) {
+                ImmutableExport e = exportIndexByOriginalPort[j];
+                if (e.originalNodeId != originalNodeId) break;
+            }
+            return j - startIndex;
+        }
+        
+        /**
+         * Method to return an Iterator over all ImmutableExports on specified NodeInst.
+         * @param originalNodeId nodeId of specified NodeInst.
+         * @return an Iterator over all ImmutableExports on specified NodeInst.
+         */
+        public Iterator<ImmutableExport> getExports(int originalNodeId) {
+            int startIndex = searchExportByOriginalPort(originalNodeId, 0);
+            int j = startIndex;
+            for (; j < exportIndexByOriginalPort.length; j++) {
+                ImmutableExport e = exportIndexByOriginalPort[j];
+                if (e.originalNodeId != originalNodeId) break;
+            }
+            return ArrayIterator.iterator(exportIndexByOriginalPort, startIndex, j);
+        }
+        
+        private int searchExportByOriginalPort(int originalNodeId, int originalChronIndex) {
+            int low = 0;
+            int high = exportIndexByOriginalPort.length-1;
+            while (low <= high) {
+                int mid = (low + high) >> 1; // try in a middle
+                ImmutableExport e = exportIndexByOriginalPort[mid];
+                int cmp = e.originalNodeId - originalNodeId;
+                if (cmp == 0)
+                    cmp = e.originalPortId.getChronIndex() >= originalChronIndex ? 1 : -1;
+                
+                if (cmp < 0)
+                    low = mid + 1;
+                else
+                    high = mid - 1;
+            }
+            return low;
+        }
+        
+        public int searchConnectionByPort(int nodeId, int chronIndex) {
+            int low = 0;
+            int high = connections.length-1;
+            while (low <= high) {
+                int mid = (low + high) >> 1; // try in a middle
+                int con = connections[mid];
+                ImmutableArcInst a = arcs.get(con >>> 1);
+                boolean end = (con & 1) != 0;
+                int endNodeId = end ? a.headNodeId : a.tailNodeId;
+                int cmp = endNodeId - nodeId;
+                if (cmp == 0) {
+                    PortProtoId portId = end ? a.headPortId : a.tailPortId;
+                    cmp = portId.getChronIndex() - chronIndex;
+                }
+                
+                if (cmp < 0)
+                    low = mid + 1;
+                else
+                    high = mid - 1;
+            }
+            return low;
+        }
+        
+        public ImmutableArrayList<ImmutableArcInst> getArcs() { return arcs; }
+        
+        /**
+         * Method to tell whether the specified ImmutableNodeInst is wiped.
+         * Wiped ImmutableNodeInsts are erased.  Typically, pin ImmutableNodeInsts can be wiped.
+         * This means that when an arc connects to the pin, it is no longer drawn.
+         * In order for a ImmutableNodeInst to be wiped, its prototype must have the "setArcsWipe" state,
+         * and the arcs connected to it must have "setWipable" in their prototype.
+         * @param nodeId nodeId of specified ImmutableNodeInst
+         * @return true if specified ImmutableNodeInst is wiped.
+         */
+        public boolean isWiped(int nodeId) {
+            return wiped.get(nodeId);
+        }
+        
+        /**
+         * Method to tell the "end shrink" factors on all arcs on a specified ImmutableNodeInst.
+         * This is a number from 0 to 90, where
+         * 0 indicates no shortening (extend the arc by half its width) and greater values
+         * indicate that the end should be shortened to account for this angle of connection.
+         * Small values are shortened almost to nothing, whereas large values are shortened
+         * very little (and a value of 90 indicates no shortening at all).
+         * @param nodeId nodeId of specified ImmutableNodeInst
+         * @return shrink factor of specified ImmutableNodeInst is wiped.
+         */
+        public byte getShrinkage(int nodeId) {
+            return nodeId < shrink.length ? shrink[nodeId] : 0;
+        }
+        
+        /**
+         * Checks invariant of this CellBackup.
+         * @throws AssertionError if invariant is broken.
+         */
+        private void check() {
+            assert exportIndexByOriginalPort.length == exports.size();
+            ImmutableExport prevE = null;
+            for (ImmutableExport e: exportIndexByOriginalPort) {
+                if (prevE != null)
+                    assert BY_ORIGINAL_PORT.compare(prevE, e) < 0;
+                assert e == exports.get(exportIndex[e.exportId.chronIndex]);
+                prevE = e;
+            }
+            assert connections.length == arcs.size()*2;
+            for (int i = 1; i < connections.length; i++)
+                assert compareConnections(connections[i - 1], connections[i]) < 0;
+        }
+    }
+    
+    private void sortConnections(int[] connections, int l, int r) {
+        while (l < r) {
+            int x = connections[(l + r) >>> 1];
+            int i = l, j = r;
+            do {
+                while (compareConnections(connections[i], x) < 0) i++;
+                while (compareConnections(x, connections[j]) < 0) j--;
+                if (i <= j) {
+                    int w = connections[i];
+                    connections[i] = connections[j];
+                    connections[j] = w;
+                    i++; j--;
+                }
+            } while (i <= j);
+            if (j - l < r - i) {
+                sortConnections(connections, l, j);
+                l = i;
+            } else {
+                sortConnections(connections, i, r);
+                r = j;
+            }
+        }
+    }
+    
+    private int compareConnections(int con1, int con2) {
+        ImmutableArcInst a1 = arcs.get(con1 >>> 1);
+        ImmutableArcInst a2 = arcs.get(con2 >>> 1);
+        boolean end1 = (con1 & 1) != 0;
+        boolean end2 = (con2 & 1) != 0;
+        int nodeId1 = end1 ? a1.headNodeId : a1.tailNodeId;
+        int nodeId2 = end2 ? a2.headNodeId : a2.tailNodeId;
+        int cmp = nodeId1 - nodeId2;
+        if (cmp != 0) return cmp;
+        PortProtoId portId1 = end1 ? a1.headPortId : a1.tailPortId;
+        PortProtoId portId2 = end2 ? a2.headPortId : a2.tailPortId;
+        cmp = portId1.getChronIndex() - portId2.getChronIndex();
+        if (cmp != 0) return cmp;
+        return con1 - con2;
+    }
+    
+    private static final Comparator<ImmutableExport> BY_ORIGINAL_PORT = new Comparator<ImmutableExport>() {
+        public int compare(ImmutableExport e1, ImmutableExport e2) {
+            int result = e1.originalNodeId - e2.originalNodeId;
+            if (result != 0) return result;
+            result = e1.originalPortId.getChronIndex() - e2.originalPortId.getChronIndex();
+            if (result != 0) return result;
+            return e1.exportId.chronIndex - e2.exportId.chronIndex;
+        }
+    };
+
 }

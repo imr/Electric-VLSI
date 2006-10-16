@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: (10/16/06, DN) Connectivity index was moved to immutable CellBackup.
+    Now database has less memory size, because it doesn't keep Connection.
+    However, "ArcInst.getConnection", "NodeInst.getConnections", "PortInst.getConnections"
+    are slower, because they allocate temporary Connections.
+
 BUG: (10/12/06, SMR) Wiring a port to itself crashes (Bug #1242).
 FIX: In Router.createRouteNoJob(), make sure route.getStart() is valid.
 
