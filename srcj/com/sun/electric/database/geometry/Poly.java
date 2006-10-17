@@ -142,7 +142,8 @@ public class Poly extends PolyBase {
 		// somewhat simpler if rectangle is manhattan
 		if (angle == 900 || angle == 2700)
 		{
-			if (y1 > y2)
+			if (angle == 900)
+//			if (y1 > y2)
 			{
 				double temp = y1;   y1 = y2;   y2 = temp;
 				temp = extendH;   extendH = extendT;   extendT = temp;
@@ -154,7 +155,8 @@ public class Poly extends PolyBase {
 				new Point2D.Double(x2 - w2, y2 + extendT)};
 		} else if (angle == 0 || angle == 1800)
 		{
-			if (x1 > x2)
+			if (angle == 0)
+//			if (x1 > x2)
 			{
 				double temp = x1;   x1 = x2;   x2 = temp;
 				temp = extendH;   extendH = extendT;   extendT = temp;
