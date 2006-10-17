@@ -1275,7 +1275,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         checkChanging();
         ImmutableArcInst oldD = d;
         lowLevelModify(d.withFlag(flag, state));
-        if (parent != null) Constraints.getCurrent().modifyArcInst(this, oldD);
+        if (parent != null && d != oldD) Constraints.getCurrent().modifyArcInst(this, oldD);
     }
     
 	/**
@@ -1553,9 +1553,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void setTailNegated(boolean n) {
         setFlag(ImmutableArcInst.TAIL_NEGATED, n);
-			// only allow if negation is supported on this port
-//			PortProto pp = tailPortInst.getPortProto();
-//			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
 	}
 
 	/**
@@ -1566,9 +1563,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void setHeadNegated(boolean n) {
         setFlag(ImmutableArcInst.HEAD_NEGATED,  n);
-			// only allow if negation is supported on this port
-// 			PortProto pp = headPortInst.getPortProto();
-// 			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
 	}
 
 	/****************************** MISCELLANEOUS ******************************/

@@ -31,6 +31,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitivePort;
 
 import java.io.IOException;
 
@@ -294,6 +295,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         angle %= 3600;
         if (angle < 0) angle += 3600;
         flags &= DATABASE_FLAGS;
+        if (!(tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable()))
+            flags = TAIL_NEGATED.set(flags, false);
+        if (!(headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable()))
+            flags = HEAD_NEGATED.set(flags, false);
 		return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
@@ -390,7 +395,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public ImmutableArcInst withFlags(int flags) {
         flags &= DATABASE_FLAGS;
-		if (this.flags == flags) return this;
+        if (!(tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable()))
+            flags = TAIL_NEGATED.set(flags, false);
+        if (!(headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable()))
+            flags = HEAD_NEGATED.set(flags, false);
+        if (this.flags == flags) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
@@ -564,6 +573,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert width > 0 || width == 0 && 1/width > 0;
         assert DBMath.round(width) == width;
         assert (flags & ~DATABASE_FLAGS) == 0;
+        if (is(TAIL_NEGATED))
+            assert tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable();
+        if (is(HEAD_NEGATED))
+            assert headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable();
         assert 0 <= angle && angle < 3600;
 		assert length == tailLocation.distance(headLocation);
 	}

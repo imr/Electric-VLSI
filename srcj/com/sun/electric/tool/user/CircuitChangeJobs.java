@@ -687,21 +687,20 @@ public class CircuitChangeJobs
 				if (eobj instanceof PortInst)
 				{
 					PortInst pi = (PortInst)eobj;
-					NodeInst ni = pi.getNodeInst();
-					for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
+					for(Iterator<Connection> cIt = pi.getConnections(); cIt.hasNext(); )
 					{
 						Connection con = cIt.next();
-						if (con.getPortInst() != pi) continue;
-						if (!pi.getNodeInst().isCellInstance())
-						{
-							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
-							if (pp.isNegatable())
-							{
-								boolean newNegated = !con.isNegated();
-								con.setNegated(newNegated);
-								numSet++;
-							}
-						}
+                        con.setNegated(!con.isNegated());
+//						if (!pi.getNodeInst().isCellInstance())
+//						{
+//							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
+//							if (pp.isNegatable())
+//							{
+//								boolean newNegated = !con.isNegated();
+//								con.setNegated(newNegated);
+//								numSet++;
+//							}
+//						}
 					}
 				}
 				if (eobj instanceof ArcInst)
@@ -710,16 +709,17 @@ public class CircuitChangeJobs
 					for(int i=0; i<2; i++)
 					{
 						PortInst pi = ai.getPortInst(i);
-						if (!pi.getNodeInst().isCellInstance())
-						{
-							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
-							if (pp.isNegatable())
-							{
-								boolean newNegated = !ai.isNegated(i);
-								ai.setNegated(i, newNegated);
-								numSet++;
-							}
-						}
+                        ai.setNegated(i, !ai.isNegated((i)));
+//						if (!pi.getNodeInst().isCellInstance())
+//						{
+//							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
+//							if (pp.isNegatable())
+//							{
+//								boolean newNegated = !ai.isNegated(i);
+//								ai.setNegated(i, newNegated);
+//								numSet++;
+//							}
+//						}
 					}
 				}
 			}

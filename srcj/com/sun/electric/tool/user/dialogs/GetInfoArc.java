@@ -27,12 +27,14 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
@@ -296,8 +298,10 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			slidable.setEnabled(true);
 			directionality.setEnabled(true);
 			extension.setEnabled(true);
-			if (ai.getHeadPortInst().getPortProto().getBasePort().isNegatable() ||
-				ai.getTailPortInst().getPortProto().getBasePort().isNegatable())
+            PortProto headPort = ai.getHeadPortInst().getPortProto();
+            PortProto tailPort = ai.getTailPortInst().getPortProto();
+			if (headPort instanceof PrimitivePort && ((PrimitivePort)headPort).isNegatable() ||
+				tailPort instanceof PrimitivePort && ((PrimitivePort)tailPort).isNegatable())
 					negation.setEnabled(true); else
 						negation.setEnabled(false);
 			headSee.setEnabled(true);
@@ -1237,16 +1241,16 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 						ai.setTailNegated(false);
 						break;
 					case 1:
-						if (ai.getHeadPortInst().getPortProto().getBasePort().isNegatable()) ai.setHeadNegated(true);
+						ai.setHeadNegated(true);
 						ai.setTailNegated(false);
 						break;
 					case 2:
 						ai.setHeadNegated(false);
-						if (ai.getTailPortInst().getPortProto().getBasePort().isNegatable()) ai.setTailNegated(true);
+						ai.setTailNegated(true);
 						break;
 					case 3:
-						if (ai.getHeadPortInst().getPortProto().getBasePort().isNegatable()) ai.setHeadNegated(true);
-						if (ai.getTailPortInst().getPortProto().getBasePort().isNegatable()) ai.setTailNegated(true);
+						ai.setHeadNegated(true);
+						ai.setTailNegated(true);
 						break;
 				}
 				changed = true;
