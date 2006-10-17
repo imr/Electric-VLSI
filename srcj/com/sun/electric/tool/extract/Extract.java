@@ -90,4 +90,19 @@ public class Extract extends Tool
 	 * @param a true if the node extractor should grid-align geometry before extraction.
 	 */
 	public static void setGridAlignExtraction(boolean a) { cacheExactGridAlign.setBoolean(a); }
+
+	private static Pref cacheCellExpandPattern = Pref.makeStringPref("CellExpandPattern", Extract.tool.prefs, ".*via.*");
+	/**
+	 * Method to return the cell expansion pattern for node extraction.
+	 * All cells that match this string will be expanded before node extraction.
+	 * The default is ".*via.*" (anything with the word "via" in it).
+	 * @return the cell expansion pattern for node extraction.
+	 */
+	public static String getCellExpandPattern() { return cacheCellExpandPattern.getString(); }
+	/**
+	 * Method to set the cell expansion pattern for node extraction.
+	 * All cells that match this string will be expanded before node extraction.
+	 * @param a the cell expansion pattern for node extraction.
+	 */
+	public static void setCellExpandPattern(String a) { cacheCellExpandPattern.setString(a); }
 }

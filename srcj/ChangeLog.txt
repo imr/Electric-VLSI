@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP/MAN: (10/17/06, SMR) Added Cell expansion controls to Network / Node Extraction Preferences.
+
 BUG: (10/17/06, DN) Zero-length arcs with angles 0 and 90 generates Polys with swapped head and tail extension.
 FIX: In Poly.makeEndPointPoly use "angle == 0" and "angle == 900" conditions.
      In debug menu "Dima|Find error-prone arcs" command show such arcs in all loaded libraries.

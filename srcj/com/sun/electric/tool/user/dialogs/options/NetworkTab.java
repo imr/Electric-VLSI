@@ -61,6 +61,7 @@ public class NetworkTab extends PreferencePanel
 		// node extraction
 		extractExactContacts.setSelected(Extract.isExactCutExtraction());
 		extractGridAlign.setSelected(Extract.isGridAlignExtraction());
+		extractCellPattern.setText(Extract.getCellExpandPattern());
 	}
 
 	public void term()
@@ -73,6 +74,9 @@ public class NetworkTab extends PreferencePanel
 
 		nowBoolean = extractGridAlign.isSelected();
 		if (Extract.isGridAlignExtraction() != nowBoolean) Extract.setGridAlignExtraction(nowBoolean);
+
+		String nowString = extractCellPattern.getText();
+		if (!Extract.getCellExpandPattern().equals(nowString)) Extract.setCellExpandPattern(nowString);
 	}
 
 	/** This method is called from within the constructor to
@@ -94,6 +98,8 @@ public class NetworkTab extends PreferencePanel
         jPanel3 = new javax.swing.JPanel();
         extractExactContacts = new javax.swing.JCheckBox();
         extractGridAlign = new javax.swing.JCheckBox();
+        jLabel1 = new javax.swing.JLabel();
+        extractCellPattern = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -167,6 +173,22 @@ public class NetworkTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel3.add(extractGridAlign, gridBagConstraints);
 
+        jLabel1.setText("Flatten cells whose names match this:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel3.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        jPanel3.add(extractCellPattern, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -186,8 +208,10 @@ public class NetworkTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField extractCellPattern;
     private javax.swing.JCheckBox extractExactContacts;
     private javax.swing.JCheckBox extractGridAlign;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JRadioButton netAscending;
