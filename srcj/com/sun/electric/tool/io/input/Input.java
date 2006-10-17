@@ -24,7 +24,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.constraint.Layout;
-import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
@@ -310,7 +309,19 @@ public class Input
 		lineBuffer = "";
 	}
 
-	protected String getAKeyword()
+    /**
+     * Method to allow getAKeyword() to read next line next time is invocated.
+     */
+    protected String getRestOfLine()
+    {
+        // +1 to skip the space
+        int next = lineBufferPosition+1;
+        String rest = (next < lineBuffer.length()) ? lineBuffer.substring(next, lineBuffer.length()) : "";
+        lineBufferPosition = lineBuffer.length();
+        return rest;
+    }
+
+    protected String getAKeyword()
 		throws IOException
 	{
 		// keep reading from file until something is found on a line
@@ -407,4 +418,14 @@ public class Input
 		return formerQuiet;
     }
 
+	/**
+	 * Method to display an error message because end-of-file was reached.
+	 * @param when the statement being read when EOF was reached.
+	 * @return false (and prints an error message).
+	 */
+	protected boolean eofDuring(String when)
+	{
+		System.out.println("File " + filePath + ", line " + lineReader.getLineNumber() +": End of file while reading " + when);
+		return false;
+	}
 }
