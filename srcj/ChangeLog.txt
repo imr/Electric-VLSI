@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+BUG: (10/16/06, DN) Delete subcells, then undo. Their expansion status is lost.
+FIX: Keep info about expanded nodes on a Cell. 
+
 IMP: (10/16/06, GVG) Skeleton to read DSPF
 
 IMP: (10/16/06, DN) Connectivity index was moved to immutable CellBackup.

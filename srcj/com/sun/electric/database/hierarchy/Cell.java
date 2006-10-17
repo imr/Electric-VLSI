@@ -331,6 +331,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
 	/** The Cell's essential-bounds. */								private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
     /** Chronological list of NodeInsts in this Cell. */            private final ArrayList<NodeInst> chronNodes = new ArrayList<NodeInst>();
+    /** Set containing nodeIds of expanded cells. */                private final BitSet expandedNodes = new BitSet();
 	/** A list of NodeInsts in this Cell. */						private final ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
     /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
 	/** A map from canonic String to Integer maximal numeric suffix */private final HashMap<String,MaxSuffix> maxSuffix = new HashMap<String,MaxSuffix>();
@@ -1954,6 +1955,33 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		return nodeId < chronNodes.size() ? chronNodes.get(nodeId) : null;
 	}
 
+    /**
+     * Tells expanded status of NodeInst with specified nodeId.
+     * @return true if NodeInst with specified nodeId is expanded. 
+     */
+    public boolean isExpanded(int nodeId) {
+        return expandedNodes.get(nodeId);
+    }
+    
+    /**
+	 * Method to set expanded status of specified NodeInst.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
+	 * The state has no meaning for instances of primitive node prototypes.
+     * @param nodeId specified nodeId
+     * @param value true if NodeInst is expanded.
+	 */
+    public void setExpanded(int nodeId, boolean value) {
+        NodeInst ni = getNodeById(nodeId);
+        if (ni == null) return;
+        NodeProto protoType = ni.getProto();
+        if (!(protoType instanceof Cell) || ((Cell)protoType).isIcon()) return;
+        boolean oldValue = expandedNodes.get(nodeId);
+        if (oldValue == value) return;
+        expandedNodes.set(nodeId, value);
+        expandStatusModified = true;
+    }
+    
 	/**
 	 * Method to return the PortInst by nodeId and PortProtoId.
 	 * @param nodeId specified NodeId.
@@ -2077,9 +2105,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         chronNodes.set(nodeId, ni);
         setContentsModified();
         
-        // count usage
+        // expand status and count usage
         if (ni.isCellInstance()) {
             Cell subCell = (Cell)ni.getProto();
+            expandedNodes.set(nodeId, subCell.isWantExpanded());
+            expandStatusModified = true;
+            
             CellUsage u = getId().getUsageIn(subCell.getId());
             if (cellUsages.length <= u.indexInParent) {
                 int[] newCellUsages = new int[u.indexInParent + 1];
@@ -4085,17 +4116,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 String nodeName = "E" + ni.getName();
                 expanded = cellPrefs.getBoolean(nodeName, expanded);
             }
-            ni.setExpanded(expanded);
-//            if (ni.isIconOfParent() || ((Cell)ni.getProto()).isIcon()) ni.setExpanded(true); // forcing it
-//            else
-//            {
-//                boolean expanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
-//                if (cellPrefs != null) {
-//                    String nodeName = ni.getDuplicate() == 0 ? "E" + ni.getName() : "E\"" + ni.getName() + "\"" + ni.getDuplicate();
-//                    expanded = cellPrefs.getBoolean(nodeName, expanded);
-//                }
-//                if (expanded) ni.setExpanded(); else ni.clearExpanded();
-//            }
+            setExpanded(ni.getD().nodeId, expanded);
         }
         expandStatusModified = false;
     }
@@ -4111,8 +4132,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             NodeInst ni = it.next();
             if (!ni.isCellInstance()) continue;
             num++;
-            if (ni.isExpanded()) expanded++;
-            if (ni.isExpanded() != ((Cell)ni.getProto()).isWantExpanded())
+            boolean isExpanded = isExpanded(ni.getD().nodeId);
+            if (isExpanded) expanded++;
+            if (isExpanded != ((Cell)ni.getProto()).isWantExpanded())
                 diff++;
         }
         String cellName = noLibDescribe().replace('/', ':');
@@ -4142,9 +4164,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 NodeInst ni = it.next();
                 if (!ni.isCellInstance()) continue;
                 boolean defaultExpanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
-                if (ni.isExpanded() != defaultExpanded) {
+                boolean isExpanded = isExpanded(ni.getD().nodeId);
+                if (isExpanded != defaultExpanded) {
                     String nodeName = "E" + ni.getName();
-                    cellPrefs.putBoolean(nodeName, ni.isExpanded());
+                    cellPrefs.putBoolean(nodeName, isExpanded);
                 }
             }
             cellPrefs.flush();
@@ -4152,13 +4175,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         expandStatusModified = false;
     }
     
-    /**
-     * Method to tell that expanded status of subcell instances was modified.
-     */
-    public void expandStatusChanged() {
-        expandStatusModified = true;
-    }
-
     /**
 	 * Method to set the multi-page capability of this Cell.
 	 * Multipage cells (usually schematics) must have cell frames to isolate the different

@@ -130,7 +130,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	/** prototype of this NodeInst. */						private final NodeProto protoType;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
-    /** If True, draw NodeInst expanded. */                 private boolean expanded;
     
 	/** bounds after transformation. */						private final Rectangle2D.Double visBounds = new Rectangle2D.Double(0, 0, 0, 0);
     /** True, if visBounds are valid. */                    private boolean validVisBounds;
@@ -155,8 +154,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			PortProto pp = protoType.getPort(i);
 			portInsts[i] = PortInst.newInstance(pp, this);
 		}
-
-        expanded = isCellInstance() && ((Cell)protoType).isWantExpanded();
     }
     
     private Object writeReplace() throws ObjectStreamException { return new NodeInstKey(this); }
@@ -3172,11 +3169,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * The state has no meaning for instances of primitive node prototypes.
      * @param value true if NodeInst is expanded.
 	 */
-    public void setExpanded(boolean value) {
-        if (!(protoType instanceof Cell) || ((Cell)protoType).isIcon()) return;
-        if (value != expanded && parent != null) parent.expandStatusChanged();
-        expanded = value;
-    }
+    public void setExpanded(boolean value) { if (parent != null) parent.setExpanded(getD().nodeId, value); }
     
 	/**
 	 * Method to set this NodeInst to be expanded.
@@ -3201,7 +3194,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * The state has no meaning for instances of primitive node prototypes.
 	 * @return true if this NodeInst is expanded.
 	 */
-	public boolean isExpanded() { return expanded; }
+	public boolean isExpanded() { return parent != null && parent.isExpanded(getD().nodeId); }
 
 	/**
 	 * Method to tell whether this NodeInst is wiped.
