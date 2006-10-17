@@ -6,6 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 BUG: (10/17/06, DN) Zero-length arcs with angles 0 and 90 generates Polys with swapped head and tail extension.
 FIX: In Poly.makeEndPointPoly use "angle == 0" and "angle == 900" conditions.
+     In debug menu "Dima|Find error-prone arcs" command show such arcs in all loaded libraries.
 
 BUG: (10/16/06, DN) API allows to create negated layout arcs.
 FIX:  Negated arc end is always connected to PrimitivePort which "isNegatable". 
