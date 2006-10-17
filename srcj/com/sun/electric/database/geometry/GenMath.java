@@ -171,6 +171,43 @@ public class GenMath
     }
 
     /**
+     * Class to define a Long-like object that can be modified.
+     */
+    public static class MutableLong implements Serializable
+    {
+        private long value;
+        
+        /**
+         * Constructor creates a MutableLong object with an initial value.
+         * @param value the initial value.
+         */
+        public MutableLong(long value) { this.value = value; }
+
+        /**
+         * Method to change the value of this MutableLong.
+         * @param value the new value.
+         */
+        public void setValue(long value) { this.value = value; }
+
+        /**
+         * Method to increment this MutableLong by 1.
+         */
+        public void increment() { value++; }
+
+        /**
+         * Method to return the value of this MutableLong.
+         * @return the current value of this MutableLong.
+         */
+        public long longValue() { return value; }
+
+        /**
+         * Returns a printable version of this MutableLong.
+         * @return a printable version of this MutableLong.
+         */
+        public String toString() { return Long.toString(value); }
+    }
+
+    /**
      * Increments count to object in a bag.
 	 * If object was not in a bag, it will be added.
      * @param bag Map implementing Bag.
