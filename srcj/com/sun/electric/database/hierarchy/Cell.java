@@ -1049,6 +1049,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
         checkUndoing();
         boundsDirty = BOUNDS_RECOMPUTE;
+        rTreeFresh = false;
      	this.d = newBackup.d;
         lib = database.getLib(newBackup.d.getLibId());
         this.revisionDate = newBackup.revisionDate;
@@ -1186,18 +1187,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         ERectangle newBounds = computeBounds();
         assert newBounds == cellBounds;
         boundsDirty = BOUNDS_CORRECT;
-        rebuildRTree();
     }
 
     private void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
         checkUndoing();
+        rTreeFresh = false;
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             if (!ni.isCellInstance()) continue;
             int subCellIndex = ((Cell)ni.getProto()).getCellIndex();
             if (exportsModified != null && exportsModified.get(subCellIndex)) {
                 ni.updatePortInsts(false);
-//                ni.sortConnections();
             }
             if (boundsModified != null && boundsModified.get(subCellIndex))
                 ni.redoGeometric();
@@ -1207,7 +1207,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             ERectangle newBounds = computeBounds();
             assert newBounds == cellBounds;
             boundsDirty = BOUNDS_CORRECT;
-            rebuildRTree();
         }
     }
 
@@ -1290,6 +1289,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	private void setDirty(byte boundsLevel)
 	{
+        rTreeFresh = false;
         if (boundsDirty == BOUNDS_CORRECT) {
             boundsDirty = boundsLevel;
             for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
@@ -1433,17 +1433,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return R-Tree of this Cell.
 	 */
     RTNode getRTree() {
+        if (rTreeFresh) return rTree;
         if (database.canComputeBounds()) {
-            getBounds();
-            if (!rTreeFresh) {
-                rebuildRTree();
-            }
+            rebuildRTree();
+            rTreeFresh = true;
+        } else {
+            Snapshot snapshotBefore = database.getFreshSnapshot();
+            rebuildRTree();
+            rTreeFresh = snapshotBefore != null && database.getFreshSnapshot() == snapshotBefore;
         }
         return rTree;
     }
 
     private void rebuildRTree() {
-//		System.out.println("Rebuilding R-Tree in "+this);
+//        long startTime = System.currentTimeMillis();
         CellId cellId = getId();
         RTNode root = RTNode.makeTopLevel();
         for (NodeInst ni: nodes)
@@ -1452,7 +1455,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             root = RTNode.linkGeom(cellId, root, ai);
         root.checkRTree(0, getId());
         rTree = root;
-        rTreeFresh = true;
+//        long stopTime = System.currentTimeMillis();
+//        if (Job.getDebug()) System.out.println("Rebuilding R-Tree in " + this + " took " + (stopTime - startTime) + " msec");
     }
         
 	/**

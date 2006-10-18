@@ -79,8 +79,7 @@ public class EDatabase {
     /** Creates a new instance of EDatabase */
     public EDatabase(IdManager idManager) {
         this.idManager = idManager;
-        snapshot = getInitialSnapshot();
-        snapshotFresh = true;
+        setSnapshot(getInitialSnapshot(), true);
         networkManager = new NetworkManager(this);
     }
     
@@ -298,6 +297,15 @@ public class EDatabase {
         snapshotFresh = false;
     }
     
+    private synchronized void setSnapshot(Snapshot snapshot, boolean fresh) {
+        this.snapshot = snapshot;
+        this.snapshotFresh = fresh;
+    }
+    
+    synchronized Snapshot getFreshSnapshot() {
+        return snapshotFresh ? snapshot : null;
+    }
+    
     /**
      * Create Snapshot from the current state of Electric database.
      * @return snapshot of the current state of Electric database.
@@ -342,16 +350,13 @@ public class EDatabase {
 				cellBackups[cellIndex] = cell.backup();
                 cell.getMemoization();
                 cellBounds[cellIndex] = cell.getBounds();
-                cell.getRTree(); // construct RTree in database thread, so that other thread can use something
             }
             cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
             cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);
         }
         if (!cellsChanged) cellBackups = null;
         if (!cellBoundsChanged) cellBounds = null;
-        snapshot = snapshot.with(changingTool, cellBackups, cellBounds, libBackups);
-//        checkFresh(snapshot);
-        snapshotFresh = true;
+        setSnapshot(snapshot.with(changingTool, cellBackups, cellBounds, libBackups), true);
 //        long endTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("backup took: " + (endTime - startTime) + " msec");
         return snapshot;
@@ -364,7 +369,7 @@ public class EDatabase {
      */
     public void recover(Snapshot snapshot) {
         long startTime = System.currentTimeMillis();
-        this.snapshot = snapshot;
+        setSnapshot(snapshot, false);
         recoverLibraries();
         recycleCells();
         BitSet recovered = new BitSet();
@@ -406,7 +411,7 @@ public class EDatabase {
         long startTime = System.currentTimeMillis();
         Snapshot oldSnapshot = backup();
         if (oldSnapshot == snapshot) return;
-        this.snapshot = snapshot;
+        setSnapshot(snapshot, false);
         boolean cellGroupsChanged = oldSnapshot.cellGroups != snapshot.cellGroups;
         if (oldSnapshot.libBackups != snapshot.libBackups) {
             recoverLibraries();
