@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
@@ -32,7 +33,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 
@@ -203,7 +203,7 @@ public class CurveListener
 				curvature = curveArcAboutPoint(curveAI, dbPt.getX(), dbPt.getY());
 			}
 			double width = curveAI.getWidth() - curveAI.getProto().getWidthOffset();
-			Poly curvedPoly = curveAI.curvedArcOutline(Poly.Type.CLOSED, width, curvature);
+			Poly curvedPoly = curveAI.getD().curvedArcOutline(Poly.Type.CLOSED, width, curvature);
 			if (curvedPoly != null)
 				highlighter.addPoly(curvedPoly, curveAI.getParent(), null);
 		}
@@ -295,11 +295,11 @@ public class CurveListener
 
 			if (curvature == 0)
 			{
-				if (curveAI.getVar(ArcInst.ARC_RADIUS) != null)
-					curveAI.delVar(ArcInst.ARC_RADIUS);
+				if (curveAI.getVar(ImmutableArcInst.ARC_RADIUS) != null)
+					curveAI.delVar(ImmutableArcInst.ARC_RADIUS);
 			} else
 			{
-				curveAI.newVar(ArcInst.ARC_RADIUS, new Double(curvature));
+				curveAI.newVar(ImmutableArcInst.ARC_RADIUS, new Double(curvature));
 			}
 			curveAI.modify(0, 0, 0, 0, 0);
 			return true;

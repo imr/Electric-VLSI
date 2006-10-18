@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
@@ -32,6 +33,8 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitivePort;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 import java.io.IOException;
 
@@ -39,11 +42,12 @@ import java.io.IOException;
  * Immutable class ImmutableArcInst represents an arc instance.
  */
 public class ImmutableArcInst extends ImmutableElectricObject {
+	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = Variable.newKey("ARC_radius");
     /** 
      * Class to access a flag in user bits of ImmutableNodeInst.
      */
     public static class Flag {
-        private final int mask;
+        final int mask;
 
         private Flag(int mask) {
             this.mask = mask;
@@ -80,7 +84,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
          * @param userBits user bits.
          * @return true if this Flag is set in userBits;
          */
-        public boolean is(int userBits) { return !super.is(userBits); }
+        public boolean is(int userBits) {
+            return (userBits & mask) == 0;
+        }
         
         /**
          * Updates this flag in userBits.
@@ -88,9 +94,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
          * @param value new value of flag.
          * @return updates userBits.
          */
-        public int set(int userBits, boolean value) { return super.set(userBits, !value); }
-    } 
-    
+        public int set(int userBits, boolean value) {
+            return value ? userBits & ~mask : userBits | mask;
+        }
+    }
+   
 	// -------------------------- constants --------------------------------
 	/** fixed-length arc */                                 private static final int FIXED =                     01;
 	/** fixed-angle arc */                                  private static final int FIXANG =                    02;
@@ -550,6 +558,276 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 this.width == that.width && this.angle == that.angle && this.flags == that.flags;
     }
     
+    public double[] computeBounds(CellBackup.Memoization m, double[] result) {
+        if (result == null)
+            result = new double[4];
+        
+        if (protoType.isCurvable()) {
+            // get the radius information on the arc
+            Double radiusDouble = getRadius();
+            if (radiusDouble != null) {
+                Poly curvedPoly = curvedArcOutline(Poly.Type.FILLED, width, radiusDouble.doubleValue());
+                if (curvedPoly != null)
+                    return getBounds(curvedPoly, result);
+            }
+        }
+        
+        double tx = tailLocation.getX();
+        double ty = tailLocation.getY();
+        double hx = headLocation.getX();
+        double hy = headLocation.getY();
+        
+       // zero-width polygons are simply lines
+        if (width == 0) {
+            if (tx < hx) {
+                result[0] = tx;
+                result[2] = hx;
+            } else {
+                result[0] = hx;
+                result[2] = tx;
+            }
+            if (ty < hy) {
+                result[1] = ty;
+                result[3] = hy;
+            } else {
+                result[1] = hy;
+                result[3] = ty;
+            }
+            return result;
+        }
+        
+        double w2 = width/2;
+        // determine the end extension on each end
+        double extendH = 0, extendT = 0;
+        if (m != null) {
+            if ((flags & HEADNOEXTEND) == 0) // is(HEAD_EXTENDED)
+                extendH = getExtendFactor(width, m.getShrinkage(headNodeId));
+            if ((flags & TAILNOEXTEND) == 0) // is(TAIL_EXTENDED)
+                extendT = getExtendFactor(width, m.getShrinkage(tailNodeId));
+        } else {
+            if (is(HEAD_EXTENDED))
+                extendH = w2;
+            if (is(TAIL_EXTENDED))
+                extendT = w2;
+        }
+
+        switch (angle) {
+            case 0:
+                if (ty == hy) {
+                    assert tx <= hx;
+                    result[0] = tx - extendT;
+                    result[1] = ty - w2;
+                    result[2] = hx + extendH;
+                    result[3] = ty + w2;
+                    return result;
+                }
+                break;
+            case 1800:
+                if (ty == hy) {
+                    assert tx >= hx;
+                    result[0] = hx - extendH;
+                    result[1] = ty - w2;
+                    result[2] = tx + extendT;
+                    result[3] = ty + w2;
+                    return result;
+                }
+                break;
+            case 900:
+                if (tx == hx) {
+                    assert ty <= hy;
+                    result[0] = tx - w2;
+                    result[1] = ty - extendT;
+                    result[2] = tx + w2;
+                    result[3] = hy + extendH;
+                    return result;
+                }
+                break;
+            case 2700:
+                if (tx == hx) {
+                    assert ty >= hy;
+                    result[0] = tx - w2;
+                    result[1] = hy - extendH;
+                    result[2] = tx + w2;
+                    result[3] = ty + extendT;
+                    return result;
+                }
+                break;
+        }
+        
+		return getBounds(makePoly(m, width, Poly.Type.FILLED), result);
+    }
+    
+    private static double[] getBounds(Poly poly, double[] result) {
+        Rectangle2D newBounds = poly.getBounds2D();
+        result[0] = newBounds.getMinX();
+        result[1] = newBounds.getMinY();
+        result[2] = newBounds.getMaxX();
+        result[3] = newBounds.getMaxY();
+        return result;
+    }
+
+	/**
+	 * Method to create a Poly object that describes this ImmutableArcInst.
+	 * The ArcInst is described by its length, width, endpoints, and style.
+     * @param m data for size computation in a CellBackup
+	 * @param width the width of the Poly.
+	 * @param style the style of the Poly.
+	 * @return a Poly that describes this ImmutableArcInst.
+	 */
+    public Poly makePoly(CellBackup.Memoization m, double width, Poly.Type style) {
+        if (protoType.isCurvable()) {
+            // get the radius information on the arc
+            Double radiusDouble = getRadius();
+            if (radiusDouble != null) {
+                Poly curvedPoly = curvedArcOutline(style, width, radiusDouble.doubleValue());
+                if (curvedPoly != null) return curvedPoly;
+            }
+        }
+        
+        // zero-width polygons are simply lines
+        if (width == 0) {
+            Poly poly = new Poly(new Point2D.Double[]{headLocation.mutable(), tailLocation.mutable()});
+            if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
+            poly.setStyle(style);
+            return poly;
+        }
+        
+        // determine the end extension on each end
+        double extendH = 0, extendT = 0;
+        if (m != null) {
+            if ((flags & HEADNOEXTEND) == 0) // is(HEAD_EXTENDED)
+                extendH = getExtendFactor(width, m.getShrinkage(headNodeId));
+            if ((flags & TAILNOEXTEND) == 0) // is(TAIL_EXTENDED)
+                extendT = getExtendFactor(width, m.getShrinkage(tailNodeId));
+        } else {
+            if (is(HEAD_EXTENDED))
+                extendH = width/2;
+            if (is(TAIL_EXTENDED))
+                extendT = width/2;
+        }
+        
+        // make the polygon
+        Poly poly = Poly.makeEndPointPoly(length, width, angle, headLocation, extendH, tailLocation, extendT, style);
+        return poly;
+    }
+
+	/**
+	 * Method to get the curvature radius on this ImmutableArcInst.
+	 * The curvature (used in artwork and round-cmos technologies) lets an arc
+	 * curve.
+	 * @return the curvature radius on this ImmutableArcInst.
+	 * Returns null if there is no curvature information.
+	 */
+    public Double getRadius() {
+        Variable var = getVar(ARC_RADIUS);
+        if (var == null) return null;
+        
+        // get the radius of the circle, check for validity
+        Object obj = var.getObject();
+        
+        if (obj instanceof Double)
+            return (Double)obj;
+        if (obj instanceof Integer)
+            return new Double(((Integer)obj).intValue() / 2000.0);
+        return null;
+	}
+    
+	/**
+	 * when arcs are curved, the number of line segments will be
+	 * between this value, and half of this value.
+	 */
+	private static final int MAXARCPIECES = 16;
+
+	/**
+	 * Method to fill polygon "poly" with the outline of the curved arc in
+	 * this ImmutableArcInst whose width is "wid".  The style of the polygon is set to "style".
+	 * If there is no curvature information in the arc, the routine returns null,
+	 * otherwise it returns the curved polygon.
+	 */
+    public Poly curvedArcOutline(Poly.Type style, double wid, double radius) {
+        // get information about the curved arc
+        double pureRadius = Math.abs(radius);
+        
+        // see if the radius can work with these arc ends
+        if (pureRadius*2 < length) return null;
+        
+        // determine the center of the circle
+        Point2D [] centers = DBMath.findCenters(pureRadius, headLocation, tailLocation, length);
+        if (centers == null) return null;
+        
+        Point2D centerPt = centers[1];
+        if (radius < 0) {
+            centerPt = centers[0];
+        }
+        
+        // determine the base and range of angles
+        int angleBase = DBMath.figureAngle(centerPt, headLocation);
+        int angleRange = DBMath.figureAngle(centerPt, tailLocation);
+        angleRange -= angleBase;
+        if (angleRange < 0) angleRange += 3600;
+        
+        // force the curvature to be the smaller part of a circle (used to determine this by the reverse-ends bit)
+        if (angleRange > 1800) {
+            angleBase = DBMath.figureAngle(centerPt, tailLocation);
+            angleRange = DBMath.figureAngle(centerPt, headLocation);
+            angleRange -= angleBase;
+            if (angleRange < 0) angleRange += 3600;
+        }
+        
+        // determine the number of intervals to use for the arc
+        int pieces = angleRange;
+        while (pieces > MAXARCPIECES) pieces /= 2;
+        if (pieces == 0) return null;
+        
+        // initialize the polygon
+        int points = (pieces+1) * 2;
+        Point2D [] pointArray = new Point2D[points];
+        
+        // get the inner and outer radii of the arc
+        double outerRadius = pureRadius + wid / 2;
+        double innerRadius = outerRadius - wid;
+        
+        // fill the polygon
+        for(int i=0; i<=pieces; i++) {
+            int a = (angleBase + i * angleRange / pieces) % 3600;
+            double sin = DBMath.sin(a);   double cos = DBMath.cos(a);
+            pointArray[i] = new Point2D.Double(cos * innerRadius + centerPt.getX(), sin * innerRadius + centerPt.getY());
+            pointArray[points-1-i] = new Point2D.Double(cos * outerRadius + centerPt.getX(), sin * outerRadius + centerPt.getY());
+        }
+        Poly poly = new Poly(pointArray);
+        poly.setStyle(style);
+        return poly;
+    }
+    
+    private static final int [] extendFactor = {0,
+    11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,
+    1039,  951,  878,  814,  760,  712,  669,  631,  598,  567,
+    540,  514,  492,  470,  451,  433,  417,  401,  387,  373,
+    361,  349,  338,  327,  317,  308,  299,  290,  282,  275,
+    267,  261,  254,  248,  241,  236,  230,  225,  219,  214,
+    210,  205,  201,  196,  192,  188,  184,  180,  177,  173,
+    170,  166,  163,  160,  157,  154,  151,  148,  146,  143,
+    140,  138,  135,  133,  130,  128,  126,  123,  121,  119,
+    117,  115,  113,  111,  109,  107,  105,  104,  102,  100};
+
+	/**
+	 * Method to return the amount that an arc end should extend, given its width and extension factor.
+	 * @param width the width of the arc.
+	 * @param extend the extension factor (from 0 to 90).
+	 * @return the extension (from 0 to half of the width).
+	 */
+    public static double getExtendFactor(double width, int extend) {
+        return extend <= 0 || extend >= 90 ? width*0.5 : width * 50 / extendFactor[extend];
+//        // compute the amount of extension (from 0 to wid/2)
+//        if (extend <= 0) return width/2;
+//        
+//        // values should be from 0 to 90, but check anyway
+//        if (extend > 90) return width/2;
+//        
+//        // return correct extension
+//        return width * 50 / extendFactor[extend];
+    }
+
 	/**
 	 * Checks invariant of this ImmutableArcInst.
 	 * @throws AssertionError if invariant is broken.

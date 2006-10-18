@@ -32,7 +32,12 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
@@ -70,9 +75,6 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -2303,8 +2305,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				DBMath.figureAngle(zero, delta[0]) !=
 				DBMath.figureAngle(delta[1], zero)) return false;
 		}
-		if (reconAr[0].getVar(ArcInst.ARC_RADIUS) != null) return false;
-		if (reconAr[1].getVar(ArcInst.ARC_RADIUS) != null) return false;
+		if (reconAr[0].getVar(ImmutableArcInst.ARC_RADIUS) != null) return false;
+		if (reconAr[1].getVar(ImmutableArcInst.ARC_RADIUS) != null) return false;
 
 		// the arcs must not have network names on them
 		Name name0 = reconAr[0].getNameKey();

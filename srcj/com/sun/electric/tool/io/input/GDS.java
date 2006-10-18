@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -44,7 +45,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -1234,7 +1234,7 @@ public class GDS extends Input
 						int ang = Math.abs(thisAngle-lastAngle) / 10;
 						if (ang > 180) ang = 360 - ang;
 						if (ang > 90) ang = 180 - ang;
-						fextend = ArcInst.getExtendFactor(width, ang);
+						fextend = ImmutableArcInst.getExtendFactor(width, ang);
 					}
 				} else
 				{
@@ -1249,7 +1249,7 @@ public class GDS extends Input
 						int ang = Math.abs(thisAngle-nextAngle) / 10;
 						if (ang > 180) ang = 360 - ang;
 						if (ang > 90) ang = 180 - ang;
-						textend = ArcInst.getExtendFactor(width, ang);
+						textend = ImmutableArcInst.getExtendFactor(width, ang);
 					}
 				} else
 				{

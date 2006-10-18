@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
@@ -87,9 +88,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 0;
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 1;
     
-
 	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = Variable.newKey("ARC_name");
-	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = Variable.newKey("ARC_radius");
 
 	/** Minimal distance of arc end to port polygon. */	static final double MINPORTDISTANCE = DBMath.getEpsilon()*0.71; // sqrt(0.5)
 
@@ -554,7 +553,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void checkPossibleVariableEffects(Variable.Key key)
 	{
-        if (key == ARC_RADIUS) {
+        if (key == ImmutableArcInst.ARC_RADIUS) {
 			lowLevelModify(d);
         }
 	}
@@ -669,162 +668,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public Poly makePoly(double width, Poly.Type style)
 	{
-		return makePolyForArc(this, d.length, width, d.headLocation, d.tailLocation, style);
+        CellBackup.Memoization m = parent != null ? parent.getMemoization() : null;
+		return getD().makePoly(m, width, style);
 	}
 	
-	/**
-	 * Method to create a Poly object that describes an ArcInst.
-	 * The ArcInst is described by its length, width, endpoints, and style.
-	 * @param real the real ArcInst object needed because this is a static method).
-	 * @param length the length of the ArcInst.
-	 * @param width the width of the ArcInst.
-	 * @param headPt the head of the ArcInst.
-	 * @param tailPt the tail of the ArcInst.
-	 * @param style the style of the ArcInst.
-	 * @return a Poly that describes the ArcInst.
-	 */
-	public static Poly makePolyForArc(ArcInst real, double length, double width, EPoint headPt, EPoint tailPt, Poly.Type style)
-	{
-		if (real.getProto().isCurvable())
-		{
-			// get the radius information on the arc
-			Double radiusDouble = real.getRadius();
-			if (radiusDouble != null)
-			{
-				Poly curvedPoly = real.curvedArcOutline(style, width, radiusDouble.doubleValue());
-				if (curvedPoly != null) return curvedPoly;
-			}
-		}
-
-		// zero-width polygons are simply lines
-		if (width == 0)
-		{
-			Poly poly = new Poly(new Point2D.Double[]{headPt.mutable(), tailPt.mutable()});
-			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
-			poly.setStyle(style);
-			return poly;
-		}
-
-		// determine the end extension on each end
-		double extendH = 0;
-		if (real.isHeadExtended())
-		{
-			extendH = width/2;
-            byte headShrink = real.getHeadPortInst().getNodeInst().getShrinkage();
-			if (headShrink != 0)
-				extendH = getExtendFactor(width, headShrink);
-		}
-		double extendT = 0;
-		if (real.isTailExtended())
-		{
-			extendT = width/2;
-            byte tailShrink = real.getTailPortInst().getNodeInst().getShrinkage();
-			if (tailShrink != 0)
-				extendT = getExtendFactor(width, tailShrink);
-		}
-
-		// make the polygon
-		Poly poly = Poly.makeEndPointPoly(length, width, real.getAngle(), headPt, extendH, tailPt, extendT, style);
-		return poly;
-	}
-
-	/**
-	 * Method to get the curvature radius on this ArcInst.
-	 * The curvature (used in artwork and round-cmos technologies) lets an arc
-	 * curve.
-	 * @return the curvature radius on this ArcInst.
-	 * Returns negative if there is no curvature information.
-	 */
-	public Double getRadius()
-	{
-		Variable var = getVar(ARC_RADIUS);
-		if (var == null) return null;
-
-		// get the radius of the circle, check for validity
-		Object obj = var.getObject();
-
-		if (obj instanceof Integer)
-		{
-			return new Double(((Integer)obj).intValue() / 2000.0);
-		}
-		if (obj instanceof Double)
-		{
-			return new Double(((Double)obj).doubleValue());
-		}
-		return null;
-	}
-
-	/**
-	 * when arcs are curved, the number of line segments will be
-	 * between this value, and half of this value.
-	 */
-	private static final int MAXARCPIECES = 16;
-
-	/**
-	 * Method to fill polygon "poly" with the outline of the curved arc in
-	 * "ai" whose width is "wid".  The style of the polygon is set to "style".
-	 * If there is no curvature information in the arc, the routine returns null,
-	 * otherwise it returns the curved polygon.
-	 */
-	public Poly curvedArcOutline(Poly.Type style, double wid, double radius)
-	{
-		// get information about the curved arc
-		double pureRadius = Math.abs(radius);
-
-		// see if the radius can work with these arc ends
-		if (pureRadius*2 < d.length) return null;
-
-		// determine the center of the circle
-		Point2D [] centers = DBMath.findCenters(pureRadius, d.headLocation, d.tailLocation, d.length);
-		if (centers == null) return null;
-
-		Point2D centerPt = centers[1];
-		if (radius < 0)
-		{
-			centerPt = centers[0];
-		}
-
-		// determine the base and range of angles
-		int angleBase = DBMath.figureAngle(centerPt, d.headLocation);
-		int angleRange = DBMath.figureAngle(centerPt, d.tailLocation);
-		angleRange -= angleBase;
-		if (angleRange < 0) angleRange += 3600;
-
-		// force the curvature to be the smaller part of a circle (used to determine this by the reverse-ends bit)
-		if (angleRange > 1800)
-		{
-			angleBase = DBMath.figureAngle(centerPt, d.tailLocation);
-			angleRange = DBMath.figureAngle(centerPt, d.headLocation);
-			angleRange -= angleBase;
-			if (angleRange < 0) angleRange += 3600;
-		}
-
-		// determine the number of intervals to use for the arc
-		int pieces = angleRange;
-		while (pieces > MAXARCPIECES) pieces /= 2;
-		if (pieces == 0) return null;
-
-		// initialize the polygon
-		int points = (pieces+1) * 2;
-		Point2D [] pointArray = new Point2D[points];
-
-		// get the inner and outer radii of the arc
-		double outerRadius = pureRadius + wid / 2;
-		double innerRadius = outerRadius - wid;
-
-		// fill the polygon
-		for(int i=0; i<=pieces; i++)
-		{
-			int a = (angleBase + i * angleRange / pieces) % 3600;
-			double sin = DBMath.sin(a);   double cos = DBMath.cos(a);
-			pointArray[i] = new Point2D.Double(cos * innerRadius + centerPt.getX(), sin * innerRadius + centerPt.getY());
-			pointArray[points-1-i] = new Point2D.Double(cos * outerRadius + centerPt.getX(), sin * outerRadius + centerPt.getY());
-		}
-		Poly poly = new Poly(pointArray);
-		poly.setStyle(style);
-		return poly;
-	}
-
 //	/**
 //	 * Method to return a list of Polys that describes all text on this ArcInst.
 //	 * @param hardToSelect is true if considering hard-to-select text.
@@ -889,35 +736,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			numVars = 1;
 		}
 		return super.addDisplayableVariables(rect, polys, start+numVars, wnd, multipleStrings) + numVars;
-	}
-
-	private static int [] extendFactor = {0,
-		11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,
-		 1039,  951,  878,  814,  760,  712,  669,  631,  598,  567,
-		  540,  514,  492,  470,  451,  433,  417,  401,  387,  373,
-		  361,  349,  338,  327,  317,  308,  299,  290,  282,  275,
-		  267,  261,  254,  248,  241,  236,  230,  225,  219,  214,
-		  210,  205,  201,  196,  192,  188,  184,  180,  177,  173,
-		  170,  166,  163,  160,  157,  154,  151,  148,  146,  143,
-		  140,  138,  135,  133,  130,  128,  126,  123,  121,  119,
-		  117,  115,  113,  111,  109,  107,  105,  104,  102,  100};
-
-	/**
-	 * Method to return the amount that an arc end should extend, given its width and extension factor.
-	 * @param width the width of the arc.
-	 * @param extend the extension factor (from 0 to 90).
-	 * @return the extension (from 0 to half of the width).
-	 */
-	public static double getExtendFactor(double width, int extend)
-	{
-		// compute the amount of extension (from 0 to wid/2)
-		if (extend <= 0) return width/2;
-
-		// values should be from 0 to 90, but check anyway
-		if (extend > 90) return width/2;
-
-		// return correct extension
-		return width * 50 / extendFactor[extend];
 	}
 
 	/****************************** CONNECTIONS ******************************/
@@ -1275,9 +1093,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
     private void setFlag(ImmutableArcInst.Flag flag, boolean state) {
         checkChanging();
-        ImmutableArcInst oldD = d;
-        lowLevelModify(d.withFlag(flag, state));
-        if (parent != null && d != oldD) Constraints.getCurrent().modifyArcInst(this, oldD);
+        if (setD(d.withFlag(flag, state), true))
+            redoGeometric();
     }
     
 	/**

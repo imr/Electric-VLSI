@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -929,7 +930,7 @@ public class CircuitChanges
 					ArcProto ap = ai.getProto();
 					if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
 						ap.getTechnology() == Schematics.tech) continue;
-					Variable var = ai.getVar(ArcInst.ARC_RADIUS);
+					Variable var = ai.getVar(ImmutableArcInst.ARC_RADIUS);
 					if (var != null) cellsSeen.add(cell);
 					if (ai.getHeadLocation().getX() != ai.getTailLocation().getX() &&
 						ai.getHeadLocation().getY() != ai.getTailLocation().getY())
@@ -952,7 +953,7 @@ public class CircuitChanges
 			if (ap.getTechnology() == Generic.tech || ap.getTechnology() == Artwork.tech ||
 				ap.getTechnology() == Schematics.tech) continue;
 			boolean nonMan = false;
-			Variable var = ai.getVar(ArcInst.ARC_RADIUS);
+			Variable var = ai.getVar(ImmutableArcInst.ARC_RADIUS);
 			if (var != null) nonMan = true;
 			if (ai.getHeadLocation().getX() != ai.getTailLocation().getX() &&
 				ai.getHeadLocation().getY() != ai.getTailLocation().getY())
