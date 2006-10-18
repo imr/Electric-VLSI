@@ -27,10 +27,13 @@ package com.sun.electric.tool.user.menus;
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.dialogs.SetFocus;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.EditWindowFocusBrowser;
@@ -40,6 +43,8 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.FileType;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -58,6 +63,7 @@ import java.util.Collections;
 import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
+import java.net.URL;
 
 import javax.swing.KeyStroke;
 
@@ -185,7 +191,10 @@ public class WindowMenu {
                 new EMenuItem("_Black Background Colors") { public void run() {
                     blackBackgroundCommand(); }},
                 new EMenuItem("_White Background Colors") { public void run() {
-                    whiteBackgroundCommand(); }}),
+                    whiteBackgroundCommand(); }},
+                new EMenuItem("Cadence Colors") { public void run() {
+                importCadencePreferences(); }}
+                    ),
 
 		// mnemonic keys available: ABC  FGHIJKLMNOPQ  TUVWXYZ
             new EMenu("W_aveform Window",
@@ -829,5 +838,33 @@ public class WindowMenu {
         if (wnd == null) return;
         EditWindowFocusBrowser browser = wnd.getSavedFocusBrowser();
         browser.goForward();
+    }
+
+    /**
+     * Method to import color pattern used in Cadence
+     */
+    private static void importCadencePreferences()
+    {
+        String backFileName = "electricPrefsBack.xml";
+        String cadenceFileName = "CadencePrefs.xml";
+        String [] options = { "Yes", "No", "Cancel Import"};
+        int response = Job.getUserInterface().askForChoice("Do you want to backup your preferences " +
+             "before importing Cadence values?", "Import Cadence Preferences", options, options[1]);
+        if (response == 0) // Save previous preferences
+        {
+            String fileName = OpenFile.chooseOutputFile(FileType.XML, "Backup Preferences", backFileName);
+            if (fileName != null)
+                Pref.exportPrefs(backFileName);
+            else
+               System.out.println("Previous Preferences not backup");
+        }
+        if (response != 2) // cancel
+        {
+            URL fileURL = Resources.getURLResource(TopLevel.class, cadenceFileName);
+            if (fileURL != null)
+                Pref.importPrefs(fileURL);
+            else
+                System.out.println("Cannot import '" + cadenceFileName + "'");
+        }
     }
 }

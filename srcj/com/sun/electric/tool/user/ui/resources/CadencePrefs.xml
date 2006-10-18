@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE preferences SYSTEM "http://java.sun.com/dtd/preferences.dtd">
+<preferences EXTERNAL_XML_VERSION="1.0">
+<root type="user">
+<map/>
+<node name="com">
+<map/>
+<node name="sun">
+<map/>
+<node name="electric">
+<map/>
+<node name="database">
+<map/>
+<node name="hierarchy">
+<map/>
+<node name="Clipboard!!">
+<map>
+<entry key="LIB" value="Clipboard!!"/>
+</map>
+</node>
+<node name="noname">
+<map>
+<entry key="LIB" value="noname"/>
+</map>
+</node>
+</node>
+<node name="network">
+<map/>
+</node>
+<node name="variable">
+<map/>
+</node>
+</node>
+<node name="plugins">
+<map/>
+<node name="menus">
+<map/>
+</node>
+</node>
+<node name="technology">
+<map/>
+<node name="technologies">
+<map>
+<entry key="PatternForDEXCL-Metal-1Intsmc90" value="4112/8224/16448/32896/16448/8224/4112/2056/4112/8224/16448/32896/16448/8224/4112/2056"/>
+<entry key="PatternForDEXCL-Metal-2Intsmc90" value="8224/16448/32896/65792/32896/16448/8224/4112/8224/16448/32896/65792/32896/16448/8224/4112"/>
+<entry key="PatternForDEXCL-Metal-3Intsmc90" value="16448/32896/65792/131584/65792/32896/16448/8224/16448/32896/65792/131584/65792/32896/16448/8224"/>
+<entry key="PatternForDEXCL-Metal-4Intsmc90" value="32896/65792/131584/263168/131584/65792/32896/16448/32896/65792/131584/263168/131584/65792/32896/16448"/>
+<entry key="PatternForDEXCL-Metal-5Intsmc90" value="65792/131584/263168/526336/263168/131584/65792/32896/65792/131584/263168/526336/263168/131584/65792/32896"/>
+<entry key="PatternForDEXCL-Metal-6Intsmc90" value="131584/263168/526336/1052672/526336/263168/131584/65792/131584/263168/526336/1052672/526336/263168/131584/65792"/>
+<entry key="PatternForDEXCL-Metal-7Intsmc90" value="263168/526336/1052672/2105344/1052672/526336/263168/131584/263168/526336/1052672/2105344/1052672/526336/263168/131584"/>
+<entry key="PatternForDEXCL-Metal-8Intsmc90" value="526336/1052672/2105344/4210688/2105344/1052672/526336/263168/526336/1052672/2105344/4210688/2105344/1052672/526336/263168"/>
+<entry key="PatternForDEXCL-Metal-9Intsmc90" value="1052672/2105344/4210688/8421376/4210688/2105344/1052672/526336/1052672/2105344/4210688/8421376/4210688/2105344/1052672/526336"/>
+<entry key="PatternForDEXCL-P-ActiveIntsmc90" value="4112/8224/16448/32896/16448/8224/4112/2056/4112/8224/16448/32896/16448/8224/4112/2056"/>
+<entry key="PatternForDEXCL-N-ActiveIntsmc90" value="8224/16448/32896/65792/32896/16448/8224/4112/8224/16448/32896/65792/32896/16448/8224/4112"/>
+<entry key="TSMC90NumberOfMetalLayers" value="7"/>
+<entry key="DefaultWidthForX Metal-5-Metal-6-ConINtsmc90" value="10.4"/>
+<entry key="DefaultHeightForX Metal-5-Metal-6-ConINtsmc90" value="10.4"/>
+<entry key="DefaultWidthForMetal-5-Metal-6-ConINtsmc90" value="8.4"/>
+<entry key="DefaultHeightForMetal-5-Metal-6-ConINtsmc90" value="10.4"/>
+<entry key="DefaultWidthFormetal-6INtsmc90" value="8.4"/>
+<entry key="DefaultWidthForMetal-6-PinINtsmc90" value="8.4"/>
+<entry key="DefaultHeightForMetal-6-PinINtsmc90" value="8.4"/>
+<entry key="DefaultWidthForMetal-6-NodeINtsmc90" value="8.4"/>
+<entry key="DefaultHeightForMetal-6-NodeINtsmc90" value="8.4"/>
+<entry key="DefaultWidthForDEXCL-Metal-6-NodeINtsmc90" value="16.8"/>
+<entry key="DefaultHeightForDEXCL-Metal-6-NodeINtsmc90" value="16.8"/>
+<entry key="DefaultWidthForX Metal-6-Metal-7-ConINtsmc90" value="10.4"/>
+<entry key="DefaultHeightForX Metal-6-Metal-7-ConINtsmc90" value="10.4"/>
+<entry key="DefaultWidthForMetal-6-Metal-7-ConINtsmc90" value="8.4"/>
+<entry key="DefaultHeightForMetal-6-Metal-7-ConINtsmc90" value="10.4"/>
+<entry key="DefaultWidthFormetal-7INtsmc90" value="8.4"/>
+<entry key="DefaultWidthForMetal-7-PinINtsmc90" value="8.4"/>
+<entry key="DefaultHeightForMetal-7-PinINtsmc90" value="8.4"/>
+<entry key="DefaultWidthForMetal-7-NodeINtsmc90" value="8.4"/>
+<entry key="DefaultHeightForMetal-7-NodeINtsmc90" value="8.4"/>
+<entry key="DefaultWidthForDEXCL-Metal-7-NodeINtsmc90" value="16.8"/>
+<entry key="DefaultHeightForDEXCL-Metal-7-NodeINtsmc90" value="16.8"/>
+<entry key="ScaleFORmocmos" value="100.0"/>
+<entry key="SelectedFoundryFormocmos" value="TSMC"/>
+<entry key="DefaultWidthForPolysilicon-1INmocmos" value="1.8"/>
+<entry key="DefaultWidthForPolysilicon-1-PinINmocmos" value="1.8"/>
+<entry key="DefaultHeightForPolysilicon-1-PinINmocmos" value="1.8"/>
+<entry key="DefaultWidthForMetal-6INmocmos" value="5.0"/>
+<entry key="MoCMOSNumberOfMetalLayers" value="6"/>
+<entry key="ScaleFORrcmos" value="1000.0"/>
+<entry key="ScaleFORcmos" value="1000.0"/>
+<entry key="ColorForActive-CutInmocmos" value="16777164"/>
+<entry key="ColorForMetal-1Inmocmos" value="3355647"/>
+<entry key="ColorForMetal-3Inmocmos" value="39219"/>
+<entry key="ColorForMetal-4Inmocmos" value="10066431"/>
+<entry key="ColorForN-SelectInmocmos" value="9200174"/>
+<entry key="ColorForN-WellInmocmos" value="26163"/>
+<entry key="ColorForP-ActiveInmocmos" value="16777062"/>
+<entry key="ColorForPoly-CutInmocmos" value="11842740"/>
+<entry key="ColorForVia1Inmocmos" value="11842740"/>
+<entry key="ColorForVia2Inmocmos" value="11842740"/>
+<entry key="OutlinePatternDisplayForActive-CutInmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForMetal-1Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForMetal-2Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForMetal-3Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForMetal-4Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForN-ActiveInmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForN-SelectInmocmos" value="false"/>
+<entry key="OutlinePatternDisplayForN-WellInmocmos" value="false"/>
+<entry key="OutlinePatternDisplayForP-Active-WellInmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForP-ActiveInmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForP-SelectInmocmos" value="false"/>
+<entry key="OutlinePatternDisplayForP-WellInmocmos" value="false"/>
+<entry key="OutlinePatternDisplayForPoly-CutInmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForPolysilicon-1Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForPolysilicon-2Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForPseudo-PolysiliconInmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForTransistor-PolyInmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForVia1Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForVia2Inmocmos" value="true"/>
+<entry key="PatternForMetal-1Inmocmos" value="257/32896/16448/8224/4112/2056/1028/514/257/32896/16448/8224/4112/2056/1028/514"/>
+<entry key="PatternForMetal-2Inmocmos" value="2056/1028/514/257/32896/16448/8224/4112/2056/1028/514/257/32896/16448/8224/4112"/>
+<entry key="PatternForMetal-3Inmocmos" value="0/0/4369/0/0/0/4369/0/0/0/4369/0/0/0/4369/0"/>
+<entry key="PatternForMetal-4Inmocmos" value="0/0/4369/0/0/0/4369/0/0/0/4369/0/0/0/4369/0"/>
+<entry key="PatternForMetal-5Inmocmos" value="0/0/4369/0/0/0/4369/0/0/0/4369/0/0/0/4369/0"/>
+<entry key="PatternForN-ActiveInmocmos" value="8738/0/34952/0/8738/0/34952/0/8738/0/34952/0/8738/0/34952/0"/>
+<entry key="PatternForN-SelectInmocmos" value="0/0/4369/0/0/0/4369/0/0/0/4369/0/0/0/4369/0"/>
+<entry key="PatternForN-WellInmocmos" value="0/0/257/0/0/0/0/0/0/0/257/0/0/0/0/0"/>
+<entry key="PatternForP-Active-WellInmocmos" value="8738/0/34952/0/8738/0/34952/0/8738/0/34952/0/8738/0/34952/0"/>
+<entry key="PatternForP-ActiveInmocmos" value="8738/0/34952/0/8738/0/34952/0/8738/0/34952/0/8738/0/34952/0"/>
+<entry key="PatternForP-SelectInmocmos" value="0/0/4369/0/0/0/4369/0/0/0/4369/0/0/0/4369/0"/>
+<entry key="PatternForP-WellInmocmos" value="0/0/257/0/0/0/0/0/0/0/257/0/0/0/0/0"/>
+<entry key="PatternForPolysilicon-1Inmocmos" value="34952/4369/8738/17476/34952/4369/8738/17476/34952/4369/8738/17476/34952/4369/8738/17476"/>
+<entry key="PatternForPolysilicon-2Inmocmos" value="0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0"/>
+<entry key="PatternForPseudo-PolysiliconInmocmos" value="0/0/0/0/0/0/0/0/0/0/0/0/0/0/0/0"/>
+<entry key="PatternForTransistor-PolyInmocmos" value="34952/4369/8738/17476/34952/4369/8738/17476/34952/4369/8738/17476/34952/4369/8738/17476"/>
+<entry key="PatternForVia1Inmocmos" value="52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107"/>
+<entry key="PatternForVia2Inmocmos" value="52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107"/>
+<entry key="TransparentLayer1Formocmos" value="-13408513"/>
+<entry key="TransparentLayer2Formocmos" value="-52429"/>
+<entry key="TransparentLayer3Formocmos" value="-205"/>
+<entry key="TransparentLayer5Formocmos" value="-16751053"/>
+<entry key="TransparentLayerForMetal-1Inmocmos" value="0"/>
+<entry key="TransparentLayerForMetal-2Inmocmos" value="0"/>
+<entry key="TransparentLayerForMetal-3Inmocmos" value="0"/>
+<entry key="TransparentLayerForN-ActiveInmocmos" value="0"/>
+<entry key="TransparentLayerForP-ActiveInmocmos" value="0"/>
+<entry key="TransparentLayerForPseudo-PolysiliconInmocmos" value="0"/>
+<entry key="UsePatternDisplayForActive-CutInmocmos" value="true"/>
+<entry key="UsePatternDisplayForMetal-1Inmocmos" value="true"/>
+<entry key="UsePatternDisplayForMetal-2Inmocmos" value="true"/>
+<entry key="UsePatternDisplayForMetal-3Inmocmos" value="true"/>
+<entry key="UsePatternDisplayForN-ActiveInmocmos" value="true"/>
+<entry key="UsePatternDisplayForP-Active-WellInmocmos" value="true"/>
+<entry key="UsePatternDisplayForP-ActiveInmocmos" value="true"/>
+<entry key="UsePatternDisplayForPoly-CutInmocmos" value="true"/>
+<entry key="UsePatternDisplayForPolysilicon-1Inmocmos" value="true"/>
+<entry key="UsePatternDisplayForPseudo-PolysiliconInmocmos" value="true"/>
+<entry key="UsePatternDisplayForTransistor-PolyInmocmos" value="true"/>
+<entry key="UsePatternDisplayForVia1Inmocmos" value="true"/>
+<entry key="UsePatternDisplayForVia2Inmocmos" value="true"/>
+<entry key="VisibilityOfActive-CutINmocmos" value="true"/>
+<entry key="VisibilityOfMetal-1INmocmos" value="true"/>
+<entry key="VisibilityOfMetal-2INmocmos" value="true"/>
+<entry key="VisibilityOfMetal-3INmocmos" value="true"/>
+<entry key="VisibilityOfMetal-4INmocmos" value="true"/>
+<entry key="VisibilityOfMetal-5INmocmos" value="true"/>
+<entry key="VisibilityOfMetal-6INmocmos" value="true"/>
+<entry key="VisibilityOfN-ActiveINmocmos" value="true"/>
+<entry key="VisibilityOfN-SelectINmocmos" value="true"/>
+<entry key="VisibilityOfN-WellINmocmos" value="true"/>
+<entry key="VisibilityOfP-Active-WellINmocmos" value="true"/>
+<entry key="VisibilityOfP-ActiveINmocmos" value="true"/>
+<entry key="VisibilityOfP-SelectINmocmos" value="true"/>
+<entry key="VisibilityOfP-WellINmocmos" value="true"/>
+<entry key="VisibilityOfPad-FrameINmocmos" value="true"/>
+<entry key="VisibilityOfPassivationINmocmos" value="true"/>
+<entry key="VisibilityOfPoly-CapINmocmos" value="true"/>
+<entry key="VisibilityOfPoly-CutINmocmos" value="true"/>
+<entry key="VisibilityOfPolysilicon-1INmocmos" value="true"/>
+<entry key="VisibilityOfPolysilicon-2INmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-ElectrodeINmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-Metal-1INmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-Metal-2INmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-Metal-3INmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-Metal-4INmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-Metal-5INmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-Metal-6INmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-N-ActiveINmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-N-SelectINmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-N-WellINmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-P-ActiveINmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-P-SelectINmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-P-WellINmocmos" value="true"/>
+<entry key="VisibilityOfPseudo-PolysiliconINmocmos" value="true"/>
+<entry key="VisibilityOfSilicide-BlockINmocmos" value="true"/>
+<entry key="VisibilityOfThick-ActiveINmocmos" value="true"/>
+<entry key="VisibilityOfTransistor-PolyINmocmos" value="true"/>
+<entry key="VisibilityOfVia1INmocmos" value="true"/>
+<entry key="VisibilityOfVia2INmocmos" value="true"/>
+<entry key="VisibilityOfVia3INmocmos" value="true"/>
+<entry key="VisibilityOfVia4INmocmos" value="true"/>
+<entry key="VisibilityOfVia5INmocmos" value="true"/>
+<entry key="ColorForP-SelectInmocmos" value="26164"/>
+<entry key="ColorForP-WellInmocmos" value="9200686"/>
+<entry key="ColorForTextInschematic" value="16777215"/>
+<entry key="ColorForGraphicsInartwork" value="39321"/>
+<entry key="ColorForArcInschematic" value="9342701"/>
+<entry key="PatternForBusInschematic" value="21845/43690/21845/43690/21845/43690/21845/43690/21845/43690/21845/43690/21845/43690/21845/43690"/>
+<entry key="OutlinePatternDisplayForBusInschematic" value="false"/>
+<entry key="TransparentLayerForP-Active-WellInmocmos" value="0"/>
+<entry key="ColorForP-Active-WellInmocmos" value="16777062"/>
+<entry key="DefaultWidthForMetal-4INmocmos" value="3.0"/>
+<entry key="PatternForVia3Inmocmos" value="52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107"/>
+<entry key="UsePatternDisplayForVia3Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForVia3Inmocmos" value="true"/>
+<entry key="ColorForVia3Inmocmos" value="11842740"/>
+<entry key="OpacityForVia1Inmocmos" value="1.0"/>
+<entry key="PatternForVia4Inmocmos" value="52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107"/>
+<entry key="UsePatternDisplayForVia4Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForVia4Inmocmos" value="true"/>
+<entry key="PatternForVia5Inmocmos" value="52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107"/>
+<entry key="UsePatternDisplayForVia5Inmocmos" value="true"/>
+<entry key="OutlinePatternDisplayForVia5Inmocmos" value="true"/>
+<entry key="PatternForPoly-CutInmocmos" value="52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107/52428/52428/13107/13107"/>
+<entry key="PatternForMetal-6Inmocmos" value="0/0/32896/0/0/0/2056/0/0/0/32896/0/0/0/2056/0"/>
+<entry key="OutlinePatternDisplayForMetal-6Inmocmos" value="true"/>
+<entry key="ColorForNodeInschematic" value="16711680"/>
+<entry key="UsePatternDisplayForArcInschematic" value="true"/>
+<entry key="ColorForBusInschematic" value="51200"/>
+<entry key="UsePatternDisplayForBusInschematic" value="true"/>
+<entry key="OutlinePatternDisplayForArcInschematic" value="false"/>
+<entry key="ColorForGlyphIngeneric" value="16777215" />
+</map>
+</node>
+</node>
+<node name="tool">
+<map/>
+<node name="compaction">
+<map/>
+</node>
+<node name="drc">
+<map>
+<entry key="IgnoreAreaCheck" value="true"/>
+<entry key="IncrementalDRCOn" value="false"/>
+</map>
+</node>
+<node name="erc">
+<map/>
+</node>
+<node name="extract">
+<map/>
+</node>
+<node name="io">
+<map>
+<entry key="GDSOutputConvertsBracketsInExports" value="true"/>
+<entry key="GDSWritesExportPins" value="true"/>
+</map>
+</node>
+<node name="logicaleffort">
+<map/>
+</node>
+<node name="project">
+<map/>
+</node>
+<node name="routing">
+<map/>
+</node>
+<node name="sc">
+<map/>
+</node>
+<node name="simulation">
+<map/>
+</node>
+<node name="user">
+<map>
+<entry key="DefaultExtendedForMetal-1INrcmos" value="false"/>
+<entry key="DefaultExtendedForMetal-2INrcmos" value="false"/>
+<entry key="DefaultExtendedForPolysiliconINrcmos" value="false"/>
+<entry key="DefaultExtendedForS-ActiveINrcmos" value="false"/>
+<entry key="DefaultExtendedForD-ActiveINrcmos" value="false"/>
+<entry key="DefaultExtendedForSubstrate-ActiveINrcmos" value="false"/>
+<entry key="DefaultExtendedForWell-ActiveINrcmos" value="false"/>
+<entry key="DefaultExtendedForS-TransistorINrcmos" value="false"/>
+<entry key="DefaultExtendedForD-TransistorINrcmos" value="false"/>
+<entry key="WorkingDirectory" value="C:\Documents and Settings\ronho\My Documents\Sun\Electric"/>
+<entry key="DefaultWindowTab" value="0"/>
+<entry key="WindowLocation" value="-4.0,-4.0 1928.0x1180.0"/>
+<entry key="ColorBackground" value="-16777216"/>
+<entry key="ColorGrid" value="-1"/>
+<entry key="ColorHighlight" value="-65536"/>
+<entry key="ColorText" value="-1"/>
+<entry key="ColorInstanceOutline" value="-1"/>
+<entry key="DraggingMustEncloseObjects" value="true"/>
+<entry key="ColorPortHighlight" value="-256"/>
+<entry key="ColorWaveformBackground" value="-16777216"/>
+<entry key="ColorWaveformForeground" value="-1"/>
+<entry key="DefaultTextCellFont" value="Monospaced"/>
+</map>
+<node name="dialogs">
+<map>
+<entry key="GetInfoNode-bigger" value="false"/>
+<entry key="GetInfoNode-buttonSelected" value="0"/>
+<entry key="GetInfoArc-bigger" value="false"/>
+</map>
+</node>
+<node name="menus">
+<map>
+<entry key="MenuKeyBinding-File | Preferences..." value="alt P"/>
+<entry key="MenuKeyBinding-Edit | Change..." value="shift C"/>
+<entry key="MenuKeyBinding-Edit | Duplicate" value="ctrl M; C"/>
+<entry key="MenuKeyBinding-Edit | Modes | Movement | Full" value=""/>
+<entry key="MenuKeyBinding-Edit | Modes | Edit | Toggle Measure Distance" value="M; K"/>
+<entry key="MenuKeyBinding-Edit | Move | Move Objects By..." value="shift M"/>
+<entry key="MenuKeyBinding-Edit | Properties | Object Properties..." value="ctrl I; Q"/>
+<entry key="MenuKeyBinding-Edit | Undo" value="U"/>
+<entry key="MenuKeyBinding-Edit | Modes | Edit | Toggle Zoom" value=""/>
+<entry key="MenuKeyBinding-Edit | Selection | Select Nothing" value="D"/>
+<entry key="MenuKeyBinding-Cell | Down Hierarchy" value="ctrl D; E"/>
+<entry key="MenuKeyBinding-Cell | Up Hierarchy" value="ctrl U; ctrl E"/>
+<entry key="MenuKeyBinding-Cell | Down Hierarchy In Place" value="shift E"/>
+<entry key="MenuKeyBinding-Cell | Expand Cell Instances | All the Way" value="shift F"/>
+<entry key="MenuKeyBinding-Cell | Unexpand Cell Instances | All the Way" value="ctrl F"/>
+<entry key="MenuKeyBinding-Cell | Place Cell Instance..." value="N; I"/>
+<entry key="MenuKeyBinding-Export | Create Export..." value="ctrl X; ctrl P"/>
+<entry key="MenuKeyBinding-Window | Fill Window" value="ctrl 9; ctrl NumPad-9; F"/>
+<entry key="MenuKeyBinding-Window | Special Zoom | Focus on Highlighted" value="ctrl NumPad-5"/>
+<entry key="MenuKeyBinding-Window | Redisplay Window" value="ctrl R"/>
+<entry key="MenuKeyBinding-Window | Special Zoom | Zoom Box" value="Z"/>
+<entry key="MenuKeyBinding-Window | Zoom In" value="ctrl 7; ctrl NumPad-7; ctrl Z"/>
+<entry key="MenuKeyBinding-Window | Zoom Out" value="ctrl 0; ctrl NumPad-0; shift Z"/>
+<entry key="MenuKeyBinding-Window | Pan Left" value="ctrl 4; ctrl NumPad-4; NumPad-4"/>
+<entry key="MenuKeyBinding-Window | Pan Right" value="ctrl 6; ctrl NumPad-6; NumPad-6"/>
+<entry key="MenuKeyBinding-Window | Pan Up" value="ctrl 8; ctrl NumPad-8; NumPad-8"/>
+<entry key="MenuKeyBinding-Window | Pan Down" value="ctrl 2; ctrl NumPad-2; NumPad-2"/>
+<entry key="MenuKeyBinding-Edit | Cut" value=""/>
+<entry key="MenuKeyBinding-Export | Re-Export Highlighted Area" value="ctrl shift X"/>
+<entry key="MenuKeyBinding-Export | Show Exports" value="alt X"/>
+<entry key="MenuKeyBinding-Edit | Rotate | 90 Degrees Clockwise" value="J"/>
+<entry key="MenuKeyBinding-Edit | Modes | Edit | Toggle Outline Edit" value=""/>
+<entry key="MenuKeyBinding-Edit | Mirror | Up &lt;-&gt; Down" value="Y"/>
+<entry key="MenuKeyBinding-Tool | Simulation (Built-in) | Set Signal Undefined at Main Time" value=""/>
+<entry key="MenuKeyBinding-Edit | Mirror | Left &lt;-&gt; Right" value="X"/>
+<entry key="MenuKeyBinding-Edit | Move | Align to Grid" value="alt A"/>
+<entry key="MenuKeyBinding-Edit | Cleanup Cell | Cleanup Pins" value="F3"/>
+<entry key="MenuKeyBinding-Edit | Selection | Select Object..." value="S"/>
+<entry key="MenuKeyBinding-Edit | Modes | Edit | Click/Zoom/Wire" value=""/>
+<entry key="MenuKeyBinding-Tool | NCC | Schematic and Layout Views of Cell in Current Window" value="F8"/>
+<entry key="MenuKeyBinding-Cell | Look Inside Highlighted" value="shift P"/>
+</map>
+</node>
+<node name="ui">
+<map/>
+</node>
+</node>
+</node>
+</node>
+</node>
+</node>
+</root>
+</preferences>

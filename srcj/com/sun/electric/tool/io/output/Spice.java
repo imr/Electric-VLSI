@@ -48,7 +48,8 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Simulate;
-import com.sun.electric.tool.io.input.SpiceNetlistReader;
+import com.sun.electric.tool.io.input.spicenetlist.SpiceNetlistReader;
+import com.sun.electric.tool.io.input.spicenetlist.SpiceSubckt;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.Exec;
 import com.sun.electric.tool.user.User;
@@ -2561,7 +2562,7 @@ public class Spice extends Topology
                 Nodable no = info.getParentInst();
                 String parameterizedName = parameterizedName(no, parentInfo.getContext());
                 CellNetInfo cni = getCellNetInfo(parameterizedName);
-                SpiceNetlistReader.Subckt subckt = reader.getSubckts().get(parameterizedName.toLowerCase());
+                SpiceSubckt subckt = reader.getSubckts().get(parameterizedName.toLowerCase());
                 if (subckt == null) {
                     System.out.println("Error: No subckt for "+parameterizedName+" found in included file: "+fileName);
                 } else {

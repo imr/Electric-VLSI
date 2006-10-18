@@ -21,7 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io.input;
+package com.sun.electric.tool.io.input.spicenetlist;
 
 import java.io.*;
 import java.util.*;
@@ -47,10 +47,10 @@ public class SpiceNetlistReader {
 
     private HashMap<String,String> options = new LinkedHashMap<String,String>();
     private HashMap<String,String> globalParams = new LinkedHashMap<String,String>();
-    private List<Instance> topLevelInstances = new ArrayList<Instance>();
-    private HashMap<String,Subckt> subckts = new LinkedHashMap<String,Subckt>();
+    private List<SpiceInstance> topLevelInstances = new ArrayList<SpiceInstance>();
+    private HashMap<String,SpiceSubckt> subckts = new LinkedHashMap<String,SpiceSubckt>();
     private List<String> globalNets = new ArrayList<String>();
-    private Subckt currentSubckt;
+    private SpiceSubckt currentSubckt;
 
     public SpiceNetlistReader() {
         reader = null;
@@ -59,15 +59,15 @@ public class SpiceNetlistReader {
 
     public HashMap<String,String> getOptions() { return options; }
     public HashMap<String,String> getGlobalParams() { return globalParams; }
-    public List<Instance> getTopLevelInstances() { return topLevelInstances; }
-    public HashMap<String,Subckt> getSubckts() { return subckts; }
+    public List<SpiceInstance> getTopLevelInstances() { return topLevelInstances; }
+    public HashMap<String,SpiceSubckt> getSubckts() { return subckts; }
     public List<String> getGlobalNets() { return globalNets; }
 
     private static final boolean DEBUG = true;
 
     // ============================== Parsing ==================================
 
-    enum TType { PAR, PARVAL, WORD };
+//    enum TType { PAR, PARVAL, WORD }
 
     public void readFile(String fileName, boolean verbose) throws FileNotFoundException {
         file = new File(fileName);
@@ -142,19 +142,19 @@ public class SpiceNetlistReader {
                     // end of file
                 }
                 else if (keyword.startsWith("x")) {
-                    Instance inst = parseSubcktInstance(tokens);
+                    SpiceInstance inst = parseSubcktInstance(tokens);
                     addInstance(inst);
                 }
                 else if (keyword.startsWith("r")) {
-                    Instance inst = parseResistor(tokens);
+                    SpiceInstance inst = parseResistor(tokens);
                     addInstance(inst);
                 }
                 else if (keyword.startsWith("c")) {
-                    Instance inst = parseCapacitor(tokens);
+                    SpiceInstance inst = parseCapacitor(tokens);
                     addInstance(inst);
                 }
                 else if (keyword.startsWith("m")) {
-                    Instance inst = parseMosfet(tokens);
+                    SpiceInstance inst = parseMosfet(tokens);
                     addInstance(inst);
                 }
                 else if (keyword.equals(".protect") || keyword.equals(".unprotect")) {
@@ -312,8 +312,8 @@ public class SpiceNetlistReader {
         map.put(pname, value);
     }
 
-    private Subckt parseSubckt(String [] parts) {
-        Subckt subckt = new Subckt(parts[1]);
+    private SpiceSubckt parseSubckt(String [] parts) {
+        SpiceSubckt subckt = new SpiceSubckt(parts[1]);
         int i=2;
         for (; i<parts.length; i++) {
             if (parts[i].indexOf('=') > 0) break;  // parameter
@@ -323,7 +323,7 @@ public class SpiceNetlistReader {
         return subckt;
     }
 
-    private Instance parseSubcktInstance(String [] parts) {
+    private SpiceInstance parseSubcktInstance(String [] parts) {
         String name = parts[0].substring(1);
         List<String> nets = new ArrayList<String>();
         int i=1;
@@ -332,12 +332,12 @@ public class SpiceNetlistReader {
             nets.add(parts[i]);
         }
         String subcktName = nets.remove(nets.size()-1); // last one is subckt reference
-        Subckt subckt = subckts.get(subcktName);
+        SpiceSubckt subckt = subckts.get(subcktName);
         if (subckt == null) {
             prErr("Cannot find subckt for "+subcktName);
             return null;
         }
-        Instance inst = new Instance(subckt, name);
+        SpiceInstance inst = new SpiceInstance(subckt, name);
         for (String net : nets)
             inst.addNet(net);
         parseParams(inst.getParams(), i, parts);
@@ -350,7 +350,7 @@ public class SpiceNetlistReader {
         return inst;
     }
 
-    private void addInstance(Instance inst) {
+    private void addInstance(SpiceInstance inst) {
         if (inst == null) return;
         if (currentSubckt != null)
             currentSubckt.addInstance(inst);
@@ -358,12 +358,12 @@ public class SpiceNetlistReader {
             topLevelInstances.add(inst);
     }
 
-    private Instance parseResistor(String [] parts) {
+    private SpiceInstance parseResistor(String [] parts) {
         if (parts.length < 4) {
             prErr("Not enough arguments for resistor");
             return null;
         }
-        Instance inst = new Instance(parts[0]);
+        SpiceInstance inst = new SpiceInstance(parts[0]);
         for (int i=1; i<3; i++) {
             inst.addNet(parts[i]);
         }
@@ -371,12 +371,12 @@ public class SpiceNetlistReader {
         return inst;
     }
 
-    private Instance parseCapacitor(String [] parts) {
+    private SpiceInstance parseCapacitor(String [] parts) {
         if (parts.length < 4) {
             prErr("Not enough arguments for capacitor");
             return null;
         }
-        Instance inst = new Instance(parts[0]);
+        SpiceInstance inst = new SpiceInstance(parts[0]);
         for (int i=1; i<3; i++) {
             inst.addNet(parts[i]);
         }
@@ -384,12 +384,12 @@ public class SpiceNetlistReader {
         return inst;
     }
 
-    private Instance parseMosfet(String [] parts) {
+    private SpiceInstance parseMosfet(String [] parts) {
         if (parts.length < 8) {
             prErr("Not enough arguments for mosfet");
             return null;
         }
-        Instance inst = new Instance(parts[0]);
+        SpiceInstance inst = new SpiceInstance(parts[0]);
         int i=1;
         for (; i<5; i++) {
             inst.addNet(parts[i]);
@@ -483,11 +483,11 @@ public class SpiceNetlistReader {
         }
         out.println();
         for (String subcktName : subckts.keySet()) {
-            Subckt subckt = subckts.get(subcktName);
+            SpiceSubckt subckt = subckts.get(subcktName);
             subckt.write(out);
             out.println();
         }
-        for (Instance inst : topLevelInstances) {
+        for (SpiceInstance inst : topLevelInstances) {
             inst.write(out);
         }
         out.println();
@@ -495,7 +495,7 @@ public class SpiceNetlistReader {
         if (out != System.out) out.close();
     }
 
-    private static void multiLinePrint(PrintStream out, boolean isComment, String str)
+    static void multiLinePrint(PrintStream out, boolean isComment, String str)
     {
         // put in line continuations, if over 78 chars long
         char contChar = '+';
@@ -540,103 +540,6 @@ public class SpiceNetlistReader {
     }
 
     // ======================== Spice Netlist Information ============================
-
-    public static class Instance {
-        private char type;                  // spice type
-        private String name;
-        private List<String> nets;
-        private Subckt subckt;              // may be null if primitive element
-        private HashMap<String,String> params;
-
-        public Instance(String typeAndName) {
-            this.type = typeAndName.charAt(0);
-            this.name = typeAndName.substring(1);
-            this.nets = new ArrayList<String>();
-            this.subckt = null;
-            this.params = new LinkedHashMap<String,String>();
-        }
-        public Instance(Subckt subckt, String name) {
-            this.type = 'x';
-            this.name = name;
-            this.nets = new ArrayList<String>();
-            this.subckt = subckt;
-            this.params = new LinkedHashMap<String,String>();
-            for (String key : subckt.getParams().keySet()) {
-                // set default param values
-                this.params.put(key, subckt.getParams().get(key));
-            }
-        }
-        public char getType() { return type; }
-        public String getName() { return name; }
-        public List<String> getNets() { return nets; }
-        private void addNet(String net) { nets.add(net); }
-        public HashMap<String,String> getParams() { return params; }
-        public Subckt getSubckt() { return subckt; }
-        public void write(PrintStream out) {
-            StringBuffer buf = new StringBuffer();
-            buf.append(type);
-            buf.append(name);
-            buf.append(" ");
-            for (String net : nets) {
-                buf.append(net); buf.append(" ");
-            }
-            if (subckt != null) {
-                buf.append(subckt.getName());
-                buf.append(" ");
-            }
-            for (String key : params.keySet()) {
-                buf.append(key);
-                String value = params.get(key);
-                if (value != null) {
-                    buf.append("=");
-                    buf.append(value);
-                }
-                buf.append(" ");
-            }
-            buf.append("\n");
-            multiLinePrint(out, false, buf.toString());
-        }
-    }
-
-    public static class Subckt {
-        private String name;
-        private List<String> ports;
-        private HashMap<String,String> params;
-        private List<Instance> instances;
-        private Subckt(String name) {
-            this.name = name;
-            this.ports = new ArrayList<String>();
-            this.params = new LinkedHashMap<String,String>();
-            this.instances = new ArrayList<Instance>();
-        }
-        public String getName() { return name; }
-        private void addPort(String port) { ports.add(port); }
-        public List<String> getPorts() { return ports; }
-        public HashMap<String,String> getParams() { return params; }
-        private void addInstance(Instance inst) { instances.add(inst); }
-        public List<Instance> getInstances() { return instances; }
-        public void write(PrintStream out) {
-            StringBuffer buf = new StringBuffer(".subckt ");
-            buf.append(name);
-            buf.append(" ");
-            for (String port : ports) {
-                buf.append(port);
-                buf.append(" ");
-            }
-            for (String key : params.keySet()) {
-                buf.append(key);
-                buf.append("=");
-                buf.append(params.get(key));
-                buf.append(" ");
-            }
-            buf.append("\n");
-            multiLinePrint(out, false, buf.toString());
-            for (Instance inst : instances) {
-                inst.write(out);
-            }
-            out.println(".ends "+name);
-        }
-    }
 
     // =================================== test ================================
 
