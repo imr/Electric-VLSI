@@ -27,16 +27,17 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.Snapshot;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorHighlight;
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;

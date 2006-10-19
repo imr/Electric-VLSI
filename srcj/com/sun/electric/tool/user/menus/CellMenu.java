@@ -24,13 +24,13 @@
 
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.text.TextUtils;

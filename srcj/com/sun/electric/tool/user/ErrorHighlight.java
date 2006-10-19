@@ -25,14 +25,14 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
 
 import java.io.PrintStream;
 import java.awt.geom.Point2D;

@@ -23,8 +23,8 @@
  */
 package com.sun.electric.tool.user.menus;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.WindowFrame;

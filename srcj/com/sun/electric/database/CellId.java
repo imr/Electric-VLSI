@@ -136,7 +136,7 @@ public final class CellId implements NodeProtoId, Serializable {
     
     /**
      * Returns IdManager which is owner of this CellId.
-     * @Return IdManager which is owner of this CellId.
+     * @return IdManager which is owner of this CellId.
      */
     public IdManager getIdManager() { return idManager; }
     

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.topology.Geometric;
 
 import java.util.List;
 

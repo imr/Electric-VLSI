@@ -302,7 +302,11 @@ public class EDatabase {
         this.snapshotFresh = fresh;
     }
     
-    synchronized Snapshot getFreshSnapshot() {
+    /**
+     * Low-level method to atomically get fresh snapshot.
+     * @return fresh snapshot of the database, or null if nop fresh snapshot exists.
+     */
+    public synchronized Snapshot getFreshSnapshot() {
         return snapshotFresh ? snapshot : null;
     }
     

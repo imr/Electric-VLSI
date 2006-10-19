@@ -24,7 +24,6 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -40,6 +39,7 @@ import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;

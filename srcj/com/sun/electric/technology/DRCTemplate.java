@@ -25,9 +25,9 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.topology.NodeInst;
 
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.parsers.SAXParser;

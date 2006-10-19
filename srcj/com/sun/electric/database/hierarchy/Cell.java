@@ -35,7 +35,10 @@ import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
@@ -46,9 +49,10 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Topology;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -74,7 +78,6 @@ import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Date;
@@ -329,6 +332,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** The newest version of this Cell. */                         Cell newestVersion;
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
+    /** Cell's topology. */                                         private final Topology topology = new Topology(this);
 	/** The Cell's essential-bounds. */								private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
     /** Chronological list of NodeInsts in this Cell. */            private final ArrayList<NodeInst> chronNodes = new ArrayList<NodeInst>();
     /** Set containing nodeIds of expanded cells. */                private final BitSet expandedNodes = new BitSet();
@@ -344,8 +348,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * BOUNDS_CORRECT_SUB - bounds are correct provided that bounds of subcells are correct.
      * BOUNDS_CORRECT_GEOM - bounds are correct proveded that bounds of nodes and arcs are correct.
      * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty = BOUNDS_RECOMPUTE;
-	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
-    /** True of RTree matches node/arc sizes */                     private boolean rTreeFresh;
 	/** The date this ImmutableCell was last modified. */           private long revisionDate;
     /** "Modified" flag of the Cell. */                             private boolean modified;
 	/** The temporary integer value. */								private int tempInt;
@@ -1049,7 +1051,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private void update(boolean full, CellBackup newBackup, BitSet exportsModified) {
         checkUndoing();
         boundsDirty = BOUNDS_RECOMPUTE;
-        rTreeFresh = false;
+        unfreshRTree();
      	this.d = newBackup.d;
         lib = database.getLib(newBackup.d.getLibId());
         this.revisionDate = newBackup.revisionDate;
@@ -1191,7 +1193,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
     private void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
         checkUndoing();
-        rTreeFresh = false;
+        unfreshRTree();
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             if (!ni.isCellInstance()) continue;
@@ -1289,7 +1291,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	private void setDirty(byte boundsLevel)
 	{
-        rTreeFresh = false;
+        unfreshRTree();
         if (boundsDirty == BOUNDS_CORRECT) {
             boundsDirty = boundsLevel;
             for (Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
@@ -1315,7 +1317,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @return an iterator over all of the Geometric objects in that area.
 	 */
     public Iterator<Geometric> searchIterator(Rectangle2D bounds, boolean includeEdges) {
-        return new RTNode.Search(bounds, getRTree(), includeEdges);
+        return topology.searchIterator(bounds, includeEdges);
     }
 
 	/**
@@ -1349,7 +1351,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
 
         // recompute bounds
-        rTreeFresh = false;
+        unfreshRTree();
         assert boundsDirty != BOUNDS_CORRECT;
         ERectangle newBounds = computeBounds();
         if (newBounds != cellBounds) {
@@ -1405,17 +1407,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 if (highy > cellHighY) cellHighY = highy;
             }
         }
-        for(int i = 0; i < arcs.size(); i++ ) {
-            ArcInst ai = arcs.get(i);
-            Rectangle2D bounds = ai.getBounds();
-            double lowx = bounds.getMinX();
-            double highx = bounds.getMaxX();
-            double lowy = bounds.getMinY();
-            double highy = bounds.getMaxY();
-            if (lowx < cellLowX) cellLowX = lowx;
-            if (highx > cellHighX) cellHighX = highx;
-            if (lowy < cellLowY) cellLowY = lowy;
-            if (highy > cellHighY) cellHighY = highy;
+        Rectangle2D primitiveBounds = backup().getPrimitiveBounds();
+        if (primitiveBounds != null) {
+            cellLowX = Math.min(cellLowX, primitiveBounds.getMinX());
+            cellHighX = Math.max(cellHighX, primitiveBounds.getMaxX());
+            cellLowY = Math.min(cellLowY, primitiveBounds.getMinY());
+            cellHighY = Math.max(cellHighY, primitiveBounds.getMaxY());
         }
         cellLowX = DBMath.round(cellLowX);
         cellLowY = DBMath.round(cellLowY);
@@ -1427,38 +1424,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return new ERectangle(cellLowX, cellLowY, width, height);
     }
 
-	/**
-	 * Method to R-Tree of this Cell.
-	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
-	 * @return R-Tree of this Cell.
-	 */
-    RTNode getRTree() {
-        if (rTreeFresh) return rTree;
-        if (database.canComputeBounds()) {
-            rebuildRTree();
-            rTreeFresh = true;
-        } else {
-            Snapshot snapshotBefore = database.getFreshSnapshot();
-            rebuildRTree();
-            rTreeFresh = snapshotBefore != null && database.getFreshSnapshot() == snapshotBefore;
-        }
-        return rTree;
-    }
-
-    private void rebuildRTree() {
-//        long startTime = System.currentTimeMillis();
-        CellId cellId = getId();
-        RTNode root = RTNode.makeTopLevel();
-        for (NodeInst ni: nodes)
-            root = RTNode.linkGeom(cellId, root, ni);
-        for (ArcInst ai: arcs)
-            root = RTNode.linkGeom(cellId, root, ai);
-        root.checkRTree(0, getId());
-        rTree = root;
-//        long stopTime = System.currentTimeMillis();
-//        if (Job.getDebug()) System.out.println("Rebuilding R-Tree in " + this + " took " + (stopTime - startTime) + " msec");
-    }
-        
 	/**
 	 * Method to compute the "essential bounds" of this Cell.
 	 * It looks for NodeInst objects in the cell that are of the type
@@ -4094,6 +4059,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         database.unfreshSnapshot();
     }
     
+    private void unfreshRTree() { topology.unfreshRTree(); }
+    
     /**
      * Method to load isExpanded status of subcell instances from Preferences.
      */    
@@ -4369,8 +4336,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert computeBounds() == cellBounds;
             assert boundsDirty == BOUNDS_CORRECT;
         }
-        if (rTreeFresh)
-            rTree.checkRTree(0, getId());
+        topology.check();
     }
     
     /**
@@ -4656,9 +4622,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 */
 	public void getZValues(double [] array)
 	{
-		for (int i = 0; i < nodes.size(); i++)
+		for (Iterator<NodeInst> it = getNodes(); it.hasNext(); )
 		{
-			NodeInst ni = nodes.get(i);
+			NodeInst ni = it.next();
 			if (ni.isCellInstance())
 			{
 				Cell nCell = (Cell)ni.getProto();
@@ -4670,9 +4636,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 				np.getZValues(array);
 			}
 		}
-        for (int i = 0; i < arcs.size(); i++)
+        for (Iterator<ArcInst> it = getArcs(); it.hasNext(); )
         {
-            ArcInst ai = arcs.get(i);
+            ArcInst ai = it.next();
             ArcProto ap = ai.getProto();
             ap.getZValues(array);
         }

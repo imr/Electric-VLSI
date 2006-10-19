@@ -24,7 +24,7 @@
 package com.sun.electric.technology.technologies.utils;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;

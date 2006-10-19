@@ -22,9 +22,12 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
-import com.sun.electric.database.CellId;
+
 import com.sun.electric.database.IdMapper;
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -34,6 +37,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;

@@ -23,19 +23,16 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.variable.DisplayedText;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Geometric;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -43,6 +40,9 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.DisplayedText;
+import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.Job;
 import com.sun.electric.technology.technologies.Artwork;

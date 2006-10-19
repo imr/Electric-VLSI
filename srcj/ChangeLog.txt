@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: (10/18/06, DN) Added class topology.Topology to manage graph of nodes and arcs.
+    Classes Geometry and RTNode are moved to database.topology package.
+
 IMP: (10/17/06, DN) ImmutableArcInst can compute its bounds without real ArcInst.
 
 IMP: (10/17/06, GVG) Refactoring spicenetlist so some classes can be reused in DSPF reader.

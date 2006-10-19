@@ -24,15 +24,13 @@
 package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
@@ -61,8 +59,6 @@ public class CellBackup {
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
-    /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
-    /** True, if this CellBackup has computed connection index. */  public boolean connectionIndexComputed;  
     /** Bitmap of libraries used in vars. */                        final BitSet usedLibs;
     /** CellUsageInfos indexed by CellUsage.indefInParent */        final CellUsageInfo[] cellUsages;
     /** definedExport == [0..definedExportLength) - deletedExports . */
@@ -71,6 +67,9 @@ public class CellBackup {
     /** Length of defined exports. */                               final int definedExportsLength;
     /** Bitmap of deleted exports. */                               final BitSet deletedExports;
 
+    /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
+    /** Bounds of primitive arcs in this Cell. */                   private ERectangle primitiveBounds;
+    
     /** Creates a new instance of CellBackup */
     private CellBackup(ImmutableCell d, long revisionDate, boolean modified,
             ImmutableArrayList<ImmutableNodeInst> nodes,
@@ -593,6 +592,20 @@ public class CellBackup {
         Memoization m = this.m;
         if (m != null) return m;
         return this.m = new Memoization();
+    }
+    
+    /**
+     * Returns bounds of all primitive arcs in this Cell or null if there are not primitives.
+     * @return bounds of all primitive arcs or null.
+     */
+    public ERectangle getPrimitiveBounds() {
+        ERectangle primitiveBounds = this.primitiveBounds;
+        if (primitiveBounds != null) return primitiveBounds;
+        if (arcs.size() == 0) return null;
+        Memoization m = getMemoization();
+        double[] result = { Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
+        assert result[0] <= result[2] && result[1] <= result[3];
+        return this.primitiveBounds = new ERectangle(result[0], result[1], result[2] - result[0], result[3] - result[1]);
     }
     
     /**

@@ -86,7 +86,7 @@ public class Snapshot {
      * Creates a new instance of Snapshot which differs from this Snapshot.
      * Four array parameters are supplied. Each parameter may be null if its contents is the same as in this Snapshot.
      * @param tool tool which initiated database changes/
-     * @param cellBackupArray array indexed by cellIndex of new CellBackups.
+     * @param cellBackupsArray array indexed by cellIndex of new CellBackups.
      * @param cellBoundsArray array indexed by cellIndex of cell bounds.
      * @param libBackupsArray array indexed by libIndex of LibraryBackups.
      * @return new snapshot which differs froms this Snapshot or this Snapshot.
@@ -644,7 +644,7 @@ public class Snapshot {
     
     /**
      * Checks if all cell bounds are defined.
-     * @returns true if all cell bounds are defined.
+     * @return true if all cell bounds are defined.
      */
     public boolean cellBoundsDefined() {
         assert cellBackups.size() == cellBounds.length;

@@ -63,7 +63,6 @@ public class ImmutableCell extends ImmutableElectricObject {
 	/**
 	 * Returns new ImmutableCell object.
      * @param cellId id of this ImmutableCell.
-     * @param cellName cell name of this ImmutableCell.
      * @param creationDate creation date of this ImmutableCell.
 	 * @return new ImmutableCell object.
 	 * @throws NullPointerException if cellId or libId is null.
