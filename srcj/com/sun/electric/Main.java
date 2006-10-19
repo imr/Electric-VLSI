@@ -23,12 +23,12 @@
  */
 package com.sun.electric;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.technology.Technology;
