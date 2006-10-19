@@ -115,6 +115,16 @@ public class PortCharacteristic
 	}
 
 	/**
+	 * Method to tell whether this PortCharacteristic is a "clock".
+	 * @return true if this PortCharacteristic is a "clock".
+	 */
+	public boolean isClock()
+	{
+		if (this == CLK || this == C1 || this == C2 || this == C3 || this == C4 || this == C5 || this == C6) return true;
+		return false;
+	}
+
+	/**
 	 * Method to find the characteristic associated with the given bit value.
 	 * @param bits the bit value associated with a PortCharacteristic.
 	 * @return the desired PortCharacteristic (null if not found).

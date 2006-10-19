@@ -834,10 +834,7 @@ public class ViewChanges
 		if (character == PortCharacteristic.BIDIR) return bidirSide;
 		if (character == PortCharacteristic.PWR) return pwrSide;
 		if (character == PortCharacteristic.GND) return gndSide;
-		if (character == PortCharacteristic.CLK || character == PortCharacteristic.C1 ||
-			character == PortCharacteristic.C2 || character == PortCharacteristic.C3 ||
-			character == PortCharacteristic.C4 || character == PortCharacteristic.C5 ||
-			character == PortCharacteristic.C6) return clkSide;
+		if (character.isClock()) return clkSide;
 		return inputSide;
 	}
 
