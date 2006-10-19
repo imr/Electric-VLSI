@@ -601,11 +601,20 @@ public class CellBackup {
     public ERectangle getPrimitiveBounds() {
         ERectangle primitiveBounds = this.primitiveBounds;
         if (primitiveBounds != null) return primitiveBounds;
-        if (arcs.size() == 0) return null;
+        int numArcs = arcs.size();
+        if (arcs.isEmpty()) return null;
         Memoization m = getMemoization();
-        double[] result = { Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
-        assert result[0] <= result[2] && result[1] <= result[3];
-        return this.primitiveBounds = new ERectangle(result[0], result[1], result[2] - result[0], result[3] - result[1]);
+        double[] bounds = new double[4];
+        double lx = Double.POSITIVE_INFINITY, ly = Double.POSITIVE_INFINITY, hx = Double.NEGATIVE_INFINITY, hy = Double.NEGATIVE_INFINITY;
+        for (ImmutableArcInst a: arcs) {
+            a.computeBounds(m, bounds);
+                if (bounds[0] < lx) lx = bounds[0];
+                if (bounds[1] < ly) ly = bounds[1];
+                if (bounds[2] > hx) hx = bounds[2];
+                if (bounds[3] > hy) hy = bounds[3];
+        }
+        assert lx <= hx && ly <= hy;
+        return this.primitiveBounds = new ERectangle(lx, ly, hx - lx, hy - ly);
     }
     
     /**
