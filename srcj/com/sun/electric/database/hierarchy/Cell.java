@@ -332,16 +332,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     /** The newest version of this Cell. */                         Cell newestVersion;
     /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
-    /** Cell's topology. */                                         private final Topology topology = new Topology(this);
+    /** Cell's topology. */                                         private final Topology topology = new Topology(this, false);
 	/** The Cell's essential-bounds. */								private final ArrayList<NodeInst> essenBounds = new ArrayList<NodeInst>();
     /** Chronological list of NodeInsts in this Cell. */            private final ArrayList<NodeInst> chronNodes = new ArrayList<NodeInst>();
     /** Set containing nodeIds of expanded cells. */                private final BitSet expandedNodes = new BitSet();
 	/** A list of NodeInsts in this Cell. */						private final ArrayList<NodeInst> nodes = new ArrayList<NodeInst>();
     /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
 	/** A map from canonic String to Integer maximal numeric suffix */private final HashMap<String,MaxSuffix> maxSuffix = new HashMap<String,MaxSuffix>();
-    /** A maximal suffix of temporary arc name. */                  private int maxArcSuffix = -1;
-    /** Chronological list of ArcInst in this Cell. */              private final ArrayList<ArcInst> chronArcs = new ArrayList<ArcInst>();
-    /** A list of ArcInsts in this Cell. */							private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
 	/** The bounds of the Cell. */									private ERectangle cellBounds;
 	/** Whether the bounds need to be recomputed.
      * BOUNDS_CORRECT - bounds are correct.
@@ -460,18 +457,36 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         CellId cellId = lib.getId().newCellId(cellName);
 		Cell cell = new Cell(lib.getDatabase(), ImmutableCell.newInstance(cellId, creationDate.getTime()));
         
-		// add ourselves to the library
-		cell.lowLevelLinkCellName();
-
 		// success
         database.addCell(cell);
+		// add ourselves to the library
+        lib.addCell(cell);
         
+		// add ourselves to cell group
+		cell.lowLevelLinkCellName();
+
 		// handle change control, constraint, and broadcast
         database.unfreshSnapshot();
 		Constraints.getCurrent().newObject(cell);
 		return cell;
 	}
 
+	private void lowLevelLinkCellName()
+	{
+		// determine the cell group
+		for (Iterator<Cell> it = getViewsTail(); it.hasNext(); )
+		{
+			Cell c = it.next();
+			if (c.getName().equals(getName()))
+				cellGroup = c.cellGroup;
+		}
+		// still none: make a new one
+		if (cellGroup == null) cellGroup = new CellGroup(lib);
+
+		// add ourselves to cell group
+		cellGroup.add(this);
+	}
+    
 	/**
 	 * Method to remove this node from all lists.
 	 */
@@ -871,24 +886,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
-	private void lowLevelLinkCellName()
-	{
-		// determine the cell group
-		for (Iterator<Cell> it = getViewsTail(); it.hasNext(); )
-		{
-			Cell c = it.next();
-			if (c.getName().equals(getName()))
-				cellGroup = c.cellGroup;
-		}
-		// still none: make a new one
-		if (cellGroup == null) cellGroup = new CellGroup(lib);
-
-		// add ourselves to the library and to cell group
-		lib.addCell(this);
-		cellGroup.add(this);
-
-	}
-    
     private static CellName makeUnique(Library lib, CellName cellName) {
 		// ensure unique cell name
 		String protoName = cellName.getName();
@@ -969,6 +966,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         return backupUnsafe().getMemoization();
     }
     
+    public Topology getTopology() { return topology; }
+    
     private CellBackup doBackup() {
         if (backup == null) {
             getTechnology();
@@ -979,9 +978,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         ImmutableArcInst[] arcs = null;
         ImmutableExport[] exports = null;
         if (!cellContentsFresh) {
-//            System.out.println("Refersh contents of " + this);
+//            System.out.println("Refresh contents of " + this);
             nodes = backupNodes();
-            arcs = backupArcs();
+            arcs = topology.backupArcs(backup.arcs);
             exports = backupExports();
         }
         backup = backup.with(getD(), revisionDate, modified,
@@ -1001,18 +1000,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             newNodes[i] = d;
         }
         return changed ? newNodes : null;
-    }
-    
-    private ImmutableArcInst[] backupArcs() {
-        ImmutableArcInst[] newArcs = new ImmutableArcInst[arcs.size()];
-        boolean changed = arcs.size() != backup.arcs.size();
-        for (int i = 0; i < arcs.size(); i++) {
-            ArcInst ai = arcs.get(i);
-            ImmutableArcInst d = ai.getD();
-            changed = changed || backup.arcs.get(i) != d;
-            newArcs[i] = d;
-        }
-        return changed ? newArcs : null;
     }
     
     private ImmutableExport[] backupExports() {
@@ -1101,49 +1088,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         assert nodeCount == nodes.size();
 
-        arcs.clear();
-        maxArcSuffix = -1;
-        for (int i = 0; i < newBackup.arcs.size(); i++) {
-            ImmutableArcInst d = newBackup.arcs.get(i);
-            while (d.arcId >= chronArcs.size()) chronArcs.add(null);
-            ArcInst ai = chronArcs.get(d.arcId);
-            PortInst headPi = getPortInst(d.headNodeId, d.headPortId);
-            PortInst tailPi = getPortInst(d.tailNodeId, d.tailPortId);
-            if (ai != null && (/*!full ||*/ ai.getHeadPortInst() == headPi && ai.getTailPortInst() == tailPi)) {
-                ai.setDInUndo(d);
-            } else {
-                ai = new ArcInst(this, d, headPi, tailPi);
-                chronArcs.set(d.arcId, ai);
-            }
-            ai.setArcIndex(i);
-            arcs.add(ai);
-//            tailPi.getNodeInst().lowLevelAddConnection(ai.getTail());
-//            headPi.getNodeInst().lowLevelAddConnection(ai.getHead());
-            if (!ai.isUsernamed()) {
-                Name name = ai.getNameKey();
-                assert name.getBasename() == ImmutableArcInst.BASENAME;
-                maxArcSuffix = Math.max(maxArcSuffix, name.getNumSuffix());
-            }
-        }
-
-        int arcCount = 0;
-        for (int i = 0; i < chronArcs.size(); i++) {
-            ArcInst ai = chronArcs.get(i);
-            if (ai == null) continue;
-            int arcIndex = ai.getArcIndex();
-            if (arcIndex >= arcs.size() || ai != arcs.get(arcIndex)) {
-                ai.setArcIndex(-1);
-                chronArcs.set(i, null);
-                continue;
-            }
-            arcCount++;
-        }
-        assert arcCount == arcs.size();
-
-//        for (int i = 0; i < nodes.size(); i++) {
-//            NodeInst ni = nodes.get(i);
-//            ni.sortConnections();
-//        }
+        topology.updateArcs(newBackup);
 
         exports = new Export[newBackup.exports.size()];
         for (int i = 0; i < newBackup.exports.size(); i++) {
@@ -1344,8 +1289,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             boundsDirty = BOUNDS_CORRECT;
             for (NodeInst ni: nodes)
                 ni.getBounds();
-            for (ArcInst ai: arcs)
-                ai.getBounds();
+            for (Iterator<ArcInst> it = topology.getArcs(); it.hasNext(); )
+                it.next().getBounds();
             if (boundsDirty == BOUNDS_CORRECT)
                 return cellBounds;
         }
@@ -2067,12 +2012,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			}
 		}
 
+        setContentsModified();
 		addNodeName(ni);
         int nodeId = ni.getD().nodeId;
         while (chronNodes.size() <= nodeId) chronNodes.add(null);
         assert chronNodes.get(nodeId) == null;
         chronNodes.set(nodeId, ni);
-        setContentsModified();
         
         // expand status and count usage
         if (ni.isCellInstance()) {
@@ -2183,11 +2128,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
              }
         }
 
+        setContentsModified();
 		removeNodeName(ni);
         int nodeId = ni.getD().nodeId;
         assert chronNodes.get(nodeId) == ni;
         chronNodes.set(nodeId, null);
-        setContentsModified();
         setDirty();
 	}
 
@@ -2247,170 +2192,34 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * Method to return an Iterator over all ArcInst objects in this Cell.
 	 * @return an Iterator over all ArcInst objects in this Cell.
 	 */
-	public synchronized Iterator<ArcInst> getArcs()
-	{
-        ArrayList<ArcInst> arcsCopy = new ArrayList<ArcInst>(arcs);
-		return arcsCopy.iterator();
-	}
+	public synchronized Iterator<ArcInst> getArcs() { return getTopology().getArcs(); }
 
 	/**
 	 * Method to return the number of ArcInst objects in this Cell.
 	 * @return the number of ArcInst objects in this Cell.
 	 */
-	public int getNumArcs()
-	{
-		return arcs.size();
-	}
+	public int getNumArcs() { return topology.getNumArcs(); }
 
 	/**
 	 * Method to return the ArcInst at specified position.
 	 * @param arcIndex specified position of ArcInst.
 	 * @return the ArcInst at specified position..
 	 */
-	public final ArcInst getArc(int arcIndex)
-	{
-		return arcs.get(arcIndex);
-	}
+	public final ArcInst getArc(int arcIndex) { return getTopology().getArc(arcIndex); }
 
 	/**
 	 * Method to return the ArcInst by its chronological index.
 	 * @param arcId chronological index of ArcInst.
 	 * @return the ArcInst with specified chronological index.
 	 */
-	public ArcInst getArcById(int arcId)
-	{
-		return arcId < chronArcs.size() ? chronArcs.get(arcId) : null;
-	}
+	public ArcInst getArcById(int arcId) { return getTopology().getArcById(arcId); }
 
 	/**
 	 * Method to find a named ArcInst on this Cell.
 	 * @param name the name of the ArcInst.
 	 * @return the ArcInst.  Returns null if none with that name are found.
 	 */
-	public ArcInst findArc(String name)
-	{
-		int arcIndex = searchArc(name, 0);
-		if (arcIndex >= 0) return arcs.get(arcIndex);
-		arcIndex = - arcIndex - 1;
-		if (arcIndex < arcs.size())
-		{
-			ArcInst ai = arcs.get(arcIndex);
-			if (ai.getName().equals(name)) return ai;
-		}
-		return null;
-	}
-
-	/**
-	 * Method to add a new ArcInst to the cell.
-	 * @param ai the ArcInst to be included in the cell.
-	 */
-	public void addArc(ArcInst ai)
-	{
-        
-		int arcIndex = searchArc(ai.getName(), ai.getD().arcId);
-		assert arcIndex < 0;
-		arcIndex = - arcIndex - 1;
-		arcs.add(arcIndex, ai);
-		for (; arcIndex < arcs.size(); arcIndex++)
-		{
-			ArcInst a = arcs.get(arcIndex);
-			a.setArcIndex(arcIndex);
-		}
-        int arcId = ai.getD().arcId;
-        while (chronArcs.size() <= arcId) chronArcs.add(null);
-        assert chronArcs.get(arcId) == null;
-        chronArcs.set(arcId, ai);
-        setContentsModified();
-        
-        // update maximal arc name suffux temporary name
-		if (ai.isUsernamed()) return;
-		Name name = ai.getNameKey();
-        assert name.getBasename() == ImmutableArcInst.BASENAME;
-        maxArcSuffix = Math.max(maxArcSuffix, name.getNumSuffix());
-        setDirty();
-	}
-
-	/**
-	 * Method to return unique autoname for ArcInst in this cell.
-	 * @return a unique autoname for ArcInst in this cell.
-	 */
-	public Name getArcAutoname()
-	{
-        if (maxArcSuffix < Integer.MAX_VALUE)
-            return ImmutableArcInst.BASENAME.findSuffixed(++maxArcSuffix);
-        for (int i = 0;; i++) {
-            Name name = ImmutableArcInst.BASENAME.findSuffixed(i);
-            if (!hasTempArcName(name)) return name;
-        }
-	}
-
-	/**
-	 * Method check if ArcInst with specified temporary name key exists in a cell.
-	 * @param name specified temorary name key.
-	 */
-	public boolean hasTempArcName(Name name)
-	{
-		return name.isTempname() && findArc(name.toString()) != null;
-	}
-
-	/**
-	 * Method to remove an ArcInst from the cell.
-	 * @param ai the ArcInst to be removed from the cell.
-	 */
-	public void removeArc(ArcInst ai)
-	{
-		checkChanging();
-		assert ai.isLinked();
-		int arcIndex = ai.getArcIndex();
-		ArcInst removedAi = (ArcInst) arcs.remove(arcIndex);
-		assert removedAi == ai;
-		for (int i = arcIndex; i < arcs.size(); i++)
-		{
-			ArcInst a = arcs.get(i);
-			a.setArcIndex(i);
-		}
-		ai.setArcIndex(-1);
-        int arcId = ai.getD().arcId;
-        assert chronArcs.get(arcId) == ai;
-        chronArcs.set(arcId, null);
-        setContentsModified();
-        setDirty();
-	}
-
-    /**
-     * Searches the arcs for the specified (name,arcId) using the binary
-     * search algorithm.
-     * @param name the name to be searched.
-	 * @param arcId the arcId index to be searched.
-     * @return index of the search name, if it is contained in the arcs;
-     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
-     *	       <i>insertion point</i> is defined as the point at which the
-     *	       ArcInst would be inserted into the list: the index of the first
-     *	       element greater than the name, or <tt>arcs.size()</tt>, if all
-     *	       elements in the list are less than the specified name.  Note
-     *	       that this guarantees that the return value will be &gt;= 0 if
-     *	       and only if the ArcInst is found.
-     */
-	private int searchArc(String name, int arcId)
-	{
-		int low = 0;
-		int high = arcs.size()-1;
-
-		while (low <= high) {
-			int mid = (low + high) >> 1;
-			ArcInst ai = arcs.get(mid);
-			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), name);
-			if (cmp == 0) cmp = ai.getD().arcId - arcId;
-
-			if (cmp < 0)
-				low = mid + 1;
-			else if (cmp > 0)
-				high = mid - 1;
-			else
-				return mid; // ArcInst found
-		}
-		return -(low + 1);  // ArcInst not found.
-    }
+	public ArcInst findArc(String name) { return getTopology().findArc(name); }
 
 	/****************************** EXPORTS ******************************/
 
@@ -2422,6 +2231,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 void addExport(Export export)
 	{
 		checkChanging();
+        setContentsModified();
 
 		int portIndex = - searchExport(export.getName()) - 1;
 		assert portIndex >= 0;
@@ -2446,7 +2256,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			newExports[i + 1] = e;
 		}
 		exports = newExports;
-        setContentsModified();
 
 		// create a PortInst for every instance of this Cell
         if (getId().numUsagesOf() == 0) return;
@@ -2469,6 +2278,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	void removeExport(Export export)
 	{
 		checkChanging();
+        setContentsModified();
 		int portIndex = export.getPortIndex();
 
 		Export[] newExports = exports.length > 1 ? new Export[exports.length - 1] : NULL_EXPORT_ARRAY;
@@ -2481,7 +2291,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		}
 		exports = newExports;
         chronExports[export.getId().getChronIndex()] = null;
-        setContentsModified();
 		export.setPortIndex(-1);
 
 		// remove the PortInst from every instance of this Cell
@@ -2571,7 +2380,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             
             // collect the arcs attached to the connections to these port instance.
             ArrayList<ArcInst> arcsToKill = new ArrayList<ArcInst>();
-            for (ArcInst ai: higherCell.arcs) {
+            for (Iterator<ArcInst> ait = higherCell.getArcs(); ait.hasNext(); ) {
+                ArcInst ai = ait.next();
                 PortInst tail = ai.getTailPortInst();
                 PortInst head = ai.getHeadPortInst();
                 if (tail.getNodeInst().getProto() == this && killedExports.contains(tail.getPortProto()) ||
@@ -3187,17 +2997,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * @param newD new persistent data.
      */
     private void setD(ImmutableCell newD) {
-        if (isLinked()) {
-            checkChanging();
-            ImmutableCell oldD = getD();
-            if (newD == oldD) return;
-            d = newD;
-            unfreshBackup();
-            Constraints.getCurrent().modifyCell(this, oldD);
-        } else {
-            assert !cellBackupFresh && !cellContentsFresh;
-            d = newD;
-        }
+        assert isLinked();
+        checkChanging();
+        ImmutableCell oldD = getD();
+        if (newD == oldD) return;
+        d = newD;
+        unfreshBackup();
+        Constraints.getCurrent().modifyCell(this, oldD);
     }
     
     /**
@@ -4046,6 +3852,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 //        return modified == 0;
     }
 
+    public void setTopologyModified() {
+        setContentsModified();
+    }
+    
     /**
 	 * Method to set if cell has been modified in the batch job.
 	 */
@@ -4243,7 +4053,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         if (cellContentsFresh) {
             assert backup.nodes.size() == nodes.size();
-            assert backup.arcs.size() == arcs.size();
+            assert backup.arcs.size() == topology.getNumArcs();
             assert backup.exports.size() == exports.length;
         }
         
@@ -4266,32 +4076,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         }
         
         // check arcs
-        ArcInst prevAi = null;
-        for(int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
-            ArcInst ai = arcs.get(arcIndex);
-            ImmutableArcInst a = ai.getD();
-            assert ai.getParent() == this;
-            assert ai.getArcIndex() == arcIndex;
-            assert chronArcs.get(a.arcId) == ai;
-            if (cellContentsFresh) assert backup.arcs.get(arcIndex) == a;
-            if (prevAi != null) {
-                int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevAi.getName(), ai.getName());
-                assert cmp <= 0;
-                if (cmp == 0)
-                    assert prevAi.getD().arcId < a.arcId;
+        if (topology != null) {
+            topology.check();
+            if (cellContentsFresh) {
+                for(int arcIndex = 0; arcIndex < topology.getNumArcs(); arcIndex++) {
+                    ArcInst ai = topology.getArc(arcIndex);
+                    ImmutableArcInst a = ai.getD();
+                    assert backup.arcs.get(arcIndex) == a;
+                }
             }
-            assert ai.getHeadPortInst() == getPortInst(a.headNodeId, a.headPortId);
-            assert ai.getTailPortInst() == getPortInst(a.tailNodeId, a.tailPortId);
-            ai.check();
-            prevAi = ai;
         }
-        for (int arcId = 0; arcId < chronArcs.size(); arcId++) {
-            ArcInst ai = chronArcs.get(arcId);
-            if (ai == null) continue;
-            assert ai.getD().arcId == arcId;
-            assert ai == arcs.get(ai.getArcIndex());
-        }
-        
+       
         // check nodes
         NodeInst prevNi = null;
         int[] usages = new int[cellId.numUsagesIn()];
@@ -4336,7 +4131,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert computeBounds() == cellBounds;
             assert boundsDirty == BOUNDS_CORRECT;
         }
-        topology.check();
     }
     
     /**

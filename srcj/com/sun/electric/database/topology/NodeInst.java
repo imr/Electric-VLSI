@@ -48,7 +48,6 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -920,11 +919,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         checkChanging();
         ImmutableNodeInst oldD = d;
         if (newD == oldD) return false;
-        d = newD;
         if (parent != null) {
             parent.setContentsModified();
+            d = newD;
             if (notify)
                 Constraints.getCurrent().modifyNodeInst(this, oldD);
+        } else {
+            d = newD;
         }
         return true;
     }

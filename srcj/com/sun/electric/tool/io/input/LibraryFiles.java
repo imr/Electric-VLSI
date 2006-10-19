@@ -1070,11 +1070,6 @@ public abstract class LibraryFiles extends Input
             Input.errorLogger.logError("Instance of dummy cell "+proto.getName(), ni, parent, null, 1);
         }
     }
-    private void markCellAndLibraryChanged(Cell c) {
-    	c.setContentsModified();
-    	Library l = c.getLibrary();
-    	l.setChanged();
-    }
 
     void realizeVariables(ElectricObject eObj, Variable[] vars) {
         if (vars == null) return;

@@ -38,7 +38,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -94,6 +93,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
 	// -------------------------- private data ----------------------------------
 
+    /** Owner of this ArcInst. */                       private final Topology topology;
     /** persistent data of this ArcInst. */             ImmutableArcInst d;
 	/** bounds after transformation. */					private final Rectangle2D visBounds = new Rectangle2D.Double();
     /** True, if visBounds are valid. */                private boolean validVisBounds;
@@ -113,9 +113,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @param headPort the head end PortInst.
 	 * @param tailPort the tail end PortInst.
 	 */
-	public ArcInst(Cell parent, ImmutableArcInst d, PortInst headPort, PortInst tailPort)
+	public ArcInst(Topology topology, ImmutableArcInst d, PortInst headPort, PortInst tailPort)
 	{
-		super(parent);
+		super(topology != null ? topology.cell : null);
+        this.topology = topology;
 
         // initialize this object
 		assert parent == headPort.getNodeInst().getParent();
@@ -339,6 +340,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int angle, int flags)
 	{
         parent.checkChanging();
+        Topology topology = parent.getTopology();
         
 		// make sure fields are valid
 		if (protoType == null || headPort == null || tailPort == null || !headPort.isLinked() || !tailPort.isLinked()) return null;
@@ -372,9 +374,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
         if (nameDescriptor == null) nameDescriptor = TextDescriptor.getArcTextDescriptor();
         Name nameKey = name != null ? Name.findName(name) : null;
-		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, ArcInst.class, null)) || checkNameKey(nameKey, parent))
+		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, ArcInst.class, null)) || checkNameKey(nameKey, topology))
 		{
-            nameKey = parent.getArcAutoname();
+            nameKey = topology.getArcAutoname();
 		} else
 		{
 			// adjust the name descriptor for "smart" text placement
@@ -394,14 +396,14 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
                 tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
                 width, angle, flags);
-        ArcInst ai = new ArcInst(parent, d, headPort, tailPort);
+        ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
         
 		// attach this arc to the two nodes it connects
 		headPort.getNodeInst().redoGeometric();
 		tailPort.getNodeInst().redoGeometric();
 
 		// add this arc to the cell
-		parent.addArc(ai);
+		topology.addArc(ai);
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().newObject(ai);
@@ -425,7 +427,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		tailPortInst.getNodeInst().redoGeometric();
 
 		// remove this arc from the cell
-		parent.removeArc(this);
+		topology.removeArc(this);
 
 		// handle change control, constraint, and broadcast
 		Constraints.getCurrent().killObject(this);
@@ -511,11 +513,13 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         checkChanging();
         ImmutableArcInst oldD = d;
         if (newD == oldD) return false;
-        d = newD;
         if (parent != null) {
-            parent.setContentsModified();
+            parent.setTopologyModified();
+            d = newD;
             if (notify)
                 Constraints.getCurrent().modifyArcInst(this, oldD);
+        } else {
+            d = newD;
         }
         return true;
     }
@@ -577,12 +581,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		// first remove from the R-Tree structure
         boolean renamed = this.d.name != d.name;
         if (renamed)
-            parent.removeArc(this);
+            topology.removeArc(this);
 
 		// now make the change
         setD(d, false);
         if (renamed)
-            parent.addArc(this);
+            topology.addArc(this);
         
         redoGeometric();
 
@@ -912,9 +916,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		} else
 		{
 			if (!isUsernamed()) return false;
-			key = parent.getArcAutoname();
+			key = topology.getArcAutoname();
 		}
-		if (checkNameKey(key, parent)) return true;
+		if (checkNameKey(key, topology)) return true;
         ImmutableArcInst oldD = d;
         lowLevelModify(d.withName(key));
         if (doSmart)
@@ -975,8 +979,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @param parent parent Cell used for error message
 	 * @return true on error.
 	 */
-	protected static boolean checkNameKey(Name name, Cell parent)
+	private static boolean checkNameKey(Name name, Topology topology)
 	{
+        Cell parent = topology.cell;
 		if (!name.isValid())
 		{
 			System.out.println(parent + ": Invalid name \""+name+"\" wasn't assigned to arc" + " :" + Name.checkName(name.toString()));
@@ -995,7 +1000,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to arc");
 			return true;
 		}
-		if (parent.hasTempArcName(name))
+		if (topology.hasTempArcName(name))
 		{
 			System.out.println(parent + " already has ArcInst with temporary name \""+name+"\"");
 			return true;

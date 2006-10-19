@@ -556,11 +556,13 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
         checkChanging();
         ImmutableExport oldD = d;
         if (newD == oldD) return false;
-        d = newD;
         if (parent != null) {
             parent.setContentsModified();
+            d = newD;
             if (notify)
                 Constraints.getCurrent().modifyExport(this, oldD);
+        } else {
+            d = newD;
         }
         return true;
     }
