@@ -368,13 +368,16 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
     {
         if (item != null)
         {
+            PrimitiveNode p = null;
             // checking if node is in used
             if (item instanceof NodeInst && ((NodeInst)item).getProto() instanceof PrimitiveNode)
             {
-                PrimitiveNode p = (PrimitiveNode)((NodeInst)item).getProto();
-                if (p.isNotUsed())
-                    item = null;
+                p = (PrimitiveNode)((NodeInst)item).getProto();
             }
+            else if (item instanceof PrimitiveNode)
+                p = (PrimitiveNode)item;
+            if (p != null && p.isNotUsed())
+                item = null;
         }
         return item;
     }
