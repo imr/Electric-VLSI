@@ -425,6 +425,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         Object obj = getObjectUnderCursor(e.getX(), e.getY());
         JMenuItem menuItem;
 
+        assert(obj != null);
         if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof ArcProto || obj instanceof List)
         {
             if (obj instanceof List)
@@ -433,7 +434,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	            // Getting first element
                 obj = list.get(0);
 	            if (obj instanceof List) obj = ((List)obj).get(0);
-                if (list != null && list.size() > 1 && isCursorOnCorner(e))
+                if (list.size() > 1 && isCursorOnCorner(e))
 				{
                     // Careful with this name
 					JPopupMenu menu = new JPopupMenu(getItemName(obj, true));
