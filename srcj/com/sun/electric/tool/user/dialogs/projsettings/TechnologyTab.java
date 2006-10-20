@@ -28,6 +28,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.database.geometry.DBMath;
 
 import java.awt.Frame;
 import java.util.Iterator;
@@ -57,14 +58,29 @@ public class TechnologyTab extends ProjSettingsPanel
     {
         String selectedFoundry = tech.getPrefFoundry();
     	Foundry.Type foundry = Foundry.Type.NONE;
+        double scale = tech.getScale();
+        boolean correctScale = true; // TSMC90 -> 50 and MoCMOS -> 200
 
-        for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
+        if (tech == MoCMOS.tech)
+            correctScale = DBMath.areEquals(scale, 100);
+
+        if (correctScale)
         {
-            Foundry factory = itF.next();
-            Foundry.Type type = factory.getType();
-            pulldown.addItem(type);
-            if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
+            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
+            {
+                Foundry factory = itF.next();
+                Foundry.Type type = factory.getType();
+                pulldown.addItem(type);
+                if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
+            }
         }
+        else
+        {
+            foundry = Foundry.Type.MOSIS; // forces mosis for 180nm or larger.
+            pulldown.addItem(foundry);
+            tech.setPrefFoundry(foundry.name());
+        }
+
         pulldown.setEnabled(foundry != Foundry.Type.NONE);
         pulldown.setSelectedItem(foundry);
         return foundry;
@@ -116,7 +132,14 @@ public class TechnologyTab extends ProjSettingsPanel
             System.out.println("Exceptions while importing extra technologies");
         }
 
-        mosisPanel.setVisible(Technology.getCurrent() == MoCMOS.tech);
+//        mosisPanel.setVisible(Technology.getCurrent() == MoCMOS.tech);
+        double scale = MoCMOS.tech.getScale();
+        String extra = "";
+        if (DBMath.areEquals(scale, 100)) // 180nm
+            extra = ": 180nm";
+        else if (DBMath.areEquals(scale, 200)) // 180nm
+            extra = ": 350nm";
+        mosisPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Scalable CMOS" + extra));
     }
 
 	/**
@@ -333,7 +356,7 @@ public class TechnologyTab extends ProjSettingsPanel
 
         mosisPanel.setLayout(new java.awt.GridBagLayout());
 
-        mosisPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Layout Technology: MOSIS CMOS"));
+        mosisPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Scalable CMOS"));
         techMetalLabel.setText("Metal layers:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -444,9 +467,9 @@ public class TechnologyTab extends ProjSettingsPanel
         jPanel3.add(tsmc90Panel);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         technology.add(jPanel3, gridBagConstraints);
 
         getContentPane().add(technology, new java.awt.GridBagConstraints());
