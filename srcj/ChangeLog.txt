@@ -5,7 +5,7 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.05b: *********************************
 
 BUG: (10/21/06, DN) Cannot select horizontal arcs (Bug #1248).
-FIX: In EDatabase.getBackup() call ai.getBaounds() for each arcs to precompute arc bounds.
+FIX: In EDatabase.getBackup() call ai.getBounds() for each arcs to precompute arc bounds.
 
 BUG: (10/20/06, GVG) [Bug 1245] FIle->Project Settings->Technology page is confusing/inconsistent (Bug# 1245)
 FIX: Technology tab in project preferences was re-organized. For MoCMOS tech, the feature size is included as
