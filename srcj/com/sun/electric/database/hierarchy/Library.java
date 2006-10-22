@@ -137,7 +137,7 @@ public class Library extends ElectricObject implements Comparable<Library>
 		}
 		
 		// create the library
-        EDatabase database = EDatabase.theDatabase;
+        EDatabase database = EDatabase.serverDatabase();
         return newInstance(database, database.getIdManager().newLibId(legalName), libFile);
 	}
 

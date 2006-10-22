@@ -115,7 +115,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public ArcInst(Topology topology, ImmutableArcInst d, PortInst headPort, PortInst tailPort)
 	{
-		super(topology != null ? topology.cell : null);
+		super(topology.cell);
         this.topology = topology;
 
         // initialize this object
@@ -188,40 +188,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	                                   Point2D headPt, Point2D tailPt, String name)
 	{
 		return newInstance(type, width, head, tail, headPt, tailPt, name, 0, type.getDefaultConstraints());
-	}
-
-	/**
-	 * Method to create a "dummy" ArcInst for use outside of the database.
-	 * @param ap the prototype of the ArcInst.
-	 * @param arcLength the length of the ArcInst.
-	 * @return the dummy ArcInst.
-	 */
-	public static ArcInst makeDummyInstance(ArcProto ap, double arcLength)
-	{
-		PrimitiveNode npEnd = ap.findPinProto();
-		if (npEnd == null)
-		{
-			System.out.println("Cannot find pin for " + ap);
-			return null;
-		}
-
-		// create the head node
-		EPoint xPH = new EPoint(-arcLength/2, 0);
-		NodeInst niH = NodeInst.makeDummyInstance(npEnd, xPH, npEnd.getDefWidth(), npEnd.getDefHeight(), Orientation.IDENT);
-		PortInst piH = niH.getOnlyPortInst();
-
-		// create the tail node
-		EPoint xPT = new EPoint(arcLength/2, 0);
-		NodeInst niT = NodeInst.makeDummyInstance(npEnd, xPT, npEnd.getDefWidth(), npEnd.getDefHeight(), Orientation.IDENT);
-		PortInst piT = niT.getOnlyPortInst();
-
-		// create the arc that connects them
-        ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, ImmutableArcInst.BASENAME, TextDescriptor.getArcTextDescriptor(),
-                niT.getD().nodeId, piT.getPortProto().getId(), xPT,
-                niH.getD().nodeId, piH.getPortProto().getId(), xPH,
-                ap.getDefaultWidth(), 0, 0);
- 		ArcInst ai = new ArcInst(null, d, piH, piT);
-		return ai;
 	}
 
     /**
@@ -513,14 +479,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         checkChanging();
         ImmutableArcInst oldD = d;
         if (newD == oldD) return false;
-        if (parent != null) {
-            parent.setTopologyModified();
-            d = newD;
-            if (notify)
-                Constraints.getCurrent().modifyArcInst(this, oldD);
-        } else {
-            d = newD;
-        }
+        parent.setTopologyModified();
+        d = newD;
+        if (notify)
+            Constraints.getCurrent().modifyArcInst(this, oldD);
         return true;
     }
     

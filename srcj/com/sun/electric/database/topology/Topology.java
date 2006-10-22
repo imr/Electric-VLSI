@@ -221,8 +221,6 @@ public class Topology {
             }
             ai.setArcIndex(i);
             arcs.add(ai);
-//            tailPi.getNodeInst().lowLevelAddConnection(ai.getTail());
-//            headPi.getNodeInst().lowLevelAddConnection(ai.getHead());
             if (!ai.isUsernamed()) {
                 Name name = ai.getNameKey();
                 assert name.getBasename() == ImmutableArcInst.BASENAME;
@@ -279,6 +277,13 @@ public class Topology {
 		}
 		return -(low + 1);  // ArcInst not found.
     }
+    
+//    void setArcsModified() {
+//        cell.checkChanging();
+//        cell.setTopologyModified();
+//    }
+
+	/****************************** GRAPHICS ******************************/
 
     /**
 	 * Method to return an interator over all Geometric objects in a given area of this Cell that allows

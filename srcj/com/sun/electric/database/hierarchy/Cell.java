@@ -1352,6 +1352,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 if (highy > cellHighY) cellHighY = highy;
             }
         }
+        for (Iterator<ArcInst> it = getArcs(); it.hasNext(); )
+            it.next().getBounds();
         Rectangle2D primitiveBounds = backup().getPrimitiveBounds();
         if (primitiveBounds != null) {
             cellLowX = Math.min(cellLowX, primitiveBounds.getMinX());

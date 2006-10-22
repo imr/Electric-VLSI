@@ -662,10 +662,10 @@ public class VectorCache {
         return allShapes.toArray(new VectorBase[allShapes.size()]);
     }
     
-    static VectorBase[] drawArc(ArcInst ai) {
+    static VectorBase[] drawPolys(Poly[] polys) {
         VectorCache cache = new VectorCache(EDatabase.clientDatabase());
         VectorCell vc = cache.newDummyVectorCell();
-        cache.drawArc(ai, GenMath.MATID, vc);
+		cache.drawPolys(polys, GenMath.MATID, vc, false, VectorText.TEXTTYPEARC, false);
         
         ArrayList<VectorBase> allShapes = new ArrayList<VectorBase>();
         allShapes.addAll(vc.filledShapes);

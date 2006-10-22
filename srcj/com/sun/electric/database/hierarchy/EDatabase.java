@@ -354,8 +354,6 @@ public class EDatabase {
 				cellBackups[cellIndex] = cell.backup();
                 cell.getMemoization();
                 cellBounds[cellIndex] = cell.getBounds();
-                for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-                    it.next().getBounds();
             }
             cellsChanged = cellsChanged || cellBackups[cellIndex] != snapshot.getCell(cellIndex);
             cellBoundsChanged = cellBoundsChanged || cellBounds[cellIndex] != snapshot.getCellBounds(cellIndex);

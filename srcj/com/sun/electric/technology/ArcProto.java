@@ -24,8 +24,10 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
+import java.awt.geom.Point2D;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -908,6 +910,36 @@ public class ArcProto implements Comparable<ArcProto>
 		}
 	}
 
+	/**
+	 * Returns the polygons that describe dummy arc of this ArcProto
+     * with default width and specified length.
+	 * @param length length of dummy arc.
+	 * @return an array of Poly objects that describes dummy arc graphically.
+	 */
+    public Poly[] getShapeOfDummyArc(double length) {
+        // see how many polygons describe this arc
+        Poly [] polys = new Poly[layers.length];
+        Point2D.Double headLocation = new Point2D.Double(-length/2, 0);
+        Point2D.Double tailLocation = new Point2D.Double(length/2, 0);
+        for (int i = 0; i < layers.length; i++) {
+            Technology.ArcLayer primLayer = layers[i];
+            double width = getDefaultWidth() - primLayer.getOffset();
+            Poly.Type style = primLayer.getStyle();
+            Poly poly;
+            if (width == 0) {
+                poly = new Poly(new Point2D.Double[]{headLocation, tailLocation});
+                if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
+                poly.setStyle(style);
+            } else {
+                assert width > 0;
+                poly = Poly.makeEndPointPoly(length, width, 0, headLocation, width/2, tailLocation, width/2, style);
+            }
+            poly.setLayer(primLayer.getLayer());
+            polys[i] = poly;
+        }
+        return polys;
+    }
+    
 
 	/**
 	 * Method to describe this ArcProto as a string.
@@ -949,4 +981,15 @@ public class ArcProto implements Comparable<ArcProto>
 		return "arc " + describe();
 	}
 
+    /**
+     * Method to check invariants in this ArcProto.
+     * @exception AssertionError if invariants are not valid
+     */
+    void check() {
+        double defaultWidth = getDefaultWidth();
+        for (Technology.ArcLayer primLayer: layers) {
+            double width = getDefaultWidth() - primLayer.getOffset();
+            assert width >= 0;
+        }
+    }
 }

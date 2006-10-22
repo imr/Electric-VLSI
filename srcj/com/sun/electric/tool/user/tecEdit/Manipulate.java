@@ -2477,8 +2477,7 @@ public class Manipulate
         for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
-			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
-			Poly [] polys = tech.getShapeOfArc(ai);
+			Poly [] polys = ap.getShapeOfDummyArc(4000);
 
             for(int k=0; k<polys.length; k++)
 			{

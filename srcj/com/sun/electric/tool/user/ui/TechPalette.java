@@ -952,7 +952,6 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 if (toDraw instanceof ArcProto) {
                     // rendering an arc: create the temporary arc
                     ArcProto ap = (ArcProto)toDraw;
-                    ArcInst ai = ArcInst.makeDummyInstance(ap, menuArcLength);
                     
                     // determine scale for rendering
                     double largest = 0;
@@ -969,7 +968,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     double scale = Math.min(scalex, scaley);
                     
             		// draw the arc
-                    VectorCache.VectorBase[] shapes = VectorCache.drawArc(ai);
+                    VectorCache.VectorBase[] shapes = VectorCache.drawPolys(ap.getShapeOfDummyArc(menuArcLength));
                     drawShapes(g, imgX, imgY, scale, shapes);
                     
                     g.setColor(Color.RED);

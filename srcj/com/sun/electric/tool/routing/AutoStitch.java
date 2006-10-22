@@ -1669,14 +1669,10 @@ public class AutoStitch
 		// quit if the value has already been computed
 		if (arcLayers.get(ap) != null) return;
 
-		// get a dummy arc to analyze
-		ArcInst ai = ArcInst.makeDummyInstance(ap, 100);
-
 		// find the smallest layer
 		boolean bestFound = false;
 		double bestArea = 0;
-		Technology tech = ap.getTechnology();
-		Poly [] polys = tech.getShapeOfArc(ai);
+		Poly [] polys = ap.getShapeOfDummyArc(100);
 		int tot = polys.length;
 		for(int i=0; i<tot; i++)
 		{

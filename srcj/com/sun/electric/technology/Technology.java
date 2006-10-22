@@ -683,8 +683,9 @@ public class Technology implements Comparable<Technology>
 
 		// setup the generic technology to handle all connections
 		Generic.tech.makeUnivList();
+        checkAllTechnologies();
 	}
-
+    
     private static Technology tsmc90 = null;
     private static boolean tsmcCached = false;
 	/**
@@ -3889,6 +3890,22 @@ public class Technology implements Comparable<Technology>
 	{
 		return "Technology " + techName;
 	}
+
+    private static void checkAllTechnologies() {
+        for (Technology tech: technologies.values()) {
+            tech.check();
+        }
+    }
+    
+    /**
+     * Method to check invariants in this Technology.
+     * @exception AssertionError if invariants are not valid
+     */
+    private void check() {
+        for (ArcProto ap: arcs.values()) {
+            ap.check();
+        }
+    }
 
 	///////////////////// Generic methods //////////////////////////////////////////////////////////////
 
