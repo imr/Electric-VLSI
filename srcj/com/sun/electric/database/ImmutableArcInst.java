@@ -694,17 +694,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         
         // determine the end extension on each end
         double extendH = 0, extendT = 0;
-        if (m != null) {
-            if ((flags & HEADNOEXTEND) == 0) // is(HEAD_EXTENDED)
-                extendH = getExtendFactor(width, m.getShrinkage(headNodeId));
-            if ((flags & TAILNOEXTEND) == 0) // is(TAIL_EXTENDED)
-                extendT = getExtendFactor(width, m.getShrinkage(tailNodeId));
-        } else {
-            if (is(HEAD_EXTENDED))
-                extendH = width/2;
-            if (is(TAIL_EXTENDED))
-                extendT = width/2;
-        }
+        if ((flags & HEADNOEXTEND) == 0) // is(HEAD_EXTENDED)
+            extendH = getExtendFactor(width, m.getShrinkage(headNodeId));
+        if ((flags & TAILNOEXTEND) == 0) // is(TAIL_EXTENDED)
+            extendT = getExtendFactor(width, m.getShrinkage(tailNodeId));
         
         // make the polygon
         Poly poly = Poly.makeEndPointPoly(length, width, angle, headLocation, extendH, tailLocation, extendT, style);
