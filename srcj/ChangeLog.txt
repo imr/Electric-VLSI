@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
+BUG: (10/23/06, GVG) Problems with alternative poly rules in 180nm (bug#1249, reported by David Harris)
+FIX: Poly and active nodes in primitives were not properly resized after major XML changes done.
 
 BUG: (10/21/06, DN) Cannot select horizontal arcs (Bug #1248).
 FIX: In EDatabase.getBackup() call ai.getBounds() for each arcs to precompute arc bounds.

@@ -64,6 +64,7 @@ public class MoCMOS extends Technology
             tech = (MoCMOS)obj;
         } catch (Exception e)
         {
+            e.printStackTrace();
             if (Job.getDebug())
                 System.out.println("GNU Release can't find TSMC180nm plugin");
             tech = new MoCMOS();
@@ -106,6 +107,7 @@ public class MoCMOS extends Technology
 
 	// nodes. Storing nodes only whe they are need in outside the constructor
     /** metal-1->6-pin */				        private PrimitiveNode[] metalPinNodes = new PrimitiveNode[6];
+	/** active pins */					        private PrimitiveNode[] activePinNodes = new PrimitiveNode[2];
 	/** polysilicon-1-pin/2-pin */			    protected PrimitiveNode[] polyPinNodes = new PrimitiveNode[2];
     /** metal-1-P/N-active-contacts */          protected PrimitiveNode[] metalActiveContactNodes = new PrimitiveNode[2];
 	/** metal-1-polysilicon-1/2/1-2/-contact */	protected PrimitiveNode[] metal1PolyContactNodes = new PrimitiveNode[3];
@@ -117,7 +119,7 @@ public class MoCMOS extends Technology
 	/** Polysilicon-1/2-Node */					private PrimitiveNode[] polyNodes = new PrimitiveNode[2];
 	/** Via-1 -. Via-5 Nodes */					private PrimitiveNode[] viaNodes = new PrimitiveNode[5];
 
-	// for dynamically modifying the transistor geometry
+    // for dynamically modifying the transistor geometry
 	protected Technology.NodeLayer[] transistorPolyLayers = new Technology.NodeLayer[2];
 	protected Technology.NodeLayer[] transistorActiveLayers = new Technology.NodeLayer[2];
 	protected Technology.NodeLayer[] transistorActiveTLayers = new Technology.NodeLayer[2];
@@ -1422,7 +1424,7 @@ public class MoCMOS extends Technology
 		polyPinNodes[1].setArcsShrink();
 		polyPinNodes[1].setNotUsed(true);
 
-        PrimitiveNode[] activePinNodes = new PrimitiveNode[2];
+        activePinNodes = new PrimitiveNode[2];
 
 		/** P-active-pin */
 		activePinNodes[P_TYPE] = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
@@ -2324,10 +2326,20 @@ public class MoCMOS extends Technology
 		padFrameLayer.setPureLayerNode(padFrameNode);				// Pad-Frame
 
         // Information for palette
+//        buildTechPalette();
+    }
+
+    /**
+     * Method to load primitive nodes in the palette after rules have been loaded
+     */
+    protected void buildTechPalette()
+    {
+        // Information for palette
         int maxY = metalArcs.length + activeArcs.length + 1 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
         nodeGroups = new Object[maxY][3];
         int count = 0;
         List<NodeInst> tmp;
+        String[] stdNames = {"p", "n"};
 
         // Transistor nodes first
         for (int i = 0; i < transistorNodes.length; i++)
@@ -2847,9 +2859,13 @@ public class MoCMOS extends Technology
 
         // Resize primitives according to the foundry and existing rules.
         if (resizeNodes)
+        {
             resizeNodes(rules);
+            // Information for palette
+            buildTechPalette();
+        }
 
-		return rules;
+        return rules;
 	}
    
     /**
