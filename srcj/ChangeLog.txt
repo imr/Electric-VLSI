@@ -3,7 +3,7 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
-BUG: (10/23/06, GVG) Problems with alternative poly rules in 180nm (bug#1249, reported by David Harris)
+BUG: (10/23/06, GVG) Problems with alternate poly rules in 180nm (bug#1249, reported by David Harris)
 FIX: Poly and active nodes in primitives were not properly resized after major XML changes done.
 
 BUG: (10/21/06, DN) Cannot select horizontal arcs (Bug #1248).
