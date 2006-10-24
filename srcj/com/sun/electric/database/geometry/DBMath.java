@@ -123,7 +123,7 @@ public class DBMath extends GenMath {
 	 * @return true if first number is greater than the second number.
 	 */
 	public static boolean isGreaterThan(double a, double b) {
-        return a - b > 0.5*GRID;
+        return a - b > 0.5/GRID;
 //		double actual = round(a - b);
 //		return (actual > 0);
 	}
