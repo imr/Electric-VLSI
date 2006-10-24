@@ -186,6 +186,8 @@ public class FileMenu {
                     exportCommand(FileType.SKILL, false); }} : null,
                 IOTool.hasSkill() ? new EMenuItem("Skill Exports _Only (Cadence Commands)...") { public void run() { 
                     exportCommand(FileType.SKILLEXPORTSONLY, false); }} : null,
+                new EMenuItem("_Verilog...") {	public void run() {
+                    exportCommand(FileType.VERILOG, false); }},
                 SEPARATOR,
                 new EMenuItem("_Eagle...") { public void run() {
                     exportCommand(FileType.EAGLE, false); }},
