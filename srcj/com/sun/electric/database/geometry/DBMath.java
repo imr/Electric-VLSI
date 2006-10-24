@@ -123,30 +123,40 @@ public class DBMath extends GenMath {
 	 * @return true if first number is greater than the second number.
 	 */
 	public static boolean isGreaterThan(double a, double b) {
-		double actual = round(a - b);
-		return (actual > 0);
+        return a - b > 0.5*GRID;
+//		double actual = round(a - b);
+//		return (actual > 0);
 	}
 
 	/**
 	 * Method to round a database value to database precision.
-	 * @param x the value to round.
-	 * @return the return value is an approximation of x rounded to GRID.
-	 * Sign of return values is the same as sign of x
+	 * @param lambdaValue the value to round in lambda units.
+	 * @return the return value in lambda units is an approximation of x rounded to GRID.
 	 */
-	public static double round(double x)
-	{
-//		if (x >= 0)
-//		{
-//			long i = (long)(x * GRID + 0.5);
-//			return (double)i / GRID;
-//		} else
-//		{
-//			long i = (long)(x * GRID - 0.5);
-//			return (double)i / GRID;
-//		}
-		return Math.rint(x * GRID) / GRID;
+    public static double round(double lambdaValue) {
+        return gridToLambda(lambdaToGrid(lambdaValue));
+//		return Math.rint(x * GRID) / GRID;
 	}
 
+	/**
+	 * Method to convert a database value from lambda units to grid units.
+	 * @param lambdaValue the value to round in lambda unit.
+	 * @return the return value in grid units is an approximation of x rounded to GRID.
+	 */
+    public static long lambdaToGrid(double lambdaValue) {
+        double x = lambdaValue*GRID;
+        return (long)(x >= 0 ? x + 0.5 : x - 0.5);
+    }
+    
+	/**
+	 * Method to convert a database value from grid units to lambda units.
+	 * @param gridValue the value to round in lambda unit.
+	 * @return the return value in grid units is an approximation of x rounded to GRID.
+	 */
+    public static double gridToLambda(long gridValue) {
+        return gridValue/GRID;
+    }
+    
 	/**
 	 * Method to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.
