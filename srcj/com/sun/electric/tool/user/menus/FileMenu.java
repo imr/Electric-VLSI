@@ -320,7 +320,7 @@ public class FileMenu {
     {
         String newLibName = JOptionPane.showInputDialog("New Library Name", "");
         if (newLibName == null) return;
-        NewLibrary job = new NewLibrary(newLibName);
+        new NewLibrary(newLibName);
     }
 
 	private static class NewLibrary extends Job {
@@ -380,8 +380,8 @@ public class FileMenu {
             if (fileName.endsWith(File.separator)) {
                 fileName = fileName.substring(0, fileName.length()-File.separator.length());
             }
-            for (int i=0; i<FileType.libraryTypes.length; i++) {
-                FileType type = FileType.libraryTypes[i];
+            for (FileType type :  FileType.libraryTypes)
+            {
                 if (fileName.endsWith("."+type.getExtensions()[0])) return type;
             }
         }
@@ -708,7 +708,7 @@ public class FileMenu {
 	    if (preventLoss(lib, 1)) return;
 
         WindowFrame.removeLibraryReferences(lib);
-        CloseLibrary job = new CloseLibrary(lib, clearClipboard);
+        new CloseLibrary(lib, clearClipboard);
     }
 
 	private static class CloseLibrary extends Job {
@@ -982,7 +982,7 @@ public class FileMenu {
                 null, formats, FileType.DEFAULTLIB);
         if (format == null) return; // cancel operation
         FileType outType = (FileType)format;
-        SaveAllLibrariesInFormatJob job = new SaveAllLibrariesInFormatJob(outType);
+        new SaveAllLibrariesInFormatJob(outType);
     }
 
     public static class SaveAllLibrariesInFormatJob extends Job {
@@ -1088,8 +1088,9 @@ public class FileMenu {
 			}
         }
 
-		String [] extensions = type.getExtensions();
-        String filePath = ((cell != null) ? cell.getName() : "") + "." + extensions[0];
+//		String [] extensions = type.getExtensions();
+//        String filePath = ((cell != null) ? cell.getName() : "") + "." + extensions[0];
+        String filePath = cell.getName();
 
         // special case for spice
         if (type == FileType.SPICE &&
@@ -1124,8 +1125,8 @@ public class FileMenu {
 	    // Special case for PNG format
 	    if (type == FileType.PNG)
 	    {
-		    String name = (cell != null) ? cell.toString() : filePath;
-		    ExportImage job = new ExportImage(name, wnd, filePath);
+//		    String name = (cell != null) ? cell.toString() : filePath;
+            new ExportImage(cell.toString(), wnd, filePath);
 			return;
 	    }
 
@@ -1492,7 +1493,7 @@ public class FileMenu {
             return JOptionPane.CLOSED_OPTION;
         if(options == null) {
             if(selectedValue instanceof Integer)
-                return ((Integer)selectedValue).intValue();
+                return ((Integer)selectedValue); // using autoboxing
             return JOptionPane.CLOSED_OPTION;
         }
         for(int counter = 0, maxCounter = options.length;
