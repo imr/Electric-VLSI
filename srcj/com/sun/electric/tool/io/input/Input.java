@@ -115,31 +115,31 @@ public class Input
 				Input in;
 				if (type == FileType.CIF)
 				{
-					in = (Input)new CIF();
+					in = new CIF();
 					if (in.openTextInput(fileURL)) return null;
 				} else if (type == FileType.DEF)
 				{
-					in = (Input)new DEF();
+					in = new DEF();
 					if (in.openTextInput(fileURL)) return null;
 				} else if (type == FileType.DXF)
 				{
-					in = (Input)new DXF();
+					in = new DXF();
 					if (in.openTextInput(fileURL)) return null;
 				} else if (type == FileType.EDIF)
 				{
-					in = (Input)new EDIF();
+					in = new EDIF();
 					if (in.openTextInput(fileURL)) return null;
 				} else if (type == FileType.GDS)
 				{
-					in = (Input)new GDS();
+					in = new GDS();
 					if (in.openBinaryInput(fileURL)) return null;
 				} else if (type == FileType.LEF)
 				{
-					in = (Input)new LEF();
+					in = new LEF();
 					if (in.openTextInput(fileURL)) return null;
 				} else if (type == FileType.SUE)
 				{
-					in = (Input)new Sue();
+					in = new Sue();
 					if (in.openTextInput(fileURL)) return null;
 				} else
 				{
@@ -181,10 +181,10 @@ public class Input
 	protected boolean openBinaryInput(URL fileURL)
 	{
 		filePath = fileURL.getFile();
-		URLConnection urlCon = null;
-		try
+
+        try
 		{
-			urlCon = fileURL.openConnection();
+			URLConnection urlCon = fileURL.openConnection();
 //            urlCon.setConnectTimeout(10000);
 //            urlCon.setReadTimeout(1000);
             String contentLength = urlCon.getHeaderField("content-length");
