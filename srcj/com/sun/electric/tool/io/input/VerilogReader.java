@@ -1,6 +1,12 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.technology.technologies.Schematics;
 
 import java.net.URL;
 import java.io.IOException;
@@ -22,7 +28,7 @@ public class VerilogReader extends Input
         for (;;)
         {
             String key = getAKeyword();
-            StringTokenizer parse = new StringTokenizer(key, "( )", false);
+            StringTokenizer parse = new StringTokenizer(key, "( ),", false);
             while (parse.hasMoreTokens())
             {
                 String value = parse.nextToken();
@@ -37,17 +43,69 @@ public class VerilogReader extends Input
     {
         List<String> inputs = new ArrayList<String>(10);
         String key = readCellHeader(inputs);
+        String cellName = inputs.get(0);
+        Cell cell = Cell.makeInstance(Library.getCurrent(), cellName);
+        cell.setTechnology(Schematics.tech);
+        cell.setView(View.SCHEMATIC);
+
+        String nextToken = null;
 
         for (;;)
         {
-            key = getAKeyword();
+            if (nextToken != null) // get last token read by network section
+            {
+                key = nextToken;
+                nextToken = null;
+            }
+            else
+                key = getAKeyword();
+
             if (key.equals("endmodule"))
             {
                 // done with this cell
                 return null;
             }
+            if (key.equals("input"))
+            {
+                String input = getAKeyword();
+                StringTokenizer parse = new StringTokenizer(input, ";", false); // extracting only input name
+                assert(parse.hasMoreTokens());
+                String name = parse.nextToken();
+                assert (inputs.contains(name));
+
+                //Point2D center, double width, double height, Cell parent)
+//                NodeInst ni = NodeInst.newInstance(cell, Schematics.tech.busPinNode, cell);
+//                Export e = Export.newInstance(cell, );
+                continue;
+            }
+
+            if (key.startsWith("supply"))
+            {
+
+            }
+
+            if (key.startsWith("tranif1"))
+            {
+                // reading instances
+                //tranif1 nmos4p_0(gnd, gnd, vPlt);
+                nextToken = readInstance(cell);
+            }
         }
         // not reaching this point.
+    }
+
+    private String readInstance(Cell cell)
+    {
+        String input = getRestOfLine();
+        StringTokenizer parse = new StringTokenizer(input, "(; )", false); // extracting only input name
+        List<String> list = new ArrayList<String>(2);
+
+        while (parse.hasMoreTokens())
+        {
+            String value = parse.nextToken();
+            list.add(value) ;
+        }
+        return null;
     }
 
     public void readVerilog(String file)
@@ -80,7 +138,10 @@ public class VerilogReader extends Input
                 if (key == null) break; // end of the file
 
                 if (key.startsWith("/"))
+                {
+                    getRestOfLine();
                     continue; // comments
+                }
                 if (key.equals("module"))
                 {
                     nextToken = readCell();
