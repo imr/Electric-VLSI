@@ -901,7 +901,7 @@ public class ViewChanges
 			Point2D headPt = ai.getHeadLocation();
 			Point2D tailPt = ai.getTailLocation();
 			if (headPt.getX() == tailPt.getX() && headPt.getY() == tailPt.getY()) continue;
-			if ((GenMath.figureAngle(headPt, tailPt)%450) == 0) ai.setFixedAngle(true);
+			if ((GenMath.figureAngle(tailPt, headPt)%450) == 0) ai.setFixedAngle(true);
 		}
 		return newCell;
 	}

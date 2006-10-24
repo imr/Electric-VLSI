@@ -337,44 +337,48 @@ public class PolyMerge
 	/**
 	 * Method to see if an arc fits in this merge with or without end extension.
 	 * @param layer the layer of the arc being examined.
-	 * @param loc1 the head location of the arc.
-	 * @param loc2 the tail location of the arc.
+	 * @param headLoc the head location of the arc.
+	 * @param tailLoc the tail location of the arc.
 	 * @param wid the width of the arc.
 	 * @param headExtend the head extension of the arc (is set false if extension not possible).
 	 * @param tailExtend the tail extension of the arc (is set false if extension not possible).
 	 * @return true if the arc fits in the merge.  May change "noHeadExtend" and "noTailExtend".
 	 * Returns false if the arc cannot fit.
 	 */
-	public boolean arcPolyFits(Layer layer, Point2D loc1, Point2D loc2, double wid,
+	public boolean arcPolyFits(Layer layer, Point2D headLoc, Point2D tailLoc, double wid,
 		MutableBoolean headExtend, MutableBoolean tailExtend)
 	{
 		// try arc with default end extension
 		int ang = 0;
-		if (loc1.getX() != loc2.getX() || loc1.getY() != loc2.getY())
-			ang = GenMath.figureAngle(loc1, loc2);
+		if (headLoc.getX() != tailLoc.getX() || headLoc.getY() != tailLoc.getY())
+			ang = GenMath.figureAngle(tailLoc, headLoc);
 		double endExtensionHead = headExtend.booleanValue() ? wid/2 : 0;
 		double endExtensionTail = tailExtend.booleanValue() ? wid/2 : 0;
-		Poly arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, endExtensionHead, loc2, endExtensionTail, Poly.Type.FILLED);
+		Poly arcPoly = Poly.makeEndPointPoly(headLoc.distance(tailLoc), wid, ang, headLoc, endExtensionHead,
+			tailLoc, endExtensionTail, Poly.Type.FILLED);
 		if (contains(layer, arcPoly)) return true;
 
 		// try removing head extension
 		if (headExtend.booleanValue())
 		{
-			arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, 0, loc2, endExtensionTail, Poly.Type.FILLED);
+			arcPoly = Poly.makeEndPointPoly(headLoc.distance(tailLoc), wid, ang, headLoc, 0,
+				tailLoc, endExtensionTail, Poly.Type.FILLED);
 			if (contains(layer, arcPoly)) { headExtend.setValue(false);   return true; }
 		}
 
 		// try removing tail extension
 		if (tailExtend.booleanValue())
 		{
-			arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, endExtensionHead, loc2, 0, Poly.Type.FILLED);
+			arcPoly = Poly.makeEndPointPoly(headLoc.distance(tailLoc), wid, ang, headLoc, endExtensionHead,
+				tailLoc, 0, Poly.Type.FILLED);
 			if (contains(layer, arcPoly)) { tailExtend.setValue(false);   return true; }
 		}
 
 		// try removing head and tail extension
 		if (headExtend.booleanValue() && tailExtend.booleanValue())
 		{
-			arcPoly = Poly.makeEndPointPoly(loc1.distance(loc2), wid, ang, loc1, 0, loc2, 0, Poly.Type.FILLED);
+			arcPoly = Poly.makeEndPointPoly(headLoc.distance(tailLoc), wid, ang, headLoc, 0,
+				tailLoc, 0, Poly.Type.FILLED);
 			if (contains(layer, arcPoly)) { headExtend.setValue(false);   tailExtend.setValue(false);   return true; }
 		}
 
