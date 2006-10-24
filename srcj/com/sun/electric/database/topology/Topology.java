@@ -46,6 +46,7 @@ public class Topology {
     /** A maximal suffix of temporary arc name. */                  private int maxArcSuffix = -1;
     /** Chronological list of ArcInst in this Cell. */              private final ArrayList<ArcInst> chronArcs = new ArrayList<ArcInst>();
     /** A list of ArcInsts in this Cell. */							private final ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
+    /** True if arc bounds are valid. */                            boolean validArcBounds;
     
 	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
     /** True of RTree matches node/arc sizes */                     private boolean rTreeFresh;
@@ -205,6 +206,7 @@ public class Topology {
     }
     
     public void updateArcs(CellBackup newBackup) {
+        validArcBounds = false;
         arcs.clear();
         maxArcSuffix = -1;
         for (int i = 0; i < newBackup.arcs.size(); i++) {
@@ -241,6 +243,16 @@ public class Topology {
             arcCount++;
         }
         assert arcCount == arcs.size();
+    }
+    
+    void computeArcBounds() {
+        if (!cell.getDatabase().canComputeBounds())
+            return;
+        for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
+            ArcInst ai = arcs.get(arcIndex);
+            ai.computeBounds();
+        }
+        validArcBounds = true;
     }
     
     /**

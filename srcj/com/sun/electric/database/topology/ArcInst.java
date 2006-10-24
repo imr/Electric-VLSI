@@ -96,7 +96,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     /** Owner of this ArcInst. */                       private final Topology topology;
     /** persistent data of this ArcInst. */             ImmutableArcInst d;
 	/** bounds after transformation. */					private final Rectangle2D visBounds = new Rectangle2D.Double();
-    /** True, if visBounds are valid. */                private boolean validVisBounds;
 
 	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
 //	/** tail connection of this arc instance */			private final TailConnection tailEnd;
@@ -489,7 +488,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public void setDInUndo(ImmutableArcInst newD) {
         checkUndoing();
         d = newD;
-        validVisBounds = false;
     }
 
     /**
@@ -598,17 +596,13 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * @return the bounds of this ArcInst.
      */
     public Rectangle2D getBounds() {
-        if (validVisBounds)
+        if (topology.validArcBounds)
             return visBounds;
-        EDatabase database = getDatabase();
-        if (database != null && !database.canComputeBounds())
-            return visBounds;
-        computeBounds();
-        validVisBounds = true;
+        topology.computeArcBounds();
         return visBounds;
     }
     
-    private void computeBounds() {
+    void computeBounds() {
 		Poly poly = makePoly(d.width, Poly.Type.FILLED);
         Rectangle2D newBounds = poly.getBounds2D();
         if (!visBounds.equals(newBounds) && parent != null)
@@ -622,7 +616,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     public void redoGeometric() {
         if (parent != null)
             parent.setGeomDirty();
-        validVisBounds = false;
+        topology.validArcBounds = false;
     }
 
 	/**
@@ -1445,7 +1439,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @exception AssertionError if invariants are not valid
 	 */
 	public void check() {
-        if (validVisBounds) {
+        if (topology.validArcBounds) {
     		Poly poly = makePoly(d.width, Poly.Type.FILLED);
             Rectangle2D bounds = poly.getBounds2D();
             assert bounds.equals(visBounds);

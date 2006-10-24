@@ -1139,6 +1139,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
     private void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
         checkUndoing();
         unfreshRTree();
+        if (boundsModified != null)
+            boundsDirty = BOUNDS_RECOMPUTE;
         for (int i = 0; i < nodes.size(); i++) {
             NodeInst ni = nodes.get(i);
             if (!ni.isCellInstance()) continue;
@@ -1150,7 +1152,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 ni.redoGeometric();
         }
         if (boundsModified != null) {
-            boundsDirty = BOUNDS_RECOMPUTE;
+            assert boundsDirty == BOUNDS_RECOMPUTE;
             ERectangle newBounds = computeBounds();
             assert newBounds == cellBounds;
             boundsDirty = BOUNDS_CORRECT;
