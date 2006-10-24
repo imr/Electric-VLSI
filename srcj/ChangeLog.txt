@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
+
+BUG: (10/23/06, DN) Short arcs in TechPalette.
+FIX: In ArcProto.getShapeOfDummyArc swap end cooridantes, so that arc's angle is 0.
+
 BUG: (10/23/06, GVG) Problems with alternate poly rules in 180nm (bug#1249, reported by David Harris)
 FIX: Poly and active nodes in primitives were not properly resized after major XML changes done.
 

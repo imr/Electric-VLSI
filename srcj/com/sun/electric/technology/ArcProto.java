@@ -919,8 +919,8 @@ public class ArcProto implements Comparable<ArcProto>
     public Poly[] getShapeOfDummyArc(double length) {
         // see how many polygons describe this arc
         Poly [] polys = new Poly[layers.length];
-        Point2D.Double headLocation = new Point2D.Double(-length/2, 0);
-        Point2D.Double tailLocation = new Point2D.Double(length/2, 0);
+        Point2D.Double headLocation = new Point2D.Double(length/2, 0);
+        Point2D.Double tailLocation = new Point2D.Double(-length/2, 0);
         for (int i = 0; i < layers.length; i++) {
             Technology.ArcLayer primLayer = layers[i];
             double width = getDefaultWidth() - primLayer.getOffset();
