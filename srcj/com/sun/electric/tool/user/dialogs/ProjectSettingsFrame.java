@@ -23,28 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.CircuitChangeJobs;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
-import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
-import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
-import com.sun.electric.tool.user.dialogs.projsettings.GDSTab;
-import com.sun.electric.tool.user.dialogs.projsettings.LogicalEffortTab;
-import com.sun.electric.tool.user.dialogs.projsettings.NetlistsTab;
-import com.sun.electric.tool.user.dialogs.projsettings.ParasiticTab;
-import com.sun.electric.tool.user.dialogs.projsettings.ProjSettingsPanel;
-import com.sun.electric.tool.user.dialogs.projsettings.ScaleTab;
-import com.sun.electric.tool.user.dialogs.projsettings.SkillTab;
-import com.sun.electric.tool.user.dialogs.projsettings.TechnologyTab;
-import com.sun.electric.tool.user.dialogs.projsettings.VerilogTab;
-import com.sun.electric.tool.user.help.ManualViewer;
-import com.sun.electric.tool.user.ui.TopLevel;
-
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -56,21 +34,43 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Iterator;
-import java.io.File;
+import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTree;
-import javax.swing.JOptionPane;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
+
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.projsettings.CIFTab;
+import com.sun.electric.tool.user.dialogs.projsettings.DXFTab;
+import com.sun.electric.tool.user.dialogs.projsettings.GDSTab;
+import com.sun.electric.tool.user.dialogs.projsettings.GateLayGenTab;
+import com.sun.electric.tool.user.dialogs.projsettings.LogicalEffortTab;
+import com.sun.electric.tool.user.dialogs.projsettings.NetlistsTab;
+import com.sun.electric.tool.user.dialogs.projsettings.ParasiticTab;
+import com.sun.electric.tool.user.dialogs.projsettings.ProjSettingsPanel;
+import com.sun.electric.tool.user.dialogs.projsettings.ScaleTab;
+import com.sun.electric.tool.user.dialogs.projsettings.SkillTab;
+import com.sun.electric.tool.user.dialogs.projsettings.TechnologyTab;
+import com.sun.electric.tool.user.dialogs.projsettings.VerilogTab;
+import com.sun.electric.tool.user.help.ManualViewer;
+import com.sun.electric.tool.user.projectSettings.ProjSettings;
+import com.sun.electric.tool.user.ui.TopLevel;
 
 /**
  * Class to handle the "ProjectSettings Frame" dialog.
@@ -129,6 +129,10 @@ public class ProjectSettingsFrame extends EDialog
 		DXFTab dxt = new DXFTab(parent, modal);
 		optionPanes.add(dxt);
 		rootNode.add(new DefaultMutableTreeNode(dxt.getName()));
+		
+		GateLayGenTab glgt = new GateLayGenTab(parent, modal);
+		optionPanes.add(glgt);
+		rootNode.add(new DefaultMutableTreeNode(glgt.getName()));
 
 		LogicalEffortTab let = new LogicalEffortTab(parent, modal);
 		optionPanes.add(let);
