@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: (10/25/06, DN) Layer.Function is enum. Layer.Function.Set is implemented and used in
+    Technology.getShapeOfNodes/Arcs methods.
+
 IMP: (10/24/06, DN) Extended API of immutable classes EPoint, ERectangle, ImmutableArcInst.
     They have getters and factory methods in double lambda units and in long grid units.
     Grid units are long in API, but they are restricted to "int" range in current implementation.
