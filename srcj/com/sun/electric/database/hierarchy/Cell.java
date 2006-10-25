@@ -1363,14 +1363,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             cellLowY = Math.min(cellLowY, primitiveBounds.getMinY());
             cellHighY = Math.max(cellHighY, primitiveBounds.getMaxY());
         }
-        cellLowX = DBMath.round(cellLowX);
-        cellLowY = DBMath.round(cellLowY);
-        double width = DBMath.round(cellHighX - cellLowX);
-        double height = DBMath.round(cellHighY - cellLowY);
-        if (cellBounds != null && cellLowX == cellBounds.getMinX() && cellLowY == cellBounds.getMinY() &&
-                width == cellBounds.getWidth() && height == cellBounds.getHeight())
+        long gridMinX = DBMath.lambdaToGrid(cellLowX);
+        long gridMinY = DBMath.lambdaToGrid(cellLowY);
+        long gridMaxX = DBMath.lambdaToGrid(cellHighX);
+        long gridMaxY = DBMath.lambdaToGrid(cellHighY);
+        if (cellBounds != null && gridMinX == cellBounds.getGridMinX() && gridMinY == cellBounds.getGridMinY() &&
+                gridMaxX == cellBounds.getGridMaxX() && gridMaxY == cellBounds.getGridMaxY())
             return cellBounds;
-        return new ERectangle(cellLowX, cellLowY, width, height);
+        return ERectangle.fromGrid(gridMinX, gridMinY, gridMaxX - gridMinX, gridMaxY - gridMinY);
     }
 
 	/**

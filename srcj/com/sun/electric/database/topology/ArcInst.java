@@ -31,7 +31,6 @@ import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -43,7 +42,6 @@ import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -360,7 +358,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         ImmutableArcInst d = ImmutableArcInst.newInstance(arcId, protoType, nameKey, nameDescriptor,
                 tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
-                width, angle, flags);
+                DBMath.lambdaToGrid(width), angle, flags);
         ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
         
 		// attach this arc to the two nodes it connects
@@ -418,7 +416,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         EPoint head = d.headLocation;
         if (dHeadX != 0 || dHeadY != 0)
             head = new EPoint(head.getX() + dHeadX, head.getY() + dHeadY);
-		lowLevelModify(d.withWidth(d.width + dWidth).withLocations(tail, head));
+        long gridWidth = d.getGridWidth();
+        if (dWidth != 0)
+            gridWidth += DBMath.lambdaToGrid(dWidth);
+		lowLevelModify(d.withGridWidth(gridWidth).withLocations(tail, head));
 
 		// track the change
         Constraints.getCurrent().modifyArcInst(this, oldD);
@@ -561,13 +562,13 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Method to return the width of this ArcInst.
 	 * @return the width of this ArcInst.
 	 */
-	public double getWidth() { return d.width; }
+	public double getWidth() { return d.getLambdaWidth(); }
 
 	/**
 	 * Method to return the length of this ArcInst.
 	 * @return the length of this ArcInst.
 	 */
-	public double getLength() { return d.length; }
+	public double getLength() { return d.lambdaLength; }
 
 	/**
 	 * Method to return the rotation angle of this ArcInst.
@@ -603,7 +604,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     }
     
     void computeBounds() {
-		Poly poly = makePoly(d.width, Poly.Type.FILLED);
+		Poly poly = makePoly(d.getLambdaWidth(), Poly.Type.FILLED);
         Rectangle2D newBounds = poly.getBounds2D();
         if (!visBounds.equals(newBounds) && parent != null)
             parent.setDirty();
@@ -879,7 +880,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         lowLevelModify(d.withName(key));
         if (doSmart)
         {
-    		TextDescriptor smartDescriptor = getSmartTextDescriptor(d.angle, d.width, d.nameDescriptor);
+    		TextDescriptor smartDescriptor = getSmartTextDescriptor(d.angle, d.getLambdaWidth(), d.nameDescriptor);
         	if (smartDescriptor != null) setTextDescriptor(ARC_NAME, smartDescriptor);
         }
 
@@ -1440,7 +1441,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void check() {
         if (topology.validArcBounds) {
-    		Poly poly = makePoly(d.width, Poly.Type.FILLED);
+    		Poly poly = makePoly(d.getLambdaWidth(), Poly.Type.FILLED);
             Rectangle2D bounds = poly.getBounds2D();
             assert bounds.equals(visBounds);
         }

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database;
 
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -134,11 +133,11 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	/** The text descriptor of name of ImmutableNodeInst. */		public final TextDescriptor nameDescriptor;
 	/** Orientation of this ImmutableNodeInst. */                   public final Orientation orient;
 	/** anchor coordinate of this ImmutableNodeInst. */				public final EPoint anchor;
-	/** size of this ImmutableNodeInst . */                         public final double width, height;
+	/** size of this ImmutableNodeInst. */                          public final EPoint size;
     /** Tech specifiic bits for this ImmutableNodeInsts. */         public final byte techBits;
 	/** Text descriptor of prototype name. */                       public final TextDescriptor protoDescriptor;
     /** Variables on PortInsts. */                                  final ImmutablePortInst[] ports;
- 
+
 	/**
 	 * The private constructor of ImmutableNodeInst. Use the factory "newInstance" instead.
      * @param nodeId id of this NodeInst in parent.
@@ -155,7 +154,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param vars array of Variables of this ImmutableNodeInst
 	 */
      ImmutableNodeInst(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
-            Orientation orient, EPoint anchor, double width, double height,
+            Orientation orient, EPoint anchor, EPoint size,
             int flags, byte techBits, TextDescriptor protoDescriptor, Variable[] vars, ImmutablePortInst[] ports) {
         super(vars, flags);
         this.nodeId = nodeId;
@@ -164,13 +163,12 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         this.nameDescriptor = nameDescriptor;
         this.orient = orient;
         this.anchor = anchor;
-        this.width = width;
-        this.height = height;
+        this.size = size;
         this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
         this.ports = ports;
 //        check();
-    }
+     }
 
 	/**
 	 * Returns new ImmutableNodeInst object.
@@ -180,8 +178,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst.
      * @param orient Orientation of this ImmutableNodeInst.
 	 * @param anchor the anchor location of this ImmutableNodeInst.
-	 * @param width the width of this ImmutableNodeInst.
-	 * @param height the height of this ImmutableNodeInst.
+	 * @param size the size of this ImmutableNodeInst.
      * @param flags flags of this NodeInst.
 	 * @param techBits bits associated to different technologies
      * @param protoDescriptor TextDescriptor of name of this ImmutableNodeInst
@@ -190,7 +187,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
      * @throws IllegalArgumentException if nodeId or size is bad.
 	 */
     public static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId, Name name, TextDescriptor nameDescriptor,
-            Orientation orient, EPoint anchor, double width, double height,
+            Orientation orient, EPoint anchor, EPoint size,
             int flags, int techBits, TextDescriptor protoDescriptor) {
         if (nodeId < 0) throw new IllegalArgumentException("nodeId");
 		if (protoId == null) throw new NullPointerException("protoId");
@@ -202,25 +199,20 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (orient == null) throw new NullPointerException("orient");
 		if (anchor == null) throw new NullPointerException("anchor");
-        if (!(width >= 0)) throw new IllegalArgumentException("width");
-        if (!(height >= 0)) throw new IllegalArgumentException("height");
+        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size");
         if (protoId instanceof CellId)
-            width = height = 0;
+            size = EPoint.ORIGIN;
         if (protoId == Generic.tech.cellCenterNode) {
             orient = Orientation.IDENT;
             anchor = EPoint.ORIGIN;
-            width = height = 0;
+            size = EPoint.ORIGIN;
         }
-        width = DBMath.round(width);
-        height = DBMath.round(height);
-        if (width == -0.0) width = +0.0;
-        if (height == -0.0) height = +0.0;
         flags &= FLAG_BITS;
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (protoDescriptor != null)
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
 		return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor,
-                orient, anchor, width, height, flags, (byte)techBits, protoDescriptor, Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY);
+                orient, anchor, size, flags, (byte)techBits, protoDescriptor, Variable.NULL_ARRAY, ImmutablePortInst.NULL_ARRAY);
     }
 
 //	/**
@@ -248,7 +240,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
 		return new ImmutableNodeInst(this.nodeId, this.protoId, name, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -261,7 +253,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
         if (this.nameDescriptor == nameDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -275,7 +267,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (orient == null) throw new NullPointerException("orient");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+                orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -289,28 +281,22 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		if (anchor == null) throw new NullPointerException("anchor");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+                this.orient, anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
-	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by width and height.
-	 * @param width node width.
-     * @param height node height.
-	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by width and height.
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by size.
+	 * @param size a point with x as size and y as height.
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by size.
      * @throws IllegalArgumentException if width or height is negative.
 	 */
-	public ImmutableNodeInst withSize(double width, double height) {
-		if (this.width == width && this.height == height) return this;
-        if (!(width >= 0)) throw new IllegalArgumentException("width is " + TextUtils.formatDouble(width));
-        if (!(height >= 0)) throw new IllegalArgumentException("height is " + TextUtils.formatDouble(height));
+	public ImmutableNodeInst withSize(EPoint size) {
+		if (this.size.equals(size)) return this;
+        if (size.getGridX() < 0 || size.getGridY() < 0) throw new IllegalArgumentException("size is " + size);
         if (protoId == Generic.tech.cellCenterNode) return this;
         if (protoId instanceof CellId) return this;
-        width = DBMath.round(width);
-        height = DBMath.round(height);
-        if (width == -0.0) width = +0.0;
-        if (height == -0.0) height = +0.0;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, width, height, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+                this.orient, this.anchor, size, this.flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -322,7 +308,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         flags &= FLAG_BITS;
         if (this.flags == flags) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+                this.orient, this.anchor, this.size, flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
     }
 
 	/**
@@ -347,7 +333,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (this.techBits == techBits) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, (byte)techBits, this.protoDescriptor, getVars(), this.ports);
+                this.orient, this.anchor, this.size, this.flags, (byte)techBits, this.protoDescriptor, getVars(), this.ports);
     }
     
     /**
@@ -360,7 +346,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             protoDescriptor = protoDescriptor.withDisplayWithoutParamAndCode();
         if (this.protoDescriptor == protoDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, protoDescriptor, getVars(), this.ports);
+                this.orient, this.anchor, this.size, this.flags, this.techBits, protoDescriptor, getVars(), this.ports);
 	}
 
 	/**
@@ -375,7 +361,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
     }
     
 	/**
@@ -389,7 +375,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, vars, this.ports);
     }
     
 	/**
@@ -405,7 +391,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             protoId = idMapper.get((CellId)protoId);
         if (getVars() == vars && this.protoId == protoId && this.ports == ports) return this;
 		return new ImmutableNodeInst(this.nodeId, protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars, ports);
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, vars, ports);
     }
     
 	/**
@@ -496,7 +482,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             newPorts[portChronIndex] = portInst;
         }
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars(), newPorts);
+                this.orient, this.anchor, this.size, this.flags, this.techBits, this.protoDescriptor, getVars(), newPorts);
     }
 
 	/**
@@ -552,8 +538,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         writer.writeTextDescriptor(nameDescriptor);
         writer.writeOrientation(orient);
         writer.writePoint(anchor);
-        writer.writeCoord(width);
-        writer.writeCoord(height);
+        writer.writePoint(size);
         writer.writeInt(flags);
         writer.writeByte(techBits);
         writer.writeTextDescriptor(protoDescriptor);
@@ -577,8 +562,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         TextDescriptor nameDescriptor = reader.readTextDescriptor();
         Orientation orient = reader.readOrientation();
         EPoint anchor = reader.readPoint();
-        double width = reader.readCoord();
-        double height = reader.readCoord();
+        EPoint size = reader.readPoint();
         int flags = reader.readInt();
         byte techBits = reader.readByte();
         TextDescriptor protoDescriptor = reader.readTextDescriptor();
@@ -596,7 +580,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         }
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
-        return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor, orient, anchor, width, height,
+        return new ImmutableNodeInst(nodeId, protoId, name, nameDescriptor, orient, anchor, size,
                 flags, techBits, protoDescriptor, vars, ports);
     }
     
@@ -618,8 +602,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         ImmutableNodeInst that = (ImmutableNodeInst)o;
         return this.nodeId == that.nodeId && this.protoId == that.protoId &&
                 this.name == that.name && this.nameDescriptor == that.nameDescriptor &&
-                this.orient == that.orient && this.anchor == that.anchor &&
-                this.width == that.width && this.height == that.height &&
+                this.orient == that.orient && this.anchor == that.anchor && this.size == that.size &&
                 this.flags == that.flags && this.techBits == that.techBits &&
                 this.protoDescriptor == that.protoDescriptor;
     }
@@ -640,19 +623,17 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
             assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
         assert orient != null;
         assert anchor != null;
-        assert width > 0 || width == 0 && 1/width > 0;
-        assert height > 0 || height == 0 && 1/height > 0;
-        assert DBMath.round(width) == width;
-        assert DBMath.round(height) == height;
+        assert size.getGridX() >= 0;
+        assert size.getGridY() >= 0;
         assert (flags & ~FLAG_BITS) == 0;
         assert (techBits & ~(NTECHBITS >> NTECHBITSSH)) == 0;
         if (protoDescriptor != null)
             assert protoDescriptor.isDisplay() && !protoDescriptor.isCode() && !protoDescriptor.isParam();
         if (protoId instanceof CellId) {
-            assert width == 0 && height == 0;
+            assert size == EPoint.ORIGIN;
         }
         if (protoId == Generic.tech.cellCenterNode) {
-            assert orient == Orientation.IDENT && anchor == EPoint.ORIGIN && width == 0 && height == 0;
+            assert orient == Orientation.IDENT && anchor == EPoint.ORIGIN && size == EPoint.ORIGIN;
         }
         for (int i = 0; i < ports.length; i++) {
             ImmutablePortInst portInst = ports[i];
@@ -698,7 +679,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		}
 
 		// if zero size, set the bounds directly
-		if (width == 0 && height == 0)
+		if (size.getGridX() == 0 && size.getGridY() == 0)
 		{
 			dstBounds.setRect(anchor.getX(), anchor.getY(), 0, 0);
             return;
@@ -713,7 +694,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 			double [] angles = real.getArcDegrees();
 			if (angles[0] != 0.0 || angles[1] != 0.0)
 			{
-				Point2D [] pointList = Artwork.fillEllipse(anchor, width, height, angles[0], angles[1]);
+				Point2D [] pointList = Artwork.fillEllipse(anchor, size.getLambdaX(), size.getLambdaY(), angles[0], angles[1]);
 				Poly poly = new Poly(pointList);
 				poly.setStyle(Poly.Type.OPENED);
 				poly.transform(orient.rotateAbout(anchor.getX(), anchor.getY()));
@@ -762,7 +743,9 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 		}
 
 		// normal bounds computation
-        orient.rectangleBounds(-width/2, -height/2, width/2, height/2, anchor.getX(), anchor.getY(), dstBounds);
+        double halfWidth = size.getLambdaX()*0.5;
+        double halfHeight = size.getLambdaY()*0.5;
+        orient.rectangleBounds(-halfWidth, -halfHeight, halfWidth, halfHeight, anchor.getX(), anchor.getY(), dstBounds);
 	}
 
     /**

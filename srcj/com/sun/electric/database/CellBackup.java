@@ -614,7 +614,7 @@ public class CellBackup {
                 if (bounds[3] > hy) hy = bounds[3];
         }
         assert lx <= hx && ly <= hy;
-        return this.primitiveBounds = new ERectangle(lx, ly, hx - lx, hy - ly);
+        return this.primitiveBounds = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
     }
     
     /**
@@ -662,7 +662,7 @@ public class CellBackup {
                     wiped.set(a.headNodeId);
                 }
                 // shrinkage
-                if (a.width != 0) {
+                if (a.getGridWidth() != 0) {
                     short angle = (short)a.angle;
                     if (angle >= 1800)
                         angle -= 1800;

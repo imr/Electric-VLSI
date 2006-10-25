@@ -249,10 +249,10 @@ public class ReadableDump extends Output
 			Rectangle2D bounds = cell.getBounds();
 			Technology tech = cell.getTechnology();
 			double scale = tech.getScale() * 2;
-			int lowX = (int)(bounds.getMinX() * scale);
-			int highX = (int)(bounds.getMaxX() * scale);
-			int lowY = (int)(bounds.getMinY() * scale);
-			int highY = (int)(bounds.getMaxY() * scale);
+			int lowX = (int)Math.round(bounds.getMinX() * scale);
+			int highX = (int)Math.round(bounds.getMaxX() * scale);
+			int lowY = (int)Math.round(bounds.getMinY() * scale);
+			int highY = (int)Math.round(bounds.getMaxY() * scale);
 			printWriter.println("lowx: " + lowX + " highx: " + highX +
 				" lowy: " + lowY + " highy: " + highY);
 

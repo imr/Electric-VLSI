@@ -366,7 +366,8 @@ public class TechToLib
                 if (pnp.isSquare() && (e == 1 || e == 2)) continue;
                 double newXSize = xsc[e] + so.getLowXOffset() + so.getHighXOffset();
                 double newYSize = ysc[e] + so.getLowYOffset() + so.getHighYOffset();
-                oNi.lowLevelModify(oNi.getD().withAnchor(EPoint.snap(pos[e])).withSize(newXSize, newYSize));
+                EPoint newSize = EPoint.fromLambda(newXSize, newYSize);
+                oNi.lowLevelModify(oNi.getD().withAnchor(EPoint.snap(pos[e])).withSize(newSize));
 				Poly [] polys = tech.getShapeOfNode(oNi);
 				int j = polys.length;
 				for(int i=0; i<j; i++)

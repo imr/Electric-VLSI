@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: (10/24/06, DN) Extended API of immutable classes EPoint, ERectangle, ImmutableArcInst.
+    They have getters and factory methods in double lambda units and in long grid units.
+    Grid units are long in API, but they are restricted to "int" range in current implementation.
+    Additional memory cost is 8 bytes per EPoint. Alternative ECoord implementation is possible,
+    which is more memory efficient, but a little slower.
+
 BUG: (10/23/06, DN) Short arcs in TechPalette.
 FIX: In ArcProto.getShapeOfDummyArc swap end cooridantes, so that arc's angle is 0.
 

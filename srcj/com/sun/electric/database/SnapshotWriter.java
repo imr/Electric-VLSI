@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
@@ -34,8 +35,6 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
-
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -327,10 +326,10 @@ public class SnapshotWriter {
     
     /**
      * Writes coordiante.
-     * @param v cooridnate.
+     * @param v gridCooridnate.
      */
-    public void writeCoord(double v) throws IOException {
-        out.writeDouble(v);
+    public void writeCoord(long v) throws IOException {
+        out.writeLong(v);
     }
     
     /**
@@ -338,7 +337,18 @@ public class SnapshotWriter {
      * @param p EPoint.
      */
     public void writePoint(EPoint p) throws IOException {
-        writeCoord(p.getX());
-        writeCoord(p.getY());
+        writeCoord(p.getGridX());
+        writeCoord(p.getGridY());
+    }
+    
+    /**
+     * Writes ERectangle.
+     * @param p ERectangle.
+     */
+    public void writeRectangle(ERectangle r) throws IOException {
+        writeCoord(r.getGridX());
+        writeCoord(r.getGridY());
+        writeCoord(r.getGridWidth());
+        writeCoord(r.getGridHeight());
     }
 }

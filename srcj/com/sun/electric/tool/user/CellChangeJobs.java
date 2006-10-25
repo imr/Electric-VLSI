@@ -672,7 +672,7 @@ public class CellChangeJobs
 		{
 			super("Package Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = curCell;
-            this.bounds = new ERectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+            this.bounds = ERectangle.fromLambda(bounds);
 			this.newCellName = newCellName;
 			startJob();
 		}

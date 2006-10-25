@@ -980,7 +980,7 @@ public class CircuitChangeJobs
 		{
 			super("Delete selected geometry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
-            this.bounds = ERectangle.snap(bounds);
+            this.bounds = ERectangle.fromLambda(bounds);
 			startJob();
 		}
 

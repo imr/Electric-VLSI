@@ -656,7 +656,7 @@ public final class ExportChanges
 		}
 
 		// do the job of reexporting in a boundary
-		ERectangle eBounds = new ERectangle(bounds.getMinX(), bounds.getMinY(), bounds.getWidth(), bounds.getHeight());
+		ERectangle eBounds = ERectangle.fromLambda(bounds);
 		new ReExportHighlighted(cell, eBounds, deep, includeWiredPorts);
 	}
 

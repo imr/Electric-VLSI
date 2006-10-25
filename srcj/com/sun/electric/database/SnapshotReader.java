@@ -25,6 +25,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
@@ -308,11 +309,11 @@ public class SnapshotReader {
     }
     
     /**
-     * Reads double coordiante.
+     * Reads grid coordiante.
      * @return coordinate.
      */
-    public double readCoord() throws IOException {
-        return in.readDouble();
+    public long readCoord() throws IOException {
+        return in.readLong();
     }
     
     /**
@@ -320,8 +321,20 @@ public class SnapshotReader {
      * @return EPoint.
      */
     public EPoint readPoint() throws IOException {
-        double x = readCoord();
-        double y = readCoord();
-        return x != 0 || y != 0 ? new EPoint(x, y) : EPoint.ORIGIN;
+        long x = readCoord();
+        long y = readCoord();
+        return EPoint.fromGrid(x, y);
+    }
+    
+    /**
+     * Reads ERectangle.
+     * @return ERectangle.
+     */
+    public ERectangle readRectangle() throws IOException {
+        long x = readCoord();
+        long y = readCoord();
+        long w = readCoord();
+        long h = readCoord();
+        return ERectangle.fromGrid(x, y, w, h);
     }
 }

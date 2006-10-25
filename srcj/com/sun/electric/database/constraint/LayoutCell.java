@@ -160,8 +160,7 @@ class LayoutCell {
                 portsModified = subCell.exportsModified;
             } else {
                 ImmutableNodeInst d = getOldD(ni);
-                portsModified = d != null &&
-                        (d.width != ni.getXSize() || d.height != ni.getYSize());
+                portsModified = d != null && d.size != ni.getD().size;
             }
             if (portsModified) {
                 modifiedInsts.add(ni);

@@ -840,9 +840,8 @@ public class VectorCache {
         clearFadeImages = true;
     }
     
-    private static int databaseToGrid(double x) {
-        double xg = x*DBMath.GRID;
-		return (int)(xg >= 0 ? xg + 0.5 : xg - 0.5);
+    private static int databaseToGrid(double lambdaValue) {
+        return (int)DBMath.lambdaToGrid(lambdaValue);
     }
 
     private void addBoxesFromBuilder(VectorCell vc, Technology tech, ArrayList<VectorManhattanBuilder> boxBuilders, boolean pureArray) {

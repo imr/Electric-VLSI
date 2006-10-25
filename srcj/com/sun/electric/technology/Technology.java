@@ -2159,7 +2159,7 @@ public class Technology implements Comparable<Technology>
             PrimitiveNode pn = (PrimitiveNode)niD.protoId;
             SizeOffset so = pn.getProtoSizeOffset();
 //			SizeOffset so = ni.getSizeOffset();
-            calcultateInternalData(niD.width, niD.height, niD.anchor.getX(), niD.anchor.getY(),
+            calcultateInternalData(niD.size.getLambdaX(), niD.size.getLambdaY(), niD.anchor.getX(), niD.anchor.getY(),
                     so.getLowXOffset(), so.getHighXOffset(), so.getLowYOffset(), so.getHighYOffset(), specialValues);
 		}
 

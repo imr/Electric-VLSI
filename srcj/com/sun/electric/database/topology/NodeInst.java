@@ -251,8 +251,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
 	{
+        EPoint size = EPoint.fromLambda(width, height);
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(), Name.findName("node@0"), TextDescriptor.getNodeTextDescriptor(),
-                orient, EPoint.ORIGIN, width, height, 0,  0, TextDescriptor.getInstanceTextDescriptor());
+                orient, EPoint.ORIGIN, size, 0,  0, TextDescriptor.getInstanceTextDescriptor());
         return new NodeInst(d, null);
 	}
 
@@ -356,8 +357,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         do {
             nodeId = parentId.newNodeId();
         } while (parent.getNodeById(nodeId) != null);
+        EPoint size = protoType instanceof Cell ? EPoint.ORIGIN : EPoint.fromLambda(width, height);
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), nameKey, nameDescriptor,
-                orient, anchor, width, height, flags, techBits, protoDescriptor);
+                orient, anchor, size, flags, techBits, protoDescriptor);
 
         NodeInst ni = newInstance(parent, d);
         if (ni != null && msg != null && errorLogger != null)
@@ -499,8 +501,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         ImmutableNodeInst d = oldD;
         if (dX != 0 || dY != 0)
             d = d.withAnchor(new EPoint(d.anchor.getX() + dX, d.anchor.getY() + dY));
-        if (protoType instanceof PrimitiveNode)
-            d = d.withSize(d.width + dXSize, d.height + dYSize);
+        if (protoType instanceof PrimitiveNode) 
+            d = d.withSize(EPoint.fromLambda(d.size.getLambdaX() + dXSize, d.size.getLambdaY() + dYSize));
         d = d.withOrient(dOrient.concatenate(d.orient));
         lowLevelModify(d);
         Constraints.getCurrent().modifyNodeInst(this, oldD);
@@ -1097,7 +1099,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Method to return the X size of this NodeInst.
 	 * @return the X size of this NodeInst.
 	 */
-	public double getXSize() { return protoType instanceof Cell ? protoType.getDefWidth() : d.width; }
+	public double getXSize() { return protoType instanceof Cell ? protoType.getDefWidth() : d.size.getLambdaX(); }
 
     /**
 	 * Method similar to getXSize() to return the X size of this NodeInst without the offset.
@@ -1115,7 +1117,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Method to return the Y size of this NodeInst.
 	 * @return the Y size of this NodeInst.
 	 */
-	public double getYSize() { return protoType instanceof Cell ? protoType.getDefHeight() : d.height; }
+	public double getYSize() { return protoType instanceof Cell ? protoType.getDefHeight() : d.size.getLambdaY(); }
 
     /**
 	 * Method similar to getXSize() to return the X size of this NodeInst without the offset.
@@ -2627,7 +2629,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
                     else
                         Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
                 }
-                lowLevelModify(d.withSize(bounds.getWidth(), bounds.getHeight()));
+                lowLevelModify(d.withSize(EPoint.fromLambda(bounds.getWidth(), bounds.getHeight())));
             }
         } else if (key == Artwork.ART_DEGREES) {
 			lowLevelModify(d);
@@ -3113,7 +3115,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			}
 			if (repair)
 			{
-                lowLevelModify(d.withSize(width, height));
+                lowLevelModify(d.withSize(EPoint.fromLambda(width, height)));
 			}
 //			warningCount++;
 		}

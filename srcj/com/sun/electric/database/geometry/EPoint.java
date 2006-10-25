@@ -21,7 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.Point2D;
@@ -30,40 +29,107 @@ import java.io.Serializable;
 /**
  * The <code>EPoint</code> immutable class defines a point representing
  * a location in (x,&nbsp;y) coordinate space. This class extends abstract
- * class Point2D. This calss is used in Electric database.
+ * class Point2D. This class is used in Electric database.
  * Coordiates are snapped to grid according to <code>DBMath.round</code> method.
  */
 final public class EPoint extends Point2D implements Serializable {
 
 	public static final EPoint ORIGIN = new EPoint(0, 0);
 
+    // ---------- Flat implementation
+    
     /**
-     * The X coordinate of this <code>EPoint</code>.
+     * The X coordinate of this <code>EPoint</code> in grid unuts.
      */
-    private final double x;
+    private final int gridX;
 
     /**
-     * The Y coordinate of this <code>EPoint</code>.
+     * The Y coordinate of this <code>EPoint</code> in grid units.
      */
-    private final double y;
+    private final int gridY;
+
+    /**
+     * The X coordinate of this <code>EPoint</code> in lambda unuts.
+     */
+    private final double lambdaX;
+
+    /**
+     * The Y coordinate of this <code>EPoint</code> in lambda units.
+     */
+    private final double lambdaY;
+
+    
+    // ---------- ECoord implementation
+//    /**
+//     * The X coordinate of this <code>EPoint</code>.
+//     */
+//    private final ECoord x;
+//
+//    /**
+//     * The Y coordinate of this <code>EPoint</code>.
+//     */
+//    private final ECoord y;
+
+    // ----------
+    
+    private static int createdEPoints;
+    
+    /**
+     * Constructs and initializes a <code>EPoint</code> with the
+     * specified coordinates in lambda units snapped to the grid.
+     * @param lambdaX the x-coordinate to which to set the newly
+     * constructed <code>EPoint</code> in lambda units.
+     * @param lambdaY the y-coordinate to which to set the newly
+     * constructed <code>EPoint</code> in lambda units.
+     */
+    public EPoint(double lambdaX, double lambdaY) {
+        this(DBMath.lambdaToGrid(lambdaX), DBMath.lambdaToGrid(lambdaY));
+    }
 
     /**
      * Constructs and initializes a <code>EPoint</code> with the
-     * specified coordinates snapped to the grid.
-     * @param x the x-coordinate to which to set the newly
-     * constructed <code>EPoint</code>
-     * @param y the y-coordinate to which to set the newly
-     * constructed <code>EPoint</code>
+     * specified coordinates in grid units.
+     * @param gridX the x-coordinate to which to set the newly
+     * constructed <code>EPoint</code> in grid units.
+     * @param gridX the y-coordinate to which to set the newly
+     * constructed <code>EPoint</code> in grid units.
      */
-    public EPoint(double x, double y) {
-		x = DBMath.round(x);
-		if (x == -0.0) x = +0.0;
-		y = DBMath.round(y);
-		if (y == -0.0) y = +0.0;
-		this.x = x;
-		this.y = y;
+    private EPoint(long gridX, long gridY) {
+        // ---------- Flat implementation
+		this.gridX = (int)gridX;
+		this.gridY = (int)gridY;
+        if (this.gridX != gridX || this.gridY != gridY)
+            throw new IllegalArgumentException("Too large coordinates (" + gridX + "," + gridY + ")");
+        lambdaX = DBMath.gridToLambda(gridX);
+        lambdaY = DBMath.gridToLambda(gridY);
+        // ---------- ECoord implementation
+//        x = ECoord.fromGrid(gridX);
+//        y = ECoord.fromGrid(gridY);
+        // ----------
+        
+        createdEPoints++;
     }
 
+    /**
+     * Returns <code>EPoint</code> with specified grid coordinates.
+     * @param lambdaX the x-coordinate in lambda units.
+     * @param lambdaY the y-coordinate in lambda units.
+	 * @return EPoint with specified grid coordinates.
+     */
+    public static EPoint fromLambda(double lambdaX, double lambdaY) {
+        return lambdaX == 0 && lambdaY == 0 ? ORIGIN : fromGrid(DBMath.lambdaToGrid(lambdaX), DBMath.lambdaToGrid(lambdaY));
+    }
+    
+    /**
+     * Returns <code>EPoint</code> with specified grid coordinates.
+     * @param gridX the x-coordinate in grid units.
+     * @param gridY the y-coordinate in grid units.
+	 * @return EPoint with specified grid coordinates.
+     */
+    public static EPoint fromGrid(long gridX, long gridY) {
+        return gridX == 0 && gridY == 0 ? ORIGIN : new EPoint(gridX, gridY);
+    }
+    
     /**
      * Returns <code>EPoint</code> from specified <code>Point2D</code>
      * snapped to the grid.
@@ -71,25 +137,79 @@ final public class EPoint extends Point2D implements Serializable {
 	 * @return Snapped EPoint
      */
 	public static EPoint snap(Point2D p) {
-		return (p instanceof EPoint) ? (EPoint)p : new EPoint(p.getX(), p.getY());
+		return (p instanceof EPoint) ? (EPoint)p : fromLambda(p.getX(), p.getY());
 	}
 
     /**
      * Returns the X coordinate of this <code>EPoint</code> 
-     * in <code>double</code> precision.
+     * in lambda units in <code>double</code> precision.
      * @return the X coordinate of this <code>EPoint</code>.
      */
+    @Override
     public double getX() {
-		return x;
+        return getLambdaX();
     }
 
     /**
      * Returns the Y coordinate of this <code>EPoint</code> 
-     * in <code>double</code> precision.
+     * in lambda unuts in <code>double</code> precision.
      * @return the Y coordinate of this <code>EPoint</code>.
      */
+    @Override
     public double getY() {
-		return y;
+        return getLambdaY();
+    }
+
+    /**
+     * Returns the X coordinate of this <code>EPoint</code> 
+     * in lambda units in <code>double</code> precision.
+     * @return the X coordinate of this <code>EPoint</code>.
+     */
+    public double getLambdaX() {
+        // ---------- Flat implementation
+        return lambdaX;
+        // ---------- ECoord implementation
+//		return x.lambdaValue();
+        // ----------
+    }
+
+    /**
+     * Returns the Y coordinate of this <code>EPoint</code> 
+     * in lambda units in <code>double</code> precision.
+     * @return the Y coordinate of this <code>EPoint</code>.
+     */
+    public double getLambdaY() {
+        // ---------- Flat implementation
+        return lambdaY;
+        // ---------- ECoord implementation
+//		return y.lambdaValue();
+        // ----------
+    }
+
+    /**
+     * Returns the X coordinate of this <code>EPoint</code> 
+     * in grid units in <code>long</code> precision.
+     * @return the X coordinate of this <code>EPoint</code>.
+     */
+    public long getGridX() {
+        // ---------- Flat implementation
+        return gridX;
+        // ---------- ECoord implementation
+//		return x.gridValue();
+        // ----------
+    }
+
+    /**
+     * Returns the Y coordinate of this <code>EPoint</code> 
+     * in grid units in <code>long</code> precision.
+     * @return the Y coordinate of this <code>EPoint</code>.
+     */
+    public long getGridY() {
+        // ---------- Flat implementation
+        return gridY;
+        // ---------- ECoord implementation
+//		return y.gridValue();
+        // ----------
     }
 
     /**
@@ -99,6 +219,7 @@ final public class EPoint extends Point2D implements Serializable {
      * @param y the y-coordinate to which to set this <code>EPoint</code>
      * @throws UnsupportedOperationException
      */
+    @Override
     public void setLocation(double x, double y) {
 		throw new UnsupportedOperationException();
     }
@@ -108,7 +229,7 @@ final public class EPoint extends Point2D implements Serializable {
      * @return mutable Point2D
      */
 	public Point2D.Double mutable() {
-		return new Point2D.Double(x, y);
+		return new Point2D.Double(getX(), getY());
 	}
 
 	/**
@@ -117,6 +238,16 @@ final public class EPoint extends Point2D implements Serializable {
 	 * @return a string representation of this <code>EPoint</code>.
 	 */
 	public String toString() {
-	    return "EPoint2D["+x+", "+y+"]";
+	    return "EPoint2D["+getX()+", "+getY()+"]";
 	}
+    
+    /**
+     * Prints statistics about EPoint objects.
+     */
+    public static void printStatistics() {
+        System.out.println(createdEPoints + " EPoints created");
+        // ---------- ECoord implementation
+//        ECoord.printStatistics();
+        // ----------
+    }
 }

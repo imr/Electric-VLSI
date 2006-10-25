@@ -2567,7 +2567,7 @@ public class Manipulate
                 for (Poly p : list)
                 {
                     Rectangle2D bound = p.getBounds2D();
-                    ERectangle size = new ERectangle(0, 0, bound.getWidth(), bound.getHeight());
+                    ERectangle size = ERectangle.fromLambda(0, 0, bound.getWidth(), bound.getHeight());
                     set.add(size);
                 }
                 // only if all are identical

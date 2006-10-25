@@ -443,7 +443,7 @@ public class GDS extends Input
                         {
                             Poly poly = viaPolys[i];
                             Rectangle2D bb = poly.getBounds2D();
-                            bb.setRect(ERectangle.snap(bb));
+                            bb.setRect(ERectangle.fromLambda(bb));
                             found = false;
 
                             for (NodeInst viaNi : viasList)
@@ -453,7 +453,7 @@ public class GDS extends Input
                                 // hack to get rid of the resolution issue
                                 Poly p = thisViaList[0];
                                 Rectangle2D b = p.getBounds2D();
-                                b.setRect(ERectangle.snap(b));
+                                b.setRect(ERectangle.fromLambda(b));
                                 if (thisViaList[0].polySame(poly))
                                 {
                                     viaToDelete.add(viaNi);

@@ -539,10 +539,7 @@ public class Snapshot {
                 assert newBounds != null;
                 if (oldBounds != newBounds) {
                     writer.writeInt(i);
-                    writer.writeCoord(newBounds.getX());
-                    writer.writeCoord(newBounds.getY());
-                    writer.writeCoord(newBounds.getWidth());
-                    writer.writeCoord(newBounds.getHeight());
+                    writer.writeRectangle(newBounds);
                 }
             }
             writer.writeInt(Integer.MAX_VALUE);
@@ -618,11 +615,7 @@ public class Snapshot {
             for (;;) {
                 int cellIndex = reader.readInt();
                 if (cellIndex == Integer.MAX_VALUE) break;
-                double x = reader.readCoord();
-                double y = reader.readCoord();
-                double width = reader.readCoord();
-                double height = reader.readCoord();
-                ERectangle newBounds = new ERectangle(x, y, width, height);
+                ERectangle newBounds = reader.readRectangle();
                 cellBoundsArray[cellIndex] = newBounds;
             }
         }

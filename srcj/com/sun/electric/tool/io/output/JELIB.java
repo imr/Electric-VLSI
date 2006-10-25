@@ -360,8 +360,8 @@ public class JELIB extends Output
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getY(), 0));
             if (!(np instanceof CellId))
             {
-                printWriter.print("|" + TextUtils.formatDouble(n.width, 0));
-                printWriter.print("|" + TextUtils.formatDouble(n.height, 0));
+                printWriter.print("|" + TextUtils.formatDouble(n.size.getLambdaX(), 0));
+                printWriter.print("|" + TextUtils.formatDouble(n.size.getLambdaY(), 0));
             }
             printWriter.print('|');
             if (n.orient.isXMirrored()) printWriter.print('X');
@@ -396,7 +396,7 @@ public class JELIB extends Output
             printWriter.print("|" + convertString(a.name.toString()) + "|");
             if (!a.name.isTempname())
                 printWriter.print(describeDescriptor(null, a.nameDescriptor));
-            printWriter.print("|" + TextUtils.formatDouble(a.width, 0));
+            printWriter.print("|" + TextUtils.formatDouble(a.getLambdaWidth(), 0));
             StringBuilder arcBits = new StringBuilder();
 
             if (a.is(ImmutableArcInst.HARD_SELECT)) arcBits.append("A");

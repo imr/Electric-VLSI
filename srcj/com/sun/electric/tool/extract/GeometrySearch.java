@@ -77,7 +77,7 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
     public boolean searchGeometries(Cell cell, EPoint point, boolean visibleObjectsOnly)
     {
         this.found = false;
-        this.geomBBnd = new ERectangle(point.getX(), point.getY(), 0, 0);
+        this.geomBBnd = ERectangle.fromLambda(point.getX(), point.getY(), 0, 0);
         this.foundElement = null;
         this.context = VarContext.globalContext;
         this.visibleObjectsOnly = visibleObjectsOnly;

@@ -98,7 +98,7 @@ public class SnapshotTest {
         CellBackup cellBackup = new CellBackup(c);
         
         CellBackup[] cellBackupsArray = { cellBackup };
-        ERectangle emptyBound = new ERectangle(0, 0, 0, 0);
+        ERectangle emptyBound = ERectangle.fromGrid(0, 0, 0, 0);
         ERectangle[] cellBoundsArray = { emptyBound };
         LibraryBackup[] libBackupsArray = { libBackup };
         Snapshot instance = initialSnapshot;
@@ -135,7 +135,7 @@ public class SnapshotTest {
         ImmutableCell cellA = ImmutableCell.newInstance(cellId0, 0).withTech(Schematics.tech);
         CellBackup cellBackupA = new CellBackup(cellA);
         CellBackup[] cellBackupArray = new CellBackup[] { cellBackupA };
-        ERectangle[] cellBoundsArray = new ERectangle[] { new ERectangle(0, 0, 0, 0) }; 
+        ERectangle[] cellBoundsArray = new ERectangle[] { ERectangle.fromGrid(0, 0, 0, 0) }; 
         LibId libIdA = idManager.newLibId("A");
         
         Snapshot oldSnapshot = initialSnapshot.with(null, cellBackupArray, cellBoundsArray, libBackupArray);

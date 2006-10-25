@@ -41,7 +41,7 @@ public class ERectangleTest {
     ERectangle rect;
     
     @Before public void setUp() throws Exception {
-        rect = new ERectangle(100, 100, 10, 20);
+        rect = ERectangle.fromLambda(100, 100, 10, 20);
     }
 
     public static junit.framework.Test suite() {
