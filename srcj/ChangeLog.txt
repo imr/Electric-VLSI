@@ -13,7 +13,7 @@ IMP: (10/24/06, DN) Extended API of immutable classes EPoint, ERectangle, Immuta
     Additional memory cost is 8 bytes per EPoint. Alternative ECoord implementation is possible,
     which is more memory efficient, but a little slower.
 
-BUG: (10/23/06, DN) Short arcs in TechPalette.
+BUG: (10/23/06, DN) Short arcs in TechPalette (Bug #1250).
 FIX: In ArcProto.getShapeOfDummyArc swap end cooridantes, so that arc's angle is 0.
 
 BUG: (10/23/06, GVG) Problems with alternate poly rules in 180nm (bug#1249, reported by David Harris)

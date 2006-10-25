@@ -3224,8 +3224,7 @@ public class Quick
     private Poly[] getShapeOfGeometric(Geometric geom, Layer layer)
     {
         Poly [] primPolyList = null;
-        List<Layer.Function> drcLayers = new ArrayList<Layer.Function>(1);
-        drcLayers.add(layer.getFunction());
+        Layer.Function.Set drcLayers = new Layer.Function.Set(layer.getFunction());
 
         if (geom instanceof NodeInst)
         {
@@ -3489,7 +3488,7 @@ public class Quick
 		return (!found);
 	}
 
-    private boolean checkThisCellExtensionRule(Geometric geom, Layer layer, Poly poly, List<Layer.Function> drcLayers, Cell cell, Area polyArea,
+    private boolean checkThisCellExtensionRule(Geometric geom, Layer layer, Poly poly, Layer.Function.Set drcLayers, Cell cell, Area polyArea,
                                                Rectangle2D polyBnd, DRCTemplate minOverlapRule, boolean found,
                                                List<Point2D> checkExtraPoints)
     {
@@ -3590,7 +3589,7 @@ public class Quick
     /**
      * Method to check if certain poly rectangle is fully covered by any select regoin
      */
-    private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, List<Layer.Function> drcLayers, Point2D[] points, boolean[] founds)
+    private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, Layer.Function.Set drcLayers, Point2D[] points, boolean[] founds)
     {
         for(Iterator<Geometric> sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
         {

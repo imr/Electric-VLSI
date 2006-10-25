@@ -1183,7 +1183,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd, Layer layerOverride, List<Layer.Function> onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
 	{
 		// get information about the arc
 		ArcProto ap = ai.getProto();
@@ -1449,12 +1449,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public PrimitiveNode.Function getPrimitiveFunction(PrimitiveNode pn, int techBits) { return pn.getFunction(); }
 
-    private static final List<Layer.Function> diffLayers = new ArrayList<Layer.Function>(2);
-
-    static {
-	    diffLayers.add(Layer.Function.DIFFP);
-	    diffLayers.add(Layer.Function.DIFFN);
-    };
+    private static final Layer.Function.Set diffLayers = new Layer.Function.Set(Layer.Function.DIFFP, Layer.Function.DIFFN);
 
     /**
 	 * Method to return the size of a resistor-type NodeInst in this Technology.
@@ -1705,12 +1700,12 @@ public class Technology implements Comparable<Technology>
 	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
-	 * @param onlyTheseLayers a List of layers to draw (if null, draw all layers).
+	 * @param onlyTheseLayers a set of layers to draw (if null, draw all layers).
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical,
-                                  boolean reasonable, List<Layer.Function> onlyTheseLayers)
+                                  boolean reasonable, Layer.Function.Set onlyTheseLayers)
 	{
 		if (ni.isCellInstance()) return null;
 

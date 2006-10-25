@@ -366,7 +366,6 @@ public class GDS extends Input
             }
 
             Technology tech = cell.getTechnology();
-            List<Layer.Function> tmpList = new ArrayList<Layer.Function>();
             Set<NodeInst> toDelete = new HashSet<NodeInst>();
             Set<NodeInst> viaToDelete = new HashSet<NodeInst>();
             List<Geometric> geomList = new ArrayList<Geometric>();
@@ -404,8 +403,7 @@ public class GDS extends Input
                 assert(m1Layer != null);
                 List<NodeInst> list = map.get(m1Layer);
                 assert(list != null);
-                tmpList.clear();
-                tmpList.add(viaLayer.getFunction());
+                Layer.Function.Set thisLayer = new Layer.Function.Set(viaLayer.getFunction());
                 List<NodeInst> viasList = map.get(viaLayer);
 
                 for (NodeInst ni : list)
@@ -434,7 +432,7 @@ public class GDS extends Input
 
                         // Searching for vias to delete
                         assert(viasList != null);
-                        Poly[] viaPolys = tech.getShapeOfNode(newNi, null, null, true, false, tmpList);
+                        Poly[] viaPolys = tech.getShapeOfNode(newNi, null, null, true, false, thisLayer);
                         boolean found = false;
 
                         // Can be more than 1 due to MxN cuts
@@ -448,7 +446,7 @@ public class GDS extends Input
 
                             for (NodeInst viaNi : viasList)
                             {
-                                Poly[] thisViaList = tech.getShapeOfNode(viaNi, null, null, true, false, tmpList);
+                                Poly[] thisViaList = tech.getShapeOfNode(viaNi, null, null, true, false, thisLayer);
                                 assert(thisViaList.length == 1);
                                 // hack to get rid of the resolution issue
                                 Poly p = thisViaList[0];

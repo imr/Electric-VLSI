@@ -552,7 +552,7 @@ public class ERCWellCheck
 			if (thisMerge == null)
 			{
                 thisMerge = GeometryHandler.createGeometryHandler(check.mode,
-                        ercLayers.size());
+                        ercLayersArray.length);
 				check.cellMerges.put(cell, thisMerge);
 			}
 
@@ -707,17 +707,10 @@ public class ERCWellCheck
 	private static final int ERCNSelect = 4;
 	private static final int ERCPSEUDO = 0;
 
-	private static final List<Layer.Function> ercLayers = new ArrayList<Layer.Function>(7);
-
-    static {
-	    ercLayers.add(Layer.Function.WELLP);
-	    ercLayers.add(Layer.Function.WELL);
-	    ercLayers.add(Layer.Function.WELLN);
-		ercLayers.add(Layer.Function.SUBSTRATE);
-	    ercLayers.add(Layer.Function.IMPLANTP);
-	    ercLayers.add(Layer.Function.IMPLANT);
-	    ercLayers.add(Layer.Function.IMPLANTN);
-    };
+    private static final Layer.Function[] ercLayersArray = {
+	    Layer.Function.WELLP, Layer.Function.WELL, Layer.Function.WELLN, Layer.Function.SUBSTRATE,
+	    Layer.Function.IMPLANTP, Layer.Function.IMPLANT, Layer.Function.IMPLANTN};
+    private static final Layer.Function.Set ercLayers = new Layer.Function.Set(ercLayersArray);
 
 	/**
 	 * Determine if layer is relevant for ERC process to

@@ -752,14 +752,13 @@ public class LayoutLib {
     public static Rectangle2D getBounds(Cell cell, Layer.Function function) {
         Rectangle2D bounds = null;
         Technology tech = cell.getTechnology();
-        List<Layer.Function> list = new ArrayList<Layer.Function>(1);
-        list.add(function); // to only query this layer
+        Layer.Function.Set thisFunction = new Layer.Function.Set(function);
 
         // get layer from nodes
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
             AffineTransform trans = ni.rotateOut();
-            Poly [] polys = tech.getShapeOfNode(ni, null, null, false, true, list);
+            Poly [] polys = tech.getShapeOfNode(ni, null, null, false, true, thisFunction);
             if (polys == null) continue;
             for (int i=0; i<polys.length; i++) {
                 if (polys[i] == null) continue;
@@ -776,7 +775,7 @@ public class LayoutLib {
         // get layer from arcs
         for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
             ArcInst ai = it.next();
-            Poly [] polys = tech.getShapeOfArc(ai, null, null, list);
+            Poly [] polys = tech.getShapeOfArc(ai, null, null, thisFunction);
             if (polys == null) continue;
             for (int i=0; i<polys.length; i++) {
                 if (polys[i] == null) continue;
