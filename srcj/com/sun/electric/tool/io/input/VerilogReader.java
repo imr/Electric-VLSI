@@ -6,6 +6,9 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.PrimitiveNode;
 
@@ -14,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import java.util.Iterator;
 import java.awt.geom.Point2D;
 
 /**
@@ -95,7 +99,9 @@ public class VerilogReader extends Input
 
                 name += extra;
                 //Point2D center, double width, double height, Cell parent)
-                NodeInst ni = NodeInst.newInstance(primitive, new Point2D.Double(0, 0), 1, 1, cell);
+                NodeInst ni = NodeInst.newInstance(primitive, new Point2D.Double(0, 0),
+                        primitive.getDefWidth(), primitive.getDefHeight(),
+                        cell, Orientation.fromAngle(0), name, 0);
                 Export e = Export.newInstance(cell, ni.getOnlyPortInst(), name);
                 continue;
             }
@@ -106,10 +112,12 @@ public class VerilogReader extends Input
                 StringTokenizer parse = new StringTokenizer(key, ";", false); // extracting only input name
                 assert(parse.hasMoreTokens());
                 String name = parse.nextToken();
-                if (name.equals("vdd"))
-                    NodeInst.newInstance(Schematics.tech.powerNode, new Point2D.Double(0, 0), 1, 1, cell);
-                else
-                    NodeInst.newInstance(Schematics.tech.groundNode, new Point2D.Double(0, 0), 1, 1, cell);
+                Orientation orient = Orientation.fromAngle(0);
+                PrimitiveNode np = (name.equals("vdd")) ? Schematics.tech.powerNode : Schematics.tech.groundNode;
+
+                NodeInst.newInstance(np, new Point2D.Double(0, 0),
+                        np.getDefWidth(), np.getDefHeight(),
+                        cell, orient, name, 0);
                 continue;
             }
 
@@ -126,13 +134,33 @@ public class VerilogReader extends Input
     private String readInstance(Cell cell)
     {
         String input = getRestOfLine();
-        StringTokenizer parse = new StringTokenizer(input, "(; )", false); // extracting only input name
+        StringTokenizer parse = new StringTokenizer(input, "(;, )", false); // extracting only input name
         List<String> list = new ArrayList<String>(2);
 
         while (parse.hasMoreTokens())
         {
             String value = parse.nextToken();
             list.add(value) ;
+        }
+        Orientation orient = Orientation.fromAngle(900);
+        NodeInst ni = NodeInst.newInstance(Schematics.tech.transistorNode, new Point2D.Double(0, 0),
+                Schematics.tech.transistorNode.getDefWidth(), Schematics.tech.transistorNode.getDefHeight(),
+                                       cell, orient, list.get(0), 0);
+        Schematics.tech.transistorNode.getTechnology().setPrimitiveFunction(ni, PrimitiveNode.Function.TRANMOS);
+        List<PortInst> ports = new ArrayList<PortInst>(3);
+
+        for (Iterator<PortInst> it = ni.getPortInsts(); it.hasNext();)
+        {
+            ports.add(it.next());
+        }
+        assert(ports.size() == 3);
+
+        for (int i = 1; i < list.size(); i++)
+        {
+            String name = list.get(i);
+            NodeInst pin = cell.findNode(name);
+            ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultWidth(),
+                    pin.getOnlyPortInst(), ports.get(i-1));
         }
         return null;
     }
