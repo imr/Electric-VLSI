@@ -7,12 +7,14 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.PrimitiveNode;
 
 import java.net.URL;
 import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import java.awt.geom.Point2D;
 
 /**
  * Created by IntelliJ IDEA.
@@ -44,9 +46,10 @@ public class VerilogReader extends Input
         List<String> inputs = new ArrayList<String>(10);
         String key = readCellHeader(inputs);
         String cellName = inputs.get(0);
+        cellName += "{" + View.SCHEMATIC.getAbbreviation() + "}";
         Cell cell = Cell.makeInstance(Library.getCurrent(), cellName);
         cell.setTechnology(Schematics.tech);
-        cell.setView(View.SCHEMATIC);
+//        cell.setView(View.SCHEMATIC);
 
         String nextToken = null;
 
@@ -67,24 +70,50 @@ public class VerilogReader extends Input
             }
             if (key.equals("input"))
             {
-                String input = getAKeyword();
-                StringTokenizer parse = new StringTokenizer(input, ";", false); // extracting only input name
-                assert(parse.hasMoreTokens());
-                String name = parse.nextToken();
+                String input = getRestOfLine();
+                StringTokenizer parse = new StringTokenizer(input, "; ", false); // extracting only input name
+                List<String> l = new ArrayList<String>(2);
+                while (parse.hasMoreTokens())
+                {
+                    String name = parse.nextToken();
+                    l.add(name); // it could be "input a;" or "input [9:0] a;"
+                }
+                String name;
+                String extra = "";
+                PrimitiveNode primitive = Schematics.tech.wirePinNode;
+                int size = l.size();
+                assert(size == 1 || size == 2);
+                if (l.size() == 1) // "input a;"
+                    name = l.get(0);
+                else
+                {
+                    name = l.get(1);
+                    extra = l.get(0);
+                    primitive = Schematics.tech.busPinNode;
+                }
                 assert (inputs.contains(name));
 
+                name += extra;
                 //Point2D center, double width, double height, Cell parent)
-//                NodeInst ni = NodeInst.newInstance(cell, Schematics.tech.busPinNode, cell);
-//                Export e = Export.newInstance(cell, );
+                NodeInst ni = NodeInst.newInstance(primitive, new Point2D.Double(0, 0), 1, 1, cell);
+                Export e = Export.newInstance(cell, ni.getOnlyPortInst(), name);
                 continue;
             }
 
             if (key.startsWith("supply"))
             {
-
+                key = getAKeyword();
+                StringTokenizer parse = new StringTokenizer(key, ";", false); // extracting only input name
+                assert(parse.hasMoreTokens());
+                String name = parse.nextToken();
+                if (name.equals("vdd"))
+                    NodeInst.newInstance(Schematics.tech.powerNode, new Point2D.Double(0, 0), 1, 1, cell);
+                else
+                    NodeInst.newInstance(Schematics.tech.groundNode, new Point2D.Double(0, 0), 1, 1, cell);
+                continue;
             }
 
-            if (key.startsWith("tranif1"))
+            if (key.startsWith("tranif")) // transistors
             {
                 // reading instances
                 //tranif1 nmos4p_0(gnd, gnd, vPlt);
