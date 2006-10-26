@@ -1139,4 +1139,21 @@ public class IOTool extends Tool
 	 * @param on true if Dais Input creates real geometry.
 	 */
 	public static void setDaisReadPowerAndGround(boolean on) { cacheDaisReadPowerAndGround.setBoolean(on); }
+
+	private static Pref cacheDaisReadConnectivity = Pref.makeBooleanPref("DaisReadConnectivity", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether Dais Input reads connectivity.
+	 * Connectivity is represented by "unrouted" arcs from the Generic technology,
+	 * which appear in a "rats nest" on the circuit.
+	 * The default is "true".
+	 * @return true if Dais Input reads connectivity.
+	 */
+	public static boolean isDaisReadConnectivity() { return cacheDaisReadConnectivity.getBoolean(); }
+	/**
+	 * Method to set whether Dais Input reads connectivity.
+	 * Connectivity is represented by "unrouted" arcs from the Generic technology,
+	 * which appear in a "rats nest" on the circuit.
+	 * @param on true if Dais Input reads connectivity.
+	 */
+	public static void setDaisReadConnectivity(boolean on) { cacheDaisReadConnectivity.setBoolean(on); }
 }
