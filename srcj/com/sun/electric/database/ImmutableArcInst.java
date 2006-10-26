@@ -309,7 +309,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (headNodeId < 0) throw new IllegalArgumentException("headNodeId");
         if (headPortId == null) throw new NullPointerException("headPortId");
         if (headLocation == null) throw new NullPointerException("headLocation");
-        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE) throw new IllegalArgumentException("gridWidth");
+        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE || (gridWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
         angle %= 3600;
         if (angle < 0) angle += 3600;
         flags &= DATABASE_FLAGS;
@@ -380,7 +380,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public ImmutableArcInst withGridWidth(long gridWidth) {
 		if (getGridWidth() == gridWidth) return this;
-        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE) throw new IllegalArgumentException("gridWidth");
+        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE || (gridWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
         if (this.gridWidth == gridWidth) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -851,7 +851,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert headNodeId >= 0;
         assert headPortId != null;
         assert headLocation != null;
-        assert gridWidth >= 0;
+        assert gridWidth >= 0 && (gridWidth&1) == 0;
         assert (flags & ~DATABASE_FLAGS) == 0;
         if (is(TAIL_NEGATED))
             assert tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable();

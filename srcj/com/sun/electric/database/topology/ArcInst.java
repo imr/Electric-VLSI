@@ -358,7 +358,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         ImmutableArcInst d = ImmutableArcInst.newInstance(arcId, protoType, nameKey, nameDescriptor,
                 tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
-                DBMath.lambdaToGrid(width), angle, flags);
+                DBMath.lambdaToSizeGrid(width), angle, flags);
         ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
         
 		// attach this arc to the two nodes it connects
@@ -418,7 +418,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
             head = new EPoint(head.getX() + dHeadX, head.getY() + dHeadY);
         long gridWidth = d.getGridWidth();
         if (dWidth != 0)
-            gridWidth += DBMath.lambdaToGrid(dWidth);
+            gridWidth += DBMath.lambdaToSizeGrid(dWidth);
 		lowLevelModify(d.withGridWidth(gridWidth).withLocations(tail, head));
 
 		// track the change
