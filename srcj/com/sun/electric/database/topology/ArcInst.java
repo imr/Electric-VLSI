@@ -618,6 +618,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (parent != null)
             parent.setGeomDirty();
         topology.validArcBounds = false;
+        topology.unfreshRTree();
     }
 
 	/**

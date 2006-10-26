@@ -124,6 +124,9 @@ public class Topology {
 	void addArc(ArcInst ai)
 	{
         cell.setTopologyModified();
+        validArcBounds = false;
+        unfreshRTree();
+        
 		int arcIndex = searchArc(ai.getName(), ai.getD().arcId);
 		assert arcIndex < 0;
 		arcIndex = - arcIndex - 1;
@@ -177,6 +180,8 @@ public class Topology {
 	{
 		cell.checkChanging();
         cell.setTopologyModified();
+        unfreshRTree();
+        
 		assert ai.isLinked();
 		int arcIndex = ai.getArcIndex();
 		ArcInst removedAi = (ArcInst) arcs.remove(arcIndex);
@@ -317,22 +322,24 @@ public class Topology {
 	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
 	 * @return R-Tree of this Cell.
 	 */
-    private RTNode getRTree() {
+    public RTNode getRTree() {
         if (rTreeFresh) return rTree;
         EDatabase database = cell.getDatabase();
         if (database.canComputeBounds()) {
             rebuildRTree();
             rTreeFresh = true;
-        } else {
-            Snapshot snapshotBefore = database.getFreshSnapshot();
-            rebuildRTree();
-            rTreeFresh = snapshotBefore != null && database.getFreshSnapshot() == snapshotBefore;
+//        } else {
+//            Snapshot snapshotBefore = database.getFreshSnapshot();
+//            rebuildRTree();
+//            rTreeFresh = snapshotBefore != null && database.getFreshSnapshot() == snapshotBefore;
         }
         return rTree;
     }
 
     private void rebuildRTree() {
 //        long startTime = System.currentTimeMillis();
+        if (!validArcBounds)
+            computeArcBounds();
         CellId cellId = cell.getId();
         RTNode root = RTNode.makeTopLevel();
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
