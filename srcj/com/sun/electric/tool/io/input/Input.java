@@ -312,13 +312,29 @@ public class Input
     /**
      * Method to allow getAKeyword() to read next line next time is invocated.
      */
-    protected String getRestOfLine()
+    protected String getRestOfLine() throws IOException
     {
         // +1 to skip the space
         int next = lineBufferPosition+1;
         String rest = (next < lineBuffer.length()) ? lineBuffer.substring(next, lineBuffer.length()) : "";
         lineBufferPosition = lineBuffer.length();
+        readNewLine();
         return rest;
+    }
+
+    private void readNewLine() throws IOException
+    {
+        lineBuffer = lineReader.readLine();
+
+        // manage special comment situations
+        if (lineBuffer != null)
+        {
+            updateProgressDialog(lineBuffer.length());
+            lineBuffer = preprocessLine(lineBuffer);
+        }
+
+        // look for the first text on the line
+        lineBufferPosition = 0;
     }
 
     protected String getAKeyword()
@@ -330,17 +346,7 @@ public class Input
 			if (lineBuffer == null) return null;
 			if (lineBufferPosition >= lineBuffer.length())
 			{
-				lineBuffer = lineReader.readLine();
-
-				// manage special comment situations
-				if (lineBuffer != null)
-				{
-					updateProgressDialog(lineBuffer.length());
-					lineBuffer = preprocessLine(lineBuffer);
-				}
-
-				// look for the first text on the line
-				lineBufferPosition = 0;
+                readNewLine();
 				continue;
 			}
 
