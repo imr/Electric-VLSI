@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+BUG: (10/27/06, DN) Constraint system having problems with angled arcs (Bug #1253).
+FIX: In "LayoutCell.nonOrthogFixAng" search "bestAI" among arcs connected to the same port
+    as other end of "ai".
+
 IMP: (10/25/06, DN) GridWidth of ImmutableArcInst is always even.
 
 BUG: (10/25/06, DN) RTree is not fresh after creating new arc (Bug #1252).

@@ -670,7 +670,8 @@ class LayoutCell {
 		// look for longest other arc on "ono" to determine proper end position
 		double bestDist = Double.MIN_VALUE;
 		ArcInst bestAI = null;
-		for(Iterator<Connection> it = ono.getConnections(); it.hasNext(); )
+		for(Iterator<Connection> it = ai.getPortInst(thatEndIndex).getConnections(); it.hasNext(); )
+//		for(Iterator<Connection> it = ono.getConnections(); it.hasNext(); )
 		{
 			Connection con = it.next();
 			ArcInst oai = con.getArc();
