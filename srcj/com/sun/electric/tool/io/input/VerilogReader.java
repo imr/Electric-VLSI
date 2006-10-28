@@ -69,7 +69,7 @@ public class VerilogReader extends Input
                 if (value.equals(";")) // done with header
                 {
                     String name = inputs.get(0).toString(); // in pos==0 then instance name
-                    NodeInst.newInstance(instance, new Point2D.Double(0, 0), 10, 10, cell,
+                    NodeInst cellInst = NodeInst.newInstance(instance, new Point2D.Double(0, 0), 10, 10, cell,
                             Orientation.IDENT, name, 0);
                     // matching export
                     for (int i = 1; i < inputs.size(); i++)
@@ -83,14 +83,27 @@ public class VerilogReader extends Input
                         }
                         // nets.get(0) is the export name
                         String e = nets.get(0);
-                        Export ex = instance.findExport(e);
+//                        Export ex = instance.findExport(e);
+//                        NodeInst ex = instance.findNode(e);
+                        PortInst ex = null;
+
+                        for (Iterator<PortInst> pIt = cellInst.getPortInsts(); pIt.hasNext(); )
+                        {
+                            PortInst pi = pIt.next();
+                            if (pi.getPortProto().getName().equals(e))
+                            {
+                                // found
+                                ex = pi;
+                                break;
+                            }
+                        }
                         if (ex != null)
                         {
                             NodeInst pin = cell.findNode(e);
                             if (pin != null)
                             {
                                 ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultWidth(),
-                    pin.getOnlyPortInst(), ex.getOriginalPort(), null, null, name);
+                    pin.getOnlyPortInst(), ex, null, null, name);
                             }
 
                         }
@@ -148,7 +161,8 @@ public class VerilogReader extends Input
     private String readCell() throws IOException
     {
         List<String> inputs = new ArrayList<String>(10);
-        String key = readCellHeader(inputs);
+        readCellHeader(inputs);
+
         String cellName = inputs.get(0);
         cellName += "{" + View.SCHEMATIC.getAbbreviation() + "}";
         Cell cell = Cell.makeInstance(Library.getCurrent(), cellName);
@@ -159,6 +173,7 @@ public class VerilogReader extends Input
 
         for (;;)
         {
+            String key = null;
             if (nextToken != null) // get last token read by network section
             {
                 key = nextToken;
@@ -318,10 +333,10 @@ public class VerilogReader extends Input
 //            NodeInst pin = cell.findNode(name);
             // if pin already exists, the name will be composed
 //            String pinName = (pin!=null) ? gateName+"-"+name : name;
-            parse = new StringTokenizer(name, "[", false); // extracting possible bus name
-            String realName = parse.nextToken();
+//            parse = new StringTokenizer(name, "[", false); // extracting possible bus name
+//            String realName = parse.nextToken();
 //            NodeInst pin = cell.findNode(realName);
-            boolean wirePin = (name.equals(realName));
+//            boolean wirePin = (name.equals(realName));
 //            assert(pin != null);
             int pos = (3 + i) % 3; // the first port in g in Electric primitive which is the last (control) port in Verilog
             double posX = p.getX(), posY = p.getY();
@@ -337,8 +352,8 @@ public class VerilogReader extends Input
                     posX += width/2; posY += height/2;
                     break;
             }
-            PrimitiveNode primitive = (wirePin) ? Schematics.tech.wirePinNode : Schematics.tech.busPinNode;
-            primitive = Schematics.tech.wirePinNode;
+//            PrimitiveNode primitive = (wirePin) ? Schematics.tech.wirePinNode : Schematics.tech.busPinNode;
+            PrimitiveNode primitive = Schematics.tech.wirePinNode;
             ni = NodeInst.newInstance(primitive, new Point2D.Double(posX, posY),
                         primitive.getDefWidth(), primitive.getDefHeight(),
                         cell, Orientation.IDENT, null /*pinName*/, 0);
