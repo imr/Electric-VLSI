@@ -43,7 +43,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -782,7 +781,7 @@ public class Verilog extends Topology
 							CellSignal cs = cni.getCellSignal(net);
 							if (cs == null) continue;
 							String sigName = cs.getName();
-							boolean negated = false;
+//							boolean negated = false;
 							if (i != 0 && con.isNegated())
 							{
 								// this input is negated: write the implicit inverter
