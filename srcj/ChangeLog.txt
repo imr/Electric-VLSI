@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+BUG: (10/28/06, DN) RTree is not fresh after undo (Bug #1252).
+FIX: In Cell.update and Cell.updateSubCells add call of "topology.refreshRTree".
+
 BUG: (10/27/06, DN) Constraint system having problems with angled arcs (Bug #1253).
 FIX: In "LayoutCell.nonOrthogFixAng" search "bestAI" among arcs connected to the same port
     as other end of "ai".

@@ -1134,6 +1134,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         ERectangle newBounds = computeBounds();
         assert newBounds == cellBounds;
         boundsDirty = BOUNDS_CORRECT;
+        topology.rebuildRTree();
     }
 
     private void updateSubCells(BitSet exportsModified, BitSet boundsModified) {
@@ -1157,6 +1158,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             assert newBounds == cellBounds;
             boundsDirty = BOUNDS_CORRECT;
         }
+        topology.rebuildRTree();
     }
 
 	/****************************** GRAPHICS ******************************/

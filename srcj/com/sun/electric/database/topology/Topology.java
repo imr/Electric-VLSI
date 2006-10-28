@@ -336,7 +336,7 @@ public class Topology {
         return rTree;
     }
 
-    private void rebuildRTree() {
+    public void rebuildRTree() {
 //        long startTime = System.currentTimeMillis();
         if (!validArcBounds)
             computeArcBounds();
@@ -352,6 +352,7 @@ public class Topology {
         }
         root.checkRTree(0, cellId);
         rTree = root;
+        rTreeFresh = true;
 //        long stopTime = System.currentTimeMillis();
 //        if (Job.getDebug()) System.out.println("Rebuilding R-Tree in " + this + " took " + (stopTime - startTime) + " msec");
     }
