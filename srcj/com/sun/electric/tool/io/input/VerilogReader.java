@@ -82,9 +82,23 @@ public class VerilogReader extends Input
                             nets.add(p.nextToken());
                         }
                         // nets.get(0) is the export name
+                        assert(nets.size() > 1);
+                        String local = nets.get(1);
                         String e = nets.get(0);
-//                        Export ex = instance.findExport(e);
-//                        NodeInst ex = instance.findNode(e);
+                        if (nets.size() == 2) // experiment
+                        {
+                            String bus = nets.get(1);
+                            local = bus;
+                            int start = bus.indexOf("[");
+                            int end = bus.indexOf("]");
+                            if (start < end)
+                            {
+                                bus = bus.substring(start+1, end);
+                                e += "[" + bus + "]";
+                            }
+                            assert(bus != null);
+
+                        }
                         PortInst ex = null;
 
                         for (Iterator<PortInst> pIt = cellInst.getPortInsts(); pIt.hasNext(); )
@@ -99,11 +113,12 @@ public class VerilogReader extends Input
                         }
                         if (ex != null)
                         {
-                            NodeInst pin = cell.findNode(e);
+                            NodeInst pin = cell.findNode(local);
                             if (pin != null)
                             {
-                                ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultWidth(),
-                    pin.getOnlyPortInst(), ex, null, null, name);
+                                ArcInst ai = ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultWidth(),
+                    pin.getOnlyPortInst(), ex, null, null, local);
+                                assert(ai != null);
                             }
 
                         }
@@ -134,7 +149,7 @@ public class VerilogReader extends Input
                 {
                     return null; // done
                 }
-                StringTokenizer p = new StringTokenizer(input, " ", false);
+                StringTokenizer p = new StringTokenizer(net, " ", false);
                 List<String> values = new ArrayList<String>(2);
                 while (p.hasMoreTokens())
                 {
