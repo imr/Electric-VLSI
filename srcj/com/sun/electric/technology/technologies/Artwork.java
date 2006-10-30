@@ -37,7 +37,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 
 import java.awt.geom.Point2D;
-import java.util.List;
 
 /**
  * This is the general purpose sketching technology.
@@ -440,7 +439,7 @@ public class Artwork extends Technology
 			});
 		thickCircleNode.setFunction(PrimitiveNode.Function.ART);
 		thickCircleNode.setEdgeSelect();
-	};
+	}
 
 	/**
 	 * Method to return a list of Polys that describe a given NodeInst.
@@ -475,7 +474,7 @@ public class Artwork extends Technology
 				polys[0] = new Poly(pointList);
 				if (np == circleNode) polys[0].setStyle(Poly.Type.OPENED); else
 					polys[0].setStyle(Poly.Type.OPENEDT3);
-				Technology.NodeLayer primLayer = primLayers[0];
+//				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(layerOverride);
 				return polys;
 			}
@@ -495,7 +494,7 @@ public class Artwork extends Technology
 				polys[0] = new Poly(pointList);
 				if (np == circleNode) polys[0].setStyle(Poly.Type.CIRCLEARC); else
 					polys[0].setStyle(Poly.Type.THICKCIRCLEARC);
-				Technology.NodeLayer primLayer = primLayers[0];
+//				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(layerOverride);
 				return polys;
 			}
@@ -510,7 +509,7 @@ public class Artwork extends Technology
 				Poly [] polys = new Poly[1];
 				polys[0] = new Poly(pointList);
 				polys[0].setStyle(Poly.Type.OPENED);
-				Technology.NodeLayer primLayer = primLayers[0];
+//				Technology.NodeLayer primLayer = primLayers[0];
 				polys[0].setLayer(layerOverride);
 				return polys;
 			}
@@ -783,7 +782,7 @@ public class Artwork extends Technology
 		if (colorVar != null)
 		{
 			Integer color = (Integer)colorVar.getObject();
-			graphics.setColorIndex(color.intValue());
+			graphics.setColorIndex(color); // autoboxing
 		}
 
 		// set the stipple pattern if specified
@@ -807,12 +806,12 @@ public class Artwork extends Technology
 				if (len == 17)
 				{
 					// the last entry specifies the outline texture
-					int outlineIndex = pat[16].intValue();
+					int outlineIndex = pat[16];  // autoboxing
 					graphics.setOutlined(EGraphics.Outline.findOutline(outlineIndex));
 					len = 16;
 				}
 				for(int i=0; i<len; i++)
-					pattern[i] = pat[i].intValue();
+					pattern[i] = pat[i];  // autoboxing
 			} else if (obj instanceof Short[])
 			{
 				Short [] pat = (Short [])obj;
