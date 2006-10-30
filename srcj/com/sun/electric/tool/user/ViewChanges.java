@@ -461,7 +461,12 @@ public class ViewChanges
 				"Warning: Icon " + iconCell.describe(true) + " already exists.  Create a new version?");
 			if (response != JOptionPane.YES_OPTION) return;
 		}
-		double leadLength = User.getIconGenLeadLength();
+        makeIconViewNoGUI(curCell, false);
+    }
+
+    public static void makeIconViewNoGUI(Cell curCell, boolean doItNow)
+    {
+        double leadLength = User.getIconGenLeadLength();
 		double leadSpacing = User.getIconGenLeadSpacing();
 		boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
 		boolean drawBody = User.isIconGenDrawBody();
@@ -478,7 +483,7 @@ public class ViewChanges
 		int clkSide = User.getIconGenClockSide();
 		new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), leadLength, leadSpacing,
 			reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
-			inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide);
+			inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide, doItNow);
 	}
 
 	private static class MakeIconView extends Job
@@ -496,7 +501,8 @@ public class ViewChanges
 		private MakeIconView(Cell cell, double alignment, int exampleLocation,
 			double leadLength, double leadSpacing, boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
 			int exportTech, int exportStyle, int exportLocation,
-			int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide)
+			int inputSide, int outputSide, int bidirSide, int pwrSide, int gndSide, int clkSide,
+            boolean doItNow)
 		{
 			super("Make Icon View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
@@ -517,12 +523,17 @@ public class ViewChanges
 			this.pwrSide = pwrSide;
 			this.gndSide = gndSide;
 			this.clkSide = clkSide;
-			startJob();
+            if (doItNow)
+            {
+               try {doIt();} catch (Exception e) {e.printStackTrace();}
+            }
+            else
+                startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-			Library lib = curCell.getLibrary();
+//			Library lib = curCell.getLibrary();
 
 			Cell iconCell = makeIconForCell(curCell, leadLength, leadSpacing, reverseIconExportOrder,
 				drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
