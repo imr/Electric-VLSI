@@ -11,6 +11,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.ArcProto;
 
 import java.net.URL;
 import java.io.IOException;
@@ -71,6 +72,7 @@ public class VerilogReader extends Input
                     String name = inputs.get(0).toString(); // in pos==0 then instance name
                     NodeInst cellInst = NodeInst.newInstance(instance, new Point2D.Double(0, 0), 10, 10, cell,
                             Orientation.IDENT, name, 0);
+
                     // matching export
                     for (int i = 1; i < inputs.size(); i++)
                     {
@@ -83,9 +85,62 @@ public class VerilogReader extends Input
                         }
                         // nets.get(0) is the export name
                         assert(nets.size() > 1);
-                        String local = nets.get(1);
+                        String local = nets.get(1); // simple case .w(w)
                         String e = nets.get(0);
-                        if (nets.size() == 2) // experiment
+                        boolean isBus = false;
+                        PortInst ex = cellInst.findPortInst(e);
+
+                        if (nets.size() > 2) // checking bus export
+                        {
+                            String rootName = null;
+                            int firstPin = -1, lastPin = -1;
+
+                            for (int j = 1; j < nets.size();  j++)
+                            {
+                                String pin = nets.get(j);
+                                int start = pin.indexOf("[");
+                                if (start == -1)
+                                    break; // no bus case
+                                int end = pin.indexOf("]");
+                                assert(end != -1);
+                                String root = pin.substring(0, start);
+                                if (rootName == null) // first time
+                                    rootName = root;
+                                else if (!rootName.equals(root))
+                                {
+                                    rootName = null;
+                                    break; // no the same root name
+                                }
+                                int pinNum = Integer.parseInt(pin.substring(start+1, end));
+                                if (firstPin == -1)
+                                {
+                                    firstPin = pinNum;
+                                    lastPin = firstPin;
+                                }
+                                else if (pinNum != (lastPin+1))
+                                {
+                                    // only consecutive numbers
+                                    rootName = null;
+                                    break;
+                                }
+                                else
+                                    lastPin = pinNum;
+                            }
+                            if (rootName != null)
+                            {
+//                                e += "[" + firstPin + ":" + lastPin + "]";
+                                isBus = true;
+                                String extra = "[" + firstPin + ":" + lastPin + "]";
+                                ex = cellInst.findPortInst(e+extra);
+                                local = rootName + extra;
+                                if (ex == null) // try the inverse. This is tricky
+                                {
+                                    extra = "[" + lastPin + ":" + firstPin + "]";
+                                    ex = cellInst.findPortInst(e+extra);
+                                }
+                            }
+                        }
+                        else if (nets.size() == 2) // simple bus case
                         {
                             String bus = nets.get(1);
                             local = bus;
@@ -94,30 +149,30 @@ public class VerilogReader extends Input
                             if (start < end)
                             {
                                 bus = bus.substring(start+1, end);
-                                e += "[" + bus + "]";
-                            }
-                            assert(bus != null);
-
-                        }
-                        PortInst ex = null;
-
-                        for (Iterator<PortInst> pIt = cellInst.getPortInsts(); pIt.hasNext(); )
-                        {
-                            PortInst pi = pIt.next();
-                            if (pi.getPortProto().getName().equals(e))
-                            {
-                                // found
-                                ex = pi;
-                                break;
+                                isBus = true;
+                                ex = cellInst.findPortInst(e+"[" + bus + "]");
                             }
                         }
+//                        PortInst ex = cellInst.findPortInst(e);
+//                        for (Iterator<PortInst> pIt = cellInst.getPortInsts(); pIt.hasNext(); )
+//                        {
+//                            PortInst pi = pIt.next();
+//                            if (pi.getPortProto().getName().equals(e))
+//                            {
+//                                 found
+//                                ex = pi;
+//                                break;
+//                            }
+//                        }
                         if (ex != null)
                         {
                             NodeInst pin = cell.findNode(local);
                             if (pin != null)
                             {
-                                ArcInst ai = ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultWidth(),
-                    pin.getOnlyPortInst(), ex, null, null, local);
+                                ArcProto node = (isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
+                                ArcInst ai = ArcInst.makeInstance(node, node.getDefaultWidth(),
+                                        pin.getOnlyPortInst(), ex, null, null, local);
+                                ai.setFixedAngle(false);
                                 assert(ai != null);
                             }
 
@@ -162,6 +217,7 @@ public class VerilogReader extends Input
                 if (values.size() == 2)
                 {
                     pinName += values.get(0);
+                    primitive = Schematics.tech.busPinNode;
                 }
                 NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
                         primitive.getDefWidth(), primitive.getDefHeight(),
