@@ -565,7 +565,7 @@ public class Array extends EDialog
 					cY1 = ni1.getAnchorCenterY();
 					PortInst pi0 = ni0.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
 					PortInst pi1 = ni1.findPortInstFromProto(ai.getTailPortInst().getPortProto());
-					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi0,
+					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), pi0,
 					    pi1, new Point2D.Double(cX0+xOff0, cY0+yOff0), new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
 					if (newAi == null) continue;
 					newAi.copyPropertiesFrom(ai);

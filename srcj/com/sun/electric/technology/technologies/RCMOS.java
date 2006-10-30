@@ -472,7 +472,7 @@ public class RCMOS extends Technology
 		sActive_arc.setCurvable();
 		sActive_arc.setExtended(false);
 		sActive_arc.setFactoryAngleIncrement(0);
-		sActive_arc.setWidthOffset(4);
+		sActive_arc.setLambdaWidthOffset(4);
 
 		/** D-Active arc */
 		ArcProto dActive_arc = ArcProto.newInstance(this, "D-Active", 10, new Technology.ArcLayer []
@@ -485,7 +485,7 @@ public class RCMOS extends Technology
 		dActive_arc.setCurvable();
 		dActive_arc.setExtended(false);
 		dActive_arc.setFactoryAngleIncrement(0);
-		dActive_arc.setWidthOffset(8);
+		dActive_arc.setLambdaWidthOffset(8);
 
 		/** Substrate-Active arc */
 		ArcProto substrateActive_arc = ArcProto.newInstance(this, "Substrate-Active", 2, new Technology.ArcLayer []
@@ -512,7 +512,7 @@ public class RCMOS extends Technology
 		wellActive_arc.setCurvable();
 		wellActive_arc.setExtended(false);
 		wellActive_arc.setFactoryAngleIncrement(0);
-		wellActive_arc.setWidthOffset(4);
+		wellActive_arc.setLambdaWidthOffset(4);
 
 		/** S-Transistor arc */
 		ArcProto sTransistor_arc = ArcProto.newInstance(this, "S-Transistor", 6, new Technology.ArcLayer []
@@ -526,7 +526,7 @@ public class RCMOS extends Technology
 		sTransistor_arc.setCurvable();
 		sTransistor_arc.setExtended(false);
 		sTransistor_arc.setFactoryAngleIncrement(0);
-		sTransistor_arc.setWidthOffset(4);
+		sTransistor_arc.setLambdaWidthOffset(4);
 
 		/** D-Transistor arc */
 		ArcProto dTransistor_arc = ArcProto.newInstance(this, "D-Transistor", 10, new Technology.ArcLayer []
@@ -540,7 +540,7 @@ public class RCMOS extends Technology
 		dTransistor_arc.setCurvable();
 		dTransistor_arc.setExtended(false);
 		dTransistor_arc.setFactoryAngleIncrement(0);
-		dTransistor_arc.setWidthOffset(8);
+		dTransistor_arc.setLambdaWidthOffset(8);
 
 		//******************** NODES ********************
 

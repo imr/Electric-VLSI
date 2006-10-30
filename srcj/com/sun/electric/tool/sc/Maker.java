@@ -1199,7 +1199,7 @@ public class Maker
 		NodeInst viaNode = NodeInst.makeInstance(viaProto, new Point2D.Double(x, y),
 			viaProto.getDefWidth(), viaProto.getDefHeight(), pi.getNodeInst().getParent());
 		if (viaNode == null) return null;
-		double wid = arc.getDefaultWidth();
+		double wid = arc.getDefaultLambdaFullWidth();
 		PortInst newPi = viaNode.getOnlyPortInst();
 		ArcInst zeroArc = ArcInst.makeInstance(arc, wid, pi, newPi);
 		if (zeroArc == null) return null;

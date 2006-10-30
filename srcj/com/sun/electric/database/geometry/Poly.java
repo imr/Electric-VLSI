@@ -119,6 +119,27 @@ public class Poly extends PolyBase {
 	 */
 	public void setDisplayedText(DisplayedText dt) { this.dt = dt; }
 
+    private static final int [] extendFactor = {0,
+    11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,
+    1039,  951,  878,  814,  760,  712,  669,  631,  598,  567,
+    540,  514,  492,  470,  451,  433,  417,  401,  387,  373,
+    361,  349,  338,  327,  317,  308,  299,  290,  282,  275,
+    267,  261,  254,  248,  241,  236,  230,  225,  219,  214,
+    210,  205,  201,  196,  192,  188,  184,  180,  177,  173,
+    170,  166,  163,  160,  157,  154,  151,  148,  146,  143,
+    140,  138,  135,  133,  130,  128,  126,  123,  121,  119,
+    117,  115,  113,  111,  109,  107,  105,  104,  102,  100};
+
+	/**
+	 * Method to return the amount that an arc end should extend, given its width and extension factor.
+	 * @param width the width of the arc.
+	 * @param extend the extension factor (from 0 to 90).
+	 * @return the extension (from 0 to half of the width).
+	 */
+    public static double getExtendFactor(double width, int extend) {
+        return extend <= 0 || extend >= 90 ? width*0.5 : width * 50 / extendFactor[extend];
+    }
+
 	/**
 	 * Method to construct a Poly for an arc with a given length, width, angle, endpoint, and extension.
 	 * @param len the length of the arc.

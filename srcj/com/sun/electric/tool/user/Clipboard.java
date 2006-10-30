@@ -895,7 +895,7 @@ public class Clipboard
 				}
 				headP = new EPoint(headPi.getCenter().getX() + headDX, headPi.getCenter().getY() + headDY);
 				tailP = new EPoint(tailPi.getCenter().getX() + tailDX, tailPi.getCenter().getY() + tailDY);
-				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
+				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(),
 					headPi, tailPi, headP, tailP, name, ai.getAngle());
 				if (newAr == null)
 				{
@@ -1035,9 +1035,7 @@ public class Clipboard
 		}
 
 		// make the widths the same
-		double dw = srcArc.getWidth() - destArc.getWidth();
-		if (dw != 0)
-			destArc.modify(dw, 0, 0, 0, 0);
+		destArc.setGridBaseWidth(srcArc.getGridBaseWidth());
 
 		// remove variables that are not on the pasted object
 		boolean checkAgain = true;
@@ -1118,8 +1116,7 @@ public class Clipboard
             } else
             {
                 ArcInst ai = (ArcInst)geom;
-                double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-                Poly poly = ai.makePoly(wid, Poly.Type.FILLED);
+                Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.FILLED);
                 Rectangle2D bounds = poly.getBounds2D();
 
                 if (llcorner == null) {
@@ -1247,7 +1244,7 @@ public class Clipboard
 				if (geom instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)geom;
-					Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+					Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
 					if (inPlace != null) poly.transform(inPlace);
 					Point2D [] points = poly.getPoints();
 					showPoints(points, oX, oY, cell, highlighter);

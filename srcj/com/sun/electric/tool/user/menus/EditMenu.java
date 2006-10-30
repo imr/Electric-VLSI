@@ -1263,7 +1263,7 @@ public class EditMenu {
             double x = insert.getX();
             double y = insert.getY();
 
-            double width = (ai.getWidth() - ai.getProto().getWidthOffset()) / 2;
+            double width = ai.getLambdaBaseWidth() / 2;
             Highlighter highlighter = wnd.getHighlighter();
             highlighter.clear();
             highlighter.addLine(new Point2D.Double(x-width, y-width), new Point2D.Double(x-width, y+width), ai.getParent());
@@ -1357,7 +1357,7 @@ public class EditMenu {
                 PortInst tailPort = ai.getTailPortInst();
                 Point2D headPt = ai.getHeadLocation();
                 Point2D tailPt = ai.getTailLocation();
-                double width = ai.getWidth();
+                double width = ai.getLambdaFullWidth();
                 String arcName = ai.getName();
                 int angle = (ai.getAngle() + 900) % 3600;
 

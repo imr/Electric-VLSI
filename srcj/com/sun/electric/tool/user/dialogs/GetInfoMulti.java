@@ -326,7 +326,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				{
 					ArcInst ai = (ArcInst)eobj;
 					arcList.add(ai);
-					double trueWidth = ai.getWidth() - ai.getProto().getWidthOffset();
+					double trueWidth = ai.getLambdaBaseWidth();
 					widthLow = Math.min(widthLow, trueWidth);
 					widthHigh = Math.max(widthHigh, trueWidth);
 				}
@@ -859,9 +859,8 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				{
 					if (mcp.width.length() > 0)
 					{
-						double newWidth = TextUtils.atof(mcp.width) + ai.getProto().getWidthOffset();
-						if (newWidth != ai.getWidth())
-							ai.modify(newWidth - ai.getWidth(), 0, 0, 0, 0);
+						double newWidth = TextUtils.atof(mcp.width);
+						ai.setLambdaBaseWidth(newWidth);
 					}
 					if (mcp.rigid == 1) ai.setRigid(true); else
 						if (mcp.rigid == 2) ai.setRigid(false);

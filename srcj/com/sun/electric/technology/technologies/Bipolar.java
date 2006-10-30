@@ -514,7 +514,7 @@ public class Bipolar extends Technology
 			new Technology.ArcLayer(N_lay, 0, Poly.Type.FILLED)
 		});
 		NPPoly_arc.setFunction(ArcProto.Function.POLY1);
-		NPPoly_arc.setWidthOffset(0);
+		NPPoly_arc.setLambdaWidthOffset(0);
 		NPPoly_arc.setFactoryFixedAngle(true);
 		NPPoly_arc.setFactoryExtended(false);
 		NPPoly_arc.setFactoryAngleIncrement(90);
@@ -526,7 +526,7 @@ public class Bipolar extends Technology
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
 		});
 		PPPoly_arc.setFunction(ArcProto.Function.POLY2);
-		PPPoly_arc.setWidthOffset(0);
+		PPPoly_arc.setLambdaWidthOffset(0);
 		PPPoly_arc.setFactoryFixedAngle(true);
 		PPPoly_arc.setFactoryExtended(false);
 		PPPoly_arc.setFactoryAngleIncrement(90);

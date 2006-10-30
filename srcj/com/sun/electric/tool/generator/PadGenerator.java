@@ -896,7 +896,7 @@ public class PadGenerator
                             PortInst pi1 = ni.findPortInstFromProto(corepp);
                             //PortInst pi2 = pad.ni.findPortInstFromProto(pa.pp);
                             ArcProto ap = Generic.tech.unrouted_arc;
-                            ArcInst ai = ArcInst.newInstance(ap, ap.getDefaultWidth(), pi1, pi2);
+                            ArcInst ai = ArcInst.newInstance(ap, ap.getDefaultLambdaFullWidth(), pi1, pi2);
                         }
                     }
                 }

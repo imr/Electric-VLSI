@@ -676,8 +676,8 @@ class LayoutCell {
 			Connection con = it.next();
 			ArcInst oai = con.getArc();
 			if (oai == ai) continue;
-			if (oai.getLength() < bestDist) continue;
-			bestDist = oai.getLength();
+			if (oai.getLambdaLength() < bestDist) continue;
+			bestDist = oai.getLambdaLength();
 			bestAI = oai;
 		}
 
@@ -833,7 +833,7 @@ class LayoutCell {
 		PortInst tpi = ai.getTailPortInst();
 		NodeInst tno = tpi.getNodeInst();   PortProto tpt = tpi.getPortProto();
 
-		ArcProto ap = ai.getProto();   Cell pnt = ai.getParent();   double wid = ai.getWidth();
+		ArcProto ap = ai.getProto();   Cell pnt = ai.getParent();   double wid = ai.getLambdaFullWidth();
 
 		// figure out what nodeinst proto connects these arcs
 		PrimitiveNode np = ap.findOverridablePinProto();

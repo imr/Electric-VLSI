@@ -161,10 +161,10 @@ public class DBMath extends GenMath {
     
 	/**
 	 * Method to convert a database value from grid units to lambda units.
-	 * @param gridValue the value to round in lambda unit.
-	 * @return the return value in grid units is an approximation of x rounded to GRID.
+	 * @param gridValue the value in grid unit.
+	 * @return the return value in lambda units.
 	 */
-    public static double gridToLambda(long gridValue) {
+    public static double gridToLambda(double gridValue) {
         return gridValue/GRID;
     }
     

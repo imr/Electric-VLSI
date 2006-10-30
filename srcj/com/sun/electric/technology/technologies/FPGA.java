@@ -520,7 +520,7 @@ public class FPGA extends Technology
 		int polyNum = 0;
 
 		// draw the arc
-		polys[polyNum] = ai.makePoly(ai.getWidth(), Poly.Type.FILLED);
+		polys[polyNum] = ai.makeLambdaPoly(ai.getGridFullWidth(), Poly.Type.FILLED);
 		if (polys[polyNum] == null) return null;
 		polys[polyNum].setLayer(tech.wireLayer);
 		polyNum++;

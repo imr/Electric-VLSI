@@ -153,15 +153,17 @@ public class LayoutLib {
 	public static void writeLibrary(Library lib) {
 		Output.writeLibrary(lib, FileType.ELIB, false, false, false);
 	}
-	/** Get the width of an ArcInst. The getArcInstWidth method differs
-	 * from ArcInst.getWidth() in that it subtracts off the "width
-	 * offset". Hence, getArcInstWidth returns a width that matches
-	 * that reported by the GUI.
-	 *
- 	 * @param ai the ArcInst whose width is reported
-	 * @return the width of the ArcInst. */
+	/**
+     * Get the width of an ArcInst. The getArcInstWidth method differs
+     * from ArcInst.getLambdaFullWidth() in that it subtracts off the "width
+     * offset". Hence, getArcInstWidth returns a width that matches
+     * that reported by the GUI.
+     * 
+     * @param ai the ArcInst whose width is reported
+     * @return the width of the ArcInst.
+     */
 	public static double getArcInstWidth(ArcInst ai) {
-		double w = ai.getWidth() - ai.getProto().getWidthOffset();
+		double w = ai.getLambdaBaseWidth();
 		return DBMath.round(w);
 	}
 	/** Get the default width of a NodeProto. The getNodeProtoWidth
@@ -461,9 +463,9 @@ public class LayoutLib {
 		// Otherwise adjust the user-specified width or height by the 
 		// SizeOffset.
 		if (width==DEF_SIZE) {
-			width = ap.getDefaultWidth();
+			width = ap.getDefaultLambdaFullWidth();
 		} else {
-			width += ap.getWidthOffset();
+			width += ap.getLambdaWidthOffset();
 		}
 		
 		hX = DBMath.round(hX);

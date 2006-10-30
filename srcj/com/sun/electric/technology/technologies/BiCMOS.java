@@ -722,7 +722,7 @@ public class BiCMOS extends Technology
 		});
 		Pdiff_arc.setFunction(ArcProto.Function.DIFFP);
 		Pdiff_arc.setWipable();
-		Pdiff_arc.setWidthOffset(0);
+		Pdiff_arc.setLambdaWidthOffset(0);
 		Pdiff_arc.setFactoryFixedAngle(true);
 		Pdiff_arc.setFactoryAngleIncrement(90);
 
@@ -734,7 +734,7 @@ public class BiCMOS extends Technology
 		});
 		Ndiff_arc.setFunction(ArcProto.Function.DIFFN);
 		Ndiff_arc.setWipable();
-		Ndiff_arc.setWidthOffset(0);
+		Ndiff_arc.setLambdaWidthOffset(0);
 		Ndiff_arc.setFactoryFixedAngle(true);
 		Ndiff_arc.setFactoryAngleIncrement(90);
 

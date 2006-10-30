@@ -217,7 +217,7 @@ public class RouteElementPort extends RouteElement {
                 Connection conn = it.next();
                 ArcInst arc = conn.getArc();
                 if (arc.getProto() == ap) {
-                    double newWidth = arc.getWidth() - arc.getProto().getWidthOffset();
+                    double newWidth = arc.getLambdaBaseWidth();
                     if (newWidth > width) width = newWidth;
                 }
             }

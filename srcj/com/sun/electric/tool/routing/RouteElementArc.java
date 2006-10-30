@@ -104,16 +104,16 @@ public class RouteElementArc extends RouteElement {
         	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth, headExtend, tailExtend);
 
         	// try reducing to default width if it doesn't fit
-        	if (!good && arcWidth > ap.getDefaultWidth())
+        	if (!good && arcWidth > ap.getDefaultLambdaFullWidth())
         	{
-        		arcWidth = ap.getDefaultWidth();
+        		arcWidth = ap.getDefaultLambdaFullWidth();
             	good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth, headExtend, tailExtend);
         	}
 
         	// make it zero-width if it doesn't fit
         	if (!good)
         	{
-        		arcWidth = ap.getWidthOffset();
+        		arcWidth = ap.getLambdaWidthOffset();
         	}
     	}
         RouteElementArc e = new RouteElementArc(RouteElementAction.newArc, cell);
@@ -150,7 +150,7 @@ public class RouteElementArc extends RouteElement {
     public static RouteElementArc deleteArc(ArcInst arcInstToDelete) {
         RouteElementArc e = new RouteElementArc(RouteElementAction.deleteArc, arcInstToDelete.getParent());
         e.arcProto = arcInstToDelete.getProto();
-        e.arcWidth = arcInstToDelete.getWidth();
+        e.arcWidth = arcInstToDelete.getLambdaFullWidth();
         e.headRE = RouteElementPort.existingPortInst(arcInstToDelete.getHeadPortInst(), arcInstToDelete.getHeadLocation());
         e.tailRE = RouteElementPort.existingPortInst(arcInstToDelete.getTailPortInst(), arcInstToDelete.getTailLocation());
         e.arcName = arcInstToDelete.getName();
@@ -187,7 +187,7 @@ public class RouteElementArc extends RouteElement {
      * This returns the arc width taking into account any offset
      */
     public double getOffsetArcWidth() {
-        return arcWidth - arcProto.getWidthOffset();
+        return arcWidth - arcProto.getLambdaWidthOffset();
     }
 
     /**
@@ -205,7 +205,7 @@ public class RouteElementArc extends RouteElement {
      */
     public void setOffsetArcWidth(double width) {
         if (getAction() == RouteElementAction.newArc)
-            arcWidth = width + arcProto.getWidthOffset();
+            arcWidth = width + arcProto.getLambdaWidthOffset();
     }
 
     /**
@@ -310,7 +310,7 @@ public class RouteElementArc extends RouteElement {
 					{
 						// grow the node to allow expandable port to fit
 						headNi.resize(autoGrowth.getWidth(), autoGrowth.getHeight());
-//						headNi.modifyInstance(0, 0, autoGrowth.getWidth(), autoGrowth.getHeight(), 0);
+//						headNi.modifyInstance(0, 0, autoGrowth.getLambdaFullWidth(), autoGrowth.getHeight(), 0);
 					}
 				}
 			}
@@ -337,7 +337,7 @@ public class RouteElementArc extends RouteElement {
 					{
 						// grow the node to allow expandable port to fit
 						tailNi.resize(autoGrowth.getWidth(), autoGrowth.getHeight());
-//						tailNi.modifyInstance(0, 0, autoGrowth.getWidth(), autoGrowth.getHeight(), 0);
+//						tailNi.modifyInstance(0, 0, autoGrowth.getLambdaFullWidth(), autoGrowth.getHeight(), 0);
 					}
 				}
 			}
@@ -356,7 +356,7 @@ public class RouteElementArc extends RouteElement {
             double thisWidth = arcWidth;
             // The arc is zero length so better if arc width is min default width to avoid DRC errors
             if (headPoint.equals(tailPoint))
-                thisWidth = arcProto.getDefaultWidth();
+                thisWidth = arcProto.getDefaultLambdaFullWidth();
             ArcInst newAi = ArcInst.makeInstance(arcProto, thisWidth, headPi, tailPi, headPoint, tailPoint, arcName);
             if (newAi == null) return null;
 

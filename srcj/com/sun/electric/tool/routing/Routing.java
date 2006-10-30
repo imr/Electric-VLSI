@@ -405,7 +405,7 @@ public class Routing extends Listener
 			}
 
 			// now create the new unrouted wires
-			double wid = Generic.tech.unrouted_arc.getDefaultWidth();
+			double wid = Generic.tech.unrouted_arc.getDefaultLambdaFullWidth();
 			int count = netEnds.size();
 			int [] covered = new int[count];
 			Point2D [] points = new Point2D[count];
@@ -913,7 +913,7 @@ public class Routing extends Listener
 		Poly tPoly = tPi.getPoly();
 		Point2D fPt = new Point2D.Double(fPoly.getCenterX(), fPoly.getCenterY());
 		Point2D tPt = new Point2D.Double(tPoly.getCenterX(), tPoly.getCenterY());
-		double wid = Generic.tech.unrouted_arc.getDefaultWidth();
+		double wid = Generic.tech.unrouted_arc.getDefaultLambdaFullWidth();
 		ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, wid, fPi, tPi, fPt, tPt, null);
 		if (ai == null) return -1;
 		return 1;

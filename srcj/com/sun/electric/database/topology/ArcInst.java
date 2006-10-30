@@ -347,7 +347,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
 		}
 		if (width < 0)
-			width = protoType.getWidth();
+			width = protoType.getDefaultLambdaFullWidth();
        
         CellId parentId = (CellId)parent.getId();
         // search for spare arcId
@@ -398,13 +398,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 
 	/**
 	 * Method to change the width and end locations of this ArcInst.
-	 * @param dWidth the change to the ArcInst width.
 	 * @param dHeadX the change to the X coordinate of the head of this ArcInst.
 	 * @param dHeadY the change to the Y coordinate of the head of this ArcInst.
 	 * @param dTailX the change to the X coordinate of the tail of this ArcInst.
 	 * @param dTailY the change to the Y coordinate of the tail of this ArcInst.
 	 */
-	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
+	public void modify(double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
 		// save old arc state
         ImmutableArcInst oldD = d;
@@ -416,15 +415,53 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         EPoint head = d.headLocation;
         if (dHeadX != 0 || dHeadY != 0)
             head = new EPoint(head.getX() + dHeadX, head.getY() + dHeadY);
-        long gridWidth = d.getGridWidth();
-        if (dWidth != 0)
-            gridWidth += DBMath.lambdaToSizeGrid(dWidth);
-		lowLevelModify(d.withGridWidth(gridWidth).withLocations(tail, head));
+		lowLevelModify(d.withLocations(tail, head));
 
 		// track the change
         Constraints.getCurrent().modifyArcInst(this, oldD);
 	}
 
+	/**
+	 * Method to change the width this ArcInst.
+	 * @param lambdaFullWidth new full with of the ArcInst in lambda units.
+	 */
+    public void setLambdaFullWidth(double lambdaFullWidth) {
+        setGridFullWidth(DBMath.lambdaToSizeGrid(lambdaFullWidth));
+    }
+    
+	/**
+	 * Method to change the width this ArcInst.
+	 * @param lambdaFullWidth new full with of the ArcInst in lambda units.
+	 */
+    public void setLambdaBaseWidth(double lambdaBaseWidth) {
+        setGridBaseWidth(DBMath.lambdaToSizeGrid(lambdaBaseWidth));
+    }
+    
+	/**
+	 * Method to change the width this ArcInst.
+	 * @param gridFullWidth new full with of the ArcInst in grid units.
+	 */
+    public void setGridFullWidth(long gridFullWidth) {
+        if (gridFullWidth == getGridFullWidth()) return;
+        
+        // save old arc state
+        ImmutableArcInst oldD = d;
+        
+        // change the arc
+        lowLevelModify(d.withGridFullWidth(gridFullWidth));
+        
+        // track the change
+        Constraints.getCurrent().modifyArcInst(this, oldD);
+    }
+
+	/**
+	 * Method to change the width this ArcInst.
+	 * @param gridBaseWidth new base with of the ArcInst in grid units.
+	 */
+    public void setGridBaseWidth(long gridBaseWidth) {
+        setGridFullWidth(gridBaseWidth + getProto().getGridWidthOffset());
+    }
+    
 	/**
 	 * Method to replace this ArcInst with one of another type.
 	 * @param ap the new type of arc.
@@ -441,7 +478,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		}
 
 		// compute the new width
-		double newwid = getWidth() - getProto().getWidthOffset() + ap.getWidthOffset();
+		double newwid = getLambdaBaseWidth() + ap.getLambdaWidthOffset();
 
 		// first create the new nodeinst in place
 		ArcInst newar = ArcInst.newInstance(ap, newwid, headPortInst, tailPortInst, d.headLocation, d.tailLocation, null, 0);
@@ -559,22 +596,47 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	/****************************** GRAPHICS ******************************/
 
 	/**
-	 * Method to return the width of this ArcInst.
-	 * @return the width of this ArcInst.
+	 * Method to return the full width of this ArcInst in lambda units.
+	 * @return the full width of this ArcInst in lambda units.
 	 */
-	public double getWidth() { return d.getLambdaWidth(); }
+	public double getLambdaFullWidth() { return d.getLambdaFullWidth(); }
 
 	/**
-	 * Method to return the length of this ArcInst.
-	 * @return the length of this ArcInst.
+	 * Method to return the full width of this ArcInst in grid units.
+	 * @return the full width of this ArcInst in grid units.
 	 */
-	public double getLength() { return d.lambdaLength; }
+	public long getGridFullWidth() { return d.getGridFullWidth(); }
+
+	/**
+	 * Method to return the base width of this ArcInst in lambda units.
+	 * @return the base width of this ArcInst in lambda units.
+	 */
+	public double getLambdaBaseWidth() { return d.getLambdaBaseWidth(); }
+
+	/**
+	 * Method to return the base width of this ArcInst in grid units.
+	 * @return the base width of this ArcInst in grid units.
+	 */
+	public long getGridBaseWidth() { return d.getGridBaseWidth(); }
+
+	/**
+	 * Method to return the length of this ArcInst in lambda units.
+	 * @return the length of this ArcInst in lambda units.
+	 */
+	public double getLambdaLength() { return d.getLambdaLength(); }
+
+	/**
+	 * Method to return the length of this ArcInst in grid units.
+	 * @return the length of this ArcInst in grid units.
+	 */
+	public double getGridLength() { return d.getGridLength(); }
 
 	/**
 	 * Method to return the rotation angle of this ArcInst.
+     * This is an angle of direction from tailLocation to headLocation.
 	 * @return the rotation angle of this ArcInst (in tenth-degrees).
 	 */
-	public int getAngle() { return d.angle; }
+	public int getAngle() { return d.getAngle(); }
 
 	/**
 	 * Method to set the rotation angle of this ArcInst.
@@ -603,12 +665,18 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         return visBounds;
     }
     
-    void computeBounds() {
-		Poly poly = makePoly(d.getLambdaWidth(), Poly.Type.FILLED);
+    void computeBounds(CellBackup.Memoization m, double[] result) {
+        d.computeGridBounds(m, result);
+        double x = DBMath.gridToLambda(result[0]);
+        double y = DBMath.gridToLambda(result[1]);
+        double w = DBMath.gridToLambda(result[2] - result[0]);
+        double h = DBMath.gridToLambda(result[3] - result[1]);
+		Poly poly = makeLambdaPoly(d.getGridFullWidth(), Poly.Type.FILLED);
         Rectangle2D newBounds = poly.getBounds2D();
-        if (!visBounds.equals(newBounds) && parent != null)
+        if (x != visBounds.getX() || y != visBounds.getY() || w != visBounds.getWidth() || h != visBounds.getHeight()) {
             parent.setDirty();
-		visBounds.setRect(newBounds);
+            visBounds.setRect(x, y, w, h);
+        }
     }
 
     /**
@@ -622,17 +690,30 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     }
 
 	/**
-	 * Method to create a Poly object that describes an ArcInst.
-	 * The ArcInst is described by its length, width and style.
-	 * @param width the width of the ArcInst.
+	 * Method to create a Poly object that describes an ArcInst in lambda units.
+	 * The ArcInst is described by its width and style.
+	 * @param gridWidth the width of the Poly in grid units.
 	 * @param style the style of the ArcInst.
-	 * @return a Poly that describes the ArcInst.
+	 * @return a Poly that describes the ArcInst in lambda units.
 	 */
-	public Poly makePoly(double width, Poly.Type style)
-	{
+    public Poly makeLambdaPoly(long gridWidth, Poly.Type style) {
+        Poly poly = makeGridPoly(gridWidth, style);
+        for (Point2D p: poly.getPoints())
+            p.setLocation(DBMath.gridToLambda(p.getX()), DBMath.gridToLambda(p.getY()));
+        return poly;
+    }
+	
+	/**
+	 * Method to create a Poly object that describes an ArcInst in grid units.
+	 * The ArcInst is described by its width and style.
+	 * @param gridWidth the width of the Poly in grid units.
+	 * @param style the style of the ArcInst.
+	 * @return a Poly that describes the ArcInst in grid units.
+	 */
+    public Poly makeGridPoly(long gridWidth, Poly.Type style) {
         CellBackup.Memoization m = parent != null ? parent.getMemoization() : null;
-		return getD().makePoly(m, width, style);
-	}
+        return getD().makeGridPoly(m, gridWidth, style);
+    }
 	
 //	/**
 //	 * Method to return a list of Polys that describes all text on this ArcInst.
@@ -822,7 +903,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		Poly poly = pi.getPoly();
 		if (reduceForArc)
 		{
-			double wid = getWidth() - getProto().getWidthOffset();
+			double wid = getLambdaBaseWidth();
 			poly.reducePortPoly(pi, wid, getAngle());
 		}
         return stillInPoly(pt, poly);
@@ -881,7 +962,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         lowLevelModify(d.withName(key));
         if (doSmart)
         {
-    		TextDescriptor smartDescriptor = getSmartTextDescriptor(d.angle, d.getLambdaWidth(), d.nameDescriptor);
+    		TextDescriptor smartDescriptor = getSmartTextDescriptor(getAngle(), d.getLambdaFullWidth(), d.nameDescriptor);
         	if (smartDescriptor != null) setTextDescriptor(ARC_NAME, smartDescriptor);
         }
 
@@ -1365,7 +1446,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
                 String msg = "Prototype of arc " + getName() + " is unused";
                 if (repair) {
                     // Can't put this arc into error logger because it will be deleted.
-                    Poly poly = makePoly(getWidth() - ap.getWidthOffset(), Poly.Type.CLOSED);
+                    Poly poly = makeLambdaPoly(getGridBaseWidth(), Poly.Type.CLOSED);
                     errorLogger.logError(msg, poly, parent, 1);
                 } else {
                     errorLogger.logError(msg, this, parent, null, 1);
@@ -1389,7 +1470,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			{
                 if (repair) {
                     errorLogger.logError(msg, Collections.singletonList((Geometric)headPortInst.getNodeInst()), null, null, null,
-                            Collections.singletonList((PolyBase)makePoly(getWidth() - ap.getWidthOffset(), Poly.Type.CLOSED)), parent, 1);
+                            Collections.singletonList((PolyBase)makeLambdaPoly(getGridBaseWidth(), Poly.Type.CLOSED)), parent, 1);
                 } else {
                     List<Geometric> geomList = new ArrayList<Geometric>();
                     geomList.add(this);
@@ -1417,7 +1498,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			{
                 if (repair) {
                     errorLogger.logError(msg, Collections.singletonList((Geometric)tailPortInst.getNodeInst()), null, null, null,
-                            Collections.singletonList((PolyBase)makePoly(getWidth() - ap.getWidthOffset(), Poly.Type.CLOSED)), parent, 1);
+                            Collections.singletonList((PolyBase)makeLambdaPoly(getGridBaseWidth(), Poly.Type.CLOSED)), parent, 1);
                 } else {
                     List<Geometric> geomList = new ArrayList<Geometric>();
                     geomList.add(this);
@@ -1442,9 +1523,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public void check() {
         if (topology.validArcBounds) {
-    		Poly poly = makePoly(d.getLambdaWidth(), Poly.Type.FILLED);
+    		Poly poly = makeGridPoly(d.getGridFullWidth(), Poly.Type.FILLED);
             Rectangle2D bounds = poly.getBounds2D();
-            assert bounds.equals(visBounds);
+            assert visBounds.getX() == DBMath.gridToLambda(bounds.getX());
+            assert visBounds.getY() == DBMath.gridToLambda(bounds.getY());
+            assert visBounds.getWidth() == DBMath.gridToLambda(bounds.getWidth());
+            assert visBounds.getHeight() == DBMath.gridToLambda(bounds.getHeight());
         }
     }
     
@@ -1505,7 +1589,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         checkChanging();
         if (fromAi == null) return;
         ImmutableArcInst oldD = d;
-        lowLevelModify(d.withFlags(fromAi.d.flags).withAngle(fromAi.d.angle));
+        lowLevelModify(d.withFlags(fromAi.d.flags).withAngle(fromAi.getAngle()));
 		if (parent != null) Constraints.getCurrent().modifyArcInst(this, oldD);
     }
 

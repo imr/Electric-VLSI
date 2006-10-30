@@ -250,9 +250,9 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
                 ArcInst ai = (ArcInst)o;
 //                if (currentDepth > 0)
 				if (TRIMMEDDISPLAY)
-					poly = new Poly(new Point2D.Double[]{ai.getHeadLocation().mutable(), ai.getTailLocation().mutable()});
+					poly = new Poly(new Point2D.Double[]{ai.getHeadLocation().lambdaMutable(), ai.getTailLocation().lambdaMutable()});
                 else
-                    poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+                    poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
             } else if (o instanceof PortInst) {
                 PortInst pi = (PortInst)o;
                 NodeInst ni = pi.getNodeInst();

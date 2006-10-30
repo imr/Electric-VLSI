@@ -93,7 +93,7 @@ public class SimpleWirer extends InteractiveRouter {
             if (stayInside != null && useArc != null)
             {
             	// make sure the bend stays inside of the merge area
-            	double pinSize = useArc.getDefaultWidth() - useArc.getWidthOffset();
+            	double pinSize = useArc.getDefaultLambdaBaseWidth();
             	Layer pinLayer = useArc.getLayers()[0].getLayer();
             	Rectangle2D pin1Rect = new Rectangle2D.Double(pin1.getX()-pinSize/2, pin1.getY()-pinSize/2, pinSize, pinSize);
             	Rectangle2D pin2Rect = new Rectangle2D.Double(pin2.getX()-pinSize/2, pin2.getY()-pinSize/2, pinSize, pinSize);

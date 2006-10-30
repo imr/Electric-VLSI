@@ -1272,7 +1272,7 @@ public class MoCMOS extends Technology
 		activeArcs[P_TYPE].setFactoryFixedAngle(true);
 		activeArcs[P_TYPE].setWipable();
 		activeArcs[P_TYPE].setFactoryAngleIncrement(90);
-		activeArcs[P_TYPE].setWidthOffset(12.0);
+		activeArcs[P_TYPE].setLambdaWidthOffset(12.0);
 
 		/** N-active arc */
 		activeArcs[N_TYPE] = ArcProto.newInstance(this, "N-Active", 15.0, new Technology.ArcLayer []
@@ -1285,7 +1285,7 @@ public class MoCMOS extends Technology
 		activeArcs[N_TYPE].setFactoryFixedAngle(true);
 		activeArcs[N_TYPE].setWipable();
 		activeArcs[N_TYPE].setFactoryAngleIncrement(90);
-		activeArcs[N_TYPE].setWidthOffset(12.0);
+		activeArcs[N_TYPE].setLambdaWidthOffset(12.0);
 
 		/** General active arc */
 		ArcProto active_arc = ArcProto.newInstance(this, "Active", 3.0, new Technology.ArcLayer []
@@ -2418,7 +2418,7 @@ public class MoCMOS extends Technology
         }
 
         // Metal 6 arc width 4. Original value
-//        metalArcs[5].setDefaultWidth(4);
+//        metalArcs[5].setDefaultLambdaFullWidth(4);
     }
 
 	/******************** SUPPORT METHODS ********************/
@@ -2945,7 +2945,7 @@ public class MoCMOS extends Technology
         // poly arcs
         double width = DBMath.round(polyWid.getValue(0));
         double half = DBMath.round(width/2);
-        polyArcs[0].setDefaultWidth(width);
+        polyArcs[0].setDefaultLambdaFullWidth(width);
         polyPinNodes[0].setDefSize(width, width);
         PrimitivePort polyPort = polyPinNodes[0].getPort(0);
         polyPort.getLeft().setAdder(half); polyPort.getBottom().setAdder(half);

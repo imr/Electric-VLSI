@@ -747,7 +747,7 @@ public class CircuitChanges
 			{
 				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
-				double overSize = ai.getWidth() - ai.getProto().getDefaultWidth();
+				double overSize = ai.getLambdaFullWidth() - ai.getProto().getDefaultLambdaFullWidth();
 				if (overSize < 0) overSize = 0;
 				if (overSize > overSizeArc) overSizeArc = overSize;
 			}
@@ -784,15 +784,13 @@ public class CircuitChanges
 			{
 				Connection con = cIt.next();
 				ArcInst ai = con.getArc();
-				double i = ai.getWidth() - ai.getProto().getWidthOffset();
-				Poly poly = ai.makePoly(i, Poly.Type.FILLED);
+				Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.FILLED);
 				for(Iterator<Connection> oCIt = ni.getConnections(); oCIt.hasNext(); )
 				{
 					Connection oCon = oCIt.next();
 					ArcInst oAi = oCon.getArc();
 					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
-					double oI = oAi.getWidth() - oAi.getProto().getWidthOffset();
-					Poly oPoly = oAi.makePoly(oI, Poly.Type.FILLED);
+					Poly oPoly = oAi.makeLambdaPoly(oAi.getGridBaseWidth(), Poly.Type.FILLED);
 					double dist = poly.separation(oPoly);
 					if (dist <= 0) continue;
 					nodeIsBad = true;

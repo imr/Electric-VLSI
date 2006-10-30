@@ -170,7 +170,7 @@ public class VerilogReader extends Input
                             if (pin != null)
                             {
                                 ArcProto node = (isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
-                                ArcInst ai = ArcInst.makeInstance(node, node.getDefaultWidth(),
+                                ArcInst ai = ArcInst.makeInstance(node, node.getDefaultLambdaFullWidth(),
                                         pin.getOnlyPortInst(), ex, null, null, local);
                                 ai.setFixedAngle(false);
                                 assert(ai != null);
@@ -309,7 +309,7 @@ public class VerilogReader extends Input
                 NodeInst ni = NodeInst.newInstance(Schematics.tech.wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
                         Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), cell);
 
-                ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultWidth(),
+                ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultLambdaFullWidth(),
                     ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
                 continue;
             }
@@ -428,7 +428,7 @@ public class VerilogReader extends Input
             ni = NodeInst.newInstance(primitive, new Point2D.Double(posX, posY),
                         primitive.getDefWidth(), primitive.getDefHeight(),
                         cell, Orientation.IDENT, null /*pinName*/, 0);
-            ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultWidth(),
+            ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultLambdaFullWidth(),
                     ni.getOnlyPortInst(), ports[pos], null, null, name);
         }
         return null;

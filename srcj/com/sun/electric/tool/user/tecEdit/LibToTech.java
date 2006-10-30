@@ -247,7 +247,7 @@ public class LibToTech
 			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
 			newArc.setFactoryAngleIncrement(aList[i].angInc);
 			newArc.setExtended(!aList[i].noExtend);
-			newArc.setWidthOffset(aList[i].widthOffset);
+			newArc.setLambdaWidthOffset(aList[i].widthOffset);
 			ERC.getERCTool().setAntennaRatio(newArc, aList[i].antennaRatio);
 			aList[i].generated = newArc;
 		}

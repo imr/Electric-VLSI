@@ -686,7 +686,7 @@ public class ELIB extends Output
 
 		// write basic arcinst information
 		Technology tech = ai.getParent().getTechnology();
-		writeBigInteger((int)Math.round(ai.getWidth() * tech.getScale()*2));
+		writeBigInteger((int)Math.round(ai.getLambdaFullWidth() * tech.getScale()*2));
 
 		// write the arcinst tail information
 		Point2D location = ai.getTailLocation();

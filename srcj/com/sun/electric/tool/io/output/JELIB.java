@@ -396,7 +396,7 @@ public class JELIB extends Output
             printWriter.print("|" + convertString(a.name.toString()) + "|");
             if (!a.name.isTempname())
                 printWriter.print(describeDescriptor(null, a.nameDescriptor));
-            printWriter.print("|" + TextUtils.formatDouble(a.getLambdaWidth(), 0));
+            printWriter.print("|" + TextUtils.formatDouble(a.getLambdaFullWidth(), 0));
             StringBuilder arcBits = new StringBuilder();
 
             if (a.is(ImmutableArcInst.HARD_SELECT)) arcBits.append("A");
@@ -410,7 +410,7 @@ public class JELIB extends Output
             if (a.is(ImmutableArcInst.SLIDABLE)) arcBits.append("S");
             if (a.is(ImmutableArcInst.HEAD_ARROWED)) arcBits.append("X");
             if (a.is(ImmutableArcInst.TAIL_ARROWED)) arcBits.append("Y");
-            printWriter.print("|" + arcBits.toString() + a.angle);
+            printWriter.print("|" + arcBits.toString() + a.getAngle());
 
             printWriter.print("|" + nodeNames.get(a.headNodeId) + "|" + getPortName(a.headPortId));
             printWriter.print("|" + TextUtils.formatDouble(a.headLocation.getX(), 0));

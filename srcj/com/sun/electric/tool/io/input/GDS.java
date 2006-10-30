@@ -1232,7 +1232,7 @@ public class GDS extends Input
 						int ang = Math.abs(thisAngle-lastAngle) / 10;
 						if (ang > 180) ang = 360 - ang;
 						if (ang > 90) ang = 180 - ang;
-						fextend = ImmutableArcInst.getExtendFactor(width, ang);
+						fextend = Poly.getExtendFactor(width, ang);
 					}
 				} else
 				{
@@ -1247,7 +1247,7 @@ public class GDS extends Input
 						int ang = Math.abs(thisAngle-nextAngle) / 10;
 						if (ang > 180) ang = 360 - ang;
 						if (ang > 90) ang = 180 - ang;
-						textend = ImmutableArcInst.getExtendFactor(width, ang);
+						textend = Poly.getExtendFactor(width, ang);
 					}
 				} else
 				{

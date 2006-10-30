@@ -24,6 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
@@ -217,7 +218,7 @@ public class ArcProto implements Comparable<ArcProto>
 	/** Pref map for arc directionality. */						private static HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
 	/** The name of this ArcProto. */							protected String protoName;
 	/** The technology in which this ArcProto resides. */		protected Technology tech;
-	/** The offset from width to reported/displayed width. */	protected double widthOffset;
+	/** The offset from width to reported/displayed width. */	protected int gridWidthOffset;
 	/** Flags bits for this ArcProto. */						private int userBits;
 	/** The function of this ArcProto. */						private Function function;
 	/** Layers in this arc */                                   /*private*/ Technology.ArcLayer [] layers;
@@ -254,12 +255,12 @@ public class ArcProto implements Comparable<ArcProto>
 			System.out.println("ArcProto name " + protoName + " is not safe to write into JELIB");
 		this.protoName = protoName;
 		this.fullName = tech.getTechName() + ":" + protoName;
-		this.widthOffset = 0;
+		this.gridWidthOffset = 0;
 		this.tech = tech;
 		this.userBits = 0;
 		this.function = Function.UNKNOWN;
 		this.layers = layers;
-		setFactoryDefaultWidth(defaultWidth);
+		setFactoryDefaultLambdaFullWidth(defaultWidth);
 	}
 
 	// ------------------------ public methods -------------------------------
@@ -323,67 +324,109 @@ public class ArcProto implements Comparable<ArcProto>
 	}
 
 	/**
-	 * Method to set the factory-default width of this ArcProto.
+	 * Method to set the factory-default width of this ArcProto in lambda units.
 	 * This is only called from ArcProto during construction.
-	 * @param defaultWidth the factory-default width of this ArcProto.
+	 * @param lambdaWidth the factory-default full width of this ArcProto in lambda units.
 	 */
-	protected void setFactoryDefaultWidth(double defaultWidth) { getArcProtoWidthPref(defaultWidth); }
+	protected void setFactoryDefaultLambdaFullWidth(double lambdaWidth) {
+        long gridWidth = DBMath.lambdaToSizeGrid(lambdaWidth);
+        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE) {
+            System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid default full width " + lambdaWidth);
+            return;
+        }
+        assert (gridWidth&1) == 0;
+        getArcProtoWidthPref(DBMath.gridToLambda(gridWidth));
+    }
 
 	/**
-	 * Method to set the full default width of this ArcProto.
+     * Method to set the full default width of this ArcProto in lambda units.
+     * This is the full width, including nonselectable layers such as implants.
+     * For example, diffusion arcs are always accompanied by a surrounding well and select.
+     * This call returns the width of all of these layers.
+     * @param lambdaWidth the full default width of this ArcProto in lambda units.
+     * @return returns true if preference was really changed.
+     */
+    public boolean setDefaultLambdaFullWidth(double lambdaWidth) {
+        long gridWidth = DBMath.lambdaToSizeGrid(lambdaWidth);
+        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE) {
+            System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid default full width " + lambdaWidth);
+            return false;
+        }
+        assert (gridWidth&1) == 0;
+        return getArcProtoWidthPref(0).setDouble(DBMath.gridToLambda(gridWidth));
+    }
+
+	/**
+	 * Method to return the full default width of this ArcProto in lambda units.
 	 * This is the full width, including nonselectable layers such as implants.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * This call returns the width of all of these layers. 
-	 * @param defaultWidth the full default width of this ArcProto.
-	 * @return returns true if preference was really changed.
+	 * @return the full default width of this ArcProto in lambda units.
 	 */
-	public boolean setDefaultWidth(double defaultWidth) { return(getArcProtoWidthPref(0).setDouble(defaultWidth)); }
+	public double getDefaultLambdaFullWidth() { return DBMath.gridToLambda(getDefaultGridFullWidth()); }
 
 	/**
-	 * Method to return the full default width of this ArcProto.
+	 * Method to return the full default width of this ArcProto in lambda units.
 	 * This is the full width, including nonselectable layers such as implants.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * @return the full default width of this ArcProto.
+	 * @return the full default width of this ArcProto in lambda units.
 	 */
-	public double getDefaultWidth() { return getArcProtoWidthPref(0).getDouble(); }
+	public long getDefaultGridFullWidth() {
+        return DBMath.lambdaToSizeGrid(getArcProtoWidthPref(0).getDouble());
+    }
 
 	/**
-	 * Method to set the width offset of this ArcProto.
-	 * The width offset excludes the surrounding implang material.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * The offset amount is the difference between the diffusion width and the overall width.
-	 * @param widthOffset the width offset of this ArcProto.
-	 */
-	public void setWidthOffset(double widthOffset)
-	{
-		if (widthOffset < 0.0)
-		{
-			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has negative width offset");
-			return;
-		}
-		this.widthOffset = widthOffset;
-	}
-
-	/**
-	 * Method to return the width offset of this ArcProto.
-	 * The width offset excludes the surrounding implang material.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * The offset amount is the difference between the diffusion width and the overall width.
-	 * @return the width offset of this ArcProto.
-	 */
-	public double getWidthOffset() { return widthOffset; }
-
-	/**
-	 * Method to return the default width of this ArcProto.
+	 * Method to return the default base width of this ArcProto in lambda units.
 	 * This is the reported/selected width, which means that it does not include the width offset.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * This call returns only the width of the diffusion. 
-	 * @return the default width of this ArcProto.
+	 * @return the default base width of this ArcProto in lambda units.
 	 */
-	public double getWidth()
-	{
-		return getDefaultWidth() - widthOffset;
-	}
+	public double getDefaultLambdaBaseWidth() { return DBMath.gridToLambda(getDefaultGridBaseWidth()); }
+
+	/**
+	 * Method to return the default base width of this ArcProto in grid units.
+	 * This is the reported/selected width, which means that it does not include the width offset.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * This call returns only the width of the diffusion. 
+	 * @return the default base width of this ArcProto in grid units.
+	 */
+    public long getDefaultGridBaseWidth() { return getDefaultGridFullWidth() - getGridWidthOffset(); }
+
+	/**
+	 * Method to set the width offset of this ArcProto in lambda units.
+	 * The width offset excludes the surrounding implang material.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * The offset amount is the difference between the diffusion width and the overall width.
+	 * @param lambdaWidthOffset the width offset of this ArcProto in lambda units.
+	 */
+    public void setLambdaWidthOffset(double lambdaWidthOffset) {
+        long gridWidthOffset = DBMath.lambdaToSizeGrid(lambdaWidthOffset);
+		if (gridWidthOffset < 0 || gridWidthOffset > Integer.MAX_VALUE)
+		{
+			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid width offset " + lambdaWidthOffset);
+			return;
+		}
+        assert (gridWidthOffset&1) == 0;
+        this.gridWidthOffset = (int)gridWidthOffset;
+    }
+
+	/**
+	 * Method to return the width offset of this ArcProto in lambda units.
+	 * The width offset excludes the surrounding implang material.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * The offset amount is the difference between the diffusion width and the overall width.
+	 * @return the width offset of this ArcProto in lambda units.
+	 */
+	public double getLambdaWidthOffset() { return DBMath.gridToLambda(getGridWidthOffset()); }
+
+	/**
+	 * Method to return the width offset of this ArcProto in grid units.
+	 * The width offset excludes the surrounding implang material.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * The offset amount is the difference between the diffusion width and the overall width.
+	 * @return the width offset of this ArcProto in grid units.
+	 */
+	public long getGridWidthOffset() { return gridWidthOffset; }
 
     /*
 	private Pref getArcProtoAntennaPref()
@@ -913,34 +956,41 @@ public class ArcProto implements Comparable<ArcProto>
 	/**
 	 * Returns the polygons that describe dummy arc of this ArcProto
      * with default width and specified length.
-	 * @param length length of dummy arc.
+	 * @param lambdaLength length of dummy arc in lambda units.
 	 * @return an array of Poly objects that describes dummy arc graphically.
 	 */
-    public Poly[] getShapeOfDummyArc(double length) {
+    public Poly[] getShapeOfDummyArc(double lambdaLength) {
+        long l2 = DBMath.lambdaToGrid(lambdaLength/2);
         // see how many polygons describe this arc
         Poly [] polys = new Poly[layers.length];
-        Point2D.Double headLocation = new Point2D.Double(length/2, 0);
-        Point2D.Double tailLocation = new Point2D.Double(-length/2, 0);
+        Point2D.Double headLocation = new Point2D.Double(lambdaLength/2, 0);
+        Point2D.Double tailLocation = new Point2D.Double(-lambdaLength/2, 0);
         for (int i = 0; i < layers.length; i++) {
             Technology.ArcLayer primLayer = layers[i];
-            double width = getDefaultWidth() - primLayer.getOffset();
+            long gridWidth = getDefaultGridFullWidth() - primLayer.getGridOffset();
             Poly.Type style = primLayer.getStyle();
-            Poly poly;
-            if (width == 0) {
-                poly = new Poly(new Point2D.Double[]{headLocation, tailLocation});
+            Point2D.Double[] points;
+            if (gridWidth == 0) {
+                points = new Point2D.Double[]{ new Point2D.Double(-l2, 0), new Point2D.Double(l2, 0)};
                 if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
-                poly.setStyle(style);
             } else {
-                assert width > 0;
-                poly = Poly.makeEndPointPoly(length, width, 0, headLocation, width/2, tailLocation, width/2, style);
+                long w2 = gridWidth/2;
+                assert w2 > 0;
+                points = new Point2D.Double[] {
+                    new Point2D.Double(-l2-w2, w2), new Point2D.Double(-l2-w2, -w2), new Point2D.Double(l2+w2, -w2), new Point2D.Double(l2+w2, w2) };
+                if (style.isOpened())
+                    points = new Point2D.Double[] { points[0], points[1], points[2], points[3], (Point2D.Double)points[0].clone() };
             }
+            for (Point2D.Double p: points)
+                p.setLocation(DBMath.gridToLambda(p.getX()), DBMath.gridToLambda(p.getY()));
+            Poly poly = new Poly(points);
+            poly.setStyle(style);
             poly.setLayer(primLayer.getLayer());
             polys[i] = poly;
         }
         return polys;
     }
     
-
 	/**
 	 * Method to describe this ArcProto as a string.
 	 * Prepends the Technology name if it is
@@ -986,10 +1036,11 @@ public class ArcProto implements Comparable<ArcProto>
      * @exception AssertionError if invariants are not valid
      */
     void check() {
-        double defaultWidth = getDefaultWidth();
+        double defaultWidth = getDefaultLambdaFullWidth();
         for (Technology.ArcLayer primLayer: layers) {
-            double width = getDefaultWidth() - primLayer.getOffset();
-            assert width >= 0;
+            long width = getDefaultGridFullWidth() - primLayer.getGridOffset();
+            if (width < 0)
+                System.out.println(primLayer + " of " + this + " has invalid width");
         }
     }
 }

@@ -25,6 +25,7 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.ImmutableArrayList;
@@ -100,6 +101,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     }
    
 	// -------------------------- constants --------------------------------
+    
+    private static final short EXTEND_90 = 0;
+    private static final short EXTEND_0 = 1;
+    private static final short EXTEND_45 = 2;
+    private static final short EXTEND_ANY = 3;
+    
+    
 	/** fixed-length arc */                                 private static final int FIXED =                     01;
 	/** fixed-angle arc */                                  private static final int FIXANG =                    02;
 //	/** arc has text that is far away */                    private static final int AHASFARTEXT =               04;
@@ -219,12 +227,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     /** PortProtoId on head end of this ImmutableArcInst. */        public final PortProtoId headPortId;
 	/** Location of head end of this ImmutableArcInst. */           public final EPoint headLocation;
 
-	/** width of this ImmutableArcInst in grid units. */            private final int gridWidth;
-    /** length of this ImmutableArcInst in lambda units. */         public final double lambdaLength;
-    /** Angle if this ImmutableArcInst (in tenth-degrees). */       public final short angle;
+	/** width of this ImmutableArcInst in grid units. */            private final int gridFullWidth;
+    /** length of this ImmutableArcInst in lambda units. */         private final double gridLength;
+    /** Angle if this ImmutableArcInst (in tenth-degrees). */       private final short angle;
  
-	/**
+    /**
      * The private constructor of ImmutableArcInst. Use the factory "newInstance" instead.
+     *
      * @param arcId id of this ArcInst in parent.
      * @param protoType arc prototype.
      * @param name name of this ImmutableArcInst.
@@ -235,16 +244,16 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param headNodeId NodeId on head end of this ImmutableArcInst.
      * @param headPortProtoId PortProtoId on head end of this ImmutableArcInst.
      * @param headLocation Location of head end of this ImmutableArcInst.
-     * @param gridWidth the width of this ImmutableArcInst in grid units.
-     * @param lambdaLength the length of this ImmutableArcInst in lambda units.
+     * @param gridFullWidth the full width of this ImmutableArcInst in grid units.
+     * @param gridLength the length of this ImmutableArcInst in grid units.
      * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
      * @param flags flag bits of this ImmutableArcInst.
      * @param vars array of Variables of this ImmutableArcInst
      */
-     ImmutableArcInst(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
+    ImmutableArcInst(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
-            int gridWidth, double lambdaLength, short angle, int flags, Variable[] vars) {
+            int gridFullWidth, double gridLength, short angle, int flags, Variable[] vars) {
         super(vars, flags);
         this.arcId = arcId;
         this.protoType = protoType;
@@ -256,26 +265,67 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         this.headNodeId = headNodeId;
         this.headPortId = headPortId;
         this.headLocation = headLocation;
-        this.gridWidth = gridWidth;
-        this.lambdaLength = lambdaLength;
+        this.gridFullWidth = gridFullWidth;
+        this.gridLength = gridLength;
         this.angle = angle;
 //        check();
     }
-
-     /**
-      * Returns width of this ImmutableArcInst in lambda units.
-      * @return width of this ImmutableArcInst in lambda units.
-      */
-     public double getLambdaWidth() { return DBMath.gridToLambda(gridWidth); }
-     
-     /**
-      * Returns width of this ImmutableArcInst in grid units.
-      * @return width of this ImmutableArcInst in grid units.
-      */
-     public long getGridWidth() { return gridWidth; }
-     
+    
+    /**
+     * Returns full width of this ImmutableArcInst in lambda units.
+     * @return full width of this ImmutableArcInst in lambda units.
+     */
+    public double getLambdaFullWidth() { return DBMath.gridToLambda(getGridFullWidth()); }
+    
+    /**
+     * Returns full width of this ImmutableArcInst in grid units.
+     * @return full width of this ImmutableArcInst in grid units.
+     */
+    public long getGridFullWidth() { return gridFullWidth; }
+    
+    /**
+     * Returns base width of this ImmutableArcInst in lambda units.
+     * @return base width of this ImmutableArcInst in lambda units.
+     */
+    public double getLambdaBaseWidth() { return DBMath.gridToLambda(getGridBaseWidth()); }
+    
+    /**
+     * Returns base width of this ImmutableArcInst in grid units.
+     * @return base width of this ImmutableArcInst in grid units.
+     */
+    public long getGridBaseWidth() { return gridFullWidth - protoType.getGridWidthOffset(); }
+    
+    /**
+     * Returns length of this ImmutableArcInst in lambda units.
+     * @return length of this ImmutableArcInst in lambda units.
+     */
+    public double getLambdaLength() { return DBMath.gridToLambda(gridLength); }
+    
+    /**
+     * Returns length of this ImmutableArcInst in grid units.
+     * @return length of this ImmutableArcInst in grid units.
+     */
+    public double getGridLength() { return gridLength; }
+    
 	/**
+	 * Method to return the rotation angle of this ImmutableArcInst.
+     * This is an angle of direction from tailLocation to headLocation.
+	 * @return the rotation angle of this ImmutableArcInst (in tenth-degrees).
+	 */
+	public int getAngle() { return angle; }
+
+    private boolean isManhattan() {
+        if (headLocation.getGridX() == tailLocation.getGridX()) {
+            return headLocation.getGridY() != tailLocation.getGridY() ||
+                    (angle == 0 || angle == 900 || angle == 1800 || angle == 2700);
+        } else {
+            return tailLocation.getGridY() == headLocation.getGridY();
+        }
+    }
+    
+    /**
      * Returns new ImmutableArcInst object.
+     *
      * @param arcId id of this ArcInst in parent.
      * @param protoType arc prototype.
      * @param name name of this ImmutableArcInst.
@@ -286,7 +336,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param headNodeId NodeId on head end of this ImmutableArcInst.
      * @param headPortId PortProtoId on head end of this ImmutableArcInst.
      * @param headLocation Location of head end of this ImmutableArcInst.
-     * @param gridWidth the width of this ImmutableArcInst in grid units.
+     * @param gridFullWidth the full width of this ImmutableArcInst in grid units.
      * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
      * @param flags flag bits of this ImmutableNodeInst.
      * @return new ImmutableArcInst object.
@@ -296,10 +346,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public static ImmutableArcInst newInstance(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
-            long gridWidth, int angle, int flags) {
+            long gridFullWidth, int angle, int flags) {
         if (arcId < 0) throw new IllegalArgumentException("arcId");
-		if (protoType == null) throw new NullPointerException("protoType");
-		if (name == null) throw new NullPointerException("name");
+        if (protoType == null) throw new NullPointerException("protoType");
+        if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.getBasename() != BASENAME) throw new IllegalArgumentException("name");
         if (nameDescriptor != null)
             nameDescriptor = nameDescriptor.withDisplayWithoutParamAndCode();
@@ -309,7 +359,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (headNodeId < 0) throw new IllegalArgumentException("headNodeId");
         if (headPortId == null) throw new NullPointerException("headPortId");
         if (headLocation == null) throw new NullPointerException("headLocation");
-        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE || (gridWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
+        if (gridFullWidth < 0 || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridFullWidth");
         angle %= 3600;
         if (angle < 0) angle += 3600;
         flags &= DATABASE_FLAGS;
@@ -317,10 +367,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             flags = TAIL_NEGATED.set(flags, false);
         if (!(headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable()))
             flags = HEAD_NEGATED.set(flags, false);
-		return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
+        return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
-                (int)gridWidth, tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, Variable.NULL_ARRAY);
+                (int)gridFullWidth, tailLocation.gridDistance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, Variable.NULL_ARRAY);
     }
 
 	/**
@@ -337,7 +387,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridWidth, this.lambdaLength, this.angle, this.flags, getVars());
+                this.gridFullWidth, this.gridLength, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -352,7 +402,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridWidth, this.lambdaLength, this.angle, this.flags, getVars());
+                this.gridFullWidth, this.gridLength, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -369,23 +419,23 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
-                this.gridWidth, tailLocation.distance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags, getVars());
+                this.gridFullWidth, tailLocation.gridDistance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags, getVars());
 	}
 
 	/**
-	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by width.
-	 * @param gridWidth arc width in grid units.
-	 * @return ImmutableArcInst which differs from this ImmutableArcInst by width.
+     * Returns ImmutableArcInst which differs from this ImmutableArcInst by width.
+     * @param gridFullWidth full arc width in grid units.
+     * @return ImmutableArcInst which differs from this ImmutableArcInst by width.
      * @throws IllegalArgumentException if width is negative.
-	 */
-	public ImmutableArcInst withGridWidth(long gridWidth) {
-		if (getGridWidth() == gridWidth) return this;
-        if (gridWidth < 0 || gridWidth > Integer.MAX_VALUE || (gridWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
-        if (this.gridWidth == gridWidth) return this;
+     */
+	public ImmutableArcInst withGridFullWidth(long gridFullWidth) {
+		if (getGridFullWidth() == gridFullWidth) return this;
+        if (gridFullWidth < 0 || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
+        if (this.gridFullWidth == gridFullWidth) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                (int)gridWidth, this.lambdaLength, this.angle, this.flags, getVars());
+                (int)gridFullWidth, this.gridLength, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -402,7 +452,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridWidth, this.lambdaLength, (short)angle, this.flags, getVars());
+                this.gridFullWidth, this.gridLength, (short)angle, this.flags, getVars());
 	}
 
 	/**
@@ -420,7 +470,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridWidth, this.lambdaLength, this.angle, flags, getVars());
+                this.gridFullWidth, this.gridLength, this.angle, flags, getVars());
 	}
 
 	/**
@@ -447,7 +497,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridWidth, this.lambdaLength, this.angle, this.flags, vars);
+                this.gridFullWidth, this.gridLength, this.angle, this.flags, vars);
     }
     
 	/**
@@ -463,7 +513,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridWidth, this.lambdaLength, this.angle, this.flags, vars);
+                this.gridFullWidth, this.gridLength, this.angle, this.flags, vars);
     }
     
 	/**
@@ -483,7 +533,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, tailPortId, this.tailLocation,
                 this.headNodeId, headPortId, this.headLocation,
-                this.gridWidth, this.lambdaLength, this.angle, this.flags, vars);
+                this.gridFullWidth, this.gridLength, this.angle, this.flags, vars);
     }
     
     private static short updateAngle(short angle, EPoint tailLocation, EPoint headLocation) {
@@ -513,7 +563,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         writer.writeNodeId(headNodeId);
         writer.writePortProtoId(headPortId);
         writer.writePoint(headLocation);
-        writer.writeInt(gridWidth);
+        writer.writeInt(gridFullWidth);
         writer.writeShort(angle);
         writer.writeInt(flags);
         super.write(writer);
@@ -534,14 +584,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         int headNodeId = reader.readNodeId();
         PortProtoId headPortId = reader.readPortProtoId();
         EPoint headLocation = reader.readPoint();
-        int gridWidth = reader.readInt();
+        int gridFullWidth = reader.readInt();
         short angle = reader.readShort();
         int flags = reader.readInt();
         boolean hasVars = reader.readBoolean();
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
-                tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, gridWidth,
-                tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, vars);
+                tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, gridFullWidth,
+                tailLocation.gridDistance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, vars);
     }
     
     /**
@@ -564,31 +614,37 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 this.name == that.name && this.nameDescriptor == that.nameDescriptor &&
                 this.tailNodeId == that.tailNodeId && this.tailPortId == that.tailPortId && this.tailLocation == that.tailLocation &&
                 this.headNodeId == that.headNodeId && this.headPortId == that.headPortId && this.headLocation == that.headLocation &&
-                this.gridWidth == that.gridWidth && this.angle == that.angle && this.flags == that.flags;
+                this.gridFullWidth == that.gridFullWidth && this.angle == that.angle && this.flags == that.flags;
     }
     
-    public double[] computeBounds(CellBackup.Memoization m, double[] result) {
+    public double[] computeGridBounds(CellBackup.Memoization m, double[] result) {
         if (result == null)
             result = new double[4];
      
-        double width = getLambdaWidth();
         if (protoType.isCurvable()) {
             // get the radius information on the arc
             Double radiusDouble = getRadius();
             if (radiusDouble != null) {
-                Poly curvedPoly = curvedArcOutline(Poly.Type.FILLED, width, radiusDouble.doubleValue());
-                if (curvedPoly != null)
-                    return getBounds(curvedPoly, result);
+                Poly curvedPoly = curvedArcLambdaOutline(Poly.Type.FILLED, getLambdaFullWidth(), radiusDouble.doubleValue());
+                if (curvedPoly != null) {
+                    Rectangle2D newBounds = curvedPoly.getBounds2D();
+                    result[0] = DBMath.lambdaToGrid(newBounds.getMinX());
+                    result[1] = DBMath.lambdaToGrid(newBounds.getMinY());
+                    result[2] = DBMath.lambdaToGrid(newBounds.getMaxX());
+                    result[3] = DBMath.lambdaToGrid(newBounds.getMaxY());
+                    return result;
+                }
             }
         }
         
-        double tx = tailLocation.getX();
-        double ty = tailLocation.getY();
-        double hx = headLocation.getX();
-        double hy = headLocation.getY();
+        long tx = tailLocation.getGridX();
+        long ty = tailLocation.getGridY();
+        long hx = headLocation.getGridX();
+        long hy = headLocation.getGridY();
         
        // zero-width polygons are simply lines
-        if (width == 0) {
+        int gridWidth = (int)getGridFullWidth();
+        if (gridWidth == 0) {
             if (tx < hx) {
                 result[0] = tx;
                 result[2] = hx;
@@ -606,114 +662,330 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             return result;
         }
         
-        double w2 = width/2;
-        // determine the end extension on each end
-        double extendH = 0, extendT = 0;
-        if (m != null) {
-            if ((flags & HEADNOEXTEND) == 0) // is(HEAD_EXTENDED)
-                extendH = getExtendFactor(width, m.getShrinkage(headNodeId));
-            if ((flags & TAILNOEXTEND) == 0) // is(TAIL_EXTENDED)
-                extendT = getExtendFactor(width, m.getShrinkage(tailNodeId));
-        } else {
-            if (is(HEAD_EXTENDED))
-                extendH = w2;
-            if (is(TAIL_EXTENDED))
-                extendT = w2;
-        }
+		int w2 = gridWidth >>> 1;
+        short shrinkT = (flags & TAILNOEXTEND) == 0 /* is(TAIL_EXTENDED */ ? m.getShrinkage(tailNodeId) : EXTEND_0;
+        short shrinkH = (flags & HEADNOEXTEND) == 0 /* is(HEAD_EXTENDED */ ? m.getShrinkage(headNodeId) : EXTEND_0;
 
-        switch (angle) {
-            case 0:
-                if (ty == hy) {
-                    assert tx <= hx;
-                    result[0] = tx - extendT;
+        if (shrinkH <= EXTEND_0 && shrinkT <= EXTEND_0 && isManhattan()) {
+            switch (angle) {
+                case 0:
+                    assert tx <= hx && ty == hy;
+                    result[0] = shrinkT == EXTEND_90 ? tx - w2 : tx;
                     result[1] = ty - w2;
-                    result[2] = hx + extendH;
+                    result[2] = shrinkH == EXTEND_90 ? hx + w2 : hx;
                     result[3] = ty + w2;
-                    return result;
-                }
-                break;
-            case 1800:
-                if (ty == hy) {
-                    assert tx >= hx;
-                    result[0] = hx - extendH;
+                    break;
+                case 900:
+                    assert tx == hx && ty <= hy;
+                    result[0] = tx - w2;
+                    result[1] = shrinkT == EXTEND_90 ? ty - w2 : ty;
+                    result[2] = tx + w2;
+                    result[3] = shrinkH == EXTEND_90 ? hy + w2 : hy;
+                    break;
+                case 1800:
+                    assert hx <= tx && ty == hy;
+                    result[0] = shrinkH == EXTEND_90 ? hx - w2 : hx;
                     result[1] = ty - w2;
-                    result[2] = tx + extendT;
+                    result[2] = shrinkT == EXTEND_90 ? tx + w2 : tx;
                     result[3] = ty + w2;
-                    return result;
-                }
-                break;
-            case 900:
-                if (tx == hx) {
-                    assert ty <= hy;
+                    break;
+                case 2700:
+                    assert tx == hx && hy <= ty;
                     result[0] = tx - w2;
-                    result[1] = ty - extendT;
+                    result[1] = shrinkH == EXTEND_90 ? hy - w2 : hy;
                     result[2] = tx + w2;
-                    result[3] = hy + extendH;
-                    return result;
-                }
-                break;
-            case 2700:
-                if (tx == hx) {
-                    assert ty >= hy;
-                    result[0] = tx - w2;
-                    result[1] = hy - extendH;
-                    result[2] = tx + w2;
-                    result[3] = ty + extendT;
-                    return result;
-                }
-                break;
+                    result[3] = shrinkT == EXTEND_90 ? ty + w2 : ty;
+                    break;
+                default:
+                    assert false;
+            }
+        } else {
+            long w2xy = GenMath.polarToXY(w2, angle);
+            int w2x = GenMath.getX(w2xy);
+            int w2y = GenMath.getY(w2xy);
+            
+            if (shrinkT == EXTEND_90) {
+                tx -= w2x;
+                ty -= w2y;
+            } else if (shrinkT >= EXTEND_ANY) {
+                int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
+                int angle2 = (shrinkT - EXTEND_ANY) - angle;
+                if (angle2 < 0)
+                    angle2 += 3600;
+                long e = computeExtension(GenMath.packXY(-w2x, -w2y), GenMath.polarToXY(w2, angle2));
+                tx += GenMath.getX(e);
+                ty += GenMath.getY(e);
+            }
+            if (shrinkH == EXTEND_90) {
+                hx += w2x;
+                hy += w2y;
+            } else if (shrinkH >= EXTEND_ANY) {
+                int angle2 = (shrinkH - EXTEND_ANY) - angle;
+                if (angle2 < 0)
+                    angle2 += 3600;
+                long e = computeExtension(w2xy, GenMath.polarToXY(w2, angle2));
+                hx += GenMath.getX(e);
+                hy += GenMath.getY(e);
+            }
+            if (w2x < 0) w2x = -w2x;
+            if (w2y < 0) w2y = -w2y;
+            if (tx <= hx) {
+                result[0] = tx - w2y;
+                result[2] = hx + w2y;
+            } else {
+                result[0] = hx - w2y;
+                result[2] = tx + w2y;
+            }
+            if (ty <= hy) {
+                result[1] = ty - w2x;
+                result[3] = hy + w2x;
+            } else {
+                result[1] = hy - w2x;
+                result[3] = ty + w2x;
+            }
         }
-        
-		return getBounds(makePoly(m, width, Poly.Type.FILLED), result);
-    }
-    
-    private static double[] getBounds(Poly poly, double[] result) {
-        Rectangle2D newBounds = poly.getBounds2D();
-        result[0] = newBounds.getMinX();
-        result[1] = newBounds.getMinY();
-        result[2] = newBounds.getMaxX();
-        result[3] = newBounds.getMaxY();
         return result;
     }
-
+    
 	/**
-	 * Method to create a Poly object that describes this ImmutableArcInst.
-	 * The ArcInst is described by its length, width, endpoints, and style.
+	 * Method to create a Poly object that describes this ImmutableArcInst in grid units.
+	 * The ArcInst is described by its width, and style.
      * @param m data for size computation in a CellBackup
-	 * @param width the width of the Poly.
+	 * @param gridWidth the gridWidth of the Poly.
 	 * @param style the style of the Poly.
-	 * @return a Poly that describes this ImmutableArcInst.
+	 * @return a Poly that describes this ImmutableArcInst in grid units.
 	 */
-    public Poly makePoly(CellBackup.Memoization m, double width, Poly.Type style) {
+    public Poly makeGridPoly(CellBackup.Memoization m, long gridWidth, Poly.Type style) {
         if (protoType.isCurvable()) {
             // get the radius information on the arc
             Double radiusDouble = getRadius();
             if (radiusDouble != null) {
-                Poly curvedPoly = curvedArcOutline(style, width, radiusDouble.doubleValue());
-                if (curvedPoly != null) return curvedPoly;
+                Poly curvedPoly = curvedArcLambdaOutline(style, DBMath.gridToLambda(gridWidth), radiusDouble.doubleValue());
+                if (curvedPoly != null) {
+                    for (Point2D p: curvedPoly.getPoints())
+                        p.setLocation(DBMath.lambdaToGrid(p.getX()), DBMath.lambdaToGrid(p.getY()));
+                    return curvedPoly;
+                }
             }
         }
         
         // zero-width polygons are simply lines
-        if (width == 0) {
-            Poly poly = new Poly(new Point2D.Double[]{headLocation.mutable(), tailLocation.mutable()});
+        if (gridWidth == 0) {
+            Poly poly = new Poly(new Point2D.Double[]{ tailLocation.gridMutable(), headLocation.gridMutable()});
             if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
             poly.setStyle(style);
             return poly;
         }
         
-        // determine the end extension on each end
-        double extendH = 0, extendT = 0;
-        if ((flags & HEADNOEXTEND) == 0) // is(HEAD_EXTENDED)
-            extendH = getExtendFactor(width, m.getShrinkage(headNodeId));
-        if ((flags & TAILNOEXTEND) == 0) // is(TAIL_EXTENDED)
-            extendT = getExtendFactor(width, m.getShrinkage(tailNodeId));
-        
         // make the polygon
-        Poly poly = Poly.makeEndPointPoly(lambdaLength, width, angle, headLocation, extendH, tailLocation, extendT, style);
-        return poly;
-    }
+		int w2 = ((int)gridWidth) >>> 1;
+        short shrinkT = (flags & TAILNOEXTEND) == 0 /* is(TAIL_EXTENDED */ ? m.getShrinkage(tailNodeId) : EXTEND_0;
+        short shrinkH = (flags & HEADNOEXTEND) == 0 /* is(HEAD_EXTENDED */ ? m.getShrinkage(headNodeId) : EXTEND_0;
+        Point2D.Double lT = new Point2D.Double();
+        Point2D.Double rT = new Point2D.Double();
+        Point2D.Double rH = new Point2D.Double();
+        Point2D.Double lH = new Point2D.Double();
 
+        long tx = tailLocation.getGridX();
+        long ty = tailLocation.getGridY();
+        long hx = headLocation.getGridX();
+        long hy = headLocation.getGridY();
+        if (shrinkH <= EXTEND_0 && shrinkT <= EXTEND_0 && isManhattan()) {
+            switch (angle) {
+                case 0:
+                    if (shrinkT == EXTEND_90) tx -= w2;
+                    lT.setLocation(tx, ty + w2);
+                    rT.setLocation(tx, ty - w2);
+                    if (shrinkH == EXTEND_90) hx += w2;
+                    rH.setLocation(hx, hy - w2);
+                    lH.setLocation(hx, hy + w2);
+                    break;
+                case 900:
+                    if (shrinkT == EXTEND_90) ty -= w2;
+                    lT.setLocation(tx - w2, ty);
+                    rT.setLocation(tx + w2, ty);
+                    if (shrinkH == EXTEND_90) hy += w2;
+                    rH.setLocation(hx + w2, hy);
+                    lH.setLocation(hx - w2, hy);
+                    break;
+                case 1800:
+                    if (shrinkT == EXTEND_90) tx += w2;
+                    lT.setLocation(tx, ty - w2);
+                    rT.setLocation(tx, ty + w2);
+                    if (shrinkH == EXTEND_90) hx -= w2;
+                    rH.setLocation(hx, hy + w2);
+                    lH.setLocation(hx, hy - w2);
+                    break;
+                case 2700:
+                    if (shrinkT == EXTEND_90) ty += w2;
+                    lT.setLocation(tx + w2, ty);
+                    rT.setLocation(tx - w2, ty);
+                    if (shrinkH == EXTEND_90) hy -= w2;
+                    rH.setLocation(hx - w2, hy);
+                    lH.setLocation(hx + w2, hy);
+                    break;
+                default:
+                    assert false;
+            }
+        } else {
+            long w2xy = GenMath.polarToXY(w2, angle);
+            int w2x = GenMath.getX(w2xy);
+            int w2y = GenMath.getY(w2xy);
+            
+            if (shrinkT == EXTEND_90) {
+                tx -= w2x;
+                ty -= w2y;
+            } else if (shrinkT >= EXTEND_ANY) {
+                int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
+                int angle2 = (shrinkT - EXTEND_ANY) - angle;
+                if (angle2 < 0)
+                    angle2 += 3600;
+                long e = computeExtension(GenMath.packXY(-w2x, -w2y), GenMath.polarToXY(w2, angle2));
+                tx += GenMath.getX(e);
+                ty += GenMath.getY(e);
+            }
+            lT.setLocation(tx - w2y, ty + w2x);
+            rT.setLocation(tx + w2y, ty - w2x);
+
+            if (shrinkH == EXTEND_90) {
+                hx += w2x;
+                hy += w2y;
+            } else if (shrinkH >= EXTEND_ANY) {
+                int angle2 = (shrinkH - EXTEND_ANY) - angle;
+                if (angle2 < 0)
+                    angle2 += 3600;
+                long e = computeExtension(w2xy, GenMath.polarToXY(w2, angle2));
+                hx += GenMath.getX(e);
+                hy += GenMath.getY(e);
+            }
+            rH.setLocation(hx + w2y, hy - w2x);
+            lH.setLocation(hx - w2y, hy + w2x);
+        }
+        
+		// somewhat simpler if rectangle is manhattan
+		Point2D.Double[] points;
+        if (gridWidth != 0 && style.isOpened())
+            points = new Point2D.Double[] { lT, rT, rH, lH, (Point2D.Double)lT.clone() };
+        else
+            points = new Point2D.Double[] { lT, rT, rH, lH };
+		Poly poly = new Poly(points);
+		poly.setStyle(style);
+		return poly;
+    }
+    
+    /**
+     * Computes extension vector of wire, 
+     */
+    private static long computeExtension(long xy1, long xy2) {
+        int ix1 = GenMath.getX(xy1);
+        int iy1 = GenMath.getY(xy1);
+        double x1 = GenMath.getX(xy1);
+        double y1 = GenMath.getY(xy1);
+        double x2 = GenMath.getX(xy2);
+        double y2 = GenMath.getY(xy2);
+        
+        double det = x1*y2 - y1*x2;
+        if (det == 0) return 0;
+        double s1 = x1*x1 + y1*y1;
+        double s2 = x2*x2 + y2*y2;
+        double xx = (x2*s1 + x1*s2)/det;
+        double yy = (y2*s1 + y1*s2)/det;
+        int x = (int)(xx >= 0 ? xx + 0.5 : xx - 0.5);
+        int y = (int)(yy >= 0 ? yy + 0.5 : yy - 0.5);
+        int mx = x + iy1;
+        int my = y - ix1;
+        if (det < 0) {
+            mx = -mx;
+            my = -my;
+        }
+        return GenMath.packXY(mx, my);
+    }
+    
+    void registerShrinkage(int shrinkageState[]) {
+        // shrinkage
+        if (getGridFullWidth() == 0) return;
+        long dx = headLocation.getGridX() - tailLocation.getGridX();
+        long dy = headLocation.getGridY() - tailLocation.getGridY();
+        boolean is90, is45;
+        if (dx != 0 || dy != 0) {
+            is90 = dx == 0 || dy == 0;
+            is45 = dx == dy || dx == -dy;
+        } else {
+            is90 = angle % 900 == 0;
+            is45 = angle % 900 == 450;
+        }
+        int tailAngle = angle < 1800 ? angle + 1800 : angle - 1800;
+        registerArcEnd(shrinkageState, tailNodeId, (short)tailAngle, is90, is45, is(ImmutableArcInst.TAIL_EXTENDED));
+        registerArcEnd(shrinkageState, headNodeId, angle, is90, is45, is(ImmutableArcInst.HEAD_EXTENDED));
+    }
+    
+    private static final int ANGLE_SHIFT = 12;
+    private static final int ANGLE_MASK = (1 << ANGLE_SHIFT) - 1;
+    private static final int ANGLE_90_MASK = 1 << (ANGLE_SHIFT*2);
+    private static final int ANGLE_45_MASK = 1 << (ANGLE_SHIFT*2 + 1);
+    private static final int ANGLE_ANY_MASK = 1 << (ANGLE_SHIFT*2 + 2);
+//        private static final int ANGLE_FULL_SHRINK = -1;
+    private static final int ANGLE_COUNT_SHIFT = ANGLE_SHIFT*2 + 4;
+    
+    private void registerArcEnd(int[] angles, int nodeId, short angle, boolean is90, boolean is45, boolean extended) {
+        assert angle >= 0 && angle < 3600;
+        int ang = angles[nodeId];
+//            if (ang == ANGLE_FULL_SHRINK) return;
+//            if (extended) {
+        int ang0 = ang & ANGLE_MASK;
+        int ang1 = (ang >> ANGLE_SHIFT) & ANGLE_MASK;
+        int count = ang >>> ANGLE_COUNT_SHIFT;
+        switch (count) {
+            case 0:
+                ang |= angle;
+                ang += (1 << ANGLE_COUNT_SHIFT);
+                break;
+            case 1:
+                ang |= (angle << ANGLE_SHIFT);
+                ang += (1 << ANGLE_COUNT_SHIFT);
+                break;
+            case 2:
+                ang += (1 << ANGLE_COUNT_SHIFT);
+                break;
+        }
+        if (is90)
+            ang |= ANGLE_90_MASK;
+        else if (is45)
+            ang |= ANGLE_45_MASK;
+        else
+            ang |= ANGLE_ANY_MASK;
+//            } else {
+//                ang = ANGLE_FULL_SHRINK;
+//            }
+        angles[nodeId] = ang;
+    }
+    
+    static short computeShrink(int angs) {
+//            boolean has90 = (angs&ANGLE_90_MASK) != 0;
+        boolean has45 = (angs&ANGLE_45_MASK) != 0;
+        boolean hasAny = (angs&ANGLE_ANY_MASK) != 0;
+        int count = angs >>> ANGLE_COUNT_SHIFT;
+        
+        if (hasAny || has45) {
+            if (count == 2) {
+                int ang0 = angs & ANGLE_MASK;
+                int ang1 = (angs >> ANGLE_SHIFT) & ANGLE_MASK;
+                int da = ang0 > ang1 ? ang0 - ang1 : ang1 - ang0;
+                if (da == 900 || da == 2700) return EXTEND_90;
+                if (da == 0 || da == 1800) return EXTEND_0;
+                if (900 < da && da < 2700) {
+                    int a = ang0 + ang1;
+                    if (a >= 3600)
+                        a -= 3600;
+                    return (short)(EXTEND_ANY + a);
+                }
+            }
+//            } else if (has90 && has45) {
+//                return EXTEND_45;
+        }
+        return EXTEND_90;
+    }
+        
 	/**
 	 * Method to get the curvature radius on this ImmutableArcInst.
 	 * The curvature (used in artwork and round-cmos technologies) lets an arc
@@ -742,16 +1014,17 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	private static final int MAXARCPIECES = 16;
 
 	/**
-	 * Method to fill polygon "poly" with the outline of the curved arc in
-	 * this ImmutableArcInst whose width is "wid".  The style of the polygon is set to "style".
-	 * If there is no curvature information in the arc, the routine returns null,
-	 * otherwise it returns the curved polygon.
-	 */
-    public Poly curvedArcOutline(Poly.Type style, double wid, double radius) {
+     * Method to fill polygon "poly" with the outline of the curved arc in
+     * this ImmutableArcInst whose width is "lambdaWid".  The style of the polygon is set to "style".
+     * If there is no curvature information in the arc, the routine returns null,
+     * otherwise it returns the curved polygon.
+     */
+    public Poly curvedArcLambdaOutline(Poly.Type style, double lambdaWid, double lambdaRadius) {
         // get information about the curved arc
-        double pureRadius = Math.abs(radius);
+        double pureRadius = Math.abs(lambdaRadius);
+        double lambdaLength = getLambdaLength();
         
-        // see if the radius can work with these arc ends
+        // see if the lambdaRadius can work with these arc ends
         if (pureRadius*2 < lambdaLength) return null;
         
         // determine the center of the circle
@@ -759,7 +1032,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (centers == null) return null;
         
         Point2D centerPt = centers[1];
-        if (radius < 0) {
+        if (lambdaRadius < 0) {
             centerPt = centers[0];
         }
         
@@ -787,8 +1060,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         Point2D [] pointArray = new Point2D[points];
         
         // get the inner and outer radii of the arc
-        double outerRadius = pureRadius + wid / 2;
-        double innerRadius = outerRadius - wid;
+        double outerRadius = pureRadius + lambdaWid / 2;
+        double innerRadius = outerRadius - lambdaWid;
         
         // fill the polygon
         for(int i=0; i<=pieces; i++) {
@@ -802,35 +1075,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         return poly;
     }
     
-    private static final int [] extendFactor = {0,
-    11459, 5729, 3819, 2864, 2290, 1908, 1635, 1430, 1271, 1143,
-    1039,  951,  878,  814,  760,  712,  669,  631,  598,  567,
-    540,  514,  492,  470,  451,  433,  417,  401,  387,  373,
-    361,  349,  338,  327,  317,  308,  299,  290,  282,  275,
-    267,  261,  254,  248,  241,  236,  230,  225,  219,  214,
-    210,  205,  201,  196,  192,  188,  184,  180,  177,  173,
-    170,  166,  163,  160,  157,  154,  151,  148,  146,  143,
-    140,  138,  135,  133,  130,  128,  126,  123,  121,  119,
-    117,  115,  113,  111,  109,  107,  105,  104,  102,  100};
-
-	/**
-	 * Method to return the amount that an arc end should extend, given its width and extension factor.
-	 * @param width the width of the arc.
-	 * @param extend the extension factor (from 0 to 90).
-	 * @return the extension (from 0 to half of the width).
-	 */
-    public static double getExtendFactor(double width, int extend) {
-        return extend <= 0 || extend >= 90 ? width*0.5 : width * 50 / extendFactor[extend];
-//        // compute the amount of extension (from 0 to wid/2)
-//        if (extend <= 0) return width/2;
-//        
-//        // values should be from 0 to 90, but check anyway
-//        if (extend > 90) return width/2;
-//        
-//        // return correct extension
-//        return width * 50 / extendFactor[extend];
-    }
-
 	/**
 	 * Checks invariant of this ImmutableArcInst.
 	 * @throws AssertionError if invariant is broken.
@@ -851,14 +1095,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert headNodeId >= 0;
         assert headPortId != null;
         assert headLocation != null;
-        assert gridWidth >= 0 && (gridWidth&1) == 0;
+        assert gridFullWidth >= 0 && (gridFullWidth&1) == 0;
         assert (flags & ~DATABASE_FLAGS) == 0;
         if (is(TAIL_NEGATED))
             assert tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable();
         if (is(HEAD_NEGATED))
             assert headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable();
         assert 0 <= angle && angle < 3600;
-		assert lambdaLength == tailLocation.distance(headLocation);
+		assert gridLength == tailLocation.gridDistance(headLocation);
 	}
 
 	/**

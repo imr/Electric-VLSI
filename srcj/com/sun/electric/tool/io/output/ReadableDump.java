@@ -411,8 +411,8 @@ public class ReadableDump extends Output
 				printWriter.println("**arc: " + arcIndex.intValue());
 				printWriter.println("type: " + ai.getProto().getTechnology().getTechName() + ":" +
 					ai.getProto().getName());
-				int width = (int)(ai.getWidth() * scale);
-				int length = (int)(ai.getLength() * scale);
+				int width = (int)(ai.getLambdaFullWidth() * scale + 0.5);
+				int length = (int)(ai.getLambdaLength() * scale + 0.5);
 				printWriter.println("width: " + width + " length: " + length);
 
 				int userBits = ai.getD().getElibBits();

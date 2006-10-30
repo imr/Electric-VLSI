@@ -468,7 +468,7 @@ public abstract class Highlight2 implements Cloneable{
         Point pt2 = new Point(x2, y2);
 		if (GenMath.clipLine(pt1, pt2, 0, size.width-1, 0, size.height-1)) return;
 		g.drawLine(pt1.x, pt1.y, pt2.x, pt2.y);
-//        if (((x1 >= 0) && (x1 <= size.getWidth())) || ((x2 >= 0) && (x2 <= size.getWidth())) ||
+//        if (((x1 >= 0) && (x1 <= size.getLambdaFullWidth())) || ((x2 >= 0) && (x2 <= size.getLambdaFullWidth())) ||
 //            ((y1 >= 0) && (y1 <= size.getHeight())) || ((y2 >= 0) && (y2 <= size.getHeight()))) {
 //                g.drawLine(x1, y1, x2, y2);
 //        }
@@ -761,7 +761,7 @@ class HighlightEOBJ extends Highlight2
             if (!Job.acquireExamineLock(false)) return;
             try {
                 // construct the polygons that describe the basic arc
-                Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+                Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
                 if (poly == null) return;
                 drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false, false);
 

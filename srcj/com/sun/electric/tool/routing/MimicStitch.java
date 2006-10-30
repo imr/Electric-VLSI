@@ -197,7 +197,7 @@ public class MimicStitch
 		if (lastActivity.numCreatedArcs == 1)
 		{
 			ArcInst ai = lastActivity.createdArcs[0];
-			new MimicStitchJob(ai, 0, ai, 1, ai.getWidth(), ai.getProto(), 0, 0, forced);
+			new MimicStitchJob(ai, 0, ai, 1, ai.getLambdaFullWidth(), ai.getProto(), 0, 0, forced);
 			lastActivity.numCreatedArcs = 0;
 			return;
 		}
@@ -239,8 +239,8 @@ public class MimicStitch
 					if (foundEnds < 2)
 					{
 						ends[foundEnds] = ai.getConnection(e);
-						if (ai.getWidth() > width)
-							width = ai.getWidth();
+						if (ai.getLambdaFullWidth() > width)
+							width = ai.getLambdaFullWidth();
 					}
 					foundEnds++;
 				}
@@ -1056,7 +1056,7 @@ public class MimicStitch
 			}
 			for(ArcInst ai : allKills)
 			{
-				wnd.addHighlightLine(ai.getHeadLocation().mutable(), ai.getTailLocation().mutable(), cell, false);
+				wnd.addHighlightLine(ai.getHeadLocation().lambdaMutable(), ai.getTailLocation().lambdaMutable(), cell, false);
 			}
 			wnd.finishedHighlighting();
 

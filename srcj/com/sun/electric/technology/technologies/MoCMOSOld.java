@@ -790,7 +790,7 @@ public class MoCMOSOld extends Technology
 		S_Active_arc.setFactoryFixedAngle(true);
 		S_Active_arc.setWipable();
 		S_Active_arc.setFactoryAngleIncrement(90);
-		S_Active_arc.setWidthOffset(0);
+		S_Active_arc.setLambdaWidthOffset(0);
 
 		/** D-Active arc */
 		ArcProto D_Active_arc = ArcProto.newInstance(this, "D-Active", 10, new Technology.ArcLayer []
@@ -802,7 +802,7 @@ public class MoCMOSOld extends Technology
 		D_Active_arc.setFactoryFixedAngle(true);
 		D_Active_arc.setWipable();
 		D_Active_arc.setFactoryAngleIncrement(90);
-		D_Active_arc.setWidthOffset(0);
+		D_Active_arc.setLambdaWidthOffset(0);
 
 		/** Active arc */
 		ArcProto Active_arc = ArcProto.newInstance(this, "Active", 2, new Technology.ArcLayer []

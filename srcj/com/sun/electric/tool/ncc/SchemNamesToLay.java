@@ -180,7 +180,7 @@ public class SchemNamesToLay {
     	ArcInst longest = null;
     	for (ArcInst ai : new For<ArcInst>(net.getArcs())) {
     		if (longest==null) longest = ai;
-    		else if (ai.getLength()>longest.getLength())  longest = ai;
+    		else if (ai.getLambdaLength()>longest.getLambdaLength())  longest = ai;
     	}
     	return longest;
     }

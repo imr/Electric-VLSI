@@ -1484,7 +1484,7 @@ public class Highlighter implements DatabaseChangeListener {
 //                      if (poly.setExactTextBounds(wnd, ni)) continue;
 //
 //                      // ignore areaMustEnclose if bounds is size 0,0
-//                      if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
+//                      if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getLambdaFullWidth() > 0))
 //                      {
 //                          if (!poly.isInside(bounds)) continue;
 //                      } else
@@ -1546,7 +1546,7 @@ public class Highlighter implements DatabaseChangeListener {
 //                          if (poly.setExactTextBounds(wnd, ai)) continue;
 //
 //                          // ignore areaMustEnclose if bounds is size 0,0
-//                          if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
+//                          if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getLambdaFullWidth() > 0))
 //                          {
 //                              if (!poly.isInside(bounds)) continue;
 //                          } else
@@ -1765,7 +1765,7 @@ public class Highlighter implements DatabaseChangeListener {
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 			{
-	        	Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+	        	Poly poly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
 	            if (poly == null) return null;
 	   			if (!poly.isInside(bounds)) return null;
                 Highlight2 h = new HighlightEOBJ(geom, geom.getParent(), true, -1);
@@ -1991,9 +1991,10 @@ public class Highlighter implements DatabaseChangeListener {
 		}
 
 		// standard distance to the arc
-		double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-		if (DBMath.doublesEqual(wid, 0)) wid = 1;
-		Poly poly = ai.makePoly(wid, Poly.Type.FILLED);
+		long gridWid = ai.getGridBaseWidth();
+		if (gridWid == 0) gridWid = DBMath.lambdaToSizeGrid(1);
+//		if (DBMath.doublesEqual(wid, 0)) wid = 1;
+		Poly poly = ai.makeLambdaPoly(gridWid, Poly.Type.FILLED);
 		return poly.polyDistance(bounds);
 	}
 

@@ -60,7 +60,7 @@ public class TrackRouterH extends TrackRouter {
 
 		double newWid = LayoutLib.widestWireWidth(newPort);
 
-		if (newWid==LayoutLib.DEF_SIZE)  newWid=portLyr.getWidth();
+		if (newWid==LayoutLib.DEF_SIZE)  newWid=portLyr.getDefaultLambdaBaseWidth();
 
 		/* if (viaOffset==0 && wireOffset==0 && center==newPort.getCenterY() &&
 		    portLyr==layer) {

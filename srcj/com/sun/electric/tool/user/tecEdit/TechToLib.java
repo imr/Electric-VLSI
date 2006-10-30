@@ -255,11 +255,11 @@ public class TechToLib
 			aIn.generate(aNp);
 
 			// now create the arc layers
-			double wid = ap.getDefaultWidth() - ap.getWidthOffset();
+			double wid = ap.getDefaultLambdaBaseWidth();
 			double widX4 = wid * 4;
 			if (widX4 <= 0) widX4 = 10;
 			Poly [] polys = ap.getShapeOfDummyArc(widX4);
-			double xOff = wid*2 + wid/2 + ap.getWidthOffset()/2;
+			double xOff = wid*2 + wid/2 + ap.getLambdaWidthOffset()/2;
 			for(int i=0; i<polys.length; i++)
 			{
 				Poly poly = polys[i];
@@ -282,7 +282,7 @@ public class TechToLib
 				if (layerCell != null) ni.newVar(Info.LAYER_KEY, layerCell.getId());
 				ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 			}
-			double i = ap.getWidthOffset() / 2;
+			double i = ap.getLambdaWidthOffset() / 2;
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, new Point2D.Double(-20 - wid*2.5 - i, -5), wid*5, wid, aNp);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.WHITE));

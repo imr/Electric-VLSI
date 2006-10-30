@@ -220,7 +220,7 @@ public class Route extends ArrayList<RouteElement> {
                             ai.getPortInst(otherEnd).getPoly());
                     // build new arc
                     RouteElementArc newArc = RouteElementArc.newArc(cell, ai.getProto(),
-                            ai.getWidth(), otherPort, replacementRE,
+                            ai.getLambdaFullWidth(), otherPort, replacementRE,
                             ai.getLocation(otherEnd), conn.getLocation(), ai.getName(),
                             ai.getTextDescriptor(ArcInst.ARC_NAME), ai, true, true, stayInside);
                     RouteElementArc delArc = RouteElementArc.deleteArc(ai);

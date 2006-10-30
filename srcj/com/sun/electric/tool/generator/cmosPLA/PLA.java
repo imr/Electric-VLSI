@@ -776,7 +776,7 @@ public class PLA
 			System.out.println("Attempting to wire with unknown arc layer");
 			return;
 		}
-		double wid = typ.getDefaultWidth();
+		double wid = typ.getDefaultLambdaFullWidth();
 //		w = us_widestarcinst(typ, fromnodeinst, fromportproto);
 //		if (w > wid) wid = w;
 //		w = us_widestarcinst(typ, tonodeinst, toportproto);

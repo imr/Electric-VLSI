@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: Points in ArcInst.getPoly() are aligned to GRID.
+   Four variants of arc.getWidth:
+     getLambdaFullWidth  - full width in lambda units (same as old getWidth()
+     getGridFullWidth - full width in grid units
+     getLambdaBaseWidth - base width (GUI selection width) in lambda units.
+                          Usually same as full width except for diffusion arcs.
+     getGridBaseWidth - base width in grid units.
+
 IMP: (10/30/06, GVG) DIODUMMY layer (gds=56) added into TSMC180.
 
 BUG: (10/28/06, DN) RTree is not fresh after undo (Bug #1252).

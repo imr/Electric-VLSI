@@ -1092,7 +1092,7 @@ public class EDIF extends Input
 			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell);
 //			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), 0, cell);
 			PortInst head = ni.getOnlyPortInst();
-			ArcInst.makeInstance(ap, ap.getDefaultWidth(), head, bestPi);
+			ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), head, bestPi);
 			ports.add(head);
 		}
 
@@ -1126,8 +1126,8 @@ public class EDIF extends Input
 			ports.add(pi);
 
 			// create the two new arcinsts
-			ArcInst ar1 = ArcInst.makeInstance(nAp, nAp.getDefaultWidth(), fPi, pi, fPt, pt, null);
-			ArcInst ar2 = ArcInst.makeInstance(nAp, nAp.getDefaultWidth(), pi, tPi, pt, tPt, null);
+			ArcInst ar1 = ArcInst.makeInstance(nAp, nAp.getDefaultLambdaFullWidth(), fPi, pi, fPt, pt, null);
+			ArcInst ar2 = ArcInst.makeInstance(nAp, nAp.getDefaultLambdaFullWidth(), pi, tPi, pt, tPt, null);
 			if (ar1 == null || ar2 == null)
 			{
 				System.out.println("Error creating the split arc parts");
@@ -2601,7 +2601,7 @@ public class EDIF extends Input
 							if ((fPi.getPortProto() == defaultBusPort || fbus) &&
 								(tPi.getPortProto() == defaultBusPort || tbus)) ap = Schematics.tech.bus_arc;
 
-							ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(), fPi, tPi,
+							ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), fPi, tPi,
 								new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), null);
 							if (ai == null)
 							{
@@ -2937,7 +2937,7 @@ public class EDIF extends Input
 							}
 							PortInst head = lNi.findPortInstFromProto(lPp);
 							PortInst tail = ni.findPortInstFromProto(pp);
-							curArc = ArcInst.makeInstance(lAp, lAp.getDefaultWidth(), head, tail);
+							curArc = ArcInst.makeInstance(lAp, lAp.getDefaultLambdaFullWidth(), head, tail);
 							if (curArc == null)
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path");
 							else
@@ -3043,7 +3043,7 @@ public class EDIF extends Input
 						if (lX != hX || lY != hY) dist = headPt.distance(tailPt);
 						if (dist <= 1)
 						{
-							curArc = ArcInst.makeInstance(ap, ap.getDefaultWidth(), head, tail, headPt, tailPt, null);
+							curArc = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), head, tail, headPt, tailPt, null);
 							if (curArc == null)
 							{
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create path (arc) among cells");
@@ -3051,7 +3051,7 @@ public class EDIF extends Input
 						} else if (activeView == VNETLIST)
 						{
 							// use unrouted connection for NETLIST views
-							curArc = ArcInst.makeInstance(ap, ap.getDefaultWidth(), head, tail, headPt, tailPt, null);
+							curArc = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), head, tail, headPt, tailPt, null);
 							if (curArc == null)
 							{
 								System.out.println("error, line " + lineReader.getLineNumber() + ": could not create auto-path in portRef");

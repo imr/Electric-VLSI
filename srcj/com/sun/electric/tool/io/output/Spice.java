@@ -512,8 +512,8 @@ public class Spice extends Topology
                 // figure out res and cap, see if we should ignore it
                 if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
                     ignoreArc = true;
-                double length = ai.getLength() * scale / 1000;      // length in microns
-                double width = ai.getWidth() * scale / 1000;        // width in microns
+                double length = ai.getLambdaLength() * scale / 1000;      // length in microns
+                double width = ai.getLambdaFullWidth() * scale / 1000;        // width in microns
                 double area = length * width;
                 double fringe = length*2;
                 double cap = 0;

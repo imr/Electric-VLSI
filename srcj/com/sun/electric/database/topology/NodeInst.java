@@ -809,7 +809,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 						// special case where the old arc must be deleted first so that the other node can move
 						ai.kill();
 						adjustThisNode.move(dX, dY);
-						ArcInst newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+						ArcInst newAi = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
 							newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], ai.getName(), 0);
 						if (newAi == null)
 						{
@@ -838,7 +838,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 				double psy = pinNp.getDefHeight();
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
 				PortInst pinPi = pinNi.getOnlyPortInst();
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
 				    new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
                 newAi.copyPropertiesFrom(ai);
@@ -847,7 +847,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 //                newAi.copyVarsFrom(ai);
 //                newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 
-				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
+				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
 				        newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi2 == null) return null;
                 newAi2.copyConstraintsFrom(ai);
@@ -860,7 +860,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			} else
 			{
 				// replace the arc with another arc
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
                         newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi == null)
 				{
@@ -2298,7 +2298,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 
 		// must connect to two arcs of the same type and width
 		if (reconAr[0].getProto() != reconAr[1].getProto()) return false;
-		if (reconAr[0].getWidth() != reconAr[1].getWidth()) return false;
+		if (reconAr[0].getLambdaFullWidth() != reconAr[1].getLambdaFullWidth()) return false;
 
 		// arcs must be along the same angle, and not be curved
 		if (delta[0].getX() != 0 || delta[0].getY() != 0 || delta[1].getX() != 0 || delta[1].getY() != 0)
@@ -3215,19 +3215,19 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         return parent.getMemoization().isWiped(getD().nodeId);
     }
     
-	/**
-	 * Method to update the "end shrink" factors on all arcs on a PortInst.
-	 * This is a number from 0 to 90, where
-	 * 0 indicates no shortening (extend the arc by half its width) and greater values
-	 * indicate that the end should be shortened to account for this angle of connection.
-	 * Small values are shortened almost to nothing, whereas large values are shortened
-	 * very little (and a value of 90 indicates no shortening at all).
-	 */
- 	public byte getShrinkage() {
-        if (parent == null || !(protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isArcsShrink()))
-            return 0;
-        return parent.getMemoization().getShrinkage(getD().nodeId);
-    }
+//	/**
+//	 * Method to update the "end shrink" factors on all arcs on a PortInst.
+//	 * This is a number from 0 to 90, where
+//	 * 0 indicates no shortening (extend the arc by half its width) and greater values
+//	 * indicate that the end should be shortened to account for this angle of connection.
+//	 * Small values are shortened almost to nothing, whereas large values are shortened
+//	 * very little (and a value of 90 indicates no shortening at all).
+//	 */
+// 	public byte getShrinkage() {
+//        if (parent == null || !(protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isArcsShrink()))
+//            return 0;
+//        return parent.getMemoization().getShrinkage(getD().nodeId);
+//    }
     
 	/**
 	 * Method to set this NodeInst to be hard-to-select.

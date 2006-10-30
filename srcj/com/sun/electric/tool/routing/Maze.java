@@ -2171,7 +2171,7 @@ public class Maze
 				// now make the connection (simple wire to wire for now)
 				PortInst fPi = (PortInst)fromPortInstList.get(0);
 				PortInst tPi = (PortInst)toPortInstList.get(0);
-				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(), fPi, tPi, new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), null);
+				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), fPi, tPi, new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), null);
 				if (ai == null)
 				{
 					System.out.println("Could not create path (arc)");

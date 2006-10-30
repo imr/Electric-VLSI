@@ -1441,6 +1441,9 @@ public class GenMath
 		return false;
 	}
 
+    private static final double SIN30 = 0.5;
+    private static final double SIN45 = 0.7071067811865476;
+    static { assert SIN45 == Math.sqrt(0.5); }
     private static final double [] sineTable = {
         0.0,0.0017453283658983088,0.003490651415223732,0.00523596383141958,0.0069812602979615525,0.008726535498373935,
         0.010471784116245792,0.012217000835247169,0.013962180339145272,0.015707317311820675,0.01745240643728351,0.019197442399689665,
@@ -1492,7 +1495,7 @@ public class GenMath
         0.47255076486905395,0.4740882090471163,0.47562420907027525,0.4771587602596084,0.4786918579406068,0.48022349744318893,
         0.4817536741017153,0.4832823832550024,0.48480962024633695,0.48633538042349045,0.4878596591387326,0.4893824517488462,
         0.4909037536151409,0.49242356010346716,0.493941866584231,0.4954586684324075,0.49697396102755526,0.49848773975383026,
-        0.49999999999999994,0.5015107371594573,0.503019946630235,0.5045276238150193,0.5060337641211637,0.5075383629607041,
+        SIN30, 0.5015107371594573,0.503019946630235,0.5045276238150193,0.5060337641211637,0.5075383629607041,
         0.5090414157503713,0.5105429179116057,0.5120428648705715,0.51354125205817,0.5150380749100542,0.5165333288666418,
         0.5180270093731302,0.5195191118795094,0.5210096318405764,0.5224985647159488,0.5239859059700791,0.5254716510722678,
         0.5269557954966776,0.5284383347223471,0.5299192642332049,0.5313985795180829,0.53287627607073,0.5343523493898263,
@@ -1517,7 +1520,7 @@ public class GenMath
         0.6845471059286886,0.6858183529273763,0.687087510804423,0.6883545756937539,0.6896195437356697,0.6908824110768583,
         0.6921431738704068,0.693401828275813,0.6946583704589974,0.6959127965923143,0.6971651028545645,0.6984152854310058,
         0.6996633405133654,0.7009092642998509,0.7021530529951624,0.7033947028105039,0.7046342099635946,0.705871570678681,
-        0.7071067811865475,0.7083398377245288,0.7095707365365209,0.7107994738729925,0.7120260459909965,0.7132504491541816,
+        SIN45, 0.7083398377245288,0.7095707365365209,0.7107994738729925,0.7120260459909965,0.7132504491541816,
         0.7144726796328033,0.7156927337037359,0.7169106076504826,0.7181262977631888,0.7193398003386512,0.7205511116803304,
         0.7217602280983622,0.7229671459095681,0.7241718614374675,0.7253743710122875,0.7265746709709759,0.7277727576572104,
         0.7289686274214116,0.7301622766207523,0.7313537016191705,0.7325428987873788,0.7337298645028764,0.7349145951499599,
@@ -1625,18 +1628,117 @@ public class GenMath
     }
 
     /**
+     * Method to compute the sine of a small integer angle (in tenth-degrees).
+     * @param angle the angle in tenth-degrees in range 0..900.
+     * @return the sine of that angle.
+     */
+    public static double sinSmall(int angle) { return sineTable[angle]; }
+
+    /**
+     * Method to compute the cosine of a small integer angle (in tenth-degrees).
+     * @param angle the angle in tenth-degrees in range [0..900].
+     * @return the cosine of that angle.
+     */
+    public static double cosSmall(int angle) { return sineTable[900-angle]; }
+
+    /**
+     * Returns Cartesian coordinates of a vector specified in polar coordinates.
+     * Result vector has integer components.
+     * Euclidean length of result vector is not less than specified length.
+     * Components of result vector are packed in a long value:
+     * x is in 32 less significant bits, y is in 32 most significant bits.
+     * @param len positive vector length
+     * @param angle the angle in tenth-degrees in range [0..3600).
+     * @return vector packed in a long value.
+     * @see com.sun.electric.geometry.GenMath#getX
+     * @see com.sun.electric.geometry.GenMath#getY
+     */
+    public static long polarToXY(int len, int angle) {
+        if (len == 0) return 0;
+        assert len > 0;
+        int x = 0, y = 0;
+        switch (angle) {
+            case 0:
+                x = len;
+                break;
+            case 900:
+                y = len;
+                break;
+            case 1800:
+                x = -len;
+                break;
+            case 2700:
+                y = -len;
+                break;
+            case 450:
+                x = y = (int)(len*SIN45) + 1;
+                break;
+            case 1350:
+                x = -(y = (int)(len*SIN45) + 1);
+                break;
+            case 2250:
+                x = y = -(int)(len*SIN45) - 1;
+                break;
+            case 3150:
+                y = -(x = (int)(len*SIN45) + 1);
+                break;
+            default:
+                if (angle < 1800) {
+                    if (angle < 900) {
+                        x = (int)(len*GenMath.cosSmall(angle)) + 1;
+                        y = (int)(len*GenMath.sinSmall(angle)) + 1;
+                    } else {
+                        angle -= 900;
+                        x = -(int)(len*GenMath.sinSmall(angle)) - 1;
+                        y = (int)(len*GenMath.cosSmall(angle)) + 1;
+                    }
+                } else {
+                    if (angle < 2700) {
+                        angle -= 1800;
+                        x = -(int)(len*GenMath.cosSmall(angle)) - 1;
+                        y = -(int)(len*GenMath.sinSmall(angle)) - 1;
+                    } else {
+                        angle -= 2700;
+                        x = (int)(len*GenMath.sinSmall(angle)) + 1;
+                        y = -(int)(len*GenMath.cosSmall(angle)) - 1;
+                    }
+                }
+        }
+        // return packed x and y
+        return packXY(x, y);
+    }
+    
+    /**
+     * Pack a pair of integer coordinates in a long value.
+     * x is packed in a low half, and y is packed in a high half of the long.
+     * Use <code>getX</code> and <code>getY</code> to unpack coordiantes.
+     * @param x x-coordinate
+     * @param y y-coordinate
+     * @return a long value with a packed pair of coordinates.
+     * @see com.sun.electric.geometry.GenMath#getX
+     * @see com.sun.electric.geometry.GenMath#getY
+     */
+    public static long packXY(int x, int y) { return (x & 0xFFFFFFFFL) | ((long)(y)) << 32; }
+    
+    /**
+     * Returns x coordinate packed in a long value by <code>packXY</code>.
+     * @see com.sun.electric.geometry.GenMath#packXY .
+     */
+    public static int getX(long xy) { return (int)xy; }
+    
+    /**
+     * Returns y coordinate packed in a long value by <code>packXY</code>.
+     * @see com.sun.electric.geometry.GenMath#packXY .
+     */
+    public static int getY(long xy) { return (int)(xy >> 32); }
+    
+    /**
      * Method to return a long that represents the unsigned
      * value of an integer.  I.e., the passed int is a set of
      * bits, and this method returns a number as if those bits
      * were interpreted as an unsigned int.
      */
-    public static long unsignedIntValue(int n)
-    {
-        if (n > 0) return (long)n;              // int is > 0
-        long num = 0;
-        num = n | num;
-        return num;
-    }
+    public static long unsignedIntValue(int n) { return n & 0xFFFFFFFFL; }
 
     /**
      ** Method to return a prime number greater or equal than a give threshold.

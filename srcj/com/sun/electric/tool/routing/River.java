@@ -431,7 +431,7 @@ public class River
 		Layer layer = arcLayers[0].getLayer();
 		double amt = DRC.getMaxSurround(layer, Double.MAX_VALUE);
 		if (amt < 0) amt = 1;
-		return unsortedRivRot(wantAp, theList, wantAp.getDefaultWidth() - wantAp.getWidthOffset(), amt, amt, amt);
+		return unsortedRivRot(wantAp, theList, wantAp.getDefaultLambdaBaseWidth(), amt, amt, amt);
 	}
 
 	/**

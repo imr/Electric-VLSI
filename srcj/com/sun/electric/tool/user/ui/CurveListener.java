@@ -202,8 +202,8 @@ public class CurveListener
 			{
 				curvature = curveArcAboutPoint(curveAI, dbPt.getX(), dbPt.getY());
 			}
-			double width = curveAI.getWidth() - curveAI.getProto().getWidthOffset();
-			Poly curvedPoly = curveAI.getD().curvedArcOutline(Poly.Type.CLOSED, width, curvature);
+			double width = curveAI.getLambdaBaseWidth();
+			Poly curvedPoly = curveAI.getD().curvedArcLambdaOutline(Poly.Type.CLOSED, width, curvature);
 			if (curvedPoly != null)
 				highlighter.addPoly(curvedPoly, curveAI.getParent(), null);
 		}
@@ -227,7 +227,7 @@ public class CurveListener
 		double r = r0.distance(ip);
 
 		// now see if this point will be re-created
-		Point2D [] pts = DBMath.findCenters(r, r0, r1, ai.getLength());
+		Point2D [] pts = DBMath.findCenters(r, r0, r1, ai.getLambdaLength());
 		if (pts != null)
 		{
 			if (Math.abs(pts[0].getX()-ip.getX())+Math.abs(pts[0].getY()-ip.getY()) <
@@ -261,7 +261,7 @@ public class CurveListener
 
 		//now see if this point will be re-created
 		double r = r0.distance(rc);
-		Point2D [] pts = DBMath.findCenters(r, r0, r1, ai.getLength());
+		Point2D [] pts = DBMath.findCenters(r, r0, r1, ai.getLambdaLength());
 		if (pts != null)
 		{
 			if (Math.abs(pts[0].getX()-rcx) + Math.abs(pts[0].getY()-rcy) <
@@ -301,7 +301,7 @@ public class CurveListener
 			{
 				curveAI.newVar(ImmutableArcInst.ARC_RADIUS, new Double(curvature));
 			}
-			curveAI.modify(0, 0, 0, 0, 0);
+			curveAI.modify(0, 0, 0, 0);
 			return true;
 		}
 	}

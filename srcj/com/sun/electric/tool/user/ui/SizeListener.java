@@ -246,7 +246,7 @@ public class SizeListener
 				} else if (geom instanceof ArcInst && !nodes)
 				{
 					ArcInst ai = (ArcInst)geom;
-					xS = ai.getWidth() - ai.getProto().getWidthOffset();
+					xS = ai.getLambdaBaseWidth();
 				}
 			}
 			xSize.setText(TextUtils.formatDouble(xS));
@@ -325,8 +325,7 @@ public class SizeListener
 				} else if (geom instanceof ArcInst && !nodes)
 				{
 					ArcInst ai = (ArcInst)geom;
-					double w = xS + ai.getProto().getWidthOffset();
-					ai.modify(w - ai.getWidth(), 0, 0, 0, 0);
+					ai.setLambdaBaseWidth(xS);
 					didSomething = true;
 				}
 			}
@@ -374,8 +373,8 @@ public class SizeListener
 		} else
 		{
 			ArcInst ai = (ArcInst)stretchGeom;
-			double newWidth = getNewArcSize(evt);
-			ScaleArc job = new ScaleArc(ai, newWidth);
+			double newLambdaBaseWidth = getNewArcSize(evt);
+			ScaleArc job = new ScaleArc(ai, newLambdaBaseWidth);
 		}
 		wnd.repaint();
 	}
@@ -439,9 +438,9 @@ public class SizeListener
 			} else
 			{
 				// construct the polygons that describe the basic arc
-				double newWidth = getNewArcSize(evt);
+				long newGridWidth = DBMath.lambdaToSizeGrid(getNewArcSize(evt));
 				ArcInst ai = (ArcInst)stretchGeom;
-				Poly stretchedPoly = ai.makePoly(newWidth - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+				Poly stretchedPoly = ai.makeLambdaPoly(newGridWidth - ai.getProto().getGridWidthOffset(), Poly.Type.CLOSED);
 				if (stretchedPoly == null) return;
 				Point2D [] stretchedPoints = stretchedPoly.getPoints();
 				for(int i=0; i<stretchedPoints.length; i++)
@@ -605,7 +604,7 @@ public class SizeListener
 	/**
 	 * Method to determine the proper size for the ArcInst being stretched, given a cursor location.
 	 * @param evt the event with the current cursor location.
-	 * @return the new size for the ArcInst.
+	 * @return the new base size for the ArcInst in lambda units.
 	 */
 	private double getNewArcSize(MouseEvent evt)
 	{
@@ -617,15 +616,13 @@ public class SizeListener
 
 		// get information about the arc being stretched
 		ArcInst ai = (ArcInst)stretchGeom;
-		ArcProto ap = ai.getProto();
-		double offset = ap.getWidthOffset();
 
 		// determine point on arc that is closest to the cursor
 		Point2D ptOnLine = DBMath.closestPointToLine(ai.getHeadLocation(), ai.getTailLocation(), pt);
-		double newWidth = ptOnLine.distance(pt)*2 + offset;
-		Point2D newSize = new Point2D.Double(newWidth, newWidth);
-		EditWindow.gridAlign(newSize);
-		return newSize.getX();
+		double newLambdaBaseWidth = ptOnLine.distance(pt)*2;
+		Point2D newLambdaBaseSize = new Point2D.Double(newLambdaBaseWidth, newLambdaBaseWidth);
+		EditWindow.gridAlign(newLambdaBaseSize);
+		return newLambdaBaseSize.getX();
 	}
 
 	private static class ScaleNode extends Job
@@ -675,13 +672,13 @@ public class SizeListener
 	private static class ScaleArc extends Job
 	{
 		private ArcInst stretchArc;
-		private double newWidth;
+		private double newLambdaBaseWidth;
 
-		protected ScaleArc(ArcInst stretchArc, double newWidth)
+		protected ScaleArc(ArcInst stretchArc, double newLambdaBaseWidth)
 		{
 			super("Scale arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.stretchArc = stretchArc;
-			this.newWidth = newWidth;
+			this.newLambdaBaseWidth = newLambdaBaseWidth;
 			startJob();
 		}
 
@@ -690,7 +687,7 @@ public class SizeListener
 			// make sure scaling the arc is allowed
 			if (CircuitChangeJobs.cantEdit(stretchArc.getParent(), null, true, true) != 0) return false;
 
-			stretchArc.modify(newWidth - stretchArc.getWidth(), 0, 0, 0, 0);
+			stretchArc.setLambdaBaseWidth(newLambdaBaseWidth);
 			return true;
 		}
 	}

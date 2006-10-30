@@ -597,7 +597,7 @@ public class CellChangeJobs
 						if (trueSubCgn.depth == -1) continue;
 						PortInst toppinPi = trueCgn.botPin.getOnlyPortInst();
 						PortInst niBotPi = trueSubCgn.topPin.getOnlyPortInst();
-						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultWidth(), toppinPi, niBotPi);
+						ArcInst ai = ArcInst.makeInstance(Artwork.tech.solidArc, Artwork.tech.solidArc.getDefaultLambdaFullWidth(), toppinPi, niBotPi);
 						if (ai == null) return false;
                         ai.setRigid(false);
                         ai.setFixedAngle(false);
@@ -732,7 +732,7 @@ public class CellChangeJobs
 				String name = null;
 				Name oldName = ai.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
-				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, piTail, ai.getHeadLocation(),
+				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), piHead, piTail, ai.getHeadLocation(),
 				        ai.getTailLocation(), name);
 				if (newAi == null) return false;
 				newAi.copyPropertiesFrom(ai);
@@ -867,7 +867,7 @@ public class CellChangeJobs
 			String name = null;
 			if (ai.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);
-			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, piTail, ptHead, ptTail, name);
+			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), piHead, piTail, ptHead, ptTail, name);
 			if (newAi == null) return;
 			newAi.copyPropertiesFrom(ai);
 		}
@@ -883,7 +883,7 @@ public class CellChangeJobs
 		{
 //			if ((ai->userbits&DEADA) != 0) continue;
 			ArcProto ap = ai.getProto();
-			double wid = ai.getWidth();
+			double wid = ai.getLambdaFullWidth();
 			String name = null;
 			if (ai.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ai.getName(), cell, ArcInst.class, false);

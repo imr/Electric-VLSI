@@ -291,8 +291,8 @@ public class L extends Output
 				if (alt != null) printWriter.print(" " + alt);
 
 				// write the wire width if nonstandard
-				if (ai.getWidth() != ai.getProto().getDefaultWidth())
-					printWriter.print(" W=" + TextUtils.formatDouble(ai.getWidth()-ai.getProto().getWidthOffset()));
+				if (ai.getLambdaBaseWidth() != ai.getProto().getDefaultLambdaBaseWidth())
+					printWriter.print(" W=" + TextUtils.formatDouble(ai.getLambdaBaseWidth()));
 
 				// write the starting node name (use port name if pin is an export)
 				if (ni.hasExports() && ni.getFunction() == PrimitiveNode.Function.PIN)
@@ -358,7 +358,7 @@ public class L extends Output
 					if ((nature != TRANSISTOR || segCount > 0) && eNature != TRANSISTOR)
 					{
 						if (segDist < 0) segDist = 0;
-						segDist += ai.getLength();
+						segDist += ai.getLambdaLength();
 					}
 
 					// if other node not a pin, stop now

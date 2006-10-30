@@ -311,7 +311,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
 			// get initial values
 			initialName = ai.getName();
-			initialWidth = ai.getWidth();
+			initialWidth = ai.getLambdaFullWidth();
 			initialEasyToSelect = !ai.isHardSelect();
 			initialRigid = ai.isRigid();
 			initialFixedAngle = ai.isFixedAngle();
@@ -352,8 +352,8 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			}
 			network.setText(netName);
 			name.setText(initialName);
-			width.setText(TextUtils.formatDouble(initialWidth - ai.getProto().getWidthOffset()));
-			length.setText(TextUtils.formatDouble(ai.getLength()));
+			width.setText(TextUtils.formatDouble(initialWidth - ai.getProto().getLambdaWidthOffset()));
+			length.setText(TextUtils.formatDouble(ai.getLambdaLength()));
 			busSize.setText(Integer.toString(busWidth));
 			angle.setText("Angle: " + TextUtils.formatDouble(ai.getAngle() / 10.0));
 			easyToSelect.setSelected(initialEasyToSelect);
@@ -1118,7 +1118,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		}
 
 		Double newDWidth = null;
-		double currentWidth = TextUtils.atof(width.getText()) + shownArc.getProto().getWidthOffset();
+		double currentWidth = TextUtils.atof(width.getText()) + shownArc.getProto().getLambdaWidthOffset();
 		if (!DBMath.doublesEqual(currentWidth, initialWidth))
 		{
 			newDWidth = new Double(currentWidth - initialWidth);
@@ -1259,7 +1259,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			if (newDWidth != null || changed)
 			{
 				if (newDWidth == null) newDWidth = new Double(0);
-				ai.modify(newDWidth.doubleValue(), 0, 0, 0, 0);
+				ai.setLambdaBaseWidth(ai.getLambdaBaseWidth() + newDWidth.doubleValue());
 			}
 			return true;
 		}

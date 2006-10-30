@@ -396,7 +396,7 @@ public class ViewChanges
 				Export newOPp = (Export)newPortMap.get(oPp);
 				if (newPp == null || newOPp == null) continue;
 				ArcProto univ = Generic.tech.universal_arc;
-				ArcInst newAI = ArcInst.makeInstance(univ, univ.getDefaultWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
+				ArcInst newAI = ArcInst.makeInstance(univ, univ.getDefaultLambdaFullWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
 				if (newAI == null)
 				{
 					System.out.println("Could not create connecting arc");
@@ -804,7 +804,7 @@ public class ViewChanges
 			{
 				PortInst head = ni.getOnlyPortInst();
 				PortInst tail = pinNi.getOnlyPortInst();
-				ArcInst ai = ArcInst.makeInstance(wireType, wireType.getDefaultWidth(),
+				ArcInst ai = ArcInst.makeInstance(wireType, wireType.getDefaultLambdaFullWidth(),
 					head, tail, new Point2D.Double(xBBPos, yBBPos),
 						new Point2D.Double(xPos, yPos), null);
 				if (ai != null && wireType == Schematics.tech.bus_arc)
@@ -1555,10 +1555,10 @@ public class ViewChanges
                     double newWid = 0;
                     if (newAp == Generic.tech.universal_arc) fixAng = false; else
                     {
-                        double defwid = ai.getProto().getDefaultWidth() - ai.getProto().getWidthOffset();
-                        double curwid = ai.getWidth() - ai.getProto().getWidthOffset();
-                        newWid = (newAp.getDefaultWidth() - newAp.getWidthOffset()) * curwid / defwid + newAp.getWidthOffset();
-                        if (!(newWid > 0)) newWid = newAp.getDefaultWidth();
+                        double defwid = ai.getProto().getDefaultLambdaBaseWidth();
+                        double curwid = ai.getLambdaBaseWidth();
+                        newWid = newAp.getDefaultLambdaBaseWidth() * curwid / defwid + newAp.getLambdaWidthOffset();
+                        if (!(newWid > 0)) newWid = newAp.getDefaultLambdaFullWidth();
                     }
 
                     // find the endpoints of the arc

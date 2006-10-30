@@ -59,7 +59,7 @@ public class TrackRouterV extends TrackRouter {
 		ArcProto portLyr = Tech.closestLayer(newPort.getPortProto(), layer);
 
 		double newWid = LayoutLib.widestWireWidth(newPort);
-		if (newWid==-1)  newWid = portLyr.getWidth();
+		if (newWid==-1)  newWid = portLyr.getDefaultLambdaBaseWidth();
 
 		// place a ViaStack at newPort.Y + viaOffset
 		double y = centerP.getY() /*LayoutLib.roundCenterY(newPort)*/ + viaOffset;

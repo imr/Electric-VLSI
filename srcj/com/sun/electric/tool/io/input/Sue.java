@@ -1397,7 +1397,7 @@ public class Sue extends Input
 		for(SueWire sw : sueWires)
 		{
 			if (sw.proto == null) sw.proto = Schematics.tech.wire_arc;
-			double wid = sw.proto.getDefaultWidth();
+			double wid = sw.proto.getDefaultLambdaFullWidth();
 
 			// if this is a bus, make sure it can connect */
 			if (sw.proto == Schematics.tech.bus_arc)
@@ -1415,7 +1415,7 @@ public class Sue extends Input
 						NodeInst ni = NodeInst.makeInstance(Schematics.tech.busPinNode, pt, xsize, ysize, cell);
 						if (ni == null) break;
 						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, Generic.tech.unrouted_arc.getDefaultWidth(), pi, sw.pi[i]);
+						ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, Generic.tech.unrouted_arc.getDefaultLambdaFullWidth(), pi, sw.pi[i]);
 						if (ai == null)
 						{
 							System.out.println("Error making fake connection");
@@ -1482,7 +1482,7 @@ public class Sue extends Input
 						break;
 					}
 
-					double wid = ap.getDefaultWidth();
+					double wid = ap.getDefaultLambdaFullWidth();
 					ArcInst ai = ArcInst.makeInstance(ap, wid, pi, oPi);
 					wired = true;
 					break;

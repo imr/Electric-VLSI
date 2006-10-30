@@ -134,7 +134,7 @@ public class FastHenryArc extends EDialog
 			fhaGroups.setSelectedItem(initialGroupName = groupName);
 		}
 
-		fhaWidth.setText(TextUtils.formatDouble(ai.getWidth() - ai.getProto().getWidthOffset()));
+		fhaWidth.setText(TextUtils.formatDouble(ai.getLambdaBaseWidth()));
 
 		String thickness = "";
 		if (fhai.getThickness() >= 0) thickness = TextUtils.formatDouble(initialThickness = fhai.getThickness());

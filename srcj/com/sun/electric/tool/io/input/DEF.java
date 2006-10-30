@@ -781,7 +781,7 @@ public class DEF extends LEFDEF
 				if (lastLogPi != null && IOTool.isDEFLogicalPlacement())
 				{
 					ArcProto ap = Generic.tech.unrouted_arc;
-					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultWidth(), pi, lastLogPi);
+					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), pi, lastLogPi);
 					if (ai == null)
 					{
 						reportError("Could not create unrouted arc");
@@ -914,7 +914,7 @@ public class DEF extends LEFDEF
 				// if the path starts with a via, wire it
 				if (pathStart && lastPi != null && foundCoord)
 				{
-					double width = li.arc.getDefaultWidth();
+					double width = li.arc.getDefaultLambdaFullWidth();
 					if (special) width = specialWidth; else
 					{
 						// get the width from the LEF file
@@ -962,7 +962,7 @@ public class DEF extends LEFDEF
 				}
 
 				// run the wire
-				double width = li.arc.getDefaultWidth();
+				double width = li.arc.getDefaultLambdaFullWidth();
 				if (special) width = specialWidth; else
 				{
 					// get the width from the LEF file
@@ -1002,7 +1002,7 @@ public class DEF extends LEFDEF
 				// if the path starts with a via, wire it
 				if (nextPi != null)
 				{
-					double width = li.arc.getDefaultWidth();
+					double width = li.arc.getDefaultLambdaFullWidth();
 					if (special) width = specialWidth; else
 					{
 						// get the width from the LEF file

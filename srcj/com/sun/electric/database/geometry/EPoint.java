@@ -225,12 +225,44 @@ final public class EPoint extends Point2D implements Serializable {
     }
 
     /**
-     * Creates mutable <code>Point2D.Double</code> from the <code>EPoint</code>.
-     * @return mutable Point2D
+     * Creates mutable <code>Point2D.Double</code> from the <code>EPoint</code> in lambda units.
+     * @return mutable Point2D in lambda units
      */
-	public Point2D.Double mutable() {
-		return new Point2D.Double(getX(), getY());
+	public Point2D.Double lambdaMutable() {
+		return new Point2D.Double(getLambdaX(), getLambdaY());
 	}
+
+    /**
+     * Creates mutable <code>Point2D.Double</code> from the <code>EPoint</code> in grid units.
+     * @return mutable Point2D in grid units
+     */
+	public Point2D.Double gridMutable() {
+		return new Point2D.Double(getGridX(), getGridY());
+	}
+
+     /**
+     * Returns the distance from this <code>EPoint</code> to a
+     * specified <code>EPoint</code> in lambda units.
+     * @param pt the specified <code>EPoint</code>
+     * @return the distance between this <code>EPoint</code> and
+     * the specified <code>Point</code> in lambdaUnits.
+     */
+    public double lambdaDistance(EPoint pt) {
+        return DBMath.gridToLambda(gridDistance(pt));
+    }
+
+   /**
+     * Returns the distance from this <code>EPoint</code> to a
+     * specified <code>EPoint</code> in grid units.
+     * @param pt the specified <code>EPoint</code>
+     * @return the distance between this <code>EPoint</code> and
+     * the specified <code>Point</code> in gridUnits.
+     */
+    public double gridDistance(EPoint pt) {
+        long PX = pt.getGridX() - this.getGridX();
+        long PY = pt.getGridY() - this.getGridY();
+        return PY == 0 ? Math.abs(PX) : PX == 0 ? Math.abs(PY) : Math.hypot(PX, PY);
+    }
 
 	/**
 	 * Returns a <code>String</code> that represents the value 

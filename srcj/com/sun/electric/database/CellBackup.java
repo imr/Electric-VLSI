@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
@@ -607,13 +608,17 @@ public class CellBackup {
         double[] bounds = new double[4];
         double lx = Double.POSITIVE_INFINITY, ly = Double.POSITIVE_INFINITY, hx = Double.NEGATIVE_INFINITY, hy = Double.NEGATIVE_INFINITY;
         for (ImmutableArcInst a: arcs) {
-            a.computeBounds(m, bounds);
+            a.computeGridBounds(m, bounds);
                 if (bounds[0] < lx) lx = bounds[0];
                 if (bounds[1] < ly) ly = bounds[1];
                 if (bounds[2] > hx) hx = bounds[2];
                 if (bounds[3] > hy) hy = bounds[3];
         }
         assert lx <= hx && ly <= hy;
+        lx = DBMath.gridToLambda(lx);
+        ly = DBMath.gridToLambda(ly);
+        hx = DBMath.gridToLambda(hx);
+        hy = DBMath.gridToLambda(hy);
         return this.primitiveBounds = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
     }
     
@@ -629,7 +634,7 @@ public class CellBackup {
         /** ImmutableExports sorted by original PortInst. */
         private final ImmutableExport[] exportIndexByOriginalPort;
         private final BitSet wiped;
-        private final byte[] shrink;
+        private final short[] shrink;
         
         Memoization() {
             cellBackupsMemoized++;
@@ -653,8 +658,7 @@ public class CellBackup {
             this.exportIndexByOriginalPort = exportIndexByOriginalPort;
             
             BitSet wiped = new BitSet();
-            short[] angles = new short[(maxNodeId+1)*2];
-            Arrays.fill(angles, (short)-1);
+            int[] angles = new int[maxNodeId+1];
             for (ImmutableArcInst a: arcs) {
                 // wipe status
                 if (a.protoType.isWipable()) {
@@ -662,61 +666,22 @@ public class CellBackup {
                     wiped.set(a.headNodeId);
                 }
                 // shrinkage
-                if (a.getGridWidth() != 0) {
-                    short angle = (short)a.angle;
-                    if (angle >= 1800)
-                        angle -= 1800;
-                    assert angle >= 0 && angle < 1800;
-                    
-                    int tailNodeId = a.tailNodeId;
-                    int tailAng0 = angles[tailNodeId*2];
-                    int tailAng1 = angles[tailNodeId*2 + 1];
-                    if (angle != tailAng0 && angle != tailAng1) {
-                        if (tailAng0 < 0)
-                            angles[tailNodeId*2] = angle;
-                        else if (tailAng1 < 0)
-                            angles[tailNodeId*2 + 1] = angle;
-                        else
-                            angles[tailNodeId*2 + 1] = Short.MAX_VALUE;
-                    }
-                    
-                    int headNodeId = a.headNodeId;
-                    int headAng0 = angles[headNodeId*2];
-                    int headAng1 = angles[headNodeId*2 + 1];
-                    if (angle != headAng0 && angle != headAng1) {
-                        if (headAng0 < 0)
-                            angles[headNodeId*2] = angle;
-                        else if (headAng1 < 0)
-                            angles[headNodeId*2 + 1] = angle;
-                        else
-                            angles[headNodeId*2] = Short.MAX_VALUE;
-                    }
-                    
-                }
+                a.registerShrinkage(angles);
             }
-            byte[] shrink = new byte[maxNodeId + 1];
+            short[] shrink = new short[maxNodeId + 1];
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
                 ImmutableNodeInst n = nodes.get(nodeIndex);
                 NodeProtoId np = n.protoId;
                 if (!(np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe()))
                     wiped.clear(n.nodeId);
-                if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsShrink()) {
-                    short ang0 = angles[nodeIndex*2];
-                    short ang1 = angles[nodeIndex*2 + 1];
-                    if (ang1 < 0 || ang1 >= 1800) continue;
-                    int ang = Math.abs(ang0 - ang1);
-                    if (ang > 900) ang = 1800 - ang;
-                    byte s = (byte)((ang + 5) / 10);
-                    if (s == 0 && ang != 0) s = 1;
-                    shrink[n.nodeId] = s;
-                }
-                
+                if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsShrink())
+                    shrink[n.nodeId] = ImmutableArcInst.computeShrink(angles[nodeIndex]);
             }
             this.wiped = wiped;
             this.shrink = shrink;
         }
     
-        /**
+       /**
          * Returns true of there are Exports on specified NodeInst.
          * @param originalNodeId nodeId of specified NodeInst.
          * @return true if there are Exports on specified NodeInst.
@@ -816,15 +781,15 @@ public class CellBackup {
         
         /**
          * Method to tell the "end shrink" factors on all arcs on a specified ImmutableNodeInst.
-         * This is a number from 0 to 90, where
-         * 0 indicates no shortening (extend the arc by half its width) and greater values
-         * indicate that the end should be shortened to account for this angle of connection.
-         * Small values are shortened almost to nothing, whereas large values are shortened
-         * very little (and a value of 90 indicates no shortening at all).
+         * -1 indicates no shortening (extend the arc by half its width).
+         * -2 indicates 45 degree shortening.
+         * [0..3600) is a sum of arc angles modulo 3600
+         * if this ImmutableNodeInst is a pin which can "isArcsShrink" and this pin connects
+         * exactly two arcs whit extended ends and angle between arcs is accute.
          * @param nodeId nodeId of specified ImmutableNodeInst
          * @return shrink factor of specified ImmutableNodeInst is wiped.
          */
-        public byte getShrinkage(int nodeId) {
+        short getShrinkage(int nodeId) {
             return nodeId < shrink.length ? shrink[nodeId] : 0;
         }
         
@@ -845,46 +810,46 @@ public class CellBackup {
             for (int i = 1; i < connections.length; i++)
                 assert compareConnections(connections[i - 1], connections[i]) < 0;
         }
-    }
-    
-    private void sortConnections(int[] connections, int l, int r) {
-        while (l < r) {
-            int x = connections[(l + r) >>> 1];
-            int i = l, j = r;
-            do {
-                while (compareConnections(connections[i], x) < 0) i++;
-                while (compareConnections(x, connections[j]) < 0) j--;
-                if (i <= j) {
-                    int w = connections[i];
-                    connections[i] = connections[j];
-                    connections[j] = w;
-                    i++; j--;
+
+        private void sortConnections(int[] connections, int l, int r) {
+            while (l < r) {
+                int x = connections[(l + r) >>> 1];
+                int i = l, j = r;
+                do {
+                    while (compareConnections(connections[i], x) < 0) i++;
+                    while (compareConnections(x, connections[j]) < 0) j--;
+                    if (i <= j) {
+                        int w = connections[i];
+                        connections[i] = connections[j];
+                        connections[j] = w;
+                        i++; j--;
+                    }
+                } while (i <= j);
+                if (j - l < r - i) {
+                    sortConnections(connections, l, j);
+                    l = i;
+                } else {
+                    sortConnections(connections, i, r);
+                    r = j;
                 }
-            } while (i <= j);
-            if (j - l < r - i) {
-                sortConnections(connections, l, j);
-                l = i;
-            } else {
-                sortConnections(connections, i, r);
-                r = j;
             }
         }
-    }
-    
-    private int compareConnections(int con1, int con2) {
-        ImmutableArcInst a1 = arcs.get(con1 >>> 1);
-        ImmutableArcInst a2 = arcs.get(con2 >>> 1);
-        boolean end1 = (con1 & 1) != 0;
-        boolean end2 = (con2 & 1) != 0;
-        int nodeId1 = end1 ? a1.headNodeId : a1.tailNodeId;
-        int nodeId2 = end2 ? a2.headNodeId : a2.tailNodeId;
-        int cmp = nodeId1 - nodeId2;
-        if (cmp != 0) return cmp;
-        PortProtoId portId1 = end1 ? a1.headPortId : a1.tailPortId;
-        PortProtoId portId2 = end2 ? a2.headPortId : a2.tailPortId;
-        cmp = portId1.getChronIndex() - portId2.getChronIndex();
-        if (cmp != 0) return cmp;
-        return con1 - con2;
+        
+        private int compareConnections(int con1, int con2) {
+            ImmutableArcInst a1 = arcs.get(con1 >>> 1);
+            ImmutableArcInst a2 = arcs.get(con2 >>> 1);
+            boolean end1 = (con1 & 1) != 0;
+            boolean end2 = (con2 & 1) != 0;
+            int nodeId1 = end1 ? a1.headNodeId : a1.tailNodeId;
+            int nodeId2 = end2 ? a2.headNodeId : a2.tailNodeId;
+            int cmp = nodeId1 - nodeId2;
+            if (cmp != 0) return cmp;
+            PortProtoId portId1 = end1 ? a1.headPortId : a1.tailPortId;
+            PortProtoId portId2 = end2 ? a2.headPortId : a2.tailPortId;
+            cmp = portId1.getChronIndex() - portId2.getChronIndex();
+            if (cmp != 0) return cmp;
+            return con1 - con2;
+        }
     }
     
     private static final Comparator<ImmutableExport> BY_ORIGINAL_PORT = new Comparator<ImmutableExport>() {
@@ -896,5 +861,4 @@ public class CellBackup {
             return e1.exportId.chronIndex - e2.exportId.chronIndex;
         }
     };
-
-}
+ }

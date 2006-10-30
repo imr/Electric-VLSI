@@ -448,7 +448,7 @@ public class Connectivity
 			Point2D tailLocation = new Point2D.Double(0, 0);
 			prevTrans.transform(ai.getHeadLocation(), headLocation);
 			prevTrans.transform(ai.getTailLocation(), tailLocation);
-			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi1, pi2,
+			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getLambdaFullWidth(), pi1, pi2,
 				headLocation, tailLocation, ai.getName());
 		}
 	}
@@ -526,7 +526,7 @@ public class Connectivity
 			{
 				// reduce the geometry to a skeleton of centerlines
 				double minWidth = 0;
-				if (ENFORCEMINIMUMSIZE) minWidth = scaleUp(ap.getDefaultWidth());
+				if (ENFORCEMINIMUMSIZE) minWidth = scaleUp(ap.getDefaultLambdaFullWidth());
 				List<Centerline> lines = findCenterlines(poly, layer, minWidth, merge, originalMerge);
 
 				// now realize the wires
@@ -540,18 +540,18 @@ public class Connectivity
 					Point2D loc2 = new Point2D.Double(scaleUp(loc2Unscaled.getX()), scaleUp(loc2Unscaled.getY()));
 
 					// make sure the wire fits
-					double wid = cl.width - scaleUp(ap.getWidthOffset());
+					double wid = cl.width - scaleUp(ap.getLambdaWidthOffset());
 					MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
 					if (!originalMerge.arcPolyFits(layer, loc1, loc2, wid, headExtend, tailExtend))
 					{
 						// arc does not fit, try reducing width
-						wid = scaleUp(ap.getWidthOffset());
+						wid = scaleUp(ap.getLambdaWidthOffset());
 						if (!originalMerge.arcPolyFits(layer, loc1, loc2, wid, headExtend, tailExtend)) continue;
 						cl.width = 0;
 					}
 
 					// create the wire
-					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR + ap.getWidthOffset(),
+					ArcInst ai = realizeArc(ap, pi1, pi2, loc1Unscaled, loc2Unscaled, cl.width / SCALEFACTOR + ap.getLambdaWidthOffset(),
 						!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 					if (ai == null)
 					{
@@ -594,7 +594,7 @@ public class Connectivity
 				}
 				PortInst pi1 = wantConnectingNodeAt(loc1, ap, width / SCALEFACTOR, newCell);
 				PortInst pi2 = wantConnectingNodeAt(loc2, ap, width / SCALEFACTOR, newCell);
-				realizeArc(ap, pi1, pi2, loc1, loc2, width / SCALEFACTOR + ap.getWidthOffset(), false, false, merge);
+				realizeArc(ap, pi1, pi2, loc1, loc2, width / SCALEFACTOR + ap.getLambdaWidthOffset(), false, false, merge);
 			}
 		}
 		return false;
@@ -1796,7 +1796,7 @@ public class Connectivity
 						if (xpos > polyBounds2.getMaxX()) xpos = polyBounds2.getMaxX();
 						Point2D pt1 = new Point2D.Double(xpos, polyBounds1.getCenterY());
 						Point2D pt2 = new Point2D.Double(xpos, polyBounds2.getCenterY());
-						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultWidth(), false, false, merge);
+						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultLambdaFullWidth(), false, false, merge);
 						continue;
 					}
 					if (polyBounds1.getMinY() <= polyBounds2.getMaxY() && polyBounds1.getMaxY() >= polyBounds2.getMinY())
@@ -1807,7 +1807,7 @@ public class Connectivity
 						if (ypos > polyBounds2.getMaxY()) ypos = polyBounds2.getMaxY();
 						Point2D pt1 = new Point2D.Double(polyBounds1.getCenterX(), ypos);
 						Point2D pt2 = new Point2D.Double(polyBounds2.getCenterX(), ypos);
-						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultWidth(), false, false, merge);
+						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultLambdaFullWidth(), false, false, merge);
 						continue;
 					}
 
@@ -1821,16 +1821,16 @@ public class Connectivity
 						PrimitiveNode np = ap.findPinProto();
 						NodeInst ni = createNode(np, corner1, np.getDefWidth(), np.getDefHeight(), newCell);
 						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner1, ap.getDefaultWidth(), false, false, merge);
-						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner1, ap.getDefaultWidth(), false, false, merge);
+						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner1, ap.getDefaultLambdaFullWidth(), false, false, merge);
+						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner1, ap.getDefaultLambdaFullWidth(), false, false, merge);
 					}
 					if (poly.contains(corner2))
 					{
 						PrimitiveNode np = ap.findPinProto();
 						NodeInst ni = createNode(np, corner2, np.getDefWidth(), np.getDefHeight(), newCell);
 						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner2, ap.getDefaultWidth(), false, false, merge);
-						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner2, ap.getDefaultWidth(), false, false, merge);
+						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner2, ap.getDefaultLambdaFullWidth(), false, false, merge);
+						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner2, ap.getDefaultLambdaFullWidth(), false, false, merge);
 					}
 				}
 			}
@@ -1897,9 +1897,9 @@ public class Connectivity
 				NodeInst ni2 = createNode(np, pinPt2, polyBounds.getHeight() / SCALEFACTOR,
 					polyBounds.getHeight() / SCALEFACTOR, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt1, objPt,
-					(polyBounds.getHeight()+ap.getWidthOffset()) / SCALEFACTOR, false, false, merge);
+					(polyBounds.getHeight()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 				realizeArc(ap, ni2.getOnlyPortInst(), pi, pinPt2, objPt,
-					(polyBounds.getHeight()+ap.getWidthOffset()) / SCALEFACTOR, false, false, merge);
+					(polyBounds.getHeight()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 			} else
 			{
 				// taller area, make vertical arcs
@@ -1914,9 +1914,9 @@ public class Connectivity
 				NodeInst ni2 = createNode(np, pinPt2, polyBounds.getWidth() / SCALEFACTOR,
 					polyBounds.getWidth() / SCALEFACTOR, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt1, objPt,
-					(polyBounds.getWidth()+ap.getWidthOffset()) / SCALEFACTOR, false, false, merge);
+					(polyBounds.getWidth()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 				realizeArc(ap, ni2.getOnlyPortInst(), pi, pinPt2, objPt,
-					(polyBounds.getWidth()+ap.getWidthOffset()) / SCALEFACTOR, false, false, merge);
+					(polyBounds.getWidth()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 			}
 			return;
 		}
@@ -1950,7 +1950,7 @@ public class Connectivity
 			NodeInst ni1 = createNode(np, pinPt, polyBounds.getWidth() / SCALEFACTOR,
 				polyBounds.getWidth() / SCALEFACTOR, newCell);
 			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt,
-				(polyBounds.getWidth()+ap.getWidthOffset()) / SCALEFACTOR, noEndExtend, noEndExtend, merge);
+				(polyBounds.getWidth()+ap.getLambdaWidthOffset()) / SCALEFACTOR, noEndExtend, noEndExtend, merge);
 			return;
 		}
 
@@ -1982,7 +1982,7 @@ public class Connectivity
 			NodeInst ni1 = createNode(np, pinPt, polyBounds.getHeight() / SCALEFACTOR,
 				polyBounds.getHeight() / SCALEFACTOR, newCell);
 			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt,
-				(polyBounds.getHeight()+ap.getWidthOffset()) / SCALEFACTOR, noEndExtend, noEndExtend, merge);
+				(polyBounds.getHeight()+ap.getLambdaWidthOffset()) / SCALEFACTOR, noEndExtend, noEndExtend, merge);
 		}
 	}
 
@@ -1994,7 +1994,7 @@ public class Connectivity
 		int ang = GenMath.figureAngle(tail, head);
 		int angPlus = (ang + 900) % 3600;
 		int angMinus = (ang + 2700) % 3600;
-		double width = (ai.getWidth() - ai.getProto().getWidthOffset()) / 2;
+		double width = ai.getLambdaBaseWidth() / 2;
 
 		// see if the head end touches
 		Point2D headButFarther = new Point2D.Double(head.getX() + width * GenMath.cos(ang), head.getY() + width * GenMath.sin(ang));
@@ -2719,7 +2719,7 @@ public class Connectivity
 						double width = polyBounds.getWidth() / SCALEFACTOR;
 						double height = polyBounds.getHeight() / SCALEFACTOR;
 						double actualWidth = 0;
-						if (ENFORCEMINIMUMSIZE) actualWidth = ap.getDefaultWidth() - ap.getWidthOffset();
+						if (ENFORCEMINIMUMSIZE) actualWidth = ap.getDefaultLambdaBaseWidth();
 						if (width >= actualWidth && height >= actualWidth)
 						{
 							PrimitiveNode np = ap.findPinProto();
@@ -2730,7 +2730,7 @@ public class Connectivity
 								Point2D end2 = new Point2D.Double((polyBounds.getMaxX()-height/2) / SCALEFACTOR, polyBounds.getCenterY() / SCALEFACTOR);
 								NodeInst ni1 = createNode(np, end1, height, height, newCell);
 								NodeInst ni2 = createNode(np, end2, height, height, newCell);
-								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height+ap.getWidthOffset(),
+								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height+ap.getLambdaWidthOffset(),
 									false, false, merge);
 							} else
 							{
@@ -2739,7 +2739,7 @@ public class Connectivity
 								Point2D end2 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMaxY()-width/2) / SCALEFACTOR);
 								NodeInst ni1 = createNode(np, end1, width, width, newCell);
 								NodeInst ni2 = createNode(np, end2, width, width, newCell);
-								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width+ap.getWidthOffset(),
+								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width+ap.getLambdaWidthOffset(),
 									false, false, merge);
 							}
 							continue;

@@ -703,7 +703,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			if (opi[0] == null || opi[1] == null) return null;
 
 			// create the arcinst
-			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[ArcInst.HEADEND], opi[ArcInst.TAILEND],
+			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getLambdaFullWidth(), opi[ArcInst.HEADEND], opi[ArcInst.TAILEND],
 				ai.getHeadLocation(), ai.getTailLocation(), ai.getName(), ai.getAngle());
 			if (toAi == null) return null;
 
@@ -1447,7 +1447,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 			ArcInst ai = it.next();
 
 			// move NodeInst "ni" by (dx,dy)
-			ai.modify(0, -cX, -cY, -cX, -cY);
+			ai.modify(-cX, -cY, -cX, -cY);
 		}
 
 		// adjust all instances of this cell

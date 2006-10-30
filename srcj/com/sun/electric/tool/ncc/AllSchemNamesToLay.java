@@ -503,7 +503,7 @@ public class AllSchemNamesToLay {
     	ArcInst longest = null;
     	for (ArcInst ai : arcs) {
     		if (longest==null) longest = ai;
-    		else if (ai.getLength()>longest.getLength())  longest = ai;
+    		else if (ai.getLambdaLength()>longest.getLambdaLength())  longest = ai;
     	}
     	return longest;
     }

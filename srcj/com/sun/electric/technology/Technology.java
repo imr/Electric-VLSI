@@ -124,20 +124,20 @@ public class Technology implements Comparable<Technology>
 	public static class ArcLayer
 	{
 		private Layer layer;
-		private double offset;
+		private int gridOffset;
 		private Poly.Type style;
 
 		/**
 		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
 		 * @param layer the Layer of this ArcLayer.
-		 * @param offset the distance from the outside of the ArcInst to this ArcLayer.
+		 * @param lambdaOffset the distance from the outside of the ArcInst to this ArcLayer in lambda units.
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
-		public ArcLayer(Layer layer, double offset, Poly.Type style)
+		public ArcLayer(Layer layer, double lambdaOffset, Poly.Type style)
 		{
 			this.layer = layer;
-			this.offset = offset;
 			this.style = style;
+            setGridOffset(DBMath.lambdaToSizeGrid(lambdaOffset));
 		}
 
 		/**
@@ -147,20 +147,33 @@ public class Technology implements Comparable<Technology>
 		public Layer getLayer() { return layer; }
 
 		/**
-		 * Returns the distance from the outside of the ArcInst to this ArcLayer.
+		 * Returns the distance from the outside of the ArcInst to this ArcLayer in lambda units.
 		 * This is the difference between the width of this layer and the overall width of the arc.
 		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
-		 * @return the distance from the outside of the ArcInst to this ArcLayer.
+		 * @return the distance from the outside of the ArcInst to this ArcLayer in lambda units.
 		 */
-		public double getOffset() { return offset; }
+		public double getLambdaOffset() { return DBMath.gridToLambda(getGridOffset()); }
 
 		/**
-		 * Sets the distance from the outside of the ArcInst to this ArcLayer.
+		 * Returns the distance from the outside of the ArcInst to this ArcLayer in grid units.
 		 * This is the difference between the width of this layer and the overall width of the arc.
 		 * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
-		 * @param offset the distance from the outside of the ArcInst to this ArcLayer.
+		 * @return the distance from the outside of the ArcInst to this ArcLayer in grid units.
 		 */
-		public void setOffset(double offset) { this.offset = offset; }
+		public long getGridOffset() { return gridOffset; }
+
+		/**
+         * Sets the distance from the outside of the ArcInst to this ArcLayer in lambda units.
+         * This is the difference between the width of this layer and the overall width of the arc.
+         * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
+         * 
+         * @param gridOffset the distance from the outside of the ArcInst to this ArcLayer in grid units.
+         */
+		public void setGridOffset(long gridOffset) {
+            if (gridOffset < 0 || gridOffset > Integer.MAX_VALUE || (gridOffset&1) != 0)
+                throw new IllegalArgumentException("lambdaOffset=" + DBMath.gridToLambda(gridOffset));
+            this.gridOffset = (int)gridOffset;
+        }
 
 		/**
 		 * Returns the Poly.Style of this ArcLayer.
@@ -757,7 +770,7 @@ public class Technology implements Comparable<Technology>
 		for(Iterator<ArcProto> it = getArcs(); it.hasNext(); )
 		{
 			ArcProto ap = it.next();
-			double width = ap.getDefaultWidth();
+			double width = ap.getDefaultLambdaFullWidth();
 			arcWidths.put(ap, width); // autoboxing
 		}
 
@@ -780,8 +793,8 @@ public class Technology implements Comparable<Technology>
 			ArcProto ap = it.next();
 			Double origWidth = arcWidths.get(ap);
 			if (origWidth == null) continue;
-			double width = ap.getDefaultWidth();
-			if (origWidth > width) ap.setDefaultWidth(origWidth); //autoboxing
+			double width = ap.getDefaultLambdaFullWidth();
+			if (origWidth > width) ap.setDefaultLambdaFullWidth(origWidth); //autoboxing
 		}
 
 		// now restore node size defaults if they are larger than what is set
@@ -1281,7 +1294,7 @@ public class Technology implements Comparable<Technology>
 			for(int i = 0; i < primLayers.length; i++)
 			{
 				Technology.ArcLayer primLayer = primLayers[i];
-				polys[polyNum] = ai.makePoly(ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
+				polys[polyNum] = ai.makeLambdaPoly(ai.getGridFullWidth() - primLayer.getGridOffset(), primLayer.getStyle());
 				if (polys[polyNum] == null) return null;
 				Layer lastLayer = layerOverride;
 				if (lastLayer == null) lastLayer = primLayer.getLayer();
@@ -3930,8 +3943,8 @@ public class Technology implements Comparable<Technology>
 		}
 
 		// compute the indentation of the outer layer
-		double indent = inLayer.getOffset() - surround*2;
-		outLayer.setOffset(indent);
+		long indent = inLayer.getGridOffset() - DBMath.lambdaToGrid(surround)*2;
+		outLayer.setGridOffset(indent);
 	}
 
 	/**
@@ -3947,7 +3960,7 @@ public class Technology implements Comparable<Technology>
 
 		boolean hasChanged = false;
 
-        if (ap.getDefaultWidth() != width + ap.getWidthOffset())
+        if (ap.getDefaultLambdaFullWidth() != width + ap.getLambdaWidthOffset())
             hasChanged = true;
 
 		// find the arc's pin and set its size and port offset

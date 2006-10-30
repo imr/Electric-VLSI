@@ -1031,8 +1031,8 @@ public class Change extends EDialog implements HighlightListener
 					if (pi1 == null) return;
 				}
 
-				double wid = ap.getDefaultWidth();
-				if (ai.getWidth() > wid) wid = ai.getWidth();
+				double wid = ap.getDefaultLambdaFullWidth();
+				if (ai.getLambdaFullWidth() > wid) wid = ai.getLambdaFullWidth();
 				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, pi1, ai.getHeadLocation(),
 				    ai.getTailLocation(), ai.getName());
 				if (newAi == null) return;
@@ -1105,7 +1105,7 @@ public class Change extends EDialog implements HighlightListener
 				PortInst thisPi = newNi.findPortInstFromProto(contactStack[i].getPort(0));
 
 				ArcProto typ = contactStackArc[i];
-				double wid = typ.getDefaultWidth();
+				double wid = typ.getDefaultLambdaFullWidth();
 				ArcInst newAi = ArcInst.makeInstance(typ, wid, thisPi, retPi);
 				retPi = thisPi;
 				if (newAi == null) return null;

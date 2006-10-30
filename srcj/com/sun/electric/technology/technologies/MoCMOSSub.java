@@ -1201,7 +1201,7 @@ public class MoCMOSSub extends Technology
 		P_Active_arc.setFactoryFixedAngle(true);
 		P_Active_arc.setWipable();
 		P_Active_arc.setFactoryAngleIncrement(90);
-		P_Active_arc.setWidthOffset(0);
+		P_Active_arc.setLambdaWidthOffset(0);
 
 		/** N-Active arc */
 		ArcProto N_Active_arc = ArcProto.newInstance(this, "N-Active", 15, new Technology.ArcLayer []
@@ -1214,7 +1214,7 @@ public class MoCMOSSub extends Technology
 		N_Active_arc.setFactoryFixedAngle(true);
 		N_Active_arc.setWipable();
 		N_Active_arc.setFactoryAngleIncrement(90);
-		N_Active_arc.setWidthOffset(0);
+		N_Active_arc.setLambdaWidthOffset(0);
 
 		/** Active arc */
 		ArcProto Active_arc = ArcProto.newInstance(this, "Active", 3, new Technology.ArcLayer []

@@ -1319,7 +1319,7 @@ class PixelDrawing
 				tinyArcs++;
 				return;
 			}
-			if (ai.getWidth() > 0)
+			if (ai.getLambdaFullWidth() > 0)
 			{
 				arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
 				if (arcSize < maxObjectSize)
@@ -3286,10 +3286,10 @@ class PixelDrawing
 			offY = -textHeight;
 		} if (style == Poly.Type.TEXTBOX)
 		{
-//			if (textWidth > rect.getWidth())
+//			if (textWidth > rect.getLambdaFullWidth())
 //			{
 //				// text too big for box: scale it down
-//				textScale *= rect.getWidth() / textWidth;
+//				textScale *= rect.getLambdaFullWidth() / textWidth;
 //			}
 			offX = -textWidth/2;
 			offY = -textHeight/2;

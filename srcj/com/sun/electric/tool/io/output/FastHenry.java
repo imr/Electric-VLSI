@@ -277,7 +277,7 @@ public class FastHenry extends Output
 			if (fhai.getGroupName() == null) continue;
 	
 			// get size
-			double wid = ai.getWidth() - ai.getProto().getWidthOffset();
+			double wid = ai.getLambdaBaseWidth();
 	
 			// get the name of the nodes on each end
 			NodeInst n1 = ai.getHeadPortInst().getNodeInst();
