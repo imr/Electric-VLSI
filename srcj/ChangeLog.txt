@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05b: *********************************
 
+IMP: (10/30/06, GVG) DIODUMMY layer (gds=56) added into TSMC180.
+
 BUG: (10/28/06, DN) RTree is not fresh after undo (Bug #1252).
 FIX: In Cell.update and Cell.updateSubCells add call of "topology.refreshRTree".
 
