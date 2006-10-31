@@ -84,6 +84,8 @@ public class VerilogReader extends Input
         for (CellInstance.PortInfo port : info.list)
         {
             NodeInst pin = parent.findNode(port.local);
+            if (pin == null)
+                continue; // temporary
             assert(pin != null);
             ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
             PortInst ex = cellInst.findPortInst(port.ex.getName());
@@ -300,7 +302,7 @@ public class VerilogReader extends Input
                 {
                     return null; // done
                 }
-                StringTokenizer p = new StringTokenizer(net, " ", false); // extracting only input name
+                StringTokenizer p = new StringTokenizer(net, " \t", false); // extracting only input name
                 List<String> l = new ArrayList<String>(2);
                 while (p.hasMoreTokens())
                 {
@@ -382,7 +384,7 @@ public class VerilogReader extends Input
 
             if (key.startsWith("supply"))
             {
-                key = getAKeyword();
+                key = getRestOfLine();
                 StringTokenizer parse = new StringTokenizer(key, ";", false); // extracting only input name
                 assert(parse.hasMoreTokens());
                 String name = parse.nextToken();
