@@ -9,9 +9,12 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.tool.user.ViewChanges;
 
 import java.net.URL;
 import java.io.IOException;
@@ -30,6 +33,7 @@ public class VerilogReader extends Input
     List<NodeInst> transistors = new ArrayList<NodeInst>();
     double maxWidth = 100, nodeWidth = 10;
     Map<Cell, Point2D.Double> locationMap = new HashMap<Cell, Point2D.Double>();
+    PrimitiveNode essentialBounds = Generic.tech.findNodeProto("Essential-Bounds");
 
     private String readCellHeader(List<String> inputs) throws IOException
     {
@@ -47,7 +51,50 @@ public class VerilogReader extends Input
         }
     }
 
-    private String readInstance(Cell cell, Cell instance, List<NodeInst> wires) throws IOException
+    private static class CellInstance
+    {
+        String name;
+        List<PortInfo> list = new ArrayList<PortInfo>();
+
+        static class PortInfo
+        {
+            String local;
+            boolean isBus;
+            PortProto ex;
+
+            PortInfo(String local, boolean isBus, PortProto ex)
+            {
+                this.local = local;
+                this.isBus = isBus;
+                this.ex = ex;
+            }
+        }
+
+        void addConnection(String local, boolean isBus, PortProto ex)
+        {
+            PortInfo port = new PortInfo(local, isBus, ex);
+            list.add(port);
+        }
+    }
+
+    private void createInstance(Cell parent, Cell icon, CellInstance info)
+    {
+        NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(parent), 10, 10, parent,
+                        Orientation.IDENT, info.name, 0);
+        for (CellInstance.PortInfo port : info.list)
+        {
+            NodeInst pin = parent.findNode(port.local);
+            assert(pin != null);
+            ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
+            PortInst ex = cellInst.findPortInst(port.ex.getName());
+            ArcInst ai = ArcInst.makeInstance(node, node.getDefaultLambdaFullWidth(),
+                    pin.getOnlyPortInst(), ex, null, null, port.local);
+            assert(ai != null);
+            ai.setFixedAngle(false);
+        }
+    }
+
+    private CellInstance readInstance(Cell instance, boolean noMoreInfo) throws IOException
     {
         List<StringBuffer> inputs = new ArrayList<StringBuffer>(2);
         int pos = 0;
@@ -70,14 +117,18 @@ public class VerilogReader extends Input
                 if (value.equals(";")) // done with header
                 {
                     String name = inputs.get(0).toString(); // in pos==0 then instance name
-                    NodeInst cellInst = NodeInst.newInstance(instance, new Point2D.Double(0, 0), 10, 10, cell,
-                            Orientation.IDENT, name, 0);
+                    StringTokenizer p = new StringTokenizer(name, "(  ", false);
+                    name = p.nextToken(); // remove extra ( and white spaces
+//                    NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(cell), 10, 10, cell,
+//                            Orientation.IDENT, name, 0);
+                    CellInstance localCell = new CellInstance();
+                    localCell.name = name;
 
                     // matching export
                     for (int i = 1; i < inputs.size(); i++)
                     {
                         StringBuffer s = inputs.get(i);
-                        StringTokenizer p = new StringTokenizer(s.toString(), "(){},  ", false);
+                        p = new StringTokenizer(s.toString(), "(){},  ", false);
                         List<String> nets = new ArrayList<String>();
                         while (p.hasMoreTokens())
                         {
@@ -88,7 +139,9 @@ public class VerilogReader extends Input
                         String local = nets.get(1); // simple case .w(w)
                         String e = nets.get(0);
                         boolean isBus = false;
-                        PortInst ex = cellInst.findPortInst(e);
+//                        String exPin = e;
+                        PortProto ex = instance.findPortProto(e);
+//                        PortInst ex = cellInst.findPortInst(e);
 
                         if (nets.size() > 2) // checking bus export
                         {
@@ -128,19 +181,20 @@ public class VerilogReader extends Input
                             }
                             if (rootName != null)
                             {
-//                                e += "[" + firstPin + ":" + lastPin + "]";
                                 isBus = true;
                                 String extra = "[" + firstPin + ":" + lastPin + "]";
-                                ex = cellInst.findPortInst(e+extra);
+                                ex = instance.findPortProto(e+extra);
+//                                ex = cellInst.findPortInst(e+extra);
                                 local = rootName + extra;
                                 if (ex == null) // try the inverse. This is tricky
                                 {
                                     extra = "[" + lastPin + ":" + firstPin + "]";
-                                    ex = cellInst.findPortInst(e+extra);
+                                    ex = instance.findPortProto(e+extra);
+//                                    ex = cellInst.findPortInst(e+extra);
                                 }
                             }
                         }
-                        else if (nets.size() == 2) // simple bus case
+                        else if (nets.size() == 2) // simple wire or bus case
                         {
                             String bus = nets.get(1);
                             local = bus;
@@ -150,35 +204,36 @@ public class VerilogReader extends Input
                             {
                                 bus = bus.substring(start+1, end);
                                 isBus = true;
-                                ex = cellInst.findPortInst(e+"[" + bus + "]");
+                                ex = instance.findPortProto(e+"[" + bus + "]");
+//                                ex = cellInst.findPortInst(e+"[" + bus + "]");
+                            }
+                            if (ex == null && noMoreInfo) // exports in std cell are not available
+                            {
+                                PrimitiveNode primitive = Schematics.tech.wirePinNode;
+                                NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(instance),
+                                        primitive.getDefWidth(), primitive.getDefHeight(),
+                                        instance, Orientation.IDENT, e, 0);
+                                Export.newInstance(instance, ni.getOnlyPortInst(), e);
+                                ex = instance.findPortProto(e);
+//                                ex = cellInst.findPortInst(e);
+                                assert(ex != null);
                             }
                         }
-//                        PortInst ex = cellInst.findPortInst(e);
-//                        for (Iterator<PortInst> pIt = cellInst.getPortInsts(); pIt.hasNext(); )
-//                        {
-//                            PortInst pi = pIt.next();
-//                            if (pi.getPortProto().getName().equals(e))
-//                            {
-//                                 found
-//                                ex = pi;
-//                                break;
-//                            }
-//                        }
                         if (ex != null)
                         {
-                            NodeInst pin = cell.findNode(local);
-                            if (pin != null)
-                            {
-                                ArcProto node = (isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
-                                ArcInst ai = ArcInst.makeInstance(node, node.getDefaultLambdaFullWidth(),
-                                        pin.getOnlyPortInst(), ex, null, null, local);
-                                ai.setFixedAngle(false);
-                                assert(ai != null);
-                            }
-
+                            localCell.addConnection(local, isBus, ex);
+//                            NodeInst pin = cell.findNode(local);
+//                            if (pin != null)
+//                            {
+//                                ArcProto node = (isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
+//                                ArcInst ai = ArcInst.makeInstance(node, node.getDefaultLambdaFullWidth(),
+//                                        pin.getOnlyPortInst(), ex, null, null, local);
+//                                ai.setFixedAngle(false);
+//                                assert(ai != null);
+//                            }
                         }
                     }
-                    return null;
+                    return localCell;
                 }
                 // It could be done by StringBuffer
                 StringBuffer val = inputs.get(pos);
@@ -189,7 +244,7 @@ public class VerilogReader extends Input
         // never reach this point
     }
 
-    private String getWires(Cell cell, List<NodeInst> wires) throws IOException
+    private String getWires(Cell cell) throws IOException
     {
         for (;;)
         {
@@ -211,6 +266,7 @@ public class VerilogReader extends Input
                     values.add(p.nextToken());
                 }
                 int size = values.size();
+                if (size == 0) continue;
                 assert(size == 1 || size == 2);
                 PrimitiveNode primitive = Schematics.tech.wirePinNode;
                 String pinName = values.get(size-1);
@@ -222,9 +278,51 @@ public class VerilogReader extends Input
                 NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
                         primitive.getDefWidth(), primitive.getDefHeight(),
                         cell, Orientation.IDENT, pinName, 0);
-                wires.add(ni);
             }
 
+        }
+        // never reach this point
+    }
+
+    private String readInputOutput(Cell cell) throws IOException
+    {
+        for (;;)
+        {
+            String input = getRestOfLine();
+            StringTokenizer parse = new StringTokenizer(input, ";,", true); // extracting only input name
+
+            while (parse.hasMoreTokens())
+            {
+                String net = parse.nextToken();
+                if (net.equals(","))
+                    continue;
+                if (net.equals(";"))
+                {
+                    return null; // done
+                }
+                StringTokenizer p = new StringTokenizer(net, " ", false); // extracting only input name
+                List<String> l = new ArrayList<String>(2);
+                while (p.hasMoreTokens())
+                {
+                    String name = p.nextToken();
+                    l.add(name); // it could be "input a;" or "input [9:0] a;"
+                }
+                PrimitiveNode primitive = Schematics.tech.wirePinNode;
+                int size = l.size();
+                if (size == 0) continue;
+                assert(size == 1 || size == 2);
+                String name = l.get(size - 1);
+                if (l.size() == 2) // "input a[];"
+                {
+                    name += l.get(0);
+                    primitive = Schematics.tech.busPinNode;
+                }
+                //Point2D center, double width, double height, Cell parent)
+                NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+                        primitive.getDefWidth(), primitive.getDefHeight(),
+                        cell, Orientation.IDENT, name, 0);
+                Export.newInstance(cell, ni.getOnlyPortInst(), name);
+            }
         }
         // never reach this point
     }
@@ -238,7 +336,6 @@ public class VerilogReader extends Input
         cellName += "{" + View.SCHEMATIC.getAbbreviation() + "}";
         Cell cell = Cell.makeInstance(Library.getCurrent(), cellName);
         cell.setTechnology(Schematics.tech);
-        List<NodeInst> wires = new ArrayList<NodeInst>();
 
         String nextToken = null;
 
@@ -253,42 +350,33 @@ public class VerilogReader extends Input
             else
                 key = getAKeyword();
 
+            if (key.startsWith("/")) // comment
+            {
+                getRestOfLine();
+                continue;
+            }
+
             if (key.equals("endmodule"))
             {
                 // done with this cell
                 return null;
             }
-            if (key.equals("wire"))
+
+            if (key.equals("assign"))
             {
-                getWires(cell, wires);
+                getRestOfLine(); // ignoring for now
                 continue;
             }
+
+            if (key.equals("wire"))
+            {
+                getWires(cell);
+                continue;
+            }
+
             if (key.equals("input") || key.equals("output"))
             {
-                String input = getRestOfLine();
-                StringTokenizer parse = new StringTokenizer(input, "; ", false); // extracting only input name
-                List<String> l = new ArrayList<String>(2);
-                while (parse.hasMoreTokens())
-                {
-                    String name = parse.nextToken();
-                    l.add(name); // it could be "input a;" or "input [9:0] a;"
-                }
-                PrimitiveNode primitive = Schematics.tech.wirePinNode;
-                int size = l.size();
-                assert(size == 1 || size == 2);
-                String name = l.get(size - 1);
-                if (l.size() == 2) // "input a[];"
-                {
-                    name += l.get(0);
-                    primitive = Schematics.tech.busPinNode;
-                }
-//                assert (inputs.contains(name));
-
-                //Point2D center, double width, double height, Cell parent)
-                NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                        primitive.getDefWidth(), primitive.getDefHeight(),
-                        cell, Orientation.IDENT, name, 0);
-                Export.newInstance(cell, ni.getOnlyPortInst(), name);
+                readInputOutput(cell);
                 continue;
             }
 
@@ -330,8 +418,31 @@ public class VerilogReader extends Input
             }
 
             // reading cell instances
-            Cell instance = Library.getCurrent().findNodeProto(key);
-            nextToken = readInstance(cell, instance, wires);
+            Cell schematics = Library.getCurrent().findNodeProto(key);
+            boolean noMoreInfo = (schematics == null);
+
+            if (noMoreInfo)
+            {
+                String name = key;
+                name += "{" + View.SCHEMATIC.getAbbreviation() + "}";
+                schematics = Cell.makeInstance(Library.getCurrent(), name);
+                schematics.setTechnology(Schematics.tech);
+                // Adding essential bounds for now
+                NodeInst.makeInstance(essentialBounds, new Point2D.Double(10,10), 1, 1, schematics,
+                        Orientation.IDENT, null, 0);
+                NodeInst.makeInstance(essentialBounds, new Point2D.Double(-10,-10), 1, 1, schematics,
+                        Orientation.RR, null, 0);
+            }
+
+            CellInstance info = readInstance(schematics, noMoreInfo);
+            Cell icon = schematics.iconView();
+            if (icon == null) // creates one only after adding all missing ports
+            {
+                ViewChanges.makeIconViewNoGUI(schematics, true);
+                icon = schematics.iconView();
+                assert(icon != null);
+            }
+            createInstance(cell, icon, info);
         }
         // not reaching this point.
     }
