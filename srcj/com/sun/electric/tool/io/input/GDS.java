@@ -322,6 +322,7 @@ public class GDS extends Input
             nameInstances(countOff);
            	Collections.sort(insts);
 			int count = 0;
+			int renamed = 0;
 			for(MakeInstance mi : insts)
 			{
 				if (countOff && ((++count % 1000) == 0))
@@ -334,8 +335,11 @@ public class GDS extends Input
                 }
 
 				// make the instance
-                mi.instantiate(this.cell);
+                if (mi.instantiate(this.cell)) renamed++;
 			}
+			if (renamed > 0)
+				System.out.println("  Warning: Cell " + this.cell.describe(false) + " had " + renamed +
+					" exports with duplicate names that were renamed");
             if (IOTool.isGDSInSimplifyCells())
                 simplifyNodes(this.cell);
 			builtCells.add(this.cell);
@@ -568,11 +572,16 @@ public class GDS extends Input
             return TextUtils.STRING_NUMBER_ORDER.compare(this.nodeName.toString(), that.nodeName.toString());
         }
 
-        private void instantiate(Cell parent) {
+        /**
+         * Method to instantiate a node/export in a Cell.
+         * @param parent the Cell in which to create the geometry.
+         * @return true if the export had to be renamed.
+         */
+        private boolean instantiate(Cell parent) {
         	String name = nodeName.toString();
             NodeInst ni = NodeInst.makeInstance(proto, loc, wid, hei, parent, orient, nodeName.toString(), 0);
 
-            if (ni == null) return;
+            if (ni == null) return false;
             if (ni.getNameKey() != nodeName) {
                 System.out.println("GDS name " + name + " renamed to " + ni.getName());
             }
@@ -580,17 +589,20 @@ public class GDS extends Input
                 ni.setExpanded();
             if (points != null)
                 ni.newVar(NodeInst.TRACE, points);
+            boolean renamed = false;
             if (exportName != null)
             {
         		if (parent.findExport(exportName) != null)
         		{
                     String newName = ElectricObject.uniqueObjectName(exportName, parent, PortProto.class, true);
-                    System.out.println("  Warning: Multiple exports called '" + exportName + "' in cell " +
-                    	parent.describe(false) + " (renamed to " + newName + ")");
+//                    System.out.println("  Warning: Multiple exports called '" + exportName + "' in cell " +
+//                    	parent.describe(false) + " (renamed to " + newName + ")");
                     exportName = newName;
+                    renamed = true;
         		}
                 Export.newInstance(parent, ni.getPortInst(0), exportName);
             }
+            return renamed;
         }
 	}
 
