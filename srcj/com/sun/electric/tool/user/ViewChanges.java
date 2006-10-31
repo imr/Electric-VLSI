@@ -496,8 +496,9 @@ public class ViewChanges
 		private int exportTech, exportStyle, exportLocation;
 		private int inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide;
 		private NodeInst iconNode;
+        private boolean doItNow;
 
-		// get icon style controls
+        // get icon style controls
 		private MakeIconView(Cell cell, double alignment, int exampleLocation,
 			double leadLength, double leadSpacing, boolean reverseIconExportOrder, boolean drawBody, boolean drawLeads, boolean placeCellCenter,
 			int exportTech, int exportStyle, int exportLocation,
@@ -523,6 +524,7 @@ public class ViewChanges
 			this.pwrSide = pwrSide;
 			this.gndSide = gndSide;
 			this.clkSide = clkSide;
+            this.doItNow = doItNow;
             if (doItNow)
             {
                try {doIt();} catch (Exception e) {e.printStackTrace();}
@@ -565,7 +567,8 @@ public class ViewChanges
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
 			iconNode = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
-			fieldVariableChanged("iconNode");
+            if (!doItNow)
+                fieldVariableChanged("iconNode");
 //            ni.addObserver(curCell); // adding observer to notify icons if there are changes in master cell
 //            curCell.addObserver(ni);
 			return true;
@@ -573,7 +576,7 @@ public class ViewChanges
 
         public void terminateOK()
         {
-			if (iconNode != null)
+			if (iconNode != null && !doItNow)
 			{
 				EditWindow wnd = EditWindow.getCurrent();
 				if (wnd != null)
