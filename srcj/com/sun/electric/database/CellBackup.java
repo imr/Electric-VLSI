@@ -605,8 +605,8 @@ public class CellBackup {
         int numArcs = arcs.size();
         if (arcs.isEmpty()) return null;
         Memoization m = getMemoization();
-        double[] bounds = new double[4];
-        double lx = Double.POSITIVE_INFINITY, ly = Double.POSITIVE_INFINITY, hx = Double.NEGATIVE_INFINITY, hy = Double.NEGATIVE_INFINITY;
+        long[] bounds = new long[4];
+        long lx = Long.MAX_VALUE, ly = Long.MAX_VALUE, hx = Long.MIN_VALUE, hy = Long.MIN_VALUE;
         for (ImmutableArcInst a: arcs) {
             a.computeGridBounds(m, bounds);
                 if (bounds[0] < lx) lx = bounds[0];
@@ -615,11 +615,7 @@ public class CellBackup {
                 if (bounds[3] > hy) hy = bounds[3];
         }
         assert lx <= hx && ly <= hy;
-        lx = DBMath.gridToLambda(lx);
-        ly = DBMath.gridToLambda(ly);
-        hx = DBMath.gridToLambda(hx);
-        hy = DBMath.gridToLambda(hy);
-        return this.primitiveBounds = ERectangle.fromLambda(lx, ly, hx - lx, hy - ly);
+        return this.primitiveBounds = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
     }
     
     /**

@@ -29,6 +29,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -595,7 +596,7 @@ public class ReadableDump extends LibraryFiles
 		{
 			ArcProto ap = ail.arcProto[j];
 			String name = ail.arcInstName[j];
-			double width = ail.arcWidth[j] / lambda;
+			long gridFullWidth = DBMath.lambdaToSizeGrid(ail.arcWidth[j] / lambda);
             NodeInst arcHeadNode = nodeInstList[cellIndex].theNode[ail.arcHeadNode[j]];
             NodeInst arcTailNode = nodeInstList[cellIndex].theNode[ail.arcTailNode[j]];
 			if (!arcHeadNode.isLinked() || !arcTailNode.isLinked()) continue;
@@ -621,7 +622,7 @@ public class ReadableDump extends LibraryFiles
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
             ArcInst ai = ArcInst.newInstance(cell, ap, name, ail.arcNameDescriptor[j],
-                    headPortInst, tailPortInst, headPt, tailPt, width,
+                    headPortInst, tailPortInst, headPt, tailPt, gridFullWidth,
                     ImmutableArcInst.angleFromElib(userBits), ImmutableArcInst.flagsFromElib(userBits));
 			ail.arcList[j] = ai;
 //            ELIBConstants.applyELIBArcBits(ai, userBits);

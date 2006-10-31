@@ -29,6 +29,7 @@ import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -1311,7 +1312,7 @@ public class ELIB extends LibraryFiles
 		{
 			ArcProto ap = arcTypeList[i];
 			String name = arcNameList[i];
-			double width = arcWidthList[i] / lambda;
+			long gridFullWidth = DBMath.lambdaToSizeGrid(arcWidthList[i] / lambda);
 			double headX = (arcHeadXPosList[i] - xoff) / lambda;
 			double headY = (arcHeadYPosList[i] - yoff) / lambda;
 			double tailX = (arcTailXPosList[i] - xoff) / lambda;
@@ -1390,7 +1391,7 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
             ArcInst ai = ArcInst.newInstance(cell, ap, name, arcNameDescriptorList[i], headPortInst, tailPortInst,
-                    new EPoint(headX, headY), new EPoint(tailX, tailY), width,
+                    new EPoint(headX, headY), new EPoint(tailX, tailY), gridFullWidth,
                     ImmutableArcInst.angleFromElib(arcUserBits[i]), ImmutableArcInst.flagsFromElib(arcUserBits[i]));
             arcList[i] = ai;
  			if (ai == null)

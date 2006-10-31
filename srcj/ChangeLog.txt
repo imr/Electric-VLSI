@@ -2,9 +2,14 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.05b: *********************************
+************************* Version 8.05c: *********************************
 
-IMP: Points in ArcInst.getPoly() are aligned to GRID.
+IMP: (10/31/06, DN) New methods in Geometric class was extended by:
+    "Iterator<Poly> getShape(Poly.Builder polyBuilder)"
+    "Rectangle2D getLambdaBounds(Rectangle2D r)"
+    "Rectangle2D getGridBounds(Rectangle2D r)"
+
+IMP: (10/30/06, DN) Points in ArcInst.getPoly() are aligned to GRID.
    Four variants of arc.getWidth:
      getLambdaFullWidth  - full width in lambda units (same as old getWidth()
      getGridFullWidth - full width in grid units
@@ -12,6 +17,8 @@ IMP: Points in ArcInst.getPoly() are aligned to GRID.
                           Usually same as full width except for diffusion arcs.
      getGridBaseWidth - base width in grid units.
    Results of GeometryOnNetwork test were updated.
+
+************************* Version 8.05b: *********************************
 
 IMP: (10/30/06, GVG) DIODUMMY layer (gds=56) added into TSMC180.
 

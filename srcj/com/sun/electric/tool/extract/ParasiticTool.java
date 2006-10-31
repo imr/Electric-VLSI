@@ -435,7 +435,7 @@ public class ParasiticTool extends Tool {
 			    if ((nGeom == geom)) continue;
 
                 // Touching elements out
-                if (Geometric.objectsTouch(nGeom, geom)) continue;
+                if (nGeom.isConnected(geom)) continue;
 
                 if (nGeom instanceof NodeInst)
                 {

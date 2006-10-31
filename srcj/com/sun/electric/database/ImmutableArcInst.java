@@ -617,21 +617,22 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 this.gridFullWidth == that.gridFullWidth && this.angle == that.angle && this.flags == that.flags;
     }
     
-    public double[] computeGridBounds(CellBackup.Memoization m, double[] result) {
+    public long[] computeGridBounds(CellBackup.Memoization m, long[] result) {
         if (result == null)
-            result = new double[4];
+            result = new long[4];
      
         if (protoType.isCurvable()) {
             // get the radius information on the arc
             Double radiusDouble = getRadius();
             if (radiusDouble != null) {
-                Poly curvedPoly = curvedArcLambdaOutline(Poly.Type.FILLED, getLambdaFullWidth(), radiusDouble.doubleValue());
+                Poly curvedPoly = curvedArcGridOutline(Poly.Type.FILLED, getGridFullWidth(), radiusDouble.doubleValue());
                 if (curvedPoly != null) {
                     Rectangle2D newBounds = curvedPoly.getBounds2D();
-                    result[0] = DBMath.lambdaToGrid(newBounds.getMinX());
-                    result[1] = DBMath.lambdaToGrid(newBounds.getMinY());
-                    result[2] = DBMath.lambdaToGrid(newBounds.getMaxX());
-                    result[3] = DBMath.lambdaToGrid(newBounds.getMaxY());
+                    result[0] = (long)newBounds.getMinX();
+                    result[1] = (long)newBounds.getMinY();
+                    result[2] = (long)newBounds.getMaxX();
+                    result[3] = (long)newBounds.getMaxY();
+                    assert result[0] == newBounds.getMinX() && result[1] == newBounds.getMinY() && result[2] == newBounds.getMaxX() && result[3] == newBounds.getMaxY();
                     return result;
                 }
             }
@@ -759,14 +760,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (protoType.isCurvable()) {
             // get the radius information on the arc
             Double radiusDouble = getRadius();
-            if (radiusDouble != null) {
-                Poly curvedPoly = curvedArcLambdaOutline(style, DBMath.gridToLambda(gridWidth), radiusDouble.doubleValue());
-                if (curvedPoly != null) {
-                    for (Point2D p: curvedPoly.getPoints())
-                        p.setLocation(DBMath.lambdaToGrid(p.getX()), DBMath.lambdaToGrid(p.getY()));
-                    return curvedPoly;
-                }
-            }
+            if (radiusDouble != null)
+                return curvedArcGridOutline(style, gridWidth, radiusDouble.doubleValue());
         }
         
         // zero-width polygons are simply lines
@@ -1014,14 +1009,27 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	private static final int MAXARCPIECES = 16;
 
 	/**
-     * Method to fill polygon "poly" with the outline of the curved arc in
-     * this ImmutableArcInst whose width is "lambdaWid".  The style of the polygon is set to "style".
+     * Method to fill polygon "poly" with the outline in lambda units of the curved arc in
+     * this ImmutableArcInst whose width in grid units is "gridWidth".  The style of the polygon is set to "style".
      * If there is no curvature information in the arc, the routine returns null,
      * otherwise it returns the curved polygon.
      */
-    public Poly curvedArcLambdaOutline(Poly.Type style, double lambdaWid, double lambdaRadius) {
+    public Poly curvedArcLambdaOutline(Poly.Type style, long gridWidth, double lambdaRadius) {
+        Poly poly = curvedArcGridOutline(style, gridWidth, lambdaRadius);
+        if (poly != null) poly.gridToLambda();
+        return poly;
+    }
+    
+	/**
+     * Method to fill polygon "poly" with the outline in grid units of the curved arc in
+     * this ImmutableArcInst whose width in grid units is "gridWidth".  The style of the polygon is set to "style".
+     * If there is no curvature information in the arc, the routine returns null,
+     * otherwise it returns the curved polygon.
+     */
+    public Poly curvedArcGridOutline(Poly.Type style, long gridWidth, double lambdaRadius) {
         // get information about the curved arc
         double pureRadius = Math.abs(lambdaRadius);
+        double lambdaWidth = DBMath.gridToLambda(gridWidth);
         double lambdaLength = getLambdaLength();
         
         // see if the lambdaRadius can work with these arc ends
@@ -1060,15 +1068,19 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         Point2D [] pointArray = new Point2D[points];
         
         // get the inner and outer radii of the arc
-        double outerRadius = pureRadius + lambdaWid / 2;
-        double innerRadius = outerRadius - lambdaWid;
+        double outerRadius = pureRadius + lambdaWidth / 2;
+        double innerRadius = outerRadius - lambdaWidth;
         
         // fill the polygon
         for(int i=0; i<=pieces; i++) {
             int a = (angleBase + i * angleRange / pieces) % 3600;
             double sin = DBMath.sin(a);   double cos = DBMath.cos(a);
-            pointArray[i] = new Point2D.Double(cos * innerRadius + centerPt.getX(), sin * innerRadius + centerPt.getY());
-            pointArray[points-1-i] = new Point2D.Double(cos * outerRadius + centerPt.getX(), sin * outerRadius + centerPt.getY());
+            pointArray[i] = new Point2D.Double(
+                    DBMath.lambdaToGrid(cos * innerRadius + centerPt.getX()),
+                    DBMath.lambdaToGrid(sin * innerRadius + centerPt.getY()));
+            pointArray[points-1-i] = new Point2D.Double(
+                    DBMath.lambdaToGrid(cos * outerRadius + centerPt.getX()),
+                    DBMath.lambdaToGrid(sin * outerRadius + centerPt.getY()));
         }
         Poly poly = new Poly(pointArray);
         poly.setStyle(style);

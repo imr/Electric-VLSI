@@ -55,6 +55,7 @@ import java.io.ObjectStreamException;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * An ArcInst is an instance of an ArcProto (a wire type)
@@ -242,6 +243,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 ////            System.out.println("Cannot create arc instance of " + type + " because prototype is unused");
 ////            return null;
 //        }
+        
+        long gridFullWidth = DBMath.lambdaToSizeGrid(width);
+		if (gridFullWidth < 0)
+			gridFullWidth = type.getDefaultGridFullWidth();
+        
         // if points are null, create them as would newInstance
 		EPoint headP;
         if (headPt == null)
@@ -280,27 +286,27 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 			return null;
 		}
         
-        return newInstance(parent, type, name, null, head, tail, headP, tailP, width, defAngle, flags);
+        return newInstance(parent, type, name, null, head, tail, headP, tailP, gridFullWidth, defAngle, flags);
 	}
 
 	/**
-	 * Method to create a new ArcInst connecting two PortInsts at specified locations.
-	 * This is more general than the version that does not take coordinates.
+     * Method to create a new ArcInst connecting two PortInsts at specified locations.
+     * This is more general than the version that does not take coordinates.
      * @param parent the parent Cell of this ArcInst
-	 * @param protoType the ArcProto of this ArcInst.
-	 * @param name the name of this ArcInst
+     * @param protoType the ArcProto of this ArcInst.
+     * @param name the name of this ArcInst
      * @param nameDescriptor text descriptor of name of this ArcInst
-	 * @param headPort the head end PortInst.
-	 * @param tailPort the tail end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
-	 * @param tailPt the coordinate of the tail end PortInst.
-	 * @param width the width of this ArcInst.
+     * @param headPort the head end PortInst.
+     * @param tailPort the tail end PortInst.
+     * @param headPt the coordinate of the head end PortInst.
+     * @param tailPt the coordinate of the tail end PortInst.
+     * @param gridFullWidth the full width of this ArcInst in grid units.
      * @param angle angle in tenth-degrees.
      * @param flags flag bits.
      * @return the newly created ArcInst, or null if there is an error.
-	 */
+     */
 	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, TextDescriptor nameDescriptor,
-        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int angle, int flags)
+        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, long gridFullWidth, int angle, int flags)
 	{
         parent.checkChanging();
         Topology topology = parent.getTopology();
@@ -343,11 +349,9 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		} else
 		{
 			// adjust the name descriptor for "smart" text placement
-			TextDescriptor smartDescriptor = getSmartTextDescriptor(angle, width, nameDescriptor);
+			TextDescriptor smartDescriptor = getSmartTextDescriptor(angle, DBMath.gridToLambda(gridFullWidth), nameDescriptor);
 			if (smartDescriptor != null) nameDescriptor = smartDescriptor;
 		}
-		if (width < 0)
-			width = protoType.getDefaultLambdaFullWidth();
        
         CellId parentId = (CellId)parent.getId();
         // search for spare arcId
@@ -358,7 +362,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         ImmutableArcInst d = ImmutableArcInst.newInstance(arcId, protoType, nameKey, nameDescriptor,
                 tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
                 headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
-                DBMath.lambdaToSizeGrid(width), angle, flags);
+                gridFullWidth, angle, flags);
         ArcInst ai = new ArcInst(topology, d, headPort, tailPort);
         
 		// attach this arc to the two nodes it connects
@@ -654,10 +658,20 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     }
 
     /**
+     * Returns the polygons that describe this ArcInst.
+     * @param polyBuilder Poly builder.
+     * @return an iterator on Poly objects that describes this ArcInst graphically.
+     * These Polys include displayable variables on the ArcInst.
+     */
+    @Override
+    public Iterator<Poly> getShape(Poly.Builder polyBuilder) { return polyBuilder.getShape(this); }
+    
+    /**
      * Method to return the bounds of this ArcInst.
      * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
      * @return the bounds of this ArcInst.
      */
+    @Override
     public Rectangle2D getBounds() {
         if (topology.validArcBounds)
             return visBounds;
@@ -665,14 +679,12 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         return visBounds;
     }
     
-    void computeBounds(CellBackup.Memoization m, double[] result) {
+    void computeBounds(CellBackup.Memoization m, long[] result) {
         d.computeGridBounds(m, result);
         double x = DBMath.gridToLambda(result[0]);
         double y = DBMath.gridToLambda(result[1]);
         double w = DBMath.gridToLambda(result[2] - result[0]);
         double h = DBMath.gridToLambda(result[3] - result[1]);
-		Poly poly = makeLambdaPoly(d.getGridFullWidth(), Poly.Type.FILLED);
-        Rectangle2D newBounds = poly.getBounds2D();
         if (x != visBounds.getX() || y != visBounds.getY() || w != visBounds.getWidth() || h != visBounds.getHeight()) {
             parent.setDirty();
             visBounds.setRect(x, y, w, h);
@@ -698,8 +710,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
     public Poly makeLambdaPoly(long gridWidth, Poly.Type style) {
         Poly poly = makeGridPoly(gridWidth, style);
-        for (Point2D p: poly.getPoints())
-            p.setLocation(DBMath.gridToLambda(p.getX()), DBMath.gridToLambda(p.getY()));
+        poly.gridToLambda();
         return poly;
     }
 	
@@ -825,6 +836,18 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 */
 	public PortInst getHeadPortInst() { return headPortInst; }
 
+    /**
+     * Method to tell whether this ArcInst is connected directly to another
+     * Geometric object (that is, an arcinst connected to a nodeinst).
+     * The method returns true if they are connected.
+     * @param geom other Geometric object.
+     * @return true if this and other Geometric objects are connected.
+     */
+    @Override
+    public boolean isConnected(Geometric geom) {
+        return tailPortInst.getNodeInst() == geom || headPortInst.getNodeInst() == geom;
+    }
+    
 	/**
 	 * Method to return the PortInst on an end of this ArcInst.
 	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.

@@ -23,18 +23,24 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 
 import java.awt.Font;
 import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Class to define a polygon of points.
@@ -405,6 +411,63 @@ public class Poly extends PolyBase {
 		return new Point2D.Double(cX+offX, cY+offY);
 	}
 
+    /**
+     * Returns new instance of Poly builder to build shapes in lambda units.
+     * @return new instance of Poly builder.
+     */
+    public static Builder newLambdaBuilder() {
+        return new Builder(true);
+    }
+    
+    /**
+     * Returns new instance of Poly builder to build shapes in grid units.
+     * @return new instance of Poly builder.
+     */
+    public static Builder newGridBuilder() {
+        return new Builder(false);
+    }
+    
+    /**
+     * This class builds shapes of nodes and arcs in lambda units as Poly arrays.
+     */
+    public static class Builder extends AbstractShapeBuilder {
+        private final boolean inLambda;
+        private final ArrayList<Poly> lastPolys = new ArrayList<Poly>();
+        
+        private Builder(boolean inLambda) { this.inLambda = inLambda; }
+        
+        /**
+         * Returns the polygons that describe arc "ai".
+         * @param ai the ArcInst that is being described.
+         * @return an iterator on Poly objects that describes this ArcInst graphically.
+         * These objects include displayable variables on the ArcInst.
+         */
+        public Iterator<Poly> getShape(ArcInst ai) {
+            return it(ai.getProto().getTechnology().getShapeOfArc(ai, wnd, null, onlyTheseLayers));
+        }
+        
+        /**
+         * Returns the polygons that describe node "ni".
+         * @param ni the NodeInst that is being described.
+         * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+         * @return an iterator on Poly objects that describes this NodeInst graphically.
+         * These objects include displayable variables on the NodeInst.
+         */
+        public Iterator<Poly> getShape(NodeInst ni) {
+            return it(((PrimitiveNode)ni.getProto()).getTechnology().getShapeOfNode(ni, wnd, varContext, electrical, reasonable, onlyTheseLayers));
+        }
+        
+        private Iterator<Poly> it(Poly [] polys) {
+            lastPolys.clear();
+            for (Poly poly: polys) {
+                if (!inLambda)
+                    poly.lambdaToGrid();
+                lastPolys.add(poly);
+            }
+            return lastPolys.iterator();
+        }
+    }
+    
 	/**
 	 * Type is a typesafe enum class that describes the nature of a Poly.
 	 */

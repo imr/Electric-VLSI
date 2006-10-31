@@ -23,12 +23,15 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.variable.ElectricObject;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Iterator;
 
 /**
  * This class is the superclass for the Electric classes that have visual
@@ -113,11 +116,48 @@ public abstract class Geometric extends ElectricObject
 	 */
 	public Cell getParent() { return parent; }
 
+    /**
+     * Returns the polygons that describe this Geometric.
+     * @param polyBuilder Poly builder.
+     * @return an iterator on Poly objects that describes this Geometric graphically.
+     * These Polys include displayable variables on the Geometric.
+     */
+    public abstract Iterator<Poly> getShape(Poly.Builder polyBuilder);
+    
 	/**
 	 * Method to return the bounds of this Geometric.
 	 * @return the bounds of this Geometric.
 	 */
 	public abstract Rectangle2D getBounds();
+    
+	/**
+	 * Method to fill the bounds of this Geometric in lambda units into specified Rectangle2D.
+     * If specified Rectangle2D is null, a new Rectangle2D.Double is allocated.
+     * @param r rectangle to fill
+	 * @return the bounds of this Geometric.
+	 */
+    public Rectangle2D getLambdaBounds(Rectangle2D r) {
+        if (r == null) r = new Rectangle2D.Double();
+        r.setRect(getBounds());
+        return r;
+    }
+
+	/**
+	 * Method to fill the bounds of this Geometric in grid units into specified Rectangle2D.
+     * If specified Rectangle2D is null, a new Rectangle2D.Double is allocated.
+     * @param r rectangle to fill
+	 * @return the bounds of this Geometric.
+	 */
+    public Rectangle2D getGridBounds(Rectangle2D r) {
+        if (r == null) r = new Rectangle2D.Double();
+        Rectangle2D bounds = getBounds();
+        long minX = DBMath.lambdaToGrid(bounds.getMinX());
+        long minY = DBMath.lambdaToGrid(bounds.getMinY());
+        long maxX = DBMath.lambdaToGrid(bounds.getMaxX());
+        long maxY = DBMath.lambdaToGrid(bounds.getMaxY());
+        r.setRect(minX, minY, maxX - minX, maxY - minY);
+        return r;
+    }
 
 	/**
 	 * Method to return the center X coordinate of this Geometric.
@@ -138,27 +178,11 @@ public abstract class Geometric extends ElectricObject
 	public Point2D getTrueCenter() { return new Point2D.Double(getTrueCenterX(), getTrueCenterY()); }
 
     /**
-     * Method to tell whether the objects at geometry modules "geom1" and "geom2"
-     * touch directly (that is, an arcinst connected to a nodeinst).  The method
-     * returns true if they touch. Used by DRC and Parasitic tools
+     * Method to tell whether this Geometric object is connected directly to another
+     * (that is, an arcinst connected to a nodeinst).
+     * The method returns true if they are connected.
+     * @param geom other Geometric object.
+     * @return true if this and other Geometric objects are connected.
      */
-    public static boolean objectsTouch(Geometric geom1, Geometric geom2)
-    {
-        if (geom1 instanceof NodeInst)
-        {
-            if (geom2 instanceof NodeInst) return false;
-            Geometric temp = geom1;   geom1 = geom2;   geom2 = temp;
-        }
-        if (!(geom2 instanceof NodeInst))
-            return false;
-
-        // see if the arcinst at "geom1" touches the nodeinst at "geom2"
-        NodeInst ni = (NodeInst)geom2;
-        ArcInst ai = (ArcInst)geom1;
-        for(int i=0; i<2; i++)
-        {
-            if (ai.getPortInst(i).getNodeInst() == ni) return true;
-        }
-        return false;
-    }
+    public abstract boolean isConnected(Geometric geom);
 }

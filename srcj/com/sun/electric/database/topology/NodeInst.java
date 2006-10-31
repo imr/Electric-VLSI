@@ -1162,10 +1162,20 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	public boolean isYMirrored() { return d.orient.isYMirrored(); }
 
     /**
+     * Returns the polygons that describe this NodeInst.
+     * @param polyBuilder Poly builder.
+     * @return an iterator on Poly objects that describes this NodeInst graphically.
+     * These objects include displayable variables on the NodeInst.
+     */
+    @Override
+    public Iterator<Poly> getShape(Poly.Builder polyBuilder) { return polyBuilder.getShape(this); }
+    
+    /**
 	 * Method to return the bounds of this NodeInst.
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
 	 * @return the bounds of this NodeInst.
 	 */
+    @Override
     public Rectangle2D getBounds() {
         if (validVisBounds)
             return visBounds;
@@ -2475,6 +2485,18 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         }
     }
 
+    /**
+     * Method to tell whether this NodeInst is connected directly to another
+     * Geometric object (that is, an arcinst connected to a nodeinst). 
+     * The method returns true if they are connected.
+     * @param geom other Geometric object.
+     * @return true if this and other Geometric objects are connected.
+     */
+    @Override
+    public boolean isConnected(Geometric geom) {
+        return geom instanceof ArcInst && ((ArcInst)geom).isConnected(this);
+    }
+    
     /****************************** TEXT ******************************/
 
 	/**

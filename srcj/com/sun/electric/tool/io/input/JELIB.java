@@ -30,6 +30,7 @@ import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.LibId;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1104,7 +1105,7 @@ public class JELIB extends LibraryFiles
 					if (revision >= 1) arcName = unQuote(arcName);
 				}
 			}
-			double wid = TextUtils.atof(pieces.get(3));
+			long gridFullWidth = DBMath.lambdaToSizeGrid(TextUtils.atof(pieces.get(3)));
 
 			String headNodeName = revision >= 1 ? pieces.get(5) : unQuote(pieces.get(5));
 			String headPortName = unQuote(pieces.get(6));
@@ -1188,7 +1189,7 @@ public class JELIB extends LibraryFiles
 			TextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
 
             ArcInst ai = ArcInst.newInstance(cell, ap, arcName, nameTextDescriptor,
-                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), wid, angle, flags);
+                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), gridFullWidth, angle, flags);
 			if (ai == null)
 			{
 				List<Geometric> geomList = new ArrayList<Geometric>();

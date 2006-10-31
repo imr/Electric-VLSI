@@ -202,8 +202,7 @@ public class CurveListener
 			{
 				curvature = curveArcAboutPoint(curveAI, dbPt.getX(), dbPt.getY());
 			}
-			double width = curveAI.getLambdaBaseWidth();
-			Poly curvedPoly = curveAI.getD().curvedArcLambdaOutline(Poly.Type.CLOSED, width, curvature);
+			Poly curvedPoly = curveAI.getD().curvedArcLambdaOutline(Poly.Type.CLOSED, curveAI.getGridBaseWidth(), curvature);
 			if (curvedPoly != null)
 				highlighter.addPoly(curvedPoly, curveAI.getParent(), null);
 		}

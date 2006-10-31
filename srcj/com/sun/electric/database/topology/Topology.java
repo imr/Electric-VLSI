@@ -250,11 +250,14 @@ public class Topology {
         assert arcCount == arcs.size();
     }
     
-    void computeArcBounds() {
+    /**
+     * Low-level routine.
+     */
+    public void computeArcBounds() {
         if (!cell.getDatabase().canComputeBounds())
             return;
         CellBackup.Memoization m = cell.backup().getMemoization();
-        double[] arcBounds = new double[4];
+        long[] arcBounds = new long[4];
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ArcInst ai = arcs.get(arcIndex);
             ai.computeBounds(m, arcBounds);

@@ -1356,19 +1356,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                 if (highy > cellHighY) cellHighY = highy;
             }
         }
-        for (Iterator<ArcInst> it = getArcs(); it.hasNext(); )
-            it.next().getBounds();
-        Rectangle2D primitiveBounds = backup().getPrimitiveBounds();
-        if (primitiveBounds != null) {
-            cellLowX = Math.min(cellLowX, primitiveBounds.getMinX());
-            cellHighX = Math.max(cellHighX, primitiveBounds.getMaxX());
-            cellLowY = Math.min(cellLowY, primitiveBounds.getMinY());
-            cellHighY = Math.max(cellHighY, primitiveBounds.getMaxY());
-        }
         long gridMinX = DBMath.lambdaToGrid(cellLowX);
         long gridMinY = DBMath.lambdaToGrid(cellLowY);
         long gridMaxX = DBMath.lambdaToGrid(cellHighX);
         long gridMaxY = DBMath.lambdaToGrid(cellHighY);
+        
+        topology.computeArcBounds();
+        ERectangle primitiveBounds = backup().getPrimitiveBounds();
+        if (primitiveBounds != null) {
+            assert !boundsEmpty;
+            gridMinX = Math.min(gridMinX, primitiveBounds.getGridMinX());
+            gridMaxX = Math.max(gridMaxX, primitiveBounds.getGridMaxX());
+            gridMinY = Math.min(gridMinY, primitiveBounds.getGridMinY());
+            gridMaxY = Math.max(gridMaxY, primitiveBounds.getGridMaxY());
+        }
         if (cellBounds != null && gridMinX == cellBounds.getGridMinX() && gridMinY == cellBounds.getGridMinY() &&
                 gridMaxX == cellBounds.getGridMaxX() && gridMaxY == cellBounds.getGridMaxY())
             return cellBounds;

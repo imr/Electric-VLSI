@@ -1294,7 +1294,7 @@ public class Quick
                     // see if the objects directly touch but they are not
                     // coming from different NodeInst (not from checkCellInstContents
                     // because they might below to the same cell but in different instances
-					boolean touch = sameInstance && Geometric.objectsTouch(nGeom, geom);
+					boolean touch = sameInstance && nGeom.isConnected(geom);
 
 					// prepare to examine every layer in this nodeinst
 					AffineTransform rTrans = ni.rotateOut();
@@ -1408,7 +1408,7 @@ public class Quick
 //                            geom);
 
                 // see if the objects directly touch
-				boolean touch = sameInstance && Geometric.objectsTouch(nGeom, geom);
+				boolean touch = sameInstance && nGeom.isConnected(geom);
 
 				// see whether the two objects are electrically connected
                 Network jNet = netlist.getNetwork(ai, 0);

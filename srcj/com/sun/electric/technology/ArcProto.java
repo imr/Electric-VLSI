@@ -981,9 +981,8 @@ public class ArcProto implements Comparable<ArcProto>
                 if (style.isOpened())
                     points = new Point2D.Double[] { points[0], points[1], points[2], points[3], (Point2D.Double)points[0].clone() };
             }
-            for (Point2D.Double p: points)
-                p.setLocation(DBMath.gridToLambda(p.getX()), DBMath.gridToLambda(p.getY()));
             Poly poly = new Poly(points);
+            poly.gridToLambda();
             poly.setStyle(style);
             poly.setLayer(primLayer.getLayer());
             polys[i] = poly;

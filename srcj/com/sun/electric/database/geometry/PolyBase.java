@@ -212,6 +212,24 @@ public class PolyBase implements Shape, PolyNodeMerge
 	}
 
 	/**
+	 * Method to convert points from lambda units to grid units.
+	 */
+    public void lambdaToGrid() {
+        for (Point2D p: points)
+            p.setLocation(DBMath.lambdaToGrid(p.getX()), DBMath.lambdaToGrid(p.getY()));
+        bounds = null;
+    }
+    
+	/**
+	 * Method to convert points from grid units to lambda units.
+	 */
+    public void gridToLambda() {
+        for (Point2D p: points)
+            p.setLocation(DBMath.gridToLambda(p.getX()), DBMath.gridToLambda(p.getY()));
+        bounds = null;
+    }
+    
+	/**
 	 * Method to return a Rectangle that describes the orthogonal box in this Poly.
 	 * @return the Rectangle that describes this Poly.
 	 * If the Poly is not an orthogonal box, returns null.

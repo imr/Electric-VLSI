@@ -146,7 +146,7 @@ public class GeometryConnection
                 System.out.println(nGeom.toString());
 
                 // Only valid for arc-nodeinst pair
-                if (Geometric.objectsTouch(nGeom, geomB))
+                if (nGeom.isConnected(geomB))
                 {
                     found = true;
                     return false;
