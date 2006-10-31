@@ -11,6 +11,7 @@ IMP: Points in ArcInst.getPoly() are aligned to GRID.
      getLambdaBaseWidth - base width (GUI selection width) in lambda units.
                           Usually same as full width except for diffusion arcs.
      getGridBaseWidth - base width in grid units.
+   Results of GeometryOnNetwork test were updated.
 
 IMP: (10/30/06, GVG) DIODUMMY layer (gds=56) added into TSMC180.
 
