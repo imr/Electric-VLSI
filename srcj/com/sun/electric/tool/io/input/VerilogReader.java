@@ -87,8 +87,31 @@ public class VerilogReader extends Input
             if (pin == null)
             {
                 StringTokenizer parse = new StringTokenizer(port.local, "[]", false); // extracting only input name
+                String busName = parse.nextToken(); // only bus name, root
 
-                continue; // temporary
+                for (Iterator<NodeInst> itN = parent.getNodes(); itN.hasNext();)
+                {
+                    NodeInst ni = itN.next();
+                    if (ni.getProto() == Schematics.tech.busPinNode)
+                    {
+                        String name = ni.getName();
+                        int index = name.indexOf("[");
+                        if (index == -1) // nothing found
+                            continue;
+                        String sub = name.substring(0, index);
+                        if (sub.equals(busName))
+                        {
+                            pin = ni;
+                            break;
+                        }
+                    }
+                }
+                if (pin == null)
+                {
+
+                    System.out.println("Not possible to find " + busName);
+                    continue; // temporary
+                }
             }
             assert(pin != null);
             ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
@@ -203,10 +226,11 @@ public class VerilogReader extends Input
                         else if (nets.size() == 2) // simple wire or bus case
                         {
                             String bus = nets.get(1);
+                            int dot = bus.indexOf(":");
                             local = bus;
                             int start = bus.indexOf("[");
                             int end = bus.indexOf("]");
-                            if (start < end)
+                            if (start < end && dot != -1)
                             {
                                 bus = bus.substring(start+1, end);
                                 isBus = true;
