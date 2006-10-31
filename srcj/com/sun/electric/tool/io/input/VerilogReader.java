@@ -40,7 +40,7 @@ public class VerilogReader extends Input
         for (;;)
         {
             String key = getAKeyword();
-            StringTokenizer parse = new StringTokenizer(key, "( ),", false);
+            StringTokenizer parse = new StringTokenizer(key, "( ),\t", false);
             while (parse.hasMoreTokens())
             {
                 String value = parse.nextToken();
@@ -85,7 +85,11 @@ public class VerilogReader extends Input
         {
             NodeInst pin = parent.findNode(port.local);
             if (pin == null)
+            {
+                StringTokenizer parse = new StringTokenizer(port.local, "[]", false); // extracting only input name
+
                 continue; // temporary
+            }
             assert(pin != null);
             ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
             PortInst ex = cellInst.findPortInst(port.ex.getName());
@@ -119,7 +123,7 @@ public class VerilogReader extends Input
                 if (value.equals(";")) // done with header
                 {
                     String name = inputs.get(0).toString(); // in pos==0 then instance name
-                    StringTokenizer p = new StringTokenizer(name, "(  ", false);
+                    StringTokenizer p = new StringTokenizer(name, "(\t  ", false);
                     name = p.nextToken(); // remove extra ( and white spaces
 //                    NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(cell), 10, 10, cell,
 //                            Orientation.IDENT, name, 0);
@@ -130,7 +134,7 @@ public class VerilogReader extends Input
                     for (int i = 1; i < inputs.size(); i++)
                     {
                         StringBuffer s = inputs.get(i);
-                        p = new StringTokenizer(s.toString(), "(){},  ", false);
+                        p = new StringTokenizer(s.toString(), "(){},  \t", false);
                         List<String> nets = new ArrayList<String>();
                         while (p.hasMoreTokens())
                         {
@@ -261,7 +265,7 @@ public class VerilogReader extends Input
                 {
                     return null; // done
                 }
-                StringTokenizer p = new StringTokenizer(net, " ", false);
+                StringTokenizer p = new StringTokenizer(net, "\t ", false);
                 List<String> values = new ArrayList<String>(2);
                 while (p.hasMoreTokens())
                 {
@@ -485,7 +489,7 @@ public class VerilogReader extends Input
     private String readGate(Cell cell, PrimitiveNode.Function function) throws IOException
     {
         String input = getRestOfLine();
-        StringTokenizer parse = new StringTokenizer(input, "(;, )", false); // extracting only input name
+        StringTokenizer parse = new StringTokenizer(input, "(;, \t)", false); // extracting only input name
         List<String> list = new ArrayList<String>(2);
 
         while (parse.hasMoreTokens())
