@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/1/06, DN) Stack overflow in NetworkTool.
+FIX: Implement NetCell.addToDrawn without recursion.
+
 IMP: (10/31/06, DN) New methods in Geometric class was extended by:
     "Iterator<Poly> getShape(Poly.Builder polyBuilder)"
     "Rectangle2D getLambdaBounds(Rectangle2D r)"

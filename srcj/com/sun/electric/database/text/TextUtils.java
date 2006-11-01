@@ -1136,7 +1136,8 @@ public class TextUtils
 		File file = new File(fileName);
 		try
 		{
-			return file.toURL();
+			return file.toURI().toURL();
+//			return file.toURL(); deprecated in Java 1.6
 		} catch (java.net.MalformedURLException e)
 		{
 			System.out.println("Cannot find file " + fileName);

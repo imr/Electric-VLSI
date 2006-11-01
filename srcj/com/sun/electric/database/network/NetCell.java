@@ -328,6 +328,8 @@ class NetCell
 		}
 	}
 
+    private ArrayList<PortInst> stack;
+    
 	private void addToDrawn1(PortInst pi) {
 		int piOffset = getPortInstOffset(pi);
 		if (drawns[piOffset] >= 0) return;
@@ -353,7 +355,7 @@ class NetCell
 			if (NetworkTool.debug) System.out.println(numDrawns + ": " + ai);
 			PortInst tpi = ai.getTailPortInst();
 			if (tpi.getPortProto() == busPinPort && ap != busArc) continue;
-			addToDrawn(tpi);
+			stack.add(tpi);
 		}
 		for (int k = piOffset; tailConn[k] != piOffset; ) {
 			k = tailConn[k];
@@ -366,35 +368,35 @@ class NetCell
 			if (NetworkTool.debug) System.out.println(numDrawns + ": " + ai);
 			PortInst hpi = ai.getHeadPortInst();
 			if (hpi.getPortProto() == busPinPort && ap != busArc) continue;
-			addToDrawn(hpi);
+			stack.add(hpi);
 		}
 	}
 
-	private void addToDrawn(PortInst pi) {
-		PortProto pp = pi.getPortProto();
-		NodeProto np = pp.getParent();
-		int numPorts = np.getNumPorts();
-		if (numPorts == 1 || np instanceof Cell) {
-			addToDrawn1(pi);
-			return;
-		}
-		NodeInst ni = pi.getNodeInst();
-// 		if (np == Schematics.tech.resistorNode && NetworkTool.shortResistors) {
-//			
-// 			addToDrawn1(ni.getPortInst(0));
-// 			addToDrawn1(ni.getPortInst(1));
-// 			return;
-// 		}
-		int topology = ((PrimitivePort)pp).getTopology();
-		for (int i = 0; i < numPorts; i++) {
-			if (((PrimitivePort)np.getPort(i)).getTopology() != topology) continue;
-			addToDrawn1(ni.getPortInst(i));
-		}
-	}
-
+    private void addToDrawn(PortInst pi) {
+        assert stack.isEmpty();
+        stack.add(pi);
+        while (!stack.isEmpty()) {
+            pi = stack.remove(stack.size() - 1);
+            PortProto pp = pi.getPortProto();
+            NodeProto np = pp.getParent();
+            int numPorts = np.getNumPorts();
+            if (numPorts == 1 || np instanceof Cell) {
+                addToDrawn1(pi);
+                continue;
+            }
+            NodeInst ni = pi.getNodeInst();
+            int topology = ((PrimitivePort)pp).getTopology();
+            for (int i = 0; i < numPorts; i++) {
+                if (((PrimitivePort)np.getPort(i)).getTopology() != topology) continue;
+                addToDrawn1(ni.getPortInst(i));
+            }
+        }
+    }
+    
 	void makeDrawns() {
 		initConnections();
 		Arrays.fill(drawns, -1);
+        stack = new ArrayList<PortInst>();
 		numDrawns = 0;
 		for (int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
 			if (drawns[i] >= 0) continue;
@@ -468,6 +470,7 @@ class NetCell
                 networkManager.logWarning(msg, NetworkTool.errorSortNodes);
             }
         }
+        stack = null;
 		// showDrawns();
 //  		System.out.println(cell + " has " + cell.getNumPorts() + " ports, " + cell.getNumNodes() + " nodes, " +
 //  			cell.getNumArcs() + " arcs, " + (arcsOffset - cell.getNumPorts()) + " portinsts, " + netMap.length + "(" + piDrawns + ") drawns");
