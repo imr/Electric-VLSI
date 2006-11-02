@@ -32,7 +32,6 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.utils.MOSRules;
@@ -2874,10 +2873,10 @@ public class MoCMOS extends Technology
         rules.resizeMetalContacts(metalContactNodes, numMetals);
 
         // Active contacts
-        rules.resizeContactsWithActive(metalActiveContactNodes, false);
+        rules.resizeContactsWithActive(metalActiveContactNodes, null, false, false);
 
         // Well contacts
-        rules.resizeContactsWithActive(metalWellContactNodes, false);
+        rules.resizeContactsWithActive(metalWellContactNodes, null, false, false);
 
         // Poly contact
         rules.resizePolyContact(metal1PolyContactNodes[0]);

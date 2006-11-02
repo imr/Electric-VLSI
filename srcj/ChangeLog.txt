@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/2/06, GVG) Butted active/well contacts (only top edge).
+
 BUG: (11/2/06, SMR) HSpice output reader fails with multiple conditions (Bug #1254).
 FIX: In HSpiceOut.readTRDCACFile(), read two-value sweep header when more
      than 1 condition.
