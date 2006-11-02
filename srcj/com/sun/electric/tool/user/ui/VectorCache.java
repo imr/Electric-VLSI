@@ -529,9 +529,7 @@ public class VectorCache {
             }
             
             // show cell variables
-            int numPolys = cell.numDisplayableVariables(true);
-            Poly [] polys = new Poly[numPolys];
-            cell.addDisplayableVariables(CENTERRECT, polys, 0, dummyWnd, true);
+            Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true);
             drawPolys(polys, DBMath.MATID, this, true, VectorText.TEXTTYPECELL, false);
             
             // add in anything "snuck" onto the cell
@@ -919,10 +917,7 @@ public class VectorCache {
             }
 
 			// draw any displayable variables on the instance
-			int numPolys = ni.numDisplayableVariables(true);
-			Poly [] polys = new Poly[numPolys];
-			Rectangle2D rect = ni.getUntransformedBounds();
-			ni.addDisplayableVariables(rect, polys, 0, dummyWnd, true);
+			Poly[] polys = ni.getDisplayableVariables(dummyWnd);
 			drawPolys(polys, localTrans, vc, false, VectorText.TEXTTYPENODE, false);
 		} else
 		{
@@ -931,10 +926,10 @@ public class VectorCache {
 			int textType = VectorText.TEXTTYPENODE;
 			if (prim == Generic.tech.invisiblePinNode) textType = VectorText.TEXTTYPEANNOTATION;
 			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni, dummyWnd, varContext, false, false, null);
             boolean hideOnLowLevel = ni.isVisInside() || np == Generic.tech.cellCenterNode;
 			boolean pureLayer = (ni.getFunction() == PrimitiveNode.Function.NODE);
-			drawPolys(polys, localTrans, vc, hideOnLowLevel, textType, pureLayer);
+			drawPolys(tech.getShapeOfNode(ni, false, false, null), localTrans, vc, hideOnLowLevel, textType, pureLayer);
+			drawPolys(ni.getDisplayableVariables(dummyWnd), localTrans, vc, hideOnLowLevel, textType, pureLayer);
 		}
 
 		// draw any exports from the node
@@ -951,15 +946,9 @@ public class VectorCache {
 				null, null);
 			vc.topOnlyShapes.add(vt);
 
-			// draw variables on the export
-			int numPolys = e.numDisplayableVariables(true);
-			if (numPolys > 0)
-			{
-				Poly [] polys = new Poly[numPolys];
-				e.addDisplayableVariables(rect, polys, 0, dummyWnd, true);
-				drawPolys(polys, trans, vc, true, VectorText.TEXTTYPEEXPORT, false);
-//				drawPolys(polys, localTrans, vc, true, VectorText.TEXTTYPEEXPORT, false);
-			}
+            // draw variables on the export
+            Poly[] polys = e.getDisplayableVariables(rect, dummyWnd, true);
+            drawPolys(polys, trans, vc, true, VectorText.TEXTTYPEEXPORT, false);
 		}
 	}
 
@@ -974,8 +963,8 @@ public class VectorCache {
 		// draw the arc
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
-		Poly [] polys = tech.getShapeOfArc(ai, dummyWnd);
-		drawPolys(polys, trans, vc, false, VectorText.TEXTTYPEARC, false);
+		drawPolys(tech.getShapeOfArc(ai), trans, vc, false, VectorText.TEXTTYPEARC, false);
+		drawPolys(ai.getDisplayableVariables(dummyWnd), trans, vc, false, VectorText.TEXTTYPEARC, false);
 	}
 
 	/**

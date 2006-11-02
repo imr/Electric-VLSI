@@ -787,9 +787,7 @@ public class EDIF extends Topology
 			{
 				// do all display variables first
                 NodeInst ni = (NodeInst)no;
-                int num = ni.numDisplayableVariables(false);
-                Poly [] varPolys = new Poly[num];
-                ni.addDisplayableVariables(ni.getBounds(), varPolys, 0, null, false);
+                Poly[] varPolys = ni.getDisplayableVariables(ni.getBounds(), null, false);
                 writeDisplayableVariables(varPolys, ni.rotateOut());
 			}
 			blockClose("instance");
@@ -1741,11 +1739,9 @@ public class EDIF extends Topology
 			AffineTransform subrot = ni.translateOut(prevtrans);
 
 			// see if there are displayable variables on the cell
-			int num = ni.numDisplayableVariables(false);
-			if (num != 0)
+			Poly[] varPolys = ni.getDisplayableVariables(ni.getBounds(), null, false);
+			if (varPolys.length != 0)
 				setGraphic(EGUNKNOWN);
-			Poly [] varPolys = new Poly[num];
-			ni.addDisplayableVariables(ni.getBounds(), varPolys, 0, null, false);
             writeDisplayableVariables(varPolys, prevtrans);
 
 			// search through cell

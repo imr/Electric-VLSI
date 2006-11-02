@@ -24,16 +24,12 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.CellBackup;
-import com.sun.electric.database.variable.EditWindow0;
-import com.sun.electric.database.variable.VarContext;
 
 /**
  * A support class to build shapes of arcs and nodes.
  */
 public abstract class AbstractShapeBuilder {
-    protected EditWindow0 wnd;
     protected Layer.Function.Set onlyTheseLayers;
-    protected VarContext varContext;
     protected boolean reasonable;
     protected boolean electrical;
     
@@ -44,9 +40,7 @@ public abstract class AbstractShapeBuilder {
     public AbstractShapeBuilder() {
     }
     
-    public void setEditWindow(EditWindow0 wnd) { this.wnd = wnd; }
     public void setOnlyTheseLayers(Layer.Function.Set onlyTheseLayers) { this.onlyTheseLayers = onlyTheseLayers; }
-    public void setVarContext(VarContext varContext) { this.varContext = varContext; }
     public void setReasonable(boolean b) { reasonable = b; }
     public void setElectrical(boolean b) { electrical = b; }
     

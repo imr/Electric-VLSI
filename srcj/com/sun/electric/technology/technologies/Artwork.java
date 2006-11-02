@@ -446,8 +446,6 @@ public class Artwork extends Technology
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
 	 * @param ni the NodeInst to describe.
-	 * @param wnd the window in which this node will be drawn.
-	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
 	 * This makes no sense for Artwork primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
@@ -456,8 +454,8 @@ public class Artwork extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
-		Technology.NodeLayer [] primLayers, Layer layerOverride)
+    @Override
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		layerOverride = getProperLayer(ni);
@@ -534,7 +532,7 @@ public class Artwork extends Technology
 					});
 			}
 		}
-		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**
@@ -560,15 +558,14 @@ public class Artwork extends Technology
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
 	 * @param ai the ArcInst to describe.
-	 * @param wnd the window in which this arc will be drawn.
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects.
 	 */
     @Override
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
 	{
 		layerOverride = getProperLayer(ai);
-		return super.getShapeOfArc(ai, wnd, layerOverride, onlyTheseLayers);
+		return super.getShapeOfArc(ai, layerOverride, onlyTheseLayers);
 	}
 
 	/**

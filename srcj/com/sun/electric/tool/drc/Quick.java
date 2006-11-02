@@ -731,7 +731,7 @@ public class Quick
         }
 
 		// get all of the polygons on this node
-		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, null, true, ignoreCenterCuts, null);
+		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, null);
 		convertPseudoLayers(ni, nodeInstPolyList);
 		int tot = nodeInstPolyList.length;
         boolean isTransistor =  np.getFunction().isTransistor();
@@ -1069,7 +1069,7 @@ public class Quick
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
 					Technology tech = np.getTechnology();
-					Poly [] primPolyList = tech.getShapeOfNode(ni, null, null, true, ignoreCenterCuts, null);
+					Poly [] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, null);
 					convertPseudoLayers(ni, primPolyList);
 					int tot = primPolyList.length;
 					for(int j=0; j<tot; j++)
@@ -1301,7 +1301,7 @@ public class Quick
 					rTrans.preConcatenate(upTrans);
 
 					// get the shape of each nodeinst layer
-					Poly [] subPolyList = tech.getShapeOfNode(ni, null, null, true, ignoreCenterCuts, null);
+					Poly [] subPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, null);
 					convertPseudoLayers(ni, subPolyList);
 					int tot = subPolyList.length;
 					for(int i=0; i<tot; i++)
@@ -2045,7 +2045,7 @@ public class Quick
 
 			tech = oNi.getProto().getTechnology();
 			trans = oNi.rotateOut();
-			nodeInstPolyList = tech.getShapeOfNode(oNi, null, null, true, ignoreCenterCuts, null);
+			nodeInstPolyList = tech.getShapeOfNode(oNi, true, ignoreCenterCuts, null);
 			convertPseudoLayers(oNi, nodeInstPolyList);
 			baseMulti = tech.isMultiCutCase(oNi);
 		} else
@@ -2954,7 +2954,7 @@ public class Quick
 				AffineTransform bound = ni.rotateOut();
 				bound.preConcatenate(moreTrans);
 				Technology tech = ni.getProto().getTechnology();
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, null, null, false, ignoreCenterCuts, null);
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
@@ -3059,7 +3059,7 @@ public class Quick
 				Technology tech = ni.getProto().getTechnology();
                 // I have to ask for electrical layers otherwise it will retrieve one polygon for polysilicon
                 // and poly.polySame(poly1) will never be true.
-				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, null, null, false, ignoreCenterCuts, null);
+				Poly [] layerLookPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
 				int tot = layerLookPolyList.length;
 				for(int i=0; i<tot; i++)
 				{
@@ -3231,12 +3231,12 @@ public class Quick
             NodeInst ni = (NodeInst)geom;
             NodeProto np = ni.getProto();
             Technology tech = np.getTechnology();
-            primPolyList = tech.getShapeOfNode(ni, null, null, true, ignoreCenterCuts, drcLayers);
+            primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
         }
         else if (geom instanceof ArcInst)
         {
             ArcInst ai = (ArcInst)geom;
-            primPolyList = ai.getProto().getTechnology().getShapeOfArc(ai, null, null, drcLayers);
+            primPolyList = ai.getProto().getTechnology().getShapeOfArc(ai, null, drcLayers);
         }
         return primPolyList;
     }
@@ -3531,7 +3531,7 @@ public class Quick
 			else
 			{
 				Technology tech = np.getTechnology();
-				Poly [] primPolyList = tech.getShapeOfNode(ni, null, null, true, ignoreCenterCuts, drcLayers);
+				Poly [] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
 				int tot = primPolyList.length;
 				for(int j=0; j<tot; j++)
 				{
@@ -3614,7 +3614,7 @@ public class Quick
             else
             {
                 Technology tech = np.getTechnology();
-                Poly [] primPolyList = tech.getShapeOfNode(ni, null, null, true, ignoreCenterCuts, drcLayers);
+                Poly [] primPolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, drcLayers);
                 int tot = primPolyList.length;
                 for(int j=0; j<tot; j++)
                 {
@@ -3764,7 +3764,7 @@ public class Quick
 	                             Layer nLayer, int nNet, Geometric nGeom, Rectangle2D bound)
 	{
 		Technology tech = ni.getProto().getTechnology();
-		Poly [] cropNodePolyList = tech.getShapeOfNode(ni, null, null, true, ignoreCenterCuts, null);
+		Poly [] cropNodePolyList = tech.getShapeOfNode(ni, true, ignoreCenterCuts, null);
 		convertPseudoLayers(ni, cropNodePolyList);
 		int tot = cropNodePolyList.length;
 		if (tot < 0) return false;
@@ -3867,7 +3867,7 @@ public class Quick
 //                }
 //            }
 //            else
-                cropArcPolyList = tech.getShapeOfNode(ni, null, null, false, ignoreCenterCuts, null);
+                cropArcPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
 			int tot = cropArcPolyList.length;
 			for(int j=0; j<tot; j++)
 			{
@@ -3927,7 +3927,7 @@ public class Quick
 			// crop the arc against this transistor
 			AffineTransform trans = ni.rotateOut();
 			Technology tech = ni.getProto().getTechnology();
-			Poly [] activeCropPolyList = tech.getShapeOfNode(ni, null, null, false, ignoreCenterCuts, null);
+			Poly [] activeCropPolyList = tech.getShapeOfNode(ni, false, ignoreCenterCuts, null);
 			int nTot = activeCropPolyList.length;
 			for(int k=0; k<nTot; k++)
 			{
@@ -4203,7 +4203,7 @@ public class Quick
 			{
                 // Must get polygon from getNodeShape otherwise it will miss
                 // rings
-                Poly [] list = cell.getTechnology().getShapeOfNode(ni, null, null, true, true, null);
+                Poly [] list = cell.getTechnology().getShapeOfNode(ni, true, true, null);
                 Area thisArea = new Area(list[0]);
                 if (area == null)
                     area = thisArea;
@@ -4825,7 +4825,7 @@ public class Quick
 			Technology tech = pNp.getTechnology();
 			// electrical should not be null due to ports but causes
 			// problems with poly and transistor-poly
-			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, null, true, true, null);
+			Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, null);
 			int tot = nodeInstPolyList.length;
 			for(int i=0; i<tot; i++)
 			{
@@ -5039,7 +5039,7 @@ public class Quick
                 Technology tech = pNp.getTechnology();
                 // electrical should not be null due to ports but causes
                 // problems with poly and transistor-poly
-                Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, null, true, true, null);
+                Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, null);
                 int tot = nodeInstPolyList.length;
                 for(int i=0; i<tot; i++)
                 {

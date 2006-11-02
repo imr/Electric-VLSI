@@ -236,6 +236,21 @@ public abstract class ElectricObject implements Serializable
 	}
 
 	/**
+	 * Method to get all displayable Variables on this ElectricObject and its PortInsts to an array of Poly objects.
+	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
+	 * @param wnd window in which the Variables will be displayed.
+	 * @param multipleStrings true to break multiline text into multiple Polys.
+	 * @return an array of Poly objects with displayable variables.
+	 */
+	public Poly[] getDisplayableVariables(Rectangle2D rect, EditWindow0 wnd, boolean multipleStrings) {
+        int numVars = numDisplayableVariables(multipleStrings);
+        if (numVars == 0) return Poly.NULL_ARRAY;
+        Poly[] polys = new Poly[numVars];
+        addDisplayableVariables(rect, polys, 0, wnd, multipleStrings);
+        return polys;
+    }
+
+	/**
 	 * Method to compute a Poly that describes text.
 	 * The text can be described by an ElectricObject (Exports or cell instance names).
 	 * The text can be described by a node or arc name.

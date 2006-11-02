@@ -618,7 +618,7 @@ public class View3DWindow extends JPanel
 		}
 		else
         {
-            Poly[] polys = tech.getShapeOfNode(no, null, null, true, true, null);
+            Poly[] polys = tech.getShapeOfNode(no, true, true, null);
             List<Shape3D> boxList = null;
 
             // Special case for transistors

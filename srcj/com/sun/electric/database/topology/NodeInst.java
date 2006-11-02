@@ -1550,6 +1550,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	}
 
 	/**
+	 * Method to get all displayable Variables on this NodeInst and its PortInsts to an array of Poly objects.
+     * This Poly were not transformed by Node transform.
+	 * @param wnd window in which the Variables will be displayed.
+	 * @return an array of Poly objects with displayable variables.
+	 */
+	public Poly[] getDisplayableVariables(EditWindow0 wnd) {
+        return getDisplayableVariables(getUntransformedBounds(), wnd, true);
+    }
+
+	/**
 	 * Method to return a transformation that moves up the hierarchy.
 	 * Presuming that this NodeInst is a Cell instance, the
 	 * transformation maps points in the Cell's coordinate space 

@@ -46,6 +46,7 @@ import java.util.Iterator;
  * Class to define a polygon of points.
  */
 public class Poly extends PolyBase {
+    public static final Poly[] NULL_ARRAY = {};
 
 	/** the string (if of type TEXT) */						private String string;
 	/** the text descriptor (if of type TEXT) */			private TextDescriptor descript;
@@ -443,7 +444,7 @@ public class Poly extends PolyBase {
          * These objects include displayable variables on the ArcInst.
          */
         public Iterator<Poly> getShape(ArcInst ai) {
-            return it(ai.getProto().getTechnology().getShapeOfArc(ai, wnd, null, onlyTheseLayers));
+            return it(ai.getProto().getTechnology().getShapeOfArc(ai, null, onlyTheseLayers));
         }
         
         /**
@@ -454,7 +455,7 @@ public class Poly extends PolyBase {
          * These objects include displayable variables on the NodeInst.
          */
         public Iterator<Poly> getShape(NodeInst ni) {
-            return it(((PrimitiveNode)ni.getProto()).getTechnology().getShapeOfNode(ni, wnd, varContext, electrical, reasonable, onlyTheseLayers));
+            return it(((PrimitiveNode)ni.getProto()).getTechnology().getShapeOfNode(ni, electrical, reasonable, onlyTheseLayers));
         }
         
         private Iterator<Poly> it(Poly [] polys) {

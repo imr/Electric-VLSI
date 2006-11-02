@@ -1052,7 +1052,7 @@ if (--limitLoops <= 0) change = false;
 			{
 				AffineTransform trans = ni.rotateOut(newTrans);
 				Technology tech = ni.getProto().getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, null, null, true, true, null);
+				Poly [] polys = tech.getShapeOfNode(ni, true, true, null);
 				int tot = polys.length;
 				for(int j=0; j<tot; j++)
 				{

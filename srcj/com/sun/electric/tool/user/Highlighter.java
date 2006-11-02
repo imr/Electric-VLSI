@@ -1908,11 +1908,21 @@ public class Highlighter implements DatabaseChangeListener {
                 (!ni.isCellInstance() && fun.isResistor() && ((PrimitiveNode)np).getSpecialType() == PrimitiveNode.POLYGONAL))
 			{
 				Technology tech = np.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, wnd);
 				double bestDist = Double.MAX_VALUE;
+				Poly [] polys = tech.getShapeOfNode(ni);
 				for(int box=0; box<polys.length; box++)
 				{
 					Poly poly = polys[box];
+					Layer layer = poly.getLayer();
+					if (layer == null) continue;
+					Layer.Function lf = layer.getFunction();
+					if (!lf.isPoly() && !lf.isDiff()) continue;
+					poly.transform(trans);
+					double dist = poly.polyDistance(bounds);
+					if (dist < bestDist) bestDist = dist;
+				}
+				for(Poly poly: ni.getDisplayableVariables(wnd))
+				{
 					Layer layer = poly.getLayer();
 					if (layer == null) continue;
 					Layer.Function lf = layer.getFunction();
@@ -1928,11 +1938,17 @@ public class Highlighter implements DatabaseChangeListener {
 			if (((PrimitiveNode)np).isEdgeSelect())
 			{
 				Technology tech = np.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, wnd);
 				double bestDist = Double.MAX_VALUE;
+				Poly [] polys = tech.getShapeOfNode(ni);
 				for(int box=0; box<polys.length; box++)
 				{
 					Poly poly = polys[box];
+					poly.transform(trans);
+					double dist = poly.polyDistance(bounds);
+					if (dist < bestDist) bestDist = dist;
+				}
+				for(Poly poly: ni.getDisplayableVariables(wnd))
+				{
 					poly.transform(trans);
 					double dist = poly.polyDistance(bounds);
 					if (dist < bestDist) bestDist = dist;
@@ -1979,11 +1995,18 @@ public class Highlighter implements DatabaseChangeListener {
 		if (ap.isEdgeSelect())
 		{
 			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShapeOfArc(ai, wnd);
+			Poly[] polys = tech.getShapeOfArc(ai);
 			double bestDist = Double.MAX_VALUE;
 			for(int box=0; box<polys.length; box++)
 			{
 				Poly poly = polys[box];
+				double dist = poly.polyDistance(bounds);
+				if (dist < bestDist) bestDist = dist;
+			}
+			Poly[] textPolys = ai.getDisplayableVariables(wnd);
+			for(int box=0; box<textPolys.length; box++)
+			{
+				Poly poly = textPolys[box];
 				double dist = poly.polyDistance(bounds);
 				if (dist < bestDist) bestDist = dist;
 			}

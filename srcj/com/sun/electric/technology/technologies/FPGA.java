@@ -320,6 +320,24 @@ public class FPGA extends Technology
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
 	 * @param ni the NodeInst to describe.
+	 * @param electrical true to get the "electrical" layers.
+	 * This makes no sense for Schematics primitives.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * This makes no sense for Schematics primitives.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
+	 * @return an array of Poly objects.
+	 */
+    @Override
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride) {
+        return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers, layerOverride);
+    }
+    
+	/**
+	 * Method to return a list of Polys that describe a given NodeInst.
+	 * This method overrides the general one in the Technology object
+	 * because of the unusual primitives in this Technology.
+	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
 	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
@@ -330,7 +348,7 @@ public class FPGA extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		if (ni.isCellInstance()) return null;
 
@@ -489,7 +507,7 @@ public class FPGA extends Technology
 			return polys;
 		}
 
-		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**
@@ -497,26 +515,24 @@ public class FPGA extends Technology
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
 	 * @param ai the ArcInst to describe.
-	 * @param wnd the window in which this arc will be drawn.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects.
 	 */
     @Override
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
 	{
 		boolean active = true;
 		if ((internalDisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
 			(internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
 		{
 			VarContext context = VarContext.globalContext;
-			if (wnd != null) context = wnd.getVarContext();
+//			if (wnd != null) context = wnd.getVarContext();  Need to be fixed. DN 11/2/06
 			if (!arcActive(ai, context)) active = false;
 		}
 		if (!active) return NULLPOLYS;
 
-		int numDisplayable = 0;
-		if (wnd != null) numDisplayable = ai.numDisplayableVariables(true);
-		Poly [] polys = new Poly[numDisplayable + 1];
+		Poly [] polys = new Poly[1];
 		int polyNum = 0;
 
 		// draw the arc
@@ -524,13 +540,6 @@ public class FPGA extends Technology
 		if (polys[polyNum] == null) return null;
 		polys[polyNum].setLayer(tech.wireLayer);
 		polyNum++;
-
-		// add in the displayable variables
-		if (numDisplayable > 0)
-		{
-			Rectangle2D rect = ai.getBounds();
-			ai.addDisplayableVariables(rect, polys, polyNum, wnd, true);
-		}
 		return polys;
 	}
 

@@ -760,7 +760,7 @@ public class LayoutLib {
         for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
             AffineTransform trans = ni.rotateOut();
-            Poly [] polys = tech.getShapeOfNode(ni, null, null, false, true, thisFunction);
+            Poly [] polys = tech.getShapeOfNode(ni, false, true, thisFunction);
             if (polys == null) continue;
             for (int i=0; i<polys.length; i++) {
                 if (polys[i] == null) continue;
@@ -777,7 +777,7 @@ public class LayoutLib {
         // get layer from arcs
         for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
             ArcInst ai = it.next();
-            Poly [] polys = tech.getShapeOfArc(ai, null, null, thisFunction);
+            Poly [] polys = tech.getShapeOfArc(ai, null, thisFunction);
             if (polys == null) continue;
             for (int i=0; i<polys.length; i++) {
                 if (polys[i] == null) continue;

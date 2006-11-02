@@ -1168,35 +1168,20 @@ public class Technology implements Comparable<Technology>
 	 * Returns the polygons that describe arc "ai".
 	 * @param ai the ArcInst that is being described.
 	 * @return an array of Poly objects that describes this ArcInst graphically.
-	 * This array includes displayable variables on the ArcInst.
 	 */
 	public Poly [] getShapeOfArc(ArcInst ai)
 	{
-		return getShapeOfArc(ai, null, null, null);
+		return getShapeOfArc(ai, null, null);
 	}
 
 	/**
 	 * Returns the polygons that describe arc "ai".
 	 * @param ai the ArcInst that is being described.
-	 * @param wnd the window in which this arc is being displayed.
-	 * @return an array of Poly objects that describes this ArcInst graphically.
-	 * This array includes displayable variables on the ArcInst.
-	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd)
-	{
-		return getShapeOfArc(ai, wnd, null, null);
-	}
-
-	/**
-	 * Returns the polygons that describe arc "ai".
-	 * @param ai the ArcInst that is being described.
-	 * @param wnd the window in which this arc is being displayed.
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects that describes this ArcInst graphically.
-	 * This array includes displayable variables on the ArcInst.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, EditWindow0 wnd, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
+	public Poly [] getShapeOfArc(ArcInst ai, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
 	{
 		// get information about the arc
 		ArcProto ap = ai.getProto();
@@ -1220,9 +1205,7 @@ public class Technology implements Comparable<Technology>
 			return new Poly[0];
 
 		// see how many polygons describe this arc
-		int numDisplayable = ai.numDisplayableVariables(true);
-		if (wnd == null) numDisplayable = 0;
-		int maxPolys = primLayers.length + numDisplayable;
+		int maxPolys = primLayers.length;
 		boolean addArrow = false;
 		if (!tech.isNoDirectionalArcs())
 		{
@@ -1351,14 +1334,6 @@ public class Technology implements Comparable<Technology>
 				polyNum++;
 			}
 		}
-
-		// add in the displayable variables
-		if (numDisplayable > 0)
-		{
-			Rectangle2D rect = ai.getBounds();
-			ai.addDisplayableVariables(rect, polys, polyNum, wnd, true);
-		}
-
 		return polys;
 	}
 
@@ -1491,7 +1466,7 @@ public class Technology implements Comparable<Technology>
      */
     public double getTransistorActiveLength(NodeInst ni)
     {
-        Poly [] diffList = getShapeOfNode(ni, null, null, true, false, diffLayers);
+        Poly [] diffList = getShapeOfNode(ni, true, false, diffLayers);
         double activeLen = 0;
         if (diffList.length > 0)
         {
@@ -1677,33 +1652,16 @@ public class Technology implements Comparable<Technology>
 	 * @param ni the NodeInst that is being described.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 * This array includes displayable variables on the NodeInst.
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni)
 	{
-		return getShapeOfNode(ni, null, null, false, false, null);
+		return getShapeOfNode(ni, false, false, null);
 	}
 
 	/**
 	 * Returns the polygons that describe node "ni".
 	 * @param ni the NodeInst that is being described.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @param wnd the window in which this node will be drawn (null if no window scaling should be done).
-	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 * This array includes displayable variables on the NodeInst.
-	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd)
-	{
-		VarContext var = (wnd != null) ? wnd.getVarContext() : null;
-		return getShapeOfNode(ni, wnd, var, false, false, null);
-	}
-
-	/**
-	 * Returns the polygons that describe node "ni".
-	 * @param ni the NodeInst that is being described.
-	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-	 * @param wnd the window in which this node will be drawn (null if no window scaling should be done).
-	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
 	 * When electrical layers are requested, each layer is tied to a specific port on the node.
 	 * If any piece of geometry covers more than one port,
@@ -1715,10 +1673,8 @@ public class Technology implements Comparable<Technology>
 	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
 	 * @param onlyTheseLayers a set of layers to draw (if null, draw all layers).
 	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical,
-                                  boolean reasonable, Layer.Function.Set onlyTheseLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Layer.Function.Set onlyTheseLayers)
 	{
 		if (ni.isCellInstance()) return null;
 
@@ -1758,7 +1714,7 @@ public class Technology implements Comparable<Technology>
 		if (primLayers.length == 0)
 			return new Poly[0];
 
-		return getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, null);
+		return getShapeOfNode(ni, electrical, reasonable, primLayers, null);
 	}
 
 	/**
@@ -1785,7 +1741,7 @@ public class Technology implements Comparable<Technology>
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst (if wnd != null).
 	 */
-	protected Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		// if node is erased, remove layers
@@ -1801,7 +1757,7 @@ public class Technology implements Comparable<Technology>
 			}
 		}
 
-		return computeShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return computeShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**
@@ -1809,9 +1765,6 @@ public class Technology implements Comparable<Technology>
 	 * NodeLayer objects to use.
 	 * This method is called by the specific Technology overrides of getShapeOfNode().
 	 * @param ni the NodeInst that is being described.
-	 * @param wnd the window in which this node will be drawn.
-	 * If this is null, no window scaling can be done, so no text is included in the returned results.
-	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers
 	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
 	 * but each layer is tied to a specific port on the node.
@@ -1826,10 +1779,8 @@ public class Technology implements Comparable<Technology>
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @return an array of Poly objects that describes this NodeInst graphically.
-	 * This array includes displayable variables on the NodeInst (if wnd != null).
 	 */
-	protected Poly [] computeShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
-		Technology.NodeLayer [] primLayers, Layer layerOverride)
+	protected Poly [] computeShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		int specialType = np.getSpecialType();
@@ -1839,7 +1790,6 @@ public class Technology implements Comparable<Technology>
 			if (outline != null)
 			{
 				int numPolys = 1;
-				if (wnd != null) numPolys += ni.numDisplayableVariables(true);
 				Poly [] polys = new Poly[numPolys];
 				Point2D [] pointList = new Point2D.Double[outline.length];
 				for(int i=0; i<outline.length; i++)
@@ -1859,10 +1809,6 @@ public class Technology implements Comparable<Technology>
 					int portIndex = primLayer.getPortNum();
 					if (portIndex >= 0) polys[0].setPort(np.getPort(portIndex));
 				}
-				if (wnd != null) {
-                    Rectangle2D rect = ni.getBounds();
-                    ni.addDisplayableVariables(rect, polys, 1, wnd, true);
-                }
 				return polys;
 			}
 		}
@@ -1902,7 +1848,6 @@ public class Technology implements Comparable<Technology>
 
 		// construct the polygon array
 		int numPolys = numBasicLayers + numExtraLayers + numNegatingBubbles;
-		if (wnd != null) numPolys += ni.numDisplayableVariables(true);
 		Poly [] polys = new Poly[numPolys];
 
         double xCenter = ni.getAnchorCenterX();
@@ -2019,14 +1964,6 @@ public class Technology implements Comparable<Technology>
 				polys[fillPoly] = std.fillTransPoly(i, electrical);
 				fillPoly++;
 			}
-		}
-
-		// add in the displayable variables
-		if (wnd != null)
-		{
-//			Rectangle2D rect = ni.getBounds();
-			Rectangle2D rect = ni.getUntransformedBounds();
-			ni.addDisplayableVariables(rect, polys, fillPoly, wnd, true);
 		}
 		return polys;
 	}

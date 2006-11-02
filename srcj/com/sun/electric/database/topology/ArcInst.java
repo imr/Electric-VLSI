@@ -792,6 +792,15 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		return super.addDisplayableVariables(rect, polys, start+numVars, wnd, multipleStrings) + numVars;
 	}
 
+	/**
+	 * Method to get all displayable Variables on this ArcInst to an array of Poly objects.
+	 * @param wnd window in which the Variables will be displayed.
+	 * @return an array of Poly objects with displayable variables.
+	 */
+	public Poly[] getDisplayableVariables(EditWindow0 wnd) {
+        return getDisplayableVariables(getBounds(), wnd, true);
+    }
+
 	/****************************** CONNECTIONS ******************************/
 
 	/**

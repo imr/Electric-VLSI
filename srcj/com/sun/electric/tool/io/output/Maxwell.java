@@ -186,7 +186,7 @@ public class Maxwell extends Output
 				if (ni.isCellInstance()) continue;
 				AffineTransform transRot = ni.rotateOut();
 				Technology tech = ni.getProto().getTechnology();
-				Poly [] polyList = tech.getShapeOfNode(ni, null, null, true, false, null);
+				Poly [] polyList = tech.getShapeOfNode(ni, true, false, null);
 				int tot = polyList.length;
 				for(int i=0; i<tot; i++)
 				{

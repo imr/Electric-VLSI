@@ -709,7 +709,7 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 			// schematic bus pins are so complex that only the technology knows their true size
 			if (real.getProto() == Schematics.tech.busPinNode)
 			{
-				Poly [] polys = Schematics.tech.getShapeOfNode(real, null, null, false, false, null, null);
+				Poly [] polys = Schematics.tech.getShapeOfNode(real);
 				if (polys.length > 0)
 				{
 					Rectangle2D bounds = polys[0].getBounds2D();

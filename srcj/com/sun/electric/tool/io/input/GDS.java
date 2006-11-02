@@ -412,14 +412,14 @@ public class GDS extends Input
 
                 for (NodeInst ni : list)
                 {
-                    Poly[] polys = tech.getShapeOfNode(ni, null, null, true, false, null);
+                    Poly[] polys = tech.getShapeOfNode(ni, true, false, null);
                     assert(polys.length == 1); // it must be only 1
                     Poly m1P = polys[0];
                     List<NodeInst> nList = map.get(m2Layer);
                     if (nList == null) continue; // nothing found in m2Layer
                     for (NodeInst n : nList)
                     {
-                        Poly[] otherPolys = tech.getShapeOfNode(n, null, null, true, false, null);
+                        Poly[] otherPolys = tech.getShapeOfNode(n, true, false, null);
                         assert(otherPolys.length == 1); // it must be only 1
                         Poly m2P = otherPolys[0];
                         if (!m2P.getBounds2D().equals(m1P.getBounds2D())) continue; // no match
@@ -436,7 +436,7 @@ public class GDS extends Input
 
                         // Searching for vias to delete
                         assert(viasList != null);
-                        Poly[] viaPolys = tech.getShapeOfNode(newNi, null, null, true, false, thisLayer);
+                        Poly[] viaPolys = tech.getShapeOfNode(newNi, true, false, thisLayer);
                         boolean found = false;
 
                         // Can be more than 1 due to MxN cuts
@@ -450,7 +450,7 @@ public class GDS extends Input
 
                             for (NodeInst viaNi : viasList)
                             {
-                                Poly[] thisViaList = tech.getShapeOfNode(viaNi, null, null, true, false, thisLayer);
+                                Poly[] thisViaList = tech.getShapeOfNode(viaNi, true, false, thisLayer);
                                 assert(thisViaList.length == 1);
                                 // hack to get rid of the resolution issue
                                 Poly p = thisViaList[0];

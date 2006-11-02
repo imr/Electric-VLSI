@@ -578,7 +578,7 @@ public class ERCWellCheck
 
 					Technology tech = ai.getProto().getTechnology();
 					// Getting only ercLayers
-					Poly [] arcInstPolyList = tech.getShapeOfArc(ai, null, null, ercLayers);
+					Poly [] arcInstPolyList = tech.getShapeOfArc(ai, null, ercLayers);
 					int tot = arcInstPolyList.length;
 					for(int i=0; i<tot; i++)
 					{
@@ -635,7 +635,7 @@ public class ERCWellCheck
 					PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
 					Technology tech = pNp.getTechnology();
 					// Getting only ercLayers
-					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, null, true, true, ercLayers);
+					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, ercLayers);
 					int tot = nodeInstPolyList.length;
 
 					for(int i=0; i<tot; i++)

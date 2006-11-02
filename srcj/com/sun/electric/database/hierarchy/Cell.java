@@ -2781,15 +2781,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
 	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd)
-	{
-		int dispVars = numDisplayableVariables(false);
-		if (dispVars == 0) return null;
-		Poly [] polys = new Poly[dispVars];
-
-		// add in the displayable variables
-		addDisplayableVariables(CENTERRECT, polys, 0, wnd, false);
-		return polys;
+	public Poly [] getAllText(boolean hardToSelect, EditWindow0 wnd) {
+		return getDisplayableVariables(CENTERRECT, wnd, false);
 	}
 
 	/**

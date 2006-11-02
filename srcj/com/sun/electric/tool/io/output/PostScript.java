@@ -617,11 +617,17 @@ public class PostScript extends Output
 				if (!topLevel && ni.isVisInside()) continue;
 				PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, wnd);
+				Poly [] polys = tech.getShapeOfNode(ni);
 				for (int i=0; i<polys.length; i++)
 				{
 					polys[i].transform(subRot);
 					psPoly(polys[i]);
+				}
+				Poly [] textPolys = ni.getDisplayableVariables(wnd);
+				for (int i=0; i<textPolys.length; i++)
+				{
+					textPolys[i].transform(subRot);
+					psPoly(textPolys[i]);
 				}
 			} else
 			{
@@ -657,14 +663,11 @@ public class PostScript extends Output
 				// draw any displayable variables on the instance
 				if (User.isTextVisibilityOnNode())
 				{
-					int numPolys = ni.numDisplayableVariables(true);
-					Poly [] polys = new Poly[numPolys];
 					Rectangle2D rect = ni.getUntransformedBounds();
 //					Rectangle2D rect = ni.getBounds();
-					ni.addDisplayableVariables(rect, polys, 0, wnd, true);
+					Poly[] polys = ni.getDisplayableVariables(wnd);
 					for (int i=0; i<polys.length; i++)
 					{
-						if (polys[i] == null) break;
 						polys[i].transform(subRot);
 						psPoly(polys[i]);
 					}
@@ -696,17 +699,12 @@ public class PostScript extends Output
 					}
 
 					// draw variables on the export
-					int numPolys = e.numDisplayableVariables(true);
-					if (numPolys > 0)
-					{
-						Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
-						Poly [] polys = new Poly[numPolys];
-						e.addDisplayableVariables(rect, polys, 0, wnd, true);
-						for (int i=0; i<polys.length; i++)
-						{
-							psPoly(polys[i]);
-						}
-					}
+                    Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
+                    Poly[] polys = e.getDisplayableVariables(rect, wnd, true);
+                    for (int i=0; i<polys.length; i++)
+                    {
+                        psPoly(polys[i]);
+                    }
 				}
 			}
 		}
@@ -717,8 +715,14 @@ public class PostScript extends Output
     		ArcInst ai = it.next();
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShapeOfArc(ai, wnd);
+			Poly[] polys = tech.getShapeOfArc(ai);
 			for (int i=0; i<polys.length; i++)
+			{
+				polys[i].transform(trans);
+				psPoly(polys[i]);
+			}
+            Poly[] textPolys = ai.getDisplayableVariables(wnd);
+			for (int i=0; i<textPolys.length; i++)
 			{
 				polys[i].transform(trans);
 				psPoly(polys[i]);
@@ -729,10 +733,8 @@ public class PostScript extends Output
 		if (topLevel && User.isTextVisibilityOnCell())
 		{
 			// show displayable variables on the instance
-			int numPolys = cell.numDisplayableVariables(true);
-			Poly [] polys = new Poly[numPolys];
 			Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-			cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
+			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, wnd, true);
 			for (int i=0; i<polys.length; i++)
 			{
 				psPoly(polys[i]);

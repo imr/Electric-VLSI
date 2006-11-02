@@ -1406,6 +1406,23 @@ public class Schematics extends Technology
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
 	 * @param ni the NodeInst to describe.
+	 * @param electrical true to get the "electrical" layers.
+	 * This makes no sense for Schematics primitives.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * This makes no sense for Schematics primitives.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
+	 * @return an array of Poly objects.
+	 */
+    @Override
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride) {
+        return getShapeOfNode(ni, null, null, electrical, reasonable, primLayers, layerOverride);
+    }
+	/**
+	 * Method to return a list of Polys that describe a given NodeInst.
+	 * This method overrides the general one in the Technology object
+	 * because of the unusual primitives in this Technology.
+	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
 	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
@@ -1416,7 +1433,7 @@ public class Schematics extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
+	private Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		if (ni.isCellInstance()) return null;
@@ -1441,7 +1458,6 @@ public class Schematics extends Technology
 
 			// if the next level up the hierarchy is visible, consider arcs connected there
 			if (context != null && ni.hasExports())
-//			if (context != null && ni.getNumExports() != 0)
 			{
 				Nodable no = context.getNodable();
 				if (no != null && no instanceof NodeInst)
@@ -1747,7 +1763,7 @@ public class Schematics extends Technology
 				primLayers = blobLayers;
 			}
 		}
-		return computeShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return computeShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**

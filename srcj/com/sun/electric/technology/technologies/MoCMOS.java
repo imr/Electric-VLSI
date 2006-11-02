@@ -2552,8 +2552,6 @@ public class MoCMOS extends Technology
 	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in this Technology.
 	 * @param ni the NodeInst to describe.
-	 * @param wnd the window in which this node will be drawn.
-	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
 	 * This makes no sense for Schematics primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
@@ -2562,26 +2560,25 @@ public class MoCMOS extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow0 wnd, VarContext context, boolean electrical, boolean reasonable,
-		Technology.NodeLayer [] primLayers, Layer layerOverride)
+    @Override
+	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
 		if (prototype == scalableTransistorNodes[P_TYPE] || prototype == scalableTransistorNodes[N_TYPE])
-            return getShapeOfNodeScalable(ni, wnd, context, reasonable);
+            return getShapeOfNodeScalable(ni, null, reasonable);
 
         // Default
-        return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+        return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
     }
 
     /**
      * Special getShapeOfNode function for scalable transistors
      * @param ni
-     * @param wnd
      * @param context
      * @param reasonable
      * @return Array of Poly containing layers representing a Scalable Transistor
      */
-    private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow0 wnd, VarContext context, boolean reasonable)
+    private Poly [] getShapeOfNodeScalable(NodeInst ni, VarContext context, boolean reasonable)
     {
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;
@@ -2743,7 +2740,7 @@ public class MoCMOS extends Technology
 		}
 
 		// now let the superclass convert it to Polys
-		return super.getShapeOfNode(ni, wnd, context, false, reasonable, newNodeLayers, null);
+		return super.getShapeOfNode(ni, false, reasonable, newNodeLayers, null);
 	}
 
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/

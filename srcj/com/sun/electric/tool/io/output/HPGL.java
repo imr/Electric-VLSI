@@ -243,10 +243,14 @@ public class HPGL extends Output
 				{
 					PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 					Technology tech = prim.getTechnology();
-					Poly [] polys = tech.getShapeOfNode(ni, wnd);
+					Poly[] polys = tech.getShapeOfNode(ni);
 					for (int i=0; i<polys.length; i++)
 						polys[i].transform(nodeTrans);
 					addPolys(polys, merge);
+                    Poly[] textPolys = ni.getDisplayableVariables(wnd);
+					for (int i=0; i<textPolys.length; i++)
+						textPolys[i].transform(nodeTrans);
+					addPolys(textPolys, merge);
 				} else
 				{
 					if (!ni.isExpanded())
@@ -305,8 +309,8 @@ public class HPGL extends Output
 				ArcInst ai = it.next();
 				ArcProto ap = ai.getProto();
 				Technology tech = ap.getTechnology();
-				Poly [] polys = tech.getShapeOfArc(ai, wnd);
-				addPolys(polys, merge);
+				addPolys(tech.getShapeOfArc(ai), merge);
+				addPolys(ai.getDisplayableVariables(wnd), merge);
 			}
 
 			// extract merged data and add it to overall geometry

@@ -558,10 +558,10 @@ class PixelDrawing
 			countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
 
 			// now render it all
-            drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd.getCell(), wnd.getVarContext());
+            drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd.getCell());
 		} else
 		{
-			drawing.vd.render(this, scale, wnd.getOffset(), cell, fullInstantiate, inPlaceNodePath, renderBounds, wnd.getVarContext());
+			drawing.vd.render(this, scale, wnd.getOffset(), cell, fullInstantiate, inPlaceNodePath, renderBounds, varContext);
 		}
 
 		// merge transparent image into opaque one
@@ -605,6 +605,7 @@ class PixelDrawing
 		gridGraphics.setColor(new Color(User.getColorGrid()));
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
 		
+        varContext = wnd.getVarContext();
         initOrigin(scale, offset);
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
@@ -650,7 +651,7 @@ class PixelDrawing
 			countCell(cell, null, false, Orientation.IDENT, DBMath.MATID);
 
 			// now render it all
-            drawCell(cell, null, false, Orientation.IDENT, DBMath.MATID, cell, varContext);
+            drawCell(cell, null, false, Orientation.IDENT, DBMath.MATID, cell);
 		} else
 		{
             VectorDrawing vd = new VectorDrawing();
@@ -1055,7 +1056,7 @@ class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient,  AffineTransform prevTrans, Cell topCell, VarContext context)
+	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient,  AffineTransform prevTrans, Cell topCell)
 	{
 		renderedCells++;
         renderPolyTime = 0;
@@ -1090,7 +1091,7 @@ class PixelDrawing
 				GenMath.transformRect(bounds, prevTrans);
 				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) continue;
 			}
-			drawNode(ni, orient, prevTrans, topCell, drawLimitBounds, fullInstantiate, false, context);
+			drawNode(ni, orient, prevTrans, topCell, drawLimitBounds, fullInstantiate, false);
 		}
 
 		// show cell variables if at the top level
@@ -1099,9 +1100,7 @@ class PixelDrawing
 		if (canDrawText && topLevel && User.isTextVisibilityOnCell())
 		{
 			// show displayable variables on the instance
-			int numPolys = cell.numDisplayableVariables(true);
-			Poly [] polys = new Poly[numPolys];
-			cell.addDisplayableVariables(CENTERRECT, polys, 0, dummyWnd, true);
+			Poly[] polys = cell.getDisplayableVariables(CENTERRECT, dummyWnd, true);
 			drawPolys(polys, prevTrans, false);
 		}
 
@@ -1119,10 +1118,9 @@ class PixelDrawing
      * @param drawLimitBounds bounds in which to draw.
      * @param fullInstantiate true to draw to the bottom of the hierarchy ("peek" mode).
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
-	 * @param context the VarContext to this node in the hierarchy.
      */
 	private void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, Cell topCell, Rectangle2D drawLimitBounds,
-		boolean fullInstantiate, boolean forceVisible, VarContext context)
+		boolean fullInstantiate, boolean forceVisible)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -1183,11 +1181,13 @@ class PixelDrawing
 			if (expanded)
 			{
 				// show the contents of the cell
-				if (!expandedCellCached(subCell, subOrient, subTrans, topCell, context, drawLimitBounds, fullInstantiate))
+				if (!expandedCellCached(subCell, subOrient, subTrans, topCell, drawLimitBounds, fullInstantiate))
 				{
 					// just draw it directly
 					cellsRendered++;
-					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, subTrans, topCell, context.push(ni));
+                    varContext = varContext.push(ni);
+					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, subTrans, topCell);
+                    varContext.pop();
 				}
 				if (canDrawText) showCellPorts(ni, trans, Color.BLACK);
 			} else
@@ -1200,10 +1200,7 @@ class PixelDrawing
 			// draw any displayable variables on the instance
 			if (canDrawText && User.isTextVisibilityOnNode())
 			{
-				int numPolys = ni.numDisplayableVariables(true);
-				Poly [] polys = new Poly[numPolys];
-				Rectangle2D rect = ni.getUntransformedBounds();
-				ni.addDisplayableVariables(rect, polys, 0, dummyWnd, true);
+				Poly[] polys = ni.getDisplayableVariables(dummyWnd);
 				drawPolys(polys, localTrans, false);
 			}
 		} else
@@ -1247,8 +1244,8 @@ class PixelDrawing
 					if (!User.isTextVisibilityOnAnnotation()) nodeWnd = null;
 				}
 				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, nodeWnd, context, false, false, null);
-				drawPolys(polys, localTrans, forceVisible);
+				drawPolys(tech.getShapeOfNode(ni, false, false, null), localTrans, forceVisible);
+				drawPolys(ni.getDisplayableVariables(nodeWnd), localTrans, forceVisible);
 			}
 		}
 
@@ -1289,13 +1286,8 @@ class PixelDrawing
 				}
 
 				// draw variables on the export
-				int numPolys = e.numDisplayableVariables(true);
-				if (numPolys > 0)
-				{
-					Poly [] polys = new Poly[numPolys];
-					e.addDisplayableVariables(rect, polys, 0, dummyWnd, true);
-					drawPolys(polys, localTrans, false);
-				}
+                Poly[] polys = e.getDisplayableVariables(rect, dummyWnd, true);
+                drawPolys(polys, localTrans, false);
 			}
 		}
 	}
@@ -1350,10 +1342,9 @@ class PixelDrawing
 		// draw the arc
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
-		EditWindow0 arcWnd = dummyWnd;
-		if (!canDrawText || !User.isTextVisibilityOnArc()) arcWnd = null;
-		Poly [] polys = tech.getShapeOfArc(ai, arcWnd);
-		drawPolys(polys, trans, forceVisible);
+		drawPolys(tech.getShapeOfArc(ai), trans, forceVisible);
+		if (canDrawText && User.isTextVisibilityOnArc())
+    		drawPolys(ai.getDisplayableVariables(dummyWnd), trans, forceVisible);
 	}
 
 	private void showCellPorts(NodeInst ni, AffineTransform trans, Color col)
@@ -1499,7 +1490,7 @@ class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, Orientation orient, AffineTransform origTrans, Cell topCell, VarContext context, Rectangle2D drawLimitBounds, boolean fullInstantiate)
+	private boolean expandedCellCached(Cell subCell, Orientation orient, AffineTransform origTrans, Cell topCell, Rectangle2D drawLimitBounds, boolean fullInstantiate)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -1552,7 +1543,7 @@ class PixelDrawing
 			}
 
             expandedCellCount.offscreen = new PixelDrawing(scale, screenBounds);
-			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, rotTrans, topCell, context);
+			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, rotTrans, topCell);
 			offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
             
