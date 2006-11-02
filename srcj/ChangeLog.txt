@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/2/06, GVG) Crash in TechPalette:mouseReleased if obj is null (no Bugzilla)
+FIX: Case detected
+
 BUG: (11/2/06, SMR) MutableBoolean used everywhere but located in SunRouter.
 FIX: Refactored to GenMath.
 

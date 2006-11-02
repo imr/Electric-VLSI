@@ -425,7 +425,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         Object obj = getObjectUnderCursor(e.getX(), e.getY());
         JMenuItem menuItem;
 
-        assert(obj != null);
+        if (obj == null) return; // nothing selected
+
         if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof ArcProto || obj instanceof List)
         {
             if (obj instanceof List)
