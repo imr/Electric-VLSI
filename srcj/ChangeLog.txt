@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/2/06, GVG) Scalable transistors not available under Mosis foundry
+FIX: wrong setup of setNotUsed
+
 IMP: (11/2/06, GVG) Butted active/well contacts (only top edge).
 
 BUG: (11/2/06, SMR) HSpice output reader fails with multiple conditions (Bug #1254).
