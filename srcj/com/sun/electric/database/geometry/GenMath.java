@@ -296,6 +296,38 @@ public class GenMath
     }
 
     /**
+	 * Class to define a Boolean object that can be modified.
+	 */
+	public static class MutableBoolean
+	{
+	    private boolean value;
+	    
+	    /**
+	     * Constructor creates a MutableBoolean object with an initial value.
+	     * @param value the initial value.
+	     */
+	    public MutableBoolean(boolean value) { this.value = value; }
+	
+	    /**
+	     * Method to change the value of this MutableBoolean.
+	     * @param value the new value.
+	     */
+	    public void setValue(boolean value) { this.value = value; }
+	
+	    /**
+	     * Method to return the value of this MutableBoolean.
+	     * @return the current value of this MutableBoolean.
+	     */
+	    public boolean booleanValue() { return value; }
+	
+	    /**
+	     * Returns a printable version of this MutableBoolean.
+	     * @return a printable version of this MutableBoolean.
+	     */
+	    public String toString() { return Boolean.toString(value); }
+	}
+
+	/**
      * Method to compare two objects for equality.
      * This does more than a simple "equal" because they may have the same value
      * but have diffent type (one Float, the other Double).

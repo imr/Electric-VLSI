@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.plugins.sunRouter.SunRouter.MutableBoolean;
+import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.technology.Layer;
 
 import java.awt.geom.AffineTransform;

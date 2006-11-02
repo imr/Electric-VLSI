@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.GenMath.MutableBoolean;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
@@ -45,7 +46,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.plugins.sunRouter.SunRouter.MutableBoolean;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -525,7 +525,7 @@ public class Connectivity
 			for(PolyBase poly : polyList)
 			{
 				// reduce the geometry to a skeleton of centerlines
-				double minWidth = 0;
+				double minWidth = 1;
 				if (ENFORCEMINIMUMSIZE) minWidth = scaleUp(ap.getDefaultLambdaFullWidth());
 				List<Centerline> lines = findCenterlines(poly, layer, minWidth, merge, originalMerge);
 
@@ -667,7 +667,7 @@ public class Connectivity
 	private static class Centerline
 	{
 		Point2D start, end;
-		Point2D startUnscaled, endUnscaled;
+		EPoint startUnscaled, endUnscaled;
 		boolean startHub, endHub;
 		double width;
 		boolean handled;
@@ -677,8 +677,8 @@ public class Connectivity
 		{
 			this.width = width;
 			this.start = start;
-			this.startUnscaled = new Point2D.Double(start.getX() / SCALEFACTOR, start.getY() / SCALEFACTOR);
-			this.endUnscaled = new Point2D.Double(end.getX() / SCALEFACTOR, end.getY() / SCALEFACTOR);
+			this.startUnscaled = new EPoint(start.getX() / SCALEFACTOR, start.getY() / SCALEFACTOR);
+			this.endUnscaled = new EPoint(end.getX() / SCALEFACTOR, end.getY() / SCALEFACTOR);
 			this.end = end;
 			startHub = endHub = false;
 			if (start.equals(end)) angle = -1; else
@@ -688,18 +688,19 @@ public class Connectivity
 		void setStart(double x, double y)
 		{
 			start.setLocation(x, y);
-			startUnscaled.setLocation(x / SCALEFACTOR, y / SCALEFACTOR);
+			startUnscaled = new EPoint(x / SCALEFACTOR, y / SCALEFACTOR);
 		}
 
 		void setEnd(double x, double y)
 		{
 			end.setLocation(x, y);
-			endUnscaled.setLocation(x / SCALEFACTOR, y / SCALEFACTOR);
+			endUnscaled = new EPoint(x / SCALEFACTOR, y / SCALEFACTOR);
 		}
 
 		public String toString()
 		{
-			return "CENTERLINE from ("+start.getX()+","+start.getY()+") to ("+end.getX()+","+end.getY()+") wid="+width;
+			return "CENTERLINE from ("+start.getX()+","+start.getY()+") to ("+end.getX()+","+end.getY()+") wid="+width+
+			", len="+start.distance(end);
 		}
 	}
 
@@ -717,7 +718,7 @@ public class Connectivity
 	{
 		PortInst piRet = null;
 		boolean isHub = cl.endHub;
-		Point2D startPoint = cl.endUnscaled;
+		EPoint startPoint = cl.endUnscaled;
 		if (startSide)
 		{
 			isHub = cl.startHub;
@@ -972,12 +973,21 @@ public class Connectivity
 	private static class PossibleVia
 	{
 		PrimitiveNode pNp;
+		int rotation;
 		double minWidth, minHeight;
 		double largestShrink;
 		Layer [] layers;
-		double [] shrink;
+		double [] shrinkL, shrinkR, shrinkT, shrinkB;
 
-		PossibleVia(PrimitiveNode pNp) { this.pNp = pNp; }
+		PossibleVia(PrimitiveNode pNp, int numLayers)
+		{
+			this.pNp = pNp;
+			layers = new Layer[numLayers];
+			shrinkL = new double[numLayers];
+			shrinkR = new double[numLayers];
+			shrinkT = new double[numLayers];
+			shrinkB = new double[numLayers];
+		}
 	}
 
 	/**
@@ -1003,15 +1013,68 @@ public class Connectivity
 			// get all of the geometry on the cut/via layer
 			List<PolyBase> cutList = getMergePolys(merge, layer);
 
-			// look at all possible contact/via nodes that this can become
-			for(PossibleVia pv : possibleVias)
+			// the new way to extract vias
+			for(PolyBase cut : cutList)
 			{
-				// inexact contact extraction: merge all other layers and see how big the contact can be
-				extractAVia(layer, pv, cutList, merge, originalMerge, newCell);
+				for(PossibleVia pv : possibleVias)
+				{
+					if (extractOneVia(layer, pv, cut, merge, originalMerge, newCell)) break;
+				}				
 			}
+
+			// the old way to extract vias
+//			for(PossibleVia pv : possibleVias)
+//			{
+//				// inexact contact extraction: merge all other layers and see how big the contact can be
+//				extractAVia(layer, pv, cutList, merge, originalMerge, newCell);
+//			}
 		}
 	}
 
+	/**
+	 * Method to see if a via exists around a given cut layer.
+	 * @param layer the layer in question.
+	 * @param pv the possible via.
+	 * @param cut the cut layer that may be the via.
+	 * @param merge the merge data at this point (after extracted nodes are removed).
+	 * @param originalMerge the original merge data.
+	 * @param newCell the cell in which extracted geometry goes.
+	 * @return true if a contact was extracted.
+	 */
+	private boolean extractOneVia(Layer layer, PossibleVia pv, PolyBase cut, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	{
+		// can only handle manhattan contacts now
+		Rectangle2D cutBox = cut.getBox();
+		if (cutBox == null) return false;
+
+		double cX = cutBox.getCenterX();
+		double cY = cutBox.getCenterY();
+//System.out.println("DOES "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" FIT AT ("+cX+","+cY+")?");
+		for(int i=0; i<pv.layers.length; i++)
+		{
+			double lX = cX - pv.minWidth/2 + pv.shrinkL[i];
+			double hX = cX + pv.minWidth/2 - pv.shrinkR[i];
+			double lY = cY - pv.minHeight/2 + pv.shrinkB[i];
+			double hY = cY + pv.minHeight/2 - pv.shrinkT[i];
+			double layerCX = (lX + hX) / 2;
+			double layerCY = (lY + hY) / 2;
+			PolyBase layerPoly = new PolyBase(layerCX, layerCY, hX-lX, hY-lY);
+			if (!originalMerge.contains(pv.layers[i], layerPoly))
+			{
+//System.out.println("  LAYER "+pv.layers[i].getName()+" DOES NOT (NEEDS "+lX+"<=X<="+hX+" AND "+lY+"<=Y<="+hY+")");
+				return false;
+			}
+		}
+//System.out.println("  YES!");
+
+		// found: create the node
+		realizeNode(pv.pNp, cX, cY, pv.minWidth, pv.minHeight, pv.rotation*10, null, merge, newCell);
+		return true;
+	}
+
+	/**
+	 * The old way of extracting vias.
+	 */
 	private void extractAVia(Layer layer, PossibleVia pv, List<PolyBase> cutList, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		// build a polygon that covers all of the layers in this via
@@ -1019,7 +1082,8 @@ public class Connectivity
 		for(int i=0; i<pv.layers.length; i++)
 		{
 			if (pv.layers[i] == activeLayer) subtractPoly = true;
-			double shrinkage = (pv.largestShrink-pv.shrink[i]) / 2;
+			double minShrink = Math.min(Math.min(pv.shrinkL[i], pv.shrinkR[i]), Math.min(pv.shrinkT[i], pv.shrinkB[i]));
+			double shrinkage = (pv.largestShrink-minShrink) / 2;
 			if (i == 0) originalMerge.insetLayer(pv.layers[i], tempLayer1, shrinkage); else
 			{
 				if (shrinkage == 0) originalMerge.intersectLayers(tempLayer1, pv.layers[i], tempLayer1); else
@@ -1047,7 +1111,6 @@ public class Connectivity
 			PolyBase cutPoly = cutList.get(ind);
 			double centerX = cutPoly.getCenterX();
 			double centerY = cutPoly.getCenterY();
-//System.out.println("Consider contact layer "+layer.getName());
 
 			Rectangle2D cutBounds = cutPoly.getBounds2D();
 			double minWid = cutBounds.getWidth(), minHei = cutBounds.getHeight();
@@ -1063,8 +1126,7 @@ public class Connectivity
 				maxHei = pv.minHeight;
 			}
 			Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, minWid, minHei, maxWid, maxHei);
-			if (largest == null) continue;
-//System.out.println("  Found "+pv.pNp.getName()+" in rectangle "+largest);
+			if (largest == null) continue;//System.out.println("  Found "+pv.pNp.getName()+" in rectangle "+largest);
 			centerX = largest.getCenterX();
 			centerY = largest.getCenterY();
 			double desiredWidth = largest.getWidth() + pv.largestShrink;
@@ -1077,8 +1139,8 @@ public class Connectivity
 				for(int i=0; i<pv.layers.length; i++)
 				{
 					Layer nLayer = pv.layers[i];
-					double minLayWid = desiredWidth - pv.shrink[i];
-					double minLayHei = desiredHeight - pv.shrink[i];
+					double minLayWid = desiredWidth - pv.shrinkL[i] - pv.shrinkR[i];
+					double minLayHei = desiredHeight - pv.shrinkT[i] - pv.shrinkB[i];
 					Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
 					if (!originalMerge.contains(nLayer, rect))
 					{
@@ -1096,7 +1158,6 @@ public class Connectivity
 					originalMerge.deleteLayer(tempLayer2);
 					double wid = desiredWidth - pv.largestShrink;
 					double hei = desiredHeight - pv.largestShrink;
-//System.out.println("Creating " + pv.pNp.getName()+" that is "+wid+"x"+hei+" at ("+centerX+","+centerY+")");
 					Rectangle2D rect = new Rectangle2D.Double(centerX-wid/2, centerY-hei/2, wid, hei);
 					originalMerge.addPolygon(tempLayer2, new Poly(rect));
 					originalMerge.subtractLayers(tempLayer1, tempLayer2, tempLayer1);
@@ -1110,7 +1171,6 @@ public class Connectivity
 						double y = oPoly.getCenterY();
 						if (largest.contains(x, y))
 						{
-//System.out.println("    and also includes cut at ("+x+","+y+")");
 							checkCutSize(oPoly, pv.pNp, layer);
 							cutList.remove(oPoly);
 							merge.subtract(layer, oPoly);
@@ -1433,8 +1493,8 @@ public class Connectivity
 			// TODO do we really need to vet each contact?
 			// For some reason, the MOCMOS technology with MOCMOS foundry shows the "A-" nodes (A-Metal-1-Metal-2-Con)
 			// but these primitives are not fully in existence, and crash here
-			Technology.NodeLayer [] nLayers = pNp.getLayers();
 			boolean bogus = false;
+			Technology.NodeLayer [] nLayers = pNp.getLayers();
 			for(int i=0; i<nLayers.length; i++)
 			{
 				Technology.NodeLayer nLay = nLayers[i];
@@ -1447,28 +1507,26 @@ public class Connectivity
 			}
 			if (bogus) continue;
 
-			// create a PossibleVia object to test for them
-			PossibleVia pv = new PossibleVia(pNp);
-			pv.layers = new Layer[nLayers.length-1];
-			pv.shrink = new double[nLayers.length-1];
-			pv.minWidth = scaleUp(pNp.getDefWidth());
-			pv.minHeight = scaleUp(pNp.getDefHeight());
-
 			// load the layer information
-			int fill = 0;
 			boolean cutFound = false;
+			List<Technology.NodeLayer> pvLayers = new ArrayList<Technology.NodeLayer>();
 			for(int i=0; i<nLayers.length; i++)
 			{
 				// examine one layer of the primitive node
 				Technology.NodeLayer nLay = nLayers[i];
 				Layer nLayer = nLay.getLayer();
+
+				// ignore well layers if the process doesn't have them
+				Layer.Function lFun = nLayer.getFunction();
+				if (lFun == Layer.Function.WELLP && pWellProcess) continue;
+				if (lFun == Layer.Function.WELLN && nWellProcess) continue;
+
 				boolean cutLayer = false;
 				if (nLayer == lay)
 				{
 					// this is the target cut layer: mark it
 					cutLayer = true;
-				}
-				if (!cutLayer)
+				} else
 				{
 					// special case for active/poly cut confusion
 					if (nLayer.getFunction() == lay.getFunction()) cutLayer = true;
@@ -1485,39 +1543,101 @@ public class Connectivity
 							" BOTTOM="+nLay.getBottomEdge().getMultiplier() + " TOP="+nLay.getTopEdge().getMultiplier());
 						break;
 					}
-					if (nLay.getLeftEdge().getAdder() != -nLay.getRightEdge().getAdder() ||
-						nLay.getBottomEdge().getAdder() != -nLay.getTopEdge().getAdder())
-					{
-						System.out.println("Cannot decipher the sizing rules for layer " +
-							nLay.getLayer().getName() + " of " + pNp +
-							" LEFT="+nLay.getLeftEdge().getAdder() + " RIGHT="+nLay.getRightEdge().getAdder()+
-							" BOTTOM="+nLay.getBottomEdge().getAdder() + " TOP="+nLay.getTopEdge().getAdder());
-						break;
-					}
-
-					// create the PossibleVia to describe the geometry
-					if (fill >= nLayers.length-1) break;
-					pv.layers[fill] = geometricLayer(nLay.getLayer());
-					pv.shrink[fill] = scaleUp(Math.max(nLay.getLeftEdge().getAdder(), nLay.getBottomEdge().getAdder()) * 2);
-					fill++;
+					pvLayers.add(nLay);
 				}
 			}
 			if (!cutFound) continue;
 
-			// got the right cut layer, did we get all rules filled?
-			if (fill != nLayers.length-1)
+			// create a PossibleVia object to test for them
+			PossibleVia pv = new PossibleVia(pNp, pvLayers.size());
+			pv.rotation = 0;
+			pv.minWidth = scaleUp(pNp.getDefWidth());
+			pv.minHeight = scaleUp(pNp.getDefHeight());
+			pv.largestShrink = 0;
+			int fill = 0;
+			for(Technology.NodeLayer nLay : pvLayers)
 			{
-				System.out.println("Errors found, not scanning for " + pNp);
-				continue;
+				// create the PossibleVia to describe the geometry
+				pv.layers[fill] = geometricLayer(nLay.getLayer());
+				pv.shrinkL[fill] = scaleUp(nLay.getLeftEdge().getAdder());
+				pv.shrinkR[fill] = scaleUp(-nLay.getRightEdge().getAdder());
+				pv.shrinkT[fill] = scaleUp(-nLay.getTopEdge().getAdder());
+				pv.shrinkB[fill] = scaleUp(nLay.getBottomEdge().getAdder());
+				double ls = Math.max(Math.max(pv.shrinkL[fill], pv.shrinkR[fill]),
+					Math.max(pv.shrinkT[fill], pv.shrinkB[fill]));
+				if (fill == 0 || ls > pv.largestShrink) pv.largestShrink = ls;
+				fill++;
 			}
-			
-			// determine the range of shrinkage values for the layers in the contact
-			pv.largestShrink = pv.shrink[0];
-			for(int i=1; i<pv.layers.length; i++)
-				if (pv.shrink[i] > pv.largestShrink) pv.largestShrink = pv.shrink[i];
 
 			// add this to the list of possible vias
 			possibleVias.add(pv);
+
+			// if this via is asymmetric, add others with different rotation
+			boolean hvSymmetry = true, rotSymmetry = true;
+			for(int i=0; i<pv.layers.length; i++)
+			{
+				if (pv.shrinkL[i] != pv.shrinkR[i] || pv.shrinkT[i] != pv.shrinkB[i])
+				{
+					rotSymmetry = false;
+					break;
+				}
+				if (pv.shrinkL[i] != pv.shrinkT[i])
+				{
+					hvSymmetry = false;
+					break;
+				}
+			}
+			if (!hvSymmetry)
+			{
+				// horizontal/vertical symmetry missing: add a 90-degree rotation
+				PossibleVia newPV = new PossibleVia(pv.pNp, pv.layers.length);
+				newPV.rotation = 90;
+				newPV.largestShrink = pv.largestShrink;
+				newPV.minWidth = pv.minWidth;
+				newPV.minHeight = pv.minHeight;
+				for(int i=0; i<pv.layers.length; i++)
+				{
+					newPV.layers[i] = pv.layers[i];
+					newPV.shrinkL[i] = pv.shrinkT[i];
+					newPV.shrinkR[i] = pv.shrinkB[i];
+					newPV.shrinkT[i] = pv.shrinkR[i];
+					newPV.shrinkB[i] = pv.shrinkL[i];
+				}
+				possibleVias.add(newPV);
+			}
+			if (!rotSymmetry)
+			{
+				// rotational symmetry missing: add a 180-degree and 270-degree rotation
+				PossibleVia newPV = new PossibleVia(pv.pNp, pv.layers.length);
+				newPV.rotation = 180;
+				newPV.largestShrink = pv.largestShrink;
+				newPV.minWidth = pv.minWidth;
+				newPV.minHeight = pv.minHeight;
+				for(int i=0; i<pv.layers.length; i++)
+				{
+					newPV.layers[i] = pv.layers[i];
+					newPV.shrinkL[i] = pv.shrinkR[i];
+					newPV.shrinkR[i] = pv.shrinkL[i];
+					newPV.shrinkT[i] = pv.shrinkB[i];
+					newPV.shrinkB[i] = pv.shrinkT[i];
+				}
+				possibleVias.add(newPV);
+
+				newPV = new PossibleVia(pv.pNp, pv.layers.length);
+				newPV.rotation = 270;
+				newPV.largestShrink = pv.largestShrink;
+				newPV.minWidth = pv.minWidth;
+				newPV.minHeight = pv.minHeight;
+				for(int i=0; i<pv.layers.length; i++)
+				{
+					newPV.layers[i] = pv.layers[i];
+					newPV.shrinkL[i] = pv.shrinkB[i];
+					newPV.shrinkR[i] = pv.shrinkT[i];
+					newPV.shrinkT[i] = pv.shrinkL[i];
+					newPV.shrinkB[i] = pv.shrinkR[i];
+				}
+				possibleVias.add(newPV);
+			}
 		}
 		return possibleVias;
 	}
@@ -1927,12 +2047,12 @@ public class Connectivity
 			// going up to the poly or down?
 			Point2D objPt = new Point2D.Double(polyCtr.getX() / SCALEFACTOR, portRect.getCenterY() / SCALEFACTOR);
 			Point2D pinPt = null;
-			boolean noEndExtend = false;
+			boolean endExtend = true;
 			double endExtension = polyBounds.getWidth() / 2;
 			if (polyBounds.getHeight() < polyBounds.getWidth())
 			{
 				// arc is so short that it will stick out with end extension
-				noEndExtend = true;
+				endExtend = false;
 				endExtension = 0;
 			}
 			if (polyCtr.getY() > portRect.getCenterY())
@@ -1949,8 +2069,12 @@ public class Connectivity
 
 			NodeInst ni1 = createNode(np, pinPt, polyBounds.getWidth() / SCALEFACTOR,
 				polyBounds.getWidth() / SCALEFACTOR, newCell);
-			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt,
-				(polyBounds.getWidth()+ap.getLambdaWidthOffset()) / SCALEFACTOR, noEndExtend, noEndExtend, merge);
+
+			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
+			double wid = polyBounds.getWidth() + ap.getLambdaWidthOffset();
+			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
+			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt, wid / SCALEFACTOR,
+				!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 			return;
 		}
 
@@ -1960,12 +2084,12 @@ public class Connectivity
 			// going left to the poly or right?
 			Point2D objPt = new Point2D.Double(portRect.getCenterX() / SCALEFACTOR, polyCtr.getY() / SCALEFACTOR);
 			Point2D pinPt = null;
-			boolean noEndExtend = false;
+			boolean endExtend = true;
 			double endExtension = polyBounds.getHeight() / 2;
 			if (polyBounds.getWidth() < polyBounds.getHeight())
 			{
 				// arc is so short that it will stick out with end extension
-				noEndExtend = true;
+				endExtend = false;
 				endExtension = 0;
 			}
 			if (polyCtr.getX() > portRect.getCenterX())
@@ -1981,8 +2105,11 @@ public class Connectivity
 			}
 			NodeInst ni1 = createNode(np, pinPt, polyBounds.getHeight() / SCALEFACTOR,
 				polyBounds.getHeight() / SCALEFACTOR, newCell);
+			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
+			double wid = polyBounds.getHeight() + ap.getLambdaWidthOffset();
+			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
 			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt,
-				(polyBounds.getHeight()+ap.getLambdaWidthOffset()) / SCALEFACTOR, noEndExtend, noEndExtend, merge);
+				wid / SCALEFACTOR, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 		}
 	}
 
@@ -2136,7 +2263,7 @@ public class Connectivity
 
 		List<PolyBase> polysToAnalyze = new ArrayList<PolyBase>();
 		polysToAnalyze.add(poly);
-		for(;;)
+		for(int loop=1; ; loop++)
 		{
 			// decompose all polygons
 			boolean foundNew = false;
@@ -2144,15 +2271,20 @@ public class Connectivity
 			{
 				// first make a list of all parallel wires in the polygon
 				aPoly.setLayer(layer);
-				List<Centerline> centerlines = gatherCenterlines(aPoly, originalMerge);
+//System.out.print("FOR POLY:");
+//Point2D [] points = aPoly.getPoints();
+//for(int i=0; i<points.length; i++) System.out.print(" ("+points[i].getX()+","+points[i].getY()+")");
+//System.out.println();
+				List<Centerline> centerlines = gatherCenterlines(aPoly, merge, originalMerge);
 
+//System.out.println("GATHERED:");
+//for(Centerline cl : centerlines)
+//	System.out.println("    "+cl.toString());
 				// now pull out the relevant ones
 				double lastWidth = -1;
 				for(Centerline cl : centerlines)
 				{
 					if (cl.width < minWidth) continue;
-					if (lastWidth < 0) lastWidth = cl.width;
-					if (Math.abs(cl.width - lastWidth) > 1) break;
 
 					// make the polygon to describe the centerline
 					double length = cl.start.distance(cl.end);
@@ -2162,6 +2294,29 @@ public class Connectivity
 
 					// see if this centerline actually covers new area
 					if (!merge.intersects(tempLayer1, clPoly)) continue;
+
+					// for nonmanhattan centerlines, do extra work to ensure uniqueness
+					if (cl.startUnscaled.getX() != cl.endUnscaled.getX() &&
+						cl.startUnscaled.getY() != cl.endUnscaled.getY())
+					{
+						boolean duplicate = false;
+						for(Centerline oCl : validCenterlines)
+						{
+							if (cl.startUnscaled.equals(oCl.startUnscaled) && cl.endUnscaled.equals(oCl.endUnscaled))
+							{
+								duplicate = true;   break;
+							}
+							if (cl.startUnscaled.equals(oCl.endUnscaled) && cl.endUnscaled.equals(oCl.startUnscaled))
+							{
+								duplicate = true;   break;
+							}
+						}
+						if (duplicate) continue;
+					}
+
+					// if narrower centerlines have already been added, stop now
+					if (lastWidth < 0) lastWidth = cl.width;
+					if (Math.abs(cl.width - lastWidth) > 1) break;
 
 					// add this to the list of valid centerlines
 					validCenterlines.add(cl);
@@ -2261,8 +2416,7 @@ public class Connectivity
 				}					
 			}
 		}
-
-//System.out.println("  And final centerlines are:");
+//System.out.println("FINAL CENTERLINE: ");
 //for(Centerline cl : validCenterlines) System.out.println("    "+cl.toString());
 		return validCenterlines;
 	}
@@ -2286,10 +2440,11 @@ public class Connectivity
 	/**
 	 * Method to gather all of the Centerlines in a polygon.
 	 * @param poly the Poly to analyze.
+	 * @param merge the merge at this point (with extracted geometry removed).
 	 * @param originalMerge the original collection of geometry.
 	 * @return a List of Centerlines in the polygon.
 	 */
-	private List<Centerline> gatherCenterlines(PolyBase poly, PolyMerge originalMerge)
+	private List<Centerline> gatherCenterlines(PolyBase poly, PolyMerge merge, PolyMerge originalMerge)
 	{
 		// first make a list of all parallel wires in the polygon
 		List<Centerline> centerlines = new ArrayList<Centerline>();
@@ -2428,8 +2583,8 @@ public class Connectivity
 //for(int t=0; t<ps.length; t++) System.out.print(" ("+ps[t].getX()+","+ps[t].getY()+")"); System.out.println();
 						if (originalMerge.contains(poly.getLayer(), clPoly))
 						{
-							// if the width is greater than the length, rotate the centerline 90 degrees
-							if (width > length)
+							// if the width is much greater than the length, rotate the centerline 90 degrees
+							if (width > length*2)
 							{
 								Point2D [] pts = clPoly.getPoints();
 								Point2D [] edgeCtrs = new Point2D[pts.length];
@@ -2472,33 +2627,51 @@ public class Connectivity
 		}
 
 		// remove redundant centerlines
-		for(int i=0; i<centerlines.size(); )
+		PolyMerge reCheck = new PolyMerge();
+		for(int i=0; i<centerlines.size(); i++)
 		{
-			int nextI = i+1;
 			Centerline cl = centerlines.get(i);
 			Poly clPoly = Poly.makeEndPointPoly(cl.start.distance(cl.end), cl.width, cl.angle,
 				cl.start, 0, cl.end, 0, Poly.Type.FILLED);
-
-			// see if others are contained in it
-			for(int j=0; j<centerlines.size(); j++)
+			if (reCheck.contains(tempLayer1, clPoly))
 			{
-				Centerline oCl = centerlines.get(j);
-				if (oCl == cl) continue;
-				Poly oClPoly = Poly.makeEndPointPoly(oCl.start.distance(oCl.end), oCl.width, oCl.angle,
-					oCl.start, 0, oCl.end, 0, Poly.Type.FILLED);
-				Rectangle2D oClBox = oClPoly.getBox();
-				if (oClBox == null) continue;
-				if (clPoly.contains(oClBox))
-				{
-					if (DEBUGCENTERLINES)
-						System.out.println("***REMOVE "+oCl.toString()+" WHICH IS COVERED BY "+cl.toString());
-					centerlines.remove(j);
-					if (nextI > j) nextI--;
-					j--;
-				}
+				if (DEBUGCENTERLINES)
+					System.out.println("***REMOVE "+cl.toString()+" WHICH IS REDUNDANT");
+				centerlines.remove(i);
+				i--;
+				continue;
 			}
-			i = nextI;
+			reCheck.addPolygon(tempLayer1, clPoly);
 		}
+
+//		// old way to remove redundancy
+//		for(int i=0; i<centerlines.size(); )
+//		{
+//			int nextI = i+1;
+//			Centerline cl = centerlines.get(i);
+//			Poly clPoly = Poly.makeEndPointPoly(cl.start.distance(cl.end), cl.width, cl.angle,
+//				cl.start, 0, cl.end, 0, Poly.Type.FILLED);
+//
+//			// see if others are contained in it
+//			for(int j=0; j<centerlines.size(); j++)
+//			{
+//				Centerline oCl = centerlines.get(j);
+//				if (oCl == cl) continue;
+//				Poly oClPoly = Poly.makeEndPointPoly(oCl.start.distance(oCl.end), oCl.width, oCl.angle,
+//					oCl.start, 0, oCl.end, 0, Poly.Type.FILLED);
+//				Rectangle2D oClBox = oClPoly.getBox();
+//				if (oClBox == null) continue;
+//				if (clPoly.contains(oClBox))
+//				{
+//					if (DEBUGCENTERLINES)
+//						System.out.println("***REMOVE "+oCl.toString()+" WHICH IS COVERED BY "+cl.toString());
+//					centerlines.remove(j);
+//					if (nextI > j) nextI--;
+//					j--;
+//				}
+//			}
+//			i = nextI;
+//		}
 
 		// sort the parallel wires by width
 		Collections.sort(centerlines, new ParallelWiresByWidth());

@@ -115,7 +115,7 @@ import javax.swing.SwingUtilities;
  */
 public class FileMenu {
 
-    static EMenu makeMenu() {
+	static EMenu makeMenu() {
 		/****************************** THE FILE MENU ******************************/
 
 		// mnemonic keys available:    D               T  WXYZ
@@ -416,22 +416,15 @@ public class FileMenu {
 			// see if the former library can be deleted
 			if (deleteLib != null)
 			{
-//				if (Library.getVisibleLibraries().size() > 1)
-//				{
-					if (!deleteLib.kill("replace")) return false;
-					deleteLib = null;
-//				} else
-//				{
-//					// cannot delete last library: must delete it later
-//					// mangle the name so that the new one can be created
-//					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
-//				}
+				if (!deleteLib.kill("replace")) return false;
+				deleteLib = null;
 			}
             fieldVariableChanged("meaningVariables");
             meaningVariables = new HashMap<Object,Map<String,Object>>();
         	lib = LibraryFiles.readLibrary(fileURL, null, type, false, meaningVariables);
             if (lib == null) return false;
             fieldVariableChanged("lib");
+
             // new library open: check for default "noname" library and close if empty
             Library noname = Library.findLibrary("noname");
             if (noname != null) {
@@ -474,7 +467,7 @@ public class FileMenu {
 		private FileType type;
 		private Library createLib;
 		private Library deleteLib;
-//		private Cell showThisCell;
+		private long startMemory, startTime;
 
 		public ImportLibrary(URL fileURL, FileType type, Library deleteLib)
 		{
@@ -482,6 +475,11 @@ public class FileMenu {
 			this.fileURL = fileURL;
 			this.type = type;
 			this.deleteLib = deleteLib;
+			if (type == FileType.DAIS)
+			{
+				startTime = System.currentTimeMillis();
+				startMemory = com.sun.electric.Main.getMemoryUsage();
+			}
 			startJob();
 		}
 
@@ -490,33 +488,22 @@ public class FileMenu {
 			// see if the former library can be deleted
 			if (deleteLib != null)
 			{
-//				if (Library.getVisibleLibraries().size() > 1)
-//				{
-					if (!deleteLib.kill("replace")) return false;
-					deleteLib = null;
-//				} else
-//				{
-//					// cannot delete last library: must delete it later
-//					// mangle the name so that the new one can be created
-//					deleteLib.setName("FORMERVERSIONOF" + deleteLib.getName());
-//				}
+				if (!deleteLib.kill("replace")) return false;
+				deleteLib = null;
 			}
 			createLib = Input.importLibrary(fileURL, type);
 			if (createLib == null) return false;
 
             // new library open: check for default "noname" library and close if empty
             Library noname = Library.findLibrary("noname");
-            if (noname != null) {
-            	if (!noname.getCells().hasNext()) {
+            if (noname != null)
+            {
+            	if (!noname.getCells().hasNext())
+            	{
                 	noname.kill("delete");
                 }
             }
-            
-//            Undo.noUndoAllowed();
-//            showThisCell =  Job.getUserInterface().getCurrentCell(createLib);
-// 			fieldVariableChanged("showThisCell");
-//			if (deleteLib != null)
-//				deleteLib.kill("replace");
+
 			fieldVariableChanged("createLib");
 			return true;
 		}
@@ -526,7 +513,14 @@ public class FileMenu {
             createLib.setCurrent();
         	Cell showThisCell = Job.getUserInterface().getCurrentCell(createLib);
         	doneOpeningLibrary(showThisCell);
-//        	fieldVariableChanged("showThisCell");
+			if (type == FileType.DAIS)
+			{
+				long endTime = System.currentTimeMillis();
+				float finalTime = (endTime - startTime) / 1000F;
+	    		long end = com.sun.electric.Main.getMemoryUsage();
+	    		long amt = (end-startMemory)/1024/1024;
+	    		System.out.println("*** DAIS INPUT TOOK " + finalTime + " seconds, " + amt + " megabytes");
+			}
         }
 	}
 
@@ -1203,7 +1197,6 @@ public class FileMenu {
 
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName(wf.getTitle());
-	    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
 
 	    PrintService [] printers = new PrintService[0];
 	    try
@@ -1244,6 +1237,7 @@ public class FileMenu {
 			RepaintManager currentManager = RepaintManager.currentManager(overall);
 			currentManager.setDoubleBufferingEnabled(false);
 
+		    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
 			Dimension oldSize = overall.getSize();
 			ep.setOldSize(oldSize);
 
