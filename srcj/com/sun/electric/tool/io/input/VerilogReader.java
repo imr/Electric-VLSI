@@ -35,6 +35,7 @@ public class VerilogReader extends Input
     double maxWidth = 100, nodeWidth = 10;
     Map<Cell, Point2D.Double> locationMap = new HashMap<Cell, Point2D.Double>();
     PrimitiveNode essentialBounds = Generic.tech.findNodeProto("Essential-Bounds");
+    Cell topCell = null;
 
     private String readCellHeader(List<String> inputs) throws IOException
     {
@@ -224,7 +225,7 @@ public class VerilogReader extends Input
                             local = bus;
                             int start = bus.indexOf("[");
                             int end = bus.indexOf("]");
-                            if (start < end && dot != -1)
+                            if (dot != -1 && start < end)
                             {
                                 bus = bus.substring(start+1, end);
                                 isBus = true;
@@ -367,6 +368,9 @@ public class VerilogReader extends Input
         cellName += "{" + View.SCHEMATIC.getAbbreviation() + "}";
         Cell cell = Cell.makeInstance(Library.getCurrent(), cellName);
         cell.setTechnology(Schematics.tech);
+
+        if (topCell == null)
+            topCell = cell;
 
         String nextToken = null;
 
@@ -576,13 +580,13 @@ public class VerilogReader extends Input
         return null;
     }
 
-    public void readVerilog(String file)
+    public Cell readVerilog(String file)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
         if (openTextInput(fileURL))
         {
             System.out.println("Cannot open the Verilog file: " + file);
-            return;
+            return null;
         }
         System.out.println("Reading Verilog file: " + file);
         initKeywordParsing();
@@ -619,5 +623,6 @@ public class VerilogReader extends Input
         {
             System.out.println("ERROR reading Dais technology file");
         }
+        return topCell;
     }
 }
