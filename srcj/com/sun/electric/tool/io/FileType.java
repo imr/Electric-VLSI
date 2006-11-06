@@ -77,10 +77,11 @@ public class FileType implements Serializable {
 	/** Describes CDL decks.*/				public static final FileType CDL          = makeFileType("CDL", new String[] {"cdl"}, "CDL Deck (cdl)", SPICESIMGRP);
 	/** Describes CIF files. */				public static final FileType CIF          = makeFileType("CIF", new String[] {"cif"}, "CIF File (cif)", EXPORTIMPORTGRP);
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = makeFileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)", OTHERSIMGRP);
+	/** Describes Dais input. */			public static final FileType DAIS         = makeFileType("Dais", new String[] {""}, "Dais Workspace (ends in _ws)", EXPORTIMPORTGRP);
     /** Describes Calibre DRC Error files. */public static final FileType DB          = makeFileType("DB", new String[] {"db"}, "Calibre DRC Error File (db)", EXPORTIMPORTGRP);
 	/** Describes DEF output. */			public static final FileType DEF          = makeFileType("DEF", new String[] {"def"}, "DEF File (def)", EXPORTIMPORTGRP);
     /** Describes DELIB files.*/			public static final FileType DELIB        = makeFileType("DELIB", new String[] {"delib"}, "Directory Library File (delib)", DATABASEGRP);
-	/** Describes Dais input. */			public static final FileType DAIS         = makeFileType("Dais", new String[] {""}, "Dais Workspace (ends in _ws)", EXPORTIMPORTGRP);
+	/** Describes DSPF input. */			public static final FileType DSPF         = makeFileType("DSPF", new String[] {"dspf"}, "Detailed Standard Parasitic File (dspf)", EXPORTIMPORTGRP);
 	/** Describes DXF output. */			public static final FileType DXF          = makeFileType("DXF", new String[] {"dxf"}, "DXF File (dxf)", EXPORTIMPORTGRP);
 	/** Describes Eagle files.*/			public static final FileType EAGLE        = makeFileType("Eagle", new String[] {"txt"}, "Eagle File (txt)", EXPORTIMPORTGRP);
 	/** Describes ECAD files.*/				public static final FileType ECAD         = makeFileType("ECAD", new String[] {"enl"}, "ECAD File (enl)", EXPORTIMPORTGRP);
@@ -107,7 +108,8 @@ public class FileType implements Serializable {
     /** Describes L files.*/				public static final FileType L            = makeFileType("L", new String[] {"L"}, "L File (L)", EXPORTIMPORTGRP);
 	/** Describes LEF files.*/				public static final FileType LEF          = makeFileType("LEF", new String[] {"lef"}, "LEF File (lef)", EXPORTIMPORTGRP);
 	/** Describes Library files.*/			public static final FileType LIBFILE      = makeFileType("LIBFILE", new String[] {"jelib", "elib", "txt"}, "Library File", DATABASEGRP);
-	/** Describes Maxwell decks. */			public static final FileType MAXWELL      = makeFileType("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)", OTHERSIMGRP);
+	/** Describes Liberty input. */			public static final FileType LIB         = makeFileType("LIB", new String[] {"lib"}, "Liberty File (lib)", EXPORTIMPORTGRP);
+    /** Describes Maxwell decks. */			public static final FileType MAXWELL      = makeFileType("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)", OTHERSIMGRP);
 	/** Describes MOSSIM decks. */			public static final FileType MOSSIM       = makeFileType("MOSSIM", new String[] {"ntk"}, "MOSSIM Deck (ntk)", OTHERSIMGRP);
     /** Describes Movie files. */			public static final FileType MOV          = makeFileType("Movie", new String[] {"mov"}, "Movie File (mov)");
     /** Describes Pad Frame Array spec. */	public static final FileType PADARR       = makeFileType("Pad Array", new String[] {"arr"}, "Pad Generator Array File (arr)", EXPORTIMPORTGRP);
@@ -141,10 +143,11 @@ public class FileType implements Serializable {
 	private static String libraryTypesExtReadable;
 	static {
 		ArrayList<String> exts = new ArrayList<String>();
-		for (int i=0; i<libraryTypes.length; i++) {
-			FileType type = libraryTypes[i];
+		for (FileType type : libraryTypes)
+        {
 			String [] typeExts = type.getExtensions();
-			for (int j=0; j<typeExts.length; j++) exts.add(typeExts[j]);
+            for (String typeExt : typeExts)
+                exts.add(typeExt);
 		}
 		libraryTypesExt = new String[exts.size()];
 		StringBuffer buf = new StringBuffer("(");
@@ -366,9 +369,8 @@ public class FileType implements Serializable {
 		if (i < 0) return false;
 		String thisExtension = fileName.substring(i+1);
 		if (thisExtension == null) return false;
-		for (int j=0; j<extensions.length; j++)
+        for (String extension : extensions)
 		{
-			String extension = extensions[j];
 			if (extension.equalsIgnoreCase(thisExtension)) return true;
 			if (allowNumbers)
 			{

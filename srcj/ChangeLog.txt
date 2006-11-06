@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/6/06, GVG) Added DSPF and LIB as FileTypes
+
 BUG: (11/2/06, GVG) Scalable transistors not available under Mosis foundry
 FIX: wrong setup of setNotUsed
 
