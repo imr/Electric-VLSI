@@ -1105,6 +1105,21 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchNoOtherArcsSameDir(boolean on) { cacheMimicStitchNoOtherArcsSameDir.setBoolean(on); }
 
+	private static Pref cacheMimicStitchOnlyNewTopology = Pref.makeBooleanPref("MimicStitchOnlyNewTopology", Routing.tool.prefs, true);
+	/**
+	 * Method to tell whether Mimic-stitching creates arcs only where not already connected.
+	 * If a connection is already made elsewhere, the new one is not made.
+	 * The default is "true".
+	 * @return true if Mimic-stitching creates arcs only where not already connected.
+	 */
+	public static boolean isMimicStitchOnlyNewTopology() { return cacheMimicStitchOnlyNewTopology.getBoolean(); }
+	/**
+	 * Method to set whether Mimic-stitching creates arcs only where not already connected.
+	 * If a connection is already made elsewhere, the new one is not made.
+	 * @param on true if Mimic-stitching creates arcs only where not already connected.
+	 */
+	public static void setMimicStitchOnlyNewTopology(boolean on) { cacheMimicStitchOnlyNewTopology.setBoolean(on); }
+
 	/****************************** SUN ROUTER OPTIONS ******************************/
 
 	private static Pref cacheSLRVerboseLevel = Pref.makeIntPref("SunRouterVerboseLevel", Routing.getRoutingTool().prefs, 2);

@@ -57,6 +57,8 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -75,14 +77,17 @@ public class MimicStitch
 {
 	/** router to use */            private static InteractiveRouter router = new SimpleWirer();
 
-	private static final int LIKELYDIFFPORT      =  1;
-	private static final int LIKELYDIFFPORTWIDTH =  2;
-	private static final int LIKELYDIFFARCCOUNT  =  4;
-	private static final int LIKELYDIFFNODETYPE  =  8;
-	private static final int LIKELYDIFFNODESIZE  = 16;
-	private static final int LIKELYARCSSAMEDIR   = 32;
+	private static final int NUMSITUATIONS          =  7;
+	private static final int LIKELYDIFFPORT         =  1;
+	private static final int LIKELYDIFFPORTWIDTH    =  2;
+	private static final int LIKELYDIFFARCCOUNT     =  4;
+	private static final int LIKELYDIFFNODETYPE     =  8;
+	private static final int LIKELYDIFFNODESIZE     = 16;
+	private static final int LIKELYARCSSAMEDIR      = 32;
+	private static final int LIKELYALREADYCONNECTED = 64;
 
-	private static final int situations[] = {
+	private static int situations[] = null;
+	private static int knownSituations[] = {
 		0,
 		// any single situation
 		LIKELYARCSSAMEDIR,
@@ -159,6 +164,36 @@ public class MimicStitch
 		LIKELYARCSSAMEDIR|LIKELYDIFFNODESIZE|LIKELYDIFFARCCOUNT|LIKELYDIFFPORTWIDTH|LIKELYDIFFPORT|LIKELYDIFFNODETYPE
 	};
 
+	private static void buildLikelySituations()
+	{
+		if (situations != null) return;
+		int numSituations = 1 << NUMSITUATIONS;
+		List<Integer> allSituations = new ArrayList<Integer>();
+		for(int i=0; i<numSituations; i++) allSituations.add(new Integer(i));
+		Collections.sort(allSituations, new SituationSorter());
+
+		situations = new int[numSituations];
+		for(int i=0; i<numSituations; i++)
+			situations[i] = allSituations.get(i).intValue();
+	}
+
+	private static class SituationSorter implements Comparator<Integer>
+	{
+    	public int compare(Integer r1, Integer r2)
+        {
+    		int i1 = r1.intValue();
+    		int i2 = r2.intValue();
+    		int b1 = 0, b2 = 0;
+    		for(int i=0; i<NUMSITUATIONS; i++)
+    		{
+    			int mask = 1 << i;
+    			if ((i1 & mask) != 0) b1++;
+    			if ((i2 & mask) != 0) b2++;
+    		}
+    		return b1 - b2;
+        }
+	}
+
 	private static class PossibleArc
 	{
 		private int       situation;
@@ -174,6 +209,7 @@ public class MimicStitch
 	 */
 	public static void mimicStitch(boolean forced)
 	{
+		buildLikelySituations();
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.needCurrentEditWindow_();
 		if (wnd == null) return;
@@ -383,8 +419,10 @@ public class MimicStitch
 		boolean matchNodeType = Routing.isMimicStitchMatchNodeType();
 		boolean matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 		boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
+		boolean notAlreadyConnected = Routing.isMimicStitchOnlyNewTopology();
 		processPossibilities(cell, arcKills, 0, 0, Job.Type.EXAMINE, true,
-			mimicInteractive, matchPorts, matchPortWidth, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
+			mimicInteractive, matchPorts, matchPortWidth, matchArcCount,
+			matchNodeType, matchNodeSize, notAlreadyConnected, noOtherArcsThisDir);
 	}
 
 	/**
@@ -426,9 +464,11 @@ public class MimicStitch
 			boolean matchNodeType = Routing.isMimicStitchMatchNodeType();
 			boolean matchNodeSize = Routing.isMimicStitchMatchNodeSize();
 			boolean noOtherArcsThisDir = Routing.isMimicStitchNoOtherArcsSameDir();
+			boolean notAlreadyConnected = Routing.isMimicStitchOnlyNewTopology();
 
 			mimicOneArc(ai1, end1, ai2, end2, oWidth, oProto, prefX, prefY, forced, Job.Type.EXAMINE,
-				mimicInteractive, matchPorts, matchPortWidth, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir, this);
+				mimicInteractive, matchPorts, matchPortWidth, matchArcCount,
+				matchNodeType, matchNodeSize, noOtherArcsThisDir, notAlreadyConnected, this);
 			return true;
 		}
 	}
@@ -449,14 +489,16 @@ public class MimicStitch
      * @param matchNodeType true to require the node types to match.
      * @param matchNodeSize true to require the node sizes to match.
      * @param noOtherArcsThisDir true to require that no other arcs exist in the same direction.
+     * @param notAlreadyConnected true to require that the connection not already be made with other arcs.
      * @param theJob
      */
 	public static void mimicOneArc(ArcInst ai1, int end1, ArcInst ai2, int end2, double oWidth, ArcProto oProto,
        double prefX, double prefY, boolean forced, Job.Type method, boolean mimicInteractive, boolean matchPorts,
        boolean matchPortWidth, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir,
-       Job theJob)
+       boolean notAlreadyConnected, Job theJob)
 	{
 		if (forced) System.out.println("Mimicing last arc...");
+		buildLikelySituations();
 
 		PortInst [] endPi = new PortInst[2];
 		Connection conn1 = ai1.getConnection(end1);
@@ -623,11 +665,14 @@ public class MimicStitch
 							boolean ptInPoly = thisPoly.isInside(want1);
 							if (!ptInPoly) continue;
 
-							// if there is a network that already connects these, ignore
-							if (netlist.sameNetwork(ni, pp, oNi, oPp)) continue;
-
 							// figure out the wiring situation here
 							int situation = 0;
+
+							// if there is a network that already connects these, ignore
+							if (netlist.sameNetwork(ni, pp, oNi, oPp))
+							{
+								situation |= LIKELYALREADYCONNECTED;
+							}
 
 							// see if there are already wires going in this direction
 							int desiredAngle = -1;
@@ -765,12 +810,14 @@ public class MimicStitch
 
 		// now create the mimiced arcs
 		processPossibilities(cell, possibleArcs, prefX, prefY, method, forced,
-			mimicInteractive, matchPorts, matchPortWidth, matchArcCount, matchNodeType, matchNodeSize, noOtherArcsThisDir);
+			mimicInteractive, matchPorts, matchPortWidth, matchArcCount,
+			matchNodeType, matchNodeSize, noOtherArcsThisDir, notAlreadyConnected);
 	}
 	
 	private static void processPossibilities(Cell cell, List<PossibleArc> possibleArcs, double prefX, double prefY,
 		Job.Type method, boolean forced, boolean mimicInteractive,
-		boolean matchPorts, boolean matchPortWidth, boolean matchArcCount, boolean matchNodeType, boolean matchNodeSize, boolean noOtherArcsThisDir)
+		boolean matchPorts, boolean matchPortWidth, boolean matchArcCount, boolean matchNodeType,
+		boolean matchNodeSize, boolean noOtherArcsThisDir, boolean notAlreadyConnected)
 	{
 		if (mimicInteractive)
 		{
@@ -781,7 +828,8 @@ public class MimicStitch
 		}
 
 		// not interactive: follow rules in the Preferences
-		int ifIgnorePorts = 0, ifIgnorePortWidth = 0, ifIgnoreArcCount = 0, ifIgnoreNodeType = 0, ifIgnoreNodeSize = 0, ifIgnoreOtherSameDir = 0;
+		int ifIgnorePorts = 0, ifIgnorePortWidth = 0, ifIgnoreArcCount = 0, ifIgnoreNodeType = 0;
+		int ifIgnoreNodeSize = 0, ifIgnoreOtherSameDir = 0, ifAlreadyConnected = 0;
 		int count = 0;
 		boolean deletion = false;
 		for(int j=0; j<situations.length; j++)
@@ -827,6 +875,7 @@ public class MimicStitch
 			if (matchNodeType && (situations[j]&LIKELYDIFFNODETYPE) != 0) { ifIgnoreNodeType += total;   continue; }
 			if (matchNodeSize && (situations[j]&LIKELYDIFFNODESIZE) != 0) { ifIgnoreNodeSize += total;   continue; }
 			if (noOtherArcsThisDir && (situations[j]&LIKELYARCSSAMEDIR) != 0) { ifIgnoreOtherSameDir += total;   continue; }
+			if (notAlreadyConnected && (situations[j]&LIKELYALREADYCONNECTED) != 0) { ifAlreadyConnected += total;   continue; }
 
 			// create the routes
 			if (method == Job.Type.EXAMINE)
@@ -859,6 +908,8 @@ public class MimicStitch
 					msg += ", might have " + activity + " " + ifIgnoreNodeSize + " wires if 'nodes sizes must match' were off";
 				if (ifIgnoreOtherSameDir != 0)
 					msg += ", might have " + activity + " " + ifIgnoreOtherSameDir + " wires if 'cannot have other arcs in the same direction' were off";
+				if (ifAlreadyConnected != 0)
+					msg += ", might have " + activity + " " + ifAlreadyConnected + " wires if 'ignore if already connected elsewhere' were off";
 				System.out.println(msg);
 				if (ifIgnorePorts + ifIgnoreArcCount + ifIgnoreNodeType + ifIgnoreNodeSize + ifIgnoreOtherSameDir != 0)
 					System.out.println(" (settings are in the Tools / Routing tab of the Preferences)");
