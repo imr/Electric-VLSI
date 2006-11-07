@@ -108,6 +108,7 @@ public class RoutingTab extends PreferencePanel
 		routMimicNodeSizesMustMatch.setSelected(Routing.isMimicStitchMatchNodeSize());
 		routMimicNodeTypesMustMatch.setSelected(Routing.isMimicStitchMatchNodeType());
 		routMimicNoOtherArcs.setSelected(Routing.isMimicStitchNoOtherArcsSameDir());
+		routMimicOnlyNewTopology.setSelected(Routing.isMimicStitchOnlyNewTopology());
 		routMimicInteractive.setSelected(Routing.isMimicStitchInteractive());
         routMimicKeepPins.setSelected(Routing.isMimicStitchPinsKept());
 
@@ -198,6 +199,10 @@ public class RoutingTab extends PreferencePanel
 		if (cur != Routing.isMimicStitchNoOtherArcsSameDir())
 			Routing.setMimicStitchNoOtherArcsSameDir(cur);
 
+		cur = routMimicOnlyNewTopology.isSelected();
+		if (cur != Routing.isMimicStitchOnlyNewTopology())
+			Routing.setMimicStitchOnlyNewTopology(cur);
+
 		cur = routMimicInteractive.isSelected();
 		if (cur != Routing.isMimicStitchInteractive())
 			Routing.setMimicStitchInteractive(cur);
@@ -229,6 +234,7 @@ public class RoutingTab extends PreferencePanel
         routMimicNoOtherArcs = new javax.swing.JCheckBox();
         routMimicPortsWidthMustMatch = new javax.swing.JCheckBox();
         routMimicKeepPins = new javax.swing.JCheckBox();
+        routMimicOnlyNewTopology = new javax.swing.JCheckBox();
         jPanel8 = new javax.swing.JPanel();
         routTechLabel = new javax.swing.JLabel();
         routDefaultArc = new javax.swing.JComboBox();
@@ -314,7 +320,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
         jPanel7.add(routMimicNoOtherArcs, gridBagConstraints);
 
         routMimicPortsWidthMustMatch.setText("Bus ports must have same width");
@@ -331,10 +337,19 @@ public class RoutingTab extends PreferencePanel
         routMimicKeepPins.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel7.add(routMimicKeepPins, gridBagConstraints);
+
+        routMimicOnlyNewTopology.setText("Ignore if already connected elsewhere");
+        routMimicOnlyNewTopology.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
+        jPanel7.add(routMimicOnlyNewTopology, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -446,6 +461,7 @@ public class RoutingTab extends PreferencePanel
     private javax.swing.JCheckBox routMimicNodeSizesMustMatch;
     private javax.swing.JCheckBox routMimicNodeTypesMustMatch;
     private javax.swing.JCheckBox routMimicNumArcsMustMatch;
+    private javax.swing.JCheckBox routMimicOnlyNewTopology;
     private javax.swing.JCheckBox routMimicPortsMustMatch;
     private javax.swing.JCheckBox routMimicPortsWidthMustMatch;
     private javax.swing.JRadioButton routMimicStitcher;

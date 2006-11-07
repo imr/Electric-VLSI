@@ -28,7 +28,6 @@ import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
@@ -50,7 +49,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.User;
 
-import java.awt.event.ActionEvent;
 import java.awt.geom.Point2D;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -61,8 +59,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
-import javax.swing.AbstractButton;
 
 /**
  * This is the Routing tool.
@@ -80,8 +76,6 @@ public class Routing extends Listener
 		int numDeletedArcs, numDeletedNodes;
         ImmutableArcInst deletedArc;
         CellId deletedArcParent;
-//		ArcInst [] deletedArcs;
-//		NodeInst [] deletedNodes;
 		PortProtoId [] deletedPorts;
 
 		Activity()
@@ -90,8 +84,6 @@ public class Routing extends Listener
 			numDeletedArcs = numDeletedNodes = 0;
 			createdArcs = new ArcInst[3];
 			createdNodes = new NodeInst[3];
-//			deletedArcs = new ArcInst[3];
-//			deletedNodes = new NodeInst[2];
 			deletedPorts = new PortProtoId[2];
 		}
 	}
@@ -124,17 +116,6 @@ public class Routing extends Listener
      * @return the Routing tool.
      */
     public static Routing getRoutingTool() { return tool; }
-
-//	/**
-//	 * Method to announce the start of a batch of changes.
-//	 * @param tool the tool that generated the changes.
-//	 * @param undoRedo true if these changes are from an undo or redo command.
-//	 */
-//	public void startBatch(Tool tool, boolean undoRedo)
-//	{
-//		current = new Activity();
-//		checkAutoStitch = false;
-//	}
 
    /**
      * Handles database changes of a Job.
@@ -219,60 +200,6 @@ public class Routing extends Listener
         // JFluid results
         current = null;
 	}
-
-//	/**
-//	 * Method to announce a change to a NodeInst.
-//	 * @param ni the NodeInst that was changed.
-//	 * @param oD the old contents of the NodeInst.
-//	 */
-//	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
-//	{
-//		checkAutoStitch = true;
-//	}
-//
-//	/**
-//	 * Method to announce the creation of a new ElectricObject.
-//	 * @param obj the ElectricObject that was just created.
-//	 */
-//	public void newObject(ElectricObject obj)
-//	{
-//		if (obj instanceof NodeInst)
-//		{
-//			checkAutoStitch = true;
-//			if (current.numCreatedNodes < 3)
-//				current.createdNodes[current.numCreatedNodes++] = (NodeInst)obj;
-//		} else if (obj instanceof ArcInst)
-//		{
-//			if (current.numCreatedArcs < 3)
-//				current.createdArcs[current.numCreatedArcs++] = (ArcInst)obj;
-//		}
-//	}
-//
-//	/**
-//	 * Method to announce the deletion of an ElectricObject.
-//	 * @param obj the ElectricObject that was just deleted.
-//	 */
-//	public void killObject(ElectricObject obj)
-//	{
-//		if (obj instanceof NodeInst)
-//		{
-//			if (current.numDeletedNodes < 2)
-//				current.deletedNodes[current.numDeletedNodes++] = (NodeInst)obj;
-//		} else if (obj instanceof ArcInst)
-//		{
-//			ArcInst ai = (ArcInst)obj;
-//            if (current.deletedArc == null) return;
-//            current.deletedArc = ai.getD();
-////			if (current.numDeletedArcs < 3)
-////				current.deletedArcs[current.numDeletedArcs++] = ai;
-//            current.deletedArcParent = ai.getParent().getCellId();
-//			current.deletedNodes[0] = ai.getHeadPortInst().getNodeInst();
-//			current.deletedPorts[0] = ai.getHeadPortInst().getPortProto().getId();
-//			current.deletedNodes[1] = ai.getTailPortInst().getNodeInst();
-//			current.deletedPorts[1] = ai.getTailPortInst().getPortProto().getId();
-//			current.numDeletedNodes = 2;
-//		}
-//	}
 
 	/****************************** COMMANDS ******************************/
 
@@ -490,7 +417,6 @@ public class Routing extends Listener
 					if (!con.equals(thisCon) && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
 				}
 				if (ni.hasExports()) term = true;
-//				if (ni.getNumExports() > 0) term = true;
 				if (ni.isCellInstance()) term = true;
 				if (term)
 				{
@@ -678,7 +604,6 @@ public class Routing extends Listener
 					fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE)
 				{
 					if (ni.hasExports())
-//					if (ni.getNumExports() > 0)
 					{
 						// an export on a simple node: find the equivalent
 						for(Iterator<Export> eIt = ni.getExports(); eIt.hasNext(); )
@@ -835,7 +760,6 @@ public class Routing extends Listener
 			if (nodesAssoc.get(tNi) != null) continue;
 			if (tNi.isCellInstance()) continue;
 			if (!tNi.hasExports()) continue;
-//			if (tNi.getNumExports() == 0) continue;
 			PrimitiveNode.Function fun = tNi.getFunction();
 			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT) continue;
 
@@ -983,19 +907,6 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching should be done.
 	 */
 	public static void setMimicStitchOn(boolean on) { cacheMimicStitchOn.setBoolean(on); }
-
-//	private static Pref cacheMimicStitchCanUnstitch = Pref.makeBooleanPref("MimicStitchCanUnstitch", Routing.tool.prefs, false);
-//	/**
-//	 * Method to tell whether Mimic-stitching can remove arcs (unstitch).
-//	 * The default is "false".
-//	 * @return true if Mimic-stitching can remove arcs (unstitch).
-//	 */
-//	public static boolean isMimicStitchCanUnstitch() { return cacheMimicStitchCanUnstitch.getBoolean(); }
-//	/**
-//	 * Method to set whether Mimic-stitching can remove arcs (unstitch).
-//	 * @param on true if Mimic-stitching can remove arcs (unstitch).
-//	 */
-//	public static void setMimicStitchCanUnstitch(boolean on) { cacheMimicStitchCanUnstitch.setBoolean(on); }
 
 	private static Pref cacheMimicStitchInteractive = Pref.makeBooleanPref("MimicStitchInteractive", Routing.tool.prefs, false);
 	/**
@@ -1195,8 +1106,6 @@ public class Routing extends Listener
 	public static int getSunRouterWindow() { return cacheSLRWindow.getInt(); }
 	public static void setSunRouterWindow(int r) { cacheSLRWindow.setInt(r); }
 
-	
-	
 
 	private static Pref cacheWireOffset = Pref.makeIntPref("SunRouterWireOffset", Routing.getRoutingTool().prefs, 0);
 	public static int getSunRouterWireOffset() { return cacheWireOffset.getInt(); }
