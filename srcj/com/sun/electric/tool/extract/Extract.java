@@ -58,24 +58,6 @@ public class Extract extends Tool
 
 	/****************************** OPTIONS ******************************/
 
-	private static Pref cacheExactCutExtraction = Pref.makeBooleanPref("ExactCutExtraction", Extract.tool.prefs, false);
-	/**
-	 * Method to tell whether the node extractor should preserve contact/via cut placement precisely.
-	 * Since Electric automatically generates cuts, they may not land in the same place as those
-	 * that come from other systems.
-	 * The default is "false", meaning that the node extractor will create the largest contact
-	 * possible given the layer overlaps.
-	 * @return true if the node extractor should preserve contact/via cut placement precisely.
-	 */
-	public static boolean isExactCutExtraction() { return cacheExactCutExtraction.getBoolean(); }
-	/**
-	 * Method to set whether the node extractor should preserve contact/via cut placement precisely.
-	 * Since Electric automatically generates cuts, they may not land in the same place as those
-	 * that come from other systems.
-	 * @param e true if the node extractor should preserve contact/via cut placement precisely.
-	 */
-	public static void setExactCutExtraction(boolean e) { cacheExactCutExtraction.setBoolean(e); }
-
 	private static Pref cacheExactGridAlign = Pref.makeBooleanPref("GridAlignExtraction", Extract.tool.prefs, false);
 	/**
 	 * Method to tell whether the node extractor should grid-align geometry before extraction.

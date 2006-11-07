@@ -1032,450 +1032,6 @@ public class Connectivity
 	}
 
 	/**
-	 * Method to see if a via exists around a given cut layer.
-	 * @param layer the layer in question.
-	 * @param pv the possible via.
-	 * @param cut the cut layer that may be the via.
-	 * @param merge the merge data at this point (after extracted nodes are removed).
-	 * @param originalMerge the original merge data.
-	 * @param newCell the cell in which extracted geometry goes.
-	 * @return true if a contact was extracted.
-	 */
-	private boolean extractOneVia(Layer layer, PossibleVia pv, PolyBase cut, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
-	{
-		// can only handle manhattan contacts now
-		Rectangle2D cutBox = cut.getBox();
-		if (cutBox == null) return false;
-
-		double cX = cutBox.getCenterX();
-		double cY = cutBox.getCenterY();
-//System.out.println("DOES "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" FIT AT ("+cX+","+cY+")?");
-		for(int i=0; i<pv.layers.length; i++)
-		{
-			double lX = cX - pv.minWidth/2 + pv.shrinkL[i];
-			double hX = cX + pv.minWidth/2 - pv.shrinkR[i];
-			double lY = cY - pv.minHeight/2 + pv.shrinkB[i];
-			double hY = cY + pv.minHeight/2 - pv.shrinkT[i];
-			double layerCX = (lX + hX) / 2;
-			double layerCY = (lY + hY) / 2;
-			PolyBase layerPoly = new PolyBase(layerCX, layerCY, hX-lX, hY-lY);
-			if (!originalMerge.contains(pv.layers[i], layerPoly))
-			{
-//System.out.println("  LAYER "+pv.layers[i].getName()+" DOES NOT (NEEDS "+lX+"<=X<="+hX+" AND "+lY+"<=Y<="+hY+")");
-				return false;
-			}
-		}
-//System.out.println("  YES!");
-
-		// found: create the node
-		realizeNode(pv.pNp, cX, cY, pv.minWidth, pv.minHeight, pv.rotation*10, null, merge, newCell);
-		return true;
-	}
-
-	/**
-	 * The old way of extracting vias.
-	 */
-	private void extractAVia(Layer layer, PossibleVia pv, List<PolyBase> cutList, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
-	{
-		// build a polygon that covers all of the layers in this via
-		boolean subtractPoly = false;
-		for(int i=0; i<pv.layers.length; i++)
-		{
-			if (pv.layers[i] == activeLayer) subtractPoly = true;
-			double minShrink = Math.min(Math.min(pv.shrinkL[i], pv.shrinkR[i]), Math.min(pv.shrinkT[i], pv.shrinkB[i]));
-			double shrinkage = (pv.largestShrink-minShrink) / 2;
-			if (i == 0) originalMerge.insetLayer(pv.layers[i], tempLayer1, shrinkage); else
-			{
-				if (shrinkage == 0) originalMerge.intersectLayers(tempLayer1, pv.layers[i], tempLayer1); else
-				{
-					originalMerge.insetLayer(pv.layers[i], tempLayer2, shrinkage);
-					originalMerge.intersectLayers(tempLayer1, tempLayer2, tempLayer1);					
-				}
-			}
-		}
-
-		// if active was involved, subtract areas of polysilicon because the cuts cannot follow across a transistor
-		if (subtractPoly)
-		{
-			if (!originalMerge.isEmpty(polyLayer))
-				originalMerge.subtractLayers(tempLayer1, polyLayer, tempLayer1);
-		}
-
-		// get a list of areas that could possibly be contacts
-		List<PolyBase> contactArea = getMergePolys(originalMerge, tempLayer1);
-		if (contactArea == null) return;
-
-		// look at all of the cut/via pieces
-		for(int ind=0; ind < cutList.size(); ind++)
-		{
-			PolyBase cutPoly = cutList.get(ind);
-			double centerX = cutPoly.getCenterX();
-			double centerY = cutPoly.getCenterY();
-
-			Rectangle2D cutBounds = cutPoly.getBounds2D();
-			double minWid = cutBounds.getWidth(), minHei = cutBounds.getHeight();
-			if (ENFORCEMINIMUMSIZE)
-			{
-				minWid = Math.max(minWid, pv.minWidth-pv.largestShrink);
-				minHei = Math.max(minHei, pv.minHeight-pv.largestShrink);
-			}
-			double maxWid = 0, maxHei = 0;
-			if (Extract.isExactCutExtraction())
-			{
-				maxWid = pv.minWidth;
-				maxHei = pv.minHeight;
-			}
-			Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, minWid, minHei, maxWid, maxHei);
-			if (largest == null) continue;//System.out.println("  Found "+pv.pNp.getName()+" in rectangle "+largest);
-			centerX = largest.getCenterX();
-			centerY = largest.getCenterY();
-			double desiredWidth = largest.getWidth() + pv.largestShrink;
-			double desiredHeight = largest.getHeight() + pv.largestShrink;
-
-			// check all other layers
-			for(;;)
-			{
-				boolean gotMinimum = true;
-				for(int i=0; i<pv.layers.length; i++)
-				{
-					Layer nLayer = pv.layers[i];
-					double minLayWid = desiredWidth - pv.shrinkL[i] - pv.shrinkR[i];
-					double minLayHei = desiredHeight - pv.shrinkT[i] - pv.shrinkB[i];
-					Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
-					if (!originalMerge.contains(nLayer, rect))
-					{
-						gotMinimum = false;
-						break;
-					}
-				}
-				if (gotMinimum)
-				{
-					checkCutSize(cutPoly, pv.pNp, layer);
-					realizeNode(pv.pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
-	
-					// must remove the contact geometry explicitly because the new contact may not have cuts in the exact location
-					merge.subtract(layer, cutPoly);
-					originalMerge.deleteLayer(tempLayer2);
-					double wid = desiredWidth - pv.largestShrink;
-					double hei = desiredHeight - pv.largestShrink;
-					Rectangle2D rect = new Rectangle2D.Double(centerX-wid/2, centerY-hei/2, wid, hei);
-					originalMerge.addPolygon(tempLayer2, new Poly(rect));
-					originalMerge.subtractLayers(tempLayer1, tempLayer2, tempLayer1);
-	
-					// remove other cuts in this area
-					for(int o=0; o<cutList.size(); o++)
-					{
-						if (o == ind) continue;
-						PolyBase oPoly = cutList.get(o);
-						double x = oPoly.getCenterX();
-						double y = oPoly.getCenterY();
-						if (largest.contains(x, y))
-						{
-							checkCutSize(oPoly, pv.pNp, layer);
-							cutList.remove(oPoly);
-							merge.subtract(layer, oPoly);
-							if (o < ind) ind--;
-							o--;
-						}
-					}
-					cutList.remove(cutPoly);
-					ind--;
-					break;
-				}
-				desiredHeight--;
-				desiredWidth--;
-				if (desiredHeight < pv.minHeight || desiredWidth < pv.minWidth) break;
-			}
-		}
-		originalMerge.deleteLayer(tempLayer1);
-		originalMerge.deleteLayer(tempLayer2);
-	}
-
-	/**
-	 * Method to ensure that contact cuts are the right size.
-	 * Prints an error message if the cut is the wrong size.
-	 * @param poly a polygon describing a contact cut.
-	 * @param pNp the primitive node that this cut will be part of.
-	 * @param cutLayer the cut layer that this polygon will become.
-	 */
-	private void checkCutSize(PolyBase poly, PrimitiveNode pNp, Layer cutLayer)
-	{
-		// find the desired size of the cut layer
-		double xSize = -1, ySize = -1;
-		if (pNp.getSpecialType() == PrimitiveNode.MULTICUT)
-		{
-			double [] values = pNp.getSpecialValues();
-			xSize = values[0];
-			ySize = values[1];
-		} else
-		{
-			Technology.NodeLayer [] nodeLayers = pNp.getLayers();
-			for(int i=0; i<nodeLayers.length; i++)
-			{
-				Technology.NodeLayer nodeLayer = nodeLayers[i];
-				if (nodeLayer.getLayer() == cutLayer)
-				{
-					EdgeH leftEdge = nodeLayer.getLeftEdge();
-					EdgeH rightEdge = nodeLayer.getRightEdge();
-					EdgeV topEdge = nodeLayer.getTopEdge();
-					EdgeV bottomEdge = nodeLayer.getBottomEdge();
-					double lX = leftEdge.getMultiplier() * pNp.getDefWidth() + leftEdge.getAdder();
-					double hX = rightEdge.getMultiplier() * pNp.getDefWidth() + rightEdge.getAdder();
-					double lY = bottomEdge.getMultiplier() * pNp.getDefHeight() + bottomEdge.getAdder();
-					double hY = topEdge.getMultiplier() * pNp.getDefHeight() + topEdge.getAdder();
-					xSize = hX - lX;
-					ySize = hY - lY;
-				}
-			}
-		}
-
-		// see if the cut polygon is the right size
-		boolean valid = true;
-		Rectangle2D polyBox = poly.getBox();
-		String reason = "irregular";
-		if (polyBox != null)
-		{
-			double polyWid = polyBox.getWidth() / SCALEFACTOR;
-			double polyHei = polyBox.getHeight() / SCALEFACTOR;
-			if (xSize != polyWid || ySize != polyHei)
-			{
-				reason = polyWid + "x" + polyHei;
-				polyBox = null;
-			}
-		}
-		if (polyBox == null)
-		{
-			double cX = poly.getCenterX() / SCALEFACTOR;
-			double cY = poly.getCenterY() / SCALEFACTOR;
-			System.out.println("Warning: layer " + cutLayer.getName() + " at (" + cX + "," + cY + ") is the wrong size (is " +
-				reason + ", should be " + xSize + "x" + ySize + ")");
-		}
-	}
-
-	/**
-	 * Method to examine a polygon and find the largest rectangle at a point.
-	 * @param contactArea the polygon to examine.
-	 * @param centerX the X coordinate of the point that must be in the resulting rectangle.
-	 * @param centerY the Y coordinate of the point that must be in the resulting rectangle.
-	 * @param minWidth the minimum X size of the rectangle.
-	 * @param minHeight the minimum Y size of the rectangle.
-	 * @param maxWidth the maximum X size of the rectangle (0 if no maximum limit).
-	 * @param maxHeight the maximum Y size of the rectangle (0 if no maximum limit).
-	 * @return the largest rectangle at the point that meets the min/max size criteria.
-	 */
-	private Rectangle2D findLargestRectangle(List<PolyBase> contactArea, double centerX, double centerY,
-		double minWidth, double minHeight, double maxWidth, double maxHeight)
-	{
-		double closestTop = Double.MAX_VALUE;
-		double closestBottom = Double.MAX_VALUE;
-		double closestLeft = Double.MAX_VALUE;
-		double closestRight = Double.MAX_VALUE;
-		TreeSet<Double> xPoints = new TreeSet<Double>();
-		TreeSet<Double> yPoints = new TreeSet<Double>();
-		for(PolyBase poly : contactArea)
-		{
-			if (!poly.contains(centerX, centerY)) continue;
-
-			// this is the polygon that contains the point: gather bounds
-			Point2D [] points = poly.getPoints();
-//System.out.print("Checking polygon around point ("+centerX+","+centerY+")");
-//for(int i=0; i<points.length; i++)
-//	System.out.print(" ("+points[i].getX()+","+points[i].getY()+")");
-//System.out.println();
-			for(int i=0; i<points.length; i++)
-			{
-				int last = i - 1;
-				if (last < 0) last = points.length - 1;
-				Point2D lastPt = points[last];
-				Point2D thisPt = points[i];
-				if (lastPt.getX() == thisPt.getX())
-				{
-					// vertical line: check left and right bounds
-					double lowY = Math.min(thisPt.getY(), lastPt.getY());
-					double highY = Math.max(thisPt.getY(), lastPt.getY());
-					if (lowY >= centerY + minHeight/2) continue;
-					if (highY <= centerY - minHeight/2) continue;
-					double dist = lastPt.getX() - centerX;
-					if (Math.abs(dist) < minWidth/2) continue;
-					if (dist > 0)
-					{
-						// see if this is a new right edge
-						if (dist < closestRight)
-						{
-							closestRight = dist;
-							yPoints.add(new Double(lowY));
-							yPoints.add(new Double(highY));
-						}
-					} else
-					{
-						// see if this is a new left edge
-						if (-dist < closestLeft)
-						{
-							closestLeft = -dist;
-							yPoints.add(new Double(lowY));
-							yPoints.add(new Double(highY));
-						}
-					}
-				}
-				if (lastPt.getY() == thisPt.getY())
-				{
-					// horizontal line: check top and bottom bounds
-					double lowX = Math.min(thisPt.getX(), lastPt.getX());
-					double highX = Math.max(thisPt.getX(), lastPt.getX());
-					if (lowX >= centerX + minWidth/2) continue;
-					if (highX <= centerX - minWidth/2) continue;
-					double dist = lastPt.getY() - centerY;
-					if (Math.abs(dist) < minHeight/2) continue;
-					if (dist > 0)
-					{
-						// see if this is a new top edge
-						if (dist < closestTop)
-						{
-							closestTop = dist;
-							xPoints.add(new Double(lowX));
-							xPoints.add(new Double(highX));
-						}
-					} else
-					{
-						// see if this is a new bottom edge
-						if (-dist < closestBottom)
-						{
-							closestBottom = -dist;
-							xPoints.add(new Double(lowX));
-							xPoints.add(new Double(highX));
-						}
-					}
-				}
-			}
-			if (closestTop == Double.MAX_VALUE || closestBottom == Double.MAX_VALUE ||
-				closestLeft == Double.MAX_VALUE || closestRight == Double.MAX_VALUE) return null;
-//System.out.println("Edges are LEFT="+closestLeft+" RIGHT="+closestRight+" TOP="+closestTop+" BOTTOM="+closestBottom);
-			Rectangle2D largest = new Rectangle2D.Double(centerX-closestLeft, centerY-closestBottom,
-				closestLeft+closestRight, closestBottom+closestTop);
-			if (poly.contains(largest))
-			{
-				adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
-				return largest;
-			}
-
-			// try reducing the rectangle until it does fit
-			double left = centerX - closestLeft;
-			double right = centerX + closestRight;
-			double top = centerY + closestTop;
-			double bottom = centerY - closestBottom;
-			double [] xValues = new double[xPoints.size()];
-			int i=0;  for(Double d : xPoints) xValues[i++] = d.doubleValue();
-			double [] yValues = new double[yPoints.size()];
-			i=0;  for(Double d : yPoints) yValues[i++] = d.doubleValue();
-			int leftPoint = 0, rightPoint = xPoints.size() - 1;
-			int bottomPoint = 0, topPoint = yPoints.size() - 1;
-			while (leftPoint < xPoints.size() && xValues[leftPoint] <= left) leftPoint++;
-			while (rightPoint >= 0 && xValues[rightPoint] >= right) rightPoint--;
-			while (bottomPoint < yPoints.size() && yValues[bottomPoint] <= bottom) bottomPoint++;
-			while (topPoint >= 0 && yValues[topPoint] >= top) topPoint--;
-			for(;;)
-			{
-				// shrink on left
-				if (leftPoint < xPoints.size())
-				{
-					double newLeft = xValues[leftPoint];
-					if (newLeft > left && newLeft < centerX-minWidth/2)
-					{
-						left = newLeft;
-						largest = new Rectangle2D.Double(left, bottom, right-left, top-bottom);
-						if (poly.contains(largest))
-						{
-							adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
-							return largest;
-						}
-						leftPoint++;
-						continue;
-					}
-				}
-
-				// shrink on bottom
-				if (bottomPoint < yPoints.size())
-				{
-					double newBottom = yValues[bottomPoint];
-					if (newBottom > bottom && newBottom < centerY-minHeight/2)
-					{
-						bottom = newBottom;
-						largest = new Rectangle2D.Double(left, bottom, right-left, top-bottom);
-						if (poly.contains(largest))
-						{
-							adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
-							return largest;
-						}
-						bottomPoint++;
-						continue;
-					}
-				}
-
-				// shrink on right
-				if (rightPoint >= 0)
-				{
-					double newRight = xValues[rightPoint];
-					if (newRight < right && newRight > centerX+minWidth/2)
-					{
-						right = newRight;
-						largest = new Rectangle2D.Double(left, bottom, right-left, top-bottom);
-						if (poly.contains(largest))
-						{
-							adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
-							return largest;
-						}
-						rightPoint--;
-						continue;
-					}
-				}
-
-				// shrink on top
-				if (topPoint >= 0)
-				{
-					double newTop = yValues[topPoint];
-					if (newTop < top && newTop > centerY+minHeight/2)
-					{
-						top = newTop;
-						largest = new Rectangle2D.Double(left, bottom, right-left, top-bottom);
-						if (poly.contains(largest))
-						{
-							adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
-							return largest;
-						}
-						topPoint--;
-						continue;
-					}
-				}
-				break;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Method to adjust the rectangle so that it is no larger than a given size
-	 * and centered about a point.
-	 * @param rect the rectangle to adjust.
-	 * @param cX the X center of the largest rectangle.
-	 * @param cY the Y center of the largest rectangle.
-	 * @param maxX the width of the largest rectangle (0 to ignore the operation).
-	 * @param maxY the height of the largest rectangle (0 to ignore the operation).
-	 */
-	private void adjustLargest(Rectangle2D rect, double cX, double cY, double maxX, double maxY)
-	{
-		if (maxX > 0 && maxY > 0)
-		{
-			double lX = rect.getMinX(), hX = rect.getMaxX();
-			double lY = rect.getMinY(), hY = rect.getMaxY();
-			double halfWid = Math.min(cX - lX, hX - cX);
-			if (halfWid > maxX/2) halfWid = maxX / 2;
-			double halfHei = Math.min(cY - lY, hY - cY);
-			if (halfHei > maxY/2) halfHei = maxY / 2;
-			rect.setRect(cX - halfWid, cY - halfHei, halfWid*2, halfHei*2);
-		}
-	}
-
-	/**
 	 * Method to return a list of PossibleVia objects for a given cut/via layer.
 	 * @param lay the cut/via layer to find.
 	 * @return a List of PossibleVia objects that use the layer as a contact.
@@ -1533,16 +1089,6 @@ public class Connectivity
 				}
 				if (cutLayer) cutFound = true; else
 				{
-					// non-cut layer: examine its rules
-					if (nLay.getLeftEdge().getMultiplier() != -0.5 || nLay.getRightEdge().getMultiplier() != 0.5 ||
-						nLay.getBottomEdge().getMultiplier() != -0.5 || nLay.getTopEdge().getMultiplier() != 0.5)
-					{
-						System.out.println("Cannot decipher the sizing rules for layer " +
-							nLay.getLayer().getName() + " of " + pNp +
-							" LEFT="+nLay.getLeftEdge().getMultiplier() + " RIGHT="+nLay.getRightEdge().getMultiplier()+
-							" BOTTOM="+nLay.getBottomEdge().getMultiplier() + " TOP="+nLay.getTopEdge().getMultiplier());
-						break;
-					}
 					pvLayers.add(nLay);
 				}
 			}
@@ -1559,10 +1105,10 @@ public class Connectivity
 			{
 				// create the PossibleVia to describe the geometry
 				pv.layers[fill] = geometricLayer(nLay.getLayer());
-				pv.shrinkL[fill] = scaleUp(nLay.getLeftEdge().getAdder());
-				pv.shrinkR[fill] = scaleUp(-nLay.getRightEdge().getAdder());
-				pv.shrinkT[fill] = scaleUp(-nLay.getTopEdge().getAdder());
-				pv.shrinkB[fill] = scaleUp(nLay.getBottomEdge().getAdder());
+				pv.shrinkL[fill] = scaleUp(pNp.getDefWidth() * (0.5 + nLay.getLeftEdge().getMultiplier()) + nLay.getLeftEdge().getAdder());
+				pv.shrinkR[fill] = scaleUp(pNp.getDefWidth() * (0.5 - nLay.getRightEdge().getMultiplier()) - nLay.getRightEdge().getAdder());
+				pv.shrinkT[fill] = scaleUp(pNp.getDefHeight() * (0.5 - nLay.getTopEdge().getMultiplier()) - nLay.getTopEdge().getAdder());
+				pv.shrinkB[fill] = scaleUp(pNp.getDefHeight() * (0.5 + nLay.getBottomEdge().getMultiplier()) + nLay.getBottomEdge().getAdder());
 				double ls = Math.max(Math.max(pv.shrinkL[fill], pv.shrinkR[fill]),
 					Math.max(pv.shrinkT[fill], pv.shrinkB[fill]));
 				if (fill == 0 || ls > pv.largestShrink) pv.largestShrink = ls;
@@ -1641,6 +1187,445 @@ public class Connectivity
 		}
 		return possibleVias;
 	}
+
+	/**
+	 * Method to see if a via exists around a given cut layer.
+	 * @param layer the layer in question.
+	 * @param pv the possible via.
+	 * @param cut the cut layer that may be the via.
+	 * @param merge the merge data at this point (after extracted nodes are removed).
+	 * @param originalMerge the original merge data.
+	 * @param newCell the cell in which extracted geometry goes.
+	 * @return true if a contact was extracted.
+	 */
+	private boolean extractOneVia(Layer layer, PossibleVia pv, PolyBase cut, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	{
+		// can only handle manhattan contacts now
+		Rectangle2D cutBox = cut.getBox();
+		if (cutBox == null) return false;
+
+		double cX = cutBox.getCenterX();
+		double cY = cutBox.getCenterY();
+//System.out.println("DOES "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" FIT AT ("+cX+","+cY+")?");
+		for(int i=0; i<pv.layers.length; i++)
+		{
+			double lX = cX - pv.minWidth/2 + pv.shrinkL[i];
+			double hX = cX + pv.minWidth/2 - pv.shrinkR[i];
+			double lY = cY - pv.minHeight/2 + pv.shrinkB[i];
+			double hY = cY + pv.minHeight/2 - pv.shrinkT[i];
+			double layerCX = (lX + hX) / 2;
+			double layerCY = (lY + hY) / 2;
+			PolyBase layerPoly = new PolyBase(layerCX, layerCY, hX-lX, hY-lY);
+			if (!originalMerge.contains(pv.layers[i], layerPoly))
+			{
+//System.out.println("  LAYER "+pv.layers[i].getName()+" DOES NOT (NEEDS "+lX+"<=X<="+hX+" AND "+lY+"<=Y<="+hY+")");
+				return false;
+			}
+		}
+//System.out.println("  YES!");
+
+		// found: create the node
+		realizeNode(pv.pNp, cX, cY, pv.minWidth, pv.minHeight, pv.rotation*10, null, merge, newCell);
+		return true;
+	}
+
+//	/**
+//	 * The old way of extracting vias.
+//	 */
+//	private void extractAVia(Layer layer, PossibleVia pv, List<PolyBase> cutList, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+//	{
+//		// build a polygon that covers all of the layers in this via
+//		boolean subtractPoly = false;
+//		for(int i=0; i<pv.layers.length; i++)
+//		{
+//			if (pv.layers[i] == activeLayer) subtractPoly = true;
+//			double minShrink = Math.min(Math.min(pv.shrinkL[i], pv.shrinkR[i]), Math.min(pv.shrinkT[i], pv.shrinkB[i]));
+//			double shrinkage = (pv.largestShrink-minShrink) / 2;
+//			if (i == 0) originalMerge.insetLayer(pv.layers[i], tempLayer1, shrinkage); else
+//			{
+//				if (shrinkage == 0) originalMerge.intersectLayers(tempLayer1, pv.layers[i], tempLayer1); else
+//				{
+//					originalMerge.insetLayer(pv.layers[i], tempLayer2, shrinkage);
+//					originalMerge.intersectLayers(tempLayer1, tempLayer2, tempLayer1);					
+//				}
+//			}
+//		}
+//
+//		// if active was involved, subtract areas of polysilicon because the cuts cannot follow across a transistor
+//		if (subtractPoly)
+//		{
+//			if (!originalMerge.isEmpty(polyLayer))
+//				originalMerge.subtractLayers(tempLayer1, polyLayer, tempLayer1);
+//		}
+//
+//		// get a list of areas that could possibly be contacts
+//		List<PolyBase> contactArea = getMergePolys(originalMerge, tempLayer1);
+//		if (contactArea == null) return;
+//
+//		// look at all of the cut/via pieces
+//		for(int ind=0; ind < cutList.size(); ind++)
+//		{
+//			PolyBase cutPoly = cutList.get(ind);
+//			double centerX = cutPoly.getCenterX();
+//			double centerY = cutPoly.getCenterY();
+//
+//			Rectangle2D cutBounds = cutPoly.getBounds2D();
+//			double minWid = cutBounds.getWidth(), minHei = cutBounds.getHeight();
+//			if (ENFORCEMINIMUMSIZE)
+//			{
+//				minWid = Math.max(minWid, pv.minWidth-pv.largestShrink);
+//				minHei = Math.max(minHei, pv.minHeight-pv.largestShrink);
+//			}
+//			double maxWid = 0, maxHei = 0;
+//			if (Extract.isExactCutExtraction())
+//			{
+//				maxWid = pv.minWidth;
+//				maxHei = pv.minHeight;
+//			}
+//			Rectangle2D largest = findLargestRectangle(contactArea, centerX, centerY, minWid, minHei, maxWid, maxHei);
+//			if (largest == null) continue;//System.out.println("  Found "+pv.pNp.getName()+" in rectangle "+largest);
+//			centerX = largest.getCenterX();
+//			centerY = largest.getCenterY();
+//			double desiredWidth = largest.getWidth() + pv.largestShrink;
+//			double desiredHeight = largest.getHeight() + pv.largestShrink;
+//
+//			// check all other layers
+//			for(;;)
+//			{
+//				boolean gotMinimum = true;
+//				for(int i=0; i<pv.layers.length; i++)
+//				{
+//					Layer nLayer = pv.layers[i];
+//					double minLayWid = desiredWidth - pv.shrinkL[i] - pv.shrinkR[i];
+//					double minLayHei = desiredHeight - pv.shrinkT[i] - pv.shrinkB[i];
+//					Rectangle2D rect = new Rectangle2D.Double(centerX - minLayWid/2, centerY - minLayHei/2, minLayWid, minLayHei);
+//					if (!originalMerge.contains(nLayer, rect))
+//					{
+//						gotMinimum = false;
+//						break;
+//					}
+//				}
+//				if (gotMinimum)
+//				{
+//					checkCutSize(cutPoly, pv.pNp, layer);
+//					realizeNode(pv.pNp, centerX, centerY, desiredWidth, desiredHeight, 0, null, merge, newCell);
+//	
+//					// must remove the contact geometry explicitly because the new contact may not have cuts in the exact location
+//					merge.subtract(layer, cutPoly);
+//					originalMerge.deleteLayer(tempLayer2);
+//					double wid = desiredWidth - pv.largestShrink;
+//					double hei = desiredHeight - pv.largestShrink;
+//					Rectangle2D rect = new Rectangle2D.Double(centerX-wid/2, centerY-hei/2, wid, hei);
+//					originalMerge.addPolygon(tempLayer2, new Poly(rect));
+//					originalMerge.subtractLayers(tempLayer1, tempLayer2, tempLayer1);
+//	
+//					// remove other cuts in this area
+//					for(int o=0; o<cutList.size(); o++)
+//					{
+//						if (o == ind) continue;
+//						PolyBase oPoly = cutList.get(o);
+//						double x = oPoly.getCenterX();
+//						double y = oPoly.getCenterY();
+//						if (largest.contains(x, y))
+//						{
+//							checkCutSize(oPoly, pv.pNp, layer);
+//							cutList.remove(oPoly);
+//							merge.subtract(layer, oPoly);
+//							if (o < ind) ind--;
+//							o--;
+//						}
+//					}
+//					cutList.remove(cutPoly);
+//					ind--;
+//					break;
+//				}
+//				desiredHeight--;
+//				desiredWidth--;
+//				if (desiredHeight < pv.minHeight || desiredWidth < pv.minWidth) break;
+//			}
+//		}
+//		originalMerge.deleteLayer(tempLayer1);
+//		originalMerge.deleteLayer(tempLayer2);
+//	}
+
+//	/**
+//	 * Method to ensure that contact cuts are the right size.
+//	 * Prints an error message if the cut is the wrong size.
+//	 * @param poly a polygon describing a contact cut.
+//	 * @param pNp the primitive node that this cut will be part of.
+//	 * @param cutLayer the cut layer that this polygon will become.
+//	 */
+//	private void checkCutSize(PolyBase poly, PrimitiveNode pNp, Layer cutLayer)
+//	{
+//		// find the desired size of the cut layer
+//		double xSize = -1, ySize = -1;
+//		if (pNp.getSpecialType() == PrimitiveNode.MULTICUT)
+//		{
+//			double [] values = pNp.getSpecialValues();
+//			xSize = values[0];
+//			ySize = values[1];
+//		} else
+//		{
+//			Technology.NodeLayer [] nodeLayers = pNp.getLayers();
+//			for(int i=0; i<nodeLayers.length; i++)
+//			{
+//				Technology.NodeLayer nodeLayer = nodeLayers[i];
+//				if (nodeLayer.getLayer() == cutLayer)
+//				{
+//					EdgeH leftEdge = nodeLayer.getLeftEdge();
+//					EdgeH rightEdge = nodeLayer.getRightEdge();
+//					EdgeV topEdge = nodeLayer.getTopEdge();
+//					EdgeV bottomEdge = nodeLayer.getBottomEdge();
+//					double lX = leftEdge.getMultiplier() * pNp.getDefWidth() + leftEdge.getAdder();
+//					double hX = rightEdge.getMultiplier() * pNp.getDefWidth() + rightEdge.getAdder();
+//					double lY = bottomEdge.getMultiplier() * pNp.getDefHeight() + bottomEdge.getAdder();
+//					double hY = topEdge.getMultiplier() * pNp.getDefHeight() + topEdge.getAdder();
+//					xSize = hX - lX;
+//					ySize = hY - lY;
+//				}
+//			}
+//		}
+//
+//		// see if the cut polygon is the right size
+//		boolean valid = true;
+//		Rectangle2D polyBox = poly.getBox();
+//		String reason = "irregular";
+//		if (polyBox != null)
+//		{
+//			double polyWid = polyBox.getWidth() / SCALEFACTOR;
+//			double polyHei = polyBox.getHeight() / SCALEFACTOR;
+//			if (xSize != polyWid || ySize != polyHei)
+//			{
+//				reason = polyWid + "x" + polyHei;
+//				polyBox = null;
+//			}
+//		}
+//		if (polyBox == null)
+//		{
+//			double cX = poly.getCenterX() / SCALEFACTOR;
+//			double cY = poly.getCenterY() / SCALEFACTOR;
+//			System.out.println("Warning: layer " + cutLayer.getName() + " at (" + cX + "," + cY + ") is the wrong size (is " +
+//				reason + ", should be " + xSize + "x" + ySize + ")");
+//		}
+//	}
+
+//	/**
+//	 * Method to examine a polygon and find the largest rectangle at a point.
+//	 * @param contactArea the polygon to examine.
+//	 * @param centerX the X coordinate of the point that must be in the resulting rectangle.
+//	 * @param centerY the Y coordinate of the point that must be in the resulting rectangle.
+//	 * @param minWidth the minimum X size of the rectangle.
+//	 * @param minHeight the minimum Y size of the rectangle.
+//	 * @param maxWidth the maximum X size of the rectangle (0 if no maximum limit).
+//	 * @param maxHeight the maximum Y size of the rectangle (0 if no maximum limit).
+//	 * @return the largest rectangle at the point that meets the min/max size criteria.
+//	 */
+//	private Rectangle2D findLargestRectangle(List<PolyBase> contactArea, double centerX, double centerY,
+//		double minWidth, double minHeight, double maxWidth, double maxHeight)
+//	{
+//		double closestTop = Double.MAX_VALUE;
+//		double closestBottom = Double.MAX_VALUE;
+//		double closestLeft = Double.MAX_VALUE;
+//		double closestRight = Double.MAX_VALUE;
+//		TreeSet<Double> xPoints = new TreeSet<Double>();
+//		TreeSet<Double> yPoints = new TreeSet<Double>();
+//		for(PolyBase poly : contactArea)
+//		{
+//			if (!poly.contains(centerX, centerY)) continue;
+//
+//			// this is the polygon that contains the point: gather bounds
+//			Point2D [] points = poly.getPoints();
+//			for(int i=0; i<points.length; i++)
+//			{
+//				int last = i - 1;
+//				if (last < 0) last = points.length - 1;
+//				Point2D lastPt = points[last];
+//				Point2D thisPt = points[i];
+//				if (lastPt.getX() == thisPt.getX())
+//				{
+//					// vertical line: check left and right bounds
+//					double lowY = Math.min(thisPt.getY(), lastPt.getY());
+//					double highY = Math.max(thisPt.getY(), lastPt.getY());
+//					if (lowY >= centerY + minHeight/2) continue;
+//					if (highY <= centerY - minHeight/2) continue;
+//					double dist = lastPt.getX() - centerX;
+//					if (Math.abs(dist) < minWidth/2) continue;
+//					if (dist > 0)
+//					{
+//						// see if this is a new right edge
+//						if (dist < closestRight)
+//						{
+//							closestRight = dist;
+//							yPoints.add(new Double(lowY));
+//							yPoints.add(new Double(highY));
+//						}
+//					} else
+//					{
+//						// see if this is a new left edge
+//						if (-dist < closestLeft)
+//						{
+//							closestLeft = -dist;
+//							yPoints.add(new Double(lowY));
+//							yPoints.add(new Double(highY));
+//						}
+//					}
+//				}
+//				if (lastPt.getY() == thisPt.getY())
+//				{
+//					// horizontal line: check top and bottom bounds
+//					double lowX = Math.min(thisPt.getX(), lastPt.getX());
+//					double highX = Math.max(thisPt.getX(), lastPt.getX());
+//					if (lowX >= centerX + minWidth/2) continue;
+//					if (highX <= centerX - minWidth/2) continue;
+//					double dist = lastPt.getY() - centerY;
+//					if (Math.abs(dist) < minHeight/2) continue;
+//					if (dist > 0)
+//					{
+//						// see if this is a new top edge
+//						if (dist < closestTop)
+//						{
+//							closestTop = dist;
+//							xPoints.add(new Double(lowX));
+//							xPoints.add(new Double(highX));
+//						}
+//					} else
+//					{
+//						// see if this is a new bottom edge
+//						if (-dist < closestBottom)
+//						{
+//							closestBottom = -dist;
+//							xPoints.add(new Double(lowX));
+//							xPoints.add(new Double(highX));
+//						}
+//					}
+//				}
+//			}
+//			if (closestTop == Double.MAX_VALUE || closestBottom == Double.MAX_VALUE ||
+//				closestLeft == Double.MAX_VALUE || closestRight == Double.MAX_VALUE) return null;
+//			Rectangle2D largest = new Rectangle2D.Double(centerX-closestLeft, centerY-closestBottom,
+//				closestLeft+closestRight, closestBottom+closestTop);
+//			if (poly.contains(largest))
+//			{
+//				adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
+//				return largest;
+//			}
+//
+//			// try reducing the rectangle until it does fit
+//			double left = centerX - closestLeft;
+//			double right = centerX + closestRight;
+//			double top = centerY + closestTop;
+//			double bottom = centerY - closestBottom;
+//			double [] xValues = new double[xPoints.size()];
+//			int i=0;  for(Double d : xPoints) xValues[i++] = d.doubleValue();
+//			double [] yValues = new double[yPoints.size()];
+//			i=0;  for(Double d : yPoints) yValues[i++] = d.doubleValue();
+//			int leftPoint = 0, rightPoint = xPoints.size() - 1;
+//			int bottomPoint = 0, topPoint = yPoints.size() - 1;
+//			while (leftPoint < xPoints.size() && xValues[leftPoint] <= left) leftPoint++;
+//			while (rightPoint >= 0 && xValues[rightPoint] >= right) rightPoint--;
+//			while (bottomPoint < yPoints.size() && yValues[bottomPoint] <= bottom) bottomPoint++;
+//			while (topPoint >= 0 && yValues[topPoint] >= top) topPoint--;
+//			for(;;)
+//			{
+//				// shrink on left
+//				if (leftPoint < xPoints.size())
+//				{
+//					double newLeft = xValues[leftPoint];
+//					if (newLeft > left && newLeft < centerX-minWidth/2)
+//					{
+//						left = newLeft;
+//						largest = new Rectangle2D.Double(left, bottom, right-left, top-bottom);
+//						if (poly.contains(largest))
+//						{
+//							adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
+//							return largest;
+//						}
+//						leftPoint++;
+//						continue;
+//					}
+//				}
+//
+//				// shrink on bottom
+//				if (bottomPoint < yPoints.size())
+//				{
+//					double newBottom = yValues[bottomPoint];
+//					if (newBottom > bottom && newBottom < centerY-minHeight/2)
+//					{
+//						bottom = newBottom;
+//						largest = new Rectangle2D.Double(left, bottom, right-left, top-bottom);
+//						if (poly.contains(largest))
+//						{
+//							adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
+//							return largest;
+//						}
+//						bottomPoint++;
+//						continue;
+//					}
+//				}
+//
+//				// shrink on right
+//				if (rightPoint >= 0)
+//				{
+//					double newRight = xValues[rightPoint];
+//					if (newRight < right && newRight > centerX+minWidth/2)
+//					{
+//						right = newRight;
+//						largest = new Rectangle2D.Double(left, bottom, right-left, top-bottom);
+//						if (poly.contains(largest))
+//						{
+//							adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
+//							return largest;
+//						}
+//						rightPoint--;
+//						continue;
+//					}
+//				}
+//
+//				// shrink on top
+//				if (topPoint >= 0)
+//				{
+//					double newTop = yValues[topPoint];
+//					if (newTop < top && newTop > centerY+minHeight/2)
+//					{
+//						top = newTop;
+//						largest = new Rectangle2D.Double(left, bottom, right-left, top-bottom);
+//						if (poly.contains(largest))
+//						{
+//							adjustLargest(largest, centerX, centerY, maxWidth, maxHeight);
+//							return largest;
+//						}
+//						topPoint--;
+//						continue;
+//					}
+//				}
+//				break;
+//			}
+//		}
+//		return null;
+//	}
+
+//	/**
+//	 * Method to adjust the rectangle so that it is no larger than a given size
+//	 * and centered about a point.
+//	 * @param rect the rectangle to adjust.
+//	 * @param cX the X center of the largest rectangle.
+//	 * @param cY the Y center of the largest rectangle.
+//	 * @param maxX the width of the largest rectangle (0 to ignore the operation).
+//	 * @param maxY the height of the largest rectangle (0 to ignore the operation).
+//	 */
+//	private void adjustLargest(Rectangle2D rect, double cX, double cY, double maxX, double maxY)
+//	{
+//		if (maxX > 0 && maxY > 0)
+//		{
+//			double lX = rect.getMinX(), hX = rect.getMaxX();
+//			double lY = rect.getMinY(), hY = rect.getMaxY();
+//			double halfWid = Math.min(cX - lX, hX - cX);
+//			if (halfWid > maxX/2) halfWid = maxX / 2;
+//			double halfHei = Math.min(cY - lY, hY - cY);
+//			if (halfHei > maxY/2) halfHei = maxY / 2;
+//			rect.setRect(cX - halfWid, cY - halfHei, halfWid*2, halfHei*2);
+//		}
+//	}
 
 	/********************************************** TRANSISTOR EXTRACTION **********************************************/
 
