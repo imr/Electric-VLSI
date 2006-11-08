@@ -423,7 +423,7 @@ public class Layer
          * A set of Layer.Functions
          */
         public static class Set {
-            private final long bits;
+            final long bits;
             /** Set if all Layer.Functions */
             public static final Set ALL = new Set(Function.class.getEnumConstants());
             

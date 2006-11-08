@@ -751,66 +751,52 @@ public class MoCMOSOld extends Technology
 		//******************** ARCS ********************
 
 		/** Metal-1 arc */
-		ArcProto Metal_1_arc = ArcProto.newInstance(this, "Metal-1", 3, new Technology.ArcLayer []
-		{
+		ArcProto Metal_1_arc = newArcProto("Metal-1", 0, 3, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
-		});
-		Metal_1_arc.setFunction(ArcProto.Function.METAL1);
+		);
 		Metal_1_arc.setFactoryFixedAngle(true);
 		Metal_1_arc.setWipable();
 		Metal_1_arc.setFactoryAngleIncrement(90);
 
 		/** Metal-2 arc */
-		ArcProto Metal_2_arc = ArcProto.newInstance(this, "Metal-2", 3, new Technology.ArcLayer []
-		{
+		ArcProto Metal_2_arc = newArcProto("Metal-2", 0, 3, ArcProto.Function.METAL2,
 			new Technology.ArcLayer(M0_lay, 0, Poly.Type.FILLED)
-		});
-		Metal_2_arc.setFunction(ArcProto.Function.METAL2);
+		);
 		Metal_2_arc.setFactoryFixedAngle(true);
 		Metal_2_arc.setWipable();
 		Metal_2_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon arc */
-		ArcProto Polysilicon_arc = ArcProto.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
-		{
+		ArcProto Polysilicon_arc = newArcProto("Polysilicon", 0, 2, ArcProto.Function.POLY1,
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
-		});
-		Polysilicon_arc.setFunction(ArcProto.Function.POLY1);
+		);
 		Polysilicon_arc.setFactoryFixedAngle(true);
 		Polysilicon_arc.setWipable();
 		Polysilicon_arc.setFactoryAngleIncrement(90);
 
 		/** S-Active arc */
-		ArcProto S_Active_arc = ArcProto.newInstance(this, "S-Active", 6, new Technology.ArcLayer []
-		{
+		ArcProto S_Active_arc = newArcProto("S-Active", 0, 6, ArcProto.Function.DIFFP,
 			new Technology.ArcLayer(SA_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(PS_lay, 0, Poly.Type.FILLED)
-		});
-		S_Active_arc.setFunction(ArcProto.Function.DIFFP);
+		);
 		S_Active_arc.setFactoryFixedAngle(true);
 		S_Active_arc.setWipable();
 		S_Active_arc.setFactoryAngleIncrement(90);
-		S_Active_arc.setLambdaWidthOffset(0);
 
 		/** D-Active arc */
-		ArcProto D_Active_arc = ArcProto.newInstance(this, "D-Active", 10, new Technology.ArcLayer []
-		{
+		ArcProto D_Active_arc = newArcProto("D-Active", 0, 10, ArcProto.Function.DIFFN,
 			new Technology.ArcLayer(DA_lay, 8, Poly.Type.FILLED),
 			new Technology.ArcLayer(PW_lay, 0, Poly.Type.FILLED)
-		});
-		D_Active_arc.setFunction(ArcProto.Function.DIFFN);
+		);
 		D_Active_arc.setFactoryFixedAngle(true);
 		D_Active_arc.setWipable();
 		D_Active_arc.setFactoryAngleIncrement(90);
-		D_Active_arc.setLambdaWidthOffset(0);
 
 		/** Active arc */
-		ArcProto Active_arc = ArcProto.newInstance(this, "Active", 2, new Technology.ArcLayer []
-		{
+		ArcProto Active_arc = newArcProto("Active", 0, 2, ArcProto.Function.DIFF,
 			new Technology.ArcLayer(DA_lay, 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(SA_lay, 0, Poly.Type.FILLED)
-		});
-		Active_arc.setFunction(ArcProto.Function.DIFF);
+		);
 		Active_arc.setFactoryFixedAngle(true);
 		Active_arc.setWipable();
 		Active_arc.setFactoryAngleIncrement(90);

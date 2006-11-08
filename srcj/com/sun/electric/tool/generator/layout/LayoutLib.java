@@ -210,6 +210,7 @@ public class LayoutLib {
 			double check = widestWireWidth(((Export)pp).getOriginalPort());
 			maxWid = Math.max(maxWid, check);
 		}
+        if (maxWid < 0) return DEF_SIZE;
 		return DBMath.round(maxWid);
 	}
 

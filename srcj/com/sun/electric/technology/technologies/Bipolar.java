@@ -488,45 +488,35 @@ public class Bipolar extends Technology
 		//******************** ARCS ********************
 
 		/** Metal_1 arc */
-		ArcProto Metal_1_arc = ArcProto.newInstance(this, "Metal_1", 3, new Technology.ArcLayer []
-		{
+		ArcProto Metal_1_arc = newArcProto("Metal_1", 0, 3, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
-		});
-		Metal_1_arc.setFunction(ArcProto.Function.METAL1);
+		);
 		Metal_1_arc.setWipable();
 		Metal_1_arc.setFactoryFixedAngle(true);
 		Metal_1_arc.setFactoryAngleIncrement(90);
 
 		/** Metal_2 arc */
-		ArcProto Metal_2_arc = ArcProto.newInstance(this, "Metal_2", 4, new Technology.ArcLayer []
-		{
+		ArcProto Metal_2_arc = newArcProto("Metal_2", 0, 4, ArcProto.Function.METAL2,
 			new Technology.ArcLayer(M0_lay, 0, Poly.Type.FILLED)
-		});
-		Metal_2_arc.setFunction(ArcProto.Function.METAL2);
+		);
 		Metal_2_arc.setWipable();
 		Metal_2_arc.setFactoryFixedAngle(true);
 		Metal_2_arc.setFactoryAngleIncrement(90);
 
 		/** NPPoly arc */
-		ArcProto NPPoly_arc = ArcProto.newInstance(this, "NPPoly", 4, new Technology.ArcLayer []
-		{
+		ArcProto NPPoly_arc = newArcProto("NPPoly", 0, 4, ArcProto.Function.POLY1,
 			new Technology.ArcLayer(PD_lay, 2, Poly.Type.FILLED),
 			new Technology.ArcLayer(N_lay, 0, Poly.Type.FILLED)
-		});
-		NPPoly_arc.setFunction(ArcProto.Function.POLY1);
-		NPPoly_arc.setLambdaWidthOffset(0);
+		);
 		NPPoly_arc.setFactoryFixedAngle(true);
 		NPPoly_arc.setFactoryExtended(false);
 		NPPoly_arc.setFactoryAngleIncrement(90);
 
 		/** PPPoly arc */
-		ArcProto PPPoly_arc = ArcProto.newInstance(this, "PPPoly", 4, new Technology.ArcLayer []
-		{
+		ArcProto PPPoly_arc = newArcProto("PPPoly", 0, 4, ArcProto.Function.POLY2,
 			new Technology.ArcLayer(PD_lay, 2, Poly.Type.FILLED),
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
-		});
-		PPPoly_arc.setFunction(ArcProto.Function.POLY2);
-		PPPoly_arc.setLambdaWidthOffset(0);
+		);
 		PPPoly_arc.setFactoryFixedAngle(true);
 		PPPoly_arc.setFactoryExtended(false);
 		PPPoly_arc.setFactoryAngleIncrement(90);

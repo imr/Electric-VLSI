@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/7/06, DN) tool.generator.LayoutLib.widestWireWidth doesn't return DEF_WIDTH when no wire is attached to port.
+FIX: Test if maxWid < 0.
+
+BUG: (11/7/06, DN) Some arcs has improper functions.
+FIX: BiCMOS.Active_ARC (METAL5->DIFF), RCMOS.metal2_arc (METAL1->METAL2), RCMOS.polysilicon_arc (METAL1->POLY1).
+
+IMP: (11/7/06, DN) Technology.ArcLayer is immutable. Some field of ArcProto are final.
+
 IMP/MAN: (11/7/06, SMR) Mimic router now has option to create arcs even if
      they already exist topologically.
 

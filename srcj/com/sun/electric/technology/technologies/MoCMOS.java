@@ -1180,119 +1180,95 @@ public class MoCMOS extends Technology
 		//**************************************** ARCS ****************************************
 
 		/** metal 1 arc */
-		metalArcs[0] = ArcProto.newInstance(this, "Metal-1", 3.0, new Technology.ArcLayer []
-		{
+		metalArcs[0] = newArcProto("Metal-1", 0, 3.0, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(metalLayers[0], 0, Poly.Type.FILLED)
-		});
-		metalArcs[0].setFunction(ArcProto.Function.METAL1);
+		);
 		metalArcs[0].setFactoryFixedAngle(true);
 		metalArcs[0].setWipable();
 		metalArcs[0].setFactoryAngleIncrement(90);
 
 		/** metal 2 arc */
-		metalArcs[1] = ArcProto.newInstance(this, "Metal-2", 3.0, new Technology.ArcLayer []
-		{
+		metalArcs[1] = newArcProto("Metal-2", 0, 3.0, ArcProto.Function.METAL2,
 			new Technology.ArcLayer(metalLayers[1], 0, Poly.Type.FILLED)
-		});
-		metalArcs[1].setFunction(ArcProto.Function.METAL2);
+		);
 		metalArcs[1].setFactoryFixedAngle(true);
 		metalArcs[1].setWipable();
 		metalArcs[1].setFactoryAngleIncrement(90);
 
 		/** metal 3 arc */
-		metalArcs[2] = ArcProto.newInstance(this, "Metal-3", 3.0, new Technology.ArcLayer []
-		{
+		metalArcs[2] = newArcProto("Metal-3", 0, 3.0, ArcProto.Function.METAL3,
 			new Technology.ArcLayer(metalLayers[2], 0, Poly.Type.FILLED)
-		});
-		metalArcs[2].setFunction(ArcProto.Function.METAL3);
+		);
 		metalArcs[2].setFactoryFixedAngle(true);
 		metalArcs[2].setWipable();
 		metalArcs[2].setFactoryAngleIncrement(90);
 
 		/** metal 4 arc */
-		metalArcs[3] = ArcProto.newInstance(this, "Metal-4", 3.0, new Technology.ArcLayer []
-		{
+		metalArcs[3] = newArcProto("Metal-4", 0, 3.0, ArcProto.Function.METAL4,
 			new Technology.ArcLayer(metalLayers[3], 0, Poly.Type.FILLED)
-		});
-		metalArcs[3].setFunction(ArcProto.Function.METAL4);
+		);
 		metalArcs[3].setFactoryFixedAngle(true);
 		metalArcs[3].setWipable();
 		metalArcs[3].setFactoryAngleIncrement(90);
 
 		/** metal 5 arc */
-		metalArcs[4] = ArcProto.newInstance(this, "Metal-5", 3.0, new Technology.ArcLayer []
-		{
+		metalArcs[4] = newArcProto("Metal-5", 0, 3.0, ArcProto.Function.METAL5,
 			new Technology.ArcLayer(metalLayers[4], 0, Poly.Type.FILLED)
-		});
-		metalArcs[4].setFunction(ArcProto.Function.METAL5);
+		);
 		metalArcs[4].setFactoryFixedAngle(true);
 		metalArcs[4].setWipable();
 		metalArcs[4].setFactoryAngleIncrement(90);
 
 		/** metal 6 arc */
-		metalArcs[5] = ArcProto.newInstance(this, "Metal-6", 5.0, new Technology.ArcLayer []
-		{
+		metalArcs[5] = newArcProto("Metal-6", 0, 5.0, ArcProto.Function.METAL6,
 			new Technology.ArcLayer(metalLayers[5], 0, Poly.Type.FILLED)
-		});
-		metalArcs[5].setFunction(ArcProto.Function.METAL6);
+		);
 		metalArcs[5].setFactoryFixedAngle(true);
 		metalArcs[5].setWipable();
 		metalArcs[5].setFactoryAngleIncrement(90);
 
 		/** polysilicon 1 arc */
-		polyArcs[0] = ArcProto.newInstance(this, "Polysilicon-1", 2.0, new Technology.ArcLayer []
-		{
+		polyArcs[0] = newArcProto("Polysilicon-1", 0, 2.0, ArcProto.Function.POLY1,
 			new Technology.ArcLayer(poly1Layer, 0, Poly.Type.FILLED)
-		});
-		polyArcs[0].setFunction(ArcProto.Function.POLY1);
+		);
 		polyArcs[0].setFactoryFixedAngle(true);
 		polyArcs[0].setWipable();
 		polyArcs[0].setFactoryAngleIncrement(90);
 
 		/** polysilicon 2 arc */
-		polyArcs[1] = ArcProto.newInstance(this, "Polysilicon-2", 7.0, new Technology.ArcLayer []
-		{
+		polyArcs[1] = newArcProto("Polysilicon-2", 0, 7.0, ArcProto.Function.POLY2,
 			new Technology.ArcLayer(poly2_lay, 0, Poly.Type.FILLED)
-		});
-		polyArcs[1].setFunction(ArcProto.Function.POLY2);
+		);
 		polyArcs[1].setFactoryFixedAngle(true);
 		polyArcs[1].setWipable();
 		polyArcs[1].setFactoryAngleIncrement(90);
 		polyArcs[1].setNotUsed(true);
 
 		/** P-active arc */
-		activeArcs[P_TYPE] = ArcProto.newInstance(this, "P-Active", 15.0, new Technology.ArcLayer []
-		{
+		activeArcs[P_TYPE] = newArcProto("P-Active", 12.0, 15.0, ArcProto.Function.DIFFP,
 			new Technology.ArcLayer(activeLayers[P_TYPE], 12, Poly.Type.FILLED),
 			new Technology.ArcLayer(wellLayers[N_TYPE], 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(selectLayers[P_TYPE], 8, Poly.Type.FILLED)
-		});
-		activeArcs[P_TYPE].setFunction(ArcProto.Function.DIFFP);
+		);
 		activeArcs[P_TYPE].setFactoryFixedAngle(true);
 		activeArcs[P_TYPE].setWipable();
 		activeArcs[P_TYPE].setFactoryAngleIncrement(90);
-		activeArcs[P_TYPE].setLambdaWidthOffset(12.0);
 
 		/** N-active arc */
-		activeArcs[N_TYPE] = ArcProto.newInstance(this, "N-Active", 15.0, new Technology.ArcLayer []
-		{
+		activeArcs[N_TYPE] = newArcProto("N-Active", 12.0, 15.0, ArcProto.Function.DIFFN,
 			new Technology.ArcLayer(activeLayers[N_TYPE], 12, Poly.Type.FILLED),
 			new Technology.ArcLayer(wellLayers[P_TYPE], 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(selectLayers[N_TYPE], 8, Poly.Type.FILLED)
-		});
-		activeArcs[N_TYPE].setFunction(ArcProto.Function.DIFFN);
+		);
 		activeArcs[N_TYPE].setFactoryFixedAngle(true);
 		activeArcs[N_TYPE].setWipable();
 		activeArcs[N_TYPE].setFactoryAngleIncrement(90);
-		activeArcs[N_TYPE].setLambdaWidthOffset(12.0);
 
 		/** General active arc */
-		ArcProto active_arc = ArcProto.newInstance(this, "Active", 3.0, new Technology.ArcLayer []
-		{
+		ArcProto active_arc = newArcProto("Active", 0, 3.0, ArcProto.Function.DIFF,
 			new Technology.ArcLayer(activeLayers[P_TYPE], 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(activeLayers[N_TYPE], 0, Poly.Type.FILLED)
-		});
-		active_arc.setFunction(ArcProto.Function.DIFF);
+		);
 		active_arc.setFactoryFixedAngle(true);
 		active_arc.setWipable();
 		active_arc.setFactoryAngleIncrement(90);

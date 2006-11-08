@@ -4018,10 +4018,9 @@ public class Quick
 		{
 			ArcProto ap = (ArcProto)it.next();
 			if (ap.isNotUsed()) continue;
-			Technology.ArcLayer [] layers = ap.getLayers();
-			for(int i=0; i<layers.length; i++)
+			for (Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); )
 			{
-				Layer layer = layers[i].getLayer();
+				Layer layer = lIt.next();
 				layersValid[layer.getIndex()] = true;
 			}
 		}
@@ -4144,10 +4143,9 @@ public class Quick
 			boolean [] layersInArc = new boolean[numLayers];
             Arrays.fill(layersInArc, false);
 
-			Technology.ArcLayer [] layers = ap.getLayers();
-			for(Technology.ArcLayer l : layers)
+			for(Iterator<Layer> alIt = ap.getLayerIterator(); alIt.hasNext(); )
 			{
-				Layer layer = l.getLayer();
+				Layer layer = alIt.next();
 				for(Iterator<Layer> lIt = tech.getLayers(); lIt.hasNext(); )
 				{
 					Layer oLayer = lIt.next();

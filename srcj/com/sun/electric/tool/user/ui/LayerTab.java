@@ -530,12 +530,11 @@ public class LayerTab extends JPanel
 			for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
 			{
 				ArcProto ap = aIt.next();
-				Technology.ArcLayer [] layers = ap.getLayers();
 				boolean invisible = true;
-				for(int i=0; i<layers.length; i++)
+				for(Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); )
 				{
-					Technology.ArcLayer lay = layers[i];
-					if (lay.getLayer().isVisible()) { invisible = false;   break; }
+                    Layer layer = lIt.next();
+					if (layer.isVisible()) { invisible = false;   break; }
 				}
 				ap.setArcInvisible(invisible);
 			}

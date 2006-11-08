@@ -24,7 +24,6 @@
 package com.sun.electric.database;
 
 import static com.sun.electric.database.UsageCollector.EMPTY_BITSET;
-import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
@@ -33,6 +32,7 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
 import java.io.IOException;
@@ -602,20 +602,15 @@ public class CellBackup {
     public ERectangle getPrimitiveBounds() {
         ERectangle primitiveBounds = this.primitiveBounds;
         if (primitiveBounds != null) return primitiveBounds;
-        int numArcs = arcs.size();
+        return this.primitiveBounds = computePrimitiveBounds();
+    }
+    
+    public ERectangle computePrimitiveBounds() {
         if (arcs.isEmpty()) return null;
-        Memoization m = getMemoization();
-        long[] bounds = new long[4];
-        long lx = Long.MAX_VALUE, ly = Long.MAX_VALUE, hx = Long.MIN_VALUE, hy = Long.MIN_VALUE;
-        for (ImmutableArcInst a: arcs) {
-            a.computeGridBounds(m, bounds);
-                if (bounds[0] < lx) lx = bounds[0];
-                if (bounds[1] < ly) ly = bounds[1];
-                if (bounds[2] > hx) hx = bounds[2];
-                if (bounds[3] > hy) hy = bounds[3];
-        }
-        assert lx <= hx && ly <= hy;
-        return this.primitiveBounds = ERectangle.fromGrid(lx, ly, hx - lx, hy - ly);
+        BoundsBuilder boundsBuilder = new BoundsBuilder(getMemoization());
+        for (ImmutableArcInst a: arcs)
+            boundsBuilder.genBoundsOfArc(a);
+        return boundsBuilder.makeBounds();
     }
     
     /**

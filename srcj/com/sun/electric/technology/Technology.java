@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -37,7 +38,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
@@ -66,7 +66,6 @@ import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -123,9 +122,9 @@ public class Technology implements Comparable<Technology>
 	 */
 	public static class ArcLayer
 	{
-		private Layer layer;
-		private int gridOffset;
-		private Poly.Type style;
+		private final Layer layer;
+		private final int gridOffset;
+		private final Poly.Type style;
 
 		/**
 		 * Constructs an <CODE>ArcLayer</CODE> with the specified description.
@@ -133,12 +132,17 @@ public class Technology implements Comparable<Technology>
 		 * @param lambdaOffset the distance from the outside of the ArcInst to this ArcLayer in lambda units.
 		 * @param style the Poly.Style of this ArcLayer.
 		 */
-		public ArcLayer(Layer layer, double lambdaOffset, Poly.Type style)
-		{
-			this.layer = layer;
-			this.style = style;
-            setGridOffset(DBMath.lambdaToSizeGrid(lambdaOffset));
-		}
+        public ArcLayer(Layer layer, double lambdaOffset, Poly.Type style) {
+            this(layer, DBMath.lambdaToSizeGrid(lambdaOffset), style);
+        }
+
+        private ArcLayer(Layer layer, long gridOffset, Poly.Type style) {
+            if (gridOffset < 0 || gridOffset > Integer.MAX_VALUE || (gridOffset&1) != 0)
+                throw new IllegalArgumentException("geidOffset=" + gridOffset);
+            this.layer = layer;
+            this.gridOffset = (int)gridOffset;
+            this.style = style;
+        }
 
 		/**
 		 * Returns the Layer from the Technology to be used for this ArcLayer.
@@ -163,16 +167,15 @@ public class Technology implements Comparable<Technology>
 		public long getGridOffset() { return gridOffset; }
 
 		/**
-         * Sets the distance from the outside of the ArcInst to this ArcLayer in lambda units.
+         * Returns ArcLayer which differs from this ArcLayer by offset.
+         * Offset is specified in grid units.
          * This is the difference between the width of this layer and the overall width of the arc.
          * For example, a value of 4 on an arc that is 6 wide indicates that this layer should be only 2 wide.
-         * 
          * @param gridOffset the distance from the outside of the ArcInst to this ArcLayer in grid units.
          */
-		public void setGridOffset(long gridOffset) {
-            if (gridOffset < 0 || gridOffset > Integer.MAX_VALUE || (gridOffset&1) != 0)
-                throw new IllegalArgumentException("lambdaOffset=" + DBMath.gridToLambda(gridOffset));
-            this.gridOffset = (int)gridOffset;
+		public ArcLayer withGridOffset(long gridOffset) {
+            if (this.gridOffset == gridOffset) return this;
+            return new ArcLayer(layer, gridOffset, style);
         }
 
 		/**
@@ -1083,6 +1086,40 @@ public class Technology implements Comparable<Technology>
 	/****************************** ARCS ******************************/
 
 	/**
+	 * Method to create a new ArcProto from the parameters.
+	 * @param protoName the name of this ArcProto.
+	 * It may not have unprintable characters, spaces, or tabs in it.
+     * @param lambdaWidthOffset width offset in lambda units.
+	 * @param defaultWidth the default width of this ArcProto.
+	 * @param layers the Layers that make up this ArcProto.
+	 * @return the newly created ArcProto.
+	 */
+	protected ArcProto newArcProto(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, Technology.ArcLayer... layers)
+	{
+		// check the arguments
+		if (findArcProto(protoName) != null)
+		{
+			System.out.println("Error: technology " + getTechName() + " has multiple arcs named " + protoName);
+			return null;
+		}
+        long gridWidthOffset = DBMath.lambdaToSizeGrid(lambdaWidthOffset);
+		if (gridWidthOffset < 0 || gridWidthOffset > Integer.MAX_VALUE)
+		{
+			System.out.println("ArcProto " + getTechName() + ":" + protoName + " has invalid width offset " + lambdaWidthOffset);
+			return null;
+		}
+		if (defaultWidth < DBMath.gridToLambda(gridWidthOffset))
+		{
+			System.out.println("ArcProto " + getTechName() + ":" + protoName + " has negative width");
+			return null;
+		}
+
+		ArcProto ap = new ArcProto(this, protoName, gridWidthOffset, defaultWidth, function, layers, arcs.size());
+		addArcProto(ap);
+		return ap;
+	}
+
+	/**
 	 * Returns the ArcProto in this technology with a particular name.
 	 * @param name the name of the ArcProto.
 	 * @return the ArcProto in this technology with that name.
@@ -1128,7 +1165,7 @@ public class Technology implements Comparable<Technology>
 	public void addArcProto(ArcProto ap)
 	{
 		assert findArcProto(ap.getName()) == null;
-		ap.primArcIndex = arcs.size();
+		assert ap.primArcIndex == arcs.size();
 		arcs.put(ap.getName(), ap);
 	}
 
@@ -1337,6 +1374,83 @@ public class Technology implements Comparable<Technology>
 		return polys;
 	}
 
+    /**
+     * Returns the polygons that describe arc "ai".
+     * @param a the ImmutableArcInst that is being described.
+     * @param layerOverride the layer to use for all generated polygons (if not null).
+     * @param onlyTheseLayers to filter the only required layers
+     * @return an array of Poly objects that describes this ArcInst graphically.
+     */
+    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a, Layer layerOverride, Layer.Function.Set onlyTheseLayers) {
+        // get information about the arc
+        ArcProto ap = a.protoType;
+        assert ap.getTechnology() == this;
+        ArcLayer [] primLayers = ap.getLayers();
+        
+        // construct the polygons that describe the basic arc
+        if (!isNoNegatedArcs() && (a.isHeadNegated() || a.isTailNegated())) {
+            for (Technology.ArcLayer primLayer: primLayers) {
+                Layer layer = primLayer.getLayer();
+                if (onlyTheseLayers != null && onlyTheseLayers.contains(layer.getFunction())) continue;
+                if (layerOverride != null) layer = layerOverride;
+                
+                // remove a gap for the negating bubble
+                int angle = a.getAngle();
+                double gridBubbleSize = Schematics.getNegatingBubbleSize()*DBMath.GRID;
+                double cosDist = DBMath.cos(angle) * gridBubbleSize;
+                double sinDist = DBMath.sin(angle) * gridBubbleSize;
+                if (a.isTailNegated())
+                    b.pushPoint(a.tailLocation, cosDist, sinDist);
+                else
+                    b.pushPoint(a.tailLocation);
+                if (a.isHeadNegated())
+                    b.pushPoint(a.headLocation, -cosDist, -sinDist);
+                else
+                    b.pushPoint(a.headLocation);
+                b.pushPoly(Poly.Type.OPENED, layer);
+            }
+        } else {
+            for (Technology.ArcLayer primLayer: primLayers) {
+                Layer layer = primLayer.getLayer();
+                if (onlyTheseLayers != null && onlyTheseLayers.contains(layer.getFunction())) continue;
+                if (layerOverride != null) layer = layerOverride;
+                a.makeGridPoly(b, a.getGridFullWidth() - primLayer.getGridOffset(), primLayer.getStyle(), layer);
+            }
+        }
+        
+        // add an arrow to the arc description
+        if (!isNoDirectionalArcs()) {
+            final double lambdaArrowSize = 1.0*DBMath.GRID;
+            int angle = a.getAngle();
+            if (a.isBodyArrowed()) {
+                b.pushPoint(a.headLocation);
+                b.pushPoint(a.tailLocation);
+                b.pushPoly(Poly.Type.VECTORS, Generic.tech.glyphLay);
+            }
+            if (a.isTailArrowed()) {
+                int angleOfArrow = 3300;		// -30 degrees
+                int backAngle1 = angle - angleOfArrow;
+                int backAngle2 = angle + angleOfArrow;
+                b.pushPoint(a.tailLocation);
+                b.pushPoint(a.tailLocation, DBMath.cos(backAngle1)*lambdaArrowSize, DBMath.sin(backAngle1)*lambdaArrowSize);
+                b.pushPoint(a.tailLocation);
+                b.pushPoint(a.tailLocation, DBMath.cos(backAngle2)*lambdaArrowSize, DBMath.sin(backAngle2)*lambdaArrowSize);
+                b.pushPoly(Poly.Type.VECTORS, Generic.tech.glyphLay);
+            }
+            if (a.isHeadArrowed()) {
+                angle = (angle + 1800) % 3600;
+                int angleOfArrow = 300;		// 30 degrees
+                int backAngle1 = angle - angleOfArrow;
+                int backAngle2 = angle + angleOfArrow;
+                b.pushPoint(a.headLocation);
+                b.pushPoint(a.headLocation, DBMath.cos(backAngle1)*lambdaArrowSize, DBMath.sin(backAngle1)*lambdaArrowSize);
+                b.pushPoint(a.headLocation);
+                b.pushPoint(a.headLocation, DBMath.cos(backAngle2)*lambdaArrowSize, DBMath.sin(backAngle2)*lambdaArrowSize);
+                b.pushPoly(Poly.Type.VECTORS, Generic.tech.glyphLay);
+            }
+        }
+    }
+    
 	/**
 	 * Method to convert old primitive arc names to their proper ArcProtos.
 	 * This method is overridden by those technologies that have any special arc name conversion issues.
@@ -3853,36 +3967,6 @@ public class Technology implements Comparable<Technology>
     }
 
 	///////////////////// Generic methods //////////////////////////////////////////////////////////////
-
-	/**
-	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
-	 * in arc "aty" to "surround".
-	 */
-	protected void setArcLayerSurroundLayer(ArcProto aty, Layer outerLayer, Layer innerLayer,
-	                                        double surround)
-	{
-		// find the inner layer
-		Technology.ArcLayer inLayer = aty.findArcLayer(innerLayer);
-		if (inLayer == null)
-		{
-		    System.out.println("Internal error in " + getTechDesc() + " surround computation. Arc layer '" +
-                    inLayer.getLayer().getName() + "' is not valid in '" + aty.getName() + "'");
-			return;
-		}
-
-		// find the outer layer
-		Technology.ArcLayer outLayer = aty.findArcLayer(outerLayer);
-		if (outLayer == null)
-		{
-            System.out.println("Internal error in " + getTechDesc() + " surround computation. Arc layer '" +
-                    inLayer.getLayer().getName() + "' is not valid in '" + aty.getName() + "'");
-			return;
-		}
-
-		// compute the indentation of the outer layer
-		long indent = inLayer.getGridOffset() - DBMath.lambdaToGrid(surround)*2;
-		outLayer.setGridOffset(indent);
-	}
 
 	/**
 	 * Method to change the design rules for layer "layername" layers so that

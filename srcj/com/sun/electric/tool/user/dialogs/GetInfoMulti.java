@@ -870,30 +870,25 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						if (mcp.slidable == 2) ai.setSlidable(false);
 					switch (mcp.extension)
 					{
-						case 1: ai.setExtended(ArcInst.HEADEND, true);    ai.setExtended(ArcInst.TAILEND, true);    break;
-						case 2: ai.setExtended(ArcInst.HEADEND, false);   ai.setExtended(ArcInst.TAILEND, false);   break;
-						case 3: ai.setExtended(ArcInst.HEADEND, true);    ai.setExtended(ArcInst.TAILEND, false);   break;
-						case 4: ai.setExtended(ArcInst.HEADEND, false);   ai.setExtended(ArcInst.TAILEND, true);    break;
+						case 1: ai.setHeadExtended(true);    ai.setTailExtended(true);    break;
+						case 2: ai.setHeadExtended(false);   ai.setTailExtended(false);   break;
+						case 3: ai.setHeadExtended(true);    ai.setTailExtended(false);   break;
+						case 4: ai.setHeadExtended(false);   ai.setTailExtended(true);    break;
 					}
 					switch (mcp.directional)
 					{
-						case 1: ai.setArrowed(ArcInst.HEADEND, false);   ai.setArrowed(ArcInst.TAILEND, false);
-							ai.setBodyArrowed(false);   break;
-						case 2: ai.setArrowed(ArcInst.HEADEND, true);    ai.setArrowed(ArcInst.TAILEND, false);
-							ai.setBodyArrowed(true);   break;
-						case 3: ai.setArrowed(ArcInst.HEADEND, false);   ai.setArrowed(ArcInst.TAILEND, true);
-							ai.setBodyArrowed(true);    break;
-						case 4: ai.setArrowed(ArcInst.HEADEND, false);   ai.setArrowed(ArcInst.TAILEND, false);
-							ai.setBodyArrowed(true);    break;
-						case 5: ai.setArrowed(ArcInst.HEADEND, true);    ai.setArrowed(ArcInst.TAILEND, true);
-							ai.setBodyArrowed(true);    break;
+						case 1: ai.setHeadArrowed(false);   ai.setTailArrowed(false);   ai.setBodyArrowed(false);   break;
+						case 2: ai.setHeadArrowed(true);    ai.setTailArrowed(false);	ai.setBodyArrowed(true);   break;
+						case 3: ai.setHeadArrowed(false);   ai.setTailArrowed(true);	ai.setBodyArrowed(true);    break;
+						case 4: ai.setHeadArrowed(false);   ai.setTailArrowed(false);	ai.setBodyArrowed(true);    break;
+						case 5: ai.setHeadArrowed(true);    ai.setTailArrowed(true);	ai.setBodyArrowed(true);    break;
 					}
 					switch (mcp.negated)
 					{
-						case 1: ai.setNegated(ArcInst.HEADEND, false);   ai.setNegated(ArcInst.TAILEND, false);   break;
-						case 2: ai.setNegated(ArcInst.HEADEND, true);    ai.setNegated(ArcInst.TAILEND, false);   break;
-						case 3: ai.setNegated(ArcInst.HEADEND, false);   ai.setNegated(ArcInst.TAILEND, true);    break;
-						case 4: ai.setNegated(ArcInst.HEADEND, true);    ai.setNegated(ArcInst.TAILEND, true);    break;
+						case 1: ai.setHeadNegated(false);   ai.setTailNegated(false);   break;
+						case 2: ai.setHeadNegated(true);    ai.setTailNegated(false);   break;
+						case 3: ai.setHeadNegated(false);   ai.setTailNegated(true);    break;
+						case 4: ai.setHeadNegated(true);    ai.setTailNegated(true);    break;
 					}
 					if (mcp.easySelect == 1) ai.setHardSelect(false); else
 						if (mcp.easySelect == 2) ai.setHardSelect(true);

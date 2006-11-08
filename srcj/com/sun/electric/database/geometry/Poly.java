@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 
@@ -433,6 +434,7 @@ public class Poly extends PolyBase {
      */
     public static class Builder extends AbstractShapeBuilder {
         private final boolean inLambda;
+        private boolean isChanging;
         private final ArrayList<Poly> lastPolys = new ArrayList<Poly>();
         
         private Builder(boolean inLambda) { this.inLambda = inLambda; }
@@ -444,7 +446,16 @@ public class Poly extends PolyBase {
          * These objects include displayable variables on the ArcInst.
          */
         public Iterator<Poly> getShape(ArcInst ai) {
-            return it(ai.getProto().getTechnology().getShapeOfArc(ai, null, onlyTheseLayers));
+            isChanging = true;
+            m = ai.getParent().getMemoization();
+            lastPolys.clear();
+            genShapeOfArc(ai.getD());
+            if (inLambda) {
+                for (int i = 0; i < lastPolys.size(); i++)
+                    lastPolys.get(i).gridToLambda();
+            }
+            isChanging = false;
+            return lastPolys.iterator();
         }
         
         /**
@@ -455,10 +466,7 @@ public class Poly extends PolyBase {
          * These objects include displayable variables on the NodeInst.
          */
         public Iterator<Poly> getShape(NodeInst ni) {
-            return it(((PrimitiveNode)ni.getProto()).getTechnology().getShapeOfNode(ni, electrical, reasonable, onlyTheseLayers));
-        }
-        
-        private Iterator<Poly> it(Poly [] polys) {
+            Poly[] polys = ((PrimitiveNode)ni.getProto()).getTechnology().getShapeOfNode(ni, electrical, reasonable, onlyTheseLayers);
             lastPolys.clear();
             for (Poly poly: polys) {
                 if (!inLambda)
@@ -466,6 +474,61 @@ public class Poly extends PolyBase {
                 lastPolys.add(poly);
             }
             return lastPolys.iterator();
+        }
+        
+        @Override
+        public void addLongPoly(int numPoints, Poly.Type style, Layer layer) {
+            assert isChanging;
+            Point2D.Double[] points = new Point2D.Double[numPoints];
+            for (int i = 0; i < numPoints; i++)
+                points[i] = new Point2D.Double(longCoords[i*2], longCoords[i*2+1]);
+            Poly poly = new Poly(points);
+            poly.setStyle(style);
+            poly.setLayer(layer);
+            lastPolys.add(poly);
+        }
+        
+//        @Override
+//        public void addLongBox(Poly.Type style, Layer layer) {
+//            assert isChanging;
+//            boolean isOpened = style.isOpened();
+//            Point2D.Double[] points = new Point2D.Double[isOpened ? 5 : 4];
+//            points[0] = new Point2D.Double(longCoords[0], longCoords[1]);
+//            points[1] = new Point2D.Double(longCoords[2], longCoords[1]);
+//            points[2] = new Point2D.Double(longCoords[2], longCoords[3]);
+//            points[3] = new Point2D.Double(longCoords[0], longCoords[3]);
+//            if (isOpened)
+//                points[4] = (Point2D.Double)points[0].clone();
+//            Poly poly = new Poly(points);
+//            poly.setStyle(style);
+//            poly.setLayer(layer);
+//            lastPolys.add(poly);
+//        }
+        
+        @Override
+        public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
+            assert isChanging;
+            Poly poly = new Poly(new Point2D.Double[] {
+                new Point2D.Double(coords[0], coords[1]),
+                new Point2D.Double(coords[2], coords[3])
+            });
+            poly.setStyle(style);
+            poly.setLayer(layer);
+            lastPolys.add(poly);
+        }
+        
+        @Override
+        public void addIntBox(int[] coords, Layer layer) {
+            assert isChanging;
+            Poly poly = new Poly(new Point2D.Double[] {
+                new Point2D.Double(coords[0], coords[1]),
+                new Point2D.Double(coords[2], coords[1]),
+                new Point2D.Double(coords[2], coords[3]),
+                new Point2D.Double(coords[0], coords[3])
+            });
+            poly.setStyle(Poly.Type.FILLED);
+            poly.setLayer(layer);
+            lastPolys.add(poly);
         }
     }
     

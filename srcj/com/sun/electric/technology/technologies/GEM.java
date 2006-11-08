@@ -117,56 +117,44 @@ public class GEM extends Technology
 		//******************** ARCS ********************
 
 		/** General arc */
-		ArcProto General_arc = ArcProto.newInstance(this, "General", 0, new Technology.ArcLayer []
-		{
+		ArcProto General_arc = newArcProto("General", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(GA_lay, 0, Poly.Type.FILLED)
-		});
-		General_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		General_arc.setWipable();
 		General_arc.setFactoryAngleIncrement(0);
 
 		/** Temporal arc */
-		ArcProto Temporal_arc = ArcProto.newInstance(this, "Temporal", 0, new Technology.ArcLayer []
-		{
+		ArcProto Temporal_arc = newArcProto("Temporal", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(TA_lay, 0, Poly.Type.FILLED)
-		});
-		Temporal_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Temporal_arc.setWipable();
 		Temporal_arc.setFactoryAngleIncrement(0);
 
 		/** Causal arc */
-		ArcProto Causal_arc = ArcProto.newInstance(this, "Causal", 0, new Technology.ArcLayer []
-		{
+		ArcProto Causal_arc = newArcProto("Causal", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(CA_lay, 0, Poly.Type.FILLED)
-		});
-		Causal_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Causal_arc.setWipable();
 		Causal_arc.setFactoryAngleIncrement(0);
 
 		/** Prerequisite arc */
-		ArcProto Prerequisite_arc = ArcProto.newInstance(this, "Prerequisite", 0, new Technology.ArcLayer []
-		{
+		ArcProto Prerequisite_arc = newArcProto("Prerequisite", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(PA_lay, 0, Poly.Type.FILLED)
-		});
-		Prerequisite_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Prerequisite_arc.setWipable();
 		Prerequisite_arc.setFactoryAngleIncrement(0);
 
 		/** Nondeterministic arc */
-		ArcProto Nondeterministic_arc = ArcProto.newInstance(this, "Nondeterministic", 0, new Technology.ArcLayer []
-		{
+		ArcProto Nondeterministic_arc = newArcProto("Nondeterministic", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(NA_lay, 0, Poly.Type.FILLED)
-		});
-		Nondeterministic_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Nondeterministic_arc.setWipable();
 		Nondeterministic_arc.setFactoryAngleIncrement(0);
 
 		/** Nondeterministic-fork arc */
-		ArcProto Nondeterministic_fork_arc = ArcProto.newInstance(this, "Nondeterministic-fork", 0, new Technology.ArcLayer []
-		{
+		ArcProto Nondeterministic_fork_arc = newArcProto("Nondeterministic-fork", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(FA_lay, 0, Poly.Type.FILLED)
-		});
-		Nondeterministic_fork_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Nondeterministic_fork_arc.setWipable();
 		Nondeterministic_fork_arc.setFactoryAngleIncrement(0);
 

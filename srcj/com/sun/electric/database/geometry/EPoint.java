@@ -34,6 +34,7 @@ import java.io.Serializable;
  */
 final public class EPoint extends Point2D implements Serializable {
 
+    /** EPoint with both zero coordinates. */
 	public static final EPoint ORIGIN = new EPoint(0, 0);
 
     // ---------- Flat implementation
@@ -264,13 +265,27 @@ final public class EPoint extends Point2D implements Serializable {
         return PY == 0 ? Math.abs(PX) : PX == 0 ? Math.abs(PY) : Math.hypot(PX, PY);
     }
 
+    /**
+     * Returns true if both coordinates of this EPoint are "small ints".
+     * @return true if both coordinates of this EPoint are "small ints".
+     * @See com.sun.electric.database.geometry.GenMath.MIN_SMALL_INT
+     * @See com.sun.electric.database.geometry.GenMath.MAX_SMALL_INT
+     */
+    public boolean isSmall() {
+        // ---------- Flat implementation
+        return (((gridX - GenMath.MIN_SMALL_COORD) | (gridY - GenMath.MIN_SMALL_COORD)) & Integer.MIN_VALUE) == 0;
+        // ---------- ECoord implementation
+//		return x.isSmall() & y.isSmall()
+        // ----------
+    }
+    
 	/**
 	 * Returns a <code>String</code> that represents the value 
 	 * of this <code>EPoint</code>.
 	 * @return a string representation of this <code>EPoint</code>.
 	 */
 	public String toString() {
-	    return "EPoint2D["+getX()+", "+getY()+"]";
+	    return "EPoint["+getX()+", "+getY()+"]";
 	}
     
     /**

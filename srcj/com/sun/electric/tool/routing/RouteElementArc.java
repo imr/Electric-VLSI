@@ -99,7 +99,7 @@ public class RouteElementArc extends RouteElement {
     	if (stayInside != null)
     	{
     		double length = headEP.distance(tailEP);
-        	Layer layer = ap.getLayers()[0].getLayer();
+        	Layer layer = ap.getLayerIterator().next();
         	
         	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth, headExtend, tailExtend);
 

@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 import java.awt.geom.Point2D;
@@ -216,14 +217,15 @@ public class ArcProto implements Comparable<ArcProto>
 	/** Pref map for arc end extension. */						private static HashMap<ArcProto,Pref> defaultExtendedPrefs = new HashMap<ArcProto,Pref>();
 //	/** Pref map for arc negation. */							private static HashMap<ArcProto,Pref> defaultNegatedPrefs = new HashMap<ArcProto,Pref>();
 	/** Pref map for arc directionality. */						private static HashMap<ArcProto,Pref> defaultDirectionalPrefs = new HashMap<ArcProto,Pref>();
-	/** The name of this ArcProto. */							protected String protoName;
-	/** The technology in which this ArcProto resides. */		protected Technology tech;
-	/** The offset from width to reported/displayed width. */	protected int gridWidthOffset;
+	/** The name of this ArcProto. */							protected final String protoName;
+	/** The technology in which this ArcProto resides. */		protected final Technology tech;
+	/** The offset from width to reported/displayed width. */	protected final int gridWidthOffset;
+    /** The maximum offset among ArcLayers. */                  private int maxLayerGridOffset;
 	/** Flags bits for this ArcProto. */						private int userBits;
-	/** The function of this ArcProto. */						private Function function;
-	/** Layers in this arc */                                   /*private*/ Technology.ArcLayer [] layers;
-	/** Full name */                                            /*private*/ String fullName;
-	/** Index of this ArcProto. */                          int primArcIndex;
+	/** The function of this ArcProto. */						final Function function;
+	/** Layers in this arc */                                   final Technology.ArcLayer [] layers;
+	/** Full name */                                            final String fullName;
+	/** Index of this ArcProto. */                              final int primArcIndex;
 //	/** A temporary integer for this ArcProto. */				private int tempInt;
 
 	// the meaning of the "userBits" field:
@@ -247,51 +249,26 @@ public class ArcProto implements Comparable<ArcProto>
 	// ----------------- protected and private methods -------------------------
 
 	/**
-	 * The constructor is never called.  Use the factory "newInstance" instead.
+	 * The constructor is never called.  Use "Technology.newArcProto" instead.
 	 */
-	private ArcProto(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
+	ArcProto(Technology tech, String protoName, long gridWidthOffset, double defaultWidth, Function function, Technology.ArcLayer [] layers, int primArcIndex)
 	{
 		if (!Technology.jelibSafeName(protoName))
 			System.out.println("ArcProto name " + protoName + " is not safe to write into JELIB");
 		this.protoName = protoName;
 		this.fullName = tech.getTechName() + ":" + protoName;
-		this.gridWidthOffset = 0;
+        assert (gridWidthOffset&1) == 0;
+        this.gridWidthOffset = (int)gridWidthOffset;
 		this.tech = tech;
 		this.userBits = 0;
-		this.function = Function.UNKNOWN;
-		this.layers = layers;
+		this.function = function;
+		this.layers = layers.clone();
+        this.primArcIndex = primArcIndex;
+        computeMaxLayerGridOffset();
 		setFactoryDefaultLambdaFullWidth(defaultWidth);
 	}
 
 	// ------------------------ public methods -------------------------------
-
-	/**
-	 * Method to create a new ArcProto from the parameters.
-	 * @param tech the Technology in which to place this ArcProto.
-	 * @param protoName the name of this ArcProto.
-	 * It may not have unprintable characters, spaces, or tabs in it.
-	 * @param defaultWidth the default width of this ArcProto.
-	 * @param layers the Layers that make up this ArcProto.
-	 * @return the newly created ArcProto.
-	 */
-	public static ArcProto newInstance(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
-	{
-		// check the arguments
-		if (tech.findArcProto(protoName) != null)
-		{
-			System.out.println("Error: technology " + tech.getTechName() + " has multiple arcs named " + protoName);
-			return null;
-		}
-		if (defaultWidth < 0.0)
-		{
-			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has negative width");
-			return null;
-		}
-
-		ArcProto ap = new ArcProto(tech, protoName, defaultWidth, layers);
-		tech.addArcProto(ap);
-		return ap;
-	}
 
 	/**
 	 * Method to return the name of this ArcProto.
@@ -393,24 +370,6 @@ public class ArcProto implements Comparable<ArcProto>
     public long getDefaultGridBaseWidth() { return getDefaultGridFullWidth() - getGridWidthOffset(); }
 
 	/**
-	 * Method to set the width offset of this ArcProto in lambda units.
-	 * The width offset excludes the surrounding implang material.
-	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
-	 * The offset amount is the difference between the diffusion width and the overall width.
-	 * @param lambdaWidthOffset the width offset of this ArcProto in lambda units.
-	 */
-    public void setLambdaWidthOffset(double lambdaWidthOffset) {
-        long gridWidthOffset = DBMath.lambdaToSizeGrid(lambdaWidthOffset);
-		if (gridWidthOffset < 0 || gridWidthOffset > Integer.MAX_VALUE)
-		{
-			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has invalid width offset " + lambdaWidthOffset);
-			return;
-		}
-        assert (gridWidthOffset&1) == 0;
-        this.gridWidthOffset = (int)gridWidthOffset;
-    }
-
-	/**
 	 * Method to return the width offset of this ArcProto in lambda units.
 	 * The width offset excludes the surrounding implang material.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
@@ -428,6 +387,15 @@ public class ArcProto implements Comparable<ArcProto>
 	 */
 	public long getGridWidthOffset() { return gridWidthOffset; }
 
+	/**
+	 * Method to return the width offset of this ArcProto in grid units.
+	 * The width offset excludes the surrounding implang material.
+	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
+	 * The offset amount is the difference between the diffusion width and the overall width.
+	 * @return the width offset of this ArcProto in grid units.
+	 */
+    public long getMaxLayerGridOffset() { return maxLayerGridOffset; }
+    
     /*
 	private Pref getArcProtoAntennaPref()
 	{
@@ -714,7 +682,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 */
 	public int getDefaultConstraints()
 	{
-        int flags = 0;
+        int flags = ImmutableArcInst.DEFAULT_FLAGS;
         flags = ImmutableArcInst.RIGID.set(flags, isRigid());
         flags = ImmutableArcInst.FIXED_ANGLE.set(flags, isFixedAngle());
         flags = ImmutableArcInst.SLIDABLE.set(flags, isSlidable());
@@ -724,13 +692,6 @@ public class ArcProto implements Comparable<ArcProto>
         flags = ImmutableArcInst.BODY_ARROWED.set(flags, isDirectional());
         return flags;
 	}
-
-	/**
-	 * Method to set the function of this ArcProto.
-	 * The Function is a technology-independent description of the behavior of this ArcProto.
-	 * @param function the new function of this ArcProto.
-	 */
-	public void setFunction(ArcProto.Function function) { this.function = function; }
 
 	/**
 	 * Method to return the function of this ArcProto.
@@ -875,7 +836,16 @@ public class ArcProto implements Comparable<ArcProto>
 	 * Method to return the array of layers that comprise this ArcProto.
 	 * @return the array of layers that comprise this ArcProto.
 	 */
-	public Technology.ArcLayer [] getLayers() { return layers; }
+	Technology.ArcLayer [] getLayers() { return layers; }
+    
+    public int getNumArcLayers() { return layers.length; }
+    public Technology.ArcLayer getArcLayer(int i) { return layers[i]; }
+
+	/**
+	 * Method to return the array of layers that comprise this ArcProto.
+	 * @return the array of layers that comprise this ArcProto.
+	 */
+	public Iterator<Technology.ArcLayer> getArcLayers() { return ArrayIterator.iterator(layers); }
 
 	/**
 	 * Method to return an iterator over the layers in this ArcProto.
@@ -934,6 +904,47 @@ public class ArcProto implements Comparable<ArcProto>
 		return null;
 	}
     
+	/**
+	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
+	 * in arc "aty" to "surround".
+	 */
+	protected void setArcLayerSurroundLayer(Layer outerLayer, Layer innerLayer,
+	                                        double surround)
+	{
+		// find the inner layer
+		Technology.ArcLayer inLayer = findArcLayer(innerLayer);
+		if (inLayer == null)
+		{
+		    System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
+                    inLayer.getLayer().getName() + "' is not valid in '" + getName() + "'");
+			return;
+		}
+
+		// find the outer layer
+        int i = 0;
+        while (i < layers.length && layers[i].getLayer() != outerLayer) i++;
+        
+		if (i >= layers.length)
+		{
+            System.out.println("Internal error in " + tech.getTechDesc() + " surround computation. Arc layer '" +
+                    inLayer.getLayer().getName() + "' is not valid in '" + getName() + "'");
+			return;
+		}
+
+		// compute the indentation of the outer layer
+		long indent = inLayer.getGridOffset() - DBMath.lambdaToGrid(surround)*2;
+        layers[i] = layers[i].withGridOffset(indent);
+        computeMaxLayerGridOffset();
+	}
+    
+    private void computeMaxLayerGridOffset() {
+        long max = Long.MIN_VALUE;
+        for (Technology.ArcLayer primLayer: layers)
+            max = Math.max(max, primLayer.getGridOffset());
+        assert 0 <= max && max < Integer.MAX_VALUE;
+        maxLayerGridOffset = (int)max;
+    }
+
     /**
 	 * Method to get MinZ and MaxZ of this ArcProto
 	 * @param array array[0] is minZ and array[1] is max
@@ -1035,11 +1046,14 @@ public class ArcProto implements Comparable<ArcProto>
      * @exception AssertionError if invariants are not valid
      */
     void check() {
-        double defaultWidth = getDefaultLambdaFullWidth();
+        long defaultWidth = getDefaultGridFullWidth();
         for (Technology.ArcLayer primLayer: layers) {
-            long width = getDefaultGridFullWidth() - primLayer.getGridOffset();
+            long gridOffset = primLayer.getGridOffset();
+            assert 0 <= gridOffset && gridOffset <= maxLayerGridOffset;
+            long width = defaultWidth - gridOffset;
             if (width < 0)
                 System.out.println(primLayer + " of " + this + " has invalid width");
         }
+        assert 0 <= gridWidthOffset && gridWidthOffset <= maxLayerGridOffset;
     }
 }

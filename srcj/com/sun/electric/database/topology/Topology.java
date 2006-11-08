@@ -26,12 +26,12 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.BoundsBuilder;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -256,11 +256,10 @@ public class Topology {
     public void computeArcBounds() {
         if (!cell.getDatabase().canComputeBounds())
             return;
-        CellBackup.Memoization m = cell.backup().getMemoization();
-        long[] arcBounds = new long[4];
+        BoundsBuilder b = new BoundsBuilder(cell.backup().getMemoization());
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ArcInst ai = arcs.get(arcIndex);
-            ai.computeBounds(m, arcBounds);
+            ai.computeBounds(b);
         }
         validArcBounds = true;
     }

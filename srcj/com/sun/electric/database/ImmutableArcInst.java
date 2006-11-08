@@ -32,8 +32,13 @@ import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.FPGA;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -43,15 +48,22 @@ import java.io.IOException;
  * Immutable class ImmutableArcInst represents an arc instance.
  */
 public class ImmutableArcInst extends ImmutableElectricObject {
-	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = Variable.newKey("ARC_radius");
+	/** The index of the tail of this ArcInst. */		public static final int TAILEND = 0;
+	/** The index of the head of this ArcInst. */		public static final int HEADEND = 1;
+ 	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = Variable.newKey("ARC_radius");
+
     /** 
      * Class to access a flag in user bits of ImmutableNodeInst.
      */
     public static class Flag {
         final int mask;
+        final char jelibChar;
+        final boolean jelibDefault;
 
-        private Flag(int mask) {
+        private Flag(int mask, char jelibChar, boolean jelibDefault) {
             this.mask = mask;
+            this.jelibChar = jelibChar;
+            this.jelibDefault = jelibDefault;
         }
         
         /**
@@ -74,98 +86,81 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         }
     }
     
-    /**
-     * Class to access a flag in user bits of ImmutableArcInst which is true by default.
-     */
-    private static class FlagInv extends Flag {
-        private FlagInv(int mask) { super(mask); }
-        
-        /**
-         * Returns true if this Flag is set in userBits.
-         * @param userBits user bits.
-         * @return true if this Flag is set in userBits;
-         */
-        public boolean is(int userBits) {
-            return (userBits & mask) == 0;
-        }
-        
-        /**
-         * Updates this flag in userBits.
-         * @param userBits old user bits.
-         * @param value new value of flag.
-         * @return updates userBits.
-         */
-        public int set(int userBits, boolean value) {
-            return value ? userBits & ~mask : userBits | mask;
-        }
-    }
-   
 	// -------------------------- constants --------------------------------
     
     private static final short EXTEND_90 = 0;
     private static final short EXTEND_0 = 1;
-    private static final short EXTEND_45 = 2;
+//    private static final short EXTEND_45 = 2;
     private static final short EXTEND_ANY = 3;
     
     
-	/** fixed-length arc */                                 private static final int FIXED =                     01;
-	/** fixed-angle arc */                                  private static final int FIXANG =                    02;
+	/** fixed-length arc */                                 private static final int ELIB_FIXED =                01;
+	/** fixed-angle arc */                                  private static final int ELIB_FIXANG =               02;
 //	/** arc has text that is far away */                    private static final int AHASFARTEXT =               04;
 //	/** arc is not in use */                                private static final int DEADA =                    020;
-	/** DISK: angle of arc from end 0 to end 1 */           private static final int DISK_AANGLE =           037740;
-	/** DISK: bits of right shift for DISK_AANGLE field */  private static final int DISK_AANGLESH =              5;
+	/** DISK: angle of arc from end 0 to end 1 */           private static final int ELIB_AANGLE =           037740;
+	/** DISK: bits of right shift for DISK_AANGLE field */  private static final int ELIB_AANGLESH =              5;
 //	/** set if arc is to be drawn shortened */              private static final int ASHORT =                040000;
-	/** set if head end of ArcInst is negated */            private static final int ISHEADNEGATED =        0200000;
-	/** DISK: set if ends do not extend by half width */    private static final int DISK_NOEXTEND =        0400000;
-	/** set if tail end of ArcInst is negated */            private static final int ISTAILNEGATED =       01000000;
-//	/** set if ends are negated */                          private static final int ISNEGATED =           01000000;
-	/** set if arc has arrow on head end */                 private static final int HEADARROW =           02000000;
-    /** DISK: set if arc aims from end 0 to end 1 */        private static final int DISK_ISDIRECTIONAL =  02000000; 
-	/** no extension on tail */                             private static final int TAILNOEXTEND =        04000000;
-    /** DISK: no extension/negation/arrows on end 0 */      private static final int DISK_NOTEND0 =        04000000;
-	/** no extension on head */                             private static final int HEADNOEXTEND =       010000000;
-    /** DISK: no extension/negation/arrows on end 1 */      private static final int DISK_NOTEND1 =       010000000;
-	/** DISK: reverse extension/negation/arrow ends */      private static final int DISK_REVERSEEND =    020000000;
-	/** set if arc can't slide around in ports */           private static final int CANTSLIDE =          040000000;
+	/** set if head end of ArcInst is negated */            private static final int ELIB_ISHEADNEGATED =   0200000;
+	/** DISK: set if ends do not extend by half width */    private static final int ELIB_NOEXTEND =        0400000;
+	/** set if tail end of ArcInst is negated */            private static final int ELIB_ISTAILNEGATED =  01000000;
+    /** DISK: set if arc aims from end 0 to end 1 */        private static final int ELIB_ISDIRECTIONAL =  02000000; 
+    /** DISK: no extension/negation/arrows on end 0 */      private static final int ELIB_NOTEND0 =        04000000;
+    /** DISK: no extension/negation/arrows on end 1 */      private static final int ELIB_NOTEND1 =       010000000;
+	/** DISK: reverse extension/negation/arrow ends */      private static final int ELIB_REVERSEEND =    020000000;
+	/** set if arc can't slide around in ports */           private static final int ELIB_CANTSLIDE =     040000000;
 //	/** set if afixed arc was changed */                    private static final int FIXEDMOD =          0100000000;
-	/** set if arc has arrow on tail end */                 private static final int TAILARROW =         0200000000;
-	/** set if arc has arrow line along body */             private static final int BODYARROW =         0400000000;
 //	/** only local arcinst re-drawing desired */            private static final int RELOCLA =          01000000000;
 //	/**transparent arcinst re-draw is done */               private static final int RETDONA =          02000000000;
 //	/** opaque arcinst re-draw is done */                   private static final int REODONA =          04000000000;
 //	/** general flag for spreading and highlighting */      private static final int ARCFLAGBIT =      010000000000;
-	/** set if hard to select */                            private static final int HARDSELECTA =     020000000000;
+	/** set if hard to select */                            private static final int ELIB_HARDSELECTA =020000000000;
 
+    private static final int TAIL_ARROWED_MASK  = 0x001;
+    private static final int HEAD_ARROWED_MASK  = 0x002;
+    private static final int TAIL_EXTENDED_MASK = 0x004;
+    private static final int HEAD_EXTENDED_MASK = 0x008;
+    private static final int TAIL_NEGATED_MASK  = 0x010;
+    private static final int HEAD_NEGATED_MASK  = 0x020;
+    private static final int BODY_ARROWED_MASK  = 0x040;
+    private static final int RIGID_MASK         = 0x080;
+    private static final int FIXED_ANGLE_MASK   = 0x100;
+    private static final int SLIDABLE_MASK      = 0x200;
+    private static final int HARD_SELECT_MASK   = 0x400;
+    private static final int DATABASE_FLAGS     = 0x7ff;
+    
+    private static final int EASY_MASK          = 0x800;
+    
 	/**
 	 * Flag to set an ImmutableArcInst to be rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
      */
-    public static final Flag RIGID = new Flag(FIXED);
+    public static final Flag RIGID = new Flag(RIGID_MASK, 'R', false);
 	/**
 	 * Flag to set an ImmutableArcInst to be fixed-angle.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
      */
-	public static final Flag FIXED_ANGLE = new Flag(FIXANG);
+	public static final Flag FIXED_ANGLE = new Flag(FIXED_ANGLE_MASK, 'F', true);
 	/**
 	 * Flag to set an ImmutableArcInst to be slidable.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
      */
-	public static final Flag SLIDABLE = new FlagInv(CANTSLIDE);
+	public static final Flag SLIDABLE = new Flag(SLIDABLE_MASK, 'S', false);
 	/**
 	 * Flag to set an ImmutableArcInst to be directional, with an arrow on the tail.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.
      */
-	public static final Flag TAIL_ARROWED = new Flag(TAILARROW);
+	public static final Flag TAIL_ARROWED = new Flag(TAIL_ARROWED_MASK, 'Y', false);
 	/**
 	 * Flag to set an ImmutableArcInst to be directional, with an arrow on the head.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.
      */
-	public static final Flag HEAD_ARROWED = new Flag(HEADARROW);
+	public static final Flag HEAD_ARROWED = new Flag(HEAD_ARROWED_MASK, 'X', false);
 	/**
 	 * Flag to set an ImmutableArcInst to be directional, with an arrow line drawn down the center.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
@@ -173,41 +168,39 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * The body is typically drawn when one of the ends has an arrow on it, but it may be
 	 * drawin without an arrow head in order to continue an attached arc that has an arrow.
      */
-	 public static final Flag BODY_ARROWED = new Flag(BODYARROW);
+	 public static final Flag BODY_ARROWED = new Flag(BODY_ARROWED_MASK, 'B', false);
 	/**
 	 * Flag to set the tail of an ImmutableArcInst to be is extended.
 	 * Extended arcs continue past their endpoint by half of their width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 */
-     public static final Flag TAIL_EXTENDED = new FlagInv(TAILNOEXTEND);
+     public static final Flag TAIL_EXTENDED = new Flag(TAIL_EXTENDED_MASK, 'J', true);
 	/**
 	 * Flag to set the head of an ImmutableArcInst to be extended.
 	 * Extended arcs continue past their endpoint by half of their width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 */
-     public static final Flag HEAD_EXTENDED = new FlagInv(HEADNOEXTEND);
+     public static final Flag HEAD_EXTENDED = new Flag(HEAD_EXTENDED_MASK, 'I', true);
 	/**
 	 * Flag to set the tail of an ImmutableArcInst to be negated.
 	 * Negated arc have a negating bubble on them to indicate negation.
 	 * This is only valid in schematics technologies.
 	 */
-     public static final Flag TAIL_NEGATED = new Flag(ISTAILNEGATED);
+     public static final Flag TAIL_NEGATED = new Flag(TAIL_NEGATED_MASK, 'N', false);
 	/**
 	 * Flag to set the head of an ImmutableArcInst to be negated.
 	 * Negated arc have a negating bubble on them to indicate negation.
 	 * This is only valid in schematics technologies.
 	 */
-     public static final Flag HEAD_NEGATED = new Flag(ISHEADNEGATED);
+     public static final Flag HEAD_NEGATED = new Flag(HEAD_NEGATED_MASK, 'G', false);
 	/**
 	 * Flag to set an ImmutableArcInst to be hard-to-select.
 	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
      */
-     public static final Flag HARD_SELECT = new Flag(HARDSELECTA);
+     public static final Flag HARD_SELECT = new Flag(HARD_SELECT_MASK, 'A', false);
 
-    /** bits with common meaniong in disk and database */   private static int COMMON_BITS = FIXED | FIXANG | CANTSLIDE | HARDSELECTA;  
-    /** bits used in database */                            private static final int DATABASE_FLAGS = COMMON_BITS | /*AANGLE |*/ BODYARROW |
-            ISTAILNEGATED | TAILNOEXTEND | TAILARROW | ISHEADNEGATED | HEADNOEXTEND | HEADARROW; 
+    /** initial bits */                                     public static final int DEFAULT_FLAGS = SLIDABLE.mask | HEAD_EXTENDED.mask | TAIL_EXTENDED.mask;
 
 	/** prefix for autonameing. */                          public static final Name BASENAME = Name.findName("net@0");
 
@@ -268,7 +261,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         this.gridFullWidth = gridFullWidth;
         this.gridLength = gridLength;
         this.angle = angle;
-//        check();
+        check();
     }
     
     /**
@@ -314,6 +307,141 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public int getAngle() { return angle; }
 
+    /**
+     * Tests specific flag is set on this ImmutableArcInst.
+     * @param flag flag selector.
+     * @return true if specific flag is set,
+     */
+    public boolean is(Flag flag) { return (flags & flag.mask) != 0; }
+    
+	/**
+	 * Method to tell whether this ImmutableArcInst is rigid.
+	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+	 * @return true if this ImmutableArcInst is rigid.
+	 */
+	public boolean isRigid() { return (flags & RIGID_MASK) != 0; }
+
+	/**
+	 * Method to tell whether this ImmutableArcInst is fixed-angle.
+	 * Fixed-angle arcs cannot change their angle, so if one end moves,
+	 * the other may also adjust to keep the arc angle constant.
+	 * @return true if this ImmutableArcInst is fixed-angle.
+	 */
+	public boolean isFixedAngle() { return (flags & FIXED_ANGLE_MASK) != 0; }
+
+	/**
+	 * Method to tell whether this ImmutableArcInst is slidable.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+	 * @return true if this ImmutableArcInst is slidable.
+	 */
+	public boolean isSlidable() { return (flags & SLIDABLE_MASK) != 0; }
+
+	/**
+	 * Method to tell whether this ArcInst is hard-to-select.
+	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+	 * @return true if this ArcInst is hard-to-select.
+	 */
+	public boolean isHardSelect() { return (flags & HARD_SELECT_MASK) != 0; }
+
+	/****************************** PROPERTIES ******************************/
+
+	/**
+	 * Method to determine whether this ImmutableArcInst is directional, with an arrow on one end.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
+	 * @return true if that end has a directional arrow on it.
+     */
+    public boolean isArrowed(int connIndex) {
+        if ((connIndex & ~1) != 0) throw new IllegalArgumentException("Bad end " + connIndex);
+        return ((flags >> connIndex) & TAIL_ARROWED_MASK) != 0;
+    }
+
+	/**
+	 * Method to determine whether this ImmutableArcInst is directional, with an arrow on the tail.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @return true if the arc's tail has a directional arrow on it.
+     */
+	public boolean isTailArrowed() { return (flags & TAIL_ARROWED_MASK) != 0; }
+
+	/**
+	 * Method to determine whether this ImmutableArcInst is directional, with an arrow on the head.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * @return true if the arc's head has a directional arrow on it.
+     */
+	public boolean isHeadArrowed() { return (flags & HEAD_ARROWED_MASK) != 0; }
+
+	/**
+	 * Method to determine whether this ArcInst is directional, with an arrow line drawn down the center.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * The body is typically drawn when one of the ends has an arrow on it, but it may be
+	 * drawin without an arrow head in order to continue an attached arc that has an arrow.
+	 * @return true if the arc's tail has an arrow line on it.
+     */
+	public boolean isBodyArrowed() { return (flags & BODY_ARROWED_MASK) != 0; }
+	
+	/**
+	 * Method to tell whether an end of ImmutableArcInst has its ends extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
+	 * @return true if that end of this ArcInst iss extended.
+	 */
+    public boolean isExtended(int connIndex) {
+        if ((connIndex & ~1) != 0) throw new IllegalArgumentException("Bad end " + connIndex);
+        return ((flags >> connIndex) & TAIL_EXTENDED_MASK) != 0;
+    }
+
+	/**
+	 * Method to tell whether the tail of this arc is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @return true if the tail of this arc is extended.
+	 */
+	public boolean isTailExtended() { return (flags & TAIL_EXTENDED_MASK) != 0; }
+
+	/**
+	 * Method to tell whether the head of this arc is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @return true if the head of this arc is extended.
+	 */
+	public boolean isHeadExtended() { return (flags & HEAD_EXTENDED_MASK) != 0; }
+
+	/**
+	 * Method to tell whether an end of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @param connIndex TAILEND (0) for the tail of this ArcInst, HEADEND (1) for the head.
+	 * @return true if set that end of this arc is negated.
+	 */
+    public boolean isNegated(int connIndex) {
+        if ((connIndex & ~1) != 0) throw new IllegalArgumentException("Bad end " + connIndex);
+        return ((flags >> connIndex) & TAIL_NEGATED_MASK) != 0;
+    }
+
+	/**
+	 * Method to tell whether the tail of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @return true if set the tail of this arc is negated.
+	 */
+	public boolean isTailNegated() { return (flags & TAIL_NEGATED_MASK) != 0; }
+
+	/**
+	 * Method to tell whether the head of this arc is negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 * @return true if set the head of this arc is negated.
+	 */
+	public boolean isHeadNegated() { return (flags & HEAD_NEGATED_MASK) != 0; }
+
     private boolean isManhattan() {
         if (headLocation.getGridX() == tailLocation.getGridX()) {
             return headLocation.getGridY() != tailLocation.getGridY() ||
@@ -321,6 +449,141 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         } else {
             return tailLocation.getGridY() == headLocation.getGridY();
         }
+    }
+    
+    public boolean isEasyShape() { return (flags & EASY_MASK) != 0; }
+    
+    public void explainEasyShape() {
+        Technology tech = protoType.getTechnology();
+        if (tech == Artwork.tech && searchVar(Artwork.ART_COLOR) >= 0) {
+            System.out.println("ART_COLOR");
+            return;
+        }
+        if (tech == Artwork.tech && searchVar(Artwork.ART_PATTERN) >= 0) {
+            System.out.println("ART_PATTERN");
+            return;
+        }
+        if (tech == FPGA.tech) {
+            System.out.println("FPGA");
+            return;
+        }
+        if ((flags & (BODY_ARROWED_MASK|TAIL_ARROWED_MASK|HEAD_ARROWED_MASK)) != 0) {
+            System.out.println("ARROWED");
+            return;
+        }
+        if ((flags & (TAIL_NEGATED_MASK|HEAD_NEGATED_MASK)) != 0) {
+            System.out.println("NEGATED");
+            return;
+        }
+        if (protoType.isCurvable() && searchVar(ARC_RADIUS) >= 0) {
+            System.out.println("CURVABLE");
+            return;
+        }
+        if (!(tailLocation.isSmall() && headLocation.isSmall() && GenMath.isSmallInt(gridFullWidth))) {
+            System.out.println("LARGE " + tailLocation + " " + headLocation + " " + gridFullWidth);
+            return;
+        }
+        int width = (int)gridFullWidth;
+        if (width == 0) {
+            if (protoType.getNumArcLayers() != 1) {
+                System.out.println(protoType + " many zero-width layers");
+                return;
+            }
+            assert false;
+        }
+        if (width <= protoType.getMaxLayerGridOffset()) {
+            System.out.println(protoType + " has zero-width layer");
+            return;
+        }
+        for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
+            Technology.ArcLayer arcLayer = protoType.getArcLayer(i);
+            if (arcLayer.getStyle() != Poly.Type.FILLED) {
+                System.out.println("Wide should be filled");
+                return;
+            }
+        }
+        int tx = (int)tailLocation.getGridX();
+        int ty = (int)tailLocation.getGridY();
+        int hx = (int)headLocation.getGridX();
+        int hy = (int)headLocation.getGridY();
+        switch (angle) {
+            case 0:
+                if (ty != hy) {
+                    System.out.println("NEAR MANHATTAN " + tailLocation + " " + headLocation + " " + angle);
+                    return;
+                }
+                break;
+            case 900:
+                if (tx != hx) {
+                    System.out.println("NEAR MANHATTAN " + tailLocation + " " + headLocation + " " + angle);
+                    return;
+                }
+                break;
+            case 1800:
+                if (ty != hy) {
+                    System.out.println("NEAR MANHATTAN " + tailLocation + " " + headLocation + " " + angle);
+                    return;
+                }
+                break;
+            case 2700:
+                if (tx != hx) {
+                    System.out.println("NEAR MANHATTAN " + tailLocation + " " + headLocation + " " + angle);
+                    return;
+                }
+                break;
+            default:
+                System.out.println("NON-MANHATTAN");
+                return;
+        }
+        assert false;
+    }
+    
+    
+    private static int updateEasyShape(ArcProto protoType, int gridFullWidth, EPoint tailLocation, EPoint headLocation, short angle, Variable[] vars, int flags) {
+        Technology tech = protoType.getTechnology();
+        flags = flags & DATABASE_FLAGS;
+        if (tech == Artwork.tech && (searchVar(vars, Artwork.ART_COLOR) >= 0 || searchVar(vars, Artwork.ART_PATTERN) >= 0))
+            return flags;
+        if (tech == FPGA.tech)
+            return flags;
+        if ((flags & (BODY_ARROWED_MASK|TAIL_ARROWED_MASK|HEAD_ARROWED_MASK|TAIL_NEGATED_MASK|HEAD_NEGATED_MASK)) != 0)
+            return flags;
+        if (protoType.isCurvable() && searchVar(vars, ARC_RADIUS) >= 0)
+            return flags;
+        if (!(tailLocation.isSmall() && headLocation.isSmall() && GenMath.isSmallInt(gridFullWidth)))
+            return flags;
+        int width = (int)gridFullWidth;
+        if (width == 0) {
+            if (protoType.getNumArcLayers() != 1) return flags;
+            return flags | EASY_MASK;
+        }
+        if (width <= protoType.getMaxLayerGridOffset())
+            return flags;
+        for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
+            Technology.ArcLayer arcLayer = protoType.getArcLayer(i);
+            if (arcLayer.getStyle() != Poly.Type.FILLED) return flags;
+        }
+        int tx = (int)tailLocation.getGridX();
+        int ty = (int)tailLocation.getGridY();
+        int hx = (int)headLocation.getGridX();
+        int hy = (int)headLocation.getGridY();
+        switch (angle) {
+            case 0:
+                if (ty != hy) return flags;
+                break;
+            case 900:
+                if (tx != hx) return flags;
+                break;
+            case 1800:
+                if (ty != hy) return flags;
+                break;
+            case 2700:
+                if (tx != hx) return flags;
+                break;
+            default:
+                return flags;
+        }
+        return flags | EASY_MASK;
     }
     
     /**
@@ -359,18 +622,23 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (headNodeId < 0) throw new IllegalArgumentException("headNodeId");
         if (headPortId == null) throw new NullPointerException("headPortId");
         if (headLocation == null) throw new NullPointerException("headLocation");
-        if (gridFullWidth < 0 || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridFullWidth");
+        if (gridFullWidth < 0 || gridFullWidth < protoType.getMaxLayerGridOffset() || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridFullWidth");
+        int intGridWidth = (int)gridFullWidth;
         angle %= 3600;
         if (angle < 0) angle += 3600;
+        short shortAngle = updateAngle((short)angle, tailLocation, headLocation);
         flags &= DATABASE_FLAGS;
         if (!(tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable()))
-            flags = TAIL_NEGATED.set(flags, false);
+            flags &= ~TAIL_NEGATED_MASK;
         if (!(headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable()))
-            flags = HEAD_NEGATED.set(flags, false);
+            flags &= ~HEAD_NEGATED_MASK;
+        if (protoType.getTechnology().isNoNegatedArcs())
+            flags &= ~(TAIL_NEGATED_MASK|HEAD_NEGATED_MASK);
+        flags = updateEasyShape(protoType, intGridWidth, tailLocation, headLocation, shortAngle, Variable.NULL_ARRAY, flags);
         return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
-                (int)gridFullWidth, tailLocation.gridDistance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, Variable.NULL_ARRAY);
+                intGridWidth, tailLocation.gridDistance(headLocation), shortAngle, flags, Variable.NULL_ARRAY);
     }
 
 	/**
@@ -416,10 +684,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (this.tailLocation.equals(tailLocation) && this.headLocation.equals(headLocation)) return this;
 		if (tailLocation == null) throw new NullPointerException("tailLocation");
 		if (headLocation == null) throw new NullPointerException("headLocation");
+        short angle = updateAngle(this.angle, tailLocation, headLocation);
+        int flags = updateEasyShape(this.protoType, this.gridFullWidth, this.tailLocation, this.headLocation, angle, getVars(), this.flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
-                this.gridFullWidth, tailLocation.gridDistance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags, getVars());
+                this.gridFullWidth, tailLocation.gridDistance(headLocation), angle, this.flags, getVars());
 	}
 
 	/**
@@ -430,7 +700,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      */
 	public ImmutableArcInst withGridFullWidth(long gridFullWidth) {
 		if (getGridFullWidth() == gridFullWidth) return this;
-        if (gridFullWidth < 0 || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
+        if (gridFullWidth < 0 || gridFullWidth < protoType.getMaxLayerGridOffset() || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
         if (this.gridFullWidth == gridFullWidth) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -449,10 +719,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         angle %= 3600;
         if (angle < 0) angle += 3600;
 		if (this.angle == angle) return this;
+        short shortAngle = (short)angle;
+        int flags = updateEasyShape(this.protoType, this.gridFullWidth, this.tailLocation, this.headLocation, shortAngle, getVars(), this.flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, (short)angle, this.flags, getVars());
+                this.gridFullWidth, this.gridLength, shortAngle, flags, getVars());
 	}
 
 	/**
@@ -463,9 +735,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	public ImmutableArcInst withFlags(int flags) {
         flags &= DATABASE_FLAGS;
         if (!(tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable()))
-            flags = TAIL_NEGATED.set(flags, false);
+            flags &= ~TAIL_NEGATED_MASK;
         if (!(headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable()))
-            flags = HEAD_NEGATED.set(flags, false);
+            flags &= ~HEAD_NEGATED_MASK;
+        if (protoType.getTechnology().isNoNegatedArcs())
+            flags &= ~(TAIL_NEGATED_MASK|HEAD_NEGATED_MASK);
+        flags = updateEasyShape(this.protoType, this.gridFullWidth, this.tailLocation, this.headLocation, this.angle, getVars(), flags);
         if (this.flags == flags) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -494,10 +769,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public ImmutableArcInst withVariable(Variable var) {
         Variable[] vars = arrayWithVariable(var.withParam(false));
         if (this.getVars() == vars) return this;
+        int flags = this.flags;
+        Variable.Key key = var.getKey();
+        if (key == Artwork.ART_COLOR || key == Artwork.ART_PATTERN || key == ARC_RADIUS)
+            flags = updateEasyShape(this.protoType, this.gridFullWidth, this.tailLocation, this.headLocation, this.angle, vars, flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, this.angle, this.flags, vars);
+                this.gridFullWidth, this.gridLength, this.angle, flags, vars);
     }
     
 	/**
@@ -510,10 +789,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     public ImmutableArcInst withoutVariable(Variable.Key key) {
         Variable[] vars = arrayWithoutVariable(key);
         if (this.getVars() == vars) return this;
+        int flags = this.flags;
+        if (key == Artwork.ART_COLOR || key == Artwork.ART_PATTERN || key == ARC_RADIUS)
+            flags = updateEasyShape(this.protoType, this.gridFullWidth, this.tailLocation, this.headLocation, this.angle, vars, flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, this.angle, this.flags, vars);
+                this.gridFullWidth, this.gridLength, this.angle, flags, vars);
     }
     
 	/**
@@ -538,15 +820,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     
     private static short updateAngle(short angle, EPoint tailLocation, EPoint headLocation) {
         if (tailLocation.equals(headLocation)) return angle;
-        return (short)DBMath.figureAngle(tailLocation, headLocation);
+        return (short)GenMath.figureAngle(headLocation.getGridX() - tailLocation.getGridX(), headLocation.getGridY() - tailLocation.getGridY());
     }
-    
-    /**
-     * Tests specific flag is set on this ImmutableArcInst.
-     * @param flag flag selector.
-     * @return true if specific flag is set,
-     */
-    public boolean is(Flag flag) { return flag.is(flags); }
     
     /**
      * Writes this ImmutableArcInst to SnapshotWriter.
@@ -617,140 +892,9 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 this.gridFullWidth == that.gridFullWidth && this.angle == that.angle && this.flags == that.flags;
     }
     
-    public long[] computeGridBounds(CellBackup.Memoization m, long[] result) {
-        if (result == null)
-            result = new long[4];
-     
-        if (protoType.isCurvable()) {
-            // get the radius information on the arc
-            Double radiusDouble = getRadius();
-            if (radiusDouble != null) {
-                Poly curvedPoly = curvedArcGridOutline(Poly.Type.FILLED, getGridFullWidth(), radiusDouble.doubleValue());
-                if (curvedPoly != null) {
-                    Rectangle2D newBounds = curvedPoly.getBounds2D();
-                    result[0] = (long)newBounds.getMinX();
-                    result[1] = (long)newBounds.getMinY();
-                    result[2] = (long)newBounds.getMaxX();
-                    result[3] = (long)newBounds.getMaxY();
-                    assert result[0] == newBounds.getMinX() && result[1] == newBounds.getMinY() && result[2] == newBounds.getMaxX() && result[3] == newBounds.getMaxY();
-                    return result;
-                }
-            }
-        }
-        
-        long tx = tailLocation.getGridX();
-        long ty = tailLocation.getGridY();
-        long hx = headLocation.getGridX();
-        long hy = headLocation.getGridY();
-        
-       // zero-width polygons are simply lines
-        int gridWidth = (int)getGridFullWidth();
-        if (gridWidth == 0) {
-            if (tx < hx) {
-                result[0] = tx;
-                result[2] = hx;
-            } else {
-                result[0] = hx;
-                result[2] = tx;
-            }
-            if (ty < hy) {
-                result[1] = ty;
-                result[3] = hy;
-            } else {
-                result[1] = hy;
-                result[3] = ty;
-            }
-            return result;
-        }
-        
-		int w2 = gridWidth >>> 1;
-        short shrinkT = (flags & TAILNOEXTEND) == 0 /* is(TAIL_EXTENDED */ ? m.getShrinkage(tailNodeId) : EXTEND_0;
-        short shrinkH = (flags & HEADNOEXTEND) == 0 /* is(HEAD_EXTENDED */ ? m.getShrinkage(headNodeId) : EXTEND_0;
-
-        if (shrinkH <= EXTEND_0 && shrinkT <= EXTEND_0 && isManhattan()) {
-            switch (angle) {
-                case 0:
-                    assert tx <= hx && ty == hy;
-                    result[0] = shrinkT == EXTEND_90 ? tx - w2 : tx;
-                    result[1] = ty - w2;
-                    result[2] = shrinkH == EXTEND_90 ? hx + w2 : hx;
-                    result[3] = ty + w2;
-                    break;
-                case 900:
-                    assert tx == hx && ty <= hy;
-                    result[0] = tx - w2;
-                    result[1] = shrinkT == EXTEND_90 ? ty - w2 : ty;
-                    result[2] = tx + w2;
-                    result[3] = shrinkH == EXTEND_90 ? hy + w2 : hy;
-                    break;
-                case 1800:
-                    assert hx <= tx && ty == hy;
-                    result[0] = shrinkH == EXTEND_90 ? hx - w2 : hx;
-                    result[1] = ty - w2;
-                    result[2] = shrinkT == EXTEND_90 ? tx + w2 : tx;
-                    result[3] = ty + w2;
-                    break;
-                case 2700:
-                    assert tx == hx && hy <= ty;
-                    result[0] = tx - w2;
-                    result[1] = shrinkH == EXTEND_90 ? hy - w2 : hy;
-                    result[2] = tx + w2;
-                    result[3] = shrinkT == EXTEND_90 ? ty + w2 : ty;
-                    break;
-                default:
-                    assert false;
-            }
-        } else {
-            long w2xy = GenMath.polarToXY(w2, angle);
-            int w2x = GenMath.getX(w2xy);
-            int w2y = GenMath.getY(w2xy);
-            
-            if (shrinkT == EXTEND_90) {
-                tx -= w2x;
-                ty -= w2y;
-            } else if (shrinkT >= EXTEND_ANY) {
-                int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
-                int angle2 = (shrinkT - EXTEND_ANY) - angle;
-                if (angle2 < 0)
-                    angle2 += 3600;
-                long e = computeExtension(GenMath.packXY(-w2x, -w2y), GenMath.polarToXY(w2, angle2));
-                tx += GenMath.getX(e);
-                ty += GenMath.getY(e);
-            }
-            if (shrinkH == EXTEND_90) {
-                hx += w2x;
-                hy += w2y;
-            } else if (shrinkH >= EXTEND_ANY) {
-                int angle2 = (shrinkH - EXTEND_ANY) - angle;
-                if (angle2 < 0)
-                    angle2 += 3600;
-                long e = computeExtension(w2xy, GenMath.polarToXY(w2, angle2));
-                hx += GenMath.getX(e);
-                hy += GenMath.getY(e);
-            }
-            if (w2x < 0) w2x = -w2x;
-            if (w2y < 0) w2y = -w2y;
-            if (tx <= hx) {
-                result[0] = tx - w2y;
-                result[2] = hx + w2y;
-            } else {
-                result[0] = hx - w2y;
-                result[2] = tx + w2y;
-            }
-            if (ty <= hy) {
-                result[1] = ty - w2x;
-                result[3] = hy + w2x;
-            } else {
-                result[1] = hy - w2x;
-                result[3] = ty + w2x;
-            }
-        }
-        return result;
-    }
-    
 	/**
 	 * Method to create a Poly object that describes this ImmutableArcInst in grid units.
-	 * The ArcInst is described by its width, and style.
+	 * The Poly is described by its width, and style.
      * @param m data for size computation in a CellBackup
 	 * @param gridWidth the gridWidth of the Poly.
 	 * @param style the style of the Poly.
@@ -760,8 +904,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (protoType.isCurvable()) {
             // get the radius information on the arc
             Double radiusDouble = getRadius();
-            if (radiusDouble != null)
-                return curvedArcGridOutline(style, gridWidth, radiusDouble.doubleValue());
+            if (radiusDouble != null) {
+                Poly curvedPoly = curvedArcGridOutline(style, gridWidth, DBMath.lambdaToGrid(radiusDouble));
+                if (curvedPoly != null) return curvedPoly;
+            }
         }
         
         // zero-width polygons are simply lines
@@ -774,8 +920,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         
         // make the polygon
 		int w2 = ((int)gridWidth) >>> 1;
-        short shrinkT = (flags & TAILNOEXTEND) == 0 /* is(TAIL_EXTENDED */ ? m.getShrinkage(tailNodeId) : EXTEND_0;
-        short shrinkH = (flags & HEADNOEXTEND) == 0 /* is(HEAD_EXTENDED */ ? m.getShrinkage(headNodeId) : EXTEND_0;
+        short shrinkT = isTailExtended() ? m.getShrinkage(tailNodeId) : EXTEND_0;
+        short shrinkH = isHeadExtended() ? m.getShrinkage(headNodeId) : EXTEND_0;
         Point2D.Double lT = new Point2D.Double();
         Point2D.Double rT = new Point2D.Double();
         Point2D.Double rH = new Point2D.Double();
@@ -783,9 +929,26 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 
         long tx = tailLocation.getGridX();
         long ty = tailLocation.getGridY();
+        if (shrinkT >= EXTEND_ANY) {
+            int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
+            int angle2 = (shrinkT - EXTEND_ANY) - angle;
+            if (angle2 < 0)
+                angle2 += 3600;
+            long e = computeExtension(GenMath.polarToXY(w2, angle), GenMath.polarToXY(w2, angle2));
+            tx += GenMath.getX(e);
+            ty += GenMath.getY(e);
+        }
         long hx = headLocation.getGridX();
         long hy = headLocation.getGridY();
-        if (shrinkH <= EXTEND_0 && shrinkT <= EXTEND_0 && isManhattan()) {
+        if (shrinkH >= EXTEND_ANY) {
+            int angle2 = (shrinkH - EXTEND_ANY) - angle;
+            if (angle2 < 0)
+                angle2 += 3600;
+            long e = computeExtension(GenMath.polarToXY(w2, angle), GenMath.polarToXY(w2, angle2));
+            hx += GenMath.getX(e);
+            hy += GenMath.getY(e);
+        }
+        if (isManhattan()) {
             switch (angle) {
                 case 0:
                     if (shrinkT == EXTEND_90) tx -= w2;
@@ -830,14 +993,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             if (shrinkT == EXTEND_90) {
                 tx -= w2x;
                 ty -= w2y;
-            } else if (shrinkT >= EXTEND_ANY) {
-                int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
-                int angle2 = (shrinkT - EXTEND_ANY) - angle;
-                if (angle2 < 0)
-                    angle2 += 3600;
-                long e = computeExtension(GenMath.packXY(-w2x, -w2y), GenMath.polarToXY(w2, angle2));
-                tx += GenMath.getX(e);
-                ty += GenMath.getY(e);
             }
             lT.setLocation(tx - w2y, ty + w2x);
             rT.setLocation(tx + w2y, ty - w2x);
@@ -845,13 +1000,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             if (shrinkH == EXTEND_90) {
                 hx += w2x;
                 hy += w2y;
-            } else if (shrinkH >= EXTEND_ANY) {
-                int angle2 = (shrinkH - EXTEND_ANY) - angle;
-                if (angle2 < 0)
-                    angle2 += 3600;
-                long e = computeExtension(w2xy, GenMath.polarToXY(w2, angle2));
-                hx += GenMath.getX(e);
-                hy += GenMath.getY(e);
             }
             rH.setLocation(hx + w2y, hy - w2x);
             lH.setLocation(hx - w2y, hy + w2x);
@@ -866,6 +1014,185 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		Poly poly = new Poly(points);
 		poly.setStyle(style);
 		return poly;
+    }
+    
+	/**
+	 * Method to fill in an AbstractShapeBuilder a polygon that describes this ImmutableArcInst in grid units.
+	 * The polygon is described by its width, and style.
+     * @param b shape builder.
+	 * @param gridWidth the gridWidth of the Poly.
+	 * @param style the style of the Poly.
+	 */
+    public void makeGridPoly(AbstractShapeBuilder b, long gridWidth, Poly.Type style, Layer layer) {
+        long[] result;
+        if (protoType.isCurvable()) {
+            // get the radius information on the arc
+            Double radiusDouble = getRadius();
+            if (radiusDouble != null && curvedArcGridOutline(b, gridWidth, DBMath.lambdaToGrid(radiusDouble))) {
+                b.pushPoly(style, layer);
+                return;
+            }
+        }
+        
+        long tx = tailLocation.getGridX();
+        long ty = tailLocation.getGridY();
+        long hx = headLocation.getGridX();
+        long hy = headLocation.getGridY();
+        
+        // zero-width polygons are simply lines
+        if (gridWidth <= 0) {
+            b.pushPoint(tailLocation);
+            b.pushPoint(headLocation);
+            if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
+            b.pushPoly(style, layer);
+            return;
+        }
+        
+        // make the polygon
+		int w2 = ((int)gridWidth) >>> 1;
+        CellBackup.Memoization m = b.getMemoization();
+        short shrinkT = isTailExtended() ? m.getShrinkage(tailNodeId) : EXTEND_0;
+        short shrinkH = isHeadExtended() ? m.getShrinkage(headNodeId) : EXTEND_0;
+
+        long w2xy = GenMath.polarToXY(w2, angle);
+        int w2x = GenMath.getX(w2xy);
+        int w2y = GenMath.getY(w2xy);
+        if (shrinkT >= EXTEND_ANY) {
+            int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
+            int angle2 = (shrinkT - EXTEND_ANY) - angle;
+            if (angle2 < 0)
+                angle2 += 3600;
+            long e = computeExtension(GenMath.packXY(-w2x, -w2y), GenMath.polarToXY(w2, angle2));
+            tx += GenMath.getX(e);
+            ty += GenMath.getY(e);
+        }
+        if (shrinkH >= EXTEND_ANY) {
+            int angle2 = (shrinkH - EXTEND_ANY) - angle;
+            if (angle2 < 0)
+                angle2 += 3600;
+            long e = computeExtension(w2xy, GenMath.polarToXY(w2, angle2));
+            hx += GenMath.getX(e);
+            hy += GenMath.getY(e);
+        }
+        
+        if (shrinkT == EXTEND_90) {
+            tx -= w2x;
+            ty -= w2y;
+        }
+        long x0, y0;
+        b.pushPoint(x0 = tx - w2y, y0 = ty + w2x);
+        b.pushPoint(tx + w2y, ty - w2x);
+        
+        if (shrinkH == EXTEND_90) {
+            hx += w2x;
+            hy += w2y;
+        }
+        b.pushPoint(hx + w2y, hy - w2x);
+        b.pushPoint(hx - w2y, hy + w2x);
+        
+        // somewhat simpler if rectangle is manhattan
+        if (gridWidth != 0 && style.isOpened())
+            b.pushPoint(x0, y0);
+        b.pushPoly(style, layer);
+    }
+    
+	/**
+	 * Method to fill in an AbstractShapeBuilder a polygon that describes this ImmutableArcInst in grid units.
+	 * The polygon is described by its width, and style.
+     * @param b shape builder.
+	 * @param gridWidth the gridWidth of the Poly.
+	 * @param style the style of the Poly.
+	 */
+    public void makeGridBoxInt(AbstractShapeBuilder b, long gridWidth) {
+        // make the box
+		int w2 = ((int)gridWidth) >>> 1;
+        assert w2 > 0;
+        CellBackup.Memoization m = b.getMemoization();
+
+        int et = 0;
+        if (isTailExtended()) {
+            short shrinkT = m.getShrinkage(tailNodeId);
+            if (shrinkT == EXTEND_90)
+                et = w2;
+            else if (shrinkT != EXTEND_0)
+                et = computeTailShrinkage(w2, shrinkT);
+        }
+        int eh = 0;
+        if (isHeadExtended()) {
+            short shrinkH = m.getShrinkage(headNodeId);
+            if (shrinkH == EXTEND_90)
+                eh = w2;
+            else if (shrinkH != EXTEND_0)
+                eh = computeTailShrinkage(w2, shrinkH);
+        }
+        int x, y;
+        int[] intCoords = b.intCoords;
+        assert intCoords.length == 4;
+        switch (angle) {
+            case 0:
+                y = (int)tailLocation.getGridY();
+                intCoords[0] = (int)tailLocation.getGridX() - et;
+                intCoords[1] = y - w2;
+                intCoords[2] = (int)headLocation.getGridX() + eh;
+                intCoords[3] = y + w2;
+                break;
+            case 900:
+                x = (int)tailLocation.getGridX();
+                intCoords[0] = x - w2;
+                intCoords[1] = (int)tailLocation.getGridY() - et;
+                intCoords[2] = x + w2;
+                intCoords[3] = (int)headLocation.getGridY() + eh;
+                break;
+            case 1800:
+                y = (int)tailLocation.getGridY();
+                intCoords[0] = (int)headLocation.getGridX() - eh;
+                intCoords[1] = y - w2;
+                intCoords[2] = (int)tailLocation.getGridX() + et;
+                intCoords[3] = y + w2;
+                break;
+            case 2700:
+                x = (int)tailLocation.getGridX();
+                intCoords[0] = x - w2;
+                intCoords[1] = (int)headLocation.getGridY() - eh;
+                intCoords[2] = x + w2;
+                intCoords[3] = (int)tailLocation.getGridY() + et;
+                break;
+            default:
+                throw new AssertionError();
+        }
+   }
+    
+    private int computeTailShrinkage(int halfWidth, short shrinkT) {
+        assert shrinkT >= EXTEND_ANY;
+        int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
+        int angle2 = (shrinkT - EXTEND_ANY) - angle;
+        if (angle2 < 0)
+            angle2 += 3600;
+        assert angle == 0 || angle == 900 || angle == 1800 || angle == 2700;
+        long e = computeExtension(GenMath.polarToXY(halfWidth, angle), GenMath.polarToXY(halfWidth, angle2));
+        int ex = GenMath.getX(e);
+        int ey = GenMath.getY(e);
+        if (ex == 0)
+            return Math.abs(ey);
+        if (ey == 0)
+            return Math.abs(ex);
+        throw new AssertionError();
+    }
+    
+    private int computeHeadShrinkage(int halfWidth, short shrinkH) {
+        assert shrinkH >= EXTEND_ANY;
+        int angle2 = (shrinkH - EXTEND_ANY) - angle;
+        if (angle2 < 0)
+            angle2 += 3600;
+        assert angle == 0 || angle == 900 || angle == 1800 || angle == 2700;
+        long e = computeExtension(GenMath.polarToXY(halfWidth, angle), GenMath.polarToXY(halfWidth, angle2));
+        int ex = GenMath.getX(e);
+        int ey = GenMath.getY(e);
+        if (ex == 0)
+            return Math.abs(ey);
+        if (ey == 0)
+            return Math.abs(ex);
+        throw new AssertionError();
     }
     
     /**
@@ -910,8 +1237,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             is45 = angle % 900 == 450;
         }
         int tailAngle = angle < 1800 ? angle + 1800 : angle - 1800;
-        registerArcEnd(shrinkageState, tailNodeId, (short)tailAngle, is90, is45, is(ImmutableArcInst.TAIL_EXTENDED));
-        registerArcEnd(shrinkageState, headNodeId, angle, is90, is45, is(ImmutableArcInst.HEAD_EXTENDED));
+        registerArcEnd(shrinkageState, tailNodeId, (short)tailAngle, is90, is45, isTailExtended());
+        registerArcEnd(shrinkageState, headNodeId, angle, is90, is45, isHeadExtended());
     }
     
     private static final int ANGLE_SHIFT = 12;
@@ -1009,82 +1336,99 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	private static final int MAXARCPIECES = 16;
 
 	/**
-     * Method to fill polygon "poly" with the outline in lambda units of the curved arc in
-     * this ImmutableArcInst whose width in grid units is "gridWidth".  The style of the polygon is set to "style".
-     * If there is no curvature information in the arc, the routine returns null,
-     * otherwise it returns the curved polygon.
-     */
-    public Poly curvedArcLambdaOutline(Poly.Type style, long gridWidth, double lambdaRadius) {
-        Poly poly = curvedArcGridOutline(style, gridWidth, lambdaRadius);
-        if (poly != null) poly.gridToLambda();
-        return poly;
-    }
-    
-	/**
      * Method to fill polygon "poly" with the outline in grid units of the curved arc in
      * this ImmutableArcInst whose width in grid units is "gridWidth".  The style of the polygon is set to "style".
      * If there is no curvature information in the arc, the routine returns null,
      * otherwise it returns the curved polygon.
      */
-    public Poly curvedArcGridOutline(Poly.Type style, long gridWidth, double lambdaRadius) {
+    public Poly curvedArcGridOutline(Poly.Type style, long gridWidth, long gridRadius) {
+        CurvedArcOutlineBuilder outlineBuilder = new CurvedArcOutlineBuilder();
+        if (!curvedArcGridOutline(outlineBuilder, gridWidth, gridRadius)) return null;
+        outlineBuilder.pushPoly(style, null);
+        return outlineBuilder.poly;
+    }
+    
+    private static class CurvedArcOutlineBuilder extends AbstractShapeBuilder {
+        Poly poly;
+        
+        @Override
+        public void addLongPoly(int numPoints, Poly.Type style, Layer layer) {
+            Point2D[] points = new Point2D[numPoints];
+            for (int i = 0; i < numPoints; i++)
+                points[i] = new Point2D.Double(longCoords[i*2], longCoords[i*2 + 1]);
+            poly = new Poly(points);
+            poly.setStyle(style);
+            poly.setLayer(layer);
+        }
+    
+        @Override
+        public void addIntLine(int[] coords, Poly.Type style, Layer layer) { throw new UnsupportedOperationException(); }
+        @Override
+        public void addIntBox(int[] coords, Layer layer) { throw new UnsupportedOperationException(); }
+        
+    }
+    
+	/**
+     * Method to fill polygon "poly" with the outline in grid units of the curved arc in
+     * this ImmutableArcInst whose width in grid units is "gridWidth".
+     * If there is no curvature information in the arc, the routine returns false,
+     * otherwise it returns the curved polygon.
+     * @param b builder to fill points
+     * @param gridWidth width in grid units.
+     * @param gridRadius radius in grid units.
+     * @return true if point were filled to the buuilder
+     */
+    public boolean curvedArcGridOutline(AbstractShapeBuilder b, long gridWidth, long gridRadius) {
         // get information about the curved arc
-        double pureRadius = Math.abs(lambdaRadius);
-        double lambdaWidth = DBMath.gridToLambda(gridWidth);
-        double lambdaLength = getLambdaLength();
+        long pureGridRadius = Math.abs(gridRadius);
+        double gridLength = getGridLength();
         
         // see if the lambdaRadius can work with these arc ends
-        if (pureRadius*2 < lambdaLength) return null;
+        if (pureGridRadius*2 < gridLength) return false;
         
         // determine the center of the circle
-        Point2D [] centers = DBMath.findCenters(pureRadius, headLocation, tailLocation, lambdaLength);
-        if (centers == null) return null;
+        Point2D [] centers = DBMath.findCenters(pureGridRadius, headLocation.gridMutable(), tailLocation.gridMutable(), gridLength);
+        if (centers == null) return false;
         
         Point2D centerPt = centers[1];
-        if (lambdaRadius < 0) {
+        if (gridRadius < 0) {
             centerPt = centers[0];
         }
+        double centerX = centerPt.getX();
+        double centerY = centerPt.getY();
         
         // determine the base and range of angles
-        int angleBase = DBMath.figureAngle(centerPt, headLocation);
-        int angleRange = DBMath.figureAngle(centerPt, tailLocation);
+        int angleBase = DBMath.figureAngle(headLocation.getGridX() - centerX, headLocation.getGridY() - centerY);
+        int angleRange = DBMath.figureAngle(tailLocation.getGridX() - centerX, tailLocation.getGridY() - centerY);
         angleRange -= angleBase;
         if (angleRange < 0) angleRange += 3600;
         
         // force the curvature to be the smaller part of a circle (used to determine this by the reverse-ends bit)
         if (angleRange > 1800) {
-            angleBase = DBMath.figureAngle(centerPt, tailLocation);
-            angleRange = DBMath.figureAngle(centerPt, headLocation);
-            angleRange -= angleBase;
-            if (angleRange < 0) angleRange += 3600;
+            angleBase += angleRange;
+            if (angleBase < 0) angleBase += 3600;
+            angleRange = 3600 - angleRange;
         }
         
         // determine the number of intervals to use for the arc
         int pieces = angleRange;
         while (pieces > MAXARCPIECES) pieces /= 2;
-        if (pieces == 0) return null;
-        
-        // initialize the polygon
-        int points = (pieces+1) * 2;
-        Point2D [] pointArray = new Point2D[points];
+        if (pieces == 0) return false;
         
         // get the inner and outer radii of the arc
-        double outerRadius = pureRadius + lambdaWidth / 2;
-        double innerRadius = outerRadius - lambdaWidth;
+        double outerRadius = pureGridRadius + gridWidth / 2;
+        double innerRadius = outerRadius - gridWidth;
         
         // fill the polygon
         for(int i=0; i<=pieces; i++) {
             int a = (angleBase + i * angleRange / pieces) % 3600;
-            double sin = DBMath.sin(a);   double cos = DBMath.cos(a);
-            pointArray[i] = new Point2D.Double(
-                    DBMath.lambdaToGrid(cos * innerRadius + centerPt.getX()),
-                    DBMath.lambdaToGrid(sin * innerRadius + centerPt.getY()));
-            pointArray[points-1-i] = new Point2D.Double(
-                    DBMath.lambdaToGrid(cos * outerRadius + centerPt.getX()),
-                    DBMath.lambdaToGrid(sin * outerRadius + centerPt.getY()));
+            b.pushPoint(DBMath.cos(a) * innerRadius + centerX, DBMath.sin(a) * innerRadius + centerY);
         }
-        Poly poly = new Poly(pointArray);
-        poly.setStyle(style);
-        return poly;
+        for(int i=pieces; i>=0; i--) {
+            int a = (angleBase + i * angleRange / pieces) % 3600;
+            b.pushPoint(DBMath.cos(a) * outerRadius + centerX, DBMath.sin(a) * outerRadius + centerY);
+        }
+        return true;
     }
     
 	/**
@@ -1107,14 +1451,17 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         assert headNodeId >= 0;
         assert headPortId != null;
         assert headLocation != null;
-        assert gridFullWidth >= 0 && (gridFullWidth&1) == 0;
-        assert (flags & ~DATABASE_FLAGS) == 0;
-        if (is(TAIL_NEGATED))
-            assert tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable();
-        if (is(HEAD_NEGATED))
-            assert headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable();
+        assert gridFullWidth >= 0 && gridFullWidth >= protoType.getMaxLayerGridOffset() && (gridFullWidth&1) == 0;
+        assert (flags & ~(DATABASE_FLAGS|EASY_MASK)) == 0;
+        assert flags == updateEasyShape(protoType, gridFullWidth, tailLocation, headLocation, angle, getVars(), flags);
+        if (isTailNegated())
+            assert tailPortId instanceof PrimitivePort && ((PrimitivePort)tailPortId).isNegatable() && !protoType.getTechnology().isNoNegatedArcs();
+        if (isHeadNegated())
+            assert headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable() && !protoType.getTechnology().isNoNegatedArcs();
         assert 0 <= angle && angle < 3600;
 		assert gridLength == tailLocation.gridDistance(headLocation);
+        if (gridLength != 0)
+            assert angle == GenMath.figureAngle(headLocation.getGridX() - tailLocation.getGridX(), headLocation.getGridY() - tailLocation.getGridY());
 	}
 
 	/**
@@ -1126,36 +1473,41 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public int getElibBits()
 	{
-		int elibBits = flags & COMMON_BITS;
-	
+		int elibBits = 0;
+        
+        if (isRigid()) elibBits |= ELIB_FIXED;
+        if (isFixedAngle()) elibBits |= ELIB_FIXANG;
+        if (!isSlidable()) elibBits |= ELIB_CANTSLIDE;
+        if (isHardSelect()) elibBits |= ELIB_HARDSELECTA;
+        
 		// adjust bits for extension
-		if (!HEAD_EXTENDED.is(flags) || !TAIL_EXTENDED.is(flags))
+		if (!isHeadExtended() || !isTailExtended())
 		{
-			elibBits |= DISK_NOEXTEND;
-			if (HEAD_EXTENDED.is(flags) != TAIL_EXTENDED.is(flags))
+			elibBits |= ELIB_NOEXTEND;
+			if (isHeadExtended() != isTailExtended())
 			{
-				if (TAIL_EXTENDED.is(flags)) elibBits |= DISK_NOTEND0;
-				if (HEAD_EXTENDED.is(flags)) elibBits |= DISK_NOTEND1;
+				if (isTailExtended()) elibBits |= ELIB_NOTEND0;
+				if (isHeadExtended()) elibBits |= ELIB_NOTEND1;
 			}
 		}
 	
 		// adjust bits for directionality
-		if (HEAD_ARROWED.is(flags) || TAIL_ARROWED.is(flags) || BODY_ARROWED.is(flags))
+		if (isHeadArrowed() || isTailArrowed() || isBodyArrowed())
 		{
-			elibBits |= DISK_ISDIRECTIONAL;
-			if (TAIL_ARROWED.is(flags)) elibBits |= DISK_REVERSEEND;
-			if (!HEAD_ARROWED.is(flags) && !TAIL_ARROWED.is(flags)) elibBits |= DISK_NOTEND1;
+			elibBits |= ELIB_ISDIRECTIONAL;
+			if (isTailArrowed()) elibBits |= ELIB_REVERSEEND;
+			if (!isHeadArrowed() && !isTailArrowed()) elibBits |= ELIB_NOTEND1;
 		}
 
 		// adjust bits for negation
-        boolean normalEnd = (elibBits & DISK_REVERSEEND) == 0;
-		if (TAIL_NEGATED.is(flags)) elibBits |= (normalEnd ? ISTAILNEGATED : ISHEADNEGATED);
-		if (HEAD_NEGATED.is(flags)) elibBits |= (normalEnd ? ISHEADNEGATED : ISTAILNEGATED);
+        boolean normalEnd = (elibBits & ELIB_REVERSEEND) == 0;
+		if (isTailNegated()) elibBits |= (normalEnd ? ELIB_ISTAILNEGATED : ELIB_ISHEADNEGATED);
+		if (isHeadNegated()) elibBits |= (normalEnd ? ELIB_ISHEADNEGATED : ELIB_ISTAILNEGATED);
         
 		int elibAngle = (angle + 5)/10;
 		if (elibAngle >= 360) elibAngle -= 360;
         
-        return elibBits | (elibAngle << DISK_AANGLESH);
+        return elibBits | (elibAngle << ELIB_AANGLESH);
 	}
 	/**
 	 * Method to convert ELIB userbits to database flags.
@@ -1167,31 +1519,38 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 */
 	public static int flagsFromElib(int elibBits)
 	{
-        int newBits = elibBits & COMMON_BITS;
-		if ((elibBits&ISTAILNEGATED) != 0)
+        int newBits = 0;
+        if ((elibBits & ELIB_FIXED) != 0) newBits |= RIGID.mask;
+        if ((elibBits & ELIB_FIXANG) != 0) newBits |= FIXED_ANGLE.mask;
+        if ((elibBits & ELIB_CANTSLIDE) == 0) newBits |= SLIDABLE.mask;
+        if ((elibBits & ELIB_HARDSELECTA) != 0) newBits |= HARD_SELECT.mask;
+	
+		if ((elibBits&ELIB_ISTAILNEGATED) != 0)
 		{
-			newBits |= (elibBits&DISK_REVERSEEND) == 0 ? ISTAILNEGATED : ISHEADNEGATED;
+			newBits |= (elibBits&ELIB_REVERSEEND) == 0 ? TAIL_NEGATED.mask : HEAD_NEGATED.mask;
 		}
-		if ((elibBits&ISHEADNEGATED) != 0)
+		if ((elibBits&ELIB_ISHEADNEGATED) != 0)
 		{
-            newBits |= (elibBits&DISK_REVERSEEND) == 0 ? ISHEADNEGATED : ISTAILNEGATED;
+            newBits |= (elibBits&ELIB_REVERSEEND) == 0 ? HEAD_NEGATED.mask : TAIL_NEGATED.mask;
 		}
 
-		if ((elibBits&DISK_NOEXTEND) != 0)
+		if ((elibBits&ELIB_NOEXTEND) != 0)
 		{
-			if ((elibBits&DISK_NOTEND0) == 0) newBits |= TAILNOEXTEND;
-			if ((elibBits&DISK_NOTEND1) == 0) newBits |= HEADNOEXTEND;
-		}
+			if ((elibBits&ELIB_NOTEND0) != 0) newBits |= TAIL_EXTENDED.mask;
+			if ((elibBits&ELIB_NOTEND1) != 0) newBits |= HEAD_EXTENDED.mask;
+		} else {
+            newBits |= (TAIL_EXTENDED.mask | HEAD_EXTENDED.mask);
+        }
 
-		if ((elibBits&DISK_ISDIRECTIONAL) != 0)
+		if ((elibBits&ELIB_ISDIRECTIONAL) != 0)
 		{
-            newBits |= BODYARROW;
-			if ((elibBits&DISK_REVERSEEND) == 0)
+            newBits |= BODY_ARROWED.mask;
+			if ((elibBits&ELIB_REVERSEEND) == 0)
 			{
-				if ((elibBits&DISK_NOTEND1) == 0) newBits |= HEADARROW;
+				if ((elibBits&ELIB_NOTEND1) == 0) newBits |= HEAD_ARROWED.mask;
 			} else
 			{
-				if ((elibBits&DISK_NOTEND0) == 0) newBits |= TAILARROW;
+				if ((elibBits&ELIB_NOTEND0) == 0) newBits |= TAIL_ARROWED.mask;
 			}
 		}
         return newBits;
@@ -1204,7 +1563,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      */
 	public static int angleFromElib(int elibBits)
 	{
-        int angle = (elibBits & DISK_AANGLE) >> DISK_AANGLESH;
+        int angle = (elibBits & ELIB_AANGLE) >> ELIB_AANGLESH;
         return (angle % 360)*10;
 	}
 }

@@ -86,20 +86,16 @@ public class EFIDO extends Technology
 		//******************** ARCS ********************
 
 		/** wire arc */
-		ArcProto wire_arc = ArcProto.newInstance(this, "wire", 0, new Technology.ArcLayer []
-		{
+		ArcProto wire_arc = newArcProto("wire", 0, 0, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(A_lay, 0, Poly.Type.CLOSED)
-		});
-		wire_arc.setFunction(ArcProto.Function.METAL1);
+		);
 		wire_arc.setFactoryFixedAngle(true);
 		wire_arc.setFactoryAngleIncrement(45);
 
 		/** bus arc */
-		ArcProto bus_arc = ArcProto.newInstance(this, "bus", 2, new Technology.ArcLayer []
-		{
+		ArcProto bus_arc = newArcProto("bus", 0, 2, ArcProto.Function.BUS,
 			new Technology.ArcLayer(A_lay, 0, Poly.Type.CLOSED)
-		});
-		bus_arc.setFunction(ArcProto.Function.BUS);
+		);
 		bus_arc.setFactoryFixedAngle(true);
 		bus_arc.setFactoryAngleIncrement(45);
 

@@ -73,7 +73,7 @@ public class MutableInterval
      * prev(x) is round-to-nearest
 	 * if (x*SCALE_DOWN) for positive normalized double numbers.
      */
-    private static final double SCALE_DOWN = 1.0 - 1.0/(1L << 53); // 0x0.fffffffffffffp0;
+    private static final double SCALE_DOWN = 1.0 - 1.0/(1L << 53); // 0x1.fffffffffffffp-1;
     /**
      * A constant holding minimal positive normalized double number.
      */

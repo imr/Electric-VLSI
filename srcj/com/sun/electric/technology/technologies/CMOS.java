@@ -395,50 +395,38 @@ public class CMOS extends Technology
 		//******************** ARCS ********************
 
 		/** Metal arc */
-		ArcProto Metal_arc = ArcProto.newInstance(this, "Metal", 3, new Technology.ArcLayer []
-		{
+		ArcProto Metal_arc = newArcProto("Metal", 0, 3, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
-		});
-		Metal_arc.setFunction(ArcProto.Function.METAL1);
+		);
 		Metal_arc.setFactoryFixedAngle(true);
 		Metal_arc.setWipable();
 		Metal_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon arc */
-		ArcProto Polysilicon_arc = ArcProto.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
-		{
+		ArcProto Polysilicon_arc = newArcProto("Polysilicon", 0, 2, ArcProto.Function.POLY1,
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
-		});
-		Polysilicon_arc.setFunction(ArcProto.Function.POLY1);
+		);
 		Polysilicon_arc.setFactoryFixedAngle(true);
 		Polysilicon_arc.setWipable();
 		Polysilicon_arc.setFactoryAngleIncrement(90);
 
 		/** Diffusion-p arc */
-		ArcProto Diffusion_p_arc = ArcProto.newInstance(this, "Diffusion-p", 6, new Technology.ArcLayer []
-		{
+		ArcProto Diffusion_p_arc = newArcProto("Diffusion-p", 4, 6, ArcProto.Function.DIFFP,
 			new Technology.ArcLayer(D_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(P0_lay, 0, Poly.Type.FILLED)
-		});
-		Diffusion_p_arc.setFunction(ArcProto.Function.DIFFP);
+		);
 		Diffusion_p_arc.setFactoryFixedAngle(true);
 		Diffusion_p_arc.setWipable();
 		Diffusion_p_arc.setFactoryAngleIncrement(90);
-		Diffusion_p_arc.setLambdaWidthOffset(0);
-		Diffusion_p_arc.setLambdaWidthOffset(4);
 
 		/** Diffusion-well arc */
-		ArcProto Diffusion_well_arc = ArcProto.newInstance(this, "Diffusion-well", 8, new Technology.ArcLayer []
-		{
+		ArcProto Diffusion_well_arc = newArcProto("Diffusion-well", 6, 8, ArcProto.Function.DIFFN,
 			new Technology.ArcLayer(D_lay, 6, Poly.Type.FILLED),
 			new Technology.ArcLayer(PW_lay, 0, Poly.Type.FILLED)
-		});
-		Diffusion_well_arc.setFunction(ArcProto.Function.DIFFN);
+		);
 		Diffusion_well_arc.setFactoryFixedAngle(true);
 		Diffusion_well_arc.setWipable();
 		Diffusion_well_arc.setFactoryAngleIncrement(90);
-		Diffusion_well_arc.setLambdaWidthOffset(0);
-		Diffusion_well_arc.setLambdaWidthOffset(6);
 
 		//******************** RECTANGLE DESCRIPTIONS ********************
 

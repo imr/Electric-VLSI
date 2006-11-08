@@ -145,7 +145,12 @@ public class LibToTech
 			setNoNegatedArcs();
 		}
 
-		private void setTheScale(double scale)
+        @Override
+        public ArcProto newArcProto(String protoName, double lambdaWidthOffset, double defaultWidth, ArcProto.Function function, Technology.ArcLayer... layers) {
+            return super.newArcProto(protoName, lambdaWidthOffset, defaultWidth, function, layers);
+        }
+        
+        private void setTheScale(double scale)
 		{
 			setFactoryScale(scale, true);
 		}
@@ -241,13 +246,11 @@ public class LibToTech
 			Technology.ArcLayer [] arcLayers = new Technology.ArcLayer[ad.length];
 			for(int j=0; j<ad.length; j++)
 				arcLayers[j] = new Technology.ArcLayer(ad[j].layer.generated, ad[j].width, ad[j].style);
-			ArcProto newArc = ArcProto.newInstance(tech, aList[i].name, aList[i].maxWidth, arcLayers);
-			newArc.setFunction(aList[i].func);
+			ArcProto newArc = tech.newArcProto(aList[i].name, aList[i].widthOffset, aList[i].maxWidth, aList[i].func, arcLayers);
 			newArc.setFactoryFixedAngle(aList[i].fixAng);
 			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
 			newArc.setFactoryAngleIncrement(aList[i].angInc);
 			newArc.setExtended(!aList[i].noExtend);
-			newArc.setLambdaWidthOffset(aList[i].widthOffset);
 			ERC.getERCTool().setAntennaRatio(newArc, aList[i].antennaRatio);
 			aList[i].generated = newArc;
 		}
@@ -2844,9 +2847,10 @@ public class LibToTech
 		{
 			aList[i].javaName = makeJavaName(aList[i].name);
 			buffWriter.println("\n\t\t/** " + aList[i].name + " arc */");
-			buffWriter.println("\t\tArcProto " + aList[i].javaName + "_arc = ArcProto.newInstance(this, \"" +
-				aList[i].name + "\", " + TextUtils.formatDouble(aList[i].maxWidth) + ", new Technology.ArcLayer []");
-			buffWriter.println("\t\t{");
+			buffWriter.println("\t\tArcProto " + aList[i].javaName + "_arc = newArcProto(\"" + aList[i].name +
+                    "\", " + TextUtils.formatDouble(aList[i].widthOffset) +
+                    ", " + TextUtils.formatDouble(aList[i].maxWidth) +
+                    ", ArcProto.Function." + aList[i].func.getConstantName() + ",");
 			for(int k=0; k<aList[i].arcDetails.length; k++)
 			{
 				buffWriter.print("\t\t\tnew Technology.ArcLayer(" + aList[i].arcDetails[k].layer.javaName + "_lay, ");
@@ -2856,12 +2860,9 @@ public class LibToTech
 				if (k+1 < aList[i].arcDetails.length) buffWriter.print(",");
 				buffWriter.println();
 			}
-			buffWriter.println("\t\t});");
-			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFunction(ArcProto.Function." + aList[i].func.getConstantName() + ");");
+			buffWriter.println("\t\t);");
 			if (aList[i].wipes)
 				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setWipable();");
-			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setWidthOffset(" +
-				TextUtils.formatDouble(aList[i].widthOffset) + ");");
 			if (aList[i].fixAng)
 				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryFixedAngle(true);");
 			if (aList[i].noExtend)

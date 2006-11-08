@@ -427,8 +427,7 @@ public class River
 		setWiresToRails(theList);
 
 		// figure out the worst design rule spacing for this type of arc
-		Technology.ArcLayer [] arcLayers = wantAp.getLayers();
-		Layer layer = arcLayers[0].getLayer();
+		Layer layer = wantAp.getLayerIterator().next();
 		double amt = DRC.getMaxSurround(layer, Double.MAX_VALUE);
 		if (amt < 0) amt = 1;
 		return unsortedRivRot(wantAp, theList, wantAp.getDefaultLambdaBaseWidth(), amt, amt, amt);

@@ -124,8 +124,6 @@ public class DBMath extends GenMath {
 	 */
 	public static boolean isGreaterThan(double a, double b) {
         return a - b > 0.5/GRID;
-//		double actual = round(a - b);
-//		return (actual > 0);
 	}
 
 	/**
@@ -134,8 +132,9 @@ public class DBMath extends GenMath {
 	 * @return the return value in lambda units is an approximation of x rounded to GRID.
 	 */
     public static double round(double lambdaValue) {
-        return gridToLambda(lambdaToGrid(lambdaValue));
-//		return Math.rint(x * GRID) / GRID;
+        double x = lambdaValue*GRID;
+        long l = (long)(x >= 0 ? x + HALF : x - HALF);
+        return l/GRID;
 	}
 
 	/**
@@ -145,7 +144,7 @@ public class DBMath extends GenMath {
 	 */
     public static long lambdaToGrid(double lambdaValue) {
         double x = lambdaValue*GRID;
-        return (long)(x >= 0 ? x + 0.5 : x - 0.5);
+        return (long)(x >= 0 ? x + HALF : x - HALF);
     }
     
 	/**
@@ -156,7 +155,8 @@ public class DBMath extends GenMath {
 	 */
     public static long lambdaToSizeGrid(double lambdaValue) {
         double x = lambdaValue*(GRID/2);
-        return 2*(long)(x >= 0 ? x + 0.5 : x - 0.5);
+        long l = (long)(x >= 0 ? x + HALF : x - HALF);
+        return l << 1;
     }
     
 	/**

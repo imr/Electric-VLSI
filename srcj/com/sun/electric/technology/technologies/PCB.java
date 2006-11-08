@@ -282,192 +282,150 @@ public class PCB extends Technology
         ArcProto[] SignalArcs = new ArcProto[8];
 
 		/** Signal-1 arc */
-		SignalArcs[0] = ArcProto.newInstance(this, "Signal-1", 0, new Technology.ArcLayer []
-		{
+		SignalArcs[0] = newArcProto("Signal-1", 0, 0, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(S_lay, 0, Poly.Type.FILLED)
-		});
-		SignalArcs[0].setFunction(ArcProto.Function.METAL1);
+		);
 		SignalArcs[0].setWipable();
 		SignalArcs[0].setFactoryAngleIncrement(45);
 
 		/** Signal-2 arc */
-		SignalArcs[1] = ArcProto.newInstance(this, "Signal-2", 0, new Technology.ArcLayer []
-		{
+		SignalArcs[1] = newArcProto("Signal-2", 0, 0, ArcProto.Function.METAL2,
 			new Technology.ArcLayer(S0_lay, 0, Poly.Type.FILLED)
-		});
-		SignalArcs[1].setFunction(ArcProto.Function.METAL2);
+		);
 		SignalArcs[1].setWipable();
 		SignalArcs[1].setFactoryAngleIncrement(45);
 
 		/** Signal-3 arc */
-		SignalArcs[2] = ArcProto.newInstance(this, "Signal-3", 0, new Technology.ArcLayer []
-		{
+		SignalArcs[2] = newArcProto("Signal-3", 0, 0, ArcProto.Function.METAL3,
 			new Technology.ArcLayer(S1_lay, 0, Poly.Type.FILLED)
-		});
-		SignalArcs[2].setFunction(ArcProto.Function.METAL3);
+		);
 		SignalArcs[2].setWipable();
 		SignalArcs[2].setFactoryAngleIncrement(45);
 
 		/** Signal-4 arc */
-		SignalArcs[3] = ArcProto.newInstance(this, "Signal-4", 0, new Technology.ArcLayer []
-		{
+		SignalArcs[3] = newArcProto("Signal-4", 0, 0, ArcProto.Function.METAL4,
 			new Technology.ArcLayer(S2_lay, 0, Poly.Type.FILLED)
-		});
-		SignalArcs[3].setFunction(ArcProto.Function.METAL4);
+		);
 		SignalArcs[3].setWipable();
 		SignalArcs[3].setFactoryAngleIncrement(45);
 
 		/** Signal-5 arc */
-		SignalArcs[4] = ArcProto.newInstance(this, "Signal-5", 0, new Technology.ArcLayer []
-		{
+		SignalArcs[4] = newArcProto("Signal-5", 0, 0, ArcProto.Function.METAL5,
 			new Technology.ArcLayer(S3_lay, 0, Poly.Type.FILLED)
-		});
-		SignalArcs[4].setFunction(ArcProto.Function.METAL5);
+		);
 		SignalArcs[4].setWipable();
 		SignalArcs[4].setFactoryAngleIncrement(45);
 
 		/** Signal-6 arc */
-		SignalArcs[5] = ArcProto.newInstance(this, "Signal-6", 0, new Technology.ArcLayer []
-		{
+		SignalArcs[5] = newArcProto("Signal-6", 0, 0, ArcProto.Function.METAL6,
 			new Technology.ArcLayer(S4_lay, 0, Poly.Type.FILLED)
-		});
-		SignalArcs[5].setFunction(ArcProto.Function.METAL6);
+		);
 		SignalArcs[5].setWipable();
 		SignalArcs[5].setFactoryAngleIncrement(45);
 
 		/** Signal-7 arc */
-		SignalArcs[6] = ArcProto.newInstance(this, "Signal-7", 0, new Technology.ArcLayer []
-		{
+		SignalArcs[6] = newArcProto("Signal-7", 0, 0, ArcProto.Function.METAL7,
 			new Technology.ArcLayer(S5_lay, 0, Poly.Type.FILLED)
-		});
-		SignalArcs[6].setFunction(ArcProto.Function.METAL7);
+		);
 		SignalArcs[6].setWipable();
 		SignalArcs[6].setFactoryAngleIncrement(45);
 
 		/** Signal-8 arc */
-		SignalArcs[7] = ArcProto.newInstance(this, "Signal-8", 0, new Technology.ArcLayer []
-		{
+		SignalArcs[7] = newArcProto("Signal-8", 0, 0, ArcProto.Function.METAL8,
 			new Technology.ArcLayer(S6_lay, 0, Poly.Type.FILLED)
-		});
-		SignalArcs[7].setFunction(ArcProto.Function.METAL8);
+		);
 		SignalArcs[7].setWipable();
 		SignalArcs[7].setFactoryAngleIncrement(45);
 
         ArcProto[] PowerArcs = new ArcProto[8];
 		/** Power-1 arc */
-		PowerArcs[0] = ArcProto.newInstance(this, "Power-1", 0, new Technology.ArcLayer []
-		{
+		PowerArcs[0] = newArcProto("Power-1", 0, 0, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
-		});
-		PowerArcs[0].setFunction(ArcProto.Function.METAL1);
+		);
 		PowerArcs[0].setWipable();
 		PowerArcs[0].setFactoryAngleIncrement(45);
 
 		/** Power-2 arc */
-		PowerArcs[1] = ArcProto.newInstance(this, "Power-2", 0, new Technology.ArcLayer []
-		{
+		PowerArcs[1] = newArcProto("Power-2", 0, 0, ArcProto.Function.METAL2,
 			new Technology.ArcLayer(P0_lay, 0, Poly.Type.FILLED)
-		});
-		PowerArcs[1].setFunction(ArcProto.Function.METAL2);
+		);
 		PowerArcs[1].setWipable();
 		PowerArcs[1].setFactoryAngleIncrement(45);
 
 		/** Power-3 arc */
-		PowerArcs[2] = ArcProto.newInstance(this, "Power-3", 0, new Technology.ArcLayer []
-		{
+		PowerArcs[2] = newArcProto("Power-3", 0, 0, ArcProto.Function.METAL3,
 			new Technology.ArcLayer(P1_lay, 0, Poly.Type.FILLED)
-		});
-		PowerArcs[2].setFunction(ArcProto.Function.METAL3);
+		);
 		PowerArcs[2].setWipable();
 		PowerArcs[2].setFactoryAngleIncrement(45);
 
 		/** Power-4 arc */
-		PowerArcs[3] = ArcProto.newInstance(this, "Power-4", 0, new Technology.ArcLayer []
-		{
+		PowerArcs[3] = newArcProto("Power-4", 0, 0, ArcProto.Function.METAL4,
 			new Technology.ArcLayer(P2_lay, 0, Poly.Type.FILLED)
-		});
-		PowerArcs[3].setFunction(ArcProto.Function.METAL4);
+		);
 		PowerArcs[3].setWipable();
 		PowerArcs[3].setFactoryAngleIncrement(45);
 
 		/** Power-5 arc */
-		PowerArcs[4] = ArcProto.newInstance(this, "Power-5", 0, new Technology.ArcLayer []
-		{
+		PowerArcs[4] = newArcProto("Power-5", 0, 0, ArcProto.Function.METAL5,
 			new Technology.ArcLayer(P3_lay, 0, Poly.Type.FILLED)
-		});
-		PowerArcs[4].setFunction(ArcProto.Function.METAL5);
+		);
 		PowerArcs[4].setWipable();
 		PowerArcs[4].setFactoryAngleIncrement(45);
 
 		/** Power-6 arc */
-		PowerArcs[5] = ArcProto.newInstance(this, "Power-6", 0, new Technology.ArcLayer []
-		{
+		PowerArcs[5] = newArcProto("Power-6", 0, 0, ArcProto.Function.METAL6,
 			new Technology.ArcLayer(P4_lay, 0, Poly.Type.FILLED)
-		});
-		PowerArcs[5].setFunction(ArcProto.Function.METAL6);
+		);
 		PowerArcs[5].setWipable();
 		PowerArcs[5].setFactoryAngleIncrement(45);
 
 		/** Power-7 arc */
-		PowerArcs[6] = ArcProto.newInstance(this, "Power-7", 0, new Technology.ArcLayer []
-		{
+		PowerArcs[6] = newArcProto("Power-7", 0, 0, ArcProto.Function.METAL7,
 			new Technology.ArcLayer(P5_lay, 0, Poly.Type.FILLED)
-		});
-		PowerArcs[6].setFunction(ArcProto.Function.METAL7);
+		);
 		PowerArcs[6].setWipable();
 		PowerArcs[6].setFactoryAngleIncrement(45);
 
 		/** Power-8 arc */
-		PowerArcs[7] = ArcProto.newInstance(this, "Power-8", 0, new Technology.ArcLayer []
-		{
+		PowerArcs[7] = newArcProto("Power-8", 0, 0, ArcProto.Function.METAL8,
 			new Technology.ArcLayer(P6_lay, 0, Poly.Type.FILLED)
-		});
-		PowerArcs[7].setFunction(ArcProto.Function.METAL8);
+		);
 		PowerArcs[7].setWipable();
 		PowerArcs[7].setFactoryAngleIncrement(45);
 
 		/** Top-Silk arc */
-		ArcProto Top_Silk_arc = ArcProto.newInstance(this, "Top-Silk", 0, new Technology.ArcLayer []
-		{
+		ArcProto Top_Silk_arc = newArcProto("Top-Silk", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(T_lay, 0, Poly.Type.FILLED)
-		});
-		Top_Silk_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Top_Silk_arc.setWipable();
 		Top_Silk_arc.setFactoryAngleIncrement(45);
 
 		/** Bottom-Silk arc */
-		ArcProto Bottom_Silk_arc = ArcProto.newInstance(this, "Bottom-Silk", 0, new Technology.ArcLayer []
-		{
+		ArcProto Bottom_Silk_arc = newArcProto("Bottom-Silk", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(B_lay, 0, Poly.Type.FILLED)
-		});
-		Bottom_Silk_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Bottom_Silk_arc.setWipable();
 		Bottom_Silk_arc.setFactoryAngleIncrement(45);
 
 		/** Top-Solder arc */
-		ArcProto Top_Solder_arc = ArcProto.newInstance(this, "Top-Solder", 0, new Technology.ArcLayer []
-		{
+		ArcProto Top_Solder_arc = newArcProto("Top-Solder", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(T0_lay, 0, Poly.Type.FILLED)
-		});
-		Top_Solder_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Top_Solder_arc.setWipable();
 		Top_Solder_arc.setFactoryAngleIncrement(45);
 
 		/** Bottom-Solder arc */
-		ArcProto Bottom_Solder_arc = ArcProto.newInstance(this, "Bottom-Solder", 0, new Technology.ArcLayer []
-		{
+		ArcProto Bottom_Solder_arc = newArcProto("Bottom-Solder", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(B0_lay, 0, Poly.Type.FILLED)
-		});
-		Bottom_Solder_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Bottom_Solder_arc.setWipable();
 		Bottom_Solder_arc.setFactoryAngleIncrement(45);
 
 		/** Drawing arc */
-		ArcProto Drawing_arc = ArcProto.newInstance(this, "Drawing", 0, new Technology.ArcLayer []
-		{
+		ArcProto Drawing_arc = newArcProto("Drawing", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(D1_lay, 0, Poly.Type.FILLED)
-		});
-		Drawing_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		Drawing_arc.setWipable();
 		Drawing_arc.setFactoryAngleIncrement(45);
 

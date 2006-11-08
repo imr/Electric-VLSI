@@ -189,7 +189,7 @@ public abstract class ImmutableElectricObject {
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the Variable is found.
      */
-	private static int searchVar(Variable[] vars, Variable.Key key)
+	static int searchVar(Variable[] vars, Variable.Key key)
 	{
         int low = 0;
         int high = vars.length-1;

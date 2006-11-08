@@ -130,11 +130,9 @@ public class FPGA extends Technology
 		//**************************************** ARC ****************************************
 
 		/** wire arc */
-		wireArc = ArcProto.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
-		{
+		wireArc = newArcProto("wire", 0, 0.0, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(wireLayer, 0, Poly.Type.FILLED)
-		});
-		wireArc.setFunction(ArcProto.Function.METAL1);
+		);
 		wireArc.setFactoryFixedAngle(true);
 		wireArc.setFactorySlidable(false);
 		wireArc.setFactoryAngleIncrement(45);

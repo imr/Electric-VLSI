@@ -107,10 +107,9 @@ public class DesignRulesPanel extends JPanel
 		{
 			ArcProto ap = it.next();
 			if (ap.isNotUsed()) continue;
-			Technology.ArcLayer [] layers = ap.getLayers();
-			for(Technology.ArcLayer al : layers)
+			for(Iterator<Layer> lIt = ap.getLayerIterator(); lIt.hasNext(); )
 			{
-				Layer layer = al.getLayer();
+				Layer layer = lIt.next();
 				designRulesValidLayers[layer.getIndex()] = true;
 			}
 		}

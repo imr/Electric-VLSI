@@ -361,7 +361,7 @@ public class AutoStitch
 	
 		                    // insist that minimum size arcs be used
 		                    ArcProto ap = reArc.getArcProto();
-			            	Layer arcLayer = ap.getLayers()[0].getLayer();
+			            	Layer arcLayer = ap.getLayerIterator().next();
 		                    double width = ap.getDefaultLambdaFullWidth();
 		                    MutableBoolean headExtend = new MutableBoolean(reArc.getHeadExtension());
 		                    MutableBoolean tailExtend = new MutableBoolean(reArc.getTailExtension());

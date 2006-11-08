@@ -38,6 +38,19 @@ import java.io.Serializable;
 public class GenMath
 {
     /**
+     * Minimal integer that is considered "small int".
+     * Sum and difference of two "small ints" is always in [Integer.MIN_VALUE..Integer.MAX_VALUE] range.
+     */
+    public static final int MIN_SMALL_COORD = Integer.MIN_VALUE/2; // 0xC0000000
+    /**
+     * Maximal ineger that is considered "small int".
+     * Sum and difference of two "small ints" is always in [Integer.MIN_VALUE..Integer.MAX_VALUE] range.
+     */
+    public static final int MAX_SMALL_COORD = Integer.MAX_VALUE/2; // 0x3FFFFFFF
+    
+    static final double HALF = 0.5 - 0.5/(1L << 53); // 0x1.fffffffffffffp-2;
+    
+    /**
      * General method to obtain quadrant for a given box in a qTree based on the qTree center
      * @param centerX the X center of the qTree.
      * @param centerY the Y center of the qTree.
@@ -375,24 +388,47 @@ public class GenMath
      * @param end2 the second point.
      * @return the angle between the points (in tenth-degrees).
      */
-    public static int figureAngle(Point2D end1, Point2D end2)
-    {
-//        double dx = end2.getX()-end1.getX();
-//        double dy = end2.getY()-end1.getY();
-//        if (dx == 0.0 && dy == 0.0)
-//        {
-//            System.out.println("Warning: domain violation while figuring angle");
-//            return 0;
-//        }
-//        double angle = Math.atan2(dy, dx);
-//        if (angle < 0) angle += Math.PI*2;
-        double angle = figureAngleRadians(end1, end2);
-        int iAngle = (int)(angle * 1800.0 / Math.PI + 0.5);
-        if (iAngle >= 3600) iAngle -= 3600;
-        assert 0 <= iAngle && iAngle < 3600;
-        return iAngle;
+    public static int figureAngle(Point2D end1, Point2D end2) {
+        return figureAngle(end2.getX() - end1.getX(), end2.getY() - end1.getY());
     }
 
+    /**
+     * Method to return the angle of a vector.
+     * Return 0 if vector is zero or has NaN components.
+     * @param x x-coordinate of a vector.
+     * @param y y-coordinate of a vector.
+     * @return the angle of a vector.
+     */
+    public static int figureAngle(double x, double y) {
+        int ang = 0;
+        if (x == 0)
+            return y > 0 ? 900 : y < 0 ? 2700 : 0;
+        if (y == 0)
+            return x < 0 ? 1800 : 0;
+        if (y < 0) {
+            x = -x;
+            y = -y;
+            ang = 1800;
+        } else if (!(y > 0)) {
+            return 0;
+        }
+        if (x < 0) {
+            double t = x;
+            x = y;
+            y = -t;
+            ang += 900;
+        } else if (!(x > 0)) {
+            return 0;
+        }
+        assert x > 0 && y > 0;
+        if (x == y)
+            return ang + 450;
+        ang += (int)(y < x ? 0.5 + Math.atan(y/x)*(1800/Math.PI) : 900.5 - Math.atan(x/y)*(1800/Math.PI));
+        if (ang >= 3600)
+            ang -= 3600;
+        return ang;
+    }
+    
     /**
      * Method to return the angle between two points.
      * @param end1 the first point.
@@ -1473,9 +1509,72 @@ public class GenMath
 		return false;
 	}
 
+    /**
+     * Returns the closest <code>long</code> to the argument. The result 
+     * is rounded to an integer by adding 1/2, taking the floor of the 
+     * result, and casting the result to type <code>long</code>. In other 
+     * words, the result is equal to the value of the expression:
+     * <p><pre>(long)Math.floor(a + 0.5d)</pre>
+     * <p>
+     * Special cases:
+     * <ul><li>If the argument is NaN, the result is 0.
+     * <li>If the argument is negative infinity or any value less than or 
+     * equal to the value of <code>Long.MIN_VALUE</code>, the result is 
+     * equal to the value of <code>Long.MIN_VALUE</code>. 
+     * <li>If the argument is positive infinity or any value greater than or 
+     * equal to the value of <code>Long.MAX_VALUE</code>, the result is 
+     * equal to the value of <code>Long.MAX_VALUE</code>.</ul> 
+     *
+     * @param   a   a floating-point value to be rounded to a 
+     *		<code>long</code>.
+     * @return  the value of the argument rounded to the nearest
+     *          <code>long</code> value.
+     * @see     java.lang.Long#MAX_VALUE
+     * @see     java.lang.Long#MIN_VALUE
+     */
+    public static long roundLong(double x) {
+        return (long)(x >= 0 ? x + HALF : x - HALF);
+    }
+
+    
+    public static double rint(double x) {
+        double twoToThe52 = (double)(1L << 52); // 2^52
+        if (x >= 0) {
+            if (x < twoToThe52)
+                return (twoToThe52 + x) - twoToThe52;
+        } else {
+            if (x > -twoToThe52)
+                return (-twoToThe52 + x) + twoToThe52;
+        }
+        return x;
+    }
+    
+    public static int roundInt(double x) {
+        return (int)(x >= 0 ? x + HALF : x - HALF);
+    }
+
+    public static long floorLong(double x) {
+        long v = (long)x;
+        return x >= 0 || v == x ? v : x > Long.MIN_VALUE ? v - 1 : Long.MIN_VALUE;
+    }
+    
+    public static long ceilLong(double x) {
+        long v = (long)x;
+        return x <= 0 || v == x ? v : x < Long.MAX_VALUE ? v + 1 : Long.MAX_VALUE;
+    }
+    
+    public static int floorInt(double x) {
+        int v = (int)x;
+        return x >= 0 || v == x ? v : x > Integer.MIN_VALUE ? v - 1 : Integer.MIN_VALUE;
+    }
+    
+    public static int ceilInt(double x) {
+        int v = (int)x;
+        return x <= 0 || v == x ? v : x < Integer.MAX_VALUE ? v + 1 : Integer.MAX_VALUE;
+    }
+    
     private static final double SIN30 = 0.5;
     private static final double SIN45 = 0.7071067811865476;
-    static { assert SIN45 == Math.sqrt(0.5); }
     private static final double [] sineTable = {
         0.0,0.0017453283658983088,0.003490651415223732,0.00523596383141958,0.0069812602979615525,0.008726535498373935,
         0.010471784116245792,0.012217000835247169,0.013962180339145272,0.015707317311820675,0.01745240643728351,0.019197442399689665,
@@ -1772,6 +1871,26 @@ public class GenMath
      */
     public static long unsignedIntValue(int n) { return n & 0xFFFFFFFFL; }
 
+    /**
+     * Returns true if specified long value is considered "small int".
+     * Sum and difference of two "small ints" is always in [Integer.MIN_VALUE..Integer.MAX_VALUE] range.
+     * @param v specified long value.
+     * @return true if specified long value is considered "small int".
+     */
+    public static boolean isSmallInt(long v) {
+        return ((v - MIN_SMALL_COORD) & (long)Integer.MIN_VALUE) == 0;
+    }
+    
+    /**
+     * Returns true if specified int value is considered "small int".
+     * Sum and difference of two "small ints" is always in [Integer.MIN_VALUE..Integer.MAX_VALUE] range.
+     * @param v specified int value.
+     * @return true if specified int value is considered "small int".
+     */
+    public static boolean isSmallInt(int v) {
+        return ((v - MIN_SMALL_COORD) & Integer.MIN_VALUE) == 0;
+    }
+    
     /**
      ** Method to return a prime number greater or equal than a give threshold.
      * It is possible for every "int" threshold because Integer.MAX_VALUE is

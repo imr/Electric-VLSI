@@ -321,21 +321,17 @@ public class Schematics extends Technology
 		//**************************************** ARCS ****************************************
 
 		/** wire arc */
-		wire_arc = ArcProto.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
-		{
+		wire_arc = newArcProto("wire", 0, 0.0, ArcProto.Function.METAL1,
 			new Technology.ArcLayer(arc_lay, 0, Poly.Type.FILLED)
-		});
-		wire_arc.setFunction(ArcProto.Function.METAL1);
+		);
 		wire_arc.setFactoryFixedAngle(true);
 		wire_arc.setFactorySlidable(false);
 		wire_arc.setFactoryAngleIncrement(45);
 
 		/** bus arc */
-		bus_arc = ArcProto.newInstance(this, "bus", 1.0, new Technology.ArcLayer []
-		{
+		bus_arc = newArcProto("bus", 0, 1.0, ArcProto.Function.BUS,
 			new Technology.ArcLayer(bus_lay, 0, Poly.Type.FILLED)
-		});
-		bus_arc.setFunction(ArcProto.Function.BUS);
+		);
 		bus_arc.setFactoryFixedAngle(true);
 		bus_arc.setFactorySlidable(false);
 		bus_arc.setFactoryExtended(false);

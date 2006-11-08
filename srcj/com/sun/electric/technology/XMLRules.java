@@ -984,7 +984,7 @@ public class XMLRules implements DRCRules {
                 addRule(index, theRule);
                 break;
             case ASURROUND:
-                tech.setArcLayerSurroundLayer(aty, lay1, lay2, distance);
+                aty.setArcLayerSurroundLayer(lay1, lay2, distance);
                 break;
             default:
                 assert(false);

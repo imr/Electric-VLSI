@@ -119,44 +119,36 @@ public class Artwork extends Technology
 		//******************** ARCS ********************
 
 		/** Solid arc */
-		solidArc = ArcProto.newInstance(this, "Solid", 0, new Technology.ArcLayer []
-		{
+		solidArc = newArcProto("Solid", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(defaultLayer, 0, Poly.Type.FILLED)
-		});
-		solidArc.setFunction(ArcProto.Function.NONELEC);
+		);
 		solidArc.setFactoryFixedAngle(false);
 		solidArc.setCurvable();
 		solidArc.setWipable();
 		solidArc.setFactoryAngleIncrement(0);
 
 		/** Dotted arc */
-		dottedArc = ArcProto.newInstance(this, "Dotted", 0, new Technology.ArcLayer []
-		{
+		dottedArc = newArcProto("Dotted", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(defaultLayer, 0, Poly.Type.OPENEDT1)
-		});
-		dottedArc.setFunction(ArcProto.Function.NONELEC);
+		);
 		dottedArc.setFactoryFixedAngle(false);
 		dottedArc.setCurvable();
 		dottedArc.setWipable();
 		dottedArc.setFactoryAngleIncrement(0);
 
 		/** Dashed arc */
-		dashedArc = ArcProto.newInstance(this, "Dashed", 0, new Technology.ArcLayer []
-		{
+		dashedArc = newArcProto("Dashed", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(defaultLayer, 0, Poly.Type.OPENEDT2)
-		});
-		dashedArc.setFunction(ArcProto.Function.NONELEC);
+		);
 		dashedArc.setFactoryFixedAngle(false);
 		dashedArc.setCurvable();
 		dashedArc.setWipable();
 		dashedArc.setFactoryAngleIncrement(0);
 
 		/** Thicker arc */
-		thickerArc = ArcProto.newInstance(this, "Thicker", 0, new Technology.ArcLayer []
-		{
+		thickerArc = newArcProto("Thicker", 0, 0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(defaultLayer, 0, Poly.Type.OPENEDT3)
-		});
-		thickerArc.setFunction(ArcProto.Function.NONELEC);
+		);
 		thickerArc.setFactoryFixedAngle(false);
 		thickerArc.setCurvable();
 		thickerArc.setWipable();

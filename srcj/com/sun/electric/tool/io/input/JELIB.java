@@ -100,7 +100,7 @@ public class JELIB extends LibraryFiles
 
     private static int defaultArcFlags;
     static {
-        defaultArcFlags = 0;
+        defaultArcFlags = ImmutableArcInst.DEFAULT_FLAGS;
         defaultArcFlags = ImmutableArcInst.HARD_SELECT.set(defaultArcFlags, false); // A
 		defaultArcFlags	= ImmutableArcInst.BODY_ARROWED.set(defaultArcFlags, false); // B
         defaultArcFlags = ImmutableArcInst.FIXED_ANGLE.set(defaultArcFlags, true); // F

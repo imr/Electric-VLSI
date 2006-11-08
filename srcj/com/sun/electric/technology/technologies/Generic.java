@@ -123,30 +123,24 @@ public class Generic extends Technology
 		//**************************************** ARCS ****************************************
 
 		/** Universal arc */
-		universal_arc = ArcProto.newInstance(this, "Universal", 0.0, new Technology.ArcLayer []
-		{
+		universal_arc = newArcProto("Universal", 0, 0.0, ArcProto.Function.UNKNOWN,
 			new Technology.ArcLayer(universalLay, 0, Poly.Type.FILLED)
-		});
-		universal_arc.setFunction(ArcProto.Function.UNKNOWN);
+		);
 		universal_arc.setFactoryFixedAngle(true);
 		universal_arc.setFactoryAngleIncrement(45);
 
 		/** Invisible arc */
-		invisible_arc = ArcProto.newInstance(this, "Invisible", 0.0, new Technology.ArcLayer []
-		{
+		invisible_arc = newArcProto("Invisible", 0, 0.0, ArcProto.Function.NONELEC,
 			new Technology.ArcLayer(invisible_lay, 0, Poly.Type.FILLED)
-		});
-		invisible_arc.setFunction(ArcProto.Function.NONELEC);
+		);
 		invisible_arc.setFactoryFixedAngle(true);
 		invisible_arc.setFactoryAngleIncrement(45);
 
 		/** Unrouted arc */
-		unrouted_arc = ArcProto.newInstance(this, "Unrouted", 0.0, new Technology.ArcLayer []
-		{
+		unrouted_arc = newArcProto("Unrouted", 0, 0.0, ArcProto.Function.UNROUTED,
 			new Technology.ArcLayer(unrouted_lay, 0, Poly.Type.FILLED)
-		});
+		);
 		unrouted_arc.setFactoryFixedAngle(false);
-		unrouted_arc.setFunction(ArcProto.Function.UNROUTED);
 		unrouted_arc.setFactoryAngleIncrement(0);
 
 		//**************************************** NODES ****************************************

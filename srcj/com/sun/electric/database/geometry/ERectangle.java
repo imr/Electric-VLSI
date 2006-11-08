@@ -21,7 +21,6 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.text.ImmutableArrayList;
@@ -50,6 +49,7 @@ public class ERectangle extends Rectangle2D implements Serializable {
     private final double lambdaMaxY;
     private final double lambdaWidth;
     private final double lambdaHeight;
+    private final boolean isSmall;
     
     /**
      * Constructs and initializes a <code>ERectangle</code>
@@ -72,6 +72,7 @@ public class ERectangle extends Rectangle2D implements Serializable {
         lambdaMaxY = DBMath.gridToLambda(gridMaxY);
         lambdaWidth = DBMath.gridToLambda(gridWidth);
         lambdaHeight = DBMath.gridToLambda(gridHeight);
+        isSmall = GenMath.isSmallInt(gridMinX) & GenMath.isSmallInt(gridMinY) & GenMath.isSmallInt(gridMaxX) & GenMath.isSmallInt(gridMaxY);
     }
     
     /**
@@ -370,6 +371,14 @@ public class ERectangle extends Rectangle2D implements Serializable {
 
     @Override
     public boolean isEmpty() { return gridMinX >= gridMaxX || gridMinY >= gridMaxY; }
+    
+    /**
+     * Returns true if all coordinates of this EPoint are "small ints".
+     * @return true if all coordinates of this EPoint are "small ints".
+     * @See com.sun.electric.database.geometry.GenMath.MIN_SMALL_INT
+     * @See com.sun.electric.database.geometry.GenMath.MAX_SMALL_INT
+     */
+    public boolean isSmall() { return isSmall; }
     
     @Override
     public void setRect(double x, double y, double w, double h) {

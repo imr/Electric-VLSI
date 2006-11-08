@@ -151,15 +151,15 @@ public class CurveListener
 
 		// handle scaling the selected objects
 		Point2D dbPt = wnd.screenToDatabase(evt.getX(), evt.getY());
-		double curvature;
+		double lambdaCurvature;
 		if (through)
 		{
-			curvature = curveArcThroughPoint(curveAI, dbPt.getX(), dbPt.getY());
+			lambdaCurvature = curveArcThroughPoint(curveAI, dbPt.getX(), dbPt.getY());
 		} else
 		{
-			curvature = curveArcAboutPoint(curveAI, dbPt.getX(), dbPt.getY());
+			lambdaCurvature = curveArcAboutPoint(curveAI, dbPt.getX(), dbPt.getY());
 		}
-		SetArcCurvature job = new SetArcCurvature(curveAI, curvature);
+		SetArcCurvature job = new SetArcCurvature(curveAI, DBMath.lambdaToGrid(lambdaCurvature));
 	}
 
 	public void keyPressed(KeyEvent evt)
@@ -194,15 +194,15 @@ public class CurveListener
 		if (evt != null)
 		{
 			Point2D dbPt = wnd.screenToDatabase(evt.getX(), evt.getY());
-			double curvature;
+			double lambdaCurvature;
 			if (through)
 			{
-				curvature = curveArcThroughPoint(curveAI, dbPt.getX(), dbPt.getY());
+				lambdaCurvature = curveArcThroughPoint(curveAI, dbPt.getX(), dbPt.getY());
 			} else
 			{
-				curvature = curveArcAboutPoint(curveAI, dbPt.getX(), dbPt.getY());
+				lambdaCurvature = curveArcAboutPoint(curveAI, dbPt.getX(), dbPt.getY());
 			}
-			Poly curvedPoly = curveAI.getD().curvedArcLambdaOutline(Poly.Type.CLOSED, curveAI.getGridBaseWidth(), curvature);
+			Poly curvedPoly = curveAI.curvedArcLambdaOutline(Poly.Type.CLOSED, curveAI.getGridBaseWidth(), DBMath.lambdaToGrid(lambdaCurvature));
 			if (curvedPoly != null)
 				highlighter.addPoly(curvedPoly, curveAI.getParent(), null);
 		}
@@ -277,13 +277,13 @@ public class CurveListener
 	private static class SetArcCurvature extends Job
 	{
 		private ArcInst curveAI;
-		private double curvature;
+		private long gridCurvature;
 
-		protected SetArcCurvature(ArcInst curveAI, double curvature)
+		protected SetArcCurvature(ArcInst curveAI, long gridCurvature)
 		{
 			super("Set arc curvature", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curveAI = curveAI;
-			this.curvature = curvature;
+			this.gridCurvature = gridCurvature;
 			startJob();
 		}
 
@@ -292,13 +292,13 @@ public class CurveListener
 			// make sure changing the arc is allowed
 			if (CircuitChangeJobs.cantEdit(curveAI.getParent(), null, true, true) != 0) return false;
 
-			if (curvature == 0)
+			if (gridCurvature == 0)
 			{
 				if (curveAI.getVar(ImmutableArcInst.ARC_RADIUS) != null)
 					curveAI.delVar(ImmutableArcInst.ARC_RADIUS);
 			} else
 			{
-				curveAI.newVar(ImmutableArcInst.ARC_RADIUS, new Double(curvature));
+				curveAI.newVar(ImmutableArcInst.ARC_RADIUS, new Double(DBMath.gridToLambda(gridCurvature)));
 			}
 			curveAI.modify(0, 0, 0, 0);
 			return true;

@@ -51,6 +51,10 @@ class ECoord implements Serializable {
      * Value in lambda units.
      */
     private final transient double lambdaValue;
+    /**
+     * True if coordinate is "small int"
+     */
+    private final boolean isSmall;
     
     private static ECoord[] hash = new ECoord[2];
     private static int hashSize = 0;
@@ -69,6 +73,7 @@ class ECoord implements Serializable {
     private ECoord(long gridValue) {
         this.gridValue = gridValue;
         lambdaValue = DBMath.gridToLambda(gridValue);
+        isSmall = GenMath.isSmallInt(gridValue);
     }
     
     private Object readResolve() throws ObjectStreamException {
@@ -86,6 +91,14 @@ class ECoord implements Serializable {
      * @return ECoord value in grid units.
      */
     long gridValue() { return gridValue; }
+
+    /**
+     * Returns true if ECoord value in grid units is a "small int".
+     * @return true if ECoord value in grid units is a "small int".
+     * @See com.sun.electric.database.geometry.GenMath.MIN_SMALL_INT
+     * @See com.sun.electric.database.geometry.GenMath.MAX_SMALL_INT
+     */
+    boolean isSmall() { return isSmall; }
     
     /**
      * Returns <code>ECoord</code> from specified lambda value
