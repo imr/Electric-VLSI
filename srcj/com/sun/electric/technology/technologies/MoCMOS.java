@@ -1559,10 +1559,10 @@ public class MoCMOS extends Technology
                 new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
             transistorPolyLLayers[i] = new Technology.NodeLayer(poly1Layer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                 new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
-                new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10))}, 1, 1, 0 /*Was 2 SMR*/, 2);
+                new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
             transistorPolyRLayers[i] = new Technology.NodeLayer(poly1Layer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                 new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10)),
-                new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 0 /*Was 2 SMR*/);
+                new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
             transistorPolyCLayers[i] = new Technology.NodeLayer(transistorPolyLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                 new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(10)),
                 new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
@@ -1571,10 +1571,10 @@ public class MoCMOS extends Technology
                 new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
             transistorActiveTLayers[i] = new Technology.NodeLayer(activeLayers[i], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                 new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10)),
-                new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 0 /*Was 4 SMR*/, 0, 0);
+                new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
             transistorActiveBLayers[i] = new Technology.NodeLayer(activeLayers[i], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                 new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
-                new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10))}, 0 /*Was 4 SMR*/, 4, 0, 0);
+                new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10))}, 4, 4, 0, 0);
             transistorWellLayers[i] = new Technology.NodeLayer(wellLayers[(i+1)%transistorNodes.length], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
                 new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
                 new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6);
@@ -2839,7 +2839,7 @@ public class MoCMOS extends Technology
 
         return rules;
 	}
-   
+
     /**
      * Method to replace resizeNodes
      */
@@ -2849,10 +2849,10 @@ public class MoCMOS extends Technology
         rules.resizeMetalContacts(metalContactNodes, numMetals);
 
         // Active contacts
-        rules.resizeContactsWithActive(metalActiveContactNodes, null, false, false);
+        rules.resizeContactsWithActive(metalActiveContactNodes, null, false, false, false);
 
         // Well contacts
-        rules.resizeContactsWithActive(metalWellContactNodes, null, false, false);
+        rules.resizeContactsWithActive(metalWellContactNodes, null, false, false, false);
 
         // Poly contact
         rules.resizePolyContact(metal1PolyContactNodes[0]);

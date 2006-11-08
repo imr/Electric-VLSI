@@ -4,13 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/8/06, GVG) Adding corner butted active contacts in TSMC180
+
 BUG: (11/8/06, SMR) Auto-stitching serpentine transistors fails.
 FIX: The problem is that the MOCMOS serpentine transistors are incorrectly specified.
      In "MoCMOS.java", fixed the loading of "transistorPolyLLayers",
      "transistorPolyRLayers", "transistorActiveTLayers", and "transistorActiveBLayers".
      In Technology.SerpentineTrans, added the appropriate list of NodeLayers to the
      constructor so that Electrical layers can be specified.
-     
+
 IMP: (11/8/06, SMR) Moved test menus (make fake circuitry, make fake waveform window)
      from "Help" menu to "Steve" menu.
 

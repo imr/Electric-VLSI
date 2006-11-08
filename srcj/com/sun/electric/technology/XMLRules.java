@@ -1073,9 +1073,11 @@ public class XMLRules implements DRCRules {
      * @param contacts array of contacts to resize
      * @param contactNames Different contact names for butted contacts so already defined rules can be used.
      * @param aligned
-     * @param buttedCont
+     * @param buttedTop
+     * @param buttedRightLeft
      */
-    public void resizeContactsWithActive(PrimitiveNode[] contacts, String[] contactNames, boolean aligned, boolean buttedCont)
+    public void resizeContactsWithActive(PrimitiveNode[] contacts, String[] contactNames,
+                                         boolean aligned, boolean buttedTop, boolean buttedRightLeft)
     {
         for (int i = 0; i < contacts.length; i++)
         {
@@ -1108,18 +1110,13 @@ public class XMLRules implements DRCRules {
             wellNode.setPoints(Technology.TechPoint.makeIndented(value));
 
             value = so.getHighXOffset() - selSurround.getValue(0);
-            Technology.TechPoint [] pts = null;
-
-            if (buttedCont) // top section is aligned with active
-            {
-                pts = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(value), EdgeV.fromBottom(value)),
-					new Technology.TechPoint(EdgeH.fromRight(value), EdgeV.fromTop(0))};
-            }
-            else
-            {
-                pts = Technology.TechPoint.makeIndented(value);
-            }
+            EdgeH left = (buttedRightLeft) ? EdgeH.fromLeft(0) : EdgeH.fromLeft(value);
+            EdgeV bottom = EdgeV.fromBottom(value);
+            EdgeH right = (buttedRightLeft) ? EdgeH.fromRight(0) : EdgeH.fromRight(value);
+            EdgeV top = (buttedTop) ? EdgeV.fromTop(0) : EdgeV.fromTop(value);
+            Technology.TechPoint [] pts = new Technology.TechPoint [] {
+                new Technology.TechPoint(left, bottom),
+                new Technology.TechPoint(right, top)};
             selNode.setPoints(pts);
 
             // setting metal-cut distance if rule is available
@@ -1132,10 +1129,20 @@ public class XMLRules implements DRCRules {
 
                 if (aligned) // Y values don't move -> don't grow
                 {
-                    distY = cutSize.getValue(1)/2 + metalSurround.getValue(1);
-                    pts = new Technology.TechPoint [] {
-					new Technology.TechPoint(EdgeH.fromLeft(distX), EdgeV.fromCenter(-distY)),
-					new Technology.TechPoint(EdgeH.fromRight(distX), EdgeV.fromCenter(distY))};
+                    double distFromCenterX = cutSize.getValue(0)/2 + metalSurround.getValue(0);
+                    double distFromCenterY = cutSize.getValue(1)/2 + metalSurround.getValue(1);
+                    if (buttedTop && buttedRightLeft)
+                    {
+                        pts = new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromCenter(-distFromCenterX), EdgeV.fromCenter(-distFromCenterY)),
+                        new Technology.TechPoint(EdgeH.fromCenter(distFromCenterX), EdgeV.fromCenter(distFromCenterY))};
+                    }
+                    else
+                    {
+                        pts = new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(distX), EdgeV.fromCenter(-distFromCenterY)),
+                        new Technology.TechPoint(EdgeH.fromRight(distX), EdgeV.fromCenter(distFromCenterY))};
+                    }
                 }
                 else
                 {
@@ -1148,11 +1155,20 @@ public class XMLRules implements DRCRules {
             DRCTemplate activeSurround = getRule(index, DRCTemplate.DRCRuleType.SURROUND, contactName);
             if (activeSurround != null)
             {
-                assert(cutSur.getValue(0) == activeSurround.getValue(0));
-                EPoint point = new EPoint(cutSur.getValue(0)-activeSurround.getValue(0),
-                        cutSur.getValue(1)-activeSurround.getValue(1));
-                activeNode.setPoints(Technology.TechPoint.makeIndented(point.getX()+so.getHighXOffset(),
-                        point.getY()+so.getHighYOffset()));
+//                assert(cutSur.getValue(0) == activeSurround.getValue(0));
+//                EPoint point = new EPoint(cutSur.getValue(0)-activeSurround.getValue(0),
+//                        cutSur.getValue(1)-activeSurround.getValue(1));
+                if (buttedTop && buttedRightLeft)
+                {
+                    double distFromCenterX = cutSize.getValue(0)/2 + activeSurround.getValue(0);
+                    double distFromCenterY = cutSize.getValue(1)/2 + activeSurround.getValue(1);
+                    pts = new Technology.TechPoint [] {
+                        new Technology.TechPoint(EdgeH.fromLeft(so.getHighXOffset()), EdgeV.fromCenter(-distFromCenterY)),
+                        new Technology.TechPoint(EdgeH.fromRight(so.getHighXOffset()), EdgeV.fromTop(so.getHighYOffset()))};
+                    activeNode.setPoints(pts);
+                }
+                else
+                    activeNode.setPoints(Technology.TechPoint.makeIndented(so.getHighXOffset(), so.getHighYOffset()));
             }
         }
     }
