@@ -60,8 +60,8 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
+import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -362,16 +362,25 @@ public class Technology implements Comparable<Technology>
 
 		/**
 		 * Constructs a <CODE>NodeLayer</CODE> with the specified description.
+		 * This form of the method, with 4 additional parameters at the end,
+		 * is only used for serpentine transistors.
 		 * @param layer the <CODE>Layer</CODE> this is on.
 		 * @param portNum a 0-based index of the port (from the actual NodeInst) on this layer.
 		 * A negative value indicates that this layer is not connected to an electrical layer.
 		 * @param style the Poly.Type this NodeLayer will generate (polygon, circle, text, etc.).
 		 * @param representation tells how to interpret "points".  It can be POINTS, BOX, or MINBOX.
 		 * @param points the list of coordinates (stored as TechPoints) associated with this NodeLayer.
-		 * @param lWidth the extension to the left of this layer (serpentine transistors only).
-		 * @param rWidth the extension to the right of this layer (serpentine transistors only).
-		 * @param extentT the extension to the top of this layer (serpentine transistors only).
-		 * @param extendB the extension to the bottom of this layer (serpentine transistors only).
+		 * @param lWidth the left extension of this layer, measured from the <I>centerline</I>.
+		 * The centerline is the path that the serpentine transistor follows (it defines the path of the
+		 * polysilicon).  So, for example, if lWidth is 4 and rWidth is 4, it creates a NodeLayer that is 8 wide
+		 * (with 4 to the left and 4 to the right of the centerline).
+		 * Left and Right widths define the size of the Active layers.
+		 * @param rWidth the right extension the right of this layer, measured from the <I>centerline</I>.
+		 * @param extentT the top extension of this layer, measured from the end of the <I>centerline</I>.
+		 * The top and bottom extensions apply to the ends of the centerline, and not to each segment
+		 * along it.  They define the extension of the polysilicon.  For example, if extendT is 2,
+		 * it indicates that the NodeLayer extends by 2 from the top end of the centerline.
+		 * @param extendB the bottom extension of this layer, measured from the end of the <I>centerline</I>.
 		 */
 		public NodeLayer(Layer layer, int portNum, Poly.Type style, int representation, TechPoint [] points,
 			double lWidth, double rWidth, double extentT, double extendB)
@@ -1944,7 +1953,7 @@ public class Technology implements Comparable<Technology>
 			numBasicLayers--;
 		} else if (specialType == PrimitiveNode.SERPTRANS)
 		{
-			std = new SerpentineTrans(ni.getD());
+			std = new SerpentineTrans(ni.getD(), primLayers);
 			if (std.layersTotal > 0)
 			{
 				numExtraLayers = std.layersTotal;
@@ -2336,7 +2345,7 @@ public class Technology implements Comparable<Technology>
 		 * Constructor throws initialize for a serpentine transistor.
 		 * @param niD the NodeInst with a serpentine transistor.
 		 */
-		public SerpentineTrans(ImmutableNodeInst niD)
+		public SerpentineTrans(ImmutableNodeInst niD, Technology.NodeLayer [] pLayers)
 		{
 			theNode = niD;
 
@@ -2350,7 +2359,7 @@ public class Technology implements Comparable<Technology>
 			{
 				theProto = (PrimitiveNode)niD.protoId;
 				specialValues = theProto.getSpecialValues();
-				primLayers = theProto.getLayers();
+				primLayers = pLayers;
 				int count = primLayers.length;
 				numSegments = points.length - 1;
 				layersTotal = count * numSegments;
@@ -2398,8 +2407,6 @@ public class Technology implements Comparable<Technology>
 			// prepare to fill the serpentine transistor
 			double xoff = theNode.anchor.getX();
 			double yoff = theNode.anchor.getY();
-// 			double xoff = theNode.getTrueCenterX();
-// 			double yoff = theNode.getTrueCenterY();
 			int thissg = segment;   int next = segment+1;
 			Point2D thisPt = points[thissg];
 			Point2D nextPt = points[next];
@@ -2539,7 +2546,6 @@ public class Technology implements Comparable<Technology>
 			double yOff = theNode.anchor.getY();
 			int total = points.length;
 			AffineTransform trans = theNode.orient.rotateAbout(theNode.anchor.getX(), theNode.anchor.getY());
-//            AffineTransform trans = theNode.rotateOut();
 
 			// determine which port is being described
 			int which = 0;
@@ -2705,7 +2711,7 @@ public class Technology implements Comparable<Technology>
 		if (np.getSpecialType() == PrimitiveNode.SERPTRANS)
 		{
 			// serpentine transistors use a more complex port determination
-			SerpentineTrans std = new SerpentineTrans(ni.getD());
+			SerpentineTrans std = new SerpentineTrans(ni.getD(), np.getLayers());
 			if (std.hasValidData())
 				return std.fillTransPort(pp);
 		}

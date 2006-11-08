@@ -47,8 +47,6 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -72,7 +70,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -1901,7 +1898,11 @@ public class Connectivity
 						if (xpos > polyBounds2.getMaxX()) xpos = polyBounds2.getMaxX();
 						Point2D pt1 = new Point2D.Double(xpos, polyBounds1.getCenterY());
 						Point2D pt2 = new Point2D.Double(xpos, polyBounds2.getCenterY());
-						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultLambdaFullWidth(), false, false, merge);
+
+						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
+						double wid = ap.getDefaultLambdaFullWidth();
+						originalMerge.arcPolyFits(layer, pt1, pt2, wid, headExtend, tailExtend);
+						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 						continue;
 					}
 					if (polyBounds1.getMinY() <= polyBounds2.getMaxY() && polyBounds1.getMaxY() >= polyBounds2.getMinY())
@@ -1912,7 +1913,11 @@ public class Connectivity
 						if (ypos > polyBounds2.getMaxY()) ypos = polyBounds2.getMaxY();
 						Point2D pt1 = new Point2D.Double(polyBounds1.getCenterX(), ypos);
 						Point2D pt2 = new Point2D.Double(polyBounds2.getCenterX(), ypos);
-						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, ap.getDefaultLambdaFullWidth(), false, false, merge);
+
+						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
+						double wid = ap.getDefaultLambdaFullWidth();
+						originalMerge.arcPolyFits(layer, pt1, pt2, wid, headExtend, tailExtend);
+						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 						continue;
 					}
 
@@ -1921,21 +1926,23 @@ public class Connectivity
 					Point2D pt2 = new Point2D.Double(polyBounds2.getCenterX(), polyBounds2.getCenterY());
 					Point2D corner1 = new Point2D.Double(polyBounds1.getCenterX(), polyBounds2.getCenterY());
 					Point2D corner2 = new Point2D.Double(polyBounds2.getCenterX(), polyBounds1.getCenterY());
-					if (poly.contains(corner1))
+					Point2D containsIt = null;
+					if (poly.contains(corner1)) containsIt = corner1; else
+						if (poly.contains(corner2)) containsIt = corner2;
+					if (containsIt != null)
 					{
 						PrimitiveNode np = ap.findPinProto();
-						NodeInst ni = createNode(np, corner1, np.getDefWidth(), np.getDefHeight(), newCell);
+						NodeInst ni = createNode(np, containsIt, np.getDefWidth(), np.getDefHeight(), newCell);
 						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner1, ap.getDefaultLambdaFullWidth(), false, false, merge);
-						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner1, ap.getDefaultLambdaFullWidth(), false, false, merge);
-					}
-					if (poly.contains(corner2))
-					{
-						PrimitiveNode np = ap.findPinProto();
-						NodeInst ni = createNode(np, corner2, np.getDefWidth(), np.getDefHeight(), newCell);
-						PortInst pi = ni.getOnlyPortInst();
-						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner2, ap.getDefaultLambdaFullWidth(), false, false, merge);
-						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, corner2, ap.getDefaultLambdaFullWidth(), false, false, merge);
+						double wid = ap.getDefaultLambdaFullWidth();
+
+						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
+						originalMerge.arcPolyFits(layer, pt1, containsIt, wid, headExtend, tailExtend);
+						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+
+						headExtend.setValue(true);   tailExtend.setValue(true);
+						originalMerge.arcPolyFits(layer, pt2, containsIt, wid, headExtend, tailExtend);
+						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 					}
 				}
 			}
@@ -2853,6 +2860,7 @@ public class Connectivity
 	 */
 	private void convertAllGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
+		double smallestPoly = (SCALEFACTOR * SCALEFACTOR) / 10;
         for (Layer layer : merge.getKeySet())
 		{
 			ArcProto ap = arcsForLayer.get(layer);
@@ -2860,7 +2868,8 @@ public class Connectivity
 //System.out.println("COMPLETE LAYER "+layer.getName()+": "+describeLayer(merge, layer));
 			for(PolyBase poly : polyList)
 			{
-				if (poly.getArea() < DBMath.getEpsilon()) continue;
+				double area = poly.getArea();
+				if (area < smallestPoly) continue;
 
 				// special case: a rectangle on a routable layer: make it an arc
 				if (ap != null)
@@ -2954,11 +2963,12 @@ public class Connectivity
 
 	private NodeInst createNode(NodeProto np, Point2D loc, double wid, double hei, Cell cell)
 	{
-//if (wid >= 90  || hei >= 90)
-//{
-//	String primName = np.getName();
-//	int ww=9;
-//}
+		// pins cannot be smaller than their default size
+		if (np.getFunction() == PrimitiveNode.Function.PIN)
+		{
+			if (wid < np.getDefWidth()) wid = np.getDefWidth();
+			if (hei < np.getDefHeight()) hei = np.getDefHeight();
+		}
 		NodeInst ni = NodeInst.makeInstance(np, loc, wid, hei, cell);
 		return ni;
 	}
