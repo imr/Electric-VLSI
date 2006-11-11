@@ -650,22 +650,20 @@ public class Quick
         int count = 0;
         String resolutionError = "";
 		Point2D [] points = poly.getPoints();
-		for (int i=0; i<points.length; i++)
+        for(Point2D point : points)
 		{
-            if (DBMath.hasRemainder(points[i].getX(), minAllowedResolution))
+            if (DBMath.hasRemainder(point.getX(), minAllowedResolution))
             {
                 count++;
-                resolutionError = TextUtils.formatDouble(Math.abs(((points[i].getX()/minAllowedResolution) % 1) * minAllowedResolution)) +
-                        "(X=" + points[i].getX() + ")";
-//                DBMath.hasRemainder(points[i].getX(), minAllowedResolution);
+                resolutionError = TextUtils.formatDouble(Math.abs(((point.getX()/minAllowedResolution) % 1) * minAllowedResolution)) +
+                        "(X=" + point.getX() + ")";
                 break; // with one error is enough
             }
-            else if (DBMath.hasRemainder(points[i].getY(), minAllowedResolution))
+            else if (DBMath.hasRemainder(point.getY(), minAllowedResolution))
             {
                 count++;
-                resolutionError = TextUtils.formatDouble(Math.abs(((points[i].getY()/minAllowedResolution) % 1) * minAllowedResolution)) +
-                        "(Y=" + points[i].getY() + ")";
-//                DBMath.hasRemainder(points[i].getY(), minAllowedResolution);
+                resolutionError = TextUtils.formatDouble(Math.abs(((point.getY()/minAllowedResolution) % 1) * minAllowedResolution)) +
+                        "(Y=" + point.getY() + ")";
                 break;
             }
 		}
@@ -693,6 +691,29 @@ public class Quick
             return true;
         }
         return false;
+    }
+
+    /**
+     * Private method to check if geometry given by Poly object is inside an exclusion region
+     * @param poly
+     * @param parent
+     * @return true if Poly is inside an exclusion region
+     */
+    private boolean coverByExclusion(Poly poly, Cell parent)
+    {
+        Area area = exclusionMap.get(parent);
+        if (area == null) return false;
+
+        Point2D[] pts = poly.getPoints();
+        for (Point2D point : pts)
+        {
+            if (!area.contains(point))
+            {
+                return false;
+            }
+        }
+        System.out.println("DRC Exclusion found in coverByExclusion");
+        return true;
     }
 
     /**
@@ -742,6 +763,9 @@ public class Quick
 			Poly poly = nodeInstPolyList[j];
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
+
+            if (coverByExclusion(poly, cell))
+                continue;
 
             // Checking combination
             boolean ret = checkOD2Combination(tech, ni, layer);
@@ -892,9 +916,8 @@ public class Quick
 		boolean errorsFound = false;
 
         // Check resolution before cropping the
-        for(int j=0; j<arcInstPolyList.length; j++)
+        for(Poly poly : arcInstPolyList)
 		{
-			Poly poly = arcInstPolyList[j];
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
 			if (layer.isNonElectrical()) continue;
@@ -918,7 +941,7 @@ public class Quick
 			if (layer.isNonElectrical()) continue;
 
 			int layerNum = layer.getIndex();
-			int netNumber = netNumbers[globalIndex].intValue();
+			int netNumber = netNumbers[globalIndex]; // autoboxing
 			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
 			if (ret)
 			{
@@ -1248,7 +1271,7 @@ public class Quick
                 continue;
 
             // Checking if element is covered by exclusion region
-            //if (coverByExclusion(nGeom)) continue; // skips this element
+            if (coverByExclusion(nGeom)) continue; // skips this element
 
 			if (nGeom instanceof NodeInst)
 			{
@@ -1315,6 +1338,9 @@ public class Quick
 						Poly npoly = subPolyList[j];
 						Layer nLayer = npoly.getLayer();
 						if (nLayer == null) continue;
+
+                        if (coverByExclusion(npoly, nGeom.getParent()))
+                            continue;
                         //npoly.transform(rTrans);
 
                         Rectangle2D nPolyRect = npoly.getBounds2D();
@@ -1434,7 +1460,11 @@ public class Quick
 					Poly nPoly = subPolyList[j];
 					Layer nLayer = nPoly.getLayer();
 					if (nLayer == null) continue;
-					Rectangle2D nPolyRect = nPoly.getBounds2D();
+
+                    if (coverByExclusion(nPoly, nGeom.getParent()))
+                            continue;
+
+                    Rectangle2D nPolyRect = nPoly.getBounds2D();
 
 					// can't do this because "lxbound..." is local but the poly bounds are global
 					if (nPolyRect.getMinX() > rBound.getMaxX() ||
