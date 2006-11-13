@@ -695,7 +695,7 @@ public class Spice extends Topology
                         spNet.nonDiffCapacitance += layer.getEdgeCapacitance() * perim * maskScale;
                     }
 				}
-			}		
+			}
 		}
 
 		// make sure the ground net is number zero
@@ -914,7 +914,7 @@ public class Spice extends Topology
 						StringBuffer infstr = replacePortsAndVars(line, no, context, cni, segmentedNets, info, false);
 	                    // Writing MFactor if available. Not sure here
 						writeMFactor(context, no, infstr);
-						
+
 						infstr.append('\n');
 						multiLinePrint(false, infstr.toString());
 					}
@@ -2237,7 +2237,7 @@ public class Spice extends Topology
                 ArcInst ai = it.next();
                 Double res = segmentedNets.arcRes.get(ai);
                 Variable var = ai.getVar(ATTR_R);
-               
+
                 resOnArcs.add(ai);
                 valsOnArcs.add(res);
             }
@@ -2504,8 +2504,8 @@ public class Spice extends Topology
 	protected boolean isAggregateNamesSupported() { return false; }
 
     /** Method to report that not to choose best export name among exports connected to signal. */
-    protected boolean isChooseBestExportName() { return false; } 
-    
+    protected boolean isChooseBestExportName() { return false; }
+
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return false; }
 
@@ -2562,7 +2562,7 @@ public class Spice extends Topology
                 Nodable no = info.getParentInst();
                 String parameterizedName = parameterizedName(no, parentInfo.getContext());
                 CellNetInfo cni = getCellNetInfo(parameterizedName);
-                SpiceSubckt subckt = reader.getSubckts().get(parameterizedName.toLowerCase());
+                SpiceSubckt subckt = reader.getSubckt(parameterizedName);
                 if (subckt == null) {
                     System.out.println("Error: No subckt for "+parameterizedName+" found in included file: "+fileName);
                 } else {
@@ -2682,7 +2682,7 @@ public class Spice extends Topology
 
 	/**
 	 * Method to tell set a limit on the number of characters in a name.
-	 * @return the limit to name size (SPICE limits to 32 character names?????). 
+	 * @return the limit to name size (SPICE limits to 32 character names?????).
 	 */
 	protected int maxNameLength() { if (useCDL) return CDLMAXLENSUBCKTNAME; return SPICEMAXLENSUBCKTNAME; }
 
@@ -2700,7 +2700,7 @@ public class Spice extends Topology
 	 */
 	private void writeHeader(Cell cell)
 	{
-		// Print the header line for SPICE 
+		// Print the header line for SPICE
 		multiLinePrint(true, "*** SPICE deck for cell " + cell.noLibDescribe() +
 			" from library " + cell.getLibrary().getName() + "\n");
 		emitCopyright("*** ", "");
