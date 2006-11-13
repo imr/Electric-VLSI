@@ -23,10 +23,7 @@
  */
 package com.sun.electric.tool.io.input.spicenetlist;
 
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.io.PrintStream;
 
 /**
@@ -38,22 +35,33 @@ import java.io.PrintStream;
  */
 
 public class SpiceSubckt {
+    public enum PortType { IN, OUT, BIDIR }
+
     private String name;
     private List<String> ports;
     private HashMap<String,String> params;
     private List<SpiceInstance> instances;
+    private HashMap<String,PortType> porttypes;
     public SpiceSubckt(String name) {
         this.name = name;
         this.ports = new ArrayList<String>();
         this.params = new LinkedHashMap<String,String>();
         this.instances = new ArrayList<SpiceInstance>();
+        this.porttypes = new HashMap<String,PortType>();
     }
     public String getName() { return name; }
     public void addPort(String port) { ports.add(port); }
+    public boolean hasPort(String portname) { return ports.contains(portname.toLowerCase()); }
     public List<String> getPorts() { return ports; }
+    public String getParamValue(String name) { return params.get(name.toLowerCase()); }
     public HashMap<String,String> getParams() { return params; }
     void addInstance(SpiceInstance inst) { instances.add(inst); }
     public List<SpiceInstance> getInstances() { return instances; }
+    public void setPortType(String port, PortType type) {
+        if (ports.contains(port) && type != null)
+            porttypes.put(port, type);
+    }
+    public PortType getPortType(String port) { return porttypes.get(port.toLowerCase()); }
     public void write(PrintStream out) {
         StringBuffer buf = new StringBuffer(".subckt ");
         buf.append(name);

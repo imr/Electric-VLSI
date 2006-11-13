@@ -60,8 +60,11 @@ public class SpiceNetlistReader {
     public HashMap<String,String> getOptions() { return options; }
     public HashMap<String,String> getGlobalParams() { return globalParams; }
     public List<SpiceInstance> getTopLevelInstances() { return topLevelInstances; }
-    public HashMap<String,SpiceSubckt> getSubckts() { return subckts; }
+    public Collection<SpiceSubckt> getSubckts() { return subckts.values(); }
     public List<String> getGlobalNets() { return globalNets; }
+    public SpiceSubckt getSubckt(String name) {
+        return subckts.get(name.toLowerCase());
+    }
 
     private static final boolean DEBUG = true;
 
@@ -401,6 +404,20 @@ public class SpiceNetlistReader {
         return inst;
     }
 
+    private void parseComment(String line) {
+        if (currentSubckt == null) return;
+        String [] parts = line.split("\\s+");
+        for (int i=0; i<parts.length; i++) {
+            if (parts[i].equalsIgnoreCase("PORT") && i+2 < parts.length) {
+                String dir = parts[i+1];
+                String port = parts[i+2];
+                SpiceSubckt.PortType type = SpiceSubckt.PortType.valueOf(dir);
+                if (type != null)
+                    currentSubckt.setPortType(port, type);
+                return;
+            }
+        }
+    }
 
     /**
      * Read one line of the spice file. This concatenates continuation lines
@@ -421,6 +438,7 @@ public class SpiceNetlistReader {
             line = line.trim();
             if (line.startsWith("*")) {
                 // comment line
+                parseComment(line);
                 continue;
             }
             if (line.startsWith("+")) {
