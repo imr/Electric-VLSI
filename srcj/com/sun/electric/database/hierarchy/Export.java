@@ -80,12 +80,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	/** Key of text descriptor of export name */            public static final Variable.Key EXPORT_NAME = Variable.newKey("EXPORT_name");
 	/** Key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = Variable.newKey("EXPORT_reference_name");
 
-	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
-	/** set to exclude this port from the icon */			private static final int BODYONLY =         01000000000;
-	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
-	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
-	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
-
 	// -------------------------- private data ---------------------------
     /** persistent data of this Export. */                  private ImmutableExport d;
 	/** The parent Cell of this Export. */					private final Cell parent;
@@ -443,41 +437,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	void setPortIndex(int portIndex) { this.portIndex = portIndex; }
 
     /**
-     * Returns ELIB user bits of this ImmutableExport.
-     * @return ELIB user bits of this ImmutableExport.
-     */
-	public int getElibBits() {
-        int userBits = getCharacteristic().getBits() << STATEBITSSH;
-        if (isAlwaysDrawn()) userBits |= PORTDRAWN;
-        if (isBodyOnly()) userBits |= BODYONLY;
-        return userBits;
-    }
-    
-    /**
-     * Get alwaysDrawn Export flag from ELIB user bits.
-     * @param elibBits ELIB user bits.
-     * @return alwaysDrawn flag.
-     */
-    public static boolean alwaysDrawnFromElib(int elibBits) { return (elibBits & PORTDRAWN) != 0; }
-
-    /**
-     * Get bodyOnly Export flag from ELIB user bits.
-     * @param elibBits ELIB user bits.
-     * @return bodyOnly flag.
-     */
-    public static boolean bodyOnlyFromElib(int elibBits) { return (elibBits & BODYONLY) != 0; }
-
-    /**
-     * Get PortCharacteristic of Export from ELIB user bits.
-     * @param elibBits ELIB user bits.
-     * @return PortCharacteristic.
-     */
-    public static PortCharacteristic portCharacteristicFromElib(int elibBits) {
-        PortCharacteristic characteristic = PortCharacteristic.findCharacteristic((elibBits >> STATEBITSSH) & STATEBITSSHIFTED);
-        return characteristic != null ? characteristic : PortCharacteristic.UNKNOWN;
-    }
-
-    /**
      * Method to copy state bits from other Export.
      * State bits are alowaysDrawn, bodyOnly and characteristic.
      * @param other Export from which to take state bits.
@@ -544,6 +503,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
      * Returns persistent data of this Export.
      * @return persistent data of this Export.
      */
+    @Override
     public ImmutableExport getD() { return d; }
     
     /**
@@ -582,12 +542,6 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
     }
     
     /**
-     * Returns persistent data of this ElectricObject.
-     * @return persistent data of this ElectricObject.
-     */
-    public ImmutableElectricObject getImmutable() { return d; }
-    
-    /**
      * Method to add a Variable on this Export.
      * It may add repaired copy of this Variable in some cases.
      * @param var Variable to add.
@@ -615,7 +569,7 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	 * Method to return the parent NodeProto of this Export.
 	 * @return the parent NodeProto of this Export.
 	 */
-	public NodeProto getParent() { return parent; }
+	public Cell getParent() { return parent; }
 
     /**
      * Method to return chronological index of this Export in parent.

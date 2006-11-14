@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/14/06, DN) All library writers (ELIB, ReadableDump) work on immutable objects only.
+    ImmutbaleArcInst.gridLength removed. Null elements in Variables are forbidden.
+
 BUG: (11/10/06, GVG) DRC exclusion regions not working hierarchically (bug#1257)
 FIX: Check exclusion at the layer level instead of geometry level or report level.
 Note: it could slow down the code.

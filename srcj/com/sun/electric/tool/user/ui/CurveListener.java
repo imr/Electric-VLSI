@@ -226,7 +226,7 @@ public class CurveListener
 		double r = r0.distance(ip);
 
 		// now see if this point will be re-created
-		Point2D [] pts = DBMath.findCenters(r, r0, r1, ai.getLambdaLength());
+		Point2D [] pts = DBMath.findCenters(r, r0, r1);
 		if (pts != null)
 		{
 			if (Math.abs(pts[0].getX()-ip.getX())+Math.abs(pts[0].getY()-ip.getY()) <
@@ -260,7 +260,7 @@ public class CurveListener
 
 		//now see if this point will be re-created
 		double r = r0.distance(rc);
-		Point2D [] pts = DBMath.findCenters(r, r0, r1, ai.getLambdaLength());
+		Point2D [] pts = DBMath.findCenters(r, r0, r1);
 		if (pts != null)
 		{
 			if (Math.abs(pts[0].getX()-rcx) + Math.abs(pts[0].getY()-rcy) <

@@ -762,17 +762,17 @@ public class GenMath
      * @param r the radius of the circle.
      * @param p1 one point on the edge of the circle.
      * @param p2 the other point on the edge of the circle.
-     * @param d the distance between the two points.
      * @return an array of two Point2Ds, either of which could be the center.
      * Returns null if there are no possible centers.
      * This code was written by John Mohammed of Schlumberger.
      */
-    public static Point2D [] findCenters(double r, Point2D p1, Point2D p2, double d)
+    public static Point2D [] findCenters(double r, Point2D p1, Point2D p2)
     {
         // quit now if the circles concentric
         if (p1.getX() == p2.getX() && p1.getY() == p2.getY()) return null;
 
         // find the intersections, if any
+        double d = p1.distance(p2);
         double r2 = r * r;
         double delta_1 = -d / 2.0;
         double delta_12 = delta_1 * delta_1;

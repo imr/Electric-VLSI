@@ -1488,7 +1488,7 @@ public class EDIF extends Topology
 		if (e.isBodyOnly()) return true;
 
 		// or if it does not exist on the icon
-		Cell parent = (Cell)e.getParent();
+		Cell parent = e.getParent();
 		Cell inp = parent.iconView();
 		if (inp == null) return false;
 		if (e.getEquivalent() == null) return true;

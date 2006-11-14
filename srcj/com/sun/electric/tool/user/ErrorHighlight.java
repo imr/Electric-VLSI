@@ -90,7 +90,7 @@ class ErrorHighExport extends ErrorHighlight {
 
     public ErrorHighExport(VarContext con, Export p)
     {
-        super((Cell)p.getParent(), con);
+        super(p.getParent(), con);
         this.pp = (ExportId)p.getId();
     }
 
@@ -99,7 +99,7 @@ class ErrorHighExport extends ErrorHighlight {
     void addToHighlighter(Highlighter h, EDatabase database)
     {
         Export e = pp.inDatabase(database);
-        h.addText(e, (Cell)e.getParent(), Export.EXPORT_NAME);
+        h.addText(e, e.getParent(), Export.EXPORT_NAME);
     }
 }
 

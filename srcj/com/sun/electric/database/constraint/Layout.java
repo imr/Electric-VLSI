@@ -201,9 +201,9 @@ public class Layout extends Constraints
 	 */
 	public void modifyExport(Export pp, ImmutableExport oldD) {
         if (doChangesQuietly) return;
-        PortInst oldPi = ((Cell)pp.getParent()).getPortInst(oldD.originalNodeId, oldD.originalPortId);
+        PortInst oldPi = pp.getParent().getPortInst(oldD.originalNodeId, oldD.originalPortId);
         if (oldPi == pp.getOriginalPort()) return;
-        getCellInfo((Cell)pp.getParent()).modifyExport(pp, oldPi);
+        getCellInfo(pp.getParent()).modifyExport(pp, oldPi);
     }
     
 	/**
@@ -247,8 +247,8 @@ public class Layout extends Constraints
         EDatabase database = EDatabase.serverDatabase();
         for (CellId cellId: idMapper.getNewCellIds())
             newObject(cellId.inDatabase(database));
-        for (ExportId exportId: idMapper.getNewExportIds())
-            newObject(exportId.inDatabase(database));
+//        for (ExportId exportId: idMapper.getNewExportIds())
+//            newObject(exportId.inDatabase(database));
     }
     
 	/**
@@ -389,7 +389,7 @@ public class Layout extends Constraints
 	}
 
     static PortInst getOldOriginalPort(Export e) {
-        return getCellInfo((Cell)e.getParent()).getOldOriginalPort(e);
+        return getCellInfo(e.getParent()).getOldOriginalPort(e);
     }
     
     static ImmutableNodeInst getOldD(NodeInst ni) {

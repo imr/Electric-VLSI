@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -64,6 +65,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This class reads files in readable-dump (.txt) format.
@@ -543,14 +545,22 @@ public class ReadableDump extends LibraryFiles
 		int numExports = 0;
 		if (el != null) numExports = el.exportList.length;
         CellId cellId = cell.getId();
+        
+        // Try to create ExportIds in alphanumeric order
+        TreeSet<String> exportNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
+        for (int j = 0; j < numExports; j++)
+            exportNames.add(el.exportName[j]);
+        for (String exportName: exportNames)
+            cell.getId().newExportId(exportName);
+        
 		for(int j=0; j<numExports; j++)
 		{
             NodeInst subNi = nodeInstList[cellIndex].theNode[el.exportSubNode[j]];
 			PortInst pi = findProperPortInst(subNi, el.exportSubPort[j]);
 			int userBits = exportList[curCellNumber].exportUserBits[curExportIndex];
-            boolean alwaysDrawn = Export.alwaysDrawnFromElib(userBits);
-            boolean bodyOnly = Export.bodyOnlyFromElib(userBits);
-            PortCharacteristic characteristic = Export.portCharacteristicFromElib(userBits);
+            boolean alwaysDrawn = ImmutableExport.alwaysDrawnFromElib(userBits);
+            boolean bodyOnly = ImmutableExport.bodyOnlyFromElib(userBits);
+            PortCharacteristic characteristic = ImmutableExport.portCharacteristicFromElib(userBits);
             ExportId exportId = cellId.newExportId(Name.findName(el.exportName[j]).toString());
             Export pp = Export.newInstance(cell, exportId, null, exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
 			el.exportList[j] = pp;
@@ -1745,10 +1755,10 @@ public class ReadableDump extends LibraryFiles
 					case ELIBConstants.VFLOAT:      value = new Float[arrayLen];       break;
 					case ELIBConstants.VDOUBLE:     value = new Double[arrayLen];      break;
 					case ELIBConstants.VSHORT:      value = new Short[arrayLen];       break;
-					case ELIBConstants.VBOOLEAN:
+					case ELIBConstants.VBOOLEAN:    value = new Boolean[arrayLen];     break;
 					case ELIBConstants.VCHAR:       value = new Byte[arrayLen];        break;
 					case ELIBConstants.VSTRING:     value = new String[arrayLen];      break;
-					case ELIBConstants.VNODEPROTO:  value = new NodeProto[arrayLen];   break;
+					case ELIBConstants.VNODEPROTO:  value = new NodeProtoId[arrayLen]; break;
 					case ELIBConstants.VARCPROTO:   value = new ArcProto[arrayLen];    break;
 					case ELIBConstants.VPORTPROTO:  value = new ExportId[arrayLen];    break;
 					case ELIBConstants.VTECHNOLOGY: value = new Technology[arrayLen];  break;
@@ -1798,14 +1808,16 @@ public class ReadableDump extends LibraryFiles
 		switch (thistype&ELIBConstants.VTYPE)
 		{
 			case ELIBConstants.VINTEGER:
-			case ELIBConstants.VSHORT:
-			case ELIBConstants.VBOOLEAN:
 			case ELIBConstants.VADDRESS:
-				return new Integer(TextUtils.atoi(name));
+                return new Integer(TextUtils.atoi(name));
+			case ELIBConstants.VSHORT:
+                return new Short((short)TextUtils.atoi(name));
+			case ELIBConstants.VBOOLEAN:
+				return new Boolean(TextUtils.atoi(name) != 0);
 			case ELIBConstants.VFRACT:
 				return new Float(TextUtils.atoi(name) / 120.0f);
 			case ELIBConstants.VCHAR:
-				return new Character(name.charAt(0));
+				return new Byte((byte)name.charAt(0));
 			case ELIBConstants.VSTRING:
 				char [] letters = new char[name.length()];
 				int outpos = 0;
@@ -1827,6 +1839,10 @@ public class ReadableDump extends LibraryFiles
 				return new Float(Float.parseFloat(name));
 			case ELIBConstants.VDOUBLE:
 				return new Double(Double.parseDouble(name));
+            case ELIBConstants.VLIBRARY:
+                if (name.length() == 0) return null;
+                if (name.charAt(0) == '"') name = name.substring(1, name.length() - 1);
+                return lib.getDatabase().getIdManager().newLibId(name);
 			case ELIBConstants.VNODEPROTO:
 				int colonPos = name.indexOf(':');
 				if (colonPos < 0)

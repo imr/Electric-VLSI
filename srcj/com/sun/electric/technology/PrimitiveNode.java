@@ -573,9 +573,9 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable<Primiti
 	}
 
     /**
-     * Returns PrimitivePort in this PrimitiveNode parent cell with specified chronological index.
-     * @param chronIndex chronological index of PrimitiveNode.
-     * @return PrimitivePoirt whith specified chronological index.
+     * Returns PrimitivePort in this PrimitiveNode with specified chronological index.
+     * @param chronIndex chronological index of PrimitivePort.
+     * @return PrimitivePort whith specified chronological index.
      * @throws ArrayIndexOutOfBoundsException if no such PrimitivePort.
      */
     public PrimitivePort getPortId(int chronIndex) { return primPorts[chronIndex]; }

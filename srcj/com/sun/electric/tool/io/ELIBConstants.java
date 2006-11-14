@@ -23,12 +23,15 @@
  */
 package com.sun.electric.tool.io;
 
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ExportId;
+import com.sun.electric.database.LibId;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.technology.Technology;
 
@@ -147,20 +150,37 @@ public class ELIBConstants
 	 */
 	public static int getVarType(Object obj)
 	{
+		if (obj instanceof String) return ELIBConstants.VSTRING;
+		if (obj instanceof Double) return ELIBConstants.VDOUBLE;
+		if (obj instanceof Float) return ELIBConstants.VFLOAT;
+		if (obj instanceof Long) return ELIBConstants.VINTEGER;
 		if (obj instanceof Integer) return ELIBConstants.VINTEGER;
 		if (obj instanceof Short) return ELIBConstants.VSHORT;
 		if (obj instanceof Byte) return ELIBConstants.VCHAR;
-		if (obj instanceof String) return ELIBConstants.VSTRING;
-		if (obj instanceof Float) return ELIBConstants.VFLOAT;
-		if (obj instanceof Double) return ELIBConstants.VDOUBLE;
-		if (obj instanceof Technology) return ELIBConstants.VTECHNOLOGY;
-		if (obj instanceof Library) return ELIBConstants.VLIBRARY;
+        if (obj instanceof Boolean) return ELIBConstants.VCHAR;
 		if (obj instanceof Tool) return ELIBConstants.VTOOL;
-		if (obj instanceof NodeInst) return ELIBConstants.VNODEINST;
-		if (obj instanceof ArcInst) return ELIBConstants.VARCINST;
-		if (obj instanceof NodeProto) return ELIBConstants.VNODEPROTO;
+		if (obj instanceof Technology) return ELIBConstants.VTECHNOLOGY;
+		if (obj instanceof PrimitiveNode) return ELIBConstants.VNODEPROTO;
 		if (obj instanceof ArcProto) return ELIBConstants.VARCPROTO;
-		if (obj instanceof PortProto) return ELIBConstants.VPORTPROTO;
-		return ELIBConstants.VUNKNOWN;
+        if (obj instanceof LibId) return ELIBConstants.VLIBRARY;
+        if (obj instanceof CellId) return ELIBConstants.VNODEPROTO;
+        if (obj instanceof ExportId) return ELIBConstants.VPORTPROTO;
+        
+		if (obj instanceof String[]) return ELIBConstants.VSTRING;
+		if (obj instanceof Double[]) return ELIBConstants.VDOUBLE;
+		if (obj instanceof Float[]) return ELIBConstants.VFLOAT;
+		if (obj instanceof Long[]) return ELIBConstants.VINTEGER;
+		if (obj instanceof Integer[]) return ELIBConstants.VINTEGER;
+		if (obj instanceof Short[]) return ELIBConstants.VSHORT;
+		if (obj instanceof Byte[]) return ELIBConstants.VCHAR;
+        if (obj instanceof Boolean[]) return ELIBConstants.VCHAR;
+		if (obj instanceof Tool[]) return ELIBConstants.VTOOL;
+		if (obj instanceof Technology[]) return ELIBConstants.VTECHNOLOGY;
+		if (obj instanceof PrimitiveNode[]) return ELIBConstants.VNODEPROTO;
+		if (obj instanceof ArcProto[]) return ELIBConstants.VARCPROTO;
+        if (obj instanceof LibId[]) return ELIBConstants.VLIBRARY;
+        if (obj instanceof CellId[]) return ELIBConstants.VNODEPROTO;
+        if (obj instanceof ExportId[]) return ELIBConstants.VPORTPROTO;
+		throw new AssertionError();
 	}
 }

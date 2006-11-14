@@ -86,7 +86,7 @@ public class SilComp extends Tool
 	{
 		if (port == null) return 0;
 		Poly poly = port.getOriginalPort().getPoly();
-		Rectangle2D bounds = ((Cell)port.getParent()).getBounds();
+		Rectangle2D bounds = port.getParent().getBounds();
 		return poly.getCenterX() - bounds.getMinX();
 	}
 
@@ -99,7 +99,7 @@ public class SilComp extends Tool
 	{
 		if (port == null) return 0;
 		Poly poly = port.getOriginalPort().getPoly();
-		Rectangle2D bounds = ((Cell)port.getParent()).getBounds();
+		Rectangle2D bounds = port.getParent().getBounds();
 		return poly.getCenterY() - bounds.getMinY();
 	}
 

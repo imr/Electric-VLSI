@@ -174,7 +174,7 @@ public class EObjectOutputStream extends ObjectOutputStream {
         int portIndex;
         
         private EPrimitivePort(PrimitivePort pp) {
-            PrimitiveNode pn = (PrimitiveNode)pp.getParent();
+            PrimitiveNode pn = pp.getParent();
             techName = pn.getTechnology().getTechName();
             primName = pn.getName();
             portIndex = pp.getPortIndex();

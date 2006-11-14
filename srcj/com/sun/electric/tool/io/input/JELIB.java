@@ -1445,7 +1445,6 @@ public class JELIB extends LibraryFiles
 				case 'S':
 				case 'T':
 				case 'V':
-//				case 'X':
 				case 'Y':
 					break; // break from switch
 				default:
@@ -1456,12 +1455,7 @@ public class JELIB extends LibraryFiles
 			Object obj = null;
 			if (objectPos >= piece.length())
 			{
-				if (varType != 'X')
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Variable value missing: " + piece, -1);
-					continue;
-				}
+				continue;
 			} else
 			{
 				if (piece.charAt(objectPos) == '[')
@@ -1522,13 +1516,13 @@ public class JELIB extends LibraryFiles
 						case 'G': objArray = new Long[limit];           break;
 						case 'H': objArray = new Short[limit];          break;
 						case 'I': objArray = new Integer[limit];        break;
-						case 'L': objArray = new LibId[limit];         break;
+						case 'L': objArray = new LibId[limit];          break;
 						case 'O': objArray = new Tool[limit];           break;
 						case 'P': objArray = new PrimitiveNode[limit];  break;
 						case 'R': objArray = new ArcProto[limit];       break;
 						case 'S': objArray = new String[limit];         break;
 						case 'T': objArray = new Technology[limit];     break;
-						case 'V': objArray = new EPoint[limit];        break;
+						case 'V': objArray = new EPoint[limit];         break;
 						case 'Y': objArray = new Byte[limit];           break;
 					}
 					if (objArray == null && limit > 0)
@@ -1990,8 +1984,6 @@ public class JELIB extends LibraryFiles
 				}
 				double y = TextUtils.atof(piece.substring(slashPos+1));
 				return new EPoint(x, y);
-			case 'X':		// null
-				return null;
 			case 'Y':		// Byte
 				return new Byte((byte)TextUtils.atoi(piece));
 		}

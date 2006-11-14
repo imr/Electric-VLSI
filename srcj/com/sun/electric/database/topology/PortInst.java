@@ -22,7 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.topology;
-import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutablePortInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.EDatabase;
@@ -73,7 +73,8 @@ public class PortInst extends ElectricObject
      * Returns persistent data of this ElectricObject with Variables.
      * @return persistent data of this ElectricObject.
      */
-    public ImmutableElectricObject getImmutable() { return nodeInst.getD().getPortInst(portProto.getId()); }
+    @Override
+    public ImmutablePortInst getD() { return nodeInst.getD().getPortInst(portProto.getId()); }
     
     /**
      * Method to add a Variable on this PortInst.

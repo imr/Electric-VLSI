@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -43,6 +44,7 @@ import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -73,6 +75,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.TreeSet;
 
 
 /**
@@ -1174,6 +1177,14 @@ public class ELIB extends LibraryFiles
 		int startPort = firstPortIndex[cellIndex];
 		int endPort = startPort + portCounts[cellIndex];
         CellId cellId = cell.getId();
+        
+        // Try to create ExportIds in alphanumeric order
+        TreeSet<String> exportNames = new TreeSet<String>(TextUtils.STRING_NUMBER_ORDER);
+        for (int i = startPort; i < endPort; i++)
+            exportNames.add(exportNameList[i]);
+        for (String exportName: exportNames)
+            cellId.newExportId(exportName);
+        
 		for(int i=startPort; i<endPort; i++)
 		{
 //			if (exportList[i] instanceof Cell)
@@ -1226,9 +1237,9 @@ public class ELIB extends LibraryFiles
 
 			// convert portproto to portinst
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getName());
-            boolean alwaysDrawn = Export.alwaysDrawnFromElib(exportUserbits[i]);
-            boolean bodyOnly = Export.bodyOnlyFromElib(exportUserbits[i]);
-            PortCharacteristic characteristic = Export.portCharacteristicFromElib(exportUserbits[i]);
+            boolean alwaysDrawn = ImmutableExport.alwaysDrawnFromElib(exportUserbits[i]);
+            boolean bodyOnly = ImmutableExport.bodyOnlyFromElib(exportUserbits[i]);
+            PortCharacteristic characteristic = ImmutableExport.portCharacteristicFromElib(exportUserbits[i]);
             ExportId exportId = cellId.newExportId(Name.findName(exportName).toString());
             Export pp = Export.newInstance(cell, exportId, null, exportNameDescriptors[i], pi, alwaysDrawn, bodyOnly, characteristic, errorLogger);
             exportList[i] = pp;
@@ -2270,10 +2281,10 @@ public class ELIB extends LibraryFiles
 					case ELIBConstants.VFLOAT:      newAddrArray = new Float[cou];       break;
 					case ELIBConstants.VDOUBLE:     newAddrArray = new Double[cou];      break;
 					case ELIBConstants.VSHORT:      newAddrArray = new Short[cou];       break;
-					case ELIBConstants.VBOOLEAN:
+					case ELIBConstants.VBOOLEAN:    newAddrArray = new Boolean[cou];     break;
 					case ELIBConstants.VCHAR:       newAddrArray = new Byte[cou];        break;
 					case ELIBConstants.VSTRING:     newAddrArray = new String[cou];      break;
-					case ELIBConstants.VNODEPROTO:  newAddrArray = new NodeProtoId[cou];   break;
+					case ELIBConstants.VNODEPROTO:  newAddrArray = new NodeProtoId[cou]; break;
 					case ELIBConstants.VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
 					case ELIBConstants.VPORTPROTO:  newAddrArray = new ExportId[cou];    break;
 					case ELIBConstants.VTECHNOLOGY: newAddrArray = new Technology[cou];  break;
@@ -2363,6 +2374,7 @@ public class ELIB extends LibraryFiles
 			case ELIBConstants.VSHORT:
 				return new Short(readSmallInteger());
 			case ELIBConstants.VBOOLEAN:
+                return new Boolean(readByte() != 0);
 			case ELIBConstants.VCHAR:
 				return new Byte(readByte());
 			case ELIBConstants.VSTRING:
@@ -2385,12 +2397,8 @@ public class ELIB extends LibraryFiles
                 return ((Export)pp).getId();
 			case ELIBConstants.VARCINST:
 				i = readBigInteger();
-				if (i < 0 || i >= arcCount)
-				{
-					System.out.println("Variable of type ArcInst has index " + i + " when range is 0 to " + arcCount);
-					return null;
-				}
-				return arcList[i];
+                System.out.println("Cannot read variable of type ArcInst");
+				return null;
 			case ELIBConstants.VGEOM:
 				readBigInteger();
 				readBigInteger();
@@ -2414,9 +2422,8 @@ public class ELIB extends LibraryFiles
 				return null;
 			case ELIBConstants.VLIBRARY:
 				String libName = readString();
-                Library lib = Library.findLibrary(libName);
-                if (lib == null) return null;
-				return lib.getId();
+                if (libName.length() == 0) return null;
+                return lib.getDatabase().getIdManager().newLibId(libName);
 			case ELIBConstants.VTOOL:
 				i = readBigInteger();
 				if (i < 0 || i >= toolCount) return null;

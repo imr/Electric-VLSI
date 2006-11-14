@@ -648,6 +648,18 @@ public class JELIB extends Output
         printVars(null, d);
         if (d instanceof ImmutableNodeInst) {
             ImmutableNodeInst nid = (ImmutableNodeInst)d;
+//            for (Iterator<PortProtoId> it = nid.getPortsWithVariables(); it.hasNext(); ) {
+//                PortProtoId portId = it.next();
+//                ImmutablePortInst pid = nid.getPortInst(portId);
+//                String portName;
+//                if (portId instanceof ExportId) {
+//                    ExportId exportId = (ExportId)portId;
+//                    portName = getExportName(snapshot.getCell(exportId.parentId).getExport(exportId));
+//                } else {
+//                    portName = ((PrimitivePort)portId).getName();
+//                }
+//                printVars(portName, pid);
+//            }
             if (nid.hasPortInstVariables()) {
                 if (nid.protoId instanceof CellId) {
                     CellBackup protoBackup = snapshot.getCell((CellId)nid.protoId);

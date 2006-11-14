@@ -259,6 +259,8 @@ public class Variable implements Serializable
                 throw new IllegalArgumentException(value.getClass().toString());
             value = ((Object[])value).clone();
             type = (byte)(typeByte.byteValue()|ARRAY);
+            if (!validValue(type, value))
+                throw new IllegalArgumentException(value.toString());
         } else {
             Byte typeByte = (Byte)validClasses.get(value.getClass());
             if (typeByte == null)
@@ -279,6 +281,7 @@ public class Variable implements Serializable
         if (value instanceof Object[]) {
             Byte typeByte = (Byte)validClasses.get(value.getClass().getComponentType());
             assert type == (byte)(typeByte.byteValue()|ARRAY);
+            assert validValue(type, value);
         } else {
             Byte typeByte = (Byte)validClasses.get(value.getClass());
             assert type == typeByte.byteValue();
@@ -289,6 +292,19 @@ public class Variable implements Serializable
         if (!paramAllowed)
             assert !descriptor.isParam();
 	}
+    
+    private static boolean validValue(byte type, Object value) {
+        if ((type & ARRAY) == 0)
+            return value != null;
+        type = (byte)(type & ~ARRAY);
+        Object[] valueArr = (Object[])value;
+        if (type >= STRING && type <= EPOINT) {
+            for (Object o: valueArr) {
+                if (o == null) return false;
+            }
+        }
+        return true;
+    }
     
     /**
      * Returns true if the value is array,
@@ -314,39 +330,6 @@ public class Variable implements Serializable
      * @return thread-independent value of this variable.
      */
     public Object getObject() { return (type & ARRAY) != 0 ? ((Object[])value).clone() : value; }
-
-    /**
-     * Returns value of this Variable in database.
-     * @param database database
-     * @return value of this variable in current thread.
-     */
-    public Object getObjectInDatabase(EDatabase database) {
-        switch (type) {
-            case LIBRARY: return database.getLib((LibId)value);
-            case CELL: return database.getCell((CellId)value);
-            case EXPORT: return ((ExportId)value).inDatabase(database);
-            case LIBRARY|ARRAY:
-                LibId[] libIds = (LibId[])value;
-                Library[] libs = new Library[libIds.length];
-                for (int i = 0; i < libIds.length; i++)
-                    if (libIds[i] != null) libs[i] = database.getLib(libIds[i]);
-                return libs;
-            case CELL|ARRAY:
-                CellId[] cellIds = (CellId[])value;
-                Cell[] cells = new Cell[cellIds.length];
-                for (int i = 0; i < cellIds.length; i++)
-                    if (cellIds[i] != null) cells[i] = database.getCell(cellIds[i]);
-                return cells;
-            case EXPORT|ARRAY:
-                ExportId[] exportIds = (ExportId[])value;
-                Export[] exports = new Export[exportIds.length];
-                for (int i = 0; i < exportIds.length; i++)
-                    if (exportIds[i] != null) exports[i] = (Export)exportIds[i].inDatabase(database);
-                return exports;
-            default:
-                return (type & ARRAY) != 0 ? ((Object[])value).clone() : value;
-        }
-    }
 
     /**
      * Write this Variable to SnapshotWriter.
@@ -586,31 +569,6 @@ public class Variable implements Serializable
     public Object getObject(int index) {
         if ((type & ARRAY) == 0) throw new ArrayIndexOutOfBoundsException(index); 
         return ((Object[])value)[index];
-    }
-    
-    /**
-     * Returns element of array value of this Variable in database.
-     * @param database database.
-     * @param index index of array
-     * @return element of array value.
-     * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
-     */
-    public Object getObjectInDatabase(EDatabase database, int index) {
-        switch (type) {
-            case LIBRARY|ARRAY:
-                LibId libId = ((LibId[])value)[index];
-                return libId != null ? database.getLib(libId) : null;
-            case CELL|ARRAY:
-                CellId cellId = ((CellId[])value)[index];
-                return cellId != null ? database.getCell(cellId) : null;
-            case EXPORT|ARRAY:
-                ExportId exportId = ((ExportId[])value)[index];
-                return exportId != null ? exportId.inDatabase(database) : null;
-            default:
-                if ((type & ARRAY) != 0)
-                    return ((Object[])value)[index];
-                throw new ArrayIndexOutOfBoundsException(index);
-        }
     }
     
 	/**

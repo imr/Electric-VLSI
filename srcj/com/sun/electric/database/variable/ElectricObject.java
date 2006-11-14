@@ -68,7 +68,7 @@ public abstract class ElectricObject implements Serializable
 	 * Returns persistent data of this ElectricObject with Variables.
 	 * @return persistent data of this ElectricObject.
 	 */
-	public abstract ImmutableElectricObject getImmutable();
+	public abstract ImmutableElectricObject getD();
 
 	// ------------------------ public methods -------------------
 
@@ -123,7 +123,7 @@ public abstract class ElectricObject implements Serializable
 		if (key == null) return null;
 		Variable var;
 		synchronized(this) {
-			var = getImmutable().getVar(key);
+			var = getD().getVar(key);
 		}
 		if (var != null) {
 			if (type == null) return var;				   // null type means any type
@@ -1172,13 +1172,13 @@ public abstract class ElectricObject implements Serializable
 	 * Method to return an Iterator over all Variables on this ElectricObject.
 	 * @return an Iterator over all Variables on this ElectricObject.
 	 */
-	public synchronized Iterator<Variable> getVariables() { return getImmutable().getVariables(); }
+	public synchronized Iterator<Variable> getVariables() { return getD().getVariables(); }
 
 	/**
 	 * Method to return the number of Variables on this ElectricObject.
 	 * @return the number of Variables on this ElectricObject.
 	 */
-	public synchronized int getNumVariables() { return getImmutable().getNumVariables(); }
+	public synchronized int getNumVariables() { return getD().getNumVariables(); }
 
 	/**
 	 * Routing to check whether changing of this cell allowed or not.

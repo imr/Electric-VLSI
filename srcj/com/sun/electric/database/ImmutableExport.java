@@ -40,6 +40,12 @@ public class ImmutableExport extends ImmutableElectricObject {
     public final static ImmutableExport[] NULL_ARRAY = {};
     public final static ImmutableArrayList<ImmutableExport> EMPTY_LIST = new ImmutableArrayList<ImmutableExport>(NULL_ARRAY);
     
+	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
+	/** set to exclude this port from the icon */			private static final int BODYONLY =         01000000000;
+	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
+	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
+	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
+
     /** id of this Export. */                                       public final ExportId exportId;
 	/** name of this ImmutableExport. */							public final Name name;
 	/** The text descriptor of name of ImmutableExport. */          public final TextDescriptor nameDescriptor;
@@ -220,7 +226,7 @@ public class ImmutableExport extends ImmutableElectricObject {
         PortProtoId originalPortId = this.originalPortId;
         if (originalPortId instanceof ExportId)
             originalPortId = idMapper.get((ExportId)originalPortId);
-        if (getVars() == vars && this.exportId == exportId && this.originalPortId == this.originalPortId) return this;
+        if (getVars() == vars && this.exportId == exportId && this.originalPortId == originalPortId) return this;
 		return new ImmutableExport(exportId, this.name, this.nameDescriptor,
                 this.originalNodeId, originalPortId, this.alwaysDrawn, this.bodyOnly, this.characteristic, vars);
     }
@@ -261,6 +267,41 @@ public class ImmutableExport extends ImmutableElectricObject {
                 originalNodeId, originalPortId, alwaysDrawn, bodyOnly, characteristic, vars);
     }
     
+    /**
+     * Returns ELIB user bits of this ImmutableExport.
+     * @return ELIB user bits of this ImmutableExport.
+     */
+	public int getElibBits() {
+        int userBits = characteristic.getBits() << STATEBITSSH;
+        if (alwaysDrawn) userBits |= PORTDRAWN;
+        if (bodyOnly) userBits |= BODYONLY;
+        return userBits;
+    }
+    
+    /**
+     * Get alwaysDrawn Export flag from ELIB user bits.
+     * @param elibBits ELIB user bits.
+     * @return alwaysDrawn flag.
+     */
+    public static boolean alwaysDrawnFromElib(int elibBits) { return (elibBits & PORTDRAWN) != 0; }
+
+    /**
+     * Get bodyOnly Export flag from ELIB user bits.
+     * @param elibBits ELIB user bits.
+     * @return bodyOnly flag.
+     */
+    public static boolean bodyOnlyFromElib(int elibBits) { return (elibBits & BODYONLY) != 0; }
+
+    /**
+     * Get PortCharacteristic of Export from ELIB user bits.
+     * @param elibBits ELIB user bits.
+     * @return PortCharacteristic.
+     */
+    public static PortCharacteristic portCharacteristicFromElib(int elibBits) {
+        PortCharacteristic characteristic = PortCharacteristic.findCharacteristic((elibBits >> STATEBITSSH) & STATEBITSSHIFTED);
+        return characteristic != null ? characteristic : PortCharacteristic.UNKNOWN;
+    }
+
     /**
      * Return a hash code value for fields of this object.
      * Variables of objects are not compared

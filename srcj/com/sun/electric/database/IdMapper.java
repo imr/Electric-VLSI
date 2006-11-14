@@ -34,7 +34,6 @@ public class IdMapper implements Serializable {
     
     private final HashMap<LibId,LibId> libIdMap = new HashMap<LibId,LibId>();
     private final HashMap<CellId,CellId> cellIdMap = new HashMap<CellId,CellId>();
-    private final HashMap<ExportId,ExportId> exportIdMap = new HashMap<ExportId,ExportId>();
     
     /** Creates a new instance of IdMapper */
     public IdMapper() {
@@ -67,11 +66,6 @@ public class IdMapper implements Serializable {
     public void moveCell(CellBackup cellBackup, CellId newCellId) {
             CellId oldCellId = cellBackup.d.cellId;
             cellIdMap.put(oldCellId, newCellId);
-            for (int i = 0, numExportIds = cellBackup.exports.size(); i < numExportIds; i++) {
-                ExportId oldExportId = cellBackup.exports.get(i).exportId;
-                ExportId newExportId = newCellId.newExportId(oldExportId.externalId);
-                exportIdMap.put(oldExportId, newExportId);
-            }
     }
     
     /**
@@ -95,16 +89,14 @@ public class IdMapper implements Serializable {
     }
     
     /**
-     * Get mappinmg of ExportId.
+     * Get mapping of ExportId.
      * @param key key ExportId.
      * @return ExportId which is the mapping of the key.
      */
     public ExportId get(ExportId key) {
-        ExportId value = exportIdMap.get(key);
-        return value != null ? value : key;
+        CellId newParentId = cellIdMap.get(key.parentId);
+        return newParentId != null ? newParentId.newExportId(key.externalId) : key;
     }
 
     public Collection<CellId> getNewCellIds() { return cellIdMap.values(); }
-    public Collection<ExportId> getNewExportIds() { return exportIdMap.values(); }
-    
 }

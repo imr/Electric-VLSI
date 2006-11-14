@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.Name;
 
 import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
@@ -94,6 +95,30 @@ public final class ExportId implements PortProtoId, Serializable {
      * @return chronological index of this ExportId in parent.
      */
     public int getChronIndex() { return chronIndex; }
+    
+	/**
+	 * Method to return the name key of this PortProtoId in a specified Snapshot.
+     * @param snapshot snapshot for name search.
+	 * @return the Name key of this PortProtoId.
+	 */
+	public Name getNameKey(Snapshot snapshot) { return inSnapshot(snapshot).name; }
+
+	/**
+	 * Method to return the name of this PortProtoId in a specified Snapshot.
+     * @param snapshot snapshot for name search.
+	 * @return the name of this PortProtoId.
+	 */
+	public String getName(Snapshot snapshot) { return inSnapshot(snapshot).name.toString(); }
+
+    /**
+     * Method to return the ImmutableExport representing ExportId in the specified Snapshot.
+     * @param snapshot Snapshot where to get from.
+     * @return the ImmutableExport representing ExportId in the specified snapshot.
+     */
+    public ImmutableExport inSnapshot(Snapshot snapshot) {
+        CellBackup cellBackup = snapshot.getCell(parentId);
+        return cellBackup != null ? cellBackup.getExport(this) : null;
+    }
     
     /**
      * Method to return the Export representing ExportId in the specified EDatabase.

@@ -337,7 +337,7 @@ public class ErrorLogger implements Serializable
      */
     public synchronized void logError(String message, Export pp, int sortKey)
     {
-        Cell cell = (Cell)pp.getParent();
+        Cell cell = pp.getParent();
     	List<ErrorHighlight> h = new ArrayList<ErrorHighlight>();
         h.add(new ErrorHighExport(null, pp));
     	logAnError(message, cell, sortKey, h);

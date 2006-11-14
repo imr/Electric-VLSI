@@ -31,23 +31,14 @@ import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -78,9 +69,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
-
 
 /**
  * This class manages writing files in different formats.
@@ -122,26 +111,9 @@ public class Output
     	new OutputCellInfo(cell, context, filePath, type, override);
     }
 
-	static class OrderedExports implements Comparator<Export>
-	{
-		public int compare(Export e1, Export e2)
-		{
-			int i1 = e1.getOriginalPort().getPortProto().getPortIndex();
-			int i2 = e2.getOriginalPort().getPortProto().getPortIndex();
-			int cmp = i1 - i2;
-			if (cmp != 0) return cmp;
-			return e1.getPortIndex() - e2.getPortIndex();
-		}
-	}
-
-	/** exports comparator for writeNodeInst */			static final Comparator<Export> EXPORTS_ORDER = new OrderedExports();
-
 	/** file path */									protected String filePath;
 	/** for writing text files */						protected PrintWriter printWriter;
 	/** for writing binary files */						protected DataOutputStream dataOutputStream;
-	/** Map of referenced objects for library files */	HashMap<Object,Integer> objInfo;
-	/** Maps memory face index to disk face index */	int[] faceMap;
-	/** Name space of variable names */					TreeMap<String,Short> nameSpace;
 	/** True to write with less information displayed */protected boolean quiet;
 
 	public Output()
@@ -266,6 +238,8 @@ public class Output
 			Listener listener = it.next();
 			listener.writeLibrary(lib);
 		}
+        Snapshot snapshot = lib.getDatabase().backup();
+        LibId libId = lib.getId();
 
 		// make sure all technologies with irrelevant scale information have the same scale value
 		double largestScale = 0;
@@ -359,7 +333,7 @@ public class Output
                 if (CVS.isEnabled()) {
                     CVSLibrary.savingLibrary(lib);
                 }
-				if (elib.writeLib(lib)) return true;
+				if (elib.writeLib(snapshot, libId)) return true;
 				if (elib.closeBinaryOutputStream()) return true;
 			} else
 			{
@@ -369,7 +343,7 @@ public class Output
                 if (CVS.isEnabled()) {
                     CVSLibrary.savingLibrary(lib);
                 }
-				if (jelib.writeLib(lib.getDatabase().backup(), lib.getId(), null, false)) return true;
+				if (jelib.writeLib(snapshot, libId, null, false)) return true;
 				if (jelib.closeTextOutputStream()) return true;
 			}
  		} else if (type == FileType.READABLEDUMP)
@@ -377,7 +351,7 @@ public class Output
             ReadableDump readableDump = new ReadableDump();
 			readableDump.quiet = quiet;
 			if (readableDump.openTextOutputStream(properOutputName)) return true;
-			if (readableDump.writeLib(lib)) return true;
+			if (readableDump.writeLib(snapshot, libId)) return true;
 			if (readableDump.closeTextOutputStream()) return true;
         } else if (type == FileType.DELIB)
         {
@@ -387,7 +361,7 @@ public class Output
             if (CVS.isEnabled() && !delibHeaderOnly) {
                 CVSLibrary.savingLibrary(lib);
             }
-            if (delib.writeLib(lib.getDatabase().backup(), lib.getId(), lib.getDelibCellFiles())) return true;
+            if (delib.writeLib(snapshot, libId, lib.getDelibCellFiles())) return true;
             if (delib.closeTextOutputStream()) return true;
             if (CVS.isEnabled() && !delibHeaderOnly) {
                 CVSLibrary.savedLibrary(lib, delib.getDeletedCellFiles(), delib.getWrittenCellFiles());
@@ -508,189 +482,6 @@ public class Output
     }
 
 	/**
-	 * Gathers into objInfo map all objects references from library objects.
-	 * @param lib the Library to examine.
-	 */
-	void gatherReferencedObjects(Library lib)
-	{
-		objInfo = new HashMap<Object,Integer>();
-		nameSpace = new TreeMap<String,Short>(TextUtils.STRING_NUMBER_ORDER);
-		for (Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
-		{
-			Cell cell = cIt.next();
-			gatherCell(cell);
-
-			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = it.next();
-				if (ni.getName() == null)
-					System.out.println("ERROR: " + cell + " has " + ni + " with no name");
-				NodeProto np = ni.getProto();
-				if (ni.isCellInstance())
-				{
-					gatherCell((Cell)np);
-				} else
-				{
-					gatherObj(np);
-					gatherObj(((PrimitiveNode)np).getTechnology());
-				}
-				for (Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
-				{
-					PortInst pi = pIt.next();
-					gatherVariables(pi);
-				}
-				gatherVariables(ni);
-                gatherFont(ni.getTextDescriptor(NodeInst.NODE_NAME));
-                gatherFont(ni.getTextDescriptor(NodeInst.NODE_PROTO));
-			}
-
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-			{
-				ArcInst ai = it.next();
-				ArcProto ap = ai.getProto();
-				gatherObj(ap);
-				gatherObj(ap.getTechnology());
-				//gatherObj(ai.getHead().getPortInst().getPortProto());
-				//gatherObj(ai.getTail().getPortInst().getPortProto());
-				gatherVariables(ai);
-				gatherFont(ai.getTextDescriptor(ArcInst.ARC_NAME));
-			}
-
-			for(Iterator<Export> it = cell.getExports(); it.hasNext(); )
-			{
-				Export e = it.next();
-				//gatherObj(e.getOriginalPort().getPortProto());
-				gatherVariables(e);
-				gatherFont(e.getTextDescriptor(Export.EXPORT_NAME));
-			}
-
-			gatherVariables(cell);
-		}
-		gatherVariables(lib);
-
-		for (Iterator<Tool> it = Tool.getTools(); it.hasNext(); )
-			gatherMeaningPrefs(it.next());
-
-		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			gatherMeaningPrefs(it.next());
-
-        putNameSpace(Library.FONT_ASSOCIATIONS.getName());
-        putNameSpace(NodeInst.NODE_NAME.getName());
-        putNameSpace(ArcInst.ARC_NAME.getName());
-        short varIndex = 0;
-        for (Map.Entry<String,Short> e : nameSpace.entrySet()) {
-            e.setValue(new Short(varIndex++));
-        }
-	}
-
-	/**
-	 * Gather variables of ElectricObject into objInfo map.
-	 * @param eObj ElectricObject with variables.
-	 */
-	private void gatherVariables(ElectricObject eObj)
-	{
-		for (Iterator<Variable> it = eObj.getVariables(); it.hasNext(); )
-		{
-			Variable var = it.next();
-			Object value = var.getObjectInDatabase(EDatabase.serverDatabase());
-			if (nameSpace != null) putNameSpace(diskName(eObj, var));
-			gatherFont(var.getTextDescriptor());
-			int length = value instanceof Object[] ? ((Object[])value).length : 1;
-			for (int i = 0; i < length; i++)
-			{
-				Object v = value instanceof Object[] ? ((Object[])value)[i] : value;
-				if (v == null) continue;
-				if (v instanceof Technology || v instanceof Tool)
-				{
-					gatherObj(v);
-				} else if (v instanceof PrimitiveNode)
-				{
-					gatherObj(v);
-					gatherObj(((PrimitiveNode)v).getTechnology());
-				} else if (v instanceof PrimitivePort)
-				{
-					//gatherObj(v);
-					PrimitiveNode pn = (PrimitiveNode)((PrimitivePort)v).getParent();
-					gatherObj(pn);
-					gatherObj(pn.getTechnology());
-				} else if (v instanceof ArcProto)
-				{
-					gatherObj(v);
-					gatherObj(((ArcProto)v).getTechnology());
-				} else if (v instanceof ElectricObject)
-				{
-					gatherObj(v);
-					Cell cell = ((ElectricObject)v).whichCell();
-					if (cell != null) gatherCell(cell);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Gather meaning preferences attached to object into objInfo map.
-	 * @param obj Object with attached meaning preferences.
-	 */
-	private void gatherMeaningPrefs(Object obj)
-	{
-		for(Pref pref : Pref.getMeaningVariables(obj))
-		{
-			gatherObj(obj);
-			String name = pref.getPrefName();
-			if (nameSpace != null) putNameSpace(name);
-		}
-	}
-
-	/**
-	 * Gather Cell, its Library and its font into objInfo map.
-	 * @param cell Cell to examine.
-	 */
-	private void gatherCell(Cell cell)
-	{
-		gatherObj(cell);
-		gatherObj(cell.getLibrary());
-		gatherObj(cell.getView());
-	}
-
-	/**
-	 * Gather ActiveFont object of the TextDescriptor into objInfo map.
-	 * @param td TextDescriptor to examine.
-	 */
-	private void gatherFont(TextDescriptor td)
-	{
-		int face = td.getFace();
-		if (face != 0) gatherObj(TextDescriptor.ActiveFont.findActiveFont(face));
-	}
-
-	/**
-	 * Gather object into objInfo map.
-	 * @param obj Object to put.
-	 */
-	private void gatherObj(Object obj)
-	{
-		objInfo.put(obj, null);
-	}
-
-	/**
-	 * Put index of object into objInfo map.
-	 * @param obj Object to put.
-	 * @param index index of object.
-	 */
-	void putObjIndex(Object obj, int index)
-	{
-		objInfo.put(obj, new Integer(index));
-	}
-
-	/**
-	 * Put string into variable name space.
-	 * @param name name to put.
-	 */
-	void putNameSpace(String name)
-	{
-		nameSpace.put(name, null);
-	}
-
-	/**
 	 * Returns variable disk name. Usually it is variable name.
 	 * Disk name of PortInst variables is key ATTRP_portName_varName.
      * @param owner owner of the Variable.
@@ -725,37 +516,6 @@ public class Output
         sb.append(var.getKey().getName());
         return sb.toString();
     }
-
-	/**
-	 * Method to gather all font settings in a Library.
-	 * The method examines all TextDescriptors that might be saved with the Library
-	 * and returns an array of Strings that describes the font associations.
-	 * Each String is of the format NUMBER/FONTNAME where NUMBER is the font number
-	 * in the TextDescriptor and FONTNAME is the font name.
-	 * @return font association array or null.
-	 */
-	String[] createFontAssociation()
-	{
-		int maxIndices = TextDescriptor.ActiveFont.getMaxIndex();
-		faceMap = new int[maxIndices + 1];
-		TreeMap<String,TextDescriptor.ActiveFont> sortedFonts = new TreeMap<String,TextDescriptor.ActiveFont>();
-		for (int i = 1; i <= maxIndices; i++)
-		{
-			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(i);
-			if (!objInfo.containsKey(af)) continue;
-			sortedFonts.put(af.getName(), af);
-		}
-		if (sortedFonts.size() == 0) return null;
-		String[] fontAssociation = new String[sortedFonts.size()];
-		int face = 0;
-		for (TextDescriptor.ActiveFont af : sortedFonts.values())
-		{
-			face++;
-			faceMap[af.getIndex()] = face;
-			fontAssociation[face-1] = face + "/" + af.getName();
-		}
-		return fontAssociation;
-	}
 
     /**
      * Opens the dataOutputStream for writing of binary files.

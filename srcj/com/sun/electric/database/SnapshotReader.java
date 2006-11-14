@@ -258,13 +258,7 @@ public class SnapshotReader {
     public PortProtoId readPortProtoId() throws IOException {
         NodeProtoId nodeProtoId = readNodeProtoId();
         int chronIndex = in.readInt();
-        if (nodeProtoId instanceof CellId) {
-            CellId cellId = (CellId)nodeProtoId;
-            return cellId.getPortId(chronIndex);
-        } else {
-            PrimitiveNode pn = (PrimitiveNode)nodeProtoId;
-            return (PrimitivePort)pn.getPort(chronIndex);
-        }
+        return nodeProtoId.getPortId(chronIndex);
     }
     
    /**

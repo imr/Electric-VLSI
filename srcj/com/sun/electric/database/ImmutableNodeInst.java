@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProtoId;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
@@ -45,6 +46,8 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Immutable class ImmutableNodeInst represents a node instance.
@@ -486,6 +489,12 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
     }
 
 	/**
+	 * Retruns true if this ImmutableNodeInst was named by user.
+	 * @return true if this ImmutableNodeInst was named by user.
+	 */		
+	public boolean isUsernamed() { return !name.isTempname();	}
+
+	/**
 	 * Returns ImmutablePortInst of this ImmutableNodeInst with the specified PortProtoId.
      * @param portProtoId PortProtoId of port instance.
 	 * @return ImmutablePortInst of this ImmutableNodeInst with the specified PortProtoId.
@@ -496,6 +505,52 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
         if (portProtoId.getParentId() != protoId) throw new IllegalArgumentException("portProtoId");
         int portChronIndex = portProtoId.getChronIndex();
         return portChronIndex < ports.length ? ports[portChronIndex] : ImmutablePortInst.EMPTY;
+    }
+    
+	/**
+	 * Returns an Iterator over all PortProtoIds such that the correspondent PortInst on this
+     * ImmutablePortInst has variables.
+	 * @return  an Iterator over all PortProtoIds with variables.
+	 * @throws NullPointerException if portProtoId is null.
+     * @throws IlleagalArgumentException if parent of portProtoId is not protoId of this ImmutableNodeInst.
+	 */
+    public Iterator<PortProtoId> getPortsWithVariables() {
+        if (ports.length == 0) {
+            Iterator<PortProtoId> emptyIterator = ArrayIterator.emptyIterator();
+            return emptyIterator;
+        }
+        return new PortInstIterator();
+    }
+    
+    private class PortInstIterator implements Iterator<PortProtoId> {
+        int chronIndex;
+        PortProtoId next;
+        
+        PortInstIterator() {
+            getNext();
+        }
+        
+        public boolean hasNext() { return next != null; }
+        
+        public PortProtoId next() {
+            PortProtoId result = next;
+            if (result == null) throw new NoSuchElementException();
+            getNext();
+            return result;
+        } 
+        
+        public void remove() { throw new UnsupportedOperationException(); }
+        
+        private void getNext() {
+            PortProtoId next = null;
+            for (; chronIndex < ports.length; chronIndex++) {
+                if (ports[chronIndex] != ImmutablePortInst.EMPTY) {
+                    next = protoId.getPortId(chronIndex);
+                    break;
+                }
+            }
+            this.next = next;
+        }
     }
     
     /**

@@ -500,10 +500,13 @@ public class AllSchemNamesToLay {
     }
 
     private ArcInst getLongestArc(List<ArcInst> arcs) {
+		double longestDist = Double.NEGATIVE_INFINITY;
     	ArcInst longest = null;
     	for (ArcInst ai : arcs) {
-    		if (longest==null) longest = ai;
-    		else if (ai.getLambdaLength()>longest.getLambdaLength())  longest = ai;
+            double length = ai.getGridLength();
+            if (length <= longestDist) continue;
+    		longest = ai;
+    		longestDist = length;
     	}
     	return longest;
     }

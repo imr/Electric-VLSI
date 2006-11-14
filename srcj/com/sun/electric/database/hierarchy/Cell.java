@@ -2990,6 +2990,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      * Returns persistent data of this Cell.
      * @return persistent data of this Cell.
      */
+    @Override
     public ImmutableCell getD() { return d; }
     
     /**
@@ -3005,12 +3006,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         unfreshBackup();
         Constraints.getCurrent().modifyCell(this, oldD);
     }
-    
-    /**
-     * Returns persistent data of this ElectricObject.
-     * @return persistent data of this ElectricObject.
-     */
-    public ImmutableElectricObject getImmutable() { return d; }
     
     /**
      * Method to add a Variable on this Cell.

@@ -23,7 +23,9 @@
  */
 package com.sun.electric.database.prototype;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.EDatabase;
+import com.sun.electric.database.text.Name;
 
 /**
  * The PortProtoId interface identifies a type of PortInst .
@@ -48,6 +50,20 @@ public interface PortProtoId
      */
     public int getChronIndex();
     
+	/**
+	 * Method to return the name key of this PortProtoId in a specified Snapshot.
+     * @param snapshot snapshot for name search.
+	 * @return the Name key of this PortProtoId.
+	 */
+	public Name getNameKey(Snapshot snapshot);
+
+	/**
+	 * Method to return the name of this PortProtoId in a specified Snapshot.
+     * @param snapshot snapshot for name search.
+	 * @return the name of this PortProtoId.
+	 */
+	public String getName(Snapshot snapshot);
+
    /**
      * Method to return the PortProto representing PortProtoId in the specified EDatabase.
      * @param database EDatabase where to get from.

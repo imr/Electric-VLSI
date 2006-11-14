@@ -54,6 +54,7 @@ public class ImmutableArcInstTest {
     private LibId libId;
     private CellId cellId;
     private ImmutableNodeInst n0, n1;
+    private Name nameA0;
     private ImmutableArcInst a0;
     
     @Before public void setUp() throws Exception {
@@ -65,7 +66,8 @@ public class ImmutableArcInstTest {
         cellId = libId.newCellId(CellName.parseName("cell;1{lay}"));
         n0 = ImmutableNodeInst.newInstance(0, pn, Name.findName("n0"), null, Orientation.IDENT, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
         n1 = ImmutableNodeInst.newInstance(1, pn, Name.findName("n1"), null, Orientation.IDENT, EPoint.fromLambda(21, 2), EPoint.fromLambda(17, 17), 0, 0, null);
-        a0 = ImmutableArcInst.newInstance(0, ap, Name.findName("a0"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        nameA0 = Name.findName("a0");
+        a0 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
 
     public static junit.framework.Test suite() {
@@ -344,26 +346,12 @@ public class ImmutableArcInstTest {
     }
 
     /**
-     * Test of explainEasyShape method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    public void testExplainEasyShape() {
-        System.out.println("explainEasyShape");
-        
-        ImmutableArcInst instance = null;
-        
-        instance.explainEasyShape();
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
     public void testNewInstance() {
         System.out.println("newInstance");
         
-        int arcId = 0;
+        int arcId = 1;
         ArcProto protoType = null;
         Name name = null;
         TextDescriptor nameDescriptor = null;
@@ -388,35 +376,21 @@ public class ImmutableArcInstTest {
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithName() {
+    @Test public void testWithName() {
         System.out.println("withName");
-        
-        Name name = null;
-        ImmutableArcInst instance = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withName(name);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(a0, a0.withName(a0.name));
+        Name nameB = Name.findName("b");
+        ImmutableArcInst ab = a0.withName(nameB);
+        assertSame(nameA0, a0.name);
+        assertSame(nameB, ab.name);
     }
 
     /**
      * Test of withNameDescriptor method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithNameDescriptor() {
+    @Test public void testWithNameDescriptor() {
         System.out.println("withNameDescriptor");
-        
-        TextDescriptor nameDescriptor = null;
-        ImmutableArcInst instance = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withNameDescriptor(nameDescriptor);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(a0, a0.withNameDescriptor(a0.nameDescriptor));
     }
 
     /**
@@ -440,35 +414,17 @@ public class ImmutableArcInstTest {
     /**
      * Test of withGridFullWidth method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithGridFullWidth() {
+    @Test public void testWithGridFullWidth() {
         System.out.println("withGridFullWidth");
-        
-        long gridFullWidth = 0L;
-        ImmutableArcInst instance = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withGridFullWidth(gridFullWidth);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(a0, a0.withGridFullWidth(a0.getGridFullWidth()));
     }
 
     /**
      * Test of withAngle method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithAngle() {
+    @Test public void testWithAngle() {
         System.out.println("withAngle");
-        
-        int angle = 0;
-        ImmutableArcInst instance = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withAngle(angle);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(a0, a0.withAngle(900)); // If locations are different, angle is calcualted from them
     }
 
     /**
@@ -491,19 +447,10 @@ public class ImmutableArcInstTest {
     /**
      * Test of withFlag method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithFlag() {
+    @Test public void testWithFlag() {
         System.out.println("withFlag");
-        
-        ImmutableArcInst.Flag flag = null;
-        boolean value = true;
-        ImmutableArcInst instance = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withFlag(flag, value);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(a0, a0.withFlag(ImmutableArcInst.TAIL_NEGATED, true)); // layout arc can't have negated end
+        assertSame(a0, a0.withFlag(ImmutableArcInst.HEAD_NEGATED, true)); // layout arc can't have negated end
     }
 
     /**
@@ -690,17 +637,9 @@ public class ImmutableArcInstTest {
     /**
      * Test of getRadius method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testGetRadius() {
+    @Test public void testGetRadius() {
         System.out.println("getRadius");
-        
-        ImmutableArcInst instance = null;
-        
-        Double expResult = null;
-        Double result = instance.getRadius();
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertNull(a0.getRadius());
     }
 
     /**
@@ -739,49 +678,134 @@ public class ImmutableArcInstTest {
     /**
      * Test of getElibBits method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testGetElibBits() {
+    @Test public void testGetElibBits() {
         System.out.println("getElibBits");
+        // DEFAULT
+        toElib(000000000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED, ImmutableArcInst.SLIDABLE);
+
+        // single bits
+        toElib(000040400000);
+        toElib(000040400001, ImmutableArcInst.RIGID);
+        toElib(000040400002, ImmutableArcInst.FIXED_ANGLE);
+        toElib(000000400000, ImmutableArcInst.SLIDABLE);
+        toElib(020040400000, ImmutableArcInst.HARD_SELECT);
         
-        ImmutableArcInst instance = null;
+        // NOEXTEND
+        toElib(000040000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        toElib(000040400000);
+        toElib(000044400000, ImmutableArcInst.TAIL_EXTENDED);
+        toElib(000050400000, ImmutableArcInst.HEAD_EXTENDED);
         
-        int expResult = 0;
-        int result = instance.getElibBits();
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        // ISDIRECTIONAL
+        toElib(000052000000, ImmutableArcInst.BODY_ARROWED,                                                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        toElib(000042000000, ImmutableArcInst.HEAD_ARROWED,                                                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        toElib(000042000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.HEAD_ARROWED,                                 ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        toElib(000062000000, ImmutableArcInst.TAIL_ARROWED,                                                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        toElib(000062000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.TAIL_ARROWED,                                 ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        toElib(000062000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.TAIL_ARROWED, ImmutableArcInst.HEAD_ARROWED,  ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        toElib(000062000000, ImmutableArcInst.TAIL_ARROWED, ImmutableArcInst.HEAD_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+    }
+    
+    private void toElib(int elibFlags, ImmutableArcInst.Flag... flags) {
+        int flagBits = 0;
+        for (ImmutableArcInst.Flag f: flags)
+            flagBits = f.set(flagBits, true);
+        assertEquals(elibFlags, a0.withFlags(flagBits).getElibBits());
     }
 
     /**
      * Test of flagsFromElib method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testFlagsFromElib() {
+    @Test public void testFlagsFromElib() {
         System.out.println("flagsFromElib");
+        // default
+        fromElib(000000000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED, ImmutableArcInst.SLIDABLE);
+
+        // single bits
+        fromElib(000040400001, ImmutableArcInst.RIGID);
+        fromElib(000040400002, ImmutableArcInst.FIXED_ANGLE);
+        fromElib(000000400000, ImmutableArcInst.SLIDABLE);
+        fromElib(020040400000, ImmutableArcInst.HARD_SELECT);
         
-        int elibBits = 0;
+        // REVERSEEND, NOTEND0, NOTEND1
+        fromElib(000040000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000044000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000050000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000054000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000060000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000064000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000070000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000074000000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         
-        int expResult = 0;
-        int result = ImmutableArcInst.flagsFromElib(elibBits);
-        assertEquals(expResult, result);
+        // NOEXTEND
+        fromElib(000040400000);
+        fromElib(000044400000, ImmutableArcInst.TAIL_EXTENDED);
+        fromElib(000050400000, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000054400000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000060400000);
+        fromElib(000064400000, ImmutableArcInst.TAIL_EXTENDED);
+        fromElib(000070400000, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000074400000, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
         
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        // ISHEADNEGATED
+        fromElib(000040200000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000044200000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000050200000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000054200000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000060200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000064200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000070200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000074200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        
+        // ISTAILNEGATED
+        fromElib(000041000000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000045000000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000051000000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000055000000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000061000000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000065000000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000071000000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000075000000, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        
+        // ISHEADNEGATED | ISTAILNEGATED
+        fromElib(000041200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000045200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000051200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000055200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000061200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000065200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000071200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000075200000, ImmutableArcInst.TAIL_NEGATED, ImmutableArcInst.HEAD_NEGATED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        
+        // ISDIRECTIONAL
+        fromElib(000042000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.HEAD_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000046000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.HEAD_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000052000000, ImmutableArcInst.BODY_ARROWED,                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000056000000, ImmutableArcInst.BODY_ARROWED,                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000062000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.TAIL_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000066000000, ImmutableArcInst.BODY_ARROWED,                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000072000000, ImmutableArcInst.BODY_ARROWED, ImmutableArcInst.TAIL_ARROWED, ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+        fromElib(000076000000, ImmutableArcInst.BODY_ARROWED,                                ImmutableArcInst.TAIL_EXTENDED, ImmutableArcInst.HEAD_EXTENDED);
+    }
+    
+    private void fromElib(int elibFlags, ImmutableArcInst.Flag... flags) {
+        int flagBits = 0;
+        for (ImmutableArcInst.Flag f: flags)
+            flagBits = f.set(flagBits, true);
+        assertEquals(flagBits, ImmutableArcInst.flagsFromElib(elibFlags));
     }
 
     /**
      * Test of angleFromElib method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testAngleFromElib() {
+   @Test public void testAngleFromElib() {
         System.out.println("angleFromElib");
-        
-        int elibBits = 0;
-        
-        int expResult = 0;
-        int result = ImmutableArcInst.angleFromElib(elibBits);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(0, ImmutableArcInst.angleFromElib(0));
+        assertEquals(0, ImmutableArcInst.angleFromElib((1 << 5) -  1));
+        assertEquals(0, ImmutableArcInst.angleFromElib(1 << 14));
+        assertEquals(10, ImmutableArcInst.angleFromElib(1 << 5));
+        assertEquals(3590, ImmutableArcInst.angleFromElib(359 << 5));
+        assertEquals(0, ImmutableArcInst.angleFromElib(360 << 5));
     }
     
 }

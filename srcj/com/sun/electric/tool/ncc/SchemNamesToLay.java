@@ -177,10 +177,13 @@ public class SchemNamesToLay {
     }
     
     private ArcInst getLongestArc(Network net) {
+		double longestDist = Double.NEGATIVE_INFINITY;
     	ArcInst longest = null;
     	for (ArcInst ai : new For<ArcInst>(net.getArcs())) {
-    		if (longest==null) longest = ai;
-    		else if (ai.getLambdaLength()>longest.getLambdaLength())  longest = ai;
+            double length = ai.getGridLength();
+            if (length <= longestDist) continue;
+    		longest = ai;
+    		longestDist = length;
     	}
     	return longest;
     }

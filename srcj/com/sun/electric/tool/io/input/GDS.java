@@ -424,7 +424,7 @@ public class GDS extends Input
                         Poly m2P = otherPolys[0];
                         if (!m2P.getBounds2D().equals(m1P.getBounds2D())) continue; // no match
 
-                        ImmutableNodeInst d = (ImmutableNodeInst)ni.getImmutable();
+                        ImmutableNodeInst d = (ImmutableNodeInst)ni.getD();
                         String name = ni.getName();
                         int atIndex = name.indexOf('@');
                         if (atIndex < 0) name += "tmp"; else

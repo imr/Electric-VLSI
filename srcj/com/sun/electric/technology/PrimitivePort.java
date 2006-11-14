@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -158,10 +159,24 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 	public Name getNameKey() { return name; }
 
 	/**
+	 * Method to return the name key of this PortProtoId in a specified Snapshot.
+     * @param snapshot snapshot for name search.
+	 * @return the Name key of this PortProtoId.
+	 */
+	public Name getNameKey(Snapshot snapshot) { return name; }
+
+	/**
 	 * Method to return the name of this PrimitivePort.
 	 * @return the name of this PrimitivePort.
 	 */
 	public String getName() { return name.toString(); }
+
+	/**
+	 * Method to return the name of this PortProtoId in a specified Snapshot.
+     * @param snapshot snapshot for name search.
+	 * @return the name of this PortProtoId.
+	 */
+	public String getName(Snapshot snapshot) { return name.toString(); }
 
 	/**
 	 * Method to return the parent NodeProtoId of this PrimitivePort.

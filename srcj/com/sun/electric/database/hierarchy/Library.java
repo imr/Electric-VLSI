@@ -529,6 +529,7 @@ public class Library extends ElectricObject implements Comparable<Library>
      * Returns persistent data of this Library.
      * @return persistent data of this Library.
      */
+    @Override
     public ImmutableLibrary getD() { return d; }
     
     /**
@@ -548,12 +549,6 @@ public class Library extends ElectricObject implements Comparable<Library>
         return true;
     }
 
-    /**
-     * Returns persistent data of this ElectricObject.
-     * @return persistent data of this ElectricObject.
-     */
-    public ImmutableElectricObject getImmutable() { return d; }
-    
     /**
      * Method to add a Variable on this Library.
      * It may add repaired copy of this Variable in some cases.

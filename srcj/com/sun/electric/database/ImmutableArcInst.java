@@ -221,7 +221,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	/** Location of head end of this ImmutableArcInst. */           public final EPoint headLocation;
 
 	/** width of this ImmutableArcInst in grid units. */            private final int gridFullWidth;
-    /** length of this ImmutableArcInst in lambda units. */         private final double gridLength;
     /** Angle if this ImmutableArcInst (in tenth-degrees). */       private final short angle;
  
     /**
@@ -238,7 +237,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * @param headPortProtoId PortProtoId on head end of this ImmutableArcInst.
      * @param headLocation Location of head end of this ImmutableArcInst.
      * @param gridFullWidth the full width of this ImmutableArcInst in grid units.
-     * @param gridLength the length of this ImmutableArcInst in grid units.
      * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
      * @param flags flag bits of this ImmutableArcInst.
      * @param vars array of Variables of this ImmutableArcInst
@@ -246,7 +244,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     ImmutableArcInst(int arcId, ArcProto protoType, Name name, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
-            int gridFullWidth, double gridLength, short angle, int flags, Variable[] vars) {
+            int gridFullWidth, short angle, int flags, Variable[] vars) {
         super(vars, flags);
         this.arcId = arcId;
         this.protoType = protoType;
@@ -259,11 +257,16 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         this.headPortId = headPortId;
         this.headLocation = headLocation;
         this.gridFullWidth = gridFullWidth;
-        this.gridLength = gridLength;
         this.angle = angle;
         check();
     }
     
+	/**
+	 * Retruns true if this ImmutableArcInst was named by user.
+	 * @return true if this ImmutableArcInst was named by user.
+	 */		
+	public boolean isUsernamed() { return !name.isTempname();	}
+
     /**
      * Returns full width of this ImmutableArcInst in lambda units.
      * @return full width of this ImmutableArcInst in lambda units.
@@ -292,13 +295,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
      * Returns length of this ImmutableArcInst in lambda units.
      * @return length of this ImmutableArcInst in lambda units.
      */
-    public double getLambdaLength() { return DBMath.gridToLambda(gridLength); }
+    public double getLambdaLength() { return tailLocation.lambdaDistance(headLocation); }
     
     /**
      * Returns length of this ImmutableArcInst in grid units.
      * @return length of this ImmutableArcInst in grid units.
      */
-    public double getGridLength() { return gridLength; }
+    public double getGridLength() { return tailLocation.gridDistance(headLocation); }
     
 	/**
 	 * Method to return the rotation angle of this ImmutableArcInst.
@@ -588,7 +591,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     
     /**
      * Returns new ImmutableArcInst object.
-     *
      * @param arcId id of this ArcInst in parent.
      * @param protoType arc prototype.
      * @param name name of this ImmutableArcInst.
@@ -638,7 +640,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
-                intGridWidth, tailLocation.gridDistance(headLocation), shortAngle, flags, Variable.NULL_ARRAY);
+                intGridWidth, shortAngle, flags, Variable.NULL_ARRAY);
     }
 
 	/**
@@ -655,7 +657,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, this.angle, this.flags, getVars());
+                this.gridFullWidth, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -670,7 +672,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, this.angle, this.flags, getVars());
+                this.gridFullWidth, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -685,11 +687,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (tailLocation == null) throw new NullPointerException("tailLocation");
 		if (headLocation == null) throw new NullPointerException("headLocation");
         short angle = updateAngle(this.angle, tailLocation, headLocation);
-        int flags = updateEasyShape(this.protoType, this.gridFullWidth, this.tailLocation, this.headLocation, angle, getVars(), this.flags);
+        int flags = updateEasyShape(this.protoType, this.gridFullWidth, tailLocation, headLocation, angle, getVars(), this.flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
-                this.gridFullWidth, tailLocation.gridDistance(headLocation), angle, this.flags, getVars());
+                this.gridFullWidth, angle, flags, getVars());
 	}
 
 	/**
@@ -705,7 +707,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                (int)gridFullWidth, this.gridLength, this.angle, this.flags, getVars());
+                (int)gridFullWidth, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -724,7 +726,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, shortAngle, flags, getVars());
+                this.gridFullWidth, shortAngle, flags, getVars());
 	}
 
 	/**
@@ -745,7 +747,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, this.angle, flags, getVars());
+                this.gridFullWidth, this.angle, flags, getVars());
 	}
 
 	/**
@@ -776,7 +778,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, this.angle, flags, vars);
+                this.gridFullWidth, this.angle, flags, vars);
     }
     
 	/**
@@ -795,7 +797,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, this.angle, flags, vars);
+                this.gridFullWidth, this.angle, flags, vars);
     }
     
 	/**
@@ -815,7 +817,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, tailPortId, this.tailLocation,
                 this.headNodeId, headPortId, this.headLocation,
-                this.gridFullWidth, this.gridLength, this.angle, this.flags, vars);
+                this.gridFullWidth, this.angle, this.flags, vars);
     }
     
     private static short updateAngle(short angle, EPoint tailLocation, EPoint headLocation) {
@@ -866,7 +868,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         Variable[] vars = hasVars ? readVars(reader) : Variable.NULL_ARRAY;
         return new ImmutableArcInst(arcId, protoType, name, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, gridFullWidth,
-                tailLocation.gridDistance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, vars);
+                updateAngle((short)angle, tailLocation, headLocation), flags, vars);
     }
     
     /**
@@ -1387,7 +1389,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (pureGridRadius*2 < gridLength) return false;
         
         // determine the center of the circle
-        Point2D [] centers = DBMath.findCenters(pureGridRadius, headLocation.gridMutable(), tailLocation.gridMutable(), gridLength);
+        Point2D [] centers = DBMath.findCenters(pureGridRadius, headLocation.gridMutable(), tailLocation.gridMutable());
         if (centers == null) return false;
         
         Point2D centerPt = centers[1];
@@ -1459,8 +1461,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (isHeadNegated())
             assert headPortId instanceof PrimitivePort && ((PrimitivePort)headPortId).isNegatable() && !protoType.getTechnology().isNoNegatedArcs();
         assert 0 <= angle && angle < 3600;
-		assert gridLength == tailLocation.gridDistance(headLocation);
-        if (gridLength != 0)
+        if (!tailLocation.equals(headLocation))
             assert angle == GenMath.figureAngle(headLocation.getGridX() - tailLocation.getGridX(), headLocation.getGridY() - tailLocation.getGridY());
 	}
 

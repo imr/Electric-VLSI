@@ -909,6 +909,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * Returns persistent data of this NodeInst.
      * @return persistent data of this NodeInst.
      */
+    @Override
     public ImmutableNodeInst getD() { return d; }
     
     /**
@@ -938,12 +939,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         validVisBounds = false;
     }
 
-    /**
-     * Returns persistent data of this ElectricObject with Variables.
-     * @return persistent data of this ElectricObject.
-     */
-    public ImmutableElectricObject getImmutable() { return d; }
-    
     /**
      * Method to add a Variable on this NodeInst.
      * It may add repaired copy of this Variable in some cases.
@@ -2519,7 +2514,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * Retruns true if this NodeInst was named by user.
 	 * @return true if this NodeInst was named by user.
 	 */		
-	public boolean isUsernamed() { return !d.name.isTempname();	}
+	public boolean isUsernamed() { return d.isUsernamed();	}
 
 	/**
 	 * Method to return the name key of this NodeInst.

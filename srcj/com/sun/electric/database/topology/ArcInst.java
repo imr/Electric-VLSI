@@ -507,6 +507,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * Returns persistent data of this ArcInst.
      * @return persistent data of this ArcInst.
      */
+    @Override
     public ImmutableArcInst getD() { return d; }
     
     /**
@@ -531,12 +532,6 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         d = newD;
     }
 
-    /**
-     * Returns persistent data of this ElectricObject with Variables.
-     * @return persistent data of this ElectricObject.
-     */
-    public ImmutableElectricObject getImmutable() { return d; }
-    
     /**
      * Method to add a Variable on this ArcInst.
      * It may add repaired copy of this Variable in some cases.
@@ -954,7 +949,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Retruns true if this ArcInst was named by user.
 	 * @return true if this ArcInst was named by user.
 	 */		
-	public boolean isUsernamed() { return !d.name.isTempname();	}
+	public boolean isUsernamed() { return d.isUsernamed();	}
 
 	/**
 	 * Method to return the name key of this ArcInst.
