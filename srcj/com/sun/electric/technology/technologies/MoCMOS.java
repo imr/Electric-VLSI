@@ -1399,8 +1399,6 @@ public class MoCMOS extends Technology
 		polyPinNodes[1].setArcsShrink();
 		polyPinNodes[1].setNotUsed(true);
 
-        activePinNodes = new PrimitiveNode[2];
-
 		/** P-active-pin */
 		activePinNodes[P_TYPE] = PrimitiveNode.newInstance("P-Active-Pin", this, 15.0, 15.0, new SizeOffset(6, 6, 6, 6),
 			new Technology.NodeLayer []
