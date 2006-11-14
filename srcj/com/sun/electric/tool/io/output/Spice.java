@@ -1102,7 +1102,9 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
-						}
+                        } else {
+                            extra = "'"+extra+"'";
+                        }
 					} else {
                         if (fun == PrimitiveNode.Function.PRESIST) {
                             partName = "XR";
@@ -1142,7 +1144,9 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
-						}
+						} else {
+                            extra = "'"+extra+"'";
+                        }
 					}
 					writeTwoPort(ni, "C", extra, cni, netList, context, segmentedNets);
 				} else if (fun == PrimitiveNode.Function.INDUCT)
@@ -1156,7 +1160,9 @@ public class Spice extends Topology
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
-						}
+                        } else {
+                            extra = "'"+extra+"'";
+                        }
 					}
 					writeTwoPort(ni, "L", extra, cni, netList, context, segmentedNets);
 				} else if (fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
