@@ -461,7 +461,13 @@ public class VarContext implements Serializable
         // TODO: if(code == Variable.Code.TCL) { }
         // TODO: if(code == Variable.Code.LISP) { }
         if (code == TextDescriptor.Code.SPICE) {
-            return evalSpice_(var, true);
+            Object obj = evalSpice_(var, true);
+            if (obj instanceof Number) {
+                Number n = (Number)obj;
+                if (n.doubleValue() < 0.001)
+                    return TextUtils.formatDoublePostFix(n.doubleValue());
+            }
+            return obj;
         }
         value = ifNotNumberTryToConvertToNumber(value);
         return value;
