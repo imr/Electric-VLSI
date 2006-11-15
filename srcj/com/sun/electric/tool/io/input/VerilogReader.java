@@ -110,7 +110,7 @@ public class VerilogReader extends Input
                 }
                 if (pin == null)
                 {
-                    System.out.println("Not possible to find " + busName);
+                    System.out.println("Unknown signal " + busName + " in cell " + parent.describe(false));
                     continue; // temporary
                 }
             }
