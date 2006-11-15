@@ -1503,14 +1503,22 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * Method to check invariants in this ArcInst.
 	 * @exception AssertionError if invariants are not valid
 	 */
-	public void check() {
+	public void check(Poly.Builder polyBuilder) {
         if (topology.validArcBounds) {
-    		Poly poly = makeGridPoly(d.getGridFullWidth(), Poly.Type.FILLED);
-            Rectangle2D bounds = poly.getBounds2D();
-            assert visBounds.getX() == DBMath.gridToLambda(bounds.getX());
-            assert visBounds.getY() == DBMath.gridToLambda(bounds.getY());
-            assert visBounds.getWidth() == DBMath.gridToLambda(bounds.getWidth());
-            assert visBounds.getHeight() == DBMath.gridToLambda(bounds.getHeight());
+            double minX = Double.POSITIVE_INFINITY, minY = Double.POSITIVE_INFINITY;
+            double maxX = Double.NEGATIVE_INFINITY, maxY = Double.NEGATIVE_INFINITY;
+            for (Iterator<Poly> it = getShape(polyBuilder); it.hasNext(); ) {
+                Poly poly = it.next();
+                Rectangle2D bounds = poly.getBounds2D();
+                minX = Math.min(minX, bounds.getMinX());
+                minY = Math.min(minY, bounds.getMinY());
+                maxX = Math.max(maxX, bounds.getMaxX());
+                maxY = Math.max(maxY, bounds.getMaxY());
+            }
+            assert visBounds.getX() == DBMath.gridToLambda(minX);
+            assert visBounds.getY() == DBMath.gridToLambda(minY);
+            assert visBounds.getWidth() == DBMath.gridToLambda(maxX - minX);
+            assert visBounds.getHeight() == DBMath.gridToLambda(maxY - minY);
         }
     }
     

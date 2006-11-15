@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
@@ -348,67 +349,237 @@ public class ImmutableArcInstTest {
     /**
      * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testNewInstance() {
+    @Test public void testNewInstance() {
         System.out.println("newInstance");
         
-        int arcId = 1;
-        ArcProto protoType = null;
-        Name name = null;
-        TextDescriptor nameDescriptor = null;
-        int tailNodeId = 0;
-        PortProtoId tailPortId = null;
-        EPoint tailLocation = null;
-        int headNodeId = 0;
-        PortProtoId headPortId = null;
-        EPoint headLocation = null;
-        long gridFullWidth = 0L;
-        int angle = 0;
-        int flags = 0;
+        TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true);
+        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, td, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        a1.check();
+        assertTrue(a1.nameDescriptor.isDisplay());
+        assertFalse(a1.nameDescriptor.isCode());
+        assertFalse(a1.nameDescriptor.isParam());
         
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = ImmutableArcInst.newInstance(arcId, protoType, name, nameDescriptor, tailNodeId, tailPortId, tailLocation, headNodeId, headPortId, headLocation, gridFullWidth, angle, flags);
-        assertEquals(expResult, result);
+        ImmutableArcInst a2 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 0, pp, n0.anchor, DBMath.lambdaToGrid(15), -1, ImmutableArcInst.DEFAULT_FLAGS);
+        a2.check();
+        assertEquals(3599, a2.getAngle());
         
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 1, pp, n1.anchor, 0, pp, n0.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+        a3.check();
+        assertEquals(1800, a3.getAngle());
+        
+        int flags = ImmutableArcInst.TAIL_NEGATED.set(ImmutableArcInst.DEFAULT_FLAGS, true);
+        ImmutableArcInst a4 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, flags);
+        a4.check();
+        assertFalse(a4.isTailNegated());
+        assertFalse(a4.is(ImmutableArcInst.TAIL_NEGATED));
     }
 
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadArcId() {
+        System.out.println("newInstanceBadArcId");
+        ImmutableArcInst.newInstance(-1, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadProto() {
+        System.out.println("newInstanceBadProto");
+        ImmutableArcInst.newInstance(0, null, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadName1() {
+        System.out.println("newInstanceBadName1");
+        ImmutableArcInst.newInstance(0, ap, null, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName2() {
+        System.out.println("newInstanceBadName2");
+        ImmutableArcInst.newInstance(0, ap, Name.findName("a:"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName3() {
+        System.out.println("newInstanceBadName3");
+        ImmutableArcInst.newInstance(0, ap, Name.findName("a,"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName4() {
+        System.out.println("newInstanceBadName4");
+        ImmutableArcInst.newInstance(0, ap, Name.findName("Net@0"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName5() {
+        System.out.println("newInstanceBadName5");
+        ImmutableArcInst.newInstance(0, ap, Name.findName("net@0[0:1]"), null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadTailNodeId() {
+        System.out.println("newInstanceBadTailNodeId");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, -1, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadTailPortId() {
+        System.out.println("newInstanceBadTailPortId");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, null, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadTailLocation() {
+        System.out.println("newInstanceBadTailLocation");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, null, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadHeadNodeId() {
+        System.out.println("newInstanceBadHeadNodeId");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, -1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadHeadPortId() {
+        System.out.println("newInstanceBadHeadPortId");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, null, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadHeadLocation() {
+        System.out.println("newInstanceBadHeadLocation");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, null, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadWidth1() {
+        System.out.println("newInstanceBadWidth1");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15) + 1, 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadWidth2() {
+        System.out.println("newInstanceBadWidth2");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(12) - 2, 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadWidth3() {
+        System.out.println("newInstanceBadWidth3");
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(6000000) - 2, 0, ImmutableArcInst.DEFAULT_FLAGS);
+    }
+    
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testWithName() {
         System.out.println("withName");
+        
         assertSame(a0, a0.withName(a0.name));
+        a0.check();
+        
         Name nameB = Name.findName("b");
         ImmutableArcInst ab = a0.withName(nameB);
         assertSame(nameA0, a0.name);
         assertSame(nameB, ab.name);
+        ab.check();
     }
 
     /**
+     * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = NullPointerException.class) public void testWithNameBad1() {
+        System.out.println("withNameBad1");
+        a0.withName(null);
+    }
+    
+     /**
+     * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testWithNameBad2() {
+        System.out.println("withNameBad2");
+        a0.withName(Name.findName("a:"));
+    }
+    
+    /**
+     * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testWithNameBad3() {
+        System.out.println("withNameBad3");
+        a0.withName(Name.findName("a,"));
+    }
+    
+    /**
+     * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testWithNameBad4() {
+        System.out.println("withNameBad4");
+        a0.withName(Name.findName("Net@0"));
+    }
+    
+    /**
+     * Test of withName method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+   @Test(expected = IllegalArgumentException.class) public void testWithNameBad5() {
+        System.out.println("withNameBad5");
+        a0.withName(Name.findName("net@0[0:1]"));
+    }
+    
+     /**
      * Test of withNameDescriptor method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testWithNameDescriptor() {
         System.out.println("withNameDescriptor");
         assertSame(a0, a0.withNameDescriptor(a0.nameDescriptor));
+        
+        TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true).withUnderline(true);
+        ImmutableArcInst a1 = a0.withNameDescriptor(td);
+        a1.check();
+        assertTrue(a1.nameDescriptor.isDisplay());
+        assertFalse(a1.nameDescriptor.isCode());
+        assertFalse(a1.nameDescriptor.isParam());
+        assertTrue(a1.nameDescriptor.isUnderline());
     }
-
+        
     /**
      * Test of withLocations method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithLocations() {
+    @Test public void testWithLocations() {
         System.out.println("withLocations");
-        
-        EPoint tailLocation = null;
-        EPoint headLocation = null;
-        ImmutableArcInst instance = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withLocations(tailLocation, headLocation);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(a0, a0.withLocations(a0.tailLocation, a0.headLocation));
     }
 
     /**

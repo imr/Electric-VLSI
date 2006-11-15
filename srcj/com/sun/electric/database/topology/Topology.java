@@ -26,6 +26,7 @@ package com.sun.electric.database.topology;
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.text.ImmutableArrayList;
@@ -369,6 +370,7 @@ public class Topology {
     public void check() {
         // check arcs
         ArcInst prevAi = null;
+        Poly.Builder polyBuilder = Poly.newGridBuilder();
         for(int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ArcInst ai = arcs.get(arcIndex);
             ImmutableArcInst a = ai.getD();
@@ -383,7 +385,7 @@ public class Topology {
             }
             assert ai.getHeadPortInst() == cell.getPortInst(a.headNodeId, a.headPortId);
             assert ai.getTailPortInst() == cell.getPortInst(a.tailNodeId, a.tailPortId);
-            ai.check();
+            ai.check(polyBuilder);
             prevAi = ai;
         }
         for (int arcId = 0; arcId < chronArcs.size(); arcId++) {
