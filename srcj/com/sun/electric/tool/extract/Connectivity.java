@@ -1010,12 +1010,67 @@ public class Connectivity
 			// get all of the geometry on the cut/via layer
 			List<PolyBase> cutList = getMergePolys(merge, layer);
 
+			// make a list of all necessary layers
+			Set<Layer> layersToExamine = new HashSet<Layer>();
+			for(PossibleVia pv : possibleVias)
+			{
+				for(int i=0; i<pv.layers.length; i++)
+					layersToExamine.add(pv.layers[i]);
+			}
+
 			// the new way to extract vias
 			for(PolyBase cut : cutList)
 			{
+				// figure out which of the layers are present at this cut point
+				Rectangle2D cutBox = cut.getBox();
+				if (cutBox == null) continue;
+				Point2D ctr = new Point2D.Double(cutBox.getCenterX(), cutBox.getCenterY());
+				Set<Layer> layersPresent = new HashSet<Layer>();
+				for(Layer l : layersToExamine)
+				{
+					if (originalMerge.contains(l, ctr))
+						layersPresent.add(l);
+				}
+				boolean ignorePWell = false, ignoreNWell = false;
+				if (pWellProcess)
+				{
+					// P-Well process (P-well is presumed where there is no N-Well)
+					boolean foundNWell = false;
+					for(Layer l : layersPresent)
+					{
+						if (l.getFunction() == Layer.Function.WELLN) { foundNWell = true;   break; }
+					}
+					if (!foundNWell) ignorePWell = true;
+				}
+				if (nWellProcess)
+				{
+					// N-Well process (N-well is presumed where there is no P-Well)
+					boolean foundPWell = false;
+					for(Layer l : layersPresent)
+					{
+						if (l.getFunction() == Layer.Function.WELLP) { foundPWell = true;   break; }
+					}
+					if (!foundPWell) ignoreNWell = true;
+				}
+
 				for(PossibleVia pv : possibleVias)
 				{
-					if (extractOneVia(layer, pv, cut, merge, originalMerge, newCell)) break;
+					// quick test to see if this via could possibly exist
+					boolean someLayersMissing = false;
+					for(int i=0; i<pv.layers.length; i++)
+					{
+						if (!layersPresent.contains(pv.layers[i]))
+						{
+							if (ignorePWell && pv.layers[i].getFunction() == Layer.Function.WELLP) continue;
+							if (ignoreNWell && pv.layers[i].getFunction() == Layer.Function.WELLN) continue;
+							someLayersMissing = true;
+							break;
+						}
+					}
+					if (someLayersMissing) continue;
+
+					// extract the via if its layers fit
+					if (extractOneVia(pv, cut, merge, originalMerge, newCell, ignorePWell, ignoreNWell)) break;
 				}				
 			}
 
@@ -1071,8 +1126,8 @@ public class Connectivity
 
 				// ignore well layers if the process doesn't have them
 				Layer.Function lFun = nLayer.getFunction();
-				if (lFun == Layer.Function.WELLP && pWellProcess) continue;
-				if (lFun == Layer.Function.WELLN && nWellProcess) continue;
+//				if (lFun == Layer.Function.WELLP && pWellProcess) continue;
+//				if (lFun == Layer.Function.WELLN && nWellProcess) continue;
 
 				boolean cutLayer = false;
 				if (nLayer == lay)
@@ -1127,12 +1182,11 @@ public class Connectivity
 				if (pv.shrinkL[i] != pv.shrinkT[i])
 				{
 					hvSymmetry = false;
-					break;
 				}
 			}
-			if (!hvSymmetry)
+			if (!hvSymmetry || !rotSymmetry)
 			{
-				// horizontal/vertical symmetry missing: add a 90-degree rotation
+				// horizontal/vertical or rotational symmetry missing: add a 90-degree rotation
 				PossibleVia newPV = new PossibleVia(pv.pNp, pv.layers.length);
 				newPV.rotation = 90;
 				newPV.largestShrink = pv.largestShrink;
@@ -1186,8 +1240,7 @@ public class Connectivity
 	}
 
 	/**
-	 * Method to see if a via exists around a given cut layer.
-	 * @param layer the layer in question.
+	 * Method to see if a via exists around a given cut.
 	 * @param pv the possible via.
 	 * @param cut the cut layer that may be the via.
 	 * @param merge the merge data at this point (after extracted nodes are removed).
@@ -1195,17 +1248,21 @@ public class Connectivity
 	 * @param newCell the cell in which extracted geometry goes.
 	 * @return true if a contact was extracted.
 	 */
-	private boolean extractOneVia(Layer layer, PossibleVia pv, PolyBase cut, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private boolean extractOneVia(PossibleVia pv, PolyBase cut, PolyMerge merge, PolyMerge originalMerge,
+		Cell newCell, boolean ignorePWell, boolean ignoreNWell)
 	{
 		// can only handle manhattan contacts now
 		Rectangle2D cutBox = cut.getBox();
 		if (cutBox == null) return false;
-
 		double cX = cutBox.getCenterX();
 		double cY = cutBox.getCenterY();
-//System.out.println("DOES "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" FIT AT ("+cX+","+cY+")?");
+boolean debug = false;
+//if (!pv.pNp.getName().equals("B-Metal-1-N-Well-Con")) debug = false;
 		for(int i=0; i<pv.layers.length; i++)
 		{
+			Layer l = pv.layers[i];
+			if (ignorePWell && l.getFunction() == Layer.Function.WELLP) continue;
+			if (ignoreNWell && l.getFunction() == Layer.Function.WELLN) continue;
 			double lX = cX - pv.minWidth/2 + pv.shrinkL[i];
 			double hX = cX + pv.minWidth/2 - pv.shrinkR[i];
 			double lY = cY - pv.minHeight/2 + pv.shrinkB[i];
@@ -1213,13 +1270,16 @@ public class Connectivity
 			double layerCX = (lX + hX) / 2;
 			double layerCY = (lY + hY) / 2;
 			PolyBase layerPoly = new PolyBase(layerCX, layerCY, hX-lX, hY-lY);
-			if (!originalMerge.contains(pv.layers[i], layerPoly))
+			if (!originalMerge.contains(l, layerPoly))
 			{
-//System.out.println("  LAYER "+pv.layers[i].getName()+" DOES NOT (NEEDS "+lX+"<=X<="+hX+" AND "+lY+"<=Y<="+hY+")");
+if (debug) System.out.println("NO,  CONTACT "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" DOES NOT FIT AT ("
+	+(cX/SCALEFACTOR)+","+(cY/SCALEFACTOR)+") BECAUSE LAYER "+l.getName()+" NEEDS "+
+	(lX/SCALEFACTOR)+"<=X<="+(hX/SCALEFACTOR)+" AND "+(lY/SCALEFACTOR)+"<=Y<="+(hY/SCALEFACTOR));
 				return false;
 			}
 		}
-//System.out.println("  YES!");
+if (debug) System.out.println("YES, CONTACT "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" FITS AT ("+
+	(cX/SCALEFACTOR)+","+(cY/SCALEFACTOR)+")");
 
 		// found: create the node
 		realizeNode(pv.pNp, cX, cY, pv.minWidth, pv.minHeight, pv.rotation*10, null, merge, newCell);
