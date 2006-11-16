@@ -666,6 +666,9 @@ public class Technology implements Comparable<Technology>
 	 */
 	public static void initAllTechnologies()
 	{
+		// technology initialization may set preferences, so batch them
+		Pref.delayPrefFlushing();
+
 		// Because of lazy evaluation, technologies aren't initialized unless they're referenced here
 		Artwork.tech.setup();
 		BiCMOS.tech.setup();
@@ -682,6 +685,9 @@ public class Technology implements Comparable<Technology>
 		RCMOS.tech.setup();
 		Schematics.tech.setup();
 		Generic.tech.setup();
+
+		// finished batching preferences
+		Pref.resumePrefFlushing();
 
 		// initialize technologies that may not be present
 		for(int i=0; i<extraTechnologies.length; i++)
