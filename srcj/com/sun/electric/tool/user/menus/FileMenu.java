@@ -1082,9 +1082,8 @@ public class FileMenu {
 			}
         }
 
-//		String [] extensions = type.getExtensions();
-//        String filePath = ((cell != null) ? cell.getName() : "") + "." + extensions[0];
-        String filePath = cell.getName();
+		String [] extensions = type.getExtensions();
+        String filePath = cell.getName() + "." + extensions[0];
 
         // special case for spice
         if (type == FileType.SPICE &&
@@ -1119,7 +1118,6 @@ public class FileMenu {
 	    // Special case for PNG format
 	    if (type == FileType.PNG)
 	    {
-//		    String name = (cell != null) ? cell.toString() : filePath;
             new ExportImage(cell.toString(), wnd, filePath);
 			return;
 	    }

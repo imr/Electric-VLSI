@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/15/06, GVG) Extension not added to hspice netlists (bug #1259)
+FIX: Mistake was introduced while cleaning the code.
+
 BUG: (11/14/06, DN) Check library throws assertion on directed and negated arcs.
 FIX: In ArcInst.check use "getShape" instead of "makeGridPoly". 
 
