@@ -67,6 +67,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -1264,11 +1265,26 @@ public class ViewChanges
             private Technology newTech;
             private Library defaultLib;
             private Map<Cell,Cell> convertedCells;
+            private StdCellParams stdCell;
 
             private MakeLayoutVisitor(Technology newTech, Library defaultLib) {
                 this.newTech = newTech;
                 this.defaultLib = defaultLib;
                 convertedCells = new HashMap<Cell,Cell>();
+                Tech.Type type = null;
+                if      (newTech == Technology.findTechnology("MoCMOS")) type = Tech.Type.MOCMOS;
+                else if (newTech == Technology.findTechnology("TSMC180")) type = Tech.Type.TSMC180;
+                else if (newTech == Technology.findTechnology("TSMC90")) type = Tech.Type.TSMC90;
+                Tech.setTechnology(type);
+                Technology tsmc90 = Technology.getTSMC90Technology();
+                if (tsmc90 != null && type == Tech.Type.TSMC90) {
+                    stdCell = GateLayoutGenerator.sportParams();
+                } else {
+                    //stdCell = locoParams(outLib);
+                    stdCell = GateLayoutGenerator.dividerParams(type);
+                    //stdCell = justinParams(outLib, technology);
+                }
+                if (type == null) stdCell = null;
             }
 
             public HierarchyEnumerator.CellInfo newCellInfo() { return new Info(); }
@@ -1289,16 +1305,10 @@ public class ViewChanges
                 VarContext context = info.getContext();
                 Info myInfo = (Info)info;
                 if (convertedCells.containsKey(oldCell)) return false;
-
-                Tech.Type type = null;
-                if      (newTech == Technology.findTechnology("MoCMOS")) type = Tech.Type.MOCMOS;
-                else if (newTech == Technology.findTechnology("TSMC180")) type = Tech.Type.TSMC180;
-                else if (newTech == Technology.findTechnology("TSMC90")) type = Tech.Type.TSMC90;
-
-                if (type != null) {
-                    GateLayoutGenerator gen = new GateLayoutGenerator(type);
-                    gen.generateLayout(oldCell.getLibrary(), oldCell, context, type, true);
-                    myInfo.generatedCells = gen.getGeneratedCells();
+                if (stdCell != null) {
+                    myInfo.generatedCells = GateLayoutGenerator.generateLayoutFromSchematics(
+                            oldCell.getLibrary(),
+                            oldCell, context, stdCell, true);
                 }
                 return true;
             }

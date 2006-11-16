@@ -1207,8 +1207,8 @@ public class FillGeneratorTool extends Tool {
         if (!metalFlex) printCoverage(plans);
 
         lib = LayoutLib.openLibForWrite(config.fillLibName);
-        stdCell = new StdCellParams(null, Tech.getTechnology());
-        stdCellP = new StdCellParams(null, Tech.getTechnology());
+        stdCell = new StdCellParams(Tech.getTechnology());
+        stdCellP = new StdCellParams(Tech.getTechnology());
         stdCellP.setVddExportName("power");
         stdCellP.setVddExportRole(PortCharacteristic.IN);
         if (!metalFlex) // don't do transistors

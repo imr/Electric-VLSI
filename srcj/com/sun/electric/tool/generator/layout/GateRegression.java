@@ -98,13 +98,15 @@ public class GateRegression extends Job {
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == Tech.Type.TSMC90) {
-            stdCell = new StdCellParams(scratchLib, Tech.Type.TSMC90);
+            stdCell = new StdCellParams(Tech.Type.TSMC90);
+            stdCell.setOutputLibrary(scratchLib);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
         } else {
             // Test the parameters used by divider
-        	stdCell = GateLayoutGenerator.dividerParams(scratchLib, technology);
+        	stdCell = GateLayoutGenerator.dividerParams(technology);
+            stdCell.setOutputLibrary(scratchLib);
 
         	stdCell.setSizeQuantizationError(0.05);
         	stdCell.setSimpleName(false);

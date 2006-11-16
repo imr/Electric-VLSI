@@ -166,13 +166,9 @@ public class StdCellParams {
 	private String gndExportName = "gnd";
 	private PortCharacteristic vddExportRole = PortCharacteristic.PWR;
 	private PortCharacteristic gndExportRole = PortCharacteristic.GND;
+    private Tech.Type technology;
 
-	// ------------------------ private methods -----------------------------
-
-	private void init(Library lib) {
-		layoutLib = lib;
-		init();
-	}
+    // ------------------------ private methods -----------------------------
 
     private void initMoCMOS() {
         nmosWellHeight = 70;
@@ -651,16 +647,22 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(Library lib, Tech.Type tech) {
+	public StdCellParams(Tech.Type tech) {
         if      (tech == Tech.Type.TSMC90) initTSMC90();
         else if (tech == Tech.Type.MOCMOS || tech == Tech.Type.TSMC180) initMoCMOS();
         else {
             error(true, "Standard Cell Params does not understand technology "+tech);
         }
-		init(lib);
-	}
+        this.technology = tech;
+    }
 
-	public double getNmosWellHeight() {
+    void setOutputLibrary(Library lib) {
+        this.layoutLib = lib;
+    }
+    Library getOutputLibrary() { return layoutLib; }
+
+    public Tech.Type getTechnology() { return technology; }
+    public double getNmosWellHeight() {
 		return nmosWellHeight;
 	}
 	public double getPmosWellHeight() {

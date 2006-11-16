@@ -516,11 +516,11 @@ public class ToolMenu {
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(MoCMOS.tech); }},
 		        new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
-                    new GateLayoutGenerator(Tech.Type.MOCMOS).startJob(); }},
+                    GateLayoutGenerator.generateFromSchematicsJob(Tech.Type.MOCMOS); }},
                 Technology.getTSMC90Technology() != null ? new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
-                    new GateLayoutGenerator(Tech.Type.TSMC180).startJob(); }} : null,
+                    GateLayoutGenerator.generateFromSchematicsJob(Tech.Type.TSMC180); }} : null,
                 Technology.getTSMC90Technology() != null ? new EMenuItem("Generate gate layouts (_TSMC90)") { public void run() {
-	                new GateLayoutGenerator(Tech.Type.TSMC90).startJob(); }} : null),
+	                GateLayoutGenerator.generateFromSchematicsJob(Tech.Type.TSMC90); }} : null),
 
 		//------------------- Silicon Compiler
 

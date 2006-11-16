@@ -46,11 +46,7 @@ import com.sun.electric.technology.Technology;
 /*
  * Regression test for gate generators
  */
-public class GateLayoutGenerator extends Job {
-    private Tech.Type technology;
-    private Cell cell;
-    private VarContext context;
-    private Map<Nodable,Cell> generatedCells;
+public class GateLayoutGenerator {
 
     // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -59,8 +55,6 @@ public class GateLayoutGenerator extends Job {
 	        return ni.getProto().getName().indexOf("mosWellTie_") != -1;
 		}
 	};
-
-    public Map<Nodable,Cell> getGeneratedCells() { return generatedCells; }
 
 //	private static void error(boolean pred, String msg) {
 //		LayoutLib.error(pred, msg);
@@ -71,35 +65,74 @@ public class GateLayoutGenerator extends Job {
 //		LayoutLib.error(c==null, "can't find: "+lib+":"+cellName);
 //		return c;
 //	}
-	
-	public Library generateLayout(Library outLib, Cell cell,
-			                       VarContext context, Tech.Type technology,
-                                   boolean topLevelOnly) {
-        StdCellParams stdCell;
-        Tech.setTechnology(technology);
-        Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == Tech.Type.TSMC90) {
-            stdCell = sportParams(outLib);
-        } else {
-            //stdCell = locoParams(outLib);
-            stdCell = dividerParams(outLib, technology);
-        	//stdCell = justinParams(outLib, technology);
-        }
+    public static Cell generateCell(Library outputLib, StdCellParams stdCell,
+                                    String type, double Xstrength) {
+        if (outputLib == null) return null;
+        stdCell.setOutputLibrary(outputLib);
+        if (Tech.getTechnology() != stdCell.getTechnology())
+            Tech.setTechnology(stdCell.getTechnology());
 
-		GenerateLayoutForGatesInSchematic visitor =
+        if (Xstrength<0) return null;
+
+        int pwr = type.indexOf("_pwr");
+        if (pwr!=-1) type = type.substring(0, pwr);
+
+        Cell c = null;
+        if (Tech.isTSMC90())
+        {
+            try
+            {
+                Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.TSMC90Generator");
+                Class [] parameterTypes = new Class[] {String.class, Double.class, StdCellParams.class};
+                Method makeGateMethod = tsmc90GeneratorClass.getDeclaredMethod("makeGate", parameterTypes);
+                c = (Cell)makeGateMethod.invoke(null, new Object[] {type, new Double(Xstrength), stdCell});
+             } catch (Exception e)
+            {
+                 System.out.println("ERROR invoking the TSMC90 gate generator");
+            }
+//			c = TSMC90Generator.makeGate(pNm, x, stdCell);
+        } else
+        {
+            c = MoCMOSGenerator.makeGate(type, Xstrength, stdCell);
+        }
+        return c;
+    }
+
+
+    /**
+     * Generate layout cells from a heirarchical traversal of the
+     * schematic cell
+     * @param outLib the output library
+     * @param cell the schematic cell
+     * @param context the context of the schematic cell
+     * @param stdCell the standard cell parameters
+     * @param topLevelOnly true to generate gates in the top level only,
+     * so it does not generate standard cells in sub cells.
+     * @return a map of cells generated
+     */
+    public static Map<Nodable,Cell> generateLayoutFromSchematics(Library outLib,
+                                   Cell cell, VarContext context,
+                                   StdCellParams stdCell, boolean topLevelOnly) {
+        stdCell.setOutputLibrary(outLib);
+        Tech.setTechnology(stdCell.getTechnology());
+        GenerateLayoutForGatesInSchematic visitor =
 			new GenerateLayoutForGatesInSchematic(stdCell, topLevelOnly);
 		HierarchyEnumerator.enumerateCell(cell, context, visitor);
 //		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
-        this.generatedCells = visitor.getGeneratedCells();
 
         Cell gallery = Gallery.makeGallery(outLib);
         DrcRings.addDrcRings(gallery, FILTER, stdCell);
 
-		return outLib;
+        return visitor.getGeneratedCells();
 	}
-	
-	public static StdCellParams locoParams(Library outLib) {
-		StdCellParams stdCell = new StdCellParams(outLib, Tech.Type.MOCMOS);
+
+    public static void generateFromSchematicsJob(Tech.Type type) {
+        GenerateFromSchematicsJob job = new GenerateFromSchematicsJob(type);
+        job.startJob();
+    }
+
+    public static StdCellParams locoParams() {
+		StdCellParams stdCell = new StdCellParams(Tech.Type.MOCMOS);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -111,8 +144,8 @@ public class GateLayoutGenerator extends Job {
 		return stdCell;
 	}
 
-    private static StdCellParams sportParams(Library outLib) {
-        StdCellParams stdCell = new StdCellParams(outLib, Tech.Type.TSMC90);
+    public static StdCellParams sportParams() {
+        StdCellParams stdCell = new StdCellParams(Tech.Type.TSMC90);
         stdCell.setSizeQuantizationError(0);
         stdCell.setMaxMosWidth(1000);
         stdCell.setVddY(24.5);
@@ -123,8 +156,8 @@ public class GateLayoutGenerator extends Job {
         return stdCell;
     }
 
-	public static StdCellParams dividerParams(Library outLib, Tech.Type technology) {
-		StdCellParams stdCell = new StdCellParams(outLib, technology);
+	public static StdCellParams dividerParams(Tech.Type technology) {
+		StdCellParams stdCell = new StdCellParams(technology);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -136,8 +169,8 @@ public class GateLayoutGenerator extends Job {
 		return stdCell;
 	}
 
-	public static StdCellParams justinParams(Library outLib, Tech.Type technology) {
-		StdCellParams stdCell = new StdCellParams(outLib, technology);
+	public static StdCellParams justinParams(Tech.Type technology) {
+		StdCellParams stdCell = new StdCellParams(technology);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -149,43 +182,63 @@ public class GateLayoutGenerator extends Job {
 		return stdCell;
 	}
 
-	public boolean doIt() throws JobException {
-		String outLibNm = "autoGenLib"+technology;
-		Library outLib = LayoutLib.openLibForWrite(outLibNm);
 
-		if (cell==null) {
-			System.out.println("Please open the schematic for which you " +
-				               "want to generate gate layouts.");
-			return false;		
-		}
-		if (!cell.isSchematic()) {
-			System.out.println("The current cell isn't a schematic. This " +
-				               "command only works on schematics.");
-			return false;
-		}
-		System.out.println("Generating layouts for gates in the schematic: "+
-		                   cell.getName()+" and its descendents");
-		System.out.println("Output goes to library: " + outLibNm);
-		//Library outLib = cell.getLibrary();
 
-		generateLayout(outLib, cell, context, technology, false);
+    public static class GenerateFromSchematicsJob extends Job {
 
-		System.out.println("done.");
-		return true;
-	}
+        private Tech.Type technology;
+        private Cell cell;
+        private VarContext context;
 
-	public GateLayoutGenerator(Tech.Type techNm) {
-		super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE,
-			  null, null, Job.Priority.ANALYSIS);
-        this.technology = techNm;
-        
-		UserInterface ui = Job.getUserInterface();
-		EditWindow_ wnd = ui.needCurrentEditWindow_();
-		if (wnd == null) return;
+        public GenerateFromSchematicsJob(Tech.Type techNm) {
+            super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE,
+                  null, null, Job.Priority.ANALYSIS);
+            this.technology = techNm;
 
-		cell = wnd.getCell();
-		context = wnd.getVarContext();
-	}
+            UserInterface ui = Job.getUserInterface();
+            EditWindow_ wnd = ui.needCurrentEditWindow_();
+            if (wnd == null) return;
+
+            cell = wnd.getCell();
+            context = wnd.getVarContext();
+        }
+
+        public boolean doIt() throws JobException {
+            String outLibNm = "autoGenLib"+technology;
+            Library outLib = LayoutLib.openLibForWrite(outLibNm);
+
+            StdCellParams stdCell;
+            Tech.setTechnology(technology);
+            Technology tsmc90 = Technology.getTSMC90Technology();
+            if (tsmc90 != null && technology == Tech.Type.TSMC90) {
+                stdCell = sportParams();
+            } else {
+                //stdCell = locoParams(outLib);
+                stdCell = dividerParams(technology);
+                //stdCell = justinParams(outLib, technology);
+            }
+
+            if (cell==null) {
+                System.out.println("Please open the schematic for which you " +
+                                   "want to generate gate layouts.");
+                return false;
+            }
+            if (!cell.isSchematic()) {
+                System.out.println("The current cell isn't a schematic. This " +
+                                   "command only works on schematics.");
+                return false;
+            }
+            System.out.println("Generating layouts for gates in the schematic: "+
+                               cell.getName()+" and its descendents");
+            System.out.println("Output goes to library: " + outLibNm);
+            //Library outLib = cell.getLibrary();
+
+            GateLayoutGenerator.generateLayoutFromSchematics(outLib, cell, context, stdCell, false);
+
+            System.out.println("done.");
+            return true;
+        }
+    }
 }
 
 /** Traverse a schematic hierarchy and generate Cells that we recognize. */
@@ -238,29 +291,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 //		System.out.println("Try : "+pNm+" X="+x+" for instance: "+
 //                           info.getUniqueNodableName(iconInst, "/"));
 		
-		if (x<0) return null;
-
-		int pwr = pNm.indexOf("_pwr");
-		if (pwr!=-1) pNm = pNm.substring(0, pwr);
-
-		Cell c = null;
-		if (Tech.isTSMC90())
-		{
-    		try
-			{
-				Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.TSMC90Generator");
-				Class [] parameterTypes = new Class[] {String.class, Double.class, StdCellParams.class};
-				Method makeGateMethod = tsmc90GeneratorClass.getDeclaredMethod("makeGate", parameterTypes);
-				c = (Cell)makeGateMethod.invoke(null, new Object[] {pNm, new Double(x), stdCell});
-	 		} catch (Exception e)
-	        {
-	 			System.out.println("ERROR invoking the TSMC90 gate generator");
-	        }
-//			c = TSMC90Generator.makeGate(pNm, x, stdCell);
-		} else
-		{
-			c = MoCMOSGenerator.makeGate(pNm, x, stdCell);
-		}
+		Cell c = GateLayoutGenerator.generateCell(stdCell.getOutputLibrary(), stdCell, pNm, x);
 		if (c!=null) {
             // record defining schematic cell if it is sizable
             if (LEInst.getType(iconInst, context) == LEInst.Type.LEGATE) {
