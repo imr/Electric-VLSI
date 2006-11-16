@@ -382,6 +382,7 @@ public class CVSLibrary {
         }
 
         if (!CVS.isDELIB(lib)) {
+            if (lib.getLibFile() == null) return;
             File file = TextUtils.getFile(lib.getLibFile());
             if (file == null) return;
             if (!CVS.isFileInCVS(new File(lib.getLibFile().getPath()))) return;
