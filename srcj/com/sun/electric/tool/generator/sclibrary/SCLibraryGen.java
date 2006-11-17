@@ -2,22 +2,23 @@ package com.sun.electric.tool.generator.sclibrary;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.EDatabase;
-import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
-import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.PrimitiveNode;
 
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.*;
+import java.awt.Color;
 
 /**
  * Created by IntelliJ IDEA.
@@ -39,6 +40,8 @@ public class SCLibraryGen {
     private Library redLibrary;
     private Library scLibrary;
     private List<StdCellSpec> scellSpecs = new ArrayList<StdCellSpec>();
+    private PrimitiveNode pin = Generic.tech.invisiblePinNode;
+    private Variable.Key sizeKey = Variable.findKey("ATTR_X");
 
     private static final int blueColorIndex = EGraphics.makeIndex(Color.blue);
 
@@ -140,17 +143,27 @@ public class SCLibraryGen {
 
                 Cell iconcell = scLibrary.findNodeProto(laycell.getName()+"{ic}");
                 if (iconcell == null) continue;
+                // add size text
+                NodeInst sizeni = NodeInst.makeInstance(pin, new EPoint(0,0),
+                        0, 0, iconcell);
+                sizeni.newVar(Artwork.ART_MESSAGE, new Double(d),
+                        TextDescriptor.getAnnotationTextDescriptor().withColorIndex(blueColorIndex));
+
                 // change all arcs to blue
                 for (Iterator<ArcInst> it = iconcell.getArcs(); it.hasNext(); ) {
                     ArcInst ai = it.next();
                     ai.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
                 }
+                for (Iterator<NodeInst> it = iconcell.getNodes(); it.hasNext(); ) {
+                    NodeInst ni = it.next();
+                    ni.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
+                }
 
                 Cell schcell = scLibrary.findNodeProto(laycell.getName()+"{sch}");
                 if (schcell == null) continue;
                 // remove 'X' attribute
-                if (schcell.getVar("ATTR_X") != null) {
-                    schcell.delVar(Variable.findKey("ATTR_X"));
+                if (schcell.getVar(sizeKey) != null) {
+                    schcell.delVar(sizeKey);
                 }
                 // change X value on red gate
                 for (Iterator<NodeInst> it = schcell.getNodes(); it.hasNext(); ) {
@@ -158,10 +171,14 @@ public class SCLibraryGen {
                     if (ni.isCellInstance()) {
                         Cell np = (Cell)ni.getProto();
                         if (np.getLibrary() == redLibrary) {
-                            Variable var = ni.getVar("ATTR_X");
+                            Variable var = ni.getVar(sizeKey);
                             if (var != null) {
-                                ni.newVar("ATTR_X", new Double(d));
+                                ni.newVar(sizeKey, new Double(d), var.getTextDescriptor());
                             }
+                        }
+                        if (np.isIconOf(schcell)) {
+                            // remove size attribute
+                            ni.delVar(sizeKey);
                         }
                     }
                 }
@@ -171,44 +188,35 @@ public class SCLibraryGen {
     }
 
     private boolean copySchCell(Cell fromSchCell, Library toLib, String toName) {
-        List<Cell> cellsToCopy = new ArrayList<Cell>();
-        // check if sch already exists
-        Cell schcell = toLib.findNodeProto(toName+"{sch}");
-        if (schcell == null) {
-            cellsToCopy.add(fromSchCell);
-            IdMapper schid = CellChangeJobs.copyRecursively(cellsToCopy, scLibrary,
-                    false, false, false, false, true);
-            if (schid == null) {
-                prErr("Unable to copy purple cell "+fromSchCell.describe(false)+" to library "+toLib);
-                return false;
-            }
-        }
-        // rename schematic cell
-        schcell = scLibrary.findNodeProto(fromSchCell.getName()+"{sch}");
-        if (schcell == null) return false;
-        schcell.rename(toName, toName);
-        schcell = scLibrary.findNodeProto(toName+"{sch}");
-        if (schcell == null) return false;
-
         // check if icon already exists
         Cell iconcell = toLib.findNodeProto(toName+"{ic}");
         Cell fromIconCell = fromSchCell.getLibrary().findNodeProto(fromSchCell.getName()+"{ic}");
         if (iconcell == null && fromIconCell != null) {
-            cellsToCopy.clear();
-            cellsToCopy.add(fromIconCell);
-            IdMapper id = CellChangeJobs.copyRecursively(cellsToCopy, scLibrary,
-                    false, false, false, false, true);
-            if (id == null) {
+            iconcell = Cell.copyNodeProto(fromIconCell, toLib, toName, false);
+            if (iconcell == null) {
                 prErr("Unable to copy purple cell "+fromIconCell.describe(false)+" to library "+toLib);
                 return false;
             }
         }
-        // rename icon cell if it was also copied
-        iconcell = scLibrary.findNodeProto(fromSchCell.getName()+"{ic}");
-        if (iconcell == null) return false;
-        iconcell.rename(toName, toName);
-        iconcell = scLibrary.findNodeProto(toName+"{ic}");
-        if (iconcell == null) return false;
+        // check if sch already exists
+        Cell schcell = toLib.findNodeProto(toName+"{sch}");
+        if (schcell == null) {
+            schcell = Cell.copyNodeProto(fromSchCell, toLib, toName, false);
+            if (schcell == null) {
+                prErr("Unable to copy purple cell "+fromSchCell.describe(false)+" to library "+toLib);
+                return false;
+            }
+        }
+        // replace master icon cell in schematic
+        for (Iterator<NodeInst> it = schcell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            if (ni.isCellInstance()) {
+                Cell np = (Cell)ni.getProto();
+                if (np == fromIconCell) {
+                    ni.replace(iconcell, true, true);
+                }
+            }
+        }
         return true;
     }
 
