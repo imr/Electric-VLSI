@@ -391,7 +391,8 @@ public class Spice extends Topology
 		if (!useCDL)
 		{
 			writeTrailer(topCell);
-			multiLinePrint(false, ".END\n");
+            if (Simulation.isSpiceWriteFinalDotEnd())
+                multiLinePrint(false, ".END\n");
 		}
 	}
 
