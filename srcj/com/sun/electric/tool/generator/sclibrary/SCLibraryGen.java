@@ -116,12 +116,11 @@ public class SCLibraryGen {
         prMsg("Using purple library \""+purpleLibraryName+"\" and red library \""+redLibraryName+"\"");
 
         scLibrary = Library.findLibrary(scLibraryName);
-        if (scLibrary != null) {
-            prWarn("Library "+scLibraryName+" already exists, overwriting it");
-            scLibrary.kill("Standard Cell Generator regenerating standard cell library");
+        if (scLibrary == null) {
+            scLibrary = Library.newInstance(scLibraryName, null);
+            prMsg("Created standard cell library "+scLibraryName);
         }
-        scLibrary = Library.newInstance(scLibraryName, null);
-        prMsg("Created standard cell library "+scLibraryName);
+        prMsg("Using standard cell library "+scLibraryName);
 
         // dunno how to set standard cell params
         StdCellParams sc = GateLayoutGenerator.dividerParams(Tech.Type.TSMC180);
@@ -130,90 +129,106 @@ public class SCLibraryGen {
         for (StdCellSpec stdcell : scellSpecs) {
             for (double d : stdcell.sizes) {
 
+                String cellname = sc.sizedName(stdcell.type, d);
+                cellname = cellname.substring(0, cellname.indexOf('{'));
+
                 // generate layout first
-                Cell laycell = GateLayoutGenerator.generateCell(scLibrary, sc, stdcell.type, d);
+                Cell laycell = scLibrary.findNodeProto(cellname+"{lay}");
                 if (laycell == null) {
-                    prErr("Error creating layout cell "+stdcell.type+" of size "+d);
-                    continue;
-                }
-
-                // copy sch cell (note that this also copies icon cell)
-                Cell purplesch = purpleLibrary.findNodeProto(stdcell.type+"{sch}");
-                copySchCell(purplesch, scLibrary, laycell.getName());
-
-                Cell iconcell = scLibrary.findNodeProto(laycell.getName()+"{ic}");
-                if (iconcell == null) continue;
-                // add size text
-                NodeInst sizeni = NodeInst.makeInstance(pin, new EPoint(0,0),
-                        0, 0, iconcell);
-                sizeni.newVar(Artwork.ART_MESSAGE, new Double(d),
-                        TextDescriptor.getAnnotationTextDescriptor().withColorIndex(blueColorIndex));
-
-                // change all arcs to blue
-                for (Iterator<ArcInst> it = iconcell.getArcs(); it.hasNext(); ) {
-                    ArcInst ai = it.next();
-                    ai.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
-                }
-                for (Iterator<NodeInst> it = iconcell.getNodes(); it.hasNext(); ) {
-                    NodeInst ni = it.next();
-                    ni.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
-                }
-
-                Cell schcell = scLibrary.findNodeProto(laycell.getName()+"{sch}");
-                if (schcell == null) continue;
-                // remove 'X' attribute
-                if (schcell.getVar(sizeKey) != null) {
-                    schcell.delVar(sizeKey);
-                }
-                // change X value on red gate
-                for (Iterator<NodeInst> it = schcell.getNodes(); it.hasNext(); ) {
-                    NodeInst ni = it.next();
-                    if (ni.isCellInstance()) {
-                        Cell np = (Cell)ni.getProto();
-                        if (np.getLibrary() == redLibrary) {
-                            Variable var = ni.getVar(sizeKey);
-                            if (var != null) {
-                                ni.newVar(sizeKey, new Double(d), var.getTextDescriptor());
-                            }
-                        }
-                        if (np.isIconOf(schcell)) {
-                            // remove size attribute
-                            ni.delVar(sizeKey);
-                        }
+                    laycell = GateLayoutGenerator.generateCell(scLibrary, sc, stdcell.type, d);
+                    if (laycell == null) {
+                        prErr("Error creating layout cell "+stdcell.type+" of size "+d);
+                        continue;
                     }
+                }
+                // generate icon next
+                Cell iconcell = scLibrary.findNodeProto(cellname+"{ic}");
+                if (iconcell == null) {
+                    copyIconCell(stdcell.type, purpleLibrary, cellname, scLibrary, d);
+                }
+
+                // generate sch last
+                Cell schcell = scLibrary.findNodeProto(cellname+"{sch}");
+                if (schcell == null) {
+                    copySchCell(stdcell.type, purpleLibrary, cellname, scLibrary, d);
                 }
             }
         }
         return true;
     }
 
-    private boolean copySchCell(Cell fromSchCell, Library toLib, String toName) {
+    private boolean copyIconCell(String name, Library lib, String toName, Library toLib, double size) {
         // check if icon already exists
         Cell iconcell = toLib.findNodeProto(toName+"{ic}");
-        Cell fromIconCell = fromSchCell.getLibrary().findNodeProto(fromSchCell.getName()+"{ic}");
+        Cell fromIconCell = lib.findNodeProto(name+"{ic}");
         if (iconcell == null && fromIconCell != null) {
             iconcell = Cell.copyNodeProto(fromIconCell, toLib, toName, false);
             if (iconcell == null) {
                 prErr("Unable to copy purple cell "+fromIconCell.describe(false)+" to library "+toLib);
                 return false;
             }
+            // add size text
+            NodeInst sizeni = NodeInst.makeInstance(pin, new EPoint(0,0),
+                    0, 0, iconcell);
+            sizeni.newVar(Artwork.ART_MESSAGE, new Double(size),
+                    TextDescriptor.getAnnotationTextDescriptor().withColorIndex(blueColorIndex));
+
+            // change all arcs to blue
+            for (Iterator<ArcInst> it = iconcell.getArcs(); it.hasNext(); ) {
+                ArcInst ai = it.next();
+                ai.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
+            }
+            for (Iterator<NodeInst> it = iconcell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                ni.newVar(Artwork.ART_COLOR, new Integer(blueColorIndex));
+            }
         }
+        return true;
+    }
+
+    private boolean copySchCell(String name, Library lib, String toName, Library toLib, double size) {
         // check if sch already exists
         Cell schcell = toLib.findNodeProto(toName+"{sch}");
-        if (schcell == null) {
+        Cell fromSchCell = lib.findNodeProto(name+"{sch}");
+        if (schcell == null && fromSchCell != null) {
             schcell = Cell.copyNodeProto(fromSchCell, toLib, toName, false);
             if (schcell == null) {
                 prErr("Unable to copy purple cell "+fromSchCell.describe(false)+" to library "+toLib);
                 return false;
             }
-        }
-        // replace master icon cell in schematic
-        for (Iterator<NodeInst> it = schcell.getNodes(); it.hasNext(); ) {
-            NodeInst ni = it.next();
-            if (ni.isCellInstance()) {
-                Cell np = (Cell)ni.getProto();
-                if (np == fromIconCell) {
-                    ni.replace(iconcell, true, true);
+            // replace master icon cell in schematic
+            Cell iconcell = toLib.findNodeProto(toName+"{ic}");
+            Cell fromIconCell = lib.findNodeProto(name+"{ic}");
+            if (iconcell != null && fromIconCell != null) {
+                for (Iterator<NodeInst> it = schcell.getNodes(); it.hasNext(); ) {
+                    NodeInst ni = it.next();
+                    if (ni.isCellInstance()) {
+                        Cell np = (Cell)ni.getProto();
+                        if (np == fromIconCell) {
+                            ni.replace(iconcell, true, true);
+                        }
+                    }
+                }
+            }
+            // remove 'X' attribute
+            if (schcell.getVar(sizeKey) != null) {
+                schcell.delVar(sizeKey);
+            }
+            // change X value on red gate
+            for (Iterator<NodeInst> it = schcell.getNodes(); it.hasNext(); ) {
+                NodeInst ni = it.next();
+                if (ni.isCellInstance()) {
+                    Cell np = (Cell)ni.getProto();
+                    if (np.getLibrary() == redLibrary) {
+                        Variable var = ni.getVar(sizeKey);
+                        if (var != null) {
+                            ni.newVar(sizeKey, new Double(size), var.getTextDescriptor());
+                        }
+                    }
+                    if (np.isIconOf(schcell)) {
+                        // remove size attribute
+                        ni.delVar(sizeKey);
+                    }
                 }
             }
         }
