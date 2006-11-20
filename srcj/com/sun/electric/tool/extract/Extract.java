@@ -73,6 +73,40 @@ public class Extract extends Tool
 	 */
 	public static void setGridAlignExtraction(boolean a) { cacheExactGridAlign.setBoolean(a); }
 
+	private static Pref cacheUnifyActive = Pref.makeBooleanPref("UnifyActive", Extract.tool.prefs, false);
+	/**
+	 * Method to tell whether the node extractor should unify all active layers.
+	 * When the distinction between N-active and P-active is uncertain, do this and force
+	 * the extractor to figure it out.  However, if the distinction is known, the extractor
+	 * can use it to be smarter.
+	 * The default is "false".
+	 * @return true if the node extractor should unify all active layers.
+	 */
+	public static boolean isUnifyActive() { return cacheUnifyActive.getBoolean(); }
+	/**
+	 * Method to set whether the node extractor should unify all active layers.
+	 * When the distinction between N-active and P-active is uncertain, do this and force
+	 * the extractor to figure it out.  However, if the distinction is known, the extractor
+	 * can use it to be smarter.
+	 * @param a true if the node extractor should unify all active layers.
+	 */
+	public static void setUnifyActive(boolean a) { cacheUnifyActive.setBoolean(a); }
+
+	private static Pref cacheSmallestPolygonSize = Pref.makeDoublePref("SmallestPolygonSize", Extract.tool.prefs, 0.25);
+	/**
+	 * Method to return the size of the smallest polygon to extract.
+	 * Any polygon smaller than this will be ignored.
+	 * The default is 0.25 square grid units.
+	 * @return the size of the smallest polygon to extract.
+	 */
+	public static double getSmallestPolygonSize() { return cacheSmallestPolygonSize.getDouble(); }
+	/**
+	 * Method to set the size of the smallest polygon to extract.
+	 * Any polygon smaller than this will be ignored.
+	 * @param a the size of the smallest polygon to extract.
+	 */
+	public static void setSmallestPolygonSize(double a) { cacheSmallestPolygonSize.setDouble(a); }
+
 	private static Pref cacheCellExpandPattern = Pref.makeStringPref("CellExpandPattern", Extract.tool.prefs, ".*via.*");
 	/**
 	 * Method to return the cell expansion pattern for node extraction.

@@ -91,7 +91,7 @@ public class Connectivity
 	/** layers to use for given arc functions */				private HashMap<Layer.Function,Layer> layerForFunction;
 	/** the layer to use for "polysilicon" geometry */			private Layer polyLayer;
 	/** temporary layers to use for geometric manipulation */	private Layer tempLayer1, tempLayer2;
-	/** the layer to use for "active" geometry */				private Layer activeLayer;
+	/** the layers to use for "active" geometry */				private Layer pActiveLayer, nActiveLayer;
 	/** associates arc prototypes with layers */				private HashMap<Layer,ArcProto> arcsForLayer;
 	/** map of extracted cells */								private HashMap<Cell,Cell> convertedCells;
 	/** map of export indices in each extracted cell */			private HashMap<Cell,GenMath.MutableInteger> exportNumbers;
@@ -177,7 +177,7 @@ public class Connectivity
 		// find important layers
 		polyLayer = null;
 		tempLayer1 = tempLayer2 = null;
-		activeLayer = null;
+		pActiveLayer = nActiveLayer = null;
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = it.next();
@@ -185,10 +185,19 @@ public class Connectivity
 			if (polyLayer == null && fun == Layer.Function.POLY1) polyLayer = layer;
 			if (fun == Layer.Function.POLY1 && (layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) tempLayer1 = layer;
 			if (fun == Layer.Function.METAL1 && (layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) tempLayer2 = layer;
-			if (activeLayer == null && fun.isDiff()) activeLayer = layer;
+			if (Extract.isUnifyActive())
+			{
+				if (pActiveLayer == null && fun.isDiff()) pActiveLayer = layer;
+			} else
+			{
+				if (pActiveLayer == null && fun == Layer.Function.DIFFP) pActiveLayer = layer;
+				if (nActiveLayer == null && fun == Layer.Function.DIFFN) nActiveLayer = layer;
+			}
 		}
 		polyLayer = polyLayer.getNonPseudoLayer();
-		activeLayer = activeLayer.getNonPseudoLayer();
+		pActiveLayer = pActiveLayer.getNonPseudoLayer();
+		if (Extract.isUnifyActive()) nActiveLayer = pActiveLayer; else
+			nActiveLayer = nActiveLayer.getNonPseudoLayer();
 
 		// figure out which arcs to use for a layer
 		arcsForLayer = new HashMap<Layer,ArcProto>();
@@ -218,8 +227,11 @@ public class Connectivity
 		{
 			Layer layer = it.next();
 			Layer.Function fun = layer.getFunction();
-			if (fun == Layer.Function.DIFFP || fun == Layer.Function.DIFFN)
-				fun = Layer.Function.DIFF;
+			if (Extract.isUnifyActive())
+			{
+				if (fun == Layer.Function.DIFFP || fun == Layer.Function.DIFFN)
+					fun = Layer.Function.DIFF;
+			}
 			if (layerForFunction.get(fun) == null)
 				layerForFunction.put(fun, layer);
 		}
@@ -504,23 +516,24 @@ public class Connectivity
 		{
 			Layer.Function fun = layer.getFunction();
 			if (fun.isDiff() || fun.isPoly() || fun.isMetal())
-			{
-				// make sure there is an arc that exists for the layer
-				ArcProto ap = arcsForLayer.get(layer);
-				if (ap != null) wireLayers.add(layer);
-			}
+				wireLayers.add(layer);
 		}
 
 		// examine each wire layer, looking for a skeletal structure that approximates it
 		for (Layer layer : wireLayers)
 		{
-			// figure out which arc proto to use for the layer
-			ArcProto ap = arcsForLayer.get(layer);
-
+boolean debug = false;
+//if (layer.getFunction().isDiff()) debug = true;
+if (debug) System.out.println("Considering Layer "+layer.getName());
 			// examine the geometry on the layer
 			List<PolyBase> polyList = getMergePolys(merge, layer);
 			for(PolyBase poly : polyList)
 			{
+				// figure out which arcproto to use here
+				ArcProto ap = findArcProtoForPoly(layer, poly, originalMerge);
+				if (ap == null) continue;
+if (debug)
+	System.out.println("Considering Arc "+ap +" with pin "+ap.findPinProto());
 				// reduce the geometry to a skeleton of centerlines
 				double minWidth = 1;
 				if (ENFORCEMINIMUMSIZE) minWidth = scaleUp(ap.getDefaultLambdaFullWidth());
@@ -537,14 +550,12 @@ public class Connectivity
 					Point2D loc2 = new Point2D.Double(scaleUp(loc2Unscaled.getX()), scaleUp(loc2Unscaled.getY()));
 
 					// make sure the wire fits
-					double wid = cl.width - scaleUp(ap.getLambdaWidthOffset());
 					MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
-					if (!originalMerge.arcPolyFits(layer, loc1, loc2, wid, headExtend, tailExtend))
+					if (!originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend))
 					{
 						// arc does not fit, try reducing width
-						wid = scaleUp(ap.getLambdaWidthOffset());
-						if (!originalMerge.arcPolyFits(layer, loc1, loc2, wid, headExtend, tailExtend)) continue;
 						cl.width = 0;
+						if (!originalMerge.arcPolyFits(layer, loc1, loc2, cl.width, headExtend, tailExtend)) continue;
 					}
 
 					// create the wire
@@ -557,6 +568,7 @@ public class Connectivity
 							loc2Unscaled.getX() + "," + loc2Unscaled.getY() + ") on node " + pi2.getNodeInst().describe(false));
 						return true;
 					}
+if (debug) System.out.println("RAN "+ap +" from ("+loc1Unscaled.getX()+","+loc1Unscaled.getY()+") TO ("+loc2Unscaled.getX()+","+loc2Unscaled.getY()+")");
 				}
 			}
 		}
@@ -564,11 +576,6 @@ public class Connectivity
 		// examine each wire layer, looking for a simple rectangle that covers it
 		for(Layer layer : wireLayers)
 		{
-			Layer.Function fun = layer.getFunction();
-
-			// figure out which arc proto to use for the layer
-			ArcProto ap = arcsForLayer.get(layer);
-
 			// examine the geometry on the layer
 			List<PolyBase> polyList = getMergePolys(merge, layer);
 			for(PolyBase poly : polyList)
@@ -576,6 +583,10 @@ public class Connectivity
 				Rectangle2D bounds = poly.getBounds2D();
 				Poly rectPoly = new Poly(bounds);
 				if (!originalMerge.contains(layer, rectPoly)) continue;
+
+				// figure out which arc proto to use for the layer
+				ArcProto ap = findArcProtoForPoly(layer, poly, originalMerge);
+				if (ap == null) continue;
 
 				// determine the endpoints of the arc
 				Point2D loc1, loc2;
@@ -595,6 +606,67 @@ public class Connectivity
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Method to figure out which ArcProto to use for a polygon on a layer.
+	 * In the case of Active layers, it examines the well and select layers to figure out
+	 * which arctive arc to use.
+	 * @param layer the layer of the polygon.
+	 * @param poly the polygon
+	 * @param originalMerge the merged data for the cell
+	 * @return the ArcProto to use (null if none can be found).
+	 */
+	private ArcProto findArcProtoForPoly(Layer layer, PolyBase poly, PolyMerge originalMerge)
+	{
+		Layer.Function fun = layer.getFunction();
+		if (fun.isPoly() || fun.isMetal()) return arcsForLayer.get(layer);
+		if (!fun.isDiff()) return null;
+
+		// must further differentiate the active arcs...find implants
+		Layer wellP = null, wellN = null, selectP = null, selectN = null;
+		for(Layer l : originalMerge.getKeySet())
+		{
+			if (l.getFunction() == Layer.Function.WELLP) wellP = l;
+			if (l.getFunction() == Layer.Function.WELLN) wellN = l;
+			if (l.getFunction() == Layer.Function.IMPLANTP) selectP = l;
+			if (l.getFunction() == Layer.Function.IMPLANTN) selectN = l;
+		}
+
+		ArcProto.Function neededFunction = null;
+		if (originalMerge.intersects(selectP, poly))
+		{
+			// Active in P-Select could either be a P-Active arc or a P-Well arc
+//			neededFunction = ArcProto.Function.DIFFP;
+			if (wellP == null)
+			{
+				// a P-Well process: just look for the absense of N-Well surround
+				if (!originalMerge.intersects(wellN, poly)) neededFunction = ArcProto.Function.DIFFS;
+			} else
+			{
+				if (originalMerge.intersects(wellP, poly)) neededFunction = ArcProto.Function.DIFFS;
+			}
+		} else if (originalMerge.intersects(selectN, poly))
+		{
+			// Active in N-Select could either be a N-Active arc or a N-Well arc
+//			neededFunction = ArcProto.Function.DIFFN;
+			if (wellN == null)
+			{
+				// a N-Well process: just look for the absense of P-Well surround
+				if (!originalMerge.intersects(wellP, poly)) neededFunction = ArcProto.Function.DIFFW;
+			} else
+			{
+				if (originalMerge.intersects(wellN, poly)) neededFunction = ArcProto.Function.DIFFW;
+			}
+		}
+
+		// now find the arc with the desired function
+		for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
+		{
+			ArcProto ap = aIt.next();
+			if (ap.getFunction() == neededFunction) return ap;
+		}
+		return null;
 	}
 
 	/**
@@ -786,14 +858,14 @@ public class Connectivity
 			double yOff = GenMath.sin(ang) * cl.width/2;
 			if (startSide)
 			{
-				if (!isHub)
+				if (!isHub && cl.start.distance(cl.end) > cl.width)
 					cl.setStart(cl.start.getX() + xOff, cl.start.getY() + yOff);
 				NodeInst ni = wantNodeAt(cl.startUnscaled, pin, cl.width / SCALEFACTOR, newCell);
 				loc1.setLocation(cl.startUnscaled.getX(), cl.startUnscaled.getY());
 				piRet = ni.getOnlyPortInst();
 			} else
 			{
-				if (!isHub)
+				if (!isHub && cl.start.distance(cl.end) > cl.width)
 					cl.setEnd(cl.end.getX() - xOff, cl.end.getY() - yOff);
 				NodeInst ni = wantNodeAt(cl.endUnscaled, pin, cl.width / SCALEFACTOR, newCell);
 				loc1.setLocation(cl.endUnscaled.getX(), cl.endUnscaled.getY());
@@ -1256,8 +1328,6 @@ public class Connectivity
 		if (cutBox == null) return false;
 		double cX = cutBox.getCenterX();
 		double cY = cutBox.getCenterY();
-boolean debug = false;
-//if (!pv.pNp.getName().equals("B-Metal-1-N-Well-Con")) debug = false;
 		for(int i=0; i<pv.layers.length; i++)
 		{
 			Layer l = pv.layers[i];
@@ -1272,14 +1342,14 @@ boolean debug = false;
 			PolyBase layerPoly = new PolyBase(layerCX, layerCY, hX-lX, hY-lY);
 			if (!originalMerge.contains(l, layerPoly))
 			{
-if (debug) System.out.println("NO,  CONTACT "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" DOES NOT FIT AT ("
-	+(cX/SCALEFACTOR)+","+(cY/SCALEFACTOR)+") BECAUSE LAYER "+l.getName()+" NEEDS "+
-	(lX/SCALEFACTOR)+"<=X<="+(hX/SCALEFACTOR)+" AND "+(lY/SCALEFACTOR)+"<=Y<="+(hY/SCALEFACTOR));
+//System.out.println("NO,  CONTACT "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" DOES NOT FIT AT ("
+//	+(cX/SCALEFACTOR)+","+(cY/SCALEFACTOR)+") BECAUSE LAYER "+l.getName()+" NEEDS "+
+//	(lX/SCALEFACTOR)+"<=X<="+(hX/SCALEFACTOR)+" AND "+(lY/SCALEFACTOR)+"<=Y<="+(hY/SCALEFACTOR));
 				return false;
 			}
 		}
-if (debug) System.out.println("YES, CONTACT "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" FITS AT ("+
-	(cX/SCALEFACTOR)+","+(cY/SCALEFACTOR)+")");
+//System.out.println("YES, CONTACT "+pv.pNp.describe(false)+" ROTATED "+pv.rotation+" FITS AT ("+
+//	(cX/SCALEFACTOR)+","+(cY/SCALEFACTOR)+")");
 
 		// found: create the node
 		realizeNode(pv.pNp, cX, cY, pv.minWidth, pv.minHeight, pv.rotation*10, null, merge, newCell);
@@ -1701,15 +1771,15 @@ if (debug) System.out.println("YES, CONTACT "+pv.pNp.describe(false)+" ROTATED "
 		}
 		if (nTransistor != null)
 		{
-			findTransistors(nTransistor, merge, originalMerge, newCell);
+			findTransistors(nTransistor, nActiveLayer, merge, originalMerge, newCell);
 		}
 		if (pTransistor != null)
 		{
-			findTransistors(pTransistor, merge, originalMerge, newCell);
+			findTransistors(pTransistor, pActiveLayer, merge, originalMerge, newCell);
 		}
 	}
 
-	private void findTransistors(PrimitiveNode transistor, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
+	private void findTransistors(PrimitiveNode transistor, Layer activeLayer, PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
 		originalMerge.intersectLayers(polyLayer, activeLayer, tempLayer1);
 		Technology.NodeLayer [] layers = transistor.getLayers();
@@ -1893,8 +1963,9 @@ if (debug) System.out.println("YES, CONTACT "+pv.pNp.describe(false)+" ROTATED "
 	{
         for (Layer layer : merge.getKeySet())
 		{
-			ArcProto ap = arcsForLayer.get(layer);
-			if (ap == null) continue;
+    		ArcProto ap = arcsForLayer.get(layer);
+    		if (ap == null) continue;
+
 			List<PolyBase> polyList = getMergePolys(merge, layer);
 			for(PolyBase poly : polyList)
 			{
@@ -2920,12 +2991,13 @@ if (debug) System.out.println("YES, CONTACT "+pv.pNp.describe(false)+" ROTATED "
 	 */
 	private void convertAllGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
-		double smallestPoly = (SCALEFACTOR * SCALEFACTOR) / 10;
+		// anything smaller than the minimum number of grid units is just ignored
+		double smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
         for (Layer layer : merge.getKeySet())
 		{
 			ArcProto ap = arcsForLayer.get(layer);
+
 			List<PolyBase> polyList = getMergePolys(merge, layer);
-//System.out.println("COMPLETE LAYER "+layer.getName()+": "+describeLayer(merge, layer));
 			for(PolyBase poly : polyList)
 			{
 				double area = poly.getArea();
@@ -3137,8 +3209,11 @@ if (debug) System.out.println("YES, CONTACT "+pv.pNp.describe(false)+" ROTATED "
 		}
 
 		// all active is one layer
-		if (fun == Layer.Function.DIFFP || fun == Layer.Function.DIFFN)
-			fun = Layer.Function.DIFF;
+		if (Extract.isUnifyActive())
+		{
+			if (fun == Layer.Function.DIFFP || fun == Layer.Function.DIFFN)
+				fun = Layer.Function.DIFF;
+		}
 
 		// ensure the first one for the given function
 		Layer properLayer = layerForFunction.get(fun);

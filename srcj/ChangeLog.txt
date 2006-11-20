@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP/MAN: (11/20/06, SMR) Extractor now has options to unify Active and control minimum
+     polygon size.
+
 BUG: (11/16/06, SMR) Slow startup.
 FIX: In Technology.initAllTechnologies(), batch Preference changes.
 
