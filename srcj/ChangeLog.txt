@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/21/06, SMR) Auto-router will not connect touching primitives that
+     do not line-up.
+FIX: In AutoStitch.comparePoly(), test for line-up only if one node is a cell.
+
 IMP: (11/21/06, SMR) Added new functions to polygon merge.
 
 BUG: (11/21/06, SMR) Wiring fails some L-shaped situations.

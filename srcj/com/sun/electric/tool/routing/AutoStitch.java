@@ -1529,12 +1529,15 @@ public class AutoStitch
 
 		if (USEQTREE)
 		{
-			Rectangle2D polyBounds = portPoly.getBounds2D();
-			Rectangle2D oPolyBounds = oPortPoly.getBounds2D();
-	
-			// quit now if bounding boxes don't intersect
-			if ((polyBounds.getMinX() > oPolyBounds.getMaxX() || oPolyBounds.getMinX() > polyBounds.getMaxX()) &&
-				(polyBounds.getMinY() > oPolyBounds.getMaxY() || oPolyBounds.getMinY() > polyBounds.getMaxY())) return false;
+			if (ni.isCellInstance() || oNi.isCellInstance())
+			{
+				Rectangle2D polyBounds = portPoly.getBounds2D();
+				Rectangle2D oPolyBounds = oPortPoly.getBounds2D();
+
+				// quit now if bounding boxes don't intersect
+				if ((polyBounds.getMinX() > oPolyBounds.getMaxX() || oPolyBounds.getMinX() > polyBounds.getMaxX()) &&
+					(polyBounds.getMinY() > oPolyBounds.getMaxY() || oPolyBounds.getMinY() > polyBounds.getMaxY())) return false;
+			}
 		}
 
 		double dist = portCenter.distance(oPortCenter);
