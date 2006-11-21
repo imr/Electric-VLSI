@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/21/06, SMR) Added new functions to polygon merge.
+
 BUG: (11/21/06, SMR) Wiring fails some L-shaped situations.
 FIX: In SimpleWirer.planRoute(), treat ArcProto.getAngleIncrement() as degrees,
      not tenths-of-a-degree.

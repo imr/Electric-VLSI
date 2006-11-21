@@ -152,6 +152,27 @@ public class PolyMerge
 	}
 
 	/**
+	 * Method to add one Layer to another in this merge.
+	 * @param fromLayer the other Layer to add in.
+	 * @param toLayer the destination layer that will contain the union of itself and "fromLayer".
+	 */
+	public void addLayer(Layer fromLayer, Layer toLayer)
+	{
+		Area fromArea = (Area)layers.get(fromLayer);
+		if (fromArea == null) return;
+
+		Area toArea = (Area)layers.get(toLayer);
+		if (toArea == null)
+		{
+			toArea = new Area(fromArea);
+			layers.put(toLayer, toArea);
+			return;
+		}
+
+		toArea.add(fromArea);
+	}
+
+	/**
 	 * Method to determine whether a polygon intersects a layer in the merge.
 	 * @param layer the layer to test.
 	 * @param poly the polygon to examine.
@@ -383,6 +404,18 @@ public class PolyMerge
 		}
 
 		return false;
+	}
+
+	/**
+	 * Method to return the area on a given layer.
+	 * @param layer the layer to query.
+	 * @return the area of geometry on the given layer.
+	 */
+	public double getAreaOfLayer(Layer layer)
+	{
+		Area area = (Area)layers.get(layer);
+		if (area == null) return 0;
+		return getAreaOfArea(area);
 	}
 
 	private double getAreaOfArea(Area area)
