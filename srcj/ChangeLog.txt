@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/21/06, SMR) Electrical layers for TSMC180 transistors is wrong.
+FIX: In MoCMOS.resizeNodes(), fix poly overhang calculation.
+
 BUG: (11/21/06, SMR) Auto-router will not connect touching primitives that
      do not line-up.
 FIX: In AutoStitch.comparePoly(), test for line-up only if one node is a cell.

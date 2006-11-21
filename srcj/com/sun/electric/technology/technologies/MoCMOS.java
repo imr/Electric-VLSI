@@ -2888,14 +2888,16 @@ public class MoCMOS extends Technology
             // poly from active
             double gateOverhang = getTransistorExtension(primNode, true, rules);
             double polyExten = actSurround.getValue(0) - gateOverhang;
+            double gateEdge = polyExten + gateOverhang;
 
-            polyNode.getBottomEdge().setAdder(lenValMax); polyNode.getTopEdge().setAdder(-lenValMax);
+            polyNode.getBottomEdge().setAdder(lenValMax);  polyNode.getTopEdge().setAdder(-lenValMax);
+            polyNode.getLeftEdge().setAdder(polyExten);    polyNode.getRightEdge().setAdder(-polyExten);
             polyLNode.getBottomEdge().setAdder(lenValMax); polyLNode.getTopEdge().setAdder(-lenValMax);
+            polyLNode.getLeftEdge().setAdder(polyExten);   polyLNode.getRightEdge().setAdder(gateEdge);
             polyRNode.getBottomEdge().setAdder(lenValMax); polyRNode.getTopEdge().setAdder(-lenValMax);
+            polyRNode.getLeftEdge().setAdder(-gateEdge);   polyRNode.getRightEdge().setAdder(-polyExten);
             polyCNode.getBottomEdge().setAdder(lenValMax); polyCNode.getTopEdge().setAdder(-lenValMax);
-            polyNode.getLeftEdge().setAdder(polyExten); polyNode.getRightEdge().setAdder(-polyExten);
-            polyNode.getLeftEdge().setAdder(polyExten);
-            polyNode.getRightEdge().setAdder(-polyExten);
+            polyCNode.getLeftEdge().setAdder(gateEdge);    polyCNode.getRightEdge().setAdder(-gateEdge);
 
             // select
             index = rules.getRuleIndex(activeNode.getLayer().getIndex(), selNode.getLayer().getIndex());
