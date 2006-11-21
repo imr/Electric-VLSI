@@ -97,6 +97,7 @@ public class Connectivity
 	/** map of export indices in each extracted cell */			private HashMap<Cell,GenMath.MutableInteger> exportNumbers;
 	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
+	/** the smallest polygon acceptable for merging */			private double smallestPoly;
 
 	/**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
@@ -173,6 +174,7 @@ public class Connectivity
 		this.tech = tech;
 		convertedCells = new HashMap<Cell,Cell>();
 		exportNumbers = new HashMap<Cell,GenMath.MutableInteger>();
+		smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
 
 		// find important layers
 		polyLayer = null;
@@ -2405,6 +2407,7 @@ if (debug) System.out.println("RAN "+ap +" from ("+loc1Unscaled.getX()+","+loc1U
 //	System.out.println("    "+cl.toString());
 				// now pull out the relevant ones
 				double lastWidth = -1;
+				boolean lastWidthNonManhattan = false;
 				for(Centerline cl : centerlines)
 				{
 					if (cl.width < minWidth) continue;
@@ -2415,10 +2418,18 @@ if (debug) System.out.println("RAN "+ap +" from ("+loc1Unscaled.getX()+","+loc1U
 					Poly clPoly = Poly.makeEndPointPoly(length, cl.width, cl.angle,
 						cl.start, 0, cl.end, 0, Poly.Type.FILLED);
 
+//merge.deleteLayer(tempLayer2);
+//merge.addLayer(tempLayer1, tempLayer2);
+//double areaLeftBefore = merge.getAreaOfLayer(tempLayer2);
+//merge.subtract(tempLayer2, clPoly);
+//double areaLeftAfter = merge.getAreaOfLayer(tempLayer2);
+//System.out.println("SO......Removing "+cl.toString()+" reduces area from "+areaLeftBefore+" to "+areaLeftAfter);
+
 					// see if this centerline actually covers new area
 					if (!merge.intersects(tempLayer1, clPoly)) continue;
 
 					// for nonmanhattan centerlines, do extra work to ensure uniqueness
+					boolean isNonManhattan = false;
 					if (cl.startUnscaled.getX() != cl.endUnscaled.getX() &&
 						cl.startUnscaled.getY() != cl.endUnscaled.getY())
 					{
@@ -2435,11 +2446,21 @@ if (debug) System.out.println("RAN "+ap +" from ("+loc1Unscaled.getX()+","+loc1U
 							}
 						}
 						if (duplicate) continue;
+						isNonManhattan = true;
 					}
 
 					// if narrower centerlines have already been added, stop now
-					if (lastWidth < 0) lastWidth = cl.width;
-					if (Math.abs(cl.width - lastWidth) > 1) break;
+					if (lastWidth < 0)
+					{
+						lastWidth = cl.width;
+						lastWidthNonManhattan = isNonManhattan;
+					}
+					if (Math.abs(cl.width - lastWidth) > 1)
+					{
+						if (lastWidthNonManhattan == isNonManhattan) break;
+						double smallest = Math.min(cl.width, lastWidth);
+						if (smallest != 0 && Math.max(cl.width, lastWidth) / smallest > 1.2) break;
+					}
 
 					// add this to the list of valid centerlines
 					validCenterlines.add(cl);
@@ -2455,8 +2476,7 @@ if (debug) System.out.println("RAN "+ap +" from ("+loc1Unscaled.getX()+","+loc1U
 		}
 		merge.deleteLayer(tempLayer1);
 
-//System.out.println("Centerlines are:");
-//for(int i=0; i<validCenterlines.size(); i++) System.out.println("    "+validCenterlines.get(i).toString());
+//for(int i=0; i<validCenterlines.size(); i++) System.out.println("MERGED CENTERLINE: "+validCenterlines.get(i).toString());
 
 		// now extend centerlines so they meet
 		Centerline [] both = new Centerline[2];
@@ -2991,8 +3011,6 @@ if (debug) System.out.println("RAN "+ap +" from ("+loc1Unscaled.getX()+","+loc1U
 	 */
 	private void convertAllGeometry(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
-		// anything smaller than the minimum number of grid units is just ignored
-		double smallestPoly = (SCALEFACTOR * SCALEFACTOR) * Extract.getSmallestPolygonSize();
         for (Layer layer : merge.getKeySet())
 		{
 			ArcProto ap = arcsForLayer.get(layer);
@@ -3000,9 +3018,6 @@ if (debug) System.out.println("RAN "+ap +" from ("+loc1Unscaled.getX()+","+loc1U
 			List<PolyBase> polyList = getMergePolys(merge, layer);
 			for(PolyBase poly : polyList)
 			{
-				double area = poly.getArea();
-				if (area < smallestPoly) continue;
-
 				// special case: a rectangle on a routable layer: make it an arc
 				if (ap != null)
 				{
@@ -3249,6 +3264,10 @@ if (debug) System.out.println("RAN "+ap +" from ("+loc1Unscaled.getX()+","+loc1U
 
 			// ignore polygons with no size
 			if (len <= 2) continue;
+
+			// anything smaller than the minimum number of grid units is ignored
+			double area = poly.getArea();
+			if (area < smallestPoly) continue;
 
 			properPolyList.add(poly);
 		}
