@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/21/06, SMR) Wiring fails some L-shaped situations.
+FIX: In SimpleWirer.planRoute(), treat ArcProto.getAngleIncrement() as degrees,
+     not tenths-of-a-degree.
+
 IMP/MAN: (11/20/06, SMR) Extractor now has options to unify Active and control minimum
      polygon size.
 

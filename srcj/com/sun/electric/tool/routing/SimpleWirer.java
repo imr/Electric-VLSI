@@ -138,7 +138,7 @@ public class SimpleWirer extends InteractiveRouter {
 		boolean singleArc = false;
 		if (useArc.getAngleIncrement() == 0) singleArc = true; else
 		{
-			if (useArc.getAngleIncrement() == 900)
+			if (useArc.getAngleIncrement() == 90)
 			{
 				if (endLoc.getX() == startLoc.getX() || endLoc.getY() == startLoc.getY()) singleArc = true; else
 				{
