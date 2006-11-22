@@ -1135,7 +1135,20 @@ public class GenMath
      */
     public static boolean doublesEqual(double a, double b)
     {
-        return (Math.abs(a-b) <= DBL_EPSILON);
+//        return (Math.abs(a-b) <= DBL_EPSILON);
+        return doublesEqual(a, b, DBL_EPSILON);
+    }
+
+    /**
+     * Method to compare two double-precision numbers within a given epsilon
+     * @param a the first number.
+     * @param b the second number.
+     * @param myEpsilon the given epsilon
+     * @return
+     */
+    public static boolean doublesEqual(double a, double b, double myEpsilon)
+    {
+        return (Math.abs(a-b) <= myEpsilon);
     }
 
 	/**

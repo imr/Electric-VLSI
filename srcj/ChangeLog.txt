@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/22/06, GVG) First version of Lib/Verilog readers working with CSA regression det_msff_12x_testvalue.
+
 BUG: (11/21/06, SMR) Electrical layers for TSMC180 transistors is wrong.
 FIX: In MoCMOS.resizeNodes(), fix poly overhang calculation.
 
