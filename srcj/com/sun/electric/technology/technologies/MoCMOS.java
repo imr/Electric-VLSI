@@ -2305,7 +2305,7 @@ public class MoCMOS extends Technology
     /**
      * Method to load primitive nodes in the palette after rules have been loaded
      */
-    protected void buildTechPalette()
+    protected void buildTechPalette(boolean mosisFoundry)
     {
         // Information for palette
         int maxY = metalArcs.length + activeArcs.length + 1 /* poly*/ + 1 /* trans */ + 1 /*misc*/ + 1 /* well */;
@@ -2367,7 +2367,7 @@ public class MoCMOS extends Technology
      * This method resizes nodes according to selected foundry. It must be protected
      * so it could be overwriten by subclasses
      */
-    protected void resizeNodes()
+    protected void resizeNodes(boolean mosisFoundry)
     {
         //Scalable transistors
         for (int i = 0; i < 2; i++)
@@ -2733,7 +2733,8 @@ public class MoCMOS extends Technology
         assert(foundry != null);
 
         // Resize primitives according to the foundry
-        resizeNodes();
+        boolean mosisFoundry = !(foundry.getType() == Foundry.Type.TSMC);
+//        resizeNodes(foundry.equals(Foundry.Type.TSMC.name());
 
 		// load the DRC tables from the explanation table
         int numMetals = getNumMetals();
@@ -2832,7 +2833,7 @@ public class MoCMOS extends Technology
         {
             resizeNodes(rules);
             // Information for palette
-            buildTechPalette();
+            buildTechPalette(mosisFoundry);
         }
 
         return rules;

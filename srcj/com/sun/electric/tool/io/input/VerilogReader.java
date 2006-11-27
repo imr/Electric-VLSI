@@ -366,7 +366,11 @@ public class VerilogReader extends Input
 
         String cellName = inputs.get(0);
         cellName += "{" + View.SCHEMATIC.getAbbreviation() + "}";
-        Cell cell = Cell.makeInstance(Library.getCurrent(), cellName);
+        Library lib = Library.getCurrent();
+        if (lib == null)
+            lib = Library.newInstance("Verilog", null);
+
+        Cell cell = Cell.makeInstance(lib, cellName);
         cell.setTechnology(Schematics.tech);
 
         if (topCell == null)
@@ -453,14 +457,14 @@ public class VerilogReader extends Input
             }
 
             // reading cell instances
-            Cell schematics = Library.getCurrent().findNodeProto(key);
+            Cell schematics = lib.findNodeProto(key);
             boolean noMoreInfo = (schematics == null);
 
             if (noMoreInfo)
             {
                 String name = key;
                 name += "{" + View.SCHEMATIC.getAbbreviation() + "}";
-                schematics = Cell.makeInstance(Library.getCurrent(), name);
+                schematics = Cell.makeInstance(lib, name);
                 schematics.setTechnology(Schematics.tech);
                 // Adding essential bounds for now
                 NodeInst.makeInstance(essentialBounds, new Point2D.Double(10,10), 1, 1, schematics,
