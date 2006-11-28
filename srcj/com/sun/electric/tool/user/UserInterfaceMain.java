@@ -477,7 +477,9 @@ public class UserInterfaceMain extends AbstractUserInterface
      */
     public String askForInput(Object message, String title, String def)
     {
-    	return JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.QUESTION_MESSAGE, null, null, def).toString();
+    	Object ret = JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(), message, title, JOptionPane.QUESTION_MESSAGE, null, null, def);
+    	if (ret == null) return null;
+    	return ret.toString();
     }
 
     /** For Pref */

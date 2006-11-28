@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/28/06, SMR) Canceling a dialog that asks for a text field crashes.
+FIX: In UserInterfaceMain.askForInput(), check result for null.
+
 IMP: (11/28/06, GVG) CSA regression gate_basic_load half working.
 
 IMP: (11/27/06, GVG) Well contacts in TSMC180 can connect to well arcs.
