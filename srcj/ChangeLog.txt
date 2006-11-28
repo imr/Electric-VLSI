@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/28/06, GVG) CSA regression gate_basic_load half working.
+
 IMP: (11/27/06, GVG) Well contacts in TSMC180 can connect to well arcs.
 
 IMP: (11/22/06, GVG) First version of Lib/Verilog readers working with CSA regression det_msff_12x_testvalue.
