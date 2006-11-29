@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -308,6 +309,7 @@ public class BusParameters extends EDialog
 
 	private static String updateVariable(Variable var, Library lib, HashMap<Library,String[]> libParameters)
 	{
+		// first substitute variable names
 		String varString = (String)var.getObject();
 		for(;;)
 		{
@@ -340,6 +342,44 @@ public class BusParameters extends EDialog
 				}
 			}
 			varString = varString.substring(0, dollarPos) + paramValue + varString.substring(closePos+1);
+		}
+
+		// now that variables are substituted, handle arithmetic
+		for(int i=0; i<varString.length(); i++)
+		{
+			char op = varString.charAt(i);
+			if (op != '+' && op != '-' && op != '*' && op != '/') continue;
+
+			// gather number before the operator
+			int start = i;
+			while (start > 0 && TextUtils.isDigit(varString.charAt(start-1))) start--;
+
+			int end = i;
+			while (end+1 < varString.length() && TextUtils.isDigit(varString.charAt(end+1))) end++;
+
+			if (start < i && end > i)
+			{
+				// found numbers
+				int startVal = TextUtils.atoi(varString.substring(start));
+				int endVal = TextUtils.atoi(varString.substring(i+1));
+				int res = 0;
+				if (op == '+')
+				{
+					res = startVal + endVal;
+				} else if (op == '-')
+				{
+					res = startVal - endVal;
+				} else if (op == '*')
+				{
+					res = startVal * endVal;
+				} else if (op == '/')
+				{
+					if (endVal != 0) res = startVal / endVal;
+				}
+				String newString = Integer.toString(res);
+				varString = varString.substring(0, start) + newString + varString.substring(end+1);
+				i = start + newString.length();
+			}
 		}
 		return varString;
 	}
