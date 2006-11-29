@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/28/06, GVG) CSA regresssion run_gate_instNetList working (very simple).
+Getting rid of "unknown signal" in VerilogReader for vss.
+
 IMP: (11/28/06, SMR) When replacing pure-layer nodes, do not adjust sizes.
 
 BUG: (11/28/06, SMR) Canceling a dialog that asks for a text field crashes.

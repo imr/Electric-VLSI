@@ -111,7 +111,14 @@ public class VerilogReader extends Input
                 if (pin == null)
                 {
                     System.out.println("Unknown signal " + busName + " in cell " + parent.describe(false));
-                    continue; // temporary
+                    if (busName.equals("vss"))
+                    {
+                        pin = addSupply(parent, true, busName);
+                    }
+                    else
+                    {
+                        continue; // temporary
+                    }
                 }
             }
 
@@ -122,6 +129,24 @@ public class VerilogReader extends Input
             assert(ai != null);
             ai.setFixedAngle(false);
         }
+    }
+
+    private NodeInst addSupply(Cell cell, boolean power, String name)
+    {
+        PrimitiveNode np = (power) ? Schematics.tech.powerNode : Schematics.tech.groundNode;
+
+        Point2D.Double p = getNextLocation(cell);
+        double height = np.getDefHeight();
+        NodeInst supply = NodeInst.newInstance(np, p,
+                np.getDefWidth(), height,
+                cell, Orientation.IDENT, name, 0);
+        // extra pin
+        NodeInst ni = NodeInst.newInstance(Schematics.tech.wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
+                Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), cell);
+
+        ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultLambdaFullWidth(),
+            ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
+        return ni;
     }
 
     private CellInstance readInstance(Cell instance, boolean noMoreInfo) throws IOException
@@ -425,19 +450,20 @@ public class VerilogReader extends Input
                 StringTokenizer parse = new StringTokenizer(key, ";", false); // extracting only input name
                 assert(parse.hasMoreTokens());
                 String name = parse.nextToken();
-                PrimitiveNode np = (name.equals("vdd")) ? Schematics.tech.powerNode : Schematics.tech.groundNode;
-
-                Point2D.Double p = getNextLocation(cell);
-                double height = np.getDefHeight();
-                NodeInst supply = NodeInst.newInstance(np, p,
-                        np.getDefWidth(), height,
-                        cell, Orientation.IDENT, name, 0);
-                // extra pin
-                NodeInst ni = NodeInst.newInstance(Schematics.tech.wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
-                        Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), cell);
-
-                ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultLambdaFullWidth(),
-                    ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
+                addSupply(cell, name.equals("vdd"), name);
+//                PrimitiveNode np = (name.equals("vdd")) ? Schematics.tech.powerNode : Schematics.tech.groundNode;
+//
+//                Point2D.Double p = getNextLocation(cell);
+//                double height = np.getDefHeight();
+//                NodeInst supply = NodeInst.newInstance(np, p,
+//                        np.getDefWidth(), height,
+//                        cell, Orientation.IDENT, name, 0);
+//                 extra pin
+//                NodeInst ni = NodeInst.newInstance(Schematics.tech.wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
+//                        Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), cell);
+//
+//                ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultLambdaFullWidth(),
+//                    ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
                 continue;
             }
 
