@@ -371,6 +371,16 @@ public class VarContext implements Serializable
     /** Get rid of the variable cache thereby release its storage */
     public synchronized void deleteVariableCache() { cache=null; }
 
+    public int hashCode() {
+        return getInstPath(".").hashCode();
+    }
+
+    public boolean equals(Object o) {
+        if (!(o instanceof VarContext)) return false;
+        VarContext oc = (VarContext)o;
+        return oc.hashCode() == this.hashCode();
+    }
+
     // ------------------------------ Variable Evaluation -----------------------
 
     /**
