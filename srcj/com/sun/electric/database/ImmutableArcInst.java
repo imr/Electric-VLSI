@@ -704,10 +704,11 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 		if (getGridFullWidth() == gridFullWidth) return this;
         if (gridFullWidth < 0 || gridFullWidth < protoType.getMaxLayerGridOffset() || gridFullWidth > Integer.MAX_VALUE || (gridFullWidth&1) != 0) throw new IllegalArgumentException("gridWidth");
         if (this.gridFullWidth == gridFullWidth) return this;
+        int flags = updateEasyShape(this.protoType, (int)gridFullWidth, this.tailLocation, this.headLocation, this.angle, getVars(), this.flags);
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                (int)gridFullWidth, this.angle, this.flags, getVars());
+                (int)gridFullWidth, this.angle, flags, getVars());
 	}
 
 	/**

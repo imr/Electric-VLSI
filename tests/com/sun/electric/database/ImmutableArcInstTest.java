@@ -27,7 +27,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -37,7 +36,14 @@ import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
 
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -499,7 +505,7 @@ public class ImmutableArcInstTest {
      */
     @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadWidth3() {
         System.out.println("newInstanceBadWidth3");
-        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(6000000) - 2, 0, ImmutableArcInst.DEFAULT_FLAGS);
+        ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(6000000), 0, ImmutableArcInst.DEFAULT_FLAGS);
     }
     
     /**
@@ -580,6 +586,25 @@ public class ImmutableArcInstTest {
     @Test public void testWithLocations() {
         System.out.println("withLocations");
         assertSame(a0, a0.withLocations(a0.tailLocation, a0.headLocation));
+        
+        ImmutableArcInst a1 = a0.withLocations(n1.anchor, n0.anchor);
+        a1.check();
+        assertSame(n1.anchor, a1.tailLocation);
+        assertSame(n0.anchor, a1.headLocation);
+        assertEquals(1800, a1.getAngle());
+        assertTrue(a1.isEasyShape());
+        
+        ImmutableArcInst a2 = a0.withLocations(n0.anchor, EPoint.fromGrid(1500*1000*1000, n1.anchor.getGridY()));
+        a2.check();
+        assertFalse(a2.isEasyShape());
+    }
+
+    /**
+     * Test of withLocations method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = NullPointerException.class) public void testWithLocationsBad() {
+        System.out.println("withLocationsBad");
+        assertSame(a0, a0.withLocations(a0.tailLocation, null));
     }
 
     /**
@@ -588,31 +613,63 @@ public class ImmutableArcInstTest {
     @Test public void testWithGridFullWidth() {
         System.out.println("withGridFullWidth");
         assertSame(a0, a0.withGridFullWidth(a0.getGridFullWidth()));
+        
+        long largeWidth = 1100*1000*1000;
+        ImmutableArcInst a1 = a0.withGridFullWidth(largeWidth);
+        assertEquals(largeWidth, a1.getGridFullWidth());
+        assertFalse(a1.isEasyShape());
     }
 
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testWithGridFullWidthBad1() {
+        System.out.println("withGridFullWidthBad1");
+        a0.withGridFullWidth(DBMath.lambdaToGrid(15) + 1);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testWithGridFullWidthBad2() {
+        System.out.println("withGridFullWidthBad2");
+        a0.withGridFullWidth(DBMath.lambdaToGrid(12) - 2);
+    }
+    
+    /**
+     * Test of newInstance method, of class com.sun.electric.database.ImmutableArcInst.
+     */
+    @Test(expected = IllegalArgumentException.class) public void testWithGridFullWidthBad3() {
+        System.out.println("withGridFullWidthBad3");
+        a0.withGridFullWidth(DBMath.lambdaToGrid(6000000));
+    }
+    
     /**
      * Test of withAngle method, of class com.sun.electric.database.ImmutableArcInst.
      */
     @Test public void testWithAngle() {
         System.out.println("withAngle");
         assertSame(a0, a0.withAngle(900)); // If locations are different, angle is calcualted from them
+        
+        ImmutableArcInst a1 = a0.withLocations(a0.tailLocation, a0.tailLocation).withAngle(900);
+        a1.check();
+        assertEquals(900, a1.getAngle());
+        assertTrue(a1.isEasyShape());
+        
+        ImmutableArcInst a2 = a1.withAngle(-1);
+        a2.check();
+        assertEquals(3599, a2.getAngle());
+        assertFalse(a2.isEasyShape());
     }
 
     /**
      * Test of withFlags method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithFlags() {
+    @Test public void testWithFlags() {
         System.out.println("withFlags");
+        assertSame(a0, a0.withFlags(a0.flags));
         
-        int flags = 0;
-        ImmutableArcInst instance = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withFlags(flags);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(a0, a0.withFlags(a0.flags | (1 << 31)));
     }
 
     /**
@@ -622,40 +679,64 @@ public class ImmutableArcInstTest {
         System.out.println("withFlag");
         assertSame(a0, a0.withFlag(ImmutableArcInst.TAIL_NEGATED, true)); // layout arc can't have negated end
         assertSame(a0, a0.withFlag(ImmutableArcInst.HEAD_NEGATED, true)); // layout arc can't have negated end
+        
+        ImmutableArcInst a1 = a0.withFlag(ImmutableArcInst.BODY_ARROWED, true);
+        a1.check();
+        assertTrue(a1.is(ImmutableArcInst.BODY_ARROWED));
+        assertTrue(a1.isBodyArrowed());
+        assertFalse(a1.isEasyShape());
     }
 
     /**
      * Test of withVariable method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithVariable() {
+    @Test public void testWithVariable() {
         System.out.println("withVariable");
+        Variable var = Variable.newInstance(Artwork.ART_COLOR, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
+        ImmutableArcInst a1 = a0.withVariable(var);
+        a1.check();
+        assertEquals(1, a1.getNumVariables());
+        assertSame(var, a1.getVar(0));
+        assertTrue(a1.isEasyShape());
+    
+        Variable var1 = var.withParam(true);
+        ImmutableArcInst a2 = a0.withVariable(var1);
+        a2.check();
+        assertEquals(1, a2.getNumVariables());
+        assertSame(Artwork.ART_COLOR, a2.getVar(0).getKey());
+        assertSame(var.getObject(), a2.getVar(0).getObject());
+        assertFalse(a2.getVar(0).getTextDescriptor().isParam());
         
-        Variable var = null;
-        ImmutableArcInst instance = null;
+        ImmutableArcInst a3 = ImmutableArcInst.newInstance(0, Artwork.tech.solidArc, nameA0, null,
+                0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
+                0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
+                0, 0, ImmutableArcInst.DEFAULT_FLAGS);
+        a3.check();
+        assertTrue(a3.isEasyShape());
         
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withVariable(var);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        ImmutableArcInst a4 = a3.withVariable(var);
+        a4.check();
+        assertFalse(a4.isEasyShape());
     }
 
     /**
      * Test of withoutVariable method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWithoutVariable() {
+    @Test public void testWithoutVariable() {
         System.out.println("withoutVariable");
+        Variable var = Variable.newInstance(Artwork.ART_COLOR, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
+        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, Artwork.tech.solidArc, nameA0, null,
+                0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
+                0, Artwork.tech.pinNode.getPortId(0), EPoint.ORIGIN,
+                0, 0, ImmutableArcInst.DEFAULT_FLAGS).withVariable(var);
+        a1.check();
+        assertFalse(a1.isEasyShape());
         
-        Variable.Key key = null;
-        ImmutableArcInst instance = null;
+        assertSame(a1, a1.withoutVariable(Artwork.ART_PATTERN));
         
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withoutVariable(key);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        ImmutableArcInst a2 = a1.withoutVariable(Artwork.ART_COLOR);
+        assertEquals(0, a2.getNumVariables());
+        assertTrue(a2.isEasyShape());
     }
 
     /**
@@ -663,80 +744,66 @@ public class ImmutableArcInstTest {
      */
     public void testWithRenamedIds() {
         System.out.println("withRenamedIds");
-        
-        IdMapper idMapper = null;
-        ImmutableArcInst instance = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = instance.withRenamedIds(idMapper);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        IdMapper idMapper = new IdMapper();
+        assertSame(a0, a0.withRenamedIds(idMapper));
     }
 
     /**
-     * Test of write method, of class com.sun.electric.database.ImmutableArcInst.
+     * Test of write and read method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testWrite() throws Exception {
-        System.out.println("write");
+    @Test public void testReadWrite() {
+        System.out.println("readReadWrite");
         
-        SnapshotWriter writer = null;
-        ImmutableArcInst instance = null;
-        
-        instance.write(writer);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        try {
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+            SnapshotWriter writer = new SnapshotWriter(new DataOutputStream(byteStream));
+            a0.write(writer);
+            writer.flush();
+            byte[] bytes = byteStream.toByteArray();
+            byteStream.reset();
+            
+            // First update of mirrorIdManager
+            SnapshotReader reader = new SnapshotReader(new DataInputStream(new ByteArrayInputStream(bytes)), idManager);
+            
+            // Check mirrorIdManager after first update
+            ImmutableArcInst a1 = ImmutableArcInst.read(reader);
+            a1.check();
+            assertEquals(a0.arcId, a1.arcId);
+            assertSame(a0.protoType, a1.protoType);
+            assertSame(a0.name, a1.name);
+            assertSame(a0.nameDescriptor, a1.nameDescriptor);
+            assertEquals(a0.tailNodeId, a1.tailNodeId);
+            assertSame(a0.tailPortId, a1.tailPortId);
+            assertEquals(a0.tailLocation, a1.tailLocation);
+            assertEquals(a0.headNodeId, a1.headNodeId);
+            assertSame(a0.headPortId, a1.headPortId);
+            assertEquals(a0.headLocation, a1.headLocation);
+            assertEquals(a0.getGridFullWidth(), a1.getGridFullWidth());
+            assertEquals(a0.getAngle(), a1.getAngle());
+            assertEquals(a0.flags, a1.flags);
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
     }
-
-    /**
-     * Test of read method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    public void testRead() throws Exception {
-        System.out.println("read");
-        
-        SnapshotReader reader = null;
-        
-        ImmutableArcInst expResult = null;
-        ImmutableArcInst result = ImmutableArcInst.read(reader);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
+    
     /**
      * Test of hashCodeExceptVariables method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testHashCodeExceptVariables() {
+    @Test public void testHashCodeExceptVariables() {
         System.out.println("hashCodeExceptVariables");
-        
-        ImmutableArcInst instance = null;
-        
-        int expResult = 0;
-        int result = instance.hashCodeExceptVariables();
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertEquals(a0.arcId, a0.hashCodeExceptVariables());
     }
 
     /**
      * Test of equalsExceptVariables method, of class com.sun.electric.database.ImmutableArcInst.
      */
-    public void testEqualsExceptVariables() {
+    @Test public void testEqualsExceptVariables() {
         System.out.println("equalsExceptVariables");
-        
-        ImmutableElectricObject o = null;
-        ImmutableArcInst instance = null;
-        
-        boolean expResult = true;
-        boolean result = instance.equalsExceptVariables(o);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertTrue(a0.equalsExceptVariables(a0));
+        assertFalse(a0.equalsExceptVariables(a0.withName(Name.findName("B"))));
+        assertFalse(a0.equalsExceptVariables(a0.withLocations(EPoint.ORIGIN, EPoint.ORIGIN)));
+        Variable var = Variable.newInstance(Artwork.ART_COLOR, new Integer(5), TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
+        assertTrue(a0.equalsExceptVariables(a0.withVariable(var)));
     }
 
     /**

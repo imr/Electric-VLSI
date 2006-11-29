@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/29/06, DN) Assertion changing arc width (Bug #1261).
+FIX: In ImmutableArcInst.withGridSize update "easyShape" flag properly.
+
 IMP: (11/28/06, GVG) CSA regresssion run_gate_instNetList working (very simple).
 Getting rid of "unknown signal" in VerilogReader for vss.
 
