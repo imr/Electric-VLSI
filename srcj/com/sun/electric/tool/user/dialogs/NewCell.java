@@ -23,27 +23,25 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Iterator;
 import java.util.List;
-import javax.swing.JOptionPane;
-import javax.swing.ListSelectionModel;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-
+import javax.swing.ListSelectionModel;
 
 /**
  * Class to handle the "New Cell" dialog.
@@ -54,86 +52,77 @@ public class NewCell extends EDialog
 	private DefaultListModel viewModel;
 	private static boolean makeWindow = false;
 
-    /**
-     * Inner class to control options based on views and technologies.
-     * This is done to access View or Tech without calling toString()
-     */
-    private static class ViewTechOption
-    {
-        View view;
-        Technology tech;
+	/**
+	 * Inner class to control options based on views and technologies.
+	 * This is done to access View or Tech without calling toString()
+	 */
+	private static class ViewTechOption
+	{
+		View view;
+		Technology tech;
 
-        ViewTechOption(View view, Technology tech)
-        {
-            this.view = view;
-            this.tech = tech;
-        }
-        public String toString()
-        {
-            if (view != null)
-                return view.getFullName();
-            return tech.getTechName();
-        }
-    }
+		ViewTechOption(View view, Technology tech)
+		{
+			this.view = view;
+			this.tech = tech;
+		}
+		public String toString()
+		{
+			if (view != null)
+				return view.getFullName();
+			return tech.getTechName();
+		}
+	}
 
 	/** Creates new form New Cell */
 	public NewCell(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
-        getRootPane().setDefaultButton(ok);
+		getRootPane().setDefaultButton(ok);
 
 		// make a list of views
 		viewModel = new DefaultListModel();
 		viewList = new JList(viewModel);
 		viewList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		view.setViewportView(viewList);
-        Technology curTech = Technology.getCurrent();
-        Technology defTech = Technology.findTechnology(User.getDefaultTechnology());
-		/*for(View v: View.getOrderedViews())	viewModel.addElement(v.getFullName());*/
-        ViewTechOption theViewOption = null;
-        View defaultView = View.LAYOUT;
-        if (curTech == Schematics.tech) defaultView = View.SCHEMATIC;
-        else if (curTech == Artwork.tech) defaultView = View.ICON;
+		Technology curTech = Technology.getCurrent();
+		Technology defTech = Technology.findTechnology(User.getDefaultTechnology());
+		ViewTechOption theViewOption = null;
+		View defaultView = View.LAYOUT;
+		if (curTech == Schematics.tech) defaultView = View.SCHEMATIC;
+		else if (curTech == Artwork.tech) defaultView = View.ICON;
 		for (View v : View.getOrderedViews())
 		{
-            ViewTechOption option = new ViewTechOption(v, null);
+			ViewTechOption option = new ViewTechOption(v, null);
 			viewModel.addElement(option);
-            if (v == defaultView) theViewOption = option;
+			if (v == defaultView) theViewOption = option;
 		}
-        viewList.setSelectedValue(theViewOption, true);
+		viewList.setSelectedValue(theViewOption, true);
 		viewList.addMouseListener(new MouseAdapter()
 		{
 			public void mouseClicked(MouseEvent e)
 			{
-                techComboBoxItemStateChanged(null);
+				techComboBoxItemStateChanged(null);
 				if (e.getClickCount() == 2) ok(null);
 			}
 		});
-        // Choosen appropiate technology
-        for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext();)
-        {
-            Technology tech = it.next();
-            if (tech != Schematics.tech && tech != Artwork.tech)
-            {
-                ViewTechOption option = new ViewTechOption(null, tech);
-                techComboBox.addItem(option);
-                if ((defaultView == View.LAYOUT && tech == curTech) ||
-                    (tech == defTech)) techComboBox.setSelectedItem(option);
-            }
-        }
-        //techComboBox.setSelectedItem(curTech.getTechName());
-//        boolean enableTechList = false;
-//		if (curTech == Schematics.tech) viewList.setSelectedValue(View.SCHEMATIC, true);
-//        else if (curTech == Artwork.tech) viewList.setSelectedValue(View.ICON, true);
-//        else
-//        {
-//            enableTechList = true;
-//            viewList.setSelectedValue(View.LAYOUT, true);
-//        }
-        // Only capable to switch technology if they are layout-based
-        //techComboBox.setEnabled(enableTechList);
-        techComboBoxItemStateChanged(null);
+
+		// Choosen appropiate technology
+		for (Iterator<Technology> it = Technology.getTechnologies(); it.hasNext();)
+		{
+			Technology tech = it.next();
+			if (tech != Schematics.tech && tech != Artwork.tech)
+			{
+				ViewTechOption option = new ViewTechOption(null, tech);
+				techComboBox.addItem(option);
+				if ((defaultView == View.LAYOUT && tech == curTech) ||
+					(tech == defTech)) techComboBox.setSelectedItem(option);
+			}
+		}
+
+		// Only capable to switch technology if they are layout-based
+		techComboBoxItemStateChanged(null);
 
 		// make a popup of libraries
 		List<Library> libList = Library.getVisibleLibraries();
@@ -308,9 +297,9 @@ public class NewCell extends EDialog
     }//GEN-END:initComponents
 
     private void techComboBoxItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_techComboBoxItemStateChanged
-        ViewTechOption view = (ViewTechOption)viewList.getSelectedValue();
-        if (view != null)
-            techComboBox.setEnabled(view.view == View.LAYOUT);
+		ViewTechOption view = (ViewTechOption)viewList.getSelectedValue();
+		if (view != null)
+			techComboBox.setEnabled(view.view == View.LAYOUT);
     }//GEN-LAST:event_techComboBoxItemStateChanged
 
 	private void cellNameActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_cellNameActionPerformed
@@ -328,7 +317,7 @@ public class NewCell extends EDialog
 		String name = cellName.getText().trim();
 		if (name.length() == 0)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Must type a cell name");
+			Job.getUserInterface().showErrorMessage("Must type a cell name", "Invalid cell name");
 			return;
 		}
 		String viewName = (String)((ViewTechOption)viewList.getSelectedValue()).view.getFullName();
@@ -336,11 +325,16 @@ public class NewCell extends EDialog
 		if (v != View.UNKNOWN)  name += "{" + v.getAbbreviation() + "}";
 		String libName = (String)library.getSelectedItem();
 		Library lib = Library.findLibrary(libName);
+		if (lib == null)
+		{
+			Job.getUserInterface().showErrorMessage("No library exists.  Create one first.", "No Library");
+			return;
+		}
 		makeWindow = newWindow.isSelected();
 
 		// create the cell
-        Technology tech = null;
-        if (techComboBox.isEnabled()) tech = ((ViewTechOption)techComboBox.getSelectedItem()).tech;
+		Technology tech = null;
+		if (techComboBox.isEnabled()) tech = ((ViewTechOption)techComboBox.getSelectedItem()).tech;
 		CreateCell job = new CreateCell(lib, name, tech, makeWindow);
 
 		closeDialog(null);
@@ -363,7 +357,7 @@ public class NewCell extends EDialog
 		private String cellName;
 		private boolean newWindow;
 		private Technology tech;
-        private Cell newCell;
+		private Cell newCell;
 
 		protected CreateCell(Library lib, String cellName, Technology tech, boolean newWindow)
 		{
@@ -371,7 +365,7 @@ public class NewCell extends EDialog
 			this.lib = lib;
 			this.cellName = cellName;
 			this.newWindow = newWindow;
-            this.tech = tech;
+			this.tech = tech;
 			startJob();
 		}
 
@@ -386,18 +380,18 @@ public class NewCell extends EDialog
 			return true;
 		}
 
-        public void terminateOK()
-        {
-            if (newWindow)
-            {
-                WindowFrame.createEditWindow(newCell);
-            } else
-            {
-                WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-                wf.setCellWindow(newCell, null);
-            }
-        }
-    }
+		public void terminateOK()
+		{
+			if (newWindow)
+			{
+				WindowFrame.createEditWindow(newCell);
+			} else
+			{
+				WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+				wf.setCellWindow(newCell, null);
+			}
+		}
+	}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton cancel;
@@ -412,5 +406,4 @@ public class NewCell extends EDialog
     private javax.swing.JLabel techLabel;
     private javax.swing.JScrollPane view;
     // End of variables declaration//GEN-END:variables
-
 }

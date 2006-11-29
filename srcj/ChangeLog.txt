@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/29/06, SMR) New cell creation crashes if there is no library (Bug #1264).
+FIX: In NewCell.ok() check for valid library.
+
 IMP/MAN: (11/29/06, SMR) Bus parameters may now use simple arithmetic operators.
 
 BUG: (11/29/06, DN) Assertion changing arc width (Bug #1261).
