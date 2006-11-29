@@ -42,6 +42,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.Highlighter;
 
@@ -99,15 +100,16 @@ public class RouteElementArc extends RouteElement {
     	if (stayInside != null)
     	{
     		double length = headEP.distance(tailEP);
-        	Layer layer = ap.getLayerIterator().next();
-        	
-        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth, headExtend, tailExtend);
+        	Technology.ArcLayer al = ap.getArcLayer(0);
+        	Layer layer = al.getLayer();
+        	double offset = al.getLambdaOffset();
+        	boolean good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
 
         	// try reducing to default width if it doesn't fit
         	if (!good && arcWidth > ap.getDefaultLambdaFullWidth())
         	{
         		arcWidth = ap.getDefaultLambdaFullWidth();
-            	good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth, headExtend, tailExtend);
+            	good = stayInside.arcPolyFits(layer, headEP, tailEP, arcWidth-offset, headExtend, tailExtend);
         	}
 
         	// make it zero-width if it doesn't fit
