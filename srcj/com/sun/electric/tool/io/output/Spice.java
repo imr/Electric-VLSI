@@ -3091,9 +3091,18 @@ public class Spice extends Topology
                 empty = false;
                 break;
             }
+            // check for spice code on pins
+            if (ni.getVar(SPICE_CARD_KEY) != null) {
+                empty = false;
+                break;
+            }
         }
         // look for a model file on the current cell
         if (CellModelPrefs.spiceModelPrefs.isUseModelFromFile(cell)) {
+            empty = false;
+        }
+        // check for spice template
+        if (getEngineTemplate(cell) != null) {
             empty = false;
         }
 
