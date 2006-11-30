@@ -43,6 +43,8 @@ public class SCLibraryGen {
     private PrimitiveNode pin = Generic.tech.invisiblePinNode;
     private Variable.Key sizeKey = Variable.findKey("ATTR_X");
 
+    public static final Variable.Key STANDARDCELLLIBRARY = Variable.newKey("StandardCellLibrary");
+
     private static final int blueColorIndex = EGraphics.makeIndex(Color.blue);
 
     public SCLibraryGen() {}
@@ -121,6 +123,10 @@ public class SCLibraryGen {
             prMsg("Created standard cell library "+scLibraryName);
         }
         prMsg("Using standard cell library "+scLibraryName);
+        // mark as a standard cell library
+        if (scLibrary.getVar(STANDARDCELLLIBRARY) == null) {
+            scLibrary.newVar(STANDARDCELLLIBRARY, 1);
+        }
 
         // dunno how to set standard cell params
         StdCellParams sc = GateLayoutGenerator.dividerParams(Tech.Type.TSMC180);
