@@ -37,6 +37,7 @@ public class MessagesStream extends OutputStream
 {
 	private PrintWriter printWriter = null;
     /** The messages stream */                              private static MessagesStream messagesStream;
+    private static PrintStream stdout = System.out;
 
     private static void initializeMessageStream()
     {
@@ -58,6 +59,16 @@ public class MessagesStream extends OutputStream
     {
         public void setChanged() {super.setChanged();}
         public void clearChanged() {super.clearChanged();}
+    }
+
+    public static class OriginalStandardOutWriter implements Observer
+    {
+        public void update(Observable o, Object arg)
+        {
+            if (arg instanceof String) {
+                stdout.print((String)arg);
+            }
+        }
     }
 
     private MessagesObserver notifyGUI = null;

@@ -42,6 +42,7 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.geom.Point2D;
@@ -166,6 +167,9 @@ public final class Main
         else
             ui = new UserInterfaceDummy();
         Job.setThreadMode(runMode, ui);
+        if (runMode == Job.Mode.BATCH) {
+            MessagesStream.getMessagesStream().addObserver(new MessagesStream.OriginalStandardOutWriter());
+        }
 
 		// initialize database
         EDatabase.serverDatabase();
