@@ -289,11 +289,13 @@ public class VarContext implements Serializable
      * hierarchy traversal.  Returns true if they both represent
      * the same hierarchy traversal, false otherwise. (Recursive method).
      * Does not compare PortInsts.
-     * @param c the VarContext to compare against.
+     * @param o the VarContext to compare against.
      * @return true if equal, false otherwise.
      */
-    public boolean equals(VarContext c)
+    public boolean equals(Object o)
     {
+        if (!(o instanceof VarContext)) return false;
+        VarContext c = (VarContext)o;
         if (this == c) return true;             // both globalContext, or the same object
 
         // the following line doesn't work (R KAO, IvanM)
@@ -371,15 +373,6 @@ public class VarContext implements Serializable
     /** Get rid of the variable cache thereby release its storage */
     public synchronized void deleteVariableCache() { cache=null; }
 
-    public int hashCode() {
-        return getInstPath(".").hashCode();
-    }
-
-    public boolean equals(Object o) {
-        if (!(o instanceof VarContext)) return false;
-        VarContext oc = (VarContext)o;
-        return oc.hashCode() == this.hashCode();
-    }
 
     // ------------------------------ Variable Evaluation -----------------------
 
