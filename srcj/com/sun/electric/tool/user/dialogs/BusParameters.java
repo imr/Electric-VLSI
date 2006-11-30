@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -60,6 +61,7 @@ import javax.swing.event.DocumentListener;
 public class BusParameters extends EDialog
 {
 	/** key for library's bus variables. */	public static final Variable.Key BUS_VARIABLES = Variable.newKey("LIB_Bus_Variables");
+	/** key for node's bus template. */		public static final Variable.Key NODE_BUS_TEMPLATE = Variable.newKey("NODE_Bus_Template");
 	/** key for arc's bus template. */		public static final Variable.Key ARC_BUS_TEMPLATE = Variable.newKey("ARC_Bus_Template");
 	/** key for export's bus template. */	public static final Variable.Key EXPORT_BUS_TEMPLATE = Variable.newKey("EXPORT_Bus_Template");
 
@@ -80,13 +82,13 @@ public class BusParameters extends EDialog
 		Highlight2 h = wnd.getHighlighter().getOneHighlight();
 		if (h == null)
 		{
-			Job.getUserInterface().showErrorMessage("Select an arc or export name first", "Nothing Selected");
+			Job.getUserInterface().showErrorMessage("Select a node, arc, or export name first", "Nothing Selected");
 			return;
 		}
 		ElectricObject owner = h.getElectricObject();
-		if (owner == null || !(owner instanceof ArcInst || owner instanceof Export))
+		if (owner == null || !(owner instanceof NodeInst || owner instanceof ArcInst || owner instanceof Export))
 		{
-			Job.getUserInterface().showErrorMessage("Select an arc or export name first", "Incorrect Selection");
+			Job.getUserInterface().showErrorMessage("Select a node, arc, or export name first", "Incorrect Selection");
 			return;
 		}
 		if (owner instanceof ArcInst)
@@ -94,6 +96,14 @@ public class BusParameters extends EDialog
 			if (h.getVarKey() != ArcInst.ARC_NAME)
 			{
 				Job.getUserInterface().showErrorMessage("Must select the arc's name", "Incorrect Selection");
+				return;
+			}
+		}
+		if (owner instanceof NodeInst)
+		{
+			if (h.getVarKey() != NodeInst.NODE_NAME)
+			{
+				Job.getUserInterface().showErrorMessage("Must select the node's name", "Incorrect Selection");
 				return;
 			}
 		}
@@ -277,6 +287,18 @@ public class BusParameters extends EDialog
 				for(Iterator<Cell> cIt = lib.getCells(); cIt.hasNext(); )
 				{
 					Cell cell = cIt.next();
+					for(Iterator<NodeInst> nIt = cell.getNodes(); nIt.hasNext(); )
+					{
+						NodeInst ni = nIt.next();
+						Variable var = ni.getVar(NODE_BUS_TEMPLATE);
+						if (var != null)
+						{
+							String newVarString = updateVariable(var, lib, libParameters);
+							String arcName = ni.getName();
+							if (!arcName.equalsIgnoreCase(newVarString))
+								ni.setName(newVarString);
+						}
+					}
 					for(Iterator<ArcInst> aIt = cell.getArcs(); aIt.hasNext(); )
 					{
 						ArcInst ai = aIt.next();
@@ -378,7 +400,7 @@ public class BusParameters extends EDialog
 				}
 				String newString = Integer.toString(res);
 				varString = varString.substring(0, start) + newString + varString.substring(end+1);
-				i = start + newString.length();
+				i = start + newString.length() - 1;
 			}
 		}
 		return varString;
@@ -413,7 +435,17 @@ public class BusParameters extends EDialog
 
 		public boolean doIt() throws JobException
 		{
-			if (owner instanceof ArcInst)
+			if (owner instanceof NodeInst)
+			{
+				// add template to node
+				NodeInst ni = (NodeInst)owner;
+				TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_NAME);
+				double relSize = 1;
+				if (!td.getSize().isAbsolute())
+					relSize = td.getSize().getSize();
+				td = td.withOff(td.getXOff(), td.getYOff() - relSize*1.5).withRelSize(relSize/2).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+				ni.newVar(NODE_BUS_TEMPLATE, ni.getName(), td);
+			} else if (owner instanceof ArcInst)
 			{
 				// add template to arc
 				ArcInst ai = (ArcInst)owner;

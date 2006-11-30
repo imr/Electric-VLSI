@@ -51,6 +51,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.user.dialogs.BusParameters;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -557,6 +558,29 @@ public class Export extends ElectricObject implements PortProto, Comparable<Expo
 	public void delVar(Variable.Key key)
 	{
         setD(d.withoutVariable(key), true);
+	}
+
+	/**
+	 * Method to copy all variables from another Export to this Export.
+	 * @param other the other Export from which to copy Variables.
+	 */
+	public void copyVarsFrom(ElectricObject other)
+	{
+		super.copyVarsFrom(other);
+
+		// delete the Bus parameterization in icons
+		if (getParent().getView() == View.ICON)
+		{
+			for(Iterator<Variable> it = getVariables(); it.hasNext(); )
+			{
+				Variable var = it.next();
+				if (var.getKey() == BusParameters.EXPORT_BUS_TEMPLATE)
+				{
+					delVar(var.getKey());
+					break;
+				}
+			}
+		}
 	}
     
     /** Method to return PortProtoId of this Export.
