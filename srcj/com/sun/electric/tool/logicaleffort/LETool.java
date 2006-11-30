@@ -26,9 +26,7 @@
 
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
@@ -41,6 +39,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
+import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.user.projectSettings.ProjSettings;
@@ -484,7 +484,7 @@ public class LETool extends Tool {
                         }
                     }
                 }
-                new UpdateSizes(sizes, varNames, cell);
+                new UpdateSizes(sizes, varNames, nodes, contexts, cell, 0.10);
                 netlister.getErrorLogger().termLogging(true);
                 //netlister.nullErrorLogger();
             } else {
@@ -530,21 +530,69 @@ public class LETool extends Tool {
 
         private List<Float> sizes;
         private List<String> varNames;
+        private List<NodeInst> nodes;
+        private List<VarContext> contexts;
         private Cell cell;
+        private double standardCellErrorTolerancePrint = 0.10;
 
-        private UpdateSizes(List<Float> sizes, List<String> varNames, Cell cell) {
+        private UpdateSizes(List<Float> sizes, List<String> varNames, List<NodeInst> nodes,
+                            List<VarContext> contexts, Cell cell, double standardCellErrorTolerancePrint) {
             super("Update LE Sizes", tool, Job.Type.CHANGE, null, cell, Job.Priority.USER);
             this.sizes = sizes;
             this.varNames = varNames;
+            this.nodes = nodes;
+            this.contexts = contexts;
             this.cell = cell;
+            this.standardCellErrorTolerancePrint = standardCellErrorTolerancePrint;
             startJob();
         }
 
         public boolean doIt() throws JobException {
+            // handle changed standard cells
+
+            UniqueNodeMap standardCellNodeMap = new UniqueNodeMap();
+            boolean standardCellArrayError = false;
+
+            System.out.println("Standard cell quantization errors over "+
+                    (standardCellErrorTolerancePrint*100)+"%:");
+            StringBuffer errBuf = new StringBuffer();
             for (int i=0; i<sizes.size(); i++) {
+                NodeInst ni = nodes.get(i);
+                VarContext context = contexts.get(i);
                 Float f = sizes.get(i);
-                String varName = varNames.get(i);
-                cell.newVar(varName, f);
+                Cell standardCell = getStandardCell(ni, context, f.doubleValue());
+                if (standardCell != null) {
+                    VarContext nicontext = context.push(ni);
+                    Cell previousStandardCell = standardCellNodeMap.get(nicontext);
+                    if (previousStandardCell != null && previousStandardCell != standardCell.iconView()) {
+                        // we have an arrayed NodeInst that has been assigned different sizes,
+                        // this is not allowed for standard cells
+                        errBuf.append("ERROR: Arrayed Standard Cell " +context.getInstPath(".")+"."+ni.getName()+"\n");
+                        errBuf.append("       cannot yield separate sizes for nodes in array: "+previousStandardCell.getName()+" vs "+standardCell.getName()+"\n");
+                        standardCellArrayError = true;
+                    }
+                    VarContext nocontext = context.push(Netlist.getNodableFor(ni, 0));
+                    standardCellNodeMap.put(nocontext, standardCell.iconView());
+                } else {
+                    // this is not a standard cell, must be purple gate - apply size
+                    // as top level cell parameter
+                    String varName = varNames.get(i);
+                    cell.newVar(varName, f);
+                }
+            }
+
+            // if there are standard cells, replace them in the hierarchy
+            if (standardCellNodeMap.size() > 0) {
+                Uniquifier uniquifier = new Uniquifier(standardCellNodeMap);
+                uniquifier.registerCellsToUniquify(cell, VarContext.globalContext);
+                // if hierarchy errors, do not replace new cells or set new sizes
+                if (uniquifier.isHierarchyError() || standardCellArrayError) {
+                    System.out.println(errBuf);
+                    System.out.println("Error with hierarchy, please fix first: Standard Cell Sizes Not Updated");
+                    return false;
+                } else {
+                    uniquifier.uniquify(cell, VarContext.globalContext);
+                }
             }
 
             System.out.println("Sizes updated. Sizing Finished.");
@@ -552,9 +600,343 @@ public class LETool extends Tool {
             return true;
         }
 
+        /**
+         * Get the standard cell for the given size. The type is based on the current
+         * node type.
+         * @param ni the current standard cell node
+         * @param context the context
+         * @param targetsize the target size
+         * @return the standard cell (schematic view)
+         */
+        private Cell getStandardCell(NodeInst ni, VarContext context, double targetsize) {
+            Cell np = null;
+            if (ni.isCellInstance()) {
+                np = (Cell)ni.getProto();
+            }
+            if (np != null && np.getLibrary().getVar(SCLibraryGen.STANDARDCELLLIBRARY) != null) {
+                // this is a standard cell from a standard cell library
+                int tail = np.getName().indexOf("_X");
+                String type = np.getName().substring(0, tail);
+                double diff = Double.MAX_VALUE;
+                double chosensize = 0;
+                Cell chosencell = null;
+                for (Iterator<Cell> it = np.getLibrary().getCells(); it.hasNext(); ) {
+                    Cell c = it.next();
+                    if (c.getView() != View.SCHEMATIC) continue;
+                    String cname = c.getName();
+                    if (!cname.startsWith(type+"_X")) continue;
+                    double size = 0;
+                    try {
+                        size = Double.parseDouble(cname.substring(type.length()+2));
+                    } catch (NumberFormatException e) {
+                        continue;
+                    }
+                    double tempdiff = targetsize - size;
+                    if (Math.abs(tempdiff) < Math.abs(diff)) {
+                        diff = tempdiff;
+                        chosensize = size;
+                        chosencell = c;
+                    }
+                }
+                if (chosencell == null) {
+                    System.out.println("Unable to find standard cell for "+ni.describe(false));
+                    return null;
+                }
+                double percentdiff = diff/targetsize;
+                if (Math.abs(percentdiff) > standardCellErrorTolerancePrint) {
+                    String p = TextUtils.formatDouble(100*percentdiff, 1);
+                    String ideal = TextUtils.formatDouble(targetsize, 2);
+                    String used = TextUtils.formatDouble(chosensize, 2);
+                    //String strcontext = (context == VarContext.globalContext ? "topcell" : context.getInstPath("."));
+                    String strcontext = context.push(ni).getInstPath(".");
+                    System.out.println("  "+p+"%: "+ideal+" (ideal) vs "+used+" (used); for "+strcontext);
+                }
+                return chosencell;
+            }
+            return null;
+        }
+
         public void terminateOK() {
             EditWindow wnd = EditWindow.findWindow(cell);
             if (wnd != null) wnd.repaintContents(null, false);
+        }
+    }
+
+    /**
+     * What I really want is to overload VarContext.hashCode to be
+     * based on the string path, but that is really only valid for this
+     * particular application, so instead I made a map that uses
+     * the string path as the key.
+     */
+    public static class UniqueNodeMap {
+        private Map<String,Cell> nodeMap;
+        public UniqueNodeMap() {
+            nodeMap = new HashMap<String,Cell>();
+        }
+        public void put(VarContext context, Cell cell) {
+            nodeMap.put(getKey(context), cell);
+        }
+        public Cell get(VarContext context) {
+            return nodeMap.get(getKey(context));
+        }
+        public int size() {
+            return nodeMap.size();
+        }
+        private static String getKey(VarContext context) {
+            return context.getInstPath(".");
+        }
+    }
+
+    /**
+     * The Uniquifier does two passes through the hierarchy.
+     * The first pass is bottom-up to determine which cells need to
+     * be duplicated/replaced. This depends on which nodes are standard cells
+     * and what sizes they are.
+     * The second pass goes top down doing all the actual cell replacements.
+     * It must be top down to get the replacements correct, as lower level
+     * cells must be replaced in their properly replaced upper level cells.
+     */
+    private static class Uniquifier {
+
+        // key: varcontext, value: icon cell for last nodeinst on context
+        // note that this contains standard cells for replacement, as well as uniquified cells
+        private UniqueNodeMap uniqueNodeMap;
+        // Map for a cell in the original hierarchy to it's replacement (unique) cells
+        private Map<Cell,UniqueCell> uniqueCellMap;
+        private boolean hierarchyError = false;
+        private boolean verbose = false;
+
+        public Uniquifier(UniqueNodeMap leafCellNodeMap) {
+            this.uniqueNodeMap = leafCellNodeMap;
+            uniqueCellMap = new HashMap<Cell,UniqueCell>();
+        }
+
+        /**
+         * First pass: bottom up check of standard cells in the hierarchy.
+         * Any cell that contains standard cells, or contains cells that contain
+         * standard cells, is registered, and checked if it must be made unique.
+         * A cell instantiated more than once in the design, that contains standard
+         * cells with different sizes, must be made unique.  This method is
+         * recursive.
+         * @param cell current cell
+         * @param context current context
+         */
+        public void registerCellsToUniquify(Cell cell, VarContext context) {
+            Netlist netlist = cell.getUserNetlist();
+
+            for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
+                Nodable no = it.next();
+                if (!no.isCellInstance()) continue;
+                Cell subproto = (Cell)no.getProto();
+                if (subproto.isIconOf(cell)) continue;
+                Cell schcell = subproto.getCellGroup().getMainSchematics();
+                // recurse, bottom up
+                registerCellsToUniquify(schcell, context.push(no));
+            }
+
+            // want bottom up traversal, so do action now after recurse
+            Map<String,Cell> relevantNodes = new HashMap<String,Cell>();
+            Map<NodeInst,Cell> arrayedNodeConflicts = new HashMap<NodeInst,Cell>();
+
+            for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
+                Nodable no = it.next();
+                if (!no.isCellInstance()) continue;
+
+                VarContext nocontext = context.push(no);
+                Cell iconCell = uniqueNodeMap.get(nocontext);
+                if (iconCell == null) continue;
+
+                // add to relevant nodes
+                prMsg("Found Cell "+iconCell.describe(false)+" for context "+nocontext.getInstPath("."));
+                relevantNodes.put(no.getName(), iconCell);
+
+                // check for arrayed node conflicts (all nodes in array must map to same cell)
+                Cell mappedIconCell = arrayedNodeConflicts.get(no.getNodeInst());
+                if (mappedIconCell == null) {
+                    arrayedNodeConflicts.put(no.getNodeInst(), iconCell);
+                } else if (mappedIconCell != iconCell) {
+                    System.out.println("ERROR: Arrayed node: "+nocontext.getInstPath("."));
+                    System.out.println("       Has different sizes or different sizes in sub nodes; array must be flattened");
+                    hierarchyError = true;
+                }
+            }
+
+            if (context == VarContext.globalContext) return;
+
+            if (relevantNodes.size() > 0) {
+                // we may need to make this cell unique
+                UniqueCell uniqueCell = uniqueCellMap.get(cell);
+                if (uniqueCell == null) {
+                    // first usage of this cell, do not need to duplicate
+                    uniqueCell = new UniqueCell(cell, relevantNodes);
+                    uniqueCellMap.put(cell, uniqueCell);
+                }
+                Cell newcell = uniqueCell.getUniqueCell(relevantNodes);
+                uniqueNodeMap.put(context, newcell.iconView());
+            }
+        }
+
+        /**
+         * Second pass: top down replacement of both uniquified cells and
+         * standard cells.  The replacement must be top down as sub-cells must
+         * be replaced in their properly replaced parent cells. This method is
+         * recursive.
+         * @param cell current cell
+         * @param context current context
+         */
+        public void uniquify(Cell cell, VarContext context) {
+            Netlist netlist = cell.getUserNetlist();
+
+            // top down traversal
+            for (Iterator<Nodable> it = netlist.getNodables(); it.hasNext(); ) {
+                Nodable no = it.next();
+                if (!no.isCellInstance()) continue;
+
+                NodeInst ni = no.getNodeInst();
+                Cell subcell = (Cell)no.getProto();
+                if (subcell.isIconOf(cell)) continue;
+
+                VarContext nocontext = context.push(no);
+                Cell schsubcell = subcell.getCellGroup().getMainSchematics();
+
+                Cell newIcon = uniqueNodeMap.get(nocontext);
+                if (newIcon != null && newIcon != ni.getProto()) {
+                    if (ni.isLinked()) {
+                        // if arrayed node, may have already replaced, so only replace if linked
+                        ni.replace(newIcon, true, true);
+                        prMsg("Replaced "+nocontext.getInstPath(".")+" with "+newIcon.describe(false));
+                    }
+                    schsubcell = newIcon.getCellGroup().getMainSchematics();
+                    // find new nodable
+                    boolean found = false;
+                    for (Iterator<Nodable> it2 = netlist.getNodables(); it2.hasNext(); ) {
+                        Nodable no2 = it2.next();
+                        if (no.getNameKey() == no2.getNameKey()) {
+                            nocontext = context.push(no2);
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        System.out.println("ERROR: Could not find new nodable for "+context.getInstPath(".")+"."+no.getName());
+                    }
+                }
+                // recurse, top down
+                uniquify(schsubcell, nocontext);
+            }
+        }
+
+        public boolean isHierarchyError() { return hierarchyError; }
+
+        public void prMsg(String msg) {
+            if (verbose) System.out.println(msg);
+        }
+    }
+
+    /**
+     * Register a cell containing standard cells, or containing
+     * cells that contain standard cells - hereafter called the "relevant cells".
+     * A unique key is made based on the relevant cells. Instances
+     * with the same key share the same unique cell. The first key is assigned
+     * to the original cell; new keys are assigned to duplicated cells.
+     */
+    private static class UniqueCell {
+        private Set<String> relevantNodeNames;
+        private Map<String,Cell> uniqueCells;
+        private Cell originalCell;
+        private boolean verbose = false;
+
+        private UniqueCell(Cell cell, Map<String,Cell> relevantNodes) {
+            originalCell = cell;
+            this.relevantNodeNames = relevantNodes.keySet();
+            uniqueCells = new HashMap<String,Cell>();
+            // register existing cell as associated with current set of nodes
+            String key = getKey(relevantNodes);
+            uniqueCells.put(key, cell);
+            prMsg("Registering original cell "+originalCell.describe(false)+" under key "+key);
+        }
+
+        public String getKey(Map<String,Cell> relevantNodes) {
+            StringBuffer buf = new StringBuffer();
+            for (String s : relevantNodeNames) {
+                Cell c = relevantNodes.get(s);
+                if (c != null) {
+                    buf.append(c.getLibrary().getName());
+                    buf.append(c.getName());
+                }
+            }
+            return buf.toString();
+        }
+
+        /**
+         * Retrieve a unique cell given the relevant nodes at some point in the
+         * hierarchy. The relevant nodes are mapped to a key. If a cell is already
+         * associated with the key, it is returned. Otherwise, a cell is duplicated
+         * from the original cell, associated with the key, and returned.
+         * @param relevantNodes the nodes that should be used at that point in the hierarchy.
+         * May be standard cells or unique cells
+         * @return the unique cells.
+         */
+        public Cell getUniqueCell(Map<String,Cell> relevantNodes) {
+            String key = getKey(relevantNodes);
+            prMsg("Checking against original cell "+originalCell.describe(false)+" with new key "+key);
+            Cell c = uniqueCells.get(key);
+            if (c == null) {
+                // need to create a new duplicate of cell
+                c = duplicate(originalCell);
+                prMsg("Duplicating "+originalCell.describe(false));
+                uniqueCells.put(key, c);
+            }
+            return c;
+        }
+
+        public static Cell duplicate(Cell cell) {
+            assert(cell.getView() == View.SCHEMATIC);
+
+            Library lib = cell.getLibrary();
+            String pname = cell.getName().replaceAll("_[0-9]+$", "");
+            String newpname = pname;
+            int i=1;
+            for (i=1; i<100; i++) {
+                String temp = pname+"_"+i;
+                if (lib.findNodeProto(temp) == null) {
+                    newpname = temp;
+                    break;
+                }
+            }
+            if (i == 100) {
+                System.out.println("Error: Unable to uniquify cell "+cell.describe(false)+", too many versions already");
+                return cell;
+            }
+            // create new version
+            Cell icon = cell.iconView();
+            Cell newicon = null;
+            if (icon != null) {
+                newicon = Cell.copyNodeProto(icon, lib, newpname, true);
+                if (newicon == null) {
+                    System.out.println("Error: Unable to copy "+icon.describe(false)+" to "+newpname);
+                    return cell;
+                }
+            }
+            Cell newcell = Cell.copyNodeProto(cell, lib, newpname, true);
+            if (newcell == null) {
+                System.out.println("Error: Unable to copy "+cell.describe(false)+" to "+newpname);
+                return cell;
+            }
+            // change master icon
+            if (icon != null && newicon != null) {
+                for (Iterator<NodeInst> it = newcell.getNodes(); it.hasNext(); ) {
+                    NodeInst nni = it.next();
+                    if (nni.getProto() == icon) {
+                        nni.replace(newicon, true, true);
+                    }
+                }
+            }
+            return newcell;
+        }
+
+        public void prMsg(String msg) {
+            if (verbose) System.out.println(msg);
         }
     }
 
