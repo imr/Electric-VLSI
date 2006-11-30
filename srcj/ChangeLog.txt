@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+BUG: (11/30/06, SMR) When "Node Moves With Text" is selected, deleting an
+     export also deletes the node (Bug #1255).
+FIX: In CircuitChanges.deleteSelected(), temporarily disable the moves-with-text
+     state when deleting.
+
 IMP: (11/29/06, RK) Change Tech.java so its interface consists of methods rather than data members
 
 BUG: (11/29/06, SMR) New cell creation crashes if there is no library (Bug #1264).

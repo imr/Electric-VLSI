@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -430,9 +431,21 @@ public class CircuitChanges
 			new CircuitChangeJobs.DeleteSelectedGeometry(cell, bounds);
 		} else
 		{
-            List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
+			// disable the "node moves with text" because it causes nodes to be deleted with text, too
+			boolean formerMoveWithText = User.isMoveNodeWithExport();
+			Pref.delayPrefFlushing();
+			User.setMoveNodeWithExport(false);
+
+			// get what is highlighted
+			List<DisplayedText> highlightedText = highlighter.getHighlightedText(true);
             List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
-            if (highlightedText.size() == 0 && highlighted.size() == 0) return;
+
+            // restore "node moves with text"
+            User.setMoveNodeWithExport(formerMoveWithText);
+			Pref.resumePrefFlushing();
+
+			// delete if anything was selected
+			if (highlightedText.size() == 0 && highlighted.size() == 0) return;
 	        new CircuitChangeJobs.DeleteSelected(cell, highlightedText, highlighted, User.isReconstructArcsToDeletedCells());
 		}
 	}
