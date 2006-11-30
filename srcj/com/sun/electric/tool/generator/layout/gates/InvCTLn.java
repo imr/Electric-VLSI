@@ -111,9 +111,9 @@ public class InvCTLn {
 		
 		// Inv input: in 
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1, 4,
+		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1(), 4,
 							inX, inY);
-		TrackRouter in = new TrackRouterH(Tech.m1, 3, inY, inv);
+		TrackRouter in = new TrackRouterH(Tech.m1(), 3, inY, inv);
 		in.connect(inv.findExport("in"));
 		for (int i=0; i<pmoss.length; i++) {
 			FoldedMos pmos = pmoss[i];
@@ -133,9 +133,9 @@ public class InvCTLn {
 		// Inv input: ctl
 		double rightDiffX = StdCellParams.getRightDiffX(nmos, pmoss);
 		double ctlX = rightDiffX + wirePitch;
-		LayoutLib.newExport(inv, "ctl", PortCharacteristic.IN, Tech.m1, 4,
+		LayoutLib.newExport(inv, "ctl", PortCharacteristic.IN, Tech.m1(), 4,
 							ctlX, ctlY);
-		TrackRouter ctl = new TrackRouterH(Tech.m1, 3, ctlY, inv);
+		TrackRouter ctl = new TrackRouterH(Tech.m1(), 3, ctlY, inv);
 		ctl.connect(inv.findExport("ctl"));
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
@@ -147,14 +147,14 @@ public class InvCTLn {
 		
 		// Inv output: out
 		double outX = ctlX + wirePitch;
-		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT, Tech.m1,
+		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT, Tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, inv);
+		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, inv);
 		outHi.connect(inv.findExport("out"));
 		for (int i=0; i<pmoss.length; i++) {
 			outHi.connect(pmoss[i].getSrcDrn(1));
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2, 4, outLoY, inv);
+		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, inv);
 		outLo.connect(inv.findExport("out"));
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));

@@ -78,7 +78,7 @@ public class GateLayoutGenerator {
         if (pwr!=-1) type = type.substring(0, pwr);
 
         Cell c = null;
-        if (Tech.isTSMC90())
+        if (Tech.is90nm())
         {
             try
             {

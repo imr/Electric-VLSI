@@ -114,9 +114,9 @@ class Nor2_star {
 		
 		// Nor input A
 		double inaX = StdCellParams.getRightDiffX(pmos, nmoss) + 2 + 3 + 2;
-		LayoutLib.newExport(nor, "ina", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(nor, "ina", PortCharacteristic.IN, Tech.m1(),
 							4, inaX, inaY);
-		TrackRouter inA = new TrackRouterH(Tech.m1, 3, inaY, nor);
+		TrackRouter inA = new TrackRouterH(Tech.m1(), 3, inaY, nor);
 		inA.connect(nor.findExport("ina"));
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
@@ -131,9 +131,9 @@ class Nor2_star {
 		
 		// Nor input B
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(nor, "inb", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(nor, "inb", PortCharacteristic.IN, Tech.m1(),
 							4, inbX, inbY);
-		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbY, nor);
+		TrackRouter inb = new TrackRouterH(Tech.m1(), 3, inbY, nor);
 		inb.connect(nor.findExport("inb"));
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0){
@@ -148,14 +148,14 @@ class Nor2_star {
 		
 		// Nor output
 		double outX = inaX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nor, "out", PortCharacteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nor, "out", PortCharacteristic.OUT, Tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, nor);
+		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, nor);
 		outHi.connect(nor.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2, 4, outLoY, nor);
+		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, nor);
 		outLo.connect(nor.findExport("out"));
 		for (int i=0; i<nmoss.length; i++) {
 			for (int j=1; j<nmoss[i].nbSrcDrns(); j+=2) {

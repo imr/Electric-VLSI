@@ -104,22 +104,22 @@ public class Inv_passgate {
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, inv);
-		LayoutLib.newExport(inv, "gnd", PortCharacteristic.GND, Tech.m2,
+		LayoutLib.newExport(inv, "gnd", PortCharacteristic.GND, Tech.m2(),
 							10, mosX, stdCell.getGndY());
-		TrackRouter gnd = new TrackRouterH(Tech.m2, stdCell.getGndWidth(), inv);
+		TrackRouter gnd = new TrackRouterH(Tech.m2(), stdCell.getGndWidth(), inv);
 		gnd.connect(inv.findExport("gnd"));
 		for (int i=0; i<nbPullDnFolds; i+=2)  gnd.connect(nmos.getSrcDrn(i));
 		
 		// connect inverter output
-		PortInst invOut = LayoutLib.newNodeInst(Tech.m1pin, invOutX, 0,
+		PortInst invOut = LayoutLib.newNodeInst(Tech.m1pin(), invOutX, 0,
 												DEF_SIZE, DEF_SIZE, 0, inv
 												).getOnlyPortInst();
-		TrackRouter invOutHi = new TrackRouterH(Tech.m2, 4, outHiY, inv);
+		TrackRouter invOutHi = new TrackRouterH(Tech.m2(), 4, outHiY, inv);
 		invOutHi.connect(invOut);
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			invOutHi.connect(pmos.getSrcDrn(i));
 		}
-		TrackRouter invOutLo = new TrackRouterH(Tech.m2, 4, outLoY, inv);
+		TrackRouter invOutLo = new TrackRouterH(Tech.m2(), 4, outLoY, inv);
 		invOutLo.connect(invOut);
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			invOutLo.connect(nmos.getSrcDrn(i));
@@ -127,8 +127,8 @@ public class Inv_passgate {
 		
 		// Connect input.
 		LayoutLib.newExport(inv, "in", PortCharacteristic.IN,
-							Tech.m1, 4, inX, inY);
-		TrackRouter in = new TrackRouterH(Tech.m1, 3, inY, inv);
+							Tech.m1(), 4, inX, inY);
+		TrackRouter in = new TrackRouterH(Tech.m1(), 3, inY, inv);
 		in.connect(inv.findExport("in"));
 		for (int i=0; i<pmos.nbGates(); i++) in.connect(pmos.getGate(i, 'B'));
 		for (int i=0; i<nbPullDnFolds; i++) in.connect(nmos.getGate(i, 'T'));
@@ -140,25 +140,25 @@ public class Inv_passgate {
 		// connect output
 		// - nd_m1_sp - m1_wid/2
 		double outM1Y = nmosTop - srcDrnWidN - 2.5 - 2;
-		TrackRouter outLo = new TrackRouterH(Tech.m1, 3, outM1Y, inv);
+		TrackRouter outLo = new TrackRouterH(Tech.m1(), 3, outM1Y, inv);
 		for (int i=nbPullDnFolds+1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));
 		}
-		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin, jogX, outLoY,
+		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin(), jogX, outLoY,
 											 DEF_SIZE, DEF_SIZE, 0, inv
 											 ).getOnlyPortInst();
 		outLo.connect(jog);
 		
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 3, outLoY, inv);
+		TrackRouter outHi = new TrackRouterH(Tech.m2(), 3, outLoY, inv);
 		outHi.connect(jog);
 		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
-							Tech.m1, 4, outX, outLoY);
+							Tech.m1(), 4, outX, outLoY);
 		outHi.connect(inv.findExport("out"));
 		
 		// Connect enable.
-		LayoutLib.newExport(inv, "en", PortCharacteristic.IN, Tech.m1, 4,
+		LayoutLib.newExport(inv, "en", PortCharacteristic.IN, Tech.m1(), 4,
 							enX, enY);
-		TrackRouter en = new TrackRouterH(Tech.m1, 3, enY, inv);
+		TrackRouter en = new TrackRouterH(Tech.m1(), 3, enY, inv);
 		en.connect(inv.findExport("en"));
 		for (int i=nbPullDnFolds; i<nbPullDnFolds*2; i++) {
 			en.connect(nmos.getGate(i, 'T'));

@@ -138,7 +138,7 @@ public class Inv2iKn {
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
 		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
-			                Tech.m1, 4, outX, 0);
+			                Tech.m1(), 4, outX, 0);
 
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
@@ -148,7 +148,7 @@ public class Inv2iKn {
 				           inv);
 
 		// Connect gates of weak MOS using poly
-		TrackRouter weakPoly = new TrackRouterH(Tech.p1, 2, 0, inv);
+		TrackRouter weakPoly = new TrackRouterH(Tech.p1(), 2, 0, inv);
 		for (int i=0; i<pmosW.nbGates(); i++) {
 			weakPoly.connect(pmosW.getGate(i, 'B'));
 		}
@@ -164,15 +164,15 @@ public class Inv2iKn {
 		double inLoFromMos = nmosBot - 2 - 2.5; // -nd_p1_sp - p1m1_wid/2
 		double inLoY = Math.min(inLoFromGnd, inLoFromMos);
 
-		LayoutLib.newExport(inv, "in[n]", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(inv, "in[n]", PortCharacteristic.IN, Tech.m1(),
                             4, inNX, outLoY);
-		PortInst m1pin = LayoutLib.newNodeInst(Tech.m1pin, weakX, outLoY, 4, 4, 0, 
+		PortInst m1pin = LayoutLib.newNodeInst(Tech.m1pin(), weakX, outLoY, 4, 4, 0, 
 				                               inv).getOnlyPortInst();
-		TrackRouter inNHi = new TrackRouterH(Tech.m2, 3, outLoY, inv);
+		TrackRouter inNHi = new TrackRouterH(Tech.m2(), 3, outLoY, inv);
 		inNHi.connect(inv.findExport("in[n]"));
 		inNHi.connect(m1pin);
 
-		TrackRouter inLo = new TrackRouterH(Tech.m1, 3, inLoY, inv);
+		TrackRouter inLo = new TrackRouterH(Tech.m1(), 3, inLoY, inv);
 		inLo.connect(m1pin);
 		for (int i = 0; i < nmos.nbGates(); i++) {
 			inLo.connect(nmos.getGate(i, 'B'));
@@ -185,16 +185,16 @@ public class Inv2iKn {
 		double inHiFromMos = pmosTop + 2 + 2.5; // +pd_p1_sp + p1m1_wid/2
 		double inHiY = Math.max(inHiFromVdd, inHiFromMos);
 
-		LayoutLib.newExport(inv, "in[p]", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(inv, "in[p]", PortCharacteristic.IN, Tech.m1(),
                             4, inPX, inHiY);
-		TrackRouter inHi = new TrackRouterH(Tech.m1, 3, inHiY, inv);
+		TrackRouter inHi = new TrackRouterH(Tech.m1(), 3, inHiY, inv);
 		inHi.connect(inv.findExport("in[p]"));
 		for (int i=0; i<pmos.nbGates(); i++) {
 			inHi.connect(pmos.getGate(i, 'T'));
 		}
 
 		// connect up output
-		TrackRouter out = new TrackRouterH(Tech.m1, outBusWidth, outY, inv);
+		TrackRouter out = new TrackRouterH(Tech.m1(), outBusWidth, outY, inv);
 		out.connect(inv.findExport("out"));
 		for (int i=(weakPmosOneFold?0:1); i<pmosW.nbSrcDrns(); i+=2) {
 			out.connect(pmosW.getSrcDrn(i));

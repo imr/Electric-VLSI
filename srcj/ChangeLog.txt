@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (11/29/06, RK) Change Tech.java so its interface consists of methods rather than data members
+
 BUG: (11/29/06, SMR) New cell creation crashes if there is no library (Bug #1264).
 FIX: In NewCell.ok() check for valid library.
 

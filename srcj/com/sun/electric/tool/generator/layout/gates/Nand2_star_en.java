@@ -140,9 +140,9 @@ public class Nand2_star_en {
 
 		// Nand input: inb
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(nand, "inb", PortCharacteristic.IN, Tech.m1(),
 							4, inbX, inbY);
-		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbY, nand);
+		TrackRouter inb = new TrackRouterH(Tech.m1(), 3, inbY, nand);
 		inb.connect(nand.findExport("inb"));
 		for (int i=0; i<pmoss.length; i++) {
 			FoldedMos pmos = pmoss[i];
@@ -162,9 +162,9 @@ public class Nand2_star_en {
 		// Nand input: ina
 		double rightDiffX = StdCellParams.getRightDiffX(weak, weak);
 		double inaX = rightDiffX + wirePitch;
-		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(nand, "ina", PortCharacteristic.IN, Tech.m1(),
 							4, inaX, inaY);
-		TrackRouter ina = new TrackRouterH(Tech.m1, 3, inaY, nand);
+		TrackRouter ina = new TrackRouterH(Tech.m1(), 3, inaY, nand);
 		ina.connect(nand.findExport("ina"));
 		for (int i=0; i<weak.nbGates(); i++) {
 			ina.connect(weak.getGate(i, 'B'), 1.5, Tech.getPolyLShapeOffset());
@@ -179,9 +179,9 @@ public class Nand2_star_en {
 		
 		// Nand output: out
 		double outX = inaX + wirePitch;
-		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nand, "out", PortCharacteristic.OUT, Tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, nand);
+		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, nand);
 		outHi.connect(nand.findExport("out"));
 		for (int i=0; i<pmoss.length; i++) {
 			outHi.connect(pmoss[i].getSrcDrn(1));
@@ -190,7 +190,7 @@ public class Nand2_star_en {
 			outHi.connect(weak.getSrcDrn(i));
 		}
 		
-		TrackRouter outLo = new TrackRouterH(Tech.m2, 4, outLoY, nand);
+		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, nand);
 		outLo.connect(nand.findExport("out"));
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));

@@ -87,7 +87,7 @@ public class Inv_star_wideOutput {
 
 		// leave vertical m1 track for in
 		double inX = 1.5 + 2; // m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1(),
 			                4, inX, inY);
 
 		double mosX = inX + 2 + 3 + 2; // m1_wid/2 + m1_m1_sp + m1_wid/2
@@ -101,7 +101,7 @@ public class Inv_star_wideOutput {
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
 		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
-			                Tech.m1, 4, outX, 0);
+			                Tech.m1(), 4, outX, 0);
 
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
@@ -121,7 +121,7 @@ public class Inv_star_wideOutput {
 		double inLoFromMos = nmosBot - 2 - 2.5; // -nd_p1_sp - p1m1_wid/2
 		double inLoY = Math.min(inLoFromGnd, inLoFromMos);
 
-		TrackRouter inLo = new TrackRouterH(Tech.m1, 3, inLoY, inv);
+		TrackRouter inLo = new TrackRouterH(Tech.m1(), 3, inLoY, inv);
 		inLo.connect(inv.findExport("in"));
 		for (int i = 0; i < nmos.nbGates(); i++) {
 			inLo.connect(nmos.getGate(i, 'B'));
@@ -134,14 +134,14 @@ public class Inv_star_wideOutput {
 		double inHiFromMos = pmosTop + 2 + 2.5; // +pd_p1_sp + p1m1_wid/2
 		double inHiY = Math.max(inHiFromVdd, inHiFromMos);
 
-		TrackRouter inHi = new TrackRouterH(Tech.m1, 3, inHiY, inv);
+		TrackRouter inHi = new TrackRouterH(Tech.m1(), 3, inHiY, inv);
 		inHi.connect(inv.findExport("in"));
 		for (int i=0; i<pmos.nbGates(); i++) {
 			inHi.connect(pmos.getGate(i, 'T'));
 		}
 
 		// connect up output
-		TrackRouter out = new TrackRouterH(Tech.m1, outBusWidth, outY, inv);
+		TrackRouter out = new TrackRouterH(Tech.m1(), outBusWidth, outY, inv);
 		out.connect(inv.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			out.connect(pmos.getSrcDrn(i));

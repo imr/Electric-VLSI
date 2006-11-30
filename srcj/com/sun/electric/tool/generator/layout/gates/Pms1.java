@@ -68,7 +68,7 @@ public class Pms1 {
 		
 		// leave vertical m1 track for g
 		double gX = 1.5 + 2;		// m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(pms1, "g", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(pms1, "g", PortCharacteristic.IN, Tech.m1(),
 							4, gX, gY);
 		double mosX = gX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
 		double pmosY = pmosBot + fw.physWid/2;
@@ -76,13 +76,13 @@ public class Pms1 {
 										fw.gateWid, pms1, stdCell);
 		// output  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double dX = StdCellParams.getRightDiffX(pmos) + 2 + 3 + 2;
-		LayoutLib.newExport(pms1, "d", PortCharacteristic.OUT, Tech.m1,
+		LayoutLib.newExport(pms1, "d", PortCharacteristic.OUT, Tech.m1(),
 							4, dX, dY);
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, pms1);
 		
 		// connect up g
-		TrackRouter g = new TrackRouterH(Tech.m1, 3, gY, pms1);
+		TrackRouter g = new TrackRouterH(Tech.m1(), 3, gY, pms1);
 		g.connect(pms1.findExport("g"));
 		for (int i=0; i<pmos.nbGates(); i++) g.connect(pmos.getGate(i, 'B')); 
 		
@@ -94,7 +94,7 @@ public class Pms1 {
 			double gHiFromMos = pmosTop + 2 + 2.5;	// pd_p1_sp + p1m1_wid/2
 			double gHiY = Math.max(gHiFromVdd, gHiFromMos); 
 			
-			TrackRouter gHi = new TrackRouterH(Tech.m1, 3, gHiY, pms1);
+			TrackRouter gHi = new TrackRouterH(Tech.m1(), 3, gHiY, pms1);
 			gHi.connect(pms1.findExport("g"));
 			for (int i=0; i<pmos.nbGates(); i++) {
 				gHi.connect(pmos.getGate(i, 'T'));
@@ -102,7 +102,7 @@ public class Pms1 {
 		}
 		
 		// connect up output
-		TrackRouter d = new TrackRouterH(Tech.m2, 4, dY, pms1);
+		TrackRouter d = new TrackRouterH(Tech.m2(), 4, dY, pms1);
 		d.connect(pms1.findExport("d"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {d.connect(pmos.getSrcDrn(i));}
 		

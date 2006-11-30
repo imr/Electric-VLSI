@@ -80,7 +80,7 @@ public class InvV {
 
 		// leave vertical m1 track for in
 		double inX = 1.5 + 2; // m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(inv, "in", PortCharacteristic.IN, Tech.m1(),
 							4, inX, inY);
 
 		double mosX = inX + 2 + 3 + 2; // m1_wid/2 + m1_m1_sp + m1_wid/2
@@ -94,7 +94,7 @@ public class InvV {
 		// inverter output:  m1_wid/2 + m1_m1_sp + m1_wid/2 
 		double outX = StdCellParams.getRightDiffX(nmos, pmos) + 2 + 3 + 2;
 		LayoutLib.newExport(inv, "out", PortCharacteristic.OUT,
-							Tech.m1, 4, outX, 0);
+							Tech.m1(), 4, outX, 0);
 
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, inv);
@@ -102,7 +102,7 @@ public class InvV {
 
 		// Connect up input. Do PMOS gates first because PMOS gate spacing
 		// is a valid spacing for p1m1 vias even for small strengths.
-		TrackRouter in = new TrackRouterH(Tech.m1, 3, inY, inv);
+		TrackRouter in = new TrackRouterH(Tech.m1(), 3, inY, inv);
 		in.connect(inv.findExport("in"));
 		for (int i=0; i<pmos.nbGates(); i++)  in.connect(pmos.getGate(i, 'B'));
 		for (int i=0; i<nmos.nbGates(); i++)  in.connect(nmos.getGate(i, 'T'));
@@ -115,7 +115,7 @@ public class InvV {
 			double inLoFromMos = nmosBot - 2 - 2.5; // -nd_p1_sp - p1m1_wid/2
 			double inLoY = Math.min(inLoFromGnd, inLoFromMos);
 
-			TrackRouter inLo = new TrackRouterH(Tech.m1, 3, inLoY, inv);
+			TrackRouter inLo = new TrackRouterH(Tech.m1(), 3, inLoY, inv);
 			inLo.connect(inv.findExport("in"));
 			for (int i = 0; i < nmos.nbGates(); i++) {
 				inLo.connect(nmos.getGate(i, 'B'));
@@ -128,7 +128,7 @@ public class InvV {
 			double inHiFromMos = pmosTop + 2 + 2.5; // +pd_p1_sp + p1m1_wid/2
 			double inHiY = Math.max(inHiFromVdd, inHiFromMos);
 
-			TrackRouter inHi = new TrackRouterH(Tech.m1, 3, inHiY, inv);
+			TrackRouter inHi = new TrackRouterH(Tech.m1(), 3, inHiY, inv);
 			inHi.connect(inv.findExport("in"));
 			for (int i=0; i<pmos.nbGates(); i++) {
 				inHi.connect(pmos.getGate(i, 'T'));
@@ -136,13 +136,13 @@ public class InvV {
 		}
 
 		// connect up output
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, inv);
+		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, inv);
 		outHi.connect(inv.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i += 2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
 
-		TrackRouter outLo = new TrackRouterH(Tech.m2, 4, outLoY, inv);
+		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, inv);
 		outLo.connect(inv.findExport("out"));
 		for (int i = 1; i < nmos.nbSrcDrns(); i += 2) {
 			outLo.connect(nmos.getSrcDrn(i));

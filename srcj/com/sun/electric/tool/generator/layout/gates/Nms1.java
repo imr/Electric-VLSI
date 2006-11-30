@@ -70,7 +70,7 @@ public class Nms1 {
 		
 		// leave vertical m1 track for g
 		double gX = 1.5 + 2;		// m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(nms1, "g", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(nms1, "g", PortCharacteristic.IN, Tech.m1(),
 							4, gX, gY);
 		// gnd port overlaps leftmost MOS diffusion contacts
 		double mosX = gX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
@@ -80,13 +80,13 @@ public class Nms1 {
 										fw.gateWid, nms1, stdCell);
 		// output d m1_wid/2 + m1_m1_sp + m1_wid/2
 		double dX = StdCellParams.getRightDiffX(nmos) + 2 + 3 + 2;
-		LayoutLib.newExport(nms1, "d", PortCharacteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nms1, "d", PortCharacteristic.OUT, Tech.m1(),
 							4, dX, dY);
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nms1);
 
 		// connect up input g
-		TrackRouter g = new TrackRouterH(Tech.m1, 3, gY, nms1);
+		TrackRouter g = new TrackRouterH(Tech.m1(), 3, gY, nms1);
 		g.connect(nms1.findExport("g"));
 		for (int i=0; i<nmos.nbGates(); i++) g.connect(nmos.getGate(i, 'T')); 
 		
@@ -98,7 +98,7 @@ public class Nms1 {
 			double inLoFromMos = nmosBot - 2 - 2.5;	// -nd_p1_sp -p1m1_wid/2
 			double inLoY = Math.min(inLoFromGnd, inLoFromMos); 
 			
-			TrackRouter inLo = new TrackRouterH(Tech.m1, 3, inLoY, nms1);
+			TrackRouter inLo = new TrackRouterH(Tech.m1(), 3, inLoY, nms1);
 			inLo.connect(nms1.findExport("g"));
 			for (int i=0; i<nmos.nbGates(); i++) {
 				inLo.connect(nmos.getGate(i, 'B'));
@@ -106,7 +106,7 @@ public class Nms1 {
 		}
 		
 		// connect up output d
-		TrackRouter d = new TrackRouterH(Tech.m2, 4, dY, nms1);
+		TrackRouter d = new TrackRouterH(Tech.m2(), 4, dY, nms1);
 		d.connect(nms1.findExport("d"));
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {d.connect(nmos.getSrcDrn(i));}
 		

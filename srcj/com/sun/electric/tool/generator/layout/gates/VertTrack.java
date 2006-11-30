@@ -45,13 +45,13 @@ public class VertTrack {
 		// (m1m1 space)/2 + (m1 width)/2
 		double inX = 1.5 + 2;
 		double inY = 0;
-		PortInst inPin = LayoutLib.newNodeInst(Tech.m1pin, inX, inY, 1, 1, 0,
+		PortInst inPin = LayoutLib.newNodeInst(Tech.m1pin(), inX, inY, 1, 1, 0,
 											   vtrack).getOnlyPortInst();
 		Export.newInstance(vtrack, inPin, "in")
 			.setCharacteristic(PortCharacteristic.IN);
 		// Add some metal to port to allow software to guess the width
 		// of metal to use to connect to this port.
-		LayoutLib.newArcInst(Tech.m1, 3, inPin, inPin);
+		LayoutLib.newArcInst(Tech.m1(), 3, inPin, inPin);
 		
 		// Well width must be at least 12 to avoid DRC errors
 		// This cell is one of the rare cases where the cell's essential

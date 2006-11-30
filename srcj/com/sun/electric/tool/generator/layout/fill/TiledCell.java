@@ -280,9 +280,9 @@ public class TiledCell {
     {
         double x2 = x + numX*cellW;
         double y2 = y + numY*cellH;
-        LayoutLib.newNodeInst(Tech.essentialBounds, x, y,
+        LayoutLib.newNodeInst(Tech.essentialBounds(), x, y,
                               G.DEF_SIZE, G.DEF_SIZE, 180, tiled);
-        LayoutLib.newNodeInst(Tech.essentialBounds, x2, y2,
+        LayoutLib.newNodeInst(Tech.essentialBounds(), x2, y2,
                               G.DEF_SIZE, G.DEF_SIZE, 0, tiled);
     }
 

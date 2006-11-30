@@ -71,7 +71,7 @@ public class MullerC_sy {
 		
 		// leave vertical m1 track for ina
 		double inaX = 1.5 + 2;		// m1_m1_sp/2 + m1_wid/2
-		LayoutLib.newExport(mull, "ina", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(mull, "ina", PortCharacteristic.IN, Tech.m1(),
 							4, inaX, inaY);
 		double mosX = inaX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
 		
@@ -87,18 +87,18 @@ public class MullerC_sy {
 			StdCellParams.getRightDiffX(nmos, pmos); 
 		// inb  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double inbX = rightDiffX + 2 + 3 + 2;
-		LayoutLib.newExport(mull, "inb", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(mull, "inb", PortCharacteristic.IN, Tech.m1(),
 							4, inbX, inbY);
 		// output d  m1_wid/2 + m1_m1_sp + m1_wid/2
 		double outX = inbX + 2 + 3 + 2;
-		LayoutLib.newExport(mull, "out", PortCharacteristic.OUT, Tech.m1,
+		LayoutLib.newExport(mull, "out", PortCharacteristic.OUT, Tech.m1(),
 							4, outX, outLoY);
 		// create gnd export and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, mull);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, mull);
 		
 		// connect input ina
-		TrackRouter ina = new TrackRouterH(Tech.m1, 3, inaY, mull);
+		TrackRouter ina = new TrackRouterH(Tech.m1(), 3, inaY, mull);
 		ina.connect(mull.findExport("ina"));
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			ina.connect(nmos.getGate(i, 'T'), -1.5);
@@ -108,7 +108,7 @@ public class MullerC_sy {
 		}
 		
 		// connect input inb
-		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbY, mull);
+		TrackRouter inb = new TrackRouterH(Tech.m1(), 3, inbY, mull);
 		inb.connect(mull.findExport("inb"));
 		for (int i=1; i<pmos.nbGates(); i+=2) {
 			inb.connect(pmos.getGate(i, 'B'), 1.5);
@@ -118,14 +118,14 @@ public class MullerC_sy {
 		}
 		
 		// connect output outLo
-		TrackRouter outLo = new TrackRouterH(Tech.m2, 4, outLoY, mull);
+		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, mull);
 		outLo.connect(mull.findExport("out"));
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));
 		}
 		
 		// connect output outhi
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, mull);
+		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, mull);
 		outHi.connect(mull.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			outHi.connect(pmos.getSrcDrn(i));

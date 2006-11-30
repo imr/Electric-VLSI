@@ -34,24 +34,31 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 
-/** IC Layer information database gives information about various IC
- *  layers */
+/** The Tech class holds technology dependent information for the layout
+ * generators. Most of the information is available from public static methods.
+ * <p> The Tech class queries the appropriate Technology object to get references
+ * to prototypes commonly used by the layout generators such as the metal 1 arc
+ * proto or the metal 1 pin proto. The Tech class also holds technology dependant
+ * dimensions such as the width of a diffusion contact.
+ * <p>  The Tech class contains only global data. The Tech class is global 
+ * because otherwise almost every procedure in the layout generators would have
+ * to pass a pointer to a Tech object. */
 public class Tech {
 	// ----------------------- public class --------------------------------------
 	/** Hide the differences between technologies. A MosInst's gate is always 
 	 * vertical. */
 	public static class MosInst {
-		private boolean isTsmc90;
+		private boolean is90nm;
 		private NodeInst mos;
 		boolean ntype;
 		protected MosInst(boolean ntype, double x, double y, double w, double l, 
 				          Cell parent) {
-			this.isTsmc90 = Tech.isTSMC90();
+			this.is90nm = Tech.is90nm();
 			this.ntype = ntype;
 			NodeProto np = ntype ? nmos : pmos;
-			double angle = isTsmc90 ? 0 : 90;
-			double xSize = isTsmc90 ? l : w;
-			double ySize = isTsmc90 ? w : l;
+			double angle = is90nm ? 0 : 90;
+			double xSize = is90nm ? l : w;
+			double ySize = is90nm ? w : l;
 			mos = LayoutLib.newNodeInst(np, x, y, xSize, ySize, angle, parent);
 		}
 		private String mosTypeString() {
@@ -63,36 +70,36 @@ public class Tech {
 			return pi;
 		}
 		public PortInst leftDiff() {
-            String type = isTsmc90 ? "" : (mosTypeString()+"-");
+            String type = is90nm ? "" : (mosTypeString()+"-");
 			String portNm = type + "diff" +
-			                (isTsmc90 ? "-left" : "-top");
+			                (is90nm ? "-left" : "-top");
 			return getPort(portNm);
 		}
 		public PortInst rightDiff() {
-            String type = isTsmc90 ? "" : (mosTypeString()+"-");
+            String type = is90nm ? "" : (mosTypeString()+"-");
 			String portNm = type + "diff" +
-			                (isTsmc90 ? "-right" : "-bottom");
+			                (is90nm ? "-right" : "-bottom");
 			return getPort(portNm);
 		}
 		public PortInst topPoly() {
-            String type = isTsmc90 ? "" : (mosTypeString()+"-");
+            String type = is90nm ? "" : (mosTypeString()+"-");
 			String portNm = type + "poly" +
-			                (isTsmc90 ? "-top" : "-right");
+			                (is90nm ? "-top" : "-right");
 			return getPort(portNm);
 		}
 		public PortInst botPoly() {
-            String type = isTsmc90 ? "" : (mosTypeString()+"-");
+            String type = is90nm ? "" : (mosTypeString()+"-");
 			String portNm = type + "poly" + 
-			                (isTsmc90 ? "-bottom" : "-left");
+			                (is90nm ? "-bottom" : "-left");
 			return getPort(portNm);
 		}
 	}
 
 	//---------------------------- private data ----------------------------------
 	private static Type techType;
-	private static final String[] MOCMOS_LAYER_NAMES = {"Polysilicon-1", "Metal-1", 
+	private static final String[] LAYER_NAMES_MOCMOS = {"Polysilicon-1", "Metal-1", 
 	    "Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
-	private static final String[] TSMC90_LAYER_NAMES = {"Polysilicon", "Metal-1", 
+	private static final String[] LAYER_NAMES_90NM = {"Polysilicon", "Metal-1", 
 		"Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6", "Metal-7", "Metal-8", "Metal-9"};
 	private static String[] layerNms;
 	private static int nbLay;
@@ -125,14 +132,6 @@ public class Tech {
 		diffContWidth,
 		selectSurroundDiffInActiveContact;  // select surround in active contacts
 
-	//----------------------------- public data ----------------------------------
-	public static final Variable.Key ATTR_X = Variable.newKey("ATTR_X");
-	public static final Variable.Key ATTR_S = Variable.newKey("ATTR_S");
-	public static final Variable.Key ATTR_SN = Variable.newKey("ATTR_SN");
-	public static final Variable.Key ATTR_SP = Variable.newKey("ATTR_SP");
-    /** valid Electric technologies understood */
-    public enum Type {INVALID, MOCMOS, TSMC90, TSMC180};
-
 	/** layers
 	 *
 	 * Poly and metal are considered to be routing layers.  In contrast
@@ -142,102 +141,180 @@ public class Tech {
 	 * at adjacent heights can connect using vias.
 	 *
 	 * For now, well and diffusion don't have heights. */
-	public static ArcProto pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6, m7, m8, m9;
-    public static ArcProto
-        ndiff18,
-        pdiff18,
-        ndiff25,
-        pdiff25,
-        ndiff33,
-        pdiff33;
+	private static ArcProto pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6, m7, m8, m9,
+		ndiff18, pdiff18, ndiff25, pdiff25, ndiff33, pdiff33;
+
 	/** layer pins */
-	public static PrimitiveNode ndpin,
-		pdpin,
-		p1pin,
-		m1pin,
-		m2pin,
-		m3pin,
-		m4pin,
-		m5pin,
-        m6pin,
-        m7pin,
-        m8pin,
-		m9pin;
+	private static PrimitiveNode ndpin, pdpin, p1pin, m1pin, m2pin, m3pin, 
+		m4pin, m5pin, m6pin, m7pin, m8pin, m9pin;
+
 	/** vias */
-	public static PrimitiveNode nwm1,
-		pwm1,
-        nwm1Y,
-        pwm1Y,
-		ndm1,
-		pdm1,
-		p1m1,
-		m1m2,
-		m2m3,
-		m3m4,
-		m4m5,
-		m5m6,
-        m6m7,
-        m7m8,
-        m8m9;
+	private static PrimitiveNode nwm1, pwm1, nwm1Y, pwm1Y, ndm1, pdm1, p1m1,
+		m1m2, m2m3, m3m4, m4m5, m5m6, m6m7, m7m8, m8m9;
+	
 	/** Transistors */
-	public static PrimitiveNode nmos, pmos,
-        nmos18,
-        pmos18,
-        nmos25,
-        pmos25,
-        nmos33,
-        pmos33,
-        nvth,
-        pvth,
-        nvtl,
-        pvtl,
-        nnat,
-        pnat;
+	public static PrimitiveNode nmos, pmos, nmos18, pmos18, nmos25, pmos25, 
+		nmos33, pmos33, nvth, pvth, nvtl, pvtl, nnat, pnat;
+	
     /** special threshold transistor contacts */
-    public static PrimitiveNode
-        nmos18contact,
-        pmos18contact,
-        nmos25contact,
-        pmos25contact,
-        nmos33contact,
-        pmos33contact;
+    private static PrimitiveNode nmos18contact, pmos18contact, nmos25contact,
+        pmos25contact, nmos33contact, pmos33contact;
+
 	/** Well */
-	public static PrimitiveNode nwell, pwell;
+	private static PrimitiveNode nwell, pwell;
+
 	/** Layer nodes are sometimes used to patch notches */
-	public static PrimitiveNode m1Node,
-		m2Node,
-		m3Node,
-		m4Node,
-		m5Node,
-		m6Node,
-        m7Node,
-        m8Node,
-        m9Node,
-		p1Node,
-		pdNode,
-		ndNode,
-		pselNode,
-		nselNode,
-        pwellNode,
-        nwellNode;
-    /** Transistor layer nodes */
-    public static PrimitiveNode
-        od18,
-        od25,
-        od33,
-        vth,
-        vtl;
+	private static PrimitiveNode m1Node, m2Node, m3Node, m4Node, m5Node, m6Node,
+        m7Node, m8Node, m9Node, p1Node, pdNode, ndNode, pselNode, nselNode,
+        pwellNode, nwellNode;
+
+	/** Transistor layer nodes */
+    private static PrimitiveNode od18, od25, od33, vth, vtl;
+    
 	/** Essential-Bounds */
-	public static PrimitiveNode essentialBounds;
+	private static PrimitiveNode essentialBounds;
+	
 	/** Facet-Center */
-	public static PrimitiveNode facetCenter;
-	/** Generic: Universal Arcs are used to fool Electric's NCC into
-	 *  paralleling MOS stacks.*/
-	public static ArcProto universalArc;
+	private static PrimitiveNode facetCenter;
+
+	//----------------------------- public data ----------------------------------
+	public static final Variable.Key ATTR_X = Variable.newKey("ATTR_X");
+	public static final Variable.Key ATTR_S = Variable.newKey("ATTR_S");
+	public static final Variable.Key ATTR_SN = Variable.newKey("ATTR_SN");
+	public static final Variable.Key ATTR_SP = Variable.newKey("ATTR_SP");
+	
+    /** These are the Electric technology/foundry combinations understood by the 
+     * gate layout generators */
+    public enum Type {
+    	INVALID,	// not initialized 
+    	MOCMOS,		// MOCMOS technology with MOSIS foundry
+    	TSMC180,	// MOCMOS technology with TSMC180 foundry
+    	TSMC90, 	// TSMC90 technology with TSMC90 foundry
+    	ST90}; 		// TSMC90 technology with ST90 foundry 
+
+	//----------------------------- private methods  -----------------------------
+	private static void error(boolean pred, String msg) {
+		LayoutLib.error(pred, msg);
+	}
+	//----------------------------- public methods  ------------------------------
+
+    /** layers */
+	public static ArcProto pdiff() {return pdiff;}
+	public static ArcProto ndiff() {return ndiff;}
+	public static ArcProto p1() {return p1;}
+	public static ArcProto m1() {return m1;}
+	public static ArcProto m2() {return m2;}
+	public static ArcProto m3() {return m3;}
+	public static ArcProto m4() {return m4;}
+	public static ArcProto m5() {return m5;}
+	public static ArcProto m6() {return m6;}
+	public static ArcProto m7() {return m7;}
+	public static ArcProto m8() {return m8;}
+	public static ArcProto m9() {return m9;}
+	public static ArcProto ndiff18() {return ndiff18;}
+	public static ArcProto pdiff18() {return pdiff18;}
+	public static ArcProto ndiff25() {return ndiff25;}
+	public static ArcProto pdiff25() {return pdiff25;}
+	public static ArcProto ndiff33() {return ndiff33;}
+	public static ArcProto pdiff33() {return pdiff33;}
+
+	/** pins */
+	public static PrimitiveNode ndpin() {return ndpin;}
+	public static PrimitiveNode pdpin() {return pdpin;}
+	public static PrimitiveNode p1pin() {return p1pin;}
+	public static PrimitiveNode m1pin() {return m1pin;}
+	public static PrimitiveNode m2pin() {return m2pin;}
+	public static PrimitiveNode m3pin() {return m3pin;}
+	public static PrimitiveNode m4pin() {return m4pin;}
+	public static PrimitiveNode m5pin() {return m5pin;}
+	public static PrimitiveNode m6pin() {return m6pin;}
+	public static PrimitiveNode m7pin() {return m7pin;}
+	public static PrimitiveNode m8pin() {return m8pin;}
+	public static PrimitiveNode m9pin() {return m9pin;}
+
+	/** vias */
+	public static PrimitiveNode nwm1() {return nwm1;}
+	public static PrimitiveNode pwm1() {return pwm1;}
+	public static PrimitiveNode nwm1Y() {return nwm1Y;}
+	public static PrimitiveNode pwm1Y() {return pwm1Y;}
+	public static PrimitiveNode ndm1() {return ndm1;}
+	public static PrimitiveNode pdm1() {return pdm1;}
+	public static PrimitiveNode p1m1() {return p1m1;}
+	public static PrimitiveNode m1m2() {return m1m2;}
+	public static PrimitiveNode m2m3() {return m2m3;}
+	public static PrimitiveNode m3m4() {return m3m4;}
+	public static PrimitiveNode m4m5() {return m4m5;}
+	public static PrimitiveNode m5m6() {return m5m6;}
+	public static PrimitiveNode m6m7() {return m6m7;}
+	public static PrimitiveNode m7m8() {return m7m8;}
+	public static PrimitiveNode m8m9() {return m8m9;}
+
+	/** Transistors */
+	public static PrimitiveNode nmos() {return nmos;}
+	public static PrimitiveNode pmos() {return pmos;}
+	public static PrimitiveNode nmos18() {return nmos18;}
+	public static PrimitiveNode pmos18() {return pmos18;}
+	public static PrimitiveNode nmos25() {return nmos25;}
+	public static PrimitiveNode pmos25() {return pmos25;}
+	public static PrimitiveNode nmos33() {return nmos33;}
+	public static PrimitiveNode pmos33() {return pmos33;}
+	public static PrimitiveNode nvth() {return nvth;}
+	public static PrimitiveNode pvth() {return pvth;}
+	public static PrimitiveNode nvtl() {return nvtl;}
+	public static PrimitiveNode pvtl() {return pvtl;}
+	public static PrimitiveNode nnat() {return nnat;}
+	public static PrimitiveNode pnat() {return pnat;}
+	
+    /** special threshold transistor contacts */
+    public static PrimitiveNode nmos18contact() {return nmos18contact;}
+    public static PrimitiveNode pmos18contact() {return pmos18contact;}
+    public static PrimitiveNode nmos25contact() {return nmos25contact;}
+    public static PrimitiveNode pmos25contact() {return pmos25contact;}
+    public static PrimitiveNode nmos33contact() {return nmos33contact;}
+    public static PrimitiveNode pmos33contact() {return pmos33contact;}
+
+	/** Well */
+	public static PrimitiveNode nwell() {return nwell;} 
+	public static PrimitiveNode pwell() {return pwell;} 
+
+	/** Layer nodes are sometimes used to patch notches */
+	public static PrimitiveNode m1Node() {return m1Node;} 
+	public static PrimitiveNode m2Node() {return m2Node;} 
+	public static PrimitiveNode m3Node() {return m3Node;} 
+	public static PrimitiveNode m4Node() {return m4Node;} 
+	public static PrimitiveNode m5Node() {return m5Node;} 
+	public static PrimitiveNode m6Node() {return m6Node;} 
+	public static PrimitiveNode m7Node() {return m7Node;} 
+	public static PrimitiveNode m8Node() {return m8Node;} 
+	public static PrimitiveNode m9Node() {return m9Node;} 
+	public static PrimitiveNode p1Node() {return p1Node;} 
+	public static PrimitiveNode pdNode() {return pdNode;} 
+	public static PrimitiveNode ndNode() {return ndNode;} 
+	public static PrimitiveNode pselNode() {return pselNode;} 
+	public static PrimitiveNode nselNode() {return nselNode;} 
+	public static PrimitiveNode pwellNode() {return pwellNode;} 
+	public static PrimitiveNode nwellNode() {return nwellNode;} 
+
+	/** Transistor layer nodes */
+	public static PrimitiveNode od18() {return od18;} 
+	public static PrimitiveNode od25() {return od25;} 
+	public static PrimitiveNode od33() {return od33;} 
+	public static PrimitiveNode vth() {return vth;} 
+	public static PrimitiveNode vtl() {return vtl;} 
+	
+	/** Essential-Bounds */
+	public static PrimitiveNode essentialBounds() {return essentialBounds;} 
+
+	/** Facet-Center */
+	public static PrimitiveNode facetCenter() {return facetCenter;} 
+
+//	/** Generic: Universal Arcs are used to fool Electric's NCC into
+//	 *  paralleling MOS stacks.*/
+//	public static ArcProto universalArc;
 	
 	/** round to avoid MOCMOS CIF resolution errors */
 	public static double roundToGrid(double x) {
-		return (isTSMC90()) ? x : (Math.rint(x * 2) / 2);
+		return (is90nm()) ? x : (Math.rint(x * 2) / 2);
 	}
 	public static MosInst newNmosInst(double x, double y, 
 			                          double w, double l, Cell parent) {
@@ -248,32 +325,21 @@ public class Tech {
 		return new MosInst(false, x, y, w, l, parent);
 }
 
-	//----------------------------- private methods  -----------------------------
-	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
-	}
-	//----------------------------- public methods  ------------------------------
-
     public static Type getTechnology() { return techType; }
 
-	public static void setTechnology(Type techNm) {
-        techType = techNm;
+	public static void setTechnology(Type techTyp) {
+		if (techTyp == techType) return;
+		
+        techType = techTyp;
 
-        boolean isTsmc90 = techType == Type.TSMC90;
-        boolean isTsmc180 = techType == Type.TSMC180;
-        if (!isTsmc90) // either MOCMOS or TSMC180
-		{
-			tech = Technology.findTechnology(Type.MOCMOS.name());
-//			// My "TSMC180" really uses Electric's MoCMOS Technology in
-//			// combination with the TSMC foundry.
-//            if (isTsmc180)
-//			    tech.setPrefFoundryAndResize(Foundry.Type.TSMC.name(), true);
-//            else // Make sure MOSIS is set as foundry. Doesn' rely on preferences
-//                tech.setPrefFoundryAndResize(Foundry.Type.MOSIS.name(), true);
+        if (techType==Type.MOCMOS || techType==Type.TSMC180) {
+			tech = Technology.findTechnology("MOCMOS");
+		} else if (is90nm()){
+			tech = Technology.findTechnology(techType.name());
 		} else {
-			tech = Technology.findTechnology(techNm.name());
+			error(true, "Unrecognized Tech.Type: "+techType);
 		}
-		layerNms = isTsmc90 ? TSMC90_LAYER_NAMES : MOCMOS_LAYER_NAMES;
+		layerNms = is90nm() ? LAYER_NAMES_90NM : LAYER_NAMES_MOCMOS;
 		nbLay = layerNms.length;
 		layers = new ArcProto[nbLay];
 		vias = new PrimitiveNode[nbLay - 1];
@@ -313,7 +379,7 @@ public class Tech {
 		m4pin = m4.findOverridablePinProto();
 		m5pin = m5.findOverridablePinProto();
 		m6pin = m6.findOverridablePinProto();
-        if (isTsmc90) {
+        if (is90nm()) {
             m7pin = m7.findOverridablePinProto();
             m8pin = m8.findOverridablePinProto();
             m9pin = m9.findOverridablePinProto();
@@ -332,7 +398,7 @@ public class Tech {
 		m3m4 = vias[3];
 		m4m5 = vias[4];
 		m5m6 = vias[5];
-        if (isTsmc90) {
+        if (is90nm()) {
             m6m7 = vias[6];
             m7m8 = vias[7];
             m8m9 = vias[8];
@@ -380,7 +446,7 @@ public class Tech {
 		pwell = tech.findNodeProto("P-Well-Node");
         nwellNode = tech.findNodeProto("Metal-1-N-Well-Con");
         pwellNode = tech.findNodeProto("Metal-1-P-Well-Con");
-        if (isTsmc90) {
+        if (is90nm()) {
             nwellNode = tech.findNodeProto("Y-Metal-1-N-Well-Con");
             pwellNode = tech.findNodeProto("Y-Metal-1-P-Well-Con");
         }
@@ -406,7 +472,7 @@ public class Tech {
 		essentialBounds = generic.findNodeProto("Essential-Bounds");
 		facetCenter = generic.findNodeProto("Facet-Center");
 
-		universalArc = generic.findArcProto("Universal");
+		//universalArc = generic.findArcProto("Universal");
 
 		// initialize map from layers to vias
 		viaMap.put(new Integer(m1.hashCode() * m2.hashCode()), m1m2);
@@ -414,7 +480,7 @@ public class Tech {
 		viaMap.put(new Integer(m3.hashCode() * m4.hashCode()), m3m4);
 		viaMap.put(new Integer(m4.hashCode() * m5.hashCode()), m4m5);
 		viaMap.put(new Integer(m5.hashCode() * m6.hashCode()), m5m6);
-        if (isTsmc90) {
+        if (is90nm()) {
             viaMap.put(new Integer(m6.hashCode() * m7.hashCode()), m6m7);
             viaMap.put(new Integer(m7.hashCode() * m8.hashCode()), m7m8);
             viaMap.put(new Integer(m8.hashCode() * m9.hashCode()), m8m9);
@@ -428,7 +494,7 @@ public class Tech {
         wellWidth = wellCon.getMinSizeRule().getWidth();
 
 		// initialize design rules (RKao first cut)
-		if (isTsmc90) {
+		if (is90nm()) {
             if (wellWidth != 14)
                 new Error("wrong value in Tech");
 //		    wellWidth = 14;
@@ -448,7 +514,7 @@ public class Tech {
             selectSurround = 4.4;
             selectSurroundDiffInActiveContact = Double.NaN;
             selectSurroundDiffAlongGateInTrans = 3.6;
-		} else if (isTsmc180) {
+		} else if (techType==Type.TSMC180) {
             if (wellWidth != 17)
                 new Error("wrong value in Tech");
 //            wellWidth = 17;
@@ -492,11 +558,11 @@ public class Tech {
 		}
 	}
 
-    public static boolean isTSMC90() { return techType == Type.TSMC90; }
+    public static boolean is90nm() { return techType==Type.TSMC90 || techType==Type.ST90; }
 
 	public static PrimitiveNode getViaFor(ArcProto a1, ArcProto a2) {
 		int code = a1.hashCode() * a2.hashCode();
-		return (PrimitiveNode) viaMap.get(new Integer(code));		
+		return viaMap.get(new Integer(code));		
 	}
 
 	/** layer may only be poly or metal */
@@ -550,7 +616,7 @@ public class Tech {
 	public static PrimitiveNode findNode(PrimitiveNode.Function type, 
 	                                     ArcProto[] arcs, Technology tech) {
 		for (Iterator<PrimitiveNode> it=tech.getNodes(); it.hasNext();) {
-			PrimitiveNode pn = (PrimitiveNode) it.next();
+			PrimitiveNode pn = it.next();
 			boolean found = true;
 			if (pn.getFunction() == type) {
 				for (int j=0; j<arcs.length; j++) {

@@ -583,10 +583,10 @@ public class SchemToLay {
 		// the half height gate doesn't have a full vertical metal-1
 		// channel.
 		if (isNstk(prevInst) || isPstk(prevInst)) {
-			LayoutLib.newArcInst(Tech.m1, 4, prev, port);
+			LayoutLib.newArcInst(Tech.m1(), 4, prev, port);
 		} else {
 			// prev is full height so route vertically from prev
-			LayoutLib.newArcInst(Tech.m1, 4, port, prev);
+			LayoutLib.newArcInst(Tech.m1(), 4, port, prev);
 		}
 	}
 	
@@ -637,7 +637,7 @@ public class SchemToLay {
 		//System.out.println("Using assigned track: "+trackY);
 		//}
 	  
-		TrackRouter route = new TrackRouterH(Tech.m2, 4.0, trackY, gasp);
+		TrackRouter route = new TrackRouterH(Tech.m2(), 4.0, trackY, gasp);
 		
 		// connect RouteSeg's exports
 		Iterator<Export> expIt = r.findExports();
@@ -650,7 +650,7 @@ public class SchemToLay {
 			error(ports.size()==0, "No device ports on this net?: "+expNm);
 			
 			double x = LayoutLib.roundCenterX(ports.get(0));
-			LayoutLib.newExport(gasp, expNm, exp.getCharacteristic(), Tech.m2, 
+			LayoutLib.newExport(gasp, expNm, exp.getCharacteristic(), Tech.m2(), 
 			                    4, x, trackY);
 			route.connect(gasp.findExport(expNm));
 		}
@@ -736,25 +736,25 @@ public class SchemToLay {
 										StdCellParams stdCell, Cell gasp) {
 		if (stdCell.getSeparateWellTies()) {
 			// Rock connects well ties to exports rather than to vdd or gnd
-			TrackRouter nTie = new TrackRouterH(Tech.m2,
+			TrackRouter nTie = new TrackRouterH(Tech.m2(),
 												stdCell.getNmosWellTieWidth(),
 												stdCell.getNmosWellTieY(),
 												gasp);
 			LayoutLib.newExport(gasp, stdCell.getNmosWellTieName(), 
 			                    stdCell.getNmosWellTieRole(),
-								Tech.m2, 4,
+								Tech.m2(), 4,
 								// m1_m1_sp/2
 								stdCell.getNmosWellTieWidth()/2 + 1.5, 
 								stdCell.getNmosWellTieY());
 			nTie.connect(gasp.findExport(stdCell.getNmosWellTieName()));
 			nTie.connect(layInsts, stdCell.getNmosWellTieName());
-			TrackRouter pTie = new TrackRouterH(Tech.m2,
+			TrackRouter pTie = new TrackRouterH(Tech.m2(),
 												stdCell.getPmosWellTieWidth(),
 												stdCell.getPmosWellTieY(),
 												gasp);
 			LayoutLib.newExport(gasp, stdCell.getPmosWellTieName(),
 								stdCell.getPmosWellTieRole(),
-								Tech.m2, 4,
+								Tech.m2(), 4,
 								// m1_m1_sp/2
 								stdCell.getPmosWellTieWidth()/2 + 1.5,
 								stdCell.getPmosWellTieY());
@@ -919,9 +919,9 @@ public class SchemToLay {
 		layInsts = place(layInsts, allSegs, stdCell, gasp);
 		
 		// vdd and gnd wires
-		TrackRouter gnd = new TrackRouterH(Tech.m2, stdCell.getGndWidth(),
+		TrackRouter gnd = new TrackRouterH(Tech.m2(), stdCell.getGndWidth(),
 										   stdCell.getGndY(), gasp);
-		TrackRouter vdd = new TrackRouterH(Tech.m2, stdCell.getVddWidth(),
+		TrackRouter vdd = new TrackRouterH(Tech.m2(), stdCell.getVddWidth(),
 										   stdCell.getVddY(), gasp);
 		
 		// place vdd and gnd exports on the first full height layout instance

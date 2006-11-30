@@ -540,7 +540,7 @@ class CapCell {
 	                            StdCellParams stdCell) {
 		PortInst[] conts = new PortInst[plan.numMosX];
 		double x = - plan.numMosX * plan.mosPitchX / 2;
-		PortInst wellCont = LayoutLib.newNodeInst(Tech.pwm1, x, y, G.DEF_SIZE,
+		PortInst wellCont = LayoutLib.newNodeInst(Tech.pwm1(), x, y, G.DEF_SIZE,
 										 		  G.DEF_SIZE, 0, cell
 										 		  ).getOnlyPortInst();
 		Export e = Export.newInstance(cell, wellCont,
@@ -549,27 +549,27 @@ class CapCell {
 
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
-			conts[i] = LayoutLib.newNodeInst(Tech.ndm1, x, y, plan.gateWidth, 5,
+			conts[i] = LayoutLib.newNodeInst(Tech.ndm1(), x, y, plan.gateWidth, 5,
 											 0, cell).getOnlyPortInst();
-			LayoutLib.newArcInst(Tech.m1, plan.gndWidth, wellCont, conts[i]);
+			LayoutLib.newArcInst(Tech.m1(), plan.gndWidth, wellCont, conts[i]);
 			x += plan.mosPitchX/2;
-			wellCont = LayoutLib.newNodeInst(Tech.pwm1, x, y, G.DEF_SIZE,
+			wellCont = LayoutLib.newNodeInst(Tech.pwm1(), x, y, G.DEF_SIZE,
 											 G.DEF_SIZE, 0, cell
 											 ).getOnlyPortInst();
-			LayoutLib.newArcInst(Tech.m1, plan.gndWidth, conts[i], wellCont);
+			LayoutLib.newArcInst(Tech.m1(), plan.gndWidth, conts[i], wellCont);
 		}
 
 		// bring metal to cell left and right edges to prevent notches
 		x = -plan.protoWidth/2 + plan.gndWidth/2;
 		PortInst pi;
-		pi = LayoutLib.newNodeInst(Tech.m1pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		pi = LayoutLib.newNodeInst(Tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
 		                           cell).getOnlyPortInst();
-		LayoutLib.newArcInst(Tech.m1, plan.gndWidth, pi, conts[0]);
+		LayoutLib.newArcInst(Tech.m1(), plan.gndWidth, pi, conts[0]);
 
 		x = plan.protoWidth/2 - plan.gndWidth/2;
-		pi = LayoutLib.newNodeInst(Tech.m1pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		pi = LayoutLib.newNodeInst(Tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
 		                           cell).getOnlyPortInst();
-		LayoutLib.newArcInst(Tech.m1, plan.gndWidth, pi, conts[conts.length-1]);
+		LayoutLib.newArcInst(Tech.m1(), plan.gndWidth, pi, conts[conts.length-1]);
 
 		return conts;
 	}
@@ -580,7 +580,7 @@ class CapCell {
 					 ProtoPlan plan, Cell cell, StdCellParams stdCell) {
 		final double POLY_CONT_HEIGHT = plan.vddWidth + 1;
 		double x = plan.leftWellContX;
-		PortInst poly = LayoutLib.newNodeInst(Tech.p1m1, x, y, POLY_CONT_WIDTH,
+		PortInst poly = LayoutLib.newNodeInst(Tech.p1m1(), x, y, POLY_CONT_WIDTH,
 											  POLY_CONT_HEIGHT, 0, cell
 											  ).getOnlyPortInst();
 		PortInst leftCont = poly;
@@ -592,16 +592,16 @@ class CapCell {
 			x += plan.mosPitchX/2;
 			NodeInst mos = LayoutLib.newNodeInst(Tech.nmos, x, y, plan.gateWidth,
 												 plan.gateLength, 0, cell);
-			G.noExtendArc(Tech.p1, POLY_CONT_HEIGHT, poly,
+			G.noExtendArc(Tech.p1(), POLY_CONT_HEIGHT, poly,
 						  mos.findPortInst(LEFT_POLY));
 			x += plan.mosPitchX/2;
-			PortInst polyR = LayoutLib.newNodeInst(Tech.p1m1, x, y,
+			PortInst polyR = LayoutLib.newNodeInst(Tech.p1m1(), x, y,
 												   POLY_CONT_WIDTH,
 										 		   POLY_CONT_HEIGHT, 0, cell
 										 		   ).getOnlyPortInst();
-			G.noExtendArc(Tech.m1, plan.vddWidth, poly, polyR);
+			G.noExtendArc(Tech.m1(), plan.vddWidth, poly, polyR);
 			poly = polyR;
-			G.noExtendArc(Tech.p1, POLY_CONT_HEIGHT, poly,
+			G.noExtendArc(Tech.p1(), POLY_CONT_HEIGHT, poly,
 						  mos.findPortInst(RIGHT_POLY));
 			botDiffs[i] = mos.findPortInst(BOT_DIFF);
 			topDiffs[i] = mos.findPortInst(TOP_DIFF);
@@ -611,14 +611,14 @@ class CapCell {
 		// bring metal to cell left and right edges to prevent notches
 		x = -plan.protoWidth/2 + plan.vddWidth/2;
 		PortInst pi;
-		pi = LayoutLib.newNodeInst(Tech.m1pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		pi = LayoutLib.newNodeInst(Tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
 								   cell).getOnlyPortInst();
-		LayoutLib.newArcInst(Tech.m1, plan.vddWidth, pi, leftCont);
+		LayoutLib.newArcInst(Tech.m1(), plan.vddWidth, pi, leftCont);
 
 		x = plan.protoWidth/2 - plan.vddWidth/2;
-		pi = LayoutLib.newNodeInst(Tech.m1pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
+		pi = LayoutLib.newNodeInst(Tech.m1pin(), x, y, G.DEF_SIZE, G.DEF_SIZE, 0,
 								   cell).getOnlyPortInst();
-		LayoutLib.newArcInst(Tech.m1, plan.vddWidth, pi, rightCont);
+		LayoutLib.newArcInst(Tech.m1(), plan.vddWidth, pi, rightCont);
 
 	}
 
@@ -634,7 +634,7 @@ class CapCell {
 		double y1 = roundToHalfLambda(p1P.getY()); // LayoutLib.roundCenterY(p1));
 		double y2 = roundToHalfLambda(LayoutLib.roundCenterY(p2));
 
-		LayoutLib.newArcInst(Tech.ndiff, LayoutLib.DEF_SIZE, p1, x, y1, p2, x, y2);
+		LayoutLib.newArcInst(Tech.ndiff(), LayoutLib.DEF_SIZE, p1, x, y1, p2, x, y2);
 	}
 
 	private void connectDiffs(PortInst[] a, PortInst[] b) {
@@ -663,7 +663,7 @@ class CapCell {
 			connectDiffs(topDiffs, lastCont);
 		}
 		// Cover the sucker with well to eliminate notch errors
-		LayoutLib.newNodeInst(Tech.pwell, 0, 0, plan.protoWidth,
+		LayoutLib.newNodeInst(Tech.pwell(), 0, 0, plan.protoWidth,
 		                      plan.protoHeight, 0, cell);
 	}
 	public int numVdd() {return plan.numMosY;}
@@ -714,8 +714,8 @@ class CapLayer implements VddGndStraps {
 	}
 	public double getGndWidth(int n) {return capCell.getGndWidth();}
 
-	public PrimitiveNode getPinType() {return Tech.m1pin;}
-	public ArcProto getMetalType() {return Tech.m1;}
+	public PrimitiveNode getPinType() {return Tech.m1pin();}
+	public ArcProto getMetalType() {return Tech.m1();}
 	public double getCellWidth() {return plan.cellWidth;}
 	public double getCellHeight() {return plan.cellHeight;}
 	public int getLayerNumber() {return 1;}
@@ -950,10 +950,10 @@ class FillCell {
 
 		double cellWidth = plans[topLayer].cellWidth;
 		double cellHeight = plans[topLayer].cellHeight;
-		LayoutLib.newNodeInst(Tech.essentialBounds,
+		LayoutLib.newNodeInst(Tech.essentialBounds(),
 							  -cellWidth/2, -cellHeight/2,
 							  G.DEF_SIZE, G.DEF_SIZE, 180, cell);
-		LayoutLib.newNodeInst(Tech.essentialBounds,
+		LayoutLib.newNodeInst(Tech.essentialBounds(),
 							  cellWidth/2, cellHeight/2,
 							  G.DEF_SIZE, G.DEF_SIZE, 0, cell);
 		return cell;
@@ -976,7 +976,7 @@ class FillRouter {
 //		return pp1.connectsTo(a) && pp2.connectsTo(a);
 //	}
 	private ArcProto findCommonArc(PortInst p1, PortInst p2) {
-		ArcProto[] metals = {Tech.m6, Tech.m5, Tech.m4, Tech.m3, Tech.m2, Tech.m1};
+		ArcProto[] metals = {Tech.m6(), Tech.m5(), Tech.m4(), Tech.m3(), Tech.m2(), Tech.m1()};
 		PortProto pp1 = p1.getPortProto();
 		PortProto pp2 = p2.getPortProto();
 		for (int i=0; i<metals.length; i++) {

@@ -217,9 +217,9 @@ public abstract class FoldedMos {
 		if (gateSpace==null) gateSpace = useMinSp;
 
 		//PrimitiveNode mos = isPmos() ? Tech.pmos : Tech.nmos;
-		PrimitiveNode diffCont = isPmos() ? Tech.pdm1 : Tech.ndm1;
-		ArcProto diff = isPmos() ? Tech.pdiff : Tech.ndiff;
-		NodeProto difNod = isPmos() ? Tech.pdNode : Tech.ndNode;
+		PrimitiveNode diffCont = isPmos() ? Tech.pdm1() : Tech.ndm1();
+		ArcProto diff = isPmos() ? Tech.pdiff() : Tech.ndiff();
+		NodeProto difNod = isPmos() ? Tech.pdNode() : Tech.ndNode();
 
 		double foldPitch = 8 + (nbSeries - 1) * (3 + 2);
 		int diffNdx = 0, mosNdx = 0, internalDiffNdx = 0;

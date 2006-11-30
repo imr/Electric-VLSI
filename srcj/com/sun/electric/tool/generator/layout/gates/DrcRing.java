@@ -118,19 +118,19 @@ public class DrcRing {
     if (ring!=null) return ring;
     ring = stdCell.newPart(nm);
 
-    if (Tech.isTSMC90()) {
+    if (Tech.is90nm()) {
         // ignore poly, but put in select rings
         double pwellRatio = stdCell.getPmosWellHeight()/(stdCell.getNmosWellHeight()+stdCell.getPmosWellHeight());
-        drawRing(Tech.pselNode, w, h, 4.8, ring, 'B', pwellRatio);
-        drawRing(Tech.nselNode, w, h, 4.8, ring, 'T', pwellRatio);
+        drawRing(Tech.pselNode(), w, h, 4.8, ring, 'B', pwellRatio);
+        drawRing(Tech.nselNode(), w, h, 4.8, ring, 'T', pwellRatio);
     } else {
-        drawRing(Tech.p1, w, h, ring);
+        drawRing(Tech.p1(), w, h, ring);
     }
-    drawRing(Tech.m1, w, h, ring);
-    drawRing(Tech.m2, w, h, ring);
-    drawRing(Tech.m3, w, h, ring);
-    drawRing(Tech.m4, w, h, ring);
-    drawRing(Tech.m5, w, h, ring);
+    drawRing(Tech.m1(), w, h, ring);
+    drawRing(Tech.m2(), w, h, ring);
+    drawRing(Tech.m3(), w, h, ring);
+    drawRing(Tech.m4(), w, h, ring);
+    drawRing(Tech.m5(), w, h, ring);
 
     return ring;
   }

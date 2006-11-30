@@ -107,15 +107,15 @@ public class KeeperHigh {
 		*/
 
 		// connect up power and ground
-		TrackRouter vdd = new TrackRouterH(Tech.m2, 10, keep);
+		TrackRouter vdd = new TrackRouterH(Tech.m2(), 10, keep);
 		vdd.connect(new NodeInst[] { mc, pmos, invK, invI }, "vdd");
 
-		TrackRouter gnd = new TrackRouterH(Tech.m2, 10, keep);
+		TrackRouter gnd = new TrackRouterH(Tech.m2(), 10, keep);
 		gnd.connect(new NodeInst[] { mc, invK, invI }, "gnd");
 
 		// connect up signal wires
 		TrackRouter d =
-			new TrackRouterH(Tech.m2, 4,
+			new TrackRouterH(Tech.m2(), 4,
 							 LayoutLib.roundCenterY(pmos.findPortInst("d")),
 							 keep);
 		d.connect(new PortInst[] {pmos.findPortInst("d"),
@@ -126,11 +126,11 @@ public class KeeperHigh {
 		//double trackY = -11;
 		*/
 		double trackY = stdCell.getTrackY(-1);
-		TrackRouter d_bar = new TrackRouterH(Tech.m2, 4, trackY, keep);
+		TrackRouter d_bar = new TrackRouterH(Tech.m2(), 4, trackY, keep);
 		d_bar.connect(new PortInst[] {invK.findPortInst("in"),
 									  invI.findPortInst("out")});
 		TrackRouter mc_bar =
-			new TrackRouterH(Tech.m1, 4,
+			new TrackRouterH(Tech.m1(), 4,
 					         LayoutLib.roundCenterY(pmos.findPortInst("g")),
 							 keep);
 		mc_bar.connect(new PortInst[] {mc.findPortInst("out"),

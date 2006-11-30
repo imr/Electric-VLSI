@@ -137,11 +137,11 @@ public class Inv2iKp_obsolete {
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, buf);
 
 		// Connect NMOS and PMOS gates
-		TrackRouter pGates = new TrackRouterH(Tech.m1, 3, pGatesY, buf);
+		TrackRouter pGates = new TrackRouterH(Tech.m1(), 3, pGatesY, buf);
 		for (int i=0; i<pmos.nbGates(); i++) {
 			pGates.connect(pmos.getGate(i, 'B'));
 		}
-		TrackRouter nGates = new TrackRouterH(Tech.m1, 3, nGatesY, buf);
+		TrackRouter nGates = new TrackRouterH(Tech.m1(), 3, nGatesY, buf);
 		for (int i=0; i<nmos.nbGates(); i++) {
 			nGates.connect(nmos.getGate(i, 'T'));
 		}
@@ -153,20 +153,20 @@ public class Inv2iKp_obsolete {
 		// input n is a reset input
 		double lastSrcDrnX = StdCellParams.getRightDiffX(nmosW, pmos);
 		double inNX = lastSrcDrnX + 7; // track_pitch
-		LayoutLib.newExport(buf, "in[n]", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(buf, "in[n]", PortCharacteristic.IN, Tech.m1(),
 							4, inNX, nGatesY);
 		nGates.connect(buf.findExport("in[n]"));
 		
 		// Buf output
 		double outX = inNX + 7;	// track_pitch
-		LayoutLib.newExport(buf, "out", PortCharacteristic.OUT, Tech.m1,
+		LayoutLib.newExport(buf, "out", PortCharacteristic.OUT, Tech.m1(),
 							4, outX, 0);
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, buf);
+		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, buf);
 		outHi.connect(buf.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2, 4, outLoY, buf);
+		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, buf);
 		outLo.connect(buf.findExport("out"));
 		for (int i=0; i<nmoss.length; i++) {
 			if (i==1 && strongNmosOneFold) {
@@ -179,7 +179,7 @@ public class Inv2iKp_obsolete {
 		}
 		
 		// input p
-		LayoutLib.newExport(buf, "in[p]", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(buf, "in[p]", PortCharacteristic.IN, Tech.m1(),
 							4, leftInX, pGatesY);
 		pGates.connect(buf.findExport("in[p]"));
 		

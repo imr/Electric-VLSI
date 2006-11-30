@@ -136,15 +136,15 @@ public class Nor2kresetV {
 		// Nor input B
 		double inbHiY = outHiY;
 		// m1_wid + m1_space + m1_wid/2
-		LayoutLib.newExport(nor, "inb", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(nor, "inb", PortCharacteristic.IN, Tech.m1(),
 							4, inbX, inbHiY);
-		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin, jogX, inbHiY, 1, 1, 0,
+		PortInst jog = LayoutLib.newNodeInst(Tech.m1pin(), jogX, inbHiY, 1, 1, 0,
 											 nor).getOnlyPortInst();
-		TrackRouter inbHi = new TrackRouterH(Tech.m2, 3, inbHiY, nor);
+		TrackRouter inbHi = new TrackRouterH(Tech.m2(), 3, inbHiY, nor);
 		inbHi.connect(nor.findExport("inb"));
 		inbHi.connect(jog);
 		
-		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbLoY, nor);
+		TrackRouter inb = new TrackRouterH(Tech.m1(), 3, inbLoY, nor);
 		inb.connect(jog);
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0){
@@ -161,9 +161,9 @@ public class Nor2kresetV {
 		}
 		
 		// Nor input A
-		LayoutLib.newExport(nor, "ina", PortCharacteristic.IN, Tech.m1,
+		LayoutLib.newExport(nor, "ina", PortCharacteristic.IN, Tech.m1(),
 							4, inaX, inaY);
-		TrackRouter inA = new TrackRouterH(Tech.m1, 3, inaY, nor);
+		TrackRouter inA = new TrackRouterH(Tech.m1(), 3, inaY, nor);
 		inA.connect(nor.findExport("ina"));
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
@@ -181,8 +181,8 @@ public class Nor2kresetV {
 		double resetX = StdCellParams.getRightDiffX(bigMos) + 2 + 3 + 2;
 		double resetY = nmosTop - fwS.physWid + 2.5 - wirePitch;
 		LayoutLib.newExport(nor, "resetV", PortCharacteristic.IN,
-							Tech.m1, 4, resetX, resetY);
-		TrackRouter reset = new TrackRouterH(Tech.m1, 3, resetY, nor);
+							Tech.m1(), 4, resetX, resetY);
+		TrackRouter reset = new TrackRouterH(Tech.m1(), 3, resetY, nor);
 		reset.connect(nor.findExport("resetV"));
 		for (int i=0; i<bigMos.nbSrcDrns(); i+=2) {
 			reset.connect(bigMos.getSrcDrn(i));
@@ -190,14 +190,14 @@ public class Nor2kresetV {
 		
 		// Nor output
 		double outX = resetX + 2 + 3 + 2;	// m1_wid/2 + m1_sp + m1_wid/2
-		LayoutLib.newExport(nor, "out", PortCharacteristic.OUT, Tech.m1,
+		LayoutLib.newExport(nor, "out", PortCharacteristic.OUT, Tech.m1(),
 							4, outX, outHiY);
-		TrackRouter outHi = new TrackRouterH(Tech.m2, 4, outHiY, nor);
+		TrackRouter outHi = new TrackRouterH(Tech.m2(), 4, outHiY, nor);
 		outHi.connect(nor.findExport("out"));
 		for (int i=1; i<pmos.nbSrcDrns(); i+=2) {
 			outHi.connect(pmos.getSrcDrn(i));
 		}
-		TrackRouter outLo = new TrackRouterH(Tech.m2, 4, outLoY, nor);
+		TrackRouter outLo = new TrackRouterH(Tech.m2(), 4, outLoY, nor);
 		outLo.connect(nor.findExport("out"));
 		for (int i=0; i<nmoss.length; i++) {
 			for (int j=1; j<nmoss[i].nbSrcDrns(); j+=2) {

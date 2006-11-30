@@ -51,18 +51,18 @@ public class TieHi {
 		// of metal-1 out connections.
 		String vddName = stdCell.getVddExportName();
 		PortCharacteristic vddRole = stdCell.getVddExportRole();
-		LayoutLib.newExport(tieHi, vddName, vddRole, Tech.m2, 4, pwrX, pwrY);
+		LayoutLib.newExport(tieHi, vddName, vddRole, Tech.m2(), 4, pwrX, pwrY);
 		LayoutLib.newExport(tieHi, "pwr", PortCharacteristic.OUT,
-							Tech.m1, 4, pwrX, pwrY);
+							Tech.m1(), 4, pwrX, pwrY);
 
 		// connect the two exports using a via
-		PortInst via = LayoutLib.newNodeInst(Tech.m1m2, pwrX,
+		PortInst via = LayoutLib.newNodeInst(Tech.m1m2(), pwrX,
 											 pwrY, 4, stdCell.getVddWidth(),
 											 0, tieHi).getOnlyPortInst();
 		
-		LayoutLib.newArcInst(Tech.m2, DEF_SIZE,
+		LayoutLib.newArcInst(Tech.m2(), DEF_SIZE,
 							 tieHi.findExport(vddName).getOriginalPort(), via);
-		LayoutLib.newArcInst(Tech.m1, DEF_SIZE,
+		LayoutLib.newArcInst(Tech.m1(), DEF_SIZE,
 							 tieHi.findExport("pwr").getOriginalPort(), via);
 		
 		// Well width must be at least 12 to avoid DRC errors
