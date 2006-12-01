@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05c: *********************************
 
+IMP: (12/1/06, GVG) completePWLResponse had swapped signature fields. net_dir_non_const_transfunction passes now.
+
 BUG: (11/30/06, SMR) When "Node Moves With Text" is selected, deleting an
      export also deletes the node (Bug #1255).
 FIX: In CircuitChanges.deleteSelected(), temporarily disable the moves-with-text
