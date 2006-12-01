@@ -2,6 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.05d: *********************************
 ************************* Version 8.05c: *********************************
 
 IMP: (12/1/06, GVG) completePWLResponse had swapped signature fields. net_dir_non_const_transfunction passes now.
