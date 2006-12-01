@@ -3,6 +3,11 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
+
+BUG/IMP: (12/1/06, GVG) Drag-n-dropping a cell group onto a cell produces a NPE (bug #1265).
+FIX: Exception avoided. Improvements: if you drag a group on a layout cell, it will create an instance
+of the first layout found. If you drag it on a schematic cell, it will add the first icon found.
+
 ************************* Version 8.05c: *********************************
 
 IMP: (12/1/06, GVG) completePWLResponse had swapped signature fields. net_dir_non_const_transfunction passes now.

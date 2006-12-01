@@ -864,7 +864,26 @@ public class EditWindow extends JPanel
 				ni = (NodeInst)obj;
 				np = ni.getProto();
 			}
-			new PaletteFrame.PlaceNewNode("Create Node", np, ni, defAngle, where, wnd.getCell(), null, false);
+            else if (obj instanceof Cell.CellGroup)
+            {
+                Cell.CellGroup gp = (Cell.CellGroup)obj;
+                View view = wnd.getCell().getView();
+                if (view == View.SCHEMATIC)
+                    view = View.ICON;
+                for (Iterator<Cell> itG = gp.getCells(); itG.hasNext();)
+                {
+                    Cell c = itG.next();
+                    if (c.getView() == view)
+                    {
+                        np = c; // found
+                        break;
+                    }
+                }
+                if (np == null)
+                    System.out.println("No " + view + " type found in the dragged group '" + gp.getName() + "'");
+            }
+            if (np != null) // doesn't make sense to call this job if nothing is selected
+                new PaletteFrame.PlaceNewNode("Create Node", np, ni, defAngle, where, wnd.getCell(), null, false);
 		}
 	}
 
