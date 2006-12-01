@@ -27,7 +27,7 @@
 	<key>CFBundleIconFile</key>
 	<string>electric.icns</string>
 	<key>CFBundleInfoDictionaryVersion</key>
-	<string>8.05b</string>
+	<string>8.05c</string>
 	<key>CFBundleName</key>
 	<string>Electric</string>
 	<key>CFBundlePackageType</key>
