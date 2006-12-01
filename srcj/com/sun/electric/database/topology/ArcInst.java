@@ -673,11 +673,26 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         return visBounds;
     }
     
-    void computeBounds(BoundsBuilder b) {
-        b.clear();
-        b.genBoundsOfArc(d);
-        if (b.makeBounds(visBounds))
+    void computeBounds(BoundsBuilder b, int[] intCoords) {
+        if (d.genBoundsEasy(b.getMemoization(), intCoords)) {
+            double x = intCoords[0];
+            double y = intCoords[1];
+            double w = intCoords[2] - x;
+            double h = intCoords[3] - y;
+            x = DBMath.gridToLambda(x);
+            y = DBMath.gridToLambda(y);
+            w = DBMath.gridToLambda(w);
+            h = DBMath.gridToLambda(h);
+            if (x == visBounds.getX() && y == visBounds.getY() && w == visBounds.getWidth() && h == visBounds.getHeight())
+                return;
+            visBounds.setRect(x, y, w, h);
             parent.setDirty();
+       } else {
+            b.clear();
+            b.genShapeOfArc(d);
+            if (b.makeBounds(visBounds))
+                parent.setDirty();
+        }
     }
 
     /**

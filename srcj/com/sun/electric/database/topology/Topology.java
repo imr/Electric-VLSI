@@ -257,10 +257,11 @@ public class Topology {
     public void computeArcBounds() {
         if (!cell.getDatabase().canComputeBounds())
             return;
+        int[] intCoords = new int[4];
         BoundsBuilder b = new BoundsBuilder(cell.backup().getMemoization());
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ArcInst ai = arcs.get(arcIndex);
-            ai.computeBounds(b);
+            ai.computeBounds(b, intCoords);
         }
         validArcBounds = true;
     }

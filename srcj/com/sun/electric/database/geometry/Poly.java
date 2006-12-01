@@ -477,33 +477,16 @@ public class Poly extends PolyBase {
         }
         
         @Override
-        public void addLongPoly(int numPoints, Poly.Type style, Layer layer) {
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer) {
             assert isChanging;
             Point2D.Double[] points = new Point2D.Double[numPoints];
             for (int i = 0; i < numPoints; i++)
-                points[i] = new Point2D.Double(longCoords[i*2], longCoords[i*2+1]);
+                points[i] = new Point2D.Double(doubleCoords[i*2], doubleCoords[i*2+1]);
             Poly poly = new Poly(points);
             poly.setStyle(style);
             poly.setLayer(layer);
             lastPolys.add(poly);
         }
-        
-//        @Override
-//        public void addLongBox(Poly.Type style, Layer layer) {
-//            assert isChanging;
-//            boolean isOpened = style.isOpened();
-//            Point2D.Double[] points = new Point2D.Double[isOpened ? 5 : 4];
-//            points[0] = new Point2D.Double(longCoords[0], longCoords[1]);
-//            points[1] = new Point2D.Double(longCoords[2], longCoords[1]);
-//            points[2] = new Point2D.Double(longCoords[2], longCoords[3]);
-//            points[3] = new Point2D.Double(longCoords[0], longCoords[3]);
-//            if (isOpened)
-//                points[4] = (Point2D.Double)points[0].clone();
-//            Poly poly = new Poly(points);
-//            poly.setStyle(style);
-//            poly.setLayer(layer);
-//            lastPolys.add(poly);
-//        }
         
         @Override
         public void addIntLine(int[] coords, Poly.Type style, Layer layer) {

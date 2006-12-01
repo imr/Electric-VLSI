@@ -825,21 +825,21 @@ public class ImmutableArcInstTest {
         fail("The test case is a prototype.");
     }
 
-    /**
-     * Test of makeGridBoxInt method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    public void testMakeGridBoxInt() {
-        System.out.println("makeGridBoxInt");
-        
-        AbstractShapeBuilder b = null;
-        long gridWidth = 0L;
-        ImmutableArcInst instance = null;
-        
-        instance.makeGridBoxInt(b, gridWidth);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
+//    /**
+//     * Test of makeGridBoxInt method, of class com.sun.electric.database.ImmutableArcInst.
+//     */
+//    public void testMakeGridBoxInt() {
+//        System.out.println("makeGridBoxInt");
+//        
+//        AbstractShapeBuilder b = null;
+//        long gridWidth = 0L;
+//        ImmutableArcInst instance = null;
+//        
+//        instance.makeGridBoxInt(b, gridWidth);
+//        
+//        // TODO review the generated test code and remove the default call to fail.
+//        fail("The test case is a prototype.");
+//    }
 
     /**
      * Test of registerShrinkage method, of class com.sun.electric.database.ImmutableArcInst.

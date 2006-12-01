@@ -41,7 +41,6 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.FPGA;
 
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 
 /**
@@ -930,26 +929,29 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         Point2D.Double rH = new Point2D.Double();
         Point2D.Double lH = new Point2D.Double();
 
-        long tx = tailLocation.getGridX();
-        long ty = tailLocation.getGridY();
+        double w2x = DBMath.roundShapeCoord(w2*GenMath.cos(angle));
+        double w2y = DBMath.roundShapeCoord(w2*GenMath.sin(angle));
+        
+        double tx = tailLocation.getGridX();
+        double ty = tailLocation.getGridY();
         if (shrinkT >= EXTEND_ANY) {
             int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
             int angle2 = (shrinkT - EXTEND_ANY) - angle;
             if (angle2 < 0)
                 angle2 += 3600;
-            long e = computeExtension(GenMath.polarToXY(w2, angle), GenMath.polarToXY(w2, angle2));
-            tx += GenMath.getX(e);
-            ty += GenMath.getY(e);
+            Point2D e = computeExtension(w2, -w2x, -w2y, angle2);
+            tx += e.getX();
+            ty += e.getY();
         }
-        long hx = headLocation.getGridX();
-        long hy = headLocation.getGridY();
+        double hx = headLocation.getGridX();
+        double hy = headLocation.getGridY();
         if (shrinkH >= EXTEND_ANY) {
             int angle2 = (shrinkH - EXTEND_ANY) - angle;
             if (angle2 < 0)
                 angle2 += 3600;
-            long e = computeExtension(GenMath.polarToXY(w2, angle), GenMath.polarToXY(w2, angle2));
-            hx += GenMath.getX(e);
-            hy += GenMath.getY(e);
+            Point2D e = computeExtension(w2, w2x, w2y, angle2);
+            hx += e.getX();
+            hy += e.getY();
         }
         if (isManhattan()) {
             switch (angle) {
@@ -989,10 +991,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                     assert false;
             }
         } else {
-            long w2xy = GenMath.polarToXY(w2, angle);
-            int w2x = GenMath.getX(w2xy);
-            int w2y = GenMath.getY(w2xy);
-            
             if (shrinkT == EXTEND_90) {
                 tx -= w2x;
                 ty -= w2y;
@@ -1037,11 +1035,6 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             }
         }
         
-        long tx = tailLocation.getGridX();
-        long ty = tailLocation.getGridY();
-        long hx = headLocation.getGridX();
-        long hy = headLocation.getGridY();
-        
         // zero-width polygons are simply lines
         if (gridWidth <= 0) {
             b.pushPoint(tailLocation);
@@ -1057,46 +1050,143 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         short shrinkT = isTailExtended() ? m.getShrinkage(tailNodeId) : EXTEND_0;
         short shrinkH = isHeadExtended() ? m.getShrinkage(headNodeId) : EXTEND_0;
 
-        long w2xy = GenMath.polarToXY(w2, angle);
-        int w2x = GenMath.getX(w2xy);
-        int w2y = GenMath.getY(w2xy);
+        double w2x = DBMath.roundShapeCoord(w2*GenMath.cos(angle));
+        double w2y = DBMath.roundShapeCoord(w2*GenMath.sin(angle));
+        double tx = 0;
+        double ty = 0;
         if (shrinkT >= EXTEND_ANY) {
             int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
             int angle2 = (shrinkT - EXTEND_ANY) - angle;
             if (angle2 < 0)
                 angle2 += 3600;
-            long e = computeExtension(GenMath.packXY(-w2x, -w2y), GenMath.polarToXY(w2, angle2));
-            tx += GenMath.getX(e);
-            ty += GenMath.getY(e);
+            Point2D e = computeExtension(w2, -w2x, -w2y, angle2);
+            tx = e.getX();
+            ty = e.getY();
+        } else if (shrinkT == EXTEND_90) {
+            tx = -w2x;
+            ty = -w2y;
         }
+        double hx = 0;
+        double hy = 0;
         if (shrinkH >= EXTEND_ANY) {
             int angle2 = (shrinkH - EXTEND_ANY) - angle;
             if (angle2 < 0)
                 angle2 += 3600;
-            long e = computeExtension(w2xy, GenMath.polarToXY(w2, angle2));
-            hx += GenMath.getX(e);
-            hy += GenMath.getY(e);
+            Point2D e = computeExtension(w2, w2x, w2y, angle2);
+            hx = e.getX();
+            hy = e.getY();
+        } else if (shrinkH == EXTEND_90) {
+            hx = w2x;
+            hy = w2y;
         }
         
-        if (shrinkT == EXTEND_90) {
-            tx -= w2x;
-            ty -= w2y;
-        }
-        long x0, y0;
-        b.pushPoint(x0 = tx - w2y, y0 = ty + w2x);
-        b.pushPoint(tx + w2y, ty - w2x);
-        
-        if (shrinkH == EXTEND_90) {
-            hx += w2x;
-            hy += w2y;
-        }
-        b.pushPoint(hx + w2y, hy - w2x);
-        b.pushPoint(hx - w2y, hy + w2x);
+        b.pushPoint(tailLocation, tx - w2y, ty + w2x);
+        b.pushPoint(tailLocation, tx + w2y, ty - w2x);
+        b.pushPoint(headLocation, hx + w2y, hy - w2x);
+        b.pushPoint(headLocation, hx - w2y, hy + w2x);
         
         // somewhat simpler if rectangle is manhattan
         if (gridWidth != 0 && style.isOpened())
-            b.pushPoint(x0, y0);
+            b.pushPoint(tailLocation, tx - w2y, ty + w2x);
         b.pushPoly(style, layer);
+    }
+    
+    /**
+     * Generate shape of this ImmutableArcInst in easy case.
+     * @param b AbstractShapeBuilder to generate to.
+     * @return true if shape was generated.
+     */
+    public boolean genShapeEasy(AbstractShapeBuilder b) {
+        if (!isEasyShape()) return false;
+        Layer.Function.Set onlyTheseLayers = b.getOnlyTheseLayers();
+        int[] intCoords = b.intCoords;
+        if (gridFullWidth == 0) {
+            Technology.ArcLayer primLayer = protoType.getArcLayer(0);
+            Layer layer = primLayer.getLayer();
+            if (onlyTheseLayers != null && onlyTheseLayers.contains(layer.getFunction())) return true;
+            Poly.Type style = primLayer.getStyle();
+            if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
+            intCoords[0] = (int)tailLocation.getGridX();
+            intCoords[1] = (int)tailLocation.getGridY();
+            intCoords[2] = (int)headLocation.getGridX();
+            intCoords[3] = (int)headLocation.getGridY();
+            b.addIntLine(intCoords, style, primLayer.getLayer());
+            return true;
+        }
+        boolean tailExtended = false;
+        if (isTailExtended()) {
+            short shrinkT = b.getMemoization().getShrinkage(tailNodeId);
+            if (shrinkT == EXTEND_90)
+                tailExtended = true;
+            else if (shrinkT != EXTEND_0)
+                return false;
+        }
+        boolean headExtended = false;
+        if (isHeadExtended()) {
+            short shrinkH = b.getMemoization().getShrinkage(headNodeId);
+            if (shrinkH == EXTEND_90)
+                headExtended = true;
+            else if (shrinkH != EXTEND_0)
+                return false;
+        }
+        for (int i = 0, n = protoType.getNumArcLayers(); i < n; i++) {
+            Technology.ArcLayer primLayer = protoType.getArcLayer(i);
+            Layer layer = primLayer.getLayer();
+            assert primLayer.getStyle() == Poly.Type.FILLED;
+            if (onlyTheseLayers != null && onlyTheseLayers.contains(layer.getFunction())) continue;
+            makeGridBoxInt(b.intCoords, tailExtended, headExtended, gridFullWidth - (int)primLayer.getGridOffset());
+            b.addIntBox(intCoords, layer);
+        }
+        return true;
+    }
+    
+    /**
+     * Generate bounds of this ImmutableArcInst in easy case.
+     * @param m data to determine shrinkage.
+     * @param intCoords integer coords to fill.
+     * @return true if bounds were generated.
+     */
+    public boolean genBoundsEasy(CellBackup.Memoization m, int[] intCoords) {
+        if (!isEasyShape()) return false;
+        if (gridFullWidth == 0) {
+            int x1 = (int)tailLocation.getGridX();
+            int y1 = (int)tailLocation.getGridY();
+            int x2 = (int)headLocation.getGridX();
+            int y2 = (int)headLocation.getGridY();
+            if (x1 <= x2) {
+                intCoords[0] = x1;
+                intCoords[2] = x2;
+            } else {
+                intCoords[0] = x2;
+                intCoords[2] = x1;
+            }
+            if (y1 <= y2) {
+                intCoords[1] = y1;
+                intCoords[3] = y2;
+            } else {
+                intCoords[1] = y2;
+                intCoords[3] = y1;
+            }
+        } else {
+            boolean tailExtended = false;
+            if (isTailExtended()) {
+                short shrinkT = m.getShrinkage(tailNodeId);
+                if (shrinkT == EXTEND_90)
+                    tailExtended = true;
+                else if (shrinkT != EXTEND_0)
+                    return false;
+            }
+            boolean headExtended = false;
+            if (isHeadExtended()) {
+                short shrinkH = m.getShrinkage(headNodeId);
+                if (shrinkH == EXTEND_90)
+                    headExtended = true;
+                else if (shrinkH != EXTEND_0)
+                    return false;
+            }
+            makeGridBoxInt(intCoords, tailExtended, headExtended, gridFullWidth);
+        }
+        return true;
     }
     
 	/**
@@ -1106,30 +1196,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
 	 * @param gridWidth the gridWidth of the Poly.
 	 * @param style the style of the Poly.
 	 */
-    public void makeGridBoxInt(AbstractShapeBuilder b, long gridWidth) {
+    private void makeGridBoxInt(int[] intCoords, boolean tailExtended, boolean headExtended, int gridWidth) {
         // make the box
-		int w2 = ((int)gridWidth) >>> 1;
+        int w2 = gridWidth >>> 1;
         assert w2 > 0;
-        CellBackup.Memoization m = b.getMemoization();
-
-        int et = 0;
-        if (isTailExtended()) {
-            short shrinkT = m.getShrinkage(tailNodeId);
-            if (shrinkT == EXTEND_90)
-                et = w2;
-            else if (shrinkT != EXTEND_0)
-                et = computeTailShrinkage(w2, shrinkT);
-        }
-        int eh = 0;
-        if (isHeadExtended()) {
-            short shrinkH = m.getShrinkage(headNodeId);
-            if (shrinkH == EXTEND_90)
-                eh = w2;
-            else if (shrinkH != EXTEND_0)
-                eh = computeTailShrinkage(w2, shrinkH);
-        }
+        
+        int et = tailExtended ? w2 : 0;
+        int eh = headExtended ? w2 : 0;
         int x, y;
-        int[] intCoords = b.intCoords;
         assert intCoords.length == 4;
         switch (angle) {
             case 0:
@@ -1163,67 +1237,53 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             default:
                 throw new AssertionError();
         }
-   }
-    
-    private int computeTailShrinkage(int halfWidth, short shrinkT) {
-        assert shrinkT >= EXTEND_ANY;
-        int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
-        int angle2 = (shrinkT - EXTEND_ANY) - angle;
-        if (angle2 < 0)
-            angle2 += 3600;
-        assert angle == 0 || angle == 900 || angle == 1800 || angle == 2700;
-        long e = computeExtension(GenMath.polarToXY(halfWidth, angle), GenMath.polarToXY(halfWidth, angle2));
-        int ex = GenMath.getX(e);
-        int ey = GenMath.getY(e);
-        if (ex == 0)
-            return Math.abs(ey);
-        if (ey == 0)
-            return Math.abs(ex);
-        throw new AssertionError();
-    }
-    
-    private int computeHeadShrinkage(int halfWidth, short shrinkH) {
-        assert shrinkH >= EXTEND_ANY;
-        int angle2 = (shrinkH - EXTEND_ANY) - angle;
-        if (angle2 < 0)
-            angle2 += 3600;
-        assert angle == 0 || angle == 900 || angle == 1800 || angle == 2700;
-        long e = computeExtension(GenMath.polarToXY(halfWidth, angle), GenMath.polarToXY(halfWidth, angle2));
-        int ex = GenMath.getX(e);
-        int ey = GenMath.getY(e);
-        if (ex == 0)
-            return Math.abs(ey);
-        if (ey == 0)
-            return Math.abs(ex);
-        throw new AssertionError();
     }
     
     /**
      * Computes extension vector of wire, 
      */
-    private static long computeExtension(long xy1, long xy2) {
-        int ix1 = GenMath.getX(xy1);
-        int iy1 = GenMath.getY(xy1);
-        double x1 = GenMath.getX(xy1);
-        double y1 = GenMath.getY(xy1);
-        double x2 = GenMath.getX(xy2);
-        double y2 = GenMath.getY(xy2);
+    private static Point2D computeExtension(int w2, double ix1, double iy1, int angle2) {
+        double x1 = ix1;
+        double y1 = iy1;
+        double s1;
+        if (y1 == 0) {
+            s1 = x1;
+            if (x1 == 0) return new Point2D.Double(0, 0);
+            x1 = x1 > 0 ? 1 : -1;
+        } else if (x1 == 0) {
+            s1 = y1;
+            y1 = y1 > 0 ? 1 : -1;
+        } else {
+            s1 = x1*x1 + y1*y1;
+        }
+        
+        double x2 = DBMath.roundShapeCoord(w2*GenMath.cos(angle2));
+        double y2 = DBMath.roundShapeCoord(w2*GenMath.sin(angle2));
+        double s2;
+        if (y2 == 0) {
+            s2 = x2;
+            if (x2 == 0) return new Point2D.Double(0, 0);
+            x2 = x2 > 0 ? 1 : -1;
+        } else if (x2 == 0) {
+            s2 = y2;
+            y2 = y2 > 0 ? 1 : -1;
+        } else {
+            s2 = x2*x2 + y2*y2;
+        }
         
         double det = x1*y2 - y1*x2;
-        if (det == 0) return 0;
-        double s1 = x1*x1 + y1*y1;
-        double s2 = x2*x2 + y2*y2;
-        double xx = (x2*s1 + x1*s2)/det;
-        double yy = (y2*s1 + y1*s2)/det;
-        int x = (int)(xx >= 0 ? xx + 0.5 : xx - 0.5);
-        int y = (int)(yy >= 0 ? yy + 0.5 : yy - 0.5);
-        int mx = x + iy1;
-        int my = y - ix1;
+        if (det == 0) return new Point2D.Double(0, 0);
+        double x = (x2*s1 + x1*s2)/det;
+        double y = (y2*s1 + y1*s2)/det;
+        x = DBMath.roundShapeCoord(x);
+        y = DBMath.roundShapeCoord(y);
+        x = x + iy1;
+        y = y - ix1;
         if (det < 0) {
-            mx = -mx;
-            my = -my;
+            x = -x;
+            y = -y;
         }
-        return GenMath.packXY(mx, my);
+        return new Point2D.Double(x, y);
     }
     
     void registerShrinkage(int shrinkageState[]) {
@@ -1355,10 +1415,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         Poly poly;
         
         @Override
-        public void addLongPoly(int numPoints, Poly.Type style, Layer layer) {
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer) {
             Point2D[] points = new Point2D[numPoints];
             for (int i = 0; i < numPoints; i++)
-                points[i] = new Point2D.Double(longCoords[i*2], longCoords[i*2 + 1]);
+                points[i] = new Point2D.Double(doubleCoords[i*2], doubleCoords[i*2 + 1]);
             poly = new Poly(points);
             poly.setStyle(style);
             poly.setLayer(layer);

@@ -607,10 +607,39 @@ public class CellBackup {
     
     public ERectangle computePrimitiveBounds() {
         if (arcs.isEmpty()) return null;
+        int intMinX = Integer.MAX_VALUE, intMinY = Integer.MAX_VALUE, intMaxX = Integer.MIN_VALUE, intMaxY = Integer.MIN_VALUE;
+        int[] intCoords = new int[4];
         BoundsBuilder boundsBuilder = new BoundsBuilder(getMemoization());
-        for (ImmutableArcInst a: arcs)
-            boundsBuilder.genBoundsOfArc(a);
-        return boundsBuilder.makeBounds();
+        for (ImmutableArcInst a: arcs) {
+            if (a.genBoundsEasy(m, intCoords)) {
+                int x1 = intCoords[0];
+                if (x1 < intMinX) intMinX = x1;
+                int y1 = intCoords[1];
+                if (y1 < intMinY) intMinY = y1;
+                int x2 = intCoords[2];
+                if (x2 > intMaxX) intMaxX = x2;
+                int y2 = intCoords[3];
+                if (y2 > intMaxY) intMaxY = y2;
+                continue;
+            }
+            boundsBuilder.genShapeOfArc(a);
+        }
+        ERectangle bounds = boundsBuilder.makeBounds();
+        if (bounds == null) {
+            assert intMinX <= intMaxX && intMinY <= intMaxY;
+            int iw = intMaxX - intMinX;
+            int ih = intMaxY - intMinY;
+            return ERectangle.fromGrid(intMinX, intMinY,
+                    iw >= 0 ? iw : (long)intMaxX - (long)intMinX,
+                    ih >= 0 ? ih : (long)intMaxY - (long)intMinY);
+        }
+        if (intMinX > intMaxX)
+            return bounds;
+        long longMinX = Math.min(bounds.getGridMinX(), intMinX);
+        long longMinY = Math.min(bounds.getGridMinY(), intMinY);
+        long longMaxX = Math.max(bounds.getGridMaxX(), intMaxX);
+        long longMaxY = Math.max(bounds.getGridMaxY(), intMaxY);
+        return ERectangle.fromGrid(longMinX, longMinY, longMaxX - longMinX, longMaxY - longMinY);
     }
     
     /**

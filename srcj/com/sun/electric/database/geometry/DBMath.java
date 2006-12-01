@@ -168,6 +168,17 @@ public class DBMath extends GenMath {
         return gridValue/GRID;
     }
     
+    /**
+     * Method to round coordinate to shape grid.
+     * Shape grid values are is k*2^(-20), where k in [-2^52..+2^52].
+     * All shape grid values in range [-2^32..+2^32] can be exactly represented by double value.
+     * Values larger thaan 2^32 may be rounded.
+     */
+    public static double roundShapeCoord(double v) {
+        double LARGE = 1L << 32;
+        return v >= 0 ? (v + LARGE) - LARGE : (v - LARGE) + LARGE;
+    }
+    
 	/**
 	 * Method to snap a point to the nearest database-space grid unit.
 	 * @param pt the point to be snapped.

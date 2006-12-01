@@ -38,7 +38,7 @@ public abstract class AbstractShapeBuilder {
     protected boolean reasonable;
     protected boolean electrical;
     
-    protected long[] longCoords = new long[8];
+    protected double[] doubleCoords = new double[8];
     int pointCount; 
     public int[] intCoords = new int[4];
     protected CellBackup.Memoization m;
@@ -46,7 +46,8 @@ public abstract class AbstractShapeBuilder {
     /** Creates a new instance of AbstractShapeBuilder */
     public AbstractShapeBuilder() {
     }
-    
+   
+    public Layer.Function.Set getOnlyTheseLayers() { return onlyTheseLayers; }
     public void setOnlyTheseLayers(Layer.Function.Set onlyTheseLayers) {
         this.onlyTheseLayers = onlyTheseLayers;
         onlyTheseLayersMask = onlyTheseLayers != null ? onlyTheseLayers.bits : 0;
@@ -59,68 +60,40 @@ public abstract class AbstractShapeBuilder {
     }
     
     public void genShapeOfArc(ImmutableArcInst a) {
-        if (a.isEasyShape())
-            genShapeOfArcEasy(a);
-        else {
-            pointCount = 0;
-            a.protoType.tech.getShapeOfArc(this, a, null, onlyTheseLayers);
-        }
-    }
-    
-    private void genShapeOfArcEasy(ImmutableArcInst a) {
-        int gridFullWidth = (int)a.getGridFullWidth();
-        if (gridFullWidth == 0) {
-            Technology.ArcLayer primLayer = a.protoType.getArcLayer(0);
-            Layer layer = primLayer.getLayer();
-            if (onlyTheseLayers != null && onlyTheseLayers.contains(layer.getFunction())) return;
-//            if (((int)(onlyTheseLayersMask >> layer.getFunction().ordinal()) & 1) == 0) return;
-            Poly.Type style = primLayer.getStyle();
-            if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
-            intCoords[0] = (int)a.tailLocation.getGridX();
-            intCoords[1] = (int)a.tailLocation.getGridY();
-            intCoords[2] = (int)a.headLocation.getGridX();
-            intCoords[3] = (int)a.headLocation.getGridY();
-            addIntLine(intCoords, style, primLayer.getLayer());
+        if (a.genShapeEasy(this))
             return;
-        }
-        for (Technology.ArcLayer primLayer: a.protoType.getLayers()) {
-            Layer layer = primLayer.getLayer();
-            assert primLayer.getStyle() == Poly.Type.FILLED;
-            if (onlyTheseLayers != null && onlyTheseLayers.contains(layer.getFunction())) continue;
-//            if (((int)(onlyTheseLayersMask >> layer.getFunction().ordinal()) & 1) == 0) continue;
-            a.makeGridBoxInt(this, gridFullWidth - (int)primLayer.getGridOffset());
-            addIntBox(intCoords, layer);
-        }
+        pointCount = 0;
+        a.protoType.tech.getShapeOfArc(this, a, null, onlyTheseLayers);
     }
     
     public void pushPoint(EPoint p, double gridX, double gridY) {
-        pushPoint(p.getGridX() + gridX, p.getGridY() + gridY);
+        pushPointLow(p.getGridX() + DBMath.roundShapeCoord(gridX), p.getGridY() + DBMath.roundShapeCoord(gridY));
     }
     
     public void pushPoint(double gridX, double gridY) {
-        pushPoint(DBMath.roundLong(gridX), DBMath.roundLong(gridY));
+        pushPointLow(DBMath.roundShapeCoord(gridX), DBMath.roundShapeCoord(gridY));
     }
     
     public void pushPoint(EPoint p) {
-        pushPoint(p.getGridX(), p.getGridY());
+        pushPointLow(p.getGridX(), p.getGridY());
     }
     
-    public void pushPoint(long gridX, long gridY) {
-        if (pointCount*2 >= longCoords.length)
+    private void pushPointLow(double gridX, double gridY) {
+        if (pointCount*2 >= doubleCoords.length)
             resize();
-        longCoords[pointCount*2] = gridX;
-        longCoords[pointCount*2 + 1] = gridY;
+        doubleCoords[pointCount*2] = gridX;
+        doubleCoords[pointCount*2 + 1] = gridY;
         pointCount++;
     }
     
     private void resize() {
-        long[] newLongPoints = new long[longCoords.length*2];
-        System.arraycopy(longCoords, 0, newLongPoints, 0, longCoords.length);
-        longCoords = newLongPoints;
+        double[] newDoubleCoords = new double[doubleCoords.length*2];
+        System.arraycopy(doubleCoords, 0, newDoubleCoords, 0, doubleCoords.length);
+        doubleCoords = newDoubleCoords;
     }
     
     public void pushPoly(Poly.Type style, Layer layer) {
-        addLongPoly(pointCount, style, layer);
+        addDoublePoly(pointCount, style, layer);
         pointCount = 0;
     }
     
@@ -132,7 +105,7 @@ public abstract class AbstractShapeBuilder {
         addIntBox(intCoords, layer);
     }
     
-    public abstract void addLongPoly(int numPoints, Poly.Type style, Layer layer);
+    public abstract void addDoublePoly(int numPoints, Poly.Type style, Layer layer);
     
     public abstract void addIntLine(int[] coords, Poly.Type style, Layer layer);
     public abstract void addIntBox(int[] coords, Layer layer);

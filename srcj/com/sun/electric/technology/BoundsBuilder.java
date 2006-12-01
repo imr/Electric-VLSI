@@ -27,6 +27,7 @@ import com.sun.electric.database.CellBackup.Memoization;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import java.awt.geom.Rectangle2D;
 
@@ -34,9 +35,9 @@ import java.awt.geom.Rectangle2D;
  * A support class to build shapes of arcs and nodes.
  */
 public class BoundsBuilder extends AbstractShapeBuilder {
-    int intMinX, intMinY, intMaxX, intMaxY;
-    long longMinX, longMinY, longMaxX, longMaxY;
-    boolean hasIntBounds, hasLongBounds;
+    private int intMinX, intMinY, intMaxX, intMaxY;
+    private double doubleMinX, doubleMinY, doubleMaxX, doubleMaxY;
+    private boolean hasIntBounds, hasDoubleBounds;
     
     public BoundsBuilder(Memoization m) {
         this.m = m;
@@ -44,67 +45,12 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     }
     
     public void clear() {
-        hasIntBounds = hasLongBounds = false;
-    }
-    
-    public void genBoundsOfArc(ImmutableArcInst a) {
-        if (a.isEasyShape())
-            genBoundsOfArcEasy(a);
-        else {
-            pointCount = 0;
-            a.protoType.tech.getShapeOfArc(this, a, null, null);
-        }
-    }
-    
-    private void genBoundsOfArcEasy(ImmutableArcInst a) {
-        int gridFullWidth = (int)a.getGridFullWidth();
-        if (gridFullWidth == 0) {
-            int x1 = (int)a.tailLocation.getGridX();
-            int y1 = (int)a.tailLocation.getGridY();
-            int x2 = (int)a.headLocation.getGridX();
-            int y2 = (int)a.headLocation.getGridY();
-            if (x1 <= x2) {
-                intCoords[0] = x1;
-                intCoords[2] = x2;
-            } else {
-                intCoords[0] = x2;
-                intCoords[2] = x1;
-            }
-            if (y1 <= y2) {
-                intCoords[1] = y1;
-                intCoords[3] = y2;
-            } else {
-                intCoords[1] = y2;
-                intCoords[3] = y1;
-            }
-        } else {
-            a.makeGridBoxInt(this, gridFullWidth);
-        }
-        addIntBox();
-    }
-
-    private void addIntBox() {
-        if (hasIntBounds) {
-            int x1 = intCoords[0];
-            if (x1 < intMinX) intMinX = x1;
-            int y1 = intCoords[1];
-            if (y1 < intMinY) intMinY = y1;
-            int x2 = intCoords[2];
-            if (x2 > intMaxX) intMaxX = x2;
-            int y2 = intCoords[3];
-            if (y2 > intMaxY) intMaxY = y2;
-        } else {
-            intMinX = intCoords[0];
-            intMinY = intCoords[1];
-            intMaxX = intCoords[2];
-            intMaxY = intCoords[3];
-            hasIntBounds = true;
-        }
+        hasIntBounds = hasDoubleBounds = false;
     }
     
     public ERectangle makeBounds() {
-        if (!hasLongBounds) {
-            assert hasIntBounds;
+        if (!hasDoubleBounds) {
+            if (!hasIntBounds) return null;
             int iw = intMaxX - intMinX;
             int ih = intMaxY - intMinY;
             return ERectangle.fromGrid(intMinX, intMinY,
@@ -112,18 +58,22 @@ public class BoundsBuilder extends AbstractShapeBuilder {
                     ih >= 0 ? ih : (long)intMaxY - (long)intMinY);
         }
         if (hasIntBounds) {
-            if (intMinX < longMinX) longMinX = intMinX;
-            if (intMinY < longMinY) longMinY = intMinY;
-            if (intMaxX > longMaxX) longMaxX = intMaxX;
-            if (intMaxY > longMaxY) longMaxY = intMaxY;
+            if (intMinX < doubleMinX) doubleMinX = intMinX;
+            if (intMinY < doubleMinY) doubleMinY = intMinY;
+            if (intMaxX > doubleMaxX) doubleMaxX = intMaxX;
+            if (intMaxY > doubleMaxY) doubleMaxY = intMaxY;
             hasIntBounds = false;
         }
+        long longMinX = GenMath.floorLong(doubleMinX);
+        long longMaxX = GenMath.ceilLong(doubleMaxX);
+        long longMinY = GenMath.floorLong(doubleMinY);
+        long longMaxY = GenMath.ceilLong(doubleMaxY);
         return ERectangle.fromGrid(longMinX, longMinY, longMaxX - longMinX, longMaxY - longMinY);
     }
     
     public boolean makeBounds(Rectangle2D.Double visBounds) {
         double x, y, w, h;
-        if (!hasLongBounds) {
+        if (!hasDoubleBounds) {
             assert hasIntBounds;
             x = intMinX;
             y = intMinY;
@@ -133,16 +83,16 @@ public class BoundsBuilder extends AbstractShapeBuilder {
             h = ih >= 0 ? ih : (long)intMaxY - (long)intMinY;
         } else {
             if (hasIntBounds) {
-                if (intMinX < longMinX) longMinX = intMinX;
-                if (intMinY < longMinY) longMinY = intMinY;
-                if (intMaxX > longMaxX) longMaxX = intMaxX;
-                if (intMaxY > longMaxY) longMaxY = intMaxY;
+                if (intMinX < doubleMinX) doubleMinX = intMinX;
+                if (intMinY < doubleMinY) doubleMinY = intMinY;
+                if (intMaxX > doubleMaxX) doubleMaxX = intMaxX;
+                if (intMaxY > doubleMaxY) doubleMaxY = intMaxY;
                 hasIntBounds = false;
             }
-            x = longMinX;
-            y = longMinY;
-            w = longMaxX - longMinX;
-            h = longMaxY - longMinY;
+            x = GenMath.floorLong(doubleMinX);
+            y = GenMath.floorLong(doubleMinY);
+            w = GenMath.ceilLong(doubleMaxX) - x;
+            h = GenMath.ceilLong(doubleMaxY) - y;
         }
         x = DBMath.gridToLambda(x);
         y = DBMath.gridToLambda(y);
@@ -155,26 +105,53 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     }
     
     @Override
-    public void addLongPoly(int numPoints, Poly.Type style, Layer layer) {
-        if (!hasLongBounds) {
+    public void addDoublePoly(int numPoints, Poly.Type style, Layer layer) {
+        if (!hasDoubleBounds) {
             assert numPoints > 0;
-            longMinX = longMaxX = longCoords[0];
-            longMinY = longMaxY = longCoords[1];
-            hasLongBounds = true;
+            doubleMinX = doubleMaxX = doubleCoords[0];
+            doubleMinY = doubleMaxY = doubleCoords[1];
+            hasDoubleBounds = true;
         }
         for (int i = 0; i < numPoints; i++) {
-            long x = longCoords[i*2];
-            long y = longCoords[i*2 + 1];
-            if (x < longMinX) longMinX = x;
-            if (x > longMaxX) longMaxX = x;
-            if (y < longMinY) longMinY = y;
-            if (y > longMaxY) longMaxY = y;
+            double x = doubleCoords[i*2];
+            double y = doubleCoords[i*2 + 1];
+            if (x < doubleMinX) doubleMinX = x;
+            if (x > doubleMaxX) doubleMaxX = x;
+            if (y < doubleMinY) doubleMinY = y;
+            if (y > doubleMaxY) doubleMaxY = y;
         }
     }
     
     @Override
-    public void addIntLine(int[] coords, Poly.Type style, Layer layer) { throw new UnsupportedOperationException(); }
+    public void addIntLine(int[] coords, Poly.Type style, Layer layer) {
+        int x1 = coords[0];
+        int x2 = coords[2];
+        if (x1 > x2) {
+            coords[0] = x2;
+            coords[2] = x1;
+        }
+        int y1 = coords[1];
+        int y2 = coords[3];
+        if (y1 > y2) {
+            coords[1] = y2;
+            coords[3] = y1;
+        }
+        addIntBox(coords, layer);
+    }
     
     @Override
-    public void addIntBox(int[] coords, Layer layer) { throw new UnsupportedOperationException(); }
+    public void addIntBox(int[] coords, Layer layer) {
+        if (!hasIntBounds) {
+            intMinX = coords[0];
+            intMinY = coords[1];
+            intMaxX = coords[2];
+            intMaxY = coords[3];
+            hasIntBounds = true;
+        } else {
+            if (coords[0] < intMinX) intMinX = coords[0];
+            if (coords[2] > intMaxX) intMaxX = coords[2];
+            if (coords[1] < intMinY) intMinY = coords[1];
+            if (coords[3] > intMaxY) intMaxY = coords[3];
+        }
+    }
 }

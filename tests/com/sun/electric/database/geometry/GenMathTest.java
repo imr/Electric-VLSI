@@ -657,6 +657,15 @@ public class GenMathTest {
                     return s;
                 }
             },
+            new BenchLoop("DBMath.roundShapeCoord") {
+                long loop() {
+                    double[] values = GenMathTest.this.doubleValues;
+                    double s = 0;
+                    for (double x: values)
+                        s = s + DBMath.roundShapeCoord(x);
+                    return (long)s;
+                }
+            },
             null,
             new BenchLoop("DBMathRound") {
                 long loop() {
