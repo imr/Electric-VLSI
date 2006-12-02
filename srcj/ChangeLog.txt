@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+BUG: (12/1/06, DN) Exception checking database invariants (Bug #1266).
+FIX: In ArcInst.check snap polygon bounds to database grid.
+
 BUG/IMP: (12/1/06, GVG) Drag-n-dropping a cell group onto a cell produces a NPE (bug #1265).
 FIX: Exception avoided. Improvements: if you drag a group on a layout cell, it will create an instance
 of the first layout found. If you drag it on a schematic cell, it will add the first icon found.

@@ -27,10 +27,10 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1530,6 +1530,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
                 maxX = Math.max(maxX, bounds.getMaxX());
                 maxY = Math.max(maxY, bounds.getMaxY());
             }
+            minX = GenMath.floorLong(minX);
+            minY = GenMath.floorLong(minY);
+            maxX = GenMath.ceilLong(maxX);
+            maxY = GenMath.ceilLong(maxY);
             assert visBounds.getX() == DBMath.gridToLambda(minX);
             assert visBounds.getY() == DBMath.gridToLambda(minY);
             assert visBounds.getWidth() == DBMath.gridToLambda(maxX - minX);
