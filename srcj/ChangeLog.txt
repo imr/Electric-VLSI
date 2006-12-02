@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+BUG: (12/1/06, DN) CellBackup.cellUsages invariant is not valid after rename (Bug #1235).
+FIX: In "CellBackup.with" check if "this.d.cellId != d.cellId".
+
 BUG: (12/1/06, DN) Exception checking database invariants (Bug #1266).
 FIX: In ArcInst.check snap polygon bounds to database grid.
 

@@ -135,7 +135,7 @@ public class CellBackup {
         
         BitSet usedLibs = this.usedLibs;
         CellUsageInfo[] cellUsages = this.cellUsages;
-        if (this.d.getVars() != d.getVars() || nodes != this.nodes || arcs != this.arcs || exports != this.exports) {
+        if (this.d.cellId != d.cellId || this.d.getVars() != d.getVars() || nodes != this.nodes || arcs != this.arcs || exports != this.exports) {
             UsageCollector uc = new UsageCollector(d, nodes, arcs, exports);
             usedLibs = uc.getLibUsages(this.usedLibs);
             cellUsages = uc.getCellUsages(cellId, this.cellUsages);
