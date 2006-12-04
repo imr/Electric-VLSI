@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+BUG: (12/4/06, GVG) PWLSignal.java: missing initalization of vPoints.
+Gate.java: Wrong location of the Point constructor in computePWLOutput.
+New timing conditions in DTimViewAnData Liberty parser.
+gate_inv_16x_25ff_hiR passes.
+
 BUG: (12/1/06, DN) CellBackup.cellUsages invariant is not valid after rename (Bug #1235).
 FIX: In "CellBackup.with" check if "this.d.cellId != d.cellId".
 
