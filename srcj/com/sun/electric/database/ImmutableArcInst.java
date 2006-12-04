@@ -89,8 +89,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     
     private static final short EXTEND_90 = 0;
     private static final short EXTEND_0 = 1;
-//    private static final short EXTEND_45 = 2;
-    private static final short EXTEND_ANY = 3;
+    private static final short EXTEND_ANY = 2;
     
     
 	/** fixed-length arc */                                 private static final int ELIB_FIXED =                01;
@@ -935,21 +934,14 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         double tx = tailLocation.getGridX();
         double ty = tailLocation.getGridY();
         if (shrinkT >= EXTEND_ANY) {
-            int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
-            int angle2 = (shrinkT - EXTEND_ANY) - angle;
-            if (angle2 < 0)
-                angle2 += 3600;
-            Point2D e = computeExtension(w2, -w2x, -w2y, angle2);
+            Point2D e = computeExtension(w2, -w2x, -w2y, angle >= 1800 ? angle - 1800 : angle + 1800, shrinkT);
             tx += e.getX();
             ty += e.getY();
         }
         double hx = headLocation.getGridX();
         double hy = headLocation.getGridY();
         if (shrinkH >= EXTEND_ANY) {
-            int angle2 = (shrinkH - EXTEND_ANY) - angle;
-            if (angle2 < 0)
-                angle2 += 3600;
-            Point2D e = computeExtension(w2, w2x, w2y, angle2);
+            Point2D e = computeExtension(w2, w2x, w2y, angle, shrinkH);
             hx += e.getX();
             hy += e.getY();
         }
@@ -1054,30 +1046,23 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         double w2y = DBMath.roundShapeCoord(w2*GenMath.sin(angle));
         double tx = 0;
         double ty = 0;
-        if (shrinkT >= EXTEND_ANY) {
-            int angle = this.angle >= 1800 ? this.angle - 1800 : this.angle + 1800;
-            int angle2 = (shrinkT - EXTEND_ANY) - angle;
-            if (angle2 < 0)
-                angle2 += 3600;
-            Point2D e = computeExtension(w2, -w2x, -w2y, angle2);
-            tx = e.getX();
-            ty = e.getY();
-        } else if (shrinkT == EXTEND_90) {
+        if (shrinkT == EXTEND_90) {
             tx = -w2x;
             ty = -w2y;
+        } else if (shrinkT != EXTEND_0) {
+            Point2D e = computeExtension(w2, -w2x, -w2y, angle >= 1800 ? angle - 1800 : angle + 1800, shrinkT);
+            tx = e.getX();
+            ty = e.getY();
         }
         double hx = 0;
         double hy = 0;
-        if (shrinkH >= EXTEND_ANY) {
-            int angle2 = (shrinkH - EXTEND_ANY) - angle;
-            if (angle2 < 0)
-                angle2 += 3600;
-            Point2D e = computeExtension(w2, w2x, w2y, angle2);
-            hx = e.getX();
-            hy = e.getY();
-        } else if (shrinkH == EXTEND_90) {
+        if (shrinkH == EXTEND_90) {
             hx = w2x;
             hy = w2y;
+        } else if (shrinkH != EXTEND_0) {
+            Point2D e = computeExtension(w2, w2x, w2y, angle, shrinkH);
+            hx = e.getX();
+            hy = e.getY();
         }
         
         b.pushPoint(tailLocation, tx - w2y, ty + w2x);
@@ -1242,7 +1227,13 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     /**
      * Computes extension vector of wire, 
      */
-    private static Point2D computeExtension(int w2, double ix1, double iy1, int angle2) {
+    private static Point2D computeExtension(int w2, double ix1, double iy1, int angle, short shrink) {
+        if (shrink == EXTEND_90) return new Point2D.Double(ix1, iy1);
+        if (shrink == EXTEND_0) return new Point2D.Double(0, 0);
+        assert shrink >= EXTEND_ANY;
+        int angle2 = (shrink - EXTEND_ANY) - angle;
+        if (angle2 < 0)
+            angle2 += 3600;
         double x1 = ix1;
         double y1 = iy1;
         double s1;
@@ -1289,84 +1280,64 @@ public class ImmutableArcInst extends ImmutableElectricObject {
     void registerShrinkage(int shrinkageState[]) {
         // shrinkage
         if (getGridFullWidth() == 0) return;
-        long dx = headLocation.getGridX() - tailLocation.getGridX();
-        long dy = headLocation.getGridY() - tailLocation.getGridY();
-        boolean is90, is45;
-        if (dx != 0 || dy != 0) {
-            is90 = dx == 0 || dy == 0;
-            is45 = dx == dy || dx == -dy;
-        } else {
-            is90 = angle % 900 == 0;
-            is45 = angle % 900 == 450;
+        if (tailNodeId == headNodeId && tailPortId == headPortId) {
+            // Fake register for full shrinkage
+            registerArcEnd(shrinkageState, tailNodeId, (short)0, false, false);
+            return;
         }
+        boolean is90 = isManhattan();
         int tailAngle = angle < 1800 ? angle + 1800 : angle - 1800;
-        registerArcEnd(shrinkageState, tailNodeId, (short)tailAngle, is90, is45, isTailExtended());
-        registerArcEnd(shrinkageState, headNodeId, angle, is90, is45, isHeadExtended());
+        registerArcEnd(shrinkageState, tailNodeId, (short)tailAngle, is90, isTailExtended());
+        registerArcEnd(shrinkageState, headNodeId, angle, is90, isHeadExtended());
     }
     
     private static final int ANGLE_SHIFT = 12;
     private static final int ANGLE_MASK = (1 << ANGLE_SHIFT) - 1;
-    private static final int ANGLE_90_MASK = 1 << (ANGLE_SHIFT*2);
-    private static final int ANGLE_45_MASK = 1 << (ANGLE_SHIFT*2 + 1);
-    private static final int ANGLE_ANY_MASK = 1 << (ANGLE_SHIFT*2 + 2);
-//        private static final int ANGLE_FULL_SHRINK = -1;
-    private static final int ANGLE_COUNT_SHIFT = ANGLE_SHIFT*2 + 4;
+    private static final int ANGLE_DIAGONAL_MASK = 1 << (ANGLE_SHIFT*2);
+    private static final int ANGLE_COUNT_SHIFT = ANGLE_SHIFT*2 + 1;
     
-    private void registerArcEnd(int[] angles, int nodeId, short angle, boolean is90, boolean is45, boolean extended) {
+    private void registerArcEnd(int[] angles, int nodeId, short angle, boolean is90, boolean extended) {
         assert angle >= 0 && angle < 3600;
         int ang = angles[nodeId];
-//            if (ang == ANGLE_FULL_SHRINK) return;
-//            if (extended) {
-        int ang0 = ang & ANGLE_MASK;
-        int ang1 = (ang >> ANGLE_SHIFT) & ANGLE_MASK;
-        int count = ang >>> ANGLE_COUNT_SHIFT;
-        switch (count) {
-            case 0:
-                ang |= angle;
-                ang += (1 << ANGLE_COUNT_SHIFT);
-                break;
-            case 1:
-                ang |= (angle << ANGLE_SHIFT);
-                ang += (1 << ANGLE_COUNT_SHIFT);
-                break;
-            case 2:
-                ang += (1 << ANGLE_COUNT_SHIFT);
-                break;
+        if (extended) {
+            int count = ang >>> ANGLE_COUNT_SHIFT;
+            switch (count) {
+                case 0:
+                    ang |= angle;
+                    ang += (1 << ANGLE_COUNT_SHIFT);
+                    break;
+                case 1:
+                    ang |= (angle << ANGLE_SHIFT);
+                    ang += (1 << ANGLE_COUNT_SHIFT);
+                    break;
+                case 2:
+                    ang += (1 << ANGLE_COUNT_SHIFT);
+                    break;
+            }
+            if (!is90)
+                ang |= ANGLE_DIAGONAL_MASK;
+        } else {
+            ang |= (3 << ANGLE_COUNT_SHIFT);
         }
-        if (is90)
-            ang |= ANGLE_90_MASK;
-        else if (is45)
-            ang |= ANGLE_45_MASK;
-        else
-            ang |= ANGLE_ANY_MASK;
-//            } else {
-//                ang = ANGLE_FULL_SHRINK;
-//            }
         angles[nodeId] = ang;
     }
     
     static short computeShrink(int angs) {
-//            boolean has90 = (angs&ANGLE_90_MASK) != 0;
-        boolean has45 = (angs&ANGLE_45_MASK) != 0;
-        boolean hasAny = (angs&ANGLE_ANY_MASK) != 0;
+        boolean hasAny = (angs&ANGLE_DIAGONAL_MASK) != 0;
         int count = angs >>> ANGLE_COUNT_SHIFT;
         
-        if (hasAny || has45) {
-            if (count == 2) {
-                int ang0 = angs & ANGLE_MASK;
-                int ang1 = (angs >> ANGLE_SHIFT) & ANGLE_MASK;
-                int da = ang0 > ang1 ? ang0 - ang1 : ang1 - ang0;
-                if (da == 900 || da == 2700) return EXTEND_90;
-                if (da == 0 || da == 1800) return EXTEND_0;
-                if (900 < da && da < 2700) {
-                    int a = ang0 + ang1;
-                    if (a >= 3600)
-                        a -= 3600;
-                    return (short)(EXTEND_ANY + a);
-                }
+        if (hasAny && count == 2) {
+            int ang0 = angs & ANGLE_MASK;
+            int ang1 = (angs >> ANGLE_SHIFT) & ANGLE_MASK;
+            int da = ang0 > ang1 ? ang0 - ang1 : ang1 - ang0;
+            if (da == 900 || da == 2700) return EXTEND_90;
+            if (da == 1800) return EXTEND_0;
+            if (900 < da && da < 2700) {
+                int a = ang0 + ang1;
+                if (a >= 3600)
+                    a -= 3600;
+                return (short)(EXTEND_ANY + a);
             }
-//            } else if (has90 && has45) {
-//                return EXTEND_45;
         }
         return EXTEND_90;
     }
