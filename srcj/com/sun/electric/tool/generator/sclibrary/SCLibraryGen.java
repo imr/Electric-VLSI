@@ -103,7 +103,7 @@ public class SCLibraryGen {
     /**
      * Generates the standard cell library
      */
-    public boolean generate() {
+    public boolean generate(StdCellParams sc) {
         // check for red and purple libraries
         purpleLibrary = Library.findLibrary(purpleLibraryName);
         if (purpleLibrary == null) {
@@ -117,6 +117,10 @@ public class SCLibraryGen {
         }
         prMsg("Using purple library \""+purpleLibraryName+"\" and red library \""+redLibraryName+"\"");
 
+        if (sc.getTechnology() == Tech.Type.TSMC180)
+            scLibraryName = "sclibTSMC180";
+        else if (sc.getTechnology() == Tech.Type.TSMC90)
+            scLibraryName = "sclibTSMC90";
         scLibrary = Library.findLibrary(scLibraryName);
         if (scLibrary == null) {
             scLibrary = Library.newInstance(scLibraryName, null);
@@ -129,7 +133,6 @@ public class SCLibraryGen {
         }
 
         // dunno how to set standard cell params
-        StdCellParams sc = GateLayoutGenerator.dividerParams(Tech.Type.TSMC180);
         sc.enableNCC(purpleLibraryName);
 
         for (StdCellSpec stdcell : scellSpecs) {
