@@ -1211,8 +1211,12 @@ public class Spice extends Topology
             // special case for ST090 technology which has stupid non-standard transistor
             // models which are subcircuits
             boolean st090laytrans = false;
+            boolean tsmc090laytrans = false;
             if (cell.getView() == View.LAYOUT && layoutTechnology == Technology.getTSMC90Technology()) {
-                st090laytrans = true;
+                if (layoutTechnology.getSelectedFoundry().getType() == Foundry.Type.TSMC)
+                    tsmc090laytrans = true;
+                else if (layoutTechnology.getSelectedFoundry().getType() == Foundry.Type.ST)
+                    st090laytrans = true;
             }
 
 			String modelChar = "";
@@ -1231,13 +1235,19 @@ public class Spice extends Topology
                     modelChar = "XM";
                     modelName = "nsvt";
                 }
-			} else if (fun == PrimitiveNode.Function.TRA4NMOS)			// NMOS (Complementary) 4-port transistor
+                if (tsmc090laytrans) {
+                    modelName = "nch";
+                }
+            } else if (fun == PrimitiveNode.Function.TRA4NMOS)			// NMOS (Complementary) 4-port transistor
 			{
 				modelChar = "M";
 				if (modelName == null) modelName = "N";
                 if (st090laytrans) {
                     modelChar = "XM";
                     modelName = "nsvt";
+                }
+                if (tsmc090laytrans) {
+                    modelName = "nch";
                 }
 			} else if (fun == PrimitiveNode.Function.TRADMOS)			// DMOS (Depletion) transistor
 			{
@@ -1258,7 +1268,10 @@ public class Spice extends Topology
                     modelChar = "XM";
                     modelName = "psvt";
                 }
-			} else if (fun == PrimitiveNode.Function.TRA4PMOS)			// PMOS (Complementary) 4-port transistor
+                if (tsmc090laytrans) {
+                    modelName = "pch";
+                }
+            } else if (fun == PrimitiveNode.Function.TRA4PMOS)			// PMOS (Complementary) 4-port transistor
 			{
 				modelChar = "M";
 				if (modelName == null) modelName = "P";
@@ -1266,7 +1279,10 @@ public class Spice extends Topology
                     modelChar = "XM";
                     modelName = "psvt";
                 }
-			} else if (fun == PrimitiveNode.Function.TRANPN)			// NPN (Junction) transistor
+                if (tsmc090laytrans) {
+                    modelName = "pch";
+                }
+            } else if (fun == PrimitiveNode.Function.TRANPN)			// NPN (Junction) transistor
 			{
 				modelChar = "Q";
 //				biasn = subnet != NOSPNET ? subnet : 0;
