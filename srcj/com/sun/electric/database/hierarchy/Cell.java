@@ -239,7 +239,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
         /**
          * Returns a string representing the name of the cell group
 		 */
-		public String getName() { return groupName.getName(); }
+		public String getName() { if (groupName == null) return null;   return groupName.getName(); }
 
         public EDatabase getDatabase() { return lib.getDatabase(); }
         
