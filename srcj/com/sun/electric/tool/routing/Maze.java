@@ -217,14 +217,28 @@ public class Maze
 			return;
 		}
 		Set<Network> nets = wnd.getHighlightedNetworks();
-		if (nets.size() == 0)
+//		if (nets.size() == 0)
+//		{
+//			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+//			{
+//				ArcInst ai = it.next();
+//				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
+//				Network net = netList.getNetwork(ai, 0);
+//				nets.add(net);
+//			}
+//		}
+
+		// turn the set of Nets back into a list of Arcs to route
+		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
+		for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 		{
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+			ArcInst ai = it.next();
+			if (ai.getProto() != Generic.tech.unrouted_arc) continue;
+			Network net = netList.getNetwork(ai, 0);
+			if (nets.contains(net))
 			{
-				ArcInst ai = it.next();
-				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
-				Network net = netList.getNetwork(ai, 0);
-				nets.add(net);
+				arcsToRoute.add(ai);
+				nets.remove(net);
 			}
 		}
 
@@ -232,26 +246,26 @@ public class Maze
 		wnd.clearHighlighting();
 		wnd.finishedHighlighting();
 
-		MazeRouteJob job = new MazeRouteJob(cell, nets);
+		MazeRouteJob job = new MazeRouteJob(cell, arcsToRoute);
 	}
 
 	private static class MazeRouteJob extends Job
 	{
 		private Cell cell;
-		private Set<Network> nets;
+		private List<ArcInst> arcs;
 
-		protected MazeRouteJob(Cell cell, Set<Network> nets)
+		protected MazeRouteJob(Cell cell, List<ArcInst> arcs)
 		{
 			super("Maze Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.nets = nets;
+			this.arcs = arcs;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			Maze router = new Maze();
-			router.routeSelected(cell, nets);
+			router.routeSelected(cell, arcs);
 			return true;
 		}
 	}
@@ -261,17 +275,20 @@ public class Maze
 	 * It replaces the selected unrouted arcs with routed geometry
 	 * @param cell the cell to be Maze-routed.
 	 */
-	public void routeSelected(Cell cell, Set<Network> nets)
+	public void routeSelected(Cell cell, List<ArcInst> arcsToRoute)
 	{
-		// turn this into a list of ArcInsts on each net so that it survives renetlisting after each route
-		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
-		for(Network net : nets)
+		if (arcsToRoute.size() == 0)
 		{
-			for(Iterator<ArcInst> aIt = net.getArcs(); aIt.hasNext(); )
+			netList = cell.acquireUserNetlist();
+			Set<Network> nets = new HashSet<Network>();
+			for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext();)
 			{
-				ArcInst ai = aIt.next();
+				ArcInst ai = it.next();
+				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
+				Network net = netList.getNetwork(ai, 0);
+				if (nets.contains(net)) continue;
 				arcsToRoute.add(ai);
-				break;
+				nets.add(net);
 			}
 		}
 

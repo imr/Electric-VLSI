@@ -400,6 +400,10 @@ public class MimicStitch
 	/**
 	 * Method to do mimic stitching.
 	 * It can be used during batch processing to mimic directly.
+	 * @param ai1 the arc connected to the first port of the connection to mimic.
+	 * @param end1 the end of "ai1" that defines the first port of the connection to mimic.
+	 * @param ai2 the arc connected to the second port of the connection to mimic.
+	 * @param end2 the end of "ai2" that defines the second port of the connection to mimic.
 	 * @param oWidth the width of the arc to run.
      * @param oProto the type of arc to run.
      * @param prefX the preferred X position of the mimic (if there is a choice).
@@ -414,7 +418,7 @@ public class MimicStitch
      * @param matchNodeSize true to require the node sizes to match.
      * @param noOtherArcsThisDir true to require that no other arcs exist in the same direction.
      * @param notAlreadyConnected true to require that the connection not already be made with other arcs.
-     * @param theJob
+     * @param theJob the job that is running this mimic operation
      */
 	public static void mimicOneArc(ArcInst ai1, int end1, ArcInst ai2, int end2, double oWidth, ArcProto oProto,
        double prefX, double prefY, boolean forced, Job.Type method, boolean mimicInteractive, boolean matchPorts,
@@ -577,6 +581,7 @@ public class MimicStitch
 						{
 							PortInst oPi = oPIt.next();
 							PortProto oPp = oPi.getPortProto();
+							if (ni == oNi && pp == oPp) continue;
 
 							// if this port is not cached, it cannot connect, so ignore it
 							Poly thisPoly = (Poly)cachedPortPoly.get(oPi);
@@ -671,8 +676,6 @@ public class MimicStitch
 								}
 							}
 
-							if (pp != port0 || oPp != port1)
-								situation |= LIKELYDIFFPORT;
 							if (pp instanceof Export && oPp instanceof Export)
 							{
 								int e0Wid = netlist.getBusWidth((Export)pp);
@@ -686,7 +689,13 @@ public class MimicStitch
 							int con2 = ni.getNumConnections() + oNi.getNumConnections();
 							if (con1 != con2) situation |= LIKELYDIFFARCCOUNT;
 							if (ni.getProto() != node0.getProto() || oNi.getProto() != node1.getProto())
+							{
 								situation |= LIKELYDIFFNODETYPE;
+							} else
+							{
+								if (pp != port0 || oPp != port1)
+									situation |= LIKELYDIFFPORT;
+							}
 
 							SizeOffset so = ni.getSizeOffset();
 							double wid = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();

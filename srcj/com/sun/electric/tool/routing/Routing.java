@@ -216,7 +216,7 @@ public class Routing extends Listener
 		if (ai == null) return;
 		past = new Activity();
 		past.createdArcs[past.numCreatedArcs++] = ai;
-		MimicStitch.mimicStitch(false);
+		MimicStitch.mimicStitch(true);
 	}
 
 	/**
@@ -414,14 +414,24 @@ public class Routing extends Listener
 				for(Iterator<Connection> cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = cIt.next();
-					if (!con.equals(thisCon) && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
+					if (con.getArc() != ai && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
+//					if (!con.equals(thisCon) && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
 				}
 				if (ni.hasExports()) term = true;
 				if (ni.isCellInstance()) term = true;
 				if (term)
 				{
 					// valid network end: see if it is in the list
-					if (!endList.contains(thisCon))
+					boolean found = false;
+					for(Connection lCon : endList)
+					{
+						if (thisCon.getArc() == lCon.getArc() && thisCon.getEndIndex() == lCon.getEndIndex())
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
 						endList.add(thisCon);
 				} else
 				{
