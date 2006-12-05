@@ -32,6 +32,7 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
@@ -69,6 +70,7 @@ public class CellBackup {
     /** Bitmap of deleted exports. */                               final BitSet deletedExports;
 
     /** Memoized data for size computation (connectivity etc). */   private volatile Memoization m;
+    /** Arc shrinkage data */                                       private AbstractShapeBuilder.Shrinkage shrinkage;
     /** Bounds of primitive arcs in this Cell. */                   private ERectangle primitiveBounds;
     
     /** Creates a new instance of CellBackup */
@@ -596,6 +598,26 @@ public class CellBackup {
     }
     
     /**
+     * Returns data for arc shrinkage computation.
+     * @return data for arc shrinkage computation.
+     */
+        /**
+         * Method to tell the "end shrink" factors on all arcs on a specified ImmutableNodeInst.
+         * -1 indicates no shortening (extend the arc by half its width).
+         * -2 indicates 45 degree shortening.
+         * [0..3600) is a sum of arc angles modulo 3600
+         * if this ImmutableNodeInst is a pin which can "isArcsShrink" and this pin connects
+         * exactly two arcs whit extended ends and angle between arcs is accute.
+         * @param nodeId nodeId of specified ImmutableNodeInst
+         * @return shrink factor of specified ImmutableNodeInst is wiped.
+         */
+    public AbstractShapeBuilder.Shrinkage getShrinkage() {
+        if (shrinkage == null)
+            shrinkage = new AbstractShapeBuilder.Shrinkage(this);
+        return shrinkage;
+    }
+    
+    /**
      * Returns bounds of all primitive arcs in this Cell or null if there are not primitives.
      * @return bounds of all primitive arcs or null.
      */
@@ -609,9 +631,10 @@ public class CellBackup {
         if (arcs.isEmpty()) return null;
         int intMinX = Integer.MAX_VALUE, intMinY = Integer.MAX_VALUE, intMaxX = Integer.MIN_VALUE, intMaxY = Integer.MIN_VALUE;
         int[] intCoords = new int[4];
-        BoundsBuilder boundsBuilder = new BoundsBuilder(getMemoization());
+        AbstractShapeBuilder.Shrinkage shrinkage = getShrinkage();
+        BoundsBuilder boundsBuilder = new BoundsBuilder(shrinkage);
         for (ImmutableArcInst a: arcs) {
-            if (a.genBoundsEasy(m, intCoords)) {
+            if (a.genBoundsEasy(shrinkage, intCoords)) {
                 int x1 = intCoords[0];
                 if (x1 < intMinX) intMinX = x1;
                 int y1 = intCoords[1];
@@ -654,7 +677,6 @@ public class CellBackup {
         /** ImmutableExports sorted by original PortInst. */
         private final ImmutableExport[] exportIndexByOriginalPort;
         private final BitSet wiped;
-        private final short[] shrink;
         
         Memoization() {
             cellBackupsMemoized++;
@@ -678,15 +700,12 @@ public class CellBackup {
             this.exportIndexByOriginalPort = exportIndexByOriginalPort;
             
             BitSet wiped = new BitSet();
-            int[] angles = new int[maxNodeId+1];
             for (ImmutableArcInst a: arcs) {
                 // wipe status
                 if (a.protoType.isWipable()) {
                     wiped.set(a.tailNodeId);
                     wiped.set(a.headNodeId);
                 }
-                // shrinkage
-                a.registerShrinkage(angles);
             }
             short[] shrink = new short[maxNodeId + 1];
             for (int nodeIndex = 0; nodeIndex < nodes.size(); nodeIndex++) {
@@ -694,13 +713,10 @@ public class CellBackup {
                 NodeProtoId np = n.protoId;
                 if (!(np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe()))
                     wiped.clear(n.nodeId);
-                if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsShrink())
-                    shrink[n.nodeId] = ImmutableArcInst.computeShrink(angles[nodeIndex]);
             }
             this.wiped = wiped;
-            this.shrink = shrink;
         }
-    
+        
        /**
          * Returns true of there are Exports on specified NodeInst.
          * @param originalNodeId nodeId of specified NodeInst.
@@ -797,20 +813,6 @@ public class CellBackup {
          */
         public boolean isWiped(int nodeId) {
             return wiped.get(nodeId);
-        }
-        
-        /**
-         * Method to tell the "end shrink" factors on all arcs on a specified ImmutableNodeInst.
-         * -1 indicates no shortening (extend the arc by half its width).
-         * -2 indicates 45 degree shortening.
-         * [0..3600) is a sum of arc angles modulo 3600
-         * if this ImmutableNodeInst is a pin which can "isArcsShrink" and this pin connects
-         * exactly two arcs whit extended ends and angle between arcs is accute.
-         * @param nodeId nodeId of specified ImmutableNodeInst
-         * @return shrink factor of specified ImmutableNodeInst is wiped.
-         */
-        short getShrinkage(int nodeId) {
-            return nodeId < shrink.length ? shrink[nodeId] : 0;
         }
         
         /**

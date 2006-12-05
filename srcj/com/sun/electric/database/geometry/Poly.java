@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.geometry;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.DisplayedText;
@@ -430,6 +431,18 @@ public class Poly extends PolyBase {
     }
     
     /**
+     * Returns thread local instance of Poly builder to build shapes in lambda units.
+     * @return thread local instance of Poly builder.
+     */
+    public static Builder threadLocalLambdaBuilder() {
+        return threadLocalLambdaBuilder.get();
+    }
+    
+    private static ThreadLocal<Poly.Builder> threadLocalLambdaBuilder = new ThreadLocal<Poly.Builder>() {
+        protected Poly.Builder initialValue() { return Poly.newLambdaBuilder(); }
+    };
+
+    /**
      * This class builds shapes of nodes and arcs in lambda units as Poly arrays.
      */
     public static class Builder extends AbstractShapeBuilder {
@@ -440,14 +453,30 @@ public class Poly extends PolyBase {
         private Builder(boolean inLambda) { this.inLambda = inLambda; }
         
         /**
+         * Returns the polygons that describe node "ni".
+         * @param ni the NodeInst that is being described.
+         * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
+         * @return an iterator on Poly objects that describes this NodeInst graphically.
+         */
+        public Iterator<Poly> getShape(NodeInst ni) {
+            Poly[] polys = ((PrimitiveNode)ni.getProto()).getTechnology().getShapeOfNode(ni, electrical, reasonable, onlyTheseLayers);
+            lastPolys.clear();
+            for (Poly poly: polys) {
+                if (!inLambda)
+                    poly.lambdaToGrid();
+                lastPolys.add(poly);
+            }
+            return lastPolys.iterator();
+        }
+        
+        /**
          * Returns the polygons that describe arc "ai".
          * @param ai the ArcInst that is being described.
          * @return an iterator on Poly objects that describes this ArcInst graphically.
-         * These objects include displayable variables on the ArcInst.
          */
         public Iterator<Poly> getShape(ArcInst ai) {
             isChanging = true;
-            m = ai.getParent().getMemoization();
+            setShrinkage(ai.getParent().getShrinkage());
             lastPolys.clear();
             genShapeOfArc(ai.getD());
             if (inLambda) {
@@ -459,21 +488,52 @@ public class Poly extends PolyBase {
         }
         
         /**
-         * Returns the polygons that describe node "ni".
-         * @param ni the NodeInst that is being described.
-         * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
-         * @return an iterator on Poly objects that describes this NodeInst graphically.
-         * These objects include displayable variables on the NodeInst.
+         * Returns the polygons that describe arc "ai".
+         * @param ai the ArcInst that is being described.
+         * @return an array of Poly objects that describes this ArcInst graphically.
          */
-        public Iterator<Poly> getShape(NodeInst ni) {
-            Poly[] polys = ((PrimitiveNode)ni.getProto()).getTechnology().getShapeOfNode(ni, electrical, reasonable, onlyTheseLayers);
+    	public Poly [] getShapeArray(ArcInst ai) {
+            isChanging = true;
+            setShrinkage(ai.getParent().getShrinkage());
             lastPolys.clear();
-            for (Poly poly: polys) {
-                if (!inLambda)
-                    poly.lambdaToGrid();
-                lastPolys.add(poly);
+            genShapeOfArc(ai.getD());
+            if (lastPolys.isEmpty()) {
+                isChanging = false;
+                return Poly.NULL_ARRAY;
             }
-            return lastPolys.iterator();
+            Poly[] polys = new Poly[lastPolys.size()];
+            if (inLambda) {
+                for (int i = 0; i < polys.length; i++) {
+                    Poly poly = lastPolys.get(i);
+                    poly.gridToLambda();
+                    polys[i] = poly;
+                }
+            } else {
+                for (int i = 0; i < polys.length; i++)
+                    polys[i] = lastPolys.get(i);
+            }
+            isChanging = false;
+            return polys;
+        }
+        
+        /**
+         * Method to create a Poly object that describes an ImmutableArcInst.
+         * The ImmutableArcInst is described by its width and style.
+         * @param a an ImmutableArcInst
+         * @param gridWidth the width of the Poly in grid units.
+         * @param style the style of the ArcInst.
+         * @return a Poly that describes the ArcInst.
+         */
+        public Poly makePoly(ImmutableArcInst a, long gridWidth, Poly.Type style) {
+            isChanging = true;
+            lastPolys.clear();
+            makeGridPoly(a, gridWidth, style, null);
+            isChanging = false;
+            if (lastPolys.isEmpty()) return null;
+            Poly poly = lastPolys.get(0);
+            if (inLambda)
+                poly.gridToLambda();
+            return poly;
         }
         
         @Override

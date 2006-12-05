@@ -1223,7 +1223,7 @@ public class Technology implements Comparable<Technology>
 	 */
 	public Poly [] getShapeOfArc(ArcInst ai)
 	{
-		return getShapeOfArc(ai, null, null);
+		return getShapeOfArc(ai, null);
 	}
 
 	/**
@@ -1233,170 +1233,28 @@ public class Technology implements Comparable<Technology>
 	 * @param onlyTheseLayers to filter the only required layers
 	 * @return an array of Poly objects that describes this ArcInst graphically.
 	 */
-	public Poly [] getShapeOfArc(ArcInst ai, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
-	{
-		// get information about the arc
-		ArcProto ap = ai.getProto();
-		Technology tech = ap.getTechnology();
-		ArcLayer [] primLayers = ap.getLayers();
-
-		if (onlyTheseLayers != null)
-		{
-			List<ArcLayer> layerArray = new ArrayList<ArcLayer>();
-
-			for (int i = 0; i < primLayers.length; i++)
-			{
-				ArcLayer primLayer = primLayers[i];
-				if (onlyTheseLayers.contains(primLayer.layer.getFunction()))
-					layerArray.add(primLayer);
-			}
-			primLayers = new ArcLayer [layerArray.size()];
-			layerArray.toArray(primLayers);
-		}
-		if (primLayers.length == 0)
-			return new Poly[0];
-
-		// see how many polygons describe this arc
-		int maxPolys = primLayers.length;
-		boolean addArrow = false;
-		if (!tech.isNoDirectionalArcs())
-		{
-			if (ai.isBodyArrowed())
-			{
-				addArrow = true;
-				maxPolys++;
-			}
-			if (ai.isHeadArrowed())
-			{
-				addArrow = true;
-				maxPolys++;
-			}
-			if (ai.isTailArrowed())
-			{
-				addArrow = true;
-				maxPolys++;
-			}
-		}
-		boolean negated = false;
-		Point2D headLoc = ai.getHeadLocation();
-		Point2D tailLoc = ai.getTailLocation();
-		if (!tech.isNoNegatedArcs() && (ai.isHeadNegated() || ai.isTailNegated()))
-		{
-			negated = true;
-		}
-		Poly [] polys = new Poly[maxPolys];
-		int polyNum = 0;
-
-		// construct the polygons that describe the basic arc
-		if (negated)
-		{
-			for( int i = 0; i < primLayers.length; i++)
-			{
-				// remove a gap for the negating bubble
-				double headX = headLoc.getX();   double headY = headLoc.getY();
-				double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
-				int angle = ai.getAngle();
-				double bubbleSize = Schematics.getNegatingBubbleSize();
-				double cosDist = DBMath.cos(angle) * bubbleSize;
-				double sinDist = DBMath.sin(angle) * bubbleSize;
-				if (ai.isHeadNegated())
-				{
-					headX -= cosDist;
-					headY -= sinDist;
-				}
-				if (ai.isTailNegated())
-				{
-					tailX += cosDist;
-					tailY += sinDist;
-				}
-
-				Point2D [] points = new Point2D.Double[2];
-				points[0] = headLoc = new Point2D.Double(headX, headY);
-				points[1] = tailLoc = new Point2D.Double(tailX, tailY);
-				polys[polyNum] = new Poly(points);
-				polys[polyNum].setStyle(Poly.Type.OPENED);
-				Layer lastLayer = layerOverride;
-				if (lastLayer == null)
-				{
-					Technology.ArcLayer primLayer = primLayers[i];
-					lastLayer = primLayer.getLayer();
-				}
-				polys[polyNum].setLayer(lastLayer);
-				polyNum++;
-			}
-		} else
-		{
-			for(int i = 0; i < primLayers.length; i++)
-			{
-				Technology.ArcLayer primLayer = primLayers[i];
-				polys[polyNum] = ai.makeLambdaPoly(ai.getGridFullWidth() - primLayer.getGridOffset(), primLayer.getStyle());
-				if (polys[polyNum] == null) return null;
-				Layer lastLayer = layerOverride;
-				if (lastLayer == null) lastLayer = primLayer.getLayer();
-				polys[polyNum].setLayer(lastLayer);
-				polyNum++;
-			}
-		}
-
-		// add an arrow to the arc description
-		if (addArrow)
-		{
-			double headX = headLoc.getX();   double headY = headLoc.getY();
-			double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
-			int angle = ai.getAngle();
-			if (ai.isBodyArrowed())
-			{
-				Point2D [] points = new Point2D.Double[2];
-				points[0] = new Point2D.Double(headX, headY);
-				points[1] = new Point2D.Double(tailX, tailY);
-				polys[polyNum] = new Poly(points);
-				polys[polyNum].setStyle(Poly.Type.VECTORS);
-				polys[polyNum].setLayer(Generic.tech.glyphLay);
-				polyNum++;
-			}
-			if (ai.isTailArrowed())
-			{
-				int angleOfArrow = 3300;		// -30 degrees
-				int backAngle1 = angle - angleOfArrow;
-				int backAngle2 = angle + angleOfArrow;
-				Point2D [] points = new Point2D.Double[4];
-				points[0] = new Point2D.Double(tailX, tailY);
-				points[1] = new Point2D.Double(tailX + DBMath.cos(backAngle1), tailY + DBMath.sin(backAngle1));
-				points[2] = points[0];
-				points[3] = new Point2D.Double(tailX + DBMath.cos(backAngle2), tailY + DBMath.sin(backAngle2));
-				polys[polyNum] = new Poly(points);
-				polys[polyNum].setStyle(Poly.Type.VECTORS);
-				polys[polyNum].setLayer(Generic.tech.glyphLay);
-				polyNum++;
-			}
-			if (ai.isHeadArrowed())
-			{
-				angle = (angle + 1800) % 3600;
-				int angleOfArrow = 300;		// 30 degrees
-				int backAngle1 = angle - angleOfArrow;
-				int backAngle2 = angle + angleOfArrow;
-				Point2D [] points = new Point2D.Double[4];
-				points[0] = new Point2D.Double(headX, headY);
-				points[1] = new Point2D.Double(headX + DBMath.cos(backAngle1), headY + DBMath.sin(backAngle1));
-				points[2] = points[0];
-				points[3] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
-				polys[polyNum] = new Poly(points);
-				polys[polyNum].setStyle(Poly.Type.VECTORS);
-				polys[polyNum].setLayer(Generic.tech.glyphLay);
-				polyNum++;
-			}
-		}
-		return polys;
-	}
+	public Poly [] getShapeOfArc(ArcInst ai, Layer.Function.Set onlyTheseLayers) {
+        Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
+        polyBuilder.setOnlyTheseLayers(onlyTheseLayers);
+        return polyBuilder.getShapeArray(ai);
+    }
 
     /**
-     * Returns the polygons that describe arc "ai".
+     * Fill the polygons that describe arc "a".
+     * @param b AbstractShapeBuilder to fill polygons.
+     * @param a the ImmutableArcInst that is being described.
+     */
+    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
+        getShapeOfArc(b, a, null);
+    }
+    
+    /**
+     * Fill the polygons that describe arc "a".
+     * @param b AbstractShapeBuilder to fill polygons.
      * @param a the ImmutableArcInst that is being described.
      * @param layerOverride the layer to use for all generated polygons (if not null).
-     * @param onlyTheseLayers to filter the only required layers
-     * @return an array of Poly objects that describes this ArcInst graphically.
      */
-    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a, Layer layerOverride, Layer.Function.Set onlyTheseLayers) {
+    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a, Layer layerOverride) {
         // get information about the arc
         ArcProto ap = a.protoType;
         assert ap.getTechnology() == this;
@@ -1406,7 +1264,7 @@ public class Technology implements Comparable<Technology>
         if (!isNoNegatedArcs() && (a.isHeadNegated() || a.isTailNegated())) {
             for (Technology.ArcLayer primLayer: primLayers) {
                 Layer layer = primLayer.getLayer();
-                if (onlyTheseLayers != null && onlyTheseLayers.contains(layer.getFunction())) continue;
+                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction())) continue;
                 if (layerOverride != null) layer = layerOverride;
                 
                 // remove a gap for the negating bubble
@@ -1427,9 +1285,9 @@ public class Technology implements Comparable<Technology>
         } else {
             for (Technology.ArcLayer primLayer: primLayers) {
                 Layer layer = primLayer.getLayer();
-                if (onlyTheseLayers != null && onlyTheseLayers.contains(layer.getFunction())) continue;
+                if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction())) continue;
                 if (layerOverride != null) layer = layerOverride;
-                a.makeGridPoly(b, a.getGridFullWidth() - primLayer.getGridOffset(), primLayer.getStyle(), layer);
+                b.makeGridPoly(a, a.getGridFullWidth() - primLayer.getGridOffset(), primLayer.getStyle(), layer);
             }
         }
         

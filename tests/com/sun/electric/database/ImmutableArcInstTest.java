@@ -33,7 +33,9 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
@@ -816,29 +818,52 @@ public class ImmutableArcInstTest {
         ImmutableCell c = ImmutableCell.newInstance(cellId, 0).withTech(MoCMOS.tech);
         ImmutableNodeInst[] nodes = { n0, n1 };
         CellBackup cellBackup0 = new CellBackup(c).with(c, 0, false, nodes, null, null);
+        MyBuilder b = new MyBuilder();
         for (int angle = 0; angle < 3600; angle++) {
             EPoint p1 = EPoint.fromLambda(n0.anchor.getLambdaX() + 10*GenMath.cos(angle), n0.anchor.getLambdaY() + 10*GenMath.sin(angle));
             ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 1, pp, p1, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
             assertEquals(angle, a1.getAngle());
             ImmutableArcInst[] arcs = { a1 };
             CellBackup cellBackup = cellBackup0.with(c, 0, false, null, arcs, null);
-            CellBackup.Memoization m = cellBackup.getMemoization();
-            Poly poly = a1.makeGridPoly(m, 1000, Poly.Type.FILLED);
-            Point2D[] points = poly.getPoints();
-            assertEquals(4, points.length);
-            long w2x = (long)Math.rint(GenMath.cos(angle)*500*SHAPE_SCALE);
-            long w2y = (long)Math.rint(GenMath.sin(angle)*500*SHAPE_SCALE);
-            assertEquals((double)n0.anchor.getGridX()*SHAPE_SCALE - w2x - w2y, points[0].getX()*SHAPE_SCALE);
-            assertEquals((double)n0.anchor.getGridY()*SHAPE_SCALE + w2x - w2y, points[0].getY()*SHAPE_SCALE);
-            assertEquals((double)n0.anchor.getGridX()*SHAPE_SCALE - w2x + w2y, points[1].getX()*SHAPE_SCALE);
-            assertEquals((double)n0.anchor.getGridY()*SHAPE_SCALE - w2x - w2y, points[1].getY()*SHAPE_SCALE);
-            assertEquals((double)p1.getGridX()*SHAPE_SCALE + w2x + w2y, points[2].getX()*SHAPE_SCALE);
-            assertEquals((double)p1.getGridY()*SHAPE_SCALE - w2x + w2y, points[2].getY()*SHAPE_SCALE);
-            assertEquals((double)p1.getGridX()*SHAPE_SCALE + w2x - w2y, points[3].getX()*SHAPE_SCALE);
-            assertEquals((double)p1.getGridY()*SHAPE_SCALE + w2x + w2y, points[3].getY()*SHAPE_SCALE);
+            b.setTest(cellBackup, a1, 1000);
+            b.makeGridPoly(a1, 1000, Poly.Type.FILLED, null);
         }
     }
 
+    private static class MyBuilder extends AbstractShapeBuilder {
+        ImmutableArcInst a;
+        double w2;
+        
+        void setTest(CellBackup cellBackup, ImmutableArcInst a, long width) {
+            setShrinkage(cellBackup.getShrinkage());
+            this.a = a;
+            w2 = width*0.5;
+            pointCount = 0;
+        }
+        
+        @Override
+        public void addDoublePoly(int numPoints, Poly.Type style, Layer layer) {
+            assertEquals(4, pointCount);
+            int angle = a.getAngle();
+            long w2x = (long)Math.rint(GenMath.cos(angle)*w2*SHAPE_SCALE);
+            long w2y = (long)Math.rint(GenMath.sin(angle)*w2*SHAPE_SCALE);
+            assertEquals((double)a.tailLocation.getGridX()*SHAPE_SCALE - w2x - w2y, doubleCoords[0]*SHAPE_SCALE);
+            assertEquals((double)a.tailLocation.getGridY()*SHAPE_SCALE + w2x - w2y, doubleCoords[1]*SHAPE_SCALE);
+            assertEquals((double)a.tailLocation.getGridX()*SHAPE_SCALE - w2x + w2y, doubleCoords[2]*SHAPE_SCALE);
+            assertEquals((double)a.tailLocation.getGridY()*SHAPE_SCALE - w2x - w2y, doubleCoords[3]*SHAPE_SCALE);
+            assertEquals((double)a.headLocation.getGridX()*SHAPE_SCALE + w2x + w2y, doubleCoords[4]*SHAPE_SCALE);
+            assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE - w2x + w2y, doubleCoords[5]*SHAPE_SCALE);
+            assertEquals((double)a.headLocation.getGridX()*SHAPE_SCALE + w2x - w2y, doubleCoords[6]*SHAPE_SCALE);
+            assertEquals((double)a.headLocation.getGridY()*SHAPE_SCALE + w2x + w2y, doubleCoords[7]*SHAPE_SCALE);
+        }
+    
+        @Override
+        public void addIntLine(int[] coords, Poly.Type style, Layer layer) { throw new UnsupportedOperationException(); }
+        @Override
+        public void addIntBox(int[] coords, Layer layer) { throw new UnsupportedOperationException(); }
+        
+    }
+    
 //    /**
 //     * Test of makeGridBoxInt method, of class com.sun.electric.database.ImmutableArcInst.
 //     */
@@ -855,96 +880,96 @@ public class ImmutableArcInstTest {
 //        fail("The test case is a prototype.");
 //    }
 
-    /**
-     * Test of registerShrinkage method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testRegisterShrinkage() {
-        System.out.println("registerShrinkage");
-        
-        int[] shrinkageState = new int[2];
-        a0.registerShrinkage(shrinkageState);
-        assertTrue(shrinkageState[a0.tailNodeId] != 0);
-        assertTrue(shrinkageState[a0.headNodeId] != 0);
-    }
-
-    /**
-     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testComputeShrink0() {
-        System.out.println("computeShrink0");
-        int[] shrinkageState = new int[2];
-        a0.registerShrinkage(shrinkageState);
-        assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[0]));
-        assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[1]));
-    }
-
-    /**
-     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testComputeShrink1() {
-        System.out.println("computeShrink1");
-        int[] shrinkageState = new int[1];
-        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 0, pp, n0.anchor, DBMath.lambdaToGrid(15), 300, ImmutableArcInst.DEFAULT_FLAGS);
-        a1.registerShrinkage(shrinkageState);
-        assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[0]));
-    }
-
-    /**
-     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testComputeShrink2() {
-        System.out.println("computeShrink2");
-        int[] shrinkageState = new int[3];
-        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 2, pp, n1.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 1500, ImmutableArcInst.DEFAULT_FLAGS);
-        a0.registerShrinkage(shrinkageState);
-        a1.registerShrinkage(shrinkageState);
-        assertEquals((short)1502, ImmutableArcInst.computeShrink(shrinkageState[1]));
-    }
-
-    /**
-     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testComputeShrink3() {
-        System.out.println("computeShrink3");
-        int[] shrinkageState = new int[3];
-        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 2, pp, n1.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 1500, ImmutableArcInst.DEFAULT_FLAGS);
-        a1 = a1.withFlag(ImmutableArcInst.HEAD_EXTENDED, false);
-        a0.registerShrinkage(shrinkageState);
-        a1.registerShrinkage(shrinkageState);
-        assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[1]));
-    }
-
-    /**
-     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
-     */
-    @Test public void testComputeShrink4() {
-        System.out.println("computeShrink4");
-        for (int angle1 = 0; angle1 < 3600; angle1 += 100) {
-            EPoint p0 = EPoint.fromLambda(n1.anchor.getLambdaX() - 1000*GenMath.cos(angle1), n1.anchor.getLambdaY() - 1000*GenMath.sin(angle1));
-            ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, p0, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
-            for (int angle2 = 0; angle2 < 3600; angle2++) {
-                EPoint p2 = EPoint.fromLambda(n1.anchor.getLambdaX() - 1100*GenMath.cos(angle2), n1.anchor.getLambdaY() - 1100*GenMath.sin(angle2));
-                ImmutableArcInst a2 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 1, pp, n1.anchor, 2, pp, p2, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
-                int[] shrinkageState = new int[3];
-                a1.registerShrinkage(shrinkageState);
-                a2.registerShrinkage(shrinkageState);
-                assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[0]));
-                assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[2]));
-                short shrink = 0; // EXTEND_90
-                if (angle1 % 900 != 0 || angle2 % 900 != 0) {
-                    int diff = angle1 - angle2;
-                    while (diff < 0) diff += 3600;
-                    while (diff >= 3600) diff -= 3600;
-                    if (diff == 1800)
-                        shrink = 1; // EXTEND_0
-                    else if (diff > 900 && diff < 2700) {
-                        shrink = (short)(2 + (angle1 + angle2) % 3600);
-                    }
-                }
-                assertEquals(shrink,  ImmutableArcInst.computeShrink(shrinkageState[1]));
-            }
-        }
-    }
+//    /**
+//     * Test of registerShrinkage method, of class com.sun.electric.database.ImmutableArcInst.
+//     */
+//    @Test public void testRegisterShrinkage() {
+//        System.out.println("registerShrinkage");
+//        
+//        int[] shrinkageState = new int[2];
+//        a0.registerShrinkage(shrinkageState);
+//        assertTrue(shrinkageState[a0.tailNodeId] != 0);
+//        assertTrue(shrinkageState[a0.headNodeId] != 0);
+//    }
+//
+//    /**
+//     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
+//     */
+//    @Test public void testComputeShrink0() {
+//        System.out.println("computeShrink0");
+//        int[] shrinkageState = new int[2];
+//        a0.registerShrinkage(shrinkageState);
+//        assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[0]));
+//        assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[1]));
+//    }
+//
+//    /**
+//     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
+//     */
+//    @Test public void testComputeShrink1() {
+//        System.out.println("computeShrink1");
+//        int[] shrinkageState = new int[1];
+//        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, n0.anchor, 0, pp, n0.anchor, DBMath.lambdaToGrid(15), 300, ImmutableArcInst.DEFAULT_FLAGS);
+//        a1.registerShrinkage(shrinkageState);
+//        assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[0]));
+//    }
+//
+//    /**
+//     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
+//     */
+//    @Test public void testComputeShrink2() {
+//        System.out.println("computeShrink2");
+//        int[] shrinkageState = new int[3];
+//        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 2, pp, n1.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 1500, ImmutableArcInst.DEFAULT_FLAGS);
+//        a0.registerShrinkage(shrinkageState);
+//        a1.registerShrinkage(shrinkageState);
+//        assertEquals((short)1502, ImmutableArcInst.computeShrink(shrinkageState[1]));
+//    }
+//
+//    /**
+//     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
+//     */
+//    @Test public void testComputeShrink3() {
+//        System.out.println("computeShrink3");
+//        int[] shrinkageState = new int[3];
+//        ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 2, pp, n1.anchor, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 1500, ImmutableArcInst.DEFAULT_FLAGS);
+//        a1 = a1.withFlag(ImmutableArcInst.HEAD_EXTENDED, false);
+//        a0.registerShrinkage(shrinkageState);
+//        a1.registerShrinkage(shrinkageState);
+//        assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[1]));
+//    }
+//
+//    /**
+//     * Test of computeShrink method, of class com.sun.electric.database.ImmutableArcInst.
+//     */
+//    @Test public void testComputeShrink4() {
+//        System.out.println("computeShrink4");
+//        for (int angle1 = 0; angle1 < 3600; angle1 += 100) {
+//            EPoint p0 = EPoint.fromLambda(n1.anchor.getLambdaX() - 1000*GenMath.cos(angle1), n1.anchor.getLambdaY() - 1000*GenMath.sin(angle1));
+//            ImmutableArcInst a1 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 0, pp, p0, 1, pp, n1.anchor, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+//            for (int angle2 = 0; angle2 < 3600; angle2++) {
+//                EPoint p2 = EPoint.fromLambda(n1.anchor.getLambdaX() - 1100*GenMath.cos(angle2), n1.anchor.getLambdaY() - 1100*GenMath.sin(angle2));
+//                ImmutableArcInst a2 = ImmutableArcInst.newInstance(0, ap, nameA0, null, 1, pp, n1.anchor, 2, pp, p2, DBMath.lambdaToGrid(15), 0, ImmutableArcInst.DEFAULT_FLAGS);
+//                int[] shrinkageState = new int[3];
+//                a1.registerShrinkage(shrinkageState);
+//                a2.registerShrinkage(shrinkageState);
+//                assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[0]));
+//                assertEquals((short)0, ImmutableArcInst.computeShrink(shrinkageState[2]));
+//                short shrink = 0; // EXTEND_90
+//                if (angle1 % 900 != 0 || angle2 % 900 != 0) {
+//                    int diff = angle1 - angle2;
+//                    while (diff < 0) diff += 3600;
+//                    while (diff >= 3600) diff -= 3600;
+//                    if (diff == 1800)
+//                        shrink = 1; // EXTEND_0
+//                    else if (diff > 900 && diff < 2700) {
+//                        shrink = (short)(2 + (angle1 + angle2) % 3600);
+//                    }
+//                }
+//                assertEquals(shrink,  ImmutableArcInst.computeShrink(shrinkageState[1]));
+//            }
+//        }
+//    }
 
     /**
      * Test of getRadius method, of class com.sun.electric.database.ImmutableArcInst.
@@ -960,14 +985,14 @@ public class ImmutableArcInstTest {
     public void testCurvedArcGridOutline() {
         System.out.println("curvedArcGridOutline");
         
-        Poly.Type style = null;
-        long gridWidth = 0L;
-        long gridRadius = 0L;
-        ImmutableArcInst instance = null;
-        
-        Poly expResult = null;
-        Poly result = instance.curvedArcGridOutline(style, gridWidth, gridRadius);
-        assertEquals(expResult, result);
+//        Poly.Type style = null;
+//        long gridWidth = 0L;
+//        long gridRadius = 0L;
+//        ImmutableArcInst instance = null;
+//        
+//        Poly expResult = null;
+//        Poly result = instance.curvedArcGridOutline(style, gridWidth, gridRadius);
+//        assertEquals(expResult, result);
         
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");

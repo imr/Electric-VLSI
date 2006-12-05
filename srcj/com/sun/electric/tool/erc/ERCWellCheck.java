@@ -578,7 +578,7 @@ public class ERCWellCheck
 
 					Technology tech = ai.getProto().getTechnology();
 					// Getting only ercLayers
-					Poly [] arcInstPolyList = tech.getShapeOfArc(ai, null, ercLayers);
+					Poly [] arcInstPolyList = tech.getShapeOfArc(ai, ercLayers);
 					int tot = arcInstPolyList.length;
 					for(int i=0; i<tot; i++)
 					{

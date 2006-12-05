@@ -123,6 +123,20 @@ public abstract class ImmutableElectricObject {
 	}
 
 	/**
+	 * Method to return the Variable on this ImmutableElectricObject with a given key and type.
+	 * @param key the key of the Variable.
+	 * @param type the required type of the Variable. Ignored if null.
+	 * @return the Variable with that key and type, or null if there is no such Variable
+	 * or default Variable value.
+	 * @throws NullPointerException if key is null
+	 */
+	public Variable getVar(Variable.Key key, Class type)
+	{
+		Variable var = getVar(key);
+		return var == null || type == null || type.isInstance(var.getObject()) ? var : null;
+	}
+
+	/**
 	 * Method to return an Iterator over all Variables on this ImmutableElectricObject.
 	 * @return an Iterator over all Variables on this ImmutableElectricObject.
 	 */

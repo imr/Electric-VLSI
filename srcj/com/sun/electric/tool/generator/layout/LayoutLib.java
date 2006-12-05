@@ -778,7 +778,7 @@ public class LayoutLib {
         // get layer from arcs
         for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
             ArcInst ai = it.next();
-            Poly [] polys = tech.getShapeOfArc(ai, null, thisFunction);
+            Poly [] polys = tech.getShapeOfArc(ai, thisFunction);
             if (polys == null) continue;
             for (int i=0; i<polys.length; i++) {
                 if (polys[i] == null) continue;

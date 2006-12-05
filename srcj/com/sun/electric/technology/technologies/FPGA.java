@@ -25,6 +25,7 @@
  */
 package com.sun.electric.technology.technologies;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -51,6 +52,7 @@ import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -65,7 +67,6 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.PromptAt;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -508,39 +509,35 @@ public class FPGA extends Technology
 		return super.getShapeOfNode(ni, electrical, reasonable, primLayers, layerOverride);
 	}
 
-	/**
-	 * Method to return a list of Polys that describe a given ArcInst.
-	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in this Technology.
-	 * @param ai the ArcInst to describe.
-	 * @param layerOverride the layer to use for all generated polygons (if not null).
-	 * @param onlyTheseLayers to filter the only required layers
-	 * @return an array of Poly objects.
-	 */
+    /**
+     * Fill the polygons that describe arc "a".
+     * @param b AbstractShapeBuilder to fill polygons.
+     * @param a the ImmutableArcInst that is being described.
+     */
     @Override
-	public Poly [] getShapeOfArc(ArcInst ai, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
-	{
-		boolean active = true;
-		if ((internalDisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
-			(internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
-		{
-			VarContext context = VarContext.globalContext;
-//			if (wnd != null) context = wnd.getVarContext();  Need to be fixed. DN 11/2/06
-			if (!arcActive(ai, context)) active = false;
-		}
-		if (!active) return NULLPOLYS;
-
-		Poly [] polys = new Poly[1];
-		int polyNum = 0;
-
-		// draw the arc
-		polys[polyNum] = ai.makeLambdaPoly(ai.getGridFullWidth(), Poly.Type.FILLED);
-		if (polys[polyNum] == null) return null;
-		polys[polyNum].setLayer(tech.wireLayer);
-		polyNum++;
-		return polys;
-	}
-
+    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
+        super.getShapeOfArc(b, a);
+//		boolean active = true;
+//		if ((internalDisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
+//			(internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
+//		{
+//			VarContext context = VarContext.globalContext;
+////			if (wnd != null) context = wnd.getVarContext();  Need to be fixed. DN 11/2/06
+//			if (!arcActive(ai, context)) active = false;
+//		}
+//		if (!active) return NULLPOLYS;
+//
+//		Poly [] polys = new Poly[1];
+//		int polyNum = 0;
+//
+//		// draw the arc
+//		polys[polyNum] = ai.makeLambdaPoly(ai.getGridFullWidth(), Poly.Type.FILLED);
+//		if (polys[polyNum] == null) return null;
+//		polys[polyNum].setLayer(tech.wireLayer);
+//		polyNum++;
+//		return polys;
+    }
+    
 	/******************** TECHNOLOGY INTERFACE SUPPORT ********************/
 
 	private boolean arcEndActive(ArcInst ai, int j, VarContext curContext)

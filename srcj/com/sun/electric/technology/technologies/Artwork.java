@@ -23,6 +23,8 @@
  */
 package com.sun.electric.technology.technologies;
 
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
@@ -30,9 +32,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 
@@ -450,7 +450,7 @@ public class Artwork extends Technology
 	protected Poly [] getShapeOfNode(NodeInst ni, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		layerOverride = getProperLayer(ni);
+		layerOverride = getProperLayer(ni.getD());
 
 		if (np == circleNode || np == thickCircleNode)
 		{
@@ -545,21 +545,16 @@ public class Artwork extends Technology
 		return polys[0];
 	}
 
-	/**
-	 * Method to return a list of Polys that describe a given ArcInst.
-	 * This method overrides the general one in the Technology object
-	 * because of the unusual primitives in this Technology.
-	 * @param ai the ArcInst to describe.
-	 * @param onlyTheseLayers to filter the only required layers
-	 * @return an array of Poly objects.
-	 */
+    /**
+     * Fill the polygons that describe arc "a".
+     * @param b AbstractShapeBuilder to fill polygons.
+     * @param a the ImmutableArcInst that is being described.
+     */
     @Override
-	public Poly [] getShapeOfArc(ArcInst ai, Layer layerOverride, Layer.Function.Set onlyTheseLayers)
-	{
-		layerOverride = getProperLayer(ai);
-		return super.getShapeOfArc(ai, layerOverride, onlyTheseLayers);
-	}
-
+    protected void getShapeOfArc(AbstractShapeBuilder b, ImmutableArcInst a) {
+		getShapeOfArc(b, a, getProperLayer(a));
+    }
+    
 	/**
 	 * Method to return an array of Point2D that describe an ellipse.
 	 * @param center the center coordinate of the ellipse.
@@ -735,16 +730,16 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Method to return the Layer to use for an Artwork ElectricObject.
-	 * If there are individualized color and pattern Variables on the ElectricObject,
+	 * Method to return the Layer to use for an Artwork ImmutableElectricObject.
+	 * If there are individualized color and pattern Variables on the ImmutableElectricObject,
 	 * they are used to construct a new Layer (with a new EGraphics that captures
 	 * the color and pattern).
-	 * @param eObj the ElectricObject with individualized color and pattern information.
+	 * @param d the ImmutableElectricObject with individualized color and pattern information.
 	 * @return a Layer that has the color and pattern.
 	 */
-	private Layer getProperLayer(ElectricObject eObj)
+	private Layer getProperLayer(ImmutableElectricObject d)
 	{
-		EGraphics graphics = makeGraphics(eObj);
+		EGraphics graphics = makeGraphics(d);
 		if (graphics == null) return defaultLayer;
 		Layer thisLayer = Layer.newInstance("Graphics", graphics);
 		return thisLayer;
@@ -755,11 +750,20 @@ public class Artwork extends Technology
 	 * @param eObj the ElectricObject with graphics specifications.
 	 * @return a new EGraphics that has the color and pattern.
 	 */
-	public static EGraphics makeGraphics(ElectricObject eObj)
+	public static EGraphics makeGraphics(ElectricObject eObj) {
+        return makeGraphics(eObj.getD());
+    }
+    
+	/**
+	 * Method to create an EGraphics for an ImmutableElectricObject with color and pattern Variables.
+	 * @param d the ImmutableElectricObject with graphics specifications.
+	 * @return a new EGraphics that has the color and pattern.
+	 */
+	private static EGraphics makeGraphics(ImmutableElectricObject d)
 	{
 		// get the color and pattern information
-		Variable colorVar = eObj.getVar(ART_COLOR, Integer.class);
-		Variable patternVar = eObj.getVar(ART_PATTERN);
+		Variable colorVar = d.getVar(ART_COLOR, Integer.class);
+		Variable patternVar = d.getVar(ART_PATTERN);
 		if (colorVar == null && patternVar == null) return null;
 
 		// make a fake layer with graphics

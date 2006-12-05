@@ -30,7 +30,6 @@ import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableCell;
-import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
@@ -57,6 +56,7 @@ import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -964,6 +964,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
      */
     public CellBackup.Memoization getMemoization() {
         return backupUnsafe().getMemoization();
+    }
+    
+    /**
+     * Returns data for arc shrinkage computation.
+     * @return data for arc shrinkage computation.
+     */
+    public AbstractShapeBuilder.Shrinkage getShrinkage() {
+        return backupUnsafe().getShrinkage();
     }
     
     public Topology getTopology() { return topology; }

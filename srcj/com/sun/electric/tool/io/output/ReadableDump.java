@@ -114,7 +114,6 @@ public class ReadableDump extends ELIB {
             CellId cellId = entry.getKey();
             if (cellId.libId != theLibId) continue;
             CellBackup cellBackup = snapshot.getCell(cellId);
-            CellBackup.Memoization m = cellBackup.getMemoization();
             startCell(cellBackup, 0);
             int groupIndex = groupRenumber[snapshot.cellGroups[cellId.cellIndex]];
             printWriter.println("***cell: " + ((Integer)entry.getValue()).intValue() + "/" + groupIndex);

@@ -673,7 +673,6 @@ public class ELIB extends Output
     }
 
     void startCell(CellBackup cellBackup, int baseNodeIndex) {
-        CellBackup.Memoization m = cellBackup.getMemoization();
         double gridScale = cellBackup.d.tech.getScale()*2/DBMath.GRID;
         int maxNodeId = -1;
         for (ImmutableNodeInst n: cellBackup.nodes)

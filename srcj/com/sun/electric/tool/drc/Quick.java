@@ -3266,7 +3266,7 @@ public class Quick
         else if (geom instanceof ArcInst)
         {
             ArcInst ai = (ArcInst)geom;
-            primPolyList = ai.getProto().getTechnology().getShapeOfArc(ai, null, drcLayers);
+            primPolyList = ai.getProto().getTechnology().getShapeOfArc(ai, drcLayers);
         }
         return primPolyList;
     }

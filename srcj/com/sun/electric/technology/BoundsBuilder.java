@@ -23,7 +23,7 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.CellBackup.Memoization;
+import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.ERectangle;
@@ -39,8 +39,8 @@ public class BoundsBuilder extends AbstractShapeBuilder {
     private double doubleMinX, doubleMinY, doubleMaxX, doubleMaxY;
     private boolean hasIntBounds, hasDoubleBounds;
     
-    public BoundsBuilder(Memoization m) {
-        this.m = m;
+    public BoundsBuilder(Shrinkage shrinkage) {
+        setShrinkage(shrinkage);
         clear();
     }
     

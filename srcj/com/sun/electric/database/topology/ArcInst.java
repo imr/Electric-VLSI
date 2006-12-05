@@ -674,7 +674,7 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
     }
     
     void computeBounds(BoundsBuilder b, int[] intCoords) {
-        if (d.genBoundsEasy(b.getMemoization(), intCoords)) {
+        if (d.genBoundsEasy(b.getShrinkage(), intCoords)) {
             double x = intCoords[0];
             double y = intCoords[1];
             double w = intCoords[2] - x;
@@ -713,22 +713,23 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 	 * @return a Poly that describes the ArcInst in lambda units.
 	 */
     public Poly makeLambdaPoly(long gridWidth, Poly.Type style) {
-        Poly poly = makeGridPoly(gridWidth, style);
-        poly.gridToLambda();
-        return poly;
+        Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
+        polyBuilder.setOnlyTheseLayers(null);
+        polyBuilder.setShrinkage(parent.getShrinkage());
+        return polyBuilder.makePoly(getD(), gridWidth, style);
     }
 	
-	/**
-	 * Method to create a Poly object that describes an ArcInst in grid units.
-	 * The ArcInst is described by its width and style.
-	 * @param gridWidth the width of the Poly in grid units.
-	 * @param style the style of the ArcInst.
-	 * @return a Poly that describes the ArcInst in grid units.
-	 */
-    public Poly makeGridPoly(long gridWidth, Poly.Type style) {
-        CellBackup.Memoization m = parent != null ? parent.getMemoization() : null;
-        return getD().makeGridPoly(m, gridWidth, style);
-    }
+//	/**
+//	 * Method to create a Poly object that describes an ArcInst in grid units.
+//	 * The ArcInst is described by its width and style.
+//	 * @param gridWidth the width of the Poly in grid units.
+//	 * @param style the style of the ArcInst.
+//	 * @return a Poly that describes the ArcInst in grid units.
+//	 */
+//    public Poly makeGridPoly(long gridWidth, Poly.Type style) {
+//        CellBackup.Memoization m = parent != null ? parent.getMemoization() : null;
+//        return getD().makeGridPoly(m, gridWidth, style);
+//    }
 	
 	/**
      * Method to fill polygon "poly" with the outline in lambda units of the curved arc in
@@ -737,9 +738,11 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
      * otherwise it returns the curved polygon.
      */
     public Poly curvedArcLambdaOutline(Poly.Type style, long gridWidth, long gridRadius) {
-        Poly poly = d.curvedArcGridOutline(style, gridWidth, gridRadius);
-        if (poly != null) poly.gridToLambda();
-        return poly;
+        Poly.Builder polyBuilder = Poly.threadLocalLambdaBuilder();
+        polyBuilder.setOnlyTheseLayers(null);
+        polyBuilder.setShrinkage(parent.getShrinkage());
+        Variable radius = Variable.newInstance(ImmutableArcInst.ARC_RADIUS, new Double(DBMath.gridToLambda(gridRadius)), TextDescriptor.getArcTextDescriptor());
+        return polyBuilder.makePoly(getD().withVariable(radius), gridWidth, style);
     }
     
 //	/**
