@@ -436,7 +436,7 @@ public class Array extends EDialog
 
 		public boolean doIt() throws JobException
 		{
-			Cell cell = null;
+			Cell cell = nodeList.get(0).getParent();
 
 			// if only arraying where DRC clean, make an array of newly created nodes
 			Geometric [] geomsToCheck = null;

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+BUG: (12/5/06, SMR) Array command crashes (Bug #1268).
+FIX: In Array.ArrayStuff.doIt(), assign "cell" correctly.
+
 BUG: (12/4/06, SMR) Closing a library causes a crash (Bug #1267).
 FIX: In Cell.getName(), test for null "groupName" field.
 
