@@ -1610,6 +1610,29 @@ public class TextUtils
     };
 
     /**
+     * Method to replace all special characters in the instance name coming from external files such as"/"..
+     * @param n
+     * @return String where characters "/", "[", "]" are replacedby "-". "\" is removed.
+     */
+    public static String correctName(String n)
+    {
+        // First replace "/" for "-"
+        n = n.replaceAll("/", "-");
+        // removing brackets only if ] is not the last item in the string
+        int index = n.indexOf("]");
+        if (index != -1 && index < n.length()-1)
+        {
+            n = n.replace('[', '-');
+            n = n.replaceAll("]", "-");
+        }
+        // Remove possible space character representing as \
+        index = n.indexOf("\\");
+        if (index != -1)
+            n = n.substring(index+1);
+        return n;
+    }
+
+    /**
 	 * Class to define the kind of text string to search
 	 */
 	public enum WhatToSearch {
