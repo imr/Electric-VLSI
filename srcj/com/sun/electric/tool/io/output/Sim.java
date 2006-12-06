@@ -113,7 +113,7 @@ public class Sim extends Output
 	{
 		globalNetNames = new HashMap<Integer,String>();
 
-		printWriter.println("| " + netfile);
+		printWriter.println("| Cell " + cell.describe(false));
 		emitCopyright("| ", "");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
