@@ -609,7 +609,8 @@ public class Name implements Comparable<Name>
 					flags &= ~SIMPLE;
 					if (i == 0 || ns.charAt(i-1) == ',') flags |= HAS_EMPTIES;
 					wasBrackets = false;
-				} else if (wasBrackets) throw new NumberFormatException("Wrong character after brackets");
+				} else if (wasBrackets)
+                    throw new NumberFormatException("Wrong character after brackets");
 				if (c == '@') {
                     for (int j = i + 1; j < ns.length(); j++) {
                         char cj = ns.charAt(j);

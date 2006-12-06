@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+IMP: (12/5/06, GVG) Changes to get Generation test working after recent modifications. Some changes
+to get Routing tests to run from regression. Small changes in VerilogReader.
+
 IMP: (12/5/06, SMR) Made "Routing" test menu work.
 
 BUG: (12/5/06, SMR) Maze routing doesn't work.
