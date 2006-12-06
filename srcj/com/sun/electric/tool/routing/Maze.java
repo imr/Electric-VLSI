@@ -217,16 +217,6 @@ public class Maze
 			return;
 		}
 		Set<Network> nets = wnd.getHighlightedNetworks();
-//		if (nets.size() == 0)
-//		{
-//			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-//			{
-//				ArcInst ai = it.next();
-//				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
-//				Network net = netList.getNetwork(ai, 0);
-//				nets.add(net);
-//			}
-//		}
 
 		// turn the set of Nets back into a list of Arcs to route
 		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();

@@ -29,6 +29,8 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
@@ -55,6 +57,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Class to do river routing.
@@ -355,22 +358,34 @@ public class River
 		List<RDESC> theList = new ArrayList<RDESC>();
 
 		// get list of all highlighted arcs
-		List<Geometric> allArcs = MenuCommands.getSelectedObjects(false, true);
-		if (allArcs.size() != 0)
+		UserInterface ui = Job.getUserInterface();
+		EditWindow_ wnd = ui.getCurrentEditWindow_();
+		if (wnd != null)
 		{
-			// add all highlighted arcs to the list of RDESC objects
-			for(Geometric geom : allArcs)
+			Netlist netList = cell.acquireUserNetlist();
+			if (netList == null)
 			{
-				ArcInst ai = (ArcInst)geom;
-				addWire(theList, ai, arcsSeen);
+				System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
+				return false;
 			}
-		} else
-		{
-			// add all arcs in the cell to the list of RDESC objects
-			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+			Set<Network> nets = wnd.getHighlightedNetworks();
+			if (nets.size() != 0)
 			{
-				ArcInst ai = it.next();
-				addWire(theList, ai, arcsSeen);
+				// add all highlighted arcs to the list of RDESC objects
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = it.next();
+					Network net = netList.getNetwork(ai, 0);
+					if (nets.contains(net)) addWire(theList, ai, arcsSeen);
+				}
+			} else
+			{
+				// add all arcs in the cell to the list of RDESC objects
+				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = it.next();
+					addWire(theList, ai, arcsSeen);
+				}
 			}
 		}
 
