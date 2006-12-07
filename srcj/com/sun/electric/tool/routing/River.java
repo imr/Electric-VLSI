@@ -358,19 +358,21 @@ public class River
 		List<RDESC> theList = new ArrayList<RDESC>();
 
 		// get list of all highlighted arcs
+		boolean foundSome = false;
 		UserInterface ui = Job.getUserInterface();
 		EditWindow_ wnd = ui.getCurrentEditWindow_();
 		if (wnd != null)
 		{
-			Netlist netList = cell.acquireUserNetlist();
-			if (netList == null)
-			{
-				System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
-				return false;
-			}
 			Set<Network> nets = wnd.getHighlightedNetworks();
 			if (nets.size() != 0)
 			{
+				Netlist netList = cell.acquireUserNetlist();
+				if (netList == null)
+				{
+					System.out.println("Sorry, a deadlock aborted routing (network information unavailable).  Please try again");
+					return false;
+				}
+
 				// add all highlighted arcs to the list of RDESC objects
 				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 				{
@@ -378,14 +380,16 @@ public class River
 					Network net = netList.getNetwork(ai, 0);
 					if (nets.contains(net)) addWire(theList, ai, arcsSeen);
 				}
-			} else
+				foundSome = true;
+			}
+		}
+		if (!foundSome)
+		{
+			// add all arcs in the cell to the list of RDESC objects
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				// add all arcs in the cell to the list of RDESC objects
-				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-				{
-					ArcInst ai = it.next();
-					addWire(theList, ai, arcsSeen);
-				}
+				ArcInst ai = it.next();
+				addWire(theList, ai, arcsSeen);
 			}
 		}
 
