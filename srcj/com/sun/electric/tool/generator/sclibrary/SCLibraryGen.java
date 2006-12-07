@@ -1,24 +1,24 @@
 package com.sun.electric.tool.generator.sclibrary;
 
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.generator.layout.StdCellParams;
-import com.sun.electric.tool.generator.layout.Tech;
-import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
-import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.PrimitiveNode;
-
-import java.util.List;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.awt.Color;
+import java.util.List;
+
+import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
+import com.sun.electric.tool.generator.layout.StdCellParams;
+import com.sun.electric.tool.generator.layout.TechType;
 
 /**
  * Created by IntelliJ IDEA.
@@ -117,9 +117,9 @@ public class SCLibraryGen {
         }
         prMsg("Using purple library \""+purpleLibraryName+"\" and red library \""+redLibraryName+"\"");
 
-        if (sc.getTechnology() == Tech.Type.TSMC180)
+        if (sc.getTechnology() == TechType.TSMC180)
             scLibraryName = "sclibTSMC180";
-        else if (sc.getTechnology() == Tech.Type.TSMC90)
+        else if (sc.getTechnology() == TechType.CMOS90)
             scLibraryName = "sclibTSMC90";
         scLibrary = Library.findLibrary(scLibraryName);
         if (scLibrary == null) {

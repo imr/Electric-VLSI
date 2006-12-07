@@ -23,20 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.DRCTemplate;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Foundry;
-import com.sun.electric.technology.technologies.MoCMOS;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool;
-import com.sun.electric.tool.generator.layout.Tech;
-import com.sun.electric.tool.generator.layout.fill.FillGenConfig;
-import com.sun.electric.tool.generator.layout.fill.FillGenJob;
-
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -46,11 +32,32 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
-import java.lang.reflect.Constructor;
 
-import javax.swing.*;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
+
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.MoCMOS;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.tool.generator.layout.fill.FillGenConfig;
+import com.sun.electric.tool.generator.layout.fill.FillGenJob;
+import com.sun.electric.tool.generator.layout.fill.FillGeneratorTool;
 
 /**
  * Unused class to manage fill generators.
@@ -677,13 +684,13 @@ public class FillGenDialog extends EDialog {
             for (int i = 0; i < items.size(); i++)
                 cells[i] = items.get(i);
         }
-        Tech.Type techNm = Tech.Type.TSMC90; // putting one possible value
+        TechType techNm = TechType.CMOS90; // putting one possible value
 
         if (tech == MoCMOS.tech)
         {
             techNm = (tech.getSelectedFoundry().getType() == Foundry.Type.TSMC) ?
-                    Tech.Type.TSMC180 :
-                    Tech.Type.MOCMOS;
+                    TechType.TSMC180 :
+                    TechType.MOCMOS;
         }
         else
         {

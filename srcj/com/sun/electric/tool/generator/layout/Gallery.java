@@ -162,7 +162,7 @@ public class Gallery {
 		error(generic == null, "No generic technology?");
 		textPin = generic.findNodeProto("Invisible-Pin");
 
-		stdCell = new StdCellParams(Tech.Type.MOCMOS);
+		stdCell = new StdCellParams(TechType.MOCMOS);
         stdCell.setOutputLibrary(lib);
     }
 

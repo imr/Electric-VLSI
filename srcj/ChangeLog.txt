@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+IMP: (12/5/06, RK) Move information from Tech.java into TechTypeMoCMOS, TechTypeCMOS90, and TechTypeTSMC180.
+
 IMP: (12/5/06, GVG) Changes to get Generation test working after recent modifications. Some changes
 to get Routing tests to run from regression. Small changes in VerilogReader.
 

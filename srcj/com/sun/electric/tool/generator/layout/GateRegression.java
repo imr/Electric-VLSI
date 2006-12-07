@@ -28,20 +28,17 @@ import java.lang.reflect.Method;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
-import com.sun.electric.tool.io.output.CIF;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 
 /*
  * Regression test for gate generators
  */
 public class GateRegression extends Job {
-    private Tech.Type technology;
+    private TechType technology;
 
     // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -51,7 +48,7 @@ public class GateRegression extends Job {
 		}
 	};
 
-    private static void allSizes(StdCellParams stdCell, Tech.Type technology) {
+    private static void allSizes(StdCellParams stdCell, TechType technology) {
         double minSz = 0.1;
         double maxSz = 200;//500;
         for (double d=minSz; d<maxSz; d*=10) {
@@ -61,12 +58,12 @@ public class GateRegression extends Job {
         }
     }
 
-    public static void aPass(double x, StdCellParams stdCell, Tech.Type technology) {
-        if (technology == Tech.Type.MOCMOS || technology == Tech.Type.TSMC180) {
+    public static void aPass(double x, StdCellParams stdCell, TechType technology) {
+        if (technology == TechType.MOCMOS || technology == TechType.TSMC180) {
             MoCMOSGenerator.generateAllGates(x, stdCell);
         }
         Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == Tech.Type.TSMC90) {
+        if (tsmc90 != null && technology == TechType.CMOS90) {
             // invoke the TSMC90 generator by reflection because it may not exist
     		try
 			{
@@ -91,14 +88,14 @@ public class GateRegression extends Job {
 
     /** Programatic interface to gate regressions.
      * @return the number of errors detected */
-    public static int runRegression(Tech.Type technology, Library scratchLib) {
+    public static int runRegression(TechType technology, Library scratchLib) {
 		System.out.println("begin Gate Regression");
 
 //        Tech.setTechnology(technology);     This call can't be done inside the doIt() because it calls the preferences
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == Tech.Type.TSMC90) {
-            stdCell = new StdCellParams(Tech.Type.TSMC90);
+        if (tsmc90 != null && technology == TechType.CMOS90) {
+            stdCell = new StdCellParams(TechType.CMOS90);
             stdCell.setOutputLibrary(scratchLib);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
@@ -171,7 +168,7 @@ public class GateRegression extends Job {
         return 0 /*numCifErrs*/;
 	}
 
-	public GateRegression(Tech.Type techNm) {
+	public GateRegression(TechType techNm) {
 		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE,
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = techNm;

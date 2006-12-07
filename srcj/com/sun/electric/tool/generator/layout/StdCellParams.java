@@ -166,7 +166,7 @@ public class StdCellParams {
 	private String gndExportName = "gnd";
 	private PortCharacteristic vddExportRole = PortCharacteristic.PWR;
 	private PortCharacteristic gndExportRole = PortCharacteristic.GND;
-    private Tech.Type technology;
+    private TechType technology;
 
     // ------------------------ private methods -----------------------------
 
@@ -647,9 +647,9 @@ public class StdCellParams {
 	//------------------------------------------------------------------------------
 	// Utilities for gate generators
 
-	public StdCellParams(Tech.Type tech) {
-        if      (tech == Tech.Type.TSMC90) initTSMC90();
-        else if (tech == Tech.Type.MOCMOS || tech == Tech.Type.TSMC180) initMoCMOS();
+	public StdCellParams(TechType tech) {
+        if      (tech == TechType.CMOS90) initTSMC90();
+        else if (tech == TechType.MOCMOS || tech == TechType.TSMC180) initMoCMOS();
         else {
             error(true, "Standard Cell Params does not understand technology "+tech);
         }
@@ -661,7 +661,7 @@ public class StdCellParams {
     }
     Library getOutputLibrary() { return layoutLib; }
 
-    public Tech.Type getTechnology() { return technology; }
+    public TechType getTechnology() { return technology; }
     public double getNmosWellHeight() {
 		return nmosWellHeight;
 	}
@@ -1339,10 +1339,10 @@ public class StdCellParams {
             // there is space, create it
             double pwellX = roundToGrid(gndPort.getBounds().getCenterX());
             double pwellY = -roundToGrid(nselMaxY + 0.5*wellConSelectHeight + wellConSelectOffset) - gridResolution;
-            SizeOffset so = Tech.pwellNode().getProtoSizeOffset();
-            NodeInst ni = LayoutLib.newNodeInst(Tech.pwellNode(), pwellX, pwellY,
-                    Tech.pwellNode().getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
-                    Tech.pwellNode().getDefHeight() -so.getHighYOffset() - so.getLowYOffset(), 0, cell);
+            SizeOffset so = Tech.pwm1Y().getProtoSizeOffset();
+            NodeInst ni = LayoutLib.newNodeInst(Tech.pwm1Y(), pwellX, pwellY,
+                    Tech.pwm1Y().getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
+                    Tech.pwm1Y().getDefHeight() -so.getHighYOffset() - so.getLowYOffset(), 0, cell);
             LayoutLib.newArcInst(Tech.m1(), getM1TrackWidth(), ni.getOnlyPortInst(), gndPort);
             added = true;
             // if the space to the end of the cell is less than the select to select spacing,
@@ -1375,10 +1375,10 @@ public class StdCellParams {
         if (nspace > (wellConSelectHeight+m1m1_sp) + 2*gridResolution) {
             double nwellX = roundToGrid(vddPort.getBounds().getCenterX());
             double nwellY = roundToGrid(pselMaxY + 0.5*wellConSelectHeight + wellConSelectOffset) + gridResolution;
-            SizeOffset so = Tech.nwellNode().getProtoSizeOffset();
-            NodeInst ni = LayoutLib.newNodeInst(Tech.nwellNode(), nwellX, nwellY,
-                    Tech.nwellNode().getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
-                    Tech.nwellNode().getDefHeight() - so.getHighYOffset() - so.getLowYOffset(), 0, cell);
+            SizeOffset so = Tech.nwm1Y().getProtoSizeOffset();
+            NodeInst ni = LayoutLib.newNodeInst(Tech.nwm1Y(), nwellX, nwellY,
+                    Tech.nwm1Y().getDefWidth() - so.getHighXOffset() - so.getLowXOffset(),
+                    Tech.nwm1Y().getDefHeight() - so.getHighYOffset() - so.getLowYOffset(), 0, cell);
             LayoutLib.newArcInst(Tech.m1(), getM1TrackWidth(), ni.getOnlyPortInst(), vddPort);
             added = true;
             // if the space to the end of the cell is less than the select to select spacing,

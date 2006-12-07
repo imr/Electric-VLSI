@@ -23,6 +23,19 @@
  */
 package com.sun.electric.tool.user;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.JOptionPane;
+
 import com.sun.electric.database.IdMapper;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -32,18 +45,18 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
@@ -66,24 +79,12 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
-import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.layout.StdCellParams;
+import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.swing.JOptionPane;
 
 /**
  * Class for view-related changes to the circuit.
@@ -1271,13 +1272,13 @@ public class ViewChanges
                 this.newTech = newTech;
                 this.defaultLib = defaultLib;
                 convertedCells = new HashMap<Cell,Cell>();
-                Tech.Type type = null;
-                if      (newTech == Technology.findTechnology("MoCMOS")) type = Tech.Type.MOCMOS;
-                else if (newTech == Technology.findTechnology("TSMC180")) type = Tech.Type.TSMC180;
-                else if (newTech == Technology.findTechnology("TSMC90")) type = Tech.Type.TSMC90;
+                TechType type = null;
+                if      (newTech == Technology.findTechnology("MoCMOS")) type = TechType.MOCMOS;
+                else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TSMC180;
+                else if (newTech == Technology.findTechnology("TSMC90")) type = TechType.CMOS90;
                 Tech.setTechnology(type);
                 Technology tsmc90 = Technology.getTSMC90Technology();
-                if (tsmc90 != null && type == Tech.Type.TSMC90) {
+                if (tsmc90 != null && type == TechType.CMOS90) {
                     stdCell = GateLayoutGenerator.sportParams();
                 } else {
                     //stdCell = locoParams(outLib);

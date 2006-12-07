@@ -23,20 +23,20 @@
  */
 package com.sun.electric.tool.generator.layout.fill;
 
-import com.sun.electric.tool.generator.layout.Tech;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.Job;
-import com.sun.electric.technology.Technology;
-
 import java.io.Serializable;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.generator.layout.LayoutLib;
+import com.sun.electric.tool.generator.layout.TechType;
 
 /****************************** CONFIG ******************************/
 
 public class FillGenConfig implements Serializable
 {
-    Tech.Type techNm = Tech.Type.INVALID;
+    TechType techNm = null;
     FillGeneratorTool.FillTypeEnum fillType = FillGeneratorTool.FillTypeEnum.INVALID;
     public String fillLibName;
     List<ReserveConfig> reserves = new ArrayList<ReserveConfig>();
@@ -56,7 +56,7 @@ public class FillGenConfig implements Serializable
     public int level; // to control the level of hierarchy in case of onlyAround option
     public Job job;
 
-    public FillGenConfig(FillGeneratorTool.FillTypeEnum type, Tech.Type tech, String lib, FillGeneratorTool.ExportConfig perim,
+    public FillGenConfig(FillGeneratorTool.FillTypeEnum type, TechType tech, String lib, FillGeneratorTool.ExportConfig perim,
                          int first, int last,
                          double w, double h, boolean even,
                          int[] cellTiles, boolean hierarchy, double minO, double drcSpacingRule,
@@ -76,9 +76,9 @@ public class FillGenConfig implements Serializable
 
         techNm = tech;
 
-        LayoutLib.error((techNm != Tech.Type.MOCMOS && techNm != Tech.Type.TSMC180),
+        LayoutLib.error((techNm != TechType.MOCMOS && techNm != TechType.TSMC180),
             "FillGeneratorTool only recognizes the technologies: "+
-            Tech.Type.MOCMOS+" and "+Tech.Type.TSMC180+".\n"+
+            TechType.MOCMOS+" and "+TechType.TSMC180+".\n"+
             "For 90nm use FillGenerator90");
         this.fillLibName = lib;
         this.perim = perim;

@@ -590,7 +590,7 @@ class CapCell {
 
 		for (int i=0; i<plan.numMosX; i++) {
 			x += plan.mosPitchX/2;
-			NodeInst mos = LayoutLib.newNodeInst(Tech.nmos, x, y, plan.gateWidth,
+			NodeInst mos = LayoutLib.newNodeInst(Tech.nmos(), x, y, plan.gateWidth,
 												 plan.gateLength, 0, cell);
 			G.noExtendArc(Tech.p1(), POLY_CONT_HEIGHT, poly,
 						  mos.findPortInst(LEFT_POLY));
@@ -1045,7 +1045,7 @@ public class FillGeneratorTool extends Tool {
 
     public FillGeneratorTool() {
         super("Fill Generator");
-        Tech.setTechnology(Tech.Type.MOCMOS);
+        Tech.setTechnology(TechType.MOCMOS);
     }
 
     public void setConfig(FillGenConfig config)

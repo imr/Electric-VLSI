@@ -23,25 +23,25 @@
  */
 package com.sun.electric.tool.generator.layout;
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.logicaleffort.LEInst;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
+import com.sun.electric.tool.logicaleffort.LEInst;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.technology.Technology;
 
 /*
  * Regression test for gate generators
@@ -126,13 +126,13 @@ public class GateLayoutGenerator {
         return visitor.getGeneratedCells();
 	}
 
-    public static void generateFromSchematicsJob(Tech.Type type) {
+    public static void generateFromSchematicsJob(TechType type) {
         GenerateFromSchematicsJob job = new GenerateFromSchematicsJob(type);
         job.startJob();
     }
 
     public static StdCellParams locoParams() {
-		StdCellParams stdCell = new StdCellParams(Tech.Type.MOCMOS);
+		StdCellParams stdCell = new StdCellParams(TechType.MOCMOS);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
 		stdCell.setMaxMosWidth(1000);
@@ -145,7 +145,7 @@ public class GateLayoutGenerator {
 	}
 
     public static StdCellParams sportParams() {
-        StdCellParams stdCell = new StdCellParams(Tech.Type.TSMC90);
+        StdCellParams stdCell = new StdCellParams(TechType.CMOS90);
         stdCell.setSizeQuantizationError(0);
         stdCell.setMaxMosWidth(1000);
         stdCell.setVddY(24.5);
@@ -156,7 +156,7 @@ public class GateLayoutGenerator {
         return stdCell;
     }
 
-	public static StdCellParams dividerParams(Tech.Type technology) {
+	public static StdCellParams dividerParams(TechType technology) {
 		StdCellParams stdCell = new StdCellParams(technology);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
@@ -169,7 +169,7 @@ public class GateLayoutGenerator {
 		return stdCell;
 	}
 
-	public static StdCellParams justinParams(Tech.Type technology) {
+	public static StdCellParams justinParams(TechType technology) {
 		StdCellParams stdCell = new StdCellParams(technology);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
@@ -186,11 +186,11 @@ public class GateLayoutGenerator {
 
     public static class GenerateFromSchematicsJob extends Job {
 
-        private Tech.Type technology;
+        private TechType technology;
         private Cell cell;
         private VarContext context;
 
-        public GenerateFromSchematicsJob(Tech.Type techNm) {
+        public GenerateFromSchematicsJob(TechType techNm) {
             super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE,
                   null, null, Job.Priority.ANALYSIS);
             this.technology = techNm;
@@ -210,7 +210,7 @@ public class GateLayoutGenerator {
             StdCellParams stdCell;
             Tech.setTechnology(technology);
             Technology tsmc90 = Technology.getTSMC90Technology();
-            if (tsmc90 != null && technology == Tech.Type.TSMC90) {
+            if (tsmc90 != null && technology == TechType.CMOS90) {
                 stdCell = sportParams();
             } else {
                 //stdCell = locoParams(outLib);

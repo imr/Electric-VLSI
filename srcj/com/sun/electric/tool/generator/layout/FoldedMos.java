@@ -23,16 +23,16 @@
 */
 package com.sun.electric.tool.generator.layout;
 
+import java.awt.geom.Rectangle2D;
+
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.generator.layout.Tech.MosInst;
-
-import java.awt.geom.Rectangle2D;
+import com.sun.electric.tool.generator.layout.TechType.MosInst;
 
 /** first cut at a folded transistor generator.  Transistors are
  * rotated 90 degrees counter clockwise so that gates are vertical.

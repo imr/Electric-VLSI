@@ -26,6 +26,21 @@ package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
 
+import java.awt.Color;
+import java.awt.event.KeyEvent;
+import java.awt.geom.Point2D;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
+
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GeometryHandler;
@@ -78,7 +93,7 @@ import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
-import com.sun.electric.tool.generator.layout.Tech;
+import com.sun.electric.tool.generator.layout.TechType;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
@@ -122,21 +137,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.awt.Color;
-import java.awt.event.KeyEvent;
-import java.awt.geom.Point2D;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 
 /**
@@ -516,11 +516,11 @@ public class ToolMenu {
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(MoCMOS.tech); }},
 		        new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
-                    GateLayoutGenerator.generateFromSchematicsJob(Tech.Type.MOCMOS); }},
+                    GateLayoutGenerator.generateFromSchematicsJob(TechType.MOCMOS); }},
                 Technology.getTSMC90Technology() != null ? new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
-                    GateLayoutGenerator.generateFromSchematicsJob(Tech.Type.TSMC180); }} : null,
+                    GateLayoutGenerator.generateFromSchematicsJob(TechType.TSMC180); }} : null,
                 Technology.getTSMC90Technology() != null ? new EMenuItem("Generate gate layouts (_TSMC90)") { public void run() {
-	                GateLayoutGenerator.generateFromSchematicsJob(Tech.Type.TSMC90); }} : null),
+	                GateLayoutGenerator.generateFromSchematicsJob(TechType.CMOS90); }} : null),
 
 		//------------------- Silicon Compiler
 
