@@ -42,7 +42,6 @@ class UsageCollector {
     static final BitSet EMPTY_BITSET = new BitSet();
 
     private HashMap<CellId, CellUsageInfoBuilder> cellIndices = new HashMap<CellId,CellUsageInfoBuilder>(16, 0.5f);
-    private BitSet libUsages = new BitSet();
     
     /**
      * Collect usages in lists of nodes/arcs/exports together with Cell's variables. 
@@ -55,55 +54,22 @@ class UsageCollector {
             ImmutableNodeInst n = nodes.get(nodeIndex);
             if (n.protoId instanceof CellId)
                 add((CellId)n.protoId, true);
-            addVars(n);
             for (int chronIndex = 0; chronIndex < n.ports.length; chronIndex++) {
                 ImmutablePortInst pi = n.ports[chronIndex];
                 if (pi == ImmutablePortInst.EMPTY) continue;
                 PortProtoId pp = n.protoId.getPortId(chronIndex);
                 add(pp);
-                addVars(pi);
             }
         }
         for (int arcIndex = 0; arcIndex < arcs.size(); arcIndex++) {
             ImmutableArcInst a = arcs.get(arcIndex);
             add(a.tailPortId);
             add(a.headPortId);
-            addVars(a);
         }
         for (int portIndex = 0; portIndex < exports.size(); portIndex++) {
             ImmutableExport e = exports.get(portIndex);
             add(e.originalPortId);
-            addVars(e);
         }
-        addVars(d);
-    }
-    
-    /**
-     * Collect usages in ImmutableLibrary variables.
-     */
-    UsageCollector(ImmutableLibrary d) {
-        addVars(d);
-    }
-    
-    private void addVars(ImmutableElectricObject d) {
-        for (Variable var: d.getVars()) {
-            if (!var.hasReferences()) continue;
-            if (var.isArray()) {
-                for (int i = 0, n = var.getLength(); i < n; i++)
-                    addVarObj(var.getObject(i));
-            } else {
-                addVarObj(var.getObject());
-            }
-        }
-    }
-    
-    private void addVarObj(Object o) {
-        if (o instanceof LibId)
-            add((LibId)o);
-        else if (o instanceof CellId)
-            add((CellId)o, false);
-        else if (o instanceof ExportId)
-            add((ExportId)o);
     }
     
     private void add(PortProtoId portId) {
@@ -121,10 +87,6 @@ class UsageCollector {
         if (isInstance)
             cellCount.instCount++;
         return cellCount.usedExports;
-    }
-    
-    private void add(LibId libId) {
-        libUsages.set(libId.libIndex);
     }
     
     /**
@@ -153,22 +115,6 @@ class UsageCollector {
         return Arrays.equals(newCellUsages, oldCellUsages) ? oldCellUsages : newCellUsages;
     }
 
-    /**
-     * Return usages for LibraryBackup.
-     */
-    HashMap<CellId,BitSet> getExportUsages(HashMap<CellId,BitSet> oldExportUsages) {
-        if (cellIndices == null) return null;
-        HashMap<CellId,BitSet> newExportUsages = new HashMap<CellId,BitSet>();
-        for (CellId cellId: cellIndices.keySet()) {
-            BitSet oldSet = oldExportUsages != null ? oldExportUsages.get(cellId) : null;
-            BitSet newSet = bitSetWith(oldSet, cellIndices.get(cellId).usedExports);
-            newExportUsages.put(cellId, newSet);
-        }
-        return oldExportUsages != null && oldExportUsages.equals(newExportUsages) ? oldExportUsages : newExportUsages;
-    }
-    
-    BitSet getLibUsages(BitSet oldLibUsages) { return bitSetWith(oldLibUsages, libUsages); }
-    
     static BitSet bitSetWith(BitSet oldBitSet, BitSet newBitSet) {
         if (newBitSet.isEmpty())
             return EMPTY_BITSET;

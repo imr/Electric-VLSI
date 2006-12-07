@@ -109,14 +109,6 @@ public class Snapshot {
             return this;
         }
         
-        // Check usages in libs
-        for (int libIndex = 0; libIndex < libBackups.size(); libIndex++) {
-            LibraryBackup libBackup = libBackups.get(libIndex);
-            if (libBackup == null) continue;
-            checkUsedLibs(libBackup.usedLibs);
-            checkLibExports(libBackup);
-        }
-
         // Check usages in cells
         for (int cellIndex = 0; cellIndex < cellBackups.size(); cellIndex++) {
             CellBackup newBackup = cellBackups.get(cellIndex);
@@ -125,9 +117,6 @@ public class Snapshot {
             if (newBackup != null) {
                 if (oldBackup == null || newBackup.d.groupName != oldBackup.d.groupName)
                     namesChanged = true;
-                
-                // Check lib usages.
-                checkUsedLibs(newBackup.usedLibs);
                 
                 // If usages changed, check CellUsagesIn.
                 cellId = newBackup.d.cellId;
@@ -212,19 +201,6 @@ public class Snapshot {
         for (int libIndex = 0; libIndex < usedLibsLength; libIndex++) {
             if (usedLibs.get(libIndex) && libBackups.get(libIndex) == null)
                 throw new IllegalArgumentException("usedLibs");
-        }
-    }
-    
-    private void checkLibExports(LibraryBackup libBackup) {
-        if (libBackup.usedExports == null) return;
-        for (CellId cellId: libBackup.usedExports.keySet()) {
-            CellBackup cellBackup = getCell(cellId);
-            if (cellBackup == null)
-                throw new IllegalArgumentException("usedCells");
-            BitSet usedExportsCopy = (BitSet)libBackup.usedExports.get(cellId).clone();
-            usedExportsCopy.andNot(cellBackup.definedExports);
-            if (!usedExportsCopy.isEmpty())
-                throw new IllegalArgumentException("usedExports");
         }
     }
     
@@ -660,8 +636,6 @@ public class Snapshot {
         for (LibraryBackup libBackup: libBackups) {
             if (libBackup == null) continue;
             libBackup.check();
-            checkUsedLibs(libBackup.usedLibs);
-            checkLibExports(libBackup);
         }
         for (CellBackup cellBackup: cellBackups) {
             if (cellBackup != null) cellBackup.check();
@@ -681,7 +655,6 @@ public class Snapshot {
                 continue;
             }
 //            assert cellBounds.get(cellIndex) != null;
-            checkUsedLibs(cellBackup.usedLibs);
             CellId cellId = cellBackup.d.cellId;
             for (int i = 0; i < cellBackup.cellUsages.length; i++) {
                 CellBackup.CellUsageInfo cui = cellBackup.cellUsages[i];

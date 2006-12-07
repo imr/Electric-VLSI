@@ -102,8 +102,8 @@ public abstract class AbstractShapeBuilder {
         
         // make the polygon
 		int w2 = ((int)gridWidth) >>> 1;
-        short shrinkT = a.isTailExtended() ? shrinkage.getShrinkage(a.tailNodeId) : Shrinkage.EXTEND_0;
-        short shrinkH = a.isHeadExtended() ? shrinkage.getShrinkage(a.headNodeId) : Shrinkage.EXTEND_0;
+        short shrinkT = a.isTailExtended() ? shrinkage.get(a.tailNodeId) : Shrinkage.EXTEND_0;
+        short shrinkH = a.isHeadExtended() ? shrinkage.get(a.headNodeId) : Shrinkage.EXTEND_0;
 
         int angle = a.getAngle();
         double w2x = DBMath.roundShapeCoord(w2*GenMath.cos(angle));
@@ -114,7 +114,7 @@ public abstract class AbstractShapeBuilder {
             tx = -w2x;
             ty = -w2y;
         } else if (shrinkT != Shrinkage.EXTEND_0) {
-            Point2D e = computeExtension(w2, -w2x, -w2y, angle >= 1800 ? angle - 1800 : angle + 1800, shrinkT);
+            Point2D e = computeExtension(w2, -w2x, -w2y, a.getOppositeAngle(), shrinkT);
             tx = e.getX();
             ty = e.getY();
         }
@@ -286,7 +286,7 @@ public abstract class AbstractShapeBuilder {
         }
         boolean tailExtended = false;
         if (a.isTailExtended()) {
-            short shrinkT = shrinkage.getShrinkage(a.tailNodeId);
+            short shrinkT = shrinkage.get(a.tailNodeId);
             if (shrinkT == Shrinkage.EXTEND_90)
                 tailExtended = true;
             else if (shrinkT != Shrinkage.EXTEND_0)
@@ -294,7 +294,7 @@ public abstract class AbstractShapeBuilder {
         }
         boolean headExtended = false;
         if (a.isHeadExtended()) {
-            short shrinkH = shrinkage.getShrinkage(a.headNodeId);
+            short shrinkH = shrinkage.get(a.headNodeId);
             if (shrinkH == Shrinkage.EXTEND_90)
                 headExtended = true;
             else if (shrinkH != Shrinkage.EXTEND_0)
@@ -397,7 +397,17 @@ public abstract class AbstractShapeBuilder {
             this.shrink = shrink;
         }
         
-        public short getShrinkage(int nodeId) {
+        /**
+         * Method to tell the "end shrink" factors on all arcs on a specified ImmutableNodeInst.
+         * EXTEND_90 indicates no shortening (extend the arc by half its width).
+         * EXTEND_0 indicates no extend.
+         * EXTEND_ANY + [0..3600) is a sum of arc angles modulo 3600
+         * if this ImmutableNodeInst is a pin which can "isArcsShrink" and this pin connects
+         * exactly two arcs whit extended ends and angle between arcs is accute.
+         * @param nodeId nodeId of specified ImmutableNodeInst
+         * @return shrink factor of specified ImmutableNodeInst is wiped.
+         */
+        public short get(int nodeId) {
             return nodeId < shrink.length ? shrink[nodeId] : 0;
         }
         

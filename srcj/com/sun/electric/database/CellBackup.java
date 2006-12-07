@@ -31,7 +31,6 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.ImmutableArrayList;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.AbstractShapeBuilder;
 import com.sun.electric.technology.BoundsBuilder;
 import com.sun.electric.technology.PrimitiveNode;
@@ -42,7 +41,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  *
@@ -61,7 +59,6 @@ public class CellBackup {
     /** An array of Exports on the Cell by chronological index. */  public final ImmutableArrayList<ImmutableExport> exports;
 	/** A list of NodeInsts in this Cell. */						public final ImmutableArrayList<ImmutableNodeInst> nodes;
     /** A list of ArcInsts in this Cell. */							public final ImmutableArrayList<ImmutableArcInst> arcs;
-    /** Bitmap of libraries used in vars. */                        final BitSet usedLibs;
     /** CellUsageInfos indexed by CellUsage.indefInParent */        final CellUsageInfo[] cellUsages;
     /** definedExport == [0..definedExportLength) - deletedExports . */
     /** Map from chronIndex of Exports to sortIndex. */             final int exportIndex[];
@@ -78,14 +75,13 @@ public class CellBackup {
             ImmutableArrayList<ImmutableNodeInst> nodes,
             ImmutableArrayList<ImmutableArcInst> arcs,
             ImmutableArrayList<ImmutableExport> exports,
-            BitSet usedLibs, CellUsageInfo[] cellUsages, int[] exportIndex, BitSet definedExports, int definedExportsLength, BitSet deletedExports) {
+            CellUsageInfo[] cellUsages, int[] exportIndex, BitSet definedExports, int definedExportsLength, BitSet deletedExports) {
         this.d = d;
         this.revisionDate = revisionDate;
         this.modified = modified;
         this.nodes = nodes;
         this.arcs = arcs;
         this.exports = exports;
-        this.usedLibs = usedLibs;
         this.cellUsages = cellUsages;
         this.exportIndex = exportIndex;
         this.definedExports = definedExports;
@@ -99,7 +95,7 @@ public class CellBackup {
     public CellBackup(ImmutableCell d) {
         this(d, 0, false,
                 ImmutableNodeInst.EMPTY_LIST, ImmutableArcInst.EMPTY_LIST, ImmutableExport.EMPTY_LIST,
-                EMPTY_BITSET, NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
+                NULL_CELL_USAGE_INFO_ARRAY, NULL_INT_ARRAY, EMPTY_BITSET, 0, EMPTY_BITSET);
         if (d.tech == null)
             throw new NullPointerException("tech");
     }
@@ -135,11 +131,9 @@ public class CellBackup {
 //                throw new IllegalArgumentException("cellId");
         }
         
-        BitSet usedLibs = this.usedLibs;
         CellUsageInfo[] cellUsages = this.cellUsages;
         if (this.d.cellId != d.cellId || this.d.getVars() != d.getVars() || nodes != this.nodes || arcs != this.arcs || exports != this.exports) {
             UsageCollector uc = new UsageCollector(d, nodes, arcs, exports);
-            usedLibs = uc.getLibUsages(this.usedLibs);
             cellUsages = uc.getCellUsages(cellId, this.cellUsages);
         }
         
@@ -206,7 +200,7 @@ public class CellBackup {
         }
         
         CellBackup backup = new CellBackup(d, revisionDate, modified,
-                nodes, arcs, exports, usedLibs, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
+                nodes, arcs, exports, cellUsages, exportIndex, definedExports, definedExportsLength, deletedExports);
         return backup;
     }
     
@@ -328,27 +322,6 @@ public class CellBackup {
     }
 
     /**
-     * Gather useages of libraries/cells/exports.
-     * @param usedLibs bitset where LibIds used in variables are accumulates.
-     * @param usedExports Map from CellId to ExportId set, where used cells/expors are accumulated.
-     */
-    public void gatherUsages(BitSet usedLibs, Map<CellId,BitSet> usedExports) {
-        usedLibs.or(this.usedLibs);
-        for (int indexInParent = 0; indexInParent < cellUsages.length; indexInParent++) {
-            CellUsageInfo cui = cellUsages[indexInParent];
-            if (cui == null) continue;
-            CellId cellId = d.cellId.getUsageIn(indexInParent).protoId;
-            
-            BitSet exports = usedExports.get(cellId);
-            if (exports == null) {
-                exports = new BitSet();
-                usedExports.put(cellId, exports);
-            }
-            exports.or(cui.usedExports);
-        }
-    }
-    
-    /**
      * Writes this CellBackup to SnapshotWriter.
      * @param writer where to write.
      */
@@ -402,7 +375,6 @@ public class CellBackup {
 	 */
     public void check() {
         d.check();
-        checkVars(d);
         assert d.tech != null;
         CellId cellId = d.cellId;
         int[] checkCellUsages = getInstCounts();
@@ -415,9 +387,6 @@ public class CellBackup {
                 assert !hasCellCenter;
                 hasCellCenter = true;
             }
-            checkVars(n);
-            for (ImmutablePortInst pid: n.ports)
-                checkVars(pid);
             while (n.nodeId >= nodesById.size()) nodesById.add(null);
             ImmutableNodeInst oldNode = nodesById.set(n.nodeId, n);
             assert oldNode == null;
@@ -454,7 +423,6 @@ public class CellBackup {
             prevA = a;
             
             a.check();
-            checkVars(a);
             checkPortInst(nodesById.get(a.tailNodeId), a.tailPortId);
             checkPortInst(nodesById.get(a.headNodeId), a.headPortId);
         }
@@ -466,7 +434,6 @@ public class CellBackup {
         for (int i = 0; i < exports.size(); i++) {
             ImmutableExport e = exports.get(i);
             e.check();
-            checkVars(e);
             assert e.exportId.parentId == cellId;
             assert exportIndex[e.exportId.chronIndex] == i;
             if (i > 0)
@@ -493,8 +460,6 @@ public class CellBackup {
             assert definedExports == EMPTY_BITSET;
         if (deletedExports.isEmpty())
             assert deletedExports == EMPTY_BITSET;
-        if (usedLibs.isEmpty())
-            assert usedLibs == EMPTY_BITSET;
         for (CellUsageInfo cui: cellUsages) {
             if (cui != null)
                 cui.check();
@@ -502,31 +467,6 @@ public class CellBackup {
         
         if (m != null)
             m.check();
-    }
-    
-    private void checkVars(ImmutableElectricObject d) {
-        for (Variable var: d.getVars()) {
-            Object o = var.getObject();
-            if (o instanceof Object[]) {
-                Object[] a = (Object[])o;
-                for (Object e: a)
-                    checkVarObj(e);
-            } else {
-                checkVarObj(o);
-            }
-        }
-    }
-    
-    private void checkVarObj(Object o) {
-        if (o instanceof LibId) {
-            int libIndex = ((LibId)o).libIndex;
-            assert usedLibs.get(libIndex);
-        } else if (o instanceof CellId) {
-            CellUsage u = d.cellId.getUsageIn((CellId)o);
-            assert cellUsages[u.indexInParent] != null;
-        } else if (o instanceof ExportId) {
-            checkExportId((ExportId)o);
-        }
     }
     
     private void checkPortInst(ImmutableNodeInst node, PortProtoId portId) {
@@ -601,16 +541,6 @@ public class CellBackup {
      * Returns data for arc shrinkage computation.
      * @return data for arc shrinkage computation.
      */
-        /**
-         * Method to tell the "end shrink" factors on all arcs on a specified ImmutableNodeInst.
-         * -1 indicates no shortening (extend the arc by half its width).
-         * -2 indicates 45 degree shortening.
-         * [0..3600) is a sum of arc angles modulo 3600
-         * if this ImmutableNodeInst is a pin which can "isArcsShrink" and this pin connects
-         * exactly two arcs whit extended ends and angle between arcs is accute.
-         * @param nodeId nodeId of specified ImmutableNodeInst
-         * @return shrink factor of specified ImmutableNodeInst is wiped.
-         */
     public AbstractShapeBuilder.Shrinkage getShrinkage() {
         if (shrinkage == null)
             shrinkage = new AbstractShapeBuilder.Shrinkage(this);

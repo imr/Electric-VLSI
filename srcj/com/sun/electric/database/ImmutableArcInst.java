@@ -926,7 +926,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         } else {
             boolean tailExtended = false;
             if (isTailExtended()) {
-                short shrinkT = shrinkage.getShrinkage(tailNodeId);
+                short shrinkT = shrinkage.get(tailNodeId);
                 if (shrinkT == AbstractShapeBuilder.Shrinkage.EXTEND_90)
                     tailExtended = true;
                 else if (shrinkT != AbstractShapeBuilder.Shrinkage.EXTEND_0)
@@ -934,7 +934,7 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             }
             boolean headExtended = false;
             if (isHeadExtended()) {
-                short shrinkH = shrinkage.getShrinkage(headNodeId);
+                short shrinkH = shrinkage.get(headNodeId);
                 if (shrinkH == AbstractShapeBuilder.Shrinkage.EXTEND_90)
                     headExtended = true;
                 else if (shrinkH != AbstractShapeBuilder.Shrinkage.EXTEND_0)

@@ -169,6 +169,10 @@ public class Output
             sortedLibs.put(libName, libId);
         }
         boolean error = false;
+        if (oldRevision) {
+            IdMapper idMapper = IdMapper.consolidateExportIds(panicSnapshot);
+            panicSnapshot = panicSnapshot.withRenamedIds(idMapper, null, null);
+        }
         for (LibId libId: sortedLibs.values()) {
             System.out.print("."); System.out.flush();
             URL libURL = libFiles.get(libId);

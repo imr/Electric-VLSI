@@ -34,6 +34,7 @@ public class IdMapper implements Serializable {
     
     private final HashMap<LibId,LibId> libIdMap = new HashMap<LibId,LibId>();
     private final HashMap<CellId,CellId> cellIdMap = new HashMap<CellId,CellId>();
+    private final HashMap<ExportId,ExportId> exportIdMap = new HashMap<ExportId,ExportId>();
     
     /** Creates a new instance of IdMapper */
     public IdMapper() {
@@ -58,6 +59,19 @@ public class IdMapper implements Serializable {
         return idMapper;
     }
 
+    public static IdMapper consolidateExportIds(Snapshot snapshot) {
+        IdMapper idMapper = new IdMapper();
+        for (CellBackup cellBackup: snapshot.cellBackups) {
+            if (cellBackup == null) continue;
+            CellId cellId = cellBackup.d.cellId;
+            for (ImmutableExport e: cellBackup.exports) {
+                if (e.name.toString().equals(e.exportId.externalId)) continue;
+                idMapper.exportIdMap.put(e.exportId, cellId.newExportId(e.name.toString()));
+            }
+        }
+        return idMapper;
+    }
+    
     /**
      * Add to this idMapper mapping from old cellBackup to new cellId together with all exports.
      * @param cellBackup old cellBackup
@@ -94,6 +108,8 @@ public class IdMapper implements Serializable {
      * @return ExportId which is the mapping of the key.
      */
     public ExportId get(ExportId key) {
+        ExportId newExportId = exportIdMap.get(key);
+        if (newExportId != null) return newExportId;
         CellId newParentId = cellIdMap.get(key.parentId);
         return newParentId != null ? newParentId.newExportId(key.externalId) : key;
     }

@@ -26,12 +26,12 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.LibId;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Version;
 
 import java.io.BufferedWriter;
@@ -40,7 +40,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
-import java.util.BitSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -208,16 +207,20 @@ public class DELIB extends JELIB {
             }
 
             // write out external references for this cell
-            BitSet usedLibs = new BitSet();
-            HashMap<CellId,BitSet> usedExports = new HashMap<CellId,BitSet>();
-            cellBackup.gatherUsages(usedLibs, usedExports);
-            gatherLibs(usedLibs, usedExports);
+            HashSet<LibId> usedLibs = new HashSet<LibId>();
+            int[] instCounts = cellBackup.getInstCounts();
+            for (int i = 0; i < instCounts.length; i++) {
+                int instCount = instCounts[i];
+                if (instCount == 0) continue;
+                CellUsage u = cellBackup.d.cellId.getUsageIn(i);
+                usedLibs.add(u.protoId.libId);
+            }
 
              // write short header information (library, version)
             LibId libId = cellBackup.d.getLibId();
-            printWriter.println("H" + convertString(snapshot.getLib(libId).d.libId.libName) + "|" + Version.getVersion());
+            printWriter.println("H" + convertString(libId.libName) + "|" + Version.getVersion());
 
-            super.writeExternalLibraryInfo(libId, usedLibs, usedExports);
+            super.writeExternalLibraryInfo(libId, usedLibs);
 
             // write out the cell into the new file
             super.writeCell(cellBackup);
@@ -241,7 +244,8 @@ public class DELIB extends JELIB {
         }
     }
 
-    void writeExternalLibraryInfo(LibId libId,  BitSet usedLibs, HashMap<CellId,BitSet> usedExports) {
+    @Override
+    void writeExternalLibraryInfo(LibId libId,  Set<LibId> usedLibs) {
     }
 
     void writeCellGroup(JELIB.CellGroup group) {

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+IMP: (12/6/06, DN) Removed invariant "LibId/CellId/ExportId" values of variables must be in the Snapshot.
+    Such variables are almost not used, but the maintanence of this invariant took time.
+
 IMP: (12/5/06, RK) Move information from Tech.java into TechTypeMoCMOS, TechTypeCMOS90, and TechTypeTSMC180.
 
 IMP: (12/5/06, GVG) Changes to get Generation test working after recent modifications. Some changes

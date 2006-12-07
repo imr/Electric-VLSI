@@ -25,10 +25,9 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.text.ImmutableArrayList;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -40,34 +39,12 @@ public class LibraryBackup {
     /** Library persistent data. */                                     public final ImmutableLibrary d;
     /** True if library needs saving to disk. */                        public final boolean modified;
     /** Array of referenced libs */                                     public final LibId[] referencedLibs;
-    /** Bitmap of libraries used in vars. */                            final BitSet usedLibs;
-    /** Bitmaps of used exports. */                                     final HashMap<CellId,BitSet> usedExports;
 
     /** Creates a new instance of LibraryBackup */
     public LibraryBackup(ImmutableLibrary d, boolean modified, LibId[] referencedLibs) {
         this.d = d;
         this.modified = modified;
         this.referencedLibs = referencedLibs;
-        UsageCollector uc = new UsageCollector(d);
-        usedLibs = uc.getLibUsages(null);
-        usedExports = uc.getExportUsages(null);
-    }
-    
-    /**
-     * Gather useages of libraries/cells/exports.
-     * @param usedLibs bitset where LibIds used in variables are accumulates.
-     * @param usedExports Map from CellId to ExportId set, where used cells/expors are accumulated.
-     */
-    public void gatherUsages(BitSet usedLibs, Map<CellId,BitSet> usedExports) {
-        usedLibs.or(this.usedLibs);
-        for (CellId cellId: this.usedExports.keySet()) {
-            BitSet exports = usedExports.get(cellId);
-            if (exports == null) {
-                exports = new BitSet();
-                usedExports.put(cellId, exports);
-            }
-            exports.or(this.usedExports.get(cellId));
-        }
     }
     
 	/**
