@@ -1612,18 +1612,20 @@ public class TextUtils
     /**
      * Method to replace all special characters in the instance name coming from external files such as"/"..
      * @param n
-     * @return String where characters "/", "[", "]" are replacedby "-". "\" is removed.
+     * @return String where characters "/", "[", "]" are replacedby "_". "\" is removed.
      */
     public static String correctName(String n)
     {
         // First replace "/" for "-"
-        n = n.replaceAll("/", "-");
+        int index = n.indexOf("/");
+        if (index != -1)
+            n = n.replaceAll("/", "_");
         // removing brackets only if ] is not the last item in the string
-        int index = n.indexOf("]");
+        index = n.indexOf("]");
         if (index != -1 && index < n.length()-1)
         {
             n = n.replace('[', '-');
-            n = n.replaceAll("]", "-");
+            n = n.replace("]", "-");
         }
         // Remove possible space character representing as \
         index = n.indexOf("\\");

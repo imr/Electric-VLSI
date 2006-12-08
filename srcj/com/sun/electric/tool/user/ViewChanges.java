@@ -463,32 +463,39 @@ public class ViewChanges
 				"Warning: Icon " + iconCell.describe(true) + " already exists.  Create a new version?");
 			if (response != JOptionPane.YES_OPTION) return;
 		}
-        makeIconViewNoGUI(curCell, false);
+        makeIconViewNoGUI(curCell, false, false);
     }
 
-    public static void makeIconViewNoGUI(Cell curCell, boolean doItNow)
+    public static void makeIconViewNoGUI(Cell curCell, boolean doItNow, boolean fixedValues)
     {
-        double leadLength = User.getIconGenLeadLength();
-		double leadSpacing = User.getIconGenLeadSpacing();
-		boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
-		boolean drawBody = User.isIconGenDrawBody();
-		boolean drawLeads = User.isIconGenDrawLeads();
-		boolean placeCellCenter = User.isPlaceCellCenter();
-		int exportTech = User.getIconGenExportTech();
-		int exportStyle = User.getIconGenExportStyle();
-		int exportLocation = User.getIconGenExportLocation();
-		int inputSide = User.getIconGenInputSide();
-		int outputSide = User.getIconGenOutputSide();
-		int bidirSide = User.getIconGenBidirSide();
-		int pwrSide = User.getIconGenPowerSide();
-		int gndSide = User.getIconGenGroundSide();
-		int clkSide = User.getIconGenClockSide();
-		new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), leadLength, leadSpacing,
-			reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
-			inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide, doItNow);
-	}
+        if (!fixedValues)
+        {
+            double leadLength = User.getIconGenLeadLength();
+            double leadSpacing = User.getIconGenLeadSpacing();
+            boolean reverseIconExportOrder = User.isIconGenReverseExportOrder();
+            boolean drawBody = User.isIconGenDrawBody();
+            boolean drawLeads = User.isIconGenDrawLeads();
+            boolean placeCellCenter = User.isPlaceCellCenter();
+            int exportTech = User.getIconGenExportTech();
+            int exportStyle = User.getIconGenExportStyle();
+            int exportLocation = User.getIconGenExportLocation();
+            int inputSide = User.getIconGenInputSide();
+            int outputSide = User.getIconGenOutputSide();
+            int bidirSide = User.getIconGenBidirSide();
+            int pwrSide = User.getIconGenPowerSide();
+            int gndSide = User.getIconGenGroundSide();
+            int clkSide = User.getIconGenClockSide();
+            new MakeIconView(curCell, User.getAlignmentToGrid(), User.getIconGenInstanceLocation(), leadLength, leadSpacing,
+                reverseIconExportOrder, drawBody, drawLeads, placeCellCenter, exportTech, exportStyle, exportLocation,
+                inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide, doItNow);
+        }
+        else
+            new MakeIconView(curCell, 0.05, 0, 2.0, 2.0,
+                false, false, false, true, 0, 1, 1,
+                0, 1, 2, 3, 3, 0, doItNow);
+    }
 
-	private static class MakeIconView extends Job
+    private static class MakeIconView extends Job
 	{
 		private Cell curCell;
 		private double alignment;

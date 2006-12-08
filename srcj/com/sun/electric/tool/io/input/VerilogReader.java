@@ -10,13 +10,11 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.user.ViewChanges;
-import com.sun.electric.tool.Job;
 
 import java.net.URL;
 import java.io.IOException;
@@ -34,9 +32,11 @@ public class VerilogReader extends Input
 {
     List<NodeInst> transistors = new ArrayList<NodeInst>();
     double maxWidth = 100, nodeWidth = 10;
+    double primitiveHeight = 0.5, primitiveWidth = 0.5;
     Map<Cell, Point2D.Double> locationMap = new HashMap<Cell, Point2D.Double>();
     PrimitiveNode essentialBounds = Generic.tech.findNodeProto("Essential-Bounds");
     Cell topCell = null;
+    Map<String, NodeInst> pinsMap = new HashMap<String, NodeInst>();
 
     private String readCellHeader(List<String> inputs) throws IOException
     {
@@ -59,6 +59,10 @@ public class VerilogReader extends Input
         String name;
         List<PortInfo> list = new ArrayList<PortInfo>();
 
+        CellInstance(String n)
+        {
+            this.name = TextUtils.correctName(n);
+        }
         static class PortInfo
         {
             String local;
@@ -67,7 +71,7 @@ public class VerilogReader extends Input
 
             PortInfo(String local, boolean isBus, PortProto ex)
             {
-                this.local = local;
+                this.local = TextUtils.correctName(local);
                 this.isBus = isBus;
                 this.ex = ex;
             }
@@ -87,29 +91,18 @@ public class VerilogReader extends Input
 
         for (CellInstance.PortInfo port : info.list)
         {
-            NodeInst pin = parent.findNode(port.local);
+            if (port.local.contains("{"))
+                continue; // skipping this case for now.
+
+            NodeInst pin = pinsMap.get(port.local);
+
             if (pin == null)
             {
                 StringTokenizer parse = new StringTokenizer(port.local, "[]", false); // extracting only input name
                 String busName = parse.nextToken(); // only bus name, root
 
-                for (Iterator<NodeInst> itN = parent.getNodes(); itN.hasNext();)
-                {
-                    NodeInst ni = itN.next();
-                    NodeProto np = ni.getProto();
-                    if (np != Schematics.tech.busPinNode && np != Schematics.tech.wirePinNode)
-                        continue;
-                    String name = ni.getName();
-//                    int index = name.indexOf("[");
-//                    if (index == -1 && np == Schematics.tech.busPinNode) // nothing found
-//                        continue;
-//                    String sub = (index != -1) ? name.substring(0, index) : name;
-                    if (name.equals(busName)) // Bus pins don't longer have [x:y] syntax
-                    {
-                        pin = ni;
-                        break;
-                    }
-                }
+                pin = pinsMap.get(busName);
+
                 if (pin == null)
                 {
                     if (busName.equals("vss")) // ground
@@ -126,9 +119,10 @@ public class VerilogReader extends Input
 
             ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
             PortInst ex = cellInst.findPortInst(port.ex.getName());
-            ArcInst ai = ArcInst.makeInstance(node, node.getDefaultLambdaFullWidth(),
+            ArcInst ai = ArcInst.makeInstance(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
                     pin.getOnlyPortInst(), ex, null, null, port.local);
-            assert(ai != null);
+            if (ai == null)
+                assert(ai != null);
             ai.setFixedAngle(false);
         }
     }
@@ -138,24 +132,35 @@ public class VerilogReader extends Input
         PrimitiveNode np = (power) ? Schematics.tech.powerNode : Schematics.tech.groundNode;
 
         Point2D.Double p = getNextLocation(cell);
-        double height = np.getDefHeight();
+        double height = primitiveHeight; //np.getDefHeight();
+
+//        System.out.println("addSupply " + height);
+
         NodeInst supply = NodeInst.newInstance(np, p,
-                np.getDefWidth(), height,
+                primitiveWidth, height,
                 cell, Orientation.IDENT, name, 0);
         // extra pin
         NodeInst ni = NodeInst.newInstance(Schematics.tech.wirePinNode, new Point2D.Double(p.getX(), p.getY()+height/2),
-                Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), cell);
+                0.5, 0.5,
+//                Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(),
+                cell);
 
-        ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultLambdaFullWidth(),
+        ArcInst.makeInstance(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
             ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
+        pinsMap.put(name, ni); // not sure if this is the correct pin
         return ni;
     }
 
     private CellInstance readInstance(Cell instance, boolean noMoreInfo) throws IOException
     {
-        List<StringBuffer> inputs = new ArrayList<StringBuffer>(2);
-        int pos = 0;
-        inputs.add(new StringBuffer()); // adding slot for the name
+//        List<StringBuffer> inputs = new ArrayList<StringBuffer>(2);
+//        int pos = 0;
+//        inputs.add(new StringBuffer()); // adding slot for the name
+        StringBuffer signature = new StringBuffer();
+//        List<String> nets = new ArrayList<String>();
+//        List<String> list = new ArrayList<String>();
+        List<String> exports = new ArrayList<String>();
+        List<String> pins = new ArrayList<String>();
 
         for (;;)
         {
@@ -163,139 +168,237 @@ public class VerilogReader extends Input
 
             if (key.contains("//")) continue; // comment
 
-            StringTokenizer parse = new StringTokenizer(key, ".; \t", true);
-            while (parse.hasMoreTokens())
+            signature.append(key);
+
+            if (key.contains(";")) // found end of signature
             {
-                String value = parse.nextToken();
-                if (value.equals("."))
-                {
-                    pos++; // new input start
-                    inputs.add(new StringBuffer());
-                    continue;
-                }
-                if (value.equals(";")) // done with header
-                {
-                    String name = inputs.get(0).toString(); // in pos==0 then instance name
-                    StringTokenizer p = new StringTokenizer(name, "(\t  ", false);
-                    name = p.nextToken(); // remove extra ( and white spaces
-                    CellInstance localCell = new CellInstance();
-                    localCell.name = name;
+                String line = signature.toString();
+                int index = line.indexOf("("); // searching for first (
+                assert(index > 0);
+                String instanceName = line.substring(0, index);
+                line = line.substring(index+1, line.length());
+                StringTokenizer parse = new StringTokenizer(line, ")", false);
+//                list.clear();
+                exports.clear(); pins.clear();
 
-                    // matching export
-                    for (int i = 1; i < inputs.size(); i++)
+                while (parse.hasMoreTokens())
+                {
+                    String value = parse.nextToken();
+                    index = value.indexOf("."); // look for first .
+                    int index2 = value.indexOf("("); // look for first (
+                    if (index == -1) // end of tokens
+                        continue; // or break?
+                    assert(index2 != -1);
+                    exports.add(value.substring(index+1, index2));
+                    pins.add(value.substring(index2+1));
+//                    if (value.startsWith("(") || value.startsWith(")"))
+//                        continue;
+//                    list.add(value);
+                }
+
+                // remove extra white spaces
+                instanceName = instanceName.replaceAll(" ", "");
+                CellInstance localCell = new CellInstance(instanceName);
+
+                for (int i = 0; i < exports.size(); i++)
+                {
+                    String export = exports.get(i);
+                    String pin = pins.get(i);
+//                    parse = new StringTokenizer(s, "(){};", false);
+//                    nets.clear();
+//                    while (parse.hasMoreTokens())
+//                    {
+//                        String value = parse.nextToken();
+//                        StringTokenizer t = new StringTokenizer(value, " .\t\\", false);
+//                        if (!t.hasMoreTokens()) continue;
+//                        value = t.nextToken();
+//                        nets.add(value);
+//                    }
+
+//                    if (nets.size() != 2)
+//                    {
+//                    assert(nets.size()==2);
+//                        System.out.println("Problem reading this instance " + instanceName);
+//                        return localCell;
+//                    }
+
+                    pin = pin.replaceAll(" ", "");
+                    export = export.replaceAll(" ", "");
+//                    String bus = pin; // nets.get(1);
+                    String local = pin; // simple case .w(w)
+                    int start = pin.indexOf("[");
+//                    int end = bus.indexOf("]");
+                    boolean isBus = pin.contains("{");
+                    String e = export;// nets.get(0);
+                    PortProto ex = instance.findPortProto(e);
+
+                    int dot = (!isBus) ? pin.indexOf(":") : -1; // I must skip this case
+                    if (dot != -1)// && start < end)
                     {
-                        StringBuffer s = inputs.get(i);
-                        p = new StringTokenizer(s.toString(), "(){},  \t", false);
-                        List<String> nets = new ArrayList<String>();
-                        while (p.hasMoreTokens())
-                        {
-                            nets.add(p.nextToken());
-                        }
-                        // nets.get(0) is the export name
-                        if (Job.getDebug() && (nets.size() < 2 || nets.size() > 2))
-                            System.out.println("Error here: less than 2 nets!");
-//                        assert(nets.size() > 1);
-                        String local = nets.get(1); // simple case .w(w)
-                        String e = nets.get(0);
-                        boolean isBus = false;
-                        PortProto ex = instance.findPortProto(e);
-
-                        if (nets.size() > 2) // checking bus export
-                        {
-                            String rootName = null;
-                            int firstPin = -1, lastPin = -1;
-
-                            for (int j = 1; j < nets.size();  j++)
-                            {
-                                String pin = nets.get(j);
-                                int start = pin.indexOf("[");
-                                if (start == -1)
-                                    break; // no bus case
-                                int end = pin.indexOf("]");
-                                assert(end != -1);
-                                String root = pin.substring(0, start);
-                                if (rootName == null) // first time
-                                    rootName = root;
-                                else if (!rootName.equals(root))
-                                {
-                                    rootName = null;
-                                    break; // no the same root name
-                                }
-
-                                int pinNum = 0;
-
-                                try {
-                                    pinNum = Integer.parseInt(pin.substring(start+1, end));
-                                }
-                                catch (Exception exc)
-                                {
-                                    if (Job.getDebug())
-                                    System.out.println("Wrong pin detected "+ pin + " " + pin.substring(start+1, end));
-                                    pinNum = Integer.parseInt(pin.substring(start+1, start+2));
-//                                    exc.printStackTrace();
-                                }
-
-                                if (firstPin == -1)
-                                {
-                                    firstPin = pinNum;
-                                    lastPin = firstPin;
-                                }
-                                else if (pinNum != (lastPin+1))
-                                {
-                                    // only consecutive numbers
-                                    rootName = null;
-                                    break;
-                                }
-                                else
-                                    lastPin = pinNum;
-                            }
-                            if (rootName != null)
-                            {
-                                isBus = true;
-                                String extra = "[" + firstPin + ":" + lastPin + "]";
-                                ex = instance.findPortProto(e+extra);
-                                local = rootName + extra;
-                                if (ex == null) // try the inverse. This is tricky
-                                {
-                                    extra = "[" + lastPin + ":" + firstPin + "]";
-                                    ex = instance.findPortProto(e+extra);
-                                }
-                            }
-                        }
-                        else if (nets.size() == 2) // simple wire or bus case
-                        {
-                            String bus = nets.get(1);
-                            int dot = bus.indexOf(":");
-                            local = bus;
-                            int start = bus.indexOf("[");
-                            int end = bus.indexOf("]");
-                            if (dot != -1 && start < end)
-                            {
-                                bus = bus.substring(start+1, end);
-                                isBus = true;
-                                ex = instance.findPortProto(e+"[" + bus + "]");
-                            }
-                            if (ex == null && noMoreInfo) // exports in std cell are not available
-                            {
-                                PrimitiveNode primitive = Schematics.tech.wirePinNode;
-                                NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(instance),
-                                        primitive.getDefWidth(), primitive.getDefHeight(),
-                                        instance, Orientation.IDENT, e, 0);
-                                Export.newInstance(instance, ni.getOnlyPortInst(), e);
-                                ex = instance.findPortProto(e);
-                                assert(ex != null);
-                            }
-                        }
-                        if (ex != null)
-                            localCell.addConnection(local, isBus, ex);
+//                        bus = bus.substring(start+1, end);
+                        local = local.substring(0, start); // case of .w(a[a:b])
+                        isBus = true;
+//                        ex = instance.findPortProto(e+"[" + bus + "]");
                     }
-                    return localCell;
+                    if (ex == null && noMoreInfo) // exports in std cell are not available
+                    {
+                        PrimitiveNode primitive = (isBus) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
+                        NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(instance),
+                                primitiveWidth, primitiveHeight,
+//                                        primitive.getDefWidth(), primitive.getDefHeight(),
+                                instance, Orientation.IDENT, e, 0);
+                        Export.newInstance(instance, ni.getOnlyPortInst(), e);
+                        ex = instance.findPortProto(e);
+                        assert(ex != null);
+                    }
+
+                    if (ex != null)
+                        localCell.addConnection(local, isBus, ex);
                 }
-                // It could be done by StringBuffer
-                StringBuffer val = inputs.get(pos);
-                assert (val != null);
-                val.append(value);
+                return localCell;
             }
+
+//            StringTokenizer parse = new StringTokenizer(key, ".; \t", true);
+//            // .out ( \cl_u1_nor3_4x_2.out ) )
+//            while (parse.hasMoreTokens())
+//            {
+//                String value = parse.nextToken();
+//
+//                if (value.equals("."))
+//                {
+//                    pos++; // new input start
+//                    inputs.add(new StringBuffer());
+//                    continue;
+//                }
+//                if (value.equals(";")) // done with header
+//                {
+//                    String name = inputs.get(0).toString(); // in pos==0 then instance name
+//                    StringTokenizer p = new StringTokenizer(name, "(\t ", false);
+//                    name = p.nextToken(); // remove extra ( and white spaces
+//                    CellInstance localCell = new CellInstance(name);
+//
+//                    // matching export
+//                    for (int i = 1; i < inputs.size(); i++)
+//                    {
+//                        StringBuffer s = inputs.get(i);
+//                        p = new StringTokenizer(s.toString(), "(){}, \t", false);
+//                        nets.clear();
+//                        while (p.hasMoreTokens())
+//                        {
+//                            nets.add(p.nextToken());
+//                        }
+//                        // nets.get(0) is the export name
+//                        if (nets.size() == 3 && nets.get(2).startsWith("[")) // special case where local rootname is not consecutive with bus number
+//                        {
+//                            String n = nets.get(1) + nets.get(2);
+//                            nets.remove(2); nets.remove(1);
+//                            nets.add(n);
+//                        }
+//                        if (Job.getDebug() && (nets.size() < 2 || nets.size() > 2))
+//                            System.out.println("Error here: less than 2 nets!");
+////                        assert(nets.size() > 1);
+//                        String local = nets.get(1); // simple case .w(w)
+//                        String e = nets.get(0);
+//                        boolean isBus = false;
+//                        PortProto ex = instance.findPortProto(e);
+//
+//                        if (nets.size() > 2) // checking bus export
+//                        {
+//                            String rootName = null;
+//                            int firstPin = -1, lastPin = -1;
+//
+//                            for (int j = 1; j < nets.size();  j++)
+//                            {
+//                                String pin = nets.get(j);
+//                                int start = pin.indexOf("[");
+//                                if (start == -1)
+//                                    break; // no bus case
+//                                int end = pin.indexOf("]");
+//                                assert(end != -1);
+//                                String root = pin.substring(0, start);
+//                                if (rootName == null) // first time
+//                                    rootName = root;
+//                                else if (!rootName.equals(root))
+//                                {
+//                                    rootName = null;
+//                                    break; // no the same root name
+//                                }
+//
+//                                int pinNum = 0;
+//
+//                                try {
+//                                    pinNum = Integer.parseInt(pin.substring(start+1, end));
+//                                }
+//                                catch (Exception exc)
+//                                {
+//                                    if (Job.getDebug())
+//                                    System.out.println("Wrong pin detected "+ pin + " " + pin.substring(start+1, end));
+//                                    pinNum = Integer.parseInt(pin.substring(start+1, start+2));
+////                                    exc.printStackTrace();
+//                                }
+//
+//                                if (firstPin == -1)
+//                                {
+//                                    firstPin = pinNum;
+//                                    lastPin = firstPin;
+//                                }
+//                                else if (pinNum != (lastPin+1))
+//                                {
+//                                    // only consecutive numbers
+//                                    rootName = null;
+//                                    break;
+//                                }
+//                                else
+//                                    lastPin = pinNum;
+//                            }
+//                            if (rootName != null)
+//                            {
+//                                isBus = true;
+//                                String extra = "[" + firstPin + ":" + lastPin + "]";
+//                                ex = instance.findPortProto(e+extra);
+//                                local = rootName + extra;
+//                                if (ex == null) // try the inverse. This is tricky
+//                                {
+//                                    extra = "[" + lastPin + ":" + firstPin + "]";
+//                                    ex = instance.findPortProto(e+extra);
+//                                }
+//                            }
+//                        }
+//                        else if (nets.size() == 2) // simple wire or bus case
+//                        {
+//                            String bus = nets.get(1);
+//                            int dot = bus.indexOf(":");
+//                            local = bus;
+//                            int start = bus.indexOf("[");
+//                            int end = bus.indexOf("]");
+//                            if (dot != -1 && start < end)
+//                            {
+//                                bus = bus.substring(start+1, end);
+//                                isBus = true;
+//                                ex = instance.findPortProto(e+"[" + bus + "]");
+//                            }
+//                            if (ex == null && noMoreInfo) // exports in std cell are not available
+//                            {
+//                                PrimitiveNode primitive = Schematics.tech.wirePinNode;
+//                                NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(instance),
+//                                        primitiveWidth, primitiveHeight,
+////                                        primitive.getDefWidth(), primitive.getDefHeight(),
+//                                        instance, Orientation.IDENT, e, 0);
+//                                Export.newInstance(instance, ni.getOnlyPortInst(), e);
+//                                ex = instance.findPortProto(e);
+//                                assert(ex != null);
+//                            }
+//                        }
+//                        if (ex != null)
+//                            localCell.addConnection(local, isBus, ex);
+//                    }
+//                    return localCell;
+//                }
+//                // It could be done by StringBuffer
+//                StringBuffer val = inputs.get(pos);
+//                assert (val != null);
+//                val.append(value);
+//            }
         }
         // never reach this point
     }
@@ -348,9 +451,13 @@ public class VerilogReader extends Input
                     else
                         System.out.println(net + " is not a bus wire");
                 }
+                pinName = TextUtils.correctName(pinName);
+
                 NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                        primitive.getDefWidth(), primitive.getDefHeight(),
+                        primitiveWidth, primitiveHeight,
+//                        primitive.getDefWidth(), primitive.getDefHeight(),
                         cell, Orientation.IDENT, pinName, 0);
+                pinsMap.put(pinName, ni);
                 assert(ni != null);
             }
 
@@ -393,8 +500,10 @@ public class VerilogReader extends Input
                 }
                 //Point2D center, double width, double height, Cell parent)
                 NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                        primitive.getDefWidth(), primitive.getDefHeight(),
+                        primitiveWidth, primitiveHeight,
+//                        primitive.getDefWidth(), primitive.getDefHeight(),
                         cell, Orientation.IDENT, name, 0);
+                pinsMap.put(name, ni);
                 Export.newInstance(cell, ni.getOnlyPortInst(), name);
             }
         }
@@ -463,11 +572,12 @@ public class VerilogReader extends Input
 
             if (key.startsWith("supply"))
             {
+                boolean power = key.contains("supply1");
                 key = getRestOfLine();
-                StringTokenizer parse = new StringTokenizer(key, ";", false); // extracting only input name
-                assert(parse.hasMoreTokens());
+                StringTokenizer parse = new StringTokenizer(key, " ;\t", false); // extracting only input name
+//                assert(parse.hasMoreTokens());
                 String name = parse.nextToken();
-                addSupply(cell, key.contains("supply1"), name); // supply1 -> vdd, supply0 -> gnd or vss
+                addSupply(cell, power, name); // supply1 -> vdd, supply0 -> gnd or vss
                 continue;
             }
 
@@ -507,7 +617,7 @@ public class VerilogReader extends Input
             Cell icon = schematics.iconView();
             if (icon == null) // creates one only after adding all missing ports
             {
-                ViewChanges.makeIconViewNoGUI(schematics, true);
+                ViewChanges.makeIconViewNoGUI(schematics, true, true);
                 icon = schematics.iconView();
                 assert(icon != null);
             }
@@ -606,9 +716,10 @@ public class VerilogReader extends Input
 //            PrimitiveNode primitive = (wirePin) ? Schematics.tech.wirePinNode : Schematics.tech.busPinNode;
             PrimitiveNode primitive = Schematics.tech.wirePinNode;
             ni = NodeInst.newInstance(primitive, new Point2D.Double(posX, posY),
-                        primitive.getDefWidth(), primitive.getDefHeight(),
+                        primitiveWidth /*primitive.getDefWidth()*/, primitiveHeight /*primitive.getDefHeight()*/,
                         cell, Orientation.IDENT, null /*pinName*/, 0);
-            ArcInst.makeInstance(Schematics.tech.wire_arc, Schematics.tech.wire_arc.getDefaultLambdaFullWidth(),
+
+            ArcInst.makeInstance(Schematics.tech.wire_arc, 0.0 /*Schematics.tech.wire_arc.getDefaultLambdaFullWidth()*/,
                     ni.getOnlyPortInst(), ports[pos], null, null, name);
         }
         return null;
