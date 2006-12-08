@@ -883,7 +883,7 @@ public class DXF extends Input
 		EPoint [] points = new EPoint[2];
 		points[0] = new EPoint(x1 - cX, y1 - cY);
 		points[1] = new EPoint(x2 - cX, y2 - cY);
-		ni.newVar(NodeInst.TRACE, points);
+		ni.setTrace(points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		readLines++;
 		return false;
@@ -1084,7 +1084,7 @@ public class DXF extends Input
 					Point2D [] points = new Point2D[2];
 					points[0] = new Point2D.Double(x1 - cX, y1 - cY);
 					points[1] = new Point2D.Double(x2 - cX, y2 - cY);
-					ni.newVar(NodeInst.TRACE, points);
+					ni.setTrace(points);
 					ni.newVar(DXF_LAYER_KEY, layer.layerName);
 				}
 			} else
@@ -1123,7 +1123,7 @@ public class DXF extends Input
 					PolyPoint pp = polyPoints.get(i);
 					points[i] = new Point2D.Double(pp.x - cX, pp.y - cY);
 				}
-				ni.newVar(NodeInst.TRACE, points);
+				ni.setTrace(points);
 				ni.newVar(DXF_LAYER_KEY, layer.layerName);
 			}
 		}
@@ -1186,7 +1186,7 @@ public class DXF extends Input
 		points[1] = new Point2D.Double(x2 - cX, y2 - cY);
 		points[2] = new Point2D.Double(x3 - cX, y3 - cY);
 		points[3] = new Point2D.Double(x4 - cX, y4 - cY);
-		ni.newVar(NodeInst.TRACE, points);
+		ni.setTrace(points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		readSolids++;
 		return false;
@@ -1308,7 +1308,7 @@ public class DXF extends Input
 		points[1] = new Point2D.Double(x2 - cX, y2 - cY);
 		points[2] = new Point2D.Double(x3 - cX, y3 - cY);
 		points[3] = new Point2D.Double(x4 - cX, y4 - cY);
-		ni.newVar(NodeInst.TRACE, points);
+		ni.setTrace(points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		read3DFaces++;
 		return false;
@@ -1387,7 +1387,7 @@ public class DXF extends Input
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
 						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xSca, oldTrace[i].getY() * ySca);
-					nNi.newVar(NodeInst.TRACE, newTrace);
+					nNi.setTrace(newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
@@ -1457,7 +1457,7 @@ public class DXF extends Input
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
 						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xSca, oldTrace[i].getY() * ySca);
-					nNi.newVar(NodeInst.TRACE, newTrace);
+					nNi.setTrace(newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{

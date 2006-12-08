@@ -942,7 +942,7 @@ public class PadGenerator
                 points[2] = new EPoint(0.5 * xSize, 0.5 * ySize);
                 points[3] = new EPoint(0.5 * xSize, -0.5 * ySize);
                 points[4] = new EPoint(-0.5 * xSize, -0.5 * ySize);
-                bbNi.newVar(NodeInst.TRACE, points);
+                bbNi.setTrace(points);
 
                 // put the original cell name on it
                 Variable var = bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, framecell.getName());

@@ -613,7 +613,7 @@ public class CIF extends Input
 		}
 
 		// store the trace information
-		newni.newVar(NodeInst.TRACE, points);
+		newni.setTrace(points);
 
 		return false;
 	}

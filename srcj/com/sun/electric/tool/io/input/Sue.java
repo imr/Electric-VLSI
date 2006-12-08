@@ -892,7 +892,7 @@ public class Sue extends Input
 					Point2D pt = pointList.get(i);
 					points[i] = new EPoint(pt.getX() - cX, pt.getY() - cY);
 				}
-				ni.newVar(NodeInst.TRACE, points);
+				ni.setTrace(points);
 				continue;
 			}
 

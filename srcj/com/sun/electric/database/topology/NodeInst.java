@@ -3193,7 +3193,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @param ni the other NodeInst to copy.
 	 */
 	public void copyStateBits(NodeInst ni) {
-        setD(d.withFlags(ni.d.flags).withTechSpecific(ni.d.techBits), true);
+        setD(d.withStateBits(ni.d), true);
     }
 
     private void setFlag(ImmutableNodeInst.Flag flag, boolean value) {
@@ -3247,20 +3247,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             return false;
         return parent.getMemoization().isWiped(getD().nodeId);
     }
-    
-//	/**
-//	 * Method to update the "end shrink" factors on all arcs on a PortInst.
-//	 * This is a number from 0 to 90, where
-//	 * 0 indicates no shortening (extend the arc by half its width) and greater values
-//	 * indicate that the end should be shortened to account for this angle of connection.
-//	 * Small values are shortened almost to nothing, whereas large values are shortened
-//	 * very little (and a value of 90 indicates no shortening at all).
-//	 */
-// 	public byte getShrinkage() {
-//        if (parent == null || !(protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isArcsShrink()))
-//            return 0;
-//        return parent.getMemoization().getShrinkage(getD().nodeId);
-//    }
     
 	/**
 	 * Method to set this NodeInst to be hard-to-select.

@@ -393,7 +393,7 @@ public class LayerCoverageTool extends Tool
                                     EPoint [] ePoints = new EPoint[points.length];
                                     for(int j=0; j<points.length; j++)
                                         ePoints[j] = new EPoint(points[j].getX(), points[j].getY());
-                                    node.newVar(NodeInst.TRACE, ePoints);
+                                    node.setTrace(ePoints);
                                 }
                                 else
                                 {

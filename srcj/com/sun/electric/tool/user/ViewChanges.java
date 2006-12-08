@@ -661,7 +661,7 @@ public class ViewChanges
 			boxOutline[2] = new EPoint( xSize/2,  ySize/2);
 			boxOutline[3] = new EPoint( xSize/2, -ySize/2);
 			boxOutline[4] = new EPoint(-xSize/2, -ySize/2);
-			bbNi.newVar(NodeInst.TRACE, boxOutline);
+			bbNi.setTrace(boxOutline);
 
 			// put the original cell name on it
 			Variable var = bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, curCell.getName());

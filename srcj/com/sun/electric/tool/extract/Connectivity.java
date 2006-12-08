@@ -2768,7 +2768,7 @@ public class Connectivity
 					{
 						newPoints[i] = new EPoint(points[i].getX() / SCALEFACTOR - centerX, points[i].getY() / SCALEFACTOR - centerY);
 					}
-					ni.newVar(NodeInst.TRACE, newPoints);
+					ni.setTrace(newPoints);
 				}
 			}
 		}
@@ -2805,7 +2805,7 @@ public class Connectivity
 		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(centerX / SCALEFACTOR, centerY / SCALEFACTOR),
 			width / SCALEFACTOR, height / SCALEFACTOR, newCell, orient, null, 0);
 		if (ni == null) return;
-		if (points != null) ni.newVar(NodeInst.TRACE, points);
+		if (points != null) ni.setTrace(points);
 
 		// now remove the generated layers from the Merge
 		AffineTransform trans = ni.rotateOut();

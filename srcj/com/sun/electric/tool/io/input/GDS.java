@@ -588,7 +588,7 @@ public class GDS extends Input
             if (IOTool.isGDSInExpandsCells() && ni.isCellInstance())
                 ni.setExpanded();
             if (points != null)
-                ni.newVar(NodeInst.TRACE, points);
+                ni.setTrace(points);
             boolean renamed = false;
             if (exportName != null)
             {

@@ -1231,7 +1231,7 @@ public class EDIF extends Input
 			}
 
 			// store the trace information
-			ni.newVar(NodeInst.TRACE, trace);
+			ni.setTrace(trace);
 		}
 		freePointList();
 	}
@@ -3250,7 +3250,7 @@ public class EDIF extends Input
 					pts[4] = new EPoint(p0.getX()-cX, p0.getY()-cY);
 
 					// store the trace information
-					ni.newVar(NodeInst.TRACE, pts);
+					ni.setTrace(pts);
 				}
 				else if (curGeometryType == GPIN)
 				{

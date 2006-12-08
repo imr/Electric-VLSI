@@ -109,6 +109,11 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 
  	private static final int FLAG_BITS = HARDSELECTN | NVISIBLEINSIDE | NILOCKED;
 
+    private static final int HARD_SELECT_MASK = 0x01;
+    private static final int VIS_INSIDE_MASK  = 0x02;
+    private static final int LOCKED_MASK      = 0x04;
+    private static final int DATABASE_FLAGS   = 0x07;
+    
 	/**
 	 * Method to set an ImmutableNodeInst to be hard-to-select.
 	 * Hard-to-select ImmutableNodeInsts cannot be selected by clicking on them.
@@ -307,11 +312,21 @@ public class ImmutableNodeInst extends ImmutableElectricObject {
 	 * @param flags flag bits defined by ImmutableNodeInst.Flag.
      * @return ImmutableNodeInst which differs from this ImmutableNodeInst by flag bit.
 	 */
-    public ImmutableNodeInst withFlags(int flags) {
+    private ImmutableNodeInst withFlags(int flags) {
         flags &= FLAG_BITS;
         if (this.flags == flags) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.nameDescriptor,
                 this.orient, this.anchor, this.size, flags, this.techBits, this.protoDescriptor, getVars(), this.ports);
+    }
+
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by state bits.
+     * State bits are flags and tech-specifiic bits.
+	 * @param d another ImmutableNodeInst where to take state bits.
+     * @return ImmutableNodeInst which differs from this ImmutableNodeInst by state bit.
+	 */
+    public ImmutableNodeInst withStateBits(ImmutableNodeInst d) {
+        return withFlags(d.flags).withTechSpecific(d.techBits);
     }
 
 	/**

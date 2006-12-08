@@ -659,7 +659,7 @@ public class Artwork extends Technology
 			outline[1] = new EPoint(-1, 3);
 			outline[2] = new EPoint(1, -3);
 			outline[3] = new EPoint(3, 3);
-			ni.newVar(NodeInst.TRACE, outline);
+			ni.setTrace(outline);
 		}
 		if (np == closedPolygonNode || np == filledPolygonNode)
 		{
@@ -668,7 +668,7 @@ public class Artwork extends Technology
 			outline[1] = new EPoint(-3, 0);
 			outline[2] = new EPoint(0, 3);
 			outline[3] = new EPoint(3, -3);
-			ni.newVar(NodeInst.TRACE, outline);
+			ni.setTrace(outline);
 		}
 	}
 

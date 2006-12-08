@@ -106,7 +106,7 @@ public class OutlineListener
 			points[1] = new EPoint(-halfWid,  halfHei);
 			points[2] = new EPoint( halfWid,  halfHei);
 			points[3] = new EPoint( halfWid, -halfHei);
-			ni.newVar(NodeInst.TRACE, points);
+			ni.setTrace(points);
 			return true;
 		}
 
