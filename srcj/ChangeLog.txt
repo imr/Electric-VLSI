@@ -4,6 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+
 IMP: (12/6/06, DN) Removed invariant "LibId/CellId/ExportId" values of variables must be in the Snapshot.
     Such variables are almost not used, but the maintanence of this invariant took time.
 
