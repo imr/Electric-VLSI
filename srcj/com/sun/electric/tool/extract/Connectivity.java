@@ -27,6 +27,7 @@ package com.sun.electric.tool.extract;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -57,7 +58,22 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.routing.AutoStitch;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.UserInterfaceMain;
+import com.sun.electric.tool.user.dialogs.AttributesTable;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.GetInfoArc;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -74,6 +90,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
 /**
  * This is the Connectivity extractor.
  *
@@ -86,6 +106,7 @@ public class Connectivity
 	/** true to prevent objects smaller than minimum size */	private static final boolean ENFORCEMINIMUMSIZE = false;
 	/** amount to scale values before merging */				private static final double SCALEFACTOR = DBMath.GRID;
 	/** true to debug centerline determination */				private static final boolean DEBUGCENTERLINES = false;
+	/** true to debug object creation */						private static final boolean DEBUGSTEPS = true;
 
 	/** the current technology for extraction */				private Technology tech;
 	/** layers to use for given arc functions */				private HashMap<Layer.Function,Layer> layerForFunction;
@@ -98,6 +119,8 @@ public class Connectivity
 	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
 	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
 	/** the smallest polygon acceptable for merging */			private double smallestPoly;
+	/** debugging: list of objects created */					private List<ERectangle> addedRectangles;
+	/** debugging: list of objects created */					private List<ERectangle> addedLines;
 
 	/**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
@@ -118,6 +141,9 @@ public class Connectivity
 	{
 		private Cell cell, newCell;
 		private boolean recursive;
+		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchRectangles;
+		/** debugging: list of objects created */	private List<List<ERectangle>> addedBatchLines;
+		/** debugging: list of objects created */	private List<String> addedBatchNames;
 
 		private ExtractJob(Cell cell, boolean recursive)
 		{
@@ -140,24 +166,42 @@ public class Connectivity
 				System.out.println("Pattern syntax error on '" + expansionPattern + "': " + e.getMessage());
 				pat = null;
 			}
-			newCell = c.doExtract(cell, recursive, pat, true);
+			if (DEBUGSTEPS)
+			{
+				addedBatchRectangles = new ArrayList<List<ERectangle>>();
+				addedBatchLines = new ArrayList<List<ERectangle>>();
+				addedBatchNames = new ArrayList<String>();
+			}
+			newCell = c.doExtract(cell, recursive, pat, true, addedBatchRectangles, addedBatchLines, addedBatchNames);
+			fieldVariableChanged("addedBatchRectangles");
+			fieldVariableChanged("addedBatchLines");
+			fieldVariableChanged("addedBatchNames");
 			fieldVariableChanged("newCell");
 			return true;
 		}
 
 		public void terminateOK()
 		{
-			// show the new version
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.displayCell(newCell);
-	
-			// highlight pure layer nodes
-			for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+
+			if (DEBUGSTEPS)
 			{
-				NodeInst ni = it.next();
-				PrimitiveNode.Function fun = ni.getFunction();
-				if (fun == PrimitiveNode.Function.NODE)
-					wnd.addElectricObject(ni, newCell);
+				// show results of each step
+				JFrame jf = null;
+				if (!TopLevel.isMDIMode()) jf = TopLevel.getCurrentJFrame();
+				ShowExtraction theDialog = new ShowExtraction(jf, addedBatchRectangles, addedBatchLines, addedBatchNames);
+				theDialog.setVisible(true);
+			} else
+			{
+				// highlight pure layer nodes
+				for(Iterator<NodeInst> it = newCell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = it.next();
+					PrimitiveNode.Function fun = ni.getFunction();
+					if (fun == PrimitiveNode.Function.NODE)
+						wnd.addElectricObject(ni, newCell);
+				}
 			}
 		}
 	}
@@ -241,7 +285,8 @@ public class Connectivity
 	 * A new version of the cell is created that has real nodes (transistors, contacts) and arcs.
 	 * This cell should have pure-layer nodes which will be converted.
 	 */
-	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean top)
+	private Cell doExtract(Cell oldCell, boolean recursive, Pattern pat, boolean top,
+		List<List<ERectangle>> addedBatchRectangles, List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
 	{
 		if (recursive)
 		{
@@ -263,7 +308,7 @@ public class Connectivity
 					Cell convertedCell = convertedCells.get(subCell);
 					if (convertedCell == null)
 					{
-						doExtract(subCell, recursive, pat, false);
+						doExtract(subCell, recursive, pat, false, addedBatchRectangles, addedBatchLines, addedBatchNames);
 					}
 				}
 			}
@@ -303,27 +348,39 @@ public class Connectivity
 		System.out.println("Extracting " + oldCell + "...");
 
 		// start by extracting vias
+		initDebugging();
 		extractVias(merge, originalMerge, newCell);
+		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Vias");
 		System.out.println("Extracted vias");
 
 		// now extract transistors
+		initDebugging();
 		extractTransistors(merge, originalMerge, newCell);
+		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Transistors");
 		System.out.println("Extracted transistors");
 
 		// extend geometry that sticks out in space
+		initDebugging();
 		extendGeometry(merge, originalMerge, newCell, true);
+		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "StickOuts");
 		System.out.println("Extracted extensions");
 
 		// look for wires and pins
+		initDebugging();
 		if (makeWires(merge, originalMerge, newCell)) return newCell;
+		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Wires");
 		System.out.println("Extracted wires");
 
 		// convert any geometry that connects two networks
+		initDebugging();
 		extendGeometry(merge, originalMerge, newCell, false);
+		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Bridges");
 		System.out.println("Extracted connections");
 
 		// dump any remaining layers back in as extra pure layer nodes
+		initDebugging();
 		convertAllGeometry(merge, originalMerge, newCell);
+		termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Pures");
 		System.out.println("Extracted geometry");
 
 		// cleanup by auto-stitching
@@ -331,9 +388,48 @@ public class Connectivity
 		double shrinkage = 1.0 / SCALEFACTOR;
 		AffineTransform shrink = new AffineTransform(shrinkage, 0, 0, shrinkage, 0, 0);
 		originalUnscaledMerge.addMerge(originalMerge, shrink);
+		Set<ArcInst> allArcs = null;
+		if (DEBUGSTEPS)
+		{
+			allArcs = new HashSet<ArcInst>();
+			for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
+				allArcs.add(it.next());
+		}
 		AutoStitch.runAutoStitch(newCell, null, null, originalUnscaledMerge, null, false);
+		if (DEBUGSTEPS)
+		{
+			initDebugging();
+			for(Iterator<ArcInst> it = newCell.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = it.next();
+				if (allArcs.contains(ai)) continue;
+	            Poly arcPoly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
+				addedRectangles.add(ERectangle.fromLambda(arcPoly.getBounds2D()));
+			}
+			termDebugging(addedBatchRectangles, addedBatchLines, addedBatchNames, "Stitches");
+		}
 		System.out.println("Extraction done.");
 		return newCell;
+	}
+
+	private void initDebugging()
+	{
+		if (DEBUGSTEPS)
+		{
+			addedRectangles = new ArrayList<ERectangle>();
+			addedLines = new ArrayList<ERectangle>();
+		}
+	}
+
+	private void termDebugging(List<List<ERectangle>> addedBatchRectangles,
+		List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames, String descr)
+	{
+		if (DEBUGSTEPS)
+		{
+			addedBatchRectangles.add(addedRectangles);
+			addedBatchLines.add(addedLines);
+			addedBatchNames.add(descr);
+		}
 	}
 
 	/**
@@ -2783,6 +2879,14 @@ public class Connectivity
 			if (hei < np.getDefHeight()) hei = np.getDefHeight();
 		}
 		NodeInst ni = NodeInst.makeInstance(np, loc, wid, hei, cell);
+		if (DEBUGSTEPS)
+		{
+			if (np.getFunction() != PrimitiveNode.Function.PIN)
+			{
+	            Poly niPoly = Highlight.getNodeInstOutline(ni);
+				addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
+			}
+		}
 		return ni;
 	}
 
@@ -2802,10 +2906,36 @@ public class Connectivity
 		Point2D [] points, PolyMerge merge, Cell newCell)
 	{
 		Orientation orient = Orientation.fromAngle(angle);
-		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(centerX / SCALEFACTOR, centerY / SCALEFACTOR),
+		double cX = centerX / SCALEFACTOR;
+		double cY = centerY / SCALEFACTOR;
+		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(cX, cY),
 			width / SCALEFACTOR, height / SCALEFACTOR, newCell, orient, null, 0);
 		if (ni == null) return;
-		if (points != null) ni.setTrace(points);
+		if (points != null)
+		{
+			ni.setTrace(points);
+			if (DEBUGSTEPS)
+			{
+				for(int i=1; i<points.length; i++)
+				{
+					double sx = points[i-1].getX() + cX;
+					double sy = points[i-1].getY() + cY;
+					double ex = points[i].getX() + cX;
+					double ey = points[i].getY() + cY;
+					addedLines.add(ERectangle.fromLambda(sx, sy, ex-sx, ey-sy));
+				}
+			}
+		} else
+		{
+			if (DEBUGSTEPS)
+			{
+				if (pNp.getFunction() != PrimitiveNode.Function.PIN)
+				{
+		            Poly niPoly = Highlight.getNodeInstOutline(ni);
+					addedRectangles.add(ERectangle.fromLambda(niPoly.getBounds2D()));
+				}
+			}
+		}
 
 		// now remove the generated layers from the Merge
 		AffineTransform trans = ni.rotateOut();
@@ -2838,6 +2968,13 @@ public class Connectivity
 		if (ai == null) return null;
 		if (noHeadExtend) ai.setHeadExtended(false);
 		if (noTailExtend) ai.setTailExtended(false);
+
+		// remember this arc for debugging
+		if (DEBUGSTEPS)
+		{
+            Poly arcPoly = ai.makeLambdaPoly(ai.getGridBaseWidth(), Poly.Type.CLOSED);
+			addedRectangles.add(ERectangle.fromLambda(arcPoly.getBounds2D()));
+		}
 
 		// now remove the generated layers from the Merge
 		Poly [] polys = tech.getShapeOfArc(ai);
@@ -2961,5 +3098,103 @@ public class Connectivity
 			sb.append("]");
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Class for showing progress of extraction in a modeless dialog
+	 */
+	private static class ShowExtraction extends EDialog
+	{
+		private List<List<ERectangle>> addedBatchRectangles;
+		private List<List<ERectangle>> addedBatchLines;
+		private List<String> addedBatchNames;
+		private int batchPosition;
+		private JLabel comingUp;
+
+		private ShowExtraction(Frame parent, List<List<ERectangle>> addedBatchRectangles,
+			List<List<ERectangle>> addedBatchLines, List<String> addedBatchNames)
+		{
+			super(parent, false);
+			this.addedBatchRectangles = addedBatchRectangles;
+			this.addedBatchLines = addedBatchLines;
+			this.addedBatchNames = addedBatchNames;
+
+	        getContentPane().setLayout(new GridBagLayout());
+	        setTitle("Extraction Progress");
+	        setName("");
+	        addWindowListener(new WindowAdapter()
+	        {
+	            public void windowClosing(WindowEvent evt) { closeDialog(); }
+	        });
+
+	        GridBagConstraints gbc;
+	        comingUp = new JLabel("Next step:");
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 0;
+	        gbc.gridwidth = 2;
+	        gbc.anchor = GridBagConstraints.WEST;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(comingUp, gbc);
+
+	        JButton prev = new JButton("Prev");
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 0;   gbc.gridy = 1;
+	        gbc.anchor = GridBagConstraints.WEST;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        prev.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent evt) { advanceDisplay(false); }
+            });
+	        getContentPane().add(prev, gbc);
+
+	        JButton next = new JButton("Next");
+	        gbc = new GridBagConstraints();
+	        gbc.gridx = 1;   gbc.gridy = 1;
+	        gbc.anchor = GridBagConstraints.WEST;
+	        gbc.insets = new Insets(4, 4, 4, 4);
+	        next.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent evt) { advanceDisplay(true); }
+            });
+	        getContentPane().add(next, gbc);
+
+			batchPosition = -1;
+			advanceDisplay(true);
+
+			getRootPane().setDefaultButton(next);
+			finishInitialization();
+		}
+
+		protected void escapePressed() { closeDialog(); }
+
+		private void advanceDisplay(boolean forward)
+		{
+			if (forward)
+			{
+				batchPosition++;
+				if (batchPosition >= addedBatchNames.size()) batchPosition = addedBatchNames.size()-1;
+			} else
+			{
+				batchPosition--;
+				if (batchPosition < 0) batchPosition = 0;
+			}
+			comingUp.setText("Batch " + (batchPosition+1) + ": " + addedBatchNames.get(batchPosition));
+	        pack();
+
+	        UserInterface ui = Job.getUserInterface();
+			EditWindow_ wnd = ui.getCurrentEditWindow_();
+			wnd.clearHighlighting();
+			Cell cell = wnd.getCell();
+			
+			// highlight
+			List<ERectangle> rects = addedBatchRectangles.get(batchPosition);
+			for(ERectangle er : rects)
+				wnd.addHighlightArea(er, cell);
+			List<ERectangle> lines = addedBatchLines.get(batchPosition);
+			for(ERectangle er : lines)
+				wnd.addHighlightLine(new Point2D.Double(er.getMinX(), er.getMinY()),
+					new Point2D.Double(er.getMaxX(), er.getMaxY()), cell, false);
+			wnd.finishedHighlighting();
+		}
 	}
 }
