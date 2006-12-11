@@ -27,7 +27,6 @@ import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
-import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableExport;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.ImmutablePortInst;
@@ -505,7 +504,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
             d = d.withSize(EPoint.fromLambda(d.size.getLambdaX() + dXSize, d.size.getLambdaY() + dYSize));
         d = d.withOrient(dOrient.concatenate(d.orient));
         lowLevelModify(d);
-        Constraints.getCurrent().modifyNodeInst(this, oldD);
+        if (parent != null)
+            Constraints.getCurrent().modifyNodeInst(this, oldD);
         
 //        // change the coordinates of every arc end connected to this
 //        for(Iterator<Connection> it = getConnections(); it.hasNext(); ) {
@@ -3199,7 +3199,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
     private void setFlag(ImmutableNodeInst.Flag flag, boolean value) {
         setD(d.withFlag(flag, value), true);
     }
-   
+
 	/**
 	 * Method to set this NodeInst to be expanded.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
@@ -3208,7 +3208,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
      * @param value true if NodeInst is expanded.
 	 */
     public void setExpanded(boolean value) { if (parent != null) parent.setExpanded(getD().nodeId, value); }
-    
+
 	/**
 	 * Method to set this NodeInst to be expanded.
 	 * Expanded NodeInsts are instances of Cells that show their contents.

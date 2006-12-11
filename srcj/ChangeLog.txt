@@ -5,7 +5,8 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.05d: *********************************
 
 BUG: (12/11/06, DN) Null exception while accesing artwork in palette components (Bug #1270)
-FIX: Detecting if parent is null before calling Constraints.getCurrent().modifyNodeInst(this, oldD) in NodeInst.modifyInstance()
+FIX: Detecting if parent is null before calling Constraints.getCurrent().modifyNodeInst(this, oldD)
+in NodeInst.modifyInstance()
 
 IMP: (12/6/06, DN) Removed invariant "LibId/CellId/ExportId" values of variables must be in the Snapshot.
     Such variables are almost not used, but the maintanence of this invariant took time.
