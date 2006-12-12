@@ -15,6 +15,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.user.ViewChanges;
+import com.sun.electric.tool.Job;
 
 import java.net.URL;
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.awt.geom.Point2D;
  */
 public class VerilogReader extends Input
 {
+    private static boolean addArcs = true;
     List<NodeInst> transistors = new ArrayList<NodeInst>();
     double maxWidth = 100, nodeWidth = 10;
     double primitiveHeight = 0.5, primitiveWidth = 0.5;
@@ -98,25 +100,34 @@ public class VerilogReader extends Input
 
             if (pin == null)
             {
-                StringTokenizer parse = new StringTokenizer(port.local, "[]", false); // extracting only input name
-                String busName = parse.nextToken(); // only bus name, root
-
-                pin = pinsMap.get(busName);
-
-                if (pin == null)
+//                StringTokenizer parse = new StringTokenizer(port.local, "[]", false); // extracting only input name
+//                String busName = parse.nextToken(); // only bus name, root
+                int index = port.local.indexOf("[");
+                if (index != -1)
                 {
-                    if (busName.equals("vss")) // ground
-                    {
-                        pin = addSupply(parent, false, busName);
-                    }
-                    else
-                    {
-                        System.out.println("Unknown signal " + busName + " in cell " + parent.describe(false));
-                        continue; // temporary
-                    }
+                    String busName = port.local.substring(0, index);
+
+                    pin = pinsMap.get(busName);
                 }
             }
 
+            if (pin == null)
+            {
+                if (port.local.equals("vss")) // ground
+                {
+                    pin = addSupply(parent, false, port.local);
+                }
+                else
+                {
+                    if (Job.getDebug())
+                    System.out.println("Unknown signal " + port.local + " in cell " + parent.describe(false));
+                    continue; // temporary
+                }
+            }
+
+            /* Test 1 -> out Arcs */
+            if (addArcs)
+            {
             ArcProto node = (port.isBus) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
             PortInst ex = cellInst.findPortInst(port.ex.getName());
             ArcInst ai = ArcInst.makeInstance(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
@@ -124,6 +135,7 @@ public class VerilogReader extends Input
             if (ai == null)
                 assert(ai != null);
             ai.setFixedAngle(false);
+            }
         }
     }
 
@@ -403,7 +415,7 @@ public class VerilogReader extends Input
         // never reach this point
     }
 
-    private String readWires(Cell cell) throws IOException
+    private String readWiresAndSupplies(Cell cell, boolean readWires, boolean power) throws IOException
     {
         List<String> values = new ArrayList<String>(2);
         for (;;)
@@ -419,48 +431,57 @@ public class VerilogReader extends Input
                 {
                     return null; // done
                 }
-                StringTokenizer p = new StringTokenizer(net, "\t ", false);
-                values.clear(); // clean reset
-                while (p.hasMoreTokens())
+                if (readWires)   // wires
                 {
-                    values.add(p.nextToken());
-                }
-                int size = values.size();
-                if (size == 0) continue;
-                assert(size == 1 || size == 2);
-                PrimitiveNode primitive = Schematics.tech.wirePinNode;
-                String pinName = values.get(size-1);
-                int[] vals = {0, 0};
-                int count = 0;
-
-                if (values.size() == 2)
-                {
-                    p = new StringTokenizer(values.get(0), "[:]", false);
+                    StringTokenizer p = new StringTokenizer(net, "\t ", false);
+                    values.clear(); // clean reset
                     while (p.hasMoreTokens())
                     {
-                        String s = p.nextToken();
-                        if (TextUtils.isANumber(s))
-                            vals[count++] = Integer.parseInt(s);
+                        values.add(p.nextToken());
                     }
+                    int size = values.size();
+                    if (size == 0) continue;
+                    assert(size == 1 || size == 2);
+                    PrimitiveNode primitive = Schematics.tech.wirePinNode;
+                    String pinName = values.get(size-1);
+                    int[] vals = {0, 0};
+                    int count = 0;
 
-                    if (count == 2 && vals[0] != vals[1]) // only if it is a real bus
+                    if (values.size() == 2)
                     {
-//                        pinName += values.get(0);
-                        primitive = Schematics.tech.busPinNode;
+                        p = new StringTokenizer(values.get(0), "[:]", false);
+                        while (p.hasMoreTokens())
+                        {
+                            String s = p.nextToken();
+                            if (TextUtils.isANumber(s))
+                                vals[count++] = Integer.parseInt(s);
+                        }
+
+                        if (count == 2 && vals[0] != vals[1]) // only if it is a real bus
+                        {
+    //                        pinName += values.get(0);
+                            primitive = Schematics.tech.busPinNode;
+                        }
+                        else
+                            System.out.println(net + " is not a bus wire");
                     }
-                    else
-                        System.out.println(net + " is not a bus wire");
+                    pinName = TextUtils.correctName(pinName);
+
+                    NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+                            primitiveWidth, primitiveHeight,
+    //                        primitive.getDefWidth(), primitive.getDefHeight(),
+                            cell, Orientation.IDENT, pinName, 0);
+                    pinsMap.put(pinName, ni);
+                    assert(ni != null);
                 }
-                pinName = TextUtils.correctName(pinName);
-
-                NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                        primitiveWidth, primitiveHeight,
-//                        primitive.getDefWidth(), primitive.getDefHeight(),
-                        cell, Orientation.IDENT, pinName, 0);
-                pinsMap.put(pinName, ni);
-                assert(ni != null);
+                else // supplies
+                {
+                    StringTokenizer p = new StringTokenizer(net, "\t ", false);
+                    String name = p.nextToken();
+                    name = TextUtils.correctName(name);
+                    addSupply(cell, power, name); // supply1 -> vdd, supply0 -> gnd or vss
+                }
             }
-
         }
         // never reach this point
     }
@@ -560,7 +581,7 @@ public class VerilogReader extends Input
 
             if (key.equals("wire"))
             {
-                readWires(cell);
+                readWiresAndSupplies(cell, true, false);
                 continue;
             }
 
@@ -573,11 +594,12 @@ public class VerilogReader extends Input
             if (key.startsWith("supply"))
             {
                 boolean power = key.contains("supply1");
-                key = getRestOfLine();
-                StringTokenizer parse = new StringTokenizer(key, " ;\t", false); // extracting only input name
+//                key = getRestOfLine();
+//                StringTokenizer parse = new StringTokenizer(key, " ,;\t", false); // extracting only first input name
 //                assert(parse.hasMoreTokens());
-                String name = parse.nextToken();
-                addSupply(cell, power, name); // supply1 -> vdd, supply0 -> gnd or vss
+//                String name = parse.nextToken();
+//                addSupply(cell, power, name); // supply1 -> vdd, supply0 -> gnd or vss
+                readWiresAndSupplies(cell, false, power);
                 continue;
             }
 
