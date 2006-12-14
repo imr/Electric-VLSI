@@ -117,6 +117,7 @@ public class Compaction extends Tool
 		CompactCellJob job = new CompactCellJob(cell, true, CompactCell.Axis.HORIZONTAL);
         job.startJob();
 	}
+
 private static int limitLoops = 10;
 	/**
 	 * Class to compact a cell in a Job.
@@ -151,10 +152,34 @@ if (--limitLoops <= 0) change = false;
 			} else
 			{
 				System.out.println("Compaction complete");
-//				if (completion != null)
-//					completion.startJob();
 			}
 			return true;
+		}
+	}
+
+	/**
+	 * Method to compact a cell with repeated iterations and no jobs.
+	 * Used with regressions.
+	 * @param cell the cell to compact.
+	 */
+	public static void doCompactionNoJobs(Cell cell)
+	{
+		CompactCell.Axis curAxis = CompactCell.Axis.HORIZONTAL;
+		boolean lastTime = true;
+		for(;;)
+		{
+			CompactCell cc = new CompactCell(cell);
+
+			// alternate vertical then horizontal compaction
+			boolean change = cc.compactOneDirection(curAxis);
+			if (lastTime || change)
+			{
+				curAxis = (curAxis == CompactCell.Axis.HORIZONTAL) ? CompactCell.Axis.VERTICAL : CompactCell.Axis.HORIZONTAL;
+				lastTime = change;
+				continue;
+			}
+			System.out.println("Compaction complete");
+			break;
 		}
 	}
 
@@ -163,7 +188,7 @@ if (--limitLoops <= 0) change = false;
 	private static Pref cacheAllowSpreading = Pref.makeBooleanPref("AllowSpreading", tool.prefs, false);
 	/**
 	 * Method to tell whether the compactor can spread circuitry apart, or just compact it.
-	 * The default is "false".
+	 * The default is "false" (may only compact).
 	 * @return true if the compactor can spread circuitry apart; false to just compact it.
 	 */
 	public static boolean isAllowsSpreading() { return cacheAllowSpreading.getBoolean(); }
