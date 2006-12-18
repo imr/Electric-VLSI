@@ -37,6 +37,7 @@ import com.sun.electric.database.prototype.PortProto;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 /** Networks represent connectivity.
  *
@@ -45,7 +46,7 @@ import java.util.Iterator;
  */
 public class Network {
     private static final String[] NULL_STRING_ARRAY = {};
-    
+
     // ------------------------- private data ------------------------------
     private Netlist netlist; // Cell that owns this Network
     private int netIndex; // Index of this Network in Netlist.
@@ -66,9 +67,9 @@ public class Network {
      * True if this net has user-defiend names/
      */
     private boolean isUsernamed;
-    
+
     // ----------------------- protected and private methods -----------------
-    
+
     /**
      * Creates Network in a given netlist with specified index.
      * @param netlist Netlist where Network lives.
@@ -78,7 +79,7 @@ public class Network {
         this.netlist = netlist;
         this.netIndex = netIndex;
     }
-    
+
     /**
      * Add user name to list of names of this Network.
      * @param nameKey name key to add.
@@ -109,7 +110,7 @@ public class Network {
             exportedNamesCount++;
         isUsernamed = true;
     }
-    
+
     /**
      * Add temporary name to list of names of this Network.
      * @param name name to add.
@@ -118,36 +119,36 @@ public class Network {
         if (names.length > 0) return;
         names = new String[] { name };
     }
-    
+
     // --------------------------- public methods ------------------------------
-    
+
     /** Returns the Netlist of this Network.
      * @return Netlist of this Network.
      */
     public Netlist getNetlist() {
         return netlist;
     }
-    
+
     /** Returns parent cell of this Network.
      * @return parent cell of this Network.
      */
     public Cell getParent() {
         return netlist.netCell.cell;
     }
-    
+
     /** Returns index of this Network in netlist. */
     public int getNetIndex() { return netIndex; }
-    
+
     /** A net can have multiple names. Return alphabetized list of names. */
     public Iterator<String> getNames() {
         return ArrayIterator.iterator(names);
     }
-    
+
     /** A net can have multiple names. Return alphabetized list of names. */
     public Iterator<String> getExportedNames() {
         return ArrayIterator.iterator(names, 0, exportedNamesCount);
     }
-    
+
     /**
      * Returns most appropriate name of the net.
      * Intitialized net has at least one name - user-defiend or temporary.
@@ -155,19 +156,19 @@ public class Network {
     public String getName() {
         return names[0];
     }
-    
+
     /** Returns true if Network has names */
     boolean hasNames() {
         return names.length > 0;
     }
-    
+
     /** Returns true if nm is one of Network's names */
     public boolean hasName(String nm) {
         for (int i = 0; i < names.length; i++)
             if (names[i].equals(nm)) return true;
         return false;
     }
-    
+
     /**
      * Add names of this net to two Collections. One for exported, and other for unexported names.
      * @param exportedNames Collection for exported names.
@@ -179,11 +180,17 @@ public class Network {
             (i < exportedNamesCount ? exportedNames : unexportedNames).add(name);
         }
     }
-    
+
     /** Get iterator over all PortInsts on Network.  Note that the
      * PortFilter class is useful for filtering out frequently excluded
      * PortInsts.  */
     public Iterator<PortInst> getPorts() {
+        List<PortInst> ports = getPortsList();
+        return ports.iterator();
+    }
+
+    public List<PortInst> getPortsList()
+    {
         ArrayList<PortInst> ports = new ArrayList<PortInst>();
         for (Iterator<NodeInst> it = getParent().getNodes(); it.hasNext(); ) {
             NodeInst ni = it.next();
@@ -193,7 +200,7 @@ public class Network {
                     ports.add(pi);
             }
         }
-        return ports.iterator();
+        return ports;
     }
 
     /**
@@ -231,7 +238,7 @@ public class Network {
         }
         return exports.iterator();
     }
-    
+
     /** Get iterator over all ArcInsts on Network */
     public Iterator<ArcInst> getArcs() {
         ArrayList<ArcInst> arcs = new ArrayList<ArcInst>();
@@ -247,19 +254,19 @@ public class Network {
         }
         return arcs.iterator();
     }
-    
+
     /**
      * Method to tell whether this network has any exports on it.
      * @return true if there are exports on this Network.
      */
     public boolean isExported() { return exportedNamesCount > 0; }
-    
+
     /**
      * Method to tell whether this network has user-defined name.
      * @return true if this Network has user-defined name.
      */
     public boolean isUsernamed() { return isUsernamed; }
-    
+
     /**
      * Method to describe this Network as a string.
      * @param withQuotes to wrap description between quotes
