@@ -490,9 +490,13 @@ public class ViewChanges
                 inputSide, outputSide, bidirSide, pwrSide, gndSide, clkSide, doItNow);
         }
         else
+        {
+            // in case of debugging mode, better to draw the body and leads
+            boolean drawBodyAndLeads = Job.getDebug();
             new MakeIconView(curCell, 0.05, 0, 2.0, 2.0,
-                false, false, false, true, 0, 1, 1,
-                0, 1, 2, 3, 3, 0, doItNow);
+            false, drawBodyAndLeads, drawBodyAndLeads, true, 0, 1, 1,
+            0, 1, 2, 3, 3, 0, doItNow);
+        }
     }
 
     private static class MakeIconView extends Job
