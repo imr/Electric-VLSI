@@ -10,6 +10,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.PrimitiveNode;
@@ -344,7 +345,7 @@ public class VerilogReader extends Input
         // never reach this point
     }
 
-    private String readInputOutput(Cell cell) throws IOException
+    private String readInputOutput(Cell cell, PortCharacteristic portType) throws IOException
     {
         for (;;)
         {
@@ -383,7 +384,8 @@ public class VerilogReader extends Input
 //                        primitive.getDefWidth(), primitive.getDefHeight(),
                         cell, Orientation.IDENT, name, 0);
                 pinsMap.put(name, ni);
-                Export.newInstance(cell, ni.getOnlyPortInst(), name);
+                Export ex = Export.newInstance(cell, ni.getOnlyPortInst(), name);
+                ex.setCharacteristic(portType);
             }
         }
         // never reach this point
@@ -445,9 +447,19 @@ public class VerilogReader extends Input
             if (key.startsWith("tri"))
                 assert(false); // not implemented
 
-            if (key.equals("input") || key.equals("output") || key.equals("inout"))
+            if (key.equals("input"))
             {
-                readInputOutput(cell);
+                readInputOutput(cell, PortCharacteristic.IN);
+                continue;
+            }
+            if (key.equals("output"))
+            {
+                readInputOutput(cell, PortCharacteristic.OUT);
+                continue;
+            }
+            if (key.equals("inout"))
+            {
+                readInputOutput(cell, PortCharacteristic.BIDIR);
                 continue;
             }
 
