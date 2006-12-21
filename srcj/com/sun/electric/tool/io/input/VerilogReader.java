@@ -136,9 +136,10 @@ public class VerilogReader extends Input
                     }
                     else
                     {
-                        if (Job.getDebug())
-                        {
+//                        if (Job.getDebug())
+//                        {
 
+                        if (Job.getDebug())
                             System.out.println("Unknown signal " + s + " in cell " + parent.describe(false));
                             PrimitiveNode primitive = (port.isBus) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
                             pin = NodeInst.newInstance(primitive, getNextLocation(parent),
@@ -146,9 +147,9 @@ public class VerilogReader extends Input
 //                                        primitive.getDefWidth(), primitive.getDefHeight(),
                                     parent, Orientation.IDENT, null/*s*/, 0);
                             pinsMap.put(s, pin);
-                        }
-                        else
-                            continue; // temporary
+//                        }
+//                        else
+//                            continue; // temporary
                     }
                 }
 
