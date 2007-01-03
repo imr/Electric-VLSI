@@ -157,30 +157,43 @@ if (--limitLoops <= 0) change = false;
 		}
 	}
 
+//	/**
+//	 * Method to compact a cell with repeated iterations and no jobs.
+//	 * Used with regressions.
+//	 * @param cell the cell to compact.
+//	 */
+//	public static void doCompactionNoJobs(Cell cell)
+//	{
+//		CompactCell.Axis curAxis = CompactCell.Axis.HORIZONTAL;
+//		boolean lastTime = true;
+//		for(;;)
+//		{
+//			CompactCell cc = new CompactCell(cell);
+//
+//			// alternate vertical then horizontal compaction
+//			boolean change = cc.compactOneDirection(curAxis);
+//			if (lastTime || change)
+//			{
+//				curAxis = (curAxis == CompactCell.Axis.HORIZONTAL) ? CompactCell.Axis.VERTICAL : CompactCell.Axis.HORIZONTAL;
+//				lastTime = change;
+//				continue;
+//			}
+//			System.out.println("Compaction complete");
+//			break;
+//		}
+//	}
+
 	/**
-	 * Method to compact a cell with repeated iterations and no jobs.
+	 * Method to compact a cell with one iteration and no job.
 	 * Used with regressions.
 	 * @param cell the cell to compact.
+	 * @param direction the direction to compact.
 	 */
-	public static void doCompactionNoJobs(Cell cell)
+	public static boolean doCompactionStepNoJob(Cell cell, boolean direction)
 	{
-		CompactCell.Axis curAxis = CompactCell.Axis.HORIZONTAL;
-		boolean lastTime = true;
-		for(;;)
-		{
-			CompactCell cc = new CompactCell(cell);
-
-			// alternate vertical then horizontal compaction
-			boolean change = cc.compactOneDirection(curAxis);
-			if (lastTime || change)
-			{
-				curAxis = (curAxis == CompactCell.Axis.HORIZONTAL) ? CompactCell.Axis.VERTICAL : CompactCell.Axis.HORIZONTAL;
-				lastTime = change;
-				continue;
-			}
-			System.out.println("Compaction complete");
-			break;
-		}
+		CompactCell cc = new CompactCell(cell);
+		CompactCell.Axis curAxis = direction ? CompactCell.Axis.HORIZONTAL : CompactCell.Axis.VERTICAL;
+		return cc.compactOneDirection(curAxis);
 	}
 
 	/****************************** OPTIONS ******************************/
