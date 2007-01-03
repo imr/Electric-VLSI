@@ -4040,10 +4040,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 						return;					
 					}
 					WaveSignal.addSignalToPanel(sSig, panel);
-					panel.getWaveWindow().saveSignalOrder();
 					panel.makeSelectedPanel();
-					dtde.dropComplete(true);
-					return;
+					continue;
 				}
 
 				// add this signal in a new panel
@@ -4053,6 +4051,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 			ww.overall.validate();
 			panel.repaintContents();
+			panel.getWaveWindow().saveSignalOrder();
 			dtde.dropComplete(true);
 		}
 	}

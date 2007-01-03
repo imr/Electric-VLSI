@@ -26,13 +26,16 @@ package com.sun.electric.tool.user.ui;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Client;
 import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.cvspm.*;
+import com.sun.electric.tool.cvspm.AddRemove;
+import com.sun.electric.tool.cvspm.CVS;
+import com.sun.electric.tool.cvspm.CVSLibrary;
+import com.sun.electric.tool.cvspm.Commit;
+import com.sun.electric.tool.cvspm.Edit;
+import com.sun.electric.tool.cvspm.Log;
+import com.sun.electric.tool.cvspm.State;
+import com.sun.electric.tool.cvspm.Update;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.project.AddCellJob;
@@ -47,9 +50,14 @@ import com.sun.electric.tool.project.UpdateJob;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.Signal;
-import com.sun.electric.tool.user.*;
+import com.sun.electric.tool.user.CellChangeJobs;
+import com.sun.electric.tool.user.CircuitChangeJobs;
+import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
-import com.sun.electric.tool.user.dialogs.CrossLibCopy;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.CellMenu;
 import com.sun.electric.tool.user.menus.FileMenu;
@@ -58,14 +66,18 @@ import com.sun.electric.tool.user.waveform.Panel;
 import com.sun.electric.tool.user.waveform.SweepSignal;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 
-import java.awt.*;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DragGestureEvent;
-import java.awt.dnd.DragGestureListener;
-import java.awt.dnd.DragGestureRecognizer;
 import java.awt.dnd.DragSource;
 import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
@@ -78,36 +90,44 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
+import javax.swing.TransferHandler;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 /**
  * Class to display a cell explorer tree-view of the database.
  */
-public class ExplorerTree extends JTree implements DragGestureListener, DragSourceListener
+public class ExplorerTree extends JTree implements /*DragGestureListener,*/ DragSourceListener
 {
     private final static TreePath[] NULL_TREE_PATH_ARRAY = {};
 
@@ -513,101 +533,203 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private void initDND()
 	{
-		dragSource = DragSource.getDefaultDragSource();
-		DragGestureRecognizer dgr = dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_LINK, this);
+		setTransferHandler(new MyTransferHandler(getTransferHandler(), this));
+		setDragEnabled(true);
+
+		/*
+		 * There are two ways to do dragging from the Explorer tree:
+		 * (1) the old way (pre Java 1.5) required a "drag gesture recognizer"
+		 *     It has the advantage that it can recognize right-click-drag
+		 *     (which was used to request dragging of the cell and all subcells)
+		 *     It has the disadvantage that it cannot drag multiple objects
+		 * (2) the new way requires a "Transfer Handler".
+		 * To use the old dragging method (1):
+		 *   comment-out the previous two lines
+		 *   uncomment the next two lines
+		 *   comment-out the implementation of the MyTransferHandler class
+		 *   uncomment the "dragGestureRecognized" method below
+		 *   have this class implement "DragGestureListener"
+		 */
+//		dragSource = DragSource.getDefaultDragSource();
+//		DragGestureRecognizer dgr = dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_LINK, this);
 
 		// a drop target for the explorer tree
 		dropTarget = new ExplorerTreeDropTarget();
 		new DropTarget(this, DnDConstants.ACTION_LINK, dropTarget, true);
 	}
 
-	public void dragGestureRecognized(DragGestureEvent e)
+	private class MyTransferHandler extends TransferHandler
 	{
-		if (numCurrentlySelectedObjects() == 0) return;
+		private TransferHandler real;
+		private ExplorerTree tree;
 
-		// handle signal dragging when in a WaveformWindow setting
-		if (getCurrentlySelectedObject(0) instanceof Signal)
+		MyTransferHandler(TransferHandler real, ExplorerTree tree) { this.real = real;   this.tree = tree; }
+
+		protected Transferable createTransferable(JComponent c)
 		{
-			// Get the Transferable Object
-			StringBuffer buf = new StringBuffer();
-			for(int i=0; i<numCurrentlySelectedObjects(); i++)
+			if (numCurrentlySelectedObjects() == 0) return null;
+
+			// handle signal dragging when in a WaveformWindow setting
+			if (getCurrentlySelectedObject(0) instanceof Signal)
 			{
-				Signal sSig = (Signal)getCurrentlySelectedObject(i);
-				String sigName = sSig.getFullName();
-				if (sSig instanceof AnalogSignal)
+				// Get the Transferable Object
+				StringBuffer buf = new StringBuffer();
+				for(int i=0; i<numCurrentlySelectedObjects(); i++)
 				{
-					AnalogSignal as = (AnalogSignal)sSig;
-					if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
-						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
-							if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
-								if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
+					Signal sSig = (Signal)getCurrentlySelectedObject(i);
+					String sigName = sSig.getFullName();
+					if (sSig instanceof AnalogSignal)
+					{
+						AnalogSignal as = (AnalogSignal)sSig;
+						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
+							if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
+								if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
+									if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
+					}
+					buf.append(sigName);
+					buf.append("\n");
 				}
-				buf.append(sigName);
-				buf.append("\n");
+				Transferable transferable = new StringSelection(buf.toString());
+				return transferable;
 			}
-			Transferable transferable = new StringSelection(buf.toString());
 
-			// begin the drag
-			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
-			return;
+			// cells and groups must be dragged one-at-a-time
+			if (numCurrentlySelectedObjects() > 1)
+			{
+				Job.getUserInterface().showErrorMessage("Can drag only one Cell or Group", "Too Much Selected");
+				return null;
+			}
+
+			// make a Transferable object
+			EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(getCurrentlySelectedObject(0), tree);
+			if (!transferable.isValid()) return null;
+
+			// find out the offset of the cursor to the selected tree node
+			TreePath path = currentSelectedPaths[0];
+			Rectangle pathRect = getPathBounds(path);
+			if (pathRect == null) return null;
+			dragOffset = new Point(0, 0);
+
+			// render the dragged stuff
+			Component comp = getCellRenderer().getTreeCellRendererComponent(tree, path.getLastPathComponent(),
+				false, isExpanded(path), getModel().isLeaf(path.getLastPathComponent()), 0, false);
+			int wid = (int)pathRect.getWidth();
+			int hei = (int)pathRect.getHeight();
+
+			// there is no way to tell whether the context menu button was used
+			subCells = false;
+//			if (e.getTriggerEvent() instanceof MouseEvent)
+//				subCells = ClickZoomWireListener.isRightMouse((MouseEvent)e.getTriggerEvent());
+			if (subCells) hei *= 2;
+			comp.setSize(wid, hei);
+			dragImage = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_ARGB_PRE);
+			Graphics2D g2 = dragImage.createGraphics();
+			g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
+			AffineTransform saveAT = g2.getTransform();
+			if (subCells) g2.translate(0, -hei/4);
+			comp.paint(g2);
+			g2.setTransform(saveAT);
+			if (subCells)
+			{
+				g2.setColor(Color.BLACK);
+				g2.drawLine(wid/2, hei/2, 0, hei);
+				g2.drawLine(wid/2, hei/2, wid/3, hei);
+				g2.drawLine(wid/2, hei/2, wid/3*2, hei);
+				g2.drawLine(wid/2, hei/2, wid, hei);
+			}
+			g2.dispose();
+			return transferable;
 		}
 
-		// cells and groups must be dragged one-at-a-time
-		if (numCurrentlySelectedObjects() > 1)
-		{
-			Job.getUserInterface().showErrorMessage("Can drag only one Cell or Group", "Too Much Selected");
-			return;
-		}
-
-		// make a Transferable object
-		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(getCurrentlySelectedObject(0), this);
-		if (!transferable.isValid()) return;
-
-		// find out the offset of the cursor to the selected tree node
-		Point pt = e.getDragOrigin();
-		TreePath path = getPathForLocation(pt.x, pt.y);
-		Rectangle pathRect = getPathBounds(path);
-		if (pathRect == null) return;
-		dragOffset = new Point(pt.x-pathRect.x, pt.y-pathRect.y);
-
-		// render the dragged stuff
-		Component comp = getCellRenderer().getTreeCellRendererComponent(this, path.getLastPathComponent(),
-			false, isExpanded(path), getModel().isLeaf(path.getLastPathComponent()), 0, false);
-		int wid = (int)pathRect.getWidth();
-		int hei = (int)pathRect.getHeight();
-
-		subCells = false;
-		if (e.getTriggerEvent() instanceof MouseEvent)
-			subCells = ClickZoomWireListener.isRightMouse((MouseEvent)e.getTriggerEvent());
-		if (subCells) hei *= 2;
-		comp.setSize(wid, hei);
-		dragImage = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_ARGB_PRE);
-		Graphics2D g2 = dragImage.createGraphics();
-		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
-		AffineTransform saveAT = g2.getTransform();
-		if (subCells) g2.translate(0, -hei/4);
-		comp.paint(g2);
-		g2.setTransform(saveAT);
-		if (subCells)
-		{
-			g2.setColor(Color.BLACK);
-			g2.drawLine(wid/2, hei/2, 0, hei);
-			g2.drawLine(wid/2, hei/2, wid/3, hei);
-			g2.drawLine(wid/2, hei/2, wid/3*2, hei);
-			g2.drawLine(wid/2, hei/2, wid, hei);
-		}
-		g2.dispose();
-
-		// begin the drag
-		e.startDrag(null, dragImage, new Point(0, 0), transferable, this);
-//		if (Client.isOSMac())
-//		{
-//			Image img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
-//			dragSource.startDrag(e, DragSource.DefaultLinkDrop, img, new Point(0,0), transferable, this);
-//		}
-//		else
-//			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+		public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) { return real.canImport(comp, transferFlavors); }
+		public void exportAsDrag(JComponent comp, InputEvent e, int action)  { real.exportAsDrag(comp, e, action); }
+		protected void exportDone(JComponent source, Transferable data, int action)  {  }
+		public void exportToClipboard(JComponent comp, Clipboard clip, int action)  { real.exportToClipboard(comp, clip, action); }
+		public int getSourceActions(JComponent c)  { return real.getSourceActions(c); }
+		public Icon getVisualRepresentation(Transferable t)  { return real.getVisualRepresentation(t); }
+		public boolean importData(JComponent comp, Transferable t) { return real.importData(comp, t); }
 	}
+
+//	public void dragGestureRecognized(DragGestureEvent e)
+//	{
+//		if (numCurrentlySelectedObjects() == 0) return;
+//
+//		// handle signal dragging when in a WaveformWindow setting
+//		if (getCurrentlySelectedObject(0) instanceof Signal)
+//		{
+//			// Get the Transferable Object
+//			StringBuffer buf = new StringBuffer();
+//			for(int i=0; i<numCurrentlySelectedObjects(); i++)
+//			{
+//				Signal sSig = (Signal)getCurrentlySelectedObject(i);
+//				String sigName = sSig.getFullName();
+//				if (sSig instanceof AnalogSignal)
+//				{
+//					AnalogSignal as = (AnalogSignal)sSig;
+//					if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_TRANS) sigName = "TRANS " + sigName; else
+//						if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_AC) sigName = "AC " + sigName; else
+//							if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_DC) sigName = "DC " + sigName; else
+//								if (as.getAnalysis().getAnalysisType() == Analysis.ANALYSIS_MEAS) sigName = "MEASUREMENT " + sigName;
+//				}
+//				buf.append(sigName);
+//				buf.append("\n");
+//			}
+//			Transferable transferable = new StringSelection(buf.toString());
+//
+//			// begin the drag
+//			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);
+//			return;
+//		}
+//
+//		// cells and groups must be dragged one-at-a-time
+//		if (numCurrentlySelectedObjects() > 1)
+//		{
+//			Job.getUserInterface().showErrorMessage("Can drag only one Cell or Group", "Too Much Selected");
+//			return;
+//		}
+//
+//		// make a Transferable object
+//		EditWindow.NodeProtoTransferable transferable = new EditWindow.NodeProtoTransferable(getCurrentlySelectedObject(0), this);
+//		if (!transferable.isValid()) return;
+//
+//		// find out the offset of the cursor to the selected tree node
+//		Point pt = e.getDragOrigin();
+//		TreePath path = getPathForLocation(pt.x, pt.y);
+//		Rectangle pathRect = getPathBounds(path);
+//		if (pathRect == null) return;
+//		dragOffset = new Point(pt.x-pathRect.x, pt.y-pathRect.y);
+//
+//		// render the dragged stuff
+//		Component comp = getCellRenderer().getTreeCellRendererComponent(this, path.getLastPathComponent(),
+//			false, isExpanded(path), getModel().isLeaf(path.getLastPathComponent()), 0, false);
+//		int wid = (int)pathRect.getWidth();
+//		int hei = (int)pathRect.getHeight();
+//
+//		subCells = false;
+//		if (e.getTriggerEvent() instanceof MouseEvent)
+//			subCells = ClickZoomWireListener.isRightMouse((MouseEvent)e.getTriggerEvent());
+//		if (subCells) hei *= 2;
+//		comp.setSize(wid, hei);
+//		dragImage = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_ARGB_PRE);
+//		Graphics2D g2 = dragImage.createGraphics();
+//		g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
+//		AffineTransform saveAT = g2.getTransform();
+//		if (subCells) g2.translate(0, -hei/4);
+//		comp.paint(g2);
+//		g2.setTransform(saveAT);
+//		if (subCells)
+//		{
+//			g2.setColor(Color.BLACK);
+//			g2.drawLine(wid/2, hei/2, 0, hei);
+//			g2.drawLine(wid/2, hei/2, wid/3, hei);
+//			g2.drawLine(wid/2, hei/2, wid/3*2, hei);
+//			g2.drawLine(wid/2, hei/2, wid, hei);
+//		}
+//		g2.dispose();
+//
+//		// begin the drag
+//		e.startDrag(null, dragImage, new Point(0, 0), transferable, this);
+//	}
 
 	public void dragEnter(DragSourceDragEvent e) {}
 
@@ -2057,9 +2179,22 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				Cell cell = (Cell)getCurrentlySelectedObject(i);
 				cellsToDelete.add(cell);
 			}
+
+			// make sure the user really wants to delete the cell
+			boolean confirm = true;
+			if (cellsToDelete.size() > 1)
+			{
+				String confirmMsg = "Are you sure you want to delete cells";
+				for(Cell cell : cellsToDelete) confirmMsg += " " + cell.describe(false);
+				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+					confirmMsg + "?", "Delete Cells Dialog", JOptionPane.YES_NO_OPTION);
+				if (response != JOptionPane.YES_OPTION) return;
+				confirm = false;
+			}
+
 			for(Cell cell : cellsToDelete)
 			{
-				CircuitChanges.deleteCell(cell, true, false);
+				CircuitChanges.deleteCell(cell, confirm, false);
 			}
 		}
 
