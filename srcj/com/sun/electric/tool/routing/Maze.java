@@ -27,9 +27,10 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -41,13 +42,18 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.ArcLayer;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
@@ -73,14 +79,14 @@ public class Maze
 	/** draw all layers */				private static final int ALLLAYERS = 2;
 
 	// common bit masks
-	/** grid set (permanent) */			private static final byte SR_GSET   = (byte)0x80;
-	/** is a wavefront poin */			private static final byte SR_GWAVE  = 0x20;
-	/** is a port */					private static final byte SR_GPORT  = 0x10;
+	/** grid set (permanent) */			private static final int SR_GSET   = 0x80;
+	/** is a wavefront point */			private static final int SR_GWAVE  = 0x20;
+	/** is a port */					private static final int SR_GPORT  = 0x10;
 
 	// for maze cells
-	/** mask 4 bits */					private static final byte SR_GMASK  = 0x0F;
-	/** maximum mark value */			private static final byte SR_GMAX   = 15;
-	/** start value */					private static final byte SR_GSTART = 1;
+	/** mask 4 bits */					private static final int SR_GMASK  = 0x0F;
+	/** maximum mark value */			private static final int SR_GMAX   = 15;
+	/** start value */					private static final int SR_GSTART = 1;
 
 	// miscellaneous defines, return codes from expandWavefront
 	private static final int SRSUCCESS  = 0;
@@ -92,9 +98,11 @@ public class Maze
 	/** the arc used for vertical wires */			private ArcProto mazeVertWire;
 	/** the arc used for horizontal wires */		private ArcProto mazeHorizWire;
 	/** the pin used to join arcs */				private NodeProto mazeSteinerNode;
+	/** the layer used for vertical wires */		private Layer mazeVertLayer;
+	/** the layer used for horizontal wires */		private Layer mazeHorizLayer;
+	/** half the width of wires (for DRC bloat) */	private double mazeBloat;
 	/** the routing region with all data */			private SRREGION theRegion = null;
 	/** The netlist for the cell being routed */	private Netlist netList;
-
 	/** Space around net to build search grid */	private int mazeBoundary = 20;
 
 	static class SRDIRECTION {}
@@ -236,7 +244,7 @@ public class Maze
 		wnd.clearHighlighting();
 		wnd.finishedHighlighting();
 
-		MazeRouteJob job = new MazeRouteJob(cell, arcsToRoute);
+		new MazeRouteJob(cell, arcsToRoute);
 	}
 
 	private static class MazeRouteJob extends Job
@@ -295,19 +303,22 @@ public class Maze
 	}
 
 	/**
-	 * Method to reroute networks "net".  Returns true on error.
+	 * Method to reroute a network.
+	 * @param net the network to route.
+	 * @return true on error.
 	 */
 	private boolean routeNet(Network net)
 	{
 		// get extent of net and mark nodes and arcs on it
 		HashSet<ArcInst> arcsToDelete = new HashSet<ArcInst>();
 		HashSet<NodeInst> nodesToDelete = new HashSet<NodeInst>();
-		List<Connection> netEnds = Routing.findNetEnds(net, arcsToDelete, nodesToDelete, netList);
+		List<Connection> netEnds = Routing.findNetEnds(net, arcsToDelete, nodesToDelete, netList, true);
 		int count = netEnds.size();
 		if (count == 0) return false;
 		if (count != 2)
 		{
-			System.out.println("Can only route nets with 2 ends, this has " + count);
+			System.out.println("Error: Network " + net.describe(false) + " has " + count +
+				" ends, but can only route nets with 2 ends");
 			return true;
 		}
 
@@ -331,12 +342,83 @@ public class Maze
 			return true;
 		}
 
+		// determine arc to route
+		ArcProto routingArc = User.getUserTool().getCurrentArcProto();
+		if (routingArc == Generic.tech.unrouted_arc) routingArc = null;
+		if (routingArc != null)
+		{
+			// see if the default arc can be used to route
+			for(int i=0; i<count; i++)
+			{
+				Connection con = netEnds.get(i);
+				boolean found = con.getPortInst().getPortProto().getBasePort().connectsTo(routingArc);
+				if (!found) { routingArc = null;   break; }
+			}
+		}
+
+		// if current arc cannot run, look for any that can
+		if (routingArc == null)
+		{
+			// check out all arcs for use in this route
+			HashSet<ArcProto> arcsUsed = new HashSet<ArcProto>();
+			for(int i=0; i<count; i++)
+			{
+				Connection con = netEnds.get(i);
+				ArcProto [] connections = con.getPortInst().getPortProto().getBasePort().getConnections();
+				for(int j = 0; j < connections.length; j++)
+				{
+					ArcProto ap = connections[j];
+					if (ap.getTechnology() == Generic.tech) continue;
+					arcsUsed.add(ap);
+				}
+			}
+			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
+			{
+				Technology tech = it.next();
+				if (tech == Generic.tech) continue;
+				for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
+				{
+					ArcProto ap = aIt.next();
+					if (!arcsUsed.contains(ap)) continue;
+					boolean allFound = true;
+					for(int i=0; i<count; i++)
+					{
+						Connection con = netEnds.get(i);
+						boolean found = con.getPortInst().getPortProto().getBasePort().connectsTo(ap);
+						if (!found) { allFound = false;   break; }
+					}
+					if (allFound)
+					{
+						routingArc = ap;
+						break;
+					}
+				}
+				if (routingArc != null) break;
+			}
+		}
+		if (routingArc == null)
+		{
+			System.out.println("Cannot find wire to route");
+			return true;
+		}
+		mazeVertWire = routingArc;
+		mazeHorizWire = routingArc;
+		mazeSteinerNode = routingArc.findPinProto();
+		Iterator<ArcLayer> it = mazeVertWire.getArcLayers();
+		mazeVertLayer = it.next().getLayer();
+		it = mazeHorizWire.getArcLayers();
+		mazeHorizLayer = it.next().getLayer();
+		mazeBloat = 0;
+		double wid = 10, len = 100;
+		DRCTemplate rule = DRC.getSpacingRule(mazeVertLayer, null, mazeVertLayer, null, false, 0, wid, len);
+		if (rule != null) mazeBloat = rule.getValue(0) + mazeVertWire.getDefaultLambdaBaseWidth()/2;
+
 		// now create the routing region
 		int lx = (int)routingBounds.getMinX();
 		int hx = (int)routingBounds.getMaxX();
 		int ly = (int)routingBounds.getMinY();
 		int hy = (int)routingBounds.getMaxY();
-		SRREGION region = defineRegion(cell, lx, ly, hx, hy, arcsToDelete, nodesToDelete);
+		SRREGION region = defineRegion(cell, net, lx, ly, hx, hy, arcsToDelete, nodesToDelete);
 		if (region == null) return true;
 
 		// create the net in the region
@@ -350,7 +432,7 @@ public class Maze
 		// add the ports to the net
 		for(int i=0; i<count; i++)
 		{
-			Connection con = (Connection)netEnds.get(i);
+			Connection con = netEnds.get(i);
 			PortInst pi = con.getPortInst();
 			double cXD = con.getLocation().getX();
 			double cYD = con.getLocation().getY();
@@ -361,12 +443,12 @@ public class Maze
 				return true;
 			}
 		}
-//		dumpLayer("BEFORE ROUTING", region, (byte)0xFF);
+//dumpLayer("BEFORE ROUTING", region, 0xFF);
 
 		// do maze routing
 		if (routeANet(srnet))
 		{
-			System.out.println("Could not route net");
+			System.out.println("Could not route net " + srnet.eNet.describe(false));
 			return true;
 		}
 
@@ -394,70 +476,8 @@ public class Maze
 
 	private boolean routeANet(SRNET net)
 	{
-		// presume routing with the current arc
-		boolean ret = false;
-		ArcProto routingArc = User.getUserTool().getCurrentArcProto();
-		if (routingArc == Generic.tech.unrouted_arc) routingArc = null;
-		if (routingArc != null)
-		{
-			// see if the default arc can be used to route
-			for(SRPORT port = net.ports; port != null; port = port.next)
-			{
-				PortProto pp = port.pi.getPortProto();
-				boolean found = pp.getBasePort().connectsTo(routingArc);
-				if (!found) { routingArc = null;   break; }
-			}
-		}
-
-		// if current arc cannot run, look for any that can
-		if (routingArc == null)
-		{
-			// check out all arcs for use in this route
-			HashSet<ArcProto> arcsUsed = new HashSet<ArcProto>();
-			for(SRPORT port = net.ports; port != null; port = port.next)
-			{
-				PortProto pp = port.pi.getPortProto();
-				ArcProto [] connections = pp.getBasePort().getConnections();
-				for(int i = 0; i < connections.length; i++)
-				{
-					ArcProto ap = connections[i];
-					if (ap.getTechnology() == Generic.tech) continue;
-					arcsUsed.add(ap);
-				}
-			}
-			for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = it.next();
-				if (tech == Generic.tech) continue;
-				for(Iterator<ArcProto> aIt = tech.getArcs(); aIt.hasNext(); )
-				{
-					ArcProto ap = aIt.next();
-					if (!arcsUsed.contains(ap)) continue;
-					boolean allFound = true;
-					for(SRPORT port = net.ports; port != null; port = port.next)
-					{
-						PortProto pp = port.pi.getPortProto();
-						if (!pp.getBasePort().connectsTo(ap)) { allFound = false;   break; }
-					}
-					if (allFound)
-					{
-						routingArc = ap;
-						break;
-					}
-				}
-				if (routingArc != null) break;
-			}
-		}
-		if (routingArc == null)
-		{
-			System.out.println("Cannot find wire to route");
-			return true;
-		}
-		mazeVertWire = routingArc;
-		mazeHorizWire = routingArc;
-		mazeSteinerNode = routingArc.findPinProto();
-
 		// initialize all layers and ports for this route
+		boolean ret = false;
 		for (int index = 0; index < SRMAXLAYERS; index++)
 		{
 			SRLAYER layer = net.region.layers[index];
@@ -527,7 +547,7 @@ public class Maze
 		}
 
 		// now begin routing until all ports merged
-		byte code = SR_GSTART;
+		int code = SR_GSTART;
 		do
 		{
 			if (++code > SR_GMAX) code = SR_GSTART;
@@ -681,7 +701,8 @@ public class Maze
 					}
 					if (!onEdge)
 					{
-						System.out.println("Node %s is blocked" + ni);
+						System.out.println("Node " + ni.describe(false) + ", port " +
+							port.pi.getPortProto().getName() + " is blocked");
 						return;
 					}
 				}
@@ -732,7 +753,7 @@ public class Maze
 	/**
 	 * routing commands
 	 */
-	private void addWavePoint(SRPORT port, SRLAYER layer, int x, int y, byte code)
+	private void addWavePoint(SRPORT port, SRLAYER layer, int x, int y, int code)
 	{
 		SRWAVEPT wavePt = new SRWAVEPT();
 		wavePt.x = x;
@@ -771,7 +792,7 @@ public class Maze
 		return diff;
 	}
 
-	private int expandWavefront(SRPORT port, byte code)
+	private int expandWavefront(SRPORT port, int code)
 	{
 		// begin expansion of all wavepts
 		// disconnect wavepts from the port
@@ -1012,7 +1033,7 @@ public class Maze
 		int sy = wavePt.y;
 
 		SRLAYER layer = wavePt.layer;
-		byte code = (byte)(layer.grids[sx][sy] & SR_GMASK);
+		int code = layer.grids[sx][sy] & SR_GMASK;
 		if (code == SR_GSTART) code = SR_GMAX;
 			else code--;
 		int pStart = 0;
@@ -1080,7 +1101,7 @@ public class Maze
 									path.x[1] = ex;
 									path.wx[1] = getWorldX(ex, layer);
 								}
-								setLine(path.layer, (byte)(SR_GPORT | SR_GSET),
+								setLine(path.layer, SR_GPORT | SR_GSET,
 									path.wx[0], path.wy[0], path.wx[1], path.wy[1], true);
 								return SRSUCCESS;
 							}
@@ -1116,7 +1137,7 @@ public class Maze
 									path.y[1] = ey;
 									path.wy[1] = getWorldY(ey, layer);
 								}
-								setLine(path.layer, (byte)(SR_GPORT | SR_GSET),
+								setLine(path.layer, SR_GPORT | SR_GSET,
 									path.wx[0], path.wy[0], path.wx[1], path.wy[1], true);
 								return SRSUCCESS;
 							}
@@ -1152,7 +1173,7 @@ public class Maze
 									path.x[1] = ex;
 									path.wx[1] = getWorldX(ex, layer);
 								}
-								setLine(path.layer, (byte)(SR_GPORT | SR_GSET),
+								setLine(path.layer, SR_GPORT | SR_GSET,
 									path.wx[0], path.wy[0], path.wx[1], path.wy[1], true);
 								return SRSUCCESS;
 							}
@@ -1188,7 +1209,7 @@ public class Maze
 									path.y[1] = ey;
 									path.wy[1] = getWorldY(ey, layer);
 								}
-								setLine(path.layer, (byte)(SR_GPORT | SR_GSET),
+								setLine(path.layer, SR_GPORT | SR_GSET,
 									path.wx[0], path.wy[0], path.wx[1], path.wy[1], true);
 								return SRSUCCESS;
 							}
@@ -1268,7 +1289,7 @@ public class Maze
 								path.x[1] = nx;
 								path.wx[1] = getWorldX(nx, layer);
 							}
-							setLine(path.layer, (byte)(SR_GPORT | SR_GSET),
+							setLine(path.layer, SR_GPORT | SR_GSET,
 								path.wx[0], path.wy[0], path.wx[1], path.wy[1], true);
 							return SRSUCCESS;
 						}
@@ -1303,7 +1324,7 @@ public class Maze
 								path.y[1] = ny;
 								path.wy[1] = getWorldY(ny, layer);
 							}
-							setLine(path.layer, (byte)(SR_GPORT | SR_GSET),
+							setLine(path.layer, SR_GPORT | SR_GSET,
 								path.wx[0], path.wy[0], path.wx[1], path.wy[1], true);
 							return SRSUCCESS;
 						}
@@ -1355,7 +1376,7 @@ public class Maze
 						}
 					}
 
-					setLine(path.layer, (byte)(SR_GPORT | SR_GSET),
+					setLine(path.layer, SR_GPORT | SR_GSET,
 						path.wx[0], path.wy[0], path.wx[1], path.wy[1], true);
 					path = null;
 				} else
@@ -1369,7 +1390,7 @@ public class Maze
 		}
 	}
 
-	private int testPoint(byte pt, int code)
+	private int testPoint(int pt, int code)
 	{
 		// don't check other wavefront points
 		if ((pt & SR_GWAVE) == 0)
@@ -1409,13 +1430,13 @@ public class Maze
 		port.lastpath = path;
 
 		// now draw it
-		setLine(path.layer, (byte)(SR_GPORT | SR_GSET),
+		setLine(path.layer, SR_GPORT | SR_GSET,
 			path.wx[0], path.wy[0], path.wx[1], path.wy[1], true);
 
 		return path;
 	}
 
-	private int examinePoint(SRPORT port, SRLAYER layer, int x, int y, byte code)
+	private int examinePoint(SRPORT port, SRLAYER layer, int x, int y, int code)
 	{
 		// point is set
 		if ((layer.grids[x][y] & SR_GWAVE) != 0)
@@ -1452,7 +1473,7 @@ public class Maze
 			SRLAYER layer = net.region.layers[index];
 			if (layer != null)
 			{
-				byte mask = ~(SR_GMASK | SR_GWAVE);
+				int mask = ~(SR_GMASK | SR_GWAVE);
 				for (int x = layer.lx; x <= layer.hx; x++)
 				{
 					for (int y = layer.ly; y <= layer.hy; y++)
@@ -1473,7 +1494,7 @@ public class Maze
 
 	/************************************* CODE TO CREATE THE MAZE BUFFER *************************************/
 
-	private SRREGION defineRegion(Cell cell, int lX, int lY, int hX, int hY, Set arcsToDelete, Set nodesToDelete)
+	private SRREGION defineRegion(Cell cell, Network net, int lX, int lY, int hX, int hY, Set arcsToDelete, Set nodesToDelete)
 	{
 		// determine routing region bounds
 		lX = lX - mazeBoundary;
@@ -1489,96 +1510,82 @@ public class Maze
 			return null;
 		}
 
-		// search region for nodes/arcs to add to database
 		Rectangle2D searchBounds = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
-		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
-		{
-			Geometric geom = sea.next();
-			if (geom instanceof NodeInst)
-			{
-				// draw this cell
-				if (nodesToDelete.contains(geom)) continue;
-				drawCell((NodeInst)geom, GenMath.MATID, region);
-			} else
-			{
-				// draw this arc
-				if (arcsToDelete.contains(geom)) continue;
-				drawArcInst((ArcInst)geom, GenMath.MATID, region);
-			}
-		}
+		Visitor wcVisitor = new Visitor(searchBounds, region, net);
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, wcVisitor);
 		return region;
 	}
 
-	/**
-	 * Method to output a specific symbol cell
-	 */
-	private void drawCell(NodeInst ni, AffineTransform prevTrans, SRREGION region)
-	{
-		// make transformation matrix within the current nodeinst
-		if (ni.getOrient().equals(Orientation.IDENT))
-//		if (ni.getAngle() == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis())
-		{
-			drawNodeInst(ni, prevTrans, region);
-		} else
-		{
-			AffineTransform localTran = ni.rotateOut(prevTrans);
-			drawNodeInst(ni, localTran, region);
-		}
-	}
+	private class Visitor extends HierarchyEnumerator.Visitor
+    {
+		private Rectangle2D searchBounds;
+		private SRREGION region;
+		private int notThisNetID;
 
-	/**
-	 * Method to symbol "ni" when transformed through "prevtrans".
-	 */
-	private void drawNodeInst(NodeInst ni, AffineTransform prevTrans, SRREGION region)
-	{
-		// don't draw invisible pins
-		NodeProto np = ni.getProto();
-		if (np == Generic.tech.invisiblePinNode) return;
+		public Visitor(Rectangle2D searchBounds, SRREGION region, Network net)
+        {
+			this.searchBounds = searchBounds;
+			this.region = region;
+			notThisNetID = net.getNetIndex();
+        }
 
-		AffineTransform rotateNode = ni.rotateOut(prevTrans);
-		if (!ni.isCellInstance())
-		{
-			// primitive nodeinst: ask the technology how to draw it
-			Technology tech = np.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni);
-			int high = polys.length;
-			for (int j = 0; j < high; j++)
+        public boolean enterCell(HierarchyEnumerator.CellInfo info) { return true; }
+
+        public void exitCell(HierarchyEnumerator.CellInfo info)
+        {
+			Cell cell = info.getCell();
+			Netlist nl = info.getNetlist();
+			AffineTransform trans = info.getTransformToRoot();
+			for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
 			{
-				// get description of this layer
-				Poly poly = polys[j];
-
-				// draw the nodeinst
-				poly.transform(rotateNode);
-
-				// draw the nodeinst and restore the color
-				drawPoly(poly, region, ALLLAYERS);
+				ArcInst ai = it.next();
+				Network net = nl.getNetwork(ai, 0);
+				int netID = info.getNetID(net);
+				if (netID == notThisNetID) continue;
+				Rectangle2D arcBounds = ai.getBounds();
+				Rectangle2D bounds = new Rectangle2D.Double(arcBounds.getMinX(), arcBounds.getMinY(),
+					arcBounds.getWidth(), arcBounds.getHeight());
+				GenMath.transformRect(bounds, trans);
+				if (bounds.intersects(searchBounds))
+					drawArcInst(ai, trans, region);
 			}
-		} else
-		{
-			// draw cell rectangle
-			Poly poly = new Poly(ni.getTrueCenterX(), ni.getTrueCenterY(), ni.getXSize(), ni.getYSize());
-			AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(prevTrans);
-			poly.transform(localPureTrans);
-			poly.setStyle(Poly.Type.CLOSED);
-			drawPoly(poly, region, ALLLAYERS);
+        }
 
-			// transform into the cell for display of its guts
-			AffineTransform subRot = ni.translateOut(rotateNode);
+        public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+        {
+			AffineTransform trans = info.getTransformToRoot();
+			Netlist nl = info.getNetlist();
+			NodeInst ni = no.getNodeInst();
+			Rectangle2D nodeBounds = ni.getBounds();
+			Rectangle2D bounds = new Rectangle2D.Double(nodeBounds.getMinX(), nodeBounds.getMinY(),
+				nodeBounds.getWidth(), nodeBounds.getHeight());
+			GenMath.transformRect(bounds, trans);
+			if (!bounds.intersects(searchBounds)) return false;
 
-			// search through cell
-			Cell subCell = (Cell)np;
-			for(Iterator<NodeInst> it = subCell.getNodes(); it.hasNext(); )
+			if (!ni.isCellInstance())
 			{
-				NodeInst iNo = it.next();
-				drawCell(iNo, subRot, region);
+				PrimitiveNode pNp = (PrimitiveNode)ni.getProto();
+				Technology tech = pNp.getTechnology();
+				Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, true, true, null);
+				for(int i=0; i<nodeInstPolyList.length; i++)
+				{
+					Poly poly = nodeInstPolyList[i];
+					PortProto pp = poly.getPort();
+					Network net = nl.getNetwork(no, pp, 0);
+					if (net != null)
+					{
+						int netID = info.getNetID(net);
+						if (netID == notThisNetID) continue;
+					}
+
+					Layer layer = poly.getLayer();
+					poly.transform(trans);
+					drawPoly(poly, region, ALLLAYERS);
+				}
 			}
-			for(Iterator<ArcInst> it = subCell.getArcs(); it.hasNext(); )
-			{
-				ArcInst iAr = it.next();
-				drawArcInst(iAr, subRot, region);
-			}
-		}
-	}
+            return true;
+        }
+    }
 
 	/**
 	 * Method to draw an arcinst.  Returns indicator of what else needs to
@@ -1587,6 +1594,7 @@ public class Maze
 	private void drawArcInst(ArcInst ai, AffineTransform trans, SRREGION region)
 	{
 		// get the polygons of the arcinst, force line for path generation?
+		if (ai.getProto() == Generic.tech.unrouted_arc) return;
 		Technology tech = ai.getProto().getTechnology();
 		Poly [] polys = tech.getShapeOfArc(ai);
 		int total = polys.length;
@@ -1612,7 +1620,7 @@ public class Maze
 		}
 	}
 
-	private SRPORT addPort(SRNET net, byte layers, double cX, double cY, PortInst pi)
+	private SRPORT addPort(SRNET net, int layers, double cX, double cY, PortInst pi)
 	{
 		SRPORT port = new SRPORT();
 		port.cX = cX;
@@ -1626,7 +1634,7 @@ public class Maze
 		{
 			if (layers != 0 & mask != 0 && net.region.layers[index] != null)
 			{
-				setBox(net.region.layers[index], (byte)(SR_GPORT | SR_GSET),
+				setBox(net.region.layers[index], SR_GPORT | SR_GSET,
 					port.lx, port.ly, port.hx, port.hy, true);
 			}
 		}
@@ -1650,11 +1658,10 @@ public class Maze
 			lPort.next = port;
 		}
 		port.index = index;
-
 		return port;
 	}
 
-	private byte determineDir(NodeInst ni, double cX, double cY)
+	private int determineDir(NodeInst ni, double cX, double cY)
 	{
 		if (ni == null) return 3;
 
@@ -1709,6 +1716,7 @@ public class Maze
 	private void drawPoly(Poly obj, SRREGION region, int layer)
 	{
 		// now draw the polygon
+		if (obj.getLayer() != mazeVertLayer && obj.getLayer() != mazeHorizLayer) return;
 		Point2D [] points = obj.getPoints();
 		if (obj.getStyle() == Poly.Type.CIRCLE || obj.getStyle() == Poly.Type.THICKCIRCLE || obj.getStyle() == Poly.Type.DISC)
 		{
@@ -1773,10 +1781,10 @@ public class Maze
 
 	private void drawBox(Rectangle2D box, int layer, SRREGION region)
 	{
-		int lX = (int)box.getMinX();
-		int hX = (int)box.getMaxX();
-		int lY = (int)box.getMinY();
-		int hY = (int)box.getMaxY();
+		int lX = (int)Math.floor(box.getMinX()-mazeBloat);
+		int hX = (int)Math.ceil(box.getMaxX()+mazeBloat);
+		int lY = (int)Math.floor(box.getMinY()-mazeBloat);
+		int hY = (int)Math.ceil(box.getMaxY()+mazeBloat);
 		if (layer == HORILAYER || layer == ALLLAYERS)
 			setBox(region.layers[HORILAYER], SR_GSET, lX, lY, hX, hY, false);
 		if (layer == VERTLAYER || layer == ALLLAYERS)
@@ -1795,7 +1803,7 @@ public class Maze
 			setLine(region.layers[VERTLAYER], SR_GSET, wX1, wY1, wX2, wY2, false);
 	}
 
-	private void setLine(SRLAYER layer, byte type, double wX1, double wY1, double wX2, double wY2, boolean orMode)
+	private void setLine(SRLAYER layer, int type, double wX1, double wY1, double wX2, double wY2, boolean orMode)
 	{
 		// convert to grid coordinates
 		int [] x = new int[2];
@@ -1872,7 +1880,7 @@ public class Maze
 		}
 	}
 
-	private void setBox(SRLAYER layer, byte type, int wX1, int wY1, int wX2, int wY2, boolean orMode)
+	private void setBox(SRLAYER layer, int type, int wX1, int wY1, int wX2, int wY2, boolean orMode)
 	{
 		int lX = getGridX(wX1, layer);   int lY = getGridY(wY1, layer);
 		int hX = getGridX(wX2, layer);   int hY = getGridY(wY2, layer);
@@ -1896,7 +1904,7 @@ public class Maze
 	/**
 	 * drawing function
 	 */
-	private void setPoint(SRLAYER layer, byte type, int x, int y, boolean orMode)
+	private void setPoint(SRLAYER layer, int type, int x, int y, boolean orMode)
 	{
 		if (orMode)
 		{
@@ -1905,13 +1913,13 @@ public class Maze
 			layer.hused[y] |= type;
 		} else
 		{
-			layer.grids[x][y] = type;
-			layer.vused[x] = type;
-			layer.hused[y] = type;
+			layer.grids[x][y] = (byte)type;
+			layer.vused[x] = (byte)type;
+			layer.hused[y] = (byte)type;
 		}
 	}
 
-	/* general control commands */
+	/** general control commands */
 	private SRREGION getRegion(int wLX, int wLY, int wHX, int wHY)
 	{
 		if (wLX > wHX || wLY > wHY) return null;
@@ -2251,11 +2259,11 @@ public class Maze
 
 	/**
 	 * Method to locate the PortInsts corresponding to
-	 * to a direct intersection with the given point.
-	 * inputs:
-	 * cell - cell to search
-	 * x, y  - the point to exam
-	 * ap    - the arc used to connect port (must match pp)
+	 * a direct intersection with the given point.
+	 * @param cell the cell to search
+	 * @param x X coordinate of the point to examine.
+	 * @param y Y coordinate of the point to examine.
+	 * @param ap the arc used to connect port (must match pp)
 	 */
 	private List<PortInst> findPort(Cell cell, double x, double y, ArcProto ap, SRNET srnet, boolean forceFind)
 	{
@@ -2308,7 +2316,7 @@ public class Maze
 	/**
 	 * Debugging code to show the maze.
 	 */
-	private void dumpLayer(String message, SRREGION region, byte layers)
+	private void dumpLayer(String message, SRREGION region, int layers)
 	{
 		// scan for the first layer
 		SRLAYER layer = null;
@@ -2321,14 +2329,23 @@ public class Maze
 		int hei = layer.hei;
 		int wid = layer.wid;
 		System.out.println("====================== " + message + " ======================");
+		if (wid >= 100)
+		{
+			System.out.print("   ");
+			for (int x = 0; x < wid; x++) System.out.print((x / 100));
+			System.out.println();
+		}
 		System.out.print("   ");
-		for (int x = 0; x < wid; x++) System.out.print((x / 10));
-		System.out.print("\n   ");
+		for (int x = 0; x < wid; x++) System.out.print((x / 10 % 10));
+		System.out.println();
+		System.out.print("   ");
 		for (int x = 0; x < wid; x++) System.out.print((x % 10));
-		System.out.println("");
+		System.out.println();
 		for (int y = hei-1; y >= 0; y--)
 		{
-			System.out.print(y);
+			String row = "" + y;
+			while (row.length() < 3) row = " " + row;
+			System.out.print(row);
 			for (int x = 0; x < wid; x++)
 			{
 				char gpt = ' ';
@@ -2340,7 +2357,7 @@ public class Maze
 					if ((layer.grids[x][y] & SR_GSET) != 0)
 					{
 						if ((layer.grids[x][y] & SR_GPORT) != 0) gpt = 'P'; else
-							gpt = '*';
+							gpt = '.';
 					} else
 					{
 						if ((layer.grids[x][y] & SR_GWAVE) != 0) gpt = 'W'; else

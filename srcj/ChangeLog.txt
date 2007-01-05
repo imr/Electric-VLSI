@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+IMP: (1/5/07, SMR) Improved maze router and regressions.
+
+IMP: (1/5/07, SMR) Improved "copy topology" routing command to handle busses.
+     Added two more regressions.
+
 IMP: (1/3/07, SMR) Compaction tests (from the test menu) work now.
 
 BUG/MAN: (1/3/07, SMR) Cannot drag multiple signals from explorer tree to waveform window.
