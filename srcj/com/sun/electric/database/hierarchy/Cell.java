@@ -236,7 +236,23 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		public String toString() { return "CellGroup " + getName(); }
 
-        /**
+		/**
+		 * Method to compare two CellGroups.
+		 * Because CellGroups seem to be ephemeral, and are created dynamically,
+		 * it is not possible to compare them by equating the object.
+		 * Therefore, this override compares the group names.
+		 * Although not accurate, it is better than simple object equality.
+		 */
+		public boolean equals(Object obj)
+		{
+			if (obj instanceof CellGroup)
+			{
+				return ((CellGroup)obj).groupName.equals(groupName);
+			}
+			return this == obj;
+		}
+
+		/**
          * Returns a string representing the name of the cell group
 		 */
 		public String getName() { if (groupName == null) return null;   return groupName.getName(); }

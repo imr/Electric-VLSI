@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+BUG: (1/8/07, SMR) Explorer tree forgets the expanded state of cell groups (Bug #1246).
+FIX: Added an "equals" method to CellGroup so that it could compare these
+     temporary objects by name.
+
 IMP: (1/5/07, SMR) Improved maze router and regressions.
 
 IMP: (1/5/07, SMR) Improved "copy topology" routing command to handle busses.
