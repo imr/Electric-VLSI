@@ -421,24 +421,35 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 			System.out.println("NodeInst already killed");
 			return;
 		}
+
 		// kill the arcs attached to the connections.  This will also remove the connections themselves
-        ArrayList<ArcInst> arcsToKill = new ArrayList<ArcInst>();
-        for (Iterator<ArcInst> it = parent.getArcs(); it.hasNext(); ) {
-            ArcInst ai = it.next();
-            if (ai.getTailPortInst().getNodeInst() == this || ai.getHeadPortInst().getNodeInst() == this)
-                arcsToKill.add(ai);
-        }
-        for (ArcInst ai: arcsToKill)
-            ai.kill();
+		if (hasConnections())
+		{
+	        ArrayList<ArcInst> arcsToKill = new ArrayList<ArcInst>();
+	        for(Iterator<Connection> it = getConnections(); it.hasNext(); )
+	        	arcsToKill.add(it.next().getArc());
+//	        for (Iterator<ArcInst> it = parent.getArcs(); it.hasNext(); ) {
+//	            ArcInst ai = it.next();
+//	            if (ai.getTailPortInst().getNodeInst() == this || ai.getHeadPortInst().getNodeInst() == this)
+//	                arcsToKill.add(ai);
+//	        }
+	        for (ArcInst ai: arcsToKill)
+	            ai.kill();
+		}
 
 		// remove any exports
-        HashSet<Export> exportsToKill = new HashSet<Export>();
-        for (Iterator<Export> it = parent.getExports(); it.hasNext(); ) {
-            Export e = it.next();
-            if (e.getOriginalPort().getNodeInst() == this)
-                exportsToKill.add(e);
-        }
-        parent.killExports(exportsToKill);
+		if (hasExports())
+		{
+	        HashSet<Export> exportsToKill = new HashSet<Export>();
+	        for(Iterator<Export> it = this.getExports(); it.hasNext(); )
+	        	exportsToKill.add(it.next());
+//	        for (Iterator<Export> it = parent.getExports(); it.hasNext(); ) {
+//	            Export e = it.next();
+//	            if (e.getOriginalPort().getNodeInst() == this)
+//	                exportsToKill.add(e);
+//	        }
+	        parent.killExports(exportsToKill);
+		}
 
 		// remove this node from the cell
 		parent.removeNode(this);

@@ -434,10 +434,15 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 			e.printStackTrace(System.out);
     	}
 
-        public void startProgressDialog(String type, String filePath)
+        /**
+         * Method to start the display of a progress dialog.
+         * @param msg the message to show in the progress dialog.
+         * @param the file being read (null if not reading a file).
+         */
+        public void startProgressDialog(String msg, String filePath)
         {
 //            printStackTrace("startProgressDialog");
-            Job.currentUI.startProgressDialog(type, filePath);
+            Job.currentUI.startProgressDialog(msg, filePath);
         }
 
         /**
@@ -451,6 +456,7 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
 
         /**
          * Method to update the progress bar
+         * @param pct the percentage done (from 0 to 100).
          */
         public void setProgressValue(long pct)
         {
@@ -459,8 +465,8 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
 
         /**
-         * Method to set a text message in the progress dialog.
-         * @param message
+	     * Method to set a text message in the progress dialog.
+	     * @param message the new progress message.
          */
         public void setProgressNote(String message)
         {
@@ -469,8 +475,8 @@ public class ServerJobManager extends JobManager implements Observer, Runnable {
         }
 
         /**
-         * Method to get text message in the progress dialgo.
-         * @return
+	     * Method to get text message in the progress dialog.
+	     * @return text message in the progress dialog.
          */
         public String getProgressNote()
         {

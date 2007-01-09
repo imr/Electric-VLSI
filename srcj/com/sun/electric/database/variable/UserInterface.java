@@ -174,9 +174,11 @@ public interface UserInterface
 	public void exportPrefs();
 
     /**
-     * Method to start progress bar
+     * Method to start the display of a progress dialog.
+     * @param msg the message to show in the progress dialog.
+     * @param the file being read (null if not reading a file).
      */
-    public void startProgressDialog(String type, String filePath);
+    public void startProgressDialog(String msg, String filePath);
 
     /**
      * Method to stop the progress bar
@@ -185,6 +187,7 @@ public interface UserInterface
 
     /**
      * Method to update the progress bar
+     * @param pct the percentage done (from 0 to 100).
      */
     public void setProgressValue(long pct);
 

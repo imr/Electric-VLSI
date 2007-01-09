@@ -867,10 +867,18 @@ public class UserInterfaceMain extends AbstractUserInterface
 //        }
 //    }
 
-    public void startProgressDialog(String type, String filePath)
+    /**
+     * Method to start the display of a progress dialog.
+     * @param msg the message to show in the progress dialog.
+     * @param the file being read (null if not reading a file).
+     */
+    public void startProgressDialog(String msg, String filePath)
 	{
         try{
-		progress = new Progress("Reading " + type + " " + filePath + "...");
+        	String message;
+        	if (filePath == null) message = msg + "..."; else
+        		message = "Reading " + msg + " " + filePath + "...";
+        	progress = new Progress(message);
         } catch (Exception e)
         {
             e.printStackTrace();
@@ -878,12 +886,19 @@ public class UserInterfaceMain extends AbstractUserInterface
 		progress.setProgress(0);
 	}
 
+    /**
+     * Method to stop the progress bar
+     */
     public void stopProgressDialog()
 	{
 		progress.close();
 		progress = null;
 	}
 
+    /**
+     * Method to update the progress bar
+     * @param pct the percentage done (from 0 to 100).
+     */
     public void setProgressValue(long pct)
 	{
         // progress is null if it is in quiet mode
@@ -895,7 +910,7 @@ public class UserInterfaceMain extends AbstractUserInterface
 
     /**
      * Method to set a text message in the progress dialog.
-     * @param message
+     * @param message the new progress message.
      */
     public void setProgressNote(String message)
     {

@@ -1329,19 +1329,7 @@ public class CircuitChangeJobs
 			}
 		}
 
-//		// delete all Exports on the NodeInst is not necessary because they will be deleted by ni.kill()
-//		int numExports = ni.getNumExports();
-//		Export exportsToDelete [] = new Export[numExports];
-//		int i = 0;		
-//		for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
-//			exportsToDelete[i++] = it.next();
-//		for(int j=0; j<numExports; j++)
-//		{
-//			Export pp = exportsToDelete[j];
-//			pp.kill();
-//		}
-
-		// now erase the NodeInst
+		// now erase the NodeInst (also deletes arcs and exports)
 		ni.kill();
 	}
 

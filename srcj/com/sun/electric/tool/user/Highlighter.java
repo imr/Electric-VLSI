@@ -1392,9 +1392,10 @@ public class Highlighter implements DatabaseChangeListener {
                 for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
                 {
                     NodeInst ni = it.next();
-                    if (Job.getDebug() && ni == null)
+                    if (ni == null)
                     {
-                        System.out.println("Something is wrong in Highlighter:findAllInArea");
+                    	if (Job.getDebug())
+                    		System.out.println("Something is wrong in Highlighter:findAllInArea");
                         continue;
                     }
 

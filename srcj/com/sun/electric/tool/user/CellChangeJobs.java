@@ -28,6 +28,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.ERectangle;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -743,7 +744,7 @@ public class CellChangeJobs
 	}
 
 	/**
-	 * This class implement the command to delete unused old versions of cells.
+	 * This class implement the command to extract the contents of cell instances.
 	 */
 	public static class ExtractCellInstances extends Job
 	{
@@ -766,17 +767,28 @@ public class CellChangeJobs
 		public boolean doIt() throws JobException
 		{
 			boolean foundInstance = false;
+			int cellsToExtract = 0;
+			for(NodeInst ni : nodes)
+				if (ni.isCellInstance()) cellsToExtract++;
+			if (cellsToExtract == 0)
+			{
+				System.out.println("Must select cell instances to extract");
+				return false;
+			}
+	        Job.getUserInterface().startProgressDialog("Extracting " + cellsToExtract + " cells", null);
+			int done = 0;
 			for(NodeInst ni : nodes)
 			{
 				if (!ni.isCellInstance()) continue;
 				foundInstance = true;
 				extractOneNode(ni, copyExports);
+				done++;
+				if ((done%10) == 0)
+				{
+			        Job.getUserInterface().setProgressValue(done * 100 / cellsToExtract);
+				}
 			}
-			if (!foundInstance)
-			{
-				System.out.println("Must select cell instances to extract");
-				return false;
-			}
+	        Job.getUserInterface().stopProgressDialog();
 			return true;
 		}
 	}
@@ -787,8 +799,7 @@ public class CellChangeJobs
 		Cell cell = topno.getParent();
 		Cell subCell = (Cell)topno.getProto();
 		AffineTransform localTrans = topno.translateOut();
-		AffineTransform localRot = topno.rotateOut();
-		localTrans.preConcatenate(localRot);
+		localTrans.preConcatenate(topno.rotateOut());
 
 		// build a list of nodes to copy
 		List<NodeInst> nodes = new ArrayList<NodeInst>();
@@ -805,25 +816,14 @@ public class CellChangeJobs
 
 			Point2D pt = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 			localTrans.transform(pt, pt);
-//			double xSize = ni.getXSizeWithMirror();
-//			double ySize = ni.getYSizeWithMirror();
-//			int newAngle = topno.getAngle();
-//			boolean revAngle = false;
-//			if (topno.isXMirrored() != topno.isYMirrored()) revAngle = !revAngle;
-//			if (ni.isXMirrored() != ni.isYMirrored()) revAngle = !revAngle;
-//			if (revAngle) newAngle = newAngle + 3600 - ni.getAngle(); else
-//				newAngle += ni.getAngle();
-//			if (topno.isXMirrored()) xSize = -xSize;
-//			if (topno.isYMirrored()) ySize = -ySize;
 
-//			newAngle = newAngle % 3600;   if (newAngle < 0) newAngle += 3600;
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class, false);
             Orientation orient = topno.getOrient().concatenate(ni.getOrient());
 			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), cell, orient, name, 0);
-//			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
 			if (newNi == null) return;
+
 			newNodes.put(ni, newNi);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 			newNi.copyStateBits(ni);
@@ -881,7 +881,6 @@ public class CellChangeJobs
 		}
 		for(ArcInst ai : replaceTheseArcs)
 		{
-//			if ((ai->userbits&DEADA) != 0) continue;
 			ArcProto ap = ai.getProto();
 			double wid = ai.getLambdaFullWidth();
 			String name = null;
