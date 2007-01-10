@@ -179,7 +179,7 @@ public class ToolMenu {
 
 		//------------------- Simulation (Built-in)
 
-		// mnemonic keys available:  B   F   JK  N PQ      XYZ
+		// mnemonic keys available:  B       JK  N PQ      XYZ
             new EMenu("Simulation (Built-in)",
                 Simulation.hasIRSIM() ? new EMenuItem("IRSI_M: Simulate Current Cell") { public void run() {
 				    Simulation.startSimulation(Simulation.IRSIM_ENGINE, false, null, null); }} : null,
@@ -192,6 +192,11 @@ public class ToolMenu {
 
 		        new EMenuItem("_ALS: Simulate Current Cell") { public void run() {
                     Simulation.startSimulation(Simulation.ALS_ENGINE, false, null, null); }},
+
+            	Simulation.hasFLEET() ? SEPARATOR : null,
+
+            	Simulation.hasFLEET() ? new EMenuItem("_Fleet Simulation...") { public void run() {
+            		Simulation.runFLEET(); }} : null,
 
                 SEPARATOR,
 

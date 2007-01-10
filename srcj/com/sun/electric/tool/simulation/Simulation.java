@@ -94,6 +94,10 @@ public class Simulation extends Tool
 	private static Class irsimClass = null;
 	private static Method irsimSimulateMethod;
 
+	private static boolean fleetChecked = false;
+	private static Class fleetClass = null;
+	private static Method fleetSimulateMethod;
+
 	/**
 	 * The constructor sets up the Simulation tool.
 	 */
@@ -338,6 +342,60 @@ public class Simulation extends Tool
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the IRSIM simulator");
+	        e.printStackTrace(System.out);
+		}
+	}
+
+	/**
+	 * Method to tell whether the FLEET simulator is available.
+	 * This method dynamically figures out whether the FLEET module is present by using reflection.
+	 * @return true if the FLEET simulator is available.
+	 */
+	public static boolean hasFLEET()
+	{
+		if (!fleetChecked)
+		{
+			fleetChecked = true;
+
+			// find the FLEET class
+			try
+			{
+				fleetClass = Class.forName("com.sunlabs.fleet.Simulator");
+			} catch (ClassNotFoundException e)
+			{
+				fleetClass = null;
+				return false;
+			}
+
+			// find the necessary methods on the FLEET class
+			try
+			{
+				fleetSimulateMethod = fleetClass.getMethod("simulateCell", new Class[] {Cell.class, VarContext.class, String.class});
+			} catch (NoSuchMethodException e)
+			{
+				fleetClass = null;
+				return false;
+			}
+		}
+
+		// if already initialized, return
+		if (fleetClass == null) return false;
+	 	return true;
+	}
+
+	/**
+	 * Method to run the FLEET simulator on a given cell, context or file.
+	 * Uses reflection to find the FLEET simulator (if it exists).
+	 */
+	public static void runFLEET()
+	{
+		try
+		{
+			fleetSimulateMethod.invoke(fleetClass, new Object[] {});
+			return;
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the FLEET simulator");
 	        e.printStackTrace(System.out);
 		}
 	}
