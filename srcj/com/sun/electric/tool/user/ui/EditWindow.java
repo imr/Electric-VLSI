@@ -3026,6 +3026,11 @@ public class EditWindow extends JPanel
 		highlighter.addLine(pt1, pt2, cell, thick);
 	}
 
+	public void addHighlightMessage(Cell cell, String message, Point2D loc)
+	{
+		highlighter.addMessage(cell, message, loc);
+	}
+
 	public void addHighlightText(ElectricObject eObj, Cell cell, Variable.Key varKey)
 	{
 		highlighter.addText(eObj, cell, varKey);
