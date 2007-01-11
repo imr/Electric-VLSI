@@ -66,6 +66,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -360,7 +361,7 @@ public class Simulation extends Tool
 			// find the FLEET class
 			try
 			{
-				fleetClass = Class.forName("com.sunlabs.fleet.Simulator");
+				fleetClass = Class.forName("com.sunlabs.fleetsim.simulator.Simulator");
 			} catch (ClassNotFoundException e)
 			{
 				fleetClass = null;
@@ -370,7 +371,7 @@ public class Simulation extends Tool
 			// find the necessary methods on the FLEET class
 			try
 			{
-				fleetSimulateMethod = fleetClass.getMethod("simulateCell", new Class[] {Cell.class, VarContext.class, String.class});
+				fleetSimulateMethod = fleetClass.getMethod("run", new Class[] {String.class});
 			} catch (NoSuchMethodException e)
 			{
 				fleetClass = null;
@@ -389,9 +390,13 @@ public class Simulation extends Tool
 	 */
 	public static void runFLEET()
 	{
+		String fileName = OpenFile.chooseInputFile(FileType.ANY, "Input to Fleet Simulator");
+		if (fileName == null) return;
+		URL url = TextUtils.makeURLToFile(fileName);
+		String directoryPart = TextUtils.getFilePath(url);
 		try
 		{
-			fleetSimulateMethod.invoke(fleetClass, new Object[] {});
+			fleetSimulateMethod.invoke(fleetClass, new Object[] {fileName});
 			return;
 		} catch (Exception e)
 		{
