@@ -371,7 +371,7 @@ public class Simulation extends Tool
 			// find the necessary methods on the FLEET class
 			try
 			{
-				fleetSimulateMethod = fleetClass.getMethod("run", new Class[] {String.class});
+				fleetSimulateMethod = fleetClass.getMethod("run", new Class[] {String.class, String.class});
 			} catch (NoSuchMethodException e)
 			{
 				fleetClass = null;
@@ -396,7 +396,7 @@ public class Simulation extends Tool
 		String directoryPart = TextUtils.getFilePath(url);
 		try
 		{
-			fleetSimulateMethod.invoke(fleetClass, new Object[] {fileName});
+			fleetSimulateMethod.invoke(fleetClass, new Object[] {fileName, directoryPart});
 			return;
 		} catch (Exception e)
 		{
