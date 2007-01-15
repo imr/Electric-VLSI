@@ -124,6 +124,39 @@ public class ImmutableNodeInstTest {
         assertSame(n1.orient, Orientation.IDENT);
         assertSame(n1.size, EPoint.ORIGIN);
     }
+    
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadNodeId() {
+        System.out.println("newInstanceBadNodeId");
+        ImmutableNodeInst.newInstance(-1, Generic.tech.cellCenterNode, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+    }
+
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadProtoId() {
+        System.out.println("newInstanceBadProtoId");
+        ImmutableNodeInst.newInstance(0, null, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+    }
+
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadName1() {
+        System.out.println("newInstanceBadName1");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, null, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName2() {
+        System.out.println("newInstanceBadName2");
+        Name name = Name.findName("a[0]_b");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName3() {
+        System.out.println("newInstanceBadName3");
+        Name name = Name.findName("i@0[0:1]");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadName4() {
+        System.out.println("newInstanceBadName4");
+        Name name = Name.findName("a[0:5],b,a[5:8]");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+    }
 
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableNodeInst.
