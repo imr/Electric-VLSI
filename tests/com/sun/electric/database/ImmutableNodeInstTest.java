@@ -116,11 +116,12 @@ public class ImmutableNodeInstTest {
         System.out.println("newInstance");
         
         TextDescriptor td = TextDescriptor.newTextDescriptor(new MutableTextDescriptor()).withCode(TextDescriptor.Code.JAVA).withParam(true);
-        ImmutableNodeInst n1 = ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, nameA0, td, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+        ImmutableNodeInst n1 = ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, nameA0, td, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, td);
         n1.check();
         assertTrue(n1.nameDescriptor.isDisplay());
         assertFalse(n1.nameDescriptor.isCode());
         assertFalse(n1.nameDescriptor.isParam());
+        assertSame(n1.nameDescriptor, n1.protoDescriptor);
         assertSame(n1.orient, Orientation.IDENT);
         assertSame(n1.size, EPoint.ORIGIN);
     }
@@ -158,21 +159,57 @@ public class ImmutableNodeInstTest {
         ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, name, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
     }
 
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadOrient() {
+        System.out.println("newInstanceBadOrient");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, nameA0, null, null, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, 17), 0, 0, null);
+    }
+
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadAnchor() {
+        System.out.println("newInstanceBadAnchor");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, nameA0, null, Orientation.R, null, EPoint.fromLambda(17, 17), 0, 0, null);
+    }
+
+    @Test(expected = NullPointerException.class) public void testNewInstanceBadSize1() {
+        System.out.println("newInstanceBadSize1");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), null, 0, 0, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadSize2() {
+        System.out.println("newInstanceBadSize2");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(-17, 17), 0, 0, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void testNewInstanceBadSize3() {
+        System.out.println("newInstanceBadSize3");
+        ImmutableNodeInst.newInstance(0, Generic.tech.cellCenterNode, nameA0, null, Orientation.R, EPoint.fromLambda(1, 2), EPoint.fromLambda(17, -17), 0, 0, null);
+    }
+
     /**
      * Test of withName method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithName() {
+    @Test public void testWithName() {
         System.out.println("withName");
-        
-        Name name = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withName(name);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withName(Name.findName("a0")));
+    }
+
+    @Test(expected = NullPointerException.class) public void testWithBadName1() {
+        System.out.println("withBadName1");
+        n0.withName(null);
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void testWithBadName2() {
+        System.out.println("withBadName2");
+        n0.withName(Name.findName("a[0]_b"));
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void testWithBadName3() {
+        System.out.println("newWithBadName3");
+        n0.withName(Name.findName("i@0[0:1]"));
+    }
+
+    @Test(expected = IllegalArgumentException.class) public void testWithBadName4() {
+        System.out.println("newWithBadName4");
+        n0.withName(Name.findName("a[0:5],b,a[5:8]"));
     }
 
     /**
