@@ -43,6 +43,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -1073,9 +1074,9 @@ public class Sue extends Input
 	private PortInst findPinNode(double x, double y, Cell cell)
 	{
 		Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
-		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+		for(Iterator<RTBounds> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
-			Geometric geom = sea.next();
+			RTBounds geom = sea.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 
@@ -1454,9 +1455,9 @@ public class Sue extends Input
 			double x = piPoly.getCenterX();
 			double y = piPoly.getCenterY();
 			Rectangle2D searchBounds = new Rectangle2D.Double(x, y, 0, 0);
-			for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+			for(Iterator<RTBounds> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 			{
-				Geometric geom = sea.next();
+				RTBounds geom = sea.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst oNi = (NodeInst)geom;
 				if (oNi == ni) continue;
@@ -1501,9 +1502,9 @@ public class Sue extends Input
 		PortInst bestPi = null;
 		double bestDist = Double.MAX_VALUE;
 		Rectangle2D searchBounds = new Rectangle2D.Double(pt.getX()-slop, pt.getY()-slop, slop*2, slop*2);
-		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+		for(Iterator<RTBounds> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
-			Geometric geom = sea.next();
+			RTBounds geom = sea.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 			if (notThisPort != null && ni == notThisPort.getNodeInst()) continue;
@@ -1614,9 +1615,9 @@ public class Sue extends Input
 				ArcInst bestAi = null;
 				double bestDist = Double.MAX_VALUE;
 				Rectangle2D searchBounds = new Rectangle2D.Double(sn.pt.getX(), sn.pt.getY(), 0, 0);
-				for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+				for(Iterator<RTBounds> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 				{
-					Geometric geom = sea.next();
+					RTBounds geom = sea.next();
 					if (geom instanceof NodeInst) continue;
 					ArcInst ai = (ArcInst)geom;
 					if (isBus)

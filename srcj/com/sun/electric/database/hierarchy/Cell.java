@@ -51,6 +51,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.topology.Topology;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.ElectricObject;
@@ -1276,20 +1277,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
-	 * Method to return an interator over all Geometric objects in a given area of this Cell.
+	 * Method to return an interator over all RTBounds objects in a given area of this Cell.
 	 * @param bounds the specified area to search.
-	 * @return an iterator over all of the Geometric objects in that area.
+	 * @return an iterator over all of the RTBounds objects in that area.
 	 */
-	public Iterator<Geometric> searchIterator(Rectangle2D bounds) { return searchIterator(bounds, true); }
+	public Iterator<RTBounds> searchIterator(Rectangle2D bounds) { return searchIterator(bounds, true); }
 
     /**
-	 * Method to return an interator over all Geometric objects in a given area of this Cell that allows
+	 * Method to return an interator over all RTBounds objects in a given area of this Cell that allows
      * to ignore elements touching the area.
 	 * @param bounds the specified area to search.
-     * @param includeEdges true if Geometric objects along edges are considered in.
-	 * @return an iterator over all of the Geometric objects in that area.
+     * @param includeEdges true if RTBounds objects along edges are considered in.
+	 * @return an iterator over all of the RTBounds objects in that area.
 	 */
-    public Iterator<Geometric> searchIterator(Rectangle2D bounds, boolean includeEdges) {
+    public Iterator<RTBounds> searchIterator(Rectangle2D bounds, boolean includeEdges) {
         return topology.searchIterator(bounds, includeEdges);
     }
 

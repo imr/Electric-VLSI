@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
@@ -524,7 +525,7 @@ public class Schematic
 		ArcInst ai = null;
 		if (geom instanceof NodeInst) ni = (NodeInst)geom; else ai = (ArcInst)geom;
 		Rectangle2D bounds = geom.getBounds();
-		for(Iterator<Geometric> sIt = cell.searchIterator(bounds); sIt.hasNext(); )
+		for(Iterator<RTBounds> sIt = cell.searchIterator(bounds); sIt.hasNext(); )
 		{
 			Geometric oGeom = (Geometric)sIt.next();
 

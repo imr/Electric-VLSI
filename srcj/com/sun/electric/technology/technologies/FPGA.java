@@ -45,6 +45,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.EditWindow0;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
@@ -2301,9 +2302,9 @@ public class FPGA extends Technology
 
 						// find pin at this point
 						NodeInst niFound = null;
-						for(Iterator<Geometric> it = cell.searchIterator(search); it.hasNext(); )
+						for(Iterator<RTBounds> it = cell.searchIterator(search); it.hasNext(); )
 						{
-							Geometric geom = (Geometric)it.next();
+							RTBounds geom = it.next();
 							if (!(geom instanceof NodeInst)) continue;
 							NodeInst ni = (NodeInst)geom;
 							if (ni.getProto() != tech.wirePinNode) continue;

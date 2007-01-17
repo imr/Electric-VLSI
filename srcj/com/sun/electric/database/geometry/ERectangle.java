@@ -24,8 +24,8 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.text.ImmutableArrayList;
-import java.awt.Rectangle;
 
+import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 

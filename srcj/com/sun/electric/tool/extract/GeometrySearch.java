@@ -32,6 +32,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
@@ -128,9 +129,9 @@ public class GeometrySearch extends HierarchyEnumerator.Visitor
         cellsProcessed++;
 
         boolean continueDown = false;
-        for(Iterator<Geometric> it = cell.searchIterator(rect, false); it.hasNext(); )
+        for(Iterator<RTBounds> it = cell.searchIterator(rect, false); it.hasNext(); )
         {
-            Geometric geom = it.next();
+            Geometric geom = (Geometric)it.next();
 
             // PrimitiveInst or Cell
             if (geom instanceof NodeInst)

@@ -35,6 +35,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.prototype.PortProto;
 
 import java.awt.geom.Rectangle2D;
@@ -65,9 +66,9 @@ public class GeometryConnection
             AffineTransform subTrans = cellA.rotateIn(cellA.translateIn());
 
             // Search in other cell possible neighbors
-            for(Iterator<Geometric> it = cellBProto.searchIterator(cellBounds); it.hasNext(); )
+            for(Iterator<RTBounds> it = cellBProto.searchIterator(cellBounds); it.hasNext(); )
             {
-                Geometric nGeom = it.next();
+            	Geometric nGeom = (Geometric)it.next();
 
                 if (nGeom instanceof NodeInst)
                 {
@@ -140,9 +141,9 @@ public class GeometryConnection
 
             Set<Network> nets = null;
 
-            for(Iterator<Geometric> it = cell.searchIterator(geomBBnd); it.hasNext(); )
+            for(Iterator<RTBounds> it = cell.searchIterator(geomBBnd); it.hasNext(); )
             {
-                Geometric nGeom = it.next();
+                Geometric nGeom = (Geometric)it.next();
                 System.out.println(nGeom.toString());
 
                 // Only valid for arc-nodeinst pair

@@ -44,6 +44,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
@@ -571,9 +572,9 @@ public class AutoStitch
 		double epsilon = DBMath.getEpsilon();
 		Rectangle2D searchBounds = new Rectangle2D.Double(geomBounds.getMinX()-epsilon, geomBounds.getMinY()-epsilon,
 			geomBounds.getWidth()+epsilon*2, geomBounds.getHeight()+epsilon*2);
-		for(Iterator<Geometric> it = cell.searchIterator(searchBounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = cell.searchIterator(searchBounds); it.hasNext(); )
 		{
-			Geometric oGeom = it.next();
+			Geometric oGeom = (Geometric)it.next();
 			if (oGeom != geom) geomsInArea.add(oGeom);
 		}
 		for(Geometric oGeom : geomsInArea)

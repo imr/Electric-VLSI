@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -758,9 +759,9 @@ public class LEF extends LEFDEF
 			{
 				if (lp.ni[i] != null) continue;
 				Rectangle2D bounds = new Rectangle2D.Double(lp.pt[i].getX(), lp.pt[i].getY(), 0, 0);
-				for(Iterator<Geometric> sea = cell.searchIterator(bounds); sea.hasNext(); )
+				for(Iterator<RTBounds> sea = cell.searchIterator(bounds); sea.hasNext(); )
 				{
-					Geometric geom = (Geometric)sea.next();
+					RTBounds geom = sea.next();
 					if (!(geom instanceof NodeInst)) continue;
 					NodeInst ni = (NodeInst)geom;
 					if (!DBMath.areEquals(ni.getTrueCenter(), lp.pt[i])) continue;

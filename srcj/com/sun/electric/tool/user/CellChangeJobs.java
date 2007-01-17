@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
@@ -686,9 +687,9 @@ public class CellChangeJobs
 
 			// copy the nodes into the new cell
 			HashMap<NodeInst,NodeInst> newNodes = new HashMap<NodeInst,NodeInst>();
-			for(Iterator<Geometric> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
+			for(Iterator<RTBounds> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
 			{
-				Geometric look = sIt.next();
+				RTBounds look = sIt.next();
 				if (!(look instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)look;
 
@@ -719,9 +720,9 @@ public class CellChangeJobs
 			}
 	
 			// copy the arcs into the new cell
-			for(Iterator<Geometric> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
+			for(Iterator<RTBounds> sIt = curCell.searchIterator(bounds); sIt.hasNext(); )
 			{
-				Geometric look = sIt.next();
+				RTBounds look = sIt.next();
 				if (!(look instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)look;
 				NodeInst niTail = newNodes.get(ai.getTailPortInst().getNodeInst());

@@ -40,6 +40,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.UserInterface;
 import com.sun.electric.database.variable.VarContext;
@@ -2272,9 +2273,9 @@ public class Maze
 		double bestDist = 0;
 		PortInst closestPi = null;
 		Rectangle2D searchBounds = new Rectangle2D.Double(x-0.5, y-0.5, 1, 1);
-		for(Iterator<Geometric> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
+		for(Iterator<RTBounds> sea = cell.searchIterator(searchBounds); sea.hasNext(); )
 		{
-			Geometric geom = sea.next();
+			RTBounds geom = sea.next();
 
 			if (geom instanceof NodeInst)
 			{

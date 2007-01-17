@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
@@ -996,9 +997,9 @@ public class Quick
 			nodeBounds.getHeight() + worstInteractionDistance*2);
 
         instanceInteractionList.clear(); // part3
-		for(Iterator<Geometric> it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = ni.getParent().searchIterator(searchBounds); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			RTBounds geom = it.next();
 
 			if ( geom == ni ) continue; // covered by checkInteraction?
 
@@ -1050,9 +1051,9 @@ public class Quick
 		AffineTransform downTrans = thisNi.transformIn();
 		DBMath.transformRect(bb, downTrans);
 
-		for(Iterator<Geometric> it = cell.searchIterator(bb); it.hasNext(); )
+		for(Iterator<RTBounds> it = cell.searchIterator(bb); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			RTBounds geom = it.next();
 
             // Checking if element is covered by exclusion region
 //            if (coverByExclusion(geom))
@@ -1263,9 +1264,9 @@ public class Quick
 			return false;
 
 		// Sept04 changes: bounds by rBound
-		for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric nGeom = it.next();
+			Geometric nGeom = (Geometric)it.next();
             // I have to check if they are the same instance otherwise I check geometry against itself
             if (nGeom == geom && (sameInstance))// || nGeom.getParent() == cell))
                 continue;
@@ -2017,9 +2018,9 @@ public class Quick
 			nodeBounds.getWidth() + worstInteractionDistance*2,
 			nodeBounds.getHeight() + worstInteractionDistance*2);
 
-		for(Iterator<Geometric> it = cell.searchIterator(searchBounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = cell.searchIterator(searchBounds); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			Geometric geom = (Geometric)it.next();
 
 			if ( geom == ni ) continue;
 
@@ -2957,9 +2958,9 @@ public class Quick
         boolean skip = false;
         Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
 
-		for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric g = it.next();
+			RTBounds g = it.next();
 			if (g instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)g;
@@ -3055,9 +3056,9 @@ public class Quick
 		int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
 
-		for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric g = it.next();
+			RTBounds g = it.next();
 
             // Skipping the same geometry only when looking for notches in min distance
 //			if (ignoreSameGeometry && (g == geo1 || g == geo2)) //not valid condition
@@ -3423,9 +3424,9 @@ public class Quick
                                               Area extensionArea, Area overlapArea,
                                               Rectangle2D polyBnd)
     {
-        for(Iterator<Geometric> sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
+        for(Iterator<RTBounds> sIt = cell.searchIterator(polyBnd); sIt.hasNext(); )
 		{
-			Geometric g = sIt.next();
+			Geometric g = (Geometric)sIt.next();
 	        if (g == geom) continue;
 			if ((g instanceof NodeInst))
             {
@@ -3524,9 +3525,9 @@ public class Quick
     {
         boolean[] founds = new boolean[4];
 
-        for(Iterator<Geometric> sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
+        for(Iterator<RTBounds> sIt = cell.searchIterator(polyBnd); !found && sIt.hasNext(); )
 		{
-			Geometric g = sIt.next();
+        	RTBounds g = sIt.next();
 	        if (g == geom) continue;
 			if (!(g instanceof NodeInst))
             {
@@ -3621,9 +3622,9 @@ public class Quick
      */
     private boolean allPointsContainedInLayer(Geometric geom, Cell cell, Rectangle2D ruleBnd, Layer.Function.Set drcLayers, Point2D[] points, boolean[] founds)
     {
-        for(Iterator<Geometric> sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
+        for(Iterator<RTBounds> sIt = cell.searchIterator(ruleBnd); sIt.hasNext(); )
         {
-            Geometric g = sIt.next();
+        	RTBounds g = sIt.next();
 	        if (g == geom) continue;
             if (!(g instanceof NodeInst)) continue;
             NodeInst ni = (NodeInst)g;
@@ -3705,9 +3706,9 @@ public class Quick
 	{
 		Netlist netlist = getCheckProto(cell).netlist;
 		Rectangle2D subBounds = new Rectangle2D.Double();
-		for(Iterator<Geometric> sIt = cell.searchIterator(bounds); sIt.hasNext(); )
+		for(Iterator<RTBounds> sIt = cell.searchIterator(bounds); sIt.hasNext(); )
 		{
-			Geometric g = sIt.next();
+			RTBounds g = sIt.next();
 			if (!(g instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)g;
 			NodeProto np = ni.getProto();

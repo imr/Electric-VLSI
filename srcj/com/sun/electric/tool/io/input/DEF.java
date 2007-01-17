@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -326,9 +327,9 @@ public class DEF extends LEFDEF
 	{
 		Rectangle2D bound = new Rectangle2D.Double(x, y, 0, 0);
 		Point2D pt = new Point2D.Double(x, y);
-		for(Iterator<Geometric> sea = cell.searchIterator(bound); sea.hasNext(); )
+		for(Iterator<RTBounds> sea = cell.searchIterator(bound); sea.hasNext(); )
 		{
-			Geometric geom = (Geometric)sea.next();
+			RTBounds geom = sea.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 			if (ni == noti) continue;

@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.CellId;
 import com.sun.electric.database.geometry.DBMath;
 
 import java.awt.geom.Point2D;
@@ -35,16 +34,16 @@ import java.util.Iterator;
  * R-trees come from this paper: Guttman, Antonin, "R-Trees: A Dynamic Index Structure for Spatial Searching",
  * ACM SIGMOD, 14:2, 47-57, June 1984.
  * <P>
- * R-trees are height-balanced trees in which all leaves are at the same depth and contain Geometric objects (the
- * NodeInsts and ArcInsts). Entries higher in the tree store boundary information that tightly encloses the leaves
- * below. All nodes hold from M to 2M entries, where M is 4. The bounding boxes of two entries may
- * overlap, which allows arbitrary structures to be represented. A search for a point or an area is a simple
- * recursive walk through the tree to collect appropriate leaf nodes. Insertion and deletion, however, are more
- * complex operations.  The figure below illustrates how R-Trees work:
+ * R-trees are height-balanced trees in which all leaves are at the same depth and contain RTBounds objects
+ * (generally Geometric objects NodeInst and ArcInst). Entries higher in the tree store boundary information
+ * that tightly encloses the leaves below. All nodes hold from M to 2M entries, where M is 4.
+ * The bounding boxes of two entries may overlap, which allows arbitrary structures to be represented.
+ * A search for a point or an area is a simple recursive walk through the tree to collect appropriate leaf nodes.
+ * Insertion and deletion, however, are more complex operations.  The figure below illustrates how R-Trees work:
  * <P>
  * <CENTER><IMG SRC="doc-files/Geometric-1.gif"></CENTER>
  */
-class RTNode
+public class RTNode
 {
 /** lower bound on R-tree node size */			private static final int MINRTNODESIZE = 4;
 /** upper bound on R-tree node size */			private static final int MAXRTNODESIZE = (MINRTNODESIZE*2);
@@ -92,7 +91,7 @@ class RTNode
 	 * Method to create the top-level R-Tree structure for a new Cell.
 	 * @return an RTNode object that is empty.
 	 */
-	static RTNode makeTopLevel()
+	public static RTNode makeTopLevel()
 	{
 		RTNode top = new RTNode();
 		top.total = 0;
@@ -102,15 +101,17 @@ class RTNode
 	}
 
 	/**
-	 * Method to link this Geometric into the R-tree of its parent Cell.
-	 * @param cellId the parent CellId (used for messages).
-     * @param root root of the RTree
-     * @param geom Geometric to link
-     * @return new root of RTree
+	 * Method to link this RTBounds into the R-tree of its parent Cell.
+	 * This is static, because it may modify the root node, and so it must
+	 * take a root node and possibly return a different one.
+	 * @param env the environment of this operation (for messages).
+     * @param root root of the RTree.
+     * @param geom RTBounds to link.
+     * @return new root of RTree.
 	 */
-	static RTNode linkGeom(CellId cellId, RTNode root, Geometric geom)
+	public static RTNode linkGeom(Object env, RTNode root, RTBounds geom)
 	{
-		// find the bottom-level branch (a RTNode with leafs) that would expand least by adding this Geometric
+		// find the bottom-level branch (a RTNode with leafs) that would expand least by adding this RTBounds
 		if (root == null) return null;
         RTNode rtn = root;
 		for(;;)
@@ -147,16 +148,19 @@ class RTNode
 		}
 
 		// add this geometry element to the correct leaf R-tree node
-		return rtn.addToRTNode(geom, cellId, root);
+		return rtn.addToRTNode(geom, env, root);
 	}
 
 	/**
 	 * Method to remove this geometry from the R-tree its parent cell.
-     * @param root root of the RTree
-     * @param geom Geometric to unlink
-     * @return new root of RTree
+	 * This is static, because it may modify the root node, and so it must
+	 * take a root node and possibly return a different one.
+	 * @param env the environment of this operation (for messages).
+     * @param root root of the RTree.
+     * @param geom RTBounds to unlink.
+     * @return new root of RTree.
 	 */
-	static RTNode unLinkGeom(CellId cellId, RTNode root, Geometric geom)
+	public static RTNode unLinkGeom(Object env, RTNode root, RTBounds geom)
 	{
 		// find this node in the tree
 		RTNode whichRTN = null;
@@ -175,18 +179,18 @@ class RTNode
 //				System.out.println("Internal error: " + cell + " cannot find " + geom + " in R-Tree...Rebuilding R-Tree");
 //                root = makeTopLevel();
 //				for(Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); )
-//					root = linkGeom(cellId, root, (Geometric)it.next());
+//					root = linkGeom(env, root, (RTBounds)it.next());
 //				for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-//					root = linkGeom(cellId, root, (Geometric)it.next());
+//					root = linkGeom(env, root, (RTBounds)it.next());
 //				return root;
 //			}
 			whichRTN = (RTNode)result[0];
 			whichInd = ((Integer)result[1]).intValue();
-			System.out.println("Internal warning: " + geom + " not in proper R-Tree location in " + cellId);
+			System.out.println("Internal warning: " + geom + " not in proper R-Tree location in " + env);
 		}
 
 		// delete geom from this R-tree node
-		return whichRTN.removeRTNode(whichInd, cellId, root);
+		return whichRTN.removeRTNode(whichInd, env, root);
 	}
 
 	private static int branchCount;
@@ -217,10 +221,10 @@ class RTNode
 			{
 				line = new StringBuffer();
 				for(int i=0; i<indent+3; i++) line.append(" ");
-				Geometric child = (Geometric)getChild(j);
+				RTBounds child = (RTBounds)getChild(j);
 				Rectangle2D childBounds = child.getBounds();
 				line.append("Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
-					childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe(true));
+					childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child);
 				System.out.println(line);
 			} else
 			{
@@ -232,9 +236,9 @@ class RTNode
 	/**
 	 * Method to check the validity of an RTree node.
 	 * @param level the level of the node in the tree (for error reporting purposes).
-	 * @param cellId the CellId of a cell on which this node resides.
+	 * @param env the environment in which this node resides.
 	 */
-	public void checkRTree(int level, CellId cellId)
+	public void checkRTree(int level, Object env)
 	{
 		Rectangle2D localBounds = new Rectangle2D.Double();
 		if (total == 0)
@@ -253,7 +257,7 @@ class RTNode
 				Math.abs(localBounds.getWidth() - bounds.getWidth()) >= DBMath.getEpsilon() ||
 				Math.abs(localBounds.getHeight() - bounds.getHeight()) >= DBMath.getEpsilon())
 			{
-				System.out.println("Tree of "+cellId+" at level "+level+" has bounds "+localBounds+" but stored bounds are "+bounds);
+				System.out.println("Tree of "+env+" at level "+level+" has bounds "+localBounds+" but stored bounds are "+bounds);
 				for(int i=0; i<total; i++)
 					System.out.println("  ---Child "+i+" is "+ getBBox(i));
 			}
@@ -263,7 +267,7 @@ class RTNode
 		{
 			for(int j=0; j<total; j++)
 			{
-				((RTNode)getChild(j)).checkRTree(level+1, cellId);
+				((RTNode)getChild(j)).checkRTree(level+1, env);
 			}
 		}
 	}
@@ -275,7 +279,7 @@ class RTNode
 	{
 		if (flag)
 		{
-			Geometric geom = (Geometric)pointers[child];
+			RTBounds geom = (RTBounds)pointers[child];
 			// @TODO: GVG if pointers is null (bad file read in), we get an exception
 			return geom.getBounds();
 		} else
@@ -305,7 +309,7 @@ class RTNode
 	 * Method to add object "rtnInsert" to this R-tree node, which is in cell "cell".  Method may have to
 	 * split the node and recurse up the tree
 	 */
-	private RTNode addToRTNode(Object rtnInsert, CellId cellId, RTNode root)
+	private RTNode addToRTNode(Object rtnInsert, Object env, RTNode root)
 	{
 		// see if there is room in the R-tree node
 		if (getTotal() >= MAXRTNODESIZE)
@@ -319,9 +323,9 @@ class RTNode
 
 			// find the element farthest from new object
 			Rectangle2D bounds;
-			if (rtnInsert instanceof Geometric)
+			if (rtnInsert instanceof RTBounds)
 			{
-				Geometric geom = (Geometric)rtnInsert;
+				RTBounds geom = (RTBounds)rtnInsert;
 				bounds = geom.getBounds();
 			} else
 			{
@@ -504,7 +508,7 @@ class RTNode
 				for(RTNode r = getParent(); r != null; r = r.getParent()) r.figBounds();
 
 				// now add the new node up the tree
-				root = getParent().addToRTNode(newrtn, cellId, root);
+				root = getParent().addToRTNode(newrtn, env, root);
 			}
 		}
 
@@ -532,14 +536,14 @@ class RTNode
 		}
 
 		// now check the RTree
-//		checkRTree(0, cellId);
+//		checkRTree(0, env);
         return root;
 	}
 
 	/**
 	 * Method to remove entry "ind" from this R-tree node in cell "cell"
 	 */
-	private RTNode removeRTNode(int ind, CellId cellId, RTNode root)
+	private RTNode removeRTNode(int ind, Object env, RTNode root)
 	{
 		// delete entry from this R-tree node
 		int j = 0;
@@ -575,7 +579,7 @@ class RTNode
 
 				// reinsert all data
 				for(int i=0; i<temp.getTotal(); i++)
-                    root = ((RTNode)temp.getChild(i)).reInsert(cellId, root);
+                    root = ((RTNode)temp.getChild(i)).reInsert(env, root);
 				return root;
 			}
 
@@ -586,10 +590,10 @@ class RTNode
 			if (found < 0) System.out.println("R-trees: cannot find entry in parent");
 
 			// remove this entry from its parent
-			root = prtn.removeRTNode(found, cellId, root);
+			root = prtn.removeRTNode(found, env, root);
 
 			// reinsert the entries
-			return reInsert(cellId, root);
+			return reInsert(env, root);
 		}
 
 		// recompute bounding box of this R-tree node and all up the tree
@@ -606,16 +610,16 @@ class RTNode
 	/**
 	 * Method to reinsert the tree of nodes below this RTNode into cell "cell".
 	 */
-	private RTNode reInsert(CellId cellId, RTNode root)
+	private RTNode reInsert(Object env, RTNode root)
 	{
 		if (getFlag())
 		{
 			for(int i=0; i<getTotal(); i++)
-                root = linkGeom(cellId, root, (Geometric)getChild(i));
+                root = linkGeom(env, root, (RTBounds)getChild(i));
 		} else
 		{
 			for(int i=0; i<getTotal(); i++)
-				root = ((RTNode)getChild(i)).reInsert(cellId, root);
+				root = ((RTNode)getChild(i)).reInsert(env, root);
 		}
         return root;
 	}
@@ -626,7 +630,7 @@ class RTNode
 	 * and the index in that subnode is placed in "subind".  The method returns
 	 * null if it is unable to find the geometry module.
 	 */
-	private Object [] findGeom(Geometric geom)
+	private Object [] findGeom(RTBounds geom)
 	{
 		// if R-tree node contains primitives, search for direct hit
 		if (getFlag())
@@ -667,7 +671,7 @@ class RTNode
 	 * and the index in that subnode is placed in "subind".  The method returns
 	 * false if it is unable to find the geometry module.
 	 */
-	private Object [] findGeomAnywhere(Geometric geom)
+	private Object [] findGeomAnywhere(RTBounds geom)
 	{
 		// if R-tree node contains primitives, search for direct hit
 		if (getFlag())
@@ -696,7 +700,7 @@ class RTNode
 
 	/**
 	 * Class to search a given area of a Cell.
-	 * This class acts like an Iterator, returning Geometric objects that are inside the selected area.
+	 * This class acts like an Iterator, returning RTBounds objects that are inside the selected area.
 	 * <P>
 	 * For example, here is the code to search cell "myCell" in the area "bounds" (in database coordinates):
 	 * <P>
@@ -716,7 +720,7 @@ class RTNode
 	 * }
 	 * </PRE>
 	 */
-	static class Search implements Iterator<Geometric>
+	static class Search implements Iterator<RTBounds>
 	{
 		/** maximum depth of search */			private static final int MAXDEPTH = 100;
 
@@ -724,7 +728,7 @@ class RTNode
 		/** RTNode stack of search */			private RTNode [] rtn;
 		/** index stack of search */			private int [] position;
 		/** desired search bounds */			private Rectangle2D searchBounds;
-		/** the next object to return */		private Geometric nextObj;
+		/** the next object to return */		private RTBounds nextObj;
         /** includes objects on the search area edges */ private boolean includeEdges;
 
 		Search(Rectangle2D bounds, RTNode root, boolean includeEdges)
@@ -743,7 +747,7 @@ class RTNode
 		 * Method to return the next object in the bounds of the search.
 		 * @return the next object found.  Returns null when all objects have been reported.
 		 */
-		private Geometric nextObject()
+		private RTBounds nextObject()
 		{
 			for(;;)
 			{
@@ -766,7 +770,7 @@ class RTNode
                         if (nodeBounds.getMaxY() <= searchBounds.getMinY()) continue;
                         if (nodeBounds.getMinY() >= searchBounds.getMaxY()) continue;
                     }
-					if (rtnode.getFlag()) return((Geometric)rtnode.getChild(i));
+					if (rtnode.getFlag()) return((RTBounds)rtnode.getChild(i));
 
 					// look down the hierarchy
 					if (depth >= MAXDEPTH-1)
@@ -796,11 +800,11 @@ class RTNode
 			return nextObj != null;
 		}
 
-		public Geometric next()
+		public RTBounds next()
 		{
 			if (nextObj != null)
 			{
-				Geometric ret = nextObj;
+				RTBounds ret = nextObj;
 				nextObj = null;
 				return ret;
 			}

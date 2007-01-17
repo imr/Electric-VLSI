@@ -44,6 +44,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.UserInterface;
@@ -771,9 +772,9 @@ public class Connectivity
 	private PortInst wantConnectingNodeAt(Point2D pt, ArcProto ap, double size, Cell newCell)
 	{
 		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		for(Iterator<Geometric> it = newCell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			RTBounds geom = it.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
@@ -977,9 +978,9 @@ public class Connectivity
 	private NodeInst wantNodeAt(Point2D pt, NodeProto pin, double size, Cell newCell)
 	{
 		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		for(Iterator<Geometric> it = newCell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			RTBounds geom = it.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 			if (ni.getProto() != pin) continue;
@@ -994,9 +995,9 @@ public class Connectivity
 		List<PortInst> touchingNodes = new ArrayList<PortInst>();
 		boolean mightCreateExports = false;
 		Rectangle2D checkBounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		for(Iterator<Geometric> it = newCell.searchIterator(checkBounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = newCell.searchIterator(checkBounds); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			RTBounds geom = it.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 			if (ni.isCellInstance())
@@ -1059,9 +1060,9 @@ public class Connectivity
 		// if no ports were found but there were cells, should create new exports in the cells
 		if (touchingNodes.size() == 0 && mightCreateExports)
 		{
-			for(Iterator<Geometric> it = newCell.searchIterator(checkBounds); it.hasNext(); )
+			for(Iterator<RTBounds> it = newCell.searchIterator(checkBounds); it.hasNext(); )
 			{
-				Geometric geom = it.next();
+				RTBounds geom = it.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
 				if (!ni.isCellInstance()) continue;
@@ -1093,9 +1094,9 @@ public class Connectivity
 		Point2D inside = new Point2D.Double();
 		transIn.transform(pt, inside);
 		Rectangle2D bounds = new Rectangle2D.Double(inside.getX(), inside.getY(), 0, 0);
-		for(Iterator<Geometric> it = subCell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = subCell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			RTBounds geom = it.next();
 			if (geom instanceof ArcInst) continue;
 			NodeInst subNi = (NodeInst)geom;
 			PortInst foundPi = null;
@@ -2073,9 +2074,9 @@ public class Connectivity
 		Rectangle2D bounds = newPoly.getBounds2D();
 		Point2D centerPoint = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
 		Netlist nl = newCell.acquireUserNetlist();
-		for(Iterator<Geometric> it = newCell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			RTBounds geom = it.next();
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst ni = (NodeInst)geom;
 			if (ni.isCellInstance()) continue;
@@ -2104,9 +2105,9 @@ public class Connectivity
 		}
 
 		// find arcs that touch (only include if no nodes are on the network)
-		for(Iterator<Geometric> it = newCell.searchIterator(bounds); it.hasNext(); )
+		for(Iterator<RTBounds> it = newCell.searchIterator(bounds); it.hasNext(); )
 		{
-			Geometric geom = it.next();
+			RTBounds geom = it.next();
 			if (!(geom instanceof ArcInst)) continue;
 			ArcInst ai = (ArcInst)geom;
 			Technology tech = ai.getProto().getTechnology();

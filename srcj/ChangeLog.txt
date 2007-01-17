@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+IMP/MAN: (1/17/07, SMR) Initial code (not working) for Sea-of-Gates router.
+
+IMP: (1/17/07, SMR) Generalized RTNode to handle a RTBounds object.
+
 BUG: (1/8/07, SMR) Explorer tree forgets the expanded state of cell groups (Bug #1246).
 FIX: Added an "equals" method to CellGroup so that it could compare these
      temporary objects by name.

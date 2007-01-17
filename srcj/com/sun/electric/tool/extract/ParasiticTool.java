@@ -40,6 +40,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -429,10 +430,10 @@ public class ParasiticTool extends Tool {
         {
             List<ParasiticValue> polyList = new ArrayList<ParasiticValue>();
 
-            for(Iterator<Geometric> it = cell.searchIterator(bounds); it.hasNext(); )
+            for(Iterator<RTBounds> it = cell.searchIterator(bounds); it.hasNext(); )
             {
-                Geometric nGeom = it.next();
-			    if ((nGeom == geom)) continue;
+            	Geometric nGeom = (Geometric)it.next();
+			    if (nGeom == geom) continue;
 
                 // Touching elements out
                 if (nGeom.isConnected(geom)) continue;

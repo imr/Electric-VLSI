@@ -43,6 +43,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 
@@ -1052,9 +1053,9 @@ public class EDIF extends Input
 		Point2D pt = new Point2D.Double(x, y);
 		double bestDist = Double.MAX_VALUE;
 		ArcInst ai = null;
-		for(Iterator<Geometric> sea = cell.searchIterator(new Rectangle2D.Double(x, y, 0, 0)); sea.hasNext(); )
+		for(Iterator<RTBounds> sea = cell.searchIterator(new Rectangle2D.Double(x, y, 0, 0)); sea.hasNext(); )
 		{
-			Geometric geom = sea.next();
+			RTBounds geom = sea.next();
 
 			if (geom instanceof NodeInst)
 			{

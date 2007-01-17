@@ -30,6 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Generic;
 
@@ -97,9 +98,9 @@ public class Example
 				foundOne = false;
 
 				// begin to search the area so far
-				for(Iterator<Geometric> oIt = np.searchIterator(soFar); oIt.hasNext(); )
+				for(Iterator<RTBounds> oIt = np.searchIterator(soFar); oIt.hasNext(); )
 				{
-					Geometric geom = (Geometric)oIt.next();
+					RTBounds geom = oIt.next();
 					if (geom == null) break;
 					if (!(geom instanceof NodeInst)) continue;
 					NodeInst otherNi = (NodeInst)geom;

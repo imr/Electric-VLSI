@@ -37,7 +37,7 @@ import java.util.Iterator;
  * This class is the superclass for the Electric classes that have visual
  * bounds on the screen, specifically NodeInst and ArcInst.
  */
-public abstract class Geometric extends ElectricObject
+public abstract class Geometric extends ElectricObject implements RTBounds
 {
 	// ------------------------------- private data ------------------------------
 

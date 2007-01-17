@@ -38,6 +38,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.DisplayedText;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -1587,9 +1588,9 @@ public class Highlighter implements DatabaseChangeListener {
             for(int phase=0; phase<3; phase++)
             {
                 // examine everything in the area
-                for(Iterator<Geometric> it = cell.searchIterator(searchArea); it.hasNext(); )
+                for(Iterator<RTBounds> it = cell.searchIterator(searchArea); it.hasNext(); )
                 {
-                    Geometric geom = it.next();
+                    Geometric geom = (Geometric)it.next();
                     Highlight2 h;
                     switch (phase)
                     {
