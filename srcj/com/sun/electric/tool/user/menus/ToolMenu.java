@@ -118,6 +118,7 @@ import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.routing.River;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.routing.SeaOfGates;
 import com.sun.electric.tool.sc.GetNetlist;
 import com.sun.electric.tool.sc.Maker;
 import com.sun.electric.tool.sc.Place;
@@ -453,7 +454,7 @@ public class ToolMenu {
 
 		//------------------- Routing
 
-		// mnemonic keys available:  B D FG IJK   OPQ    V XY
+		// mnemonic keys available:  B D F  IJK   OPQ    V XY
             new EMenu("_Routing",
                 new EMenuItem.CheckBox("Enable _Auto-Stitching") {
                     public boolean isSelected() { return Routing.isAutoStitchOn(); }
@@ -490,6 +491,11 @@ public class ToolMenu {
 
 		        new EMenuItem("_River-Route") { public void run() {
                     River.riverRoute(); }},
+
+                SEPARATOR,
+
+		        new EMenuItem("Sea-Of-_Gates Route") { public void run() {
+		        	SeaOfGates.seaOfGatesRoute(); }},
 
                 Routing.hasSunRouter() ? SEPARATOR : null,
                 Routing.hasSunRouter() ? new EMenuItem("Sun _Lava Router") { public void run() {
