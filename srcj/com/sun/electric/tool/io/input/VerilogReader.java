@@ -224,7 +224,11 @@ public class VerilogReader extends Input
                     if (index == -1) // end of tokens
                         continue; // or break?
                     assert(index2 != -1);
-                    exports.add(value.substring(index+1, index2));
+                    String n = value.substring(index+1, index2);
+                    int index3 = n.indexOf("\\"); // those \ are a problem!
+                    if (index3 != -1)
+                        n = n.substring(index3+1);
+                    exports.add(n);
                     pins.add(value.substring(index2+1));
                 }
 
