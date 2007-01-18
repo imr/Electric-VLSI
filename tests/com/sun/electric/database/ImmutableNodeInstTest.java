@@ -190,6 +190,9 @@ public class ImmutableNodeInstTest {
     @Test public void testWithName() {
         System.out.println("withName");
         assertSame(n0, n0.withName(Name.findName("a0")));
+        
+        Name name_B = Name.findName("b");
+        assertSame(name_B, n0.withName(name_B).name);
     }
 
     @Test(expected = NullPointerException.class) public void testWithBadName1() {
@@ -215,189 +218,104 @@ public class ImmutableNodeInstTest {
     /**
      * Test of withNameDescriptor method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithNameDescriptor() {
+    @Test public void testWithNameDescriptor() {
         System.out.println("withNameDescriptor");
-        
-        TextDescriptor nameDescriptor = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withNameDescriptor(nameDescriptor);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withNameDescriptor(null));
     }
 
     /**
      * Test of withOrient method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithOrient() {
+    @Test public void testWithOrient() {
         System.out.println("withOrient");
-        
-        Orientation orient = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withOrient(orient);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withOrient(Orientation.IDENT));
     }
 
     /**
      * Test of withAnchor method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithAnchor() {
+    @Test public void testWithAnchor() {
         System.out.println("withAnchor");
-        
-        EPoint anchor = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withAnchor(anchor);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withAnchor(EPoint.fromLambda(1, 2)));
     }
 
     /**
      * Test of withSize method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithSize() {
+    @Test public void testWithSize() {
         System.out.println("withSize");
-        
-        EPoint size = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withSize(size);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withSize(EPoint.fromLambda(17, 17)));
     }
 
     /**
      * Test of withStateBits method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithStateBits() {
+    @Test public void testWithStateBits() {
         System.out.println("withStateBits");
-        
-        ImmutableNodeInst d = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withStateBits(d);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withStateBits(n0));
     }
 
     /**
      * Test of withFlag method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithFlag() {
+    @Test public void testWithFlag() {
         System.out.println("withFlag");
-        
-        ImmutableNodeInst.Flag flag = null;
-        boolean value = true;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withFlag(flag, value);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withFlag(ImmutableNodeInst.HARD_SELECT, n0.is(ImmutableNodeInst.HARD_SELECT)));
+        assertSame(n0, n0.withFlag(ImmutableNodeInst.VIS_INSIDE, n0.is(ImmutableNodeInst.VIS_INSIDE)));
+        assertSame(n0, n0.withFlag(ImmutableNodeInst.LOCKED, n0.is(ImmutableNodeInst.LOCKED)));
     }
 
     /**
      * Test of withTechSpecific method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithTechSpecific() {
+    @Test public void testWithTechSpecific() {
         System.out.println("withTechSpecific");
-        
-        int techBits = 0;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withTechSpecific(techBits);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withTechSpecific(n0.techBits));
     }
 
     /**
      * Test of withProtoDescriptor method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithProtoDescriptor() {
+    @Test public void testWithProtoDescriptor() {
         System.out.println("withProtoDescriptor");
-        
-        TextDescriptor protoDescriptor = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withProtoDescriptor(protoDescriptor);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        assertSame(n0, n0.withProtoDescriptor(null));
     }
 
     /**
      * Test of withVariable method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithVariable() {
+    @Test public void testWithVariable() {
         System.out.println("withVariable");
-        
-        Variable var = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withVariable(var);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        Variable.Key varKey = Variable.newKey("key");
+        Variable var = Variable.newInstance(varKey, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
+        ImmutableNodeInst n1 = n0.withVariable(var);
+        n1.check();
+        assertEquals(1, n1.getNumVariables());
+        assertSame(var, n1.getVar(0));
     }
 
     /**
      * Test of withoutVariable method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithoutVariable() {
+    @Test public void testWithoutVariable() {
         System.out.println("withoutVariable");
+        Variable.Key varKey = Variable.newKey("key");
+        Variable var = Variable.newInstance(varKey, "valueA", TextDescriptor.newTextDescriptor(new MutableTextDescriptor()));
+        ImmutableNodeInst n1 = n0.withVariable(var);
         
-        Variable.Key key = null;
-        ImmutableNodeInst instance = null;
+        assertSame(n1, n1.withoutVariable(Variable.newKey("key2")));
         
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withoutVariable(key);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        ImmutableNodeInst n2 = n1.withoutVariable(varKey);
+        assertEquals(0, n2.getNumVariables());
     }
 
     /**
      * Test of withRenamedIds method, of class com.sun.electric.database.ImmutableNodeInst.
      */
-    public void testWithRenamedIds() {
+    @Test public void testWithRenamedIds() {
         System.out.println("withRenamedIds");
-        
-        IdMapper idMapper = null;
-        ImmutableNodeInst instance = null;
-        
-        ImmutableNodeInst expResult = null;
-        ImmutableNodeInst result = instance.withRenamedIds(idMapper);
-        assertEquals(expResult, result);
-        
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
+        IdMapper idMapper = new IdMapper();
+        assertSame(n0, n0.withRenamedIds(idMapper));
     }
 
     /**
