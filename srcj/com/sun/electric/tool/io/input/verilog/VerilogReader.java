@@ -713,6 +713,27 @@ public class VerilogReader extends Input
         return verilogData == null;
     }
 
+    /**
+     * Function to parse Verilog file without creating Electric objects.
+     * @param file
+     * @return VerilogData object
+     */
+    public VerilogData parseVerilog(String file)
+    {
+        URL fileURL = TextUtils.makeURLToFile(file);
+        if (openTextInput(fileURL))
+        {
+            System.out.println("Cannot open the Verilog file: " + file);
+            return null;
+        }
+        System.out.println("Reading Verilog file: " + file);
+        initKeywordParsing();
+        setProgressValue(0);
+        setProgressNote("Reading Verilog file");
+        VerilogData verilogData = parseVerilog(file, true);
+        return verilogData;
+    }
+
     public Cell readVerilog(String file)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
@@ -729,7 +750,7 @@ public class VerilogReader extends Input
         return topCell; // still work because VerilogReader remembers the top cell
     }
 
-    public VerilogData parseVerilog(String fileName, boolean newObjects)
+    private VerilogData parseVerilog(String fileName, boolean newObjects)
     {
         VerilogData verilogData = null;
         if (newObjects) verilogData = new VerilogData(fileName);
