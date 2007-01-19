@@ -23,7 +23,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.tool.io.input;
+package com.sun.electric.tool.io.input.verilog;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
@@ -31,6 +31,7 @@ import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.io.input.Simulate;
 
 import java.io.IOException;
 import java.net.URL;
@@ -56,7 +57,7 @@ public class VerilogOut extends Simulate
 		}
 	}
 
-	VerilogOut() {}
+	public VerilogOut() {}
 
 	/**
 	 * Method to read an Verilog output file.

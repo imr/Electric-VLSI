@@ -33,6 +33,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.input.verilog.VerilogOut;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
@@ -50,7 +51,7 @@ import java.net.URL;
  */
 public class Simulate extends Input
 {
-	Simulate() {}
+	public Simulate() {}
 
 	/**
 	 * Method called from the pulldown menus to read Spice output and plot it.
