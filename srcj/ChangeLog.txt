@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+BUG: (1/19/07, DN) Cell.isInUse() returns false for schematics cells regardless if icon is an instance elsewhere (Bug #511).
+FIX: Check icon cells also in Cell.isInUse().
+
 IMP/MAN: (1/17/07, SMR) Initial code (not working) for Sea-of-Gates router.
 
 IMP: (1/17/07, SMR) Generalized RTNode to handle a RTBounds object.

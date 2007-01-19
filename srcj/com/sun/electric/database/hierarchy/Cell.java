@@ -246,9 +246,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		 */
 		public boolean equals(Object obj)
 		{
-			if (obj instanceof CellGroup)
+			if (obj instanceof CellGroup && groupName != null)
 			{
-				return ((CellGroup)obj).groupName.equals(groupName);
+				return groupName.equals(((CellGroup)obj).groupName);
 			}
 			return this == obj;
 		}
@@ -256,7 +256,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 		/**
          * Returns a string representing the name of the cell group
 		 */
-		public String getName() { if (groupName == null) return null;   return groupName.getName(); }
+		public String getName() { return groupName != null ? groupName.getName() : null; }
 
         public EDatabase getDatabase() { return lib.getDatabase(); }
         
@@ -3289,26 +3289,47 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	 * @param quiet true not to warn the user of the cell being used.
 	 * @return true if this Cell is in use anywhere.
 	 */
-	public boolean isInUse(String action, boolean quiet)
-	{
-		String parents = null;
-		for(Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); )
-		{
-			CellUsage u = it.next();
-			Cell parent = u.getParent();
-			if (parents == null) parents = parent.describe(true); else
-				parents += ", " + parent.describe(true);
-		}
-		if (parents != null)
-		{
-			if (!quiet)
-				Job.getUserInterface().showErrorMessage("Cannot " + action + " " + this +
-					" because it is used in " + parents, action + " failed");
-			return true;
-		}
-		return false;
-	}
-
+    public boolean isInUse(String action, boolean quiet) {
+        String parents = isInUse(true);
+        if (parents != null) {
+            if (!quiet)
+                Job.getUserInterface().showErrorMessage("Cannot " + action + " " + this +
+                        " because it is used in " + parents, action + " failed");
+            return true;
+        }
+        if (isSchematic()) {
+            for (Cell cell: getCellGroup().cells) {
+                if (!cell.isIcon()) continue;
+                parents = cell.isInUse(false);
+                if (parents != null) {
+                    if (!quiet)
+                        Job.getUserInterface().showErrorMessage("Cannot " + action + " " + this +
+                                " because icon " + cell + " is used in " + parents, action + " failed");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Method to determine whether this Cell is in use anywhere.
+     * If it is, a string with super-cell names is returned.
+     * @param sameCellGroupAlso true to check parents in the CellGroup of this Cell also.
+     * @return string with super-cell names, ot null if cell is not used.
+     */
+    private String isInUse(boolean sameCellGroupAlso) {
+        String parents = null;
+        for(Iterator<CellUsage> it = getUsagesOf(); it.hasNext(); ) {
+            CellUsage u = it.next();
+            Cell parent = u.getParent();
+            if (!sameCellGroupAlso && parent.getCellGroup() == getCellGroup()) continue;
+            if (parents == null) parents = parent.describe(true); else
+                parents += ", " + parent.describe(true);
+        }
+        return parents;
+    }
+    
 	/****************************** VERSIONS ******************************/
 
 	/**
