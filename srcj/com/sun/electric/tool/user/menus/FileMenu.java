@@ -143,6 +143,8 @@ public class FileMenu {
                     importLibraryCommand(FileType.DXF); }},
                 new EMenuItem("S_UE (Schematic User Environment)...") {	public void run() {
                     importLibraryCommand(FileType.SUE); }},
+                new EMenuItem("_Verilog...") {	public void run() {
+                    importLibraryCommand(FileType.VERILOG); }},
                 IOTool.hasDais() ? new EMenuItem("Dais (_Sun CAD)...") { public void run() {
                     importLibraryCommand(FileType.DAIS); }} : null,
                 SEPARATOR,

@@ -113,7 +113,12 @@ public class Input
 			} else
 			{
 				Input in;
-				if (type == FileType.CIF)
+                if (type == FileType.VERILOG)
+                {
+                    in = new VerilogReader();
+					if (in.openTextInput(fileURL)) return null;
+                }
+                else if (type == FileType.CIF)
 				{
 					in = new CIF();
 					if (in.openTextInput(fileURL)) return null;

@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+IMP/MAN: (1/19/07, GVG) Import of Verilog files in FileMenu
+
 BUG: (1/19/07, DN) Cell.isInUse() returns false for schematics cells regardless if icon is an instance elsewhere (Bug #511).
 FIX: Check icon cells also in Cell.isInUse().
 
