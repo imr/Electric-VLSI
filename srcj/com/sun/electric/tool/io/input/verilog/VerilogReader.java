@@ -729,7 +729,7 @@ public class VerilogReader extends Input
         return topCell; // still work because VerilogReader remembers the top cell
     }
 
-    private VerilogData parseVerilog(String fileName, boolean newObjects)
+    public VerilogData parseVerilog(String fileName, boolean newObjects)
     {
         VerilogData verilogData = null;
         if (newObjects) verilogData = new VerilogData(fileName);
