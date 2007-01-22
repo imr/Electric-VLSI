@@ -372,7 +372,9 @@ public class TextWindow implements WindowContent
 		{
 			TextWindow tw = (TextWindow)content;
 			String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
-            tw.readTextCell(fileName);
+            // if cancel, fileName is null
+            if (fileName != null)
+                tw.readTextCell(fileName);
         }
     }
 
