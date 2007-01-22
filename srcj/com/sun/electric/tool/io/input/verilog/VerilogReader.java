@@ -33,8 +33,6 @@ import java.awt.geom.Point2D;
  */
 public class VerilogReader extends Input
 {
-//    VerilogData verilogData = null;
-
     List<NodeInst> transistors = new ArrayList<NodeInst>();
     double maxWidth = 100, nodeWidth = 10;
     double primitiveHeight = 0.5, primitiveWidth = 0.5;
@@ -136,7 +134,7 @@ public class VerilogReader extends Input
                 {
                     if (s.equals("vss")) // ground
                     {
-                        pin = addSupply(parent, verilogData, module, false, s);
+                        pin = readSupply(parent, verilogData, module, false, s);
                     }
                     else
                     {
@@ -163,7 +161,7 @@ public class VerilogReader extends Input
         }
     }
 
-    private NodeInst addSupply(Cell cell, VerilogData verilogData, VerilogData.VerilogModule module, boolean power, String name)
+    private NodeInst readSupply(Cell cell, VerilogData verilogData, VerilogData.VerilogModule module, boolean power, String name)
     {
         if (verilogData != null)
         {
@@ -377,7 +375,7 @@ public class VerilogReader extends Input
                     StringTokenizer p = new StringTokenizer(net, "\t ", false);
                     String name = p.nextToken();
                     name = TextUtils.correctName(name);
-                    addSupply(cell, verilogData, module, power, name); // supply1 -> vdd, supply0 -> gnd or vss
+                    readSupply(cell, verilogData, module, power, name); // supply1 -> vdd, supply0 -> gnd or vss
                 }
             }
         }
@@ -715,6 +713,23 @@ public class VerilogReader extends Input
         return verilogData == null;
     }
 
+    public VerilogData parseVerilog(String[] lines, String verilogName)
+    {
+        if (openStringsInput(lines))
+
+        {
+            System.out.println("Cannot open string set " + verilogName + " as Verilog");
+            return null;
+        }
+        System.out.println("Reading Verilog format " + verilogName);
+        initKeywordParsing();
+        setProgressValue(0);
+        setProgressNote("Reading Verilog format " + verilogName);
+        VerilogData verilogData = parseVerilog(verilogName, true);
+        System.out.println("Verilog format " + verilogName + " read");
+        return verilogData;
+    }
+
     /**
      * Function to parse Verilog file without creating Electric objects.
      * @param file
@@ -731,8 +746,9 @@ public class VerilogReader extends Input
         System.out.println("Reading Verilog file: " + file);
         initKeywordParsing();
         setProgressValue(0);
-        setProgressNote("Reading Verilog file");
+        setProgressNote("Reading Verilog file:" + file);
         VerilogData verilogData = parseVerilog(file, true);
+        System.out.println("Verilog file: " + file + " read");
         return verilogData;
     }
 
