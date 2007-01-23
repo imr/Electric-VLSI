@@ -76,7 +76,6 @@ import java.util.TreeSet;
  *
  * Things to do:
  *     Check via spacings
- *     Increase cost of turning
  *     Initial adjustment of coordinates so that there aren't tabs in the wrong direction
  *     Route power/ground nets first?
  *     Rip-up?
@@ -748,6 +747,15 @@ public class SeaOfGates
 				{
 					if (toZ == curZ) svNext.cost += 10; else
 						if ((toZ-curZ) * dz < 0) svNext.cost += 20;
+				} else
+				{
+					// not changing layers: penalize if turning in X or Y
+					if (svCurrent.last != null)
+					{
+						int lastDx = svCurrent.x - svCurrent.last.x;
+						int lastDy = svCurrent.y - svCurrent.last.y;
+						if (lastDx != dx || lastDy != dy) svNext.cost++;
+					}
 				}
 				setVertex(nX, nY, nZ, svNext);
 				active.add(svNext);
