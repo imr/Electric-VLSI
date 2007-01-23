@@ -584,7 +584,32 @@ public class ErrorLogger implements Serializable
     	logAWarning(message, cell, sortKey, h);
     }
 
-	/**
+    public synchronized int getNumMessages(Cell cell, boolean searchInError) {
+        int numErrors = 0;
+
+        if (searchInError)
+        {
+            for (int i=0; i<allErrors.size(); i++)
+            {
+                MessageLog el = allErrors.get(i);
+                if (el.logCellId == cell.getId())
+                    numErrors++;
+            }
+        }
+        else
+        {
+            for (int i=0; i<allWarnings.size(); i++)
+            {
+                MessageLog el = allWarnings.get(i);
+                if (el.logCellId == cell.getId())
+                    numErrors++;
+            }
+        }
+
+        return numErrors;
+    }
+
+    /**
 	 * Method to determine if existing report was not looged already
 	 * as error or warning
 	 */
