@@ -53,6 +53,13 @@ public class VerilogData
         }
     }
 
+    void simplifyWires()
+    {
+        for (VerilogModule module : modules.values())
+        {
+            module.simplifyWires();
+        }
+    }
 
     /********************** AUXILIAR CLASSES *************************************/
     /**
@@ -101,9 +108,10 @@ public class VerilogData
     {
         String busPins; // null if it is not a bus otherwise it will store pin sequence. Eg [0:9]
 
-        public VerilogWire(String name)
+        public VerilogWire(String name, String busInfo)
         {
             super(name);
+            this.busPins = busInfo;
         }
 
         void write()
@@ -254,6 +262,13 @@ public class VerilogData
             return inst;
         }
 
+        VerilogWire addWire(String name, String busInfo)
+        {
+            VerilogData.VerilogWire wire = new VerilogData.VerilogWire(name, busInfo);
+            wires.add(wire);
+            return wire;
+        }
+
         /**
          * Function to print information in Verilog format. For testing purposes mainly
          */
@@ -295,6 +310,51 @@ public class VerilogData
             System.out.println("endmodule");
             System.out.println();
         }
+
+        /**
+         * Simplify wires?: a[1], a[2], a[3] -> a[1:3]
+         */
+        void simplifyWires()
+        {
+            Collections.sort(wires, compareWires);
+            for (int i = 0; i < wires.size(); i++)
+            {
+                VerilogWire w = wires.get(i);
+                String n = w.name;
+                int start = -1;
+                int end = -1;
+
+                if (w.busPins == null)
+                {
+                    int index = n.indexOf("[");
+                    if (index == -1)
+                        continue;
+                    start = end = Integer.parseInt(w.name.substring(1, w.name.length()-1));
+                }
+                if (w.busPins != null)
+                {
+                    int index2 = w.busPins.indexOf(":");
+                    assert(index2 != -1);
+                    start = Integer.parseInt(w.busPins.substring(1, index2));
+                    end = Integer.parseInt(w.busPins.substring(index2+1, w.busPins.length()-1));
+                    System.out.println("hola");
+                }
+                // searching for all wire pins with identical root name
+                for (int j = i+1; j < wires.size(); j++)
+                {
+
+                }
+            }
+        }
     }
 
+    private static WireSort compareWires = new WireSort();
+
+    private static class WireSort implements Comparator<VerilogWire>
+    {
+    	public int compare(VerilogWire a1, VerilogWire a2)
+        {
+            return (a1.name.compareTo(a2.name));
+        }
+    }
 }

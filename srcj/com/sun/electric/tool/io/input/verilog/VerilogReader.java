@@ -354,10 +354,8 @@ public class VerilogReader extends Input
 
                     if (verilogData != null)
                     {
-                        VerilogData.VerilogWire wire = new VerilogData.VerilogWire(pinName);
-                        if (values.size() == 2) // also considering [x:x]. Not doing the exception here as above
-                            wire.busPins = values.get(0);
-                        module.wires.add(wire);
+                        // also considering [x:x]. Not doing the exception here as above
+                        module.addWire(pinName, (values.size() == 2) ? values.get(0) : null);
                     }
                     else
                     {
@@ -381,7 +379,22 @@ public class VerilogReader extends Input
         // never reach this point
     }
 
-    private String readInputOutput(Cell cell, VerilogData verilogData, VerilogData.VerilogModule module, PortCharacteristic portType) throws IOException
+    private void ignoreUntilEndOfStatement() throws IOException
+    {
+        String key = ";";
+
+        for (;;)
+        {
+            String input = getRestOfLine();
+            if (input.contains("begin"))
+                key = "end";
+            if (input.contains(key))
+                return; // finish
+        }
+    }
+
+    private String readInputOutput(Cell cell, VerilogData verilogData, VerilogData.VerilogModule module,
+                                   PortCharacteristic portType) throws IOException
     {
         for (;;)
         {
@@ -498,15 +511,6 @@ public class VerilogReader extends Input
                 return null;
             }
 
-            if (key.equals("assign"))
-            {
-                if (Job.getDebug())
-                    System.out.println("Ignoring assign");
-
-                getRestOfLine(); // ignoring for now
-                continue;
-            }
-
             if (key.equals("wire"))
             {
                 readWiresAndSupplies(cell, verilogData, module, true, false);
@@ -535,6 +539,15 @@ public class VerilogReader extends Input
             {
                 boolean power = key.contains("supply1");
                 readWiresAndSupplies(cell, verilogData, module, false, power);
+                continue;
+            }
+
+            // ignoring some elements
+            if (key.equals("assign") || key.startsWith("always") || key.startsWith("initial") || key.startsWith("reg"))
+            {
+                if (Job.getDebug())
+                    System.out.println("Ignoring " + key);
+                ignoreUntilEndOfStatement(); // either ; or end
                 continue;
             }
 
@@ -814,6 +827,8 @@ public class VerilogReader extends Input
             System.out.println("ERROR reading Verilog file");
         }
 
+        // Simplify wires?: a[1], a[2], a[3] -> a[1:3]
+//        if (newObjects) verilogData.simplifyWires();
         return verilogData;
     }
 
