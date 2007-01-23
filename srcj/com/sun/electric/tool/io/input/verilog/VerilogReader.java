@@ -154,8 +154,7 @@ public class VerilogReader extends Input
                 PortInst ex = cellInst.findPortInst(port.ex.getName());
                 ArcInst ai = ArcInst.makeInstance(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
                         pin.getOnlyPortInst(), ex, null, null, s);
-                if (ai == null)
-                    assert(ai != null);
+                assert(ai != null);
                 ai.setFixedAngle(false);
             }
         }
@@ -452,7 +451,10 @@ public class VerilogReader extends Input
 
         if (verilogData != null)
         {
-            module = verilogData.addModule(cellName);
+            module = verilogData.getModule(cellName);
+            if (module == null)
+                module = verilogData.addModule(cellName);
+            module.setValid(true);
             // adding ports in modules: from 1 -> inputs.size()-1;
             for (int i = 1; i < inputs.size(); i++)
                 module.addPort(inputs.get(i));
@@ -752,7 +754,7 @@ public class VerilogReader extends Input
         return verilogData;
     }
 
-    public Cell readVerilog(String file, boolean newStrategy)
+    public Cell readVerilog(String testName, String file, boolean newStrategy)
     {
         URL fileURL = TextUtils.makeURLToFile(file);
         if (openTextInput(fileURL))
@@ -766,7 +768,12 @@ public class VerilogReader extends Input
         setProgressNote("Reading Verilog file");
         VerilogData verilogData = parseVerilog(file, newStrategy);
         if (newStrategy)
-            topCell = buildCells(verilogData, Library.getCurrent());
+        {
+            Library library = Library.newInstance(testName, null);
+            String topCellName = TextUtils.getFileNameWithoutExtension(fileURL);
+            topCell = buildCells(verilogData, library);
+            topCell = library.findNodeProto(topCellName);
+        }
         return topCell; // still work because VerilogReader remembers the top cell
     }
 

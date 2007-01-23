@@ -178,6 +178,7 @@ public class VerilogData
     public class VerilogModule //extends VerilogElement
     {
         String name;
+        boolean fullInfo; // in case the module information was found in the file
         List<VerilogWire> wires = new ArrayList<VerilogWire>();
         Map<String,VerilogPort> ports = new HashMap<String,VerilogPort>(); // collection of input/output/inout/supply elements
         List<VerilogInstance> instances = new ArrayList<VerilogInstance>();
@@ -185,7 +186,20 @@ public class VerilogData
         VerilogModule(String name)
         {
             this.name = name;
+            this.fullInfo = false;
         }
+
+        /**
+         * Function to mark module as fully read it from the file
+         * @param flag
+         */
+        void setValid(boolean flag) {fullInfo = flag;}
+
+        /**
+         * Returns if module is valid, i.e., theinformation was 100% read from the file
+         * @return true if is a valid module
+         */
+        public boolean isValid() {return fullInfo;}
 
         /**
          * Function returning the name of the module
