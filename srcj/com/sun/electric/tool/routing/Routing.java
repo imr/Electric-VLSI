@@ -393,7 +393,8 @@ public class Routing extends Listener
 	 * @param arcsToDelete a HashSet of arcs that should be deleted.
 	 * @param nodesToDelete a HashSet of nodes that should be deleted.
 	 * @param netList the netlist for the current cell.
-	 * @param mustBeUnrouted true to force all items on the network to be unrouted nodes/arcs.
+	 * @param mustBeUnrouted true to include all items on the network in the list of arcs/nodes to delete.
+	 * False to only include items from the generic technology or pins with no exports.
 	 * @return a List of Connection (PortInst/Point2D pairs) that should be wired together.
 	 */
 	public static List<Connection> findNetEnds(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete,
@@ -444,8 +445,12 @@ public class Routing extends Listener
 				} else
 				{
 					// not a network end: mark the node for removal
-					if (!mustBeUnrouted || ni.getProto() == Generic.tech.unroutedPinNode)
-						nodesToDelete.add(ni);
+					boolean deleteNode = !mustBeUnrouted;
+					if (ni.getProto().getFunction() == PrimitiveNode.Function.PIN && !ni.hasExports())
+					{
+						deleteNode = true;
+					}
+					if (deleteNode) nodesToDelete.add(ni);
 				}
 			}
 		}

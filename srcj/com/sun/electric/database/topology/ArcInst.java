@@ -325,7 +325,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		PrimitivePort headPrimPort = headProto.getBasePort();
 		if (!headPrimPort.connectsTo(protoType))
 		{
-			System.out.println("Cannot create " + protoType + " in " + parent +
+			System.out.println("Cannot create " + protoType + " from (" + headPt.getX() + "," + headPt.getY() +
+				") to (" + tailPt.getX() + "," + tailPt.getY() + ") in " + parent +
 				" because it cannot connect to port " + headProto.getName() +
 				" on node " + headPort.getNodeInst().describe(false));
 			return null;
@@ -334,7 +335,8 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
 		PrimitivePort tailPrimPort = tailProto.getBasePort();
 		if (!tailPrimPort.connectsTo(protoType))
 		{
-			System.out.println("Cannot create " + protoType + " in " + parent +
+			System.out.println("Cannot create " + protoType + " from (" + headPt.getX() + "," + headPt.getY() +
+				") to (" + tailPt.getX() + "," + tailPt.getY() + ") in " + parent +
 				" because it cannot connect to port " + tailProto.getName() +
 				" on node " + tailPort.getNodeInst().describe(false));
 			return null;

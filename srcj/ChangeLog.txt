@@ -4,12 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05d: *********************************
 
+BUG: (1/23/07, SMR) Text cell I/O should give proper warnings (Bug #1271).
+FIX: In TextWindow.java, added error messages and valid file checks.
+
 IMP/MAN: (1/19/07, GVG) Import of Verilog files in FileMenu
 
 BUG: (1/19/07, DN) Cell.isInUse() returns false for schematics cells regardless if icon is an instance elsewhere (Bug #511).
 FIX: Check icon cells also in Cell.isInUse().
 
-IMP/MAN: (1/17/07, SMR) Initial code (not working) for Sea-of-Gates router.
+IMP/MAN: (1/17/07, SMR) Initial code for Sea-of-Gates router.
 
 IMP: (1/17/07, SMR) Generalized RTNode to handle a RTBounds object.
 

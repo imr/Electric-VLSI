@@ -1325,6 +1325,8 @@ public class Connectivity
 			{
 				// create the PossibleVia to describe the geometry
 				pv.layers[fill] = geometricLayer(nLay.getLayer());
+
+// TODO is this right?  I don't think the 0.5 belongs here
 				pv.shrinkL[fill] = scaleUp(pNp.getDefWidth() * (0.5 + nLay.getLeftEdge().getMultiplier()) + nLay.getLeftEdge().getAdder());
 				pv.shrinkR[fill] = scaleUp(pNp.getDefWidth() * (0.5 - nLay.getRightEdge().getMultiplier()) - nLay.getRightEdge().getAdder());
 				pv.shrinkT[fill] = scaleUp(pNp.getDefHeight() * (0.5 - nLay.getTopEdge().getMultiplier()) - nLay.getTopEdge().getAdder());

@@ -720,7 +720,7 @@ public class RTNode
 	 * }
 	 * </PRE>
 	 */
-	static class Search implements Iterator<RTBounds>
+	public static class Search implements Iterator<RTBounds>
 	{
 		/** maximum depth of search */			private static final int MAXDEPTH = 100;
 
@@ -731,7 +731,7 @@ public class RTNode
 		/** the next object to return */		private RTBounds nextObj;
         /** includes objects on the search area edges */ private boolean includeEdges;
 
-		Search(Rectangle2D bounds, RTNode root, boolean includeEdges)
+        public Search(Rectangle2D bounds, RTNode root, boolean includeEdges)
 		{
 			this.depth = 0;
 			this.rtn = new RTNode[MAXDEPTH];
