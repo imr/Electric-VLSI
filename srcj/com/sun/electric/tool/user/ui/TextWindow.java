@@ -368,14 +368,16 @@ public class TextWindow implements WindowContent
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		WindowContent content = wf.getContent();
-		if (content instanceof TextWindow)
+		if (!(content instanceof TextWindow))
 		{
-			TextWindow tw = (TextWindow)content;
-			String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
-            // if cancel, fileName is null
-            if (fileName != null)
-                tw.readTextCell(fileName);
-        }
+			Job.getUserInterface().showErrorMessage("You must first be editing a text cell (a cell whose view is textual, such as 'doc').",
+				"Cannot import text file");
+			return;
+		}
+		TextWindow tw = (TextWindow)content;
+		String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
+		if (fileName == null) return;
+        tw.readTextCell(fileName);
     }
 
     public void readTextCell(String fileName)
@@ -426,12 +428,16 @@ public class TextWindow implements WindowContent
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf == null) return;
 		WindowContent content = wf.getContent();
-		if (content instanceof TextWindow)
+		if (!(content instanceof TextWindow))
 		{
-			TextWindow tw = (TextWindow)content;
-			String fileName = OpenFile.chooseOutputFile(FileType.TEXT, "Text file", content.getCell().getName() + ".txt");
-            tw.writeTextCell(fileName);
-        }
+			Job.getUserInterface().showErrorMessage("You must first be editing a text cell (a cell whose view is textual, such as 'doc').",
+				"Cannot import text file");
+			return;
+		}
+		TextWindow tw = (TextWindow)content;
+		String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
+		if (fileName == null) return;
+        tw.readTextCell(fileName);
     }
 
     public void writeTextCell(String fileName)
