@@ -23,7 +23,6 @@
  */
 package com.sun.electric.database.topology;
 
-import com.sun.electric.database.CellBackup;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.EObjectInputStream;
 import com.sun.electric.database.ImmutableArcInst;
@@ -317,7 +316,10 @@ public class ArcInst extends Geometric implements Comparable<ArcInst>
         if (parent != headPort.getNodeInst().getParent() || parent != tailPort.getNodeInst().getParent())
 		{
 			System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
-			return null;
+            System.out.println("Cell " + parent.getName());
+            System.out.println("Head " + headPort.getNodeInst().getParent().getName());
+            System.out.println("Tail " + tailPort.getNodeInst().getParent().getName());
+            return null;
 		}
 
         // make sure the arc can connect to these ports
