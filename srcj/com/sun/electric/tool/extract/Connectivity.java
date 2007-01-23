@@ -107,7 +107,7 @@ public class Connectivity
 	/** true to prevent objects smaller than minimum size */	private static final boolean ENFORCEMINIMUMSIZE = false;
 	/** amount to scale values before merging */				private static final double SCALEFACTOR = DBMath.GRID;
 	/** true to debug centerline determination */				private static final boolean DEBUGCENTERLINES = false;
-	/** true to debug object creation */						private static final boolean DEBUGSTEPS = true;
+	/** true to debug object creation */						private static final boolean DEBUGSTEPS = false;
 
 	/** the current technology for extraction */				private Technology tech;
 	/** layers to use for given arc functions */				private HashMap<Layer.Function,Layer> layerForFunction;
