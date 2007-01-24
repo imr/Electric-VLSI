@@ -107,11 +107,33 @@ public class VerilogData
     public static class VerilogWire extends VerilogConnection
     {
         String busPins; // null if it is not a bus otherwise it will store pin sequence. Eg [0:9]
+        int start;
+        int end;
+        String rootName; // this could be eliminated if name takes rootName;
 
         public VerilogWire(String name, String busInfo)
         {
             super(name);
             this.busPins = busInfo;
+            this.rootName = name;
+
+            if (busPins == null)
+            {
+                int index = name.indexOf("[");
+                if (index != -1)
+                {
+                    this.rootName = name.substring(0, index);
+                    index = Integer.parseInt(name.substring(index+1, name.length()-1));
+                }
+                this.start = this.end = index;
+            }
+            else
+            {
+                int index2 = busPins.indexOf(":");
+                assert(index2 != -1);
+                start = Integer.parseInt(busPins.substring(1, index2)); // assuming 0 contains "["
+                end = Integer.parseInt(busPins.substring(index2+1, busPins.length()-1));
+            }
         }
 
         void write()
@@ -317,34 +339,51 @@ public class VerilogData
         void simplifyWires()
         {
             Collections.sort(wires, compareWires);
-            for (int i = 0; i < wires.size(); i++)
+            int i = 0;
+            List<VerilogWire> toDelete = new ArrayList<VerilogWire>();
+
+            while (i < wires.size())
             {
                 VerilogWire w = wires.get(i);
-                String n = w.name;
-                int start = -1;
-                int end = -1;
+                String n = w.rootName;
 
-                if (w.busPins == null)
+                if (w.start == -1)
                 {
-                    int index = n.indexOf("[");
-                    if (index == -1)
-                        continue;
-                    start = end = Integer.parseInt(w.name.substring(1, w.name.length()-1));
+                    i++;
+                    continue; // nothing to do with this one
                 }
-                if (w.busPins != null)
-                {
-                    int index2 = w.busPins.indexOf(":");
-                    assert(index2 != -1);
-                    start = Integer.parseInt(w.busPins.substring(1, index2));
-                    end = Integer.parseInt(w.busPins.substring(index2+1, w.busPins.length()-1));
-                    System.out.println("hola");
-                }
+
                 // searching for all wire pins with identical root name
-                for (int j = i+1; j < wires.size(); j++)
-                {
+                int j, end = w.end;
+                List<VerilogWire> toMerge = new ArrayList<VerilogWire>();
 
+                // This algorithm doesn't check for overlapping in pin numbers
+                for (j = i+1; j < wires.size(); j++)
+                {
+                    VerilogWire r = wires.get(j);
+                    // in case the element is a wire pin abc[x:y]
+                    if (!w.rootName.equals(r.rootName))
+                    {
+                        break; // stop here
+                    }
+                     // look for next bit
+                    if (r.start != end && r.start != end+1)
+                        break; // stop here
+
+                    end = r.end;
+                    toMerge.add(r);
                 }
+                if (toMerge.size() > 0)
+                {
+                    // check if pins are conse
+                    toDelete.addAll(toMerge);
+                    w.end = end;
+                    w.name = w.rootName;
+                    w.busPins = "["+w.start+":"+w.end+"]"; //dirty
+                }
+                i = j;
             }
+            wires.removeAll(toDelete);
         }
     }
 
@@ -352,9 +391,19 @@ public class VerilogData
 
     private static class WireSort implements Comparator<VerilogWire>
     {
-    	public int compare(VerilogWire a1, VerilogWire a2)
+        public int compare(VerilogWire a1, VerilogWire a2)
         {
-            return (a1.name.compareTo(a2.name));
+            int diff = (a1.rootName.compareTo(a2.rootName));
+            if (diff == 0) // identical
+            {
+                diff = a1.start - a2.start;
+                if (diff == 0) // try with end pins
+                {
+                    diff = a1.end - a2.end;
+                    assert(diff!=0); // can't have identical wires
+                }
+            }
+            return (diff);
         }
     }
 }
