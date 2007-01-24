@@ -886,7 +886,7 @@ public class Connectivity
 		}
 		if (!isHub)
 		{
-			List<PortInst> possiblePorts = findPortInstsTouchingPoint(startPoint, layer, newCell);
+			List<PortInst> possiblePorts = findPortInstsTouchingPoint(startPoint, layer, newCell, ap);
 			for(PortInst pi : possiblePorts)
 			{
 				Poly portPoly = pi.getPoly();
@@ -990,7 +990,7 @@ public class Connectivity
 		return ni;
 	}
 
-	private List<PortInst> findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell)
+	private List<PortInst> findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell, ArcProto ap)
 	{
 		List<PortInst> touchingNodes = new ArrayList<PortInst>();
 		boolean mightCreateExports = false;
@@ -1025,6 +1025,7 @@ public class Connectivity
 			// for pins, must be centered over the desired point
 			if (ni.getFunction() == PrimitiveNode.Function.PIN)
 			{
+				if (!ni.getOnlyPortInst().getPortProto().connectsTo(ap)) continue;
 				if (ni.getAnchorCenter().equals(pt))
 				{
 					touchingNodes.add(ni.getOnlyPortInst());
@@ -1204,8 +1205,9 @@ public class Connectivity
 				for(Layer l : layersToExamine)
 				{
 					if (originalMerge.contains(l, ctr))
-						layersPresent.add(l);
+						layersPresent.add(geometricLayer(l));
 				}
+
 				boolean ignorePWell = false, ignoreNWell = false;
 				if (pWellProcess)
 				{
@@ -1293,7 +1295,7 @@ public class Connectivity
 				Layer nLayer = nLay.getLayer();
 
 				// ignore well layers if the process doesn't have them
-				Layer.Function lFun = nLayer.getFunction();
+//				Layer.Function lFun = nLayer.getFunction();
 //				if (lFun == Layer.Function.WELLP && pWellProcess) continue;
 //				if (lFun == Layer.Function.WELLN && nWellProcess) continue;
 
@@ -1934,8 +1936,10 @@ public class Connectivity
 		if (polyCtr.getX() >= portRect.getMinX() && polyCtr.getX() <= portRect.getMaxX())
 		{
 			// going up to the poly or down?
-			Point2D objPt = new Point2D.Double(polyCtr.getX() / SCALEFACTOR, portRect.getCenterY() / SCALEFACTOR);
+			Point2D objPt = new Point2D.Double(polyCtr.getX(), portRect.getCenterY());
+			Point2D objPtNormal = new Point2D.Double(polyCtr.getX() / SCALEFACTOR, portRect.getCenterY() / SCALEFACTOR);
 			Point2D pinPt = null;
+			Point2D pinPtNormal = null;
 			boolean endExtend = true;
 			double endExtension = polyBounds.getWidth() / 2;
 			if (polyBounds.getHeight() < polyBounds.getWidth())
@@ -1947,23 +1951,25 @@ public class Connectivity
 			if (polyCtr.getY() > portRect.getCenterY())
 			{
 				// going up to the poly
-				pinPt = new Point2D.Double(polyCtr.getX() / SCALEFACTOR,
+				pinPt = new Point2D.Double(polyCtr.getX(), polyBounds.getMaxY() - endExtension);
+				pinPtNormal = new Point2D.Double(polyCtr.getX() / SCALEFACTOR,
 					(polyBounds.getMaxY() - endExtension) / SCALEFACTOR);
 			} else
 			{
 				// going down to the poly
-				pinPt = new Point2D.Double(polyCtr.getX() / SCALEFACTOR,
+				pinPt = new Point2D.Double(polyCtr.getX(), polyBounds.getMinY() + endExtension);
+				pinPtNormal = new Point2D.Double(polyCtr.getX() / SCALEFACTOR,
 					(polyBounds.getMinY() + endExtension) / SCALEFACTOR);
 			}
 
-			NodeInst ni1 = createNode(np, pinPt, polyBounds.getWidth() / SCALEFACTOR,
+			NodeInst ni1 = createNode(np, pinPtNormal, polyBounds.getWidth() / SCALEFACTOR,
 				polyBounds.getWidth() / SCALEFACTOR, newCell);
 
 			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
 			double wid = polyBounds.getWidth();
-			double fullWid = wid + ap.getLambdaWidthOffset();
+			double fullWid = wid / SCALEFACTOR + ap.getLambdaWidthOffset();
 			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
-			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt, fullWid / SCALEFACTOR,
+			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal, fullWid,
 				!headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 			return;
 		}
@@ -1972,8 +1978,10 @@ public class Connectivity
 		if (polyCtr.getY() >= portRect.getMinY() && polyCtr.getY() <= portRect.getMaxY())
 		{
 			// going left to the poly or right?
-			Point2D objPt = new Point2D.Double(portRect.getCenterX() / SCALEFACTOR, polyCtr.getY() / SCALEFACTOR);
+			Point2D objPt = new Point2D.Double(portRect.getCenterX(), polyCtr.getY());
+			Point2D objPtNormal = new Point2D.Double(portRect.getCenterX() / SCALEFACTOR, polyCtr.getY() / SCALEFACTOR);
 			Point2D pinPt = null;
+			Point2D pinPtNormal = null;
 			boolean endExtend = true;
 			double endExtension = polyBounds.getHeight() / 2;
 			if (polyBounds.getWidth() < polyBounds.getHeight())
@@ -1985,22 +1993,24 @@ public class Connectivity
 			if (polyCtr.getX() > portRect.getCenterX())
 			{
 				// going right to the poly
-				pinPt = new Point2D.Double((polyBounds.getMaxX() - endExtension) / SCALEFACTOR,
+				pinPt = new Point2D.Double(polyBounds.getMaxX() - endExtension, polyCtr.getY());
+				pinPtNormal = new Point2D.Double((polyBounds.getMaxX() - endExtension) / SCALEFACTOR,
 					polyCtr.getY() / SCALEFACTOR);
 			} else
 			{
 				// going left to the poly
-				pinPt = new Point2D.Double((polyBounds.getMinX() + endExtension) / SCALEFACTOR,
+				pinPt = new Point2D.Double(polyBounds.getMinX() + endExtension, polyCtr.getY());
+				pinPtNormal = new Point2D.Double((polyBounds.getMinX() + endExtension) / SCALEFACTOR,
 					polyCtr.getY() / SCALEFACTOR);
 			}
-			NodeInst ni1 = createNode(np, pinPt, polyBounds.getHeight() / SCALEFACTOR,
+			NodeInst ni1 = createNode(np, pinPtNormal, polyBounds.getHeight() / SCALEFACTOR,
 				polyBounds.getHeight() / SCALEFACTOR, newCell);
 			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
 			double wid = polyBounds.getHeight();
-			double fullWid = wid + ap.getLambdaWidthOffset();
+			double fullWid = wid / SCALEFACTOR + ap.getLambdaWidthOffset();
 			originalMerge.arcPolyFits(layer, pinPt, objPt, wid, headExtend, tailExtend);
-			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt, objPt,
-				fullWid / SCALEFACTOR, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
+			ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPtNormal, objPtNormal,
+				fullWid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 		}
 	}
 
