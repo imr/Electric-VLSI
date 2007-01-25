@@ -609,7 +609,7 @@ public class CIF extends Input
 		EPoint [] points = new EPoint[cp.lim];
 		for(int i=0; i<cp.lim; i++)
 		{
-			points[i] = new EPoint(convertFromCentimicrons(cp.x[i]-cmCX), convertFromCentimicrons(cp.y[i]-cmCY));
+			points[i] = new EPoint(convertFromCentimicrons(cp.x[i]), convertFromCentimicrons(cp.y[i]));
 		}
 
 		// store the trace information

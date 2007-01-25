@@ -40,14 +40,16 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -903,14 +905,9 @@ public class EDIF extends Input
 		double sX = r*2;
 		double sY = r*2;
 		Orientation or = Orientation.fromC(rot, trans);
-//		if (or.isXMirrored()) sX = -sX;
-//		if (or.isYMirrored()) sY = -sY;
-//		rot = or.getAngle();
 		if (curCellPage > 0) iyc += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(curFigureGroup != null && curFigureGroup != Artwork.tech.boxNode ?
 			curFigureGroup : Artwork.tech.circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, or, null, 0);
-//		NodeInst ni = NodeInst.makeInstance(curFigureGroup != null && curFigureGroup != Artwork.tech.boxNode ?
-//			curFigureGroup : Artwork.tech.circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, rot, null, 0);
 		if (ni == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create arc");
@@ -1091,7 +1088,6 @@ public class EDIF extends Input
 			// create a new node in the proper position
 			PrimitiveNode np = ap.findPinProto();
 			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell);
-//			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), 0, cell);
 			PortInst head = ni.getOnlyPortInst();
 			ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), head, bestPi);
 			ports.add(head);
@@ -1115,7 +1111,6 @@ public class EDIF extends Input
 
 			// create the splitting pin
 			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, cell);
-//			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), 0, cell);
 			if (ni == null)
 			{
 				System.out.println("Cannot create splitting pin");
@@ -1223,7 +1218,7 @@ public class EDIF extends Input
 			for(int i=0; i<curPoints.size(); i++)
 			{
 				Point2D point = curPoints.get(i);
-				trace[i] = new EPoint(point.getX() - cX, point.getY() - cY);
+				trace[i] = new EPoint(point.getX(), point.getY());
 			}
 
 			// store the trace information
@@ -1476,8 +1471,6 @@ public class EDIF extends Input
 				}
 				double sX = hX - lX;
 				double sY = hY - lY;
-//				if (curOrientation.isXMirrored()) sX = -sX;
-//				if (curOrientation.isYMirrored()) sY = -sY;
 
 				// create the node instance
 				double cX = (hX + lX) / 2;
@@ -1485,8 +1478,6 @@ public class EDIF extends Input
 				if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY),
 					sX, sY, curCell, curOrientation, null, 0);
-//				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY),
-//					sX, sY, curCell, curOrientation.getAngle(), null, 0);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create circle");
@@ -1616,7 +1607,6 @@ public class EDIF extends Input
 					Point2D p0 = curPoints.get(0);
 					double xPos = p0.getX();
 					double yPos = p0.getY();
-//					Point2D size = getSizeAndMirror(cellRefProto);
 					if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 					NodeInst ni = placePin(cellRefProto, xPos, yPos, cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curOrientation, curCell);
 //					NodeInst ni = placePin(cellRefProto, xPos, yPos, size.getX(), size.getY(), curOrientation.getAngle(), curCell);
@@ -1883,13 +1873,10 @@ public class EDIF extends Input
 						// find out where true center moves
 						double cX = ((sheetXPos - (SHEETWIDTH / 2)) * INCH);
 						double cY = ((sheetYPos - (SHEETHEIGHT / 2)) * INCH);
-//						Point2D size = getSizeAndMirror(cellRefProto);
 						if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
                         Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX, cY), cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell,
 							orient, null, cellRefProtoTechBits);
-//						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX, cY), size.getX(), size.getY(), curCell,
-//							curOrientation.getAngle()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
 						curNode = ni;
 						if (ni == null)
 						{
@@ -1998,9 +1985,6 @@ public class EDIF extends Input
 					}
                     TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withDisplay(ve != null);
                     curNode.newVar(Variable.newKey(varName), varValue, td);
-//					Variable newVar = curNode.newVar(varName, varValue);
-//					if (newVar != null && ve != null)
-//						newVar.setDisplay(true);
 				}
 			}
 			propertiesListHead = null;
@@ -2531,8 +2515,6 @@ public class EDIF extends Input
                                         ne.externalView, port, orientation);
                                 if (curPoint.getX() != tX || curPoint.getY() != tY) {
                                     tList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech.wire_arc, true);
-//                                    System.out.println("NodeInst "+pi.getNodeInst().describe(true)+", port "+pi.getPortProto().getName()+
-//                                            ", fX,fY: "+fX+","+fY+", curPoint: "+curPoint.getX()+","+curPoint.getY()+", list size: "+tList.size());
                                     if (tList.size() != 0) {
                                         // found exact match, move port
                                         tX = curPoint.getX();
@@ -2547,7 +2529,6 @@ public class EDIF extends Input
 						// create the "to" pin
 						if (curCellPage > 0) tY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						NodeInst ni = placePin(np, tX, tY, np.getDefWidth(), np.getDefHeight(), Orientation.IDENT, curCell);
-//						NodeInst ni = placePin(np, tX, tY, np.getDefWidth(), np.getDefHeight(), 0, curCell);
 						if (ni != null) tList.add(ni.getOnlyPortInst());
 					}
 
@@ -2643,8 +2624,6 @@ public class EDIF extends Input
 					if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 					NodeInst ni = placePin(curFigureGroup, cX, cY, hX-lX, hY-lY,
 						curOrientation, curCell);
-//					NodeInst ni = placePin(curFigureGroup, cX, cY, hX-lX, hY-lY,
-//						curOrientation.getAngle(), curCell);
 					if (ni == null)
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path");
@@ -2904,7 +2883,11 @@ public class EDIF extends Input
 							double lY = hY;
 							if (pp.getCharacteristic() == PortCharacteristic.IN) lX = hX - (INCH/10); else
 								if (pp.getCharacteristic() == PortCharacteristic.BIDIR) lY = hY - (INCH/10); else
-									if (pp.getCharacteristic() == PortCharacteristic.OUT) lX = hX + (INCH/10);
+									if (pp.getCharacteristic() == PortCharacteristic.OUT)
+									{
+										lX = hX;
+										hX = hX + (INCH/10);
+									}
 
 							// need to create a destination for the wire
 							ArcProto lAp = Schematics.tech.bus_arc;
@@ -2913,7 +2896,6 @@ public class EDIF extends Input
 							if (isArray)
 							{
 								lNi = placePin(Schematics.tech.busPinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, np);
-//								lNi = placePin(Schematics.tech.busPinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, 0, np);
 								if (lNi == null)
 								{
 									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
@@ -2922,7 +2904,6 @@ public class EDIF extends Input
 							} else
 							{
 								lNi = placePin(Schematics.tech.wirePinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, Orientation.IDENT, np);
-//								lNi = placePin(Schematics.tech.wirePinNode, (lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY, 0, np);
 								if (lNi == null)
 								{
 									System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
@@ -2987,8 +2968,6 @@ public class EDIF extends Input
 					{
 						ni = placePin(Schematics.tech.busPinNode, lX, lY,
 							Schematics.tech.busPinNode.getDefWidth(), Schematics.tech.busPinNode.getDefHeight(), Orientation.IDENT, np);
-//						ni = placePin(Schematics.tech.busPinNode, lX, lY,
-//							Schematics.tech.busPinNode.getDefWidth(), Schematics.tech.busPinNode.getDefHeight(), 0, np);
 						if (ni == null)
 						{
 							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create bus pin");
@@ -2999,8 +2978,6 @@ public class EDIF extends Input
 					{
 						ni = placePin(Schematics.tech.wirePinNode, lX, lY,
 							Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), Orientation.IDENT, np);
-//						ni = placePin(Schematics.tech.wirePinNode, lX, lY,
-//							Schematics.tech.wirePinNode.getDefWidth(), Schematics.tech.wirePinNode.getDefHeight(), 0, np);
 						if (ni == null)
 						{
 							System.out.println("error, line " + lineReader.getLineNumber() + ": could not create wire pin");
@@ -3221,15 +3198,11 @@ public class EDIF extends Input
 				}
 				double sX = hX - lX;
 				double sY = hY - lY;
-//				if (curOrientation.isXMirrored()) sX = -sX;
-//				if (curOrientation.isYMirrored()) sY = -sY;
 				double yPos = (lY+hY)/2;
 				double xPos = (lX+hX)/2;
 				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
 					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation, null, 0);
-//				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
-//					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation.getAngle(), null, 0);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
@@ -3239,11 +3212,11 @@ public class EDIF extends Input
 					double cX = (p0.getX() + p1.getX()) / 2;
 					double cY = (p0.getY() + p1.getY()) / 2;
 					EPoint [] pts = new EPoint[5];
-					pts[0] = new EPoint(p0.getX()-cX, p0.getY()-cY);
-					pts[1] = new EPoint(p0.getX()-cX, p1.getY()-cY);
-					pts[2] = new EPoint(p1.getX()-cX, p1.getY()-cY);
-					pts[3] = new EPoint(p1.getX()-cX, p0.getY()-cY);
-					pts[4] = new EPoint(p0.getX()-cX, p0.getY()-cY);
+					pts[0] = new EPoint(p0.getX(), p0.getY());
+					pts[1] = new EPoint(p0.getX(), p1.getY());
+					pts[2] = new EPoint(p1.getX(), p1.getY());
+					pts[3] = new EPoint(p1.getX(), p0.getY());
+					pts[4] = new EPoint(p0.getX(), p0.getY());
 
 					// store the trace information
 					ni.setTrace(pts);
@@ -3251,14 +3224,11 @@ public class EDIF extends Input
 				else if (curGeometryType == GPIN)
 				{
 					// create a rectangle using the pin-proto, and create the port and export ensure full sized port
-//					Point2D size = getSizeAndMirror(cellRefProto);
 					double cX = (lX+hX) / 2;
 					double cY = (lY+hY) / 2;
 					if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 					ni = placePin(cellRefProto, cX, cY, cellRefProto.getDefWidth(), cellRefProto.getDefHeight(),
 						curOrientation, curCell);
-//					ni = placePin(cellRefProto, cX, cY, size.getX(), size.getY(),
-//						curOrientation.getAngle(), curCell);
 					if (ni == null)
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
@@ -3580,7 +3550,6 @@ public class EDIF extends Input
 			for (Iterator<Layer> it = curTechnology.getLayers(); it.hasNext(); )
 			{
 				Layer layer = it.next();
-//				String gdsLayer = layer.getGDSLayer();
                 String gdsLayer = foundry.getGDSLayer(layer);
 				if (gdsLayer == null || gdsLayer.length() == 0) continue;
 
@@ -3661,7 +3630,6 @@ public class EDIF extends Input
 
 			// create node instance rotations about the origin not center
 			AffineTransform rot = curOrientation.pureRotate();
-//			AffineTransform rot = NodeInst.pureRotate(curOrientation.getAngle(), curOrientation.isXMirrored(), curOrientation.isYMirrored());
 
 			if (instCount == 1 && cellRefProto != null)
 			{
@@ -3671,15 +3639,12 @@ public class EDIF extends Input
 					double lY = instPtY + iX * deltaPointXY;
 					for (int iY = 0; iY < arrayYVal; iY++)
 					{
-//						Point2D size = getSizeAndMirror(cellRefProto);
 						double yPos = lY;
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
                         Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
 							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoTechBits);
 //System.out.println("CREATED "+ni+" F");
-//						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
-//							size.getX(), size.getY(), curCell, curOrientation.getAngle()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
 						curNode = ni;
 						if (ni == null)
 						{
@@ -3794,10 +3759,6 @@ public class EDIF extends Input
 
 									TextDescriptor td = ni.getTextDescriptor(varKey);
                                     td = td.withRelSize(convertTextSize(saveTextHeight)).withPos(saveTextJustification).withOff(xOff, yOff);
-//									MutableTextDescriptor td = ni.getMutableTextDescriptor(varKey);
-//									td.setRelSize(convertTextSize(saveTextHeight));
-//									td.setPos(saveTextJustification);
-//									td.setOff(xOff, yOff);
 									ni.setTextDescriptor(varKey, td);
 								}
 							}

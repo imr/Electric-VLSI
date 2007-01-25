@@ -26,7 +26,6 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -835,7 +834,7 @@ public class GDS extends Input
     					EPoint [] points = new EPoint[pPoints.length];
     					for(int i=0; i<pPoints.length; i++)
     					{
-    						points[i] = new EPoint(pPoints[i].getX() - ctr.getX(), pPoints[i].getY() - ctr.getY());
+    						points[i] = new EPoint(pPoints[i].getX(), pPoints[i].getY());
     					}
 
     					// store the trace information
@@ -1154,7 +1153,7 @@ public class GDS extends Input
 				EPoint [] points = new EPoint[npts];
 				for(int i=0; i<npts; i++)
 				{
-					points[i] = new EPoint(theVertices[i].getX() - cx, theVertices[i].getY() - cy);
+					points[i] = new EPoint(theVertices[i].getX(), theVertices[i].getY());
 				}
 
 				// now create the node
@@ -1298,7 +1297,7 @@ public class GDS extends Input
 							EPoint [] points = new EPoint[polyPoints.length];
 							for(int j=0; j<polyPoints.length; j++)
 							{
-								points[j] = new EPoint(polyPoints[j].getX() - cx, polyPoints[j].getY() - cy);
+								points[j] = new EPoint(polyPoints[j].getX(), polyPoints[j].getY());
 							}
 
 							// store the trace information
