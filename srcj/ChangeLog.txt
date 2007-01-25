@@ -2,7 +2,11 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.05e: *********************************
+
 ************************* Version 8.05d: *********************************
+
+IMP: (1/24/07, SMR) First working version of Sea-Of-Gates router.
 
 BUG: (1/23/07, SMR) Text cell I/O should give proper warnings (Bug #1271).
 FIX: In TextWindow.java, added error messages and valid file checks.
