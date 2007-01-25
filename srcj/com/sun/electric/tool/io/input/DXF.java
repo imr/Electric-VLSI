@@ -237,7 +237,6 @@ public class DXF extends Input
 				Rectangle2D bounds = found.getBounds();
                 Orientation orient = Orientation.fromAngle(fr.rot*10);
 				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, orient, null, 0);
-//				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, fr.rot*10, null, 0);
 				if (ni == null) return true;
 				ni.setExpanded();
 			}
@@ -697,7 +696,6 @@ public class DXF extends Input
 		int iAngle = (int)(sAngle * 10.0);
 		Orientation orient = Orientation.fromAngle(iAngle);
 		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, orient, null, 0);
-//		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, iAngle%3600, null, 0);
 		if (ni == null) return true;
 		if (sAngle > eAngle) eAngle += 360.0;
 		double startOffset = sAngle;
@@ -836,7 +834,6 @@ public class DXF extends Input
 				double sY = found.getDefHeight();
                 Orientation orient = Orientation.fromAngle(rot*10);
 				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, orient, null, 0);
-//				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, rot*10, null, 0);
 				if (ni == null) return true;
 				ni.setExpanded();
 			}
@@ -881,8 +878,8 @@ public class DXF extends Input
 		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, curCell);
 		if (ni == null) return true;
 		EPoint [] points = new EPoint[2];
-		points[0] = new EPoint(x1 - cX, y1 - cY);
-		points[1] = new EPoint(x2 - cX, y2 - cY);
+		points[0] = new EPoint(x1, y1);
+		points[1] = new EPoint(x2, y2);
 		ni.setTrace(points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		readLines++;
@@ -1002,7 +999,6 @@ public class DXF extends Input
 							double rad = new Point2D.Double(cX, cY).distance(new Point2D.Double(x1, y1));
                             Orientation orient = Orientation.fromAngle(iAngle);
 							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY), rad*2, rad*2, curCell, orient, null, 0);
-//							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY), rad*2, rad*2, curCell, iAngle, null, 0);
 							if (ni == null) return true;
 							double startOffset = sA;
 							startOffset -= iAngle;
@@ -1064,7 +1060,6 @@ public class DXF extends Input
 						int iAngle = (int)sA;
                         Orientation orient = Orientation.fromAngle(iAngle);
 						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, curCell, orient, null, 0);
-//						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, curCell, iAngle%3600, null, 0);
 						if (ni == null) return true;
 						if (sA > eA) eA += 3600.0;
 						double startOffset = sA;
@@ -1082,8 +1077,8 @@ public class DXF extends Input
 					NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), Math.abs(x1 - x2), Math.abs(y1 - y2), curCell);
 					if (ni == null) return true;
 					Point2D [] points = new Point2D[2];
-					points[0] = new Point2D.Double(x1 - cX, y1 - cY);
-					points[1] = new Point2D.Double(x2 - cX, y2 - cY);
+					points[0] = new Point2D.Double(x1, y1);
+					points[1] = new Point2D.Double(x2, y2);
 					ni.setTrace(points);
 					ni.newVar(DXF_LAYER_KEY, layer.layerName);
 				}
@@ -1121,7 +1116,7 @@ public class DXF extends Input
 				for(int i=0; i<count; i++)
 				{
 					PolyPoint pp = polyPoints.get(i);
-					points[i] = new Point2D.Double(pp.x - cX, pp.y - cY);
+					points[i] = new Point2D.Double(pp.x, pp.y);
 				}
 				ni.setTrace(points);
 				ni.newVar(DXF_LAYER_KEY, layer.layerName);
@@ -1182,10 +1177,10 @@ public class DXF extends Input
 		NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledPolygonNode, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell);
 		if (ni == null) return true;
 		Point2D [] points = new Point2D[4];
-		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
-		points[1] = new Point2D.Double(x2 - cX, y2 - cY);
-		points[2] = new Point2D.Double(x3 - cX, y3 - cY);
-		points[3] = new Point2D.Double(x4 - cX, y4 - cY);
+		points[0] = new Point2D.Double(x1, y1);
+		points[1] = new Point2D.Double(x2, y2);
+		points[2] = new Point2D.Double(x3, y3);
+		points[3] = new Point2D.Double(x4, y4);
 		ni.setTrace(points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		readSolids++;
@@ -1231,9 +1226,6 @@ public class DXF extends Input
 			if (msg != null)
 			{
 				double h = msg.length();
-//				UserInterface ui = Main.getUserInterface();
-//				EditWindow_ wnd = ui.getCurrentEditWindow_();
-//				if (wnd != null) h = wnd.getTextScreenSize(height);
 				lX = x;	hX = x + height * h;
 				lY = y;	hY = y + height;
 			}
@@ -1245,13 +1237,6 @@ public class DXF extends Input
 			if (ni == null) return true;
             TextDescriptor td = TextDescriptor.getNodeTextDescriptor().withPos(TextDescriptor.Position.BOXED).withAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
             ni.newVar(Artwork.ART_MESSAGE, msg, td);
-//			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, msg);
-//			if (var != null)
-//			{
-////				var.setDisplay(true);
-//				var.setPos(TextDescriptor.Position.BOXED);
-//				var.setAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
-//			}
 			ni.newVar(DXF_LAYER_KEY, layer.layerName);
 			readTexts++;
 		}
@@ -1304,10 +1289,10 @@ public class DXF extends Input
 		NodeInst ni = NodeInst.makeInstance(Artwork.tech.closedPolygonNode, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell);
 		if (ni == null) return true;
 		Point2D [] points = new Point2D[4];
-		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
-		points[1] = new Point2D.Double(x2 - cX, y2 - cY);
-		points[2] = new Point2D.Double(x3 - cX, y3 - cY);
-		points[3] = new Point2D.Double(x4 - cX, y4 - cY);
+		points[0] = new Point2D.Double(x1, y1);
+		points[1] = new Point2D.Double(x2, y2);
+		points[2] = new Point2D.Double(x3, y3);
+		points[3] = new Point2D.Double(x4, y4);
 		ni.setTrace(points);
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		read3DFaces++;
@@ -1382,7 +1367,7 @@ public class DXF extends Input
 					int len = oldTrace.length;
 					Point2D [] newTrace = new Point2D[len];
 					for(int i=0; i<len; i++)
-						newTrace[i] = new Point2D.Double(oldTrace[i].getX() * xSca, oldTrace[i].getY() * ySca);
+						newTrace[i] = new Point2D.Double(cX + oldTrace[i].getX() * xSca, cY + oldTrace[i].getY() * ySca);
 					nNi.setTrace(newTrace);
 				}
 			} else if (ni.getProto() == Generic.tech.invisiblePinNode)
@@ -1439,8 +1424,6 @@ public class DXF extends Input
 			}
 			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),
 				ni.getXSize()*xSca, ni.getYSize()*ySca, np, ni.getOrient(), null, 0);
-//			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),
-//				ni.getXSizeWithMirror()*xSca, ni.getYSizeWithMirror()*ySca, np, ni.getAngle(), null, 0);
 			if (nNi == null) return null;
 			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
