@@ -828,7 +828,7 @@ public class VerilogReader extends Input
         }
 
         // Simplify wires?: a[1], a[2], a[3] -> a[1:3]
-//        if (newObjects) verilogData.simplifyWires();
+        if (newObjects) verilogData.simplifyWires();
         return verilogData;
     }
 
@@ -877,14 +877,23 @@ public class VerilogReader extends Input
         for (VerilogData.VerilogWire wire : module.wires)
         {
             String pinName = wire.name;
-            PrimitiveNode primitive = (wire.busPins==null) ? Schematics.tech.wirePinNode :
-                        Schematics.tech.busPinNode;
-            NodeInst ni = NodeInst.newInstance(primitive, getNextLocation(cell),
-                                primitiveWidth, primitiveHeight,
-        //                        primitive.getDefWidth(), primitive.getDefHeight(),
-                                cell, Orientation.IDENT, pinName, 0);
-                        pinsMap.put(pinName, ni);
-                        assert(ni != null);
+            NodeInst ni = cell.findNode(pinName);
+
+            if (ni == null)
+            {
+                PrimitiveNode primitive = (!wire.isBusWire()) ? Schematics.tech.wirePinNode :
+                            Schematics.tech.busPinNode;
+                ni = NodeInst.newInstance(primitive, getNextLocation(cell),
+                                    primitiveWidth, primitiveHeight,
+            //                        primitive.getDefWidth(), primitive.getDefHeight(),
+                                    cell, Orientation.IDENT, pinName, 0);
+            }
+            else
+                System.out.println("Wire " + pinName + " exists");
+
+            if (ni == null)
+            assert(ni != null);
+//            pinsMap.put(pinName, ni);
         }
 
         // inputs/outputs/inouts/supplies
@@ -955,11 +964,6 @@ public class VerilogReader extends Input
     Cell buildNodeInstFromModule(VerilogData.VerilogInstance inst, Library lib, Cell parent)
     {
         String key = inst.element.name + "{" + View.SCHEMATIC.getAbbreviation() + "}";
-//        Cell schematics = lib.findNodeProto(key);
-//        if (schematics == null)
-//        {
-//            schematics = buildCellFromModule(inst.element, lib);
-//        }
         Cell schematics = buildCellFromModule(inst.element, lib);
         Cell icon = schematics.iconView();
         if (icon == null)
@@ -968,40 +972,60 @@ public class VerilogReader extends Input
         NodeInst cellInst = NodeInst.newInstance(icon, getNextLocation(parent), 10, 10, parent,
                 Orientation.IDENT, inst.name, 0);
 
+        List<String> localPorts = new ArrayList<String>();
         for (VerilogData.VerilogPortInst port : inst.ports)
         {
-            String s = port.name;
+            String portLocal = port.name;
+            localPorts.clear();
 
-            NodeInst pin = parent.findNode(s);  // not sure if this should be done per cell or ask
-            if (pin == null)
+             // It is unknown how many pins are coming in the stream
+            if (portLocal.contains("{"))
             {
-                    int index = s.indexOf("[");
-                    if (index != -1)
-                    {
-                        s = s.substring(0, index);
-                        pin = parent.findNode(s);//pinsMap.get(s);
-                    }
+                StringTokenizer parse = new StringTokenizer(portLocal, "{,}", false); // extracting pins
+                while (parse.hasMoreTokens())
+                {
+                    String name = parse.nextToken();
+                    name = name.replaceAll(" ", "");
+                    localPorts.add(name);
+                }
             }
-            if (pin == null)
-            {
-                // Still missing vss code?
-                 if (Job.getDebug())
-                        System.out.println("Unknown signal " + s + " in cell " + parent.describe(false));
-                    PrimitiveNode primitive = (port.port.busPins!=null) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
-                    pin = NodeInst.newInstance(primitive, getNextLocation(parent),
-                            primitiveWidth, primitiveHeight,
-//                                        primitive.getDefWidth(), primitive.getDefHeight(),
-                            parent, Orientation.IDENT, /*null*/port.name, 0);  // not sure why it has to be null?
-//                        pinsMap.put(s, pin);
-            }
+            else
+                localPorts.add(portLocal);
 
-            ArcProto node = (pin.getProto() == Schematics.tech.busPinNode) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
-            PortInst ex = cellInst.findPortInst(port.port.name);
-            ArcInst ai = ArcInst.makeInstance(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
-                    pin.getOnlyPortInst(), ex, null, null, port.name);
-            if (ai == null)
-                assert(ai != null);
-            ai.setFixedAngle(false);
+            for (String s : localPorts)
+            {
+                NodeInst pin = parent.findNode(s);  // not sure if this should be done per cell or ask
+
+                if (pin == null)
+                {
+                        int index = s.indexOf("[");
+                        if (index != -1)
+                        {
+                            s = s.substring(0, index);
+                            pin = parent.findNode(s);//pinsMap.get(s);
+                        }
+                }
+                if (pin == null)
+                {
+                    // Still missing vss code?
+                     if (Job.getDebug())
+                            System.out.println("Unknown signal " + s + " in cell " + parent.describe(false));
+                        PrimitiveNode primitive = (port.port.busPins!=null) ? Schematics.tech.busPinNode : Schematics.tech.wirePinNode;
+                        pin = NodeInst.newInstance(primitive, getNextLocation(parent),
+                                primitiveWidth, primitiveHeight,
+    //                                        primitive.getDefWidth(), primitive.getDefHeight(),
+                                parent, Orientation.IDENT, /*null*/s, 0);  // not sure why it has to be null?
+    //                        pinsMap.put(s, pin);
+                }
+
+                ArcProto node = (pin.getProto() == Schematics.tech.busPinNode) ? Schematics.tech.bus_arc : Schematics.tech.wire_arc;
+                PortInst ex = cellInst.findPortInst(port.port.name);
+                ArcInst ai = ArcInst.makeInstance(node, 0.0 /*node.getDefaultLambdaFullWidth()*/,
+                        pin.getOnlyPortInst(), ex, null, null, s);
+                if (ai == null)
+                    assert(ai != null);
+                ai.setFixedAngle(false);
+            }
         }
         return schematics;
     }
