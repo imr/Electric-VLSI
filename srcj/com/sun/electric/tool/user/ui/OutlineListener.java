@@ -102,10 +102,12 @@ public class OutlineListener
 			EPoint [] points = new EPoint[4];
 			double halfWid = ni.getXSize() / 2;
 			double halfHei = ni.getYSize() / 2;
-			points[0] = new EPoint(-halfWid, -halfHei);
-			points[1] = new EPoint(-halfWid,  halfHei);
-			points[2] = new EPoint( halfWid,  halfHei);
-			points[3] = new EPoint( halfWid, -halfHei);
+			double cX = ni.getAnchorCenterX();
+			double cY = ni.getAnchorCenterY();
+			points[0] = new EPoint(cX-halfWid, cY-halfHei);
+			points[1] = new EPoint(cX-halfWid, cY+halfHei);
+			points[2] = new EPoint(cX+halfWid, cY+halfHei);
+			points[3] = new EPoint(cX+halfWid, cY-halfHei);
 			ni.setTrace(points);
 			return true;
 		}

@@ -1343,7 +1343,6 @@ public class DXF extends Input
 		// rotate "rot*10" about point [(onp->lowx+onp->highx)/2+x, (onp->lowy+onp->highy)/2+y]
         Orientation orient = Orientation.fromAngle(rot*10);
         AffineTransform trans = orient.pureRotate();
-//		AffineTransform trans = NodeInst.pureRotate(rot*10, false, false);
 		double m00 = trans.getScaleX();
 		double m01 = trans.getShearX();
 		double m11 = trans.getScaleY();
@@ -1372,9 +1371,6 @@ public class DXF extends Input
 			Point2D tPt = new Point2D.Double(cX, cY);
 			trans.transform(tPt, tPt);
 			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, orient.concatenate(ni.getOrient()), null, 0);
-//			if (ni.isXMirrored()) sX = -sX;
-//			if (ni.isYMirrored()) sY = -sY;
-//			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, (ni.getAngle()+rot*10)%3600, null, 0);
 			if (nNi == null) return true;
 			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)

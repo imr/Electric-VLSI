@@ -1205,19 +1205,14 @@ public class EDIF extends Input
 			if (curKeyword == KPOLYGON) np = Artwork.tech.closedPolygonNode; else
 				np = Artwork.tech.openedPolygonNode;
 		}
-//		Point2D size = getSizeAndMirror(np);
 		double sX = hX - lX;
 		double sY = hY - lY;
-//		if (curOrientation.isXMirrored()) sX = -sX;
-//		if (curOrientation.isYMirrored()) sY = -sY;
 		double cX = (hX + lX) / 2;
 		double cY = (hY + lY) / 2;
 		double yPos = cY;
 		if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, yPos), sX, sY,
 			curCell, curOrientation, null, 0);
-//		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, yPos), sX, sY,
-//			curCell, curOrientation.getAngle(), null, 0);
 		if (ni == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create polygon");

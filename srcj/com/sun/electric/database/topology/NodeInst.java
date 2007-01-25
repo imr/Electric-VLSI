@@ -1936,6 +1936,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * them to take any shape.  It is even used by many MOS
 	 * transistors to allow a precise gate path to be specified.
 	 * @param points an array of Point2D values in database coordinates.
+	 * These are not relative to the center of the node, but are actual coordinates of the outline.
 	 */
 	public void setTrace(Point2D [] points)
 	{
@@ -1959,16 +1960,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
         EPoint[] newPoints = new EPoint[points.length];
         for (int i = 0; i < newPoints.length; i++)
             newPoints[i] = new EPoint(points[i].getX() - newCX, points[i].getY() - newCY);
-//        for(int i=0; i<points.length; i++)
-//            points[i].setLocation(points[i].getX() - newCX, points[i].getY() - newCY);
-//
+
 		// update the points
 		newVar(NodeInst.TRACE, newPoints);
-        // Force instance to have IDENT Orientation
+
+		// Force instance to have IDENT Orientation
 		modifyInstance(newCX-getAnchorCenterX(),newCY-getAnchorCenterY(), newSX-getXSize(),
 			newSY-getYSize(), getOrient().inverse());
-//		modifyInstance(newCX-getAnchorCenterX(),newCY-getAnchorCenterY(), newSX-getXSizeWithMirror(),
-//			newSY-getYSizeWithMirror(), -getAngle());
 	}
 
 	/**

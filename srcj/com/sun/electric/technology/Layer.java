@@ -1002,7 +1002,6 @@ public class Layer
 	 */
 	public void setDXFLayer(String dxfLayer)
     {
-        assert(dxfLayer == null);// probing dxfLayer is never used.
         getLayerSetting("DXF", dxfLayerPrefs, this.dxfLayer).setString(dxfLayer);
     }
 

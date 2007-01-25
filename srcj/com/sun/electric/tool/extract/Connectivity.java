@@ -107,7 +107,7 @@ public class Connectivity
 	/** true to prevent objects smaller than minimum size */	private static final boolean ENFORCEMINIMUMSIZE = false;
 	/** amount to scale values before merging */				private static final double SCALEFACTOR = DBMath.GRID;
 	/** true to debug centerline determination */				private static final boolean DEBUGCENTERLINES = false;
-	/** true to debug object creation */						private static final boolean DEBUGSTEPS = false;
+	/** true to debug object creation */						private static final boolean DEBUGSTEPS = true;
 
 	/** the current technology for extraction */				private Technology tech;
 	/** layers to use for given arc functions */				private HashMap<Layer.Function,Layer> layerForFunction;
@@ -786,7 +786,7 @@ public class Connectivity
 				if (poly.contains(pt)) return pi;
 			}
 		}
-		NodeInst ni = createNode(ap.findPinProto(), pt, size, size, newCell);
+		NodeInst ni = createNode(ap.findPinProto(), pt, size, size, null, newCell);
 		return ni.getOnlyPortInst();
 	}
 
@@ -986,7 +986,7 @@ public class Connectivity
 			if (ni.getProto() != pin) continue;
 			if (ni.getAnchorCenter().equals(pt)) return ni;
 		}
-		NodeInst ni = createNode(pin, pt, size, size, newCell);
+		NodeInst ni = createNode(pin, pt, size, size, null, newCell);
 		return ni;
 	}
 
@@ -1327,8 +1327,6 @@ public class Connectivity
 			{
 				// create the PossibleVia to describe the geometry
 				pv.layers[fill] = geometricLayer(nLay.getLayer());
-
-// TODO is this right?  I don't think the 0.5 belongs here
 				pv.shrinkL[fill] = scaleUp(pNp.getDefWidth() * (0.5 + nLay.getLeftEdge().getMultiplier()) + nLay.getLeftEdge().getAdder());
 				pv.shrinkR[fill] = scaleUp(pNp.getDefWidth() * (0.5 - nLay.getRightEdge().getMultiplier()) - nLay.getRightEdge().getAdder());
 				pv.shrinkT[fill] = scaleUp(pNp.getDefHeight() * (0.5 - nLay.getTopEdge().getMultiplier()) - nLay.getTopEdge().getAdder());
@@ -1831,7 +1829,7 @@ public class Connectivity
 					if (containsIt != null)
 					{
 						PrimitiveNode np = ap.findPinProto();
-						NodeInst ni = createNode(np, containsIt, np.getDefWidth(), np.getDefHeight(), newCell);
+						NodeInst ni = createNode(np, containsIt, np.getDefWidth(), np.getDefHeight(), null, newCell);
 						PortInst pi = ni.getOnlyPortInst();
 						double wid = ap.getDefaultLambdaFullWidth();
 
@@ -1904,9 +1902,9 @@ public class Connectivity
 					polyCtr.getY() / SCALEFACTOR);
 				Point2D objPt = new Point2D.Double(portRect.getCenterX() / SCALEFACTOR, polyCtr.getY() / SCALEFACTOR);
 				NodeInst ni1 = createNode(np, pinPt1, polyBounds.getHeight() / SCALEFACTOR,
-					polyBounds.getHeight() / SCALEFACTOR, newCell);
+					polyBounds.getHeight() / SCALEFACTOR, null, newCell);
 				NodeInst ni2 = createNode(np, pinPt2, polyBounds.getHeight() / SCALEFACTOR,
-					polyBounds.getHeight() / SCALEFACTOR, newCell);
+					polyBounds.getHeight() / SCALEFACTOR, null, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt1, objPt,
 					(polyBounds.getHeight()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 				realizeArc(ap, ni2.getOnlyPortInst(), pi, pinPt2, objPt,
@@ -1921,9 +1919,9 @@ public class Connectivity
 					(polyBounds.getMinY() + endExtension) / SCALEFACTOR);
 				Point2D objPt = new Point2D.Double(polyCtr.getX() / SCALEFACTOR, portRect.getCenterY() / SCALEFACTOR);
 				NodeInst ni1 = createNode(np, pinPt1, polyBounds.getWidth() / SCALEFACTOR,
-					polyBounds.getWidth() / SCALEFACTOR, newCell);
+					polyBounds.getWidth() / SCALEFACTOR, null, newCell);
 				NodeInst ni2 = createNode(np, pinPt2, polyBounds.getWidth() / SCALEFACTOR,
-					polyBounds.getWidth() / SCALEFACTOR, newCell);
+					polyBounds.getWidth() / SCALEFACTOR, null, newCell);
 				realizeArc(ap, ni1.getOnlyPortInst(), pi, pinPt1, objPt,
 					(polyBounds.getWidth()+ap.getLambdaWidthOffset()) / SCALEFACTOR, false, false, merge);
 				realizeArc(ap, ni2.getOnlyPortInst(), pi, pinPt2, objPt,
@@ -1963,7 +1961,7 @@ public class Connectivity
 			}
 
 			NodeInst ni1 = createNode(np, pinPtNormal, polyBounds.getWidth() / SCALEFACTOR,
-				polyBounds.getWidth() / SCALEFACTOR, newCell);
+				polyBounds.getWidth() / SCALEFACTOR, null, newCell);
 
 			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
 			double wid = polyBounds.getWidth();
@@ -2004,7 +2002,7 @@ public class Connectivity
 					polyCtr.getY() / SCALEFACTOR);
 			}
 			NodeInst ni1 = createNode(np, pinPtNormal, polyBounds.getHeight() / SCALEFACTOR,
-				polyBounds.getHeight() / SCALEFACTOR, newCell);
+				polyBounds.getHeight() / SCALEFACTOR, null, newCell);
 			MutableBoolean headExtend = new MutableBoolean(endExtend), tailExtend = new MutableBoolean(endExtend);
 			double wid = polyBounds.getHeight();
 			double fullWid = wid / SCALEFACTOR + ap.getLambdaWidthOffset();
@@ -2802,8 +2800,8 @@ public class Connectivity
 					double centerX = aggregateBounds.getCenterX() / SCALEFACTOR;
 					double centerY = aggregateBounds.getCenterY() / SCALEFACTOR;
 					Point2D center = new Point2D.Double(centerX, centerY);
-					NodeInst ni = createNode(pNp, center,
-						aggregateBounds.getWidth() / SCALEFACTOR, aggregateBounds.getHeight() / SCALEFACTOR, newCell);
+					NodeInst ni = createNode(pNp, center, aggregateBounds.getWidth() / SCALEFACTOR,
+						aggregateBounds.getHeight() / SCALEFACTOR, null, newCell);
 					for(Rectangle2D polyBounds : aggregatedList)
 						rectangleList.remove(polyBounds);
 				}
@@ -2835,8 +2833,8 @@ public class Connectivity
 								// make a horizontal arc
 								Point2D end1 = new Point2D.Double((polyBounds.getMinX()+height/2) / SCALEFACTOR, polyBounds.getCenterY() / SCALEFACTOR);
 								Point2D end2 = new Point2D.Double((polyBounds.getMaxX()-height/2) / SCALEFACTOR, polyBounds.getCenterY() / SCALEFACTOR);
-								NodeInst ni1 = createNode(np, end1, height, height, newCell);
-								NodeInst ni2 = createNode(np, end2, height, height, newCell);
+								NodeInst ni1 = createNode(np, end1, height, height, null, newCell);
+								NodeInst ni2 = createNode(np, end2, height, height, null, newCell);
 								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, height+ap.getLambdaWidthOffset(),
 									false, false, merge);
 							} else
@@ -2844,8 +2842,8 @@ public class Connectivity
 								// make a vertical arc
 								Point2D end1 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMinY()+width/2) / SCALEFACTOR);
 								Point2D end2 = new Point2D.Double(polyBounds.getCenterX() / SCALEFACTOR, (polyBounds.getMaxY()-width/2) / SCALEFACTOR);
-								NodeInst ni1 = createNode(np, end1, width, width, newCell);
-								NodeInst ni2 = createNode(np, end2, width, width, newCell);
+								NodeInst ni1 = createNode(np, end1, width, width, null, newCell);
+								NodeInst ni2 = createNode(np, end2, width, width, null, newCell);
 								ArcInst ai = realizeArc(ap, ni1.getOnlyPortInst(), ni2.getOnlyPortInst(), end1, end2, width+ap.getLambdaWidthOffset(),
 									false, false, merge);
 							}
@@ -2855,35 +2853,34 @@ public class Connectivity
 				}
 
 				// just generate more pure-layer nodes
-				double centerX = poly.getCenterX() / SCALEFACTOR;
-				double centerY = poly.getCenterY() / SCALEFACTOR;
-				Point2D center = new Point2D.Double(centerX, centerY);
 				PrimitiveNode pNp = layer.getPureLayerNode();
 				if (pNp == null)
 				{
 					System.out.println("CANNOT FIND PURE LAYER NODE FOR LAYER "+poly.getLayer().getName());
 					continue;
 				}
-				NodeInst ni = createNode(pNp, center,
-					poly.getBounds2D().getWidth() / SCALEFACTOR, poly.getBounds2D().getHeight() / SCALEFACTOR, newCell);
+				Rectangle2D polyBounds = poly.getBounds2D();
+				double centerX = polyBounds.getCenterX() / SCALEFACTOR;
+				double centerY = polyBounds.getCenterY() / SCALEFACTOR;
+				Point2D center = new Point2D.Double(centerX, centerY);
 
-				// add on trace information if the shape is nonmanhattan
+				// compute any trace information if the shape is nonmanhattan
+				EPoint [] newPoints = null;
 				if (poly.getBox() == null)
 				{
 					// store the trace
 					Point2D [] points = poly.getPoints();
-					EPoint [] newPoints = new EPoint[points.length];
+					newPoints = new EPoint[points.length];
 					for(int i=0; i<points.length; i++)
-					{
-						newPoints[i] = new EPoint(points[i].getX() / SCALEFACTOR - centerX, points[i].getY() / SCALEFACTOR - centerY);
-					}
-					ni.setTrace(newPoints);
+						newPoints[i] = new EPoint(points[i].getX() / SCALEFACTOR, points[i].getY() / SCALEFACTOR);
 				}
+				NodeInst ni = createNode(pNp, center, polyBounds.getWidth() / SCALEFACTOR,
+					polyBounds.getHeight() / SCALEFACTOR, newPoints, newCell);
 			}
 		}
 	}
 
-	private NodeInst createNode(NodeProto np, Point2D loc, double wid, double hei, Cell cell)
+	private NodeInst createNode(NodeProto np, Point2D loc, double wid, double hei, EPoint [] points, Cell cell)
 	{
 		// pins cannot be smaller than their default size
 		if (np.getFunction() == PrimitiveNode.Function.PIN)
@@ -2892,6 +2889,8 @@ public class Connectivity
 			if (hei < np.getDefHeight()) hei = np.getDefHeight();
 		}
 		NodeInst ni = NodeInst.makeInstance(np, loc, wid, hei, cell);
+		if (ni != null && points != null)
+			ni.setTrace(points);
 		if (DEBUGSTEPS)
 		{
 			if (np.getFunction() != PrimitiveNode.Function.PIN)
