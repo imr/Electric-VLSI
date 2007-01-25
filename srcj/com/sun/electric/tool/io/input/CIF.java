@@ -548,20 +548,15 @@ public class CIF extends Input
 
 		// transform is rotation and transpose: convert to rotation/MX/MY
 		Orientation or = Orientation.fromC(rot, trans);
-//		if (or.isXMirrored()) sX = -sX;
-//		if (or.isYMirrored()) sY = -sY;
-//		rot = or.getAngle();
 
 		// special code to account for rotation of cell centers
 		AffineTransform ctrTrans = or.rotateAbout(x, y);
-//		AffineTransform ctrTrans = NodeInst.rotateAbout(rot, x, y, sX, sY);
 		Point2D spin = new Point2D.Double(x - bounds.getCenterX(), y - bounds.getCenterY());
 		ctrTrans.transform(spin, spin);
 		x = spin.getX();   y = spin.getY();
 
 		// create the node
 		NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, or, null, 0);
-//		NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, rot, null, 0);
 		if (ni == null)
 		{
 			System.out.println("Problems creating an instance of " + cell.addr + " in " + currentBackCell.addr);
@@ -692,7 +687,6 @@ public class CIF extends Input
 		double wid = convertFromCentimicrons(cb.width);
         Orientation orient = Orientation.fromAngle(r);
 		NodeInst ni = NodeInst.makeInstance(node, new Point2D.Double(x, y), len, wid, currentBackCell.addr, orient, null, 0);
-//		NodeInst ni = NodeInst.makeInstance(node, new Point2D.Double(x, y), len, wid, currentBackCell.addr, r, null, 0);
 		if (ni == null)
 		{
 			String layname = cb.lay.getName();

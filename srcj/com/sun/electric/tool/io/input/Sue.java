@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -40,10 +39,10 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -400,7 +399,6 @@ public class Sue extends Input
 				{
 					proto = Schematics.tech.offpageNode;
                     AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
-//					AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 					Point2D offPt = new Point2D.Double(2, 0);
 					trans.transform(offPt, offPt);
 					xOff = offPt.getX();   yOff = offPt.getY();
@@ -409,7 +407,6 @@ public class Sue extends Input
 				{
 					proto = Schematics.tech.offpageNode;
                     AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
-//					AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 					Point2D offPt = new Point2D.Double(-2, 0);
 					trans.transform(offPt, offPt);
 					xOff = offPt.getX();   yOff = offPt.getY();
@@ -418,7 +415,6 @@ public class Sue extends Input
 				{
 					proto = Schematics.tech.offpageNode;
                     AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
-//					AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 					Point2D offPt = new Point2D.Double(2, 0);
 					trans.transform(offPt, offPt);
 					xOff = offPt.getX();   yOff = offPt.getY();
@@ -436,7 +432,6 @@ public class Sue extends Input
 						if (parP.theName.equalsIgnoreCase("gnd"))
 						{
                             AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
-//							AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 							Point2D offPt = new Point2D.Double(0, -2);
 							trans.transform(offPt, offPt);
 							xOff = offPt.getX();   yOff = offPt.getY();
@@ -454,7 +449,6 @@ public class Sue extends Input
 					proto = Schematics.tech.wireConNode;
 					xShrink = -2;
                     AffineTransform trans = Orientation.fromC(parP.rot, parP.trn).pureRotate();
-//					AffineTransform trans = NodeInst.pureRotate(parP.rot, parP.trn);
 					Point2D offPt = new Point2D.Double(1.25, 0);
 					trans.transform(offPt, offPt);
 					xOff = offPt.getX();   yOff = offPt.getY();
@@ -540,12 +534,8 @@ public class Sue extends Input
 				hei -= yShrink;
 				Orientation or = Orientation.fromC(parP.rot, parP.trn);
 				parP.rot = or.getAngle();
-//				if (or.isXMirrored()) wid = -wid;
-//				if (or.isYMirrored()) hei = -hei;
 				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xOff, parP.pt.getY() + yOff), wid, hei, cell,
 					or, null, Schematics.getPrimitiveFunctionBits(detailFunct));
-//				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xOff, parP.pt.getY() + yOff), wid, hei, cell,
-//					parP.rot, null, Schematics.getPrimitiveFunctionBits(detailFunct));
 				if (ni == null) continue;
 				if (invertOutput) invertNodeOutput.add(ni);
 				if (proto instanceof Cell && ((Cell)proto).isIcon())
@@ -563,7 +553,6 @@ public class Sue extends Input
 						double x = portPoly.getCenterX();
 						double y = portPoly.getCenterY();
 						AffineTransform trans = ni.getOrient().pureRotate();
-//						AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isMirroredAboutYAxis(), ni.isMirroredAboutXAxis());
 						Point2D dPt = new Point2D.Double(extraWires[i].xOffset, extraWires[i].yOffset);
 						trans.transform(dPt, dPt);
 						PrimitiveNode wirePin = Schematics.tech.wirePinNode;
@@ -891,7 +880,7 @@ public class Sue extends Input
 				for(int i=0; i<keyCount; i++)
 				{
 					Point2D pt = pointList.get(i);
-					points[i] = new EPoint(pt.getX() - cX, pt.getY() - cY);
+					points[i] = new EPoint(pt.getX(), pt.getY());
 				}
 				ni.setTrace(points);
 				continue;
@@ -992,7 +981,6 @@ public class Sue extends Input
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
 				Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theLabel);
-//				if (var != null) var.setDisplay(true);
 				continue;
 			}
 
@@ -1006,7 +994,6 @@ public class Sue extends Input
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
 				Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
-//				if (var != null) var.setDisplay(true);
 				continue;
 			}
 
@@ -1449,7 +1436,6 @@ public class Sue extends Input
 			NodeInst ni = it.next();
 			if (ni.getProto() != Schematics.tech.offpageNode) continue;
 			if (ni.hasConnections()) continue;
-//			if (ni.getNumConnections() > 0) continue;
 			PortInst pi = ni.getPortInst(1);
 			Poly piPoly = pi.getPoly();
 			double x = piPoly.getCenterX();

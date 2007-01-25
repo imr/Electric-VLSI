@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
 
+BUG: (1/25/07, SMR) Outline information is no longer specified relative to node.
+     Cleaned up EDIF, CIF, DXF, GDS, Sue input.
+
 ************************* Version 8.05d: *********************************
 
 IMP: (1/24/07, SMR) First working version of Sea-Of-Gates router.
