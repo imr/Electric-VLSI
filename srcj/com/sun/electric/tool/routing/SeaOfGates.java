@@ -30,11 +30,14 @@ import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -59,6 +62,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -73,11 +77,13 @@ import java.util.TreeSet;
  * > The router only works in layout, and only routes metal wires.
  * > The router uses vias to move up and down the metal layers.
  * > The router is not tracked: it runs on the Electric grid (all wires are on full-grid units).
+ * > Routes power and ground first, then goes by length (shortest nets first)
  *
  * Things to do:
  *     Check via spacings
- *     Initial adjustment of coordinates so that there aren't tabs in the wrong direction
- *     Route power/ground nets first?
+ *     Ability to route to any previous part of route when daisy-chaining?
+ *     Extra blockages about net ends?
+ *     Ability to control arc widths
  *     Rip-up?
  */
 public class SeaOfGates
@@ -147,11 +153,37 @@ public class SeaOfGates
 			return;
 		}
 
-		// convert to a list of Arcs to route because nets get redone after each one is routed
-		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
+		// order the nets appropriately
+		List<NetsToRoute> orderedNetsToRoute = new ArrayList<NetsToRoute>();
 		for(Network net : netsToRoute)
 		{
+			boolean isPwrGnd = false;
+			for(Iterator<Export> it = net.getExports(); it.hasNext(); )
+			{
+				Export e = it.next();
+				if (e.isGround() || e.isPower()) { isPwrGnd = true;   break; }
+			}
+			double length = 0;
 			for(Iterator<ArcInst> it = net.getArcs(); it.hasNext(); )
+			{
+				ArcInst ai = it.next();
+				length += ai.getLambdaLength();
+				PortProto headPort = ai.getHeadPortInst().getPortProto();
+				PortProto tailPort = ai.getTailPortInst().getPortProto();
+				if (headPort.isGround() || headPort.isPower() ||
+					tailPort.isGround() || tailPort.isPower()) isPwrGnd = true;
+			}
+			NetsToRoute ntr = new NetsToRoute(net, length, isPwrGnd);
+			orderedNetsToRoute.add(ntr);
+		}
+		Collections.sort(orderedNetsToRoute, new NetsToRouteByLength());
+
+		// convert to a list of Arcs to route because nets get redone after each one is routed
+		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
+		for(NetsToRoute ntr : orderedNetsToRoute)
+		{
+//System.out.println("Routing net "+ntr.net.describe(false)+" which has length "+ntr.length);
+			for(Iterator<ArcInst> it = ntr.net.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = it.next();
 				if (ai.getProto() != Generic.tech.unrouted_arc) continue;
@@ -162,6 +194,48 @@ public class SeaOfGates
 
 		// do the routing in a separate job
 		new SeaOfGatesJob(cell, arcsToRoute);
+	}
+
+	/**
+	 * Class to define a network that needs to be routed.
+	 * Extra information lets the nets be sorted by length and power/ground usage.
+	 */
+	private static class NetsToRoute
+	{
+		private Network net;
+		private double length;
+		private boolean isPwrGnd;
+
+		NetsToRoute(Network net, double length, boolean isPwrGnd)
+		{
+			this.net = net;
+			this.length = length;
+			this.isPwrGnd = isPwrGnd;
+		}
+	}
+
+	/**
+	 * Comparator class for sorting NetsToRoute by their length and power/ground usage.
+	 */
+	public static class NetsToRouteByLength implements Comparator<NetsToRoute>
+	{
+		/**
+		 * Method to sort NetsToRoute by their length and power/ground usage.
+		 */
+		public int compare(NetsToRoute ntr1, NetsToRoute ntr2)
+        {
+			// make power or ground nets come first
+			if (ntr1.isPwrGnd != ntr2.isPwrGnd)
+			{
+				if (ntr1.isPwrGnd) return -1;
+				return 1;
+			}
+
+			// make shorter nets come before longer ones
+//			if (ntr1.length < ntr2.length) return -1;
+//        	if (ntr1.length > ntr2.length) return 1;
+        	return 0;
+		}
 	}
 
 	/**
@@ -470,9 +544,6 @@ public class SeaOfGates
 			return false;
 		}
 		EPoint fromLoc = fromPi.getPoly().getCenter();
-		int fromX = (int)fromLoc.getX();
-		int fromY = (int)fromLoc.getY();
-		int fromZ = fromArc.getFunction().getLevel()-1;
 
 		// get information about the other end of the path
 		ArcProto toArc = null;
@@ -487,10 +558,29 @@ public class SeaOfGates
 			return false;
 		}
 		EPoint toLoc = toPi.getPoly().getCenter();
-		toX = (int)toLoc.getX();
-		toY = (int)toLoc.getY();
-		toZ = toArc.getFunction().getLevel()-1;
 
+		// determine the unit coordinates of the route
+		int fromX, fromY;
+		if (toLoc.getX() < fromLoc.getX())
+		{
+			toX = (int)Math.ceil(toLoc.getX());
+			fromX = (int)Math.floor(fromLoc.getX());
+		} else
+		{
+			toX = (int)Math.floor(toLoc.getX());
+			fromX = (int)Math.ceil(fromLoc.getX());
+		}
+		if (toLoc.getY() < fromLoc.getY())
+		{
+			toY = (int)Math.ceil(toLoc.getY());
+			fromY = (int)Math.floor(fromLoc.getY());
+		} else
+		{
+			toY = (int)Math.floor(toLoc.getY());
+			fromY = (int)Math.ceil(fromLoc.getY());
+		}
+		int fromZ = fromArc.getFunction().getLevel()-1;
+		toZ = toArc.getFunction().getLevel()-1;
 
 		if (fromArc.getTechnology() != cell.getTechnology() ||
 			toArc.getTechnology() != cell.getTechnology())
