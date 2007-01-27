@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
 
+BUG: (1/27/07, DN) Some regression tests failed on JDK 1.6 because of HashSet order.
+FIX: In PAL, TEGAS and LENetlister1 use TreeSet instead of HashSet. Regression results updated.
+
 BUG: (1/25/07, SMR) Outline information is no longer specified relative to node.
      Cleaned up EDIF, CIF, DXF, GDS, Sue input.
 

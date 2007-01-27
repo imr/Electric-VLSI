@@ -43,7 +43,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
-
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -53,6 +52,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Creates a logical effort netlist to be sized by LESizer.
@@ -68,7 +68,7 @@ public class LENetlister1 extends LENetlister {
     /** Netlister constants */                  protected NetlisterConstants constants;
 
     /** all networks */                         private HashMap<String,Net> allNets;
-    /** all instances (LEGATES, not loads) */   private HashMap<String,Instance> allInstances;
+    /** all instances (LEGATES, not loads) */   private Map<String,Instance> allInstances;
 
     /** Sizer */                                private LESizer sizer;
     /** Job we are part of */                   private Job job;
@@ -90,7 +90,7 @@ public class LENetlister1 extends LENetlister {
         topLevelCell = null;
 
         allNets = new HashMap<String,Net>();
-        allInstances = new HashMap<String,Instance>();
+        allInstances = new TreeMap/*HashMap*/<String,Instance>();
 
         this.job = job;
         this.instancesMap = new ArrayList<Instance>();
@@ -227,7 +227,7 @@ public class LENetlister1 extends LENetlister {
 	}
 
     //public HashMap getInstancesMap() { return instancesMap; }
-    protected HashMap<String,Instance> getAllInstances() { return allInstances; }
+    protected Map<String,Instance> getAllInstances() { return allInstances; }
 
     protected HashMap<String,Net> getAllNets() { return allNets; }
 

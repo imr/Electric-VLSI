@@ -44,7 +44,6 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.io.output.Topology.CellNetInfo;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -55,6 +54,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This is the netlister for Tegas.
@@ -180,8 +180,8 @@ public class Tegas extends Topology
 		}
 	
 		// USE
-		Set<String> instanceDeclarations = new HashSet<String>();
-		Set<String> gateDeclarations = new HashSet<String>();
+		Set<String> instanceDeclarations = new TreeSet<String>();
+		Set<String> gateDeclarations = new TreeSet<String>();
 		for(Iterator<Nodable> it = netList.getNodables(); it.hasNext(); )
 		{
 			Nodable no = it.next();

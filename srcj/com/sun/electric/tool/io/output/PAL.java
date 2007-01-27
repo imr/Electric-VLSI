@@ -37,12 +37,12 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * This is the netlister for PAL.
@@ -85,8 +85,8 @@ public class PAL extends Output
 	{
 		topCell = cell;
 		equations = new ArrayList<String>();
-		internalSymbols = new HashSet<String>();
-		externalSymbols = new HashSet<String>();
+		internalSymbols = new TreeSet<String>();
+		externalSymbols = new TreeSet<String>();
 	}
 
 	private void terminate(Cell cell)
