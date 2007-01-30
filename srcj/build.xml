@@ -114,7 +114,7 @@
     <!-- Use -DJMF=true to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
-	    fork="true" memoryMaximumSize="256m">
+	    fork="true" memoryMaximumSize="512m">
 	    <!--compilerarg value="-Xlint:unchecked"/-->
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
@@ -125,7 +125,7 @@
 
     <target name="compileToBin" depends="init" description="Compile to 'bin' directory">
         <javac debug="true" deprecation="true" destdir="bin" srcdir="."
-            fork="true" memoryMaximumSize="256m">
+            fork="true" memoryMaximumSize="512m">
             <classpath refid="externalClassPath" />
             <classpath refid="prefuseClassPath" />
             <patternset refid="exclusion" />
@@ -146,7 +146,7 @@
 
     <target name="compileTests" depends="init,compile" description="Compile tests">
         <javac debug="true" deprecation="true" destdir="." srcdir="../tests"
-            fork="true" memoryMaximumSize="256m">
+            fork="true" memoryMaximumSize="512m">
             <classpath><pathelement location="${JUnit}"/></classpath>
         </javac>
     </target>

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
 
+BUG: (1/20/07, DN) Get rid of those "has connections on port 'generic:Port[].center" messages (Bug #829).
+FIX: They are transfered to DRC.
+
 BUG: (1/27/07, DN) Some regression tests failed on JDK 1.6 because of HashSet order.
 FIX: In PAL, TEGAS and LENetlister1 use TreeSet instead of HashSet. Regression results updated.
 

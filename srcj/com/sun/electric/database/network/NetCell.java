@@ -222,44 +222,6 @@ class NetCell
 		return 1;
 	}
 
-	private void checkLayoutCell() {
-        HashMap<NodeProto,ArrayList<NodeInst>> strangeNodes = null; 
-		for (int i = 0, numNodes = cell.getNumNodes(); i < numNodes; i++) {
-			NodeInst ni = cell.getNode(i);
-			if (ni.getNameKey().isBus()) {
-				String msg = "Network: Layout " + cell + " has arrayed " + ni;
-                System.out.println(msg);
-                networkManager.pushHighlight(ni);
-                networkManager.logError(msg, NetworkTool.errorSortNodes);
-            }
-            ErrorLogger.MessageLog log = null;
-            NodeProto np = ni.getProto();
-			if (ni.isCellInstance() && networkManager.getNetCell((Cell)np) instanceof NetSchem ||
-                np == Generic.tech.universalPinNode ||
-                !ni.isCellInstance() && np.getTechnology() == Schematics.tech) {
-                if (strangeNodes == null)
-                    strangeNodes = new HashMap<NodeProto,ArrayList<NodeInst>>();
-                ArrayList<NodeInst> nodesOfType = strangeNodes.get(np);
-                if (nodesOfType == null) {
-                    nodesOfType = new ArrayList<NodeInst>();
-                    strangeNodes.put(np, nodesOfType);
-                }
-                nodesOfType.add(ni);
-            }
-		}
-        if (strangeNodes == null) return;
-        for (NodeProto np : strangeNodes.keySet()) {
-            ArrayList<NodeInst> nodesOfType = strangeNodes.get(np);
-            String msg = "Network: Layout " + cell + " has " + nodesOfType.size() +
-                    " " + np.describe(true) + " nodes";
-            System.out.println(msg);
-            List<Geometric> niList = new ArrayList<Geometric>();
-            for (NodeInst ni: nodesOfType)
-                networkManager.pushHighlight(ni);
-            networkManager.logError(msg, NetworkTool.errorSortNodes);
-        }
-	}
-
 	private void initConnections() {
 		int numPorts = cell.getNumPorts();
 		int numNodes = cell.getNumNodes();
@@ -422,54 +384,25 @@ class NetCell
 			numDrawns++;
 		}
 		numConnectedDrawns = numDrawns;
-        HashMap<NodeProto,ArrayList<NodeInst>> unconnectedPins = null; 
 		for (int i = 0, numNodes = cell.getNumNodes(); i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();
-			int numPortInsts = np.getNumPorts();
+            if (ni.isIconOfParent() ||
+                    np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech.simProbeNode ||
+                    np == Artwork.tech.pinNode ||
+                    np == Generic.tech.invisiblePinNode) {
+                continue;
+            }
+            int numPortInsts = np.getNumPorts();
 			for (int j = 0; j < numPortInsts; j++) {
 				PortInst pi = ni.getPortInst(j);
 				int piOffset = getPortInstOffset(pi);
-				if (ni.isIconOfParent() ||
-					np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech.simProbeNode ||
-					np == Artwork.tech.pinNode ||
-					np == Generic.tech.invisiblePinNode) {
-					if (drawns[piOffset] >= 0 && !cell.isIcon()) {
-						String msg = "Network: " + cell + " has connections on " + pi;
-                        System.out.println(msg);
-                        networkManager.pushHighlight(pi);
-                        networkManager.logError(msg, NetworkTool.errorSortNodes);
-                    }
-					continue;
-				}
 				if (drawns[piOffset] >= 0) continue;
 				if (pi.getPortProto() instanceof PrimitivePort && ((PrimitivePort)pi.getPortProto()).isIsolated()) continue;
-				if (np.getFunction() == PrimitiveNode.Function.PIN && !cell.isIcon() &&
-                        cell.getTechnology() != GEM.tech && cell.getTechnology() != EFIDO.tech) {
-                    if (unconnectedPins == null)
-                        unconnectedPins = new HashMap<NodeProto,ArrayList<NodeInst>>();
-                    ArrayList<NodeInst> pinsOfType = unconnectedPins.get(np);
-                    if (pinsOfType == null) {
-                        pinsOfType = new ArrayList<NodeInst>();
-                        unconnectedPins.put(np, pinsOfType);
-                    }
-                    pinsOfType.add(ni);
-                }
 				addToDrawn(pi);
 				numDrawns++;
 			}
 		}
-        if (unconnectedPins != null) {
-            for (NodeProto np : unconnectedPins.keySet()) {
-                ArrayList<NodeInst> pinsOfType = unconnectedPins.get(np);
-                String msg = "Network: " + cell + " has " + pinsOfType.size() + " unconnected pins " + np;
-                System.out.println(msg);
-                List<Geometric> geomList = new ArrayList<Geometric>();
-                for (NodeInst ni: pinsOfType)
-                    networkManager.pushHighlight(ni);
-                networkManager.logWarning(msg, NetworkTool.errorSortNodes);
-            }
-        }
         stack = null;
 		// showDrawns();
 //  		System.out.println(cell + " has " + cell.getNumPorts() + " ports, " + cell.getNumNodes() + " nodes, " +
@@ -792,7 +725,6 @@ class NetCell
 
 	boolean redoNetworks1() {
 		/* Set index of NodeInsts */
-		checkLayoutCell();
 //        HashMap/*<Cell,Netlist>*/ subNetlists = new HashMap/*<Cell,Netlist>*/();
 //        for (Iterator<Nodable> it = getNodables(); it.hasNext(); ) {
 //            Nodable no = it.next();

@@ -32,6 +32,7 @@ import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -39,16 +40,19 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.EFIDO;
+import com.sun.electric.technology.technologies.GEM;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.prefs.Preferences;
@@ -348,6 +352,7 @@ public class DRC extends Listener
 		{
 			long startTime = System.currentTimeMillis();
             ErrorLogger errorLog = getDRCErrorLogger(isLayout, false);
+            checkNetworks(errorLog, cell, isLayout);
             if (isLayout)
                 Quick.checkDesignRules(errorLog, cell, null, null, bounds, this, mergeMode);
             else
@@ -848,6 +853,86 @@ public class DRC extends Listener
         return bits;
     }
 
+    /**
+     * Check networks rules of this Cell.
+     * @param errorLog error logger
+     * @param cell cell to check
+     * @param true if this is layout cell.
+     */
+    private static void checkNetworks(ErrorLogger errorLog, Cell cell, boolean isLayout) {
+        final int errorSortNetworks = 0;
+        final int errorSortNodes = 1;
+        HashMap<NodeProto,ArrayList<NodeInst>> strangeNodes = null;
+        HashMap<NodeProto,ArrayList<NodeInst>> unconnectedPins = null;
+        for (int i = 0, numNodes = cell.getNumNodes(); i < numNodes; i++) {
+            NodeInst ni = cell.getNode(i);
+            NodeProto np = ni.getProto();
+            if (!cell.isIcon()) {
+                if (ni.isIconOfParent() ||
+                        np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech.simProbeNode ||
+                        np == Artwork.tech.pinNode ||
+                        np == Generic.tech.invisiblePinNode) {
+                    if (ni.hasConnections()) {
+                        String msg = "Network: " + cell + " has connections on " + ni;
+                        System.out.println(msg);
+                        errorLog.logError(msg, ni, cell, null, errorSortNodes);
+                    }
+                } else if (np.getFunction() == PrimitiveNode.Function.PIN &&
+                        cell.getTechnology() != GEM.tech && cell.getTechnology() != EFIDO.tech && !ni.hasConnections()) {
+                    if (unconnectedPins == null)
+                        unconnectedPins = new HashMap<NodeProto,ArrayList<NodeInst>>();
+                    ArrayList<NodeInst> pinsOfType = unconnectedPins.get(np);
+                    if (pinsOfType == null) {
+                        pinsOfType = new ArrayList<NodeInst>();
+                        unconnectedPins.put(np, pinsOfType);
+                    }
+                    pinsOfType.add(ni);
+                }
+            }
+            if (isLayout) {
+                if (ni.getNameKey().isBus()) {
+                    String msg = "Network: Layout " + cell + " has arrayed " + ni;
+                    System.out.println(msg);
+                    errorLog.logError(msg, ni, cell, null, errorSortNetworks);
+                } 
+                boolean isSchematicNode;
+                if (ni.isCellInstance()) {
+                    Cell subCell = (Cell)np;
+                    isSchematicNode = subCell.isIcon() || subCell.isSchematic();
+                } else {
+                    isSchematicNode = np == Generic.tech.universalPinNode ||np.getTechnology() == Schematics.tech;
+                }
+                if (isSchematicNode) {
+                    if (strangeNodes == null)
+                        strangeNodes = new HashMap<NodeProto,ArrayList<NodeInst>>();
+                    ArrayList<NodeInst> nodesOfType = strangeNodes.get(np);
+                    if (nodesOfType == null) {
+                        nodesOfType = new ArrayList<NodeInst>();
+                        strangeNodes.put(np, nodesOfType);
+                    }
+                    nodesOfType.add(ni);
+                }
+            }
+        }
+        if (unconnectedPins != null) {
+            for (NodeProto np : unconnectedPins.keySet()) {
+                ArrayList<NodeInst> pinsOfType = unconnectedPins.get(np);
+                String msg = "Network: " + cell + " has " + pinsOfType.size() + " unconnected pins " + np;
+                System.out.println(msg);
+                errorLog.logWarning(msg, Collections.<Geometric>unmodifiableList(pinsOfType),
+                        null, null, null, null, cell, errorSortNodes);
+            }
+        }
+        if (strangeNodes != null) {
+            for (NodeProto np : strangeNodes.keySet()) {
+                ArrayList<NodeInst> nodesOfType = strangeNodes.get(np);
+                String msg = "Network: Layout " + cell + " has " + nodesOfType.size() +
+                        " " + np.describe(true) + " nodes";
+                System.out.println(msg);
+                errorLog.logError(msg, Collections.<Geometric>unmodifiableList(nodesOfType), null, cell, errorSortNetworks);
+            }
+        }
+    }
 
     /****************************** OPTIONS ******************************/
 
