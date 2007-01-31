@@ -56,6 +56,14 @@
         <exclude name="com/sun/electric/plugins/dais" if="GNU"/>
         <exclude name="com/sun/electric/plugins/dais/*" if="GNU"/>
         <exclude name="com/sun/electric/plugins/dais/*/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/libertyRW" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/csa" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/csa/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/csa/*/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/oyster" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/oyster/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/oyster/*/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/sctiming/*" if="GNU"/>
         <exclude name="com/sun/electric/plugins/generator" if="GNU"/>
         <exclude name="com/sun/electric/plugins/generator/*" if="GNU"/>
         <exclude name="com/sun/electric/plugins/irsim" if="GNU"/>
