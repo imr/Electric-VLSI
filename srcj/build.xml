@@ -28,81 +28,50 @@
     <target name="init" description="Initialization">
         <property name="beanshell" value="packaging/bsh-2.0b2.jar"/>
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
-        <property name="JUnit" value="packaging/junit-4.0.jar"/>
+        <property name="JUnit" value="packaging/junit-4.1.jar"/>
         <property name="lucene" value="packaging/lucene-1.4.3.jar"/>
         <property name="prefuse" value="packaging/prefuse.jar"/>
     </target>
 
     <!-- Patternset for 3D dependencies -->
     <patternset id="exclusion3D">
-        <exclude name="com/sun/electric/plugins/JMF" unless="JMF"/>
-        <exclude name="com/sun/electric/plugins/JMF/*" unless="JMF"/>
-        <exclude name="com/sun/electric/plugins/j3d" if="NO3D"/>
-        <exclude name="com/sun/electric/plugins/j3d/*" if="NO3D"/>
-        <exclude name="com/sun/electric/plugins/j3d/*/*" if="NO3D"/>
+        <exclude name="com/sun/electric/plugins/JMF/" unless="JMF"/>
+        <exclude name="com/sun/electric/plugins/j3d/" if="NO3D"/>
         <!-- you don't include either Java3D plugin if 3D option is out -->
         <!-- this is valid when Java3D is not installed -->
-        <exclude name="com/sun/electric/plugins/Java3D" if="NO3D"/>
-        <exclude name="com/sun/electric/plugins/Java3D/*" if="NO3D"/>
+        <exclude name="com/sun/electric/plugins/Java3D/" if="NO3D"/>
     </patternset>
 
-    <!-- Patternset for all tools that must be excluded from GNU -->
+    <!-- Patternset for plugins that are not distributed by GNU -->
     <patternset id="exclusionGNU">
-        <exclude name="com/sun/electric/plugins/calibre" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/calibre/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/csa" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/csa/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/csa/*/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/dais" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/dais/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/dais/*/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/libertyRW" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/csa" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/csa/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/csa/*/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/oyster" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/oyster/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/oyster/*/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sctiming/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/generator" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/generator/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/irsim" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/irsim/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/libertyRW" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/libertyRW/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/manualRussian" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/manualRussian/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/menus" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/menus/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/oyster" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/oyster/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/oyster/*/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/pie/*/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/prefuse/*/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sctiming" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sctiming/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/skill" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/skill/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/sunRouter/*/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tests" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tests/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc/*" if="GNU"/>
-        <exclude name="com/sun/electric/plugins/tsmc/*/*" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/irsim/" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/pie/" if="GNU"/>
+        <exclude name="com/sun/electric/plugins/prefuse/" if="GNU"/>
+    </patternset>
+
+    <!-- Patternset for plugins that are not distributed by SFS -->
+    <patternset id="exclusionSFS">
+        <exclude name="com/sun/electric/plugins/calibre/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/csa/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/dais/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/generator/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/libertyRW/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/manualRussian/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/menus/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/oyster/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/sctiming/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/skill/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/sunRouter/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/tests/" if="SFS"/>
+        <exclude name="com/sun/electric/plugins/tsmc/" if="SFS"/>
     </patternset>
 
     <!-- Patternset for all exclusions -->
     <patternset id="exclusion">
         <patternset refid="exclusion3D" />
         <patternset refid="exclusionGNU" />
-        <exclude name="com/sun/electric/plugins/jogl" unless="JOGL"/>
-        <exclude name="com/sun/electric/plugins/jogl/*" unless="JOGL"/>
+        <patternset refid="exclusionSFS" />
+        <exclude name="com/sun/electric/plugins/jogl/" unless="JOGL"/>
     </patternset>
 
     <!-- Path for minimum set of external jars -->
@@ -117,9 +86,10 @@
         <pathelement location="packaging/prefuse.jar"/>
     </path>
 
-	<!-- Use -DGNU=true for GNU release -->
-	<!-- Use -Dsource=true to release the source  -->
-    <!-- Use -DJMF=true to include JMF plugin -->
+	<!-- Use -DGNU=1 for GNU release -->
+	<!-- Use -DSFS=1 for SFS release -->
+	<!-- Use -Dsource=1 to release the source  -->
+    <!-- Use -DJMF=1 to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
 	    fork="true" memoryMaximumSize="512m">
@@ -215,7 +185,7 @@
         <delete dir="prefuse"/>   <!-- prefuse -->
         <delete dir="com/apple"/>
         <delete dir="junit"/>
-        <delete dir="junit4.0"/>
+        <delete dir="junit4.1"/>
     </target>
 
     <!-- Not able to put if condition inside unjar -->
@@ -228,12 +198,21 @@
 	<target name="jarForGNUBinary" description="Make binary Jar file for GNU">
 	    <antcall target="jarWithVersion">
 	        <param name="GNU" value="1"/>
+	        <param name="SFS" value="1"/>
 	    </antcall>
 	</target>
 
 	<target name="jarForGNUSource" description="Make source Jar file for GNU">
 	    <antcall target="jarWithVersion">
 	        <param name="GNU" value="1"/>
+	        <param name="SFS" value="1"/>
+	        <param name="source" value="1"/>
+	    </antcall>
+	</target>
+
+	<target name="jarForSFSSource" description="Make source Jar file for SFS">
+	    <antcall target="jarWithVersion">
+	        <param name="SFS" value="1"/>
 	        <param name="source" value="1"/>
 	    </antcall>
 	</target>
