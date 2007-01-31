@@ -139,6 +139,8 @@ public class FileMenu {
                     importLibraryCommand(FileType.LEF); }},
                 new EMenuItem("_DEF (Design Exchange Format)...") {	public void run() {
                     importLibraryCommand(FileType.DEF); }},
+                new EMenuItem("_DEF (Design Exchange Format) to current cell...") {	public void run() {
+                	importToCurrentCellCommand(FileType.DEF); }},
                 new EMenuItem("D_XF (AutoCAD)...") { public void run() {
                     importLibraryCommand(FileType.DXF); }},
                 new EMenuItem("S_UE (Schematic User Environment)...") {	public void run() {
@@ -469,6 +471,7 @@ public class FileMenu {
 		private FileType type;
 		private Library createLib;
 		private Library deleteLib;
+		private boolean useCurrentLib;
 		private long startMemory, startTime;
 
 		public ImportLibrary(URL fileURL, FileType type, Library deleteLib)
@@ -477,11 +480,22 @@ public class FileMenu {
 			this.fileURL = fileURL;
 			this.type = type;
 			this.deleteLib = deleteLib;
+			this.useCurrentLib = false;
 			if (type == FileType.DAIS)
 			{
 				startTime = System.currentTimeMillis();
 				startMemory = com.sun.electric.Main.getMemoryUsage();
 			}
+			startJob();
+		}
+		// this version imports to current library
+		public ImportLibrary(URL fileURL, FileType type)
+		{
+			super("Import to Current Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.fileURL = fileURL;
+			this.type = type;
+			this.deleteLib = null;
+			this.useCurrentLib = true;
 			startJob();
 		}
 
@@ -493,7 +507,12 @@ public class FileMenu {
 				if (!deleteLib.kill("replace")) return false;
 				deleteLib = null;
 			}
-			createLib = Input.importLibrary(fileURL, type);
+			if (useCurrentLib) {
+				createLib = Input.importToCurrentLibrary(fileURL, type);
+			} else {
+				createLib = Input.importLibrary(fileURL, type);
+			}
+			
 			if (createLib == null) return false;
 
             // new library open: check for default "noname" library and close if empty
@@ -644,6 +663,29 @@ public class FileMenu {
             ToolBar.setSaveLibraryButton();
         }
     }
+    /**
+	 * This method implements the command to import a file to a library
+	 * It is interactive, and pops up a dialog box.
+	 */
+	public static void importToCurrentCellCommand(FileType type)
+	{
+		        
+		String fileName = null;
+		if (type == FileType.DAIS)
+		{
+			fileName = OpenFile.chooseDirectory(type.getDescription());
+		} else
+		{
+			fileName = OpenFile.chooseInputFile(type, null);
+		}
+		if (fileName != null)
+		{
+			// start a job to do the input
+			URL fileURL = TextUtils.makeURLToFile(fileName);
+			//import to the current library
+			new ImportLibrary(fileURL, type);
+		}
+	}
 
 	/**
 	 * This method implements the command to import a library (Readable Dump or JELIB format).

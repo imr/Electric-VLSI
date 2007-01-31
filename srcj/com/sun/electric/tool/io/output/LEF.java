@@ -289,8 +289,15 @@ public class LEF extends Output
 			if (ni.isCellInstance()) continue;
 			if (ni == ignore) continue;
 			PrimitiveNode.Function fun = ni.getFunction();
-			if (fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
-				fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT) continue;
+			if (fun != PrimitiveNode.Function.PIN && 
+				fun != PrimitiveNode.Function.CONTACT &&
+				fun != PrimitiveNode.Function.NODE 	&& 
+				/* added WELL so that WELL contacts which are part of either
+				 * VDD or GND nets are not written out as obstructions
+				 */
+				fun != PrimitiveNode.Function.WELL 	&& 
+				fun != PrimitiveNode.Function.SUBSTRATE 	&&
+				fun != PrimitiveNode.Function.CONNECT) continue;
 			boolean found = true;
 			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{

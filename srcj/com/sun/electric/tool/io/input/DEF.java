@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.RTBounds;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -46,12 +47,15 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.LEFDEF.GetLayerInformation;
 import com.sun.electric.tool.io.input.LEFDEF.ViaDef;
+import com.sun.electric.database.variable.Variable;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Hashtable;
+import java.util.Enumeration;
 
 /**
  * This class reads files in DEF files.
@@ -64,6 +68,9 @@ public class DEF extends LEFDEF
 {
 	private double  scaleUnits;
 	private ViaDef  firstViaDef;
+	private Hashtable specialNetsHT = null;
+	private Hashtable normalNetsHT = null;
+	
 
 	/**
 	 * Method to import a library from disk.
@@ -109,8 +116,8 @@ public class DEF extends LEFDEF
 	}
 
 	private double convertDEFString(String key)
-	{
-		double v = TextUtils.atof(key) / scaleUnits / 2;
+	{		
+		double v = TextUtils.atof(key) / scaleUnits;
 		return TextUtils.convertFromDistance(v, Technology.getCurrent(), TextUtils.UnitScale.MICRO);
 	}
 
@@ -149,7 +156,16 @@ public class DEF extends LEFDEF
 			{
 				String cellName = mustGetKeyword("DESIGN");
 				if (cellName == null) return true;
-				cell = Cell.makeInstance(lib, cellName);
+				/* RBR - first, see if Cell name is equal to current cells
+				 * it exists then read into cell
+				 */
+				cell = lib.getCurCell();
+				if (cell == null || !cell.getCellName().getName().equals(cellName))
+				{
+					//does not equal current cell, so lets 
+					cell = Cell.makeInstance(lib, cellName);
+				}				
+				
 				if (cell == null)
 				{
 					reportError("Cannot create cell '" + cellName + "'");
@@ -260,6 +276,36 @@ public class DEF extends LEFDEF
 		}
 		return new Point2D.Double(x, y);
 	}
+	
+	/* Find nodeProto with same view as the parent cell
+	 * 
+	 */
+	private Cell getNodeProto(String name, Library curlib, Cell parent)
+	{
+		// first see if this cell is in the current library
+		CellName cn;
+		cn = CellName.newName(name,parent.getView(),0);
+		Cell cell = curlib.findNodeProto(cn.toString());
+		if (cell != null) return cell;
+
+		// now look in other libraries
+		for(Iterator<Library> it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (lib.isHidden()) continue;
+			if (lib == curlib) continue;
+			cell = lib.findNodeProto(name);
+			if (cell != null)
+			{
+				// must copy the cell
+//				Cell newCell = copyrecursively(cell, cell->protoname, curlib, cell->cellview,
+//					FALSE, FALSE, "", FALSE, FALSE, TRUE, new HashSet());
+//				return newCell;
+				return cell;
+			}
+		}
+		return null;
+	}
 
 	private Cell getNodeProto(String name, Library curlib)
 	{
@@ -285,6 +331,33 @@ public class DEF extends LEFDEF
 		}
 		return null;
 	}
+	
+	//RBR - temp method until I figure out
+	//why in Java 6.0 my use of GetOrientation
+	//generates a compile error
+   private Orientation FetchOrientation()
+   throws IOException
+   {
+	     	String key = mustGetKeyword("orientation");
+			if (key == null) return null;
+           int angle;
+			boolean transpose = false;
+			if (key.equalsIgnoreCase("N")) { angle = 0; } else
+			if (key.equalsIgnoreCase("S")) { angle = 1800; } else
+			if (key.equalsIgnoreCase("E")) { angle = 2700; } else
+			if (key.equalsIgnoreCase("W")) { angle = 900; } else
+			if (key.equalsIgnoreCase("FN")) { angle = 900;  transpose = true; } else
+			if (key.equalsIgnoreCase("FS")) { angle = 2700; transpose = true; } else
+			if (key.equalsIgnoreCase("FE")) { angle = 1800; transpose = true; } else
+			if (key.equalsIgnoreCase("FW")) { angle = 0;    transpose = true; } else
+			{
+				reportError("Unknown orientation (" + key + ")");
+				return null;
+			}
+   		 return( Orientation.fromC(angle, transpose));
+	   }
+	   	   
+	  
 
 	private class GetOrientation
 	{
@@ -548,7 +621,10 @@ public class DEF extends LEFDEF
 		}
 		return false;
 	}
-
+	private static Variable.Key prXkey = Variable.newKey("ATTR_prWidth");
+	private static Variable.Key prYkey = Variable.newKey("ATTR_prHeight");
+	
+    /* cell is the parent cell */
 	private boolean readComponent(Cell cell)
 		throws IOException
 	{
@@ -561,7 +637,15 @@ public class DEF extends LEFDEF
 		String modelName = key;
 
 		// find the named cell
-		Cell np = getNodeProto(modelName, cell.getLibrary());
+		Cell np;
+		if (cell.getView() != null) {
+			np = getNodeProto(modelName, cell.getLibrary(), cell);			
+		}else {
+			/* cell does not have a view yet, have no idea
+			 * what view we need, so just get the first one
+			 */			
+		  np = getNodeProto(modelName, cell.getLibrary());
+		}
 		if (np == null)
 		{
 			reportError("Unknown cell (" + modelName + ")");
@@ -581,15 +665,53 @@ public class DEF extends LEFDEF
 				{
 					// handle placement
 					Point2D pt = readCoordinate();
+					double nx = pt.getX();
+					double ny = pt.getY();
+					
 					if (pt == null) return true;
-					GetOrientation or = new GetOrientation();
+					Orientation or = FetchOrientation();
+					//GetOrientation or = new GetOrientation();
 
 					// place the node
 					double sX = np.getDefWidth();
 					double sY = np.getDefHeight();
+					
+					Variable prX = np.getVar(prXkey);
+					double width=0;
+					if (prX != null){
+						Integer tmp = (Integer)prX.getObject();
+						width = (double)tmp;
+					}else {
+						width = sX;  //no PR boundary, use cell boundary
+					}
+					Variable prY = np.getVar(prYkey);
+					double height=0;
+					if (prY != null){
+						Integer tmp = (Integer)prY.getObject();
+						height = (double)tmp;
+					}else {
+						height = sY; //no PR boundary, use cell boundary
+					}
+					/*DEF orientations require translations from Java orientations
+					 * Need to add W, E, FW, FE support
+					 */
+				
+					if (or.equals(Orientation.YRR)) { // FN DEF orientation
+						nx = nx + width;						
+					}
+					if (or.equals(Orientation.Y)){ // FS DEF orientation
+						ny = ny + height;
+					}
+					if (or.equals(Orientation.RR)){ // S DEF orientation
+						ny = ny + height;
+						nx = nx + width;
+					}
+					Point2D npt = new Point2D.Double(nx,ny);
+					
+					
 //					if (or.mX) sX = -sX;
 //					if (or.mY) sY = -sY;
-					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.orient, compName, 0);
+					NodeInst ni = NodeInst.makeInstance(np, npt, sX, sY, cell, or, compName, 0);
 //					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.angle, compName, 0);
 					if (ni == null)
 					{
@@ -611,6 +733,8 @@ public class DEF extends LEFDEF
 	private boolean readNets(Cell cell, boolean special)
 		throws IOException
 	{
+		if (special) specialNetsHT = new Hashtable();
+		else normalNetsHT = new Hashtable();
 		for(;;)
 		{
 			// get the next keyword
@@ -630,22 +754,106 @@ public class DEF extends LEFDEF
 			// ignore the keyword
 			if (ignoreToSemicolon(key)) return true;
 		}
+		connectSpecialNormalNets();
 		return false;
 	}
+
+	private PortInst connectGlobal(Cell cell, String portName)
+	{
+		PortInst pi = null;
+		PortInst lastPi = null;
+		NodeInst ni = null;
+		PortProto pp = null;
+				
+		for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+		{   
+			ni = (NodeInst)it.next();
+			pp = ni.getProto().findPortProto(portName);			
+			if (pp == null)
+			{
+				continue;
+			}
+			pi = ni.findPortInstFromProto(pp);
+			if (lastPi != null)
+			{
+				//do connection
+				ArcProto ap = Generic.tech.unrouted_arc;
+				ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), pi, lastPi);
+					if (ai == null)
+					{
+						reportError("Could not create unrouted arc");
+						return null;
+					}
+			}
+			lastPi = pi;
+			
+		}
+		return lastPi;
+	}
+	
+	/*
+	 * Look for special nets that need to be merged with normal nets
+	 * Synopsys Astro router places patches of metal in special nets
+	 * to cover normal nets as a method of filling notches
+	 */
+	private void connectSpecialNormalNets(){
+		
+		if (specialNetsHT == null) return;
+		if (normalNetsHT == null) return;
+		for (Enumeration  enSpec = specialNetsHT.keys(); enSpec.hasMoreElements();){
+			String netName = (String)enSpec.nextElement();
+			PortInst specPi = (PortInst)specialNetsHT.get(netName);
+			PortInst normalPi = null;
+			if (normalNetsHT.containsKey(netName)) {
+				normalPi = (PortInst)(normalNetsHT.get(netName));
+				if (normalPi != null){
+					//create a logical net between these two points
+					ArcProto ap = Generic.tech.unrouted_arc;
+					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), specPi, normalPi);
+					if (ai == null)
+					{
+						reportError("Could not create unrouted arc");
+						return;
+					}
+				}
+			}			
+		}
+		
+	}
+	
+    private ViaDef checkForVia (String key) 
+    {
+    	ViaDef vd = null;
+		for(vd = firstViaDef; vd != null; vd = vd.nextViaDef)
+			if (key.equalsIgnoreCase(vd.viaName)) break;
+		if (vd == null)
+		{
+			// see if the via name is from the LEF file
+			for(vd = firstViaDefFromLEF; vd != null; vd = vd.nextViaDef)
+				if (key.equalsIgnoreCase(vd.viaName)) break;
+		}
+		return vd;
+    }
 
 	private boolean readNet(Cell cell, boolean special)
 		throws IOException
 	{
+		String netName;
 		// get the net name
 		String key = mustGetKeyword("NET");
 		if (key == null) return true;
+		netName = key;    //save this so net can be placed in hashtable
 
 		// get the next keyword
 		key = mustGetKeyword("NET");
 		if (key == null) return true;
 
 		// scan the "net" statement
+		boolean adjustPinLocPi = false;
+		boolean adjustPinLocLastPi = false;
 		boolean wantPinPairs = true;
+		boolean connectAllComponents = false;
+		String wildcardPort = null;
 		double lastX = 0, lastY = 0;
 		double curX = 0, curY = 0;
 		double specialWidth = 0;
@@ -653,10 +861,30 @@ public class DEF extends LEFDEF
 		PortInst lastLogPi = null;
 		PortInst lastPi = null;
 		GetLayerInformation li = null;
+		boolean foundCoord = false;
+		boolean stackedViaFlag = false;
 		for(;;)
 		{
 			// examine the next keyword
-			if (key.equals(";")) break;
+			if (key.equals(";")) {
+				if (lastPi != null){
+					// remember at least one physical port instance for this net!
+					if (special) specialNetsHT.put(netName,lastPi);
+					else normalNetsHT.put(netName,lastPi);					
+				}
+				if (lastLogPi != null && lastPi != null){
+					//connect logical network and physical network so that DRC passes
+					ArcProto ap = Generic.tech.unrouted_arc;
+					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
+					if (ai == null)
+					{
+						reportError("Could not create unrouted arc");
+						return true;
+					}
+				}
+				
+				break;
+			}
 
 			if (key.equals("+"))
 			{
@@ -747,10 +975,12 @@ public class DEF extends LEFDEF
 				} else
 				{
 					NodeInst found = null;
+					if (key.equals("*")) connectAllComponents = true;
+					 else connectAllComponents = false;
 					for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
 					{
 						NodeInst ni = (NodeInst)it.next();
-						if (ni.getName().equalsIgnoreCase(key)) { found = ni;   break; }
+						if (connectAllComponents || ni.getName().equalsIgnoreCase(key)) { found = ni;   break; }
 					}
 					if (found == null)
 					{
@@ -760,13 +990,14 @@ public class DEF extends LEFDEF
 
 					// get the port name
 					key = mustGetKeyword("NET");
-					if (key == null) return true;
+					if (key == null) return true;					
 					PortProto pp = found.getProto().findPortProto(key);
 					if (pp == null)
 					{
 						reportError("Unknown port '" + key + "' on component " + found);
 						return true;
 					}
+					if (connectAllComponents) wildcardPort = key;
 					pi = found.findPortInstFromProto(pp);
 				}
 
@@ -778,16 +1009,23 @@ public class DEF extends LEFDEF
 					reportError("Expected ')' of pin pair");
 					return true;
 				}
-
-				if (lastLogPi != null && IOTool.isDEFLogicalPlacement())
+				if (IOTool.isDEFLogicalPlacement())
 				{
-					ArcProto ap = Generic.tech.unrouted_arc;
-					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), pi, lastLogPi);
-					if (ai == null)
-					{
-						reportError("Could not create unrouted arc");
-						return true;
-					}
+					if (connectAllComponents)
+					{//must connect all components in netlist
+						pi = connectGlobal(cell, wildcardPort);
+						if (pi == null) return true;
+					}else
+						if (lastLogPi != null )
+						{
+							ArcProto ap = Generic.tech.unrouted_arc;
+							ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), pi, lastLogPi);
+								if (ai == null)
+								{
+									reportError("Could not create unrouted arc");
+									return true;
+								}
+						}
 				}
 				lastLogPi = pi;
 
@@ -800,6 +1038,20 @@ public class DEF extends LEFDEF
 			// handle "new" start of coordinate trace
 			if (key.equalsIgnoreCase("NEW"))
 			{
+				/*
+				 * Connect last created segment to logical network
+				 */
+				if (lastLogPi != null && lastPi != null){
+					//connect logical network and physical network so that DRC passes
+					ArcProto ap = Generic.tech.unrouted_arc;
+					ArcInst ai = ArcInst.makeInstance(ap, ap.getDefaultLambdaFullWidth(), lastPi, lastLogPi);
+					if (ai == null)
+					{
+						reportError("Could not create unrouted arc");
+						return true;
+					}
+				}
+				
 				key = mustGetKeyword("NET");
 				if (key == null) return true;
 				li = new GetLayerInformation(key);
@@ -823,7 +1075,8 @@ public class DEF extends LEFDEF
 				continue;
 			}
 
-			boolean foundCoord = false;
+			if (!stackedViaFlag) foundCoord = false; 
+			
 			if (key.equals("("))
 			{
 				// get the X coordinate
@@ -851,23 +1104,23 @@ public class DEF extends LEFDEF
 					reportError("Expected ')' of coordinate pair");
 					return true;
 				}
+				
 			}
 
-			// get the next keyword
-			key = mustGetKeyword("NET");
-			if (key == null) return true;
+			/*
+			 * if stackedViaFlag is set, then we have already fetched
+			 * this Via key word, so don't fetch next keyword 
+			 */
+			if (!stackedViaFlag) 
+			{
+//				 get the next keyword
+				key = mustGetKeyword("NET");
+				if (key == null) return true;
+			}
 
 			// see if it is a via name
-			ViaDef vd = null;
-			for(vd = firstViaDef; vd != null; vd = vd.nextViaDef)
-				if (key.equalsIgnoreCase(vd.viaName)) break;
-			if (vd == null)
-			{
-				// see if the via name is from the LEF file
-				for(vd = firstViaDefFromLEF; vd != null; vd = vd.nextViaDef)
-					if (key.equalsIgnoreCase(vd.viaName)) break;
-			}
-
+			ViaDef vd = checkForVia(key) ;
+			
 			// stop now if not placing physical nets
 			if (!IOTool.isDEFPhysicalPlacement())
 			{
@@ -936,11 +1189,19 @@ public class DEF extends LEFDEF
 				// get the next keyword
 				key = mustGetKeyword("NET");
 				if (key == null) return true;
+				/*
+				 * check if next key is yet another via
+				 */
+				ViaDef vdStack = checkForVia(key) ;
+				if (vdStack == null) stackedViaFlag = false;
+				else stackedViaFlag = true;
 			} else
 			{
 				// no via mentioned: just make a pin
+				// this pin center will have to be adjusted if special! RBR
 				pi = getPin(curX, curY, li.arc, cell);
 				if (pi == null) return true;
+				adjustPinLocPi = true;
 			}
 			if (!foundCoord) continue;
 
@@ -970,6 +1231,52 @@ public class DEF extends LEFDEF
 					Double wid = widthsFromLEF.get(li.arc);
 					if (wid != null) width = wid.doubleValue();
 				}
+				if (adjustPinLocLastPi && special) {//starting pin
+					//have to adjust the last pin location
+					double dX = 0;
+					double dY = 0;
+					if (curX != lastX){
+						//horizontal route
+						dX = width/2;  //default, adjust left
+						if (curX < lastX){
+							dX = -dX; //route runs right to left, adjust right
+						}
+					}
+					if (curY != lastY){
+						//vertical route
+						dY = width/2; //default, adjust up
+						if (curY < lastY){
+							dY = -dY; //route runs top to bottom, adjust down
+						}						
+					}
+					lastPi.getNodeInst().move(dX,dY);
+					adjustPinLocLastPi = false;
+				}
+				/* note that this adjust is opposite of previous since
+				 * this pin is on the end of the wire instead of the beginning
+				 */
+				if (adjustPinLocPi && special) {//ending pin
+					//have to adjust the last pin location
+					double dX = 0;
+					double dY = 0;
+					if (curX != lastX){
+						//horizontal route
+						dX = -width/2;  //default, adjust right
+						if (curX < lastX){
+							dX = -dX; //route runs right to left, adjust left
+						}
+					}
+					if (curY != lastY){
+						//vertical route
+						dY = -width/2; //default, adjust down
+						if (curY < lastY){
+							dY = -dY; //route runs top to bottom, adjust up
+						}						
+					}
+					pi.getNodeInst().move(dX,dY);
+					adjustPinLocPi = false;
+				}
+				
 				ArcInst ai = ArcInst.makeInstance(li.arc, width, lastPi, pi);
 				if (ai == null)
 				{
@@ -980,6 +1287,8 @@ public class DEF extends LEFDEF
 			lastX = curX;   lastY = curY;
 			pathStart = false;
 			lastPi = pi;
+			adjustPinLocLastPi=adjustPinLocPi;
+			adjustPinLocPi = false;
 
 			// switch layers to the other one supported by the via
 			if (placedVia)

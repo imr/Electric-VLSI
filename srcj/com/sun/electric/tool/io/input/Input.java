@@ -85,6 +85,29 @@ public class Input
 
 		// create a new library
 		Library lib = Library.newInstance(libName, fileURL);
+		return importLibraryCommon(fileURL, type, lib);
+	}
+
+	public static Library importToCurrentLibrary(URL fileURL, FileType type)
+	{
+		// make sure the file exists
+		if (fileURL == null) return null;
+        StringBuffer errmsg = new StringBuffer();
+		if (!TextUtils.URLExists(fileURL, errmsg))
+		{
+			System.out.print(errmsg.toString());
+			return null;
+		}
+
+		// get the name of the imported library
+		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
+
+		// import to current library
+		return importLibraryCommon(fileURL, type, Library.getCurrent());
+	}
+
+	private static Library importLibraryCommon(URL fileURL, FileType type, Library lib)
+	{
 //		lib.setChanged();
 
 		// initialize timer, error log, etc

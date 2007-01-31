@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
 
+IMP/MAN: (1/31/07, SMR) Improvements to LEF output and DEF input from Bob Reese.
+     Now have "File / Import / DEF (Design Exchange Format) to current cell..."
+
 BUG: (1/20/07, DN) Get rid of those "has connections on port 'generic:Port[].center" messages (Bug #829).
 FIX: They are transfered to DRC.
 
