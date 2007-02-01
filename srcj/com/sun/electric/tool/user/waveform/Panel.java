@@ -200,7 +200,7 @@ public class Panel extends JPanel
 		leftHalf.setPreferredSize(new Dimension(100, height));
 
 		// a drop target for the signal panel
-		DropTarget dropTargetLeft = new DropTarget(leftHalf, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
+		new DropTarget(leftHalf, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
 
 		// a separator at the top
 		JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
@@ -218,7 +218,7 @@ public class Panel extends JPanel
 		{
 			// analog panel
 			JLabel label = new DragLabel(Integer.toString(panelNumber));
-			label.setToolTipText("Identification number of this waveform panel");
+			label.setToolTipText("Identification number of this waveform panel (drag the number to rearrange panels)");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 1;
 			gbc.weightx = 0.2;  gbc.weighty = 0;
@@ -232,7 +232,7 @@ public class Panel extends JPanel
 			digitalSignalButton = new DragButton(Integer.toString(panelNumber), panelNumber);
 			digitalSignalButton.setBorderPainted(false);
 			digitalSignalButton.setForeground(Color.BLACK);
-			digitalSignalButton.setToolTipText("Name of this waveform panel");
+			digitalSignalButton.setToolTipText("Identification number of this waveform panel (drag the number to rearrange panels)");
 			gbc = new GridBagConstraints();
 			gbc.gridx = 0;       gbc.gridy = 1;
 			gbc.weightx = 1;     gbc.weighty = 1;
@@ -402,7 +402,6 @@ public class Panel extends JPanel
 		// put the left and right sides into the window
 		if (WaveformWindow.USETABLES)
 		{
-//			waveWindow.getWaveformTable().setRowHeight(index, height);
 			waveWindow.getWaveformTable().repaint();
 			waveWindow.getWaveformTable().doLayout();
 			waveWindow.getWaveformTable().updateUI();
@@ -693,25 +692,43 @@ public class Panel extends JPanel
 		{
 			// closed: add all entries on the bus
 			int increment = 1;
+			if (WaveformWindow.USETABLES)
+			{
+				waveWindow.stopEditing();
+			}
 			for(Signal subSig : bussedSignals)
 			{
 				DigitalSignal subDS = (DigitalSignal)subSig;
 				Panel wp = waveWindow.makeNewPanel();
 				WaveSignal wsig = new WaveSignal(wp, subDS);
 
-				// remove the panels and put them in the right place
-				waveWindow.getSignalNamesPanel().remove(wsig.getPanel().leftHalf);
-				waveWindow.getSignalTracesPanel().remove(wsig.getPanel().rightHalf);
-
-				Component [] lefts = waveWindow.getSignalNamesPanel().getComponents();
-				int destIndex = 0;
-				for( ; destIndex < lefts.length; destIndex++)
+				if (WaveformWindow.USETABLES)
 				{
-					if (lefts[destIndex] == leftHalf) break;
+					// remove the panels and put them in the right place
+					waveWindow.removePanel(wsig.getPanel());
+
+					int destIndex = waveWindow.getPanelIndex(this);
+					waveWindow.addPanel(wsig.getPanel(), destIndex+increment);
+				} else
+				{
+					// remove the panels and put them in the right place
+					waveWindow.getSignalNamesPanel().remove(wsig.getPanel().leftHalf);
+					waveWindow.getSignalTracesPanel().remove(wsig.getPanel().rightHalf);
+
+					Component [] lefts = waveWindow.getSignalNamesPanel().getComponents();
+					int destIndex = 0;
+					for( ; destIndex < lefts.length; destIndex++)
+					{
+						if (lefts[destIndex] == leftHalf) break;
+					}
+					waveWindow.getSignalNamesPanel().add(wsig.getPanel().leftHalf, destIndex+increment);
+					waveWindow.getSignalTracesPanel().add(wsig.getPanel().rightHalf, destIndex+increment);
 				}
-				waveWindow.getSignalNamesPanel().add(wsig.getPanel().leftHalf, destIndex+increment);
-				waveWindow.getSignalTracesPanel().add(wsig.getPanel().rightHalf, destIndex+increment);
 				increment++;
+			}
+			if (WaveformWindow.USETABLES)
+			{
+				waveWindow.reloadTable();
 			}
 		}
 		waveWindow.validatePanel();
@@ -935,7 +952,13 @@ public class Panel extends JPanel
 	public void repaintContents()
 	{
 		repaintOffscreenImage();
-		repaint();
+		if (WaveformWindow.USETABLES)
+		{
+			waveWindow.getWaveformTable().repaint();
+		} else
+		{
+			repaint();
+		}
 	}
 
 	private BufferedImage offscreen;
@@ -960,7 +983,12 @@ public class Panel extends JPanel
 		{
 			repaintOffscreenImage();
 		}
-		if (!WaveformWindow.USETABLES)
+		if (WaveformWindow.USETABLES)
+		{
+			Dimension tableSz = waveWindow.getWaveformTable().getSize();
+			Point screenLoc = waveWindow.getWaveformTable().getLocationOnScreen();
+			waveWindow.setScreenXSize(screenLoc.x + tableSz.width - wid, screenLoc.x + tableSz.width);
+		} else
 		{
 			Point screenLoc = getLocationOnScreen();
 			waveWindow.setScreenXSize(screenLoc.x, screenLoc.x + wid);

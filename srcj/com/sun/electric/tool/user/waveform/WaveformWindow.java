@@ -42,13 +42,13 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.ncc.NccCrossProbing;
-import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.EpicAnalysis;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.ncc.NccCrossProbing;
+import com.sun.electric.tool.ncc.result.NccResult;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Analysis;
 import com.sun.electric.tool.simulation.DigitalSignal;
@@ -62,7 +62,6 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.ElectricPrinter;
 import com.sun.electric.tool.user.ui.ExplorerTree;
@@ -80,6 +79,8 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -91,6 +92,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -118,6 +122,7 @@ import java.util.Set;
 import java.util.Stack;
 
 import javax.print.attribute.standard.ColorSupported;
+import javax.swing.AbstractCellEditor;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -128,10 +133,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.table.AbstractTableModel;
+import javax.swing.event.TableModelEvent;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
@@ -145,7 +154,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 {
 	/** minimum height of an Analog panel */				private static final int MINANALOGPANELSIZE = 30;
 	/** minimum height of a Digital panel */				private static final int MINDIGITALPANELSIZE = 20;
-	public static final boolean USETABLES = false;
+	public static final boolean USETABLES = true;
 
 	/** the window that this lives in */					private WindowFrame wf;
 	/** the cell being simulated */							private Stimuli sd;
@@ -158,14 +167,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
-    /** mapping from analysis to entries in "SIGNALS" tree*/private HashMap<Analysis,TreePath> treePathFromAnalysis = new HashMap<Analysis,TreePath>();
+	/** mapping from analysis to entries in "SIGNALS" tree*/private HashMap<Analysis,TreePath> treePathFromAnalysis = new HashMap<Analysis,TreePath>();
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
 	/** left panel: the signal names */						private JPanel left;
 	/** right panel: the signal traces */					private JPanel right;
-	/** the table with panels and labels */					private JTable table;
-	/** the table with panels and labels */					TableModel tableModel;
+	/** the table with panels and labels */					private WaveTable table;
+	/** the table editor for left and right halves */		private WaveCellEditor leftSideColumn, rightSideColumn;
+	/** the table with panels and labels */					private TableModel tableModel;
 	/** labels for the text at the top */					private JLabel mainPos, extPos, delta, diskLabel;
 	/** buttons for centering the X-axis cursors. */		private JButton centerMain, centerExt;
 	/** a list of panels in this window */					private List<Panel> wavePanels;
@@ -217,6 +227,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	private static final ImageIcon iconVCRFaster = Resources.getResource(WaveformWindow.class, "ButtonVCRFaster.gif");
 	private static final ImageIcon iconVCRSlower = Resources.getResource(WaveformWindow.class, "ButtonVCRSlower.gif");
 
+	private static final Cursor resizeRowCursor = Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
+	private static final Cursor resizeColumnCursor = Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR);
+
 	/**
 	 * Constructor creates a Waveform window in a given WindowFrame with given Stimuli data.
 	 * @param sd the Stimuli data to show in the window.
@@ -261,20 +274,23 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		// the table that holds the waveform panels
 		if (USETABLES)
 		{
-			tableModel = new WaveTableModel(this);
-			table = new WaveTable(tableModel);
-			table.setDefaultRenderer(Object.class, new WaveCellRenderer());
-//			table.setTableHeader(null);
+			tableModel = new WaveTableModel();
+			table = new WaveTable(tableModel, this);
+			new TableMouseListener(table);
+			table.getTableHeader().setPreferredSize(new Dimension(1, 1));
 			TableColumn column1 = table.getColumnModel().getColumn(0);
-			column1.setHeaderValue("Controls");
 			column1.setPreferredWidth(100);
 			TableColumn column2 = table.getColumnModel().getColumn(1);
-			column2.setHeaderValue("Waveforms");
 			column2.setPreferredWidth(500);
-			scrollAll = new JScrollPane(table);
+			leftSideColumn = new WaveCellEditor(table, 0);
+			rightSideColumn = new WaveCellEditor(table, 1);
 			int height = getPanelSizeDigital();
 			if (sd.isAnalog()) height = getPanelSizeAnalog();
 			table.setRowHeight(height);
+			scrollAll = new JScrollPane(table);
+
+			// a drop target for the table
+			new DropTarget(table, DnDConstants.ACTION_LINK, WaveformWindow.waveformDropTarget, true);
 		} else
 		{
 			// the left half has signal names; the right half has waveforms
@@ -625,6 +641,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			public void actionPerformed(ActionEvent evt) { vcrClickSlower(); }
 		});
 
+		// the single horizontal ruler panel (when the X axes are locked)
+		if (xAxisLocked)
+		{
+			addMainHorizRulerPanel();
+		}
+
 		// set bounds of the window from extent of the data
 		Rectangle2D dataBounds = sd.getBounds();
 		if (dataBounds != null)
@@ -636,51 +658,254 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			setExtensionXPositionCursor(timeRange*0.8 + lowTime);
 			setDefaultHorizontalRange(lowTime, highTime);
 		}
-
-		// the single horizontal ruler panel (when the X axes are locked)
-		if (xAxisLocked)
-		{
-			addMainHorizRulerPanel();
-		}
 	}
 
-	private static class WaveTableModel extends AbstractTableModel
+	private class WaveTable extends JTable
 	{
 		private WaveformWindow ww;
 
-		public WaveTableModel(WaveformWindow ww) { this.ww = ww; }
+		WaveTable(TableModel model, WaveformWindow ww)
+		{
+			super(model);
+			this.ww = ww;
+		}
+	}
 
+	private class WaveTableModel extends DefaultTableModel
+	{
 		public int getColumnCount() { return 2; }
 
-		public int getRowCount() { return ww.getNumPanels(); }
+		public int getRowCount()
+		{
+			int numVisPanels = 0;
+			for(Panel wp : wavePanels)
+			{
+				if (!wp.isHidden()) numVisPanels++;
+			}
+			return numVisPanels;
+		}
 
 		public Object getValueAt(int row, int col)
 		{
-			Panel panel = ww.getPanel(row);
-			if (col == 0) return panel.getLeftHalf();
-			return panel.getRightHalf();
+			int rowNo = 0;
+			for(Panel panel : wavePanels)
+			{
+				if (panel.isHidden()) continue;
+				if (rowNo == row)
+				{
+					if (col == 0) return panel.getLeftHalf();
+					return panel.getRightHalf();
+				}
+				rowNo++;
+			}
+			return null;
 		}
-	}
 
-	private static class WaveTable extends JTable
-	{
-		public WaveTable(TableModel wtm) { super(wtm); }
+		public void setValueAt(Object obj, int row, int col) {}
 
-		public TableCellRenderer getCellRenderer(int row, int col)
+		public Class<?> getColumnClass(int column)
 		{
-			return waveCellRenderer;
+			return JPanel.class;
 		}
 	}
 
-	private static WaveCellRenderer waveCellRenderer = new WaveCellRenderer();
-
-	private static class WaveCellRenderer implements TableCellRenderer
+	static class WaveCellEditor extends AbstractCellEditor
+		implements TableCellRenderer, TableCellEditor
 	{
-		public Component getTableCellRendererComponent(JTable table, Object value,
-			boolean isSelected, boolean hasFocus, int row, int column)
+		private Component lastOne;
+
+		public WaveCellEditor(JTable table, int column)
+		{
+			super();
+			TableColumnModel columnModel = table.getColumnModel();
+			columnModel.getColumn(column).setCellRenderer(this);
+			columnModel.getColumn(column).setCellEditor(this);
+		}
+
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column)
 		{
 			return (Component)table.getValueAt(row, column);
 		}
+
+		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column)
+		{
+			lastOne = (Component)table.getValueAt(row, column);
+			return lastOne;
+		}
+
+		public Object getCellEditorValue()
+		{
+			return lastOne;
+		}
+	}
+
+	private class TableMouseListener implements MouseListener, MouseMotionListener
+	{
+		private int mouseXOffset, mouseYOffset, resizingRow;
+		private TableColumn resizingColumn;
+		private JTable table;
+
+		public TableMouseListener(JTable table)
+		{
+			this.table = table;
+			table.addMouseListener(this);
+			table.addMouseMotionListener(this);
+		}
+
+		private TableColumn getResizingColumn(Point p)
+		{
+			int column = table.columnAtPoint(p);
+			if (column == -1) return null;
+			int row = table.rowAtPoint(p);
+			if (row == -1) return null;
+			Rectangle r = table.getCellRect(row, column, true);
+			r.grow(-3, 0);
+			if (r.contains(p)) return null;
+
+			int midPoint = r.x + r.width / 2;
+			int columnIndex = (p.x < midPoint) ? column - 1 : column;
+			if (columnIndex == -1) return null;
+			return table.getTableHeader().getColumnModel().getColumn(columnIndex);
+		}
+
+		private int getResizingRow(Point p)
+		{
+			int row = table.rowAtPoint(p);
+			if (row == -1) return -1;
+			int col = table.columnAtPoint(p);
+			if (col == -1) return -1;
+			Rectangle r = table.getCellRect(row, col, true);
+			r.grow(0, -3);
+			if (r.contains(p)) return -1;
+
+			int midPoint = r.y + r.height / 2;
+			int rowIndex = (p.y < midPoint) ? row - 1 : row;
+			return rowIndex;
+		}
+
+		public void mouseClicked(MouseEvent e)
+		{
+			// forward event to the panel contents
+			forwardEventToPanel(e);
+		}
+
+		public void mouseEntered(MouseEvent e)
+		{
+			// forward event to the panel contents
+			forwardEventToPanel(e);
+		}
+
+		public void mouseExited(MouseEvent e)
+		{
+			// forward event to the panel contents
+			forwardEventToPanel(e);
+		}
+
+		public void mousePressed(MouseEvent e)
+		{
+			table.getTableHeader().setResizingColumn(null);
+
+			// figure out if a divider was hit
+			Point p = e.getPoint();
+			resizingColumn = getResizingColumn(p);
+			if (resizingColumn != null)
+			{
+				resizingRow = -1;
+				table.getTableHeader().setResizingColumn(resizingColumn);
+				mouseXOffset = p.x - resizingColumn.getWidth();
+				return;
+			}
+			resizingRow = getResizingRow(p);
+			if (resizingRow >= 0)
+			{
+				mouseYOffset = p.y - table.getRowHeight(resizingRow);
+				return;
+			}
+
+			// forward event to the panel contents
+			forwardEventToPanel(e);
+		}
+
+		public void mouseMoved(MouseEvent e)
+		{
+			if (getResizingColumn(e.getPoint()) != null)
+			{
+				table.setCursor(resizeColumnCursor);
+				return;
+			}
+			if (getResizingRow(e.getPoint()) >= 0)
+			{
+				table.setCursor(resizeRowCursor);
+				return;
+			}
+			table.setCursor(null);
+
+			// forward event to the panel contents
+			forwardEventToPanel(e);
+		}
+
+		public void mouseDragged(MouseEvent e)
+		{
+			if (resizingColumn != null)
+			{
+				resizingColumn.setWidth(e.getX() - mouseXOffset);
+				if (mainHorizRulerPanel != null) mainHorizRulerPanel.repaint();
+				return;
+			}
+			if (resizingRow >= 0)
+			{
+				int newHeight = e.getY() - mouseYOffset;
+				if (newHeight > 0)
+				{
+					table.setRowHeight(resizingRow, newHeight);
+					return;
+				}
+			}
+
+			// forward event to the panel contents
+			forwardEventToPanel(e);
+		}
+
+		public void mouseReleased(MouseEvent e)
+		{
+			if (resizingColumn != null)
+			{
+				table.getTableHeader().setResizingColumn(null);
+				return;
+			}
+
+			// forward event to the panel contents
+			forwardEventToPanel(e);
+		}
+
+		public void forwardEventToPanel(MouseEvent e)
+		{
+			Point p = e.getPoint();
+			int row = table.rowAtPoint(p);
+			int col = table.columnAtPoint(p);
+			if (row < 0 || col < 0) return;
+			JPanel panel = (JPanel)table.getValueAt(row, col);
+
+			// so clicks are felt inside the panels
+			MouseEvent panelEvent = (MouseEvent)SwingUtilities.convertMouseEvent(table, e, panel);
+			panel.dispatchEvent(panelEvent);
+
+			// This is necessary so that when a button is pressed and released
+		    // it gets rendered properly.  Otherwise, the button may still appear
+		    // pressed down when it has been released.
+			table.repaint();
+		}
+	}
+
+	public void stopEditing()
+	{
+		leftSideColumn.stopCellEditing();
+		rightSideColumn.stopCellEditing();
+	}
+
+	public void reloadTable()
+	{
+		table.tableChanged(new TableModelEvent(tableModel));
 	}
 
 	// ************************************* REQUIRED IMPLEMENTATION METHODS *************************************
@@ -696,9 +921,9 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			wp.finished();
 		}
 		overall.removeComponentListener(wcl);
-        highlighter.delete();
-        if (sd != null)
-            sd.finished();
+		highlighter.delete();
+		if (sd != null)
+			sd.finished();
 	}
 
 	public void fullRepaint() { repaint(); }
@@ -763,7 +988,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 * Method to intialize for printing.
 	 * @param ep the ElectricPrinter object.
 	 * @param pageFormat information about the print job.
-     * @return true if no erros were found during initialization.
+	 * @return true if no erros were found during initialization.
 	 */
 	public boolean initializePrinting(ElectricPrinter ep, PageFormat pageFormat)
 	{
@@ -774,10 +999,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		changedColors = true;
 
 		PrinterJob pj = ep.getPrintJob();
-        if (pj == null) return false; // error
-        ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
-        if (cs == null) return false; // error
-        nowPrinting = 1;
+		if (pj == null) return false; // error
+		ColorSupported cs = pj.getPrintService().getAttribute(ColorSupported.class);
+		if (cs == null) return false; // error
+		nowPrinting = 1;
 		if (cs.getValue() == 0) nowPrinting = 2;
 
 		Dimension oldSize = ep.getOldSize();
@@ -792,8 +1017,8 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		overall.validate();
 		redrawAllPanels();
 		overall.repaint();
-        return true;
-    }
+		return true;
+	}
 
 	/**
 	 * Method to print window using offscreen canvas.
@@ -910,22 +1135,22 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public JPanel getPanel() { return overall; }
 
-    public void setCursor(Cursor cursor)
-    {
-        overall.setCursor(cursor);
+	public void setCursor(Cursor cursor)
+	{
+		overall.setCursor(cursor);
 		if (USETABLES)
 		{
-	        table.setCursor(cursor);
+			table.setCursor(cursor);
 		} else
 		{
-	        split.setCursor(cursor);
-	        right.setCursor(cursor);
+			split.setCursor(cursor);
+			right.setCursor(cursor);
 		}
-        for (JPanel p : wavePanels)
-        {
-            p.setCursor(cursor);
-        }
-    }
+		for (JPanel p : wavePanels)
+		{
+			p.setCursor(cursor);
+		}
+	}
 
 	public void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes displayAttributes)
 	{
@@ -1052,6 +1277,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			vertAxisPos = aPanel.getVertAxisPos();
 		}
 
+		int [] rowHeights = null;
+		if (USETABLES)
+		{
+			int rows = table.getRowCount();
+			rowHeights = new int[rows];
+			for(int i=0; i<rows; i++) rowHeights[i] = table.getRowHeight(i);
+		}
+
 		// create the new panel
 		Panel panel = new Panel(this, sd.isAnalog(), analysisType);
 
@@ -1066,6 +1299,11 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		getPanel().validate();
 		if (getMainHorizRuler() != null)
 			getMainHorizRuler().repaint();
+		if (USETABLES)
+		{
+			table.tableChanged(new TableModelEvent(tableModel));
+			for(int i=0; i<rowHeights.length; i++) table.setRowHeight(i, rowHeights[i]);
+		}
 		return panel;
 	}
 
@@ -1083,11 +1321,34 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public Panel getPanel(int index) { return wavePanels.get(index); }
 
 	/**
-	 * Method to return the List of Panels in this window.
+	 * Method to return the index of a Panel in this window.
+	 * @param panel the Panel to find.
+	 * @return the index of that Panel in this window.
+	 */
+	public int getPanelIndex(Panel panel) { return wavePanels.indexOf(panel); }
+
+	/**
+	 * Method to add a Panel to this window.
 	 */
 	public void addPanel(Panel panel)
 	{
 		wavePanels.add(panel);
+	}
+
+	/**
+	 * Method to add a Panel to this window.
+	 */
+	public void addPanel(Panel panel, int index)
+	{
+		wavePanels.add(index, panel);
+	}
+
+	/**
+	 * Method to remove a Panel from this window.
+	 */
+	public void removePanel(Panel panel)
+	{
+		wavePanels.remove(panel);
 	}
 
 	/**
@@ -1161,6 +1422,10 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		if (mainHorizRulerPanel != null) 
 			mainHorizRulerPanel.repaint();
+		for(Panel wp : wavePanels)
+		{
+			wp.repaintContents();
+		}
 		if (USETABLES)
 		{
 			table.repaint();
@@ -1168,10 +1433,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		{
 			left.repaint();
 			right.repaint();
-		}
-		for(Panel wp : wavePanels)
-		{
-			wp.repaintContents();
 		}
 	}
 
@@ -1181,9 +1442,32 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public void closePanel(Panel wp)
 	{
-		left.remove(wp.getLeftHalf());
-		right.remove(wp.getRightHalf());
-		wavePanels.remove(wp);
+		if (USETABLES)
+		{
+			int rows = wavePanels.size();
+			int [] rowHeights = new int[rows];
+			int closedPanelIndex = wavePanels.indexOf(wp);
+			int validPanels = 0;
+			int visRow = 0;
+			for(int i=0; i<rows; i++)
+			{
+				if (wavePanels.get(i).isHidden()) continue;
+				int rowHeight = table.getRowHeight(visRow++);
+				if (i == closedPanelIndex) continue;
+				rowHeights[validPanels++] = rowHeight;
+			}
+
+			stopEditing();
+			reloadTable();
+			wavePanels.remove(wp);
+
+			for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
+		} else
+		{
+			left.remove(wp.getLeftHalf());
+			right.remove(wp.getRightHalf());
+			wavePanels.remove(wp);
+		}
 		rebuildPanelList();
 		overall.validate();
 		redrawAllPanels();
@@ -1196,9 +1480,32 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void hidePanel(Panel wp)
 	{
 		if (wp.isHidden()) return;
-		wp.setHidden(true);
-		left.remove(wp.getLeftHalf());
-		right.remove(wp.getRightHalf());
+		if (USETABLES)
+		{
+			int rows = wavePanels.size();
+			int [] rowHeights = new int[rows];
+			int hiddenPanelIndex = wavePanels.indexOf(wp);
+			int validPanels = 0;
+			int visRow = 0;
+			for(int i=0; i<rows; i++)
+			{
+				if (wavePanels.get(i).isHidden()) continue;
+				int rowHeight = table.getRowHeight(visRow++);
+				if (i == hiddenPanelIndex) continue;
+				rowHeights[validPanels++] = rowHeight;
+			}
+
+			wp.setHidden(true);
+			stopEditing();
+			reloadTable();
+
+			for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
+		} else
+		{
+			wp.setHidden(true);
+			left.remove(wp.getLeftHalf());
+			right.remove(wp.getRightHalf());
+		}
 		rebuildPanelList();
 		overall.validate();
 		redrawAllPanels();
@@ -1211,9 +1518,44 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	public void showPanel(Panel wp)
 	{
 		if (!wp.isHidden()) return;
-		wp.setHidden(false);
-		left.add(wp.getLeftHalf());
-		right.add(wp.getRightHalf());
+		if (USETABLES)
+		{
+			int rows = wavePanels.size();
+			int [] rowHeights = new int[rows];
+			int openedPanelIndex = wavePanels.indexOf(wp);
+			int validPanels = 0;
+			int visRow = 0;
+			int openedPanelHeightIndex = -1;
+			int averageHeight = 0;
+			int numAverages = 0;
+			for(int i=0; i<rows; i++)
+			{
+				if (i == openedPanelIndex)
+				{
+					openedPanelHeightIndex = validPanels;
+					rowHeights[validPanels++] = 50;
+					continue;
+				}
+				if (wavePanels.get(i).isHidden()) continue;
+				int rowHeight = table.getRowHeight(visRow++);
+				rowHeights[validPanels++] = rowHeight;
+				averageHeight += rowHeight;
+				numAverages++;
+			}
+
+			wp.setHidden(false);
+			stopEditing();
+			reloadTable();
+
+			if (numAverages != 0)
+				rowHeights[openedPanelHeightIndex] = averageHeight / numAverages;
+			for(int i=0; i<validPanels; i++) table.setRowHeight(i, rowHeights[i]);
+		} else
+		{
+			wp.setHidden(false);
+			left.add(wp.getLeftHalf());
+			right.add(wp.getRightHalf());
+		}
 		rebuildPanelList();
 		overall.validate();
 		redrawAllPanels();
@@ -1241,33 +1583,43 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		}
 
 		// resize the panels
-		for(Panel wp : wavePanels)
+		if (USETABLES)
 		{
-			Dimension sz = wp.getSize();
-			sz.height = (int)(sz.height * scale);
-			wp.setSize(sz.width, sz.height);
-			wp.setMinimumSize(sz);
-			wp.setPreferredSize(sz);
-
-//			if (wp.getSignalButtonsPane() != null)
-//			{
-//				sz = wp.getSignalButtonsPane().getSize();
-//				sz.height = (int)(sz.height * scale);
-//				wp.getSignalButtonsPane().setPreferredSize(sz);
-//				wp.getSignalButtonsPane().setSize(sz.width, sz.height);
-//			} else
+			for(int i=0; i<table.getRowCount(); i++)
 			{
-				sz = wp.getLeftHalf().getSize();
-				sz.height = (int)(sz.height * scale);
-				wp.getLeftHalf().setPreferredSize(sz);
-				wp.getLeftHalf().setMinimumSize(sz);
-				wp.getLeftHalf().setSize(sz.width, sz.height);
+				int rowHeight = table.getRowHeight(i);
+				table.setRowHeight(i, (int)(rowHeight*scale));
 			}
-			sz = wp.getRightHalf().getSize();
-			sz.height = (int)(sz.height * scale);
-			wp.getRightHalf().setPreferredSize(sz);
-			wp.getRightHalf().setMinimumSize(sz);
-			wp.getRightHalf().setSize(sz.width, sz.height);
+		} else
+		{
+			for(Panel wp : wavePanels)
+			{
+				Dimension sz = wp.getSize();
+				sz.height = (int)(sz.height * scale);
+				wp.setSize(sz.width, sz.height);
+				wp.setMinimumSize(sz);
+				wp.setPreferredSize(sz);
+
+//				if (wp.getSignalButtonsPane() != null)
+//				{
+//					sz = wp.getSignalButtonsPane().getSize();
+//					sz.height = (int)(sz.height * scale);
+//					wp.getSignalButtonsPane().setPreferredSize(sz);
+//					wp.getSignalButtonsPane().setSize(sz.width, sz.height);
+//				} else
+				{
+					sz = wp.getLeftHalf().getSize();
+					sz.height = (int)(sz.height * scale);
+					wp.getLeftHalf().setPreferredSize(sz);
+					wp.getLeftHalf().setMinimumSize(sz);
+					wp.getLeftHalf().setSize(sz.width, sz.height);
+				}
+				sz = wp.getRightHalf().getSize();
+				sz.height = (int)(sz.height * scale);
+				wp.getRightHalf().setPreferredSize(sz);
+				wp.getRightHalf().setMinimumSize(sz);
+				wp.getRightHalf().setSize(sz.width, sz.height);
+			}
 		}
 		overall.validate();
 		redrawAllPanels();
@@ -1340,7 +1692,6 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		mainHorizRulerPanel = new HorizRuler(null, this);
 		mainHorizRulerPanel.setToolTipText("One X axis ruler applies to all signals when the X axes are locked");
-
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = 10;      gbc.gridy = 1;
 		gbc.weightx = 1;     gbc.weighty = 0;
@@ -1363,46 +1714,46 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
-	        int maxNum = an.getNumSweeps();
-	        for (int i = 0; i < maxNum; i++)
-	        {
-	            Object obj = an.getSweep(i);
+			int maxNum = an.getNumSweeps();
+			for (int i = 0; i < maxNum; i++)
+			{
+				Object obj = an.getSweep(i);
 				new SweepSignal(obj, this, an);
-	        }
+			}
 		}
 	}
 
-    public int addSweep(SweepSignal ss)
-    {
+	public int addSweep(SweepSignal ss)
+	{
 		if (sweepSignals.add(ss))
-            return sweepSignals.size()-1;
-        return -1;
-    }
+			return sweepSignals.size()-1;
+		return -1;
+	}
 
-    public void setIncludeInAllSweeps(List<SweepSignal> sweeps, boolean include)
-    {
-    	for(int i=0; i<sweeps.size(); i++)
-    	{
-    		SweepSignal ss = sweeps.get(i);
-    		boolean update = (i == sweeps.size()-1);
-            ss.setIncluded(include, update);
-        }
-    }
+	public void setIncludeInAllSweeps(List<SweepSignal> sweeps, boolean include)
+	{
+		for(int i=0; i<sweeps.size(); i++)
+		{
+			SweepSignal ss = sweeps.get(i);
+			boolean update = (i == sweeps.size()-1);
+			ss.setIncluded(include, update);
+		}
+	}
 
-    /**
-     * Method to check whether this particular sweep is included.
-     * @return true if the sweep is included
-     */
-    public boolean isSweepSignalIncluded(Analysis an, int index)
-    {
-        Object sweep = an.getSweep(index);
-        for (SweepSignal ss : sweepSignals)
-        {
-            if (ss.getObject() == sweep)
-                return ss.isIncluded();
-        }
-        return true; // in case no sweep, always true
-    }
+	/**
+	 * Method to check whether this particular sweep is included.
+	 * @return true if the sweep is included
+	 */
+	public boolean isSweepSignalIncluded(Analysis an, int index)
+	{
+		Object sweep = an.getSweep(index);
+		for (SweepSignal ss : sweepSignals)
+		{
+			if (ss.getObject() == sweep)
+				return ss.isIncluded();
+		}
+		return true; // in case no sweep, always true
+	}
 
 	public int getHighlightedSweep() { return highlightedSweep; }
 
@@ -1677,12 +2028,12 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	// ************************************* THE EXPLORER TREE *************************************
 
-    public List<MutableTreeNode> loadExplorerTrees()
+	public List<MutableTreeNode> loadExplorerTrees()
 	{
-        TreePath rootPath = new TreePath(ExplorerTreeModel.rootNode);
-        ArrayList<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
-        
-        treePathFromAnalysis.clear();
+		TreePath rootPath = new TreePath(ExplorerTreeModel.rootNode);
+		ArrayList<MutableTreeNode> nodes = new ArrayList<MutableTreeNode>();
+		
+		treePathFromAnalysis.clear();
 		for(Iterator<Analysis> it = sd.getAnalyses(); it.hasNext(); )
 		{
 			Analysis an = it.next();
@@ -1707,24 +2058,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			}
 		}
 
-        // clean possible nulls
-        while (nodes.remove(null));
-        
-        return nodes;
+		// clean possible nulls
+		while (nodes.remove(null));
+
+		return nodes;
 	}
-    
+
 	private DefaultMutableTreeNode getSignalsForExplorer(Analysis an, TreePath parentPath, String analysis)
 	{
 		List<Signal> signals = an.getSignals();
 		if (signals.size() == 0) return null;
-        if (an instanceof EpicAnalysis) {
-            DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
-            treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));
-            return analysisNode;
-        }
+		if (an instanceof EpicAnalysis) {
+			DefaultMutableTreeNode analysisNode = ((EpicAnalysis)an).getSignalsForExplorer(analysis);
+			treePathFromAnalysis.put(an, parentPath.pathByAddingChild(analysisNode));
+			return analysisNode;
+		}
 		DefaultMutableTreeNode signalsExplorerTree = new DefaultMutableTreeNode(analysis);
-        TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
-        treePathFromAnalysis.put(an, analysisPath);
+		TreePath analysisPath = parentPath.pathByAddingChild(signalsExplorerTree);
+		treePathFromAnalysis.put(an, analysisPath);
 		HashMap<String,TreePath> contextMap = new HashMap<String,TreePath>();
 		contextMap.put("", analysisPath);
 		Collections.sort(signals, new SignalsByName());
@@ -1777,7 +2128,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		TreePath parentBranch = makeContext(parent, contextMap, separatorChar);
 		DefaultMutableTreeNode thisTree = new DefaultMutableTreeNode(leaf);
 		((DefaultMutableTreeNode)parentBranch.getLastPathComponent()).add(thisTree);
-        TreePath thisPath = parentBranch.pathByAddingChild(thisTree);
+		TreePath thisPath = parentBranch.pathByAddingChild(thisTree);
 		contextMap.put(branchName, thisPath);
 		return thisPath;
 	}
@@ -1965,7 +2316,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public static String getSpiceNetName(Network net)
 	{
-        return Spice.getSafeNetName(net.getName());
+		return Spice.getSafeNetName(net.getName());
 	}
 
 	/**
@@ -1978,36 +2329,36 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	 */
 	public static String getSpiceNetName(VarContext context, Network net)
 	{
-        boolean isGlobal = false;
+		boolean isGlobal = false;
 
-        if (net != null)
+		if (net != null)
 		{
-            Netlist netlist = net.getNetlist();
-            Network originalNet = net;
+			Netlist netlist = net.getNetlist();
+			Network originalNet = net;
 			while (net.isExported() && (context != VarContext.globalContext))
 			{
 				// net is exported, find net in parent
 				Network tempnet = getNetworkInParent(net, context.getNodable());
 				if (tempnet == null)
-                    break;
-                net = tempnet;
-                context = context.pop();
+					break;
+				net = tempnet;
+				context = context.pop();
 			}
 
-            // searching in globals
-            // Code taken from NCC
-            netlist = net.getNetlist();
-            Global.Set globNets = netlist.getGlobals();
-            for (int i=0; i<globNets.size(); i++)
-            {
-                Global g = globNets.get(i);
-                Network netG = netlist.getNetwork(g);
-                if (netG == net)
-                {
-                    isGlobal = true;
-                    break;
-                }
-            }
+			// searching in globals
+			// Code taken from NCC
+			netlist = net.getNetlist();
+			Global.Set globNets = netlist.getGlobals();
+			for (int i=0; i<globNets.size(); i++)
+			{
+				Global g = globNets.get(i);
+				Network netG = netlist.getNetwork(g);
+				if (netG == net)
+				{
+					isGlobal = true;
+					break;
+				}
+			}
 		}
 
 		// create net name
@@ -2017,7 +2368,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			return contextStr;
 		else {
 			if (context == VarContext.globalContext || isGlobal)
-                return getSpiceNetName(net);
+				return getSpiceNetName(net);
 			else return contextStr + "." + getSpiceNetName(net);
 		}
 	}
@@ -2239,14 +2590,14 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		tree.clearCurrentlySelectedObjects();
 
 		// find the signal to show in the waveform window
-        long time1 = System.currentTimeMillis();
+		long time1 = System.currentTimeMillis();
 		List<Signal> found = findSelectedSignals(which, loc.getContext());
-        long time2 = System.currentTimeMillis();
-        //System.out.println("Find signals took "+TextUtils.getElapsedTime(time2-time1));
+		long time2 = System.currentTimeMillis();
+		//System.out.println("Find signals took "+TextUtils.getElapsedTime(time2-time1));
 
 		// show it in every panel
 		boolean foundSignal = false;
-        for(Panel wp : wavePanels)
+		for(Panel wp : wavePanels)
 		{
 			for(WaveSignal ws : wp.getSignals())
 			{
@@ -2260,62 +2611,62 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				}
 			}
 		}
-        long time3 = System.currentTimeMillis();
-        //System.out.println("Highlight signals took "+TextUtils.getElapsedTime(time3-time2));
-        if (foundSignal) repaint();
+		long time3 = System.currentTimeMillis();
+		//System.out.println("Highlight signals took "+TextUtils.getElapsedTime(time3-time2));
+		if (foundSignal) repaint();
 
 		// show only one in the "Signals" tree
 		Collections.sort(found, new SignalsByName());
 		for(Signal sSig : found)
 		{
-            TreePath treePath = treePathFromSignal(sSig);
+			TreePath treePath = treePathFromSignal(sSig);
 			if (treePath != null) {
-                tree.setSelectionPath(treePath);
-                break;
-            }
+				tree.setSelectionPath(treePath);
+				break;
+			}
 		}
 		freezeEditWindowHighlighting = false;
 	}
 
-    private TreePath treePathFromSignal(Signal sig) {
-        Analysis an = sig.getAnalysis();
-        TreePath treePath = treePathFromAnalysis.get(an);
-        if (treePath == null) return null;
-        String fullName = sig.getFullName();
-        char separator = an.getStimuli().getSeparatorChar();
-        int sBeg = 0;
-        while (sBeg < fullName.length()) {
-            int sEnd = fullName.indexOf(separator, sBeg);
-            if (sEnd < 0) sEnd = fullName.length();
-            String s = fullName.substring(sBeg, sEnd);
-            TreeNode parentNode = (TreeNode)treePath.getLastPathComponent();
-            TreeNode child = findChild(parentNode, s);
-            if (child == null) return null;
-            treePath = treePath.pathByAddingChild(child);
-            sBeg = sEnd + 1;
-        }
-        return sBeg == fullName.length() + 1 ? treePath : null;
-    }
-    
-    private static TreeNode findChild(TreeNode parent, String name) {
-        for (int i = 0, numChilds = parent.getChildCount(); i < numChilds; i++) {
-            TreeNode child = parent.getChildAt(i);
-            String s;
-            if (child instanceof DefaultMutableTreeNode) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode)child;
-                Object o = node.getUserObject();
-                if (o instanceof Signal)
-                    s = ((Signal)o).getSignalName();
-                else
-                    s = o.toString();
-            } else {
-                s = child.toString();
-            }
-            if (name.equals(s)) return child;
-        }
-        return null;
-    }
-    
+	private TreePath treePathFromSignal(Signal sig) {
+		Analysis an = sig.getAnalysis();
+		TreePath treePath = treePathFromAnalysis.get(an);
+		if (treePath == null) return null;
+		String fullName = sig.getFullName();
+		char separator = an.getStimuli().getSeparatorChar();
+		int sBeg = 0;
+		while (sBeg < fullName.length()) {
+			int sEnd = fullName.indexOf(separator, sBeg);
+			if (sEnd < 0) sEnd = fullName.length();
+			String s = fullName.substring(sBeg, sEnd);
+			TreeNode parentNode = (TreeNode)treePath.getLastPathComponent();
+			TreeNode child = findChild(parentNode, s);
+			if (child == null) return null;
+			treePath = treePath.pathByAddingChild(child);
+			sBeg = sEnd + 1;
+		}
+		return sBeg == fullName.length() + 1 ? treePath : null;
+	}
+
+	private static TreeNode findChild(TreeNode parent, String name) {
+		for (int i = 0, numChilds = parent.getChildCount(); i < numChilds; i++) {
+			TreeNode child = parent.getChildAt(i);
+			String s;
+			if (child instanceof DefaultMutableTreeNode) {
+				DefaultMutableTreeNode node = (DefaultMutableTreeNode)child;
+				Object o = node.getUserObject();
+				if (o instanceof Signal)
+					s = ((Signal)o).getSignalName();
+				else
+					s = o.toString();
+			} else {
+				s = child.toString();
+			}
+			if (name.equals(s)) return child;
+		}
+		return null;
+	}
+
 	/**
 	 * Method to return a list of signals that are selected in an EditWindow.
 	 * @param h a Highlighter with a selection in an EditWindow.
@@ -2351,15 +2702,15 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 		// convert all networks to signals
 		Set<Network> nets = h.getHighlightedNetworks();
-        found.addAll(findSelectedSignals(nets, context, false));
-        Collections.sort(found, new CompSignals());
-        return found;
-    }
+		found.addAll(findSelectedSignals(nets, context, false));
+		Collections.sort(found, new CompSignals());
+		return found;
+	}
 
-    private List<Signal> findSelectedSignals(Set<Network> nets, VarContext context, boolean sort)
-    {
-        List<Signal> found = new ArrayList<Signal>();
-        for(Network net : nets)
+	private List<Signal> findSelectedSignals(Set<Network> nets, VarContext context, boolean sort)
+	{
+		List<Signal> found = new ArrayList<Signal>();
+		for(Network net : nets)
 		{
 			String netName = getSpiceNetName(context, net);
 			boolean foundSig = false;
@@ -2367,36 +2718,36 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			{
 				Analysis an = aIt.next();
 				Signal sSig = an.findSignalForNetworkQuickly(netName);
-                if (sSig == null) {
-                    // check for equivalent layout net name
-                    // search up hierarchy for cell with NCC equiv info
-                    Cell cell = net.getParent();
-                    NccResult result = NccCrossProbing.getResults(cell);
-                    if (result == null) {
-                        for (VarContext checkContext = context; checkContext != VarContext.globalContext; checkContext = checkContext.pop()) {
-                            cell = checkContext.getNodable().getParent();
-                            result = NccCrossProbing.getResults(cell);
-                            if (result != null) break;
-                        }
-                    }
-                    if (result != null) {
-                        HierarchyEnumerator.NetNameProxy proxy = result.getEquivalence().findEquivalentNet(context, net);
-                        if (proxy != null) {
-                            String otherName = getSpiceNetName(proxy.getContext(), proxy.getNet());
-                            System.out.println("Mapped "+netName+" to "+otherName);
-                            sSig = an.findSignalForNetworkQuickly(otherName);
-                        }
-                    }
-                }
-	            //if (sSig == null)
-	            //    sSig = an.findSignalForNetwork(netName);
+				if (sSig == null) {
+					// check for equivalent layout net name
+					// search up hierarchy for cell with NCC equiv info
+					Cell cell = net.getParent();
+					NccResult result = NccCrossProbing.getResults(cell);
+					if (result == null) {
+						for (VarContext checkContext = context; checkContext != VarContext.globalContext; checkContext = checkContext.pop()) {
+							cell = checkContext.getNodable().getParent();
+							result = NccCrossProbing.getResults(cell);
+							if (result != null) break;
+						}
+					}
+					if (result != null) {
+						HierarchyEnumerator.NetNameProxy proxy = result.getEquivalence().findEquivalentNet(context, net);
+						if (proxy != null) {
+							String otherName = getSpiceNetName(proxy.getContext(), proxy.getNet());
+							System.out.println("Mapped "+netName+" to "+otherName);
+							sSig = an.findSignalForNetworkQuickly(otherName);
+						}
+					}
+				}
+				//if (sSig == null)
+				//	sSig = an.findSignalForNetwork(netName);
 				if (sSig != null)
 				{
 					found.add(sSig);
 					foundSig = true;
 				} else {
-                    System.out.println("Can't find net "+netName+" in cell "+context.getInstPath("."));
-                }
+					System.out.println("Can't find net "+netName+" in cell "+context.getInstPath("."));
+				}
 			}
 		}
 
@@ -2404,20 +2755,20 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		return found;
 	}
 
-    /** Test signal lookup */
-    public List<Signal> findAllSignals(Cell cell, VarContext context, boolean sort, boolean recurse)
-    {
-        Set<Network> nets = new HashSet<Network>();
-        List<Signal> found = new ArrayList<Signal>();
-        for (Iterator<Network> it = cell.getNetlist(false).getNetworks(); it.hasNext(); ) {
-            nets.add(it.next());
-        }
-        found.addAll(findSelectedSignals(nets, context, false));
+	/** Test signal lookup */
+	public List<Signal> findAllSignals(Cell cell, VarContext context, boolean sort, boolean recurse)
+	{
+		Set<Network> nets = new HashSet<Network>();
+		List<Signal> found = new ArrayList<Signal>();
+		for (Iterator<Network> it = cell.getNetlist(false).getNetworks(); it.hasNext(); ) {
+			nets.add(it.next());
+		}
+		found.addAll(findSelectedSignals(nets, context, false));
 
-        if (recurse) {
-            for (Iterator<Nodable> it = cell.getNetlist(false).getNodables(); it.hasNext(); ) {
-                Nodable no = it.next();
-                if (!(no.getProto() instanceof Cell)) continue;
+		if (recurse) {
+			for (Iterator<Nodable> it = cell.getNetlist(false).getNodables(); it.hasNext(); ) {
+				Nodable no = it.next();
+				if (!(no.getProto() instanceof Cell)) continue;
                 Cell subCell = (Cell)no.getProto();
                 VarContext subContext = context.push(no);
                 found.addAll(findAllSignals(subCell, subContext, false, true));
@@ -2962,39 +3313,34 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 			List<Signal> dumpSignals = new ArrayList<Signal>();
 			List<Integer> dumpSweeps = new ArrayList<Integer>();
-			int total = ww.right.getComponentCount();
-			for(int i=0; i<total; i++)
+			for(Panel wp : ww.wavePanels)
 			{
-				JPanel rightPart = (JPanel)ww.right.getComponent(i);
-				for(Panel wp : ww.wavePanels)
+				if (wp.isHidden()) continue;
+				Signal signalInX = ww.xAxisSignalAll;
+				if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
+				if (signalInX != null) addSignalSweep(signalInX, -1, dumpSignals, dumpSweeps);
+				for(WaveSignal ws : wp.getSignals())
 				{
-					if (wp.getRightHalf() != rightPart) continue;
-					Signal signalInX = ww.xAxisSignalAll;
-					if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
-					if (signalInX != null) addSignalSweep(signalInX, -1, dumpSignals, dumpSweeps);
-					for(WaveSignal ws : wp.getSignals())
+					Signal sig = ws.getSignal();
+					if (sig instanceof AnalogSignal)
 					{
-						Signal sig = ws.getSignal();
-						if (sig instanceof AnalogSignal)
-						{
-							AnalogSignal as = (AnalogSignal)sig;
-			                Analysis an = as.getAnalysis();
-			                int numSweeps = as.getNumSweeps();
-			                if (numSweeps <= 1)
-			                {
-			                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps);
-			                } else
-			                {
-				                for (int s = 0; s < numSweeps; s++)
-								{
-				                    if (!ww.isSweepSignalIncluded(an, s)) continue;
-				                    addSignalSweep(sig, s, dumpSignals, dumpSweeps);
-								}
-			                }
-						} else
-						{
+						AnalogSignal as = (AnalogSignal)sig;
+		                Analysis an = as.getAnalysis();
+		                int numSweeps = as.getNumSweeps();
+		                if (numSweeps <= 1)
+		                {
 		                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps);
-						}
+		                } else
+		                {
+			                for (int s = 0; s < numSweeps; s++)
+							{
+			                    if (!ww.isSweepSignalIncluded(an, s)) continue;
+			                    addSignalSweep(sig, s, dumpSignals, dumpSweeps);
+							}
+		                }
+					} else
+					{
+	                    addSignalSweep(sig, -1, dumpSignals, dumpSweeps);
 					}
 				}
 			}
@@ -3133,40 +3479,33 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 		try
 		{
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(configurationFileName)));
-			int total = ww.right.getComponentCount();
-			for(int i=0; i<total; i++)
+			for(int i=0; i<ww.wavePanels.size(); i++)
 			{
-				JPanel rightPart = (JPanel)ww.right.getComponent(i);
-				for(Panel wp : ww.wavePanels)
+				Panel wp = ww.wavePanels.get(i);
+				if (wp.isHidden()) continue;
+				boolean first = true;
+				for(WaveSignal ws : wp.getSignals())
 				{
-					if (wp.getRightHalf() == rightPart)
+					String sigName = ws.getSignal().getFullName();
+					if (first)
 					{
-						boolean first = true;
-						for(WaveSignal ws : wp.getSignals())
-						{
-							String sigName = ws.getSignal().getFullName();
-							if (first)
-							{
-								// header
-								first = false;
-								String analysisName = "";
-								if (wp.getAnalysisType() != null) analysisName = " " + wp.getAnalysisType();
-								String log = "";
-								if (wp.isPanelLogarithmicHorizontally()) log = " xlog";
-								if (wp.isPanelLogarithmicVertically()) log += " ylog";
-								if (i > 0) printWriter.println();
-								printWriter.println("panel" + analysisName + log);
-								printWriter.println("zoom " + wp.getYAxisLowValue() + " " + wp.getYAxisHighValue() +
-									" " + wp.getMinXAxis() + " " + wp.getMaxXAxis());
-								Signal signalInX = ww.xAxisSignalAll;
-								if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
-								if (signalInX != null) printWriter.println("x-axis " + signalInX.getFullName());
-							}
-							Color color = ws.getColor();
-							printWriter.println("signal " + sigName + " " + color.getRed() + "," + color.getGreen() + "," + color.getBlue());
-						}
-						break;
+						// header
+						first = false;
+						String analysisName = "";
+						if (wp.getAnalysisType() != null) analysisName = " " + wp.getAnalysisType();
+						String log = "";
+						if (wp.isPanelLogarithmicHorizontally()) log = " xlog";
+						if (wp.isPanelLogarithmicVertically()) log += " ylog";
+						if (i > 0) printWriter.println();
+						printWriter.println("panel" + analysisName + log);
+						printWriter.println("zoom " + wp.getYAxisLowValue() + " " + wp.getYAxisHighValue() +
+							" " + wp.getMinXAxis() + " " + wp.getMaxXAxis());
+						Signal signalInX = ww.xAxisSignalAll;
+						if (!ww.xAxisLocked) signalInX = wp.getXAxisSignal();
+						if (signalInX != null) printWriter.println("x-axis " + signalInX.getFullName());
 					}
+					Color color = ws.getColor();
+					printWriter.println("signal " + sigName + " " + color.getRed() + "," + color.getGreen() + "," + color.getBlue());
 				}
 			}
 			printWriter.close();
@@ -3311,33 +3650,24 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 	{
 		Cell cell = getCell();
 		if (cell == null) return;
-		int total = right.getComponentCount();
 		StringBuffer sb = new StringBuffer();
-		for(int i=0; i<total; i++)
+		for(Panel wp : wavePanels)
 		{
-			JPanel rightPart = (JPanel)right.getComponent(i);
-			for(Panel wp : wavePanels)
+			boolean first = true;
+			for(WaveSignal ws : wp.getSignals())
 			{
-				if (wp.getRightHalf() == rightPart)
+				String sigName = ws.getSignal().getFullName();
+				if (first)
 				{
-					boolean first = true;
-					for(WaveSignal ws : wp.getSignals())
-					{
-						String sigName = ws.getSignal().getFullName();
-						if (first)
-						{
-							// header begins with a tab
-							sb.append("\t" + wp.getAnalysisType());
-							Signal signalInX = xAxisSignalAll;
-							if (!xAxisLocked) signalInX = wp.getXAxisSignal();
-							first = false;
-							if (signalInX != null) sb.append("(" + signalInX.getFullName() + ")");
-						}
-						sb.append("\t");
-						sb.append(sigName);
-					}
-					break;
+					// header begins with a tab
+					sb.append("\t" + wp.getAnalysisType());
+					Signal signalInX = xAxisSignalAll;
+					if (!xAxisLocked) signalInX = wp.getXAxisSignal();
+					first = false;
+					if (signalInX != null) sb.append("(" + signalInX.getFullName() + ")");
 				}
+				sb.append("\t");
+				sb.append(sigName);
 			}
 			sb.append("\n");
 		}
@@ -3921,6 +4251,18 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				ww = op.getWaveformWindow();
 				panel = op.getPanel();
 			}
+			if (dt.getComponent() instanceof WaveTable)
+			{
+				WaveTable table = (WaveTable)dt.getComponent();
+				ww = table.ww;
+				int column = table.columnAtPoint(dtde.getLocation());
+				int row = table.rowAtPoint(dtde.getLocation());
+				if (column != -1 && row != -1)
+				{
+					OnePanel op = (OnePanel)ww.tableModel.getValueAt(row, column);
+					panel = op.getPanel();
+				}
+			}
 			if (panel == null)
 			{
 				dtde.dropComplete(false);
@@ -3947,21 +4289,32 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 				if (sigMovePos < 0 && sigCopyPos < 0)
 				{
 					// moving the entire panel
-					ww.left.remove(sourcePanel.getLeftHalf());
-					ww.right.remove(sourcePanel.getRightHalf());
+					if (USETABLES)
+					{
+						ww.stopEditing();
 
-					int destIndex = 0;
-					Component [] lefts = ww.left.getComponents();
-					for(destIndex=0; destIndex < lefts.length; destIndex++)
+						ww.wavePanels.remove(sourcePanel);
+						int destIndex = ww.wavePanels.indexOf(panel);
+						if (dtde.getLocation().y > panel.getBounds().height/2)
+							destIndex++;
+						ww.wavePanels.add(destIndex, sourcePanel);
+						ww.reloadTable();
+						ww.table.repaint();
+					} else
 					{
-						if (lefts[destIndex] == panel.getLeftHalf()) break;
+						ww.left.remove(sourcePanel.getLeftHalf());
+						ww.right.remove(sourcePanel.getRightHalf());
+						int destIndex = 0;
+						Component [] lefts = ww.left.getComponents();
+						for(destIndex=0; destIndex < lefts.length; destIndex++)
+						{
+							if (lefts[destIndex] == panel.getLeftHalf()) break;
+						}
+						if (dtde.getLocation().y > panel.getBounds().height/2)
+							destIndex++;
+						ww.left.add(sourcePanel.getLeftHalf(), destIndex);
+						ww.right.add(sourcePanel.getRightHalf(), destIndex);
 					}
-					if (dtde.getLocation().y > panel.getBounds().height/2)
-					{
-						destIndex++;
-					}
-					ww.left.add(sourcePanel.getLeftHalf(), destIndex);
-					ww.right.add(sourcePanel.getRightHalf(), destIndex);
 
 					ww.getPanel().validate();
 					dtde.dropComplete(true);
@@ -4196,10 +4549,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public void propertyChange(PropertyChangeEvent e)
 	{
-		if (e.getPropertyName().equals("dividerLocation"))
+		if (!USETABLES)
 		{
-			if (mainHorizRulerPanel != null)
-				mainHorizRulerPanel.repaint();
+			if (e.getPropertyName().equals("dividerLocation"))
+			{
+				if (mainHorizRulerPanel != null)
+					mainHorizRulerPanel.repaint();
+			}
 		}
 	}
 }

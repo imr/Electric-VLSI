@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
 
+IMP/MAN: (2/1/07, SMR) Waveform window now lets you drag the divider between panels
+     to individually change the size of any panel (Bug #951).
+
 IMP/MAN: (1/31/07, SMR) Improvements to LEF output and DEF input from Bob Reese.
      Now have "File / Import / DEF (Design Exchange Format) to current cell..."
 

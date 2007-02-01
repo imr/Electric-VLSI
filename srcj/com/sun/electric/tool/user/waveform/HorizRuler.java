@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.waveform;
+
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.text.TextUtils;
@@ -132,12 +133,20 @@ public class HorizRuler extends JPanel implements MouseListener
 		}
 		if (g != null)
 		{
-			// this is the main horizontal ruler panel for all panels
-			Point screenLoc = getLocationOnScreen();
-			offX = waveWindow.getScreenLowX() - screenLoc.x;
+			// figure out where the panel sits on the screen
+			if (WaveformWindow.USETABLES && drawHere != null)
+			{
+				Dimension tableSz = waveWindow.getWaveformTable().getSize();
+				Point screenLoc = waveWindow.getWaveformTable().getLocationOnScreen();
+				offX = waveWindow.getScreenHighX() - (screenLoc.x + tableSz.width);
+			} else
+			{
+				Point screenLoc = getLocationOnScreen();
+				offX = waveWindow.getScreenLowX() - screenLoc.x;
+			}
 			int newWid = waveWindow.getScreenHighX() - waveWindow.getScreenLowX();
 
-			// the main horizontal ruler panel needs a Panel (won't work if there aren't any)
+			// the main horizontal ruler needs a Panel (won't work if there aren't any)
 			if (newWid == 0 || waveWindow.getNumPanels() == 0) return;
 
 			if (offX + newWid > wid) newWid = wid - offX;
