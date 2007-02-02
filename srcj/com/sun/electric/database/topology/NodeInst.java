@@ -1113,6 +1113,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 */
 	public double getXSize() { return protoType instanceof Cell ? protoType.getDefWidth() : d.size.getLambdaX(); }
 
+	/**
+	 * Method to return the base X size of this NodeInst in lambda units.
+	 * @return the base X size of this NodeInst.
+	 */
+	public double getLambdaBaseXSize() {
+        if (protoType instanceof Cell) return protoType.getDefWidth();
+        SizeOffset so = getSizeOffset();
+        return d.size.getLambdaX() - so.getLowXOffset() - so.getHighXOffset();
+    }
+
     /**
 	 * Method similar to getXSize() to return the X size of this NodeInst without the offset.
 	 * @return the X size of this NodeInst.
@@ -1130,6 +1140,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable<NodeInst>
 	 * @return the Y size of this NodeInst.
 	 */
 	public double getYSize() { return protoType instanceof Cell ? protoType.getDefHeight() : d.size.getLambdaY(); }
+
+	/**
+	 * Method to return the base Y size of this NodeInst in lambda units.
+	 * @return the base Y size of this NodeInst.
+	 */
+	public double getLambdaBaseYSize() {
+        if (protoType instanceof Cell) return protoType.getDefHeight();
+        SizeOffset so = getSizeOffset();
+        return d.size.getLambdaY() - so.getLowYOffset() - so.getHighYOffset();
+    }
 
     /**
 	 * Method similar to getXSize() to return the X size of this NodeInst without the offset.

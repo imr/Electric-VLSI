@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
 
+IMP: (2/2/07, DN) Using BaseSizes of primitives in JELIB.
+
+BUG: (2/2/07, DN) Stack overflow in NCC GUI on JDK 1.6.
+FIX: Workaround fo bug in JDK - use separate class for CellTreeRenderer.  
+
 IMP/MAN: (2/1/07, SMR) Waveform window now lets you drag the divider between panels
      to individually change the size of any panel (Bug #951).
 

@@ -52,12 +52,12 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
-
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -95,7 +95,9 @@ public class JELIB extends LibraryFiles
 		// Revision 1
 		"8.01aw",
 		// Revision 2
-		"8.04l"
+		"8.04l",
+        // Revison 3
+        "8.05g"
 	};
 
     private static int defaultArcFlags;
@@ -854,6 +856,11 @@ public class JELIB extends LibraryFiles
                     flipY = true;
                     hei = -hei;
                 }
+                if (revision >= 3) {
+                    SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
+                    wid += so.getLowXOffset() + so.getHighXOffset();
+                    hei += so.getLowYOffset() + so.getHighYOffset();
+                }
 				orientString = pieces.get(7);
 				stateInfo = pieces.get(8);
 				if (revision < 1)
@@ -1106,6 +1113,8 @@ public class JELIB extends LibraryFiles
 				}
 			}
 			long gridFullWidth = DBMath.lambdaToSizeGrid(TextUtils.atof(pieces.get(3)));
+            if (revision >= 3)
+                gridFullWidth += ap.getGridWidthOffset();
 
 			String headNodeName = revision >= 1 ? pieces.get(5) : unQuote(pieces.get(5));
 			String headPortName = unQuote(pieces.get(6));

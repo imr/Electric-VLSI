@@ -66,8 +66,7 @@ import com.sun.electric.tool.ncc.trees.Circuit;
  * This class implements the mismatch comparin tree displayed in the right pane 
  * of the NCC GUI window. 
  */
-class ComparisonsTree extends JTree 
-implements ActionListener, TreeSelectionListener, TreeCellRenderer {
+class ComparisonsTree extends JTree implements ActionListener, TreeSelectionListener {
     /* --- size restrictions --- */
     public static final int MAX_COMP_NODES = 100;
     public static final int MAX_ZEROS = 100;
@@ -82,8 +81,6 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     private WireClassNode wireClassNodes[][];
     protected JPopupMenu popup;
     protected String clipboard;
-    protected static DefaultTreeCellRenderer defCellRenderer = 
-                     new DefaultTreeCellRenderer();
     private static Border border = BorderFactory.createEmptyBorder();
     private boolean updateInProgress = true;
 
@@ -100,6 +97,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         addMouseListener(new TreeMouseAdapter());
         addTreeSelectionListener(this);
         createPopup();
+        setCellRenderer(new MyRenderer());
     }
     
     /**
@@ -452,13 +450,6 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     } 
     
     /* (non-Javadoc)
-     * TreeCellRenderer interface (for custom Wire class tree nodes)
-     */
-    public TreeCellRenderer getCellRenderer() {
-        return this;
-    }
-
-    /* (non-Javadoc)
      * ActionListener interface (for popup menus)
      */
     public void actionPerformed(ActionEvent e) {
@@ -493,37 +484,39 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         parentPane.updateRightPane();
     }
 
-    /* (non-Javadoc)
-     * TreeCellRenderer interface
-     */
-    public Component getTreeCellRendererComponent(JTree tree, Object value, 
-                          boolean selected, boolean expanded, boolean leaf, 
-                          int row, boolean hasFocus) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
-        TreeNode data = (TreeNode)node.getUserObject();
-        int compNdx = data.compNdx;
-        int wclass = data.getWireClassNum();
-        if (data.type == TreeNode.WIRE && !updateInProgress
-             && compNdx < wireClassNodes.length && wireClassNodes[compNdx] != null 
-             && wclass < wireClassNodes[compNdx].length) {
-            // wclass is a special index of Wire classes in each comparison
-            // Needed because Wire and part classes are mixed together 
-            if (wireClassNodes[compNdx][wclass] == null)
-                createWireClassNodes(data, node.isLeaf());
-            if (selected)
-                wireClassNodes[compNdx][wclass].select();
-            else
-                wireClassNodes[compNdx][wclass].deselect();
-            if (!node.isLeaf())
-                if (expanded)
-                    wireClassNodes[compNdx][wclass].expand();
+    private class MyRenderer extends DefaultTreeCellRenderer {
+        /* (non-Javadoc)
+         * TreeCellRenderer interface
+         */
+        public Component getTreeCellRendererComponent(JTree tree, Object value,
+                boolean selected, boolean expanded, boolean leaf,
+                int row, boolean hasFocus) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
+            TreeNode data = (TreeNode)node.getUserObject();
+            int compNdx = data.compNdx;
+            int wclass = data.getWireClassNum();
+            if (data.type == TreeNode.WIRE && !updateInProgress
+                    && compNdx < wireClassNodes.length && wireClassNodes[compNdx] != null
+                    && wclass < wireClassNodes[compNdx].length) {
+                // wclass is a special index of Wire classes in each comparison
+                // Needed because Wire and part classes are mixed together
+                if (wireClassNodes[compNdx][wclass] == null)
+                    createWireClassNodes(data, node.isLeaf());
+                if (selected)
+                    wireClassNodes[compNdx][wclass].select();
                 else
-                    wireClassNodes[compNdx][wclass].collapse();
-            return wireClassNodes[compNdx][wclass].getPanel();
+                    wireClassNodes[compNdx][wclass].deselect();
+                if (!node.isLeaf())
+                    if (expanded)
+                        wireClassNodes[compNdx][wclass].expand();
+                    else
+                        wireClassNodes[compNdx][wclass].collapse();
+                return wireClassNodes[compNdx][wclass].getPanel();
+            }
+            
+            return super.getTreeCellRendererComponent(tree, value, selected, expanded,
+                    leaf, row, hasFocus);
         }
-        
-        return defCellRenderer.getTreeCellRendererComponent(tree, value, selected, expanded,
-                                                            leaf, row, hasFocus);
     }
     
     /**
@@ -769,7 +762,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
          * @param renderer  instance of the default tree node renderer 
          */
         private static void init() {
-            defCellRenderer = new DefaultTreeCellRenderer();
+            DefaultTreeCellRenderer defCellRenderer = new DefaultTreeCellRenderer();
             selBackgnd = defCellRenderer.getBackgroundSelectionColor();
             deselBackgnd = defCellRenderer.getBackgroundNonSelectionColor();
             selText = defCellRenderer.getTextSelectionColor();

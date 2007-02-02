@@ -53,9 +53,9 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
-
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -76,6 +76,7 @@ import java.util.TreeSet;
  * Class to write a library to disk in new Electric-Library format.
  */
 public class JELIB extends Output {
+    private static boolean NEW_REVISION = Version.getVersion().compareTo(Version.parseVersion("8.05g")) >= 0;
     private boolean oldRevision;
 //    Snapshot snapshot;
     private Map<LibId,URL> libFiles;
@@ -362,8 +363,15 @@ public class JELIB extends Output {
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getX(), 0));
             printWriter.print("|" + TextUtils.formatDouble(n.anchor.getY(), 0));
             if (!(np instanceof CellId)) {
-                printWriter.print("|" + TextUtils.formatDouble(n.size.getLambdaX(), 0));
-                printWriter.print("|" + TextUtils.formatDouble(n.size.getLambdaY(), 0));
+                double lambdaWidth = n.size.getLambdaX();
+                double lambdaHeight = n.size.getLambdaY();
+                if (NEW_REVISION && !oldRevision) {
+                    SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
+                    lambdaWidth -= so.getLowXOffset() + so.getHighXOffset();
+                    lambdaHeight -= so.getLowYOffset() + so.getHighYOffset();
+                }
+                printWriter.print("|" + TextUtils.formatDouble(lambdaWidth, 0));
+                printWriter.print("|" + TextUtils.formatDouble(lambdaHeight, 0));
             }
             printWriter.print('|');
             if (n.orient.isXMirrored()) printWriter.print('X');
@@ -397,7 +405,8 @@ public class JELIB extends Output {
             printWriter.print("|" + convertString(a.name.toString()) + "|");
             if (!a.name.isTempname())
                 printWriter.print(describeDescriptor(null, a.nameDescriptor));
-            printWriter.print("|" + TextUtils.formatDouble(a.getLambdaFullWidth(), 0));
+            double arcWidth = NEW_REVISION && !oldRevision ? a.getLambdaBaseWidth() : a.getLambdaFullWidth();
+            printWriter.print("|" + TextUtils.formatDouble(arcWidth, 0));
             StringBuilder arcBits = new StringBuilder();
             
             if (a.is(ImmutableArcInst.HARD_SELECT)) arcBits.append("A");
