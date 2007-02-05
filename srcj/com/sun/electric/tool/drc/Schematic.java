@@ -45,6 +45,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.geom.AffineTransform;
@@ -371,7 +372,11 @@ public class Schematic
 
 			// check for being floating if it does not have a visible name on it
 			boolean checkDangle = false;
-			Name arcName = ai.getNameKey();
+
+            if (Artwork.isArtworkArc(ai.getProto()))
+                return; // ignore artwork arcs
+
+            Name arcName = ai.getNameKey();
 			if (arcName == null || arcName.isTempname()) checkDangle = true;
 			if (checkDangle)
 			{

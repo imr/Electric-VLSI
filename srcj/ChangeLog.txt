@@ -3,11 +3,13 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
+BUG: (2/5/07, GVG) Schematic DRC should not complain about artwork elememts (Bug#1273)
+FIX: Artwork arcs are not checked in Schematic.schematicDoCheck()
 
 IMP: (2/2/07, DN) Using BaseSizes of primitives in JELIB.
 
 BUG: (2/2/07, DN) Stack overflow in NCC GUI on JDK 1.6.
-FIX: Workaround fo bug in JDK - use separate class for CellTreeRenderer.  
+FIX: Workaround fo bug in JDK - use separate class for CellTreeRenderer.
 
 IMP/MAN: (2/1/07, SMR) Waveform window now lets you drag the divider between panels
      to individually change the size of any panel (Bug #951).
@@ -15,7 +17,7 @@ IMP/MAN: (2/1/07, SMR) Waveform window now lets you drag the divider between pan
 IMP/MAN: (1/31/07, SMR) Improvements to LEF output and DEF input from Bob Reese.
      Now have "File / Import / DEF (Design Exchange Format) to current cell..."
 
-BUG: (1/20/07, DN) Get rid of those "has connections on port 'generic:Port[].center" messages (Bug #829).
+BUG: (1/31/07, DN) Get rid of those "has connections on port 'generic:Port[].center" messages (Bug #829).
 FIX: They are transfered to DRC.
 
 BUG: (1/27/07, DN) Some regression tests failed on JDK 1.6 because of HashSet order.

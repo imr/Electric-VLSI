@@ -31,7 +31,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.*;
@@ -888,7 +887,18 @@ public class Artwork extends Technology
 		return null;
 	}
 
-	/******************** OPTIONS ********************/
+    /**
+     * Method to determ if ArcProto is an Artwork primitive arc
+     * @param p ArcProto reference
+     * @return true if primitive belongs to the Artwork technology
+     */
+    public static boolean isArtworkArc(ArcProto p)
+    {
+        return (p == Artwork.tech.solidArc || p == Artwork.tech.dottedArc
+                || p == Artwork.tech.dashedArc || p == Artwork.tech.thickerArc);
+    }
+
+    /******************** OPTIONS ********************/
 
 	private static Pref cacheFillArrows = Pref.makeBooleanPref("ArtworkFillArrows", getTechnologyPreferences(), false);
 	/**
