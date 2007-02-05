@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
 
+IMP: (2/5/07, RK) Add simple layout generation example for Ivan.
+
 BUG: (2/5/07, SMR) Implant coverage generation leaves notch errors (Bug #1272).
 FIX: In LayerCoverageTool.LayerCoverageData.doIt(), merge close implants.
 
