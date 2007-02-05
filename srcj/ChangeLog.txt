@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
+
+BUG: (2/5/07, SMR) Implant coverage generation leaves notch errors (Bug #1272).
+FIX: In LayerCoverageTool.LayerCoverageData.doIt(), merge close implants.
+
 BUG: (2/5/07, GVG) Schematic DRC should not complain about artwork elememts (Bug#1273)
 FIX: Artwork arcs are not checked in Schematic.schematicDoCheck()
 

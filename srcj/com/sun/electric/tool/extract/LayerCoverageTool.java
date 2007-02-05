@@ -23,37 +23,50 @@
  */
 package com.sun.electric.tool.extract;
 
-import com.sun.electric.tool.JobException;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.geometry.*;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCTemplate;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
+import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.User;
 
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Area;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
 import java.awt.geom.Point2D;
-import java.awt.*;
-import java.util.*;
+import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Class to describe coverage percentage for a layer.
@@ -61,6 +74,7 @@ import java.util.List;
 public class LayerCoverageTool extends Tool
 {
     /** the LayerCoverageTool tool. */		protected static LayerCoverageTool tool = new LayerCoverageTool();
+
     /**
 	 * The constructor sets up the DRC tool.
 	 */
@@ -80,7 +94,6 @@ public class LayerCoverageTool extends Tool
     // Default value is in um to be technology independent
     private static final double defaultSize = 50000;
     private static Pref cacheDeltaX = Pref.makeDoublePref("DeltaX", tool.prefs, defaultSize);
-//    static { cacheDeltaX.attachToObject(tool, "Tools/Coverage tab", "Delta along X to sweep bounding box"); }
 	/**
 	 * Method to get user preference for deltaX.
 	 * The default is 50 mm.
@@ -100,7 +113,6 @@ public class LayerCoverageTool extends Tool
     }
 
     private static Pref cacheDeltaY = Pref.makeDoublePref("DeltaY", tool.prefs, defaultSize);
-//    static { cacheDeltaY.attachToObject(tool, "Tools/Coverage tab", "Delta along Y to sweep bounding box"); }
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
@@ -120,7 +132,6 @@ public class LayerCoverageTool extends Tool
     }
 
     private static Pref cacheWidth = Pref.makeDoublePref("Width", tool.prefs, defaultSize);
-//    static { cacheWidth.attachToObject(tool, "Tools/Coverage tab", "Bounding box width"); }
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
@@ -140,7 +151,6 @@ public class LayerCoverageTool extends Tool
     }
 
     private static Pref cacheHeight = Pref.makeDoublePref("Height", tool.prefs, defaultSize);
-//    static { cacheHeight.attachToObject(tool, "Tools/Coverage tab", "Bounding box height"); }
 	/**
 	 * Method to get user preference for deltaY.
 	 * The default is 50 mm.
@@ -235,7 +245,7 @@ public class LayerCoverageTool extends Tool
         nets.add(net);
         GeometryOnNetwork geoms = new GeometryOnNetwork(exportCell, nets, 1.0, false, layer);
         // This assumes that pi.getBounds() alywas gives you a degenerated rectangle (zero area) so
-        // only a point should be searchedd.
+        // only a point should be searched.
         Rectangle2D bnd = pi.getBounds();
 		LayerCoverageJob job = new LayerCoverageJob(exportCell, Job.Type.EXAMINE, LCMode.NETWORK,
                 GeometryHandler.GHMode.ALGO_SWEEP, geoms,
@@ -305,7 +315,7 @@ public class LayerCoverageTool extends Tool
         private GeometryOnNetwork geoms;  // Valid only for network job
         private Rectangle2D bBox; // To crop geometry under analysis by given bounding box
         private List<Object> nodesToExamine = new ArrayList<Object>(); // for implant
-        private Point2D overlapPoint; // to detec if obtained geometry is connected to original request,
+        private Point2D overlapPoint; // to detect if obtained geometry is connected to original request,
         // Network in fill generator
 
         LayerCoverageData(Job parentJob, Cell cell, LCMode func, GeometryHandler.GHMode mode,
@@ -360,6 +370,7 @@ public class LayerCoverageTool extends Tool
                         {
                             Collection<PolyBase> set = tree.getObjects(layer, !isMerge, true);
                             Set<PolyBase> polySet = (function == LCMode.IMPLANT) ? originalPolygons.get(layer) : null;
+                            List<Rectangle2D> newImplants = new ArrayList<Rectangle2D>();
 
                             // Ready to create new implants.
                             for (PolyBase polyB : set)
@@ -382,14 +393,14 @@ public class LayerCoverageTool extends Tool
                                         continue;
                                 }
 
-                                Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
-                                PrimitiveNode priNode = layer.getPureLayerNode();
-                                // Adding the new implant. New implant not assigned to any local variable                                .
-                                NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell);
-                                nodesToExamine.add(node);
-
                                 if (isMerge)
                                 {
+                                    // Adding the new implant. New implant not assigned to any local variable
+                                    Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
+                                    PrimitiveNode priNode = layer.getPureLayerNode();
+                                    NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell);
+                                    nodesToExamine.add(node);
+
                                     EPoint [] ePoints = new EPoint[points.length];
                                     for(int j=0; j<points.length; j++)
                                         ePoints[j] = new EPoint(points[j].getX(), points[j].getY());
@@ -397,10 +408,50 @@ public class LayerCoverageTool extends Tool
                                 }
                                 else
                                 {
-                                    // New implant can't be selected again
-                                    node.setHardSelect();
+                                	newImplants.add(rect);
                                 }
                                 noNewNodes = false;
+                            }
+                            if (function == LCMode.IMPLANT)
+                            {
+                            	// merge when close to avoid notch errors
+            					DRCTemplate rule = DRC.getSpacingRule(layer, null, layer, null, false, -1, 10, 100);
+            					if (rule != null)
+            					{
+            						double dist = rule.getValue(0);
+            						for(int i=0; i<newImplants.size(); i++)
+            						{
+            							Rectangle2D r = newImplants.get(i);
+            							boolean merged = false;
+            							for(int j=i+1; j<newImplants.size(); j++)
+            							{
+            								Rectangle2D oR = newImplants.get(j);
+            								if (r.getMinX()-dist > oR.getMaxX() ||
+            									oR.getMinX()-dist > r.getMaxX() ||
+            									r.getMinY()-dist > oR.getMaxY() ||
+            									oR.getMinY()-dist > r.getMaxY()) continue;
+
+            								// they are too close: merge them
+            								double lx = Math.min(r.getMinX(), oR.getMinX());
+            								double hx = Math.max(r.getMaxX(), oR.getMaxX());
+            								double ly = Math.min(r.getMinY(), oR.getMinY());
+            								double hy = Math.max(r.getMaxY(), oR.getMaxY());
+            								r.setRect(lx, ly, hx-lx, hy-ly);
+            								newImplants.remove(j);
+            								merged = true;
+            								break;
+            							}
+            							if (merged) i--;
+            						}
+            					}
+                                PrimitiveNode priNode = layer.getPureLayerNode();
+                            	for(Rectangle2D r : newImplants)
+                            	{
+                                    Point2D center = new Point2D.Double(r.getCenterX(), r.getCenterY());
+                                    NodeInst node = NodeInst.makeInstance(priNode, center, r.getWidth(), r.getHeight(), curCell);
+                                    nodesToExamine.add(node);
+                                    node.setHardSelect();
+                            	}
                             }
                         }
                         for (NodeInst node : deleteList)
@@ -507,6 +558,7 @@ public class LayerCoverageTool extends Tool
             {
                 nodesAdded = new ArrayList<Object>();
                 nodesAdded.addAll(data.getNodesToHighlight());
+                fieldVariableChanged("nodesAdded");
             }
             return done;
         }
@@ -517,7 +569,7 @@ public class LayerCoverageTool extends Tool
             if (func == LCMode.IMPLANT)
             {
                 EditWindow_ wnd = Job.getUserInterface().getCurrentEditWindow_();
-                if (wnd == null) return; // no GUi present
+                if (wnd == null) return; // no GUI present
                 if (nodesAdded == null) return; // nothing to show
                 for (Object node : nodesAdded)
                 {
@@ -676,7 +728,7 @@ public class LayerCoverageTool extends Tool
 
         private boolean doesIntersectBoundingBox(Rectangle2D rect, HierarchyEnumerator.CellInfo info)
         {
-            // Default case when no bouding box is used to crop the geometry
+            // Default case when no bounding box is used to crop the geometry
             if (origBBox == null) return true;
 
             // only because I need to transform the points.
@@ -703,7 +755,6 @@ public class LayerCoverageTool extends Tool
             boolean found = (netSet == null);
             for (Iterator<Network> it = netlist.getNetworks(); !found && it.hasNext(); )
             {
-//                Network aNet = it.next();
                 Network parentNet = it.next();
                 HierarchyEnumerator.CellInfo cinfo = info;
                 boolean netFound = false;
@@ -716,7 +767,6 @@ public class LayerCoverageTool extends Tool
             if (!found) return (false);
 
 			// Traversing arcs
-
 			for (Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
 			{
 				ArcInst arc = it.next();
@@ -823,8 +873,7 @@ public class LayerCoverageTool extends Tool
 			}
 			if (!found) return (false); // skipping this node
 
-			// Coverage implants are pure primitive nodes
-			// and they are ignored.
+			// Coverage implants are pure primitive nodes and they are ignored.
 			if (node.isPrimtiveSubstrateNode()) //node.getFunction() == PrimitiveNode.Function.NODE)
 			{
 				deleteList.add(node);
@@ -935,7 +984,7 @@ public class LayerCoverageTool extends Tool
 	        halfPerimeters.add(halfperimeter);
 
 	        Layer.Function func = layer.getFunction();
-	        /* accumulate total wire length on all metal/poly layers */
+	        // accumulate total wire length on all metal/poly layers
 	        if (func.isPoly() && !func.isGatePoly() || func.isMetal()) {
 	            totalWire += halfperimeter;
 	        }
