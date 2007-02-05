@@ -26,6 +26,7 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -648,13 +649,13 @@ public class VarContext implements Serializable
         if (no==null) {
             System.out.println("VarContext.getInstPath: context with null NodeInst?");
         }
+        String me = no.getName();
         if (no instanceof NodeInst) {
             // nodeInst, we want netlisted name, assume zero index of arrayed node
             //no = Netlist.getNodableFor((NodeInst)no, 0);
-            Nodable no2 = Netlist.getNodableFor((NodeInst)no, 0);
-            if (no2 != null) no = no2;
+            Name name = no.getNameKey();
+            me = name.subname(0).toString();
         }
-        String me = no.getName();
 //         if (me==null) {
 //             //System.out.println("VarContext.getInstPath: NodeInst in VarContext with no name!!!");
 //             me = ni.describe();
