@@ -33,8 +33,10 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
@@ -52,7 +54,6 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Font;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
@@ -72,7 +73,7 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 
 /**
- * This class has all of the pulldown menu commands in Electric.
+ * This class has all of the Export change commands in Electric.
  */
 public final class ExportChanges
 {
@@ -392,15 +393,15 @@ public final class ExportChanges
 		}
 	}
 
-    private static class PortInstsSortedByBusIndex implements Comparator<PortInst>
-    {
-        public int compare(PortInst p1, PortInst p2)
-        {
-            String s1 = p1.getPortProto().getName();
-            String s2 = p2.getPortProto().getName();
-            return TextUtils.STRING_NUMBER_ORDER.compare(s1, s2);
-        }
-    }
+	private static class PortInstsSortedByBusIndex implements Comparator<PortInst>
+	{
+		public int compare(PortInst p1, PortInst p2)
+		{
+			String s1 = p1.getPortProto().getName();
+			String s2 = p2.getPortProto().getName();
+			return TextUtils.STRING_NUMBER_ORDER.compare(s1, s2);
+		}
+	}
 
 	/****************************** EXPORT CREATION ******************************/
 
@@ -455,9 +456,9 @@ public final class ExportChanges
 		Highlight2 high = highlighter.getOneHighlight();
 		if (high == null || !high.isHighlightEOBJ() || !(high.getElectricObject() instanceof PortInst))
 		{
-            System.out.println("Must first select a single node and its port");
-            return;
-        }
+			System.out.println("Must first select a single node and its port");
+			return;
+		}
 		PortInst pi = (PortInst)high.getElectricObject();
 		PortProto pp = pi.getPortProto();
 		NodeInst ni = pi.getNodeInst();
@@ -487,7 +488,7 @@ public final class ExportChanges
 		}
 
 		// create job
-        new ReExportPorts(cell, queuedExports, true, false, false, null);
+		new ReExportPorts(cell, queuedExports, true, false, false, null);
 	}
 
 	/**
@@ -500,80 +501,80 @@ public final class ExportChanges
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
-        List<Geometric> allNodes = new ArrayList<Geometric>();
-        for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-            allNodes.add(it.next());
-        }
+		List<Geometric> allNodes = new ArrayList<Geometric>();
+		for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+			allNodes.add(it.next());
+		}
 
-        new ReExportNodes(cell, allNodes, false, true, true);
+		new ReExportNodes(cell, allNodes, false, true, true);
 	}
 
 	/**
 	 * Helper class for re-exporting ports on nodes.
 	 */
-    private static class ReExportNodes extends Job
-    {
-        private Cell cell;
-        private List<Geometric> nodeInsts;
-        private boolean includeWiredPorts;
-        private boolean onlyPowerGround;
-        private boolean ignorePrimitives;
+	private static class ReExportNodes extends Job
+	{
+		private Cell cell;
+		private List<Geometric> nodeInsts;
+		private boolean includeWiredPorts;
+		private boolean onlyPowerGround;
+		private boolean ignorePrimitives;
 
-        /**
-         * @see ExportChanges#reExportNodes(java.util.List, boolean, boolean, boolean)
-         */
-        public ReExportNodes(Cell cell, List<Geometric> nodeInsts, boolean includeWiredPorts, boolean onlyPowerGround,
-                             boolean ignorePrimitives)
-        {
-            super("Re-export nodes", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.nodeInsts = nodeInsts;
-            this.includeWiredPorts = includeWiredPorts;
-            this.onlyPowerGround = onlyPowerGround;
-            this.ignorePrimitives = ignorePrimitives;
-            startJob();
-        }
+		/**
+		 * @see ExportChanges#reExportNodes(java.util.List, boolean, boolean, boolean)
+		 */
+		public ReExportNodes(Cell cell, List<Geometric> nodeInsts, boolean includeWiredPorts, boolean onlyPowerGround,
+							 boolean ignorePrimitives)
+		{
+			super("Re-export nodes", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.nodeInsts = nodeInsts;
+			this.includeWiredPorts = includeWiredPorts;
+			this.onlyPowerGround = onlyPowerGround;
+			this.ignorePrimitives = ignorePrimitives;
+			startJob();
+		}
 
-        public boolean doIt() throws JobException
-        {
-            // disallow port action if lock is on
-            if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
+		public boolean doIt() throws JobException
+		{
+			// disallow port action if lock is on
+			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 
-            int num = reExportNodes(cell, nodeInsts, includeWiredPorts, onlyPowerGround, ignorePrimitives);
-            System.out.println(num+" ports exported.");
-            return true;
-        }
-    }
+			int num = reExportNodes(cell, nodeInsts, includeWiredPorts, onlyPowerGround, ignorePrimitives);
+			System.out.println(num+" ports exported.");
+			return true;
+		}
+	}
 
-    /**
-     * Re-exports ports on each NodeInst in the list, in the order the nodeinsts appear
-     * in the list. Sorts the exports on each node before exporting them to make sure they
-     * get the correct bus indices at the next level up.
-     * @param cell the cell in which exporting is happening.
-     * @param nodeInsts a list of NodeInsts whose ports will be exported
-     * @param includeWiredPorts true to include ports that have wire connections
-     * @param onlyPowerGround true to only export power and ground type ports
-     * @param ignorePrimitives true to ignore primitive nodes
-     * @return the number of exports created
-     */
-    public static int reExportNodes(Cell cell, List<Geometric> nodeInsts, boolean includeWiredPorts, boolean onlyPowerGround,
-                                     boolean ignorePrimitives) {
-        int total = 0;
+	/**
+	 * Re-exports ports on each NodeInst in the list, in the order the nodeinsts appear
+	 * in the list. Sorts the exports on each node before exporting them to make sure they
+	 * get the correct bus indices at the next level up.
+	 * @param cell the cell in which exporting is happening.
+	 * @param nodeInsts a list of NodeInsts whose ports will be exported
+	 * @param includeWiredPorts true to include ports that have wire connections
+	 * @param onlyPowerGround true to only export power and ground type ports
+	 * @param ignorePrimitives true to ignore primitive nodes
+	 * @return the number of exports created
+	 */
+	public static int reExportNodes(Cell cell, List<Geometric> nodeInsts, boolean includeWiredPorts, boolean onlyPowerGround,
+									 boolean ignorePrimitives) {
+		int total = 0;
 
-        for (Geometric geom : nodeInsts)
-        {
-            NodeInst ni = (NodeInst)geom;
+		for (Geometric geom : nodeInsts)
+		{
+			NodeInst ni = (NodeInst)geom;
 
-            // only look for cells, not primitives
-            if (ignorePrimitives)
-                if (!ni.isCellInstance()) continue;
+			// only look for cells, not primitives
+			if (ignorePrimitives)
+				if (!ni.isCellInstance()) continue;
 
-            // ignore recursive references (showing icon in contents)
-            if (ni.isIconOfParent()) continue;
+			// ignore recursive references (showing icon in contents)
+			if (ni.isIconOfParent()) continue;
 
-            List<PortInst> portInstsToExport = new ArrayList<PortInst>();
-            for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); ) {
-                PortInst pi = pIt.next();
+			List<PortInst> portInstsToExport = new ArrayList<PortInst>();
+			for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); ) {
+				PortInst pi = pIt.next();
 
 				// ignore if already exported
 				boolean found = false;
@@ -584,52 +585,52 @@ public final class ExportChanges
 				}
 				if (found) continue;
 
-                // add pi to list of ports to export
-                portInstsToExport.add(pi);
-            }
-            total += reExportPorts(cell, portInstsToExport, true, includeWiredPorts, onlyPowerGround, null);
-        }
-        return total;
-    }
+				// add pi to list of ports to export
+				portInstsToExport.add(pi);
+			}
+			total += reExportPorts(cell, portInstsToExport, true, includeWiredPorts, onlyPowerGround, null);
+		}
+		return total;
+	}
 
-    /**
-     * Helper class for re-exporting a port on a node.
-     */
-    public static class ReExportPorts extends Job
-    {
-        private Cell cell;
-        private List<PortInst> portInsts;
-        private boolean sort;
-        private boolean includeWiredPorts;
-        private boolean onlyPowerGround;
-        private HashMap<PortInst,Export> originalExports;
+	/**
+	 * Helper class for re-exporting a port on a node.
+	 */
+	public static class ReExportPorts extends Job
+	{
+		private Cell cell;
+		private List<PortInst> portInsts;
+		private boolean sort;
+		private boolean includeWiredPorts;
+		private boolean onlyPowerGround;
+		private HashMap<PortInst,Export> originalExports;
 
-        /**
-         * Constructor.
-         */
-        public ReExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
-                             boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)
-        {
-            super("Re-export ports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.portInsts = portInsts;
-            this.includeWiredPorts = includeWiredPorts;
-            this.onlyPowerGround = onlyPowerGround;
-            this.sort = sort;
-            this.originalExports = originalExports;
-            startJob();
-        }
+		/**
+		 * Constructor.
+		 */
+		public ReExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
+							 boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)
+		{
+			super("Re-export ports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.portInsts = portInsts;
+			this.includeWiredPorts = includeWiredPorts;
+			this.onlyPowerGround = onlyPowerGround;
+			this.sort = sort;
+			this.originalExports = originalExports;
+			startJob();
+		}
 
-        public boolean doIt() throws JobException
-        {
-    		// disallow port action if lock is on
-    		if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
+		public boolean doIt() throws JobException
+		{
+			// disallow port action if lock is on
+			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 
-    		int num = reExportPorts(cell, portInsts, sort, includeWiredPorts, onlyPowerGround, originalExports);
-            System.out.println(num+" ports exported.");
-            return true;
-        }
-    }
+			int num = reExportPorts(cell, portInsts, sort, includeWiredPorts, onlyPowerGround, originalExports);
+			System.out.println(num+" ports exported.");
+			return true;
+		}
+	}
 
 	/****************************** EXPORT CREATION IN A HIGHLIGHTED AREA ******************************/
 
@@ -663,41 +664,41 @@ public final class ExportChanges
 	/**
 	 * Class to Re-export the highlighted area in a Job.
 	 */
-    private static class ReExportHighlighted extends Job
-    {
-        private Cell cell;
-        private ERectangle bounds;
-        private boolean deep;
-        private boolean includeWiredPorts;
+	private static class ReExportHighlighted extends Job
+	{
+		private Cell cell;
+		private ERectangle bounds;
+		private boolean deep;
+		private boolean includeWiredPorts;
 
-        public ReExportHighlighted(Cell cell, ERectangle bounds, boolean deep, boolean includeWiredPorts)
-        {
-            super("Re-export highlighted", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.bounds = bounds;
-            this.deep = deep;
-            this.includeWiredPorts = includeWiredPorts;
-            startJob();
-        }
+		public ReExportHighlighted(Cell cell, ERectangle bounds, boolean deep, boolean includeWiredPorts)
+		{
+			super("Re-export highlighted", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.bounds = bounds;
+			this.deep = deep;
+			this.includeWiredPorts = includeWiredPorts;
+			startJob();
+		}
 
-        public boolean doIt() throws JobException
-        {
-    		// disallow port action if lock is on
-    		if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
+		public boolean doIt() throws JobException
+		{
+			// disallow port action if lock is on
+			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 
-    		reExportInBounds(cell, bounds, deep, includeWiredPorts, true);
-            return true;
-        }
-    }
+			reExportInBounds(cell, bounds, deep, includeWiredPorts, true);
+			return true;
+		}
+	}
 
-    /**
-     * Helper method to recursively re-export everything in a highlighted area.
-     * @param cell the Cell in which to re-export.
-     * @param bounds the area of the Cell to re-export.
-     * @param deep true to recurse down to subcells and re-export.
-     * @param includeWiredPorts true to re-export when the port is wired.
-     * @param topLevel true if this is the top-level call.
-     */
+	/**
+	 * Helper method to recursively re-export everything in a highlighted area.
+	 * @param cell the Cell in which to re-export.
+	 * @param bounds the area of the Cell to re-export.
+	 * @param deep true to recurse down to subcells and re-export.
+	 * @param includeWiredPorts true to re-export when the port is wired.
+	 * @param topLevel true if this is the top-level call.
+	 */
 	private static void reExportInBounds(Cell cell, Rectangle2D bounds, boolean deep, boolean includeWiredPorts, boolean topLevel)
 	{
 		// find all ports in highlighted area
@@ -749,128 +750,152 @@ public final class ExportChanges
 
 		// create job
 		int num = reExportPorts(cell, queuedExports, true, includeWiredPorts, false, null);
-        System.out.println(num+" ports exported.");
+		System.out.println(num+" ports exported.");
 	}
 
-    /**
-     * Re-exports the PortInsts in the list. If sort is true, it first sorts the list by name and
-     * bus index. Otherwise, they are exported in the order they are found in the list.
-     * Note that ports are filtered first, then sorted.
-     * @param cell the cell in which exporting is happening.
-     * @param portInsts the list of PortInsts to export
-     * @param sort true to re-sort the portInsts list
-     * @param includeWiredPorts true to export ports that are already wired
-     * @param onlyPowerGround true to only export ports that are power and ground
-     * @param originalExports a map from the entries in portInsts to original Exports.
-     * This is used when re-exporting ports on a copy that were exported on the original.
-     * Ignored if null.
-     * @return the number of ports exported
-     */
-    public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts, boolean onlyPowerGround,
-                                    HashMap<PortInst,Export> originalExports) {
-        EDatabase.serverDatabase().checkChanging();
+	/**
+	 * Re-exports the PortInsts in the list. If sort is true, it first sorts the list by name and
+	 * bus index. Otherwise, they are exported in the order they are found in the list.
+	 * Note that ports are filtered first, then sorted.
+	 * @param cell the cell in which exporting is happening.
+	 * @param portInsts the list of PortInsts to export
+	 * @param sort true to re-sort the portInsts list
+	 * @param includeWiredPorts true to export ports that are already wired
+	 * @param onlyPowerGround true to only export ports that are power and ground
+	 * @param originalExports a map from the entries in portInsts to original Exports.
+	 * This is used when re-exporting ports on a copy that were exported on the original.
+	 * Ignored if null.
+	 * @return the number of ports exported
+	 */
+	public static int reExportPorts(Cell cell, List<PortInst> portInsts, boolean sort, boolean includeWiredPorts,
+		boolean onlyPowerGround, HashMap<PortInst,Export> originalExports)
+	{
+		EDatabase.serverDatabase().checkChanging();
 
-        List<PortInst> portInstsFiltered = new ArrayList<PortInst>();
-        int total = 0;
+		// filter the ports - remove unwanted
+		List<PortInst> portInstsFiltered = new ArrayList<PortInst>();
+		for (PortInst pi : portInsts)
+		{
+			if (!includeWiredPorts)
+			{
+				// remove ports that already have connections
+				if (pi.hasConnections()) continue;
+			}
+			if (onlyPowerGround)
+			{
+				// remove ports that are not power or ground
+				PortProto pp = pi.getPortProto();
+				if (!pp.isPower() && !pp.isGround()) continue;
+			}
 
-        // filter the ports - remove unwanted
-        for (PortInst pi : portInsts) {
-            if (!includeWiredPorts) {
-                // remove ports that already have connections
-                if (pi.hasConnections()) continue;
-//                if (pi.getConnections().hasNext()) continue;
-            }
-            if (onlyPowerGround) {
-                // remove ports that are not power or ground
-                PortProto pp = pi.getPortProto();
-                if (!pp.isPower() && !pp.isGround()) continue;
-            }
-            // remove exported ports
-            NodeInst ni = pi.getNodeInst();
-            for (Iterator<Export> exit = ni.getExports(); exit.hasNext(); ) {
-                Export e = exit.next();
-                if (e.getOriginalPort() == pi) continue;
-            }
+			// remove exported ports
+			NodeInst ni = pi.getNodeInst();
+			for (Iterator<Export> exit = ni.getExports(); exit.hasNext(); )
+			{
+				Export e = exit.next();
+				if (e.getOriginalPort() == pi) continue;
+			}
 
-            portInstsFiltered.add(pi);
-        }
+			portInstsFiltered.add(pi);
+		}
 
-        // sort the ports by name and bus index
-        if (sort)
-            Collections.sort(portInstsFiltered, new PortInstsSortedByBusIndex());
+		// sort the accepted ports by name and bus index
+		if (sort)
+			Collections.sort(portInstsFiltered, new PortInstsSortedByBusIndex());
 
-        // export the ports
-        Set<String> already = new HashSet<String>();
-        for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
-        {
-        	Export e = (Export)it.next();
-        	already.add(e.getNameKey().canonicString());
-        }
-        HashMap<String,GenMath.MutableInteger> nextPlainIndex = new HashMap<String,GenMath.MutableInteger>();
-        for (PortInst pi : portInstsFiltered)
-        {
-            // disallow port action if lock is on
+		// remember port names already used
+		Set<String> already = new HashSet<String>();
+		for(Iterator<PortProto> it = cell.getPorts(); it.hasNext(); )
+		{
+			Export e = (Export)it.next();
+			already.add(e.getNameKey().canonicString());
+		}
+
+		// export the ports
+		HashMap<String,GenMath.MutableInteger> nextPlainIndex = new HashMap<String,GenMath.MutableInteger>();
+		int total = 0;
+		for (PortInst pi : portInstsFiltered)
+		{
+			// disallow port action if lock is on
 			int errorCode = CircuitChangeJobs.cantEdit(cell, pi.getNodeInst(), true, true);
-			if (errorCode < 0) return total;
+			if (errorCode < 0) break;
 			if (errorCode > 0) continue;
 
 			// presume the name of the new Export
-            String protoName = pi.getPortProto().getName();
+			Name protoName = pi.getPortProto().getNameKey();
 
-            // or use export name if there is a reference export
-            Export refExport = null;
-            if (originalExports != null)
-            {
+			// or use export name if there is a reference export
+			Export refExport = null;
+			if (originalExports != null)
+			{
 				refExport = originalExports.get(pi);
-	            if (refExport != null) protoName = refExport.getName();
-            }
+				if (refExport != null) protoName = refExport.getNameKey();
+			}
 
-            // get unique name here so Export.newInstance doesn't print message
-            protoName = ElectricObject.uniqueObjectName(protoName, cell, PortProto.class, already, nextPlainIndex, false);
+			// if the node is arrayed, extend the range of the export
+			Netlist nl = cell.acquireUserNetlist();
+			int busWidth = pi.getNodeInst().getNameKey().busWidth();
+			if (busWidth > 1)
+			{
+				// scalar export on arrayed node: make the export an array
+				if (NetworkTool.isBusAscending())
+				{
+					protoName = Name.findName(protoName.toString() + "[0:" + (busWidth-1) + "]");
+				} else
+				{
+					protoName = Name.findName(protoName.toString() + "[" + (busWidth-1) + ":0]");
+				}
+			}
 
-            // create export
-            Export newPp = Export.newInstance(cell, pi, protoName);
-            if (newPp != null)
-            {
-                // copy text descriptor, var, and characteristic
+			// get unique name here so Export.newInstance doesn't print message
+			String protoNameString = protoName.toString();
+			protoNameString = ElectricObject.uniqueObjectName(protoNameString, cell, PortProto.class, already, nextPlainIndex, false);
+
+			// create export
+			Export newPp = Export.newInstance(cell, pi, protoNameString);
+			if (newPp != null)
+			{
+				// copy text descriptor, var, and characteristic
 				if (pi.getPortProto() instanceof Export)
 				{
 					newPp.copyTextDescriptorFrom((Export)pi.getPortProto(), Export.EXPORT_NAME);
 					newPp.copyVarsFrom(((Export)pi.getPortProto()));
 				}
-                newPp.setCharacteristic(pi.getPortProto().getCharacteristic());
-                // find original export if any, and copy text descriptor, vars, and characteristic
-                if (refExport != null) {
-                    newPp.copyTextDescriptorFrom(refExport, Export.EXPORT_NAME);
-                    newPp.copyVarsFrom(refExport);
-                    newPp.setCharacteristic(refExport.getCharacteristic());
-                }
-                total++;
-                already.add(newPp.getNameKey().canonicString());
-            }
-        }
+				newPp.setCharacteristic(pi.getPortProto().getCharacteristic());
+				// find original export if any, and copy text descriptor, vars, and characteristic
+				if (refExport != null)
+				{
+					newPp.copyTextDescriptorFrom(refExport, Export.EXPORT_NAME);
+					newPp.copyVarsFrom(refExport);
+					newPp.setCharacteristic(refExport.getCharacteristic());
+				}
+				total++;
+				already.add(newPp.getNameKey().canonicString());
+			}
+		}
 
-        return total;
-    }
+		return total;
+	}
 
-    /**
-     * This returns the port inst on newNi that corresponds to the portinst that has been exported
-     * as 'referenceExport' on some other nodeinst of the same node prototype.
-     * This method is useful when re-exporting ports on copied nodes because
-     * the original port was exported.
-     * @param newNi the new node inst on which the port inst will be found
-     * @param referenceExport the export on the old node inst
-     * @return the port inst on newNi which corresponds to the exported portinst on the oldNi
-     * referred to through 'referenceExport'.
-     */
-    public static PortInst getNewPortFromReferenceExport(NodeInst newNi, Export referenceExport) {
-        PortInst origPi = referenceExport.getOriginalPort();
-        PortInst newPi = newNi.findPortInstFromProto(origPi.getPortProto());
-        return newPi;
-    }
+	/**
+	 * This returns the port inst on newNi that corresponds to the portinst that has been exported
+	 * as 'referenceExport' on some other nodeinst of the same node prototype.
+	 * This method is useful when re-exporting ports on copied nodes because
+	 * the original port was exported.
+	 * @param newNi the new node inst on which the port inst will be found
+	 * @param referenceExport the export on the old node inst
+	 * @return the port inst on newNi which corresponds to the exported portinst on the oldNi
+	 * referred to through 'referenceExport'.
+	 */
+	public static PortInst getNewPortFromReferenceExport(NodeInst newNi, Export referenceExport)
+	{
+		PortInst origPi = referenceExport.getOriginalPort();
+		PortInst newPi = newNi.findPortInstFromProto(origPi.getPortProto());
+		return newPi;
+	}
 
 	/****************************** EXPORT DELETION ******************************/
-    
+	
 	/**
 	 * Method to delete the currently selected exports.
 	 */
@@ -881,7 +906,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
 		List<Export> exportsToDelete = new ArrayList<Export>();
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		List<DisplayedText> dts = wnd.getHighlighter().getHighlightedText(true);
 		for(DisplayedText dt : dts)
 		{
@@ -909,7 +934,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
 		List<Export> exportsToDelete = new ArrayList<Export>();
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		List<Geometric> highs = wnd.getHighlighter().getHighlightedEObjs(true, false);
 		for(Geometric geom : highs)
 		{
@@ -939,7 +964,7 @@ public final class ExportChanges
 		if (cell == null) return;
 
 		List<Export> exportsToDelete = new ArrayList<Export>();
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		Rectangle2D bounds = wnd.getHighlighter().getHighlightedArea(null);
 		if (bounds == null)
 		{
@@ -970,24 +995,27 @@ public final class ExportChanges
 		deleteExports(cell, exportsToDelete);
 	}
 
-    public static void deleteExports(Cell cell, List<Export> exportsToDelete) {
-        // disallow port action if lock is on
-        if (CircuitChangeJobs.cantEdit(cell, null, true, false) != 0) return;
-        
-        HashSet<Export> exportsConfirmed = new HashSet<Export>();
-        for(Export e : exportsToDelete) {
-            int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true, false);
-            if (errorCode < 0) break;
-            if (errorCode > 0) continue;
-            exportsConfirmed.add(e);
-        }
-        if (exportsConfirmed.isEmpty()) {
-            System.out.println("No exports deleted");
-            return;
-        }
-        new DeleteExports(cell, exportsConfirmed);
-    }
-    
+	public static void deleteExports(Cell cell, List<Export> exportsToDelete)
+	{
+		// disallow port action if lock is on
+		if (CircuitChangeJobs.cantEdit(cell, null, true, false) != 0) return;
+		
+		HashSet<Export> exportsConfirmed = new HashSet<Export>();
+		for(Export e : exportsToDelete)
+		{
+			int errorCode = CircuitChangeJobs.cantEdit(cell, e.getOriginalPort().getNodeInst(), true, false);
+			if (errorCode < 0) break;
+			if (errorCode > 0) continue;
+			exportsConfirmed.add(e);
+		}
+		if (exportsConfirmed.isEmpty())
+		{
+			System.out.println("No exports deleted");
+			return;
+		}
+		new DeleteExports(cell, exportsConfirmed);
+	}
+	
 	private static class DeleteExports extends Job
 	{
 		private Cell cell;
@@ -996,16 +1024,16 @@ public final class ExportChanges
 		public DeleteExports(Cell cell, Set<Export> exportsToDelete)
 		{
 			super("Delete exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
+			this.cell = cell;
 			this.exportsToDelete = exportsToDelete;
 			startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
-            cell.killExports(exportsToDelete);
+			cell.killExports(exportsToDelete);
 			System.out.println(exportsToDelete.size() + " exports deleted");
-            
+			
 //			// disallow port action if lock is on
 //			if (CircuitChangeJobs.cantEdit(cell, null, true, true) != 0) return false;
 //
@@ -1034,7 +1062,7 @@ public final class ExportChanges
 	{
 		Export source = null;
 		PortInst dest = null;
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		for(Highlight2 h : wnd.getHighlighter().getHighlights())
 		{
 			boolean used = false;
@@ -1100,7 +1128,7 @@ public final class ExportChanges
 	 */
 	public static void renameExport()
 	{
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		Highlight2 h = wnd.getHighlighter().getOneHighlight();
 		if (h == null || h.getVarKey() != Export.EXPORT_NAME || !(h.getElectricObject() instanceof Export))
 		{
@@ -1142,7 +1170,7 @@ public final class ExportChanges
 	{
 		Point2D   loc;
 		PortProto pp;
-		int       angle;
+		int	      angle;
 	};
 
 	/**
@@ -1158,7 +1186,7 @@ public final class ExportChanges
 	 */
 	public static void showPorts()
 	{
-        EditWindow wnd = EditWindow.getCurrent();
+		EditWindow wnd = EditWindow.getCurrent();
 		List<Geometric> nodes = wnd.getHighlighter().getHighlightedEObjs(true, false);
 		if (nodes == null || nodes.size() == 0)
 		{
@@ -1245,8 +1273,8 @@ public final class ExportChanges
 		}
 
 		// determine the height of text in screen space
-        int fontSize = EditWindow.getDefaultFontSize();
-        Point screenOrigin = wnd.databaseToScreen(0, 0);
+		int fontSize = EditWindow.getDefaultFontSize();
+		Point screenOrigin = wnd.databaseToScreen(0, 0);
 		Point2D thPoint = wnd.screenToDatabase(screenOrigin.x, screenOrigin.y + fontSize);
 		double textHeight = Math.abs(thPoint.getY());
 
@@ -1326,7 +1354,7 @@ public final class ExportChanges
 		}
 
 		// show the ports
-        Highlighter highlighter = wnd.getHighlighter();
+		Highlighter highlighter = wnd.getHighlighter();
 		Font font = wnd.getFont(null);
 		FontRenderContext frc = new FontRenderContext(null, true, true);
 		LineMetrics lm = font.getLineMetrics("hy", frc);
@@ -1340,32 +1368,32 @@ public final class ExportChanges
 			String msg = portList[index].pp.getName();
 
 			// get the connecting-line coordinates in screen space
-	        Point locationLabel = wnd.databaseToScreen(loc.getX(), loc.getY());
-	        Point locationPort = wnd.databaseToScreen(portList[index].loc.getX(), portList[index].loc.getY());
+			Point locationLabel = wnd.databaseToScreen(loc.getX(), loc.getY());
+			Point locationPort = wnd.databaseToScreen(portList[index].loc.getX(), portList[index].loc.getY());
 
-	        // determine the opposite corner of the text
+			// determine the opposite corner of the text
 			GlyphVector v = font.createGlyphVector(frc, msg);
 			Rectangle2D glyphBounds = v.getLogicalBounds();
-	        int otherX = locationLabel.x + (int)glyphBounds.getWidth();
-	        int otherY = locationLabel.y - (int)glyphBounds.getHeight();
+			int otherX = locationLabel.x + (int)glyphBounds.getWidth();
+			int otherY = locationLabel.y - (int)glyphBounds.getHeight();
 			Point2D locOther = wnd.screenToDatabase(otherX, otherY);
 
-	        // if the text is off-screen, adjust it
-	        if (otherX > wnd.getSize().width)
-	        {
-	        	int offDist = otherX - wnd.getSize().width;
-	        	locationLabel.x -= offDist;
-	        	otherX -= offDist;
-	        	loc = wnd.screenToDatabase(locationLabel.x, locationLabel.y);
-	        }
+			// if the text is off-screen, adjust it
+			if (otherX > wnd.getSize().width)
+			{
+				int offDist = otherX - wnd.getSize().width;
+				locationLabel.x -= offDist;
+				otherX -= offDist;
+				loc = wnd.screenToDatabase(locationLabel.x, locationLabel.y);
+			}
 
-	        // change the attachment point on the label to be closest to the port
-	        if (Math.abs(locationPort.x-locationLabel.x) > Math.abs(locationPort.x-otherX))
-	        	locationLabel.x = otherX;
-	        if (Math.abs(locationPort.y-locationLabel.y) > Math.abs(locationPort.y-otherY))
-	        	locationLabel.y = otherY;
+			// change the attachment point on the label to be closest to the port
+			if (Math.abs(locationPort.x-locationLabel.x) > Math.abs(locationPort.x-otherX))
+				locationLabel.x = otherX;
+			if (Math.abs(locationPort.y-locationLabel.y) > Math.abs(locationPort.y-otherY))
+				locationLabel.y = otherY;
 
-	        // convert this shift back to database units for the highlight
+			// convert this shift back to database units for the highlight
 			Point2D locLineEnd = wnd.screenToDatabase(locationLabel.x, locationLabel.y);
 
 			// draw the port name
@@ -1421,15 +1449,15 @@ public final class ExportChanges
 			if (oLib == curLib) continue;
 			libNames[i++] = oLib.getName();
 		}
-        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
-        	"Choose another library from which to copy exports", "Choose a Library",
+		String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+			"Choose another library from which to copy exports", "Choose a Library",
 			JOptionPane.QUESTION_MESSAGE, null, libNames, libNames[0]);
-        if (chosen == null) return;
-        Library oLib = Library.findLibrary(chosen);
-        if (oLib == null) return;
+		if (chosen == null) return;
+		Library oLib = Library.findLibrary(chosen);
+		if (oLib == null) return;
 
-        // now run the synchronization
-        new SynchronizeExports(oLib);
+		// now run the synchronization
+		new SynchronizeExports(oLib);
 	}
 
 	/**
@@ -1448,57 +1476,55 @@ public final class ExportChanges
 
 		public boolean doIt() throws JobException
 		{
-	        // merge the two libraries
-	    	int newPorts = 0;
-	    	boolean noCells = false;
+			// merge the two libraries
+			int newPorts = 0;
+			boolean noCells = false;
 			Library curLib = Library.getCurrent();
-	    	for(Iterator<Cell> cIt = curLib.getCells(); cIt.hasNext(); )
-	    	{
-	    		Cell np = cIt.next();
+			for(Iterator<Cell> cIt = curLib.getCells(); cIt.hasNext(); )
+			{
+				Cell np = cIt.next();
 
-	    		// find this cell in the other library
-	    		for(Iterator<Cell> oCIt = oLib.getCells(); oCIt.hasNext(); )
-	    		{
-	    			Cell oNp = oCIt.next();
-	    			if (!np.getName().equals(oNp.getName())) continue;
+				// find this cell in the other library
+				for(Iterator<Cell> oCIt = oLib.getCells(); oCIt.hasNext(); )
+				{
+					Cell oNp = oCIt.next();
+					if (!np.getName().equals(oNp.getName())) continue;
 
-	    			// synchronize the ports
-	    			for(Iterator<PortProto> pIt = oNp.getPorts(); pIt.hasNext(); )
-	    			{
-	    				Export oPp = (Export)pIt.next();
+					// synchronize the ports
+					for(Iterator<PortProto> pIt = oNp.getPorts(); pIt.hasNext(); )
+					{
+						Export oPp = (Export)pIt.next();
 
-	    				// see if that other cell's port is in this one
-	    				Export pp = (Export)np.findPortProto(oPp.getName());
-	    				if (pp != null) continue;
+						// see if that other cell's port is in this one
+						Export pp = (Export)np.findPortProto(oPp.getName());
+						if (pp != null) continue;
 
-	    				// must add port "oPp" to cell "np"
-	    				NodeInst oNi = oPp.getOriginalPort().getNodeInst();
-	    				if (oNi.isCellInstance())
-	    				{
-	    					if (!noCells)
-	    						System.out.println("Cannot yet make exports that come from other cell instances (i.e. export " +
-	    							oPp.getName() + " in " + oNp + ")");
-	    					noCells = true;
-	    					continue;
-	    				}
+						// must add port "oPp" to cell "np"
+						NodeInst oNi = oPp.getOriginalPort().getNodeInst();
+						if (oNi.isCellInstance())
+						{
+							if (!noCells)
+								System.out.println("Cannot yet make exports that come from other cell instances (i.e. export " +
+									oPp.getName() + " in " + oNp + ")");
+							noCells = true;
+							continue;
+						}
 
-	    				// presume that the cells have the same coordinate system
-	    				NodeInst ni = NodeInst.makeInstance(oNi.getProto(), oNi.getAnchorCenter(), oNi.getXSize(), oNi.getYSize(),
-	    					np, oNi.getOrient(), oNi.getName(), oNi.getTechSpecific());
-//	    				NodeInst ni = NodeInst.makeInstance(oNi.getProto(), oNi.getAnchorCenter(), oNi.getXSizeWithMirror(), oNi.getYSizeWithMirror(),
-//	    					np, oNi.getAngle(), oNi.getName(), oNi.getTechSpecific());
-	    				if (ni == null) continue;
-	    				PortInst pi = ni.findPortInstFromProto(oPp.getOriginalPort().getPortProto());
-	    				pp = Export.newInstance(np, pi, oPp.getName());
-	    				if (pp == null) continue;
-	    				pp.setCharacteristic(oPp.getCharacteristic());
-	    				pp.copyTextDescriptorFrom(oPp, Export.EXPORT_NAME);
-	    				pp.copyVarsFrom(oPp);
-	    				newPorts++;
-	    			}
-	    		}
-	    	}
-	    	System.out.println("Created " + newPorts + " new exports in current " + curLib);
+						// presume that the cells have the same coordinate system
+						NodeInst ni = NodeInst.makeInstance(oNi.getProto(), oNi.getAnchorCenter(), oNi.getXSize(), oNi.getYSize(),
+							np, oNi.getOrient(), oNi.getName(), oNi.getTechSpecific());
+						if (ni == null) continue;
+						PortInst pi = ni.findPortInstFromProto(oPp.getOriginalPort().getPortProto());
+						pp = Export.newInstance(np, pi, oPp.getName());
+						if (pp == null) continue;
+						pp.setCharacteristic(oPp.getCharacteristic());
+						pp.copyTextDescriptorFrom(oPp, Export.EXPORT_NAME);
+						pp.copyVarsFrom(oPp);
+						newPorts++;
+					}
+				}
+			}
+			System.out.println("Created " + newPorts + " new exports in current " + curLib);
 			return true;
 		}
 	}
@@ -1529,15 +1555,15 @@ public final class ExportChanges
 			if (oLib == curLib) continue;
 			libNames[i++] = oLib.getName();
 		}
-        String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
-        	"Choose another library from which to replace cell instances", "Choose a Library",
+		String chosen = (String)JOptionPane.showInputDialog(TopLevel.getCurrentJFrame(),
+			"Choose another library from which to replace cell instances", "Choose a Library",
 			JOptionPane.QUESTION_MESSAGE, null, libNames, libNames[0]);
-        if (chosen == null) return;
-        Library oLib = Library.findLibrary(chosen);
-        if (oLib == null) return;
+		if (chosen == null) return;
+		Library oLib = Library.findLibrary(chosen);
+		if (oLib == null) return;
 
-        // now run the replacement
-        new ReplaceFromOtherLibrary(curCell, oLib);
+		// now run the replacement
+		new ReplaceFromOtherLibrary(curCell, oLib);
 	}
 
 	/**
@@ -1559,33 +1585,33 @@ public final class ExportChanges
 
 		public boolean doIt() throws JobException
 		{
-	        HashMap<NodeInst,Cell> cellsToReplace = new HashMap<NodeInst,Cell>();
-	        for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
-	        {
-	        	NodeInst ni = it.next();
-	        	if (!ni.isCellInstance()) continue;
-        		if (ni.getXSize() != 0 || ni.getYSize() != 0) continue;
-	        	Cell oldType = (Cell)ni.getProto();
-	        	if (oldType.getLibrary() == oLib) continue;
-	        	
-        		String nameToFind = oldType.getName();
-        		if (oldType.getView() != View.UNKNOWN) nameToFind += "{" + oldType.getView().getAbbreviation() + "}";
-        		Cell newType = oLib.findNodeProto(nameToFind);
-        		if (newType != null)
-        		{
-        			cellsToReplace.put(ni, newType);
-	        	}
-	        }
-	        System.out.println("Changing " + cellsToReplace.size() + " cell instances...");
-	        int replacements = 0;
-	        for(Iterator <NodeInst> it = cellsToReplace.keySet().iterator(); it.hasNext(); )
-	        {
-	        	NodeInst ni = it.next();
-	        	Cell newType = cellsToReplace.get(ni);
-    			ni.replace(newType, true, true);
-    			replacements++;
-    		}
-	        System.out.println("Changed " + replacements + " cell instances");
+			HashMap<NodeInst,Cell> cellsToReplace = new HashMap<NodeInst,Cell>();
+			for(Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				if (!ni.isCellInstance()) continue;
+				if (ni.getXSize() != 0 || ni.getYSize() != 0) continue;
+				Cell oldType = (Cell)ni.getProto();
+				if (oldType.getLibrary() == oLib) continue;
+				
+				String nameToFind = oldType.getName();
+				if (oldType.getView() != View.UNKNOWN) nameToFind += "{" + oldType.getView().getAbbreviation() + "}";
+				Cell newType = oLib.findNodeProto(nameToFind);
+				if (newType != null)
+				{
+					cellsToReplace.put(ni, newType);
+				}
+			}
+			System.out.println("Changing " + cellsToReplace.size() + " cell instances...");
+			int replacements = 0;
+			for(Iterator <NodeInst> it = cellsToReplace.keySet().iterator(); it.hasNext(); )
+			{
+				NodeInst ni = it.next();
+				Cell newType = cellsToReplace.get(ni);
+				ni.replace(newType, true, true);
+				replacements++;
+			}
+			System.out.println("Changed " + replacements + " cell instances");
 			return true;
 		}
 	}

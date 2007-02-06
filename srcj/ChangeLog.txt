@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05e: *********************************
 
+IMP: (2/6/07, SMR) Exporting from an arrayed node now creates an arrayed export.
+
 BUG: (1/31/07, DN) Get rid of those "has connections on port 'generic:Port[].center" messages (Bug #829).
 FIX: Remove messages about connections on Artwork.tech.pinNode from DRC.checkNetworks .
 
