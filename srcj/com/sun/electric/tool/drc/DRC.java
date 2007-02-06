@@ -870,7 +870,7 @@ public class DRC extends Listener
             if (!cell.isIcon()) {
                 if (ni.isIconOfParent() ||
                         np.getFunction() == PrimitiveNode.Function.ART && np != Generic.tech.simProbeNode ||
-                        np == Artwork.tech.pinNode ||
+//                        np == Artwork.tech.pinNode ||
                         np == Generic.tech.invisiblePinNode) {
                     if (ni.hasConnections()) {
                         String msg = "Network: " + cell + " has connections on " + ni;
