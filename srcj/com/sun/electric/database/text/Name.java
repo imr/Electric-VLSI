@@ -24,17 +24,17 @@
 package com.sun.electric.database.text;
 
 import com.sun.electric.database.geometry.GenMath;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-
 /**
  * A Name is a text-parsing object for port, node and arc names.
  * These names can use bus notation:<BR>
- * <CENTER>name = username | temname</CENTER>
+ * <CENTER>name = username | tempname</CENTER>
  * <CENTER>username = itemname { ',' itemname }</CENTER>
  * <CENTER>itemname = simplename { '[' index ']' }</CENTER>
  * <CENTER>index = indexitem { ',' indexitem ']' }</CENTER>
