@@ -558,7 +558,8 @@ public class LayerCoverageTool extends Tool
             {
                 nodesAdded = new ArrayList<Object>();
                 nodesAdded.addAll(data.getNodesToHighlight());
-                fieldVariableChanged("nodesAdded");
+                if (func == LCMode.IMPLANT)
+                	fieldVariableChanged("nodesAdded");
             }
             return done;
         }
