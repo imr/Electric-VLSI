@@ -27,6 +27,7 @@ package com.sun.electric.database.network;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
@@ -275,8 +276,20 @@ public class NetworkTool extends Tool
         }
         if (!added)
         {
-            Network net = netlist.getNetwork(pi);
-            if (net != null) nets.add(net);
+        	PortProto pp = pi.getPortProto();
+        	if (pp instanceof Export)
+        	{
+        		int wid = netlist.getBusWidth((Export)pp);
+        		for(int i=0; i<wid; i++)
+        		{
+        			Network net = netlist.getNetwork(pi.getNodeInst(), pp, i);
+    	            if (net != null) nets.add(net);
+        		}
+        	} else
+        	{
+	            Network net = netlist.getNetwork(pi);
+	            if (net != null) nets.add(net);
+        	}
         }
         return nets;
     }
