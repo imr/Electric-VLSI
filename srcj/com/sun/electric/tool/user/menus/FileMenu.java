@@ -82,13 +82,19 @@ import com.sun.electric.tool.user.waveform.WaveformWindow;
 
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.HeadlessException;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.io.EOFException;
 import java.io.File;
+import java.io.LineNumberReader;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1206,11 +1212,11 @@ public class FileMenu {
 	private static ElectricPrinter getOutputPreferences(WindowContent context, PrinterJob pj)
 	{
  		if (pageFormat == null)
-		 {
+		{
 			pageFormat = pj.defaultPage();
 			pageFormat.setOrientation(PageFormat.LANDSCAPE);
             pageFormat = pj.validatePage(pageFormat);
-		 }
+		}
 
  		ElectricPrinter ep = new ElectricPrinter(context, pageFormat, pj);
 		pj.setPrintable(ep, pageFormat);
@@ -1230,13 +1236,6 @@ public class FileMenu {
     	}
         Cell cell = WindowFrame.needCurCell();
         if (cell == null) return;
-        if (cell.getView().isTextView())
-        {
-            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Text cells can't be printed yet",
-                "Printing Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName(wf.getTitle());
 
@@ -1274,7 +1273,7 @@ public class FileMenu {
 		PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
         if (pj.printDialog(aset))
         {
-			// disable double-buffering so prints look better
+            // disable double-buffering so prints look better
 			JPanel overall = wf.getContent().getPanel();
 			RepaintManager currentManager = RepaintManager.currentManager(overall);
 			currentManager.setDoubleBufferingEnabled(false);

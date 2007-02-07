@@ -586,7 +586,7 @@ public class TextWindow implements WindowContent
 	 * Method to convert the document in this window to an array of strings.
 	 * @return an array of strings with the current text.
 	 */
-	private String [] convertToStrings()
+	public String [] convertToStrings()
 	{
 		Document doc = textArea.getDocument();
 		Element paragraph = doc.getDefaultRootElement();
@@ -806,12 +806,7 @@ public class TextWindow implements WindowContent
 	 */
 	public BufferedImage getPrintImage(ElectricPrinter ep)
 	{
-		Graphics2D g2d = (Graphics2D)ep.getGraphics();
-		if (g2d != null)
-		{
-			textArea.paint(g2d);
-		}
-		return (BufferedImage)overall.createImage(1, 1);
+		return null;
 	}
 
 	/**
