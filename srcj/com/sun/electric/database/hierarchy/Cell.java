@@ -3301,7 +3301,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
                         " because it is used in " + parents, action + " failed");
             return true;
         }
-        if (isSchematic()) {
+        if (isSchematic() && this == getNewestVersion()) {
             for (Cell cell: getCellGroup().cells) {
                 if (!cell.isIcon()) continue;
                 parents = cell.isInUse(false);
