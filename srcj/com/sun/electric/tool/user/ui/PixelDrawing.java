@@ -605,7 +605,7 @@ class PixelDrawing
 		gridGraphics.setColor(new Color(User.getColorGrid()));
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
 		
-        varContext = wnd.getVarContext();
+        if (wnd != null) varContext = wnd.getVarContext();
         initOrigin(scale, offset);
  		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;

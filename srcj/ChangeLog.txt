@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05f: *********************************
 
+IMP: (2/7/07, SMR) Schematic frames now print properly.
+
 BUG: (2/7/07, SMR) Cannot delete old versions of schematics because the syste
      thinks their icons are in use.
 FIX: In Cell.isInUse(), consider icon usage only for most recent version.

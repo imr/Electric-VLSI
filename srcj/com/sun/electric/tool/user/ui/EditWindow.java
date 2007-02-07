@@ -3796,14 +3796,14 @@ public class EditWindow extends JPanel
 		int scaleFactor = ep.getDesiredDPI() / 72;
 		if (scaleFactor > 2) scaleFactor = 2; else
 			if (scaleFactor <= 0) scaleFactor = 1;
+		int wid = (int)ep.getPageFormat().getImageableWidth() * scaleFactor;
+		int hei = (int)ep.getPageFormat().getImageableHeight() * scaleFactor;
 
 		BufferedImage img = ep.getBufferedImage();
 		if (img == null)
 		{
 			// change window size
-			int iw = (int)ep.getPageFormat().getImageableWidth() * scaleFactor;
-			int ih = (int)ep.getPageFormat().getImageableHeight() * scaleFactor;
-			PixelDrawing offscreen = new PixelDrawing(new Dimension(iw, ih));
+			PixelDrawing offscreen = new PixelDrawing(new Dimension(wid, hei));
 
 			// prepare for printing
 			PrinterJob pj = ep.getPrintJob();
@@ -3821,8 +3821,10 @@ public class EditWindow extends JPanel
         	double height = cellBounds.getHeight();
             if (width == 0) width = 2;
             if (height == 0) height = 2;
-            double scalex = sz.width/width * 0.9;
-            double scaley = sz.height/height * 0.9;
+//            double scalex = sz.width/width * 0.9;
+//            double scaley = sz.height/height * 0.9;
+            double scalex = wid/width;
+            double scaley = hei/height;
             double scale = Math.min(scalex, scaley);
     		EPoint offset = new EPoint(cellBounds.getCenterX(), cellBounds.getCenterY());
 
@@ -3844,30 +3846,38 @@ public class EditWindow extends JPanel
 			int iy = (int)ep.getPageFormat().getImageableY() * scaleFactor;
 			g2d.scale(1.0 / scaleFactor, 1.0 / scaleFactor);
 			g2d.drawImage(img, ix, iy, null);
-			g2d.setTransform(saveAT);
 
-//			// draw frame
-//    		Point2D saveOffset = getOffset();
-//    		double saveScale = getScale();
-//            Rectangle2D cellBounds = getBoundsInWindow();
-//    		double width = cellBounds.getWidth();
-//        	double height = cellBounds.getHeight();
-//            if (width == 0) width = 2;
-//            if (height == 0) height = 2;
-//            double scalex = sz.width/width * 0.9;
-//            double scaley = sz.height/height * 0.9;
-//            scale = Math.min(scalex, scaley)/scaleFactor;
-//    		offx = cellBounds.getCenterX()+ix/scale;
-//    		offy = cellBounds.getCenterY()-iy/scale;
-//    		szHalfWidth = sz.width * scaleFactor / 2;
-//    		szHalfHeight = sz.height * scaleFactor / 2;
-//
-//    		drawCellFrame(g2d);
-//System.out.println("ix="+ix+" iy="+iy+" scaleFactor="+scaleFactor+" sz="+sz.width+"x"+sz.height+" scale="+scale+
-//	" off=("+offx+","+offy+") cell="+cellBounds.getWidth()+"x"+cellBounds.getHeight());
-//			scale = saveScale;
-//			offx = saveOffset.getX();
-//			offy = saveOffset.getY();
+			// save window factors
+    		Point2D saveOffset = getOffset();
+    		double saveScale = scale;
+    		int saveHalfWid = szHalfWidth;
+    		int saveHalfHei = szHalfHeight;
+
+    		// compute proper window factors to center the frame
+    		Rectangle2D cellBounds = getBoundsInWindow();
+    		double width = cellBounds.getWidth();
+        	double height = cellBounds.getHeight();
+            if (width == 0) width = 2;
+            if (height == 0) height = 2;
+            scale = Math.min(wid/width, hei/height);
+    		offx = offy = 0;
+    		szHalfWidth = ix + wid / 2;
+    		szHalfHeight = iy + hei / 2;
+			computeDatabaseBounds();
+
+			// draw the frame
+			g2d.setColor(Color.BLACK);
+    		drawCellFrame(g2d);
+
+			// restore window factors
+			scale = saveScale;
+			szHalfWidth = saveHalfWid;
+			szHalfHeight = saveHalfHei;
+			offx = saveOffset.getX();
+			offy = saveOffset.getY();
+			computeDatabaseBounds();
+
+			g2d.setTransform(saveAT);
 		}
 		return img;
 	}
