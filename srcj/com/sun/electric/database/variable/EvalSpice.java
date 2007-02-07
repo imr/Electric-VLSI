@@ -117,9 +117,6 @@ public class EvalSpice {
             else if (tt == ',') {       // end eq
                 return eq;
             }
-            else if (tt == ':') {       // end conditional true arg
-                return eq;
-            }
             else if (tt == StreamTokenizer.TT_NUMBER) {
                 tokenizer.pushBack();
                 eq.addIdentifier(parseNumber());
@@ -250,11 +247,16 @@ public class EvalSpice {
             }
             else if (tt == '?') {
                 eq.addOp(Op.COND);
+/*
                 Object arg1 = evalEq().eval();
                 if (tokenizer.ttype != ':') throw new ParseException("Expected ':' after conditional");
                 Object arg2 = evalEq().eval();
                 SimpleEq condval = new SimpleEq(arg1, Op.CONDCHOICE, arg2);
                 eq.addIdentifier(condval);
+*/
+            }
+            else if (tt == ':') {       // end conditional true arg
+                eq.addOp(Op.CONDCHOICE);
             }
         }
     }
@@ -355,8 +357,8 @@ public class EvalSpice {
         public static final Op NE =    new Op("!=", 6);
         public static final Op LAND =  new Op("&&", 10);
         public static final Op LOR =   new Op("||", 11);
-        public static final Op COND =  new Op("?", 12);
         public static final Op CONDCHOICE =  new Op(":", 12);
+        public static final Op COND =  new Op("?", 13);
     }
 
     private static final Double ONE = new Double(1);
@@ -535,12 +537,12 @@ public class EvalSpice {
         testEval("1 + 2 * 3", 7);
         testEval("1 * 2 + 3", 5);
         testEval("(1 + 2) * 3", 9);
-        testEval("(1 + 2) * x", "3.0 * x");
+        testEval("(1 + 2) * x", "3 * x");
         testEval("300 / -1.5e2", -2);
         testEval("1.5e-2", 0.015);
         testEval("20 * 1.5e-2", 0.3);
         testEval("20 * 1.5m", 0.03);
-        testEval("(1 + a) * 3 + b", "(1.0 + a) * 3.0 + b");
+        testEval("(1 + a) * 3 + b", "(1 + a) * 3 + b");
         testEval("1 + 2 * 3 + - 4", 3);
         testEval("-1", -1);
         testEval("-1 + 2 * 3 + - 4", 1);
@@ -558,8 +560,9 @@ public class EvalSpice {
         testEval("8 == 1 ? -2 : 4", 4);
         testEval("8 > 1 ? -2 : 4", -2);
         testEval("1 - 7 <= 1 ? -2 : 4", -2);
-        testEval("layer == 1 ? two + 1 : eight * 4 / 2", "layer == 1.0 ? two + 1.0 : eight * 4.0 / 2.0");
+        testEval("layer == 1 ? two + 1 : eight * 4 / 2", "layer == 1 ? two + 1 : eight * 4 / 2");
         testEval("0 * 1 ? 3 / 2 : -4 + 10", 6);
+        testEval("(3==0?0.00441:3<8?0.011:0.016)*1e-15", 1.1e-17);
         System.out.println("\nThese should flag as errors:\n---------------------------\n");
         testEval("1 2 +", null);
         testEval("1 + * 2", null);
