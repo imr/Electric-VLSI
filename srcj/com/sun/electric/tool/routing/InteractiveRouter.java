@@ -159,7 +159,6 @@ public abstract class InteractiveRouter extends Router {
         // do nothing if startPort can already connect to arc
         if (startPort.getPortProto().connectsTo(arc)) return true;
 
-//        Cell cell = startPort.getNodeInst().getParent();
         if (!started) startInteractiveRoute(wnd);
 
         Point2D startLoc = new Point2D.Double(startPort.getPoly().getCenterX(), startPort.getPoly().getCenterY());
@@ -167,10 +166,7 @@ public abstract class InteractiveRouter extends Router {
         RouteElementPort startRE = RouteElementPort.existingPortInst(startPort, poly);
         Route route = new Route();
         route.add(startRE); route.setStart(startRE);
-        //route.setEnd(startRE);
 
-//        PrimitiveNode pn = arc.findOverridablePinProto();
-//        PortProto pp = pn.getPort(0);
         VerticalRoute vroute = VerticalRoute.newRoute(startPort.getPortProto(), arc);
         if (!vroute.isSpecificationSucceeded()) {
             cancelInteractiveRoute();
@@ -188,7 +184,7 @@ public abstract class InteractiveRouter extends Router {
 
     private static class MakeVerticalRouteJob extends Router.CreateRouteJob {
         protected MakeVerticalRouteJob(Router router, Route route, Cell cell, boolean verbose) {
-            super(router.toString(), route, cell, false, Routing.getRoutingTool());
+            super(router.toString(), route, cell, verbose, Routing.getRoutingTool());
         }
 
         /** Implemented doIt() method to perform Job */
@@ -204,7 +200,6 @@ public abstract class InteractiveRouter extends Router {
                 	CircuitChangeJobs.Reconnect re = CircuitChangeJobs.Reconnect.erasePassThru(ni, false, true);
                     if (re != null) re.reconnectArcs();
                     if (!ni.hasExports()) ni.kill();
-//                    if (ni.getNumExports() == 0) ni.kill();
                 }
             }
             return true;
@@ -307,8 +302,6 @@ public abstract class InteractiveRouter extends Router {
         // attach to each
         Poly startPoly = getConnectingSite(startObj, clicked, startArcWidth - startArc.getLambdaWidthOffset());
         Poly endPoly = getConnectingSite(endObj, clicked, endArcWidth - endArc.getLambdaWidthOffset());
-        //Poly startPoly = getConnectingSite(startObj, clicked, 3);
-        //Poly endPoly = getConnectingSite(endObj, clicked, 3);
 
         // Now we can figure out where on the start and end objects the connecting
         // arc(s) should connect
