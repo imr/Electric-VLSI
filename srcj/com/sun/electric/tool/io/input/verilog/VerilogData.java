@@ -281,7 +281,14 @@ public class VerilogData
                 assert(findPort(name) == null);
             }
 
-            VerilogPort export = new VerilogPort(name, PortCharacteristic.UNKNOWN);
+            PortCharacteristic def = PortCharacteristic.UNKNOWN;
+            String lowerName = name.toLowerCase();
+            // attempt to get the type based on port name (in,out)
+            if (lowerName.startsWith("in"))
+                def = PortCharacteristic.IN;
+            else if (lowerName.startsWith("out"))
+                def = PortCharacteristic.OUT;
+            VerilogPort export = new VerilogPort(name, def);
             ports.put(name, export);
             return export;
         }
