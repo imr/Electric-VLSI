@@ -951,7 +951,15 @@ public class VerilogReader extends Input
 
         // making icon
         ViewChanges.makeIconViewNoGUI(cell, true, true);
-
+//        // Change port types in icon exports
+//        Cell cellIcon = cell.iconView();
+//        for (Iterator<Export> itE = cellIcon.getExports(); itE.hasNext();)
+//        {
+//            Export ex = itE.next();
+//            VerilogData.VerilogPort port = module.ports.get(ex.getName());
+//            ex.setCharacteristic(port.type);
+//
+//        }
         return cell; // not too much sense?
     }
 
