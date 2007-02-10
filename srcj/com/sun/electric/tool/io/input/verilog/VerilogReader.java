@@ -907,6 +907,7 @@ public class VerilogReader extends Input
             if (portType == PortCharacteristic.BIDIR ||
                     portType == PortCharacteristic.IN ||
                     portType == PortCharacteristic.OUT ||
+                    portType == PortCharacteristic.CLK ||
                     portType == PortCharacteristic.UNKNOWN) // unknown when modules are read as instances
             {
                 PrimitiveNode primitive = (port.busPins==null) ? Schematics.tech.wirePinNode :
@@ -939,7 +940,8 @@ public class VerilogReader extends Input
                     ni.getOnlyPortInst(), supply.getOnlyPortInst(), null, null, name);
 //                    pinsMap.put(name, ni); // not sure if this is the correct pin
             }
-//                else
+            else
+                System.out.println("Skipping this characteristic?");
 //                    assert(false); // it should not reach this point.
         }
 
@@ -951,15 +953,7 @@ public class VerilogReader extends Input
 
         // making icon
         ViewChanges.makeIconViewNoGUI(cell, true, true);
-//        // Change port types in icon exports
-//        Cell cellIcon = cell.iconView();
-//        for (Iterator<Export> itE = cellIcon.getExports(); itE.hasNext();)
-//        {
-//            Export ex = itE.next();
-//            VerilogData.VerilogPort port = module.ports.get(ex.getName());
-//            ex.setCharacteristic(port.type);
-//
-//        }
+
         return cell; // not too much sense?
     }
 

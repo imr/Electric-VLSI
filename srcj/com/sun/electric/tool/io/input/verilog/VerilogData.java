@@ -288,6 +288,8 @@ public class VerilogData
                 def = PortCharacteristic.IN;
             else if (lowerName.startsWith("out"))
                 def = PortCharacteristic.OUT;
+            else if (lowerName.endsWith("clk"))
+                def = PortCharacteristic.CLK;
             VerilogPort export = new VerilogPort(name, def);
             ports.put(name, export);
             return export;
