@@ -752,9 +752,10 @@ public class EditMenu {
     	tw.writeTextCell(fileName);
     	try
     	{
-    		String commandString = "\"" + externalEditor + "\" " + fileName;
             Client.OS os = Client.getOperatingSystem();
-    		if (os == Client.OS.WINDOWS) commandString = "cmd /c " + commandString;
+    		String commandString;
+    		if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName; else
+    			commandString = externalEditor + " " + fileName;
     		Process p = Runtime.getRuntime().exec(commandString);
     		try
     		{
