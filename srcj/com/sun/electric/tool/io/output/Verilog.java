@@ -832,27 +832,16 @@ public class Verilog extends Topology
                     infstr.append(");");
                     break;
 
-                case 2:		// transistors: write ports in the proper order
-                    // schem: g/s/d[/b]  mos: g/s/g/d
+                case 2:		// transistors: write ports in the proper order: s/d/g
                     ni = (NodeInst)no;
                     Network gateNet = netList.getNetwork(ni.getTransistorGatePort());
                     for(int i=0; i<2; i++)
                     {
+                    	boolean didGate = false;
                         for(Iterator<PortInst> pIt = ni.getPortInsts(); pIt.hasNext(); )
                         {
                             PortInst pi = (PortInst)pIt.next();
                             Network net = netList.getNetwork(pi);
-
-//							// see if it connects to an earlier portinst
-//							boolean connected = false;
-//							for(Iterator ePIt = ni.getPortInsts(); ePIt.hasNext(); )
-//							{
-//								PortInst ePi = (PortInst)ePIt.next();
-//								if (ePi == pi) break;
-//								Network eNet = netList.getNetwork(ePi);
-//								if (eNet == net) { connected = true;   break; }
-//							}
-//							if (connected) continue;
                             if (dropBias && pi.getPortProto().getName().equals("b")) continue;
                             if (i == 0)
                             {
@@ -860,6 +849,8 @@ public class Verilog extends Topology
                             } else
                             {
                                 if (net != gateNet) continue;
+                                if (didGate) continue;
+                                didGate = true;
                             }
                             if (first) first = false; else
                                 infstr.append(", ");
