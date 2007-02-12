@@ -117,6 +117,7 @@ import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.plaf.TreeUI;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.MutableTreeNode;
@@ -128,8 +129,8 @@ import javax.swing.tree.TreeSelectionModel;
  * Class to display a cell explorer tree-view of the database.
  */
 public class ExplorerTree extends JTree implements /*DragGestureListener,*/ DragSourceListener
-{
-    private final static TreePath[] NULL_TREE_PATH_ARRAY = {};
+{	
+	private final static TreePath[] NULL_TREE_PATH_ARRAY = {};
 
     private TreeHandler handler = null;
 	private final String rootNode;
@@ -556,6 +557,43 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 		// a drop target for the explorer tree
 		dropTarget = new ExplorerTreeDropTarget();
 		new DropTarget(this, DnDConstants.ACTION_LINK, dropTarget, true);
+	}
+
+	/**
+	 * This override method fixes a bug where clicking and then dragging fails
+	 * if the tree node is not already selected.
+	 * This should not be necessary anymore after Java 1.5v6 but somehow is.
+	 */
+	public void setUI(TreeUI ui)
+	{
+		super.setUI(ui);
+
+		// the default dnd implementation needs to first select and then drag
+		try
+		{
+			Class<?> clazz = Class.forName("javax.swing.plaf.basic.BasicDragGestureRecognizer");
+			MouseListener[] mouseListeners = getMouseListeners();
+			MouseListener dragListener = null;
+			for(int i = 0; i<mouseListeners.length; i++)
+			{
+				if (clazz.isAssignableFrom(mouseListeners[i].getClass()))
+				{
+					dragListener = mouseListeners[i];
+					break;
+				}
+			}
+
+			if (dragListener != null)
+			{
+				removeMouseListener(dragListener);
+				removeMouseMotionListener((MouseMotionListener)dragListener);
+				addMouseListener(dragListener);
+				addMouseMotionListener((MouseMotionListener)dragListener);
+			}
+		} catch (ClassNotFoundException e)
+		{
+			e.printStackTrace();
+		}
 	}
 
 	private class MyTransferHandler extends TransferHandler
