@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05f: *********************************
 
+BUG: (2/12/07, SMR) Verilog netlists MOS transistors incorrectly
+     (writes 4 parameters instead of 3).
+FIX: In Verilog.writeCellTopology(), prevent both gates of the
+     transitor from being written.
+
+IMP/MAN: (2/12/07, SMR) Added the command "Edit / Text / Edit Text Cell Externally..."
+     to edit the current textual cell in an external editor.  The editor is chosen
+     in the Display / Text Preferences.
+
 BUG: (2/8/07, SMR) When switching layers with a digit key, new contact
      is not highlighted (Bug #1274).
 FIX: In InteractiveRouter.MakeVerticalRouteJob constructor, pass the "verbose"
