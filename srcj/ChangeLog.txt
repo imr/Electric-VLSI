@@ -11,7 +11,7 @@ BUG: (2/12/07, SMR) Clicking and dragging a cell from the explorer to the
 FIX: This is a known bug in Java 1.5.  The workaround is to override the
      method setUI() in ExplorerTree.java.
 
-IMP: (2/12/07, GVG) Adding VIA9 and M10 in 90nm tech. Rules added in TSMC90.xml and ST90.xml.
+IMP: (2/12/07, GVG) Adding RDL layers as pure layer nodes.
 
 BUG: (2/12/07, SMR) Verilog netlists MOS transistors incorrectly
      (writes 4 parameters instead of 3).
