@@ -43,6 +43,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.Client;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.user.CircuitChangeJobs;
@@ -86,6 +87,8 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
@@ -254,7 +257,7 @@ public class EditMenu {
                             
             ToolBar.modesSubMenu, // O                
 
-		// mnemonic keys available: AB  E GH JKLMNOPQRS UVWXYZ
+		// mnemonic keys available: AB    GH JKLMNOPQRS UVWXYZ
             new EMenu("Te_xt",
                 new EMenuItem("_Find Text...", 'L') { public void run() {
                     FindText.findTextDialog(); }},
@@ -265,7 +268,9 @@ public class EditMenu {
                 new EMenuItem("_Decrease All Text Size", '-') { public void run() {
                     changeGlobalTextSize(0.8); }},
                 new EMenuItem("Add _Text Annotation", KeyStroke.getKeyStroke('T', 0)) { public void run() {
-                    PaletteFrame.placeInstance("ART_message", null, false); }}),
+                    PaletteFrame.placeInstance("ART_message", null, false); }},
+                new EMenuItem("Edit Text Cell _Externally...") { public void run() {
+                	editExternally(); }}),
 
 		// mnemonic keys available: ABCD FGHIJK M O QR TUVWXYZ
             new EMenu("Clea_nup Cell",
@@ -705,6 +710,66 @@ public class EditMenu {
     		User.setGlobalTextScale(curScale);
     		EditWindow.repaintAllContents();
     	}
+    }
+
+    /**
+     * Method to edit the current text-cell in an external editor.
+     */
+    private static void editExternally()
+    {
+    	TextWindow tw = null;
+    	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+    	if (wf != null && wf.getContent() instanceof TextWindow)
+    	{
+    		tw = (TextWindow)wf.getContent();
+    	}
+    	if (tw == null)
+    	{
+    		Job.getUserInterface().showErrorMessage("You must be editing a text cell before editing it externally", "No Text To Edit");
+    		return;
+    	}
+    	String externalEditor = User.getDefaultTextExternalEditor();
+    	if (externalEditor.length() == 0)
+    	{
+    		Job.getUserInterface().showErrorMessage("No external text editor is defined.  Use the Display/Text Preferences to set one", "No Text Editor Set");
+    		return;
+    	}
+    	Cell cell = tw.getCell();
+    	String fileName = null;
+    	File f = null;
+    	for(int i=1; i<1000; i++)
+    	{
+        	fileName = cell.getName() + i + ".txt";
+    		f = new File(fileName);
+    		if (!f.exists())
+    		{
+    			fileName = f.getAbsolutePath();
+    			break;
+    		}
+    		f = null;
+    	}
+    	if (f == null) return;
+    	tw.writeTextCell(fileName);
+    	try
+    	{
+    		String commandString = "\"" + externalEditor + "\" " + fileName;
+            Client.OS os = Client.getOperatingSystem();
+    		if (os == Client.OS.WINDOWS) commandString = "cmd /c " + commandString;
+    		Process p = Runtime.getRuntime().exec(commandString);
+    		try
+    		{
+    			p.waitFor();
+    		} catch (InterruptedException e)
+    		{
+    			System.out.println("External text editor interrupted: " + e);
+    		}
+    	} catch (IOException e)
+    	{
+    		System.out.println("IO Exception: " + e);
+    	}
+    	tw.readTextCell(fileName);
+    	tw.goToLineNumber(1);
+    	f.delete();
     }
 
     /**

@@ -1370,6 +1370,19 @@ public class User extends Listener
 	 */
 	public static void setGlobalTextScale(double s) { cacheGlobalTextScale.setDouble(s); }
 
+	private static Pref cacheDefaultTextExternalEditor = Pref.makeStringPref("DefaultTextExternalEditor", tool.prefs, "");
+	/**
+	 * Method to get the program to invoke when externally editing textual cells.
+	 * The default is blank.
+	 * @return the program to invoke when externally editing textual cells.
+	 */
+	public static String getDefaultTextExternalEditor() { return cacheDefaultTextExternalEditor.getString(); }
+	/**
+	 * Method to set the program to invoke when externally editing textual cells.
+	 * @param f the program to invoke when externally editing textual cells.
+	 */
+	public static void setDefaultTextExternalEditor(String e) { cacheDefaultTextExternalEditor.setString(e); }
+
 	/****************************** FRAME PREFERENCES ******************************/
 
 	private static Pref cacheFrameCompanyName = Pref.makeStringPref("FrameCompanyName", tool.prefs, "");
