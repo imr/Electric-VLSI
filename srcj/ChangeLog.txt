@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05f: *********************************
 
+IMP: (2/12/07, GVG) Adding VIA9 and M10 in 90nm tech. Rules added in TSMC90.xml and ST90.xml.
+
 BUG: (2/12/07, SMR) Verilog netlists MOS transistors incorrectly
      (writes 4 parameters instead of 3).
 FIX: In Verilog.writeCellTopology(), prevent both gates of the
