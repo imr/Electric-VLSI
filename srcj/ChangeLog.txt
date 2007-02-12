@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.05g: *********************************
+
 ************************* Version 8.05f: *********************************
 
 BUG: (2/12/07, SMR) Clicking and dragging a cell from the explorer to the
