@@ -384,10 +384,16 @@ public class TextWindow implements WindowContent
     {
         if (fileName == null) {
             System.out.println("Bad file name: "+fileName);
+            return;
         }
         // start a job to do the input
         URL fileURL = TextUtils.makeURLToFile(fileName);
         InputStream stream = TextUtils.getURLStream(fileURL);
+        if (stream == null)
+        {
+            System.out.println("Could not open file: " + fileURL.getFile());
+            return;
+        }
         try
         {
             fileURL.openConnection();
@@ -440,10 +446,16 @@ public class TextWindow implements WindowContent
         tw.readTextCell(fileName);
     }
 
-    public void writeTextCell(String fileName)
+    /**
+     * Method to write text cell into a file
+     * @param fileName
+     * @return true if no errors were found
+     */
+    public boolean writeTextCell(String fileName)
     {
         if (fileName == null) {
             System.out.println("Bad filename: "+fileName);
+            return false;
         }
         try
         {
@@ -466,10 +478,11 @@ public class TextWindow implements WindowContent
         } catch (IOException e)
         {
             System.out.println("Error saving " + fileName);
-            return;
+            return false;
         }
         System.out.println("Wrote " + fileName);
-	}
+        return true;
+    }
 
 	/**
 	 * Method to select a line number in this TextWindow.

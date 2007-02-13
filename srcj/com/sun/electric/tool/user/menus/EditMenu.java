@@ -96,7 +96,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.KeyStroke;
+import javax.swing.*;
 
 /**
  * Class to handle the commands in the "Edit" pulldown menu.
@@ -104,10 +104,10 @@ import javax.swing.KeyStroke;
 public class EditMenu {
 
     static EMenu makeMenu() {
-		/****************************** THE EDIT MENU ******************************/
+        /****************************** THE EDIT MENU ******************************/
 
-		// mnemonic keys available:  B   F   JK     Q        
-		// still don't have mnemonic for "Repeat Last Action"
+        // mnemonic keys available:  B   F   JK     Q
+        // still don't have mnemonic for "Repeat Last Action"
         return new EMenu("_Edit",
 
             new EMenuItem("Cu_t", 'X') { public void run() {
@@ -131,7 +131,7 @@ public class EditMenu {
 
             SEPARATOR,
 
-		// mnemonic keys available: AB  EFGHIJKLMN PQRSTUV XYZ
+        // mnemonic keys available: AB  EFGHIJKLMN PQRSTUV XYZ
             new EMenu("_Rotate",
                 new EMenuItem("90 Degrees Clock_wise") { public void run() {
                     CircuitChanges.rotateObjects(2700); }},
@@ -142,14 +142,14 @@ public class EditMenu {
                 new EMenuItem("_Other...") { public void run() {
                     CircuitChanges.rotateObjects(0); }}),
 
-		// mnemonic keys available: ABCDEFGHIJK MNOPQRST VWXYZ
+        // mnemonic keys available: ABCDEFGHIJK MNOPQRST VWXYZ
             new EMenu("_Mirror",
                 new EMenuItem("_Up <-> Down") { public void run() {
                     CircuitChanges.mirrorObjects(true); }},
                 new EMenuItem("_Left <-> Right") { public void run() {
                     CircuitChanges.mirrorObjects(false); }}),
 
-		// mnemonic keys available:  BCDEFGH JKLM OPQRSTUVWXYZ
+        // mnemonic keys available:  BCDEFGH JKLM OPQRSTUVWXYZ
             new EMenu("Si_ze",
                 new EMenuItem("_Interactively", 'B') { public void run() {
                     SizeListener.sizeObjects(); }},
@@ -158,7 +158,7 @@ public class EditMenu {
                 new EMenuItem("All Selected _Arcs...") { public void run() {
                     SizeListener.sizeAllArcs(); }}),
 
-		// mnemonic keys available:    DEFGHIJK  NOPQ   U WXYZ
+        // mnemonic keys available:    DEFGHIJK  NOPQ   U WXYZ
             new EMenu("Mo_ve",
                 new EMenuItem("_Spread...") { public void run() {
                     Spread.showSpreadDialog(); }},
@@ -183,16 +183,16 @@ public class EditMenu {
 
             SEPARATOR,
 
-		// mnemonic keys available:   CDEFGHIJKLMNOPQR TUVWXYZ
+        // mnemonic keys available:   CDEFGHIJKLMNOPQR TUVWXYZ
             new EMenu("_Erase",
                 new EMenuItem("_Selected", KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0)) {
                     public void run() {
-                        CircuitChanges.deleteSelected(); }},    
+                        CircuitChanges.deleteSelected(); }},
                 new EMenuItem("_Arcs Connected to Selected Nodes") { public void run() {
                     CircuitChanges.deleteArcsOnSelected(false); }},
                 new EMenuItem("Arcs Connected _Between Selected Nodes") { public void run() {
                     CircuitChanges.deleteArcsOnSelected(true); }}),
-                            
+
             new EMenuItem("_Array...", KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0)) { public void run() {
                 Array.showArrayDialog(); }},
             new EMenuItem("C_hange...", KeyStroke.getKeyStroke('C', 0)) { public void run() {
@@ -200,7 +200,7 @@ public class EditMenu {
 
             SEPARATOR,
 
-		// mnemonic keys available:   C  FG IJK M  PQR TUVWXYZ
+        // mnemonic keys available:   C  FG IJK M  PQR TUVWXYZ
             new EMenu("Propert_ies",
                 new EMenuItem("_Object Properties...", 'I') { public void run() {
                     getInfoCommand(false); }},
@@ -223,7 +223,7 @@ public class EditMenu {
                 new EMenuItem("_Edit Bus Parameters...") { public void run() {
                     BusParameters.showBusParametersDialog(); }}),
 
-		// mnemonic keys available:     E G I KL  OPQ S  VWXYZ
+        // mnemonic keys available:     E G I KL  OPQ S  VWXYZ
             new EMenu("Ar_c",
                 new EMenuItem("_Rigid") { public void run() {
                     CircuitChanges.arcRigidCommand(); }},
@@ -254,10 +254,10 @@ public class EditMenu {
                     CurveListener.setCurvature(false); }},
                 new EMenuItem("Re_move Curvature") { public void run() {
                     CurveListener.removeCurvature(); }}),
-                            
+
             ToolBar.modesSubMenu, // O                
 
-		// mnemonic keys available: AB    GH JKLMNOPQRS UVWXYZ
+        // mnemonic keys available: AB    GH JKLMNOPQRS UVWXYZ
             new EMenu("Te_xt",
                 new EMenuItem("_Find Text...", 'L') { public void run() {
                     FindText.findTextDialog(); }},
@@ -270,9 +270,9 @@ public class EditMenu {
                 new EMenuItem("Add _Text Annotation", KeyStroke.getKeyStroke('T', 0)) { public void run() {
                     PaletteFrame.placeInstance("ART_message", null, false); }},
                 new EMenuItem("Edit Text Cell _Externally...") { public void run() {
-                	editExternally(); }}),
+                    editExternally(); }}),
 
-		// mnemonic keys available: ABCD FGHIJK M O QR TUVWXYZ
+        // mnemonic keys available: ABCD FGHIJK M O QR TUVWXYZ
             new EMenu("Clea_nup Cell",
                 new EMenuItem("Cleanup _Pins") { public void run() {
                     CircuitChanges.cleanupPinsCommand(false); }},
@@ -285,7 +285,7 @@ public class EditMenu {
                 new EMenuItem("_Shorten Selected Arcs") { public void run() {
                     CircuitChanges.shortenArcsCommand(); }}),
 
-		// mnemonic keys available:       GH JK   O QRS UVWXYZ
+        // mnemonic keys available:       GH JK   O QRS UVWXYZ
             new EMenu("Technolo_gy Specific",
                 new EMenuItem("Toggle Port _Negation", 'T') { public void run() {
                     CircuitChanges.toggleNegatedCommand(); }},
@@ -293,7 +293,7 @@ public class EditMenu {
                     ArtworkLook.showArtworkLookDialog(); }},
                 SEPARATOR,
 
-		// mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
+        // mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
                 new EMenu("_FPGA",
                     new EMenuItem("Read _Architecture And Primitives...") { public void run() {
                         FPGA.readArchitectureFile(true); }},
@@ -339,7 +339,7 @@ public class EditMenu {
 //              new EMenuItem("D_elete Current Technology", null, { public void run() {
 //                  CircuitChanges.deleteCurrentTechnology(); }});
 
-		// mnemonic keys available:  B   F    KLM   Q        Z
+        // mnemonic keys available:  B   F    KLM   Q        Z
             new EMenu("_Selection",
                 new EMenuItem("Sele_ct All", 'A') { public void run() {
                     selectAllCommand(); }},
@@ -382,7 +382,7 @@ public class EditMenu {
                 new EMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<')) { public void run() {
                     showPrevErrorCommand(); }},
                 SEPARATOR,
-                new EMenuItem("Add to Waveform _in New Panel", KeyStroke.getKeyStroke('A', 0)) { public void run() { 
+                new EMenuItem("Add to Waveform _in New Panel", KeyStroke.getKeyStroke('A', 0)) { public void run() {
                     addToWaveformNewCommand(); }},
                 new EMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0)) { public void run() {
                     addToWaveformCurrentCommand(); }},
@@ -401,219 +401,219 @@ public class EditMenu {
 //        }
 //    }
 
-	/**
-	 * This method implements the command to show the Key Bindings Options dialog.
-	 */
-	public static void keyBindingsCommand()
-	{
+    /**
+     * This method implements the command to show the Key Bindings Options dialog.
+     */
+    public static void keyBindingsCommand()
+    {
         // edit key bindings for current menu
         TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
-		EditKeyBindings dialog = new EditKeyBindings(top.getEMenuBar(), top, true);
-		dialog.setVisible(true);
-	}
+        EditKeyBindings dialog = new EditKeyBindings(top.getEMenuBar(), top, true);
+        dialog.setVisible(true);
+    }
 
-	/**
-	 * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
-	 */
-	public static void getInfoCommand(boolean doubleClick)
-	{
+    /**
+     * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
+     */
+    public static void getInfoCommand(boolean doubleClick)
+    {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		if (wnd.getHighlighter().getNumHighlights() == 0)
-		{
-			// information about the cell
-			Cell c = WindowFrame.getCurrentCell();
+        if (wnd.getHighlighter().getNumHighlights() == 0)
+        {
+            // information about the cell
+            Cell c = WindowFrame.getCurrentCell();
             //if (c != null) c.getInfo();
             if (c != null) Attributes.showDialog();
-		} else
-		{
+        } else
+        {
             int [] counts = new int[5];
             NodeInst theNode = Highlight2.getInfoCommand(wnd.getHighlighter().getHighlights(), counts);
-			// information about the selected items
-			int arcCount = counts[0];
-			int nodeCount = counts[1];
-			int exportCount = counts[2];
-			int textCount = counts[3];
-			int graphicsCount = counts[4];
+            // information about the selected items
+            int arcCount = counts[0];
+            int nodeCount = counts[1];
+            int exportCount = counts[2];
+            int textCount = counts[3];
+            int graphicsCount = counts[4];
 
-			// special dialogs for double-clicking on known nodes
-			if (doubleClick)
-			{
-				// if double-clicked on a technology editing object, modify it
-				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
-					(nodeCount == 1 ^ textCount == 1) && theNode != null)
-				{
-					int opt = Manipulate.getOptionOnNode(theNode);
-					if (opt >= 0)
-					{
-						Manipulate.modifyObject(wnd, theNode, opt);
-						return;
-					}
-				}
+            // special dialogs for double-clicking on known nodes
+            if (doubleClick)
+            {
+                // if double-clicked on a technology editing object, modify it
+                if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
+                    (nodeCount == 1 ^ textCount == 1) && theNode != null)
+                {
+                    int opt = Manipulate.getOptionOnNode(theNode);
+                    if (opt >= 0)
+                    {
+                        Manipulate.modifyObject(wnd, theNode, opt);
+                        return;
+                    }
+                }
 
-				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
-					nodeCount == 1 &&  textCount == 0 && theNode != null)
-				{
-					int ret = SpecialProperties.doubleClickOnNode(wnd, theNode);
-					if (ret > 0) return;
-					if (ret < 0) doubleClick = false;
-				}
-			}
+                if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
+                    nodeCount == 1 &&  textCount == 0 && theNode != null)
+                {
+                    int ret = SpecialProperties.doubleClickOnNode(wnd, theNode);
+                    if (ret > 0) return;
+                    if (ret < 0) doubleClick = false;
+                }
+            }
 
-			if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
-			{
-				if (arcCount == 1) GetInfoArc.showDialog();
-				if (nodeCount == 1)
-				{
-					// if in outline-edit mode, show that dialog
-			        if (WindowFrame.getListener() == OutlineListener.theOne)
-			        {
-			        	GetInfoOutline.showOutlinePropertiesDialog();
-			        } else
-			        {
-			        	GetInfoNode.showDialog();
-			        }
-				}
-				if (exportCount == 1)
-				{
-					if (doubleClick)
-					{
-						GetInfoText.editTextInPlace();
-					} else
-					{
-						GetInfoExport.showDialog();
-					}
-				}
-				if (textCount == 1)
-				{
-					if (doubleClick)
-					{
-						GetInfoText.editTextInPlace();
-					} else
-					{
-						GetInfoText.showDialog();
-					}
-				}
-			} else
-			{
-				GetInfoMulti.showDialog();
-			}
-		}
-	}
+            if (arcCount <= 1 && nodeCount <= 1 && exportCount <= 1 && textCount <= 1 && graphicsCount == 0)
+            {
+                if (arcCount == 1) GetInfoArc.showDialog();
+                if (nodeCount == 1)
+                {
+                    // if in outline-edit mode, show that dialog
+                    if (WindowFrame.getListener() == OutlineListener.theOne)
+                    {
+                        GetInfoOutline.showOutlinePropertiesDialog();
+                    } else
+                    {
+                        GetInfoNode.showDialog();
+                    }
+                }
+                if (exportCount == 1)
+                {
+                    if (doubleClick)
+                    {
+                        GetInfoText.editTextInPlace();
+                    } else
+                    {
+                        GetInfoExport.showDialog();
+                    }
+                }
+                if (textCount == 1)
+                {
+                    if (doubleClick)
+                    {
+                        GetInfoText.editTextInPlace();
+                    } else
+                    {
+                        GetInfoText.showDialog();
+                    }
+                }
+            } else
+            {
+                GetInfoMulti.showDialog();
+            }
+        }
+    }
 
-	/**
-	 * Method to handle the "See All Parameters on Node" command.
-	 */
-	public static void seeAllParametersCommand()
-	{
-		ParameterVisibility job = new ParameterVisibility(0, MenuCommands.getSelectedObjects(true, false));
-	}
+    /**
+     * Method to handle the "See All Parameters on Node" command.
+     */
+    public static void seeAllParametersCommand()
+    {
+        ParameterVisibility job = new ParameterVisibility(0, MenuCommands.getSelectedObjects(true, false));
+    }
 
-	/**
-	 * Method to handle the "Hide All Parameters on Node" command.
-	 */
-	public static void hideAllParametersCommand()
-	{
-		ParameterVisibility job = new ParameterVisibility(1, MenuCommands.getSelectedObjects(true, false));
-	}
+    /**
+     * Method to handle the "Hide All Parameters on Node" command.
+     */
+    public static void hideAllParametersCommand()
+    {
+        ParameterVisibility job = new ParameterVisibility(1, MenuCommands.getSelectedObjects(true, false));
+    }
 
-	/**
-	 * Method to handle the "Default Parameter Visibility" command.
-	 */
-	public static void defaultParamVisibilityCommand()
-	{
-		ParameterVisibility job = new ParameterVisibility(2, MenuCommands.getSelectedObjects(true, false));
-	}
+    /**
+     * Method to handle the "Default Parameter Visibility" command.
+     */
+    public static void defaultParamVisibilityCommand()
+    {
+        ParameterVisibility job = new ParameterVisibility(2, MenuCommands.getSelectedObjects(true, false));
+    }
 
-	/**
-	 * Class to do change parameter visibility in a new thread.
-	 */
-	private static class ParameterVisibility extends Job
-	{
-		private int how;
+    /**
+     * Class to do change parameter visibility in a new thread.
+     */
+    private static class ParameterVisibility extends Job
+    {
+        private int how;
         private List<Geometric> selected;
 
         protected ParameterVisibility(int how, List<Geometric> selected)
-		{
-			super("Change Parameter Visibility", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.how = how;
+        {
+            super("Change Parameter Visibility", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.how = how;
             this.selected = selected;
-			startJob();
-		}
+            startJob();
+        }
 
-		public boolean doIt() throws JobException
-		{
-			// change visibility of parameters on the current node(s)
-			int changeCount = 0;
-			List<Geometric> list = selected;
-			for(Geometric geom : list)
-			{
-				NodeInst ni = (NodeInst)geom;
-				if (!ni.isCellInstance()) continue;
-				boolean changed = false;
-				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-				{
-					Variable var = vIt.next();
-					Variable nVar = findParameterSource(var, ni);
-					if (nVar == null) continue;
-					switch (how)
-					{
-						case 0:			// make all parameters visible
-							if (var.isDisplay()) continue;
+        public boolean doIt() throws JobException
+        {
+            // change visibility of parameters on the current node(s)
+            int changeCount = 0;
+            List<Geometric> list = selected;
+            for(Geometric geom : list)
+            {
+                NodeInst ni = (NodeInst)geom;
+                if (!ni.isCellInstance()) continue;
+                boolean changed = false;
+                for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+                {
+                    Variable var = vIt.next();
+                    Variable nVar = findParameterSource(var, ni);
+                    if (nVar == null) continue;
+                    switch (how)
+                    {
+                        case 0:			// make all parameters visible
+                            if (var.isDisplay()) continue;
                             ni.addVar(var.withDisplay(true));
-							changed = true;
-							break;
-						case 1:			// make all parameters invisible
-							if (!var.isDisplay()) continue;
+                            changed = true;
+                            break;
+                        case 1:			// make all parameters invisible
+                            if (!var.isDisplay()) continue;
                             ni.addVar(var.withDisplay(false));
-							changed = true;
-							break;
-						case 2:			// make all parameters have default visiblity
-							if (nVar.getTextDescriptor().isInterior())
-							{
-								// prototype wants parameter to be invisible
-								if (!var.isDisplay()) continue;
+                            changed = true;
+                            break;
+                        case 2:			// make all parameters have default visiblity
+                            if (nVar.getTextDescriptor().isInterior())
+                            {
+                                // prototype wants parameter to be invisible
+                                if (!var.isDisplay()) continue;
                                 ni.addVar(var.withDisplay(false));
-								changed = true;
-							} else
-							{
-								// prototype wants parameter to be visible
-								if (var.isDisplay()) continue;
+                                changed = true;
+                            } else
+                            {
+                                // prototype wants parameter to be visible
+                                if (var.isDisplay()) continue;
                                 ni.addVar(var.withDisplay(true));
-								changed = true;
-							}
-							break;
-					}
-				}
-				if (changed)
-				{
+                                changed = true;
+                            }
+                            break;
+                    }
+                }
+                if (changed)
+                {
 //					Undo.redrawObject(ni);
-					changeCount++;
-				}
-			}
-			if (changeCount == 0) System.out.println("No Parameter visibility changed"); else
-				System.out.println("Changed visibility on " + changeCount + " nodes");
-			return true;
-		}
+                    changeCount++;
+                }
+            }
+            if (changeCount == 0) System.out.println("No Parameter visibility changed"); else
+                System.out.println("Changed visibility on " + changeCount + " nodes");
+            return true;
+        }
 
-		/**
-		 * Method to find the formal parameter that corresponds to the actual parameter
-		 * "var" on node "ni".  Returns null if not a parameter or cannot be found.
-		 */
-		private Variable findParameterSource(Variable var, NodeInst ni)
-		{
-			// find this parameter in the cell
-			Cell np = (Cell)ni.getProto();
-			Cell cnp = np.contentsView();
-			if (cnp != null) np = cnp;
-			for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
-			{
-				Variable nVar = it.next();
-				if (var.getKey() == nVar.getKey()) return nVar;
-			}
-			return null;
-		}
-	}
+        /**
+         * Method to find the formal parameter that corresponds to the actual parameter
+         * "var" on node "ni".  Returns null if not a parameter or cannot be found.
+         */
+        private Variable findParameterSource(Variable var, NodeInst ni)
+        {
+            // find this parameter in the cell
+            Cell np = (Cell)ni.getProto();
+            Cell cnp = np.contentsView();
+            if (cnp != null) np = cnp;
+            for(Iterator<Variable> it = np.getVariables(); it.hasNext(); )
+            {
+                Variable nVar = it.next();
+                if (var.getKey() == nVar.getKey()) return nVar;
+            }
+            return null;
+        }
+    }
 
     public static void updateInheritance(boolean allLibraries)
     {
@@ -689,7 +689,7 @@ public class EditMenu {
         }
 
         private void updateInheritance(NodeInst ni, Cell proto) {
-        	CircuitChangeJobs.inheritAttributes(ni, true);
+            CircuitChangeJobs.inheritAttributes(ni, true);
         }
 
         private void updateLocations(NodeInst ni, Cell proto) {
@@ -703,13 +703,13 @@ public class EditMenu {
      */
     public static void changeGlobalTextSize(double scale)
     {
-    	double curScale = User.getGlobalTextScale();
-    	curScale *= scale;
-    	if (curScale != 0)
-    	{
-    		User.setGlobalTextScale(curScale);
-    		EditWindow.repaintAllContents();
-    	}
+        double curScale = User.getGlobalTextScale();
+        curScale *= scale;
+        if (curScale != 0)
+        {
+            User.setGlobalTextScale(curScale);
+            EditWindow.repaintAllContents();
+        }
     }
 
     /**
@@ -717,47 +717,53 @@ public class EditMenu {
      */
     private static void editExternally()
     {
-    	TextWindow tw = null;
-    	WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-    	if (wf != null && wf.getContent() instanceof TextWindow)
-    	{
-    		tw = (TextWindow)wf.getContent();
-    	}
-    	if (tw == null)
-    	{
-    		Job.getUserInterface().showErrorMessage("You must be editing a text cell before editing it externally", "No Text To Edit");
-    		return;
-    	}
-    	String externalEditor = User.getDefaultTextExternalEditor();
-    	if (externalEditor.length() == 0)
-    	{
-    		Job.getUserInterface().showErrorMessage("No external text editor is defined.  Use the Display/Text Preferences to set one", "No Text Editor Set");
-    		return;
-    	}
-    	Cell cell = tw.getCell();
-    	String fileName = null;
-    	File f = null;
-    	for(int i=1; i<1000; i++)
-    	{
-        	fileName = cell.getName() + i + ".txt";
-    		f = new File(fileName);
-    		if (!f.exists())
-    		{
-    			fileName = f.getAbsolutePath();
-    			break;
-    		}
-    		f = null;
-    	}
-    	if (f == null) return;
-    	tw.writeTextCell(fileName);
-    	try
-    	{
+        TextWindow tw = null;
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf != null && wf.getContent() instanceof TextWindow)
+        {
+            tw = (TextWindow)wf.getContent();
+        }
+        if (tw == null)
+        {
+            Job.getUserInterface().showErrorMessage("You must be editing a text cell before editing it externally", "No Text To Edit");
+            return;
+        }
+        String externalEditor = User.getDefaultTextExternalEditor();
+        if (externalEditor.length() == 0)
+        {
+            Job.getUserInterface().showErrorMessage("No external text editor is defined.  Use the Display/Text Preferences to set one", "No Text Editor Set");
+            return;
+        }
+        Cell cell = tw.getCell();
+        String fileName = null;
+        File f = null;
+        for(int i=1; i<1000; i++)
+        {
+            fileName = cell.getName() + i + ".txt";
+            f = new File(fileName);
+            if (!f.exists())
+            {
+                fileName = User.getWorkingDirectory() + "/" + fileName;
+                break;
+            }
+            f = null;
+        }
+        if (f == null) return;
+        if (!tw.writeTextCell(fileName))
+        {
+            // error with written file
+            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+                    "Could not save temporary file " + fileName, "Error saving temporary file", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        try
+        {
             Client.OS os = Client.getOperatingSystem();
-    		String commandString;
-    		if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName;
+            String commandString;
+            if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName;
             else if (os == Client.OS.MACINTOSH)
             {
-                // MacOS box only allows to select *.app programs.
+                // MacOS box only allows the selection of *.app programs.
                 int index = externalEditor.indexOf(".app"); // like TextEdit.app
                 if (index != -1)
                 {
@@ -771,517 +777,517 @@ public class EditMenu {
                     commandString = externalEditor + " " + fileName;
             }
             else
-    			commandString = externalEditor + " " + fileName;
+                commandString = externalEditor + " " + fileName;
             Process p = Runtime.getRuntime().exec(commandString);
-    		try
-    		{
-    			p.waitFor();
-    		} catch (InterruptedException e)
-    		{
-    			System.out.println("External text editor interrupted: " + e);
-    		}
-    	} catch (IOException e)
-    	{
-    		System.out.println("IO Exception: " + e);
-    	}
-    	tw.readTextCell(fileName);
-    	tw.goToLineNumber(1);
-    	f.delete();
+            try
+            {
+                p.waitFor();
+            } catch (InterruptedException e)
+            {
+                System.out.println("External text editor interrupted: " + e);
+            }
+        } catch (IOException e)
+        {
+            System.out.println("IO Exception: " + e);
+        }
+        tw.readTextCell(fileName);
+        tw.goToLineNumber(1);
+        f.delete();
     }
 
     /**
-	 * This method implements the command to highlight all objects in the current Cell.
-	 */
-	public static void selectAllCommand()
-	{
-		doSelection(false, false);
-	}
+     * This method implements the command to highlight all objects in the current Cell.
+     */
+    public static void selectAllCommand()
+    {
+        doSelection(false, false);
+    }
 
-	/**
-	 * This method implements the command to highlight all objects in the current Cell
-	 * that are easy to select.
-	 */
-	public static void selectEasyCommand()
-	{
-		doSelection(true, false);
-	}
+    /**
+     * This method implements the command to highlight all objects in the current Cell
+     * that are easy to select.
+     */
+    public static void selectEasyCommand()
+    {
+        doSelection(true, false);
+    }
 
-	/**
-	 * This method implements the command to highlight all objects in the current Cell
-	 * that are hard to select.
-	 */
-	public static void selectHardCommand()
-	{
-		doSelection(false, true);
-	}
+    /**
+     * This method implements the command to highlight all objects in the current Cell
+     * that are hard to select.
+     */
+    public static void selectHardCommand()
+    {
+        doSelection(false, true);
+    }
 
-	private static void doSelection(boolean mustBeEasy, boolean mustBeHard)
-	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
+    private static void doSelection(boolean mustBeEasy, boolean mustBeHard)
+    {
+        Cell curCell = WindowFrame.needCurCell();
+        if (curCell == null) return;
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		// compute bounds for multi-page schematics
-		Rectangle2D thisPageBounds = null;
-    	if (curCell.isMultiPage())
-    	{
-	    	int curPage = wnd.getMultiPageNumber();
-	        Dimension d = new Dimension();
-	        int frameFactor = Cell.FrameDescription.getCellFrameInfo(curCell, d);
-	        if (frameFactor == 0 && curCell.isMultiPage())
+        // compute bounds for multi-page schematics
+        Rectangle2D thisPageBounds = null;
+        if (curCell.isMultiPage())
+        {
+            int curPage = wnd.getMultiPageNumber();
+            Dimension d = new Dimension();
+            int frameFactor = Cell.FrameDescription.getCellFrameInfo(curCell, d);
+            if (frameFactor == 0 && curCell.isMultiPage())
             {
-            	double offY = curPage * Cell.FrameDescription.MULTIPAGESEPARATION;
-				thisPageBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2+offY, d.getWidth(), d.getHeight());
+                double offY = curPage * Cell.FrameDescription.MULTIPAGESEPARATION;
+                thisPageBounds = new Rectangle2D.Double(-d.getWidth()/2, -d.getHeight()/2+offY, d.getWidth(), d.getHeight());
             }
-    	}
+        }
 
-		boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
-		highlighter.clear();
-		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
+        boolean cellsAreHard = !User.isEasySelectionOfCellInstances();
+        highlighter.clear();
+        for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+        {
+            NodeInst ni = it.next();
 
-			// for multipage schematics, restrict to current page
-			if (thisPageBounds != null)
-			{
-				if (!thisPageBounds.contains(ni.getAnchorCenter())) continue;
-			}
+            // for multipage schematics, restrict to current page
+            if (thisPageBounds != null)
+            {
+                if (!thisPageBounds.contains(ni.getAnchorCenter())) continue;
+            }
 
-			// "select all" should not include the cell-center
-			if (ni.getProto() == Generic.tech.cellCenterNode && !mustBeEasy && !mustBeHard) continue;
-			boolean hard = ni.isHardSelect();
-			if ((ni.isCellInstance()) && cellsAreHard) hard = true;
-			if (mustBeEasy && hard) continue;
-			if (mustBeHard && !hard) continue;
-			if (!ni.isInvisiblePinWithText())
-				highlighter.addElectricObject(ni, curCell);
+            // "select all" should not include the cell-center
+            if (ni.getProto() == Generic.tech.cellCenterNode && !mustBeEasy && !mustBeHard) continue;
+            boolean hard = ni.isHardSelect();
+            if ((ni.isCellInstance()) && cellsAreHard) hard = true;
+            if (mustBeEasy && hard) continue;
+            if (mustBeHard && !hard) continue;
+            if (!ni.isInvisiblePinWithText())
+                highlighter.addElectricObject(ni, curCell);
             if (User.isTextVisibilityOnNode())
-			{
-				if (ni.isUsernamed())
-					highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
-				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-				{
-					Variable var = vIt.next();
-					if (var.isDisplay())
-						highlighter.addText(ni, curCell, var.getKey());
-				}
-			}
-		}
-		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = it.next();
+            {
+                if (ni.isUsernamed())
+                    highlighter.addText(ni, curCell, NodeInst.NODE_NAME);
+                for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+                {
+                    Variable var = vIt.next();
+                    if (var.isDisplay())
+                        highlighter.addText(ni, curCell, var.getKey());
+                }
+            }
+        }
+        for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+        {
+            ArcInst ai = it.next();
 
-			// for multipage schematics, restrict to current page
-			if (thisPageBounds != null)
-			{
-				if (!thisPageBounds.contains(ai.getHeadLocation())) continue;
-			}
-			boolean hard = ai.isHardSelect();
-			if (mustBeEasy && hard) continue;
-			if (mustBeHard && !hard) continue;
-			highlighter.addElectricObject(ai, curCell);
+            // for multipage schematics, restrict to current page
+            if (thisPageBounds != null)
+            {
+                if (!thisPageBounds.contains(ai.getHeadLocation())) continue;
+            }
+            boolean hard = ai.isHardSelect();
+            if (mustBeEasy && hard) continue;
+            if (mustBeHard && !hard) continue;
+            highlighter.addElectricObject(ai, curCell);
             if (User.isTextVisibilityOnArc())
-			{
-				if (ai.isUsernamed())
-					highlighter.addText(ai, curCell, ArcInst.ARC_NAME);
-				for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
-				{
-					Variable var = vIt.next();
-					if (var.isDisplay())
-						highlighter.addText(ai, curCell, var.getKey());
-				}
-			}
-		}
-		for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
-		{
-			Export pp = it.next();
-			highlighter.addText(pp, curCell, null);
-		}
+            {
+                if (ai.isUsernamed())
+                    highlighter.addText(ai, curCell, ArcInst.ARC_NAME);
+                for(Iterator<Variable> vIt = ai.getVariables(); vIt.hasNext(); )
+                {
+                    Variable var = vIt.next();
+                    if (var.isDisplay())
+                        highlighter.addText(ai, curCell, var.getKey());
+                }
+            }
+        }
+        for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+        {
+            Export pp = it.next();
+            highlighter.addText(pp, curCell, null);
+        }
 
-		// Selecting annotations
+        // Selecting annotations
         if (User.isTextVisibilityOnCell())
-		{
-			for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
-			{
-				Variable var = it.next();
-				if (var.isAttribute())
-				{
-					// for multipage schematics, restrict to current page
-					if (thisPageBounds != null)
-					{
-						if (!thisPageBounds.contains(new Point2D.Double(var.getXOff(), var.getYOff()))) continue;
-					}
-					highlighter.addText(curCell, curCell, var.getKey());
-				}
-			}
-		}
-		highlighter.finished();
-	}
+        {
+            for(Iterator<Variable> it = curCell.getVariables(); it.hasNext(); )
+            {
+                Variable var = it.next();
+                if (var.isAttribute())
+                {
+                    // for multipage schematics, restrict to current page
+                    if (thisPageBounds != null)
+                    {
+                        if (!thisPageBounds.contains(new Point2D.Double(var.getXOff(), var.getYOff()))) continue;
+                    }
+                    highlighter.addText(curCell, curCell, var.getKey());
+                }
+            }
+        }
+        highlighter.finished();
+    }
 
-	/**
-	 * This method implements the command to highlight all objects in the current Cell
-	 * that are like the currently selected object.
-	 */
-	public static void selectAllLikeThisCommand()
-	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
+    /**
+     * This method implements the command to highlight all objects in the current Cell
+     * that are like the currently selected object.
+     */
+    public static void selectAllLikeThisCommand()
+    {
+        Cell curCell = WindowFrame.needCurCell();
+        if (curCell == null) return;
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		HashMap<Object,Object> likeThis = new HashMap<Object,Object>();
-		List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
-		for(Geometric geom : highlighted)
-		{
-			if (geom instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)geom;
-				likeThis.put(ni.getProto(), ni);
-			} else
-			{
-				ArcInst ai = (ArcInst)geom;
-				likeThis.put(ai.getProto(), ai);
-			}
-		}
+        HashMap<Object,Object> likeThis = new HashMap<Object,Object>();
+        List<Geometric> highlighted = highlighter.getHighlightedEObjs(true, true);
+        for(Geometric geom : highlighted)
+        {
+            if (geom instanceof NodeInst)
+            {
+                NodeInst ni = (NodeInst)geom;
+                likeThis.put(ni.getProto(), ni);
+            } else
+            {
+                ArcInst ai = (ArcInst)geom;
+                likeThis.put(ai.getProto(), ai);
+            }
+        }
 
-		highlighter.clear();
-		for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = it.next();
-			Object isLikeThis = likeThis.get(ni.getProto());
-			if (isLikeThis == null) continue;
-			if (ni.isInvisiblePinWithText())
-			{
-				for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
-				{
-					Variable var = vIt.next();
-					if (var.isDisplay())
-					{
-						highlighter.addText(ni, curCell, var.getKey());
-						break;
-					}
-				}
-			} else
-			{
-				highlighter.addElectricObject(ni, curCell);
-			}
-		}
-		for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
-		{
-			ArcInst ai = it.next();
-			Object isLikeThis = likeThis.get(ai.getProto());
-			if (isLikeThis == null) continue;
-			highlighter.addElectricObject(ai, curCell);
-		}
-		highlighter.finished();
+        highlighter.clear();
+        for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+        {
+            NodeInst ni = it.next();
+            Object isLikeThis = likeThis.get(ni.getProto());
+            if (isLikeThis == null) continue;
+            if (ni.isInvisiblePinWithText())
+            {
+                for(Iterator<Variable> vIt = ni.getVariables(); vIt.hasNext(); )
+                {
+                    Variable var = vIt.next();
+                    if (var.isDisplay())
+                    {
+                        highlighter.addText(ni, curCell, var.getKey());
+                        break;
+                    }
+                }
+            } else
+            {
+                highlighter.addElectricObject(ni, curCell);
+            }
+        }
+        for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+        {
+            ArcInst ai = it.next();
+            Object isLikeThis = likeThis.get(ai.getProto());
+            if (isLikeThis == null) continue;
+            highlighter.addElectricObject(ai, curCell);
+        }
+        highlighter.finished();
         System.out.println("Selected "+highlighter.getNumHighlights()+ " objects");
-	}
+    }
 
-	/**
-	 * Method to select the next object that is of the same type as the current object.
-	 */
-	public static void selectNextLikeThisCommand(boolean next)
-	{
-		Cell curCell = WindowFrame.needCurCell();
-		if (curCell == null) return;
+    /**
+     * Method to select the next object that is of the same type as the current object.
+     */
+    public static void selectNextLikeThisCommand(boolean next)
+    {
+        Cell curCell = WindowFrame.needCurCell();
+        if (curCell == null) return;
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
-		Highlight2 high = highlighter.getOneHighlight();
-		if (high == null) return;
+        Highlight2 high = highlighter.getOneHighlight();
+        if (high == null) return;
         ElectricObject eObj = high.getElectricObject();
         if (high.isHighlightEOBJ())
-		{
+        {
             if (eObj instanceof PortInst)
             {
-            	eObj = ((PortInst)eObj).getNodeInst();
+                eObj = ((PortInst)eObj).getNodeInst();
             }
-			if (eObj instanceof NodeInst)
-			{
-				NodeInst thisNi = (NodeInst)eObj;
-				NodeInst [] allNodes = new NodeInst[curCell.getNumNodes()];
-				int tot = 0;
-				int which = 0;
-				for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
-				{
-					NodeInst ni = it.next();
-					if (ni.getProto() != thisNi.getProto()) continue;
-					if (ni == thisNi) which = tot;
-					allNodes[tot++] = ni;
-				}
-				if (next)
-				{
-					which++;
-					if (which >= tot) which = 0;
-				} else
-				{
-					which--;
-					if (which < 0) which = tot - 1;
-				}
-				highlighter.clear();
-				highlighter.addElectricObject(allNodes[which], curCell);
-				highlighter.finished();
-				return;
-			}
-			if (eObj instanceof ArcInst)
-			{
-				ArcInst thisAi = (ArcInst)eObj;
-				ArcInst [] allArcs = new ArcInst[curCell.getNumArcs()];
-				int tot = 0;
-				int which = 0;
-				for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
-				{
-					ArcInst ai = it.next();
-					if (ai.getProto() != thisAi.getProto()) continue;
-					if (ai == thisAi) which = tot;
-					allArcs[tot++] = ai;
-				}
-				if (next)
-				{
-					which++;
-					if (which >= tot) which = 0;
-				} else
-				{
-					which--;
-					if (which < 0) which = tot - 1;
-				}
-				highlighter.clear();
-				highlighter.addElectricObject(allArcs[which], curCell);
-				highlighter.finished();
-				return;
-			}
-		}
+            if (eObj instanceof NodeInst)
+            {
+                NodeInst thisNi = (NodeInst)eObj;
+                NodeInst [] allNodes = new NodeInst[curCell.getNumNodes()];
+                int tot = 0;
+                int which = 0;
+                for(Iterator<NodeInst> it = curCell.getNodes(); it.hasNext(); )
+                {
+                    NodeInst ni = it.next();
+                    if (ni.getProto() != thisNi.getProto()) continue;
+                    if (ni == thisNi) which = tot;
+                    allNodes[tot++] = ni;
+                }
+                if (next)
+                {
+                    which++;
+                    if (which >= tot) which = 0;
+                } else
+                {
+                    which--;
+                    if (which < 0) which = tot - 1;
+                }
+                highlighter.clear();
+                highlighter.addElectricObject(allNodes[which], curCell);
+                highlighter.finished();
+                return;
+            }
+            if (eObj instanceof ArcInst)
+            {
+                ArcInst thisAi = (ArcInst)eObj;
+                ArcInst [] allArcs = new ArcInst[curCell.getNumArcs()];
+                int tot = 0;
+                int which = 0;
+                for(Iterator<ArcInst> it = curCell.getArcs(); it.hasNext(); )
+                {
+                    ArcInst ai = it.next();
+                    if (ai.getProto() != thisAi.getProto()) continue;
+                    if (ai == thisAi) which = tot;
+                    allArcs[tot++] = ai;
+                }
+                if (next)
+                {
+                    which++;
+                    if (which >= tot) which = 0;
+                } else
+                {
+                    which--;
+                    if (which < 0) which = tot - 1;
+                }
+                highlighter.clear();
+                highlighter.addElectricObject(allArcs[which], curCell);
+                highlighter.finished();
+                return;
+            }
+        }
         if (high.isHighlightText())
         {
-			if (eObj instanceof Export)
-			{
-				Export [] allExports = new Export[curCell.getNumPorts()];
-				int i = 0;
-				int which = 0;
-				for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
-				{
-					Export e = it.next();
-					if (e == eObj) which = i;
-					allExports[i++] = e;
-				}
-				if (next)
-				{
-					which++;
-					if (which >= allExports.length) which = 0;
-				} else
-				{
-					which--;
-					if (which < 0) which = allExports.length - 1;
-				}
-				highlighter.clear();
-				highlighter.addText(allExports[which], curCell, Export.EXPORT_NAME);
-				highlighter.finished();
-				return;
-			}
+            if (eObj instanceof Export)
+            {
+                Export [] allExports = new Export[curCell.getNumPorts()];
+                int i = 0;
+                int which = 0;
+                for(Iterator<Export> it = curCell.getExports(); it.hasNext(); )
+                {
+                    Export e = it.next();
+                    if (e == eObj) which = i;
+                    allExports[i++] = e;
+                }
+                if (next)
+                {
+                    which++;
+                    if (which >= allExports.length) which = 0;
+                } else
+                {
+                    which--;
+                    if (which < 0) which = allExports.length - 1;
+                }
+                highlighter.clear();
+                highlighter.addText(allExports[which], curCell, Export.EXPORT_NAME);
+                highlighter.finished();
+                return;
+            }
         }
         System.out.println("Cannot advance the current selection");
-	}
+    }
 
-	/**
-	 * This method implements the command to highlight nothing in the current Cell.
-	 */
-	public static void selectNothingCommand()
-	{
+    /**
+     * This method implements the command to highlight nothing in the current Cell.
+     */
+    public static void selectNothingCommand()
+    {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		wnd.getHighlighter().clear();
-		wnd.getHighlighter().finished();
-	}
+        wnd.getHighlighter().clear();
+        wnd.getHighlighter().finished();
+    }
 
-	/**
-	 * This method implements the command to deselect all selected arcs.
-	 */
-	public static void deselectAllArcsCommand()
-	{
+    /**
+     * This method implements the command to deselect all selected arcs.
+     */
+    public static void deselectAllArcsCommand()
+    {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
 
-		List<Highlight2> newHighList = new ArrayList<Highlight2>();
-		for(Highlight2 h : highlighter.getHighlights())
-		{
-			if (h.isHighlightEOBJ() || h.isHighlightText())
-			{
-				if (h.getElectricObject() instanceof ArcInst) continue;
-			}
-			newHighList.add(h);
-		}
-		highlighter.clear();
-		highlighter.setHighlightList(newHighList);
-		highlighter.finished();
-	}
+        List<Highlight2> newHighList = new ArrayList<Highlight2>();
+        for(Highlight2 h : highlighter.getHighlights())
+        {
+            if (h.isHighlightEOBJ() || h.isHighlightText())
+            {
+                if (h.getElectricObject() instanceof ArcInst) continue;
+            }
+            newHighList.add(h);
+        }
+        highlighter.clear();
+        highlighter.setHighlightList(newHighList);
+        highlighter.finished();
+    }
 
-	/**
-	 * This method implements the command to make all selected objects be easy-to-select.
-	 */
-	public static void selectMakeEasyCommand()
-	{
+    /**
+     * This method implements the command to make all selected objects be easy-to-select.
+     */
+    public static void selectMakeEasyCommand()
+    {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		List<Geometric> highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
-		new SetEasyHardSelect(true, highlighted);
-	}
+        List<Geometric> highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
+        new SetEasyHardSelect(true, highlighted);
+    }
 
-	/**
-	 * This method implements the command to make all selected objects be hard-to-select.
-	 */
-	public static void selectMakeHardCommand()
-	{
+    /**
+     * This method implements the command to make all selected objects be hard-to-select.
+     */
+    public static void selectMakeHardCommand()
+    {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		List<Geometric> highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
-		new SetEasyHardSelect(false, highlighted);
-	}
+        List<Geometric> highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
+        new SetEasyHardSelect(false, highlighted);
+    }
 
-	/**
-	 * Class to set selected objects "easy to select" or "hard to select".
-	 */
-	private static class SetEasyHardSelect extends Job
-	{
-	    private boolean easy;
-		private List<Geometric> highlighted;
-	
-		private SetEasyHardSelect(boolean easy, List<Geometric> highlighted)
-		{
-	        super("Make Selected Objects Easy/Hard To Select", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-	        this.easy = easy;
-	        this.highlighted = highlighted;
-	        startJob();
-	    }
-	
-	    public boolean doIt() throws JobException
-		{
-			for(Geometric geom : highlighted)
-			{
-				if (geom instanceof NodeInst)
-				{
-					NodeInst ni = (NodeInst)geom;
-					if (easy)
-					{
-						ni.clearHardSelect();
-					} else
-					{
-						ni.setHardSelect();
-					}
-				} else
-				{
-					ArcInst ai = (ArcInst)geom;
-					if (easy)
-					{
-						ai.setHardSelect(false);
-					} else
-					{
-						ai.setHardSelect(true);
-					}
-				}
-			}
-			return true;
-		}
-	}
+    /**
+     * Class to set selected objects "easy to select" or "hard to select".
+     */
+    private static class SetEasyHardSelect extends Job
+    {
+        private boolean easy;
+        private List<Geometric> highlighted;
 
-	/**
-	 * This method implements the command to replace the rectangular highlight
-	 * with the selection of objects in that rectangle.
-	 */
-	public static void selectEnclosedObjectsCommand()
-	{
-		EditWindow wnd = EditWindow.needCurrent();
-		if (wnd == null) return;
+        private SetEasyHardSelect(boolean easy, List<Geometric> highlighted)
+        {
+            super("Make Selected Objects Easy/Hard To Select", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.easy = easy;
+            this.highlighted = highlighted;
+            startJob();
+        }
+
+        public boolean doIt() throws JobException
+        {
+            for(Geometric geom : highlighted)
+            {
+                if (geom instanceof NodeInst)
+                {
+                    NodeInst ni = (NodeInst)geom;
+                    if (easy)
+                    {
+                        ni.clearHardSelect();
+                    } else
+                    {
+                        ni.setHardSelect();
+                    }
+                } else
+                {
+                    ArcInst ai = (ArcInst)geom;
+                    if (easy)
+                    {
+                        ai.setHardSelect(false);
+                    } else
+                    {
+                        ai.setHardSelect(true);
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * This method implements the command to replace the rectangular highlight
+     * with the selection of objects in that rectangle.
+     */
+    public static void selectEnclosedObjectsCommand()
+    {
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
-		Rectangle2D selection = highlighter.getHighlightedArea(wnd);
-		highlighter.clear();
-		if (selection != null )
-			highlighter.selectArea(wnd, selection.getMinX(), selection.getMaxX(), selection.getMinY(), selection.getMaxY(), false,
-			ToolBar.isSelectSpecial());
-		highlighter.finished();
-	}
+        Rectangle2D selection = highlighter.getHighlightedArea(wnd);
+        highlighter.clear();
+        if (selection != null )
+            highlighter.selectArea(wnd, selection.getMinX(), selection.getMaxX(), selection.getMinY(), selection.getMaxY(), false,
+            ToolBar.isSelectSpecial());
+        highlighter.finished();
+    }
 
-	/**
-	 * This method implements the command to show the next logged error.
-	 * The error log lists the results of the latest command (DRC, NCC, etc.)
-	 */
-	public static void showNextErrorCommand()
-	{
-		String msg = ErrorLoggerTree.reportNextMessage();
-		System.out.println(msg);
-	}
+    /**
+     * This method implements the command to show the next logged error.
+     * The error log lists the results of the latest command (DRC, NCC, etc.)
+     */
+    public static void showNextErrorCommand()
+    {
+        String msg = ErrorLoggerTree.reportNextMessage();
+        System.out.println(msg);
+    }
 
-	/**
-	 * This method implements the command to show the last logged error.
-	 * The error log lists the results of the latest command (DRC, NCC, etc.)
-	 */
-	public static void showPrevErrorCommand()
-	{
-		String msg = ErrorLoggerTree.reportPrevMessage();
-		System.out.println(msg);
-	}
+    /**
+     * This method implements the command to show the last logged error.
+     * The error log lists the results of the latest command (DRC, NCC, etc.)
+     */
+    public static void showPrevErrorCommand()
+    {
+        String msg = ErrorLoggerTree.reportPrevMessage();
+        System.out.println(msg);
+    }
 
-	/**
-	 * This method implements the command to add the currently selected network
-	 * to the waveform window, in a new panel.
-	 */
-	public static void addToWaveformNewCommand()
-	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (!(wf.getContent() instanceof EditWindow)) return;
+    /**
+     * This method implements the command to add the currently selected network
+     * to the waveform window, in a new panel.
+     */
+    public static void addToWaveformNewCommand()
+    {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (!(wf.getContent() instanceof EditWindow)) return;
         EditWindow wnd = (EditWindow)wf.getContent();
 
-		WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
-		WaveformWindow ww = wwLoc.getWaveformWindow();
-		if (ww == null)
-		{
-			System.out.println("Cannot add selected signals to the waveform window: no waveform window is associated with this cell");
-			return;
-		}
-		ww.showSignals(wnd.getHighlighter(), wwLoc.getContext(), true);
-	}
+        WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
+        WaveformWindow ww = wwLoc.getWaveformWindow();
+        if (ww == null)
+        {
+            System.out.println("Cannot add selected signals to the waveform window: no waveform window is associated with this cell");
+            return;
+        }
+        ww.showSignals(wnd.getHighlighter(), wwLoc.getContext(), true);
+    }
 
-	/**
-	 * This method implements the command to add the currently selected network
-	 * to the waveform window, overlaid on top of the current panel.
-	 */
-	public static void addToWaveformCurrentCommand()
-	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (!(wf.getContent() instanceof EditWindow)) return;
+    /**
+     * This method implements the command to add the currently selected network
+     * to the waveform window, overlaid on top of the current panel.
+     */
+    public static void addToWaveformCurrentCommand()
+    {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (!(wf.getContent() instanceof EditWindow)) return;
         EditWindow wnd = (EditWindow)wf.getContent();
-		WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
-		WaveformWindow ww = wwLoc.getWaveformWindow();
-		if (ww == null)
-		{
-			System.out.println("Cannot overlay selected signals to the waveform window: no waveform window is associated with this cell");
-			return;
-		}
-		ww.showSignals(wnd.getHighlighter(), wwLoc.getContext(), false);
-	}
+        WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
+        WaveformWindow ww = wwLoc.getWaveformWindow();
+        if (ww == null)
+        {
+            System.out.println("Cannot overlay selected signals to the waveform window: no waveform window is associated with this cell");
+            return;
+        }
+        ww.showSignals(wnd.getHighlighter(), wwLoc.getContext(), false);
+    }
 
-	/**
-	 * This method implements the command to remove the currently selected network
-	 * from the waveform window.
-	 */
-	public static void removeFromWaveformCommand()
-	{
-		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
-		if (!(wf.getContent() instanceof EditWindow)) return;
+    /**
+     * This method implements the command to remove the currently selected network
+     * from the waveform window.
+     */
+    public static void removeFromWaveformCommand()
+    {
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (!(wf.getContent() instanceof EditWindow)) return;
         EditWindow wnd = (EditWindow)wf.getContent();
-		WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
-		WaveformWindow ww = wwLoc.getWaveformWindow();
-		if (ww == null)
-		{
-			System.out.println("Cannot remove selected signals from the waveform window: no waveform window is associated with this cell");
-			return;
-		}
-		Set<Network> nets = wnd.getHighlighter().getHighlightedNetworks();
-		ww.removeSignals(nets, wwLoc.getContext());
-	}
+        WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
+        WaveformWindow ww = wwLoc.getWaveformWindow();
+        if (ww == null)
+        {
+            System.out.println("Cannot remove selected signals from the waveform window: no waveform window is associated with this cell");
+            return;
+        }
+        Set<Network> nets = wnd.getHighlighter().getHighlightedNetworks();
+        ww.removeSignals(nets, wwLoc.getContext());
+    }
 
     /**
      * This method implements the command to insert a jog in an arc
@@ -1359,7 +1365,7 @@ public class EditMenu {
         private Point2D getInsertPoint(MouseEvent evt)
         {
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
-			EditWindow.gridAlign(mouseDB);
+            EditWindow.gridAlign(mouseDB);
             Point2D insert = DBMath.closestPointToSegment(ai.getHeadLocation(), ai.getTailLocation(), mouseDB);
             return insert;
         }
@@ -1447,13 +1453,13 @@ public class EditMenu {
                 ArcInst newAi1 = ArcInst.makeInstance(ap, width, headPort, pi, headPt, insert, null);
                 ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, pi2, insert, insert, null);
                 ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, tailPort, insert, tailPt, null);
-				newAi1.setHeadNegated(ai.isHeadNegated());
+                newAi1.setHeadNegated(ai.isHeadNegated());
                 newAi1.setHeadExtended(ai.isHeadExtended());
                 newAi1.setHeadArrowed(ai.isHeadArrowed());
-				newAi3.setTailNegated(ai.isTailNegated());
+                newAi3.setTailNegated(ai.isTailNegated());
                 newAi3.setTailExtended(ai.isTailExtended());
                 newAi3.setTailArrowed(ai.isTailArrowed());
-				ai.kill();
+                ai.kill();
                 if (arcName != null)
                 {
                     if (headPt.distance(insert) > tailPt.distance(insert))
@@ -1470,7 +1476,7 @@ public class EditMenu {
 
                 // remember the node to be highlighted
                 jogPoint = ni;
-    			fieldVariableChanged("jogPoint");
+                fieldVariableChanged("jogPoint");
                 return true;
             }
 
@@ -1494,7 +1500,7 @@ public class EditMenu {
 
     public static void describeTechnologyCommand()
     {
-    	int pageWidth = TopLevel.getMessagesWindow().getMessagesCharWidth();
+        int pageWidth = TopLevel.getMessagesWindow().getMessagesCharWidth();
         Technology tech = Technology.getCurrent();
         System.out.println("Technology " + tech.getTechName());
         System.out.println("    Full name: " + tech.getTechDesc());
@@ -1520,8 +1526,8 @@ public class EditMenu {
             if (sb.length() + addThis.length() > pageWidth)
             {
                 System.out.println(sb.toString());
-            	sb = new StringBuffer();
-            	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                sb = new StringBuffer();
+                for(int i=0; i<newLineIndent; i++) sb.append(' ');
             }
             sb.append(addThis);
         }
@@ -1553,8 +1559,8 @@ public class EditMenu {
                 if (sb.length() + addThis.length() > pageWidth)
                 {
                     System.out.println(sb.toString());
-                	sb = new StringBuffer();
-                	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                    sb = new StringBuffer();
+                    for(int i=0; i<newLineIndent; i++) sb.append(' ');
                 }
                 sb.append(addThis);
             }
@@ -1571,13 +1577,13 @@ public class EditMenu {
                 if (np.isNotUsed()) continue;
                 PrimitiveNode.Function fun = np.getFunction();
                 if (fun != PrimitiveNode.Function.CONTACT && fun != PrimitiveNode.Function.CONNECT)
-                	continue;
+                    continue;
                 String addThis = " " + np.getName();
                 if (sb.length() + addThis.length() > pageWidth)
                 {
                     System.out.println(sb.toString());
-                	sb = new StringBuffer();
-                	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                    sb = new StringBuffer();
+                    for(int i=0; i<newLineIndent; i++) sb.append(' ');
                 }
                 sb.append(addThis);
             }
@@ -1595,13 +1601,13 @@ public class EditMenu {
                 PrimitiveNode.Function fun = np.getFunction();
                 if (fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.CONTACT ||
                     fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.NODE)
-                	continue;
+                    continue;
                 String addThis = " " + np.getName();
                 if (sb.length() + addThis.length() > pageWidth)
                 {
                     System.out.println(sb.toString());
-                	sb = new StringBuffer();
-                	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                    sb = new StringBuffer();
+                    for(int i=0; i<newLineIndent; i++) sb.append(' ');
                 }
                 sb.append(addThis);
             }
@@ -1622,8 +1628,8 @@ public class EditMenu {
                 if (sb.length() + addThis.length() > pageWidth)
                 {
                     System.out.println(sb.toString());
-                	sb = new StringBuffer();
-                	for(int i=0; i<newLineIndent; i++) sb.append(' ');
+                    sb = new StringBuffer();
+                    for(int i=0; i<newLineIndent; i++) sb.append(' ');
                 }
                 sb.append(addThis);
             }

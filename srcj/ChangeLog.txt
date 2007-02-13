@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+IMP/MAN: (2/13/07, GVG) Detecting if user has write permission for temporary 
+file in Edit Text Cell Externally otherwise, it doesn't work. Bring up a message
+in case of error.
+
 BUG: (2/13/07, GVG) Edit Text Cell Externally not working on MacOSX
 FIX: Detecting correct path for MacOSX application.
 
