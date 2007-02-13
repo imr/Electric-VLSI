@@ -754,9 +754,25 @@ public class EditMenu {
     	{
             Client.OS os = Client.getOperatingSystem();
     		String commandString;
-    		if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName; else
+    		if (os == Client.OS.WINDOWS) commandString = "cmd /c \"" + externalEditor + "\" " + fileName;
+            else if (os == Client.OS.MACINTOSH)
+            {
+                // MacOS box only allows to select *.app programs.
+                int index = externalEditor.indexOf(".app"); // like TextEdit.app
+                if (index != -1)
+                {
+                    String rootName = externalEditor.substring(0, index);
+                    int ind2 = rootName.lastIndexOf("/");
+                    if (ind2 != -1) // remove all /
+                        rootName = rootName.substring(ind2, rootName.length());
+                    commandString = externalEditor + "/Contents/MacOS/" + rootName + " " + fileName;
+                }
+                else
+                    commandString = externalEditor + " " + fileName;
+            }
+            else
     			commandString = externalEditor + " " + fileName;
-    		Process p = Runtime.getRuntime().exec(commandString);
+            Process p = Runtime.getRuntime().exec(commandString);
     		try
     		{
     			p.waitFor();
