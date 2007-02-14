@@ -63,7 +63,7 @@ public class MoCMOS extends Technology
             tech = (MoCMOS)obj;
         } catch (Exception e)
         {
-            e.printStackTrace();
+//            e.printStackTrace();
             if (Job.getDebug())
                 System.out.println("GNU Release can't find TSMC180nm plugin");
             tech = new MoCMOS();
@@ -143,7 +143,7 @@ public class MoCMOS extends Technology
 		setFactoryScale(200, true);			// in nanometers: really 0.2 micron
         initMoCMOS(true);
     }
-    
+
     protected MoCMOS(String techName) {
         super(techName);
     }
@@ -166,7 +166,7 @@ public class MoCMOS extends Technology
         if (hasMosisFoundry) {
             mosis = new Foundry(Foundry.Type.MOSIS);
             foundries.add(mosis);
-            
+
             // Reading Mosis rules stored in Mosis.xml
             URL fileURL = MOSRules.class.getResource("Mosis180.xml");
             DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, false);
@@ -980,7 +980,7 @@ public class MoCMOS extends Technology
             mosis.setFactoryGDSLayer(viaLayers[2], "30"); // Via-3
             mosis.setFactoryGDSLayer(viaLayers[3], "32"); // Via-4
             mosis.setFactoryGDSLayer(viaLayers[4], "36"); // Via-5
-            
+
             mosis.setFactoryGDSLayer(passivationLayer, "52"); // Passivation
             mosis.setFactoryGDSLayer(polyCapLayer, "28"); // Poly-Cap
             mosis.setFactoryGDSLayer(silicideBlockLayer, "29"); // Silicide-Block
