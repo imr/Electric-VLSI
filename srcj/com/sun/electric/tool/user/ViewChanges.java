@@ -909,7 +909,7 @@ public class ViewChanges
 	private static Cell convertSchematicCell(Cell oldCell)
 	{
 		// create cell in new technology
-		Cell newCell = makeNewCell(oldCell.getName(), View.SCHEMATIC, oldCell);
+		Cell newCell = makeNewCell(oldCell.getName(), View.SCHEMATIC, oldCell, null);
 		if (newCell == null) return null;
 
 		// create the parts in this cell
@@ -937,7 +937,7 @@ public class ViewChanges
 	 * equivalent to an old cell in "cell".  The view type of the new cell is
 	 * in "newcellview" and the view type of the old cell is in "cellview"
 	 */
-	private static Cell makeNewCell(String newCellName, View newCellView, Cell cell)
+	private static Cell makeNewCell(String newCellName, View newCellView, Cell cell, Library lib)
 	{
 		// create the new cell
 		String cellName = newCellName;
@@ -945,7 +945,8 @@ public class ViewChanges
 		{
 			cellName = newCellName + "{" + newCellView.getAbbreviation() + "}";
 		}
-		Cell newCell = Cell.makeInstance(cell.getLibrary(), cellName);
+		if (lib == null) lib = cell.getLibrary();
+		Cell newCell = Cell.makeInstance(lib, cellName);
 		if (newCell == null)
 			System.out.println("Could not create cell: " + cellName); else
 				System.out.println("Creating new cell: " + cellName);
@@ -1201,19 +1202,17 @@ public class ViewChanges
 
         // find out which technology they want to convert to
 		Technology oldTech = oldCell.getTechnology();
-		int numTechs = 0;
+		List<Technology> newTechs = new ArrayList<Technology>();
 		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = it.next();
-			if (tech.isScaleRelevant()) numTechs++;
+			if (tech == oldTech) continue;
+			if (tech.isScaleRelevant()) newTechs.add(tech);
 		}
-		String [] techNames = new String[numTechs];
+		String [] techNames = new String[newTechs.size()];
 		int i=0;
-		for(Iterator<Technology> it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = it.next();
-			if (tech.isScaleRelevant()) techNames[i++] = tech.getTechName();
-		}
+		for(Technology tech : newTechs)
+			techNames[i++] = tech.getTechName();
 		String selectedValue = (String)JOptionPane.showInputDialog(null,
 			"New technology to create", "Technology conversion",
 			JOptionPane.INFORMATION_MESSAGE, null, techNames, User.getSchematicTechnology().getTechName());
@@ -1225,87 +1224,117 @@ public class ViewChanges
 			System.out.println("Cell " + oldCell.describe(true) + " is already in the " + newTech.getTechName() + " technology");
 			return;
 		}
+		String newLibName = Job.getUserInterface().askForInput("New library name for the converted cells (leave blank to place new cells in the current library):",
+			"New Library Name", "");
+		if (newLibName == null) return;
 
-		new MakeLayoutView(oldCell, newTech, context);
+		new MakeLayoutView(oldCell, oldTech, newTech, context, newLibName);
 	}
 
 	private static class MakeLayoutView extends Job
 	{
 		private Cell oldCell;
-		private Technology newTech;
-		private Cell newCell;
+		private Technology oldTech, newTech;
         private VarContext context;
+        private String newLibName;
+        private List<Cell> createdCells;
 
-        protected MakeLayoutView(Cell oldCell, Technology newTech, VarContext context)
+        protected MakeLayoutView(Cell oldCell, Technology oldTech, Technology newTech, VarContext context, String newLibName)
 		{
 			super("Make Alternate Layout", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oldCell = oldCell;
+			this.oldTech = oldTech;
 			this.newTech = newTech;
             this.context = context;
+            this.newLibName = newLibName;
             startJob();
 		}
 
 		public boolean doIt() throws JobException
 		{
 			// convert the cell and all subcells
-			Technology oldTech = oldCell.getTechnology();
-            MakeLayoutVisitor visitor = new MakeLayoutVisitor(newTech, oldCell.getLibrary());
+			Library newLib = Library.getCurrent();			
+			if (newLibName.length() > 0)
+			{
+				newLib = Library.findLibrary(newLibName);
+				if (newLib == null) newLib = Library.newInstance(newLibName, null);
+			}
+			createdCells = new ArrayList<Cell>();
+            MakeLayoutVisitor visitor = new MakeLayoutVisitor(oldTech, newTech, oldCell.getLibrary(), createdCells, newLib);
             HierarchyEnumerator.enumerateCell(oldCell, context, visitor, true);
-            newCell = visitor.convertedCells.get(oldCell);
-            fieldVariableChanged("newCell");
+            fieldVariableChanged("createdCells");
 			return true;
 		}
 
         public void terminateOK()
         {
-        	if (newCell != null)
+        	Cell showCell = null;
+        	for(Cell cell : createdCells)
         	{
-    			System.out.println("Cell " + newCell.describe(true) + " created with a " + newTech.getTechName() +
-    				" layout equivalent of " + oldCell);
-				WindowFrame.createEditWindow(newCell);
+        		showCell = cell;
+//    			System.out.println("Created cell " + cell.describe(true) + " in technology " + newTech.getTechName());
         	}
+			if (showCell != null)
+				WindowFrame.createEditWindow(showCell);
         }
 
-        private static class Info extends HierarchyEnumerator.CellInfo {
+        private static class Info extends HierarchyEnumerator.CellInfo
+        {
             private Map<Nodable,Cell> generatedCells;
-            public Info() {
+            public Info()
+            {
                 generatedCells = new HashMap<Nodable,Cell>();
             }
         }
-        private static class MakeLayoutVisitor extends HierarchyEnumerator.Visitor {
-            private Technology newTech;
+
+        private static class MakeLayoutVisitor extends HierarchyEnumerator.Visitor
+        {
+            private Technology oldTech, newTech;
             private Library defaultLib;
             private Map<Cell,Cell> convertedCells;
             private StdCellParams stdCell;
+            private List<Cell> createdCells;
+            private Library newLib;
 
-            private MakeLayoutVisitor(Technology newTech, Library defaultLib) {
+            private MakeLayoutVisitor(Technology oldTech, Technology newTech, Library defaultLib, List<Cell> createdCells, Library newLib)
+            {
+                this.oldTech = oldTech;
                 this.newTech = newTech;
                 this.defaultLib = defaultLib;
+                this.createdCells = createdCells;
+                this.newLib = newLib;
                 convertedCells = new HashMap<Cell,Cell>();
                 TechType type = null;
-                if      (newTech == Technology.findTechnology("MoCMOS")) type = TechType.MOCMOS;
-                else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TSMC180;
-                else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.CMOS90;
-                Tech.setTechnology(type);
-                Technology cmos90 = Technology.getCMOS90Technology();
-                if (cmos90 != null && type == TechType.CMOS90) {
-                    stdCell = GateLayoutGenerator.sportParams();
-                } else {
-                    //stdCell = locoParams(outLib);
-                    stdCell = GateLayoutGenerator.dividerParams(type);
-                    //stdCell = justinParams(outLib, technology);
+                if (oldTech == Schematics.tech)
+                {
+	                if      (newTech == Technology.findTechnology("MoCMOS")) type = TechType.MOCMOS;
+	                else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TSMC180;
+	                else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.CMOS90;
+	                Tech.setTechnology(type);
+	                Technology cmos90 = Technology.getCMOS90Technology();
+	                if (cmos90 != null && type == TechType.CMOS90)
+	                {
+	                    stdCell = GateLayoutGenerator.sportParams();
+	                } else
+	                {
+	                    //stdCell = locoParams(outLib);
+	                    stdCell = GateLayoutGenerator.dividerParams(type);
+	                    //stdCell = justinParams(outLib, technology);
+	                    if (type == null) stdCell = null;
+	                }
                 }
-                if (type == null) stdCell = null;
             }
 
             public HierarchyEnumerator.CellInfo newCellInfo() { return new Info(); }
 
-            private static class Conn {
+            private static class Conn
+            {
                 private Nodable no;
                 private PortProto pp;
                 private int index;
                 private Name portName;
-                private Conn(Nodable no, PortProto pp, int index, Name portName) {
+                private Conn(Nodable no, PortProto pp, int index, Name portName)
+                {
                     this.no = no; this.pp = pp; this.index = index; this.portName = portName;
                 }
             }
@@ -1316,59 +1345,69 @@ public class ViewChanges
                 VarContext context = info.getContext();
                 Info myInfo = (Info)info;
                 if (convertedCells.containsKey(oldCell)) return false;
-                if (stdCell != null) {
+                if (stdCell != null)
+                {
                     myInfo.generatedCells = GateLayoutGenerator.generateLayoutFromSchematics(
-                            oldCell.getLibrary(),
-                            oldCell, context, stdCell, true);
+                        oldCell.getLibrary(), oldCell, context, stdCell, true);
                 }
                 return true;
             }
 
-            public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info) {
+            public boolean visitNodeInst(Nodable ni, HierarchyEnumerator.CellInfo info)
+            {
                 Cell layCell = getLayoutCell(ni, (Info)info);
                 if (layCell == null) return true;
                 return false;
             }
 
-            private Cell getLayoutCell(Nodable no, Info myInfo) {
+            private Cell getLayoutCell(Nodable no, Info myInfo)
+            {
                 if (!no.isCellInstance()) return null;
                 Cell layCell = null;
                 Cell subCell = (Cell)no.getProto();
                 layCell = myInfo.generatedCells.get(no);
                 if (layCell == null)
                     layCell = convertedCells.get(subCell);
-                if (layCell == null) {
-                    // see if it already exists
-                    for (Iterator<Cell> it = subCell.getCellGroup().getCells(); it.hasNext(); ) {
-                        Cell c = it.next();
-                        if (c.getView() == View.LAYOUT) {
-                            layCell = c;
-                            break;
-                        }
-                    }
+                if (layCell == null)
+                {
+                	if (oldTech == Schematics.tech)
+                	{
+	                    // see if it already exists
+	                    for (Iterator<Cell> it = subCell.getCellGroup().getCells(); it.hasNext(); )
+	                    {
+	                        Cell c = it.next();
+	                        if (c.getView() == View.LAYOUT)
+	                        {
+	                            layCell = c;
+	                            break;
+	                        }
+	                    }
+	                    if (layCell == null)
+	                    {
+	                        String searchCellName = subCell.getName() + "{lay}";
+	                        layCell = defaultLib.findNodeProto(searchCellName);
+	                    }
+                	}
                 }
-                if (layCell == null) {
-                    String searchCellName = subCell.getName() + "{lay}";
-                    layCell = defaultLib.findNodeProto(searchCellName);
-                }
-                if (layCell != null) {
+                if (layCell != null)
+                {
                     convertedCells.put(subCell, layCell);
                 }
                 return layCell;
             }
 
-            public void exitCell(HierarchyEnumerator.CellInfo info) {
+            public void exitCell(HierarchyEnumerator.CellInfo info)
+            {
                 Cell oldCell = info.getCell();
                 String newCellName = oldCell.getName();
-                boolean isSch = oldCell.getView() == View.SCHEMATIC;
 
                 // create the cell
-                Cell newCell = makeNewCell(newCellName, View.LAYOUT, oldCell);
+                Cell newCell = makeNewCell(newCellName, View.LAYOUT, oldCell, newLib);
                 if (newCell == null) return;
+                createdCells.add(newCell);
 
                 HashMap<Network,List<Conn>> connections = new HashMap<Network,List<Conn>>();
                 HashMap<Nodable,NodeInst> convertedNodes = new HashMap<Nodable,NodeInst>();
-                //HashMap<NodeInst,Nodable> convertedNodesReverse = new HashMap<NodeInst,Nodable>();
 
                 // create node placement tree and network connections list
                 PlacerGrid placer = new PlacerGrid();
@@ -1376,21 +1415,26 @@ public class ViewChanges
                     Nodable no = it.next();
                     NodeProto np = null;
 
-                    if (no.isCellInstance()) {
+                    if (no.isCellInstance())
+                    {
                         np = getLayoutCell(no, (Info)info);
-                        if (np == null) {
+                        if (np == null)
+                        {
                             System.out.println("Warning: Unable to find layout version of cell "+no.getProto().describe(false));
                         }
-                    } else {
+                    } else
+                    {
                         np = figureNewNodeProto(no.getNodeInst(), newTech);
                     }
-                    if (np != null) {
-                        if (!isSch) {
+                    if (np != null)
+                    {
+                        if (oldTech != Schematics.tech)
+                        {
                             // layout Conversion
                             NodeInst newNi = placeLayoutNode(no, np, newCell, info.getContext());
                             convertedNodes.put(no, newNi);
-                        } else {
-
+                        } else
+                        {
                             if (np.getFunction() == PrimitiveNode.Function.PIN) continue;
                             if (np.getFunction() == PrimitiveNode.Function.CONNECT) continue;
                             if (no.getName().startsWith("fill") || no.getName().startsWith("tfill")) continue;
@@ -1398,21 +1442,25 @@ public class ViewChanges
                             placer.insert(new Leaf(no, info.getContext(), np, newCell));
 
                             // record connections on ports
-                            for (Iterator<PortProto> itp = no.getProto().getPorts(); itp.hasNext(); ) {
+                            for (Iterator<PortProto> itp = no.getProto().getPorts(); itp.hasNext(); )
+                            {
                                 PortProto pp = itp.next();
                                 Name ppname = pp.getNameKey();
-                                for (int i=0; i<ppname.busWidth(); i++) {
+                                for (int i=0; i<ppname.busWidth(); i++)
+                                {
                                     Name subname = ppname.subname(i);
                                     Conn conn = new Conn(no, pp, i, subname);
                                     Network net = info.getNetlist().getNetwork(no, pp, i);
                                     List<Conn> list = connections.get(net);
-                                    if (list == null) {
+                                    if (list == null)
+                                    {
                                         list = new ArrayList<Conn>();
                                         connections.put(net, list);
                                     }
                                     // if port on same node already connects to this network, skip it
                                     boolean add = true;
-                                    for (Conn aconn : list) {
+                                    for (Conn aconn : list)
+                                    {
                                         if (aconn.no == conn.no) { add = false; break; }
                                     }
                                     if (add) list.add(conn);
@@ -1422,33 +1470,39 @@ public class ViewChanges
                     }
                 }
 
-                if (isSch) {
+                if (oldTech == Schematics.tech)
+                {
                     // place all new nodes
                     placer.place(this, convertedNodes);
 
                     // create rats nest of connections
                     ArcProto ratArc = Generic.tech.unrouted_arc;
-                    for (Iterator<Network> it = info.getNetlist().getNetworks(); it.hasNext(); ) {
+                    for (Iterator<Network> it = info.getNetlist().getNetworks(); it.hasNext(); )
+                    {
                         Network network = it.next();
                         List<Conn> list = connections.get(network);
                         if (list == null) continue;
                         if (list.size() == 0) continue;
                         Conn conn = list.get(0);
                         PortInst pi = getLayoutPortInst(conn, convertedNodes);
-                        if (pi == null) {
+                        if (pi == null)
+                        {
                             System.out.println("Cannot find port "+conn.portName+" on "+conn.no.getName()+" in cell "+newCell.describe(false));
                             continue;
                         }
                         String exportName = null;
                         Export e = null;
-                        if (network.isExported()) {
+                        if (network.isExported())
+                        {
                             exportName = network.getName();
                             e = network.getExports().next();
                         }
-                        for (int i=1; i<list.size(); i++) {
+                        for (int i=1; i<list.size(); i++)
+                        {
                             Conn nextConn = list.get(i);
                             PortInst nextPi = getLayoutPortInst(nextConn, convertedNodes);
-                            if (nextPi == null) {
+                            if (nextPi == null)
+                            {
                                 System.out.println("Cannot find port "+nextConn.portName+" on "+nextConn.no.getName()+" in cell "+newCell.describe(false));
                                 continue;
                             }
@@ -1465,7 +1519,8 @@ public class ViewChanges
                             newAi.setRigid(false);
 
                             // create export if name matches
-                            if (exportName != null && nextPi.getPortProto().getName().equals(exportName)) {
+                            if (exportName != null && nextPi.getPortProto().getName().equals(exportName))
+                            {
                                 Export pp2 = Export.newInstance(newCell, nextPi, exportName);
                                 pp2.setCharacteristic(e.getCharacteristic());
                                 pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
@@ -1473,7 +1528,8 @@ public class ViewChanges
                                 exportName = null;
                             }
                         }
-                        if (exportName != null) {
+                        if (exportName != null)
+                        {
                             Export pp2 = Export.newInstance(newCell, pi, exportName);
                             pp2.setCharacteristic(e.getCharacteristic());
                             pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
@@ -1482,12 +1538,15 @@ public class ViewChanges
                         }
                     }
                     convertedCells.put(oldCell, newCell);
-                } else {
+                } else
+                {
                     makeLayoutParts(oldCell, newCell, oldCell.getTechnology(), newTech, View.LAYOUT, convertedCells, convertedNodes);
+                    convertedCells.put(oldCell, newCell);
                 }
             }
 
-            private PortInst getLayoutPortInst(Conn schConn, HashMap<Nodable,NodeInst> convertedNodes) {
+            private PortInst getLayoutPortInst(Conn schConn, HashMap<Nodable,NodeInst> convertedNodes)
+            {
                 NodeInst layNi = convertedNodes.get(schConn.no);
                 if (layNi == null) return null;
                 PortInst pi = layNi.findPortInst(schConn.portName.toString());
@@ -1501,16 +1560,19 @@ public class ViewChanges
                     return layNi.getPortInst(0);
                 }
 
-                if (schConn.no.getNodeInst().getFunction().isTransistor()) {
+                if (schConn.no.getNodeInst().getFunction().isTransistor())
+                {
                     if (schConn.portName.toString().equals("g")) return layNi.getPortInst(0);
                     if (schConn.portName.toString().equals("s")) return layNi.getPortInst(1);
                     if (schConn.portName.toString().equals("d")) return layNi.getPortInst(3);
                 }
 
                 // associate by position in port list
-                for (int i=0; i<schConn.no.getNodeInst().getNumPortInsts() && i<layNi.getNumPortInsts(); i++) {
+                for (int i=0; i<schConn.no.getNodeInst().getNumPortInsts() && i<layNi.getNumPortInsts(); i++)
+                {
                     PortInst api = schConn.no.getNodeInst().getPortInst(i);
-                    if (api.getPortProto() == schConn.pp) {
+                    if (api.getPortProto() == schConn.pp)
+                    {
                         //System.out.println("Associated port "+i+": "+schConn.no.getProto().getName()+"."+schConn.pp.getName()+" to "+
                         //                    layNi.getProto().getName()+"."+layNi.getProto().getPort(i).getName());
                         return layNi.getPortInst(i);
@@ -1537,29 +1599,29 @@ public class ViewChanges
                 Technology oldTech, Technology newTech, View nView, Map<Cell,Cell> convertedCells,
                 Map<Nodable,NodeInst> convertedNodes)
             {
-                // first convert the nodes
-                for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
-                {
-                    NodeInst ni = it.next();
-                    // handle sub-cells
-                    if (ni.isCellInstance())
-                    {
-                        Cell newCellType = (Cell)convertedCells.get((Cell)ni.getProto());
-                        if (newCellType == null)
-                        {
-                            System.out.println("No equivalent cell for " + ni.getProto());
-                            continue;
-                        }
-                        placeLayoutNode(ni, newCellType, newCell, VarContext.globalContext);
-                        continue;
-                    }
-
-                    // handle primitives
-                    if (ni.getProto() == Generic.tech.cellCenterNode) continue;
-                    NodeProto newNp = figureNewNodeProto(ni, newTech);
-                    if (newNp != null)
-                        placeLayoutNode(ni, newNp, newCell, VarContext.globalContext);
-                }
+//                // first convert the nodes
+//                for(Iterator<NodeInst> it = oldCell.getNodes(); it.hasNext(); )
+//                {
+//                    NodeInst ni = it.next();
+//                    // handle sub-cells
+//                    if (ni.isCellInstance())
+//                    {
+//                        Cell newCellType = (Cell)convertedCells.get((Cell)ni.getProto());
+//                        if (newCellType == null)
+//                        {
+//                            System.out.println("No equivalent cell for " + ni.getProto());
+//                            continue;
+//                        }
+//                        placeLayoutNode(ni, newCellType, newCell, VarContext.globalContext);
+//                        continue;
+//                    }
+//
+//                    // handle primitives
+//                    if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+//                    NodeProto newNp = figureNewNodeProto(ni, newTech);
+//                    if (newNp != null)
+//                        placeLayoutNode(ni, newNp, newCell, VarContext.globalContext);
+//                }
 
                 /*
                  * for each arc in cell, find the ends in the new technology, and
@@ -1654,11 +1716,12 @@ public class ViewChanges
                 // if this is a layer node, check the layer functions
                 PrimitiveNode.Function type = oldni.getFunction();
 
-                if (oldni.getParent().getView() == View.SCHEMATIC && type.isTransistor()) {
-                    for (Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); ) {
+                if (oldni.getParent().getView() == View.SCHEMATIC && type.isTransistor())
+                {
+                    for (Iterator<PrimitiveNode> it = newTech.getNodes(); it.hasNext(); )
+                    {
                         PrimitiveNode node = it.next();
-                        if (type == node.getFunction())
-                            return node;
+                        if (type == node.getFunction()) return node;
                     }
                 }
 
@@ -1745,15 +1808,18 @@ public class ViewChanges
                     PrimitiveNode pOldNp = (PrimitiveNode)ni.getProto();
                     newXSize = pNewNp.getDefWidth() + ni.getXSize() - pOldNp.getDefWidth();
                     newYSize = pNewNp.getDefHeight() + ni.getYSize() - pOldNp.getDefHeight();
-                    if (no.getParent().getView() == View.SCHEMATIC && pNewNp.getFunction().isTransistor()) {
+                    if (no.getParent().getView() == View.SCHEMATIC && pNewNp.getFunction().isTransistor())
+                    {
                         Variable width = no.getVar(Variable.newKey("ATTR_width"));
                         SizeOffset offset = newNp.getProtoSizeOffset();
-                        if (width != null) {
+                        if (width != null)
+                        {
                             newXSize = VarContext.objectToDouble(context.evalVar(width, no), newXSize);
                             newXSize = newXSize + offset.getHighXOffset() + offset.getLowXOffset();
                         }
                         Variable length = no.getVar(Variable.newKey("ATTR_length"));
-                        if (length != null) {
+                        if (length != null)
+                        {
                             newYSize = VarContext.objectToDouble(context.evalVar(length, no), newYSize);
                             newYSize = newYSize + offset.getHighYOffset() + offset.getLowYOffset();
                         }
@@ -1765,12 +1831,9 @@ public class ViewChanges
                     newXSize = bounds.getWidth();
                     newYSize = bounds.getHeight();
                 }
-    //			if (ni.isXMirrored()) newXSize = -newXSize;
-    //			if (ni.isYMirrored()) newYSize = -newYSize;
 
                 // create the node
                 NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getOrient(), no.getName(), ni.getTechSpecific());
-    //			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
                 if (newNi == null)
                 {
                     System.out.println("Could not create " + newNp + " in " + newCell);
@@ -1784,7 +1847,8 @@ public class ViewChanges
                 for(Iterator<Export> it = ni.getExports(); it.hasNext(); )
                 {
                     Export e = it.next();
-                    for (int i=0; i<e.getNameKey().busWidth(); i++) {
+                    for (int i=0; i<e.getNameKey().busWidth(); i++)
+                    {
                         Name portName = e.getOriginalPort().getPortProto().getNameKey().subname(i);
                         Name exportName = e.getNameKey().subname(i);
                         PortProto pp = convertPortName(ni, newNi, portName);
@@ -1800,7 +1864,8 @@ public class ViewChanges
                 return newNi;
             }
 
-            private static class PlacerGrid {
+            private static class PlacerGrid
+            {
                 private Leaf node = null;
                 private PlacerGrid aboveNode = null;
                 private PlacerGrid belowNode = null;
@@ -1986,7 +2051,10 @@ public class ViewChanges
              */
             private ArcProto figureNewArcProto(ArcProto oldAp, Technology newTech, PortProto headPp, PortProto tailPp)
             {
-                // schematic wires become universal arcs
+            	// generic arcs stay the same
+            	if (oldAp.getTechnology() == Generic.tech) return oldAp;
+
+            	// schematic wires become universal arcs
                 if (oldAp != Schematics.tech.wire_arc)
                 {
                     // determine the proper association of this node

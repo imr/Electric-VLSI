@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+IMP: (2/14/07, SMR) Converting to "alternate layout view" improved to handle
+     conversion from mosis/tsmc to tsmc technology.  Now prompts for new library.
+
 BUG: (2/14/07, SMR) Simulating cells with reserved VHDL names (i.e. "nand") crashes.
 FIX: In GenerateVHDL.addString(), append "_" to end instead of start when a keyword.
 
