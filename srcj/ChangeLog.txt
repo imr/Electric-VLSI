@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+BUG: (2/14/07, SMR) Implant coverage tool deletes lower-level implants.
+FIX: In LayerCoverageTool.LayerVisitor.visitNodeInst(), only add implant
+     regions to delete list when in the top-level.
+
 IMP/MAN: (2/14/07, DN) Technology "tsmc90" was renamed to "cmos90" with same foundries (TSMS and ST).
     JELIB reader treats "tsmc90" as alias of "cmos90". It also patches names of meaning preferences.
     However, I didn't change reader of ProjectSettings.

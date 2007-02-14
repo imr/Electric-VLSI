@@ -877,7 +877,8 @@ public class LayerCoverageTool extends Tool
 			// Coverage implants are pure primitive nodes and they are ignored.
 			if (node.isPrimtiveSubstrateNode()) //node.getFunction() == PrimitiveNode.Function.NODE)
 			{
-				deleteList.add(node);
+				if (info.isRootCell())
+					deleteList.add(node);
 				return (false);
 			}
 
