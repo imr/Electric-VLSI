@@ -185,6 +185,7 @@
         <delete dir="prefuse"/>   <!-- prefuse -->
         <delete dir="com/apple"/>
         <delete dir="junit"/>
+        <delete dir="junit4.0"/>
         <delete dir="junit4.1"/>
     </target>
 

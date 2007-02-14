@@ -16,7 +16,7 @@ public class TechTypeCMOS90 extends TechType {
 	}
 
 	private TechTypeCMOS90() {
-		super(Technology.findTechnology("TSMC90"), LAYER_NAMES);
+		super(Technology.findTechnology("CMOS90"), LAYER_NAMES);
 //        error(wellWidth != 14, "wrong value in Tech");
 //	    wellWidth = 14;
 	    wellSurroundDiff = Double.NaN;
@@ -30,7 +30,7 @@ public class TechTypeCMOS90 extends TechType {
         gateLength = 2;
         offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
         offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
-        selectSpace = 4.8; // TSMC rule, see TSMC90.java
+        selectSpace = 4.8; // TSMC rule, see CMOS90.java
         selectSurroundDiffInTrans = 1.3;
         selectSurround = 4.4;
         selectSurroundDiffInActiveContact = Double.NaN;

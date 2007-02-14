@@ -59,7 +59,7 @@ public class TechnologyTab extends ProjSettingsPanel
         String selectedFoundry = tech.getPrefFoundry();
     	Foundry.Type foundry = Foundry.Type.NONE;
         double scale = tech.getScale();
-        boolean correctScale = true; // TSMC90 -> 50 and MoCMOS -> 200
+        boolean correctScale = true; // CMOS90 -> 50 and MoCMOS -> 200
 
         if (tech == MoCMOS.tech)
             correctScale = DBMath.areEquals(scale, 100);
@@ -122,10 +122,10 @@ public class TechnologyTab extends ProjSettingsPanel
         setFoundrySelected(MoCMOS.tech, techDefaultFoundryPulldown);
 
         // Tabs for extra technologies if available
-        jPanel3.remove(tsmc90Panel);
+        jPanel3.remove(cmos90Panel);
         try
         {
-            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC90Tab");
+            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.CMOS90Tab");
             extraTechClass.getMethod("openTechnologyTab", JPanel.class).invoke(null, jPanel3);
         } catch (Exception e)
         {
@@ -230,7 +230,7 @@ public class TechnologyTab extends ProjSettingsPanel
         // Tabs for extra technologies if available
         try
         {
-            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.TSMC90Tab");
+            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc.CMOS90Tab");
             extraTechClass.getMethod("closeTechnologyTab").invoke(null);
         } catch (Exception e)
         {
@@ -298,7 +298,7 @@ public class TechnologyTab extends ProjSettingsPanel
         techDefaultFoundryLabel = new javax.swing.JLabel();
         techDefaultFoundryPulldown = new javax.swing.JComboBox();
         jPanel3 = new javax.swing.JPanel();
-        tsmc90Panel = new javax.swing.JPanel();
+        cmos90Panel = new javax.swing.JPanel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -461,10 +461,10 @@ public class TechnologyTab extends ProjSettingsPanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
         technology.add(mosisPanel, gridBagConstraints);
 
-        tsmc90Panel.setLayout(new java.awt.GridBagLayout());
+        cmos90Panel.setLayout(new java.awt.GridBagLayout());
 
-        tsmc90Panel.setBorder(javax.swing.BorderFactory.createTitledBorder("TSMC90"));
-        jPanel3.add(tsmc90Panel);
+        cmos90Panel.setBorder(javax.swing.BorderFactory.createTitledBorder("CMOS90"));
+        jPanel3.add(cmos90Panel);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -515,7 +515,7 @@ public class TechnologyTab extends ProjSettingsPanel
     private javax.swing.JComboBox techMetalLayers;
     private javax.swing.JPanel technology;
     private javax.swing.JComboBox technologyPopup;
-    private javax.swing.JPanel tsmc90Panel;
+    private javax.swing.JPanel cmos90Panel;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -62,20 +62,20 @@ public class GateRegression extends Job {
         if (technology == TechType.MOCMOS || technology == TechType.TSMC180) {
             MoCMOSGenerator.generateAllGates(x, stdCell);
         }
-        Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == TechType.CMOS90) {
-            // invoke the TSMC90 generator by reflection because it may not exist
+        Technology cmos90 = Technology.getCMOS90Technology();
+        if (cmos90 != null && technology == TechType.CMOS90) {
+            // invoke the CMOS90 generator by reflection because it may not exist
     		try
 			{
-				Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.TSMC90Generator");
+				Class cmos90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.CMOS90Generator");
 				Class [] parameterTypes = new Class[] {Double.class, StdCellParams.class};
-				Method generateMethod = tsmc90GeneratorClass.getDeclaredMethod("generateAllGates", parameterTypes);
+				Method generateMethod = cmos90GeneratorClass.getDeclaredMethod("generateAllGates", parameterTypes);
 				generateMethod.invoke(null, new Object[] {new Double(x), stdCell});
 	 		} catch (Exception e)
 	        {
-	 			System.out.println("ERROR invoking the TSMC90 gate generator");
+	 			System.out.println("ERROR invoking the CMOS90 gate generator");
 	        }
-//            TSMC90Generator.generateAllGates(x, stdCell);
+//            CMOS90Generator.generateAllGates(x, stdCell);
         }
     }
 
@@ -93,8 +93,8 @@ public class GateRegression extends Job {
 
 //        Tech.setTechnology(technology);     This call can't be done inside the doIt() because it calls the preferences
         StdCellParams stdCell;
-        Technology tsmc90 = Technology.getTSMC90Technology();
-        if (tsmc90 != null && technology == TechType.CMOS90) {
+        Technology cmos90 = Technology.getCMOS90Technology();
+        if (cmos90 != null && technology == TechType.CMOS90) {
             stdCell = new StdCellParams(TechType.CMOS90);
             stdCell.setOutputLibrary(scratchLib);
             stdCell.enableNCC("purpleFour");

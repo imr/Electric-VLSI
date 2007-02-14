@@ -212,7 +212,7 @@ public class StdCellParams {
         wellConSelectOffset = 0;
     }
 
-    private void initTSMC90() {
+    private void initCMOS90() {
         nmosWellHeight = 84;
         pmosWellHeight = 84;
         gndY = -24.5;
@@ -648,7 +648,7 @@ public class StdCellParams {
 	// Utilities for gate generators
 
 	public StdCellParams(TechType tech) {
-        if      (tech == TechType.CMOS90) initTSMC90();
+        if      (tech == TechType.CMOS90) initCMOS90();
         else if (tech == TechType.MOCMOS || tech == TechType.TSMC180) initMoCMOS();
         else {
             error(true, "Standard Cell Params does not understand technology "+tech);
@@ -811,7 +811,7 @@ public class StdCellParams {
 	}
 
     /** round to nearest multiple of 1/2 lambda for MoCMOS,
-     * nearest multiple of 0.2 for TSMC90 */
+     * nearest multiple of 0.2 for CMOS90 */
 	public double roundGateWidth(double w) {
         if (Tech.is90nm()) {
 		    double size = Math.rint(w * 5) / 5;

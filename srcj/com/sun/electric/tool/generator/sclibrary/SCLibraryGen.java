@@ -120,7 +120,7 @@ public class SCLibraryGen {
         if (sc.getTechnology() == TechType.TSMC180)
             scLibraryName = "sclibTSMC180";
         else if (sc.getTechnology() == TechType.CMOS90)
-            scLibraryName = "sclibTSMC90";
+            scLibraryName = "sclibCMOS90";
         scLibrary = Library.findLibrary(scLibraryName);
         if (scLibrary == null) {
             scLibrary = Library.newInstance(scLibraryName, null);

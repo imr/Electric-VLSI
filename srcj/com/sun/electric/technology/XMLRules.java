@@ -625,7 +625,7 @@ public class XMLRules implements DRCRules {
 	 */
 	public void applyDRCOverrides(String override, Technology tech)
 	{
-       // if (Main.getDebug()) System.out.println("Check this function"); @TODO GVG tsmc90:applyDRCOverrides
+       // if (Main.getDebug()) System.out.println("Check this function"); @TODO GVG cmos90:applyDRCOverrides
         //@TODO check DRCCheckMode.ALL
 
 		int pos = 0;

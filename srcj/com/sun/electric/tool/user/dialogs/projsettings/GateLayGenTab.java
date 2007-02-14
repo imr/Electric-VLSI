@@ -122,7 +122,7 @@ public class GateLayGenTab extends ProjSettingsPanel {
         gridBagConstraints.insets = new java.awt.Insets(0, 10, 10, 50);
         getContentPane().add(techLabel, gridBagConstraints);
 
-        techCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "MOCMOS", "TSMC90", "TSMC180" }));
+        techCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "MOCMOS", "CMOS90", "TSMC180" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;

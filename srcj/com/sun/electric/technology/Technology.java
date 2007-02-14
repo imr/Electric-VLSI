@@ -75,7 +75,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.swing.SwingUtilities;
 
 /**
@@ -656,7 +655,7 @@ public class Technology implements Comparable<Technology>
         foundries = new ArrayList<Foundry>();
 	}
 
-	private static final String [] extraTechnologies = {"tsmc.TSMC90"};
+	private static final String [] extraTechnologies = {"tsmc.CMOS90", "tsmc.TSMC180"};
 
 	/**
 	 * This is called once, at the start of Electric, to initialize the technologies.
@@ -717,26 +716,35 @@ public class Technology implements Comparable<Technology>
         checkAllTechnologies();
 	}
     
-    private static Technology tsmc90 = null;
-    private static boolean tsmcCached = false;
 	/**
-	 * Method to return the TSMC 90 nanometer technology.
+	 * Method to return the CMOS 180 nanometer technology.
 	 * Since the technology is a "plugin" and not distributed universally, it may not exist.
-	 * @return the TSMC90 technology object (null if it does not exist).
+	 * @return the CMOS180 technology object (null if it does not exist).
 	 */
-    public static Technology getTSMC90Technology()
+    public static Technology getCMOS180Technology() {
+        return MoCMOS.tech; // for now
+    }
+    
+    private static Technology cmos90 = null;
+    private static boolean cmos90Cached = false;
+	/**
+	 * Method to return the CMOS 90 nanometer technology.
+	 * Since the technology is a "plugin" and not distributed universally, it may not exist.
+	 * @return the CMOS90 technology object (null if it does not exist).
+	 */
+    public static Technology getCMOS90Technology()
     {
-    	if (tsmcCached) return tsmc90;
-    	tsmcCached = true;
+    	if (cmos90Cached) return cmos90;
+    	cmos90Cached = true;
 		try
 		{
-			Class tsmc90Class = Class.forName("com.sun.electric.plugins."+extraTechnologies[0]);
-			java.lang.reflect.Field techField = tsmc90Class.getDeclaredField("tech");
-			tsmc90 = (Technology) techField.get(null);
+			Class cmos90Class = Class.forName("com.sun.electric.plugins."+extraTechnologies[0]);
+			java.lang.reflect.Field techField = cmos90Class.getDeclaredField("tech");
+			cmos90 = (Technology) techField.get(null);
  		} catch (Exception e)
         {
         }
- 		return tsmc90;
+ 		return cmos90;
     }
 
 	/**
@@ -1957,7 +1965,7 @@ public class Technology implements Comparable<Technology>
 
 	/**
 	 * Method to determine if cut case is considered multi cut
-	 * It gets overridden by TSMC90
+	 * It gets overridden by CMOS90
 	 */
 	public boolean isMultiCutInTechnology(MultiCutData mcd)
 	{

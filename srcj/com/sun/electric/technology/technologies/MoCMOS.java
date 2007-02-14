@@ -136,11 +136,20 @@ public class MoCMOS extends Technology
 	// -------------------- private and protected methods ------------------------
 
 	protected MoCMOS()
-	{
+    {
 		super("mocmos");
 		setTechShortName("MOSIS CMOS");
 		setTechDesc("MOSIS CMOS");
 		setFactoryScale(200, true);			// in nanometers: really 0.2 micron
+        initMoCMOS(true);
+    }
+    
+    protected MoCMOS(String techName) {
+        super(techName);
+    }
+
+    protected void initMoCMOS(boolean hasMosisFoundry)
+    {
 		setNoNegatedArcs();
 		setStaticTechnology();
 		setFactoryTransparentLayers(new Color []
@@ -153,17 +162,19 @@ public class MoCMOS extends Technology
 		});
 
         setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
-
-        Foundry mosis = new Foundry(Foundry.Type.MOSIS);
-        foundries.add(mosis);
-
-        // Reading Mosis rules stored in Mosis.xml
-        URL fileURL = MOSRules.class.getResource("Mosis180.xml");
-        DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, false);
-        assert(parser.getRules().size() == 1);
-        assert(parser.isParseOK());
-        mosis.setRules(parser.getRules().get(0).drcRules);
-        setFactoryPrefFoundry(Foundry.Type.MOSIS.name());  // default
+        Foundry mosis = null;
+        if (hasMosisFoundry) {
+            mosis = new Foundry(Foundry.Type.MOSIS);
+            foundries.add(mosis);
+            
+            // Reading Mosis rules stored in Mosis.xml
+            URL fileURL = MOSRules.class.getResource("Mosis180.xml");
+            DRCTemplate.DRCXMLParser parser = DRCTemplate.importDRCDeck(fileURL, false);
+            assert(parser.getRules().size() == 1);
+            assert(parser.isParseOK());
+            mosis.setRules(parser.getRules().get(0).drcRules);
+            setFactoryPrefFoundry(Foundry.Type.MOSIS.name());  // default
+        }
 
 		//**************************************** LAYERS ****************************************
 		/** metal-1 layer */
@@ -945,35 +956,37 @@ public class MoCMOS extends Technology
 		padFrameLayer.setFactoryCIFLayer("XP");				// Pad-Frame
 
 		// The GDS names for MOSIS
-        mosis.setFactoryGDSLayer(metalLayers[0], "49, 80p, 80t"); // Metal-1
-        mosis.setFactoryGDSLayer(metalLayers[1], "51, 82p, 82t"); // Metal-2
-        mosis.setFactoryGDSLayer(metalLayers[2], "62, 93p, 93t"); // Metal-3
-        mosis.setFactoryGDSLayer(metalLayers[3], "31, 63p, 63t"); // Metal-4
-        mosis.setFactoryGDSLayer(metalLayers[4], "33, 64p, 64t"); // Metal-5
-        mosis.setFactoryGDSLayer(metalLayers[5], "37, 68p, 68t"); // Metal-6
-        mosis.setFactoryGDSLayer(poly1Layer, "46, 77p, 77t"); // Polysilicon-1
-        mosis.setFactoryGDSLayer(transistorPolyLayer, "46"); // Transistor-Poly
-        mosis.setFactoryGDSLayer(poly2_lay, "56"); // Polysilicon-2
-        mosis.setFactoryGDSLayer(activeLayers[P_TYPE], "43"); // P-Active
-        mosis.setFactoryGDSLayer(activeLayers[N_TYPE], "43"); // N-Active
-        mosis.setFactoryGDSLayer(pActiveWellLayer, "43"); // P-Active-Well
-        mosis.setFactoryGDSLayer(selectLayers[P_TYPE], "44"); // P-Select
-        mosis.setFactoryGDSLayer(selectLayers[N_TYPE], "45"); // N-Select
-        mosis.setFactoryGDSLayer(wellLayers[P_TYPE], "41"); // P-Well
-        mosis.setFactoryGDSLayer(wellLayers[N_TYPE], "42"); // N-Well
-        mosis.setFactoryGDSLayer(polyCutLayer, "25"); // Poly-Cut
-        mosis.setFactoryGDSLayer(activeCutLayer, "25"); // Active-Cut
-        mosis.setFactoryGDSLayer(viaLayers[0], "50"); // Via-1
-        mosis.setFactoryGDSLayer(viaLayers[1], "61"); // Via-2
-        mosis.setFactoryGDSLayer(viaLayers[2], "30"); // Via-3
-        mosis.setFactoryGDSLayer(viaLayers[3], "32"); // Via-4
-        mosis.setFactoryGDSLayer(viaLayers[4], "36"); // Via-5
-
-        mosis.setFactoryGDSLayer(passivationLayer, "52"); // Passivation
-        mosis.setFactoryGDSLayer(polyCapLayer, "28"); // Poly-Cap
-        mosis.setFactoryGDSLayer(silicideBlockLayer, "29"); // Silicide-Block
-        mosis.setFactoryGDSLayer(thickActiveLayer, "60"); // Thick-Active
-        mosis.setFactoryGDSLayer(padFrameLayer, "26"); // Pad-Frame
+        if (hasMosisFoundry) {
+            mosis.setFactoryGDSLayer(metalLayers[0], "49, 80p, 80t"); // Metal-1
+            mosis.setFactoryGDSLayer(metalLayers[1], "51, 82p, 82t"); // Metal-2
+            mosis.setFactoryGDSLayer(metalLayers[2], "62, 93p, 93t"); // Metal-3
+            mosis.setFactoryGDSLayer(metalLayers[3], "31, 63p, 63t"); // Metal-4
+            mosis.setFactoryGDSLayer(metalLayers[4], "33, 64p, 64t"); // Metal-5
+            mosis.setFactoryGDSLayer(metalLayers[5], "37, 68p, 68t"); // Metal-6
+            mosis.setFactoryGDSLayer(poly1Layer, "46, 77p, 77t"); // Polysilicon-1
+            mosis.setFactoryGDSLayer(transistorPolyLayer, "46"); // Transistor-Poly
+            mosis.setFactoryGDSLayer(poly2_lay, "56"); // Polysilicon-2
+            mosis.setFactoryGDSLayer(activeLayers[P_TYPE], "43"); // P-Active
+            mosis.setFactoryGDSLayer(activeLayers[N_TYPE], "43"); // N-Active
+            mosis.setFactoryGDSLayer(pActiveWellLayer, "43"); // P-Active-Well
+            mosis.setFactoryGDSLayer(selectLayers[P_TYPE], "44"); // P-Select
+            mosis.setFactoryGDSLayer(selectLayers[N_TYPE], "45"); // N-Select
+            mosis.setFactoryGDSLayer(wellLayers[P_TYPE], "41"); // P-Well
+            mosis.setFactoryGDSLayer(wellLayers[N_TYPE], "42"); // N-Well
+            mosis.setFactoryGDSLayer(polyCutLayer, "25"); // Poly-Cut
+            mosis.setFactoryGDSLayer(activeCutLayer, "25"); // Active-Cut
+            mosis.setFactoryGDSLayer(viaLayers[0], "50"); // Via-1
+            mosis.setFactoryGDSLayer(viaLayers[1], "61"); // Via-2
+            mosis.setFactoryGDSLayer(viaLayers[2], "30"); // Via-3
+            mosis.setFactoryGDSLayer(viaLayers[3], "32"); // Via-4
+            mosis.setFactoryGDSLayer(viaLayers[4], "36"); // Via-5
+            
+            mosis.setFactoryGDSLayer(passivationLayer, "52"); // Passivation
+            mosis.setFactoryGDSLayer(polyCapLayer, "28"); // Poly-Cap
+            mosis.setFactoryGDSLayer(silicideBlockLayer, "29"); // Silicide-Block
+            mosis.setFactoryGDSLayer(thickActiveLayer, "60"); // Thick-Active
+            mosis.setFactoryGDSLayer(padFrameLayer, "26"); // Pad-Frame
+        }
 
 		// The Skill names
 		metalLayers[0].setFactorySkillLayer("metal1");			// Metal-1

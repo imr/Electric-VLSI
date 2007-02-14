@@ -33,7 +33,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.JOptionPane;
 
 import com.sun.electric.database.IdMapper;
@@ -1286,10 +1285,10 @@ public class ViewChanges
                 TechType type = null;
                 if      (newTech == Technology.findTechnology("MoCMOS")) type = TechType.MOCMOS;
                 else if (newTech == Technology.findTechnology("TSMC180")) type = TechType.TSMC180;
-                else if (newTech == Technology.findTechnology("TSMC90")) type = TechType.CMOS90;
+                else if (newTech == Technology.findTechnology("CMOS90")) type = TechType.CMOS90;
                 Tech.setTechnology(type);
-                Technology tsmc90 = Technology.getTSMC90Technology();
-                if (tsmc90 != null && type == TechType.CMOS90) {
+                Technology cmos90 = Technology.getCMOS90Technology();
+                if (cmos90 != null && type == TechType.CMOS90) {
                     stdCell = GateLayoutGenerator.sportParams();
                 } else {
                     //stdCell = locoParams(outLib);

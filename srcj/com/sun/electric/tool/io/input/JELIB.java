@@ -488,7 +488,7 @@ public class JELIB extends LibraryFiles
 				// parse Technology information
 				List<String> pieces = parseLine(line);
 				String techName = unQuote(pieces.get(0));
-				curTech = Technology.findTechnology(techName);
+				curTech = findTechnology(techName);
 				if (curTech == null)
 				{
 					Input.errorLogger.logError(curReadFile + ", line " + lineReader.getLineNumber() +
@@ -642,7 +642,7 @@ public class JELIB extends LibraryFiles
                 ", Unable to create cell " + name, -1);
             return;
         }
-        Technology tech = Technology.findTechnology(unQuote(pieces.get(fieldIndex++)));
+        Technology tech = findTechnology(unQuote(pieces.get(fieldIndex++)));
         newCell.setTechnology(tech);
         long cDate = Long.parseLong(pieces.get(fieldIndex++));
         long rDate = Long.parseLong(pieces.get(fieldIndex++));
@@ -802,7 +802,7 @@ public class JELIB extends LibraryFiles
 				protoName = protoName.substring(colonPos+1);
 				if (firstChar == 'N')
 				{
-					Technology tech = Technology.findTechnology(prefixName);
+					Technology tech = findTechnology(prefixName);
 					if (tech != null) np = findPrimitiveNode(tech, protoName);
 				}
 				if (firstChar == 'I' || revision < 1 && np == null)
@@ -1091,10 +1091,14 @@ public class JELIB extends LibraryFiles
 			}
 			String protoName = unQuote(pieces.get(0));
 			ArcProto ap = null;
-			if (protoName.indexOf(':') >= 0)
-				ap = ArcProto.findArcProto(protoName);
-			else if (cell.getTechnology() != null)
-				ap = cell.getTechnology().findArcProto(protoName);
+            int indexOfColon = protoName.indexOf(':');
+            Technology tech = cell.getTechnology();
+			if (indexOfColon >= 0) {
+                tech = findTechnology(protoName.substring(0, indexOfColon));
+                protoName = protoName.substring(indexOfColon + 1);
+            }
+            if (tech != null)
+                ap = tech.findArcProto(protoName);
 			if (ap == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -1906,7 +1910,7 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				String techName = piece.substring(0, colonPos);
-				Technology tech = Technology.findTechnology(techName);
+				Technology tech = findTechnology(techName);
 				if (tech == null)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1930,7 +1934,7 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				techName = piece.substring(0, colonPos);
-				tech = Technology.findTechnology(techName);
+				tech = findTechnology(techName);
 				if (tech == null)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1977,7 +1981,7 @@ public class JELIB extends LibraryFiles
 				techName = piece;
 				commaPos = techName.indexOf(',');
 				if (commaPos >= 0) techName = techName.substring(0, commaPos);
-				tech = Technology.findTechnology(techName);
+				tech = findTechnology(techName);
 				if (tech == null)
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown Technology: " + piece, -1);
@@ -1999,6 +2003,14 @@ public class JELIB extends LibraryFiles
 		return null;
 	}
 
+    Technology findTechnology(String techName) {
+        Technology tech = Technology.findTechnology(techName);
+        if (tech == null && techName.equals("tsmc90"))
+            tech = Technology.findTechnology("cmos90");
+        return tech;
+            
+    }
+    
 	PrimitiveNode findPrimitiveNode(Technology tech, String name)
 	{
 		PrimitiveNode pn = (PrimitiveNode)tech.findNodeProto(name);

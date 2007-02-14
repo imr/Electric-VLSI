@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator.layout;
+
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,15 +83,15 @@ public class GateLayoutGenerator {
         {
             try
             {
-                Class tsmc90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.TSMC90Generator");
+                Class cmos90GeneratorClass = Class.forName("com.sun.electric.plugins.tsmc.gates90nm.CMOS90Generator");
                 Class [] parameterTypes = new Class[] {String.class, Double.class, StdCellParams.class};
-                Method makeGateMethod = tsmc90GeneratorClass.getDeclaredMethod("makeGate", parameterTypes);
+                Method makeGateMethod = cmos90GeneratorClass.getDeclaredMethod("makeGate", parameterTypes);
                 c = (Cell)makeGateMethod.invoke(null, new Object[] {type, new Double(Xstrength), stdCell});
              } catch (Exception e)
             {
-                 System.out.println("ERROR invoking the TSMC90 gate generator");
+                 System.out.println("ERROR invoking the CMOS90 gate generator");
             }
-//			c = TSMC90Generator.makeGate(pNm, x, stdCell);
+//			c = CMOS90Generator.makeGate(pNm, x, stdCell);
         } else
         {
             c = MoCMOSGenerator.makeGate(type, Xstrength, stdCell);
@@ -209,8 +210,8 @@ public class GateLayoutGenerator {
 
             StdCellParams stdCell;
             Tech.setTechnology(technology);
-            Technology tsmc90 = Technology.getTSMC90Technology();
-            if (tsmc90 != null && technology == TechType.CMOS90) {
+            Technology cmos90 = Technology.getCMOS90Technology();
+            if (cmos90 != null && technology == TechType.CMOS90) {
                 stdCell = sportParams();
             } else {
                 //stdCell = locoParams(outLib);

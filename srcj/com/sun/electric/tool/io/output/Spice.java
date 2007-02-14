@@ -1115,8 +1115,8 @@ public class Spice extends Topology
                             width = width - offset.getHighYOffset() - offset.getLowYOffset();
                             length = length - offset.getHighXOffset() - offset.getLowXOffset();
                             extra = " L='"+length+"*LAMBDA' W='"+width+"*LAMBDA'";
-                            if (layoutTechnology == Technology.getTSMC90Technology() ||
-                               (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getTSMC90Technology())) {
+                            if (layoutTechnology == Technology.getCMOS90Technology() ||
+                               (cell.getView() == View.LAYOUT && cell.getTechnology() == Technology.getCMOS90Technology())) {
                                 if (ni.getProto().getName().equals("P-Poly-RPO-Resistor")) {
                                     extra = "GND rpporpo"+extra;
                                 }
@@ -1212,7 +1212,7 @@ public class Spice extends Topology
             // models which are subcircuits
             boolean st090laytrans = false;
             boolean tsmc090laytrans = false;
-            if (cell.getView() == View.LAYOUT && layoutTechnology == Technology.getTSMC90Technology()) {
+            if (cell.getView() == View.LAYOUT && layoutTechnology == Technology.getCMOS90Technology()) {
                 if (layoutTechnology.getSelectedFoundry().getType() == Foundry.Type.TSMC)
                     tsmc090laytrans = true;
                 else if (layoutTechnology.getSelectedFoundry().getType() == Foundry.Type.ST)

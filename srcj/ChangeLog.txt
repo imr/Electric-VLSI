@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+IMP/MAN: (2/14/07, DN) Technology "tsmc90" was renamed to "cmos90" with same foundries (TSMS and ST).
+    JELIB reader treats "tsmc90" as alias of "cmos90". It also patches names of meaning preferences.
+    However, I didn't change reader of ProjectSettings.
+    Also, a technology "tsmc180" was added with a single foundry (TSMC).
+    "mocmos" technology still contains both foundries (MOSIS and TSMC) for some time period
+    necessary to migrate projecs from "mocmos/tsmc" to "tsmc180/tsmc". 
+
 IMP/MAN: (2/13/07, GVG) Detecting if user has write permission for temporary 
 file in Edit Text Cell Externally otherwise, it doesn't work. Bring up a message
 in case of error.

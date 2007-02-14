@@ -144,9 +144,9 @@ public abstract class FoldedMos {
         NodeInst ni2 = p2.getNodeInst();
         Poly poly1 = ni1.getShapeOfPort(p1.getPortProto());
         Poly poly2 = ni2.getShapeOfPort(p2.getPortProto());
-        // For TSMC90, Diff node's ports are always zero in size, so when
+        // For CMOS90, Diff node's ports are always zero in size, so when
         // diff node and diffCon node are at different y positions, you
-        // cannot always create a single arc.  In TSMC90, as long as the arc is a multiple
+        // cannot always create a single arc.  In CMOS90, as long as the arc is a multiple
         // of 0.2 wide and the end points are at a grid multiple of 0.1, there
         // are no grid problems, so we can just use a track router
         if (!poly1.contains(x1, y) || !poly2.contains(x2, y)) {

@@ -694,7 +694,7 @@ public class FillGenDialog extends EDialog {
         }
         else
         {
-            System.out.println("TSMC90 generator not available yet here.");
+            System.out.println("CMOS90 generator not available yet here.");
             return null;
         }
 

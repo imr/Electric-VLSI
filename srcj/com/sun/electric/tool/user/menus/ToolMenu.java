@@ -25,7 +25,6 @@
 package com.sun.electric.tool.user.menus;
 
 import static com.sun.electric.tool.user.menus.EMenuItem.SEPARATOR;
-
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
@@ -37,7 +36,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
@@ -514,7 +512,7 @@ public class ToolMenu {
 
 		//------------------- Generation
 
-		// mnemonic keys available: AB DE GHIJK  NO Q   UVWXYZ
+		// mnemonic keys available: AB DE GHIJK  N  Q  TUVWXYZ
             new EMenu("_Generation",
 		        new EMenuItem("_Coverage Implants Generator") { public void run() {
                     layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP); }},
@@ -528,9 +526,9 @@ public class ToolMenu {
                     FillGenDialog.openFillGeneratorDialog(MoCMOS.tech); }},
 		        new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
                     GateLayoutGenerator.generateFromSchematicsJob(TechType.MOCMOS); }},
-                Technology.getTSMC90Technology() != null ? new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
+                Technology.getCMOS90Technology() != null ? new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
                     GateLayoutGenerator.generateFromSchematicsJob(TechType.TSMC180); }} : null,
-                Technology.getTSMC90Technology() != null ? new EMenuItem("Generate gate layouts (_TSMC90)") { public void run() {
+                Technology.getCMOS90Technology() != null ? new EMenuItem("Generate gate layouts (CM_OS90)") { public void run() {
 	                GateLayoutGenerator.generateFromSchematicsJob(TechType.CMOS90); }} : null),
 
 		//------------------- Silicon Compiler
