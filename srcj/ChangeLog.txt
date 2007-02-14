@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+BUG: (2/14/07, SMR) Simulating cells with reserved VHDL names (i.e. "nand") crashes.
+FIX: In GenerateVHDL.addString(), append "_" to end instead of start when a keyword.
+
+BUG: (2/14/07, SMR) VHDL cannot be generated from layout.
+FIX: In ToolMenu.makeVHDL(), ignore schematics restriction.
+
 BUG: (2/14/07, SMR) Implant coverage tool deletes lower-level implants.
 FIX: In LayerCoverageTool.LayerVisitor.visitNodeInst(), only add implant
      regions to delete list when in the top-level.

@@ -810,14 +810,16 @@ public class GenerateVHDL
 			// check for VHDL keyword clashes
 			if (CompileVHDL.isKeyword(orig) != null)
 			{
-				sb.insert(0, "_");
+//				sb.insert(0, "_");
+				sb.append('_');
 				return sb.toString();
 			}
 
 			// "bit" isn't a keyword, but the compiler can't handle it
 			if (orig.equalsIgnoreCase("bit"))
 			{
-				sb.insert(0, "_");
+//				sb.insert(0, "_");
+				sb.append('_');
 				return sb.toString();
 			}
 		}
@@ -831,7 +833,8 @@ public class GenerateVHDL
 				if (!ni.isCellInstance()) continue;
 				if (orig.equals(ni.getProto().getName()))
 				{
-					sb.insert(0, "_");
+//					sb.insert(0, "_");
+					sb.append('_');
 					break;
 				}
 			}

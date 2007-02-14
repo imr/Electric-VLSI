@@ -1562,11 +1562,11 @@ public class ToolMenu {
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
-		if (cell.getView() != View.SCHEMATIC)
-		{
-			System.out.println("Must be editing a Schematic cell before converting it to VHDL");
-			return;
-		}
+//		if (cell.getView() != View.SCHEMATIC)
+//		{
+//			System.out.println("Must be editing a Schematic cell before converting it to VHDL");
+//			return;
+//		}
 	    new DoSilCompActivity(cell, CONVERT_TO_VHDL | SHOW_CELL);
 	}
 
