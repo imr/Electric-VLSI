@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+BUG: (2/15/07, SMR, from Bob Reese) Prefuse does not compile under Java 1.6
+FIX: In ExpandedFilter.getAllDepths(), added "false" as second parameter to
+     m_bfs_whole.next() call.
+
 BUG: (2/15/07, SMR) Pad frame generator doesn't handle schematic cores with bus ports.
 FIX: In PadGenerator.createPadFrame() handle export wiring better.
 
