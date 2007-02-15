@@ -27,12 +27,15 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -40,7 +43,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.UserInterface;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
@@ -53,7 +55,6 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.routing.AutoStitch;
-import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.CellChangeJobs;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
@@ -69,6 +70,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 
@@ -128,7 +130,6 @@ public class PadGenerator
         {
 			UserInterface ui = Job.getUserInterface();
 			EditWindow_ wnd = ui.displayCell(frameCell);
-//			if (wnd != null) wnd.fillScreen();
         }
 	}
 
@@ -178,7 +179,6 @@ public class PadGenerator
     }
 
     private static class ReverseDirection {
-
     }
 
 	private static class PortAssociate {
@@ -385,10 +385,8 @@ public class PadGenerator
             keyWord = str.nextToken();
             if (keyWord.equals("c")) {
                 angle = 2700;
-                //angle = (angle + 2700) % 3600;
             } else if (keyWord.equals("cc")) {
                 angle = 900;
-                //angle = (angle + 900) % 3600;
             } else {
                 System.out.println("Line " + lineno + ": incorrect rotation " + keyWord);
                 return false;
@@ -804,9 +802,6 @@ public class PadGenerator
 						{
                             TextDescriptor td = pppad.getTextDescriptor(Export.EXPORT_NAME);
                             pppad.setTextDescriptor(Export.EXPORT_NAME, td.withAbsSize(14));
-//                            MutableTextDescriptor td = pppad.getMutableTextDescriptor(Export.EXPORT_NAME);
-//                            td.setAbsSize(14);
-//							pppad.setTextDescriptor(Export.EXPORT_NAME, td);
 							padPorts.add(pppad);
                         }
                     }
@@ -857,7 +852,6 @@ public class PadGenerator
         }
 
         // auto stitch everything
-//        AutoStitch.autoStitch(false, true);
         AutoStitch.runAutoStitch(framecell, null, null, null, null, true);
 
         if (corename != null)
@@ -879,24 +873,65 @@ public class PadGenerator
                 SizeOffset so = corenp.getProtoSizeOffset();
                 NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell);
 
+                Map<Export,PortInst> trueBusEnd = new HashMap<Export,PortInst>();
                 for (Object obj : orderedCommands) {
                     if (obj instanceof PlacePad) {
                         PlacePad pad = (PlacePad) obj;
                         for (PortAssociate pa : pad.associations) {
                             if (pad.ni == null) continue;
 
+                            boolean nameArc = false;
+                            PortInst pi1 = null;
                             PortProto corepp = corenp.findPortProto(pa.assocname);
-							if (corepp == null)
+							if (corepp != null) pi1 = ni.findPortInstFromProto(corepp);
+							if (pi1 == null)
+							{
+								// see if there are bus ports on the core
+								for(Iterator<PortProto> it = corenp.getPorts(); it.hasNext(); )
+								{
+									Export e = (Export)it.next();
+									Name eName = e.getNameKey();
+									int wid = eName.busWidth();
+									if (wid <= 1) continue;
+									for(int i=0; i<wid; i++)
+									{
+										if (eName.subname(i).toString().equals(pa.assocname))
+										{
+											pi1 = trueBusEnd.get(e);
+											if (pi1 == null)
+											{
+												// make a short bus arc from the port to a bus pin which gets used for connections
+					                            PortInst pi = ni.findPortInstFromProto(e);
+					                            PolyBase portPoly = pi.getPoly();
+					                            Rectangle2D portRect = portPoly.getBounds2D();
+					                            PrimitiveNode busPinProto = Schematics.tech.busPinNode;
+					                            NodeInst busPin = NodeInst.makeInstance(busPinProto,
+					                            	new EPoint(portRect.getCenterX(), portRect.getCenterY()),
+					                            	busPinProto.getDefWidth(), busPinProto.getDefHeight(), framecell);
+					                            pi1 = busPin.getOnlyPortInst();
+					                            ArcProto busArcProto = Schematics.tech.bus_arc;
+					                            ArcInst.makeInstance(busArcProto, busArcProto.getDefaultLambdaFullWidth(), pi, pi1);
+					                            trueBusEnd.put(e, pi1);
+											}
+											nameArc = true;
+											break;
+										}
+									}
+									if (pi1 != null) break;
+								}
+							}
+							if (pi1 == null)
 							{
                                 PortInst pi = pad.ni.findPortInst(pa.portname);
 								Export.newInstance(pad.ni.getParent(), pi, pa.assocname);
 								continue;
 							}
                             PortInst pi2 = pad.ni.findPortInst(pa.portname);
-                            PortInst pi1 = ni.findPortInstFromProto(corepp);
                             //PortInst pi2 = pad.ni.findPortInstFromProto(pa.pp);
                             ArcProto ap = Generic.tech.unrouted_arc;
                             ArcInst ai = ArcInst.newInstance(ap, ap.getDefaultLambdaFullWidth(), pi1, pi2);
+                            if (nameArc)
+                            	ai.setName(pa.assocname);
                         }
                     }
                 }
@@ -945,10 +980,7 @@ public class PadGenerator
                 bbNi.setTrace(points);
 
                 // put the original cell name on it
-                Variable var = bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, framecell.getName());
-//              if (var != null) {
-//                  var.setDisplay(true);
-//              }
+                bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, framecell.getName());
             }
 
             // get icon preferences

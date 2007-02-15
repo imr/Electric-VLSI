@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+BUG: (2/15/07, SMR) Pad frame generator doesn't handle schematic cores with bus ports.
+FIX: In PadGenerator.createPadFrame() handle export wiring better.
+
 BUG: (2/15/07, SMR, from Bob Reese) Crash during save after DRC on Java 1.6.
 FIX: In output.ELIB.putOutVar(), the "Long" case should cast to "Long", not "Integer".
 
