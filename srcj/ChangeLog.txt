@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+BUG: (2/15/07, SMR, from Bob Reese) Crash during save after DRC on Java 1.6.
+FIX: In output.ELIB.putOutVar(), the "Long" case should cast to "Long", not "Integer".
+
 IMP: (2/14/07, SMR) Converting to "alternate layout view" improved to handle
      conversion from mosis/tsmc to tsmc technology.  Now prompts for new library.
 

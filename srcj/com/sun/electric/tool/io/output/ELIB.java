@@ -1173,7 +1173,7 @@ public class ELIB extends Output
             return;
         }
         if (obj instanceof Long) {
-            writeBigInteger(((Integer)obj).intValue());
+            writeBigInteger(((Long)obj).intValue());
             return;
         }
         if (obj instanceof Integer) {
