@@ -324,6 +324,7 @@ public class Verilog extends Topology
                     return false;
 
                 // write to output file
+                System.out.println("Info: Netlisting Verilog view of "+cell.describe(false));
                 printWriter.println();
                 printWriter.println("/* Verilog view of "+verViewCell.libDescribe()+" */");
                 for(int i=0; i<stringArray.length; i++)
@@ -1422,7 +1423,7 @@ public class Verilog extends Topology
                         continue;
                     }
                     // hmm...name map might be wrong at for this new enumeration
-                    System.out.println("Info: Netlisting cell "+missingCell+" as instanced in: "+source);
+                    System.out.println("Info: Netlisting cell "+missingCell.libDescribe()+" as instanced in: "+source);
                     HierarchyEnumerator.enumerateCell(missingCell, VarContext.globalContext,
                             new Visitor(this), isShortResistors(), isShortExplicitResistors(),
                             isShortResistors(), false);
