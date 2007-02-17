@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+BUG: (2/16/07, GVG) Test -> GenerationGateTest -> * were not working since last refactorization
+FIX: Calling the correct constructor, GenerationGateTest instead of GenerationTest
+
 BUG: (2/15/07, SMR, from Bob Reese) Prefuse does not compile under Java 1.6
 FIX: In ExpandedFilter.getAllDepths(), added "false" as second parameter to
      m_bfs_whole.next() call.
