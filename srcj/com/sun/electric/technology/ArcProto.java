@@ -256,6 +256,7 @@ public class ArcProto implements Comparable<ArcProto>
 	/** set if arc is selectable by edge, not area */			private static final int AEDGESELECT  = 020000000;
 	/** set if arc is invisible and unselectable */				private static final int AINVISIBLE   = 040000000;
 	/** set if arc is not used */								private static final int ANOTUSED  = 020000000000;
+	/** set if node will be considered in palette */            private static final int SKIPSIZEINPALETTE =    0400;
 
 	// ----------------- protected and private methods -------------------------
 
@@ -598,7 +599,20 @@ public class ArcProto implements Comparable<ArcProto>
 	 */
 	public boolean isArcInvisible() { return (userBits & AINVISIBLE) != 0; }
 
+    /**
+	 * Method to allow instances of this ArcProto not to be considered in
+     * tech palette for the calculation of the largest icon.
+	 * Valid for menu display
+	 */
+	public void setSkipSizeInPalette() { userBits |= SKIPSIZEINPALETTE; }
+
 	/**
+	 * Method to tell if instaces of this ArcProto are special (don't appear in menu).
+	 * Valid for menu display
+	 */
+	public boolean isSkipSizeInPalette() { return (userBits & SKIPSIZEINPALETTE) != 0; }
+    
+    /**
 	 * Method to set this ArcProto so that instances of it can wipe nodes.
 	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
 	 * Those arc prototypes that can erase their connecting pins have this state set,

@@ -28,7 +28,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.database.geometry.DBMath;
 
 import java.awt.Frame;
 import java.util.Iterator;
@@ -58,28 +57,37 @@ public class TechnologyTab extends ProjSettingsPanel
     {
         String selectedFoundry = tech.getPrefFoundry();
     	Foundry.Type foundry = Foundry.Type.NONE;
-        double scale = tech.getScale();
-        boolean correctScale = true; // CMOS90 -> 50 and MoCMOS -> 200
 
-        if (tech == MoCMOS.tech)
-            correctScale = DBMath.areEquals(scale, 100);
+        for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
+        {
+            Foundry factory = itF.next();
+            Foundry.Type type = factory.getType();
+            pulldown.addItem(type);
+            if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
+        }
 
-        if (correctScale)
-        {
-            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
-            {
-                Foundry factory = itF.next();
-                Foundry.Type type = factory.getType();
-                pulldown.addItem(type);
-                if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
-            }
-        }
-        else
-        {
-            foundry = Foundry.Type.MOSIS; // forces mosis for 180nm or larger.
-            pulldown.addItem(foundry);
-            tech.setPrefFoundry(foundry.name());
-        }
+//        double scale = tech.getScale();
+//        boolean correctScale = true; // CMOS90 -> 50 and MoCMOS -> 200
+//
+//        if (tech == MoCMOS.tech)
+//            correctScale = DBMath.areEquals(scale, 100);
+//
+//        if (correctScale)
+//        {
+//            for (Iterator<Foundry> itF = tech.getFoundries(); itF.hasNext();)
+//            {
+//                Foundry factory = itF.next();
+//                Foundry.Type type = factory.getType();
+//                pulldown.addItem(type);
+//                if (selectedFoundry.equalsIgnoreCase(factory.getType().name())) foundry = type;
+//            }
+//        }
+//        else
+//        {
+//            foundry = Foundry.Type.MOSIS; // forces mosis for 180nm or larger.
+//            pulldown.addItem(foundry);
+//            tech.setPrefFoundry(foundry.name());
+//        }
 
         pulldown.setEnabled(foundry != Foundry.Type.NONE);
         pulldown.setSelectedItem(foundry);
@@ -133,12 +141,13 @@ public class TechnologyTab extends ProjSettingsPanel
         }
 
 //        mosisPanel.setVisible(Technology.getCurrent() == MoCMOS.tech);
-        double scale = MoCMOS.tech.getScale();
-        String extra = "";
-        if (DBMath.areEquals(scale, 100)) // 180nm
-            extra = ": 180nm";
-        else if (DBMath.areEquals(scale, 200)) // 180nm
-            extra = ": 350nm";
+//        double scale = MoCMOS.tech.getScale();
+        String extra = " Mosis";
+//        if (DBMath.areEquals(scale, 100)) // 180nm
+//            extra = ": 180nm";
+//        else if (DBMath.areEquals(scale, 200)) // 180nm
+//            extra = ": 350nm";
+
         mosisPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Scalable CMOS" + extra));
     }
 

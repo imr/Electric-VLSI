@@ -958,6 +958,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     for(Iterator<ArcProto> it = ap.getTechnology().getArcs(); it.hasNext(); ) {
                         ArcProto otherAp = it.next();
                         if (otherAp.isSpecialArc()) continue;  // these are not drawn in palette
+                        if (otherAp.isSkipSizeInPalette()) continue;
                         double wid = otherAp.getDefaultLambdaFullWidth();
                         if (wid+menuArcLength > largest) largest = wid+menuArcLength;
                     }

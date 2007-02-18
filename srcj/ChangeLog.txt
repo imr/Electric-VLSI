@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
 
+IMP/MAN: (2/17/07, GVG) New RDL-related arc,pin,contact in CMOS90/TSMC.
+including some DRC rules. Not available for ST.
+
+BUG: (2/17/07, GVG) GateGenerationTest not working from Test menu due bad renaming
+of classes after refactorization.
+FIX: Class name fixed.
+
+IMP: (2/17/07, GVG) Removing scale factor to compose MoCMOS tech name.
+
 BUG: (2/16/07, GVG) Test -> GenerationGateTest -> * were not working since last refactorization
 FIX: Calling the correct constructor, GenerationGateTest instead of GenerationTest
 
