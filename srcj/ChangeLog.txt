@@ -3,6 +3,7 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05g: *********************************
+IMP/MAN: CMOS90 Dummy CrossM5M8Node disabled in CMOS90 tech.
 
 IMP/MAN: (2/17/07, GVG) New RDL-related arc,pin,contact in CMOS90/TSMC.
 including some DRC rules. Not available for ST.
