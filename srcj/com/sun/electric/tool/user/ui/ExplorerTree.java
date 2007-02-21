@@ -571,6 +571,7 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 		// the default dnd implementation needs to first select and then drag
 		try
 		{
+			// this is only valid on Java 1.5...in 1.6 or later, the code is not needed
 			Class<?> clazz = Class.forName("javax.swing.plaf.basic.BasicDragGestureRecognizer");
 			MouseListener[] mouseListeners = getMouseListeners();
 			MouseListener dragListener = null;
@@ -592,7 +593,6 @@ public class ExplorerTree extends JTree implements /*DragGestureListener,*/ Drag
 			}
 		} catch (ClassNotFoundException e)
 		{
-			e.printStackTrace();
 		}
 	}
 
