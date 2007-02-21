@@ -69,6 +69,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Foundry;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -432,7 +433,7 @@ public class ToolMenu {
 
 		//------------------- Logical Effort
 
-		// mnemonic keys available:    DEFGHIJK M   QRSTUVWXYZ
+		// mnemonic keys available:    D FGHIJK M   QRSTUVWXYZ
             new EMenu("_Logical Effort",
 		        new EMenuItem("_Optimize for Equal Gate Delays") { public void run() {
                     optimizeEqualGateDelaysCommand(true); }},
@@ -446,6 +447,8 @@ public class ToolMenu {
                     clearSizesNodableCommand(); }},
 		        new EMenuItem("Clear Sizes in _all Libraries") { public void run() {
                     clearSizesCommand(); }},
+		        new EMenuItem("_Estimate Delays") { public void run() {
+                    estimateDelaysCommand(); }},
                 SEPARATOR,
 		        new EMenuItem("_Load Logical Effort Libraries (Purple, Red, and Orange)") { public void run() {
                     loadLogicalEffortLibraries(); }}),
@@ -747,6 +750,60 @@ public class ToolMenu {
 			LETool.clearStoredSizesJob(lib);
 		}
 		System.out.println("Sizes cleared");
+	}
+
+	public static void estimateDelaysCommand()
+	{
+		Cell cell = WindowFrame.needCurCell();
+		if (cell == null) return;
+
+		Netlist nl = cell.acquireUserNetlist();
+		for(Iterator<Network> it =  nl.getNetworks(); it.hasNext(); )
+		{
+			Network net = it.next();
+			Set<Network> nets = new HashSet<Network>();
+			nets.add(net);
+	        LayerCoverageTool.GeometryOnNetwork geoms = LayerCoverageTool.listGeometryOnNetworks(cell, nets,
+	        	false, GeometryHandler.GHMode.ALGO_SWEEP);
+	        LayerCoverageTool.TransistorInfo p_gate = geoms.getPGate();
+	        LayerCoverageTool.TransistorInfo n_gate = geoms.getNGate();
+	        LayerCoverageTool.TransistorInfo p_active = geoms.getPActive();
+	        LayerCoverageTool.TransistorInfo n_active = geoms.getNActive();
+
+			// numerator has the area of all transistors connected by their gate
+			double numerator = p_gate.area + n_gate.area;
+			System.out.println("Network " + net.describe(false) + " numerator computation:");
+			System.out.println("      N Gate area = " + n_gate.area + ", P Gate area = " + p_gate.area);
+
+			// numerator also sums area of each layer
+		    List<Layer> layers = geoms.getLayers();
+		    List<Double> areas = geoms.getAreas();
+		    for(int i=0; i<layers.size(); i++)
+		    {
+		    	Layer layer = layers.get(i);
+		    	Layer.Function fun = layer.getFunction();
+		    	if (!fun.isDiff() && !fun.isMetal() && !fun.isPoly()) continue;
+		    	Double area = areas.get(i);
+				double coefficient = 1.0;
+				if (fun.isMetal()) coefficient = 0.1;
+				if (fun.isPoly()) coefficient = 0.1;
+				double result = area.doubleValue() * coefficient;
+				System.out.println("      Layer " + layer.getName() + " has " + area + " x " + coefficient + " = " +
+					TextUtils.formatDouble(result));
+				numerator += result;
+			}
+
+			// show the results
+			double pdenominator = p_active.width;
+			double ndenominator = n_active.width;
+			if (ndenominator == 0) System.out.println("   N denominator undefined"); else
+				System.out.println("   N denominator = " + ndenominator + ", ratio = " + TextUtils.formatDouble(numerator/ndenominator));
+			if (pdenominator == 0) System.out.println("   P denominator undefined"); else
+				System.out.println("   P denominator = " + pdenominator + ", ratio = " + TextUtils.formatDouble(numerator/pdenominator));
+			if (ndenominator+pdenominator == 0) System.out.println("   N+P Denominator undefined"); else
+				System.out.println("   N+P Denominator = " + (ndenominator+pdenominator) + ", ratio = " +
+					TextUtils.formatDouble(numerator/(ndenominator+pdenominator)));
+		}
 	}
 
 	public static void loadLogicalEffortLibraries()

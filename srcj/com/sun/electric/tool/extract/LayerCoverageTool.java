@@ -46,6 +46,7 @@ import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
@@ -263,7 +264,7 @@ public class LayerCoverageTool extends Tool
         // Don't know what to do if there is more than one
         Rectangle2D rect = null;
         if (list.size() != 1)
-            System.out.println("Prblem here");
+            System.out.println("Problem here");
 //        assert(list.size() == 1);
         else
         {
@@ -280,7 +281,7 @@ public class LayerCoverageTool extends Tool
      * @param startJob if job has to run on thread
      * @param mode geometric algorithm to use: GeometryHandler.ALGO_QTREE, GeometryHandler.SWEEP or GeometryHandler.ALGO_MERGE
      */
-    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, HashSet<Network> nets, boolean startJob,
+    public static GeometryOnNetwork listGeometryOnNetworks(Cell cell, Set<Network> nets, boolean startJob,
                                                            GeometryHandler.GHMode mode)
     {
 	    if (cell == null || nets == null || nets.isEmpty()) return null;
@@ -350,7 +351,7 @@ public class LayerCoverageTool extends Tool
             }
             // enumerate the hierarchy below here
             LayerVisitor visitor = new LayerVisitor(parentJob, tree, deleteList, function,
-                    originalPolygons, netSet, bBox, onlyThisLayer);
+                    originalPolygons, netSet, bBox, onlyThisLayer, geoms);
             HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, visitor);
             tree.postProcess(true);
 
@@ -679,9 +680,10 @@ public class LayerCoverageTool extends Tool
         private Rectangle2D origBBox;
         private Area origBBoxArea;   // Area is always in coordinates of top cell
         private Layer onlyThisLayer;
+        private GeometryOnNetwork geoms;
 
 		public LayerVisitor(Job job, GeometryHandler t, List<NodeInst> delList, LCMode func,
-                            HashMap<Layer, Set<PolyBase>> original, Set netSet, Rectangle2D bBox, Layer onlyThisLayer)
+			HashMap<Layer, Set<PolyBase>> original, Set netSet, Rectangle2D bBox, Layer onlyThisLayer, GeometryOnNetwork geoms)
 		{
             this.parentJob = job;
 			this.tree = t;
@@ -692,6 +694,7 @@ public class LayerCoverageTool extends Tool
             this.origBBox = bBox;
             origBBoxArea = (bBox != null) ? new Area(origBBox) : null;
             this.onlyThisLayer = onlyThisLayer;
+            this.geoms = geoms;
 		}
 
 		/**
@@ -783,7 +786,7 @@ public class LayerCoverageTool extends Tool
                         parentNet = cinfo.getNetworkInParent(parentNet);
                         cinfo = cinfo.getParentInfo();
                     }
-                found = netFound;
+                    found = netFound;
                 }
                 if (!found) continue; // skipping this arc
 				ArcProto arcType = arc.getProto();
@@ -846,7 +849,6 @@ public class LayerCoverageTool extends Tool
 		{
 			//if (checkAbort()) return false;
 			NodeInst node = no.getNodeInst();
-			boolean found = (netSet == null);
 
 			// Its like pins, facet-center
 			if (NodeInst.isSpecialNode(node)) return (false);
@@ -859,20 +861,21 @@ public class LayerCoverageTool extends Tool
             // Geometry outside contour
             if (!inside) return false;
 
-			for(Iterator<PortInst> pIt = node.getPortInsts(); !found && pIt.hasNext(); )
-			{
-				PortInst pi = pIt.next();
-				PortProto subPP = pi.getPortProto();
-				Network parentNet = info.getNetlist().getNetwork(node, subPP, 0);
-				HierarchyEnumerator.CellInfo cinfo = info;
-				boolean netFound = false;
-				while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
-					parentNet = cinfo.getNetworkInParent(parentNet);
-					cinfo = cinfo.getParentInfo();
-				}
-				found = netFound;
-			}
-			if (!found) return (false); // skipping this node
+//			boolean found = (netSet == null);
+//			for(Iterator<PortInst> pIt = node.getPortInsts(); !found && pIt.hasNext(); )
+//			{
+//				PortInst pi = pIt.next();
+//				PortProto subPP = pi.getPortProto();
+//				Network parentNet = info.getNetlist().getNetwork(node, subPP, 0);
+//				HierarchyEnumerator.CellInfo cinfo = info;
+//				boolean netFound = false;
+//				while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
+//					parentNet = cinfo.getNetworkInParent(parentNet);
+//					cinfo = cinfo.getParentInfo();
+//				}
+//				found = netFound;
+//			}
+//			if (!found) return (false); // skipping this node
 
 			// Coverage implants are pure primitive nodes and they are ignored.
 			if (node.isPrimtiveSubstrateNode()) //node.getFunction() == PrimitiveNode.Function.NODE)
@@ -881,14 +884,28 @@ public class LayerCoverageTool extends Tool
 					deleteList.add(node);
 				return (false);
 			}
-
 			Technology tech = node.getProto().getTechnology();
-			Poly[] polyList = tech.getShapeOfNode(node);
+			Poly[] polyList = tech.getShapeOfNode(node, true, false, null);
 			AffineTransform transform = node.rotateOut();
 
+			boolean includedNode = false;
 			for (int i = 0; i < polyList.length; i++)
 			{
 				Poly poly = polyList[i];
+				if (netSet != null)
+				{
+					PortProto subPP = poly.getPort();
+					Network parentNet = info.getNetlist().getNetwork(node, subPP, 0);
+					HierarchyEnumerator.CellInfo cinfo = info;
+					boolean netFound = false;
+					while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
+						parentNet = cinfo.getNetworkInParent(parentNet);
+						cinfo = cinfo.getParentInfo();
+					}
+					if (!netFound) continue; // skipping this polygon
+				}
+				includedNode = true;
+
 				Layer layer = poly.getLayer();
 
 				// Only checking poly or metal for AREA case
@@ -917,6 +934,30 @@ public class LayerCoverageTool extends Tool
 
 				tree.add(layer, pnode);
 			}
+
+			// add transistor gate/active if any part of the node matched a network
+			if (includedNode && geoms != null)
+			{
+				PrimitiveNode.Function fun = node.getFunction();
+				if (fun.isTransistor())
+				{
+					if (fun == PrimitiveNode.Function.TRA4NMOS || fun == PrimitiveNode.Function.TRANMOS)
+					{
+						TransistorSize ts = node.getTransistorSize(info.getContext());
+						geoms.n_active.area += ts.getDoubleArea();
+						geoms.n_active.width += ts.getDoubleWidth();
+						geoms.n_gate.area += ts.getDoubleArea();
+						geoms.n_gate.width += ts.getDoubleWidth();
+					} else if (fun == PrimitiveNode.Function.TRA4PMOS || fun == PrimitiveNode.Function.TRAPMOS)
+					{
+						TransistorSize ts = node.getTransistorSize(info.getContext());
+						geoms.p_active.area += ts.getDoubleArea();
+						geoms.p_active.width += ts.getDoubleWidth();
+						geoms.p_gate.area += ts.getDoubleArea();
+						geoms.p_gate.width += ts.getDoubleWidth();
+					}
+				}
+			}
 			return (true);
 		}
 
@@ -944,7 +985,13 @@ public class LayerCoverageTool extends Tool
         }
 	}
 
-    /**
+    public static class TransistorInfo
+	{
+		/** sum of area of transistors */		public double area;
+		/** sum of width of transistors */		public double width;
+	};
+
+	/**
 	 * Class to represent all geometry on a network during layer coverage analysis.
 	 */
 	public static class GeometryOnNetwork {
@@ -961,7 +1008,10 @@ public class LayerCoverageTool extends Tool
 	    private double totalWire;
         private double totalArea;
 
-	    public GeometryOnNetwork(Cell cell, Set<Network> nets, double lambda, boolean printable,
+        // these are the area and transistor widths for gate and active in N and P
+        TransistorInfo p_gate, n_gate, p_active, n_active;
+
+        public GeometryOnNetwork(Cell cell, Set<Network> nets, double lambda, boolean printable,
                                  Layer onlyThisLayer)
         {
 	        this.cell = cell;
@@ -974,9 +1024,28 @@ public class LayerCoverageTool extends Tool
 		    this.printable = printable;
 	        totalWire = 0;
             totalArea = 0;
+            p_gate = new TransistorInfo();
+            n_gate = new TransistorInfo();
+            p_active = new TransistorInfo();
+            n_active = new TransistorInfo();
 	    }
+
 	    public double getTotalWireLength() { return totalWire; }
-        protected void setTotalArea(double area) {totalArea = area; }
+
+	    protected void setTotalArea(double area) {totalArea = area; }
+
+	    public TransistorInfo getPGate() { return p_gate; }
+
+	    public TransistorInfo getNGate() { return n_gate; }
+
+	    public TransistorInfo getPActive() { return p_active; }
+
+	    public TransistorInfo getNActive() { return n_active; }
+
+	    public List<Layer> getLayers() { return layers; }
+
+	    public List<Double> getAreas() { return areas; }
+
 	    private void addLayer(Layer layer, double area, double halfperimeter)
         {
             assert(layer != null);

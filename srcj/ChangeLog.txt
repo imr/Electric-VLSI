@@ -4,10 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05h: *********************************
 
+IMP/MAN: (2/21/07, SMR) Added command "Tool / Logical Effort / Estimate Delays"
+     to do a simple Logical Effort calculation.
+
 BUG: (2/21/07, SMR) Java 1.6 prints error when initializing the explorer tree (Bug #1276).
 FIX: In ExplorerTree.setUI(), ignore the ClassNotFoundException.
 
 ************************* Version 8.05g: *********************************
+
 IMP/MAN: CMOS90 Dummy CrossM5M8Node disabled in CMOS90 tech.
 
 IMP/MAN: (2/17/07, GVG) New RDL-related arc,pin,contact in CMOS90/TSMC.
