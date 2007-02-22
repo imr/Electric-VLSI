@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05h: *********************************
 
+IMP: (2/21/07, GVG) LayerCoverageTool test repaired after changes in code to get 
+electrical layers during NetworkCoverage calculation. ExtractionTest removed as
+it is a duplicate of LayerCoverageTool.
+
 IMP/MAN: (2/21/07, SMR) Added command "Tool / Logical Effort / Estimate Delays"
      to do a simple Logical Effort calculation.
 
