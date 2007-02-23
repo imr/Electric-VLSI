@@ -515,7 +515,7 @@ public class ToolMenu {
 
 		//------------------- Generation
 
-		// mnemonic keys available: AB DE GHIJK  N  Q  TUVWXYZ
+		// mnemonic keys available: AB DE GH JK  N  Q  TUVWXYZ
             new EMenu("_Generation",
 		        new EMenuItem("_Coverage Implants Generator") { public void run() {
                     layerCoverageCommand(LayerCoverageTool.LCMode.IMPLANT, GeometryHandler.GHMode.ALGO_SWEEP); }},
@@ -527,7 +527,9 @@ public class ToolMenu {
                     PLA.generate(); }},
                 new EMenuItem("_Fill (MoCMOS)...") { public void run() {
                     FillGenDialog.openFillGeneratorDialog(MoCMOS.tech); }},
-		        new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
+                Technology.getCMOS90Technology() != null ?  new EMenuItem("F_ill (CMOS90)...") { public void run() {
+                    FillGenDialog.openFillGeneratorDialog(Technology.getCMOS90Technology()); }} : null,
+                new EMenuItem("Generate gate layouts (_MoCMOS)") { public void run() {
                     GateLayoutGenerator.generateFromSchematicsJob(TechType.MOCMOS); }},
                 Technology.getCMOS90Technology() != null ? new EMenuItem("Generate gate layouts (T_SMC180)") { public void run() {
                     GateLayoutGenerator.generateFromSchematicsJob(TechType.TSMC180); }} : null,

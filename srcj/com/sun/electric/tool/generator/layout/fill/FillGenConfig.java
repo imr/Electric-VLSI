@@ -37,7 +37,7 @@ import com.sun.electric.tool.generator.layout.TechType;
 public class FillGenConfig implements Serializable
 {
     TechType techNm = null;
-    FillGeneratorTool.FillTypeEnum fillType = FillGeneratorTool.FillTypeEnum.INVALID;
+    public FillGeneratorTool.FillTypeEnum fillType = FillGeneratorTool.FillTypeEnum.INVALID;
     public String fillLibName;
     List<ReserveConfig> reserves = new ArrayList<ReserveConfig>();
     public boolean evenLayersHorizontal;

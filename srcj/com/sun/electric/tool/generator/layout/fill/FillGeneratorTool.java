@@ -690,12 +690,13 @@ class CapLayer implements VddGndStraps {
 		gndName = stdCell.getGndExportName();
 
 		double angle = plan.horizontal ? 0 : 90;
-		capCellInst = LayoutLib.newNodeInst(capCell.getCell(), 0, 0, G.DEF_SIZE,
+        if (capCell != null)
+            capCellInst = LayoutLib.newNodeInst(capCell.getCell(), 0, 0, G.DEF_SIZE,
 									 		G.DEF_SIZE, angle, cell);
 	}
 
 	public boolean isHorizontal() {return plan.horizontal;}
-	public int numVdd() {return capCell.numVdd();}
+	public int numVdd() {return (capCell != null) ? capCell.numVdd() : 0;}
 	public PortInst getVdd(int n, int pos) {
 		return capCellInst.findPortInst(vddName+"_"+n);
 	}
@@ -1038,14 +1039,14 @@ public class FillGeneratorTool extends Tool {
         {
             if (Job.getDebug())
                 System.out.println("GNU Release can't find Fill Cell Generator plugin");
-            tool = new FillGeneratorTool();
+            tool = new FillGeneratorTool(TechType.MOCMOS);
         }
         return tool;
     }
 
-    public FillGeneratorTool() {
+    public FillGeneratorTool(TechType tech) {
         super("Fill Generator");
-        Tech.setTechnology(TechType.MOCMOS);
+        Tech.setTechnology(tech);
     }
 
     public void setConfig(FillGenConfig config)

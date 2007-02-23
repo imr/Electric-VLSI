@@ -692,10 +692,9 @@ public class FillGenDialog extends EDialog {
                     TechType.TSMC180 :
                     TechType.MOCMOS;
         }
-        else
+        else if (tech == Technology.getCMOS90Technology())
         {
-            System.out.println("CMOS90 generator not available yet here.");
-            return null;
+            techNm = TechType.CMOS90;
         }
 
         FillGenConfig config = new FillGenConfig(type, techNm, "autoFillLib",
