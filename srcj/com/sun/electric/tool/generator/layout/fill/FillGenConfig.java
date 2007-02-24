@@ -38,7 +38,6 @@ import com.sun.electric.tool.generator.layout.Tech;
 public class FillGenConfig implements Serializable
 {
     TechType techNm = null;
-    FillGenValues values = null;
     public FillGeneratorTool.FillTypeEnum fillType = FillGeneratorTool.FillTypeEnum.INVALID;
     public String fillLibName;
     List<ReserveConfig> reserves = new ArrayList<ReserveConfig>();
@@ -78,10 +77,6 @@ public class FillGenConfig implements Serializable
 
         techNm = tech;
         Tech.setTechnology(tech);
-        if (techNm == TechType.MOCMOS || techNm == TechType.TSMC180)
-            values = new FillGenMosisValues();
-        else
-            values = null;
 
 //        LayoutLib.error((techNm != TechType.MOCMOS && techNm != TechType.TSMC180),
 //            "FillGeneratorTool only recognizes the technologies: "+
@@ -144,30 +139,5 @@ public class FillGenConfig implements Serializable
             this.vddWUnits = vddUnits;
             this.gndWUnits = gndUnits;
         }
-    }
-}
-
-
-/**
- * Generic class to hold DRC values for the generation
- */
-abstract class FillGenValues implements Serializable
-{
-    abstract double reservedToLambda(int layer, double nbTracks);
-}
-
-class FillGenMosisValues extends FillGenValues
-{
-    private static final double m1via = 4;
-    private static final double m1sp = 3;
-    private static final double m1SP = 6;
-    private static final double m6via = 5;
-    private static final double m6sp = 4;
-    private static final double m6SP = 8;
-
-    double reservedToLambda(int layer, double nbTracks)
-    {
-        if (layer!=6) return 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
-        return 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
     }
 }

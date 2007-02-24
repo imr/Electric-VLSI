@@ -56,4 +56,17 @@ public class TechTypeTSMC180 extends TechType {
     @Override
     public int getNumMetals() {return 6;}
 
+    // for fill generator
+    @Override
+    public double reservedToLambda(int layer, double nbTracks)
+    {
+        double m1via = 4;
+        double m1sp = 3;
+        double m1SP = 6;
+        double m6via = 5;
+        double m6sp = 4;
+        double m6SP = 8;
+        if (layer!=6) return 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
+        return 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
+    }
 }

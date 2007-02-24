@@ -846,7 +846,7 @@ public class FillGeneratorTool extends Tool {
         if (units==LAMBDA) return reserved;
         double nbTracks = reserved;
         if (nbTracks==0) return 0;
-        return config.values.reservedToLambda(layer, nbTracks);
+        return config.techNm.reservedToLambda(layer, nbTracks);
 //        if (layer!=6) return 2*m1SP - m1sp + nbTracks*(m1via+m1sp);
 //        return 2*m6SP - m6sp + nbTracks*(m6via+m6sp);
     }
