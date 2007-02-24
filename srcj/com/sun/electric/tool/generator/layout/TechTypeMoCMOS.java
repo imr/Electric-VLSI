@@ -1,7 +1,5 @@
 package com.sun.electric.tool.generator.layout;
 
-import java.io.ObjectStreamException;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
 
@@ -56,5 +54,6 @@ public class TechTypeMoCMOS extends TechType {
 	}
 	@Override
 	public String name() {return "MOCMOS";}
-
+    @Override
+    public int getNumMetals() {return 6;}
 }

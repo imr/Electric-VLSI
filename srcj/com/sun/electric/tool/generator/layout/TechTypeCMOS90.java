@@ -1,7 +1,5 @@
 package com.sun.electric.tool.generator.layout;
 
-import java.io.ObjectStreamException;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology;
 
@@ -11,9 +9,9 @@ public class TechTypeCMOS90 extends TechType {
 	private static final String[] LAYER_NAMES = {"Polysilicon", "Metal-1", 
 		"Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6", "Metal-7", "Metal-8", "Metal-9"};
 
-	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
-	}
+//	private static void error(boolean pred, String msg) {
+//		LayoutLib.error(pred, msg);
+//	}
 
 	private TechTypeCMOS90() {
 		super(Technology.findTechnology("CMOS90"), LAYER_NAMES);
@@ -57,5 +55,7 @@ public class TechTypeCMOS90 extends TechType {
 	}
 	@Override
 	public String name() {return "CMOS90";}
+    @Override
+    public int getNumMetals() {return 9;}
 
 }

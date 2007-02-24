@@ -53,5 +53,7 @@ public class TechTypeTSMC180 extends TechType {
 	}
 	@Override
 	public String name() {return "TSMC180";}
+    @Override
+    public int getNumMetals() {return 6;}
 
 }

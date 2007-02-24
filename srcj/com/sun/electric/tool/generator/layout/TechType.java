@@ -366,7 +366,9 @@ public abstract class TechType implements Serializable {
 
 	//----------------------------- public methods ----------------------------
 
-	/** layers */
+    public abstract int getNumMetals();
+
+    /** layers */
 	public ArcProto pdiff() {return pdiff;}
 	public ArcProto ndiff() {return ndiff;}
 	public ArcProto p1() {return p1;}

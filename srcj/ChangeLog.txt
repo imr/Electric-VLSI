@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05h: *********************************
 
+IMP/MAN: (2/23/07, GVG) FillGenerator for CMOS90 enabled. Only working
+the tiles generator wihtout caps. The rest of the code not ported yet.
+
 BUG: (2/23/07, GVG) Fill generator crashing in CapLayer (bug#1278)
 FIX: Correct detection of templates job in FillCellGenJob
 
