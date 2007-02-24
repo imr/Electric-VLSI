@@ -36,7 +36,6 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.generator.layout.*;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
-import com.sun.electric.plugins.tsmc.fill90nm.CapCellCMOS90;
 
 import java.util.*;
 import java.lang.reflect.Constructor;
@@ -954,6 +953,23 @@ public class FillGeneratorTool extends Tool {
         }
     }
 
+    private static CapCell getCMOS90CapCell(Library lib, CapFloorplan plan, StdCellParams params)
+    {
+        CapCell c = null;
+        try
+		{
+			Class cmos90Class = Class.forName("com.sun.electric.plugins.tsmc.fill90nm.CapCellCMOS90");
+            Constructor capCellC = cmos90Class.getDeclaredConstructor(Library.class, CapFloorplan.class,
+                    StdCellParams.class);   // varargs
+            Object cell = capCellC.newInstance(lib, plan, params);
+            c = (CapCell)cell;
+         } catch (Exception e)
+        {
+            assert(false); // runtime error
+        }
+ 		return c;
+    }
+
     protected void initFillParameters(boolean metalFlex, boolean hierFlex) {
         if (libInitialized) return;
 
@@ -978,8 +994,8 @@ public class FillGeneratorTool extends Tool {
             }
             else
             {
-                capCell = new CapCellCMOS90(lib, (CapFloorplan) plans[1], stdCell);
-                capCellP = new CapCellCMOS90(lib, (CapFloorplan) plans[1], stdCellP);
+                capCell = getCMOS90CapCell(lib, (CapFloorplan) plans[1], stdCell);
+                capCellP = getCMOS90CapCell(lib, (CapFloorplan) plans[1], stdCellP);
             }
         }
         libInitialized = true;

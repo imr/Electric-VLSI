@@ -123,7 +123,8 @@ public class FillGenDialog extends EDialog {
             button.vddSpace = text;
             text.setColumns(4);
             text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-            text.setText(Double.toString(rule.getValue(0)));
+            if (rule != null)
+                text.setText(Double.toString(rule.getValue(0)));
             text.setMinimumSize(new Dimension(40, 21));
             gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.gridx = 1;
