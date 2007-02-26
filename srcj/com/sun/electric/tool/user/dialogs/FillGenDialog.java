@@ -98,6 +98,9 @@ public class FillGenDialog extends EDialog {
         int numMetals = tech.getNumMetals();
         String[] units = new String[] { "lambda", "tracks" };
 
+        floorplanPanel.setMinimumSize(new java.awt.Dimension(550, 300+numMetals*20));
+        floorplanPanel.setPreferredSize(new java.awt.Dimension(630, 300+numMetals*20));
+
         for (int i = 0; i < numMetals; i++)
         {
             int metal = i+1;
