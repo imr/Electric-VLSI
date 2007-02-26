@@ -35,7 +35,10 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.image.BufferedImage;
@@ -75,8 +78,9 @@ public class TextWindow implements WindowContent
 	/** the cell that is in the window */					private Cell cell;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** the overall panel with disp area and sliders */		private JPanel overall;
-	/** true if the text in the window changed. */			private boolean dirty;
-	/** true if the text in the window is closing. */		private boolean finishing;
+	/** true if text in the window changed. */				private boolean dirty;
+	/** true if text in the window is closing. */			private boolean finishing;
+	/** true if text in the window is being reloaded. */	private boolean reloading;
 	private JTextArea textArea;
 	private JScrollPane scrollPane;
 	private UndoManager undo = new UndoManager();
@@ -85,12 +89,12 @@ public class TextWindow implements WindowContent
 	 * Factory method to create a new TextWindow with a given cell, in a given WindowFrame.
 	 * @param cell the cell in this TextWindow.
 	 * @param wf the WindowFrame that this TextWindow lives in.
-	 * //@return the new TextWindow.
 	 */
 	public TextWindow(Cell cell, WindowFrame wf)
 	{
 		this.wf = wf;
-		this.finishing = false;
+		finishing = false;
+		reloading = false;
 
 		textArea = new JTextArea();
 		scrollPane = new JScrollPane(textArea);
@@ -243,7 +247,8 @@ public class TextWindow implements WindowContent
 
 	private void textWindowContentChanged()
 	{
-        new ChangedCellText(this);
+		if (!reloading)
+			new ChangedCellText(this);
 	}
 
 	public List<MutableTreeNode> loadExplorerTrees()
@@ -353,9 +358,11 @@ public class TextWindow implements WindowContent
 		String [] lines = (cell != null) ? cell.getTextViewContents() : null;
 		String oneLine = (lines != null) ? oneLine = makeOneString(lines) : "";
 		setCellFont(cell);
+		reloading = true;
 		textArea.setText(oneLine);
 		textArea.setSelectionStart(0);
 		textArea.setSelectionEnd(0);
+		reloading = false;
 		dirty = false;
 		setWindowTitle();
 	}
@@ -382,10 +389,12 @@ public class TextWindow implements WindowContent
 
     public void readTextCell(String fileName)
     {
-        if (fileName == null) {
+        if (fileName == null)
+        {
             System.out.println("Bad file name: "+fileName);
             return;
         }
+
         // start a job to do the input
         URL fileURL = TextUtils.makeURLToFile(fileName);
         InputStream stream = TextUtils.getURLStream(fileURL);
@@ -408,7 +417,6 @@ public class TextWindow implements WindowContent
 
         final int READ_BUFFER_SIZE = 65536;
         char [] buf = new char[READ_BUFFER_SIZE];
-//        BufferedInputStream bufStrm = new BufferedInputStream(stream, READ_BUFFER_SIZE);
         InputStreamReader is = new InputStreamReader(stream);
         try
         {
@@ -453,7 +461,8 @@ public class TextWindow implements WindowContent
      */
     public boolean writeTextCell(String fileName)
     {
-        if (fileName == null) {
+        if (fileName == null)
+        {
             System.out.println("Bad filename: "+fileName);
             return false;
         }
@@ -506,35 +515,8 @@ public class TextWindow implements WindowContent
 		textArea.setSelectionEnd(endPos);
 	}
 
-//	/**
-//	 * Method to get the text (for a textual cell) that is being edited.
-//	 * @param cell a text-view Cell.
-//	 * @return the text for the cell.
-//	 * If that text is not being edited (or has not changed), returns null. 
-//	 */
-//	public static String [] getEditedText(Cell cell)
-//	{
-//		for(Iterator<WindowFrame> it = WindowFrame.getWindows(); it.hasNext(); )
-//		{
-//			WindowFrame wf = it.next();
-//			WindowContent content = wf.getContent();
-//			if (content instanceof TextWindow)
-//			{
-//				if (content.getCell() == cell)
-//				{
-//					TextWindow tw = (TextWindow)content;
-//					if (tw.dirty)
-//					{
-//						String [] strings = tw.convertToStrings();
-//						return strings;
-//					}
-//				}
-//			}
-//		}
-//		return null;
-//	}
-
-    private void updateText(String [] strings) {
+    private void updateText(String [] strings)
+    {
         textArea.setText(makeOneString(strings));
         dirty = false;
     }
@@ -618,55 +600,43 @@ public class TextWindow implements WindowContent
 		return strings;
 	}
 
-	public void rightScrollChanged(int value)
-	{
-	}
+	public void rightScrollChanged(int value) {}
 
-	public void bottomScrollChanged(int value)
-	{
-	}
+	public void bottomScrollChanged(int value) {}
 
 	public void repaint() {}
 
 	public void fullRepaint() {}
 
-	/** Returns true if we can go back in history list, false otherwise */
-	public boolean cellHistoryCanGoBack() { return false; }
+//	/** Returns true if we can go back in history list, false otherwise */
+//	public boolean cellHistoryCanGoBack() { return false; }
+//
+//	/** Returns true if we can go forward in history list, false otherwise */
+//	public boolean cellHistoryCanGoForward() { return false; }
 
-	/** Returns true if we can go forward in history list, false otherwise */
-	public boolean cellHistoryCanGoForward() { return false; }
-
-	public void cellHistoryGoBack() {}
-
-	public void cellHistoryGoForward() {}
+//	public void cellHistoryGoBack() {}
+//
+//	public void cellHistoryGoForward() {}
 
 	/**
 	 * Method to pan and zoom the screen so that the entire cell is displayed.
 	 */
-	public void fillScreen()
-	{
-	}
+	public void fillScreen() {}
 
-	public void zoomOutContents()
-	{
-	}
+	public void zoomOutContents() {}
 
-	public void zoomInContents()
-	{
-	}
+	public void zoomInContents() {}
 
-	public void focusOnHighlighted()
-	{
-	}
+	public void focusOnHighlighted() {}
 
-    /**
-     * Used when new tool bar is created with existing edit window
-     * (when moving windows across displays).  Updates back/forward
-     * button states.
-     */
-    public void fireCellHistoryStatus()
-	{
-    }
+//    /**
+//     * Used when new tool bar is created with existing edit window
+//     * (when moving windows across displays).  Updates back/forward
+//     * button states.
+//     */
+//    public void fireCellHistoryStatus()
+//	{
+//    }
 
 	private String searchString = null;
 	private boolean searchCaseSensitive = false;
@@ -677,11 +647,10 @@ public class TextWindow implements WindowContent
 	 * @param caseSensitive true to match only where the case is the same.
 	 */
 	public void initTextSearch(String search, boolean caseSensitive, 
-	                           boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch)
+	    boolean regExp, Set<TextUtils.WhatToSearch> whatToSearch)
 	{
-		if (regExp) {
+		if (regExp)
 			System.out.println("Text windows don't yet implement Regular Expression matching");
-		}
 		searchString = search;
 		searchCaseSensitive = caseSensitive;
 	}

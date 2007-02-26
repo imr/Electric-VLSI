@@ -548,11 +548,11 @@ public class View3DWindow extends JPanel
 
 	public void setCell(Cell cell, VarContext context, WindowFrame.DisplayAttributes da) {}
 	public void focusOnHighlighted() {}
-	public void cellHistoryGoBack() {}
-	public void cellHistoryGoForward() {}
-	public boolean cellHistoryCanGoBack() { return false; }
-	public boolean cellHistoryCanGoForward() { return false; }
-	public void fireCellHistoryStatus() {}
+//	public void cellHistoryGoBack() {}
+//	public void cellHistoryGoForward() {}
+//	public boolean cellHistoryCanGoBack() { return false; }
+//	public boolean cellHistoryCanGoForward() { return false; }
+//	public void fireCellHistoryStatus() {}
 	public void replaceAllText(String replace) {}
     public Highlighter getHighlighter() { return highlighter; }
 

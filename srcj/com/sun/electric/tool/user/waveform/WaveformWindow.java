@@ -938,7 +938,7 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 			mainHorizRulerPanel.repaint();
 	}
 
-	public void fireCellHistoryStatus() {}
+//	public void fireCellHistoryStatus() {}
 
 	/**
 	 * Method to initialize for a new text search.
@@ -1168,13 +1168,13 @@ public class WaveformWindow implements WindowContent, PropertyChangeListener
 
 	public void rightScrollChanged(int e) {}
 
-	public boolean cellHistoryCanGoBack() { return false; }
-
-	public boolean cellHistoryCanGoForward() { return false; }
-
-	public void cellHistoryGoBack() {}
-
-	public void cellHistoryGoForward() {}
+//	public boolean cellHistoryCanGoBack() { return false; }
+//
+//	public boolean cellHistoryCanGoForward() { return false; }
+//
+//	public void cellHistoryGoBack() {}
+//
+//	public void cellHistoryGoForward() {}
 
 	// ************************************* WINDOW CONTROL *************************************
 	

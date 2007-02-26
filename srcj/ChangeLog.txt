@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05h: *********************************
 
+BUG: (2/26/07, SMR) Reloading a text cell marks the library "dirty" (bug #1280).
+FIX: In TextWindow.java, when reloading, prevent change detection.
+
 IMP/MAN: (2/23/07, GVG) FillGenerator for CMOS90 enabled. Only working
 the tiles generator wihtout caps. The rest of the code not ported yet.
 
