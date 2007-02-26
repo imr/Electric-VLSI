@@ -31,9 +31,10 @@ import com.sun.electric.database.topology.PortInst;
 /** Give access to the metal straps inside a MetalLayer or CapLayer */
 public interface VddGndStraps {
     static final ArcProto[] METALS =
-        {null, Tech.m1(), Tech.m2(), Tech.m3(), Tech.m4(), Tech.m5(), Tech.m6()};
+        {null, Tech.m1(), Tech.m2(), Tech.m3(), Tech.m4(), Tech.m5(), Tech.m6(), Tech.m7(), Tech.m8(), Tech.m9()};
     static final PrimitiveNode[] PINS =
-        {null, Tech.m1pin(), Tech.m2pin(), Tech.m3pin(), Tech.m4pin(), Tech.m5pin(), Tech.m6pin()};
+        {null, Tech.m1pin(), Tech.m2pin(), Tech.m3pin(), Tech.m4pin(), Tech.m5pin(), Tech.m6pin(),
+                Tech.m7pin(), Tech.m8pin(), Tech.m9pin()};
     // Defined here so sequence with PINS is kept aligned
     static final PrimitiveNode[] fillContacts = {null, null, Tech.m2m3(), Tech.m3m4(), Tech.m4m5(), Tech.m5m6()};
     /** are metal straps horizontal? */		boolean isHorizontal();

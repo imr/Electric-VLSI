@@ -689,7 +689,7 @@ class FillCell {
                                StdCellParams stdCell, boolean metalFlex, boolean hierFlex) {
 		String name = fillName(botLayer, topLayer, wireLowest, stdCell);
 		Cell cell = Cell.newInstance(lib, name);
-		VddGndStraps[] layers = new VddGndStraps[7];
+		VddGndStraps[] layers = new VddGndStraps[topLayer+1];
 		for (int i=topLayer; i>=botLayer; i--) {
 			if (i==1) {
 				layers[i] = new CapLayer((CapFloorplan) plans[i], capCell,
@@ -918,32 +918,48 @@ public class FillGeneratorTool extends Tool {
             }
         }
 
+        Floorplan[] thePlans = new Floorplan[numLayers];
+        // 0 is always null
+        thePlans[1] = new CapFloorplan(w, h, !evenHor);
         if (metalFlex)
         {
             if (!hierFlex)
             {
-                return new Floorplan[] {
-                null,
-                new CapFloorplan(w, h, 			 	                 !evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[2], gndRes[2], spacing[2],  vddW[2], gndW[2], evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[3], gndRes[3], spacing[3],  vddW[3], gndW[3],!evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[4], gndRes[4], spacing[4],  vddW[4], gndW[4], evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[5], gndRes[5], spacing[5],  vddW[5], gndW[5],!evenHor),
-                new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], spacing[6],  vddW[6], gndW[6], evenHor)
-                };
+                for (int i = 2; i < numLayers; i++)
+                {
+                    boolean horiz = (i%2==0);
+                    thePlans[i] = new MetalFloorplanFlex(w, h, vddRes[i], gndRes[i], spacing[i], vddW[i], gndW[i], horiz);
+                }
+                return thePlans;
+//                return new Floorplan[] {
+//                null,
+//                new CapFloorplan(w, h, 			 	                 !evenHor),
+//                new MetalFloorplanFlex(w, h, vddRes[2], gndRes[2], spacing[2],  vddW[2], gndW[2], evenHor),
+//                new MetalFloorplanFlex(w, h, vddRes[3], gndRes[3], spacing[3],  vddW[3], gndW[3],!evenHor),
+//                new MetalFloorplanFlex(w, h, vddRes[4], gndRes[4], spacing[4],  vddW[4], gndW[4], evenHor),
+//                new MetalFloorplanFlex(w, h, vddRes[5], gndRes[5], spacing[5],  vddW[5], gndW[5],!evenHor),
+//                new MetalFloorplanFlex(w, h, vddRes[6], gndRes[6], spacing[6],  vddW[6], gndW[6], evenHor)
+//                };
             }
             w = config.width = config.minTileSizeX;
             h = config.height = config.minTileSizeY;
         }
-        return new Floorplan[] {
-            null,
-            new CapFloorplan(w, h, 			 	                 !evenHor),
-            new MetalFloorplan(w, h, vddRes[2], gndRes[2], spacing[2],  evenHor),
-            new MetalFloorplan(w, h, vddRes[3], gndRes[3], spacing[3], !evenHor),
-            new MetalFloorplan(w, h, vddRes[4], gndRes[4], spacing[4],  evenHor),
-            new MetalFloorplan(w, h, vddRes[5], gndRes[5], spacing[5], !evenHor),
-            new MetalFloorplan(w, h, vddRes[6], gndRes[6], spacing[6],  evenHor)
-        };
+
+        for (int i = 2; i < numLayers; i++)
+        {
+            boolean horiz = (i%2==0);
+            thePlans[i] = new MetalFloorplan(w, h, vddRes[i], gndRes[i], spacing[i],  horiz);
+        }
+//        return new Floorplan[] {
+//            null,
+//            new CapFloorplan(w, h, 			 	                 !evenHor),
+//            new MetalFloorplan(w, h, vddRes[2], gndRes[2], spacing[2],  evenHor),
+//            new MetalFloorplan(w, h, vddRes[3], gndRes[3], spacing[3], !evenHor),
+//            new MetalFloorplan(w, h, vddRes[4], gndRes[4], spacing[4],  evenHor),
+//            new MetalFloorplan(w, h, vddRes[5], gndRes[5], spacing[5], !evenHor),
+//            new MetalFloorplan(w, h, vddRes[6], gndRes[6], spacing[6],  evenHor)
+//        };
+        return thePlans;
     }
 
     private void printCoverage(Floorplan[] plans) {
@@ -1083,7 +1099,8 @@ public class FillGeneratorTool extends Tool {
         initFillParameters(metalFlex, false);
 
         LayoutLib.error(loLayer<1, "loLayer must be >=1");
-        LayoutLib.error(hiLayer>6, "hiLayer must be <=6");
+        int maxNumMetals = config.techNm.getNumMetals();
+        LayoutLib.error(hiLayer>maxNumMetals, "hiLayer must be <=" + maxNumMetals);
         LayoutLib.error(loLayer>hiLayer, "loLayer must be <= hiLayer");
         boolean wireLowest = exportConfig==PERIMETER_AND_INTERNAL;
         Cell cell = null;
