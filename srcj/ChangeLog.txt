@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05h: *********************************
 
+IMP/MAN: (2/26/07, SMR) In the "Tool / Logical Effort" menu, renamed
+     "Print Info for Selected Node" to "List Info for Selected Node" to be
+     consistent (print means to the printer).
+
 BUG: (2/26/07, SMR) Reloading a text cell marks the library "dirty" (bug #1280).
 FIX: In TextWindow.java, when reloading, prevent change detection.
 

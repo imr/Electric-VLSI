@@ -433,13 +433,13 @@ public class ToolMenu {
 
 		//------------------- Logical Effort
 
-		// mnemonic keys available:    D FGHIJK M   QRSTUVWXYZ
+		// mnemonic keys available:    D FGH JK M  PQRSTUVWXYZ
             new EMenu("_Logical Effort",
 		        new EMenuItem("_Optimize for Equal Gate Delays") { public void run() {
                     optimizeEqualGateDelaysCommand(true); }},
 		        new EMenuItem("Optimize for Equal Gate Delays (no _caching)") { public void run() {
                     optimizeEqualGateDelaysCommand(false); }},
-		        new EMenuItem("_Print Info for Selected Node") { public void run() {
+		        new EMenuItem("List _Info for Selected Node") { public void run() {
                     printLEInfoCommand(); }},
                 new EMenuItem("_Back Annotate Wire Lengths for Current Cell") { public void run() {
                     backAnnotateCommand(); }},
