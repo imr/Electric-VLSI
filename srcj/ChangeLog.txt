@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.05i: *********************************
+
 ************************* Version 8.05h: *********************************
 
 IMP: (2/27/07, SMR) Sea-of-gates router runs faster.
