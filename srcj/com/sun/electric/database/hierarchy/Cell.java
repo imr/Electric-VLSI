@@ -3005,6 +3005,28 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
 	}
 
 	/**
+	 * Method to compute the location of a new Variable on this Cell.
+	 * @return the offset of the new Variable.
+	 */
+    public Point2D newVarOffset()
+    {
+    	// find nonconflicting location of this cell attribute
+    	int numVars = 0;
+    	double xPosSum = 0;
+    	double yPosBot = 0;
+    	for(Iterator<Variable> it = getVariables(); it.hasNext(); )
+    	{
+    		Variable eVar = it.next();
+    		if (!eVar.isDisplay()) continue;
+    		xPosSum += eVar.getXOff();
+    		if (eVar.getYOff() < yPosBot) yPosBot = eVar.getYOff();
+    		numVars++;
+    	}
+    	if (numVars == 0) return new Point2D.Double(0, 0);
+    	return new Point2D.Double(xPosSum / numVars, yPosBot-2);
+    }
+
+	/**
 	 * Returns a printable version of this Cell.
 	 * @return a printable version of this Cell.
 	 */

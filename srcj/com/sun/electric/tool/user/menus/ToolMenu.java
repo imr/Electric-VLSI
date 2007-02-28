@@ -1494,7 +1494,9 @@ public class ToolMenu {
                 System.out.println("This cell already has a template");
                 return false;
             }
-            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).withDispPart(TextDescriptor.DispPos.NAMEVALUE);
+        	Point2D offset = cell.newVarOffset();
+            TextDescriptor td = TextDescriptor.getCellTextDescriptor().withInterior(true).
+            	withDispPart(TextDescriptor.DispPos.NAMEVALUE).withOff(offset.getX(), offset.getY());
             cell.newVar(templateKey, "*Undefined", td);
             return true;
         }

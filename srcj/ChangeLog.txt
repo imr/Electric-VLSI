@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05i: *********************************
 
+BUG: (2/28/07, SMR) New cell attributes all appear at (0,0) (Bug #1282).
+FIX: Created Cell.newVarOffset() and use it in Attributes.CreateAttribute.doIt()
+     and also in ToolMenu.MakeTemplate.doIt().
+
 ************************* Version 8.05h: *********************************
 
 IMP: (2/27/07, SMR) Sea-of-gates router runs faster.

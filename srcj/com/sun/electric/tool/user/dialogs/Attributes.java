@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -42,6 +43,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.UserInterfaceMain;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -51,6 +53,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
@@ -578,12 +581,15 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         private String newName;
         private Object newValue;
         private ElectricObject owner;
+        private Variable newVar;
+        private transient Attributes dialog;
 
-        private CreateAttribute(String newName, Object newValue, ElectricObject owner) {
+        private CreateAttribute(String newName, Object newValue, ElectricObject owner, Attributes dialog) {
             super("Create Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.newName = newName;
             this.newValue = newValue;
             this.owner = owner;
+            this.dialog = dialog;
             startJob();
         }
 
@@ -595,13 +601,38 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             if (owner.getVar(newKey) != null)
 				throw new JobException("Can't create new attribute "+newName+", already exists");
 
-            // create the attribute
-            Variable var = owner.newVar(newKey, newValue);
-
             // if created on a cell, set the parameter and inherits properties
+            TextDescriptor td = null;
             if (owner instanceof Cell)
-                owner.addVar(var.withParam(true).withInherit(true));
+            {
+            	// find nonconflicting location of this cell attribute
+            	Point2D offset = ((Cell)owner).newVarOffset();
+            	td = TextDescriptor.getCellTextDescriptor().withParam(true).withInherit(true).
+            		withOff(offset.getX(), offset.getY());
+            } else if (owner instanceof NodeInst)
+            {
+            	td = TextDescriptor.getNodeTextDescriptor();
+            } else if (owner instanceof ArcInst)
+            {
+            	td = TextDescriptor.getArcTextDescriptor();
+            } else if (owner instanceof Export)
+            {
+            	td = TextDescriptor.getExportTextDescriptor();
+            } else if (owner instanceof PortInst)
+            {
+            	td = TextDescriptor.getPortInstTextDescriptor();
+            } else return false;
+ 
+            // create the attribute
+            newVar = owner.newVar(newKey, newValue, td.withDispPart(TextDescriptor.DispPos.NAMEVALUE));
+			fieldVariableChanged("newVar");
             return true;
+        }
+
+        public void terminateOK()
+        {
+        	dialog.updateList();
+            dialog.showSelectedAttribute(newVar.getKey());
         }
     }
 
@@ -1079,14 +1110,14 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         String val = value.getText().trim();
 
         // Spawn a Job to create the Variable
-        new CreateAttribute(varName, getVariableObject(val), selectedObject);
-
-        // Spawn a Job to set the new Variable's text options
-        // because the var has not been created yet, set the futureVarName for the panel
-        textPanel.applyChanges(true);
-
-        // same for text attributes panel
-        attrPanel.applyChanges();
+        new CreateAttribute(varName, getVariableObject(val), selectedObject, this);
+//
+//        // Spawn a Job to set the new Variable's text options
+//        // because the var has not been created yet, set the futureVarName for the panel
+//        textPanel.applyChanges(true);
+//
+//        // same for text attributes panel
+//        attrPanel.applyChanges();
 
         initialName = varName;
         initialValue = val;

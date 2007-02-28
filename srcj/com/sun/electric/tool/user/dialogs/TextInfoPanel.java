@@ -193,6 +193,14 @@ public class TextInfoPanel extends javax.swing.JPanel
         });
     }
 
+    public void setOffsets(Point2D offset)
+    {
+        loading = true;
+        xOffset.setText(TextUtils.formatDouble(offset.getX()));
+        yOffset.setText(TextUtils.formatDouble(offset.getY()));
+        loading = false;
+    }
+
     /**
      * Set what the dialog displays: It can display and allow editing of the settings
      * for an existing text descriptor, or it can display and allow editing of default values
@@ -540,7 +548,10 @@ public class TextInfoPanel extends javax.swing.JPanel
             // if so, increment the Y-offset so that sequentially created
             // new vars do not overlap on the schematic
             if (owner instanceof Cell) {
-                currentYOffset -= 2.0;
+//                currentYOffset -= 2.0;
+            	Point2D offset = ((Cell)owner).newVarOffset();
+            	currentYOffset = offset.getY();
+            	currentXOffset = offset.getX();
             }
         }
 
