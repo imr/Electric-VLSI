@@ -116,7 +116,7 @@ public class ProjSettingsNode implements Serializable {
         if (obj instanceof Pref)
             return (Pref)obj;
         if (obj == null) return null;
-        prIllegalRequestError(key);
+        //prIllegalRequestError(key);
         return null;
     }
 
@@ -132,7 +132,7 @@ public class ProjSettingsNode implements Serializable {
         }
         if (obj instanceof ProjSettingsNode)
             return (ProjSettingsNode)obj;
-        prIllegalRequestError(key);
+        //prIllegalRequestError(key);
         return null;
     }
 
