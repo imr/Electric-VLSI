@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05i: *********************************
 
-IMP: (2/28/07, GVG) Poly ports in CMOS90 transistors are zero size (fromCenter commands in primitive)
+IMP: (2/28/07, GVG) Poly ports in CMOS90 transistors are zero size for the default sizes.
 Requested by JonG.
 
 BUG: (2/28/07, SMR) New cell attributes all appear at (0,0) (Bug #1282).
