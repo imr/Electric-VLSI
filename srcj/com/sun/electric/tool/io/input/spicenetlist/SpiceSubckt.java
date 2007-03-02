@@ -51,9 +51,16 @@ public class SpiceSubckt {
     }
     public String getName() { return name; }
     public void addPort(String port) { ports.add(port); }
-    public boolean hasPort(String portname) { return ports.contains(portname.toLowerCase()); }
+    public boolean hasPort(String portname) { return ports.contains(portname); }
+    public boolean hasPortCaseInsensitive(String portname) {
+        for (String port : ports) {
+            if (portname.equalsIgnoreCase(port))
+                return true;
+        }
+        return false;
+    }
     public List<String> getPorts() { return ports; }
-    public String getParamValue(String name) { return params.get(name.toLowerCase()); }
+    public String getParamValue(String name) { return params.get(name); }
     public HashMap<String,String> getParams() { return params; }
     void addInstance(SpiceInstance inst) { instances.add(inst); }
     public List<SpiceInstance> getInstances() { return instances; }
@@ -61,7 +68,7 @@ public class SpiceSubckt {
         if (ports.contains(port) && type != null)
             porttypes.put(port, type);
     }
-    public PortType getPortType(String port) { return porttypes.get(port.toLowerCase()); }
+    public PortType getPortType(String port) { return porttypes.get(port); }
     public void write(PrintStream out) {
         StringBuffer buf = new StringBuffer(".subckt ");
         buf.append(name);

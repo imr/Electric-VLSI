@@ -85,7 +85,7 @@ public class SpiceNetlistReader {
                 line = line.trim();
                 String [] tokens = getTokens(line);
                 if (tokens.length == 0) continue;
-                String keyword = tokens[0];
+                String keyword = tokens[0].toLowerCase();
 
                 if (keyword.equals(".include")) {
                     if (tokens.length < 2) {
@@ -125,12 +125,12 @@ public class SpiceNetlistReader {
                 }
                 else if (keyword.equals(".subckt")) {
                     currentSubckt = parseSubckt(tokens);
-                    if (currentSubckt != null && subckts.containsKey(currentSubckt.getName())) {
+                    if (currentSubckt != null && subckts.containsKey(currentSubckt.getName().toLowerCase())) {
                         prErr("Subckt "+currentSubckt.getName()+
                                 " already defined");
                         continue;
                     }
-                    subckts.put(currentSubckt.getName(), currentSubckt);
+                    subckts.put(currentSubckt.getName().toLowerCase(), currentSubckt);
                 }
                 else if (keyword.equals(".global")) {
                     for (int i=1; i<tokens.length; i++) {
@@ -222,7 +222,7 @@ public class SpiceNetlistReader {
             else if (Character.isWhitespace(c) && inparens == 0) {
                 // end of token (unless just more whitespace)
                 if (start < i)
-                    tokens.add(line.substring(start, i).toLowerCase());
+                    tokens.add(line.substring(start, i));
                 start = i+1;
             }
             else if (c == '(') {
@@ -237,7 +237,7 @@ public class SpiceNetlistReader {
             }
             else if (c == '=') {
                 if (start < i)
-                    tokens.add(line.substring(start, i).toLowerCase());
+                    tokens.add(line.substring(start, i));
                 tokens.add("=");
                 start = i+1;
             }
@@ -246,7 +246,7 @@ public class SpiceNetlistReader {
             }
         }
         if (start < i) {
-            tokens.add(line.substring(start, i).toLowerCase());
+            tokens.add(line.substring(start, i));
         }
 
         if (inparens != 0)
@@ -287,7 +287,7 @@ public class SpiceNetlistReader {
                 prErr("Bad option value: "+tokens[i]);
                 continue;
             }
-            map.put(pname, value);
+            map.put(pname.toLowerCase(), value);
         }
     }
 
@@ -304,7 +304,7 @@ public class SpiceNetlistReader {
         if (e > 0) {
             pname = parval.substring(0, e);
             value = parval.substring(e+1);
-            if (defaultParName != null && !defaultParName.equals(pname)) {
+            if (defaultParName != null && !defaultParName.equalsIgnoreCase(pname)) {
                 prWarn("Expected param "+defaultParName+", but got "+pname);
             }
         }
@@ -312,7 +312,7 @@ public class SpiceNetlistReader {
             prErr("Badly formatted param=val: "+parval);
             return;
         }
-        map.put(pname, value);
+        map.put(pname.toLowerCase(), value);
     }
 
     private SpiceSubckt parseSubckt(String [] parts) {
@@ -335,7 +335,7 @@ public class SpiceNetlistReader {
             nets.add(parts[i]);
         }
         String subcktName = nets.remove(nets.size()-1); // last one is subckt reference
-        SpiceSubckt subckt = subckts.get(subcktName);
+        SpiceSubckt subckt = subckts.get(subcktName.toLowerCase());
         if (subckt == null) {
             prErr("Cannot find subckt for "+subcktName);
             return null;
