@@ -19,6 +19,8 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.TechType;
+import com.sun.electric.plugins.sctiming.SCRun;
+import com.sun.electric.plugins.menus.PowerAnalysis;
 
 /**
  * Created by IntelliJ IDEA.
@@ -43,7 +45,7 @@ public class SCLibraryGen {
     private PrimitiveNode pin = Generic.tech.invisiblePinNode;
     private Variable.Key sizeKey = Variable.findKey("ATTR_X");
 
-    public static final Variable.Key STANDARDCELLLIBRARY = Variable.newKey("StandardCellLibrary");
+    public static final Variable.Key STANDARDCELL = Variable.newKey("ATTR_StandardCell");
 
     private static final int blueColorIndex = EGraphics.makeIndex(Color.blue);
 
@@ -102,6 +104,8 @@ public class SCLibraryGen {
 
     /**
      * Generates the standard cell library
+     * @param sc standard cell parameters
+     * @return false on error, true otherwise
      */
     public boolean generate(StdCellParams sc) {
         // check for red and purple libraries
@@ -127,10 +131,6 @@ public class SCLibraryGen {
             prMsg("Created standard cell library "+scLibraryName);
         }
         prMsg("Using standard cell library "+scLibraryName);
-        // mark as a standard cell library
-        if (scLibrary.getVar(STANDARDCELLLIBRARY) == null) {
-            scLibrary.newVar(STANDARDCELLLIBRARY, 1);
-        }
 
         // dunno how to set standard cell params
         sc.enableNCC(purpleLibraryName);
@@ -161,6 +161,10 @@ public class SCLibraryGen {
                 if (schcell == null) {
                     copySchCell(stdcell.type, purpleLibrary, cellname, scLibrary, d);
                 }
+
+                schcell = scLibrary.findNodeProto(cellname+"{sch}");
+                // mark schematic as standard cell
+                markStandardCell(schcell);
             }
         }
         return true;
@@ -247,6 +251,35 @@ public class SCLibraryGen {
     /* =======================================================
      * Utility
      * ======================================================= */
+
+    /**
+     * Mark the cell as a standard cell.
+     * This version of the method performs the task in a Job.
+     * @param cell the cell to mark with the standard cell attribute marker
+     */
+    public static void markStandardCellJob(Cell cell) {
+        PowerAnalysis.CreateVar job = new PowerAnalysis.CreateVar(cell, STANDARDCELL, new Integer(1));
+        job.startJob();
+    }
+
+    /**
+     * Mark the cell as a standard cell
+     * @param cell the cell to mark with the standard cell attribute marker
+     */
+    public static void markStandardCell(Cell cell) {
+        PowerAnalysis.CreateVar job = new PowerAnalysis.CreateVar(cell, STANDARDCELL, new Integer(1));
+        job.doIt();
+    }
+
+    /**
+     * Returns true if the cell is marked as a standard cell for Static
+     * Timing Analysis
+     * @param cell the cell to check
+     * @return true if standard cell, false otherwise
+     */
+    public static boolean isStandardCell(Cell cell) {
+        return cell.getVar(STANDARDCELL) != null;
+    }
 
     private void prErr(String msg) {
         System.out.println("Standard Cell Library Generator Error: "+msg);
