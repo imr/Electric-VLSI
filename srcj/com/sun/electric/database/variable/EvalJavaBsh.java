@@ -55,6 +55,7 @@ public class EvalJavaBsh
     /** The bean shell interpreter eval method */   private static Method evalMethod;
     /** The bean shell interpreter source method */ private static Method sourceMethod;
     /** The bean shell interpreter set method */    private static Method setMethod;
+    /** The bean shell interpreter set method */    private static Method getMethod;
     /** The bean shell TargetError getTarget method */ private static Method getTargetMethod;
     /** The bean shell interpreter class */         private static Class interpreterClass = null;
     /** The bean shell TargetError class */         private static Class targetErrorClass;
@@ -75,7 +76,7 @@ public class EvalJavaBsh
     // ------------------------ private and protected methods -------------------
 
     /** the contructor */
-    private EvalJavaBsh()
+    public EvalJavaBsh()
     {
         envObject = null;
 
@@ -306,6 +307,7 @@ public class EvalJavaBsh
             evalMethod = interpreterClass.getMethod("eval", new Class[] {String.class});
             sourceMethod = interpreterClass.getMethod("source", new Class[] {String.class});
             setMethod = interpreterClass.getMethod("set", new Class[] {String.class, Object.class});
+            getMethod = interpreterClass.getMethod("get", new Class[] {String.class});
             getTargetMethod = targetErrorClass.getMethod("getTarget", (Class[])null);
         } catch (NoSuchMethodException e)
         {
@@ -331,6 +333,18 @@ public class EvalJavaBsh
         }
     }
 
+    public Object getVariable(String name)
+    {
+        try {
+            if (envObject != null) {
+                return getMethod.invoke(envObject, new Object [] {name});
+            }
+        } catch (Exception e) {
+            handleInvokeException(e, "Bean shell error getting variable " + name);
+        }
+        return null;
+    }
+
 
     // -------------------------- Private Methods -----------------------------
 
@@ -338,6 +352,7 @@ public class EvalJavaBsh
      * Evaluate a string containing Java Bean Shell code.
      * @param line the string to evaluate
      * @return an object representing the evaluated string, or null on error.
+     * @throws VarContext.EvalException exception
      */
     private Object doEval(String line) throws VarContext.EvalException
     {
