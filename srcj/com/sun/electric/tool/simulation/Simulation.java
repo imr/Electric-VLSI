@@ -1166,7 +1166,12 @@ public class Simulation extends Tool
 	 */
 	public static void setVerilogUseTrireg(boolean use) { cacheVerilogUseTrireg.setBoolean(use); }
 
-	/****************************** CDL OPTIONS ******************************/
+    private static Pref cacheVerilogStopAtStandardCells = Pref.makeBooleanPref("VerilogStopAtStandardCells", tool.prefs, false);
+    public static void setVerilogStopAtStandardCells(boolean b) { cacheVerilogStopAtStandardCells.setBoolean(b); }
+    public static boolean getVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBoolean(); }
+
+
+    /****************************** CDL OPTIONS ******************************/
 
 	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", tool.prefs, "");
 //    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
@@ -1708,6 +1713,10 @@ public class Simulation extends Tool
     private static Pref cacheSpiceWriteSubcktTopCell = Pref.makeBooleanPref("SpiceWriteSubcktTopCell", tool.prefs, false);
     public static boolean isSpiceWriteSubcktTopCell() { return cacheSpiceWriteSubcktTopCell.getBoolean(); }
     public static void setSpiceWriteSubcktTopCell(boolean b) { cacheSpiceWriteSubcktTopCell.setBoolean(b); }
+
+    private static Pref cacheSpiceWriteTopCellInstance = Pref.makeBooleanPref("SpiceWriteTopCellInstance", tool.prefs, true);
+    public static boolean isSpiceWriteTopCellInstance() { return cacheSpiceWriteTopCellInstance.getBoolean(); }
+    public static void setSpiceWriteTopCellInstance(boolean b) { cacheSpiceWriteTopCellInstance.setBoolean(b); }
 
     private static Pref cacheSpiceWriteEmptySubckts = Pref.makeBooleanPref("SpiceWriteEmptySubckts", tool.prefs, true);
     public static boolean isSpiceWriteEmtpySubckts() { return cacheSpiceWriteEmptySubckts.getBoolean(); }
