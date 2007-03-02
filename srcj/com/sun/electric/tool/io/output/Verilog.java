@@ -47,6 +47,7 @@ import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.io.input.verilog.VerilogReader;
 import com.sun.electric.tool.io.input.verilog.VerilogData;
+import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -259,6 +260,7 @@ public class Verilog extends Topology
 
     protected void done()
     {
+        Simulation.setVerilogStopAtStandardCells(false);
     }
 
     protected boolean skipCellAndSubcells(Cell cell) {
@@ -332,6 +334,9 @@ public class Verilog extends Topology
             }
             return true;
         }
+
+        if (Simulation.getVerilogStopAtStandardCells() && SCLibraryGen.isStandardCell(cell))
+            return true;
 
         return false;
     }
@@ -1322,7 +1327,11 @@ public class Verilog extends Topology
     /**
      * Method to tell whether the topological analysis should mangle cell names that are parameterized.
      */
-    protected boolean canParameterizeNames() { return true; }
+    protected boolean canParameterizeNames() {
+        if (Simulation.getVerilogStopAtStandardCells())
+            return false;
+        return true;
+    }
 
 
     private static final String [] verilogGates = new String [] {
@@ -1439,7 +1448,8 @@ public class Verilog extends Topology
      * @return the name of the cell
      */
     public static String getVerilogName(Cell cell) {
-        return cell.getLibrary().getName() + "__" + cell.getName();
+        final Verilog v = new Verilog();
+        return cell.getLibrary().getName() + "__" + v.getSafeCellName(cell.getName());
     }
 
     /**
