@@ -805,7 +805,8 @@ public class Spice extends Topology
 			}
             if (cell == topCell && Simulation.isSpiceWriteSubcktTopCell()) {
                 // create top level instantiation
-                topLevelInstance = infstr.toString().replaceFirst("\\.SUBCKT ", "X") + " " + cellName;
+                if (Simulation.isSpiceWriteTopCellInstance())
+                    topLevelInstance = infstr.toString().replaceFirst("\\.SUBCKT ", "X") + " " + cellName;
             }
 			if (!useCDL && Simulation.isSpiceUseCellParameters())
 			{
