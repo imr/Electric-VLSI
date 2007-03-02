@@ -613,7 +613,7 @@ public class LETool extends Tool {
             if (ni.isCellInstance()) {
                 np = (Cell)ni.getProto();
             }
-            if (np != null && np.getLibrary().getVar(SCLibraryGen.STANDARDCELLLIBRARY) != null) {
+            if (np != null && np.getCellGroup().getMainSchematics().getVar(SCLibraryGen.STANDARDCELL) != null) {
                 // this is a standard cell from a standard cell library
                 int tail = np.getName().indexOf("_X");
                 String type = np.getName().substring(0, tail);
