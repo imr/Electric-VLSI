@@ -488,16 +488,12 @@ public class ImmutableArcInst extends ImmutableElectricObject {
             return;
         }
         int width = (int)gridFullWidth;
-        if (width == 0) {
-            if (protoType.getNumArcLayers() != 1) {
+        if (width <= 0) {
+            if (width != 0 || protoType.getNumArcLayers() != 1) {
                 System.out.println(protoType + " many zero-width layers");
                 return;
             }
             assert false;
-        }
-        if (width <= protoType.getMaxLayerGridOffset()) {
-            System.out.println(protoType + " has zero-width layer");
-            return;
         }
         for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
             Technology.ArcLayer arcLayer = protoType.getArcLayer(i);
@@ -557,12 +553,10 @@ public class ImmutableArcInst extends ImmutableElectricObject {
         if (!(tailLocation.isSmall() && headLocation.isSmall() && GenMath.isSmallInt(gridFullWidth)))
             return flags;
         int width = (int)gridFullWidth;
-        if (width == 0) {
-            if (protoType.getNumArcLayers() != 1) return flags;
+        if (width <= 0) {
+            if (width != 0 || protoType.getNumArcLayers() != 1) return flags;
             return flags | EASY_MASK;
         }
-        if (width <= protoType.getMaxLayerGridOffset())
-            return flags;
         for (int i = 0, numArcLayers = protoType.getNumArcLayers(); i < numArcLayers; i++) {
             Technology.ArcLayer arcLayer = protoType.getArcLayer(i);
             if (arcLayer.getStyle() != Poly.Type.FILLED) return flags;
@@ -924,6 +918,8 @@ public class ImmutableArcInst extends ImmutableElectricObject {
                 intCoords[3] = y1;
             }
         } else {
+            if (gridFullWidth <= protoType.getMaxLayerGridOffset())
+                return false;
             boolean tailExtended = false;
             if (isTailExtended()) {
                 short shrinkT = shrinkage.get(tailNodeId);

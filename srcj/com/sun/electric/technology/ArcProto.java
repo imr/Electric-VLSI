@@ -406,7 +406,7 @@ public class ArcProto implements Comparable<ArcProto>
 	 * The offset amount is the difference between the diffusion width and the overall width.
 	 * @return the width offset of this ArcProto in grid units.
 	 */
-    public long getMaxLayerGridOffset() { return maxLayerGridOffset; }
+    public int getMaxLayerGridOffset() { return maxLayerGridOffset; }
     
     /*
 	private Pref getArcProtoAntennaPref()

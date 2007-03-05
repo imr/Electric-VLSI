@@ -284,6 +284,8 @@ public abstract class AbstractShapeBuilder {
             addIntLine(intCoords, style, primLayer.getLayer());
             return true;
         }
+        if (gridFullWidth <= protoType.getMaxLayerGridOffset())
+            return false;
         boolean tailExtended = false;
         if (a.isTailExtended()) {
             short shrinkT = shrinkage.get(a.tailNodeId);
