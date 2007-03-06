@@ -23,16 +23,28 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.menus.MenuCommands;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
+import javax.swing.DefaultListModel;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
 
 /**
  * Class to handle the "Routing" tab of the Preferences dialog.
@@ -53,6 +65,8 @@ public class RoutingTab extends PreferencePanel
 	public String getName() { return "Routing"; }
 
 	private ArcProto initRoutDefArc;
+	private JPanel sogArcList;
+	private Map<ArcProto,JCheckBox> sogFavorChecks, sogProhibitChecks;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -75,11 +89,26 @@ public class RoutingTab extends PreferencePanel
 		{
 			Technology tech = tIt.next();
 			routTechnology.addItem(tech.getTechName());
+			sogRouteTechnology.addItem(tech.getTechName());
 		}
 		routTechnology.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { techChanged(); }
 		});
+
+		// the sea-of-gates section
+		sogFavorChecks = new HashMap<ArcProto,JCheckBox>();
+		sogProhibitChecks = new HashMap<ArcProto,JCheckBox>();
+		sogArcList = new JPanel();
+		sogRouteArcOptions.setViewportView(sogArcList);
+		sogRouteTechnology.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { sogTechChanged(); }
+		});
+		sogRouteTechnology.setSelectedItem(Technology.getCurrent().getTechName());
+		sogMaxArcWidth.setText(TextUtils.formatDouble(Routing.getSeaOfGatesMaxWidth()));
+		sogComplexityLimit.setText(Integer.toString(Routing.getSeaOfGatesComplexityLimit()));
+
 		routTechnology.setSelectedItem(Technology.getCurrent().getTechName());
 		routOverrideArc.addActionListener(new ActionListener()
 		{
@@ -111,7 +140,6 @@ public class RoutingTab extends PreferencePanel
 		routMimicOnlyNewTopology.setSelected(Routing.isMimicStitchOnlyNewTopology());
 		routMimicInteractive.setSelected(Routing.isMimicStitchInteractive());
         routMimicKeepPins.setSelected(Routing.isMimicStitchPinsKept());
-
 	}
 
 	private void overrideChanged()
@@ -125,6 +153,9 @@ public class RoutingTab extends PreferencePanel
 		routArcLabel.setEnabled(enableRest);
 	}
 
+	/**
+	 * Method called when the technology (for default arcs) has changed.
+	 */
 	private void techChanged()
 	{
 		String techName = (String)routTechnology.getSelectedItem();
@@ -138,6 +169,56 @@ public class RoutingTab extends PreferencePanel
 			routDefaultArc.addItem(ap.getName());
 		}
 		routDefaultArc.setSelectedIndex(0);
+	}
+
+	/**
+	 * Method called when the "Sea of gates" technology has changed.
+	 */
+	private void sogTechChanged()
+	{
+		String techName = (String)sogRouteTechnology.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
+
+		sogArcList = new JPanel();
+		sogRouteArcOptions.setViewportView(sogArcList);
+		sogArcList.setLayout(new GridBagLayout());
+		int i=0;
+		for(Iterator<ArcProto> it = tech.getArcs(); it.hasNext(); )
+		{
+			ArcProto ap = it.next();
+			if (!ap.getFunction().isMetal()) continue;
+			JLabel arcName = new JLabel(ap.getName());
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = i;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.weightx = 1;
+			sogArcList.add(arcName, gbc);
+
+			JCheckBox favorArc = sogFavorChecks.get(ap);
+			if (favorArc == null)
+			{
+				favorArc = new JCheckBox("Favor");
+				sogFavorChecks.put(ap, favorArc);
+				if (Routing.isSeaOfGatesFavor(ap)) favorArc.setSelected(true);
+			}
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = i;
+			sogArcList.add(favorArc, gbc);
+
+			JCheckBox prohibitArc = sogProhibitChecks.get(ap);
+			if (prohibitArc == null)
+			{
+				prohibitArc = new JCheckBox("Prohibit");
+				sogProhibitChecks.put(ap, prohibitArc);
+				if (Routing.isSeaOfGatesPrevent(ap)) prohibitArc.setSelected(true);
+			}
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = i;
+			sogArcList.add(prohibitArc, gbc);
+
+			i++;
+		}
 	}
 
 	/**
@@ -156,6 +237,28 @@ public class RoutingTab extends PreferencePanel
 			Routing.setAutoStitchOn(curAuto);
             MenuCommands.menuBar().updateAllButtons();
         }
+
+		// pick up sea-of-gates preferences
+		for(Iterator<ArcProto> it = sogFavorChecks.keySet().iterator(); it.hasNext(); )
+		{
+			ArcProto ap = it.next();
+			JCheckBox check = sogFavorChecks.get(ap);
+			if (check.isSelected() != Routing.isSeaOfGatesFavor(ap))
+				Routing.setSeaOfGatesFavor(ap, check.isSelected());
+		}
+		for(Iterator<ArcProto> it = sogProhibitChecks.keySet().iterator(); it.hasNext(); )
+		{
+			ArcProto ap = it.next();
+			JCheckBox check = sogProhibitChecks.get(ap);
+			if (check.isSelected() != Routing.isSeaOfGatesPrevent(ap))
+				Routing.setSeaOfGatesPrevent(ap, check.isSelected());
+		}
+		double curSOGMaxWid = TextUtils.atof(sogMaxArcWidth.getText());
+		if (curSOGMaxWid != Routing.getSeaOfGatesMaxWidth())
+			Routing.setSeaOfGatesMaxWidth(curSOGMaxWid);
+		int curSOGComplexity = TextUtils.atoi(sogComplexityLimit.getText());
+		if (curSOGComplexity != Routing.getSeaOfGatesComplexityLimit())
+			Routing.setSeaOfGatesComplexityLimit(curSOGComplexity);
 
 		ArcProto ap = null;
 		if (routOverrideArc.isSelected())
@@ -218,8 +321,7 @@ public class RoutingTab extends PreferencePanel
 	 * always regenerated by the Form Editor.
 	 */
     // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
-    private void initComponents()
-    {
+    private void initComponents() {
         java.awt.GridBagConstraints gridBagConstraints;
 
         routStitcher = new javax.swing.ButtonGroup();
@@ -244,15 +346,21 @@ public class RoutingTab extends PreferencePanel
         routTechnology = new javax.swing.JComboBox();
         routArcLabel = new javax.swing.JLabel();
         routOverrideArc = new javax.swing.JCheckBox();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        sogRouteTechnology = new javax.swing.JComboBox();
+        sogRouteArcOptions = new javax.swing.JScrollPane();
+        jLabel2 = new javax.swing.JLabel();
+        sogMaxArcWidth = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        sogComplexityLimit = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("Tool Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
@@ -266,8 +374,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         jPanel7.add(jLabel70, gridBagConstraints);
 
         routMimicPortsMustMatch.setText("Ports must match");
@@ -275,8 +384,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
         jPanel7.add(routMimicPortsMustMatch, gridBagConstraints);
 
         routMimicInteractive.setText("Interactive mimicking");
@@ -292,8 +402,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
         jPanel7.add(routMimicNumArcsMustMatch, gridBagConstraints);
 
         routMimicNodeSizesMustMatch.setText("Node sizes must match");
@@ -301,8 +412,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
         jPanel7.add(routMimicNodeSizesMustMatch, gridBagConstraints);
 
         routMimicNodeTypesMustMatch.setText("Node types must match");
@@ -310,8 +422,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
         jPanel7.add(routMimicNodeTypesMustMatch, gridBagConstraints);
 
         routMimicNoOtherArcs.setText("Cannot have other arcs in the same direction");
@@ -319,8 +432,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
         jPanel7.add(routMimicNoOtherArcs, gridBagConstraints);
 
         routMimicPortsWidthMustMatch.setText("Bus ports must have same width");
@@ -328,16 +442,17 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
         jPanel7.add(routMimicPortsWidthMustMatch, gridBagConstraints);
 
         routMimicKeepPins.setText("Keep pins");
         routMimicKeepPins.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
         routMimicKeepPins.setMargin(new java.awt.Insets(0, 0, 0, 0));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel7.add(routMimicKeepPins, gridBagConstraints);
@@ -347,8 +462,9 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 20, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 4, 4);
         jPanel7.add(routMimicOnlyNewTopology, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -366,7 +482,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 1, 4);
         jPanel8.add(routTechLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -374,7 +490,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel8.add(routDefaultArc, gridBagConstraints);
 
         routStitcher.add(routNoStitcher);
@@ -384,7 +500,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         jPanel8.add(routNoStitcher, gridBagConstraints);
 
         routStitcher.add(routAutoStitcher);
@@ -394,7 +510,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel8.add(routAutoStitcher, gridBagConstraints);
 
         routStitcher.add(routMimicStitcher);
@@ -404,14 +520,14 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
         jPanel8.add(routMimicStitcher, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
         jPanel8.add(routTechnology, gridBagConstraints);
 
         routArcLabel.setText("Arc:");
@@ -419,7 +535,7 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(1, 20, 4, 4);
         jPanel8.add(routArcLabel, gridBagConstraints);
 
         routOverrideArc.setText("Use this arc in stitching routers:");
@@ -427,6 +543,8 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
         jPanel8.add(routOverrideArc, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -435,6 +553,77 @@ public class RoutingTab extends PreferencePanel
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         routing.add(jPanel8, gridBagConstraints);
+
+        jPanel1.setLayout(new java.awt.GridBagLayout());
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Sea-of-Gates Router"));
+        jLabel1.setText("Technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(jLabel1, gridBagConstraints);
+
+        sogRouteTechnology.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(sogRouteTechnology, gridBagConstraints);
+
+        sogRouteArcOptions.setMinimumSize(new java.awt.Dimension(100, 100));
+        sogRouteArcOptions.setOpaque(false);
+        sogRouteArcOptions.setPreferredSize(new java.awt.Dimension(100, 100));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        jPanel1.add(sogRouteArcOptions, gridBagConstraints);
+
+        jLabel2.setText("Maximum arc width:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(jLabel2, gridBagConstraints);
+
+        sogMaxArcWidth.setColumns(10);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        jPanel1.add(sogMaxArcWidth, gridBagConstraints);
+
+        jLabel3.setText("Search complexity limit:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        jPanel1.add(jLabel3, gridBagConstraints);
+
+        sogComplexityLimit.setColumns(10);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        jPanel1.add(sogComplexityLimit, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weighty = 1.0;
+        routing.add(jPanel1, gridBagConstraints);
 
         getContentPane().add(routing, new java.awt.GridBagConstraints());
 
@@ -449,7 +638,11 @@ public class RoutingTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel70;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
     private javax.swing.JLabel routArcLabel;
@@ -471,6 +664,10 @@ public class RoutingTab extends PreferencePanel
     private javax.swing.JLabel routTechLabel;
     private javax.swing.JComboBox routTechnology;
     private javax.swing.JPanel routing;
+    private javax.swing.JTextField sogComplexityLimit;
+    private javax.swing.JTextField sogMaxArcWidth;
+    private javax.swing.JScrollPane sogRouteArcOptions;
+    private javax.swing.JComboBox sogRouteTechnology;
     // End of variables declaration//GEN-END:variables
 
 }

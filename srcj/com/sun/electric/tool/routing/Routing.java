@@ -78,8 +78,8 @@ public class Routing extends Listener
 		ArcInst [] createdArcs;
 		NodeInst [] createdNodes;
 		int numDeletedArcs, numDeletedNodes;
-        ImmutableArcInst deletedArc;
-        CellId deletedArcParent;
+		ImmutableArcInst deletedArc;
+		CellId deletedArcParent;
 		PortProtoId [] deletedPorts;
 
 		Activity()
@@ -115,79 +115,79 @@ public class Routing extends Listener
 		setOn();
 	}
 
-    /**
-     * Method to retrieve the singleton associated with the Routing tool.
-     * @return the Routing tool.
-     */
-    public static Routing getRoutingTool() { return tool; }
+	/**
+	 * Method to retrieve the singleton associated with the Routing tool.
+	 * @return the Routing tool.
+	 */
+	public static Routing getRoutingTool() { return tool; }
 
    /**
-     * Handles database changes of a Job.
-     * @param oldSnapshot database snapshot before Job.
-     * @param newSnapshot database snapshot after Job and constraint propagation.
-     * @param undoRedo true if Job was Undo/Redo job.
-     */
-    public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
+	 * Handles database changes of a Job.
+	 * @param oldSnapshot database snapshot before Job.
+	 * @param newSnapshot database snapshot after Job and constraint propagation.
+	 * @param undoRedo true if Job was Undo/Redo job.
+	 */
+	public void endBatch(Snapshot oldSnapshot, Snapshot newSnapshot, boolean undoRedo)
 	{
 		if (undoRedo) return;
 		if (newSnapshot.tool == tool) return;
-        current = new Activity();
-        checkAutoStitch = false;
-        for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
-            Cell cell = Cell.inCurrentThread(cellId);
-            if (cell == null) continue;
-            CellBackup oldBackup = oldSnapshot.getCell(cellId);
-            if (oldBackup == null) continue; // Don't route in new cells
-            if (oldBackup == cell.backup()) continue;
-            ArrayList<ImmutableNodeInst> oldNodes = new ArrayList<ImmutableNodeInst>();
-            for (ImmutableNodeInst n: oldBackup.nodes) {
-                while (n.nodeId >= oldNodes.size()) oldNodes.add(null);
-                oldNodes.set(n.nodeId, n);
-            }
-            ArrayList<ImmutableArcInst> oldArcs = new ArrayList<ImmutableArcInst>();
-            for (ImmutableArcInst a: oldBackup.arcs) {
-                while (a.arcId >= oldArcs.size()) oldArcs.add(null);
-                oldArcs.set(a.arcId, a);
-            }
-            for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
-                NodeInst ni = it.next();
-                ImmutableNodeInst d = ni.getD();
-                ImmutableNodeInst oldD = d.nodeId < oldNodes.size() ? oldNodes.get(d.nodeId) : null;
-                if (oldD == null) {
-                    if (current.numCreatedNodes < 3)
-                        current.createdNodes[current.numCreatedNodes++] = ni;
-                } else if (oldD != d) {
-                    checkAutoStitch = true;
-                }
-            }
-            for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
-                ArcInst ai = it.next();
-                ImmutableArcInst d = ai.getD();
-                ImmutableArcInst oldD = d.arcId < oldArcs.size( ) ? oldArcs.get(d.arcId) : null;
-                if (oldD == null) {
-                    if (current.numCreatedArcs < 3)
-                        current.createdArcs[current.numCreatedArcs++] = ai;
-                }
-            }
-            for (ImmutableArcInst nid: oldBackup.arcs) {
-                if (nid == null) continue;
-                if (cell.getNodeById(nid.arcId) == null)
-                    current.numDeletedNodes++;
-            }
-            for (ImmutableArcInst aid: oldBackup.arcs) {
-                if (aid == null) continue;
-                if (cell.getArcById(aid.arcId) == null) {
-                    if (current.numDeletedArcs == 0) {
-                        current.deletedArc = aid;
-                        current.deletedArcParent = cell.getId();
-                        current.deletedPorts[0] = aid.headPortId;
-                        current.deletedPorts[1] = aid.tailPortId;
-                    }
-                    current.numDeletedArcs++;
-                }
-            }
-        }
-        
+		current = new Activity();
+		checkAutoStitch = false;
+		for (CellId cellId: newSnapshot.getChangedCells(oldSnapshot)) {
+			Cell cell = Cell.inCurrentThread(cellId);
+			if (cell == null) continue;
+			CellBackup oldBackup = oldSnapshot.getCell(cellId);
+			if (oldBackup == null) continue; // Don't route in new cells
+			if (oldBackup == cell.backup()) continue;
+			ArrayList<ImmutableNodeInst> oldNodes = new ArrayList<ImmutableNodeInst>();
+			for (ImmutableNodeInst n: oldBackup.nodes) {
+				while (n.nodeId >= oldNodes.size()) oldNodes.add(null);
+				oldNodes.set(n.nodeId, n);
+			}
+			ArrayList<ImmutableArcInst> oldArcs = new ArrayList<ImmutableArcInst>();
+			for (ImmutableArcInst a: oldBackup.arcs) {
+				while (a.arcId >= oldArcs.size()) oldArcs.add(null);
+				oldArcs.set(a.arcId, a);
+			}
+			for (Iterator<NodeInst> it = cell.getNodes(); it.hasNext(); ) {
+				NodeInst ni = it.next();
+				ImmutableNodeInst d = ni.getD();
+				ImmutableNodeInst oldD = d.nodeId < oldNodes.size() ? oldNodes.get(d.nodeId) : null;
+				if (oldD == null) {
+					if (current.numCreatedNodes < 3)
+						current.createdNodes[current.numCreatedNodes++] = ni;
+				} else if (oldD != d) {
+					checkAutoStitch = true;
+				}
+			}
+			for (Iterator<ArcInst> it = cell.getArcs(); it.hasNext(); ) {
+				ArcInst ai = it.next();
+				ImmutableArcInst d = ai.getD();
+				ImmutableArcInst oldD = d.arcId < oldArcs.size( ) ? oldArcs.get(d.arcId) : null;
+				if (oldD == null) {
+					if (current.numCreatedArcs < 3)
+						current.createdArcs[current.numCreatedArcs++] = ai;
+				}
+			}
+			for (ImmutableArcInst nid: oldBackup.arcs) {
+				if (nid == null) continue;
+				if (cell.getNodeById(nid.arcId) == null)
+					current.numDeletedNodes++;
+			}
+			for (ImmutableArcInst aid: oldBackup.arcs) {
+				if (aid == null) continue;
+				if (cell.getArcById(aid.arcId) == null) {
+					if (current.numDeletedArcs == 0) {
+						current.deletedArc = aid;
+						current.deletedArcParent = cell.getId();
+						current.deletedPorts[0] = aid.headPortId;
+						current.deletedPorts[1] = aid.tailPortId;
+					}
+					current.numDeletedArcs++;
+				}
+			}
+		}
+
 		if (current.numCreatedArcs > 0 || current.numCreatedNodes > 0 || current.deletedArc != null)
 		{
 			past = current;
@@ -201,8 +201,8 @@ public class Routing extends Listener
 		{
 			AutoStitch.autoStitch(false, false);
 		}
-        // JFluid results
-        current = null;
+		// JFluid results
+		current = null;
 	}
 
 	/****************************** COMMANDS ******************************/
@@ -294,8 +294,8 @@ public class Routing extends Listener
 			for(Network net : nets)
 			{
 				netsToUnroute[i] = net;
-                HashSet<ArcInst> arcs = new HashSet<ArcInst>();
-                HashSet<NodeInst> nodes = new HashSet<NodeInst>();
+				HashSet<ArcInst> arcs = new HashSet<ArcInst>();
+				HashSet<NodeInst> nodes = new HashSet<NodeInst>();
 				arcsToDelete.add(arcs);
 				nodesToDelete.add(nodes);
 				netEnds.add(findNetEnds(net, arcs, nodes, netList, false));
@@ -311,16 +311,16 @@ public class Routing extends Listener
 			return true;
 		}
 
-        public void terminateOK()
-        {
-    		UserInterface ui = Job.getUserInterface();
-    		EditWindow_ wnd = ui.getCurrentEditWindow_();
-    		if (wnd == null) return;
+		public void terminateOK()
+		{
+			UserInterface ui = Job.getUserInterface();
+			EditWindow_ wnd = ui.getCurrentEditWindow_();
+			if (wnd == null) return;
 			wnd.clearHighlighting();
 			for(ArcInst ai : highlightThese)
 				wnd.addElectricObject(ai, ai.getParent());
 			wnd.finishedHighlighting();
-        }
+		}
 
 		private static boolean unrouteNet(Network net, HashSet<ArcInst> arcsToDelete, HashSet<NodeInst> nodesToDelete,
 			List<Connection> netEnds, Netlist netList, List<ArcInst> highlightThese)
@@ -464,7 +464,7 @@ public class Routing extends Listener
 
 	/****************************** SUN ROUTER INTERFACE ******************************/
 
-    private static boolean sunRouterChecked = false;
+	private static boolean sunRouterChecked = false;
 	private static Class sunRouterClass = null;
 	private static Method sunRouterMethod;
 
@@ -521,7 +521,7 @@ public class Routing extends Listener
 		} catch (Exception e)
 		{
 			System.out.println("Unable to run the Sun Router module");
-            e.printStackTrace(System.out);
+			e.printStackTrace(System.out);
 		}
 	}
 
@@ -1275,7 +1275,7 @@ public class Routing extends Listener
 	 */
 	public static void setMimicStitchInteractive(boolean on) { cacheMimicStitchInteractive.setBoolean(on); }
 
-    private static Pref cacheMimicStitchPinsKept = Pref.makeBooleanPref("MimicStitchPinsKept", Routing.tool.prefs, false);
+	private static Pref cacheMimicStitchPinsKept = Pref.makeBooleanPref("MimicStitchPinsKept", Routing.tool.prefs, false);
 	/**
 	 * Method to tell whether Mimic-stitching keeps pins even if it has no arc connections.
 	 * The default is "false".
@@ -1382,6 +1382,77 @@ public class Routing extends Listener
 	 * @param on true if Mimic-stitching creates arcs only where not already connected.
 	 */
 	public static void setMimicStitchOnlyNewTopology(boolean on) { cacheMimicStitchOnlyNewTopology.setBoolean(on); }
+
+	/****************************** SEA-OF-GATES ROUTER OPTIONS ******************************/
+
+	/** Pref map for arc preventino by sea-of-gates router. */	private static HashMap<ArcProto,Pref> defaultSOGPreventPrefs = new HashMap<ArcProto,Pref>();
+	/** Pref map for arc favoring by sea-of-gates router. */	private static HashMap<ArcProto,Pref> defaultSOGFavorPrefs = new HashMap<ArcProto,Pref>();
+
+	private static Pref getArcProtoBitPref(ArcProto ap, String what, HashMap<ArcProto,Pref> map)
+	{
+		Pref pref = map.get(ap);
+		if (pref == null)
+		{
+			pref = Pref.makeBooleanPref("Default" + what + "For" + ap.getName() + "IN" + ap.getTechnology().getTechName(),
+				User.getUserTool().prefs, false);
+			map.put(ap, pref);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to set the "sea-of-gates can use" bit for this ArcProto.
+	 * @param prevent true if sea-of-gates routing should avoid this ArcProto.
+	 */
+	public static void setSeaOfGatesPrevent(ArcProto ap, boolean prevent) { getArcProtoBitPref(ap, "SeaOfGatesPrevent", defaultSOGPreventPrefs).setBoolean(prevent); }
+
+	/**
+	 * Method to tell if the "sea-of-gates" router can use this ArcProto.
+	 * @return true if sea-of-gates routing should avoid this ArcProto.
+	 */
+	public static boolean isSeaOfGatesPrevent(ArcProto ap) { return getArcProtoBitPref(ap, "SeaOfGatesPrevent", defaultSOGPreventPrefs).getBoolean(); }
+
+	/**
+	 * Method to set the "sea-of-gates favor" bit for this ArcProto.
+	 * @param favor true if sea-of-gates routing should favor this ArcProto.
+	 */
+	public static void setSeaOfGatesFavor(ArcProto ap, boolean favor) { getArcProtoBitPref(ap, "SeaOfGatesFavor", defaultSOGFavorPrefs).setBoolean(favor); }
+
+	/**
+	 * Method to tell if the "sea-of-gates" router should favor this ArcProto.
+	 * @return true if sea-of-gates routing should favor this ArcProto.
+	 */
+	public static boolean isSeaOfGatesFavor(ArcProto ap) { return getArcProtoBitPref(ap, "SeaOfGatesFavor", defaultSOGFavorPrefs).getBoolean(); }
+
+	private static Pref cacheSOGMaxWidth = Pref.makeDoublePref("SeaOfGatesMaxWidth", Routing.getRoutingTool().prefs, 10);
+	/**
+	 * Method to get the "sea-of-gates" maximum arc width.
+	 * Since the SOG router places arcs that are as wide as the widest arc on the net,
+	 * this may be too large (especially near pads).  This value limits the width.
+	 * @return the maximum arc width in sea-of-gates routing.
+	 */
+	public static double getSeaOfGatesMaxWidth() { return cacheSOGMaxWidth.getDouble(); }
+	/**
+	 * Method to set the "sea-of-gates" maximum arc width.
+	 * Since the SOG router places arcs that are as wide as the widest arc on the net,
+	 * this may be too large (especially near pads).  This value limits the width.
+	 * @param w the maximum arc width in sea-of-gates routing.
+	 */
+	public static void setSeaOfGatesMaxWidth(double w) { cacheSOGMaxWidth.setDouble(w); }
+
+	private static Pref cacheSOGComplexityLimit = Pref.makeIntPref("SeaOfGatesComplexityLimit", Routing.getRoutingTool().prefs, 1000000);
+	/**
+	 * Method to get the "sea-of-gates" complexity limit.
+	 * This is the maximum number of steps allowed when searching for a routing path.
+	 * @return the "sea-of-gates" complexity limit.
+	 */
+	public static int getSeaOfGatesComplexityLimit() { return cacheSOGComplexityLimit.getInt(); }
+	/**
+	 * Method to set the "sea-of-gates" complexity limit.
+	 * This is the maximum number of steps allowed when searching for a routing path.
+	 * @param c the "sea-of-gates" complexity limit.
+	 */
+	public static void setSeaOfGatesComplexityLimit(int c) { cacheSOGComplexityLimit.setInt(c); }
 
 	/****************************** SUN ROUTER OPTIONS ******************************/
 
