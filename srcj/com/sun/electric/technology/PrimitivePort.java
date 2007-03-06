@@ -381,8 +381,7 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable<Primiti
 			if (ap.getTechnology() != tech) continue;
 
 			// get the arc's color
-			Technology.ArcLayer [] layers = ap.getLayers();
-			Layer layer = layers[0].getLayer();
+			Layer layer = ap.getArcLayer(0).getLayer();
 			EGraphics graphics = layer.getGraphics();
 			Color layerCol = graphics.getColor();
 			r += layerCol.getRed();

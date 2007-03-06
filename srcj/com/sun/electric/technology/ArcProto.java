@@ -857,13 +857,17 @@ public class ArcProto implements Comparable<ArcProto>
 		return null;
 	}
 
-	/**
-	 * Method to return the array of layers that comprise this ArcProto.
-	 * @return the array of layers that comprise this ArcProto.
+ 	/**
+	 * Method to return the number of layers that comprise this ArcProto.
+	 * @return the number of layers that comprise this ArcProto.
 	 */
-	Technology.ArcLayer [] getLayers() { return layers; }
-    
     public int getNumArcLayers() { return layers.length; }
+    
+	/**
+	 * Method to return specified layer that comprise this ArcProto.
+     * @param i layer index
+	 * @return specified layer that comprise this ArcProto.
+	 */
     public Technology.ArcLayer getArcLayer(int i) { return layers[i]; }
 
 	/**

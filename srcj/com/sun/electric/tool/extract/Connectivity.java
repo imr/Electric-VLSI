@@ -1730,7 +1730,8 @@ public class Connectivity
 		{
 			ArcProto ap = arcsForLayer.get(layer);
 			if (ap == null) continue;
-			double offset = getLayerOffset(layer, ap);
+			double wid = ap.getDefaultLambdaFullWidth();
+            double arcLayerWidth = wid - getLayerOffset(layer, ap);
 
 			List<PolyBase> polyList = getMergePolys(merge, layer);
 			for(PolyBase poly : polyList)
@@ -1797,8 +1798,7 @@ public class Connectivity
 						Point2D pt2 = new Point2D.Double(xpos, polyBounds2.getCenterY());
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
-						double wid = ap.getDefaultLambdaFullWidth();
-						originalMerge.arcPolyFits(layer, pt1, pt2, wid-offset, headExtend, tailExtend);
+						originalMerge.arcPolyFits(layer, pt1, pt2, arcLayerWidth, headExtend, tailExtend);
 						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 						continue;
 					}
@@ -1812,8 +1812,7 @@ public class Connectivity
 						Point2D pt2 = new Point2D.Double(polyBounds2.getCenterX(), ypos);
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
-						double wid = ap.getDefaultLambdaFullWidth();
-						originalMerge.arcPolyFits(layer, pt1, pt2, wid-offset, headExtend, tailExtend);
+						originalMerge.arcPolyFits(layer, pt1, pt2, arcLayerWidth, headExtend, tailExtend);
 						ArcInst ai = realizeArc(ap, pi1, pi2, pt1, pt2, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 						continue;
 					}
@@ -1831,14 +1830,13 @@ public class Connectivity
 						PrimitiveNode np = ap.findPinProto();
 						NodeInst ni = createNode(np, containsIt, np.getDefWidth(), np.getDefHeight(), null, newCell);
 						PortInst pi = ni.getOnlyPortInst();
-						double wid = ap.getDefaultLambdaFullWidth();
 
 						MutableBoolean headExtend = new MutableBoolean(true), tailExtend = new MutableBoolean(true);
-						originalMerge.arcPolyFits(layer, pt1, containsIt, wid-offset, headExtend, tailExtend);
+						originalMerge.arcPolyFits(layer, pt1, containsIt, arcLayerWidth, headExtend, tailExtend);
 						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 
 						headExtend.setValue(true);   tailExtend.setValue(true);
-						originalMerge.arcPolyFits(layer, pt2, containsIt, wid-offset, headExtend, tailExtend);
+						originalMerge.arcPolyFits(layer, pt2, containsIt, arcLayerWidth, headExtend, tailExtend);
 						ArcInst ai2 = realizeArc(ap, pi2, pi, pt2, containsIt, wid, !headExtend.booleanValue(), !tailExtend.booleanValue(), merge);
 					}
 				}

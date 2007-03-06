@@ -1266,11 +1266,12 @@ public class Technology implements Comparable<Technology>
         // get information about the arc
         ArcProto ap = a.protoType;
         assert ap.getTechnology() == this;
-        ArcLayer [] primLayers = ap.getLayers();
+        int numArcLayers = ap.getNumArcLayers();
         
         // construct the polygons that describe the basic arc
         if (!isNoNegatedArcs() && (a.isHeadNegated() || a.isTailNegated())) {
-            for (Technology.ArcLayer primLayer: primLayers) {
+            for (int i = 0; i < numArcLayers; i++) {
+                Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
                 if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction())) continue;
                 if (layerOverride != null) layer = layerOverride;
@@ -1291,7 +1292,8 @@ public class Technology implements Comparable<Technology>
                 b.pushPoly(Poly.Type.OPENED, layer);
             }
         } else {
-            for (Technology.ArcLayer primLayer: primLayers) {
+            for (int i = 0; i < numArcLayers; i++) {
+                Technology.ArcLayer primLayer = ap.getArcLayer(i);
                 Layer layer = primLayer.getLayer();
                 if (b.onlyTheseLayers != null && !b.onlyTheseLayers.contains(layer.getFunction())) continue;
                 if (layerOverride != null) layer = layerOverride;
