@@ -443,11 +443,11 @@ public final class Main
 //			try {
 //				Undo.changesQuiet(true);
 
-				// initialize all of the technologies
-				Technology.initAllTechnologies();
-
 				// initialize all of the tools
 				Tool.initAllTools();
+
+				// initialize all of the technologies
+				Technology.initAllTechnologies();
 
 				// initialize the constraint system
 //				Layout con = Layout.getConstraint();

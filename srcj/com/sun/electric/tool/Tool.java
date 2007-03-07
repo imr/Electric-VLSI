@@ -23,7 +23,9 @@
  */
 package com.sun.electric.tool;
 
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.compaction.Compaction;
@@ -41,6 +43,8 @@ import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
 import com.sun.electric.tool.extract.Extract;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.extract.LayerCoverageTool;
+import com.sun.electric.tool.generator.layout.GateLayGenSettings;
+import java.lang.reflect.Field;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -114,13 +118,17 @@ public class Tool implements Comparable
         Extract.getExtractTool().init();
         IOTool.getIOTool().init();
         LETool.getLETool().init();
-//		NetworkTool.getNetworkTool().init();
+		NetworkTool.getNetworkTool().init();
         ParasiticTool.getParasiticTool().init();
         Project.getProjectTool().init();
         Routing.getRoutingTool().init();
         SilComp.getSilCompTool().init();
         Simulation.getSimulationTool().init();
         LayerCoverageTool.getLayerCoverageTool().init();
+        GateLayGenSettings.tool.init();
+        
+        for (Tool tool: tools.values())
+            tool.initProjectSettings();
 	}
 
 	/**
@@ -305,6 +313,86 @@ public class Tool implements Comparable
 		return "Tool '" + toolName + "'";
 	}
 
+    /**
+     * Subclasses override this method to create ProjectSettings by Tool.makeXXXSetting methods declared below.
+     */
+    protected void initProjectSettings() {}
+    
+	/**
+	 * Factory methods to create a boolean project setting objects.
+     * The created object is stored into a field of this Tool whose name is "cache"+name.
+	 * @param name the name of this Pref.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    protected void makeBooleanSetting(String name, String location, String description, boolean factory) {
+        setCacheField(Setting.makeBooleanSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+    }
+    
+	/**
+	 * Factory methods to create an integer project setting objects.
+     * The created object is stored into a field of this Tool whose name is "cache"+name.
+	 * @param name the name of this Pref.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    protected void makeIntSetting(String name, String location, String description, int factory) {
+        setCacheField(Setting.makeIntSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+    }
+    
+	/**
+	 * Factory methods to create a long project setting objects.
+     * The created object is stored into a field of this Tool whose name is "cache"+name.
+	 * @param name the name of this Pref.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    protected void makeLongSetting(String name, String location, String description, long factory) {
+        setCacheField(Setting.makeLongSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+    }
+    
+	/**
+	 * Factory methods to create a double project setting objects.
+     * The created object is stored into a field of this Tool whose name is "cache"+name.
+	 * @param name the name of this Pref.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    protected void makeDoubleSetting(String name, String location, String description, double factory) {
+        setCacheField(Setting.makeDoubleSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+    }
+
+	/**
+	 * Factory methods to create a string project setting objects.
+     * The created object is stored into a field of this Tool whose name is "cache"+name.
+	 * @param name the name of this Pref.
+	 * @param location the user-command that can affect this meaning option.
+	 * @param description the description of this meaning option.
+	 * @param factory the "factory" default value (if nothing is stored).
+	 */
+    protected void makeStringSetting(String name, String location, String description, String factory) {
+        setCacheField(Setting.makeStringSetting(name, prefs, this, getProjectSettings(), null, location, description, factory));
+    }
+    
+    /**
+     * Method to store Setting variable in a cache field of this Tool.
+     * The name of a field for Setting with name "SettingName" is "cacheSettingName".
+     * @param setting Setting variable.
+     */
+    private void setCacheField(Setting setting) {
+        try {
+            Field fld = getClass().getDeclaredField("cache" + setting.getPrefName());
+            fld.setAccessible(true);
+            fld.set(this, setting);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
 	/**
 	 * Method to set a variable on an ElectricObject in a new Job.
 	 * @param obj the ElectricObject on which to set the variable.

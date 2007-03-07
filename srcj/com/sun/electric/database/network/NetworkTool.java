@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
 import com.sun.electric.database.topology.NodeInst;
@@ -39,8 +40,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -332,18 +331,15 @@ public class NetworkTool extends Tool
 		System.out.println("NetworkTool.init()");
 	}
 
-	/****************************** OPTIONS ******************************/
+	/************************* PROJECT SETTINGS **************************/
 
-    private static Pref cacheIgnoreResistors = Pref.makeBooleanSetting("IgnoreResistors", NetworkTool.tool.prefs, NetworkTool.tool,
-            tool.getProjectSettings(), null,
-        "Netlists tab", "Networks ignore Resistors", false);
     /**
 	 * Method to tell whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.
 	 * When included, they appear as a component with different networks on either side.
 	 * @return true if resistors are ignored in the circuit.
 	 */
-	public static boolean isIgnoreResistors() { return cacheIgnoreResistors.getBoolean(); }
+	public static boolean isIgnoreResistors() { return tool.cacheIgnoreResistors.getBoolean(); }
 	private static boolean isIgnoreResistors_() { return false; }
 	/**
 	 * Method to set whether resistors are ignored in the circuit.
@@ -351,7 +347,16 @@ public class NetworkTool extends Tool
 	 * When included, they appear as a component with different networks on either side.
 	 * @param i true if resistors are ignored in the circuit.
 	 */
-	public static void setIgnoreResistors(boolean i) { cacheIgnoreResistors.setBoolean(i); }
+	public static void setIgnoreResistors(boolean i) { tool.cacheIgnoreResistors.setBoolean(i); }
+
+    private Setting cacheIgnoreResistors;
+    
+    @Override
+    protected void initProjectSettings() {
+        makeBooleanSetting("IgnoreResistors", "Netlists tab", "Networks ignore Resistors", false);
+    }
+    
+	/****************************** OPTIONS ******************************/
 
 	private static Pref cacheBusAscending = Pref.makeBooleanPref("BusAscending", NetworkTool.tool.prefs, false);
 	/**

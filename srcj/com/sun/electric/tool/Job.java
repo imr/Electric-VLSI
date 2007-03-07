@@ -628,7 +628,11 @@ public abstract class Job implements Serializable {
     }
 
     public static EDatabase threadDatabase() {
-        return EDatabase.theDatabase;
+        Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof EThread)
+            return ((EThread)currentThread).database;
+        else
+            return EDatabase.clientDatabase();
     }
     
     public static void wantUpdateGui() {

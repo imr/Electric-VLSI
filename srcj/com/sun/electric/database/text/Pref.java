@@ -670,8 +670,11 @@ public class Pref
     }
 
     protected void linkProjectSettings(ProjSettingsNode node, String name, String xmlName) {
-        if (node == null) return;
+//        if (node == null) return;
         if (xmlName == null) xmlName = name;
+//        if (!name.equals(xmlName)) {
+//            System.out.println("linkProjectSettings: " + name + " " + xmlName);
+//        }
         node.putValue(xmlName, this);
     }
 

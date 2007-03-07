@@ -27,6 +27,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Geometric;
@@ -45,8 +46,6 @@ import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.als.ALS;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.GenerateVHDL;
-import com.sun.electric.tool.user.projectSettings.ProjSettingsNode;
-import com.sun.electric.tool.user.projectSettings.ProjSettings;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -1000,6 +999,11 @@ public class Simulation extends Tool
 		}
 	}
 
+    @Override
+    protected void initProjectSettings() {
+        initVerilogProjectSettings();
+    }
+    
 	/****************************** FAST HENRY OPTIONS ******************************/
 
 	private static Pref cacheFastHenryUseSingleFrequency = Pref.makeBooleanPref("FastHenryUseSingleFrequency", tool.prefs, false);
@@ -1134,38 +1138,40 @@ public class Simulation extends Tool
 
 	/****************************** VERILOG OPTIONS ******************************/
 
-    private static Pref cacheVerilogUseAssign = Pref.makeBooleanSetting("VerilogUseAssign", tool.prefs, tool,
-            tool.getProjectSettings(), null,
-        "Verilog tab", "Verilog uses Assign construct", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use the Assign statement.
 	 * The default is false.
 	 * @return true if Verilog deck generation should use the Assign statement.
 	 */
-	public static boolean getVerilogUseAssign() { return cacheVerilogUseAssign.getBoolean(); }
+	public static boolean getVerilogUseAssign() { return tool.cacheVerilogUseAssign.getBoolean(); }
 	/**
 	 * Method to set whether Verilog deck generation should use the Assign statement.
 	 * @param use true if Verilog deck generation should use the Assign statement.
 	 */
-	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
+	public static void setVerilogUseAssign(boolean use) { tool.cacheVerilogUseAssign.setBoolean(use); }
 
-	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanSetting("VerilogUseTrireg", tool.prefs, tool,
-            tool.getProjectSettings(), null,
-        "Verilog tab", "Verilog presumes wire is Trireg", false);
 	/**
 	 * Method to tell whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.
 	 * The default is false.
 	 * @return true if Verilog deck generation should use Trireg by default.
 	 */
-	public static boolean getVerilogUseTrireg() { return cacheVerilogUseTrireg.getBoolean(); }
+	public static boolean getVerilogUseTrireg() { return tool.cacheVerilogUseTrireg.getBoolean(); }
 	/**
 	 * Method to set whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.
 	 * @param use true if Verilog deck generation should use Trireg by default.
 	 */
-	public static void setVerilogUseTrireg(boolean use) { cacheVerilogUseTrireg.setBoolean(use); }
+	public static void setVerilogUseTrireg(boolean use) { tool.cacheVerilogUseTrireg.setBoolean(use); }
 
+    private Setting cacheVerilogUseAssign;
+	private Setting cacheVerilogUseTrireg;
+    
+    private void initVerilogProjectSettings() {
+        makeBooleanSetting("VerilogUseAssign", "Verilog tab", "Verilog uses Assign construct", false);
+        makeBooleanSetting("VerilogUseTrireg", "Verilog tab", "Verilog presumes wire is Trireg", false);
+    }
+    
     private static Pref cacheVerilogStopAtStandardCells = Pref.makeBooleanPref("VerilogStopAtStandardCells", tool.prefs, false);
     public static void setVerilogStopAtStandardCells(boolean b) { cacheVerilogStopAtStandardCells.setBoolean(b); }
     public static boolean getVerilogStopAtStandardCells() { return cacheVerilogStopAtStandardCells.getBoolean(); }

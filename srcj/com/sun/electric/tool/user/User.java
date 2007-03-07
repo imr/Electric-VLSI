@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.EDatabase;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
@@ -733,6 +734,71 @@ public class User extends Listener
 		clickSound.play();
 	}
 
+	/****************************** PROJECT SETTINGS *****************************************/
+
+	/**
+	 * Method to get default technique in Tech Palette.
+	 * The default is "mocmos".
+	 * @return the default technology to use in Tech Palette
+	 */
+	public static String getDefaultTechnology() { return tool.cacheDefaultTechnology.getString(); }
+	/**
+	 * Method to set default technique in Tech Palette.
+	 * @param t the default technology to use in Tech Palette.
+	 */
+	public static void setDefaultTechnology(String t) { tool.cacheDefaultTechnology.setString(t); }
+
+	/**
+	 * Method to choose the layout Technology to use when schematics are found.
+	 * This is important in Spice deck generation (for example) because the Spice primitives may
+	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
+	 * numbers to real spacings for the deck.
+	 * The default is the MOSIS CMOS technology.
+	 * @return the Technology to use when schematics are found.
+	 */
+	public static Technology getSchematicTechnology()
+	{
+        String t = tool.cacheSchematicTechnology.getString();
+		Technology tech = Technology.findTechnology(t);
+        if (tech == null) return MoCMOS.tech;
+        return tech;
+    }
+	/**
+	 * Method to set the layout Technology to use when schematics are found.
+	 * This is important in Spice deck generation (for example) because the Spice primitives may
+	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
+	 * numbers to real spacings for the deck.
+	 * @param t the Technology to use when schematics are found.
+	 */
+	public static void setSchematicTechnology(Technology t)
+	{
+        if (t == null) return;
+        tool.cacheSchematicTechnology.setString(t.getTechName());
+    }
+
+	/**
+	 * Method to tell whether to include the date and Electric version in output files.
+	 * The default is "true".
+	 * @return true if the system should include the date and Electric version in output files.
+	 */
+	public static boolean isIncludeDateAndVersionInOutput() { return tool.cacheIncludeDateAndVersionInOutput.getBoolean(); }
+	/**
+	 * Method to set whether to include the date and Electric version in output files.
+	 * @param on true if the system should include the date and Electric version in output files.
+	 */
+	public static void setIncludeDateAndVersionInOutput(boolean on) { tool.cacheIncludeDateAndVersionInOutput.setBoolean(on); }
+
+    private Setting cacheDefaultTechnology;
+    private Setting cacheSchematicTechnology;
+	private Setting cacheIncludeDateAndVersionInOutput;
+    
+    @Override
+    protected void initProjectSettings() {
+        makeStringSetting("DefaultTechnology", "Technology tab", "Default Technology for editing", "mocmos");
+        makeStringSetting("SchematicTechnology", "Technology tab", "Schematics use scale values from this technology", "mocmos");
+        makeBooleanSetting("IncludeDateAndVersionInOutput", "Netlists tab", "Include date and version in output", true);
+    }
+    
 	/****************************** ICON GENERATION PREFERENCES ******************************/
 
 	private static Pref cacheIconGenDrawLeads = Pref.makeBooleanPref("IconGenDrawLeads", tool.prefs, true);
@@ -1842,52 +1908,6 @@ public class User extends Listener
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
 
-    private static Pref cacheDefaultTechnology = Pref.makeStringSetting("DefaultTechnology", tool.prefs, tool,
-            tool.getProjectSettings(), null,
-        "Technology tab", "Default Technology for editing", "mocmos");
-	/**
-	 * Method to get default technique in Tech Palette.
-	 * The default is "mocmos".
-	 * @return the default technology to use in Tech Palette
-	 */
-	public static String getDefaultTechnology() { return cacheDefaultTechnology.getString(); }
-	/**
-	 * Method to set default technique in Tech Palette.
-	 * @param t the default technology to use in Tech Palette.
-	 */
-	public static void setDefaultTechnology(String t) { cacheDefaultTechnology.setString(t); }
-
-    private static Pref cacheSchematicTechnology = Pref.makeStringSetting("SchematicTechnology", tool.prefs, tool,
-            tool.getProjectSettings(), null,
-        "Technology tab", "Schematics use scale values from this technology", "mocmos");
-	/**
-	 * Method to choose the layout Technology to use when schematics are found.
-	 * This is important in Spice deck generation (for example) because the Spice primitives may
-	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
-	 * numbers to real spacings for the deck.
-	 * The default is the MOSIS CMOS technology.
-	 * @return the Technology to use when schematics are found.
-	 */
-	public static Technology getSchematicTechnology()
-	{
-        String t = cacheSchematicTechnology.getString();
-		Technology tech = Technology.findTechnology(t);
-        if (tech == null) return MoCMOS.tech;
-        return tech;
-    }
-	/**
-	 * Method to set the layout Technology to use when schematics are found.
-	 * This is important in Spice deck generation (for example) because the Spice primitives may
-	 * say "2x3" on them, but a real technology (such as "mocmos") must be found to convert these pure
-	 * numbers to real spacings for the deck.
-	 * @param t the Technology to use when schematics are found.
-	 */
-	public static void setSchematicTechnology(Technology t)
-	{
-        if (t == null) return;
-        cacheSchematicTechnology.setString(t.getTechName());
-    }
-
 //    public static final String INITIALWORKINGDIRSETTING_BASEDONOS = "Based on OS";
 //    public static final String INITIALWORKINGDIRSETTING_USECURRENTDIR = "Use current directory";
 //    public static final String INITIALWORKINGDIRSETTING_USELASTDIR = "Use last used directory";
@@ -2126,21 +2146,6 @@ public class User extends Listener
 	 * @param on true if the system should play a "click" sound when an arc is created
 	 */
 	public static void setPlayClickSoundsWhenCreatingArcs(boolean on) { cachePlayClickSoundsWhenCreatingArcs.setBoolean(on); }
-
-	private static Pref cacheIncludeDateAndVersionInOutput = Pref.makeBooleanSetting("IncludeDateAndVersionInOutput", tool.prefs, tool,
-            tool.getProjectSettings(), null,
-		"Netlists tab", "Include date and version in output", true);
-	/**
-	 * Method to tell whether to include the date and Electric version in output files.
-	 * The default is "true".
-	 * @return true if the system should include the date and Electric version in output files.
-	 */
-	public static boolean isIncludeDateAndVersionInOutput() { return cacheIncludeDateAndVersionInOutput.getBoolean(); }
-	/**
-	 * Method to set whether to include the date and Electric version in output files.
-	 * @param on true if the system should include the date and Electric version in output files.
-	 */
-	public static void setIncludeDateAndVersionInOutput(boolean on) { cacheIncludeDateAndVersionInOutput.setBoolean(on); }
 
 	private static Pref cacheShowHierarchicalCursorCoordinates = Pref.makeBooleanPref("ShowHierarchicalCursorCoordinates", tool.prefs, true);
 	/**

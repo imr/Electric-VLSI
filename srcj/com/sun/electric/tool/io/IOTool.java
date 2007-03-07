@@ -26,6 +26,7 @@ package com.sun.electric.tool.io;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.Setting;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
@@ -182,6 +183,14 @@ public class IOTool extends Tool
 		}
 	}
 
+    @Override
+    protected void initProjectSettings() {
+        initGeneralOutputProjectSettings();
+        initCIFProjectSettings();
+        initGDSProjectSettings();
+        initDXFProjectSettings();
+    }
+    
 	/****************************** GENERAL IO PREFERENCES ******************************/
 
 	private static Pref cacheBackupRedundancy = Pref.makeIntPref("OutputBackupRedundancy", IOTool.tool.prefs, 0);
@@ -206,36 +215,38 @@ public class IOTool extends Tool
 
 	/****************************** GENERAL OUTPUT PREFERENCES ******************************/
 
-    private static Pref cacheUseCopyrightMessage = Pref.makeBooleanSetting("UseCopyrightMessage", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "Netlists tab", "Use copyright message", false);
 	/**
 	 * Method to tell whether to add the copyright message to output decks.
 	 * The default is "false".
 	 * @return true to add the copyright message to output decks.
 	 */
-	public static boolean isUseCopyrightMessage() { return cacheUseCopyrightMessage.getBoolean(); }
+	public static boolean isUseCopyrightMessage() { return tool.cacheUseCopyrightMessage.getBoolean(); }
 	/**
 	 * Method to set whether to add the copyright message to output decks.
 	 * @param u true to add the copyright message to output decks.
 	 */
-	public static void setUseCopyrightMessage(boolean u) { cacheUseCopyrightMessage.setBoolean(u); }
+	public static void setUseCopyrightMessage(boolean u) { tool.cacheUseCopyrightMessage.setBoolean(u); }
 
-	private static Pref cacheCopyrightMessage = Pref.makeStringSetting("CopyrightMessage", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "Netlists tab", "Copyright message", "");
 	/**
 	 * Method to tell the copyright message that will be added to output decks.
 	 * The default is "".
 	 * @return the copyright message that will be added to output decks.
 	 */
-	public static String getCopyrightMessage() { return cacheCopyrightMessage.getString(); }
+	public static String getCopyrightMessage() { return tool.cacheCopyrightMessage.getString(); }
 	/**
 	 * Method to set the copyright message that will be added to output decks.
 	 * @param m the copyright message that will be added to output decks.
 	 */
-	public static void setCopyrightMessage(String m) { cacheCopyrightMessage.setString(m); }
+	public static void setCopyrightMessage(String m) { tool.cacheCopyrightMessage.setString(m); }
 
+    private Setting cacheUseCopyrightMessage;
+	private Setting cacheCopyrightMessage;
+    
+    private void initGeneralOutputProjectSettings() {
+        makeBooleanSetting("UseCopyrightMessage", "Netlists tab", "Use copyright message", false);
+        makeStringSetting("CopyrightMessage", "Netlists tab", "Copyright message", "");
+    }
+    
 	private static Pref cachePlotArea = Pref.makeIntPref("PlotArea", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell the area of the screen to plot for printing/PostScript/HPGL.
@@ -295,9 +306,6 @@ public class IOTool extends Tool
 
 	/****************************** CIF PREFERENCES ******************************/
 
-	private static Pref cacheCIFOutMimicsDisplay = Pref.makeBooleanSetting("CIFMimicsDisplay", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "CIF tab", "CIF output mimics display", false);
 	/**
 	 * Method to tell whether CIF Output mimics the display.
 	 * To mimic the display, unexpanded cell instances are described as black boxes,
@@ -305,49 +313,53 @@ public class IOTool extends Tool
 	 * The default is "false".
 	 * @return true if CIF Output mimics the display.
 	 */
-	public static boolean isCIFOutMimicsDisplay() { return cacheCIFOutMimicsDisplay.getBoolean(); }
+	public static boolean isCIFOutMimicsDisplay() { return tool.cacheCIFMimicsDisplay.getBoolean(); }
 	/**
 	 * Method to set whether CIF Output mimics the display.
 	 * To mimic the display, unexpanded cell instances are described as black boxes,
 	 * instead of calls to their contents.
 	 * @param on true if CIF Output mimics the display.
 	 */
-	public static void setCIFOutMimicsDisplay(boolean on) { cacheCIFOutMimicsDisplay.setBoolean(on); }
+	public static void setCIFOutMimicsDisplay(boolean on) { tool.cacheCIFMimicsDisplay.setBoolean(on); }
 
-	private static Pref cacheCIFOutMergesBoxes = Pref.makeBooleanSetting("CIFMergesBoxes", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "CIF tab", "CIF output merges boxes", false);
 	/**
 	 * Method to tell whether CIF Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
 	 * The default is "false".
 	 * @return true if CIF Output merges boxes into complex polygons.
 	 */
-	public static boolean isCIFOutMergesBoxes() { return cacheCIFOutMergesBoxes.getBoolean(); }
+	public static boolean isCIFOutMergesBoxes() { return tool.cacheCIFMergesBoxes.getBoolean(); }
 	/**
 	 * Method to set whether CIF Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
 	 * @param on true if CIF Output merges boxes into complex polygons.
 	 */
-	public static void setCIFOutMergesBoxes(boolean on) { cacheCIFOutMergesBoxes.setBoolean(on); }
+	public static void setCIFOutMergesBoxes(boolean on) { tool.cacheCIFMergesBoxes.setBoolean(on); }
 
-	private static Pref cacheCIFOutInstantiatesTopLevel = Pref.makeBooleanSetting("CIFInstantiatesTopLevel", IOTool.tool.prefs, IOTool.tool, 
-            tool.getProjectSettings(), null,
-            "CIF tab", "CIF output instantiates top level", true);
 	/**
 	 * Method to tell whether CIF Output instantiates the top-level.
 	 * When this happens, a CIF "call" to the top cell is emitted.
 	 * The default is "true".
 	 * @return true if CIF Output merges boxes into complex polygons.
 	 */
-	public static boolean isCIFOutInstantiatesTopLevel() { return cacheCIFOutInstantiatesTopLevel.getBoolean(); }
+	public static boolean isCIFOutInstantiatesTopLevel() { return tool.cacheCIFInstantiatesTopLevel.getBoolean(); }
 	/**
 	 * Method to set whether CIF Output merges boxes into complex polygons.
 	 * When this happens, a CIF "call" to the top cell is emitted.
 	 * @param on true if CIF Output merges boxes into complex polygons.
 	 */
-	public static void setCIFOutInstantiatesTopLevel(boolean on) { cacheCIFOutInstantiatesTopLevel.setBoolean(on); }
+	public static void setCIFOutInstantiatesTopLevel(boolean on) { tool.cacheCIFInstantiatesTopLevel.setBoolean(on); }
 
+	private Setting cacheCIFMimicsDisplay;
+ 	private Setting cacheCIFMergesBoxes;
+	private Setting cacheCIFInstantiatesTopLevel;
+    
+    private void initCIFProjectSettings() {
+        makeBooleanSetting("CIFMimicsDisplay", "CIF tab", "CIF output mimics display", false);
+        makeBooleanSetting("CIFMergesBoxes", "CIF tab", "CIF output merges boxes", false);
+        makeBooleanSetting("CIFInstantiatesTopLevel", "CIF tab", "CIF output instantiates top level", true);
+    }
+    
 //	private static Pref cacheCIFOutResolution = Pref.makeDoublePref("CIFResolution", IOTool.tool.prefs, 0);
 //	/**
 //	 * Method to tell the minimum CIF Output resolution.
@@ -406,60 +418,48 @@ public class IOTool extends Tool
 
 	/****************************** GDS PREFERENCES ******************************/
 
-	private static Pref cacheGDSOutMergesBoxes = Pref.makeBooleanSetting("GDSMergesBoxes", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "GDS tab", "GDS output merges boxes", false);
 	/**
 	 * Method to tell whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
 	 * The default is "false".
 	 * @return true if GDS Output merges boxes into complex polygons.
 	 */
-	public static boolean isGDSOutMergesBoxes() { return cacheGDSOutMergesBoxes.getBoolean(); }
+	public static boolean isGDSOutMergesBoxes() { return tool.cacheGDSMergesBoxes.getBoolean(); }
 	/**
 	 * Method to set whether GDS Output merges boxes into complex polygons.
 	 * This takes more time but produces a smaller output file.
 	 * @param on true if GDS Output merges boxes into complex polygons.
 	 */
-	public static void setGDSOutMergesBoxes(boolean on) { cacheGDSOutMergesBoxes.setBoolean(on); }
+	public static void setGDSOutMergesBoxes(boolean on) { tool.cacheGDSMergesBoxes.setBoolean(on); }
 
-	private static Pref cacheGDSOutWritesExportPins = Pref.makeBooleanSetting("GDSWritesExportPins", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "GDS tab", "GDS output writes export pins", false);
 	/**
 	 * Method to tell whether GDS Output writes pins at Export locations.
 	 * Some systems can use this information to reconstruct export locations.
 	 * The default is "false".
 	 * @return true if GDS Output writes pins at Export locations.
 	 */
-	public static boolean isGDSOutWritesExportPins() { return cacheGDSOutWritesExportPins.getBoolean(); }
+	public static boolean isGDSOutWritesExportPins() { return tool.cacheGDSWritesExportPins.getBoolean(); }
 	/**
 	 * Method to set whether GDS Output writes pins at Export locations.
 	 * Some systems can use this information to reconstruct export locations.
 	 * @param on true if GDS Output writes pins at Export locations.
 	 */
-	public static void setGDSOutWritesExportPins(boolean on) { cacheGDSOutWritesExportPins.setBoolean(on); }
+	public static void setGDSOutWritesExportPins(boolean on) { tool.cacheGDSWritesExportPins.setBoolean(on); }
 
-	private static Pref cacheGDSOutUpperCase = Pref.makeBooleanSetting("GDSOutputUpperCase", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "GDS tab", "GDS output all upper-case", false);
 	/**
 	 * Method to tell whether GDS Output makes all text upper-case.
 	 * Some systems insist on this.
 	 * The default is "false".
 	 * @return true if GDS Output makes all text upper-case.
 	 */
-	public static boolean isGDSOutUpperCase() { return cacheGDSOutUpperCase.getBoolean(); }
+	public static boolean isGDSOutUpperCase() { return tool.cacheGDSOutputUpperCase.getBoolean(); }
 	/**
 	 * Method to set whether GDS Output makes all text upper-case.
 	 * Some systems insist on this.
 	 * @param on true if GDS Output makes all text upper-case.
 	 */
-	public static void setGDSOutUpperCase(boolean on) { cacheGDSOutUpperCase.setBoolean(on); }
+	public static void setGDSOutUpperCase(boolean on) { tool.cacheGDSOutputUpperCase.setBoolean(on); }
 
-	private static Pref cacheGDSOutDefaultTextLayer = Pref.makeIntSetting("GDSDefaultTextLayer", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "GDS tab", "GDS output default text layer", 230);
 	/**
 	 * Method to tell the default GDS layer to use for the text of Export pins.
 	 * Export pins are annotated with text objects on this layer.
@@ -467,29 +467,52 @@ public class IOTool extends Tool
 	 * The default is "230".
 	 * @return the default GDS layer to use for the text of Export pins.
 	 */
-	public static int getGDSOutDefaultTextLayer() { return cacheGDSOutDefaultTextLayer.getInt(); }
+	public static int getGDSOutDefaultTextLayer() { return tool.cacheGDSDefaultTextLayer.getInt(); }
 	/**
 	 * Method to set the default GDS layer to use for the text of Export pins.
 	 * Export pins are annotated with text objects on this layer.
 	 * @param num the default GDS layer to use for the text of Export pins.
 	 * If this is negative, do not write Export pins.
 	 */
-	public static void setGDSOutDefaultTextLayer(int num) { cacheGDSOutDefaultTextLayer.setInt(num); }
+	public static void setGDSOutDefaultTextLayer(int num) { tool.cacheGDSDefaultTextLayer.setInt(num); }
 
-    private static Pref cacheGDSOutputConvertsBracketsInExports = Pref.makeBooleanSetting("GDSOutputConvertsBracketsInExports", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-            "GDS tab", "GDS output converts brackets in exports", true);
     /**
      * Method to get the state of whether the GDS writer converts brackets
      * to underscores in export names.
      */
-    public static boolean getGDSOutputConvertsBracketsInExports() { return cacheGDSOutputConvertsBracketsInExports.getBoolean(); }
+    public static boolean getGDSOutputConvertsBracketsInExports() { return tool.cacheGDSOutputConvertsBracketsInExports.getBoolean(); }
     /**
      * Method to set the state of whether the GDS writer converts brackets
      * to underscores in export names.
      */
-    public static void setGDSOutputConvertsBracketsInExports(boolean b) { cacheGDSOutputConvertsBracketsInExports.setBoolean(b); }
+    public static void setGDSOutputConvertsBracketsInExports(boolean b) { tool.cacheGDSOutputConvertsBracketsInExports.setBoolean(b); }
 
+    /**
+     * Get the maximum length (number of chars) for Cell names in the GDS output file
+     * @return the number of chars
+     */
+    public static int getGDSCellNameLenMax() { return tool.cacheGDSCellNameLenMax.getInt(); }
+    /**
+     * Set the maximum length (number of chars) for Cell names in the GDS output file
+     */
+    public static void setGDSCellNameLenMax(int len) { tool.cacheGDSCellNameLenMax.setInt(len); }
+
+	private Setting cacheGDSMergesBoxes;
+	private Setting cacheGDSWritesExportPins;
+	private Setting cacheGDSOutputUpperCase;
+	private Setting cacheGDSDefaultTextLayer;
+    private Setting cacheGDSOutputConvertsBracketsInExports;
+    private Setting cacheGDSCellNameLenMax;
+    
+    private void initGDSProjectSettings() {
+        makeBooleanSetting("GDSMergesBoxes", "GDS tab", "GDS output merges boxes", false);
+        makeBooleanSetting("GDSWritesExportPins", "GDS tab", "GDS output writes export pins", false);
+        makeBooleanSetting("GDSOutputUpperCase", "GDS tab", "GDS output all upper-case", false);
+        makeIntSetting("GDSDefaultTextLayer", "GDS tab", "GDS output default text layer", 230);
+        makeBooleanSetting("GDSOutputConvertsBracketsInExports", "GDS tab", "GDS output converts brackets in exports", true);
+        makeIntSetting("GDSCellNameLenMax", "GDS tab", "GDS name length limit", 32);
+    }
+    
 	private static Pref cacheGDSInMergesBoxes = Pref.makeBooleanPref("GDSInMergesBoxes", IOTool.tool.prefs, false);
 	/**
 	 * Method to tell whether GDS Input merges boxes into complex polygons.
@@ -562,19 +585,6 @@ public class IOTool extends Tool
 	 * @param on true if GDS Input ignores unknown layers
 	 */
 	public static void setGDSInIgnoresUnknownLayers(boolean on) { cacheGDSInIgnoresUnknownLayers.setBoolean(on); }
-
-    private static Pref cacheGDSCellNameLenMax = Pref.makeIntSetting("GDSCellNameLenMax", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-    	"GDS tab", "GDS name length limit", 32);
-    /**
-     * Get the maximum length (number of chars) for Cell names in the GDS output file
-     * @return the number of chars
-     */
-    public static int getGDSCellNameLenMax() { return cacheGDSCellNameLenMax.getInt(); }
-    /**
-     * Set the maximum length (number of chars) for Cell names in the GDS output file
-     */
-    public static void setGDSCellNameLenMax(int len) { cacheGDSCellNameLenMax.setInt(len); }
 
     private static Pref cacheGDSConvertNCCExportsConnectedByParentPins = Pref.makeBooleanPref("GDSConvertNCCEconnectedByParentPins", IOTool.tool.prefs, false);
     /**
@@ -918,6 +928,48 @@ public class IOTool extends Tool
 
 	/****************************** DXF PREFERENCES ******************************/
 
+	/**
+	 * Method to tell the DXF scale.
+	 * The DXF scale is:
+	 * <UL>
+	 * <LI>-3: GigaMeters
+	 * <LI>-2: MegaMeters
+	 * <LI>-1: KiloMeters
+	 * <LI>0: Meters
+	 * <LI>1: MilliMeters
+	 * <LI>2: MicroMeters
+	 * <LI>3: NanoMeters
+	 * <LI>4: PicoMeters
+	 * <LI>5: FemtoMeters
+	 * </UL>
+	 * The default is "2" (MicroMeters).
+	 * @return the DXF scale.
+	 */
+	public static int getDXFScale() { return tool.cacheDXFScale.getInt(); }
+	/**
+	 * Method to set the DXF scale.
+	 * The DXF scale is:
+	 * <UL>
+	 * <LI>-3: GigaMeters
+	 * <LI>-2: MegaMeters
+	 * <LI>-1: KiloMeters
+	 * <LI>0: Meters
+	 * <LI>1: MilliMeters
+	 * <LI>2: MicroMeters
+	 * <LI>3: NanoMeters
+	 * <LI>4: PicoMeters
+	 * <LI>5: FemtoMeters
+	 * </UL>
+	 * @param s the DXF scale.
+	 */
+	public static void setDXFScale(int s) { tool.cacheDXFScale.setInt(s); }
+
+	private Setting cacheDXFScale;
+    
+    private void initDXFProjectSettings() {
+        makeIntSetting("DXFScale", "DXF tab", "DXF scale factor", 2);
+    }
+    
 	private static Pref cacheDXFInputFlattensHierarchy = Pref.makeBooleanPref("DXFInputFlattensHierarchy", IOTool.tool.prefs, true);
 	/**
 	 * Method to tell whether DXF Input flattens the hierarchy.
@@ -949,45 +1001,6 @@ public class IOTool extends Tool
 	 * @param a true if DXF input reads all layers.
 	 */
 	public static void setDXFInputReadsAllLayers(boolean a) { cacheDXFInputReadsAllLayers.setBoolean(a); }
-
-	private static Pref cacheDXFScale = Pref.makeIntSetting("DXFScale", IOTool.tool.prefs, IOTool.tool,
-            tool.getProjectSettings(), null,
-		"DXF tab", "DXF scale factor", 2);
-	/**
-	 * Method to tell the DXF scale.
-	 * The DXF scale is:
-	 * <UL>
-	 * <LI>-3: GigaMeters
-	 * <LI>-2: MegaMeters
-	 * <LI>-1: KiloMeters
-	 * <LI>0: Meters
-	 * <LI>1: MilliMeters
-	 * <LI>2: MicroMeters
-	 * <LI>3: NanoMeters
-	 * <LI>4: PicoMeters
-	 * <LI>5: FemtoMeters
-	 * </UL>
-	 * The default is "2" (MicroMeters).
-	 * @return the DXF scale.
-	 */
-	public static int getDXFScale() { return cacheDXFScale.getInt(); }
-	/**
-	 * Method to set the DXF scale.
-	 * The DXF scale is:
-	 * <UL>
-	 * <LI>-3: GigaMeters
-	 * <LI>-2: MegaMeters
-	 * <LI>-1: KiloMeters
-	 * <LI>0: Meters
-	 * <LI>1: MilliMeters
-	 * <LI>2: MicroMeters
-	 * <LI>3: NanoMeters
-	 * <LI>4: PicoMeters
-	 * <LI>5: FemtoMeters
-	 * </UL>
-	 * @param s the DXF scale.
-	 */
-	public static void setDXFScale(int s) { cacheDXFScale.setInt(s); }
 
 	/****************************** SUE OUTPUT PREFERENCES ******************************/
 
