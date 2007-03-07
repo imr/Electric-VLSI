@@ -296,7 +296,12 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 		{
 			// show all networks
 			what = NETS;
-			Netlist netlist = cell.getUserNetlist();
+			Netlist netlist = cell.acquireUserNetlist();
+			if (netlist == null)
+			{
+				System.out.println("Sorry, a deadlock aborted selection (network information unavailable).  Please try again");
+				return;
+			}
 			for(Iterator<Network> it = netlist.getNetworks(); it.hasNext(); )
 			{
 				Network net = it.next();
