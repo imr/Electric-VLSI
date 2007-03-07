@@ -27,6 +27,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -59,6 +60,7 @@ import com.sun.electric.tool.JobException;
 import com.sun.electric.tool.drc.DRC;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,13 +87,8 @@ import java.util.TreeSet;
  * > Routes are made as wide as the widest arc already connected to any point
  *
  * Things to do:
- *     Check via spacings
  *     Ability to route to any previous part of route when daisy-chaining?
- *     Rip-up?
- *
- *     AlternatingMetal	RoutedLength	Time
- *     NO				1,362,582.5		4 mins, 20 secs
- *     YES				1,361,588.5		3 mins, 11 secs
+ *     Rip-up
  */
 public class SeaOfGates
 {
@@ -104,15 +101,18 @@ public class SeaOfGates
 
 	/** Cell in which routing occurs. */										private Cell cell;
 	/** Technology to use for routing. */										private Technology tech;
-	/** R-Trees for blockage in the cell. */									private Map<Layer,RTNode> metalTrees;
+	/** R-Trees for metal blockage in the cell. */								private Map<Layer,RTNode> metalTrees;
+	/** R-Trees for via blockage in the cell. */								private Map<Layer,RTNode> viaTrees;
 	/** Maps Arcs to network IDs in the R-Tree. */								private Map<ArcInst,Integer> netIDs;
 	/** number of metal layers in the technology. */							private int numMetalLayers;
 	/** metal layers in the technology. */										private Layer [] metalLayers;
+	/** via layers in the technology. */										private Layer [] viaLayers;
 	/** arcs to use for each metal layer. */									private ArcProto [] metalArcs;
 	/** favoritism for each metal layer. */										private boolean [] favorArcs;
 	/** avoidance for each metal layer. */										private boolean [] preventArcs;
 	/** vias to use to go up from each metal layer. */							private PrimitiveNode [] metalVias;
 	/** minimum spacing between this metal and itself. */						private double [] layerSurround;
+	/** minimum spacing between the centers of two vias. */						private double [] viaSurround;
 	/** intermediate seach vertices during Dijkstra search. */					private Map<Integer,Map<Integer,SearchVertex>> [] searchVertexPlanes;
 	/** destination coordinate for the current Dijkstra path. */				private int toX, toY, toZ;
 	/** the total length of wires routed */										private double totalWireLength;
@@ -198,7 +198,6 @@ public class SeaOfGates
 		List<ArcInst> arcsToRoute = new ArrayList<ArcInst>();
 		for(NetsToRoute ntr : orderedNetsToRoute)
 		{
-//System.out.println("Routing net "+ntr.net.describe(false)+" which has length "+ntr.length);
 			for(Iterator<ArcInst> it = ntr.net.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = it.next();
@@ -304,6 +303,7 @@ public class SeaOfGates
 		metalArcs = new ArcProto[numMetalLayers];
 		favorArcs = new boolean[numMetalLayers];
 		preventArcs = new boolean[numMetalLayers];
+		viaLayers = new Layer[numMetalLayers-1];
 		metalVias = new PrimitiveNode[numMetalLayers-1];
 		for(Iterator<Layer> it = tech.getLayers(); it.hasNext(); )
 		{
@@ -341,7 +341,17 @@ public class SeaOfGates
 				if ((conns[0] == metalArcs[i] && conns[1] == metalArcs[i+1]) ||
 					(conns[1] == metalArcs[i] && conns[0] == metalArcs[i+1]))
 				{
-					if (metalVias[i] == null) metalVias[i] = np;
+					if (metalVias[i] == null)
+					{
+						metalVias[i] = np;
+						Technology.NodeLayer [] nodeLayers = np.getLayers();
+						for(int j=0; j<nodeLayers.length; j++)
+						{
+							Layer viaLayer = nodeLayers[j].getLayer();
+							if (viaLayer.getFunction().isContact())
+								viaLayers[i] = viaLayer;								
+						}
+					}
 					break;
 				}
 			}
@@ -358,10 +368,18 @@ public class SeaOfGates
 				System.out.println("ERROR: Cannot find arc for Metal " + (i+1));
 				return 0;
 			}
-			if (i < numMetalLayers-1 && metalVias[i] == null)
+			if (i < numMetalLayers-1)
 			{
-				System.out.println("ERROR: Cannot find contact between Metal " + (i+1) + " and Metal " + (i+2));
-				return 0;
+				if (metalVias[i] == null)
+				{
+					System.out.println("ERROR: Cannot find contact node between Metal " + (i+1) + " and Metal " + (i+2));
+					return 0;
+				}
+				if (viaLayers[i] == null)
+				{
+					System.out.println("ERROR: Cannot find contact layer between Metal " + (i+1) + " and Metal " + (i+2));
+					return 0;
+				}
 			}
 		}
 
@@ -374,31 +392,26 @@ public class SeaOfGates
 			DRCTemplate rule = DRC.getSpacingRule(lay, null, lay, null, false, -1, 10, 100);
 			if (rule != null) layerSurround[i] = rule.getValue(0);
 		}
-//		cutUpSpacing = new double[numMetalLayers];
-//		cutDownSpacing = new double[numMetalLayers];
-//		for(int i=0; i<numMetalLayers-1; i++)
-//		{
-//			PrimitiveNode np = metalVias[i];
-//			NodeInst dummyNi = NodeInst.makeDummyInstance(np);
-//			PolyBase [] polys = tech.getShapeOfNode(dummyNi);
-//			for(int j=0; j<polys.length; j++)
-//			{
-//				Rectangle2D rect = polys[j].getBounds2D();
-//				double maxSpacing = Math.max(Math.max(Math.abs(rect.getMinX()), Math.abs(rect.getMaxX())),
-//					Math.max(Math.abs(rect.getMinY()), Math.abs(rect.getMaxY())));
-//				if (polys[j].getLayer() == metalLayers[i])
-//				{
-//					cutUpSpacing[i] = maxSpacing + layerSurround[i];
-//				} else if (polys[j].getLayer() == metalLayers[i+1])
-//				{
-//					cutDownSpacing[i+1] = maxSpacing + layerSurround[i+1];
-//				}
-//			}
-//		}
+		viaSurround = new double[numMetalLayers-1];
+		for(int i=0; i<numMetalLayers-1; i++)
+		{
+			Layer lay = viaLayers[i];
+
+			double spacing = 2;
+			DRCTemplate ruleSpacing = DRC.getSpacingRule(lay, null, lay, null, false, -1, 10, 100);
+			if (ruleSpacing != null) spacing = ruleSpacing.getValue(0);
+
+			double width = 2;
+			DRCTemplate ruleWidth = DRC.getMinValue(lay, DRCTemplate.DRCRuleType.NODSIZ);
+			if (ruleWidth != null) width = ruleWidth.getValue(0);
+
+			viaSurround[i] = spacing + width;
+		}
 
 		// get all blockage information into R-Trees
 		System.out.println("Building blockage information...");
 		metalTrees = new HashMap<Layer, RTNode>();
+		viaTrees = new HashMap<Layer, RTNode>();
 		netIDs = new HashMap<ArcInst,Integer>();
 		BlockageVisitor visitor = new BlockageVisitor(arcsToRoute);
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, visitor);
@@ -607,13 +620,20 @@ public class SeaOfGates
 					}
 				}
 				if (lowMetal < 0) continue;
-				if (lowMetal == highMetal)
+//				if (lowMetal == highMetal)
 				{
-					// port on single metal layer: reserve space on layers above and below
-					for(int via = lowMetal-2; via < lowMetal; via++)
+					// reserve space on layers above and below
+					for(int via = lowMetal-2; via < highMetal-1; via++)
 					{
 						if (via < 0 || via >= numMetalLayers-1) continue;
-						NodeInst dummy = NodeInst.makeDummyInstance(metalVias[via]);
+
+						PrimitiveNode np = metalVias[via];
+						SizeOffset so = np.getProtoSizeOffset();
+						double xOffset = so.getLowXOffset() + so.getHighXOffset();
+						double yOffset = so.getLowYOffset() + so.getHighYOffset();
+						double wid = Math.max(np.getDefWidth()-xOffset, minWidth) + xOffset;
+						double hei = Math.max(np.getDefHeight()-yOffset, minWidth) + yOffset;					
+						NodeInst dummy = NodeInst.makeDummyInstance(metalVias[via], EPoint.ORIGIN, wid, hei, Orientation.IDENT);
 						PolyBase [] polys = tech.getShapeOfNode(dummy);
 						for(int i=0; i<polys.length; i++)
 						{
@@ -621,18 +641,12 @@ public class SeaOfGates
 							Layer layer = viaPoly.getLayer();
 							if (!layer.getFunction().isMetal()) continue;
 							Rectangle2D viaBounds = viaPoly.getBounds2D();
-							if (viaBounds.getWidth() < minWidth)
-								viaBounds.setRect(-minWidth/2, viaBounds.getMinY(), minWidth, viaBounds.getHeight());
-							if (viaBounds.getHeight() < minWidth)
-								viaBounds.setRect(viaBounds.getMinX(), -minWidth/2, viaBounds.getHeight(), minWidth);
 							Rectangle2D bounds = new Rectangle2D.Double(viaBounds.getMinX() + polyBounds.getCenterX(),
 								viaBounds.getMinY() + polyBounds.getCenterY(), viaBounds.getWidth(), viaBounds.getHeight());
-							if (getBlockage(netID, layer, bounds.getWidth()/2, bounds.getHeight()/2,
-								bounds.getCenterX(), bounds.getCenterY()) == null)
+//							if (getMetalBlockage(netID, layer, bounds.getWidth()/2, bounds.getHeight()/2,
+//								bounds.getCenterX(), bounds.getCenterY()) == null)
 							{
 								addRectangle(bounds, layer, netID);
-//System.out.println("PLACING CONTACT " + metalVias[via].describe(false) + " SO RESERVING SPACE ON "+layer.getName()+" "+
-//	bounds.getMinX()+"<=X<="+bounds.getMaxX()+" and "+bounds.getMinY()+"<=Y<="+bounds.getMaxY());
 							}
 						}
 					}
@@ -1048,7 +1062,7 @@ public class SeaOfGates
 								cY = curY + (dy + hi) / 2;
 								halfHei += Math.abs(hi-dy)/2;
 							}
-							if (getBlockage(netID, metalLayers[curZ], halfWid, halfHei, cX, cY) == null) break;
+							if (getMetalBlockage(netID, metalLayers[curZ], halfWid, halfHei, cX, cY) == null) break;
 							hi /= 2;
 						}
 						if (dx != 0) dx = hi; else dy = hi;
@@ -1076,7 +1090,7 @@ public class SeaOfGates
 					// running on one layer: check surround
 					double width = Math.max(metalArcs[nZ].getDefaultLambdaBaseWidth(), minWidth);
 					double metalSpacing = width / 2 + layerSurround[nZ];
-					if (getBlockage(netID, metalLayers[nZ], metalSpacing, metalSpacing, nX, nY) != null) continue;
+					if (getMetalBlockage(netID, metalLayers[nZ], metalSpacing, metalSpacing, nX, nY) != null) continue;
 				} else
 				{
 					int lowMetal = Math.min(curZ, nZ);
@@ -1085,10 +1099,13 @@ public class SeaOfGates
 					SizeOffset so = np.getProtoSizeOffset();
 					double horizSpacing = Math.max(np.getDefWidth()-so.getLowXOffset()-so.getHighXOffset(), minWidth) / 2;
 					double vertSpacing = Math.max(np.getDefHeight()-so.getLowYOffset()-so.getHighYOffset(), minWidth) / 2;
-					if (getBlockage(netID, metalLayers[lowMetal], horizSpacing + layerSurround[lowMetal],
+					if (getMetalBlockage(netID, metalLayers[lowMetal], horizSpacing + layerSurround[lowMetal],
 						vertSpacing + layerSurround[lowMetal], nX, nY) != null) continue;
-					if (getBlockage(netID, metalLayers[highMetal], horizSpacing + layerSurround[highMetal],
+					if (getMetalBlockage(netID, metalLayers[highMetal], horizSpacing + layerSurround[highMetal],
 						vertSpacing + layerSurround[highMetal], nX, nY) != null) continue;
+
+					// make sure vias don't get too close
+					if (getViaBlockage(netID, viaLayers[lowMetal], viaSurround[lowMetal], viaSurround[lowMetal], nX, nY) != null) continue;
 				}
 
 				// we have a candidate next-point
@@ -1165,13 +1182,18 @@ public class SeaOfGates
 			}
 			return realVertices;
 		}
+
+		// exhausted all possible paths...cannot connect
+//		dumpPlane(0);
+//		dumpPlane(1);
+//		dumpPlane(2);
 		return null;
 	}
 
 	/************************************** BLOCKAGE DATA STRUCTURE **************************************/
 
 	/**
-	 * Class to define an R-Tree leaf node for the blockage data structure.
+	 * Class to define an R-Tree leaf node for geometry in the blockage data structure.
 	 */
 	private static class SOGBound implements RTBounds
 	{
@@ -1192,28 +1214,79 @@ public class SeaOfGates
 	}
 
 	/**
-	 * Method to find a blockage in the R-Tree.
-	 * @param netID the network ID of the desired space (blockages on this ID are ignored).
-	 * @param layer the layer being examined.
-	 * @param halfWidth half of the width of the area needed.
-	 * @param halfHeight half of the height of the area needed.
-	 * @param x the X coordinate at the center of the area needed.
-	 * @param y the Y coordinate at the center of the area needed.
-	 * @return a bound object in the area that is a blockage.
-	 * Returns null if the space is clear.
+	 * Class to define an R-Tree leaf node for vias in the blockage data structure.
 	 */
-	private SOGBound getBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double x, double y)
+	private static class SOGVia implements RTBounds
+	{
+		private Point2D loc;
+		private int netID;
+
+		SOGVia(Point2D loc, int netID)
+		{
+			this.loc = loc;
+			this.netID = netID;
+		}
+		
+		public Rectangle2D getBounds() { return new Rectangle2D.Double(loc.getX(), loc.getY(), 0, 0); }
+
+		public int getNetID() { return netID; }
+
+		public String toString() { return "SOGVia on net " + netID; }
+	}
+
+	/**
+	 * Method to find a metal blockage in the R-Tree.
+	 * @param netID the network ID of the desired space (blockages on this netID are ignored).
+	 * @param layer the metal layer being examined.
+	 * @param halfWidth half of the width of the area to examine.
+	 * @param halfHeight half of the height of the area to examine.
+	 * @param x the X coordinate at the center of the area to examine.
+	 * @param y the Y coordinate at the center of the area to examine.
+	 * @return a blocking SOGBound object that is in the area.
+	 * Returns null if the area is clear.
+	 */
+	private SOGBound getMetalBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double x, double y)
 	{
 		RTNode rtree = metalTrees.get(layer);
 		if (rtree == null) return null;
 
-		// see if there is anything in that space
+		// see if there is anything in that area
 		Rectangle2D searchArea = new Rectangle2D.Double(x-halfWidth, y-halfHeight, halfWidth*2, halfHeight*2);
 		for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
 		{
 			SOGBound sBound = (SOGBound)sea.next();
 			if (sBound.getNetID() == netID) continue;
 			return sBound;
+		}
+		return null;
+	}
+
+	/**
+	 * Method to find a via blockage in the R-Tree.
+	 * @param netID the network ID of the desired space (vias at this point and on this netID are ignored).
+	 * @param layer the via layer being examined.
+	 * @param halfWidth half of the width of the area to examine.
+	 * @param halfHeight half of the height of the area to examine.
+	 * @param x the X coordinate at the center of the area to examine.
+	 * @param y the Y coordinate at the center of the area to examine.
+	 * @return a blocking SOGVia object that is in the area.
+	 * Returns null if the area is clear.
+	 */
+	private SOGVia getViaBlockage(int netID, Layer layer, double halfWidth, double halfHeight, double x, double y)
+	{
+		RTNode rtree = viaTrees.get(layer);
+		if (rtree == null) return null;
+
+		// see if there is anything in that area
+		Rectangle2D searchArea = new Rectangle2D.Double(x-halfWidth, y-halfHeight, halfWidth*2, halfHeight*2);
+		for(RTNode.Search sea = new RTNode.Search(searchArea, rtree, true); sea.hasNext(); )
+		{
+			SOGVia sLoc = (SOGVia)sea.next();
+			if (sLoc.getNetID() == netID)
+			{
+				if (sLoc.loc.getX() == x && sLoc.loc.getY() == y) continue;
+			}
+			return sLoc;
 		}
 		return null;
 	}
@@ -1311,16 +1384,23 @@ public class SeaOfGates
 			if ((layer.getFunctionExtras()&Layer.Function.PSEUDO) != 0) return;
 		}
 		Layer.Function fun = layer.getFunction();
-		if (!fun.isMetal()) return;
-		Rectangle2D bounds = poly.getBounds2D();
-		GenMath.transformRect(bounds, trans);
-		addRectangle(bounds, layer, netID);
+		if (fun.isMetal())
+		{
+			Rectangle2D bounds = poly.getBounds2D();
+			GenMath.transformRect(bounds, trans);
+			addRectangle(bounds, layer, netID);
+		} else if (fun.isContact())
+		{
+			Rectangle2D bounds = poly.getBounds2D();
+			GenMath.transformRect(bounds, trans);
+			addVia(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), layer, netID);
+		}
     }
 
     /**
-     * Method to add a rectangle to the R-Tree.
+     * Method to add a rectangle to the metal R-Tree.
      * @param bounds the rectangle to add.
-     * @param layer the layer on which to add the rectangle.
+     * @param layer the metal layer on which to add the rectangle.
      * @param netID the global network ID of the geometry.
      */
     private void addRectangle(Rectangle2D bounds, Layer layer, int netID)
@@ -1333,6 +1413,24 @@ public class SeaOfGates
 		}
 		RTNode newRoot = RTNode.linkGeom(null, root, new SOGBound(bounds, netID));
 		if (newRoot != root) metalTrees.put(layer, newRoot);
+    }
+
+    /**
+     * Method to add a point to the via R-Tree.
+     * @param loc the point to add.
+     * @param layer the via layer on which to add the point.
+     * @param netID the global network ID of the geometry.
+     */
+    private void addVia(Point2D loc, Layer layer, int netID)
+    {
+		RTNode root = viaTrees.get(layer);
+		if (root == null)
+		{
+			root = RTNode.makeTopLevel();
+			viaTrees.put(layer, root);
+		}
+		RTNode newRoot = RTNode.linkGeom(null, root, new SOGVia(loc, netID));
+		if (newRoot != root) viaTrees.put(layer, newRoot);
     }
 
 	/************************************** DIJKSTRA PATH SEARCHING **************************************/
