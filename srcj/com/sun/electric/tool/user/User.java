@@ -2304,6 +2304,23 @@ public class User extends Listener
 	 */
 	public static void setPanningDistance(int d) { cachePanningDistance.setInt(d); }
 
+	private static Pref cacheDisplayStyle = Pref.makeIntPref("DisplayStyle", tool.prefs, 0);
+	/**
+	 * Method to tell the initial display style for Electric.
+	 * The values are: 0=OS default, 1=MDI, 2=SDI.
+	 * The default is 0.
+	 * @return the display style for Electric.
+	 */
+	public static int getDisplayStyle() { return cacheDisplayStyle.getInt(); }
+	/**
+	 * Method to set the initial display style for Electric.
+	 * @param s the display style for Electric.
+	 * The values are: 0=OS default, 1=MDI, 2=SDI.
+	 * Changes do not take effect until Electric is restarted.
+	 */
+	public static void setDisplayStyle(int s) { cacheDisplayStyle.setInt(s); }
+
+	
 	private static Pref cacheErrorLimit = Pref.makeIntPref("ErrorLimit", tool.prefs, 0);
 	/**
 	 * Method to tell the maximum number of errors to log.

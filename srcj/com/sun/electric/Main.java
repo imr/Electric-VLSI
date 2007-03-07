@@ -155,11 +155,12 @@ public final class Main
             runMode = Job.Mode.CLIENT;
         }
 
-        boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
-        boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
         UserInterfaceMain.Mode mode = null;
-        if (mdiMode) mode = UserInterfaceMain.Mode.MDI;
-        if (sdiMode) mode = UserInterfaceMain.Mode.SDI;
+        int defMode = User.getDisplayStyle();
+        if (defMode == 1) mode = UserInterfaceMain.Mode.MDI; else
+            if (defMode == 2) mode = UserInterfaceMain.Mode.SDI;
+        if (hasCommandLineOption(argsList, "-mdi")) mode = UserInterfaceMain.Mode.MDI;
+        if (hasCommandLineOption(argsList, "-sdi")) mode = UserInterfaceMain.Mode.SDI;
         
         AbstractUserInterface ui;
         if (runMode == Job.Mode.FULL_SCREEN || runMode == Job.Mode.CLIENT)
