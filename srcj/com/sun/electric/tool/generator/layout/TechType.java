@@ -188,7 +188,7 @@ public abstract class TechType implements Serializable {
         layers = new ArcProto[nbLay];
         for (int i=0; i<nbLay; i++) {
             layers[i] = tech.findArcProto(layerNms[i]);
-            error(layers[i]==null, "No such layer: " + layerNms[i]);
+            error(layers[i]==null, "No such layer: " + layerNms[i] + " in technology " + tech.getTechName());
         }
         p1 = getLayer(0);
         m1 = getLayer(1);
