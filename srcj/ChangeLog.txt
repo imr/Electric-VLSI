@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05i: *********************************
 
+IMP: (3/7/07, SMR) Sea of gates router now handles vias properly.
+
+IMP: (3/7/07, SMR) Improved "Estimate Delays" calculations.
+
 IMP/MAN: (3/6/07, SMR) Sea of gates router has parameters in "Routing preferences".
 
 BUG: (3/05/07, DN) "Easy shape" bit of ImmutableArcInst can become invalid after foundry change.
