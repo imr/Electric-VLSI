@@ -754,11 +754,24 @@ public class ToolMenu {
 		System.out.println("Sizes cleared");
 	}
 
+	private static final double COEFFICIENTMETAL = 0.25;
+	private static final double COEFFICIENTPOLY = 0.25;
+	private static final double COEFFICIENTDIFF = 0.7;
+
 	public static void estimateDelaysCommand()
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
 
+		System.out.println("Delay estimation for each network is a ratio of the following:");
+		System.out.println("  Numerator is the sum of these layers on the network:");
+		System.out.println("    Transistor widths");
+		System.out.println("    Diffusion half-perimeter, weighted by " + COEFFICIENTDIFF);
+		System.out.println("    Polysilicon half-perimeter, weighted by " + COEFFICIENTPOLY);
+		System.out.println("    Metal half-perimeter, weighted by " + COEFFICIENTMETAL);
+		System.out.println("  Denominator is the width of transistors on the network");
+		System.out.println("    Separate results are computed for N and P transistors, as well as their sum");
+		System.out.println("-----------------------------------------------------------------------------");
 		Netlist nl = cell.acquireUserNetlist();
 		for(Iterator<Network> it =  nl.getNetworks(); it.hasNext(); )
 		{
@@ -772,28 +785,31 @@ public class ToolMenu {
 	        LayerCoverageTool.TransistorInfo p_active = geoms.getPActive();
 	        LayerCoverageTool.TransistorInfo n_active = geoms.getNActive();
 
-			// numerator has the area of all transistors connected by their gate
-			double numerator = p_gate.area + n_gate.area;
-			System.out.println("Network " + net.describe(false) + " numerator computation:");
-			System.out.println("      N Gate area = " + n_gate.area + ", P Gate area = " + p_gate.area);
+			// compute the numerator, starting with gate widths
+			double numerator = p_gate.width + n_gate.width;
+			if (numerator == 0) continue;
+			System.out.println("Network " + net.describe(true) + " ratio computation:");
+			System.out.println("   N Gate width = " + n_gate.width + ", P Gate width = " + p_gate.width);
 
-			// numerator also sums area of each layer
+			// numerator also sums half-perimeter of each layer
 		    List<Layer> layers = geoms.getLayers();
-		    List<Double> areas = geoms.getAreas();
+		    List<Double> halfPerimeters = geoms.getHalfPerimeters();
 		    for(int i=0; i<layers.size(); i++)
 		    {
 		    	Layer layer = layers.get(i);
 		    	Layer.Function fun = layer.getFunction();
 		    	if (!fun.isDiff() && !fun.isMetal() && !fun.isPoly()) continue;
-		    	Double area = areas.get(i);
-				double coefficient = 1.0;
-				if (fun.isMetal()) coefficient = 0.1;
-				if (fun.isPoly()) coefficient = 0.1;
-				double result = area.doubleValue() * coefficient;
-				System.out.println("      Layer " + layer.getName() + " has " + area + " x " + coefficient + " = " +
-					TextUtils.formatDouble(result));
+		    	if (fun.isGatePoly()) continue;
+		    	Double halfPerimeter = halfPerimeters.get(i);
+				double coefficient = COEFFICIENTDIFF;
+				if (fun.isMetal()) coefficient = COEFFICIENTMETAL;
+				if (fun.isPoly()) coefficient = COEFFICIENTPOLY;
+				double result = halfPerimeter.doubleValue() * coefficient;
+				System.out.println("   Layer " + layer.getName() + " half-perimeter is " + TextUtils.formatDouble(halfPerimeter) +
+					" x " + coefficient + " = " + TextUtils.formatDouble(result));
 				numerator += result;
 			}
+		    System.out.println("   Numerator is the sum of these factors (" + TextUtils.formatDouble(numerator) + ")");
 
 			// show the results
 			double pdenominator = p_active.width;
