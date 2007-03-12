@@ -170,6 +170,21 @@ public class GateLayoutGenerator {
 		return stdCell;
 	}
 
+    public static StdCellParams fastProxParams(TechType technology) {
+        StdCellParams stdCell = new StdCellParams(technology);
+        stdCell.enableNCC("purpleFour");
+        stdCell.setSizeQuantizationError(0);
+        stdCell.setMaxMosWidth(1000);
+        stdCell.setVddY(24);
+        stdCell.setGndY(-24);
+        stdCell.setVddWidth(9);
+        stdCell.setGndWidth(9);
+        stdCell.setNmosWellHeight(90);
+        stdCell.setPmosWellHeight(90);
+        stdCell.setSimpleName(true);
+        return stdCell;
+    }
+
 	public static StdCellParams justinParams(TechType technology) {
 		StdCellParams stdCell = new StdCellParams(technology);
 		stdCell.enableNCC("purpleFour");
