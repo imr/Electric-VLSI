@@ -1088,6 +1088,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable<Cell>
             } else {
                 ni = new NodeInst(d, this);
                 chronNodes.set(d.nodeId, ni);
+                if (ni.isCellInstance()) {
+                    Cell subCell = (Cell)ni.getProto();
+                    expandedNodes.set(d.nodeId, subCell.isWantExpanded());
+                    expandStatusModified = true;
+                }
             }
             ni.setNodeIndex(i);
             nodes.add(ni);
