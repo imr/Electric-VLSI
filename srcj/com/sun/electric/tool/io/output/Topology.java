@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 
 import java.util.HashMap;
 import java.util.List;
@@ -1132,7 +1133,7 @@ public abstract class Topology extends Output
         }
 
         private String getDefaultName(Cell cell) {
-            if (alwaysUseLibName) {
+            if (alwaysUseLibName && !SCLibraryGen.isStandardCell(cell)) {
                 return cell.getLibrary().getName() + "__" + cell.getName();
             } else
                 return cell.getName();

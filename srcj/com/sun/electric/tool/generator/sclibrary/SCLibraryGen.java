@@ -1,14 +1,13 @@
 package com.sun.electric.tool.generator.sclibrary;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -269,6 +268,31 @@ public class SCLibraryGen {
     public static void markStandardCell(Cell cell) {
         PowerAnalysis.CreateVar job = new PowerAnalysis.CreateVar(cell, STANDARDCELL, new Integer(1));
         job.doIt();
+    }
+
+    /**
+     * Return the standard cells in a hierarchy starting from
+     * the specified top cell. Note this returns only schematic cells.
+     * @param topCell the top cell in the hierarchy
+     * @return a set of standard cells in the hierarchy
+     */
+    public static Set<Cell> getStandardCellsInHierarchy(Cell topCell) {
+        Set<Cell> cells = new TreeSet<Cell>();
+        if (topCell.getView() == View.ICON)
+            topCell = topCell.getCellGroup().getMainSchematics();
+        for (Iterator<NodeInst> it = topCell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = it.next();
+            if (ni.isCellInstance()) {
+                Cell subcell = (Cell)ni.getProto();
+                if (subcell.isIconOf(topCell)) continue;
+                if (isStandardCell(subcell.getCellGroup().getMainSchematics())) {
+                    cells.add(subcell.getCellGroup().getMainSchematics());
+                } else {
+                    cells.addAll(getStandardCellsInHierarchy(subcell));
+                }
+            }
+        }
+        return cells;
     }
 
     /**

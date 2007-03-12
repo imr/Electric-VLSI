@@ -58,6 +58,7 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.waveform.WaveformWindow;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.JobException;
+import com.sun.electric.tool.generator.sclibrary.SCLibraryGen;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
 import com.sun.electric.tool.logicaleffort.LENetlister;
@@ -1720,7 +1721,7 @@ public class Spice extends Topology
             uniqueCellName.append("_"+vc.getInstPath("."));
         } else {
             boolean useCellParams = !useCDL && Simulation.isSpiceUseCellParameters();
-            if (canParameterizeNames() && no.isCellInstance())
+            if (canParameterizeNames() && no.isCellInstance() && !SCLibraryGen.isStandardCell(cell))
             {
                 // if there are parameters, append them to this name
                 List<Variable> paramValues = new ArrayList<Variable>();
