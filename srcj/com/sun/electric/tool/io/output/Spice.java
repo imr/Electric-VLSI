@@ -1100,8 +1100,13 @@ public class Spice extends Topology
                     String partName = "R";
 					if (resistVar != null)
 					{
-						extra = resistVar.describe(context, ni);
-						if (TextUtils.isANumber(extra))
+                        if (resistVar.getCode() == TextDescriptor.Code.SPICE) {
+                            Object obj = context.evalSpice(resistVar, false);
+                            extra = String.valueOf(obj);
+                        }
+                        if (extra == null)
+                            extra = resistVar.describe(context, ni);
+                        if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
 							extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
@@ -1142,7 +1147,12 @@ public class Spice extends Topology
 					String extra = "";
 					if (capacVar != null)
 					{
-						extra = capacVar.describe(context, ni);
+                        if (capacVar.getCode() == TextDescriptor.Code.SPICE) {
+                            Object obj = context.evalSpice(capacVar, false);
+                            extra = String.valueOf(obj);
+                        }
+                        if (extra == null)
+                            extra = capacVar.describe(context, ni);
 						if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
@@ -1158,7 +1168,12 @@ public class Spice extends Topology
 					String extra = "";
 					if (inductVar != null)
 					{
-						extra = inductVar.describe(context, ni);
+                        if (inductVar.getCode() == TextDescriptor.Code.SPICE) {
+                            Object obj = context.evalSpice(inductVar, false);
+                            extra = String.valueOf(obj);
+                        }
+                        if (extra == null)
+                            extra = inductVar.describe(context, ni);
 						if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
