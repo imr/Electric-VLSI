@@ -1046,7 +1046,9 @@ public class LayerCoverageTool extends Tool
 
 	    public List<Double> getAreas() { return areas; }
 
-	    private void addLayer(Layer layer, double area, double halfperimeter)
+        public List<Double> getHalfPerimeters() { return halfPerimeters; }
+
+        private void addLayer(Layer layer, double area, double halfperimeter)
         {
             assert(layer != null);
             if (onlyThisLayer != null && layer != onlyThisLayer) return; // skip this one
