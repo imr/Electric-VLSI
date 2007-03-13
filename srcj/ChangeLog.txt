@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.05i: *********************************
 
+BUG: (3/12/07, DN) Electric doesn't start when User.getDefaultTechnology is artwork.
+FIX: In Technology.initAllTechnology set "curLayoutTech = MoCMOS.tech".
+
 BUG: (3/12/07, GVG) DRC minArea and active arcs between transistors (Bug #1288)
 FIX: Not to stop searching of the valid bucket after the first instance is found in QuickAreaEnumerator.visitNodeInst
 

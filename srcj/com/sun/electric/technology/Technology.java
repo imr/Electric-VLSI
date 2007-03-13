@@ -685,9 +685,6 @@ public class Technology implements Comparable<Technology>
 		Schematics.tech.setup();
 		Generic.tech.setup();
 
-		// finished batching preferences
-		Pref.resumePrefFlushing();
-
 		// initialize technologies that may not be present
 		for(int i=0; i<extraTechnologies.length; i++)
 		{
@@ -706,7 +703,11 @@ public class Technology implements Comparable<Technology>
             }
 		}
 
+		// finished batching preferences
+		Pref.resumePrefFlushing();
+
 		// set the current technology, given priority to user defined
+        curLayoutTech = MoCMOS.tech;
         Technology  tech = Technology.findTechnology(User.getDefaultTechnology());
         if (tech == null) tech = MoCMOS.tech;
         tech.setCurrent();
