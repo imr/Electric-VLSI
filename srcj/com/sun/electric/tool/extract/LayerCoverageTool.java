@@ -448,6 +448,7 @@ public class LayerCoverageTool extends Tool
                                 PrimitiveNode priNode = layer.getPureLayerNode();
                             	for(Rectangle2D r : newImplants)
                             	{
+                            		// TODO Do not create if it is covered by original geometry
                                     Point2D center = new Point2D.Double(r.getCenterX(), r.getCenterY());
                                     NodeInst node = NodeInst.makeInstance(priNode, center, r.getWidth(), r.getHeight(), curCell);
                                     nodesToExamine.add(node);
@@ -1046,7 +1047,7 @@ public class LayerCoverageTool extends Tool
 
 	    public List<Double> getAreas() { return areas; }
 
-        public List<Double> getHalfPerimeters() { return halfPerimeters; }
+	    public List<Double> getHalfPerimeters() { return halfPerimeters; }
 
         private void addLayer(Layer layer, double area, double halfperimeter)
         {
